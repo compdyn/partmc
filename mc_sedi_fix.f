@@ -12,7 +12,7 @@
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi, d, phi,rho_p
-      real*8   V(MM+1),D_p
+      real*8   V(MM),D_p
         
       real*8   v_cent,nv_conc,q
       integer  n_bin,k,NN_cnt
@@ -181,10 +181,10 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       integer MM,s1,s2,Time_count,n_samp
       parameter (MM=10000)
 
-      real*8 V(MM+1),a,random,V_comp
+      real*8 V(MM),a,random,V_comp
       real*8 tot_free_max
       real*8 del_T, TIME, pi
-      real*8 v_alt(MM+1)
+      real*8 v_alt(MM)
   
       parameter (pi=3.1415)
 
@@ -451,7 +451,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       integer M,MM,n_bin,Time_count,NN_cnt
       real*8 nv_conc,nv_dist,dlnr
       parameter (MM=10000,n_bin=160)
-      real*8 V(MM+1),N_tot,vv(n_bin),dp(n_bin)
+      real*8 V(MM),N_tot,vv(n_bin),dp(n_bin)
       real*8 V_comp,del_T,TIME,tot_free_max
       real*8 phi
       real*8 q,V_bar,del_v,N_inf

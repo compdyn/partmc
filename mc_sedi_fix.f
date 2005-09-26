@@ -1,30 +1,28 @@
       program MonteCarlo
 
  
-      integer  M, N_opt,M_local
+      integer  M, N_opt
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
-      integer  i, j, l,s1,s2
+      integer  i
       integer  Time_count,lmin
 
-      real*8   random, a, TIME, 
+      real*8   TIME, 
      &         del_T,tot_free_max, V_comp, V_bar 
       real*8   TIME_MAX
       real*8   N_tot
-      real*8   pi, d, phi,rho_p
-      real*8   V(MM),D_p
+      real*8   pi, rho_p
+      real*8   V(MM)
         
-      real*8   v_cent,nv_conc,q
-      integer  n_bin,k,NN_cnt
+      integer  n_bin,k
       parameter (n_bin = 160)
       real*8   N_inf
-      real*8   V_bin(n_bin),n_ini(n_bin)
+      real*8   n_ini(n_bin)
       real*8   vv(n_bin),e(n_bin),r(n_bin),dp(n_bin)
       real*8   n_norm(n_bin),d_norm(n_bin)
-      real*8   g(n_bin)
 C     *** For initialization
 
-      real*8   rr(n_bin),n_ln(n_bin),delta_n(n_bin)
-      real*8   logsg,rg,dlnr
+      real*8   rr(n_bin),delta_n(n_bin)
+      real*8   dlnr
       integer  sum_a, sum_e
       parameter(TIME_MAX = 1800., del_T = 1.)
 
@@ -154,10 +152,10 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      *                      del_T,TIME,tlmin,Time_count,
      *                      n_samp)
 
-      integer MM,s1,s2,Time_count,n_samp
+      integer MM,Time_count,n_samp
       parameter (MM=10000)
 
-      real*8 V(MM),a,random,V_comp
+      real*8 V(MM),V_comp
       real*8 tot_free_max
       real*8 del_T, TIME, pi
   
@@ -265,12 +263,11 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 c terminal velocity of falling drops
       implicit double precision (a-h,o-z)
-      dimension b(7),c(6),rat(20),r0(15),ecoll(15,20)
+      dimension b(7),c(6)
       data b /-0.318657e1,0.992696,-0.153193e-2,-0.987059e-3,
      &        -0.578878e-3,0.855176e-4,-0.327815e-5/
       data c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
      &         0.238449e-2/
-      data pi /3.141592654/
       eta=1.818e-4
       xlamb=6.62e-6
       rhow=1.
@@ -409,13 +406,12 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      &                       tot_free_max,vv,dlnr,dp,n_samp)
 
       integer M,MM,n_bin,Time_count,NN_cnt
-      real*8 nv_conc,nv_dist,dlnr
+      real*8 nv_conc,dlnr
       parameter (MM=10000,n_bin=160)
       real*8 V(MM),N_tot,vv(n_bin),dp(n_bin)
       real*8 V_comp,del_T,TIME,tot_free_max
-      real*8 phi
-      real*8 q,V_bar,del_v,N_inf
-      real*8 v_cent,rr(n_bin)
+      real*8 V_bar
+      real*8 rr(n_bin)
       real*8 g(n_bin+1)
       real*8 n_ln(n_bin)
       real*8 pi,rho_w,p_max

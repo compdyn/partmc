@@ -17,7 +17,6 @@
       integer  n_bin,k,NN_cnt
       parameter (n_bin = 160)
       real*8   N_inf
-      real*8   eta(n_bin+1),psi(n_bin+1)
       real*8   V_bin(n_bin),n_ini(n_bin)
       real*8   vv(n_bin),e(n_bin),r(n_bin),dp(n_bin)
       real*8   n_norm(n_bin),d_norm(n_bin)
@@ -448,8 +447,8 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 V_comp,del_T,TIME,tot_free_max
       real*8 phi
       real*8 q,V_bar,del_v,N_inf
-      real*8 v_cent,eta(n_bin+1),rr(n_bin)
-      real*8 psi(n_bin+1),g(n_bin+1)
+      real*8 v_cent,rr(n_bin)
+      real*8 g(n_bin+1)
       real*8 n_ln(n_bin)
       real*8 pi,rho_w,p_max
 
@@ -472,11 +471,9 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
                endif
           enddo
           
-              eta(k)  = dp(k)/d_0
               nv_conc = NN_cnt/V_comp
               vv_conc = vv_cnt/V_comp
               n_ln(k) = nv_conc/dlnr
-              psi(k) =  nv_conc*d_0/(dlnr*dp(k)*MM)
               g(k)   =  vv_conc/dlnr
   
       enddo
@@ -491,7 +488,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          write(30,*)'Time = ',TIME
          sum_masse = 0.
          do k=1,n_bin
-              write(30,'(i4,6e14.5)')k,eta(k), psi(k),
+              write(30,'(i4,6e14.5)')k,
      &           dp(k)/2.,n_ln(k),g(k)
                  sum_masse = sum_masse + g(k)*dlnr
          enddo

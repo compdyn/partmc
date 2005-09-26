@@ -1,7 +1,7 @@
       program MonteCarlo
 
  
-      integer  M, M_initial,N_opt,M_local
+      integer  M, N_opt,M_local
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i, j, l,TOPUP,s1,s2
       integer  Time_count,lmin
@@ -39,8 +39,7 @@ C     *** For initialization
       write(30,*)'i_loop=',i_loop,t1
 
       pi=3.1416            
-      M=10000
-      M_initial=M                 ! ACTUAL INITIAL NUMBER OF PARTICLES
+      M=MM
       M_comp=M
       scal = 3
 

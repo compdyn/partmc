@@ -4,7 +4,6 @@
       integer  M, M_initial,N_opt,M_local
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i, j, l,TOPUP,s1,s2
-      integer  i_count
       integer  Time_count,lmin
 
       real*8   random, a, TIME, 
@@ -123,7 +122,6 @@ c      write(6,*)'total vol start ',sum
       tlmin = 0.
       lmin = 0
       M_comp = M
-      i_count = 0
 
 C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
@@ -148,7 +146,7 @@ C        *** NEXT calculate the collsion probability ***
 
          call sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
      &                      del_T,TIME,tlmin,Time_count,
-     &                      i_count,n_samp)
+     &                      n_samp)
           
 
          sum=0.
@@ -176,7 +174,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       subroutine sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
      *                      del_T,TIME,tlmin,Time_count,
-     *                      i_count,n_samp)
+     *                      n_samp)
 
       integer MM,s1,s2,Time_count,n_samp
       parameter (MM=10000)
@@ -194,7 +192,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       do i_samp = 1,n_samp
 
-         call find_pair(V,M_comp,V_comp,M,del_T,n_samp,i_count)
+         call find_pair(V,M_comp,V_comp,M,del_T,n_samp)
  
          M_local=M             !CURRENT NUMBER OF PARTICLES IN THE SYSTEM
 
@@ -229,10 +227,9 @@ C ***    REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
 
 C *** If too many zeros in V-array, compress it
  
-      if (real(i_count)/M .gt. 0.5) then
+      if (real(M_comp - M)/M .gt. 0.5) then
          M_comp = M
          call compress(V)
-         i_count = 0
       endif
        
       return
@@ -240,9 +237,9 @@ C *** If too many zeros in V-array, compress it
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      
-      subroutine find_pair(V,M_comp,V_comp,M,del_T,n_samp,i_count)
+      subroutine find_pair(V,M_comp,V_comp,M,del_T,n_samp)
       
-      integer n_samp, M, MM, M_comp, s1, s2,i_count
+      integer n_samp, M, MM, M_comp, s1, s2
       parameter (MM=10000)
 
       real*8 V(MM),V_comp
@@ -274,7 +271,6 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
           V(s1) = V(s1)+V(s2)          
           V(s2) = 0.d+0
           M=M-1
-          i_count = icount + 1
        endif
 
        return

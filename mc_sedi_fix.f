@@ -108,13 +108,6 @@ c      write(6,*)'summe ',sum,delta_sum,sum_mass
          enddo
       enddo
 
-      sum=0.
-      do i=1,MM
-        sum=sum+V(i)
-      enddo
-
-c      write(6,*)'total vol start ',sum
-
       TIME=0.                    ! Initialization of Overall Time Frame for Collision Process */
       Time_count = 0
       tlmin = 0.
@@ -135,22 +128,12 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       do i_top = 1,nt             ! time-step loop
          TIME = real(i_top) / real(nt) * TIME_MAX
 
-         sum=0.
-         do i=1,MM
-            sum=sum+V(i)
-         enddo
-
 C        *** NEXT calculate the collsion probability ***   
 
          call sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
      &                      del_T,TIME,tlmin,Time_count,
      &                      n_samp)
           
-
-         sum=0.
-         do i=1,MM
-            sum=sum+V(i)
-         enddo
 
 C        *** CALCULATING MOMENTS *** 
 
@@ -159,7 +142,6 @@ C        *** CALCULATING MOMENTS ***
      &                   V_bar,Time_count,rr,tot_free_max,
      &                   vv,dlnr,dp,n_samp)
 
-        if (TIME .ge. TIME_MAX) GOTO 2000
       enddo                     ! end of topping up loop
 
  2000 continue
@@ -194,33 +176,16 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C ***    REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
          if (M .le. N_opt) then   ! topup
-            sum=0.
-            do i=1,MM
-               sum=sum+V(i)
-            enddo
-
             call compress(V)
-
-            sum=0.
-            do i=1,MM
-              sum=sum+V(i)
-            enddo
-
             do i=1,M_local
                M=M+1
                V(M) = V(i)
             enddo
-      
             V_comp=2*V_comp         ! UPDATING THE COMPUTATIONAL VOLUME
             M_comp=M     
          endif
       enddo       ! sampling loop
       
-      sum2=0.
-      do i=1,MM
-         sum2=sum2+V(i)
-      enddo
-
 C *** If too many zeros in V-array, compress it
  
       if (real(M_comp - M)/M .gt. 0.5) then
@@ -539,11 +504,6 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       parameter (MM = 10000)
       real*8 V(MM)
 
-      sum = 0.
-      do i=1,MM
-         sum=sum+V(i)
-      enddo
-
       i_w = 1
       do i_v=1,MM
            if(V(i_v) .ne.0.) then
@@ -554,11 +514,6 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       do i=i_w+1,MM
          V(i) = 0.
-      enddo
-
-      sum = 0.
-      do i=1,MM
-         sum=sum+V(i)
       enddo
       return
       end

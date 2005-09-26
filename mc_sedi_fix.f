@@ -182,7 +182,6 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 V(MM),a,random,V_comp
       real*8 tot_free_max
       real*8 del_T, TIME, pi
-      real*8 v_alt(MM)
   
       parameter (pi=3.1415)
 

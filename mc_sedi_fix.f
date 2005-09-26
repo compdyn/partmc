@@ -133,6 +133,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       tlmin = 0. 
       nt = TIME_MAX/del_T
       do i_top = 1,nt             ! time-step loop
+         TIME = real(i_top) / real(nt) * TIME_MAX
 
          sum=0.
          do i=1,MM
@@ -182,7 +183,6 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   
       parameter (pi=3.1415)
 
-      TIME=TIME+del_T                     ! Time Updating //
       Time_count = Time_count + 1
       tlmin = tlmin +del_T
 

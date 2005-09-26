@@ -144,8 +144,6 @@ C        *** CALCULATING MOMENTS ***
 
       enddo                     ! end of topping up loop
 
- 2000 continue
-     
       ENDDO                     ! end of i-loop
 
       end
@@ -170,7 +168,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       do i_samp = 1,n_samp
 
-         call find_pair(V,M_comp,V_comp,M,del_T,n_samp)
+         call coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
  
          M_local=M             !CURRENT NUMBER OF PARTICLES IN THE SYSTEM
 
@@ -198,44 +196,49 @@ C *** If too many zeros in V-array, compress it
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      
-      subroutine find_pair(V,M_comp,V_comp,M,del_T,n_samp)
+      subroutine find_rand_pair(V, MM, M, M_comp, s1, s2)
       
-      integer n_samp, M, MM, M_comp, s1, s2
-      parameter (MM=10000)
+      integer MM, M, M_comp ! INPUT
+      real*8 V(MM)          ! INPUT
+      integer s1, s2        ! OUTPUT: s1 and s2 are not equal, random
+                            !         particles with V(s1/s2) != 0
 
-      real*8 V(MM),V_comp
-      real*8 random,expo,del_T,a
-
-      random=rand()
-      s1=int(random*M_comp)  !CHOOSE A RANDOM  NUMBER s1 in [0,M]        
-      random=rand()
-      s2=int(random*M_comp)  !CHOOSE A RANDOM  NUMBER s2 in [0,M]
-
-      if ((V(s1) .eq.0) .or. (V(s2) .eq.0)) then
-         a = -100.
-      else
-         if ( s1.ne.0) then             
-            if (s2.ne.0) then
-               expo = coag_kernel(V(s1),V(s2))*
-     *              1/V_comp*del_T * M*(M-1)/n_samp
-               a = 1-exp(-expo)
-               if(abs(s2-s1) .lt. 0.1) a=0.
-            else 
-               a=-100.
-            endif
-         else
-            a=-100.
-         endif
+ 700  s1 = int(rand() * M_comp) + 1
+      s2 = int(rand() * M_comp) + 1
+      if ((s1 .gt. M_comp) .or. (V(s1) .eq. 0) .or.
+     &     (s2 .gt. M_comp) .or. (V(s2) .eq. 0) .or.
+     &     (s1 .eq. s2)) then
+         goto 700
       endif
-      random = rand()
-      if (random .lt. a ) then 
-          V(s1) = V(s1)+V(s2)          
-          V(s2) = 0.d+0
-          M=M-1
-       endif
 
-       return
-       end      
+      return
+      end
+
+C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     
+      subroutine coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
+      
+      integer n_samp, M, MM, M_comp ! INPUT
+      real*8 V(MM), V_comp, del_T   ! INPUT
+
+      integer s1, s2
+      real*8 expo, p
+
+      call find_rand_pair(V, MM, M, M_comp, s1, s2) ! test particles s1, s2
+
+      expo = coag_kernel(V(s1), V(s2)) *
+     &     1/V_comp * del_T * M*(M-1)/n_samp
+      p = 1 - exp(-expo) ! probability of coagulation
+
+      if (rand() .lt. p ) then ! coagulate particles s1 and s2
+         V(s1) = V(s1) + V(s2)          
+         V(s2) = 0.d+0
+         M = M - 1
+      endif
+
+      return
+      end
+
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       real*8 function coag_kernel(a,b)

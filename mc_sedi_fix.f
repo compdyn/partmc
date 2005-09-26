@@ -3,7 +3,7 @@
  
       integer  M, N_opt,M_local
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
-      integer  i, j, l,TOPUP,s1,s2
+      integer  i, j, l,s1,s2
       integer  Time_count,lmin
 
       real*8   random, a, TIME, 
@@ -124,7 +124,6 @@ c      write(6,*)'total vol start ',sum
 
 C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
-      TOPUP=50                   ! TOTAL TOPUPING USED */
       N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
                                  ! replicating it.*//
 

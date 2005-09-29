@@ -1,6 +1,6 @@
        program umsp_mc
        integer n_bin,i_loop,tmax
-       parameter (n_bin=160,i_loop=1,tmax=31)
+       parameter (n_bin=160,i_loop=1,tmax=10)
 
        real*8 eta(n_bin),g(i_loop,tmax,n_bin),n(i_loop,tmax,n_bin)
        real*8 g_bar(tmax,n_bin),n_bar(tmax,n_bin)
@@ -29,7 +29,7 @@
              write(6,'(a)')dum
                  do l=1,n_bin
                     read(20,'(i4,5e14.5)')
-     *                      mm,mm,mm,eta(l),n(i,k,l),g(i,k,l)
+     *                      mm,eta(l),n(i,k,l),g(i,k,l)
                     write(6,*)mm,eta(l),n(i,k,l),g(i,k,l)
                   enddo
            enddo 

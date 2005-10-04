@@ -86,29 +86,30 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       
       subroutine moments(MM, V, n_bin, M,
-     &     N_tot, M_comp, V_comp,
+     &     M_comp, V_comp,
      &     TIME, tlmin, del_T, rr,
-     &     tot_free_max, vv, dlnr, dp)
+     &     tot_free_max, vv, dlnr, dp, g, n_ln)
       
       integer MM           ! INPUT: dimension of V
       real*8 V(MM)         ! INPUT: particle volume array
       integer n_bin        ! INPUT: number of bins
       integer M            ! INPUT: total number of particles
-      real*8 N_tot         ! INPUT: 
       integer M_comp       ! INPUT: maximum index of particle in V
       real*8 V_comp        ! INPUT: computational volume
       real*8 TIME          ! INPUT: current simulation time
       real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
                            !               simulation time
       real*8 del_T         ! INPUT: timestep
-      real*8 rr(n_bin)     ! INPUT: radii of bins
+      real*8 rr(n_bin)     ! INPUT: radii of particles in bins
       real*8 tot_free_max  ! OUTPUT: maximum kernel value
-      real*8 vv(n_bin)     ! INPUT: 
+      real*8 vv(n_bin)     ! INPUT: volumes of particles in bins
       real*8 dlnr          ! INPUT: scale factor
-      real*8 dp(n_bin)     ! INPUT: 
+      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 g(n_bin)      ! OUTPUT: total mass in each bin
+      real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
-      real*8 nv_conc, g(n_bin), n_ln(n_bin)
-      real*8 V_0, d_0, vv_cnt, vv_conc, sum_masse
+      real*8 nv_conc
+      real*8 V_0, d_0, vv_cnt, vv_conc
       integer NN_cnt, k, i
 
       real*8 pi, rho_w
@@ -134,16 +135,31 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          g(k)   =  vv_conc/dlnr
       enddo
       
-      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      return
+      end
       
-      if (tlmin.eq.0. .or.tlmin .ge. 60. ) then
+C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+      
+      subroutine print_info(n_bin,
+     &     TIME, tlmin,
+     &     dp, g, n_ln)
+      
+      integer n_bin        ! INPUT: number of bins
+      real*8 TIME          ! INPUT: current simulation time
+      real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
+                           !               simulation time
+      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 g(n_bin)      ! OUTPUT: total mass in each bin
+      real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
+
+      integer k
+
+      if ((tlmin .eq. 0.) .or. (tlmin .ge. 60.)) then
          tlmin = tlmin - 60.
          write(30,*)'Time = ',TIME
-         sum_masse = 0.
-         do k=1,n_bin
-            write(30,'(i4,6e14.5)')k,
-     &           dp(k)/2.,n_ln(k),g(k)
-            sum_masse = sum_masse + g(k)*dlnr
+         do k = 1,n_bin
+            write(30, '(i4,6e14.5)')k,
+     &           dp(k)/2., n_ln(k), g(k)
          enddo
       endif
       

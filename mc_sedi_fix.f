@@ -19,6 +19,7 @@
       real*8   n_ini(n_bin)
       real*8   vv(n_bin),e(n_bin),r(n_bin),dp(n_bin)
       real*8   n_norm(n_bin),d_norm(n_bin)
+      real*8 g(n_bin), n_ln(n_bin)
 C     *** For initialization
 
       real*8   rr(n_bin),delta_n(n_bin)
@@ -28,9 +29,6 @@ C     *** For initialization
       real*8   t1, ax, V_0, d_0, emin, sum
       real*8   delta_sum, sum_mass, tlmin
       integer  scal, n_samp, nt, i_top
-
-      real*8 p_max, r_samp
-      parameter (p_max = 0.01)
 
       open(30,file='mc.d')
 
@@ -124,12 +122,13 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
                                  ! replicating it.*//
 
       call moments(MM,V,N_bin,
-     &     M,N_tot,M_comp,V_comp,
+     &     M,M_comp,V_comp,
      &     TIME,tlmin,del_T,
      &     rr,tot_free_max,
-     &     vv,dlnr,dp)
-      r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
-      n_samp = r_samp * M*(M-1)
+     &     vv,dlnr,dp,g,n_ln)
+      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+      call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
 
       tlmin = 0. 
       nt = TIME_MAX/del_T
@@ -146,17 +145,38 @@ C        *** NEXT calculate the collsion probability ***
 C        *** CALCULATING MOMENTS *** 
 
             call moments(MM,V,N_bin,
-     &        M,N_tot,M_comp,V_comp,
+     &        M,M_comp,V_comp,
      &        TIME,tlmin,del_T,
      &        rr,tot_free_max,
-     &        vv,dlnr,dp)
-            r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
-            n_samp = r_samp * M*(M-1)
+     &        vv,dlnr,dp,g,n_ln)
+            call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+            call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+            call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
 
       enddo                     ! end of topping up loop
 
       ENDDO                     ! end of i-loop
 
+      end
+
+C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+      subroutine compute_n_samp(M, tot_free_max, V_comp,
+     &     del_T, n_samp)
+
+      integer M            ! INPUT: number of particles
+      real*8 tot_free_max  ! INPUT: maximum kernel value
+      real*8 V_comp        ! INPUT: computational volume
+      real*8 del_T         ! INPUT: timestep
+      integer n_samp       ! OUTPUT: number of samples to take
+
+      real*8 p_max, r_samp
+      parameter (p_max = 0.01)
+
+      r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
+      n_samp = r_samp * M*(M-1)
+
+      return
       end
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -187,7 +207,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C ***    REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
          if (M .le. N_opt) then   ! topup
-            call compress(V, MM)
+            call compress(MM, V)
             do i=1,M_local
                M=M+1
                V(M) = V(i)
@@ -201,7 +221,7 @@ C *** If too many zeros in V-array, compress it
  
       if (real(M_comp - M)/M .gt. 0.5) then
          M_comp = M
-         call compress(V, MM)
+         call compress(MM, V)
       endif
        
       return

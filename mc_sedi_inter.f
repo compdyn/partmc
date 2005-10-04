@@ -20,6 +20,7 @@ C     *** For SPD calculation **//
       real*8   n_ini(n_bin)
       real*8   vv(n_bin),e(n_bin),r(n_bin),dp(n_bin)
       real*8   help(n_bin),n_norm(n_bin),d_norm(n_bin)
+      real*8 g(n_bin), n_ln(n_bin)
 C     *** For initialization
       real*8   rr(n_bin),delta_n(n_bin)
       real*8   dlnr, tlmin, sum_mass, sum, delta_sum
@@ -126,10 +127,12 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       call coagmax(n_bin,rr,n_ini,dlnr,tot_free_max)
        
       call moments(MM,V,N_bin,
-     &     M,N_tot,M_comp,V_comp,
+     &     M,M_comp,V_comp,
      &     TIME,tlmin,del_T,
      &     rr,tot_free_max,
-     &     vv,dlnr,dp)
+     &     vv,dlnr,dp,g,n_ln)
+      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
          
@@ -156,10 +159,12 @@ C     *** CALCULATING MOMENTS ***
                lmin = lmin + 1
                
                call moments(MM,V,N_bin,M,
-     &              N_tot,M_comp,V_comp,
+     &              M_comp,V_comp,
      &              TIME,tlmin,del_T,
      &              rr,tot_free_max,
-     &              vv,dlnr,dp)
+     &              vv,dlnr,dp,g,n_ln)
+               call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+               call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
             endif
             
             if (TIME .ge. TIME_MAX) GOTO 2000
@@ -170,7 +175,7 @@ C     *** REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
          do i=1,MM
             sum=sum+V(i)
          enddo
-         call compress(V)
+         call compress(MM, V)
          
          sum=0.
          do i=1,MM
@@ -300,7 +305,7 @@ C *** If too many zeros in V-array, compress it
  
       if (real(i_count)/M .gt. 0.5) then
          M_comp = M
-         call compress(V)
+         call compress(MM, V)
          i_count = 0
       endif
        

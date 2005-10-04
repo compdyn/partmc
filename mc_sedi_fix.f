@@ -177,7 +177,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C ***    REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
          if (M .le. N_opt) then   ! topup
-            call compress(V)
+            call compress(V, MM)
             do i=1,M_local
                M=M+1
                V(M) = V(i)
@@ -191,29 +191,9 @@ C *** If too many zeros in V-array, compress it
  
       if (real(M_comp - M)/M .gt. 0.5) then
          M_comp = M
-         call compress(V)
+         call compress(V, MM)
       endif
        
-      return
-      end
-
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-     
-      subroutine find_rand_pair(V, MM, M, M_comp, s1, s2)
-      
-      integer MM, M, M_comp ! INPUT
-      real*8 V(MM)          ! INPUT
-      integer s1, s2        ! OUTPUT: s1 and s2 are not equal, random
-                            !         particles with V(s1/s2) != 0
-
- 700  s1 = int(rand() * M_comp) + 1
-      s2 = int(rand() * M_comp) + 1
-      if ((s1 .gt. M_comp) .or. (V(s1) .eq. 0) .or.
-     &     (s2 .gt. M_comp) .or. (V(s2) .eq. 0) .or.
-     &     (s1 .eq. s2)) then
-         goto 700
-      endif
-
       return
       end
 
@@ -225,12 +205,12 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 V(MM), V_comp, del_T   ! INPUT
 
       integer s1, s2
-      real*8 expo, p
+      real*8 expo, p, k
 
       call find_rand_pair(V, MM, M, M_comp, s1, s2) ! test particles s1, s2
 
-      expo = coag_kernel(V(s1), V(s2)) *
-     &     1/V_comp * del_T * M*(M-1)/n_samp
+      call coag_kernel(V(s1), V(s2), k)
+      expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp
       p = 1 - exp(-expo) ! probability of coagulation
 
       if (rand() .lt. p ) then ! coagulate particles s1 and s2
@@ -289,7 +269,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       enddo
       
       call coagmax(rr,tot_free_max,n_ln,dlnr)
-      r_samp = - tot_free_max * 1/V_comp *del_T/log(1-p_max)   
+      r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
       n_samp = r_samp * M*(M-1)
  
       if (tlmin.eq.0. .or.tlmin .ge. 60. ) then
@@ -314,11 +294,12 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       implicit double precision (a-h,o-z)
       integer n_bin
       parameter (n_bin=160)
-      real*8 v_bin(n_bin), cck, rr(n_bin),tot_free_max 
+      real*8 V_bin(n_bin), rr(n_bin),tot_free_max 
       real*8 pi,n_ln(n_bin),dlnr
       parameter (pi=3.1415)
       integer k, ll, imax, jmax
-      
+      real*8 cck
+
       do k=1,n_bin
          v_bin(k)=4./3.*pi*rr(k)**3.
       enddo
@@ -327,7 +308,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       do k=1,n_bin
          if(n_ln(k)*dlnr .ge. 1.) then
             do ll=1,k
-               cck= coag_kernel(V_bin(k),V_bin(ll))
+               call coag_kernel(V_bin(k),V_bin(ll), cck)
                if (cck.gt.tot_free_max) then
                   tot_free_max=cck
                   imax = k
@@ -340,26 +321,3 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-      subroutine compress(V)
-
-      integer MM,i_w,i_v
-      parameter (MM = 10000)
-      real*8 V(MM)
-      integer i
-
-      i_w = 1
-      do i_v=1,MM
-         if (V(i_v) .ne. 0.) then
-            V(i_w)= V(i_v)
-            i_w = i_w+1
-         endif
-      enddo
-
-      do i=i_w+1,MM
-         V(i) = 0.
-      enddo
-
-      return
-      end

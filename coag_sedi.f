@@ -1,10 +1,18 @@
+C coag_sedi.f
+C
+C sedimentation coagulation kernel
+
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      real*8 function coag_kernel(a,b)
-      real*8 a,b
+      subroutine coag_kernel(a, b, k)
+
+      real*8 a  ! INPUT: size of first particle
+      real*8 b  ! INPUT: size of second particle
+      real*8 k  ! OUTPUT: kernel k(a,b)
+
       real*8 pi,const,onethird
       real*8 r1,r2,winf1,winf2,ec
-      parameter (pi = 3.1415)
+      parameter (pi = 3.14159265358979323846)
 
       const = 3./(4.*pi)
       onethird  = 1./3.
@@ -13,8 +21,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       call fallg(r1,winf1)
       call fallg(r2,winf2)
       call effic(r1,r2,ec)
-        coag_kernel = ec *pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
-c        coag_kernel = pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
+      k = ec *pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
       return
       end
 
@@ -79,8 +86,11 @@ c rr: radius in cm-units
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       subroutine effic(r1,r2,ec)
-      real*8 r1,r2,ec
-c     collision efficiencies of hall kernel
+      real*8 r1  ! INPUT: radius of first particle
+      real*8 r2  ! INPUT: radius of second particle
+      real*8 ec  ! OUTPUT: collision efficiency
+
+C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)
       data r0 /6.,8.,10.,15.,20.,25.,30.,40.,50.,
      &     60.,70.,100.,150.,200.,300./
@@ -124,20 +134,20 @@ c     two-dimensional linear interpolation of the collision efficiency
       integer k, ir, kk, iq, ek
 
       rq = r1/r2
-      if (rq.gt.1.) then
+      if (rq .gt. 1.0) then
          r_help = r1
          r1 = r2
          r2 = r_help
-         rq=1/rq
+         rq = 1 / rq
       endif
-      
-      do k=2,15
-         if (r2.le.r0(k).and.r2.ge.r0(k-1)) then
-            ir=k
-         elseif (r2.gt.r0(15)) then
-            ir=16
-         elseif (r2.lt.r0(1)) then
-            ir=1
+
+      do k = 2, 15
+         if ((r2 .le. r0(k)) .and. (r2 .ge. r0(k-1))) then
+            ir = k
+         elseif (r2 .gt. r0(15)) then
+            ir = 16
+         elseif (r2 .lt. r0(1)) then
+            ir = 1
          endif
       enddo
       

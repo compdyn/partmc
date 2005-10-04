@@ -62,16 +62,25 @@ c mass and radius grid
       r(1)=1000.*dexp(dlog(3*e(1)/(4.*pi))/3.)
       vv(1)=1.e-06*e(1)/rho_p
       dp(1) = 1.e-06*r(1)
-      n_ini(1) = pi*dp(1)**3./2.*M/V_0 * exp(-(vv(1)/V_0))
-      
+c     n_ini(1) = pi*dp(1)**3./2.*M/V_0 * exp(-(vv(1)/V_0))
+      n_ini(1) = 0.
+     
       do i=2,n_bin
          e(i)=ax*e(i-1)
          r(i)=1000.*dexp(dlog(3.*e(i)/(4.*pi))/3.)
          vv(i)=1.e-06*e(i)/rho_p
          dp(i)=1.e-06*2.*r(i)
-         n_ini(i)=pi/2.* dp(i)**3.*M/V_0*exp(-(vv(i)/V_0))
+c         n_ini(i)=pi/2.* dp(i)**3.*M/V_0*exp(-(vv(i)/V_0))
+         n_ini(i)=0.
       enddo
       
+c define bidisperse distribution
+
+c      n_ini(97) =  0.99*M/dlnr
+c      n_ini(126)  = 0.01*M/dlnr 
+      n_ini(97) = (M-1)/dlnr
+      n_ini(126) = 1/dlnr
+
       do i=1,n_bin
          rr(i) = dp(i)/2.
       enddo

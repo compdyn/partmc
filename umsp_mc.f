@@ -7,11 +7,11 @@
        integer k, l, i, mm
        character*20 dum
 
-       open(20,file='mc.d')
-       open(30,file='mc_n.dtest')
-       open(40,file='mc_m.dtest')
-       open(50,file='mcr_n.dtest')
-       open(60,file='mcr_m.dtest')
+       open(20,file='mc_fix.d')
+       open(30,file='mc_n.dtest2')
+       open(40,file='mc_m.dtest2')
+       open(50,file='mcr_n.dtest2')
+       open(60,file='mcr_m.dtest2')
       
 
        do k=1,tmax

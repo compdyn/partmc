@@ -1,8 +1,8 @@
 
 OPTS = -O -W -Wall -Wimplicit -Wsurprising
 
-MC_SEDI_FIX_OBJS = mc_sedi_fix.o coag_sedi.o part_array.o
-MC_SEDI_INTER_OBJS = mc_sedi_inter.o coag_sedi.o part_array.o
+MC_SEDI_FIX_OBJS = mc_sedi_fix.o kernel_sedi.o part_array.o
+MC_SEDI_INTER_OBJS = mc_sedi_inter.o kernel_sedi.o part_array.o
 
 PROGS = mc_sedi_fix mc_sedi_inter
 

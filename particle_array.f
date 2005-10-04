@@ -97,7 +97,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do k = 1,n_bin
          if (n_ln(k)*dlnr .ge. 1.) then
             do ll = 1,k
-               call coag_kernel(V_bin(k), V_bin(ll), cck)
+               call kernel_sedi(V_bin(k), V_bin(ll), cck)
                if (cck .gt. tot_free_max) then
                   tot_free_max = cck
                endif

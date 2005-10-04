@@ -188,7 +188,7 @@ c *** double(rand())/RAND_MAX: this is the random number in [0,1] ***
       else
          if ( s1.ne.0) then             
             if (s2.ne.0) then
-               call coag_kernel(V(s1),V(s2),k)
+               call kernel_sedi(V(s1),V(s2),k)
                a = k / tot_free_max; ! collision probability   
                if(abs(s2-s1) .lt. 0.1) a=0.
             else 
@@ -221,7 +221,7 @@ C *** END of calculation for Collision Probability and collision analysis
             if(s2.ne.0.) then
                 if (V(s3) .ne. 0.) then
                    if (V(s4) .ne. 0.) then
-                      call coag_kernel(V(s3),V(s4),k)
+                      call kernel_sedi(V(s3),V(s4),k)
                       summ = summ+k
                       i_sum = i_sum + 1
                     endif
@@ -240,7 +240,7 @@ C *** Calculation for "del_T" for the time increment for each collision
 
 C *** Characteristic collision time-MC//
 
-      call coag_kernel(V(s1),V(s2),k)
+      call kernel_sedi(V(s1),V(s2),k)
       tmc_coll = (V_comp*2.)/(k*M)
 
 C *** Removal of the particle s2 by setting its volume to 0.

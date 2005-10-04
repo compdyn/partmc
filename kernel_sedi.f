@@ -4,7 +4,7 @@ C sedimentation coagulation kernel
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coag_kernel(a, b, k)
+      subroutine kernel_sedi(a, b, k)
 
       real*8 a  ! INPUT: size of first particle
       real*8 b  ! INPUT: size of second particle

@@ -229,7 +229,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       call find_rand_pair(V, MM, M, M_comp, s1, s2) ! test particles s1, s2
 
-      expo = coag_kernel_golovin(V(s1), V(s2)) *
+      expo = kernel_sedi_golovin(V(s1), V(s2)) *
      &     1/V_comp * del_T * M*(M-1)/n_samp
       p = 1 - exp(-expo) ! probability of coagulation
 
@@ -244,7 +244,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      real*8 function coag_kernel(a,b)
+      real*8 function kernel_sedi(a,b)
       real*8 a,b
       real*8 pi,const,onethird
       real*8 r1,r2,winf1,winf2,ec
@@ -257,19 +257,19 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       call fallg(r1,winf1)
       call fallg(r2,winf2)
       call effic(r1,r2,ec)
-        coag_kernel = ec *pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
-c        coag_kernel = pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
+        kernel_sedi = ec *pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
+c        kernel_sedi = pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
       return
       end
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      real*8 function coag_kernel_golovin(a,b)
+      real*8 function kernel_sedi_golovin(a,b)
       real*8 a,b, beta_1, beta_0
       parameter (beta_1 = 1000.)
       parameter (beta_0 = 1.d-11)
 
-      coag_kernel_golovin = beta_1 * (a+b)
+      kernel_sedi_golovin = beta_1 * (a+b)
       return
       end
 
@@ -507,7 +507,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       do k=1,n_bin
          if(n_ln(k)*dlnr .ge. 1.) then
             do ll=1,k
-               cck= coag_kernel_golovin(V_bin(k),V_bin(ll))
+               cck= kernel_sedi_golovin(V_bin(k),V_bin(ll))
                if (cck.gt.tot_free_max) then
                   tot_free_max=cck
                   imax = k

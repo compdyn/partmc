@@ -141,18 +141,22 @@ c     two-dimensional linear interpolation of the collision efficiency
          rq = 1 / rq
       endif
 
-      do k = 2, 15
-         if ((r2 .le. r0(k)) .and. (r2 .ge. r0(k-1))) then
-            ir = k
-         elseif (r2 .gt. r0(15)) then
-            ir = 16
-         elseif (r2 .lt. r0(1)) then
-            ir = 1
+C      r0(1)  r0(2)  ...  r0(15)
+C  1        2       3 ... 15     16
+
+
+      ir = 1
+      do k = 1, 15
+         if (r2 .gt. r0(k)) then
+            ir = k + 1
          endif
       enddo
-      
-      do kk=2,21
-         if (rq.le.rat(kk).and.rq.gt.rat(kk-1)) iq=kk
+
+      iq = 1
+      do kk = 1,21
+         if (rq .gt. rat(kk)) then
+            iq = kk + 1
+         endif
       enddo
       
       if (ir.lt.16) then

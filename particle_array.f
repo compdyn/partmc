@@ -27,7 +27,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       subroutine compress(MM, V)
 
-      integer MM   ! INPUT
+      integer MM   ! INPUT: dimension of V
       real*8 V(MM) ! INPUT/OUTPUT: on exit, all non-zero entries are
                    !               at the beginning, followed by all
                    !               zeros.
@@ -61,7 +61,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       real*8 V_bin(n_bin), cck
       real*8 pi
-      parameter (pi=3.1415)
+      parameter (pi = 3.14159265358979323846)
       integer ll, k
       
       do k = 1,n_bin
@@ -103,7 +103,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 vv_conc, sum_masse
       integer k, i
       
-      parameter (pi=3.1415)
+      parameter (pi = 3.14159265358979323846)
       parameter (rho_w = 1000.)
       
       V_0 = 1.e-12

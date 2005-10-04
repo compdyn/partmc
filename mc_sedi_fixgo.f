@@ -29,11 +29,11 @@ C     *** For initialization
       real*8   delta_sum, sum_mass, tlmin
       integer  scal, n_samp, nt, i_top
 
-      open(30,file='mc.d')
+      open(30,file='mc_go.d')
 
       call srand(10)
 
-      do i_loop = 1,1
+      do i_loop = 1,10
       call cpu_time(t1)
       write(6,*)'START ',i_loop, t1
       write(30,*)'i_loop=',i_loop,t1
@@ -64,22 +64,22 @@ c mass and radius grid
       r(1)=1000.*dexp(dlog(3*e(1)/(4.*pi))/3.)
       vv(1)=1.e-06*e(1)/rho_p
       dp(1) = 1.e-06*r(1)
-      n_ini(1) = 0. 
+      n_ini(1) = pi*dp(1)**3./2.*M/V_0 * exp(-vv(1)/v_0) 
       
       do i=2,n_bin
          e(i)=ax*e(i-1)
          r(i)=1000.*dexp(dlog(3.*e(i)/(4.*pi))/3.)
          vv(i)=1.e-06*e(i)/rho_p
          dp(i)=1.e-06*2.*r(i)
-         n_ini(i) = 0.
+         n_ini(i) = pi/2.* dp(i)**3.*M/v_0*exp(-vv(i)/v_0)
       enddo
 
 c define bidisperse distribution
 
 c      n_ini(97) =  0.99*M/dlnr
 c      n_ini(126)  = 0.01*M/dlnr 
-      n_ini(97) = (M-1)/dlnr
-      n_ini(126) = 1/dlnr
+c      n_ini(97) = (M-1)/dlnr
+c      n_ini(126) = 1/dlnr
 
       do i=1,n_bin
          rr(i) = dp(i)/2.
@@ -102,11 +102,11 @@ c      write(6,*)'summe ',sum,delta_sum,sum_mass
       
       sum_e = 0.
       do k=1,n_bin
-         sum_a = sum_e+1
+          sum_a = sum_e+1
           sum_e = sum_e+delta_n(k)
-         do i=sum_a,sum_e
-            V(i) = pi/6. * dp(k)**3.
-         enddo
+          do i=sum_a,sum_e
+              V(i) = pi/6. * dp(k)**3.
+          enddo
       enddo
 
       TIME=0.                    ! Initialization of Overall Time Frame for Collision Process */
@@ -229,7 +229,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       call find_rand_pair(V, MM, M, M_comp, s1, s2) ! test particles s1, s2
 
-      expo = coag_kernel(V(s1), V(s2)) *
+      expo = coag_kernel_golovin(V(s1), V(s2)) *
      &     1/V_comp * del_T * M*(M-1)/n_samp
       p = 1 - exp(-expo) ! probability of coagulation
 
@@ -261,6 +261,18 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 c        coag_kernel = pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
       return
       end
+
+C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+      real*8 function coag_kernel_golovin(a,b)
+      real*8 a,b, beta_1, beta_0
+      parameter (beta_1 = 1000.)
+      parameter (beta_0 = 1.d-11)
+
+      coag_kernel_golovin = beta_1 * (a+b)
+      return
+      end
+
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
@@ -495,7 +507,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       do k=1,n_bin
          if(n_ln(k)*dlnr .ge. 1.) then
             do ll=1,k
-               cck= coag_kernel(V_bin(k),V_bin(ll))
+               cck= coag_kernel_golovin(V_bin(k),V_bin(ll))
                if (cck.gt.tot_free_max) then
                   tot_free_max=cck
                   imax = k

@@ -1,16 +1,16 @@
        program umsp_mc
        integer n_bin,i_loop,tmax
-       parameter (n_bin=160,i_loop=1,tmax=10)
+       parameter (n_bin=160,i_loop=10,tmax=11)
 
        real*8 eta(n_bin),g(i_loop,tmax,n_bin),n(i_loop,tmax,n_bin)
        real*8 g_bar(tmax,n_bin),n_bar(tmax,n_bin)
        character*20 dum
 
-       open(20,file='mc.d')
-       open(30,file='mc_n.dnew')
-       open(40,file='mc_m.dnew')
-       open(50,file='mcr_n.dnew')
-       open(60,file='mcr_m.dnew')
+       open(20,file='mc_go.d')
+       open(30,file='mc_n_go.d')
+       open(40,file='mc_m_go.d')
+       open(50,file='mcr_n_go.d')
+       open(60,file='mcr_m_go.d')
       
 
        do k=1,tmax

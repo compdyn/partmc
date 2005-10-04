@@ -48,3 +48,37 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       return
       end
+
+C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+      subroutine coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      
+      integer n_bin        ! INPUT: number of bins
+      real*8 rr(n_bin)     ! INPUT: radius of bins
+      real*8 n_ln(n_bin)   ! INPUT: number in each bin
+      real*8 dlnr          ! INPUT: scale factor
+      real*8 tot_free_max  ! OUTPUT: maximum kernel value
+
+      real*8 V_bin(n_bin), cck
+      real*8 pi
+      parameter (pi=3.1415)
+      integer ll, k
+      
+      do k = 1,n_bin
+         V_bin(k) = 4./3.*pi*rr(k)**3.
+      enddo
+      
+      tot_free_max = 0.
+      do k = 1,n_bin
+         if (n_ln(k)*dlnr .ge. 1.) then
+            do ll = 1,k
+               call coag_kernel(V_bin(k), V_bin(ll), cck)
+               if (cck .gt. tot_free_max) then
+                  tot_free_max = cck
+               endif
+            enddo
+         endif
+      enddo
+      
+      return
+      end

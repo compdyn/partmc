@@ -1,5 +1,10 @@
-      program MonteCarlo
+C mc_sedi_fix.f
+C
+C Monte Carlo simulation with sedimentation kernel and fixed timestepping.
 
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      program MonteCarlo
  
       integer  MM, M, M_comp, N_opt
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
@@ -121,11 +126,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
                                  ! replicating it.*//
 
-      call moments(MM,V,N_bin,
-     &     M,M_comp,V_comp,
-     &     TIME,tlmin,del_T,
-     &     rr,tot_free_max,
-     &     vv,dlnr,dp,g,n_ln)
+      call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
       call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
       call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
@@ -134,32 +135,20 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       nt = TIME_MAX/del_T
       do i_top = 1,nt             ! time-step loop
          TIME = real(i_top) / real(nt) * TIME_MAX
-
-C        *** NEXT calculate the collsion probability ***   
-
          call sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
      &                      del_T,TIME,tlmin,Time_count,
      &                      n_samp)
-          
-
-C        *** CALCULATING MOMENTS *** 
-
-            call moments(MM,V,N_bin,
-     &        M,M_comp,V_comp,
-     &        TIME,tlmin,del_T,
-     &        rr,tot_free_max,
-     &        vv,dlnr,dp,g,n_ln)
-            call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
-            call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
-            call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
-
+         call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
+         call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+         call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+         call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
       enddo                     ! end of topping up loop
 
-      ENDDO                     ! end of i-loop
+      enddo                     ! end of i-loop
 
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compute_n_samp(M, tot_free_max, V_comp,
      &     del_T, n_samp)
@@ -179,7 +168,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
      *                      del_T,TIME,tlmin,Time_count,
@@ -227,7 +216,7 @@ C *** If too many zeros in V-array, compress it
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
       subroutine coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
       
@@ -251,3 +240,5 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
       return
       end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

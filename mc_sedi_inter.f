@@ -124,13 +124,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
                                  ! replicating it.*//
 
-      call coagmax(n_bin,rr,n_ini,dlnr,tot_free_max)
-       
-      call moments(MM,V,N_bin,
-     &     M,M_comp,V_comp,
-     &     TIME,tlmin,del_T,
-     &     rr,tot_free_max,
-     &     vv,dlnr,dp,g,n_ln)
+      call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
       call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
   
@@ -158,11 +152,8 @@ C     *** CALCULATING MOMENTS ***
                tlmin = tlmin -1.
                lmin = lmin + 1
                
-               call moments(MM,V,N_bin,M,
-     &              M_comp,V_comp,
-     &              TIME,tlmin,del_T,
-     &              rr,tot_free_max,
-     &              vv,dlnr,dp,g,n_ln)
+               call moments(MM, V, N_bin, M_comp, V_comp, vv,
+     &              dlnr, g, n_ln)
                call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
                call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
             endif

@@ -2,7 +2,7 @@ C particle_array.f
 C
 C utility functions for handling V array of particle volumes
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
       subroutine find_rand_pair(MM, V, M_comp, s1, s2)
       
@@ -23,7 +23,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compress(MM, V)
 
@@ -49,7 +49,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
       
@@ -60,9 +60,10 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 tot_free_max  ! OUTPUT: maximum kernel value
 
       real*8 V_bin(n_bin), cck
+      integer ll, k
+
       real*8 pi
       parameter (pi = 3.14159265358979323846)
-      integer ll, k
       
       do k = 1,n_bin
          V_bin(k) = 4./3.*pi*rr(k)**3.
@@ -83,28 +84,18 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
 
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine moments(MM, V, n_bin, M,
-     &     M_comp, V_comp,
-     &     TIME, tlmin, del_T, rr,
-     &     tot_free_max, vv, dlnr, dp, g, n_ln)
+      subroutine moments(MM, V, n_bin, M_comp, V_comp,
+     &     vv, dlnr, g, n_ln)
       
       integer MM           ! INPUT: dimension of V
       real*8 V(MM)         ! INPUT: particle volume array
       integer n_bin        ! INPUT: number of bins
-      integer M            ! INPUT: total number of particles
       integer M_comp       ! INPUT: maximum index of particle in V
       real*8 V_comp        ! INPUT: computational volume
-      real*8 TIME          ! INPUT: current simulation time
-      real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
-                           !               simulation time
-      real*8 del_T         ! INPUT: timestep
-      real*8 rr(n_bin)     ! INPUT: radii of particles in bins
-      real*8 tot_free_max  ! OUTPUT: maximum kernel value
       real*8 vv(n_bin)     ! INPUT: volumes of particles in bins
       real*8 dlnr          ! INPUT: scale factor
-      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
@@ -123,8 +114,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          NN_cnt = 0
          vv_cnt = 0.
          do i=1,M_comp
-            if ((V(i).ge. vv(k-1)) 
-     &           .and. (V(i) .lt. vv(k))) then
+            if ((V(i).ge. vv(k-1)) .and. (V(i) .lt. vv(k))) then
                NN_cnt = NN_cnt +1
                vv_cnt = vv_cnt + V(i)
             endif
@@ -138,12 +128,10 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       return
       end
       
-C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_info(n_bin,
-     &     TIME, tlmin,
-     &     dp, g, n_ln)
-      
+      subroutine print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+
       integer n_bin        ! INPUT: number of bins
       real*8 TIME          ! INPUT: current simulation time
       real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
@@ -158,10 +146,11 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          tlmin = tlmin - 60.
          write(30,*)'Time = ',TIME
          do k = 1,n_bin
-            write(30, '(i4,6e14.5)')k,
-     &           dp(k)/2., n_ln(k), g(k)
+            write(30, '(i4,6e14.5)')k, dp(k)/2., n_ln(k), g(k)
          enddo
       endif
       
       return
       end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

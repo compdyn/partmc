@@ -1,4 +1,4 @@
-C part_array.f
+C particle_array.f
 C
 C utility functions for handling V array of particle volumes
 

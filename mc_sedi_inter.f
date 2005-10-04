@@ -2,7 +2,7 @@
 
  
       integer  MM, M, M_initial,N_opt
-      parameter (MM=10000000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
+      parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i,l,TOPUP
       integer  Time_count,lmin
 
@@ -37,7 +37,7 @@ C     *** For initialization
       write(30,*)'i_loop=',i_loop
 
       pi=3.1416            
-      M=10000000
+      M=10000
       M_initial=M               ! ACTUAL INITIAL NUMBER OF PARTICLES
       M_comp=M
       scal = 3
@@ -158,7 +158,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      *                      del_T,tmc_coll,TIME,tlmin,Time_count)
 
       integer MM,M,M_comp,s1,s2,Time_count,n_samp
-      parameter (MM=10000000)
+      parameter (MM=10000)
       parameter (n_samp = 100)
 
       real*8 V(MM+1),V_comp,tlmin

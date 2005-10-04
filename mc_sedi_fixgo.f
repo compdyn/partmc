@@ -7,7 +7,7 @@
       integer  Time_count,lmin
 
       real*8   TIME, 
-     &         del_T,tot_free_max, V_comp, V_bar 
+     &         del_T,k_max, V_comp, V_bar 
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi, rho_p
@@ -122,7 +122,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
       call moments(V,M,N_tot,M_comp,V_comp,
      &                   TIME,tlmin,del_T,
-     &                   V_bar,Time_count,rr,tot_free_max,
+     &                   V_bar,Time_count,rr,k_max,
      &                   vv,dlnr,dp,n_samp)
       tlmin = 0. 
       nt = TIME_MAX/del_T
@@ -131,7 +131,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
 C        *** NEXT calculate the collsion probability ***   
 
-         call sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
+         call sub_random(V,M,M_comp,V_comp,N_opt,k_max,
      &                      del_T,TIME,tlmin,Time_count,
      &                      n_samp)
           
@@ -140,7 +140,7 @@ C        *** CALCULATING MOMENTS ***
 
             call moments(V,M,N_tot,M_comp,V_comp,
      &                   TIME,tlmin,del_T,
-     &                   V_bar,Time_count,rr,tot_free_max,
+     &                   V_bar,Time_count,rr,k_max,
      &                   vv,dlnr,dp,n_samp)
 
       enddo                     ! end of topping up loop
@@ -151,7 +151,7 @@ C        *** CALCULATING MOMENTS ***
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      subroutine sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
+      subroutine sub_random(V,M,M_comp,V_comp,N_opt,k_max,
      *                      del_T,TIME,tlmin,Time_count,
      *                      n_samp)
 
@@ -159,7 +159,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       parameter (MM=10000)
 
       real*8 V(MM),V_comp
-      real*8 tot_free_max
+      real*8 k_max
       real*8 del_T, TIME, pi, tlmin
   
       parameter (pi=3.1415)
@@ -427,13 +427,13 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       subroutine moments(V,M,N_tot,M_comp,V_comp,
      &                       TIME,tlmin,del_T,V_bar,
      &                       Time_count,rr,
-     &                       tot_free_max,vv,dlnr,dp,n_samp)
+     &                       k_max,vv,dlnr,dp,n_samp)
 
       integer M,MM,n_bin,Time_count,NN_cnt, M_comp, n_samp
       real*8 nv_conc,dlnr, tlmin
       parameter (MM=10000,n_bin=160)
       real*8 V(MM),N_tot,vv(n_bin),dp(n_bin)
-      real*8 V_comp,del_T,TIME,tot_free_max
+      real*8 V_comp,del_T,TIME,k_max
       real*8 V_bar
       real*8 rr(n_bin)
       real*8 g(n_bin+1)
@@ -468,8 +468,8 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   
       enddo
       
-      call coagmax(rr,tot_free_max,n_ln,dlnr)
-      r_samp = - tot_free_max * 1/V_comp *del_T/log(1-p_max)   
+      call coagmax(rr,k_max,n_ln,dlnr)
+      r_samp = - k_max * 1/V_comp *del_T/log(1-p_max)   
       n_samp = r_samp * M*(M-1)
  
       if (tlmin.eq.0. .or.tlmin .ge. 60. ) then
@@ -489,12 +489,12 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      subroutine coagmax(rr,tot_free_max,n_ln,dlnr)
+      subroutine coagmax(rr,k_max,n_ln,dlnr)
 
       implicit double precision (a-h,o-z)
       integer n_bin
       parameter (n_bin=160)
-      real*8 v_bin(n_bin), cck, rr(n_bin),tot_free_max 
+      real*8 v_bin(n_bin), cck, rr(n_bin),k_max 
       real*8 pi,n_ln(n_bin),dlnr
       parameter (pi=3.1415)
       integer k, ll, imax, jmax
@@ -503,13 +503,13 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          v_bin(k)=4./3.*pi*rr(k)**3.
       enddo
 
-      tot_free_max =0.
+      k_max =0.
       do k=1,n_bin
          if(n_ln(k)*dlnr .ge. 1.) then
             do ll=1,k
                cck= kernel_sedi_golovin(V_bin(k),V_bin(ll))
-               if (cck.gt.tot_free_max) then
-                  tot_free_max=cck
+               if (cck.gt.k_max) then
+                  k_max=cck
                   imax = k
                   jmax= ll
                endif

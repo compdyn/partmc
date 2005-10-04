@@ -4,11 +4,10 @@
       integer  MM, M, M_initial,N_opt
       parameter (MM=10000000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i,l,TOPUP
-      integer  i_count
       integer  Time_count,lmin
 
       real*8   TIME, 
-     &         del_T,tot_free_max, V_comp
+     &         del_T,k_max, V_comp
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi,rho_p
@@ -63,14 +62,14 @@ c mass and radius grid
       r(1)=1000.*dexp(dlog(3*e(1)/(4.*pi))/3.)
       vv(1)=1.e-06*e(1)/rho_p
       dp(1) = 1.e-06*r(1)
-      n_ini(1) = pi*dp(1)**3./2.*M/V_0 * exp(-(vv(1)/v_0))
+      n_ini(1) = pi*dp(1)**3./2.*M/V_0 * exp(-(vv(1)/V_0))
       
       do i=2,n_bin
          e(i)=ax*e(i-1)
          r(i)=1000.*dexp(dlog(3.*e(i)/(4.*pi))/3.)
          vv(i)=1.e-06*e(i)/rho_p
          dp(i)=1.e-06*2.*r(i)
-         n_ini(i)=pi/2.* dp(i)**3.*M/v_0*exp(-(vv(i)/v_0))
+         n_ini(i)=pi/2.* dp(i)**3.*M/V_0*exp(-(vv(i)/V_0))
       enddo
       
       do i=1,n_bin
@@ -108,7 +107,6 @@ c mass and radius grid
       tlmin = 0.
       lmin = 0
       M_comp = M
-      i_count = 0
 
 C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
@@ -116,17 +114,19 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
                                  ! replicating it.*//
 
-      call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
+      call coagmax(n_bin, rr, n_ln, dlnr, k_max)
       call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
          do l=1,N_opt           ! time step cycle  
             
 C           *** NEXT calculate the collsion probability ***   
-            call sub_random(V,M,M_comp,V_comp,tot_free_max,
-     &           del_T,tmc_coll,TIME,tlmin,Time_count,
-     &           i_count)
+            call sub_random(V,M,M_comp,V_comp,k_max,
+     &           del_T,tmc_coll,TIME,tlmin,Time_count)
+            TIME=TIME+del_T     ! Time Updating //
+            Time_count = Time_count + 1
+            tlmin = tlmin +del_T
             
 C     *** CALCULATING MOMENTS *** 
             
@@ -134,9 +134,9 @@ C     *** CALCULATING MOMENTS ***
                tlmin = tlmin -1.
                lmin = lmin + 1
                
-               call moments(MM, V, N_bin, M_comp, V_comp, vv,
+               call moments(MM, V, n_bin, M_comp, V_comp, vv,
      &              dlnr, g, n_ln)
-               call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+               call coagmax(n_bin, rr, n_ln, dlnr, k_max)
                call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
             endif
             if (TIME .ge. TIME_MAX) GOTO 2000
@@ -154,87 +154,29 @@ C     *** REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      subroutine sub_random(V,M,M_comp,V_comp,tot_free_max,
-     *                      del_T,tmc_coll,TIME,tlmin,Time_count,
-     *                      i_count)
+      subroutine sub_random(V,M,M_comp,V_comp,k_max,
+     *                      del_T,tmc_coll,TIME,tlmin,Time_count)
 
-      integer MM,M,M_comp,s1,s2,Time_count,n_samp, i_count
+      integer MM,M,M_comp,s1,s2,Time_count,n_samp
       parameter (MM=10000000)
       parameter (n_samp = 100)
 
-      real*8 V(MM+1),a,random,V_comp,tlmin
-      real*8 tot_free_max, K_avg
+      real*8 V(MM+1),V_comp,tlmin
+      real*8 k_max, k_avg
       real*8 del_T, tmc_coll,TIME, pi
-      real*8 v_alt(MM+1), k, sum1, summ
-      integer s3, s4, i, i_sum, i_versuch
+      real*8 k
   
       parameter (pi=3.1415)
 
+      external kernel_sedi
 
-      i_versuch = 0
- 1000 continue
-      i_versuch = i_versuch+1
-      
-C *** NEXT calculate the collsion probability ***   
-c *** double(rand())/RAND_MAX: this is the random number in [0,1] ***
-          
-      random=rand()
-      s1=int(random*M_comp)  !CHOOSE A RANDOM  NUMBER s1 in [0,M]        
-      random=rand()
-      s2=int(random*M_comp)  !CHOOSE A RANDOM  NUMBER s2 in [0,M]
-
-      if ((v(s1) .eq. 0) .or. (v(s2) .eq. 0)) then
-         a = -100.
-      else
-         if ( s1.ne.0) then             
-            if (s2.ne.0) then
-               call kernel_sedi(V(s1),V(s2),k)
-               a = k / tot_free_max; ! collision probability   
-               if(abs(s2-s1) .lt. 0.1) a=0.
-            else 
-               a=-100.
-            endif
-         else
-            a=-100.
-         endif
-      endif
-
-      if (rand() .gt. a ) goto 1000 
-    
-C *** END of calculation for Collision Probability and collision analysis 
-      
-      sum1=0.
-      do i=1,M_comp
-         sum1=sum1+v(i)
-         v_alt(i) = v(i)
-      enddo
-
-      i_sum = 0.
-      summ = 0.
-
-      do while (i_sum .lt. (n_samp*n_samp))
-         random = rand()
-         s3 = int(random*M_comp)
-         random = rand()
-         s4 = int(random*M_comp)
-         if (s1.ne. 0.) then
-            if(s2.ne.0.) then
-                if (V(s3) .ne. 0.) then
-                   if (V(s4) .ne. 0.) then
-                      call kernel_sedi(V(s3),V(s4),k)
-                      summ = summ+k
-                      i_sum = i_sum + 1
-                    endif
-                 endif
-              endif
-           endif
-        enddo
-
-        K_avg  = summ/(n_samp*(n_samp-1))
+      call find_rand_pair_acc_rej(MM, V, M_comp, k_max,
+     &     kernel_sedi, s1, s2)
+      call kernel_avg(MM, M_comp, V, kernel_sedi, n_samp, k_avg)
       
 C *** Calculation for "del_T" for the time increment for each collision 
 
-      del_T=(V_comp*2.)/(K_avg*M*(M-1)) !//time increment
+      del_T=(V_comp*2.)/(k_avg*M*(M-1)) !//time increment
 
       V(s1) = V(s1)+V(s2)          
 
@@ -247,18 +189,13 @@ C *** Removal of the particle s2 by setting its volume to 0.
       
       V(s2) = 0.d+0
       M=M-1
-      i_count=i_count+1
 
 C *** If too many zeros in V-array, compress it
  
-      if (real(i_count)/M .gt. 0.5) then
+      if (real(M_comp - M)/M .gt. 0.5) then
          call compress(MM, M_comp, V)
-         i_count = 0
       endif
        
-      TIME=TIME+del_T            ! Time Updating //
-      Time_count = Time_count + 1
-      tlmin = tlmin +del_T
       return
       end
       

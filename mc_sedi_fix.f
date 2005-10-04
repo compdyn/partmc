@@ -6,13 +6,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
  
-      integer  MM, M, M_comp, N_opt
+      integer  MM, M, M_comp
       parameter (MM=10000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i, i_loop
       integer  Time_count,lmin
 
       real*8   TIME, 
-     &         del_T,tot_free_max, V_comp
+     &         del_T,k_max, V_comp
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi, rho_p
@@ -33,7 +33,7 @@ C     *** For initialization
       parameter(TIME_MAX = 600., del_T = 1.)
       real*8   t1, ax, V_0, d_0, emin, sum
       real*8   delta_sum, sum_mass, tlmin
-      integer  scal, n_samp, nt, i_top
+      integer  scal, n_samp, nt, i_top, i_samp
 
       open(30,file='mc.d')
 
@@ -121,27 +121,28 @@ c      write(6,*)'summe ',sum,delta_sum,sum_mass
       lmin = 0
       M_comp = M
 
-C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
-
-      N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
-                                 ! replicating it.*//
-
-      call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
-      call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
 
       tlmin = 0. 
       nt = TIME_MAX/del_T
       do i_top = 1,nt             ! time-step loop
          TIME = real(i_top) / real(nt) * TIME_MAX
-         call sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
-     &                      del_T,TIME,tlmin,Time_count,
-     &                      n_samp)
-         call moments(MM, V, N_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-         call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+         Time_count = Time_count + 1
+         tlmin = tlmin +del_T
+         
+         call coagmax(n_bin, rr, n_ln, dlnr, k_max)
+         call compute_n_samp(M, k_max, V_comp, del_T, n_samp)
+         do i_samp = 1,n_samp
+            call maybe_coag_pair(V, MM, M, M_comp, V_comp,
+     &           del_T, n_samp)
+            if (M .lt. MM / 2) then
+               call double(MM, M, M_comp, V, V_comp)
+            endif
+         enddo
+
+         call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
          call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
-         call compute_n_samp(M, tot_free_max, V_comp, del_T, n_samp)
       enddo                     ! end of topping up loop
 
       enddo                     ! end of i-loop
@@ -150,11 +151,11 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_n_samp(M, tot_free_max, V_comp,
+      subroutine compute_n_samp(M, k_max, V_comp,
      &     del_T, n_samp)
 
       integer M            ! INPUT: number of particles
-      real*8 tot_free_max  ! INPUT: maximum kernel value
+      real*8 k_max  ! INPUT: maximum kernel value
       real*8 V_comp        ! INPUT: computational volume
       real*8 del_T         ! INPUT: timestep
       integer n_samp       ! OUTPUT: number of samples to take
@@ -162,51 +163,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 p_max, r_samp
       parameter (p_max = 0.01)
 
-      r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
+      r_samp = - (k_max * 1/V_comp *del_T/log(1-p_max))
       n_samp = r_samp * M*(M-1)
 
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine sub_random(V,M,M_comp,V_comp,N_opt,tot_free_max,
-     *                      del_T,TIME,tlmin,Time_count,
-     *                      n_samp)
-
-      integer MM,M,M_comp,Time_count,n_samp,N_opt
-      parameter (MM=10000)
-
-      real*8 V(MM),V_comp
-      real*8 tot_free_max
-      real*8 del_T, TIME, pi, tlmin
-  
-      parameter (pi=3.1415)
-
-      integer i_samp
-
-      Time_count = Time_count + 1
-      tlmin = tlmin +del_T
-
-      do i_samp = 1,n_samp
-         call coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
-         if ((M_comp - M) .lt. (M / 2)) then
-            call double(MM, M_comp, V, V_comp)
-         endif
-      enddo
-      
-C *** If too many zeros in V-array, compress it
- 
-      if (real(M_comp - M)/M .gt. 0.5) then
-         call compress(MM, M_comp, V)
-      endif
-       
-      return
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
+      subroutine maybe_coag_pair(V, MM, M, M_comp, V_comp,
+     &     del_T, n_samp)
       
       integer n_samp, M, MM, M_comp ! INPUT
       real*8 V(MM), V_comp, del_T   ! INPUT
@@ -215,16 +181,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 expo, p, k
 
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
-
       call kernel_sedi(V(s1), V(s2), k)
       expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp
       p = 1 - exp(-expo) ! probability of coagulation
-
-      if (rand() .lt. p ) then ! coagulate particles s1 and s2
-         V(s1) = V(s1) + V(s2)          
-         V(s2) = 0.d+0
-         M = M - 1
-      endif
+      if (rand() .lt. p) call coagulate(MM, M, V, s1, s2)
 
       return
       end

@@ -24,6 +24,72 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+     
+      subroutine find_rand_pair_acc_rej(MM, V, M_comp, max_k, kernel,
+     &     s1, s2)
+      
+      integer MM      ! INPUT: dimension of V
+      real*8 V(MM)    ! INPUT: array of particle volumes
+      integer M_comp  ! INPUT: maximum index of non-zero entries in V
+      real*8 max_k    ! INPUT: maximum value of the kernel
+      external kernel ! INPUT: kernel function
+      integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
+                      !         particles with V(s1/s2) != 0
+
+      real*8 k, p
+
+ 200  continue
+      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
+      call kernel(V(s1), V(s2), k)
+      p = k / max_k     ! collision probability   
+      if (rand() .gt. p ) goto 200
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine coagulate(MM, M, V, s1, s2)
+
+      integer MM    ! INPUT: physical dimension of V
+      integer M     ! INPUT/OUTPUT: number of particles
+      real*8 V(MM)  ! INPUT/OUTPUT: array of particle sizes
+      integer s1    ! INPUT: first particle to coagulate
+      integer s2    ! INPUT: second particle to coagulate
+
+      V(s1) = V(s1) + V(s2)          
+      V(s2) = 0.
+      M = M - 1
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine kernel_avg(MM, M_comp, V, kernel, n_samp, k_avg)
+
+      integer MM      ! INPUT: physical dimension of V
+      integer M_comp  ! INPUT: logical dimension of V
+      real*8 V(MM)    ! INPUT: array of particle volumes
+      external kernel ! INPUT: kernel function
+      integer n_samp  ! INPUT: number of samples to use (squared)
+      real*8 k_avg    ! OUTPUT: estimated average of kernel values
+
+      integer i, s1, s2
+      real*8 k, k_sum
+
+      k_sum = 0.
+      do i = 1,(n_samp**2)
+         call find_rand_pair(MM, V, M_comp, s1, s2)
+         call kernel(V(s1), V(s2), k)
+         k_sum = k_sum + k
+      enddo
+      k_avg  = k_sum / (n_samp * (n_samp - 1))
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compress(MM, M_comp, V)
 
@@ -75,13 +141,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
+      subroutine coagmax(n_bin, rr, n_ln, dlnr, k_max)
       
       integer n_bin        ! INPUT: number of bins
       real*8 rr(n_bin)     ! INPUT: radii of bins
       real*8 n_ln(n_bin)   ! INPUT: number in each bin
       real*8 dlnr          ! INPUT: scale factor
-      real*8 tot_free_max  ! OUTPUT: maximum kernel value
+      real*8 k_max  ! OUTPUT: maximum kernel value
 
       real*8 V_bin(n_bin), cck
       integer ll, k
@@ -93,13 +159,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          V_bin(k) = 4./3.*pi*rr(k)**3.
       enddo
       
-      tot_free_max = 0.
+      k_max = 0.
       do k = 1,n_bin
          if (n_ln(k)*dlnr .ge. 1.) then
             do ll = 1,k
-               call kernel_sedi(V_bin(k), V_bin(ll), cck)
-               if (cck .gt. tot_free_max) then
-                  tot_free_max = cck
+               if (n_ln(ll)*dlnr .ge. 1.) then
+                  call kernel_sedi(V_bin(k), V_bin(ll), cck)
+                  if (cck .gt. k_max) then
+                     k_max = cck
+                  endif
                endif
             enddo
          endif

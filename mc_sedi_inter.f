@@ -161,7 +161,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       parameter (MM=10000)
       parameter (n_samp = 100)
 
-      real*8 V(MM+1),V_comp,tlmin
+      real*8 V(MM),V_comp,tlmin
       real*8 k_max, k_avg
       real*8 del_T, tmc_coll,TIME, pi
       real*8 k

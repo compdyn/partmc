@@ -4,11 +4,11 @@ C utility functions for handling V array of particle volumes
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
      
-      subroutine find_rand_pair(V, MM, M_comp, s1, s2)
+      subroutine find_rand_pair(MM, V, M_comp, s1, s2)
       
       integer MM      ! INPUT: dimension of V
-      integer M_comp  ! INPUT: maximum index of non-zero entries in V
       real*8 V(MM)    ! INPUT: array of particle volumes
+      integer M_comp  ! INPUT: maximum index of non-zero entries in V
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
                       !         particles with V(s1/s2) != 0
 
@@ -54,7 +54,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       subroutine coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
       
       integer n_bin        ! INPUT: number of bins
-      real*8 rr(n_bin)     ! INPUT: radius of bins
+      real*8 rr(n_bin)     ! INPUT: radii of bins
       real*8 n_ln(n_bin)   ! INPUT: number in each bin
       real*8 dlnr          ! INPUT: scale factor
       real*8 tot_free_max  ! OUTPUT: maximum kernel value
@@ -85,24 +85,33 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       
-      subroutine moments(V,M,N_tot,M_comp,V_comp,
-     &     TIME,tlmin,del_T,V_bar,
-     &     Time_count,rr,
-     &     tot_free_max,vv,dlnr,dp)
+      subroutine moments(MM, V, n_bin, M,
+     &     N_tot, M_comp, V_comp,
+     &     TIME, tlmin, del_T, rr,
+     &     tot_free_max, vv, dlnr, dp)
       
-      integer M,MM,n_bin,Time_count,NN_cnt,M_comp
-      real*8 nv_conc,dlnr, tlmin
-      parameter (MM=10000000,n_bin=160)
-      real*8 V(MM),N_tot,vv(n_bin),dp(n_bin)
-      real*8 V_comp,del_T,TIME,tot_free_max
-      real*8 V_bar
-      real*8 rr(n_bin)
-      real*8 g(n_bin)
-      real*8 n_ln(n_bin)
-      real*8 pi,rho_w, V_0, d_0, vv_cnt
-      real*8 vv_conc, sum_masse
-      integer k, i
-      
+      integer MM           ! INPUT: dimension of V
+      real*8 V(MM)         ! INPUT: particle volume array
+      integer n_bin        ! INPUT: number of bins
+      integer M            ! INPUT: total number of particles
+      real*8 N_tot         ! INPUT: 
+      integer M_comp       ! INPUT: maximum index of particle in V
+      real*8 V_comp        ! INPUT: computational volume
+      real*8 TIME          ! INPUT: current simulation time
+      real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
+                           !               simulation time
+      real*8 del_T         ! INPUT: timestep
+      real*8 rr(n_bin)     ! INPUT: radii of bins
+      real*8 tot_free_max  ! OUTPUT: maximum kernel value
+      real*8 vv(n_bin)     ! INPUT: 
+      real*8 dlnr          ! INPUT: scale factor
+      real*8 dp(n_bin)     ! INPUT: 
+
+      real*8 nv_conc, g(n_bin), n_ln(n_bin)
+      real*8 V_0, d_0, vv_cnt, vv_conc, sum_masse
+      integer NN_cnt, k, i
+
+      real*8 pi, rho_w
       parameter (pi = 3.14159265358979323846)
       parameter (rho_w = 1000.)
       
@@ -125,10 +134,10 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
          g(k)   =  vv_conc/dlnr
       enddo
       
-      call coagmax(n_bin,rr,n_ln,dlnr,tot_free_max)
+      call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
       
       if (tlmin.eq.0. .or.tlmin .ge. 60. ) then
-         tlmin = tlmin -60.
+         tlmin = tlmin - 60.
          write(30,*)'Time = ',TIME
          sum_masse = 0.
          do k=1,n_bin

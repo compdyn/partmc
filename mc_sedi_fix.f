@@ -7,7 +7,7 @@
       integer  Time_count,lmin
 
       real*8   TIME, 
-     &         del_T,tot_free_max, V_comp, V_bar 
+     &         del_T,tot_free_max, V_comp
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi, rho_p
@@ -123,10 +123,11 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       N_opt=M/2                  ! Optimum No.of Particles to be retained in the sub-system for 
                                  ! replicating it.*//
 
-      call moments(V,M,N_tot,M_comp,V_comp,
-     &                   TIME,tlmin,del_T,
-     &                   V_bar,Time_count,rr,tot_free_max,
-     &                   vv,dlnr,dp)
+      call moments(MM,V,N_bin,
+     &     M,N_tot,M_comp,V_comp,
+     &     TIME,tlmin,del_T,
+     &     rr,tot_free_max,
+     &     vv,dlnr,dp)
       r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
       n_samp = r_samp * M*(M-1)
 
@@ -144,10 +145,11 @@ C        *** NEXT calculate the collsion probability ***
 
 C        *** CALCULATING MOMENTS *** 
 
-            call moments(V,M,N_tot,M_comp,V_comp,
-     &                   TIME,tlmin,del_T,
-     &                   V_bar,Time_count,rr,tot_free_max,
-     &                   vv,dlnr,dp)
+            call moments(MM,V,N_bin,
+     &        M,N_tot,M_comp,V_comp,
+     &        TIME,tlmin,del_T,
+     &        rr,tot_free_max,
+     &        vv,dlnr,dp)
             r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
             n_samp = r_samp * M*(M-1)
 
@@ -215,7 +217,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       integer s1, s2
       real*8 expo, p, k
 
-      call find_rand_pair(V, MM, M, M_comp, s1, s2) ! test particles s1, s2
+      call find_rand_pair(MM, V, M, M_comp, s1, s2) ! test particles s1, s2
 
       call coag_kernel(V(s1), V(s2), k)
       expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp

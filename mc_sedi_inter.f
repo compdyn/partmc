@@ -8,7 +8,7 @@
       integer  Time_count,lmin
 
       real*8   TIME, 
-     &         del_T,tot_free_max, V_comp, V_bar 
+     &         del_T,tot_free_max, V_comp
       real*8   TIME_MAX
       real*8   N_tot
       real*8   pi,rho_p
@@ -125,10 +125,11 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
       call coagmax(n_bin,rr,n_ini,dlnr,tot_free_max)
        
-      call moments(V,M,N_tot,M_comp,V_comp,
-     &                   TIME,tlmin,del_T,
-     &                   V_bar,Time_count,rr,tot_free_max,
-     &                   vv,dlnr,dp)
+      call moments(MM,V,N_bin,
+     &     M,N_tot,M_comp,V_comp,
+     &     TIME,tlmin,del_T,
+     &     rr,tot_free_max,
+     &     vv,dlnr,dp)
   
       do i_top = 1,TOPUP        ! topping up cycle */
          
@@ -154,9 +155,10 @@ C     *** CALCULATING MOMENTS ***
                tlmin = tlmin -1.
                lmin = lmin + 1
                
-               call moments(V,M,N_tot,M_comp,V_comp,
+               call moments(MM,V,N_bin,M,
+     &              N_tot,M_comp,V_comp,
      &              TIME,tlmin,del_T,
-     &              V_bar,Time_count,rr,tot_free_max,
+     &              rr,tot_free_max,
      &              vv,dlnr,dp)
             endif
             

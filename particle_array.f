@@ -25,12 +25,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compress(MM, V)
+      subroutine compress(MM, M_comp, V)
 
-      integer MM   ! INPUT: dimension of V
-      real*8 V(MM) ! INPUT/OUTPUT: on exit, all non-zero entries are
-                   !               at the beginning, followed by all
-                   !               zeros.
+      integer MM      ! INPUT: physical dimension of V
+      integer M_comp  ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)    ! INPUT/OUTPUT: on exit, all non-zero entries are
+                      !               at the beginning, followed by all
+                      !               zeros.
 
       integer i, i_w, i_v
 
@@ -41,10 +42,33 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             i_w = i_w + 1
          endif
       enddo
+      M_comp = i_w
 
-      do i = i_w + 1, MM
+      do i = (i_w + 1),MM
          V(i) = 0.
       enddo
+
+      return
+      end
+
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine double(MM, M_comp, V, V_comp)
+
+      integer MM      ! INPUT: physical size of V
+      integer M_comp  ! INPUT/OUTPUT: logical size of V
+      real*8 V(MM)    ! INPUT/OUTPUT: particle volume array
+      real*8 V_comp   ! INPUT/OUTPUT: computational volume
+
+      integer i
+
+      call compress(MM, M_comp, V)
+      do i = 1,M_comp
+         V(i + M_comp) = V(i)
+      enddo
+      M_comp = 2 * M_comp
+      V_comp = 2 * V_comp
 
       return
       end

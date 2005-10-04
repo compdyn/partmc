@@ -174,7 +174,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      *                      del_T,TIME,tlmin,Time_count,
      *                      n_samp)
 
-      integer MM,M,M_comp,M_local,Time_count,n_samp,N_opt
+      integer MM,M,M_comp,Time_count,n_samp,N_opt
       parameter (MM=10000)
 
       real*8 V(MM),V_comp
@@ -183,34 +183,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
   
       parameter (pi=3.1415)
 
-      integer i_samp, i
+      integer i_samp
 
       Time_count = Time_count + 1
       tlmin = tlmin +del_T
 
       do i_samp = 1,n_samp
-
          call coag_pair(V, MM, M, M_comp, V_comp, del_T, n_samp)
- 
-         M_local=M             !CURRENT NUMBER OF PARTICLES IN THE SYSTEM
-
-C ***    REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
-         if (M .le. N_opt) then   ! topup
-            call compress(MM, V)
-            do i=1,M_local
-               M=M+1
-               V(M) = V(i)
-            enddo
-            V_comp=2*V_comp         ! UPDATING THE COMPUTATIONAL VOLUME
-            M_comp=M     
+         if ((M_comp - M) .lt. (M / 2)) then
+            call double(MM, M_comp, V, V_comp)
          endif
-      enddo       ! sampling loop
+      enddo
       
 C *** If too many zeros in V-array, compress it
  
       if (real(M_comp - M)/M .gt. 0.5) then
-         M_comp = M
-         call compress(MM, V)
+         call compress(MM, M_comp, V)
       endif
        
       return

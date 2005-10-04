@@ -4,6 +4,7 @@
 
        real*8 eta(n_bin),g(i_loop,tmax,n_bin),n(i_loop,tmax,n_bin)
        real*8 g_bar(tmax,n_bin),n_bar(tmax,n_bin)
+       integer k, l, i, mm
        character*20 dum
 
        open(20,file='mc_go.d')

@@ -1,7 +1,7 @@
       program MonteCarlo
 
  
-      integer  MM, M, M_initial,N_opt,M_local
+      integer  MM, M, M_initial,N_opt
       parameter (MM=10000000)       !WORKING TOTAL NUMBER OF PARTICLES (MC particles)
       integer  i,l,TOPUP
       integer  i_count
@@ -23,7 +23,7 @@ C     *** For SPD calculation **//
       real*8 g(n_bin), n_ln(n_bin)
 C     *** For initialization
       real*8   rr(n_bin),delta_n(n_bin)
-      real*8   dlnr, tlmin, sum_mass, sum, delta_sum
+      real*8   dlnr, tlmin, sum_mass, delta_sum
       real*8   d_0, emin, ax, V_0
       integer  sum_a, sum_e, i_top, M_comp, scal, i_loop
       parameter(TIME_MAX = 300.)
@@ -82,12 +82,10 @@ c mass and radius grid
          d_norm(i) = dp(i)/d_0
       enddo
 
-      sum=0.
       delta_sum = 0.
       sum_mass = 0.
       do i=1,n_bin
          delta_n(i) = int(n_ini(i)*dlnr)
-         sum=sum+n_ini(i)*dlnr
          delta_sum = delta_sum + delta_n(i)
          sum_mass = sum_mass + rho_p * pi/6. * dp(i)**3.*n_ini(i)*dlnr
       enddo
@@ -103,12 +101,6 @@ c mass and radius grid
          do i=sum_a,sum_e
             V(i) = pi/6. * dp(k)**3.
          enddo
-      enddo
-
-      sum=0.
-
-      do i=1,MM
-        sum=sum+v(i)
       enddo
 
       TIME=0.                    ! Initialization of Overall Time Frame for Collision Process */
@@ -129,22 +121,12 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
-         
          do l=1,N_opt           ! time step cycle  
-            sum=0.
-            do i=1,MM
-               sum=sum+v(i)
-            enddo
             
 C           *** NEXT calculate the collsion probability ***   
             call sub_random(V,M,M_comp,V_comp,tot_free_max,
      &           del_T,tmc_coll,TIME,tlmin,Time_count,
      &           i_count)
-            
-            sum=0.
-            do i=1,MM
-               sum=sum+v(i)
-            enddo
             
 C     *** CALCULATING MOMENTS *** 
             
@@ -157,30 +139,11 @@ C     *** CALCULATING MOMENTS ***
                call coagmax(n_bin, rr, n_ln, dlnr, tot_free_max)
                call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
             endif
-            
             if (TIME .ge. TIME_MAX) GOTO 2000
          enddo                  ! end of l-Loop
       
 C     *** REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
-         sum=0.
-         do i=1,MM
-            sum=sum+V(i)
-         enddo
-         call compress(MM, V)
-         
-         sum=0.
-         do i=1,MM
-            sum=sum+V(i)
-         enddo
-         
-         M_local=M              !CURRENT NUMBER OF PARTICLES IN THE SYSTEM
-         do i=1,M_local
-            M=M+1
-            V(M) = V(i)
-         enddo
-         
-         V_comp=2*V_comp        ! UPDATING THE COMPUTATIONAL VOLUME
-         M_comp=M     
+         call double(MM, M_comp, V, V_comp)
       enddo                     ! end of topping up loop
 
  2000 continue
@@ -202,7 +165,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       real*8 V(MM+1),a,random,V_comp,tlmin
       real*8 tot_free_max, K_avg
       real*8 del_T, tmc_coll,TIME, pi
-      real*8 v_alt(MM+1), k, sum1, sum2, summ
+      real*8 v_alt(MM+1), k, sum1, summ
       integer s3, s4, i, i_sum, i_versuch
   
       parameter (pi=3.1415)
@@ -286,17 +249,10 @@ C *** Removal of the particle s2 by setting its volume to 0.
       M=M-1
       i_count=i_count+1
 
-
-      sum2=0.
-      do i=1,MM
-         sum2=sum2+v(i)
-      enddo
-
 C *** If too many zeros in V-array, compress it
  
       if (real(i_count)/M .gt. 0.5) then
-         M_comp = M
-         call compress(MM, V)
+         call compress(MM, M_comp, V)
          i_count = 0
       endif
        

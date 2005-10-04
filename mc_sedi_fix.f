@@ -29,6 +29,9 @@ C     *** For initialization
       real*8   delta_sum, sum_mass, tlmin
       integer  scal, n_samp, nt, i_top
 
+      real*8 p_max, r_samp
+      parameter (p_max = 0.01)
+
       open(30,file='mc.d')
 
       call srand(10)
@@ -123,7 +126,10 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
       call moments(V,M,N_tot,M_comp,V_comp,
      &                   TIME,tlmin,del_T,
      &                   V_bar,Time_count,rr,tot_free_max,
-     &                   vv,dlnr,dp,n_samp)
+     &                   vv,dlnr,dp)
+      r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
+      n_samp = r_samp * M*(M-1)
+
       tlmin = 0. 
       nt = TIME_MAX/del_T
       do i_top = 1,nt             ! time-step loop
@@ -141,7 +147,9 @@ C        *** CALCULATING MOMENTS ***
             call moments(V,M,N_tot,M_comp,V_comp,
      &                   TIME,tlmin,del_T,
      &                   V_bar,Time_count,rr,tot_free_max,
-     &                   vv,dlnr,dp,n_samp)
+     &                   vv,dlnr,dp)
+            r_samp = - (tot_free_max * 1/V_comp *del_T/log(1-p_max))
+            n_samp = r_samp * M*(M-1)
 
       enddo                     ! end of topping up loop
 

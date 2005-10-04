@@ -1,5 +1,5 @@
 
-OPTS = -O -W -Wall -Wimplicit -Wsurprising
+OPTS = -g -W -Wall -Wimplicit -Wsurprising
 
 MC_SEDI_FIX_OBJS = mc_sedi_fix.o kernel_sedi.o particle_array.o
 MC_SEDI_INTER_OBJS = mc_sedi_inter.o kernel_sedi.o particle_array.o

@@ -237,7 +237,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
       integer s1, s2
       real*8 expo, p, k
 
-      call find_rand_pair(MM, V, M, M_comp, s1, s2) ! test particles s1, s2
+      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
 
       call coag_kernel(V(s1), V(s2), k)
       expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp

@@ -22,4 +22,7 @@ umsp_mc: $(UMSP_MC_OBJS)
 	g77 $(OPTS) -c -o $@ $<
 
 clean:
-	rm -f $(PROGS) *.o *~
+	rm -f $(PROGS) *.o
+
+cleanall: clean
+	rm -f *~ *.d

@@ -262,15 +262,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
       real*8 nv_conc
-      real*8 V_0, d_0, vv_cnt, vv_conc
+      real*8 vv_cnt, vv_conc
       integer NN_cnt, k, i
 
       real*8 pi, rho_w
       parameter (pi = 3.14159265358979323846)
       parameter (rho_w = 1000.)
-      
-      V_0 = 1.e-12
-      d_0 = (6*V_0/pi)**(1./3.)
       
       do k=1,n_bin
          NN_cnt = 0

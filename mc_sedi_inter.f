@@ -27,6 +27,8 @@ C     *** For initialization
       integer  sum_a, sum_e, i_top, M_comp, scal, i_loop
       parameter(TIME_MAX = 300.)
 
+      external kernel_sedi
+
       open(30,file='mc.d')
 
       call srand(10)
@@ -124,7 +126,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
                                  ! replicating it.*//
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call coagmax(n_bin, rr, n_ln, dlnr, k_max)
+      call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
       call print_info(n_bin, TIME, dp, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
@@ -145,7 +147,7 @@ C     *** CALCULATING MOMENTS ***
                
                call moments(MM, V, n_bin, M_comp, V_comp, vv,
      &              dlnr, g, n_ln)
-               call coagmax(n_bin, rr, n_ln, dlnr, k_max)
+               call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
                call print_info(n_bin, TIME, dp, g, n_ln)
             endif
             if (TIME .ge. TIME_MAX) GOTO 2000

@@ -468,7 +468,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
   
       enddo
       
-      call coagmax(rr,k_max,n_ln,dlnr)
+      call est_k_max(rr,k_max,n_ln,dlnr)
       r_samp = - k_max * 1/V_comp *del_T/log(1-p_max)   
       n_samp = r_samp * M*(M-1)
  
@@ -489,7 +489,7 @@ C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-      subroutine coagmax(rr,k_max,n_ln,dlnr)
+      subroutine est_k_max(rr,k_max,n_ln,dlnr)
 
       implicit double precision (a-h,o-z)
       integer n_bin

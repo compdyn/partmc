@@ -210,13 +210,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coagmax(n_bin, rr, n_ln, dlnr, k_max)
+      subroutine est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
       
       integer n_bin        ! INPUT: number of bins
       real*8 rr(n_bin)     ! INPUT: radii of bins
       real*8 n_ln(n_bin)   ! INPUT: number in each bin
       real*8 dlnr          ! INPUT: scale factor
-      real*8 k_max  ! OUTPUT: maximum kernel value
+      external kernel      ! INPUT: kernel function
+      real*8 k_max         ! OUTPUT: maximum kernel value
 
       real*8 V_bin(n_bin), cck
       integer ll, k
@@ -233,7 +234,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if (n_ln(k)*dlnr .ge. 1.) then
             do ll = 1,k
                if (n_ln(ll)*dlnr .ge. 1.) then
-                  call kernel_sedi(V_bin(k), V_bin(ll), cck)
+                  call kernel(V_bin(k), V_bin(ll), cck)
                   if (cck .gt. k_max) then
                      k_max = cck
                   endif
@@ -283,7 +284,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          nv_conc = NN_cnt/V_comp
          vv_conc = vv_cnt/V_comp
          n_ln(k) = nv_conc/dlnr
-         g(k)   =  vv_conc/dlnr
+         g(k) = vv_conc/dlnr
       enddo
       
       return
@@ -291,20 +292,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_info(n_bin, TIME, dp, g, n_ln)
+      subroutine print_info(n_bin, time, dp, g, n_ln)
 
       integer n_bin        ! INPUT: number of bins
-      real*8 TIME          ! INPUT: current simulation time
+      real*8 time          ! INPUT: current simulation time
       real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
       integer k
+      real*8 seconds
 
-      if (abs(TIME - anint(TIME / 60) * 60) < 1.0e-10) then
-         write(30,*)'Time = ',TIME
+      seconds = time - anint(time / 60) * 60
+      if (abs(seconds) < 1.0e-10) then
+         write(30,*)'Time = ', time
          do k = 1,n_bin
-            write(30, '(i4,6e14.5)')k, dp(k)/2., n_ln(k), g(k)
+            write(30, '(i4,6e14.5)'), k, dp(k)/2., n_ln(k), g(k)
          enddo
       endif
       

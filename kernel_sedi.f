@@ -30,15 +30,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine fallg(r,winf)
 
 c terminal velocity of falling drops
+      real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
+      real*8 stok, stb, phy, py, rr, x, y, xrey, bond
+      integer i
       real*8 r, winf
       real*8 b(7),c(6)
       data b /-0.318657e1,0.992696,-0.153193e-2,-0.987059e-3,
      &        -0.578878e-3,0.855176e-4,-0.327815e-5/
       data c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
      &         0.238449e-2/
-      real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
-      real*8 stok, stb, phy, py, rr, x, y, xrey, bond
-      integer i
 
       eta=1.818e-4
       xlamb=6.62e-6
@@ -90,12 +90,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r2  ! INPUT: radius of second particle
       real*8 ec  ! OUTPUT: collision efficiency
 
+      real*8 rq, r_help, p, q
+      integer k, ir, kk, iq, ek
 C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)
       data r0 /6.,8.,10.,15.,20.,25.,30.,40.,50.,
      &     60.,70.,100.,150.,200.,300./
       data rat /0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,
      &     0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0/
+c     two-dimensional linear interpolation of the collision efficiency
       data ecoll /
      &     0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001
      &     ,0.001,0.001,0.001,0.001,0.001,0.003,0.003,0.003,0.004,0.005
@@ -129,9 +132,6 @@ C     collision efficiencies of hall kernel
      &     ,0.119,0.470,0.950,1.300,1.700,2.300,2.300,2.300,2.300,2.300
      &     ,0.027,0.027,0.027,0.027,0.027,0.125,0.520,1.400,2.300,3.000
      &     ,4.000,4.000,4.000,4.000,4.000/
-c     two-dimensional linear interpolation of the collision efficiency
-      real*8 rq, r_help, p, q
-      integer k, ir, kk, iq, ek
 
       rq = r1/r2
       if (rq .gt. 1.0) then

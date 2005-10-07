@@ -24,6 +24,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i_top, nt, n_samp, i_samp
       real*8 g(n_bin), n_ln(n_bin), k_max, time
 
+      external kernel_sedi
+
       time = 0.
       M_comp = M
 
@@ -34,7 +36,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_top = 1,nt
          time = real(i_top) / real(nt) * t_max
          
-         call coagmax(n_bin, rr, n_ln, dlnr, k_max)
+         call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
          call compute_n_samp(M, k_max, V_comp, del_t, n_samp)
          do i_samp = 1,n_samp
             call maybe_coag_pair(V, MM, M, M_comp, V_comp,

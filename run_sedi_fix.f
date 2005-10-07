@@ -23,7 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       external kernel_sedi
 
-      open(30,file='mc.d')
+      open(30,file='out_sedi_fix.d')
       call srand(10)
 
       do i_loop = 1,1

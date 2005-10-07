@@ -1,4 +1,4 @@
-C run_sedi_golovin.f
+C run_golovin_fix.f
 C
 C Simulation with Golovin kernel and fixed timestepping.
 
@@ -27,7 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       external kernel_golovin
 
-      open(30,file='mc.d')
+      open(30,file='out_golovin_fix.d')
       call srand(10)
 
       do i_loop = 1,1

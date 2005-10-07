@@ -6,6 +6,11 @@ RUN_SEDI_FIX_OBJS = \
 	mc_fix.o \
 	kernel_sedi.o \
 	particle_array.o
+RUN_SEDI_VAR_OBJS = \
+	run_sedi_var.o \
+	mc_var.o \
+	kernel_sedi.o \
+	particle_array.o
 MC_SEDI_INTER_OBJS = \
 	mc_sedi_inter.o \
 	mc_var.o \
@@ -28,6 +33,9 @@ all: $(PROGS)
 
 run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_SEDI_FIX_OBJS)
+
+run_sedi_var: $(RUN_SEDI_VAR_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_VAR_OBJS)
 
 mc_sedi_inter: $(MC_SEDI_INTER_OBJS)
 	g77 $(OPTS) -o $@ $(MC_SEDI_INTER_OBJS)

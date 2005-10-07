@@ -153,7 +153,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call kernel(V(s1), V(s2), k)
          k_sum = k_sum + k
       enddo
-      k_avg  = k_sum / (n_samp * (n_samp - 1))
+      k_avg  = k_sum / (n_samp**2)
 
       return
       end

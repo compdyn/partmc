@@ -25,6 +25,7 @@ UMSP_MC_OBJS = umsp_mc.o
 
 PROGS = \
 	run_sedi_fix \
+	run_sedi_var \
 	mc_sedi_inter \
 	run_golovin_fix \
 	umsp_mc

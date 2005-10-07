@@ -265,10 +265,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 vv_cnt, vv_conc
       integer NN_cnt, k, i
 
-      real*8 pi, rho_w
-      parameter (pi = 3.14159265358979323846)
-      parameter (rho_w = 1000.)
-      
       do k=1,n_bin
          NN_cnt = 0
          vv_cnt = 0.

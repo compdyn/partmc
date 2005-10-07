@@ -1,6 +1,6 @@
 C mc_fix.f
 C
-C Monte Carlo with fixed timestep
+C Monte Carlo with fixed timestep.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -29,7 +29,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       M_comp = M
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call print_info(n_bin, time, dp, g, n_ln)
+      call print_info(n_bin, time, rr, g, n_ln)
 
       nt = t_max / del_t
       do i_top = 1,nt
@@ -46,7 +46,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
 
          call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-         call print_info(n_bin, time, dp, g, n_ln)
+         call print_info(n_bin, time, rr, g, n_ln)
       enddo
 
       return

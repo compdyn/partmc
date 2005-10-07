@@ -127,14 +127,14 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
-      call print_info(n_bin, TIME, dp, g, n_ln)
+      call print_info(n_bin, TIME, rr, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
          do l=1,N_opt           ! time step cycle  
             
 C           *** NEXT calculate the collsion probability ***   
             call sub_random(V,M,M_comp,V_comp,k_max,
-     &           del_T,tmc_coll,TIME,tlmin,Time_count)
+     &           del_T,tmc_coll,TIME)
             TIME=TIME+del_T     ! Time Updating //
             Time_count = Time_count + 1
             tlmin = tlmin +del_T
@@ -148,7 +148,7 @@ C     *** CALCULATING MOMENTS ***
                call moments(MM, V, n_bin, M_comp, V_comp, vv,
      &              dlnr, g, n_ln)
                call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
-               call print_info(n_bin, TIME, dp, g, n_ln)
+               call print_info(n_bin, TIME, rr, g, n_ln)
             endif
             if (TIME .ge. TIME_MAX) GOTO 2000
          enddo                  ! end of l-Loop
@@ -164,49 +164,3 @@ C     *** REPLICATE THE SUB-SYSTEM FOR THE NEXT TOPPING-UP SYSTEM
       end
 
 C &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-      subroutine sub_random(V,M,M_comp,V_comp,k_max,
-     *                      del_T,tmc_coll,TIME,tlmin,Time_count)
-
-      integer MM,M,M_comp,s1,s2,Time_count,n_samp
-      parameter (MM=10000)
-      parameter (n_samp = 100)
-
-      real*8 V(MM),V_comp,tlmin
-      real*8 k_max, k_avg
-      real*8 del_T, tmc_coll,TIME, pi
-      real*8 k
-  
-      parameter (pi=3.1415)
-
-      external kernel_sedi
-
-      call find_rand_pair_acc_rej(MM, V, M_comp, k_max,
-     &     kernel_sedi, s1, s2)
-      call kernel_avg(MM, M_comp, V, kernel_sedi, n_samp, k_avg)
-      
-C *** Calculation for "del_T" for the time increment for each collision 
-
-      del_T=(V_comp*2.)/(k_avg*M*(M-1)) !//time increment
-
-      V(s1) = V(s1)+V(s2)          
-
-C *** Characteristic collision time-MC//
-
-      call kernel_sedi(V(s1),V(s2),k)
-      tmc_coll = (V_comp*2.)/(k*M)
-
-C *** Removal of the particle s2 by setting its volume to 0.
-      
-      V(s2) = 0.d+0
-      M=M-1
-
-C *** If too many zeros in V-array, compress it
- 
-      if (real(M_comp - M)/M .gt. 0.5) then
-         call compress(MM, M_comp, V)
-      endif
-       
-      return
-      end
-      

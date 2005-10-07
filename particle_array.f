@@ -284,11 +284,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_info(n_bin, time, dp, g, n_ln)
+      subroutine print_info(n_bin, time, rr, g, n_ln)
 
       integer n_bin        ! INPUT: number of bins
       real*8 time          ! INPUT: current simulation time
-      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 rr(n_bin)     ! INPUT: radius of particles in bins
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
@@ -299,7 +299,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if (abs(seconds) < 1.0e-10) then
          write(30,*)'Time = ', time
          do k = 1,n_bin
-            write(30, '(i4,6e14.5)'), k, dp(k)/2., n_ln(k), g(k)
+            write(30, '(i4,6e14.5)'), k, rr(k), n_ln(k), g(k)
          enddo
       endif
       

@@ -20,6 +20,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V(MM), V_comp, dlnr, t1
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
 
+      integer k
+
       external kernel_sedi
 
       open(30,file='mc.d')
@@ -37,6 +39,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
 c     define bidisperse distribution
+         do k = 1,n_bin
+            n_ini(k) = 0.
+         end do
          n_ini(97) = (M-1)/dlnr
          n_ini(126) = 1/dlnr
 

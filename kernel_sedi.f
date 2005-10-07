@@ -1,6 +1,6 @@
 C kernel_sedi.f
 C
-C sedimentation coagulation kernel
+C Sedimentation coagulation kernel.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

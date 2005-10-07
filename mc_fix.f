@@ -5,7 +5,7 @@ C Monte Carlo with fixed timestep
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, dp, dlnr, t_max, del_t)
+     &     rr, dp, dlnr, t_max, del_t, p_max)
 
       integer MM        ! INPUT: physical dimension of V
       integer M         ! INPUT/OUTPUT: number of particles
@@ -20,11 +20,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 dlnr       ! INPUT: scale factor
       real*8 t_max      ! INPUT: total simulation time
       real*8 del_t      ! INPUT: timestep
+      real*8 p_max      ! INPUT: maximum coagulation probability
 
       integer i_top, nt, n_samp, i_samp
       real*8 g(n_bin), n_ln(n_bin), k_max, time
-
-      external kernel_sedi
 
       time = 0.
       M_comp = M
@@ -36,11 +35,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_top = 1,nt
          time = real(i_top) / real(nt) * t_max
          
-         call est_k_max(n_bin, rr, n_ln, dlnr, kernel_sedi, k_max)
-         call compute_n_samp(M, k_max, V_comp, del_t, n_samp)
+         call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
+         call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
          do i_samp = 1,n_samp
-            call maybe_coag_pair(V, MM, M, M_comp, V_comp,
-     &           del_t, n_samp)
+            call maybe_coag_pair(MM, V, M, M_comp, V_comp,
+     &           del_t, n_samp, kernel)
             if (M .lt. MM / 2) then
                call double(MM, M, M_comp, V, V_comp)
             endif
@@ -56,16 +55,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compute_n_samp(M, k_max, V_comp,
-     &     del_T, n_samp)
+     &     del_T, p_max, n_samp)
 
       integer M            ! INPUT: number of particles
-      real*8 k_max  ! INPUT: maximum kernel value
+      real*8 k_max         ! INPUT: maximum kernel value
       real*8 V_comp        ! INPUT: computational volume
       real*8 del_T         ! INPUT: timestep
-      integer n_samp       ! OUTPUT: number of samples to take
+      real*8 p_max         ! INPUT: maximum coagulation probability
+      integer n_samp       ! OUTPUT: number of samples per timestep
 
-      real*8 p_max, r_samp
-      parameter (p_max = 0.01)
+      real*8 r_samp
 
       r_samp = - (k_max * 1/V_comp *del_T/log(1-p_max))
       n_samp = r_samp * M*(M-1)
@@ -75,20 +74,28 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine maybe_coag_pair(V, MM, M, M_comp, V_comp,
-     &     del_T, n_samp)
+      subroutine maybe_coag_pair(MM, V, M, M_comp, V_comp,
+     &     del_T, n_samp, kernel)
       
-      integer n_samp, M, MM, M_comp ! INPUT
-      real*8 V(MM), V_comp, del_T   ! INPUT
+      integer MM      ! INPUT: physical dimension of V
+      real*8 V(MM)    ! INPUT/OUTPUT: particle volumes
+      integer M       ! INPUT/OUTPUT: number of particles
+      integer M_comp  ! INPUT: logical dimension of V
+      real*8 V_comp   ! INPUT: computational volume
+      real*8 del_T    ! INPUT: timestep
+      integer n_samp  ! INPUT: number of samples per timestep
+      external kernel ! INPUT: kernel function
 
       integer s1, s2
       real*8 expo, p, k
 
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
-      call kernel_sedi(V(s1), V(s2), k)
+      call kernel(V(s1), V(s2), k)
       expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp
       p = 1 - exp(-expo) ! probability of coagulation
-      if (rand() .lt. p) call coagulate(MM, M, V, s1, s2)
+      if (rand() .lt. p) then
+         call coagulate(MM, M, V, s1, s2)
+      endif
 
       return
       end

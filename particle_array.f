@@ -261,8 +261,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
-      real*8 nv_conc
-      real*8 vv_cnt, vv_conc
+      real*8 nv_conc, vv_cnt, vv_conc
       integer NN_cnt, k, i
 
       do k=1,n_bin

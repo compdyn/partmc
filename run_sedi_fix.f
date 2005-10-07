@@ -7,7 +7,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
  
       integer MM, n_bin, scal
-      real*8 t_max, del_t, rho_p, N_tot
+      real*8 t_max, del_t, rho_p, N_tot, p_max
       parameter (MM = 10000)       ! number of particles
       parameter (n_bin = 160)      ! number of bins
       parameter (scal = 3)         ! scale factor for bins
@@ -15,12 +15,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (del_t = 1.)       ! timestep (seconds)
       parameter (rho_p = 1000.)    ! particle density (kg m^{-3})
       parameter (N_tot = 1.e+9)    ! particle number concentration (#/m^3)
+      parameter (p_max = 0.01)     ! maximum coagulation probability
 
-      integer M, M_comp, i_loop
+      integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr, t1
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
-
-      integer k
 
       external kernel_sedi
 
@@ -41,14 +40,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 c     define bidisperse distribution
          do k = 1,n_bin
             n_ini(k) = 0.
-         end do
+         enddo
          n_ini(97) = (M-1)/dlnr
          n_ini(126) = 1/dlnr
 
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
 
          call mc_fix(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin, vv,
-     &        rr, dp, dlnr, t_max, del_t)
+     &        rr, dp, dlnr, t_max, del_t, p_max)
 
       enddo
 

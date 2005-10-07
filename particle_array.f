@@ -3,6 +3,75 @@ C
 C utility functions for handling V array of particle volumes
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
+
+      integer n_bin     ! INPUT: number of bins
+      integer scal      ! INPUT: scale factor
+      real*8 rho_p      ! INPUT: density
+      real*8 vv(n_bin)  ! OUTPUT: volume of particles in bins
+      real*8 dp(n_bin)  ! OUTPUT: diameter of particles in bins
+      real*8 rr(n_bin)  ! OUTPUT: radius of particles in bins
+      real*8 dlnr       ! OUTPUT: scale factor
+
+      integer i
+      real*8 ax, e(n_bin), r(n_bin), emin
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846)
+
+      dlnr=dlog(2.d0)/(3.*scal)
+      ax=2.d0**(1.0/scal)
+      emin = 1.e-15
+
+      e(1)=emin*0.5*(ax+1.)
+      r(1)=1000.*dexp(dlog(3*e(1)/(4.*pi))/3.)
+      vv(1)=1.e-06*e(1)/rho_p
+      dp(1) = 1.e-06*r(1)
+      rr(1) = dp(1)/2.
+      
+      do i=2,n_bin
+         e(i)=ax*e(i-1)
+         r(i)=1000.*dexp(dlog(3.*e(i)/(4.*pi))/3.)
+         vv(i)=1.e-06*e(i)/rho_p
+         dp(i)=1.e-06*2.*r(i)
+         rr(i) = dp(i)/2.
+      enddo
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
+
+      integer n_bin        ! INPUT: number of bins
+      integer MM           ! INPUT: physical size of V
+      real*8 n_ini(n_bin)  ! INPUT: initial number distribution
+      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 dlnr          ! INPUT: scale factor
+      real*8 V(MM)         ! OUTPUT: particle volumes
+
+      integer k, i
+      real*8 sum_e, delta_n, sum_a
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846)
+
+      sum_e = 0.
+      do k = 1,n_bin
+         delta_n = int(n_ini(k) * dlnr)
+         sum_a = sum_e + 1
+         sum_e = sum_e + delta_n
+         do i = sum_a,sum_e
+            V(i) = pi/6. * dp(k)**3.
+         enddo
+      enddo
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
       subroutine find_rand_pair(MM, V, M_comp, s1, s2)
       
@@ -222,20 +291,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+      subroutine print_info(n_bin, TIME, dp, g, n_ln)
 
       integer n_bin        ! INPUT: number of bins
       real*8 TIME          ! INPUT: current simulation time
-      real*8 tlmin         ! INPUT/OUTPUT: number of whole minutes of
-                           !               simulation time
       real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
       integer k
 
-      if ((tlmin .eq. 0.) .or. (tlmin .ge. 60.)) then
-         tlmin = tlmin - 60.
+      if (abs(TIME - anint(TIME / 60) * 60) < 1.0e-10) then
          write(30,*)'Time = ',TIME
          do k = 1,n_bin
             write(30, '(i4,6e14.5)')k, dp(k)/2., n_ln(k), g(k)

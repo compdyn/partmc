@@ -141,10 +141,6 @@ c     two-dimensional linear interpolation of the collision efficiency
          rq = 1 / rq
       endif
 
-C      r0(1)  r0(2)  ...  r0(15)
-C  1        2       3 ... 15     16
-
-
       ir = 1
       do k = 1, 15
          if (r2 .gt. r0(k)) then

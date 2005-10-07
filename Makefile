@@ -1,7 +1,7 @@
 
 OPTS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising
 
-MC_SEDI_FIX_OBJS = mc_sedi_fix.o kernel_sedi.o particle_array.o
+MC_SEDI_FIX_OBJS = mc_sedi_fix.o mc_fix.o kernel_sedi.o particle_array.o
 MC_SEDI_INTER_OBJS = mc_sedi_inter.o kernel_sedi.o particle_array.o
 UMSP_MC_OBJS = umsp_mc.o
 

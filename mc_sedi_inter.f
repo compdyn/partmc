@@ -125,7 +125,7 @@ C *** CRITERIA SET FOR TOPPING UP & REPLICATING THE SUB-SYSTEM ***
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call coagmax(n_bin, rr, n_ln, dlnr, k_max)
-      call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+      call print_info(n_bin, TIME, dp, g, n_ln)
   
       do i_top = 1,TOPUP        ! topping up cycle */
          do l=1,N_opt           ! time step cycle  
@@ -146,7 +146,7 @@ C     *** CALCULATING MOMENTS ***
                call moments(MM, V, n_bin, M_comp, V_comp, vv,
      &              dlnr, g, n_ln)
                call coagmax(n_bin, rr, n_ln, dlnr, k_max)
-               call print_info(n_bin, TIME, tlmin, dp, g, n_ln)
+               call print_info(n_bin, TIME, dp, g, n_ln)
             endif
             if (TIME .ge. TIME_MAX) GOTO 2000
          enddo                  ! end of l-Loop

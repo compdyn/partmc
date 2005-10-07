@@ -1,6 +1,6 @@
-C mc_sedi_fix.f
+C run_sedi_fix.f
 C
-C Monte Carlo simulation with sedimentation kernel and fixed timestepping.
+C Simulation with sedimentation kernel and fixed timestepping.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

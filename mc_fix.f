@@ -26,7 +26,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_start, t_end, t_loop, t_per_samp
 
       time = 0.
-      M_comp = M
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call print_info(n_bin, time, rr, g, n_ln)

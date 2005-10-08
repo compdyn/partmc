@@ -11,6 +11,11 @@ RUN_SEDI_VAR_OBJS = \
 	mc_var.o \
 	kernel_sedi.o \
 	particle_array.o
+RUN_GOLOVIN_ADAPT_OBJS = \
+	run_golovin_adapt.o \
+	mc_adapt.o \
+	kernel_golovin.o \
+	particle_array.o
 RUN_GOLOVIN_FIX_OBJS = \
 	run_golovin_fix.o \
 	mc_fix.o \
@@ -21,6 +26,7 @@ UMSP_MC_OBJS = umsp_mc.o
 PROGS = \
 	run_sedi_fix \
 	run_sedi_var \
+	run_golovin_adapt \
 	run_golovin_fix \
 	umsp_mc
 
@@ -31,6 +37,9 @@ run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
 
 run_sedi_var: $(RUN_SEDI_VAR_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_SEDI_VAR_OBJS)
+
+run_golovin_adapt: $(RUN_GOLOVIN_ADAPT_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
 
 run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_FIX_OBJS)

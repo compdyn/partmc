@@ -5,12 +5,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
  
       integer MM, n_bin, scal, k_avg_samp
-      real*8 t_max, del_t, rho_p, N_tot, t_print, t_k_max
+      real*8 t_max, rho_p, N_tot, t_print, t_k_max
       parameter (MM = 10000)        ! number of particles
       parameter (n_bin = 160)       ! number of bins
       parameter (scal = 3)          ! scale factor for bins
       parameter (t_max = 600.)      ! total simulation time (seconds)
-      parameter (del_t = 1.)        ! timestep (seconds)
       parameter (rho_p = 1000.)     ! particle density (kg/m^3)
       parameter (N_tot = 1.e+9)     ! particle number concentration (#/m^3)
       parameter (k_avg_samp = 1000) ! number of samples to estimate k_avg

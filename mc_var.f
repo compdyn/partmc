@@ -45,9 +45,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          ! do we need to update anything?
          do_print = .false.
-         if (time - last_print_time .gt. t_print) do_print = .true.
+         if (time - last_print_time .ge. t_print) do_print = .true.
          do_k_max = .false.
-         if (time - last_k_max_time .gt. t_k_max) do_k_max = .true.
+         if (time - last_k_max_time .ge. t_k_max) do_k_max = .true.
 
          ! update things if required
          if (do_print .or. do_k_max) then

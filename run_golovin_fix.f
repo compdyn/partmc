@@ -39,7 +39,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
-c     define initial exponential distribution
+         ! define initial exponential distribution
          do k = 1,n_bin
             n_ini(k) = pi/2.0 * dp(k)**3.0 * M/V_0 * exp(-(vv(k)/V_0))
          enddo

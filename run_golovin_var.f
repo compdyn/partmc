@@ -27,7 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       external kernel_golovin
 
-      open(30,file='out_sedi_var.d')
+      open(30,file='out_golovin_var.d')
       call srand(10)
 
       do i_loop = 1,1

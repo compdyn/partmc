@@ -24,8 +24,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k_avg_samp ! INPUT: number of samples to estimate k_avg
 
       real*8 del_t, time, last_print_time, last_k_max_time, k_max, k_avg
-      logical do_print, do_k_max
-      integer s1, s2
+      real*8 t_progress, last_progress_time
+      logical do_print, do_k_max, do_progress
+      integer s1, s2, n_coag
+
+      t_progress = 1.0 ! how often to print progress (simulation seconds)
+      n_coag = 0
+      last_progress_time = 0.0
 
       time = 0
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
@@ -42,6 +47,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call kernel_avg(MM, M_comp, V, kernel, k_avg_samp, k_avg)
          del_t = (V_comp *2.0) / (k_avg * M * (M - 1))
          time = time + del_t
+         n_coag = n_coag + 1
 
          ! update things if required
          call check_event(time, t_print, last_print_time, do_print)
@@ -51,10 +57,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if (do_print) call print_info(n_bin, time, rr, g, n_ln)
          if (do_k_max) call est_k_max(n_bin, rr, n_ln, dlnr,
      &        kernel, k_max)
+         call check_event(time, t_progress, last_progress_time,
+     &        do_progress)
+         if (do_progress) then
+            write(6,'(a6,a6,a6,a7,a10,a9,a11)')
+     &           'time','del_t','M','M_comp','k_max','n_coag'
+            write(6,'(f6.1,f6.3,i6,i7,e10.3,i9)')
+     &           time, del_t, M, M_comp, k_max, n_coag
+            n_coag = 0
+         endif
 
          ! if we are running low on particles then top-up
          if (M < MM / 2) then
             call double(MM, M, M_comp, V, V_comp)
+            write(6,*)'double'
          endif
       enddo
 

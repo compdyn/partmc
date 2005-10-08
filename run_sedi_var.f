@@ -1,5 +1,3 @@
-C run_sedi_var.f
-C
 C Simulation with sedimentation kernel and variable timestepping.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

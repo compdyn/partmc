@@ -1,6 +1,4 @@
-C particle_array.f
-C
-C utility functions for handling V array of particle volumes
+C Utility functions for handling V array of particle volumes.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

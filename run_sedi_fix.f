@@ -1,5 +1,3 @@
-C run_sedi_fix.f
-C
 C Simulation with sedimentation kernel and fixed timestepping.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

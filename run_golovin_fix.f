@@ -1,5 +1,3 @@
-C run_golovin_fix.f
-C
 C Simulation with Golovin kernel and fixed timestepping.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

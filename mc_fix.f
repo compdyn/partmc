@@ -56,8 +56,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call cpu_time(t_end)
          t_loop = t_end - t_start
          t_per_samp = t_loop / n_samp
-         write(6,*)'i,M,M_c,k_m,n_s,t_s = ', i_top,
-     &        M, M_comp, k_max, n_samp, t_per_samp
+         write(6,'(a6,a6,a6,a6,a7,a10,a9,a11)')
+     &        'i_top','time','del_t','M','M_comp',
+     &        'k_max','n_samp','t_per_samp'
+         write(6,'(i6,f6.1,f6.3,i6,i7,e10.3,i9,e11.3)')
+     &        i_top, time, del_t, M, M_comp, k_max, n_samp, t_per_samp
       enddo
 
       return

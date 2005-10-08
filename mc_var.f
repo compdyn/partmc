@@ -67,7 +67,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          ! if we are running low on particles then top-up
          if (M < MM / 2) then
-            call double(MM, M_comp, V, V_comp)
+            call double(MM, M, M_comp, V, V_comp)
          endif
       enddo
 

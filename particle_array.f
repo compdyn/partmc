@@ -160,9 +160,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compress(MM, M_comp, V)
+      subroutine compress(MM, M, M_comp, V)
 
       integer MM      ! INPUT: physical dimension of V
+      integer M       ! INPUT/OUTPUT: number of particles
       integer M_comp  ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)    ! INPUT/OUTPUT: on exit, all non-zero entries are
                       !               at the beginning, followed by all
@@ -170,6 +171,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer i, i_w, i_v
 
+      ! group non-zero entries at the start of V
       i_w = 1
       do i_v = 1,MM
          if (V(i_v) .ne. 0.) then
@@ -177,8 +179,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             i_w = i_w + 1
          endif
       enddo
+      M = i_w
       M_comp = i_w
 
+      ! set remaining entries to zero
       do i = (i_w + 1),MM
          V(i) = 0.
       enddo
@@ -189,21 +193,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine double(MM, M_comp, V, V_comp)
+      subroutine double(MM, M, M_comp, V, V_comp)
 
       integer MM      ! INPUT: physical size of V
+      integer M       ! INPUT/OUTPUT: number of particles
       integer M_comp  ! INPUT/OUTPUT: logical size of V
       real*8 V(MM)    ! INPUT/OUTPUT: particle volume array
       real*8 V_comp   ! INPUT/OUTPUT: computational volume
 
       integer i
 
-      call compress(MM, M_comp, V)
-      do i = 1,M_comp
-         V(i + M_comp) = V(i)
-      enddo
-      M_comp = 2 * M_comp
-      V_comp = 2 * V_comp
+      ! only double if we have enough space to do so
+      if (2 * M .le. MM) then
+         call compress(MM, M, M_comp, V)
+         do i = 1,M_comp
+            V(i + M_comp) = V(i)
+         enddo
+         M_comp = 2 * M_comp
+         V_comp = 2 * V_comp
+         M = 2 * M
+      endif
 
       return
       end

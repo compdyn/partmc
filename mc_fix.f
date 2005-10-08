@@ -25,6 +25,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i_top, nt, n_samp, i_samp
       real*8 g(n_bin), n_ln(n_bin), k_max, time
 
+      real*8 t_start, t_end, t_loop, t_per_samp
+
       time = 0.
       M_comp = M
 
@@ -33,6 +35,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       nt = t_max / del_t
       do i_top = 1,nt
+         call cpu_time(t_start)
+
          time = real(i_top) / real(nt) * t_max
          
          call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
@@ -42,11 +46,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &           del_t, n_samp, kernel)
             if (M .lt. MM / 2) then
                call double(MM, M, M_comp, V, V_comp)
+               write(6,*)'double'
             endif
          enddo
 
          call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
          call print_info(n_bin, time, rr, g, n_ln)
+
+         call cpu_time(t_end)
+         t_loop = t_end - t_start
+         t_per_samp = t_loop / n_samp
+         write(6,*)'i,M,M_c,k_m,n_s,t_s = ', i_top,
+     &        M, M_comp, k_max, n_samp, t_per_samp
       enddo
 
       return
@@ -66,7 +77,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 r_samp
 
-      r_samp = - (k_max * 1/V_comp *del_T/log(1-p_max))
+      r_samp = - (k_max * 1.0/V_comp * del_T / log(1 - p_max))
       n_samp = r_samp * M*(M-1)
 
       return
@@ -91,7 +102,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      expo = k * 1.0/V_comp * del_T * M*(M-1)/n_samp
+      expo = k * 1.0/V_comp * del_T * M*(M-1) / n_samp
       p = 1 - exp(-expo) ! probability of coagulation
       if (rand() .lt. p) then
          call coagulate(MM, M, V, s1, s2)

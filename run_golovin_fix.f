@@ -5,7 +5,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
  
       integer MM, n_bin, scal
-      real*8 t_max, del_t, rho_p, N_tot, p_max, V_0
+      real*8 t_max, del_t, rho_p, N_tot, p_max, V_0, t_print
       parameter (MM = 10000)       ! number of particles
       parameter (n_bin = 160)      ! number of bins
       parameter (scal = 3)         ! scale factor for bins
@@ -15,6 +15,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (N_tot = 1.e+9)    ! particle number concentration (#/m^3)
       parameter (p_max = 0.01)     ! maximum coagulation probability
       parameter (V_0 = 4.1886e-15) !
+      parameter (t_print = 60)       ! interval between printing (s)
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr, t1
@@ -47,7 +48,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
 
          call mc_fix(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
-     &        vv, rr, dp, dlnr, t_max, del_t, p_max)
+     &        vv, rr, dp, dlnr, t_max, del_t, p_max, t_print)
 
       enddo
 

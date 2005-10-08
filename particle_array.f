@@ -300,15 +300,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
       integer k
-      real*8 seconds
 
-      seconds = time - anint(time / 60) * 60
-      if (abs(seconds) < 1.0e-10) then
-         write(30,*)'Time = ', time
-         do k = 1,n_bin
-            write(30, '(i4,6e14.5)'), k, rr(k), n_ln(k), g(k)
-         enddo
-      endif
+      write(30,*)'Time = ', time
+      do k = 1,n_bin
+         write(30, '(i4,6e14.5)'), k, rr(k), n_ln(k), g(k)
+      enddo
       
       return
       end

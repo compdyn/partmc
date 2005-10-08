@@ -3,7 +3,7 @@ C Monte Carlo with fixed timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, dp, dlnr, t_max, del_t, p_max)
+     &     rr, dp, dlnr, t_max, del_t, p_max, t_print)
 
       integer MM        ! INPUT: physical dimension of V
       integer M         ! INPUT/OUTPUT: number of particles
@@ -19,8 +19,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_max      ! INPUT: total simulation time
       real*8 del_t      ! INPUT: timestep
       real*8 p_max      ! INPUT: maximum coagulation probability
+      real*8 t_print    ! INPUT: interval to print info (seconds)
 
-      integer i_top, nt, n_samp, i_samp
+      integer i_top, nt, n_samp, i_samp, n_print
       real*8 g(n_bin), n_ln(n_bin), k_max, time
 
       real*8 t_start, t_end, t_loop, t_per_samp
@@ -31,6 +32,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call print_info(n_bin, time, rr, g, n_ln)
 
       nt = t_max / del_t
+      n_print = t_print / del_t
       do i_top = 1,nt
          call cpu_time(t_start)
 
@@ -48,7 +50,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
 
          call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-         call print_info(n_bin, time, rr, g, n_ln)
+         if (mod(i_top, n_print) .eq. 0) then
+            call print_info(n_bin, time, rr, g, n_ln)
+         endif
 
          call cpu_time(t_end)
          t_loop = t_end - t_start

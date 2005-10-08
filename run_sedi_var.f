@@ -5,7 +5,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
  
       integer MM, n_bin, scal, k_avg_samp
-      real*8 t_max, rho_p, N_tot, t_print, t_k_max
+      real*8 t_max, rho_p, N_tot, t_print, t_k_max, t_k_avg
       parameter (MM = 10000)        ! number of particles
       parameter (n_bin = 160)       ! number of bins
       parameter (scal = 3)          ! scale factor for bins
@@ -15,6 +15,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (k_avg_samp = 1000) ! number of samples to estimate k_avg
       parameter (t_print = 60)      ! interval between printing (s)
       parameter (t_k_max = 60)      ! interval between estimating k_max (s)
+      parameter (t_k_avg = 0.2)     ! interval between estimating k_avg (s)
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr, t1
@@ -47,7 +48,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
 
          call mc_var(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin, vv,
-     &        rr, dp, g, n_ln, dlnr, t_max, t_print, t_k_max,
+     &        rr, dp, g, n_ln, dlnr, t_max, t_print, t_k_max, t_k_avg,
      &        k_avg_samp)
 
       enddo

@@ -132,6 +132,38 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+     
+      subroutine maybe_coag_pair(MM, V, M, M_comp, V_comp,
+     &     del_T, n_samp, kernel, did_coag)
+      
+      integer MM       ! INPUT: physical dimension of V
+      real*8 V(MM)     ! INPUT/OUTPUT: particle volumes
+      integer M        ! INPUT/OUTPUT: number of particles
+      integer M_comp   ! INPUT: logical dimension of V
+      real*8 V_comp    ! INPUT: computational volume
+      real*8 del_T     ! INPUT: timestep
+      integer n_samp   ! INPUT: number of samples per timestep
+      external kernel  ! INPUT: kernel function
+      logical did_coag ! OUTPUT: whether a coagulation occured
+
+      integer s1, s2
+      real*8 expo, p, k
+
+      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
+      call kernel(V(s1), V(s2), k)
+      expo = k * 1.0/V_comp * del_T * M*(M-1) / n_samp
+      p = 1 - exp(-expo) ! probability of coagulation
+      if (rand() .lt. p) then
+         call coagulate(MM, M, V, s1, s2)
+         did_coag = .true.
+      else
+         did_coag = .false.
+      endif
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine kernel_avg(MM, M_comp, V, kernel, n_samp, k_avg)
 

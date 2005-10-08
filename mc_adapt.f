@@ -26,11 +26,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 del_t_max   ! INPUT: maximum timestep
 
       real*8 del_t, time, last_print_time, k_max
-      integer n_samp, i_samp
-      logical do_print
+      integer n_samp, i_samp, n_coag
+      logical do_print, did_coag
       real*8 t_start, t_end, t_loop, t_per_samp
 
       time = 0
+      n_coag = 0
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(n_bin, time, rr, g, n_ln)
@@ -43,7 +44,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        del_t_max, n_samp, del_t)
          do i_samp = 1,n_samp
             call maybe_coag_pair(MM, V, M, M_comp, V_comp,
-     &           del_t, n_samp, kernel)
+     &           del_t, n_samp, kernel, did_coag)
+            if (did_coag) n_coag = n_coag + 1
             if (M .lt. MM / 2) then
                call double(MM, M, M_comp, V, V_comp)
                write(6,*)'double'
@@ -59,10 +61,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call cpu_time(t_end)
          t_loop = t_end - t_start
          t_per_samp = t_loop / n_samp
-         write(6,'(a6,a6,a6,a7,a10,a9,a11)')
-     &        'time','del_t','M','M_comp','k_max','n_samp','t_per_samp'
-         write(6,'(f6.1,f6.3,i6,i7,e10.3,i9,e11.3)')
-     &        time, del_t, M, M_comp, k_max, n_samp, t_per_samp
+         write(6,'(a6,a6,a6,a7,a10,a9,a11,a9)')
+     &        'time', 'del_t', 'M', 'M_comp', 'k_max',
+     &        'n_samp', 't_per_samp', 'n_coag'
+         write(6,'(f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
+     &        time, del_t, M, M_comp, k_max, n_samp,
+     &        t_per_samp, n_coag
       enddo
 
       return
@@ -89,34 +93,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if (del_t .gt. del_t_max) del_t = del_t_max
       r_samp = del_t * c
       n_samp = r_samp * M*(M-1)
-
-      return
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-     
-      subroutine maybe_coag_pair(MM, V, M, M_comp, V_comp,
-     &     del_T, n_samp, kernel)
-      
-      integer MM      ! INPUT: physical dimension of V
-      real*8 V(MM)    ! INPUT/OUTPUT: particle volumes
-      integer M       ! INPUT/OUTPUT: number of particles
-      integer M_comp  ! INPUT: logical dimension of V
-      real*8 V_comp   ! INPUT: computational volume
-      real*8 del_T    ! INPUT: timestep
-      integer n_samp  ! INPUT: number of samples per timestep
-      external kernel ! INPUT: kernel function
-
-      integer s1, s2
-      real*8 expo, p, k
-
-      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
-      call kernel(V(s1), V(s2), k)
-      expo = k * 1.0/V_comp * del_T * M*(M-1) / n_samp
-      p = 1 - exp(-expo) ! probability of coagulation
-      if (rand() .lt. p) then
-         call coagulate(MM, M, V, s1, s2)
-      endif
 
       return
       end

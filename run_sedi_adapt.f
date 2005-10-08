@@ -1,28 +1,31 @@
-C Simulation with sedimentation kernel and fixed timestepping.
+C Simulation with sedimentation kernel and adaptive timestepping.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
  
       integer MM, n_bin, scal
-      real*8 t_max, del_t, rho_p, N_tot, p_max, t_print
-      parameter (MM = 10000)       ! number of particles
-      parameter (n_bin = 160)      ! number of bins
-      parameter (scal = 3)         ! scale factor for bins
-      parameter (t_max = 600.)     ! total simulation time (seconds)
-      parameter (del_t = 1.)       ! timestep (seconds)
-      parameter (rho_p = 1000.)    ! particle density (kg m^{-3})
-      parameter (N_tot = 1.e+9)    ! particle number concentration (#/m^3)
-      parameter (p_max = 0.01)     ! maximum coagulation probability
+      real*8 t_max, rho_p, N_tot, t_print, p_max
+      real*8 r_samp_max, del_t_max
+      parameter (MM = 10000)         ! number of particles
+      parameter (n_bin = 160)        ! number of bins
+      parameter (scal = 3)           ! scale factor for bins
+      parameter (t_max = 600.)       ! total simulation time (seconds)
+      parameter (rho_p = 1000.)      ! particle density (kg/m^3)
+      parameter (N_tot = 1.e+9)      ! particle number concentration (#/m^3)
       parameter (t_print = 60)       ! interval between printing (s)
+      parameter (p_max = 0.01)       ! maximum coagulation probability
+      parameter (r_samp_max = 0.005) ! maximum sampling ratio per timestep
+      parameter (del_t_max = 1.0)    ! maximum timestep
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr, t1
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
+      real*8 g(n_bin), n_ln(n_bin)
 
       external kernel_sedi
 
-      open(30,file='out_sedi_fix.d')
+      open(30,file='out_golovin_adapt.d')
       call srand(10)
 
       do i_loop = 1,1
@@ -45,8 +48,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
 
-         call mc_fix(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin, vv,
-     &        rr, dp, dlnr, t_max, del_t, p_max, t_print)
+         call mc_adapt(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin,
+     &        vv, rr, dp, g, n_ln, dlnr, t_max, t_print,
+     &        p_max, r_samp_max, del_t_max)
 
       enddo
 

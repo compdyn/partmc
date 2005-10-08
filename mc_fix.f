@@ -23,7 +23,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer i_top, nt, n_samp, i_samp, n_print
       real*8 g(n_bin), n_ln(n_bin), k_max, time
-
       real*8 t_start, t_end, t_loop, t_per_samp
 
       time = 0.

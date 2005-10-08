@@ -290,6 +290,33 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine check_event(time, interval, last_time, do_event)
+
+      real*8 time       ! INPUT: current time
+      real*8 interval   ! INPUT: how often the event should be done
+      real*8 last_time  ! INPUT/OUTPUT: when the event was last done
+      logical do_event  ! OUTPUT: whether the event should be done
+
+      real*8 interval_below
+
+      if (time .eq. 0.0) then
+         last_time = 0.0
+         do_event = .true.
+      else
+         interval_below = aint(time / interval) * interval
+         if (last_time .lt. interval_below) then
+            last_time = time
+            do_event = .true.
+         else
+            do_event = .false.
+         endif
+      endif
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       subroutine print_info(n_bin, time, rr, g, n_ln)
 

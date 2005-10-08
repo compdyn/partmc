@@ -29,10 +29,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       time = 0
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call print_info(n_bin, time, rr, g, n_ln)
-      last_print_time = 0
-      call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
-      last_k_max_time = 0
+      call check_event(time, t_print, last_print_time, do_print)
+      if (do_print) call print_info(n_bin, time, rr, g, n_ln)
+      call check_event(time, t_k_max, last_k_max_time, do_k_max)
+      if (do_k_max) call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
 
       do while (time < t_max)
          ! coagulate a pair and increment time
@@ -43,25 +43,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          del_t = (V_comp *2.0) / (k_avg * M * (M - 1))
          time = time + del_t
 
-         ! do we need to update anything?
-         do_print = .false.
-         if (time - last_print_time .ge. t_print) do_print = .true.
-         do_k_max = .false.
-         if (time - last_k_max_time .ge. t_k_max) do_k_max = .true.
-
          ! update things if required
-         if (do_print .or. do_k_max) then
-            call moments(MM, V, n_bin, M_comp, V_comp, vv,
-     &           dlnr, g, n_ln)
-         endif
-         if (do_print) then
-            call print_info(n_bin, time, rr, g, n_ln)
-            last_print_time = time
-         endif
-         if (do_k_max) then
-            call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
-            last_k_max_time = time
-         endif
+         call check_event(time, t_print, last_print_time, do_print)
+         call check_event(time, t_k_max, last_k_max_time, do_k_max)
+         if (do_print .or. do_k_max) call moments(MM, V, n_bin, M_comp,
+     &        V_comp, vv, dlnr, g, n_ln)
+         if (do_print) call print_info(n_bin, time, rr, g, n_ln)
+         if (do_k_max) call est_k_max(n_bin, rr, n_ln, dlnr,
+     &        kernel, k_max)
 
          ! if we are running low on particles then top-up
          if (M < MM / 2) then

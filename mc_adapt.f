@@ -27,13 +27,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 del_t, time, last_print_time, k_max
       integer n_samp, i_samp
-
+      logical do_print
       real*8 t_start, t_end, t_loop, t_per_samp
 
       time = 0
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-      call print_info(n_bin, time, rr, g, n_ln)
-      last_print_time = 0
+      call check_event(time, t_print, last_print_time, do_print)
+      if (do_print) call print_info(n_bin, time, rr, g, n_ln)
 
       do while (time < t_max)
          call cpu_time(t_start)
@@ -53,10 +53,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          time = time + del_t
 
          call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
-         if (time - last_print_time .ge. t_print) then
-            call print_info(n_bin, time, rr, g, n_ln)
-            last_print_time = time
-         endif
+         call check_event(time, t_print, last_print_time, do_print)
+         if (do_print) call print_info(n_bin, time, rr, g, n_ln)
 
          call cpu_time(t_end)
          t_loop = t_end - t_start

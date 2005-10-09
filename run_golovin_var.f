@@ -35,7 +35,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,1
          call cpu_time(t1)
-         write(6,*)'START ',i_loop, t1
          write(30,*)'i_loop=',i_loop,t1
 
          M = MM

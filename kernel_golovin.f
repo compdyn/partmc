@@ -53,7 +53,7 @@ c      call exit(2)
 
       if (time .eq. 0d0) then
          do k = 1,n_bin
-            n_ln(k) = pi/2d0 * dp(k)**3d0 * 1d0/V_0 * exp(-(vv(k)/V_0))
+            n_ln(k) = pi/2d0 * dp(k)**3d0 * N_0/V_0 * exp(-(vv(k)/V_0))
          enddo
       else
          tau = N_0 * V_0 * beta_1 * time

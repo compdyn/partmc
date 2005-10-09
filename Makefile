@@ -1,5 +1,5 @@
 
-OPTS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising
+OPTS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 
 RUN_SEDI_ADAPT_OBJS = \
 	run_sedi_adapt.o \
@@ -31,7 +31,12 @@ RUN_GOLOVIN_VAR_OBJS = \
 	mc_var.o \
 	kernel_golovin.o \
 	particle_array.o
-UMSP_MC_OBJS = umsp_mc.o
+UMSP_MC_OBJS = \
+	umsp_mc.o
+PROCESS_OUT_OBJS = \
+	process_out.o
+ANA_MC_OBJS = \
+	ana_mc.o
 
 PROGS = \
 	run_sedi_adapt \
@@ -40,7 +45,9 @@ PROGS = \
 	run_golovin_adapt \
 	run_golovin_fix \
 	run_golovin_var \
-	umsp_mc
+	umsp_mc \
+	process_out \
+	ana_mc
 
 all: $(PROGS)
 
@@ -64,6 +71,12 @@ run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
 
 umsp_mc: $(UMSP_MC_OBJS)
 	g77 $(OPTS) -o $@ $(UMSP_MC_OBJS)
+
+process_out: $(PROCESS_OUT_OBJS)
+	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)
+
+ana_mc: $(ANA_MC_OBJS)
+	g77 $(OPTS) -o $@ $(ANA_MC_OBJS)
 
 %.o: %.f
 	g77 $(OPTS) -c -o $@ $<

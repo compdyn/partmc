@@ -350,6 +350,21 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
+      subroutine print_header(n_loop, n_bin, n_time)
+
+      integer n_loop  ! INPUT: number of loops
+      integer n_bin   ! INPUT: number of bins
+      integer n_time  ! INPUT: number of times
+
+      write(30,'(a10,i10)'), 'n_loop', n_loop
+      write(30,'(a10,i10)'), 'n_bin', n_bin
+      write(30,'(a10,i10)'), 'n_time', n_time
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      
       subroutine print_info(n_bin, time, rr, g, n_ln)
 
       integer n_bin        ! INPUT: number of bins
@@ -360,9 +375,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer k
 
-      write(30,*)'Time = ', time
+      write(30,'(a10,e14.5)'), 'time', time
       do k = 1,n_bin
-         write(30, '(i4,6e14.5)'), k, rr(k), n_ln(k), g(k)
+         write(30, '(i8,3e14.5)'), k, rr(k), n_ln(k), g(k)
       enddo
       
       return

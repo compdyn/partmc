@@ -20,12 +20,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin, n_loop, n_time
       character name_in*50, name_out_num*50, name_out_mass*50
       character name_out_num_avg*50, name_out_mass_avg*50
-      character dum*100
+      character dum*100, n_loop_str*10, n_time_str*10
 
       real*8 rr(n_bin_max), g(n_loop_max, n_time_max, n_bin_max)
       real*8 n(n_loop_max, n_time_max, n_bin_max)
       real*8 g_avg(n_time_max, n_bin_max), n_avg(n_time_max, n_bin_max)
 
+      real*8 time
       integer i, i_loop, i_time, i_bin
 
       ! check there is exactly one commandline argument
@@ -92,6 +93,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       write(6,*)'n_bin = ', n_bin
       write(6,*)'n_time = ', n_time
 
+      write(n_loop_str, '(i10)'), n_loop
+      write(n_time_str, '(i10)'), n_time
+
       ! read all data
       do i_loop = 1,n_loop
          do i_time = 1,n_time
@@ -120,7 +124,27 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       enddo
 
       ! output data
-      
+      do i_time = 1,n_time
+         write(f_out_num, '(//,a10,i10)'), 'time', i_time - 1
+         write(f_out_mass, '(//,a10,i10)'), 'time', i_time - 1
+         do i_bin = 1,n_bin
+            write(f_out_num, '(i8,e14.5,'//n_loop_str//'e14.5)'),
+     &           i_bin, rr(i_bin),
+     &           (n(i_loop, i_time, i_bin), i_loop = 1,n_loop)
+            write(f_out_mass, '(i8,e14.5,'//n_loop_str//'e14.5)'),
+     &           i_bin, rr(i_bin),
+     &           (g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
+         enddo
+      enddo
+
+      do i_bin = 1,n_bin
+         write(f_out_num_avg, '(i8,e14.5,'//n_time_str//'e14.5)'),
+     &        i_bin, rr(i_bin),
+     &        (n_avg(i_time, i_bin), i_time = 1,n_time)
+         write(f_out_mass_avg, '(i8,e14.5,'//n_time_str//'e14.5)'),
+     &        i_bin, rr(i_bin),
+     &        (g_avg(i_time, i_bin), i_time = 1,n_time)
+      enddo
       
 
 c       integer n_bin,i_loop,tmax

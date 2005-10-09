@@ -31,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       external kernel_golovin
 
       open(30,file='out_golovin_adapt.d')
-      call print_header(n_loop, n_bin, t_max / t_print + 1)
+      call print_header(n_loop, n_bin, nint(t_max / t_print + 1.))
       call srand(10)
 
       do i_loop = 1,n_loop

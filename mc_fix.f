@@ -3,26 +3,28 @@ C Monte Carlo with fixed timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, dp, dlnr, t_max, del_t, p_max, t_print)
+     &     rr, dp, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
 
-      integer MM        ! INPUT: physical dimension of V
-      integer M         ! INPUT/OUTPUT: number of particles
-      integer M_comp    ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)      ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp     ! INPUT/OUTPUT: computational volume
-      external kernel   ! INPUT: kernel procedure
-      integer n_bin     ! INPUT: number of bins
-      real*8 vv(n_bin)  ! INPUT: volume of bins
-      real*8 rr(n_bin)  ! INPUT: radius of bins
-      real*8 dp(n_bin)  ! INPUT: diameter of bins
-      real*8 dlnr       ! INPUT: scale factor
-      real*8 t_max      ! INPUT: total simulation time
-      real*8 del_t      ! INPUT: timestep
-      real*8 p_max      ! INPUT: maximum coagulation probability
-      real*8 t_print    ! INPUT: interval to print info (seconds)
+      integer MM         ! INPUT: physical dimension of V
+      integer M          ! INPUT/OUTPUT: number of particles
+      integer M_comp     ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)       ! INPUT/OUTPUT: particle volumes
+      real*8 V_comp      ! INPUT/OUTPUT: computational volume
+      external kernel    ! INPUT: kernel procedure
+      integer n_bin      ! INPUT: number of bins
+      real*8 vv(n_bin)   ! INPUT: volume of bins
+      real*8 rr(n_bin)   ! INPUT: radius of bins
+      real*8 dp(n_bin)   ! INPUT: diameter of bins
+      real*8 g(n_bin)    ! OUTPUT: mass in bins
+      real*8 n_ln(n_bin) ! OUTPUT: number in bins
+      real*8 dlnr        ! INPUT: scale factor
+      real*8 t_max       ! INPUT: total simulation time
+      real*8 del_t       ! INPUT: timestep
+      real*8 p_max       ! INPUT: maximum coagulation probability
+      real*8 t_print     ! INPUT: interval to print info (seconds)
 
       integer i_top, nt, n_samp, i_samp, n_print, n_coag
-      real*8 g(n_bin), n_ln(n_bin), k_max, time
+      real*8 k_max, time
       logical did_coag
       real*8 t_start, t_end, t_loop, t_per_samp
 

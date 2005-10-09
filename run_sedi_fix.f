@@ -19,6 +19,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr, t1
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
+      real*8 g(n_bin), n_ln(n_bin)
 
       external kernel_sedi
 
@@ -46,7 +47,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
 
          call mc_fix(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin, vv,
-     &        rr, dp, dlnr, t_max, del_t, p_max, t_print)
+     &        rr, dp, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
 
       enddo
 

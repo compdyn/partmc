@@ -308,7 +308,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          vv_cnt = 0.
          do i=1,M_comp
             if ((V(i).ge. vv(k-1)) .and. (V(i) .lt. vv(k))) then
-               NN_cnt = NN_cnt +1
+               NN_cnt = NN_cnt + 1
                vv_cnt = vv_cnt + V(i)
             endif
          enddo

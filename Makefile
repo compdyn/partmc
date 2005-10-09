@@ -21,6 +21,11 @@ RUN_GOLOVIN_ADAPT_OBJS = \
 	mc_adapt.o \
 	kernel_golovin.o \
 	particle_array.o
+RUN_GOLOVIN_EXACT_OBJS = \
+	run_golovin_exact.o \
+	mc_exact.o \
+	kernel_golovin.o \
+	particle_array.o
 RUN_GOLOVIN_FIX_OBJS = \
 	run_golovin_fix.o \
 	mc_fix.o \
@@ -35,19 +40,17 @@ UMSP_MC_OBJS = \
 	umsp_mc.o
 PROCESS_OUT_OBJS = \
 	process_out.o
-ANA_MC_OBJS = \
-	ana_mc.o
 
 PROGS = \
 	run_sedi_adapt \
 	run_sedi_fix \
 	run_sedi_var \
 	run_golovin_adapt \
+	run_golovin_exact \
 	run_golovin_fix \
 	run_golovin_var \
 	umsp_mc \
-	process_out \
-	ana_mc
+	process_out
 
 all: $(PROGS)
 
@@ -63,6 +66,9 @@ run_sedi_var: $(RUN_SEDI_VAR_OBJS)
 run_golovin_adapt: $(RUN_GOLOVIN_ADAPT_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
 
+run_golovin_exact: $(RUN_GOLOVIN_EXACT_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_EXACT_OBJS)
+
 run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_FIX_OBJS)
 
@@ -74,9 +80,6 @@ umsp_mc: $(UMSP_MC_OBJS)
 
 process_out: $(PROCESS_OUT_OBJS)
 	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)
-
-ana_mc: $(ANA_MC_OBJS)
-	g77 $(OPTS) -o $@ $(ANA_MC_OBJS)
 
 %.o: %.f
 	g77 $(OPTS) -c -o $@ $<

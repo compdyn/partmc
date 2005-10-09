@@ -50,7 +50,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call find_rand_pair_acc_rej(MM, V, M_comp, k_max,
      &        kernel, s1, s2)
          call coagulate(MM, M, V, s1, s2)
-         del_t = (V_comp *2.0) / (k_avg * M * (M - 1))
+         del_t = V_comp / (k_avg * (M*(M-1)/2.0))
          time = time + del_t
          n_coag = n_coag + 1
 

@@ -92,7 +92,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       del_t = r_samp_max / c
       if (del_t .gt. del_t_max) del_t = del_t_max
       r_samp = del_t * c
-      n_samp = r_samp * M*(M-1)
+      n_samp = r_samp * M*(M-1)/2
 
       return
       end

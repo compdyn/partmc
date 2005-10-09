@@ -151,7 +151,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      expo = k * 1.0/V_comp * del_T * M*(M-1) / n_samp
+      expo = k * 1.0/V_comp * del_T * (M*(M-1)/2.0) / n_samp
       p = 1 - exp(-expo) ! probability of coagulation
       if (rand() .lt. p) then
          call coagulate(MM, M, V, s1, s2)

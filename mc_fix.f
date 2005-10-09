@@ -85,7 +85,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r_samp
 
       r_samp = - (k_max * 1.0/V_comp * del_T / log(1 - p_max))
-      n_samp = r_samp * M*(M-1)
+      n_samp = r_samp * M*(M-1)/2
 
       return
       end

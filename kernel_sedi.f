@@ -10,10 +10,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 pi,const,onethird
       real*8 r1,r2,winf1,winf2,ec
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
 
-      const = 3./(4.*pi)
-      onethird  = 1./3.
+      const = 3d0 / (4d0 * pi)
+      onethird  = 1d0/3d0
       r1 = (const*a)**onethird
       r2 = (const*b)**onethird
       call fallg(r1,winf1)
@@ -33,63 +33,66 @@ c terminal velocity of falling drops
       integer i
       real*8 r, winf
       real*8 b(7),c(6)
-      data b /-0.318657e1,0.992696,-0.153193e-2,-0.987059e-3,
-     &        -0.578878e-3,0.855176e-4,-0.327815e-5/
-      data c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
-     &         0.238449e-2/
+      data b /-0.318657d1,0.992696d0,-0.153193d-2,-0.987059d-3,
+     &        -0.578878d-3,0.855176d-4,-0.327815d-5/
+      data c /-0.500015d1,0.523778d1,-0.204914d1,0.475294d0,
+     &         -0.542819d-1,0.238449d-2/
 
-      eta=1.818e-4
-      xlamb=6.62e-6
-      rhow=1.
-      rhoa=1.225e-3
-      grav=980.665
-      cunh=1.257*xlamb
-      t0=273.15
-      sigma=76.1-0.155*(293.15-t0)
-      stok=2.*grav*(rhow-rhoa)/(9.*eta)
-      stb=32.*rhoa*(rhow-rhoa)*grav/(3.*eta*eta)
-      phy=sigma*sigma*sigma*rhoa*rhoa/((eta**4)*grav*(rhow-rhoa))
-      py=phy**(1./6.)
+      eta = 1.818d-4
+      xlamb = 6.62d-6
+      rhow = 1d0
+      rhoa = 1.225d-3
+      grav = 980.665d0
+      cunh = 1.257d0 * xlamb
+      t0 = 273.15d0
+      sigma = 76.1d0 - 0.155d0 * (293.15d0 - t0)
+      stok = 2d0 * grav * (rhow - rhoa) / (9d0 * eta)
+      stb = 32d0 * rhoa * (rhow - rhoa) * grav / (3d0 * eta * eta)
+      phy = sigma * sigma * sigma * rhoa * rhoa 
+     &     / (eta**4 * grav * (rhow - rhoa))
+      py = phy**(1d0/6d0)
 
 c rr: radius in cm-units
-      rr=r*1.e+02
+      rr = r * 1d2
 
-      if (rr.le.1.e-3) then
-         winf=stok*(rr*rr+cunh*rr)
-      elseif (rr.gt.1.e-3.and.rr.le.5.35e-2) then
-         x=log(stb*rr*rr*rr)
-         y=0.
-         do i=1,7
-            y=y+b(i)*(x**(i-1))
+      if (rr .le. 1d-3) then
+         winf = stok * (rr * rr + cunh * rr)
+      elseif (rr .gt. 1d-3 .and. rr .le. 5.35d-2) then
+         x = log(stb * rr * rr * rr)
+         y = 0d0
+         do i = 1,7
+            y = y + b(i) * (x**(i - 1))
          enddo
-         xrey=(1.+cunh/rr)*exp(y)
-         winf=xrey*eta/(2.*rhoa*rr)
-      elseif (rr.gt.5.35e-2) then
-         bond=grav*(rhow-rhoa)*rr*rr/sigma
-         if (rr.gt.0.35) bond=grav*(rhow-rhoa)*0.35*0.35/sigma
-         x=log(16.*bond*py/3.)
-         y=0.
-         do i=1,6
-            y=y+c(i)*(x**(i-1))
+         xrey = (1d0 + cunh/rr) * exp(y)
+         winf = xrey * eta / (2d0 * rhoa * rr)
+      elseif (rr .gt. 5.35d-2) then
+         bond = grav * (rhow - rhoa) * rr**2 / sigma
+         if (rr .gt. 0.35d0) then
+            bond = grav * (rhow - rhoa) * 0.35d0**2 / sigma
+         endif
+         x = log(16d0 * bond * py / 3d0)
+         y = 0d0
+         do i = 1,6
+            y = y + c(i) * (x**(i - 1))
          enddo
-         xrey=py*exp(y)
-         winf=xrey*eta/(2.*rhoa*rr)
-         if (rr.gt.0.35)  winf=xrey*eta/(2.*rhoa*0.35)
+         xrey = py * exp(y)
+         winf = xrey * eta / (2d0 * rhoa * rr)
+         if (rr .gt. 0.35d0) winf = xrey * eta / (2d0 * rhoa * 0.35d0)
       endif
-      winf = winf/100.
+      winf = winf / 100d0
       
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine effic(r1,r2,ec)
+      subroutine effic(r1, r2, ec)
       real*8 r1  ! INPUT: radius of first particle
       real*8 r2  ! INPUT: radius of second particle
       real*8 ec  ! OUTPUT: collision efficiency
 
-      real*8 rq, r_help, p, q
-      integer k, ir, kk, iq, ek
+      real*8 rq, r_help, p, q, ek
+      integer k, ir, kk, iq
 C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)
       data r0 /6.,8.,10.,15.,20.,25.,30.,40.,50.,
@@ -131,12 +134,12 @@ c     two-dimensional linear interpolation of the collision efficiency
      &     ,0.027,0.027,0.027,0.027,0.027,0.125,0.520,1.400,2.300,3.000
      &     ,4.000,4.000,4.000,4.000,4.000/
 
-      rq = r1/r2
-      if (rq .gt. 1.0) then
+      rq = r1 / r2
+      if (rq .gt. 1d0) then
          r_help = r1
          r1 = r2
          r2 = r_help
-         rq = 1 / rq
+         rq = 1d0 / rq
       endif
 
       ir = 1
@@ -153,24 +156,24 @@ c     two-dimensional linear interpolation of the collision efficiency
          endif
       enddo
       
-      if (ir.lt.16) then
-         if (ir.ge.2) then
-            p=(r2-r0(ir-1))/(r0(ir)-r0(ir-1))
-            q=(rq-rat(iq-1))/(rat(iq)-rat(iq-1))
-            ec=(1.-p)*(1.-q)*ecoll(ir-1,iq-1)+
-     &           p*(1.-q)*ecoll(ir,iq-1)+
-     &           q*(1.-p)*ecoll(ir-1,iq)+
-     &           p*q*ecoll(ir,iq)
+      if (ir .lt. 16) then
+         if (ir .ge. 2) then
+            p = (r2 - r0(ir - 1)) / (r0(ir) - r0(ir - 1))
+            q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
+            ec = (1d0 - p) * (1d0 - q) * ecoll(ir - 1, iq - 1)
+     &           + p * (1d0 - q) * ecoll(ir, iq - 1)
+     &           + q * (1d0 - p) * ecoll(ir - 1, iq)
+     &           + p * q * ecoll(ir, iq)
          else
-            q=(rq-rat(iq-1))/(rat(iq)-rat(iq-1))
-            ec=(1.-q)*ecoll(1,iq-1)+q*ecoll(1,iq)
+            q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
+            ec = (1d0 - q) * ecoll(1, iq - 1) + q * ecoll(1, iq)
          endif
       else
-         q=(rq-rat(iq-1))/(rat(iq)-rat(iq-1))
-         ek=(1.-q)*ecoll(15,iq-1)+q*ecoll(15,iq)
-         ec=min(ek,1.d0)
+         q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
+         ek = (1d0 - q) * ecoll(15, iq - 1) + q * ecoll(15, iq)
+         ec = min(ek, 1d0)
       endif
-      if (ec.lt.1.e-20) stop 99
+      if (ec .lt. 1d-20) stop 99
       return
       end
 

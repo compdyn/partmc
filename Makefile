@@ -36,8 +36,6 @@ RUN_GOLOVIN_VAR_OBJS = \
 	mc_var.o \
 	kernel_golovin.o \
 	particle_array.o
-UMSP_MC_OBJS = \
-	umsp_mc.o
 PROCESS_OUT_OBJS = \
 	process_out.o
 
@@ -49,7 +47,6 @@ PROGS = \
 	run_golovin_exact \
 	run_golovin_fix \
 	run_golovin_var \
-	umsp_mc \
 	process_out
 
 all: $(PROGS)
@@ -74,9 +71,6 @@ run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
 
 run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_VAR_OBJS)
-
-umsp_mc: $(UMSP_MC_OBJS)
-	g77 $(OPTS) -o $@ $(UMSP_MC_OBJS)
 
 process_out: $(PROCESS_OUT_OBJS)
 	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)

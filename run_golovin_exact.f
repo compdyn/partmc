@@ -28,7 +28,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
-         call mc_exact(n_bin, vv, rr, dp, g, n_ln, dlnr, N_0, V_0,
+         call mc_exact(n_bin, vv, rr, dp, g, n_ln, N_0, V_0,
      &        rho_p, soln_golovin_exp, t_max, t_print)
 
       enddo

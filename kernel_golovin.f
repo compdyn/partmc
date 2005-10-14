@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 k  ! OUTPUT: coagulation kernel
 
       real*8 beta_1
-      parameter (beta_1 = 1000.)
+      parameter (beta_1 = 1000d0)
 
       k = beta_1 * (a + b)
 
@@ -18,14 +18,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine soln_golovin_exp(n_bin, vv, rr, dp, dlnr, time,
+      subroutine soln_golovin_exp(n_bin, vv, rr, dp, time,
      &     N_0, V_0, rho_p, g, n_ln)
 
       integer n_bin       ! INPUT: number of bins
       real*8 vv(n_bin)    ! INPUT: volume of particles in bin
       real*8 rr(n_bin)    ! INPUT; radius of particles in bins
       real*8 dp(n_bin)    ! INPUT: diameter of particles in bins
-      real*8 dlnr         ! INPUT: scale factor
       real*8 time         ! INPUT: current time
       real*8 N_0          ! INPUT: particle number concentration (#/m^3)
       real*8 V_0          ! INPUT:
@@ -33,11 +32,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 g(n_bin)     ! OUTPUT: mass of particles in each bin
       real*8 n_ln(n_bin)  ! OUTPUT: number of particles in each bin
 
-      real*8 d_0, beta_1, tau, T, rat_v, nn, b, x
+      real*8 beta_1, tau, T, rat_v, nn, b, x
       integer k
 
       real*8 pi
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
 
 c      write(6,'(3a14)'), 'x', 'bessi1', 'besj0'
 c      do k = 0,100
@@ -48,7 +47,6 @@ c         write(6,'(3e14.6)'), d_0, b, T
 c      enddo
 c      call exit(2)
 
-      d_0 = (6d0 * V_0 / pi)**(1d0/3d0)
       call kernel_golovin(1d0, 0d0, beta_1)
 
       if (time .eq. 0d0) then
@@ -97,15 +95,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     -0.362018d-2,0.163801d-2,-0.1031555d-1,0.2282967d-1,
      &     -0.2895312d-1,0.1787654d-1,-0.420059d-2/
       
-      if(abs(x).lt.3.75) then
-         y=(x/3.75)**2
+      if(abs(x) .lt. 3.75d0) then
+         y = (x / 3.75d0)**2
          r = x*(p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7))))))
       else
          ax = abs(x)
-         y=3.75/ax
+         y = 3.75d0 / ax
          r = (exp(ax)/sqrt(ax))*(q1+y*(q2+y*(q3+y*(q4+
      *        y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))))
-         if (x.lt.0.) r = -r
+         if (x .lt. 0d0) r = -r
       endif
 
       return

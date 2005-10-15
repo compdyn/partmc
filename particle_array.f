@@ -1,4 +1,14 @@
-C Utility functions for handling V array of particle volumes.
+C     Utility functions for handling V array of particle volumes.
+C
+C     There are two different representations of particle size
+C     distributions used throughout this code: a sectional
+C     representation and an explicit particle representation.
+C
+C     The sectional representation stores the number and mass of
+C     particles in bins, which are logarithmicly spaced. The bins are
+C     described by the vv(n_bin) and rr(n_bin) arrays, which store the
+C     volume and radius of the centerpoint of each bin. The variable
+C     dlnr ... FIXME
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

@@ -19,7 +19,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_k_avg = 0.2)     ! interval between estimating k_avg (s)
 
       integer M, M_comp, i_loop, k
-      real*8 V(MM), V_comp, dlnr, t1
+      real*8 V(MM), V_comp, dlnr
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
       real*8 g(n_bin), n_ln(n_bin)
 
@@ -30,14 +30,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call srand(10)
 
       do i_loop = 1,1
-         call cpu_time(t1)
-         write(6,*)'START ',i_loop, t1
-         write(30,*)'i_loop=',i_loop,t1
 
-         M = MM
-         M_comp = M
-         V_comp = M / N_0
-         
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
          ! define bidisperse distribution
@@ -47,8 +40,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          n_ini(97) = (M-1)/dlnr
          n_ini(126) = 1/dlnr
 
-         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
-
+         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+         M_comp = M
+         V_comp = M / N_0
+         
          call mc_var(MM, M, M_comp, V, V_comp, kernel_sedi, n_bin, vv,
      &        rr, dp, g, n_ln, dlnr, t_max, t_print, t_k_max, t_k_avg,
      &        k_avg_samp)

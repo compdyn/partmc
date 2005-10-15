@@ -20,7 +20,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (V_0 = 4.1886e-15)   !
 
       integer M, M_comp, i_loop, k
-      real*8 V(MM), V_comp, dlnr, t1
+      real*8 V(MM), V_comp, dlnr
       real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
       real*8 g(n_bin), n_ln(n_bin)
 
@@ -34,13 +34,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call srand(10)
 
       do i_loop = 1,1
-         call cpu_time(t1)
-         write(30,*)'i_loop=',i_loop,t1
 
-         M = MM
-         M_comp = M
-         V_comp = M / N_0
-         
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
          ! define initial exponential distribution
@@ -48,8 +42,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             n_ini(k) = pi/2.0 * dp(k)**3.0 * M/V_0 * exp(-(vv(k)/V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
-
+         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+         M = M_comp
+         V_comp = M / N_0
+         
          call mc_var(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
      &        vv, rr, dp, g, n_ln, dlnr, t_max, t_print, t_k_max,
      &        t_k_avg, k_avg_samp)

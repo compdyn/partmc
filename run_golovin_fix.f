@@ -47,7 +47,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          V_comp = M / N_0
 
          call mc_fix(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
-     &        vv, rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
+     &        vv, rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print,
+     &        i_loop)
 
       enddo
 

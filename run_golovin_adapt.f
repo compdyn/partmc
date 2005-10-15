@@ -50,7 +50,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          call mc_adapt(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
      &        vv, rr, g, n_ln, dlnr, t_max, t_print,
-     &        p_max, r_samp_max, del_t_max)
+     &        p_max, r_samp_max, del_t_max, i_loop)
 
       enddo
 

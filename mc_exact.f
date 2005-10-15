@@ -3,7 +3,7 @@ C Exact solution output.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_exact(n_bin, vv, rr, g, n_ln, N_0, V_0,
-     &     rho_p, soln, t_max, t_print)
+     &     rho_p, soln, t_max, t_print, loop)
 
       integer n_bin      ! INPUT: number of bins
       real*8 vv(n_bin)   ! INPUT: volume of bins
@@ -16,6 +16,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       external soln      ! INPUT: exact solution procedure
       real*8 t_max       ! INPUT: total simulation time
       real*8 t_print     ! INPUT: interval to print info (seconds)
+      integer loop       ! INPUT: loop number of run
 
       integer i_time, n_time
       real*8 time

@@ -3,7 +3,7 @@ C Monte Carlo with fixed timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
+     &     rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print, loop)
 
       integer MM         ! INPUT: physical dimension of V
       integer M          ! INPUT/OUTPUT: number of particles
@@ -21,6 +21,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 del_t       ! INPUT: timestep
       real*8 p_max       ! INPUT: maximum coagulation probability
       real*8 t_print     ! INPUT: interval to print info (seconds)
+      integer loop       ! INPUT: loop number of run
 
       integer i_top, nt, n_samp, i_samp, n_print, n_coag
       real*8 k_max, time
@@ -48,7 +49,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             if (did_coag) n_coag = n_coag + 1
             if (M .lt. MM / 2) then
                call double(MM, M, M_comp, V, V_comp)
-               write(6,*)'double'
             endif
          enddo
 
@@ -60,11 +60,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call cpu_time(t_end)
          t_loop = t_end - t_start
          t_per_samp = t_loop / n_samp
-         write(6,'(a6,a6,a6,a6,a7,a10,a9,a11,a9)')
-     &        'i_top', 'time', 'del_t', 'M', 'M_comp',
+         write(6,'(a6,a6,a6,a6,a6,a7,a10,a9,a11,a9)')
+     &        'loop', 'i_top', 'time', 'del_t', 'M', 'M_comp',
      &        'k_max', 'n_samp', 't_per_samp', 'n_coag'
-         write(6,'(i6,f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
-     &        i_top, time, del_t, M, M_comp, k_max, n_samp,
+         write(6,'(i6,i6,f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
+     &        loop, i_top, time, del_t, M, M_comp, k_max, n_samp,
      &        t_per_samp, n_coag
       enddo
 

@@ -49,7 +49,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call mc_var(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
      &        vv, rr, g, n_ln, dlnr, t_max, t_print, t_k_max,
-     &        t_k_avg, k_avg_samp)
+     &        t_k_avg, k_avg_samp, i_loop)
 
       enddo
 

@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_adapt(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
      &     rr, g, n_ln, dlnr, t_max, t_print,
-     &     p_max, r_samp_max, del_t_max)
+     &     p_max, r_samp_max, del_t_max, loop)
 
       integer MM         ! INPUT: physical dimension of V
       integer M          ! INPUT/OUTPUT: number of particles
@@ -23,6 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 p_max       ! INPUT: maximum coagulation probability
       real*8 r_samp_max  ! INPUT: maximum sampling ratio per timestep
       real*8 del_t_max   ! INPUT: maximum timestep
+      integer loop       ! INPUT: loop number of run
 
       real*8 del_t, time, last_print_time, k_max
       integer n_samp, i_samp, n_coag
@@ -47,7 +48,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             if (did_coag) n_coag = n_coag + 1
             if (M .lt. MM / 2) then
                call double(MM, M, M_comp, V, V_comp)
-               write(6,*)'double'
             endif
          enddo
 
@@ -60,11 +60,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call cpu_time(t_end)
          t_loop = t_end - t_start
          t_per_samp = t_loop / n_samp
-         write(6,'(a6,a6,a6,a7,a10,a9,a11,a9)')
-     &        'time', 'del_t', 'M', 'M_comp', 'k_max',
+         write(6,'(a6,a6,a6,a6,a7,a10,a9,a11,a9)')
+     &        'loop', 'time', 'del_t', 'M', 'M_comp', 'k_max',
      &        'n_samp', 't_per_samp', 'n_coag'
-         write(6,'(f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
-     &        time, del_t, M, M_comp, k_max, n_samp,
+         write(6,'(i6,f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
+     &        loop,time, del_t, M, M_comp, k_max, n_samp,
      &        t_per_samp, n_coag
       enddo
 

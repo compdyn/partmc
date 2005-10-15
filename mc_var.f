@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_var(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
      &     rr, g, n_ln, dlnr, t_max, t_print, t_k_max, t_k_avg,
-     &     k_avg_samp)
+     &     k_avg_samp, loop)
 
       integer MM         ! INPUT: physical dimension of V
       integer M          ! INPUT/OUTPUT: number of particles
@@ -23,6 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_k_max     ! INPUT: interval to update k_max (seconds)
       real*8 t_k_avg     ! INPUT: interval to update k_avg (seconds)
       integer k_avg_samp ! INPUT: number of samples to estimate k_avg
+      integer loop       ! INPUT: loop number of run
 
       real*8 del_t, k_max, k_avg
       real*8 time, last_print_time, last_k_max_time, last_k_avg_time
@@ -69,16 +70,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call check_event(time, t_progress, last_progress_time,
      &        do_progress)
          if (do_progress) then
-            write(6,'(a6,a6,a6,a7,a10,a9,a11)')
-     &           'time','del_t','M','M_comp','k_max','n_coag'
-            write(6,'(f6.1,f6.3,i6,i7,e10.3,i9)')
-     &           time, del_t, M, M_comp, k_max, n_coag
+            write(6,'(a6,a6,a6,a6,a7,a10,a9,a11)')
+     &           'loop', 'time','del_t','M','M_comp','k_max','n_coag'
+            write(6,'(i6,f6.1,f6.3,i6,i7,e10.3,i9)')
+     &           loop, time, del_t, M, M_comp, k_max, n_coag
          endif
 
          ! if we are running low on particles then top-up
          if (M < MM / 2) then
             call double(MM, M, M_comp, V, V_comp)
-            write(6,*)'double'
          endif
       enddo
 

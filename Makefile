@@ -83,3 +83,6 @@ clean:
 
 cleanall: clean
 	rm -f *~ *.d
+
+check:
+	ftnchek-3.3.1/ftnchek -declare *.f

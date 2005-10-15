@@ -4,6 +4,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_exact(n_bin, vv, rr, g, n_ln, N_0, V_0,
      &     rho_p, soln, t_max, t_print, loop)
+      ! FIXME: N_0 and V_0 are really parameters for the initial value
+      ! of the particle distribution. They should be replaced by a n_param,
+      ! params() pair.
 
       integer n_bin      ! INPUT: number of bins
       real*8 vv(n_bin)   ! INPUT: volume of bins

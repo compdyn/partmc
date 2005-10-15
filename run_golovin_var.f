@@ -21,7 +21,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
+      real*8 n_ini(n_bin), vv(n_bin), rr(n_bin)
       real*8 g(n_bin), n_ln(n_bin)
 
       real*8 pi
@@ -35,19 +35,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,1
 
-         call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
+         call make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
          
          ! define initial exponential distribution
          do k = 1,n_bin
-            n_ini(k) = pi/2d0 * dp(k)**3 * MM/V_0 * exp(-(vv(k) / V_0))
+            n_ini(k) = pi/2d0 * (2d0*rr(k))**3 * MM/V_0
+     &           * exp(-(vv(k) / V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M_comp)
          M = M_comp
          V_comp = M / N_0
          
          call mc_var(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
-     &        vv, rr, dp, g, n_ln, dlnr, t_max, t_print, t_k_max,
+     &        vv, rr, g, n_ln, dlnr, t_max, t_print, t_k_max,
      &        t_k_avg, k_avg_samp)
 
       enddo

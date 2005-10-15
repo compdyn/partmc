@@ -18,13 +18,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine soln_golovin_exp(n_bin, vv, rr, dp, time,
+      subroutine soln_golovin_exp(n_bin, vv, rr, time,
      &     N_0, V_0, rho_p, g, n_ln)
 
       integer n_bin       ! INPUT: number of bins
       real*8 vv(n_bin)    ! INPUT: volume of particles in bin
       real*8 rr(n_bin)    ! INPUT; radius of particles in bins
-      real*8 dp(n_bin)    ! INPUT: diameter of particles in bins
       real*8 time         ! INPUT: current time
       real*8 N_0          ! INPUT: particle number concentration (#/m^3)
       real*8 V_0          ! INPUT:
@@ -51,7 +50,8 @@ c      call exit(2)
 
       if (time .eq. 0d0) then
          do k = 1,n_bin
-            n_ln(k) = pi/2d0 * dp(k)**3d0 * N_0/V_0 * exp(-(vv(k)/V_0))
+            n_ln(k) = pi/2d0 * (2d0*rr(k))**3 * N_0/V_0
+     &           * exp(-(vv(k)/V_0))
          enddo
       else
          tau = N_0 * V_0 * beta_1 * time
@@ -66,14 +66,14 @@ c      call exit(2)
             endif
             nn = N_0/vv(k) * (1d0 - T) / sqrt(T)
      &           * exp(-((1d0 + T) * rat_v)) * b
-            n_ln(k) = pi/2d0 * dp(k)**3d0 * nn
+            n_ln(k) = pi/2d0 * (2d0*rr(k))**3 * nn
 c            write(6,'(6a11)'), 'time', 'T', 'b', 'nn', 'n_ln', 'g'
 c            write(6,'(6e11.3)'), time, T, b, nn, n_ln(k), g(k)
          enddo
       endif
 
       do k = 1,n_bin
-         g(k) = pi/6d0 * rho_p * dp(k)**3d0 * n_ln(k)
+         g(k) = pi/6d0 * rho_p * (2d0*rr(k))**3 * n_ln(k)
       enddo
 
       return

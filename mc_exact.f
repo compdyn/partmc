@@ -2,13 +2,12 @@ C Exact solution output.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_exact(n_bin, vv, rr, dp, g, n_ln, N_0, V_0,
+      subroutine mc_exact(n_bin, vv, rr, g, n_ln, N_0, V_0,
      &     rho_p, soln, t_max, t_print)
 
       integer n_bin      ! INPUT: number of bins
       real*8 vv(n_bin)   ! INPUT: volume of bins
       real*8 rr(n_bin)   ! INPUT: radius of bins
-      real*8 dp(n_bin)   ! INPUT: diameter of bins
       real*8 g(n_bin)    ! OUTPUT: mass in bins
       real*8 n_ln(n_bin) ! OUTPUT: number in bins
       real*8 N_0         ! INPUT: particle number concentration (#/m^3)
@@ -24,7 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       n_time = int(t_max / t_print)
       do i_time = 0,n_time
          time = dble(i_time) / dble(n_time) * dble(t_max)
-         call soln(n_bin, vv, rr, dp, time, N_0, V_0, rho_p,
+         call soln(n_bin, vv, rr, time, N_0, V_0, rho_p,
      &        g, n_ln)
          call print_info(n_bin, time, rr, g, n_ln)
       enddo

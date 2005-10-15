@@ -3,7 +3,7 @@ C Monte Carlo with fixed timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, dp, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
+     &     rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print)
 
       integer MM         ! INPUT: physical dimension of V
       integer M          ! INPUT/OUTPUT: number of particles
@@ -14,7 +14,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin      ! INPUT: number of bins
       real*8 vv(n_bin)   ! INPUT: volume of bins
       real*8 rr(n_bin)   ! INPUT: radius of bins
-      real*8 dp(n_bin)   ! INPUT: diameter of bins
       real*8 g(n_bin)    ! OUTPUT: mass in bins
       real*8 n_ln(n_bin) ! OUTPUT: number in bins
       real*8 dlnr        ! INPUT: scale factor

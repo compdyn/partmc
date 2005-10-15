@@ -2,13 +2,12 @@ C Utility functions for handling V array of particle volumes.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
+      subroutine make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
 
       integer n_bin     ! INPUT: number of bins
       integer scal      ! INPUT: scale factor
       real*8 rho_p      ! INPUT: density
       real*8 vv(n_bin)  ! OUTPUT: volume of particles in bins
-      real*8 dp(n_bin)  ! OUTPUT: diameter of particles in bins
       real*8 rr(n_bin)  ! OUTPUT: radius of particles in bins
       real*8 dlnr       ! OUTPUT: scale factor
 
@@ -22,18 +21,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ax = 2d0**(1d0 / scal)
       emin = 1d-15
 
-      e(1) = emin * 0.5d0 * (ax + 1d0)
-      r(1) = 1000d0 * dexp(dlog(3d0 * e(1) / (4d0 * pi)) / 3d0)
-      vv(1) = 1d-6 * e(1) / rho_p
-      dp(1) = 1d-6 * r(1)
-      rr(1) = dp(1) / 2d0
-      
-      do i = 2,n_bin
-         e(i) = ax * e(i - 1)
+      do i = 1,n_bin
+         e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          r(i) = 1000d0 * dexp(dlog(3d0 * e(i) / (4d0 * pi)) / 3d0)
          vv(i) = 1d-6 * e(i) / rho_p
-         dp(i) = 1d-6 * 2d0 * r(i)
-         rr(i) = dp(i) / 2d0
+         rr(i) = 1d-6 * r(i)
       enddo
 
       return
@@ -41,12 +33,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+      subroutine compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M_comp)
 
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
       real*8 n_ini(n_bin)  ! INPUT: initial number distribution
-      real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 rr(n_bin)     ! INPUT: diameter of particles in bins
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
       integer M_comp       ! OUTPUT: logical dimension of V
@@ -62,7 +54,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i) = pi/6d0 * dp(k)**3
+            V(i) = pi/6d0 * (2d0*rr(k))**3
          enddo
       enddo
 

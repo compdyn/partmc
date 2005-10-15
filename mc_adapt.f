@@ -3,7 +3,7 @@ C Monte Carlo with adaptive timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_adapt(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
-     &     rr, dp, g, n_ln, dlnr, t_max, t_print,
+     &     rr, g, n_ln, dlnr, t_max, t_print,
      &     p_max, r_samp_max, del_t_max)
 
       integer MM         ! INPUT: physical dimension of V
@@ -15,7 +15,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin      ! INPUT: number of bins
       real*8 vv(n_bin)   ! INPUT: volume of particles in bins
       real*8 rr(n_bin)   ! INPUT: radius of particles in bins
-      real*8 dp(n_bin)   ! INPUT: diameter of particles in bins
       real*8 g(n_bin)    ! OUTPUT: mass in bins
       real*8 n_ln(n_bin) ! OUTPUT: number in bins
       real*8 dlnr        ! INPUT: scale factor

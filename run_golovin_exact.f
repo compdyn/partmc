@@ -17,7 +17,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer i_loop
       real*8 dlnr
-      real*8 vv(n_bin), dp(n_bin), rr(n_bin), g(n_bin), n_ln(n_bin)
+      real*8 vv(n_bin), rr(n_bin), g(n_bin), n_ln(n_bin)
 
       external soln_golovin_exp
 
@@ -26,9 +26,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,n_loop
          
-         call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
+         call make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
          
-         call mc_exact(n_bin, vv, rr, dp, g, n_ln, N_0, V_0,
+         call mc_exact(n_bin, vv, rr, g, n_ln, N_0, V_0,
      &        rho_p, soln_golovin_exp, t_max, t_print)
 
       enddo

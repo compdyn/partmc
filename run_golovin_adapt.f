@@ -22,7 +22,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), vv(n_bin), dp(n_bin), rr(n_bin)
+      real*8 n_ini(n_bin), vv(n_bin),  rr(n_bin)
       real*8 g(n_bin), n_ln(n_bin)
 
       real*8 pi
@@ -36,19 +36,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,n_loop
          
-         call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
+         call make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
          
          ! define initial exponential distribution
          do k = 1,n_bin
-            n_ini(k) = pi/2d0 * dp(k)**3 * MM/V_0 * exp(-(vv(k) / V_0))
+            n_ini(k) = pi/2d0 * (2d0*rr(k))**3 * MM/V_0
+     &           * exp(-(vv(k) / V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M_comp)
          M = M_comp
          V_comp = M / N_0
 
          call mc_adapt(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
-     &        vv, rr, dp, g, n_ln, dlnr, t_max, t_print,
+     &        vv, rr, g, n_ln, dlnr, t_max, t_print,
      &        p_max, r_samp_max, del_t_max)
 
       enddo

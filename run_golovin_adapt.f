@@ -35,9 +35,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call srand(10)
 
       do i_loop = 1,n_loop
-         M = MM
-         M_comp = M
-         V_comp = M / N_0
          
          call make_grid(n_bin, scal, rho_p, vv, dp, rr, dlnr)
          
@@ -46,7 +43,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             n_ini(k) = pi/2d0 * dp(k)**3 * M/V_0 * exp(-(vv(k) / V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
+         call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
+         M = M_comp
+         V_comp = M / N_0
 
          call mc_adapt(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
      &        vv, rr, dp, g, n_ln, dlnr, t_max, t_print,

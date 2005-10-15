@@ -41,7 +41,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, MM, n_ini, dp, dlnr, V)
+      subroutine compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)
 
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
@@ -49,30 +49,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 dp(n_bin)     ! INPUT: diameter of particles in bins
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
+      integer M_comp       ! OUTPUT: logical dimension of V
 
       integer k, i, sum_e, sum_a, delta_n
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      ! FIXME: nothing stops i going over MM (or under)
-      ! should pass in an integer array(n_bin) that will
-      ! be output with the numbers in each bin
-      ! chosen so the sum is really MM
       sum_e = 0
       do k = 1,n_bin
          delta_n = int(n_ini(k) * dlnr)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i) = pi/6d0 * dp(k)**3d0
+            V(i) = pi/6d0 * dp(k)**3
          enddo
       enddo
 
-      if (i .ne. MM) then
-         write(6,*)'WARNING: compute_volumes() ended with i = ',i,
-     &        ' but MM = ', MM
-      endif
+      M_comp = sum_e
 
       return
       end

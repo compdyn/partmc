@@ -18,7 +18,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (p_max = 0.01d0)       ! maximum coagulation probability
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
       parameter (del_t_max = 1d0)      ! maximum timestep
-      parameter (V_0 = 4.1886d-15)     !
+      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr
@@ -31,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       external kernel_golovin
 
       open(30,file='out_golovin_adapt.d')
-      call print_header(n_loop, n_bin, nint(t_max / t_print + 1d0))
+      call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
       call srand(10)
 
       do i_loop = 1,n_loop
@@ -40,7 +40,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          ! define initial exponential distribution
          do k = 1,n_bin
-            n_ini(k) = pi/2d0 * dp(k)**3 * M/V_0 * exp(-(vv(k) / V_0))
+            n_ini(k) = pi/2d0 * dp(k)**3 * MM/V_0 * exp(-(vv(k) / V_0))
          enddo
 
          call compute_volumes(n_bin, MM, n_ini, dp, dlnr, V, M_comp)

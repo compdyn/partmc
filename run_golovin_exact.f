@@ -9,11 +9,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_bin = 160)        ! number of bins
       parameter (n_loop = 1)         ! number of loops
       parameter (scal = 3)           ! scale factor for bins
-      parameter (t_max = 600.)       ! total simulation time (seconds)
-      parameter (rho_p = 1000.)      ! particle density (kg/m^3)
+      parameter (t_max = 600d0)      ! total simulation time (seconds)
+      parameter (rho_p = 1000d0)     ! particle density (kg/m^3)
       parameter (N_0 = 1d9)          ! particle number concentration (#/m^3)
-      parameter (t_print = 60.)      ! interval between printing (s)
-      parameter (V_0 = 4.1886e-15)   !
+      parameter (t_print = 60d0)     ! interval between printing (s)
+      parameter (V_0 = 4.1886d-15)   ! mean volume of initial distribution
 
       integer i_loop
       real*8 dlnr
@@ -22,7 +22,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       external soln_golovin_exp
 
       open(30,file='out_golovin_exact.d')
-      call print_header(n_loop, n_bin, nint(t_max / t_print + 1.))
+      call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
 
       do i_loop = 1,n_loop
          

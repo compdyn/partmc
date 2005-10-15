@@ -16,24 +16,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 ax, e(n_bin), r(n_bin), emin
 
       real*8 pi
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
 
-      dlnr=dlog(2.d0)/(3.*scal)
-      ax=2.d0**(1.0/scal)
-      emin = 1.e-15
+      dlnr = dlog(2d0) / (3d0 * scal)
+      ax = 2d0**(1d0 / scal)
+      emin = 1d-15
 
-      e(1)=emin*0.5*(ax+1.)
-      r(1)=1000.*dexp(dlog(3*e(1)/(4.*pi))/3.)
-      vv(1)=1.e-06*e(1)/rho_p
-      dp(1) = 1.e-06*r(1)
-      rr(1) = dp(1)/2.
+      e(1) = emin * 0.5d0 * (ax + 1d0)
+      r(1) = 1000d0 * dexp(dlog(3d0 * e(1) / (4d0 * pi)) / 3d0)
+      vv(1) = 1d-6 * e(1) / rho_p
+      dp(1) = 1d-6 * r(1)
+      rr(1) = dp(1) / 2d0
       
-      do i=2,n_bin
-         e(i)=ax*e(i-1)
-         r(i)=1000.*dexp(dlog(3.*e(i)/(4.*pi))/3.)
-         vv(i)=1.e-06*e(i)/rho_p
-         dp(i)=1.e-06*2.*r(i)
-         rr(i) = dp(i)/2.
+      do i = 2,n_bin
+         e(i) = ax * e(i - 1)
+         r(i) = 1000d0 * dexp(dlog(3d0 * e(i) / (4d0 * pi)) / 3d0)
+         vv(i) = 1d-6 * e(i) / rho_p
+         dp(i) = 1d-6 * 2d0 * r(i)
+         rr(i) = dp(i) / 2d0
       enddo
 
       return
@@ -50,21 +50,29 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
 
-      integer k, i
-      real*8 sum_e, delta_n, sum_a
+      integer k, i, sum_e, sum_a, delta_n
 
       real*8 pi
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
 
-      sum_e = 0.
+      ! FIXME: nothing stops i going over MM (or under)
+      ! should pass in an integer array(n_bin) that will
+      ! be output with the numbers in each bin
+      ! chosen so the sum is really MM
+      sum_e = 0
       do k = 1,n_bin
          delta_n = int(n_ini(k) * dlnr)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i) = pi/6. * dp(k)**3.
+            V(i) = pi/6d0 * dp(k)**3d0
          enddo
       enddo
+
+      if (i .ne. MM) then
+         write(6,*)'WARNING: compute_volumes() ended with i = ',i,
+     &        ' but MM = ', MM
+      endif
 
       return
       end
@@ -109,7 +117,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
       p = k / max_k     ! collision probability   
-      if (rand() .gt. p ) goto 200
+      if (dble(rand()) .gt. p ) goto 200
 
       return
       end
@@ -125,7 +133,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer s2    ! INPUT: second particle to coagulate
 
       V(s1) = V(s1) + V(s2)          
-      V(s2) = 0.
+      V(s2) = 0d0
       M = M - 1
 
       return
@@ -151,9 +159,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      expo = k * 1.0/V_comp * del_T * (M*(M-1)/2.0) / n_samp
-      p = 1 - exp(-expo) ! probability of coagulation
-      if (rand() .lt. p) then
+      expo = k * 1d0/V_comp * del_T * (M*(M-1)/2d0) / n_samp
+      p = 1d0 - exp(-expo) ! probability of coagulation
+      if (dble(rand()) .lt. p) then
          call coagulate(MM, M, V, s1, s2)
          did_coag = .true.
       else
@@ -177,7 +185,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i, s1, s2
       real*8 k, k_sum
 
-      k_sum = 0.
+      k_sum = 0d0
       do i = 1,(n_samp**2)
          call find_rand_pair(MM, V, M_comp, s1, s2)
          call kernel(V(s1), V(s2), k)
@@ -204,7 +212,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ! group non-zero entries at the start of V
       i_w = 1
       do i_v = 1,MM
-         if (V(i_v) .ne. 0.) then
+         if (V(i_v) .ne. 0d0) then
             V(i_w) = V(i_v)
             i_w = i_w + 1
          endif
@@ -214,7 +222,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       ! set remaining entries to zero
       do i = (i_w + 1),MM
-         V(i) = 0.
+         V(i) = 0d0
       enddo
 
       return
@@ -262,17 +270,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer ll, k
 
       real*8 pi
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
       
       do k = 1,n_bin
-         V_bin(k) = 4./3.*pi*rr(k)**3.
+         V_bin(k) = 4d0 / 3d0 * pi * rr(k)**3
       enddo
       
-      k_max = 0.
+      k_max = 0d0
       do k = 1,n_bin
-         if (n_ln(k)*dlnr .ge. 1.) then
+         if (n_ln(k) * dlnr .ge. 1d0) then
             do ll = 1,k
-               if (n_ln(ll)*dlnr .ge. 1.) then
+               if (n_ln(ll) * dlnr .ge. 1d0) then
                   call kernel(V_bin(k), V_bin(ll), cck)
                   if (cck .gt. k_max) then
                      k_max = cck
@@ -305,17 +313,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do k=1,n_bin
          NN_cnt = 0
-         vv_cnt = 0.
+         vv_cnt = 0d0
          do i=1,M_comp
             if ((V(i).ge. vv(k-1)) .and. (V(i) .lt. vv(k))) then
                NN_cnt = NN_cnt + 1
                vv_cnt = vv_cnt + V(i)
             endif
          enddo
-         nv_conc = NN_cnt/V_comp
-         vv_conc = vv_cnt/V_comp
-         n_ln(k) = nv_conc/dlnr
-         g(k) = vv_conc/dlnr
+         nv_conc = NN_cnt / V_comp
+         vv_conc = vv_cnt / V_comp
+         n_ln(k) = nv_conc / dlnr
+         g(k) = vv_conc / dlnr
       enddo
       
       return
@@ -332,8 +340,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 interval_below
 
-      if (time .eq. 0.0) then
-         last_time = 0.0
+      if (time .eq. 0d0) then
+         last_time = 0d0
          do_event = .true.
       else
          interval_below = aint(time / interval) * interval
@@ -356,9 +364,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin   ! INPUT: number of bins
       integer n_time  ! INPUT: number of times
 
-      write(30,'(a10,i10)'), 'n_loop', n_loop
-      write(30,'(a10,i10)'), 'n_bin', n_bin
-      write(30,'(a10,i10)'), 'n_time', n_time
+      write(30,'(a10,i10)') 'n_loop', n_loop
+      write(30,'(a10,i10)') 'n_bin', n_bin
+      write(30,'(a10,i10)') 'n_time', n_time
 
       return
       end
@@ -375,9 +383,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer k
 
-      write(30,'(a10,e14.5)'), 'time', time
+      write(30,'(a10,e14.5)') 'time', time
       do k = 1,n_bin
-         write(30, '(i8,3e14.5)'), k, rr(k), n_ln(k), g(k)
+         write(30, '(i8,3e14.5)') k, rr(k), n_ln(k), g(k)
       enddo
       
       return

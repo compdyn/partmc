@@ -28,18 +28,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical did_coag
       real*8 t_start, t_end, t_loop, t_per_samp
 
-      time = 0.
+      time = 0d0
       n_coag = 0
 
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call print_info(n_bin, time, rr, g, n_ln)
 
-      nt = t_max / del_t
-      n_print = t_print / del_t
+      nt = int(dble(t_max) / del_t)
+      n_print = int(dble(t_print) / del_t)
       do i_top = 1,nt
          call cpu_time(t_start)
 
-         time = real(i_top) / real(nt) * t_max
+         time = dble(i_top) / dble(nt) * dble(t_max)
          
          call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
          call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
@@ -86,8 +86,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 r_samp
 
-      r_samp = - (k_max * 1.0/V_comp * del_T / log(1 - p_max))
-      n_samp = r_samp * M*(M-1)/2
+      r_samp = - (k_max * 1d0/V_comp * del_T / log(1 - p_max))
+      n_samp = int(r_samp * M*(M-1)/2)
 
       return
       end

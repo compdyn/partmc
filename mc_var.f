@@ -31,11 +31,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical do_print, do_k_max, do_k_avg, do_progress
       integer s1, s2, n_coag
 
-      t_progress = 1.0 ! how often to print progress (simulation seconds)
+      t_progress = 1d0 ! how often to print progress (simulation seconds)
       n_coag = 0
-      last_progress_time = 0.0
+      last_progress_time = 0d0
 
-      time = 0.0
+      time = 0d0
       call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(n_bin, time, rr, g, n_ln)
@@ -50,7 +50,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call find_rand_pair_acc_rej(MM, V, M_comp, k_max,
      &        kernel, s1, s2)
          call coagulate(MM, M, V, s1, s2)
-         del_t = V_comp / (k_avg * (M*(M-1)/2.0))
+         del_t = V_comp / (k_avg * (M*(M-1)/2d0))
          time = time + del_t
          n_coag = n_coag + 1
 

@@ -22,9 +22,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       emin = 1d-15
 
       do i = 1,n_bin
+         ! mass (?)
          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
+         ! radius (um)
+         ! FIXME: following line assumes rho_p = 1000
          r(i) = 1000d0 * dexp(dlog(3d0 * e(i) / (4d0 * pi)) / 3d0)
+         ! volume (?)
          vv(i) = 1d-6 * e(i) / rho_p
+         ! radius (m)
          rr(i) = 1d-6 * r(i)
       enddo
 
@@ -51,6 +56,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       sum_e = 0
       do k = 1,n_bin
          delta_n = int(n_ini(k) * dlnr)
+         write(6,*)'r, delta_n = ', rr(k), delta_n
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
@@ -294,14 +300,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 g(n_bin)      ! OUTPUT: total mass in each bin
       real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
-      real*8 nv_conc, vv_cnt, vv_conc
+      real*8 nv_conc, vv_cnt, vv_conc, vv_low, vv_high
       integer NN_cnt, k, i
 
-      do k=1,n_bin
+      do k = 1,n_bin
          NN_cnt = 0
          vv_cnt = 0d0
-         do i=1,M_comp
-            if ((V(i).ge. vv(k-1)) .and. (V(i) .lt. vv(k))) then
+         if (k .eq. 1) then
+            vv_low = vv(k) - 1d100
+            vv_high = (vv(k) + vv(k+1)) / 2d0
+         elseif (k .eq. n_bin) then
+            vv_low = (vv(k-1) + vv(k)) / 2d0
+            vv_high = vv(k) + 1d100
+         else
+            vv_low = (vv(k-1) + vv(k)) / 2d0
+            vv_high = (vv(k) + vv(k+1)) / 2d0
+         endif
+         do i = 1,M_comp
+            if ((V(i) .ge. vv_low) .and. (V(i) .lt. vv_high)) then
                NN_cnt = NN_cnt + 1
                vv_cnt = vv_cnt + V(i)
             endif
@@ -310,8 +326,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          vv_conc = vv_cnt / V_comp
          n_ln(k) = nv_conc / dlnr
          g(k) = vv_conc / dlnr
+         write(*,*)'vv, n_ln = ', vv(k), n_ln(k)
       enddo
-      
+
+      call exit(2)
+
       return
       end
       

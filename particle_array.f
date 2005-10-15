@@ -56,7 +56,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       sum_e = 0
       do k = 1,n_bin
          delta_n = int(n_ini(k) * dlnr)
-         write(6,*)'r, delta_n = ', rr(k), delta_n
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
@@ -326,10 +325,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          vv_conc = vv_cnt / V_comp
          n_ln(k) = nv_conc / dlnr
          g(k) = vv_conc / dlnr
-         write(*,*)'vv, n_ln = ', vv(k), n_ln(k)
       enddo
-
-      call exit(2)
 
       return
       end

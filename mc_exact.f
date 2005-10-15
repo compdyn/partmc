@@ -21,9 +21,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i_time, n_time
       real*8 time
 
-      n_time = t_max / t_print
+      n_time = int(t_max / t_print)
       do i_time = 0,n_time
-         time = real(i_time) / real(n_time) * t_max
+         time = dble(i_time) / dble(n_time) * dble(t_max)
          call soln(n_bin, vv, rr, dp, time, N_0, V_0, rho_p,
      &        g, n_ln)
          call print_info(n_bin, time, rr, g, n_ln)

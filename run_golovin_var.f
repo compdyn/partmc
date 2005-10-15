@@ -10,14 +10,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_bin = 160)       ! number of bins
       parameter (n_loop = 1)         ! number of loops
       parameter (scal = 3)          ! scale factor for bins
-      parameter (t_max = 600.)      ! total simulation time (seconds)
-      parameter (rho_p = 1000.)     ! particle density (kg/m^3)
+      parameter (t_max = 600.d0)      ! total simulation time (seconds)
+      parameter (rho_p = 1000.d0)     ! particle density (kg/m^3)
       parameter (N_0 = 1d9)         ! particle number concentration (#/m^3)
       parameter (k_avg_samp = 1000) ! number of samples to estimate k_avg
-      parameter (t_print = 60)      ! interval between printing (s)
-      parameter (t_k_max = 60)      ! interval between estimating k_max (s)
-      parameter (t_k_avg = 0.2)     ! interval between estimating k_avg (s)
-      parameter (V_0 = 4.1886e-15)   !
+      parameter (t_print = 60d0)      ! interval between printing (s)
+      parameter (t_k_max = 60d0)      ! interval between estimating k_max (s)
+      parameter (t_k_avg = 2.d-1)     ! interval between estimating k_avg (s)
+      parameter (V_0 = 4.1886d-15)   !
 
       integer M, M_comp, i_loop, k
       real*8 V(MM), V_comp, dlnr
@@ -25,7 +25,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 g(n_bin), n_ln(n_bin)
 
       real*8 pi
-      parameter (pi = 3.14159265358979323846)
+      parameter (pi = 3.14159265358979323846d0)
 
       external kernel_golovin
 

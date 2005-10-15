@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r_samp_max, del_t_max
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
-      parameter (n_loop = 1)           ! number of loops
+      parameter (n_loop = 10)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)

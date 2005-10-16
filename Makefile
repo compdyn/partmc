@@ -1,5 +1,5 @@
 
-OPTS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+OPTS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 
 RUN_SEDI_ADAPT_OBJS = \
 	run_sedi_adapt.o \
@@ -86,3 +86,6 @@ cleanall: clean
 
 check:
 	ftnchek-3.3.1/ftnchek -declare *.f
+
+gprof_%: % gmon.out
+	gprof -p -q $< gmon.out > gprof_$<

@@ -89,12 +89,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                       !         particles with V(s1/s2) != 0
 
  100  s1 = int(rand() * M_comp) + 1
-      s2 = int(rand() * M_comp) + 1
-      if ((s1 .gt. M_comp) .or. (V(s1) .eq. 0) .or.
-     &     (s2 .gt. M_comp) .or. (V(s2) .eq. 0) .or.
-     &     (s1 .eq. s2)) then
-         goto 100
-      endif
+      if ((s1 .gt. M_comp) .or. (s1 .lt. 1) .or. (V(s1) .eq. 0d0))
+     &     goto 100
+ 101  s2 = int(rand() * M_comp) + 1
+      if ((s2 .gt. M_comp) .or. (s2 .lt. 1) .or. (V(s2) .eq. 0d0))
+     &     goto 101
+      if (s1 .eq. s2) goto 101
 
       return
       end

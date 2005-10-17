@@ -18,18 +18,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine soln_golovin_exp(n_bin, vv, rr, time,
-     &     N_0, V_0, rho_p, g, n_ln)
+      subroutine soln_golovin_exp(n_bin, bin_v, bin_r,
+     &     bin_g, bin_n, dlnr,
+     &     time, N_0, V_0, rho_p, V_comp)
 
-      integer n_bin       ! INPUT: number of bins
-      real*8 vv(n_bin)    ! INPUT: volume of particles in bin
-      real*8 rr(n_bin)    ! INPUT; radius of particles in bins
-      real*8 time         ! INPUT: current time
-      real*8 N_0          ! INPUT: particle number concentration (#/m^3)
-      real*8 V_0          ! INPUT:
-      real*8 rho_p        ! INPUT: particle density (kg/m^3)
-      real*8 g(n_bin)     ! OUTPUT: mass of particles in each bin
-      real*8 n_ln(n_bin)  ! OUTPUT: number of particles in each bin
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      integer bin_n(n_bin) ! OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
+
+      real*8 time          ! INPUT: cubin_rent time
+      real*8 N_0           ! INPUT: particle number concentration (#/m^3)
+      real*8 V_0           ! INPUT:
+      real*8 rho_p         ! INPUT: particle density (kg/m^3)
+      real*8 V_comp        ! INPUT: computational volume
 
       real*8 beta_1, tau, T, rat_v, nn, b, x
       integer k
@@ -37,43 +41,37 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-c      write(6,'(3a14)'), 'x', 'bessi1', 'besj0'
-c      do k = 0,100
-c         d_0 = real(k) / 10d0
-c         call bessi1(d_0, b)
-c         T = besy0(d_0)
-c         write(6,'(3e14.6)'), d_0, b, T
-c      enddo
-c      call exit(2)
-
       call kernel_golovin(1d0, 0d0, beta_1)
 
       if (time .eq. 0d0) then
          do k = 1,n_bin
-            n_ln(k) = pi/2d0 * (2d0*rr(k))**3 * N_0/V_0
-     &           * exp(-(vv(k)/V_0))
+            bin_n(k) = pi/2d0 * (2d0*bin_r(k))**3 * N_0/V_0
+     &           * exp(-(bin_v(k)/V_0))
          enddo
       else
          tau = N_0 * V_0 * beta_1 * time
          T = 1 - exp(-tau)
          do k = 1,n_bin
-            rat_v = vv(k) / V_0
+            rat_v = bin_v(k) / V_0
             x = 2d0 * rat_v * sqrt(T)
             if (x .lt. 500d0) then
                call bessi1(x, b)
             else
                b = 0d0
             endif
-            nn = N_0/vv(k) * (1d0 - T) / sqrt(T)
+            nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T)
      &           * exp(-((1d0 + T) * rat_v)) * b
-            n_ln(k) = pi/2d0 * (2d0*rr(k))**3 * nn
-c            write(6,'(6a11)'), 'time', 'T', 'b', 'nn', 'n_ln', 'g'
-c            write(6,'(6e11.3)'), time, T, b, nn, n_ln(k), g(k)
+            bin_n(k) = pi/2d0 * (2d0*bin_r(k))**3 * nn
          enddo
       endif
 
       do k = 1,n_bin
-         g(k) = pi/6d0 * rho_p * (2d0*rr(k))**3 * n_ln(k)
+         bin_g(k) = pi/6d0 * rho_p * (2d0*bin_r(k))**3 * bin_n(k)
+      enddo
+
+      do k = 1,n_bin
+         bin_g(k) = bin_g(k) * dlnr * V_comp
+         bin_n(k) = bin_n(k) * dlnr * V_comp
       enddo
 
       return

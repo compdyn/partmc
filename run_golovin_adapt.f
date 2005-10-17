@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r_samp_max, del_t_max
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
-      parameter (n_loop = 1)           ! number of loops
+      parameter (n_loop = 10)          ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
@@ -22,8 +22,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer M, i_loop, k
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), vv(n_bin),  rr(n_bin)
-      real*8 g(n_bin), n_ln(n_bin)
+      real*8 n_ini(n_bin), bin_v(n_bin),  bin_r(n_bin)
+      real*8 bin_g(n_bin)
+      integer bin_n(n_bin)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
@@ -36,20 +37,21 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,n_loop
          
-         call make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
+         call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          
          ! define initial exponential distribution
          do k = 1,n_bin
-            n_ini(k) = pi/2d0 * (2d0*rr(k))**3 * MM/V_0
-     &           * exp(-(vv(k) / V_0))
+            n_ini(k) = pi/2d0 * (2d0*bin_r(k))**3 * MM/V_0
+     &           * exp(-(bin_v(k) / V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M)
+         call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 
-         call mc_adapt(MM, M, V, V_comp, kernel_golovin, n_bin,
-     &        vv, rr, g, n_ln, dlnr, t_max, t_print,
-     &        p_max, r_samp_max, del_t_max, i_loop)
+         call mc_adapt(MM, M, V, V_comp,
+     &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &        kernel_golovin, t_max, t_print, p_max, r_samp_max,
+     &        del_t_max, i_loop)
 
       enddo
 

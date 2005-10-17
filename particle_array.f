@@ -6,20 +6,20 @@ C     representation and an explicit particle representation.
 C
 C     The sectional representation stores the number and mass of
 C     particles in bins, which are logarithmicly spaced. The bins are
-C     described by the vv(n_bin) and rr(n_bin) arrays, which store the
+C     described by the bin_v(n_bin) and bin_r(n_bin) arrays, which store the
 C     volume and radius of the centerpoint of each bin. The variable
 C     dlnr ... FIXME
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
+      subroutine make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
 
-      integer n_bin     ! INPUT: number of bins
-      integer scal      ! INPUT: scale factor
-      real*8 rho_p      ! INPUT: density
-      real*8 vv(n_bin)  ! OUTPUT: volume of particles in bins
-      real*8 rr(n_bin)  ! OUTPUT: radius of particles in bins
-      real*8 dlnr       ! OUTPUT: scale factor
+      integer n_bin        ! INPUT: number of bins
+      integer scal         ! INPUT: scale factor
+      real*8 rho_p         ! INPUT: density
+      real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins
+      real*8 dlnr          ! OUTPUT: scale factor
 
       integer i
       real*8 ax, e(n_bin), r(n_bin), emin
@@ -31,16 +31,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ax = 2d0**(1d0 / scal)
       emin = 1d-15
 
+      ! FIXME: rewrite in a sane way
       do i = 1,n_bin
-         ! mass (?)
+         ! mass (FIXME: units?)
          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          ! radius (um)
          ! FIXME: following line assumes rho_p = 1000
          r(i) = 1000d0 * dexp(dlog(3d0 * e(i) / (4d0 * pi)) / 3d0)
-         ! volume (?)
-         vv(i) = 1d-6 * e(i) / rho_p
+         ! volume (FIXME: units?)
+         bin_v(i) = 1d-6 * e(i) / rho_p
          ! radius (m)
-         rr(i) = 1d-6 * r(i)
+         bin_r(i) = 1d-6 * r(i)
       enddo
 
       return
@@ -48,12 +49,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M)
+      subroutine compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
 
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
       real*8 n_ini(n_bin)  ! INPUT: initial number distribution
-      real*8 rr(n_bin)     ! INPUT: diameter of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bins
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
       integer M            ! OUTPUT: logical dimension of V
@@ -69,7 +70,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i) = pi/6d0 * (2d0*rr(k))**3
+            V(i) = 4d0/3d0 * pi * bin_r(k)**3
          enddo
       enddo
 
@@ -121,17 +122,83 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coagulate(MM, M, V, s1, s2)
+      subroutine coagulate(MM, M, V, V_comp,
+     &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &        s1, s2, bin_change)
 
-      integer MM    ! INPUT: physical dimension of V
-      integer M     ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)  ! INPUT/OUTPUT: array of particle sizes
-      integer s1    ! INPUT: first particle to coagulate
-      integer s2    ! INPUT: second particle to coagulate
+      integer MM           ! INPUT: physical dimension of V
+      integer M            ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
+      real*8 V_comp        ! INPUT: computational volume
+
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
+
+      integer s1           ! INPUT: first particle to coagulate
+      integer s2           ! INPUT: second particle to coagulate
+      logical bin_change   ! OUTPUT: whether an empty bin filled,
+                           !         or a filled bin became empty
+
+      integer k1, k2, kn
+
+      bin_change = .false.
+
+      ! remove s1 and s2 from bins
+      call particle_in_bin(V(s1), n_bin, bin_v, k1)
+      call particle_in_bin(V(s2), n_bin, bin_v, k2)
+      bin_n(k1) = bin_n(k1) - 1
+      bin_n(k2) = bin_n(k2) - 1
+! DEBUG
+c      write(*,*)'V(s1),V(s2),k1,k2,n(k1),n(k2) = ',
+c     &     V(s1), V(s2), k1, k2, bin_n(k1), bin_n(k2)
+c      write(*,*)'r(k1),r(k2) = ', bin_r(k1), bin_r(k2)
+c      if (bin_n(k1) .eq. 0) write(*,*)'bin became empty:', k1
+c      if (bin_n(k2) .eq. 0) write(*,*)'bin became empty:', k2
+! DEBUG
+      bin_g(k1) = bin_g(k1) - V(s1)
+      bin_g(k2) = bin_g(k2) - V(s2)
+
+      if ((bin_n(k1) .lt. 0) .or. (bin_n(k2) .lt. 0)) then
+         write(*,*)'ERROR: invalid bin_n'
+         call exit(2)
+      endif
 
       V(s1) = V(s1) + V(s2) ! add particle 2 onto particle 1
       V(s2) = V(M)          ! shift the last particle into empty slot
       M = M - 1             ! shorten array
+
+      ! add new particle to bins
+      call particle_in_bin(V(s1), n_bin, bin_v, kn)
+! DEBUG
+c      write(*,*)'V(s1),kn,n(kn) = ', V(s1), kn, bin_n(kn)
+c      write(*,*)'r(kn) = ', bin_r(kn)
+c      if (bin_n(kn) .le. 0) write(*,*)'bin became full:', kn
+! DEBUG
+      bin_n(kn) = bin_n(kn) + 1
+      bin_g(kn) = bin_g(kn) + V(s1)
+
+      if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0))
+     &     bin_change = .true.
+      if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2))
+     &     bin_change = .true.
+! DEBUG
+c      if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0)) then
+c         write(*,*)'k1,k2,n(k1),n(k2) = ',
+c     &        k1, k2, bin_n(k1), bin_n(k2)
+c         write(*,*)'kn,n(kn) = ', kn, bin_n(kn)
+c       endif
+c      if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2)) then
+c         write(*,*)'k1,k2,n(k1),n(k2) = ',
+c     &        k1, k2, bin_n(k1), bin_n(k2)
+c         write(*,*)'kn,n(kn) = ', kn, bin_n(kn)
+c       endif
+! DEBUG
+
+c      if (bin_change) write(*,*)'bin_change is true'
 
       return
       end
@@ -139,26 +206,46 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
       subroutine maybe_coag_pair(MM, M, V, V_comp,
-     &     del_T, n_samp, kernel, did_coag)
+     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &           del_t, n_samp, kernel, did_coag, bin_change)
+
+      integer MM           ! INPUT: physical dimension of V
+      integer M            ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
+      real*8 V_comp        ! INPUT: computational volume
+
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
       
-      integer MM       ! INPUT: physical dimension of V
-      integer M        ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)     ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp    ! INPUT: computational volume
-      real*8 del_T     ! INPUT: timestep
-      integer n_samp   ! INPUT: number of samples per timestep
-      external kernel  ! INPUT: kernel function
-      logical did_coag ! OUTPUT: whether a coagulation occured
+      real*8 del_t         ! INPUT: timestep
+      integer n_samp       ! INPUT: number of samples per timestep
+      external kernel      ! INPUT: kernel function
+      logical did_coag     ! OUTPUT: whether a coagulation occured
+      logical bin_change   ! OUTPUT: whether bin structure changed
 
       integer s1, s2
       real*8 expo, p, k
 
+      integer k1, k2
+
       call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      expo = k * 1d0/V_comp * del_T * (M*(M-1)/2d0) / n_samp
+! DEBUG
+c      call particle_in_bin(V(s1), n_bin, bin_v, k1)
+c      call particle_in_bin(V(s2), n_bin, bin_v, k2)
+c      write(*,*)'s1,s2,k1,k2,k = ', s1, s2, k1, k2, k
+! DEBUG
+      expo = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp
       p = 1d0 - exp(-expo) ! probability of coagulation
+      bin_change = .false.
       if (dble(rand()) .lt. p) then
-         call coagulate(MM, M, V, s1, s2)
+         call coagulate(MM, M, V, V_comp,
+     &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &        s1, s2, bin_change)
          did_coag = .true.
       else
          did_coag = .false.
@@ -170,6 +257,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine kernel_avg(MM, M, V, kernel, n_samp, k_avg)
+      ! FIXME: use binned data instead
 
       integer MM      ! INPUT: physical dimension of V
       integer M       ! INPUT: logical dimension of V
@@ -194,106 +282,142 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine double(MM, M, V, V_comp)
+      subroutine double(MM, M, V, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 
-      integer MM      ! INPUT: physical dimension of V
-      integer M       ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)    ! INPUT/OUTPUT: particle volume array
-      real*8 V_comp   ! INPUT/OUTPUT: computational volume
+      integer MM           ! INPUT: physical dimension of V
+      integer M            ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
+      real*8 V_comp        ! INPUT/OUTPUT: computational volume
+
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
 
       integer i
 
       ! only double if we have enough space to do so
-      if (M .le. MM / 2) then
-         do i = 1,M
-            V(i + M) = V(i)
-         enddo
-         M = 2 * M
-         V_comp = 2 * V_comp
+      if (M .gt. MM / 2) then
+         write(*,*)'ERROR: double without enough space'
+         call exit(2)
       endif
+      
+      ! double V and associated structures
+      do i = 1,M
+         V(i + M) = V(i)
+      enddo
+      M = 2 * M
+      V_comp = 2d0 * V_comp
+      
+      ! double bin structures
+      do i = 1,n_bin
+         bin_g(i) = bin_g(i) * 2d0
+         bin_n(i) = bin_n(i) * 2
+      enddo
 
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
+      subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
       
-      integer n_bin        ! INPUT: number of bins
-      real*8 rr(n_bin)     ! INPUT: radii of bins
-      real*8 n_ln(n_bin)   ! INPUT: number in each bin
-      real*8 dlnr          ! INPUT: scale factor
-      external kernel      ! INPUT: kernel function
-      real*8 k_max         ! OUTPUT: maximum kernel value
+      integer n_bin         ! INPUT: number of bins
+      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins
+      integer bin_n(n_bin)  ! INPUT: number in each bin
+      external kernel       ! INPUT: kernel function
+      real*8 k_max          ! OUTPUT: maximum kernel value
 
-      real*8 V_bin(n_bin), cck
-      integer ll, k
+      real*8 k
+      integer i, j
+      logical use_bin(n_bin)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
-      
-      do k = 1,n_bin
-         V_bin(k) = 4d0 / 3d0 * pi * rr(k)**3
+
+c      write(*,*)'RECALCULATING K_MAX'
+
+      ! use_bin starts as non-empty bins
+      do i = 1,n_bin
+         use_bin(i) = (bin_n(i) .gt. 0)
+      enddo
+
+      ! add all bins downstream of non-empty bins
+      do i = 2,n_bin
+         if (use_bin(i)) use_bin(i-1) = .true.
+      enddo
+
+      ! add all bins upstream of non-empty bins
+      do i = (n_bin-1),1,-1
+         if (use_bin(i)) use_bin(i+1) = .true.
       enddo
       
       k_max = 0d0
-      do k = 1,n_bin
-         if (n_ln(k) * dlnr .ge. 1d0) then
-            do ll = 1,k
-               if (n_ln(ll) * dlnr .ge. 1d0) then
-                  call kernel(V_bin(k), V_bin(ll), cck)
-                  if (cck .gt. k_max) then
-                     k_max = cck
+      do i = 1,n_bin
+         if (use_bin(i)) then
+            do j = 1,i
+               if (use_bin(j)) then
+                  call kernel(bin_v(i), bin_v(j), k)
+                  if (k .gt. k_max) then
+                     k_max = k
                   endif
                endif
             enddo
          endif
       enddo
-      
+
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      
-      subroutine moments(MM, M, V, n_bin, V_comp,
-     &     vv, dlnr, g, n_ln)
-      
+
+      subroutine particle_in_bin(v, n_bin, bin_v, k)
+      ! FIXME: for log-spaced bins we can do this without search
+
+      real*8 v             ! INPUT: volume of particle
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      integer k            ! OUTPUT: bin number containing particle
+
+      k = 0
+ 300  k = k + 1
+c      write(*,*)'k,bin_v(k) = ', k, bin_v(k)
+      if ((k .lt. n_bin) .and.
+     &     (v .gt. (bin_v(k) + bin_v(k+1)) / 2d0)) goto 300
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine moments(MM, M, V, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT: particle volume array
-      integer n_bin        ! INPUT: number of bins
+      real*8 V(MM)         ! INPUT: particle volumes
       real*8 V_comp        ! INPUT: computational volume
-      real*8 vv(n_bin)     ! INPUT: volumes of particles in bins
-      real*8 dlnr          ! INPUT: scale factor
-      real*8 g(n_bin)      ! OUTPUT: total mass in each bin
-      real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
 
-      real*8 nv_conc, vv_cnt, vv_conc, vv_low, vv_high
-      integer NN_cnt, k, i
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      integer bin_n(n_bin) ! OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
+      
+      integer i, k
 
       do k = 1,n_bin
-         NN_cnt = 0
-         vv_cnt = 0d0
-         if (k .eq. 1) then
-            vv_low = vv(k) - 1d100
-            vv_high = (vv(k) + vv(k+1)) / 2d0
-         elseif (k .eq. n_bin) then
-            vv_low = (vv(k-1) + vv(k)) / 2d0
-            vv_high = vv(k) + 1d100
-         else
-            vv_low = (vv(k-1) + vv(k)) / 2d0
-            vv_high = (vv(k) + vv(k+1)) / 2d0
-         endif
-         do i = 1,M
-            if ((V(i) .ge. vv_low) .and. (V(i) .lt. vv_high)) then
-               NN_cnt = NN_cnt + 1
-               vv_cnt = vv_cnt + V(i)
-            endif
-         enddo
-         nv_conc = NN_cnt / V_comp
-         vv_conc = vv_cnt / V_comp
-         n_ln(k) = nv_conc / dlnr
-         g(k) = vv_conc / dlnr
+         bin_g(k) = 0d0
+         bin_n(k) = 0
+      enddo
+      do i = 1,M
+         call particle_in_bin(V(i), n_bin, bin_v, k)
+         bin_g(k) = bin_g(k) + V(i)
+         bin_n(k) = bin_n(k) + 1
       enddo
 
       return
@@ -303,7 +427,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine check_event(time, interval, last_time, do_event)
 
-      real*8 time       ! INPUT: current time
+      real*8 time       ! INPUT: cubin_rent time
       real*8 interval   ! INPUT: how often the event should be done
       real*8 last_time  ! INPUT/OUTPUT: when the event was last done
       logical do_event  ! OUTPUT: whether the event should be done
@@ -343,21 +467,27 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_info(n_bin, time, rr, g, n_ln)
+      subroutine print_info(time, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 
+      real*8 time          ! INPUT: cubin_rent simulation time
+      real*8 V_comp        ! INPUT: computational volume
+      
       integer n_bin        ! INPUT: number of bins
-      real*8 time          ! INPUT: current simulation time
-      real*8 rr(n_bin)     ! INPUT: radius of particles in bins
-      real*8 g(n_bin)      ! OUTPUT: total mass in each bin
-      real*8 n_ln(n_bin)   ! OUTPUT: total number in each bin (log scaled)
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! INPUT: mass in bins
+      integer bin_n(n_bin) ! INPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
 
       integer k
 
       write(30,'(a10,e14.5)') 'time', time
       do k = 1,n_bin
-         write(30, '(i8,3e14.5)') k, rr(k), n_ln(k), g(k)
+         write(30, '(i8,3e14.5)') k, bin_r(k), bin_n(k) / V_comp / dlnr,
+     &        bin_g(k) / V_comp / dlnr
       enddo
-      
+
       return
       end
 

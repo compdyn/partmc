@@ -85,7 +85,7 @@ cleanall: clean
 	rm -f *~ *.d
 
 check:
-	ftnchek-3.3.1/ftnchek -declare *.f
+	ftnchek-3.3.1/ftnchek *.f
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

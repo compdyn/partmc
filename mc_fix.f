@@ -2,8 +2,8 @@ C Monte Carlo with fixed timestep.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix(MM, M, V, V_comp, kernel, n_bin, vv,
-     &     rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print, loop)
+      subroutine mc_fix(MM, M, V, V_comp, kernel, n_bin, bin_v,
+     &     bin_r, g, bin_n, dlnr, t_max, del_t, p_max, t_print, loop)
 
       integer MM         ! INPUT: physical dimension of V
       integer M          ! INPUT/OUTPUT: logical dimension of V
@@ -11,10 +11,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V_comp      ! INPUT/OUTPUT: computational volume
       external kernel    ! INPUT: kernel procedure
       integer n_bin      ! INPUT: number of bins
-      real*8 vv(n_bin)   ! INPUT: volume of bins
-      real*8 rr(n_bin)   ! INPUT: radius of bins
-      real*8 g(n_bin)    ! OUTPUT: mass in bins
-      real*8 n_ln(n_bin) ! OUTPUT: number in bins
+      real*8 bin_v(n_bin)   ! INPUT: volume of bins
+      real*8 bin_r(n_bin)   ! INPUT: radius of bins
+      real*8 bin_g(n_bin)    ! OUTPUT: mass in bins
+      integer bin_n(n_bin) ! OUTPUT: number in bins
       real*8 dlnr        ! INPUT: scale factor
       real*8 t_max       ! INPUT: total simulation time
       real*8 del_t       ! INPUT: timestep
@@ -30,8 +30,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       time = 0d0
       n_coag = 0
 
-      call moments(MM, M, V, n_bin, V_comp, vv, dlnr, g, n_ln)
-      call print_info(n_bin, time, rr, g, n_ln)
+      call moments(MM, M, V, n_bin, V_comp, bin_v, dlnr, g, bin_n)
+      call print_info(n_bin, time, bin_r, g, bin_n)
 
       nt = int(dble(t_max) / del_t)
       n_print = int(dble(t_print) / del_t)
@@ -40,7 +40,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          time = dble(i_top) / dble(nt) * dble(t_max)
          
-         call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
+         call est_k_max(n_bin, bin_r, bin_n, dlnr, kernel, k_max)
          call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
          do i_samp = 1,n_samp
             call maybe_coag_pair(MM, M, V, V_comp,
@@ -51,9 +51,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             endif
          enddo
 
-         call moments(MM, M, V, n_bin, V_comp, vv, dlnr, g, n_ln)
+         call moments(MM, M, V, n_bin, V_comp, bin_v, dlnr, g, bin_n)
          if (mod(i_top, n_print) .eq. 0) then
-            call print_info(n_bin, time, rr, g, n_ln)
+            call print_info(n_bin, time, bin_r, g, bin_n)
          endif
 
          call cpu_time(t_end)
@@ -84,7 +84,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 r_samp
 
-      r_samp = - (k_max * 1d0/V_comp * del_T / log(1 - p_max))
+      r_samp = - (k_max * 1d0/V_comp * del_T / lobin_g(1 - p_max))
       n_samp = int(r_samp * M*(M-1)/2)
 
       return

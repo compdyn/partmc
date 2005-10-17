@@ -20,8 +20,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer M, i_loop, k
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), vv(n_bin), rr(n_bin)
-      real*8 g(n_bin), n_ln(n_bin)
+      real*8 n_ini(n_bin), bin_v(n_bin), bin_r(n_bin)
+      real*8 bin_g(n_bin), bin_n(n_bin)
 
       external kernel_sedi
 
@@ -31,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i_loop = 1,1
 
-         call make_grid(n_bin, scal, rho_p, vv, rr, dlnr)
+         call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          
          ! define bidisperse distribution
          do k = 1,n_bin
@@ -40,12 +40,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          n_ini(97) = (MM - 1) / dlnr
          n_ini(126) = 1 / dlnr
 
-         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M)
+         call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          M = M
          V_comp = M / N_0
          
-         call mc_var(MM, M, V, V_comp, kernel_sedi, n_bin, vv,
-     &        rr, g, n_ln, dlnr, t_max, t_print, t_k_max, t_k_avg,
+         call mc_var(MM, M, V, V_comp, kernel_sedi, n_bin, bin_v,
+     &        bin_r, g, bin_n, dlnr, t_max, t_print, t_k_max, t_k_avg,
      &        k_avg_samp, i_loop)
 
       enddo

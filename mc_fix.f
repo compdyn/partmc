@@ -2,12 +2,11 @@ C Monte Carlo with fixed timestep.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix(MM, M, M_comp, V, V_comp, kernel, n_bin, vv,
+      subroutine mc_fix(MM, M, V, V_comp, kernel, n_bin, vv,
      &     rr, g, n_ln, dlnr, t_max, del_t, p_max, t_print, loop)
 
       integer MM         ! INPUT: physical dimension of V
-      integer M          ! INPUT/OUTPUT: number of particles
-      integer M_comp     ! INPUT/OUTPUT: logical dimension of V
+      integer M          ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)       ! INPUT/OUTPUT: particle volumes
       real*8 V_comp      ! INPUT/OUTPUT: computational volume
       external kernel    ! INPUT: kernel procedure
@@ -31,7 +30,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       time = 0d0
       n_coag = 0
 
-      call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
+      call moments(MM, M, V, n_bin, V_comp, vv, dlnr, g, n_ln)
       call print_info(n_bin, time, rr, g, n_ln)
 
       nt = int(dble(t_max) / del_t)
@@ -44,15 +43,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call est_k_max(n_bin, rr, n_ln, dlnr, kernel, k_max)
          call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
          do i_samp = 1,n_samp
-            call maybe_coag_pair(MM, V, M, M_comp, V_comp,
+            call maybe_coag_pair(MM, M, V, V_comp,
      &           del_t, n_samp, kernel, did_coag)
             if (did_coag) n_coag = n_coag + 1
             if (M .lt. MM / 2) then
-               call double(MM, M, M_comp, V, V_comp)
+               call double(MM, M, V, V_comp)
             endif
          enddo
 
-         call moments(MM, V, n_bin, M_comp, V_comp, vv, dlnr, g, n_ln)
+         call moments(MM, M, V, n_bin, V_comp, vv, dlnr, g, n_ln)
          if (mod(i_top, n_print) .eq. 0) then
             call print_info(n_bin, time, rr, g, n_ln)
          endif
@@ -60,11 +59,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call cpu_time(t_end)
          t_loop = t_end - t_start
          t_per_samp = t_loop / n_samp
-         write(6,'(a6,a6,a6,a6,a6,a7,a10,a9,a11,a9)')
-     &        'loop', 'i_top', 'time', 'del_t', 'M', 'M_comp',
+         write(6,'(a6,a6,a6,a6,a6,a10,a9,a11,a9)')
+     &        'loop', 'i_top', 'time', 'del_t', 'M',
      &        'k_max', 'n_samp', 't_per_samp', 'n_coag'
-         write(6,'(i6,i6,f6.1,f6.3,i6,i7,e10.3,i9,e11.3,i9)')
-     &        loop, i_top, time, del_t, M, M_comp, k_max, n_samp,
+         write(6,'(i6,i6,f6.1,f6.3,i6,e10.3,i9,e11.3,i9)')
+     &        loop, i_top, time, del_t, M, k_max, n_samp,
      &        t_per_samp, n_coag
       enddo
 

@@ -48,7 +48,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M_comp)
+      subroutine compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M)
 
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
@@ -56,7 +56,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 rr(n_bin)     ! INPUT: diameter of particles in bins
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
-      integer M_comp       ! OUTPUT: logical dimension of V
+      integer M            ! OUTPUT: logical dimension of V
 
       integer k, i, sum_e, sum_a, delta_n
 
@@ -73,27 +73,23 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
       enddo
 
-      M_comp = sum_e
+      M = sum_e
 
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine find_rand_pair(MM, V, M_comp, s1, s2)
+      subroutine find_rand_pair(M, s1, s2)
       
-      integer MM      ! INPUT: dimension of V
-      real*8 V(MM)    ! INPUT: array of particle volumes
-      integer M_comp  ! INPUT: maximum index of non-zero entries in V
+      integer M       ! INPUT: number of particles
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
-                      !         particles with V(s1/s2) != 0
+                      !         particles with (1 <= s1,s2 <= M)
 
- 100  s1 = int(rand() * M_comp) + 1
-      if ((s1 .gt. M_comp) .or. (s1 .lt. 1) .or. (V(s1) .eq. 0d0))
-     &     goto 100
- 101  s2 = int(rand() * M_comp) + 1
-      if ((s2 .gt. M_comp) .or. (s2 .lt. 1) .or. (V(s2) .eq. 0d0))
-     &     goto 101
+ 100  s1 = int(rand() * M) + 1
+      if ((s1 .lt. 1) .or. (s1 .gt. M)) goto 100
+ 101  s2 = int(rand() * M) + 1
+      if ((s2 .lt. 1) .or. (s2 .gt. M)) goto 101
       if (s1 .eq. s2) goto 101
 
       return
@@ -101,12 +97,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine find_rand_pair_acc_rej(MM, V, M_comp, max_k, kernel,
+      subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel,
      &     s1, s2)
       
-      integer MM      ! INPUT: dimension of V
+      integer MM      ! INPUT: physical dimension of V
+      integer M       ! INPUT: logical dimension of V
       real*8 V(MM)    ! INPUT: array of particle volumes
-      integer M_comp  ! INPUT: maximum index of non-zero entries in V
       real*8 max_k    ! INPUT: maximum value of the kernel
       external kernel ! INPUT: kernel function
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
@@ -115,7 +111,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 k, p
 
  200  continue
-      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
+      call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
       p = k / max_k     ! collision probability   
       if (dble(rand()) .gt. p ) goto 200
@@ -128,27 +124,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine coagulate(MM, M, V, s1, s2)
 
       integer MM    ! INPUT: physical dimension of V
-      integer M     ! INPUT/OUTPUT: number of particles
+      integer M     ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)  ! INPUT/OUTPUT: array of particle sizes
       integer s1    ! INPUT: first particle to coagulate
       integer s2    ! INPUT: second particle to coagulate
 
-      V(s1) = V(s1) + V(s2)          
-      V(s2) = 0d0
-      M = M - 1
+      V(s1) = V(s1) + V(s2) ! add particle 2 onto particle 1
+      V(s2) = V(M)          ! shift the last particle into empty slot
+      M = M - 1             ! shorten array
 
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine maybe_coag_pair(MM, V, M, M_comp, V_comp,
+      subroutine maybe_coag_pair(MM, M, V, V_comp,
      &     del_T, n_samp, kernel, did_coag)
       
       integer MM       ! INPUT: physical dimension of V
+      integer M        ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)     ! INPUT/OUTPUT: particle volumes
-      integer M        ! INPUT/OUTPUT: number of particles
-      integer M_comp   ! INPUT: logical dimension of V
       real*8 V_comp    ! INPUT: computational volume
       real*8 del_T     ! INPUT: timestep
       integer n_samp   ! INPUT: number of samples per timestep
@@ -158,7 +153,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer s1, s2
       real*8 expo, p, k
 
-      call find_rand_pair(MM, V, M_comp, s1, s2) ! test particles s1, s2
+      call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
       expo = k * 1d0/V_comp * del_T * (M*(M-1)/2d0) / n_samp
       p = 1d0 - exp(-expo) ! probability of coagulation
@@ -174,10 +169,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine kernel_avg(MM, M_comp, V, kernel, n_samp, k_avg)
+      subroutine kernel_avg(MM, M, V, kernel, n_samp, k_avg)
 
       integer MM      ! INPUT: physical dimension of V
-      integer M_comp  ! INPUT: logical dimension of V
+      integer M       ! INPUT: logical dimension of V
       real*8 V(MM)    ! INPUT: array of particle volumes
       external kernel ! INPUT: kernel function
       integer n_samp  ! INPUT: number of samples to use (squared)
@@ -188,7 +183,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       k_sum = 0d0
       do i = 1,(n_samp**2)
-         call find_rand_pair(MM, V, M_comp, s1, s2)
+         call find_rand_pair(M, s1, s2)
          call kernel(V(s1), V(s2), k)
          k_sum = k_sum + k
       enddo
@@ -199,58 +194,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compress(MM, M, M_comp, V)
+      subroutine double(MM, M, V, V_comp)
 
       integer MM      ! INPUT: physical dimension of V
-      integer M       ! INPUT/OUTPUT: number of particles
-      integer M_comp  ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)    ! INPUT/OUTPUT: on exit, all non-zero entries are
-                      !               at the beginning, followed by all
-                      !               zeros.
-
-      integer i, i_w, i_v
-
-      ! group non-zero entries at the start of V
-      i_w = 1
-      do i_v = 1,MM
-         if (V(i_v) .ne. 0d0) then
-            V(i_w) = V(i_v)
-            i_w = i_w + 1
-         endif
-      enddo
-      M = i_w
-      M_comp = i_w
-
-      ! set remaining entries to zero
-      do i = (i_w + 1),MM
-         V(i) = 0d0
-      enddo
-
-      return
-      end
-
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine double(MM, M, M_comp, V, V_comp)
-
-      integer MM      ! INPUT: physical size of V
-      integer M       ! INPUT/OUTPUT: number of particles
-      integer M_comp  ! INPUT/OUTPUT: logical size of V
+      integer M       ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)    ! INPUT/OUTPUT: particle volume array
       real*8 V_comp   ! INPUT/OUTPUT: computational volume
 
       integer i
 
       ! only double if we have enough space to do so
-      if (2 * M .le. MM) then
-         call compress(MM, M, M_comp, V)
-         do i = 1,M_comp
-            V(i + M_comp) = V(i)
+      if (M .le. MM / 2) then
+         do i = 1,M
+            V(i + M) = V(i)
          enddo
-         M_comp = 2 * M_comp
-         V_comp = 2 * V_comp
          M = 2 * M
+         V_comp = 2 * V_comp
       endif
 
       return
@@ -296,13 +255,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine moments(MM, V, n_bin, M_comp, V_comp,
+      subroutine moments(MM, M, V, n_bin, V_comp,
      &     vv, dlnr, g, n_ln)
       
-      integer MM           ! INPUT: dimension of V
+      integer MM           ! INPUT: physical dimension of V
+      integer M            ! INPUT: logical dimension of V
       real*8 V(MM)         ! INPUT: particle volume array
       integer n_bin        ! INPUT: number of bins
-      integer M_comp       ! INPUT: maximum index of particle in V
       real*8 V_comp        ! INPUT: computational volume
       real*8 vv(n_bin)     ! INPUT: volumes of particles in bins
       real*8 dlnr          ! INPUT: scale factor
@@ -325,7 +284,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             vv_low = (vv(k-1) + vv(k)) / 2d0
             vv_high = (vv(k) + vv(k+1)) / 2d0
          endif
-         do i = 1,M_comp
+         do i = 1,M
             if ((V(i) .ge. vv_low) .and. (V(i) .lt. vv_high)) then
                NN_cnt = NN_cnt + 1
                vv_cnt = vv_cnt + V(i)

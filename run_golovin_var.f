@@ -19,7 +19,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_k_avg = 0.2d0)   ! interval between estimating k_avg (s)
       parameter (V_0 = 4.1886d-15)  ! mean volume of initial distribution
 
-      integer M, M_comp, i_loop, k
+      integer M, i_loop, k
       real*8 V(MM), V_comp, dlnr
       real*8 n_ini(n_bin), vv(n_bin), rr(n_bin)
       real*8 g(n_bin), n_ln(n_bin)
@@ -43,11 +43,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &           * exp(-(vv(k) / V_0))
          enddo
 
-         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M_comp)
-         M = M_comp
+         call compute_volumes(n_bin, MM, n_ini, rr, dlnr, V, M)
          V_comp = M / N_0
          
-         call mc_var(MM, M, M_comp, V, V_comp, kernel_golovin, n_bin,
+         call mc_var(MM, M, V, V_comp, kernel_golovin, n_bin,
      &        vv, rr, g, n_ln, dlnr, t_max, t_print, t_k_max,
      &        t_k_avg, k_avg_samp, i_loop)
 

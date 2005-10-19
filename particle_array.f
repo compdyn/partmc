@@ -351,7 +351,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       div = 0
       do i = 1,n_bin
          if (bin_n(i) .gt. 0) then
-            do j = 1,i
+            do j = 1,n_bin
                if (bin_n(j) .gt. 0) then
                   call kernel(bin_v(i), bin_v(j), k)
                   k_avg = k_avg + k *  bin_n(i) * bin_n(j)

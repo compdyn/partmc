@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
  
-      integer MM, n_bin, n_loop, scal, k_avg_samp
+      integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_k_avg
       parameter (MM = 10000)        ! number of particles
       parameter (n_bin = 160)       ! number of bins
@@ -13,7 +13,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_max = 600d0)     ! total simulation time (seconds)
       parameter (rho_p = 1000d0)    ! particle density (kg/m^3)
       parameter (N_0 = 1d9)         ! particle number concentration (#/m^3)
-      parameter (k_avg_samp = 1000) ! number of samples to estimate k_avg
       parameter (t_print = 60)      ! interval between printing (s)
       parameter (t_k_avg = 0.2d0)   ! interval between estimating k_avg (s)
 
@@ -46,8 +45,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call mc_var(MM, M, V, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &        kernel_sedi, t_max, t_print, t_k_avg,
-     &        k_avg_samp, i_loop)
+     &        kernel_sedi, t_max, t_print, t_k_avg, i_loop)
 
       enddo
 

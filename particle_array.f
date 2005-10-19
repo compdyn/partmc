@@ -223,32 +223,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine kernel_avg(MM, M, V, kernel, n_samp, k_avg)
-      ! FIXME: use binned data instead
-
-      integer MM      ! INPUT: physical dimension of V
-      integer M       ! INPUT: logical dimension of V
-      real*8 V(MM)    ! INPUT: array of particle volumes
-      external kernel ! INPUT: kernel function
-      integer n_samp  ! INPUT: number of samples to use (squared)
-      real*8 k_avg    ! OUTPUT: estimated average of kernel values
-
-      integer i, s1, s2
-      real*8 k, k_sum
-
-      k_sum = 0d0
-      do i = 1,(n_samp**2)
-         call find_rand_pair(M, s1, s2)
-         call kernel(V(s1), V(s2), k)
-         k_sum = k_sum + k
-      enddo
-      k_avg  = k_sum / (n_samp**2)
-
-      return
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
       subroutine double(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 

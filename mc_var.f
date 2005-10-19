@@ -4,8 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_var(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &     kernel, t_max, t_print, t_k_avg,
-     &     k_avg_samp, loop)
+     &     kernel, t_max, t_print, t_k_avg, loop)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
@@ -23,10 +22,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_max       ! INPUT: final time (seconds)
       real*8 t_print     ! INPUT: interval to print info (seconds)
       real*8 t_k_avg     ! INPUT: interval to update k_avg (seconds)
-      integer k_avg_samp ! INPUT: number of samples to estimate k_avg
       integer loop       ! INPUT: loop number of run
 
-      real*8 del_t, k_max, k_avg, k_avg_new
+      real*8 del_t, k_max, k_avg
       real*8 time, last_print_time, last_k_avg_time
       real*8 t_progress, last_progress_time
       logical do_print, do_k_avg, do_progress, bin_change
@@ -40,13 +38,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call moments(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
-      call est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg_new)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
       call check_event(time, t_k_avg, last_k_avg_time, do_k_avg)
-      if (do_k_avg) call kernel_avg(MM, M, V, kernel, k_avg_samp,
-     &     k_avg)
+      if (do_k_avg) call est_k_avg(n_bin, bin_v, bin_n,
+     &     kernel, k_avg)
 
       do while (time < t_max)
          ! coagulate a pair and increment time
@@ -67,20 +64,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call check_event(time, t_k_avg, last_k_avg_time, do_k_avg)
          if (do_print) call print_info(time, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
-          if (do_k_avg) call kernel_avg(MM, M, V, kernel,
-     &        k_avg_samp, k_avg)
           if (do_k_avg) call est_k_avg(n_bin, bin_v, bin_n,
-     &         kernel, k_avg_new)
+     &         kernel, k_avg)
 
          ! print progress
          call check_event(time, t_progress, last_progress_time,
      &        do_progress)
          if (do_progress) then
-            write(6,'(a6,a6,a6,a6,a10,a10,a10,a9)')
+            write(6,'(a6,a6,a6,a6,a10,a10,a9)')
      &           'loop', 'time','del_t','M','k_max',
-     &           'k_avg','k_avg_new','n_coag'
-            write(6,'(i6,f6.1,f6.3,i6,e10.3,e10.3,e10.3,i9)')
-     &           loop, time, del_t, M, k_max, k_avg, k_avg_new, n_coag
+     &           'k_avg','n_coag'
+            write(6,'(i6,f6.1,f6.3,i6,e10.3,e10.3,i9)')
+     &           loop, time, del_t, M, k_max, k_avg, n_coag
          endif
 
          ! if we are running low on particles then top-up

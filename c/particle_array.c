@@ -97,9 +97,9 @@ int c__2 = 2;
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M) >*/
-/* Subroutine */ int compute_volumes__(int n_bin, int *mm, 
+/* Subroutine */ int compute_volumes__(int n_bin, int MM, 
 	double *n_ini__, double *bin_r, double dlnr, 
-	double *v, int *m)
+	double V, int M)
 {
     /* System generated locals */
     int i__1, i__2;
@@ -147,7 +147,7 @@ int c__2 = 2;
 /*<       enddo >*/
     }
 /*<       M = sum_e >*/
-    *m = sum_e__;
+    M = sum_e__;
 /*<       return >*/
     return 0;
 /*<       end >*/
@@ -155,7 +155,7 @@ int c__2 = 2;
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine find_rand_pair(M, s1, s2) >*/
-/* Subroutine */ int find_rand_pair__(int *m, int *s1, int *s2)
+/* Subroutine */ int find_rand_pair__(int M, int *s1, int *s2)
 {
     extern double rand_(void);
 
@@ -164,16 +164,16 @@ int c__2 = 2;
 /*         particles with (1 <= s1,s2 <= M) */
 /*<  100  s1 = int(rand() * M) + 1 >*/
 L100:
-    *s1 = (int) (rand_() * *m) + 1;
+    *s1 = (int) (rand_() * M) + 1;
 /*<       if ((s1 .lt. 1) .or. (s1 .gt. M)) goto 100 >*/
-    if (*s1 < 1 || *s1 > *m) {
+    if (*s1 < 1 || *s1 > M) {
 	goto L100;
     }
 /*<  101  s2 = int(rand() * M) + 1 >*/
 L101:
-    *s2 = (int) (rand_() * *m) + 1;
+    *s2 = (int) (rand_() * M) + 1;
 /*<       if ((s2 .lt. 1) .or. (s2 .gt. M)) goto 101 >*/
-    if (*s2 < 1 || *s2 > *m) {
+    if (*s2 < 1 || *s2 > M) {
 	goto L101;
     }
 /*<       if (s1 .eq. s2) goto 101 >*/
@@ -187,8 +187,8 @@ L101:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int find_rand_pair_acc_rej__(int *mm, int *m, 
-	double *v, double *max_k__, S_fp kernel, int *s1, int 
+/* Subroutine */ int find_rand_pair_acc_rej__(int MM, int M, 
+	double V, double *max_k__, S_fp kernel, int *s1, int 
 	*s2)
 {
     double k, p;
@@ -227,10 +227,10 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int coagulate_(int *mm, int *m, double *v, 
+/* Subroutine */ int coagulate_(int MM, int M, double V, 
 	double v_comp, int n_bin, double *bin_v, 
 	double *bin_r, double *bin_g, int *bin_n, 
-	double dlnr, int *s1, int *s2, logical *bin_change__)
+	double dlnr, int *s1, int *s2, logical *bin_change)
 {
     /* Builtin functions */
     int s_wsle(cilist *), do_lio(int *, int *, char *, ftnlen), 
@@ -269,7 +269,7 @@ L200:
     --bin_v;
 
     /* Function Body */
-    *bin_change__ = FALSE_;
+    *bin_change = FALSE_;
 /* remove s1 and s2 from bins */
 /*<       call particle_in_bin(V(s1), n_bin, bin_v, k1) >*/
     particle_in_bin__(&v[*s1], n_bin__, &bin_v[1], &k1);
@@ -303,9 +303,9 @@ L200:
 /*<       V(s1) = V(s1) + V(s2) ! add particle 2 onto particle 1 >*/
     v[*s1] += v[*s2];
 /*<       V(s2) = V(M)          ! shift the last particle into empty slot >*/
-    v[*s2] = v[*m];
+    v[*s2] = v[M];
 /*<       M = M - 1             ! shorten array >*/
-    --(*m);
+    --(M);
 /* add new particle to bins */
 /*<       call particle_in_bin(V(s1), n_bin, bin_v, kn) >*/
     particle_in_bin__(&v[*s1], n_bin__, &bin_v[1], &kn);
@@ -320,11 +320,11 @@ L200:
     bin_g[kn] += v[*s1];
 /*<    >*/
     if (bin_n[k1] == 0 || bin_n[k2] == 0) {
-	*bin_change__ = TRUE_;
+	*bin_change = TRUE_;
     }
 /*<    >*/
     if (bin_n[kn] == 1 && kn != k1 && kn != k2) {
-	*bin_change__ = TRUE_;
+	*bin_change = TRUE_;
     }
 /* DEBUG */
 /*      if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0)) then */
@@ -346,11 +346,11 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int maybe_coag_pair__(int *mm, int *m, double *v,
+/* Subroutine */ int maybe_coag_pair__(int MM, int M, double V,
 	 double v_comp, int n_bin, double *bin_v, 
 	double *bin_r, double *bin_g, int *bin_n, 
-	double dlnr, double *del_t__, int *n_samp__, S_fp kernel,
-	 logical *did_coag__, logical *bin_change__)
+	double dlnr, double *del_t, int *n_samp, S_fp kernel,
+	 logical *did_coag, logical *bin_change)
 {
     /* Builtin functions */
     double exp(double);
@@ -396,22 +396,22 @@ L200:
 /*<       call kernel(V(s1), V(s2), k) >*/
     (*kernel)(&v[s1], &v[s2], &k);
 /*<       expo = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp >*/
-    expo = k * 1. / v_comp * *del_t__ * (*m * (*m - 1) / 2.) / *n_samp__;
+    expo = k * 1. / v_comp * *del_t * (M * (M - 1) / 2.) / *n_samp;
 /*<       p = 1d0 - exp(-expo) ! probability of coagulation >*/
     p = 1. - exp(-expo);
 /*<       bin_change = .false. >*/
-    *bin_change__ = FALSE_;
+    *bin_change = FALSE_;
 /*<       if (dble(rand()) .lt. p) then >*/
     if ((double) rand_() < p) {
 /*<    >*/
 	coagulate_(mm, m, &v[1], v_comp__, n_bin__, &bin_v[1], &bin_r[1], 
-		&bin_g[1], &bin_n[1], dlnr, &s1, &s2, bin_change__);
+		&bin_g[1], &bin_n[1], dlnr, &s1, &s2, bin_change);
 /*<          did_coag = .true. >*/
-	*did_coag__ = TRUE_;
+	*did_coag = TRUE_;
 /*<       else >*/
     } else {
 /*<          did_coag = .false. >*/
-	*did_coag__ = FALSE_;
+	*did_coag = FALSE_;
 /*<       endif >*/
     }
 /*<       return >*/
@@ -421,8 +421,8 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine kernel_avg(MM, M, V, kernel, n_samp, k_avg) >*/
-/* Subroutine */ int kernel_avg__(int *mm, int *m, double *v, 
-	S_fp kernel, int *n_samp__, double *k_avg__)
+/* Subroutine */ int kernel_avg__(int MM, int M, double V, 
+	S_fp kernel, int *n_samp, double *k_avg__)
 {
     /* System generated locals */
     int i__1, i__2;
@@ -452,7 +452,7 @@ L200:
     k_sum__ = 0.;
 /*<       do i = 1,(n_samp**2) >*/
 /* Computing 2nd power */
-    i__2 = *n_samp__;
+    i__2 = *n_samp;
     i__1 = i__2 * i__2;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          call find_rand_pair(M, s1, s2) >*/
@@ -465,7 +465,7 @@ L200:
     }
 /*<       k_avg  = k_sum / (n_samp**2) >*/
 /* Computing 2nd power */
-    i__1 = *n_samp__;
+    i__1 = *n_samp;
     *k_avg__ = k_sum__ / (i__1 * i__1);
 /*<       return >*/
     return 0;
@@ -474,7 +474,7 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int double_(int *mm, int *m, double *v, 
+/* Subroutine */ int double_(int MM, int M, double V, 
 	double v_comp, int n_bin, double *bin_v, 
 	double *bin_r, double *bin_g, int *bin_n, 
 	double dlnr)
@@ -515,7 +515,7 @@ L200:
     --bin_v;
 
     /* Function Body */
-    if (*m > *mm / 2) {
+    if (M > MM / 2) {
 /*<          write(*,*)'ERROR: double without enough space' >*/
 	s_wsle(&io___25);
 	do_lio(&c__9, &c__1, "ERROR: double without enough space", (ftnlen)34)
@@ -527,14 +527,14 @@ L200:
     }
 /* double V and associated structures */
 /*<       do i = 1,M >*/
-    i__1 = *m;
+    i__1 = M;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          V(i + M) = V(i) >*/
-	v[i__ + *m] = v[i__];
+	v[i__ + M] = v[i__];
 /*<       enddo >*/
     }
 /*<       M = 2 * M >*/
-    *m <<= 1;
+    M <<= 1;
 /*<       V_comp = 2d0 * V_comp >*/
     v_comp *= 2.;
 /* double bin structures */
@@ -554,8 +554,8 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max, use_bin) >*/
-/* Subroutine */ int est_k_max__(int n_bin, double *bin_v, 
-	int *bin_n, S_fp kernel, double *k_max__, logical *
+/* Subroutine */ int est_k_max(int n_bin, double *bin_v, 
+	int *bin_n, S_fp kernel, double *k_max, logical *
 	use_bin__)
 {
     /* System generated locals */
@@ -610,7 +610,7 @@ L200:
 /*<       enddo >*/
     }
 /*<       k_max = 0d0 >*/
-    *k_max__ = 0.;
+    *k_max = 0.;
 /*<       do i = 1,n_bin >*/
     i__1 = n_bin;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -624,9 +624,9 @@ L200:
 /*<                   call kernel(bin_v(i), bin_v(j), k) >*/
 		    (*kernel)(&bin_v[i__], &bin_v[j], &k);
 /*<                   if (k .gt. k_max) then >*/
-		    if (k > *k_max__) {
+		    if (k > *k_max) {
 /*<                      k_max = k >*/
-			*k_max__ = k;
+			*k_max = k;
 /*<                   endif >*/
 		    }
 /*<                endif >*/
@@ -640,11 +640,11 @@ L200:
 /*<       return >*/
     return 0;
 /*<       end >*/
-} /* est_k_max__ */
+} /* est_k_max */
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine particle_in_bin(v, n_bin, bin_v, k) >*/
-/* Subroutine */ int particle_in_bin__(double *v, int n_bin, 
+/* Subroutine */ int particle_in_bin__(double V, int n_bin, 
 	double *bin_v, int *k)
 {
 /* FIXME: for log-spaced bins we can do this without search */
@@ -663,7 +663,7 @@ L300:
     ++(*k);
 /*      write(*,*)'k,bin_v(k) = ', k, bin_v(k) */
 /*<    >*/
-    if (*k < n_bin && *v > (bin_v[*k] + bin_v[*k + 1]) / 2.) {
+    if (*k < n_bin && V > (bin_v[*k] + bin_v[*k + 1]) / 2.) {
 	goto L300;
     }
 /*<       return >*/
@@ -673,7 +673,7 @@ L300:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int moments_(int *mm, int *m, double *v, 
+/* Subroutine */ int moments_(int MM, int M, double V, 
 	double v_comp, int n_bin, double *bin_v, 
 	double *bin_r, double *bin_g, int *bin_n, 
 	double dlnr)
@@ -715,7 +715,7 @@ L300:
 /*<       enddo >*/
     }
 /*<       do i = 1,M >*/
-    i__1 = *m;
+    i__1 = M;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          call particle_in_bin(V(i), n_bin, bin_v, k) >*/
 	particle_in_bin__(&v[i__], n_bin__, &bin_v[1], &k);

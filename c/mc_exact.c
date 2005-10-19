@@ -16,8 +16,8 @@
 /* Subroutine */ int mc_exact__(int n_bin, double *bin_v, 
 	double *bin_r, double *bin_g, int *bin_n, 
 	double dlnr, double n_0, double v_0, double *
-	rho_p__, S_fp soln, double *t_max__, double *t_print__, 
-	int *loop, double v_comp)
+	rho_p__, S_fp soln, double t_max, double t_print, 
+	int loop, double v_comp)
 {
     /* System generated locals */
     int i__1;
@@ -56,12 +56,12 @@
     --bin_v;
 
     /* Function Body */
-    n_time__ = (int) (*t_max__ / *t_print__);
+    n_time__ = (int) (t_max / t_print);
 /*<       do i_time = 0,n_time >*/
     i__1 = n_time__;
     for (i_time__ = 0; i_time__ <= i__1; ++i_time__) {
 /*<          time = dble(i_time) / dble(n_time) * dble(t_max) >*/
-	time = (double) i_time__ / (double) n_time__ * *t_max__;
+	time = (double) i_time__ / (double) n_time__ * t_max;
 /*<    >*/
 	(*soln)(n_bin__, &bin_v[1], &bin_r[1], &bin_g[1], &bin_n[1], 
 		dlnr, &time, n_0__, v_0, rho_p__, v_comp__);

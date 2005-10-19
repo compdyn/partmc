@@ -152,13 +152,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call particle_in_bin(V(s2), n_bin, bin_v, k2)
       bin_n(k1) = bin_n(k1) - 1
       bin_n(k2) = bin_n(k2) - 1
-! DEBUG
-c      write(*,*)'V(s1),V(s2),k1,k2,n(k1),n(k2) = ',
-c     &     V(s1), V(s2), k1, k2, bin_n(k1), bin_n(k2)
-c      write(*,*)'r(k1),r(k2) = ', bin_r(k1), bin_r(k2)
-c      if (bin_n(k1) .eq. 0) write(*,*)'bin became empty:', k1
-c      if (bin_n(k2) .eq. 0) write(*,*)'bin became empty:', k2
-! DEBUG
       bin_g(k1) = bin_g(k1) - V(s1)
       bin_g(k2) = bin_g(k2) - V(s2)
 
@@ -173,11 +166,6 @@ c      if (bin_n(k2) .eq. 0) write(*,*)'bin became empty:', k2
 
       ! add new particle to bins
       call particle_in_bin(V(s1), n_bin, bin_v, kn)
-! DEBUG
-c      write(*,*)'V(s1),kn,n(kn) = ', V(s1), kn, bin_n(kn)
-c      write(*,*)'r(kn) = ', bin_r(kn)
-c      if (bin_n(kn) .le. 0) write(*,*)'bin became full:', kn
-! DEBUG
       bin_n(kn) = bin_n(kn) + 1
       bin_g(kn) = bin_g(kn) + V(s1)
 
@@ -185,20 +173,6 @@ c      if (bin_n(kn) .le. 0) write(*,*)'bin became full:', kn
      &     bin_change = .true.
       if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2))
      &     bin_change = .true.
-! DEBUG
-c      if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0)) then
-c         write(*,*)'k1,k2,n(k1),n(k2) = ',
-c     &        k1, k2, bin_n(k1), bin_n(k2)
-c         write(*,*)'kn,n(kn) = ', kn, bin_n(kn)
-c       endif
-c      if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2)) then
-c         write(*,*)'k1,k2,n(k1),n(k2) = ',
-c     &        k1, k2, bin_n(k1), bin_n(k2)
-c         write(*,*)'kn,n(kn) = ', kn, bin_n(kn)
-c       endif
-! DEBUG
-
-c      if (bin_change) write(*,*)'bin_change is true'
 
       return
       end
@@ -230,15 +204,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer s1, s2
       real*8 expo, p, k
 
-      integer k1, k2
-
       call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-! DEBUG
-c      call particle_in_bin(V(s1), n_bin, bin_v, k1)
-c      call particle_in_bin(V(s2), n_bin, bin_v, k2)
-c      write(*,*)'s1,s2,k1,k2,k = ', s1, s2, k1, k2, k
-! DEBUG
       expo = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp
       p = 1d0 - exp(-expo) ! probability of coagulation
       bin_change = .false.

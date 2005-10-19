@@ -2,20 +2,23 @@ C Monte Carlo with fixed timestep.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix(MM, M, V, V_comp, kernel, n_bin, bin_v,
-     &     bin_r, g, bin_n, dlnr, t_max, del_t, p_max, t_print, loop)
+      subroutine mc_fix(MM, M, V, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &     kernel, t_max, del_t, p_max, t_print, loop)
 
-      integer MM         ! INPUT: physical dimension of V
-      integer M          ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)       ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp      ! INPUT/OUTPUT: computational volume
-      external kernel    ! INPUT: kernel procedure
-      integer n_bin      ! INPUT: number of bins
-      real*8 bin_v(n_bin)   ! INPUT: volume of bins
-      real*8 bin_r(n_bin)   ! INPUT: radius of bins
-      real*8 bin_g(n_bin)    ! OUTPUT: mass in bins
+      integer MM           ! INPUT: physical dimension of V
+      integer M            ! INPUT/OUTPUT: logical dimension of V
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
+      real*8 V_comp        ! INPUT/OUTPUT: computational volume
+
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
       integer bin_n(n_bin) ! OUTPUT: number in bins
-      real*8 dlnr        ! INPUT: scale factor
+      real*8 dlnr          ! INPUT: bin scale factor
+
+      external kernel    ! INPUT: kernel procedure
       real*8 t_max       ! INPUT: total simulation time
       real*8 del_t       ! INPUT: timestep
       real*8 p_max       ! INPUT: maximum coagulation probability
@@ -24,14 +27,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer i_top, nt, n_samp, i_samp, n_print, n_coag
       real*8 k_max, time
-      logical did_coag
+      logical did_coag, bin_change
       real*8 t_start, t_end, t_loop, t_per_samp
 
       time = 0d0
       n_coag = 0
 
-      call moments(MM, M, V, n_bin, V_comp, bin_v, dlnr, g, bin_n)
-      call print_info(n_bin, time, bin_r, g, bin_n)
+      call moments(MM, M, V, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+      call print_info(time, V_comp,
+     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+      call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
 
       nt = int(dble(t_max) / del_t)
       n_print = int(dble(t_print) / del_t)
@@ -40,20 +46,23 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          time = dble(i_top) / dble(nt) * dble(t_max)
          
-         call est_k_max(n_bin, bin_r, bin_n, dlnr, kernel, k_max)
          call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
          do i_samp = 1,n_samp
             call maybe_coag_pair(MM, M, V, V_comp,
-     &           del_t, n_samp, kernel, did_coag)
+     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &           del_t, n_samp, kernel, did_coag, bin_change)
             if (did_coag) n_coag = n_coag + 1
+            if (bin_change) call est_k_max(n_bin, bin_v, bin_n,
+     &           kernel, k_max)
             if (M .lt. MM / 2) then
-               call double(MM, M, V, V_comp)
+               call double(MM, M, V, V_comp,
+     &              n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
             endif
          enddo
 
-         call moments(MM, M, V, n_bin, V_comp, bin_v, dlnr, g, bin_n)
          if (mod(i_top, n_print) .eq. 0) then
-            call print_info(n_bin, time, bin_r, g, bin_n)
+            call print_info(time, V_comp,
+     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
          endif
 
          call cpu_time(t_end)
@@ -84,7 +93,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 r_samp
 
-      r_samp = - (k_max * 1d0/V_comp * del_T / lobin_g(1 - p_max))
+      r_samp = - (k_max * 1d0/V_comp * del_T / log(1 - p_max))
       n_samp = int(r_samp * M*(M-1)/2)
 
       return

@@ -45,8 +45,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       if (time .eq. 0d0) then
          do k = 1,n_bin
-            bin_n(k) = pi/2d0 * (2d0*bin_r(k))**3 * N_0/V_0
-     &           * exp(-(bin_v(k)/V_0))
+            bin_n(k) = int(pi/2d0 * (2d0*bin_r(k))**3 * N_0/V_0
+     &           * exp(-(bin_v(k)/V_0)))
          enddo
       else
          tau = N_0 * V_0 * beta_1 * time
@@ -61,7 +61,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             endif
             nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T)
      &           * exp(-((1d0 + T) * rat_v)) * b
-            bin_n(k) = pi/2d0 * (2d0*bin_r(k))**3 * nn
+            bin_n(k) = int(pi/2d0 * (2d0*bin_r(k))**3 * nn)
          enddo
       endif
 
@@ -71,7 +71,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do k = 1,n_bin
          bin_g(k) = bin_g(k) * dlnr * V_comp
-         bin_n(k) = bin_n(k) * dlnr * V_comp
+         bin_n(k) = int(bin_n(k) * dlnr * V_comp)
       enddo
 
       return

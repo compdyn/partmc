@@ -14,55 +14,56 @@
 
 /* Table of constant values */
 
-static integer c__1 = 1;
+static int c__1 = 1;
 
 /* Monte Carlo with adaptive timestep. */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
-/* Subroutine */ int mc_adapt__(integer *mm, integer *m, doublereal *v, 
-	doublereal *v_comp__, integer *n_bin__, doublereal *bin_v__, 
-	doublereal *bin_r__, doublereal *bin_g__, integer *bin_n__, 
-	doublereal *dlnr, U_fp kernel, doublereal *t_max__, doublereal *
-	t_print__, doublereal *p_max__, doublereal *r_samp_max__, doublereal *
-	del_t_max__, integer *loop)
+/*<    >*/
+/* Subroutine */ int mc_adapt__(int *mm, int *m, double *v, 
+	double *v_comp__, int *n_bin__, double *bin_v__, 
+	double *bin_r__, double *bin_g__, int *bin_n__, 
+	double *dlnr, U_fp kernel, double *t_max__, double *
+	t_print__, double *p_max__, double *r_samp_max__, double *
+	del_t_max__, int *loop)
 {
     /* System generated locals */
-    integer i__1;
+    int i__1;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(void);
+    int s_wsfe(cilist *), do_fio(int *, char *, ftnlen), e_wsfe(void);
 
     /* Local variables */
     static logical did_coag__;
-    static doublereal last_print_time__;
-    extern /* Subroutine */ int cpu_time__(doublereal *);
+    static double last_print_time__;
+    extern /* Subroutine */ int cpu_time__(double *);
     static logical do_print__;
-    extern /* Subroutine */ int est_k_max__(integer *, doublereal *, integer *
-	    , U_fp, doublereal *);
+    extern /* Subroutine */ int est_k_max__(int *, double *, int *
+	    , U_fp, double *);
     static logical bin_change__;
-    static doublereal t_per_samp__;
-    extern /* Subroutine */ int print_info__(doublereal *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    doublereal *), check_event__(doublereal *, doublereal *, 
-	    doublereal *, logical *);
-    static doublereal time;
-    extern /* Subroutine */ int compute_n_samp_del_t__(integer *, doublereal *
-	    , doublereal *, doublereal *, doublereal *, doublereal *, integer 
-	    *, doublereal *);
-    static doublereal del_t__, t_end__, k_max__;
-    static integer n_coag__, i_samp__;
-    extern /* Subroutine */ int double_(integer *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, doublereal *, doublereal *,
-	     integer *, doublereal *);
-    static integer n_samp__;
-    static doublereal t_loop__;
-    extern /* Subroutine */ int maybe_coag_pair__(integer *, integer *, 
-	    doublereal *, doublereal *, integer *, doublereal *, doublereal *,
-	     doublereal *, integer *, doublereal *, doublereal *, integer *, 
+    static double t_per_samp__;
+    extern /* Subroutine */ int print_info__(double *, double *, 
+	    int *, double *, double *, double *, int *, 
+	    double *), check_event__(double *, double *, 
+	    double *, logical *);
+    static double time;
+    extern /* Subroutine */ int compute_n_samp_del_t__(int *, double *
+	    , double *, double *, double *, double *, int 
+	    *, double *);
+    static double del_t__, t_end__, k_max__;
+    static int n_coag__, i_samp__;
+    extern /* Subroutine */ int double_(int *, int *, double *, 
+	    double *, int *, double *, double *, double *,
+	     int *, double *);
+    static int n_samp__;
+    static double t_loop__;
+    extern /* Subroutine */ int maybe_coag_pair__(int *, int *, 
+	    double *, double *, int *, double *, double *,
+	     double *, int *, double *, double *, int *, 
 	    U_fp, logical *, logical *);
-    static doublereal t_start__;
-    extern /* Subroutine */ int moments_(integer *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, doublereal *, doublereal *,
-	     integer *, doublereal *);
+    static double t_start__;
+    extern /* Subroutine */ int moments_(int *, int *, double *, 
+	    double *, int *, double *, double *, double *,
+	     int *, double *);
 
     /* Fortran I/O blocks */
     static cilist io___15 = { 0, 6, 0, "(a6,a6,a6,a6,a10,a9,a11,a9)", 0 };
@@ -70,23 +71,28 @@ static integer c__1 = 1;
 	    0 };
 
 
-/* INPUT: physical dimension of V */
-/* INPUT/OUTPUT: logical dimension of V */
-/* INPUT/OUTPUT: particle volumes */
-/* INPUT/OUTPUT: computational volume */
-/* INPUT: number of bins */
-/* INPUT: volume of particles in bins */
-/* INPUT: radius of particles in bins */
-/* OUTPUT: mass in bins */
-/* OUTPUT: number in bins */
-/* INPUT: bin scale factor */
-/* INPUT: kernel function */
-/* INPUT: final time (seconds) */
-/* INPUT: interval to print info (seconds) */
-/* INPUT: maximum coagulation probability */
-/* INPUT: maximum sampling ratio per timestep */
-/* INPUT: maximum timestep */
-/* INPUT: loop number of run */
+/*<       int MM           ! INPUT: physical dimension of V >*/
+/*<       int M            ! INPUT/OUTPUT: logical dimension of V >*/
+/*<       real*8 V(MM)         ! INPUT/OUTPUT: particle volumes >*/
+/*<       real*8 V_comp        ! INPUT/OUTPUT: computational volume >*/
+/*<       int n_bin        ! INPUT: number of bins >*/
+/*<       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins >*/
+/*<       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins >*/
+/*<       real*8 bin_g(n_bin)  ! OUTPUT: mass in bins >*/
+/*<       int bin_n(n_bin) ! OUTPUT: number in bins >*/
+/*<       real*8 dlnr          ! INPUT: bin scale factor >*/
+/*<       external kernel      ! INPUT: kernel function >*/
+/*<       real*8 t_max         ! INPUT: final time (seconds) >*/
+/*<       real*8 t_print       ! INPUT: interval to print info (seconds) >*/
+/*<       real*8 p_max         ! INPUT: maximum coagulation probability >*/
+/*<       real*8 r_samp_max    ! INPUT: maximum sampling ratio per timestep >*/
+/*<       real*8 del_t_max     ! INPUT: maximum timestep >*/
+/*<       int loop         ! INPUT: loop number of run >*/
+/*<       real*8 del_t, time, last_print_time, k_max >*/
+/*<       int n_samp, i_samp, n_coag >*/
+/*<       logical do_print, did_coag, bin_change >*/
+/*<       real*8 t_start, t_end, t_loop, t_per_samp >*/
+/*<       time = 0 >*/
     /* Parameter adjustments */
     --v;
     --bin_n__;
@@ -96,45 +102,68 @@ static integer c__1 = 1;
 
     /* Function Body */
     time = 0.;
+/*<       n_coag = 0 >*/
     n_coag__ = 0;
+/*<    >*/
     moments_(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
 	    bin_g__[1], &bin_n__[1], dlnr);
+/*<       call check_event(time, t_print, last_print_time, do_print) >*/
     check_event__(&time, t_print__, &last_print_time__, &do_print__);
+/*<    >*/
     if (do_print__) {
 	print_info__(&time, v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
 		bin_g__[1], &bin_n__[1], dlnr);
     }
+/*<       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max) >*/
     est_k_max__(n_bin__, &bin_v__[1], &bin_n__[1], (U_fp)kernel, &k_max__);
+/*<       do while (time < t_max) >*/
     while(time < *t_max__) {
+/*<          call cpu_time(t_start) >*/
 	cpu_time__(&t_start__);
+/*<    >*/
 	compute_n_samp_del_t__(m, v_comp__, &k_max__, p_max__, r_samp_max__, 
 		del_t_max__, &n_samp__, &del_t__);
+/*<          do i_samp = 1,n_samp >*/
 	i__1 = n_samp__;
 	for (i_samp__ = 1; i_samp__ <= i__1; ++i_samp__) {
+/*<    >*/
 	    maybe_coag_pair__(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &
 		    bin_r__[1], &bin_g__[1], &bin_n__[1], dlnr, &del_t__, &
 		    n_samp__, (U_fp)kernel, &did_coag__, &bin_change__);
+/*<             if (did_coag) n_coag = n_coag + 1 >*/
 	    if (did_coag__) {
 		++n_coag__;
 	    }
+/*<    >*/
 	    if (bin_change__) {
 		est_k_max__(n_bin__, &bin_v__[1], &bin_n__[1], (U_fp)kernel, &
 			k_max__);
 	    }
+/*<             if (M .lt. MM / 2) then >*/
 	    if (*m < *mm / 2) {
+/*<    >*/
 		double_(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &
 			bin_r__[1], &bin_g__[1], &bin_n__[1], dlnr);
+/*<             endif >*/
 	    }
+/*<          enddo >*/
 	}
+/*<          time = time + del_t >*/
 	time += del_t__;
+/*<          call check_event(time, t_print, last_print_time, do_print) >*/
 	check_event__(&time, t_print__, &last_print_time__, &do_print__);
+/*<    >*/
 	if (do_print__) {
 	    print_info__(&time, v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
 		    bin_g__[1], &bin_n__[1], dlnr);
 	}
+/*<          call cpu_time(t_end) >*/
 	cpu_time__(&t_end__);
+/*<          t_loop = t_end - t_start >*/
 	t_loop__ = t_end__ - t_start__;
+/*<          t_per_samp = t_loop / n_samp >*/
 	t_per_samp__ = t_loop__ / n_samp__;
+/*<    >*/
 	s_wsfe(&io___15);
 	do_fio(&c__1, "loop", (ftnlen)4);
 	do_fio(&c__1, "time", (ftnlen)4);
@@ -145,46 +174,59 @@ static integer c__1 = 1;
 	do_fio(&c__1, "t_per_samp", (ftnlen)10);
 	do_fio(&c__1, "n_coag", (ftnlen)6);
 	e_wsfe();
+/*<    >*/
 	s_wsfe(&io___16);
-	do_fio(&c__1, (char *)&(*loop), (ftnlen)sizeof(integer));
-	do_fio(&c__1, (char *)&time, (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&del_t__, (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&(*m), (ftnlen)sizeof(integer));
-	do_fio(&c__1, (char *)&k_max__, (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&n_samp__, (ftnlen)sizeof(integer));
-	do_fio(&c__1, (char *)&t_per_samp__, (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&n_coag__, (ftnlen)sizeof(integer));
+	do_fio(&c__1, (char *)&(*loop), (ftnlen)sizeof(int));
+	do_fio(&c__1, (char *)&time, (ftnlen)sizeof(double));
+	do_fio(&c__1, (char *)&del_t__, (ftnlen)sizeof(double));
+	do_fio(&c__1, (char *)&(*m), (ftnlen)sizeof(int));
+	do_fio(&c__1, (char *)&k_max__, (ftnlen)sizeof(double));
+	do_fio(&c__1, (char *)&n_samp__, (ftnlen)sizeof(int));
+	do_fio(&c__1, (char *)&t_per_samp__, (ftnlen)sizeof(double));
+	do_fio(&c__1, (char *)&n_coag__, (ftnlen)sizeof(int));
 	e_wsfe();
+/*<       enddo >*/
     }
+/*<       return >*/
     return 0;
+/*<       end >*/
 } /* mc_adapt__ */
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
-/* Subroutine */ int compute_n_samp_del_t__(integer *m, doublereal *v_comp__, 
-	doublereal *k_max__, doublereal *p_max__, doublereal *r_samp_max__, 
-	doublereal *del_t_max__, integer *n_samp__, doublereal *del_t__)
+/*<    >*/
+/* Subroutine */ int compute_n_samp_del_t__(int *m, double *v_comp__, 
+	double *k_max__, double *p_max__, double *r_samp_max__, 
+	double *del_t_max__, int *n_samp__, double *del_t__)
 {
     /* Builtin functions */
-    double log(doublereal);
+    double log(double);
 
     /* Local variables */
-    static doublereal c__, r_samp__;
+    static double c__, r_samp__;
 
-/* INPUT: number of particles */
-/* INPUT: computational volume */
-/* INPUT: maximum kernel value */
-/* INPUT: maximum coagulation probability */
-/* INPUT: maximum sampling ratio per timestep */
-/* INPUT: maximum timestep */
-/* OUTPUT: number of samples per timestep */
-/* OUTPUT: timestep */
+/*<       int M            ! INPUT: number of particles >*/
+/*<       real*8 V_comp        ! INPUT: computational volume >*/
+/*<       real*8 k_max         ! INPUT: maximum kernel value >*/
+/*<       real*8 p_max         ! INPUT: maximum coagulation probability >*/
+/*<       real*8 r_samp_max    ! INPUT: maximum sampling ratio per timestep >*/
+/*<       real*8 del_t_max     ! INPUT: maximum timestep >*/
+/*<       int n_samp       ! OUTPUT: number of samples per timestep >*/
+/*<       real*8 del_t         ! OUTPUT: timestep >*/
+/*<       real*8 r_samp, c >*/
+/*<       c = - (k_max * 1d0/V_comp / log(1 - p_max)) >*/
     c__ = -(*k_max__ * 1. / *v_comp__ / log(1 - *p_max__));
+/*<       del_t = r_samp_max / c >*/
     *del_t__ = *r_samp_max__ / c__;
+/*<       if (del_t .gt. del_t_max) del_t = del_t_max >*/
     if (*del_t__ > *del_t_max__) {
 	*del_t__ = *del_t_max__;
     }
+/*<       r_samp = del_t * c >*/
     r_samp__ = *del_t__ * c__;
-    *n_samp__ = (integer) (r_samp__ * *m * (*m - 1) / 2);
+/*<       n_samp = int(r_samp * M*(M-1)/2) >*/
+    *n_samp__ = (int) (r_samp__ * *m * (*m - 1) / 2);
+/*<       return >*/
     return 0;
+/*<       end >*/
 } /* compute_n_samp_del_t__ */
 

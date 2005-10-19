@@ -22,7 +22,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer M, i_loop, k
       real*8 V(MM), V_comp, dlnr
       real*8 n_ini(n_bin), bin_v(n_bin), bin_r(n_bin)
-      real*8 bin_g(n_bin), bin_n(n_bin)
+      real*8 bin_g(n_bin)
+      integer bin_n(n_bin)
 
       external kernel_sedi
 
@@ -30,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
       call srand(10)
 
-      do i_loop = 1,1
+      do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          
@@ -44,8 +45,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
          
-         call mc_adapt(MM, M, V, V_comp, kernel_sedi, n_bin,
-     &        bin_v, bin_r, g, bin_n, dlnr, t_max, t_print,
+         call mc_adapt(MM, M, V, V_comp,
+     &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &        kernel_sedi, t_max, t_print,
      &        p_max, r_samp_max, del_t_max, i_loop)
 
       enddo

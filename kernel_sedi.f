@@ -8,28 +8,30 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 b  ! INPUT: size of second particle
       real*8 k  ! OUTPUT: kernel k(a,b)
 
-      real*8 pi,const,onethird
+      real*8 const,onethird
       real*8 r1,r2,winf1,winf2,ec
+
+      real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
       const = 3d0 / (4d0 * pi)
       onethird  = 1d0/3d0
       r1 = (const*a)**onethird
       r2 = (const*b)**onethird
-      call fallbin_g(r1,winf1)
-      call fallbin_g(r2,winf2)
-      call effic(r1,r2,ec)
-      k = ec *pi* (r1+r2)*(r1+r2)*abs(winf1-winf2)
+      call fallbin_g(r1, winf1)
+      call fallbin_g(r2, winf2)
+      call effic(r1, r2, ec)
+      k = ec * pi* (r1 + r2)**2 * abs(winf1 - winf2)
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine fallbin_g(r,winf)
+      subroutine fallbin_g(r, winf)
 
 c terminal velocity of falling drops
       real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
-      real*8 stok, stb, phy, py, bin_r, x, y, xrey, bond
+      real*8 stok, stb, phy, py, rr, x, y, xrey, bond
       integer i
       real*8 r, winf
       real*8 b(7),c(6)
@@ -52,32 +54,34 @@ c terminal velocity of falling drops
      &     / (eta**4 * grav * (rhow - rhoa))
       py = phy**(1d0/6d0)
 
-c bin_r: radius in cm-units
-      bin_r = r * 1d2
+c rr: radius in cm-units
+      rr = r * 1d2
 
-      if (bin_r .le. 1d-3) then
-         winf = stok * (bin_r * rr + cunh * rr)
-      elseif (bin_r .gt. 1d-3 .and. rr .le. 5.35d-2) then
-         x = lobin_g(stb * bin_r * rr * rr)
+      if (rr .le. 1d-3) then
+         winf = stok * (rr * rr + cunh * rr)
+      elseif (rr .gt. 1d-3 .and. rr .le. 5.35d-2) then
+         x = log(stb * rr * rr * rr)
          y = 0d0
          do i = 1,7
             y = y + b(i) * (x**(i - 1))
          enddo
-         xrey = (1d0 + cunh/bin_r) * exp(y)
-         winf = xrey * eta / (2d0 * rhoa * bin_r)
-      elseif (bin_r .gt. 5.35d-2) then
-         bond = grav * (rhow - rhoa) * bin_r**2 / sigma
-         if (bin_r .gt. 0.35d0) then
+         xrey = (1d0 + cunh/rr) * exp(y)
+         winf = xrey * eta / (2d0 * rhoa * rr)
+      elseif (rr .gt. 5.35d-2) then
+         bond = grav * (rhow - rhoa) * rr**2 / sigma
+         if (rr .gt. 0.35d0) then
             bond = grav * (rhow - rhoa) * 0.35d0**2 / sigma
          endif
-         x = lobin_g(16d0 * bond * py / 3d0)
+         x = log(16d0 * bond * py / 3d0)
          y = 0d0
          do i = 1,6
             y = y + c(i) * (x**(i - 1))
          enddo
          xrey = py * exp(y)
-         winf = xrey * eta / (2d0 * rhoa * bin_r)
-         if (bin_r .gt. 0.35d0) winf = xrey * eta / (2d0 * rhoa * 0.35d0)
+         winf = xrey * eta / (2d0 * rhoa * rr)
+         if (rr .gt. 0.35d0) then
+            winf = xrey * eta / (2d0 * rhoa * 0.35d0)
+         endif
       endif
       winf = winf / 100d0
       

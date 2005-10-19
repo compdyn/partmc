@@ -1,5 +1,5 @@
 
-OPTS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+OPTS = -O2 -g -pg -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 
 RUN_SEDI_ADAPT_OBJS = \
 	run_sedi_adapt.o \

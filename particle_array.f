@@ -302,11 +302,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i, j
       logical use_bin(n_bin)
 
-      real*8 pi
-      parameter (pi = 3.14159265358979323846d0)
-
-c      write(*,*)'RECALCULATING K_MAX'
-
       ! use_bin starts as non-empty bins
       do i = 1,n_bin
          use_bin(i) = (bin_n(i) .gt. 0)
@@ -335,6 +330,38 @@ c      write(*,*)'RECALCULATING K_MAX'
             enddo
          endif
       enddo
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg)
+      
+      integer n_bin         ! INPUT: number of bins
+      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins
+      integer bin_n(n_bin)  ! INPUT: number in each bin
+      external kernel       ! INPUT: kernel function
+      real*8 k_avg          ! OUTPUT: average kernel value
+
+      real*8 k
+      integer i, j, div
+      
+      k_avg = 0d0
+      div = 0
+      do i = 1,n_bin
+         if (bin_n(i) .gt. 0) then
+            do j = 1,i
+               if (bin_n(j) .gt. 0) then
+                  call kernel(bin_v(i), bin_v(j), k)
+                  k_avg = k_avg + k *  bin_n(i) * bin_n(j)
+                  div = div + bin_n(i) * bin_n(j)
+               endif
+            enddo
+         endif
+      enddo
+
+      k_avg = k_avg / div
 
       return
       end

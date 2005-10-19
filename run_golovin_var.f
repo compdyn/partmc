@@ -10,7 +10,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_bin = 160)       ! number of bins
       parameter (n_loop = 1)        ! number of loops
       parameter (scal = 3)          ! scale factor for bins
-      parameter (t_max = 600d0)     ! total simulation time (seconds)
+      parameter (t_max = 60d0)     ! total simulation time (seconds)
       parameter (rho_p = 1000d0)    ! particle density (kg/m^3)
       parameter (N_0 = 1d9)         ! particle number concentration (#/m^3)
       parameter (k_avg_samp = 1000) ! number of samples to estimate k_avg

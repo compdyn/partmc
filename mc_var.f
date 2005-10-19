@@ -26,19 +26,21 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k_avg_samp ! INPUT: number of samples to estimate k_avg
       integer loop       ! INPUT: loop number of run
 
-      real*8 del_t, k_max, k_avg
+      real*8 del_t, k_max, k_avg, k_avg_new
       real*8 time, last_print_time, last_k_avg_time
       real*8 t_progress, last_progress_time
       logical do_print, do_k_avg, do_progress, bin_change
       integer s1, s2, n_coag
 
       t_progress = 1d0 ! how often to print progress (simulation seconds)
+      last_progress_time = 0d0
       n_coag = 0
 
       time = 0d0
       call moments(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
+      call est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg_new)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
@@ -53,8 +55,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call coagulate(MM, M, V, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
      &        s1, s2, bin_change)
-         if (bin_change) call est_k_max(n_bin, bin_v, bin_n,
-     &        kernel, k_max)
+         if (bin_change) then
+            call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
+         endif
          del_t = V_comp / (k_avg * (M*(M-1)/2d0))
          time = time + del_t
          n_coag = n_coag + 1
@@ -66,15 +69,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
           if (do_k_avg) call kernel_avg(MM, M, V, kernel,
      &        k_avg_samp, k_avg)
+          if (do_k_avg) call est_k_avg(n_bin, bin_v, bin_n,
+     &         kernel, k_avg_new)
 
          ! print progress
          call check_event(time, t_progress, last_progress_time,
      &        do_progress)
          if (do_progress) then
-            write(6,'(a6,a6,a6,a6,a10,a9,a11)')
-     &           'loop', 'time','del_t','M','k_max','n_coag'
-            write(6,'(i6,f6.1,f6.3,i6,e10.3,i9)')
-     &           loop, time, del_t, M, k_max, n_coag
+            write(6,'(a6,a6,a6,a6,a10,a10,a10,a9)')
+     &           'loop', 'time','del_t','M','k_max',
+     &           'k_avg','k_avg_new','n_coag'
+            write(6,'(i6,f6.1,f6.3,i6,e10.3,e10.3,e10.3,i9)')
+     &           loop, time, del_t, M, k_max, k_avg, k_avg_new, n_coag
          endif
 
          ! if we are running low on particles then top-up

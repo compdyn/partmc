@@ -10,16 +10,14 @@
 		http://www.netlib.org/f2c/libf2c.zip
 */
 
-#include "f2c.h"
-
 /* Exact solution output. */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int mc_exact__(int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr, double *n_0__, double *v_0__, double *
+/* Subroutine */ int mc_exact__(int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr, double n_0, double v_0, double *
 	rho_p__, S_fp soln, double *t_max__, double *t_print__, 
-	int *loop, double *v_comp__)
+	int *loop, double v_comp)
 {
     /* System generated locals */
     int i__1;
@@ -28,8 +26,8 @@
     extern /* Subroutine */ int print_info__(double *, double *, 
 	    int *, double *, double *, double *, int *, 
 	    double *);
-    static double time;
-    static int i_time__, n_time__;
+    double time;
+    int i_time__, n_time__;
 
 /* FIXME: N_0 and V_0 are really parameters for the initial value */
 /* of the particle distribution. They should be replaced by a n_par */
@@ -52,10 +50,10 @@
 /*<       real*8 time >*/
 /*<       n_time = int(t_max / t_print) >*/
     /* Parameter adjustments */
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     n_time__ = (int) (*t_max__ / *t_print__);
@@ -65,11 +63,11 @@
 /*<          time = dble(i_time) / dble(n_time) * dble(t_max) >*/
 	time = (double) i_time__ / (double) n_time__ * *t_max__;
 /*<    >*/
-	(*soln)(n_bin__, &bin_v__[1], &bin_r__[1], &bin_g__[1], &bin_n__[1], 
-		dlnr, &time, n_0__, v_0__, rho_p__, v_comp__);
+	(*soln)(n_bin__, &bin_v[1], &bin_r[1], &bin_g[1], &bin_n[1], 
+		dlnr, &time, n_0__, v_0, rho_p__, v_comp__);
 /*<    >*/
-	print_info__(&time, v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
-		bin_g__[1], &bin_n__[1], dlnr);
+	print_info__(&time, v_comp__, n_bin__, &bin_v[1], &bin_r[1], &
+		bin_g[1], &bin_n[1], dlnr);
 /*<       enddo >*/
     }
 /*<       return >*/

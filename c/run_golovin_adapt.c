@@ -10,21 +10,19 @@
 		http://www.netlib.org/f2c/libf2c.zip
 */
 
-#include "f2c.h"
-
 /* Table of constant values */
 
-static double c_b2 = 10.;
-static int c__10 = 10;
-static int c__160 = 160;
-static int c__3 = 3;
-static double c_b8 = 1e3;
-static int c__10000 = 10000;
-static double c_b13 = 600.;
-static double c_b14 = 60.;
-static double c_b15 = .01;
-static double c_b16 = .005;
-static double c_b17 = 1.;
+double c_b2 = 10.;
+int c__10 = 10;
+int c__160 = 160;
+int c__3 = 3;
+double c_b8 = 1e3;
+int c__10000 = 10000;
+double c_b13 = 600.;
+double c_b14 = 60.;
+double c_b15 = .01;
+double c_b16 = .005;
+double c_b17 = 1.;
 
 /* Simulation with Golovin kernel and adaptive timestepping. */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
@@ -47,19 +45,19 @@ static double c_b17 = 1.;
 	    double *, double *, double *, int *), 
 	    compute_volumes__(int *, int *, double *, double *
 	    , double *, double *, int *);
-    static int k, m;
-    static double v[10000];
+    int k, m;
+    double v[10000];
     extern /* Subroutine */ int make_grid__(int *, int *, double *
 	    , double *, double *, double *);
-    static double dlnr;
+    double dlnr;
     extern /* Subroutine */ int print_header__(int *, int *, int *
 	    );
-    static double bin_g__[160];
-    static int bin_n__[160];
-    static double bin_r__[160], n_ini__[160], bin_v__[160];
+    double bin_g[160];
+    int bin_n[160];
+    double bin_r[160], n_ini__[160], bin_v[160];
     extern /* Subroutine */ int srand_(int *);
-    static int i_loop__;
-    static double v_comp__;
+    int i_loop__;
+    double v_comp__;
     extern /* Subroutine */ int kernel_golovin__();
 
 /*<       int MM, n_bin, n_loop, scal >*/
@@ -104,24 +102,24 @@ static double c_b17 = 1.;
 /*<       do i_loop = 1,n_loop >*/
     for (i_loop__ = 1; i_loop__ <= 10; ++i_loop__) {
 /*<          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr) >*/
-	make_grid__(&c__160, &c__3, &c_b8, bin_v__, bin_r__, &dlnr);
+	make_grid__(&c__160, &c__3, &c_b8, bin_v, bin_r, &dlnr);
 /* define initial exponential distribution */
 /*<          do k = 1,n_bin >*/
 	for (k = 1; k <= 160; ++k) {
 /*<    >*/
 /* Computing 3rd power */
-	    d__1 = bin_r__[k - 1] * 2.;
+	    d__1 = bin_r[k - 1] * 2.;
 	    n_ini__[k - 1] = d__1 * (d__1 * d__1) * 1.5707963267948966 * 
-		    10000 / 4.1886e-15 * exp(-(bin_v__[k - 1] / 4.1886e-15));
+		    10000 / 4.1886e-15 * exp(-(bin_v[k - 1] / 4.1886e-15));
 /*<          enddo >*/
 	}
 /*<          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M) >*/
-	compute_volumes__(&c__160, &c__10000, n_ini__, bin_r__, &dlnr, v, &m);
+	compute_volumes__(&c__160, &c__10000, n_ini__, bin_r, &dlnr, v, &m);
 /*<          V_comp = M / N_0 >*/
 	v_comp__ = m / 1e9;
 /*<    >*/
-	mc_adapt__(&c__10000, &m, v, &v_comp__, &c__160, bin_v__, bin_r__, 
-		bin_g__, bin_n__, &dlnr, (U_fp)kernel_golovin__, &c_b13, &
+	mc_adapt__(&c__10000, &m, v, &v_comp__, &c__160, bin_v, bin_r, 
+		bin_g, bin_n, &dlnr, (U_fp)kernel_golovin__, &c_b13, &
 		c_b14, &c_b15, &c_b16, &c_b17, &i_loop__);
 /*<       enddo >*/
     }

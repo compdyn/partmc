@@ -14,10 +14,10 @@
 
 /* Table of constant values */
 
-static int c__9 = 9;
-static int c__1 = 1;
-static int c__2 = 2;
-static int c__3 = 3;
+int c__9 = 9;
+int c__1 = 1;
+int c__2 = 2;
+int c__3 = 3;
 
 /* Process output data files. */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
@@ -42,50 +42,50 @@ static int c__3 = 3;
 
     /* Local variables */
     extern int len_trim__(char *, ftnlen);
-    static char name_out_num_avg__[50];
-    static int i__;
-    static double n[2000000]	/* was [50][100][400] */;
-    static char name_out_mass_avg__[50], n_time_str__[10], n_loop_str__[10], 
+    char name_out_num_avg__[50];
+    int i__;
+    double n[2000000]	/* was [50][100][400] */;
+    char name_out_mass_avg__[50], n_time_str__[10], n_loop_str__[10], 
 	    dum[100];
-    static double time;
+    double time;
     extern /* Subroutine */ int exit_(int *);
-    static char name_out_num__[50];
-    static double bin_g__[2000000]	/* was [50][100][400] */;
-    static int i_bin__;
-    static double g_avg__[40000]	/* was [100][400] */;
-    static int n_bin__;
+    char name_out_num__[50];
+    double bin_g[2000000]	/* was [50][100][400] */;
+    int i_bin__;
+    double g_avg__[40000]	/* was [100][400] */;
+    int n_bin__;
     extern int iargc_(void);
-    static double bin_r__[400], n_avg__[40000]	/* was [100][400] */;
-    static char name_out_mass__[50];
-    static int i_time__;
+    double bin_r[400], n_avg__[40000]	/* was [100][400] */;
+    char name_out_mass__[50];
+    int i_time__;
     extern /* Subroutine */ int getarg_(int *, char *, ftnlen);
-    static int n_time__, i_loop__, n_loop__;
-    static char name_in__[50];
+    int n_time__, i_loop__, n_loop__;
+    char name_in__[50];
 
     /* Fortran I/O blocks */
-    static cilist io___1 = { 0, 6, 0, 0, 0 };
-    static cilist io___4 = { 0, 6, 0, 0, 0 };
-    static cilist io___5 = { 0, 6, 0, 0, 0 };
-    static cilist io___10 = { 0, 6, 0, 0, 0 };
-    static cilist io___11 = { 0, 6, 0, 0, 0 };
-    static cilist io___12 = { 0, 6, 0, 0, 0 };
-    static cilist io___13 = { 0, 6, 0, 0, 0 };
-    static cilist io___14 = { 0, 6, 0, 0, 0 };
-    static cilist io___15 = { 0, 20, 0, "(a10,i10)", 0 };
-    static cilist io___18 = { 0, 20, 0, "(a10,i10)", 0 };
-    static cilist io___20 = { 0, 20, 0, "(a10,i10)", 0 };
-    static cilist io___22 = { 0, 6, 0, 0, 0 };
-    static cilist io___23 = { 0, 6, 0, 0, 0 };
-    static cilist io___24 = { 0, 6, 0, 0, 0 };
-    static cilist io___25 = { 0, 6, 0, 0, 0 };
-    static cilist io___26 = { 0, 6, 0, 0, 0 };
-    static cilist io___27 = { 0, 6, 0, 0, 0 };
-    static icilist io___29 = { 0, n_loop_str__, 0, "(i10)", 10, 1 };
-    static icilist io___31 = { 0, n_time_str__, 0, "(i10)", 10, 1 };
-    static cilist io___34 = { 0, 20, 0, "(a10,e14.5)", 0 };
-    static cilist io___37 = { 0, 20, 0, "(i8,3e14.5)", 0 };
-    static cilist io___43 = { 0, 21, 0, "(//,a10,i10)", 0 };
-    static cilist io___44 = { 0, 22, 0, "(//,a10,i10)", 0 };
+    cilist io___1 = { 0, 6, 0, 0, 0 };
+    cilist io___4 = { 0, 6, 0, 0, 0 };
+    cilist io___5 = { 0, 6, 0, 0, 0 };
+    cilist io___10 = { 0, 6, 0, 0, 0 };
+    cilist io___11 = { 0, 6, 0, 0, 0 };
+    cilist io___12 = { 0, 6, 0, 0, 0 };
+    cilist io___13 = { 0, 6, 0, 0, 0 };
+    cilist io___14 = { 0, 6, 0, 0, 0 };
+    cilist io___15 = { 0, 20, 0, "(a10,i10)", 0 };
+    cilist io___18 = { 0, 20, 0, "(a10,i10)", 0 };
+    cilist io___20 = { 0, 20, 0, "(a10,i10)", 0 };
+    cilist io___22 = { 0, 6, 0, 0, 0 };
+    cilist io___23 = { 0, 6, 0, 0, 0 };
+    cilist io___24 = { 0, 6, 0, 0, 0 };
+    cilist io___25 = { 0, 6, 0, 0, 0 };
+    cilist io___26 = { 0, 6, 0, 0, 0 };
+    cilist io___27 = { 0, 6, 0, 0, 0 };
+    icilist io___29 = { 0, n_loop_str__, 0, "(i10)", 10, 1 };
+    icilist io___31 = { 0, n_time_str__, 0, "(i10)", 10, 1 };
+    cilist io___34 = { 0, 20, 0, "(a10,e14.5)", 0 };
+    cilist io___37 = { 0, 20, 0, "(i8,3e14.5)", 0 };
+    cilist io___43 = { 0, 21, 0, "(//,a10,i10)", 0 };
+    cilist io___44 = { 0, 22, 0, "(//,a10,i10)", 0 };
 
 
 /*<       int n_bin_max, n_loop_max, n_time_max >*/
@@ -336,11 +336,11 @@ static int c__3 = 3;
 /*<    >*/
 		s_rsfe(&io___37);
 		do_fio(&c__1, (char *)&i__, (ftnlen)sizeof(int));
-		do_fio(&c__1, (char *)&bin_r__[i_bin__ - 1], (ftnlen)sizeof(
+		do_fio(&c__1, (char *)&bin_r[i_bin__ - 1], (ftnlen)sizeof(
 			double));
 		do_fio(&c__1, (char *)&n[i_loop__ + (i_time__ + i_bin__ * 100)
 			 * 50 - 5051], (ftnlen)sizeof(double));
-		do_fio(&c__1, (char *)&bin_g__[i_loop__ + (i_time__ + i_bin__ 
+		do_fio(&c__1, (char *)&bin_g[i_loop__ + (i_time__ + i_bin__ 
 			* 100) * 50 - 5051], (ftnlen)sizeof(double));
 		e_rsfe();
 /*<             enddo >*/
@@ -364,7 +364,7 @@ static int c__3 = 3;
 	    i__3 = n_loop__;
 	    for (i_loop__ = 1; i_loop__ <= i__3; ++i_loop__) {
 /*<    >*/
-		g_avg__[i_time__ + i_bin__ * 100 - 101] += bin_g__[i_loop__ + 
+		g_avg__[i_time__ + i_bin__ * 100 - 101] += bin_g[i_loop__ + 
 			(i_time__ + i_bin__ * 100) * 50 - 5051];
 /*<    >*/
 		n_avg__[i_time__ + i_bin__ * 100 - 101] += n[i_loop__ + (
@@ -409,7 +409,7 @@ static int c__3 = 3;
 		    ;
 	    s_wsfe(&ci__1);
 	    do_fio(&c__1, (char *)&i_bin__, (ftnlen)sizeof(int));
-	    do_fio(&c__1, (char *)&bin_r__[i_bin__ - 1], (ftnlen)sizeof(
+	    do_fio(&c__1, (char *)&bin_r[i_bin__ - 1], (ftnlen)sizeof(
 		    double));
 	    i__3 = n_loop__;
 	    for (i_loop__ = 1; i_loop__ <= i__3; ++i_loop__) {
@@ -428,11 +428,11 @@ static int c__3 = 3;
 		    ;
 	    s_wsfe(&ci__1);
 	    do_fio(&c__1, (char *)&i_bin__, (ftnlen)sizeof(int));
-	    do_fio(&c__1, (char *)&bin_r__[i_bin__ - 1], (ftnlen)sizeof(
+	    do_fio(&c__1, (char *)&bin_r[i_bin__ - 1], (ftnlen)sizeof(
 		    double));
 	    i__3 = n_loop__;
 	    for (i_loop__ = 1; i_loop__ <= i__3; ++i_loop__) {
-		do_fio(&c__1, (char *)&bin_g__[i_loop__ + (i_time__ + i_bin__ 
+		do_fio(&c__1, (char *)&bin_g[i_loop__ + (i_time__ + i_bin__ 
 			* 100) * 50 - 5051], (ftnlen)sizeof(double));
 	    }
 	    e_wsfe();
@@ -453,7 +453,7 @@ static int c__3 = 3;
 	ci__1.cifmt = (s_cat(ch__1, a__1, i__4, &c__3, (ftnlen)26), ch__1);
 	s_wsfe(&ci__1);
 	do_fio(&c__1, (char *)&i_bin__, (ftnlen)sizeof(int));
-	do_fio(&c__1, (char *)&bin_r__[i_bin__ - 1], (ftnlen)sizeof(
+	do_fio(&c__1, (char *)&bin_r[i_bin__ - 1], (ftnlen)sizeof(
 		double));
 	i__2 = n_time__;
 	for (i_time__ = 1; i_time__ <= i__2; ++i_time__) {
@@ -471,7 +471,7 @@ static int c__3 = 3;
 	ci__1.cifmt = (s_cat(ch__1, a__1, i__4, &c__3, (ftnlen)26), ch__1);
 	s_wsfe(&ci__1);
 	do_fio(&c__1, (char *)&i_bin__, (ftnlen)sizeof(int));
-	do_fio(&c__1, (char *)&bin_r__[i_bin__ - 1], (ftnlen)sizeof(
+	do_fio(&c__1, (char *)&bin_r[i_bin__ - 1], (ftnlen)sizeof(
 		double));
 	i__2 = n_time__;
 	for (i_time__ = 1; i_time__ <= i__2; ++i_time__) {

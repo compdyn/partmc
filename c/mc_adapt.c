@@ -1,28 +1,10 @@
-/* mc_adapt.f -- translated by f2c (version 20031025).
-   You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
-
-		http://www.netlib.org/f2c/libf2c.zip
-*/
-
-#include "f2c.h"
-
-/* Table of constant values */
-
-static int c__1 = 1;
-
 /* Monte Carlo with adaptive timestep. */
-/* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
-/*<    >*/
-/* Subroutine */ int mc_adapt__(int *mm, int *m, double *v, 
-	double *v_comp__, int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr, U_fp kernel, double *t_max__, double *
+
+/***************************************************************************/
+void mc_adapt__(int *mm, int *m, double *v, 
+	double v_comp, int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr, U_fp kernel, double *t_max__, double *
 	t_print__, double *p_max__, double *r_samp_max__, double *
 	del_t_max__, int *loop)
 {
@@ -33,41 +15,41 @@ static int c__1 = 1;
     int s_wsfe(cilist *), do_fio(int *, char *, ftnlen), e_wsfe(void);
 
     /* Local variables */
-    static logical did_coag__;
-    static double last_print_time__;
+    logical did_coag__;
+    double last_print_time__;
     extern /* Subroutine */ int cpu_time__(double *);
-    static logical do_print__;
+    logical do_print__;
     extern /* Subroutine */ int est_k_max__(int *, double *, int *
 	    , U_fp, double *);
-    static logical bin_change__;
-    static double t_per_samp__;
+    logical bin_change__;
+    double t_per_samp__;
     extern /* Subroutine */ int print_info__(double *, double *, 
 	    int *, double *, double *, double *, int *, 
 	    double *), check_event__(double *, double *, 
 	    double *, logical *);
-    static double time;
+    double time;
     extern /* Subroutine */ int compute_n_samp_del_t__(int *, double *
 	    , double *, double *, double *, double *, int 
 	    *, double *);
-    static double del_t__, t_end__, k_max__;
-    static int n_coag__, i_samp__;
+    double del_t__, t_end__, k_max__;
+    int n_coag__, i_samp__;
     extern /* Subroutine */ int double_(int *, int *, double *, 
 	    double *, int *, double *, double *, double *,
 	     int *, double *);
-    static int n_samp__;
-    static double t_loop__;
+    int n_samp__;
+    double t_loop__;
     extern /* Subroutine */ int maybe_coag_pair__(int *, int *, 
 	    double *, double *, int *, double *, double *,
 	     double *, int *, double *, double *, int *, 
 	    U_fp, logical *, logical *);
-    static double t_start__;
+    double t_start__;
     extern /* Subroutine */ int moments_(int *, int *, double *, 
 	    double *, int *, double *, double *, double *,
 	     int *, double *);
 
     /* Fortran I/O blocks */
-    static cilist io___15 = { 0, 6, 0, "(a6,a6,a6,a6,a10,a9,a11,a9)", 0 };
-    static cilist io___16 = { 0, 6, 0, "(i6,f6.1,f6.3,i6,e10.3,i9,e11.3,i9)", 
+    cilist io___15 = { 0, 6, 0, "(a6,a6,a6,a6,a10,a9,a11,a9)", 0 };
+    cilist io___16 = { 0, 6, 0, "(i6,f6.1,f6.3,i6,e10.3,i9,e11.3,i9)", 
 	    0 };
 
 
@@ -95,27 +77,27 @@ static int c__1 = 1;
 /*<       time = 0 >*/
     /* Parameter adjustments */
     --v;
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     time = 0.;
 /*<       n_coag = 0 >*/
     n_coag__ = 0;
 /*<    >*/
-    moments_(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
-	    bin_g__[1], &bin_n__[1], dlnr);
+    moments_(mm, m, &v[1], v_comp__, n_bin__, &bin_v[1], &bin_r[1], &
+	    bin_g[1], &bin_n[1], dlnr);
 /*<       call check_event(time, t_print, last_print_time, do_print) >*/
     check_event__(&time, t_print__, &last_print_time__, &do_print__);
 /*<    >*/
     if (do_print__) {
-	print_info__(&time, v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
-		bin_g__[1], &bin_n__[1], dlnr);
+	print_info__(&time, v_comp__, n_bin__, &bin_v[1], &bin_r[1], &
+		bin_g[1], &bin_n[1], dlnr);
     }
 /*<       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max) >*/
-    est_k_max__(n_bin__, &bin_v__[1], &bin_n__[1], (U_fp)kernel, &k_max__);
+    est_k_max__(n_bin__, &bin_v[1], &bin_n[1], (U_fp)kernel, &k_max__);
 /*<       do while (time < t_max) >*/
     while(time < *t_max__) {
 /*<          call cpu_time(t_start) >*/
@@ -127,8 +109,8 @@ static int c__1 = 1;
 	i__1 = n_samp__;
 	for (i_samp__ = 1; i_samp__ <= i__1; ++i_samp__) {
 /*<    >*/
-	    maybe_coag_pair__(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &
-		    bin_r__[1], &bin_g__[1], &bin_n__[1], dlnr, &del_t__, &
+	    maybe_coag_pair__(mm, m, &v[1], v_comp__, n_bin__, &bin_v[1], &
+		    bin_r[1], &bin_g[1], &bin_n[1], dlnr, &del_t__, &
 		    n_samp__, (U_fp)kernel, &did_coag__, &bin_change__);
 /*<             if (did_coag) n_coag = n_coag + 1 >*/
 	    if (did_coag__) {
@@ -136,14 +118,14 @@ static int c__1 = 1;
 	    }
 /*<    >*/
 	    if (bin_change__) {
-		est_k_max__(n_bin__, &bin_v__[1], &bin_n__[1], (U_fp)kernel, &
+		est_k_max__(n_bin__, &bin_v[1], &bin_n[1], (U_fp)kernel, &
 			k_max__);
 	    }
 /*<             if (M .lt. MM / 2) then >*/
 	    if (*m < *mm / 2) {
 /*<    >*/
-		double_(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &
-			bin_r__[1], &bin_g__[1], &bin_n__[1], dlnr);
+		double_(mm, m, &v[1], v_comp__, n_bin__, &bin_v[1], &
+			bin_r[1], &bin_g[1], &bin_n[1], dlnr);
 /*<             endif >*/
 	    }
 /*<          enddo >*/
@@ -154,8 +136,8 @@ static int c__1 = 1;
 	check_event__(&time, t_print__, &last_print_time__, &do_print__);
 /*<    >*/
 	if (do_print__) {
-	    print_info__(&time, v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], &
-		    bin_g__[1], &bin_n__[1], dlnr);
+	    print_info__(&time, v_comp__, n_bin__, &bin_v[1], &bin_r[1], &
+		    bin_g[1], &bin_n[1], dlnr);
 	}
 /*<          call cpu_time(t_end) >*/
 	cpu_time__(&t_end__);
@@ -194,7 +176,7 @@ static int c__1 = 1;
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int compute_n_samp_del_t__(int *m, double *v_comp__, 
+/* Subroutine */ int compute_n_samp_del_t__(int *m, double v_comp, 
 	double *k_max__, double *p_max__, double *r_samp_max__, 
 	double *del_t_max__, int *n_samp__, double *del_t__)
 {
@@ -202,7 +184,7 @@ static int c__1 = 1;
     double log(double);
 
     /* Local variables */
-    static double c__, r_samp__;
+    double c__, r_samp__;
 
 /*<       int M            ! INPUT: number of particles >*/
 /*<       real*8 V_comp        ! INPUT: computational volume >*/
@@ -214,7 +196,7 @@ static int c__1 = 1;
 /*<       real*8 del_t         ! OUTPUT: timestep >*/
 /*<       real*8 r_samp, c >*/
 /*<       c = - (k_max * 1d0/V_comp / log(1 - p_max)) >*/
-    c__ = -(*k_max__ * 1. / *v_comp__ / log(1 - *p_max__));
+    c__ = -(*k_max__ * 1. / v_comp / log(1 - *p_max__));
 /*<       del_t = r_samp_max / c >*/
     *del_t__ = *r_samp_max__ / c__;
 /*<       if (del_t .gt. del_t_max) del_t = del_t_max >*/

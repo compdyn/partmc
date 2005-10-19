@@ -10,20 +10,18 @@
 		http://www.netlib.org/f2c/libf2c.zip
 */
 
-#include "f2c.h"
-
 /* Table of constant values */
 
-static double c_b2 = 10.;
-static int c__1 = 1;
-static int c__160 = 160;
-static int c__3 = 3;
-static double c_b7 = 1e3;
-static double c_b9 = 1e9;
-static double c_b10 = 4.1886e-15;
-static double c_b12 = 600.;
-static double c_b13 = 60.;
-static double c_b14 = 1.;
+double c_b2 = 10.;
+int c__1 = 1;
+int c__160 = 160;
+int c__3 = 3;
+double c_b7 = 1e3;
+double c_b9 = 1e9;
+double c_b10 = 4.1886e-15;
+double c_b12 = 600.;
+double c_b13 = 60.;
+double c_b14 = 1.;
 
 /* Exact solution with Golovin kernel. */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
@@ -45,11 +43,11 @@ static double c_b14 = 1.;
     extern /* Subroutine */ int soln_golovin_exp__();
     extern /* Subroutine */ int make_grid__(int *, int *, double *
 	    , double *, double *, double *);
-    static double dlnr;
+    double dlnr;
     extern /* Subroutine */ int print_header__(int *, int *, int *
 	    );
-    static double bin_g__[160], bin_n__[160], bin_r__[160], bin_v__[160];
-    static int i_loop__;
+    double bin_g[160], bin_n[160], bin_r[160], bin_v[160];
+    int i_loop__;
 
 /*<       int n_bin, n_loop, scal >*/
 /*<       real*8 t_max, rho_p, N_0, t_print, V_0, V_comp >*/
@@ -83,9 +81,9 @@ static double c_b14 = 1.;
 /*<       do i_loop = 1,n_loop >*/
     for (i_loop__ = 1; i_loop__ <= 1; ++i_loop__) {
 /*<          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr) >*/
-	make_grid__(&c__160, &c__3, &c_b7, bin_v__, bin_r__, &dlnr);
+	make_grid__(&c__160, &c__3, &c_b7, bin_v, bin_r, &dlnr);
 /*<    >*/
-	mc_exact__(&c__160, bin_v__, bin_r__, bin_g__, bin_n__, &dlnr, &c_b9, 
+	mc_exact__(&c__160, bin_v, bin_r, bin_g, bin_n, &dlnr, &c_b9, 
 		&c_b10, &c_b7, (U_fp)soln_golovin_exp__, &c_b12, &c_b13, &
 		i_loop__, &c_b14);
 /*<       enddo >*/

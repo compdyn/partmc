@@ -10,14 +10,12 @@
 		http://www.netlib.org/f2c/libf2c.zip
 */
 
-#include "f2c.h"
-
 /* Table of constant values */
 
-static double c_b2 = 2.;
-static int c__9 = 9;
-static int c__1 = 1;
-static int c__2 = 2;
+double c_b2 = 2.;
+int c__9 = 9;
+int c__1 = 1;
+int c__2 = 2;
 
 /*     Utility functions for handling V array of particle volumes. */
 
@@ -32,8 +30,8 @@ static int c__2 = 2;
 /*     dlnr ... FIXME */
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr, e, r) >*/
-/* Subroutine */ int make_grid__(int *n_bin__, int *scal, double *
-	rho_p__, double *bin_v__, double *bin_r__, double *dlnr, 
+/* Subroutine */ int make_grid__(int n_bin, int *scal, double *
+	rho_p__, double *bin_v, double *bin_r, double dlnr, 
 	double *e, double *r__)
 {
     /* System generated locals */
@@ -45,8 +43,8 @@ static int c__2 = 2;
 	    double *, int *), exp(double);
 
     /* Local variables */
-    static int i__;
-    static double ax, emin;
+    int i__;
+    double ax, emin;
 
 /*<       int n_bin        ! INPUT: number of bins >*/
 /*<       int scal         ! INPUT: scale factor >*/
@@ -62,11 +60,11 @@ static int c__2 = 2;
     /* Parameter adjustments */
     --r__;
     --e;
-    --bin_r__;
-    --bin_v__;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
-    *dlnr = log(2.) / (*scal * 3.);
+    dlnr = log(2.) / (*scal * 3.);
 /*<       ax = 2d0**(1d0 / scal) >*/
     d__1 = 1. / *scal;
     ax = pow_dd(&c_b2, &d__1);
@@ -74,7 +72,7 @@ static int c__2 = 2;
     emin = 1e-15;
 /* FIXME: rewrite in a sane way */
 /*<       do i = 1,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /* mass (FIXME: units?) */
 /*<          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1) >*/
@@ -86,10 +84,10 @@ static int c__2 = 2;
 	r__[i__] = exp(log(e[i__] * 3. / 12.566370614359172) / 3.) * 1e3;
 /* volume (FIXME: units?) */
 /*<          bin_v(i) = 1d-6 * e(i) / rho_p >*/
-	bin_v__[i__] = e[i__] * 1e-6 / *rho_p__;
+	bin_v[i__] = e[i__] * 1e-6 / rho_p;
 /* radius (m) */
 /*<          bin_r(i) = 1d-6 * r(i) >*/
-	bin_r__[i__] = r__[i__] * 1e-6;
+	bin_r[i__] = r__[i__] * 1e-6;
 /*<       enddo >*/
     }
 /*<       return >*/
@@ -99,8 +97,8 @@ static int c__2 = 2;
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M) >*/
-/* Subroutine */ int compute_volumes__(int *n_bin__, int *mm, 
-	double *n_ini__, double *bin_r__, double *dlnr, 
+/* Subroutine */ int compute_volumes__(int n_bin, int *mm, 
+	double *n_ini__, double *bin_r, double dlnr, 
 	double *v, int *m)
 {
     /* System generated locals */
@@ -108,7 +106,7 @@ static int c__2 = 2;
     double d__1;
 
     /* Local variables */
-    static int i__, k, sum_a__, sum_e__, delta_n__;
+    int i__, k, sum_a__, sum_e__, delta_n__;
 
 /*<       int n_bin        ! INPUT: number of bins >*/
 /*<       int MM           ! INPUT: physical size of V >*/
@@ -122,17 +120,17 @@ static int c__2 = 2;
 /*<       parameter (pi = 3.14159265358979323846d0) >*/
 /*<       sum_e = 0 >*/
     /* Parameter adjustments */
-    --bin_r__;
+    --bin_r;
     --n_ini__;
     --v;
 
     /* Function Body */
     sum_e__ = 0;
 /*<       do k = 1,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (k = 1; k <= i__1; ++k) {
 /*<          delta_n = int(n_ini(k) * dlnr) >*/
-	delta_n__ = (int) (n_ini__[k] * *dlnr);
+	delta_n__ = (int) (n_ini__[k] * dlnr);
 /*<          sum_a = sum_e + 1 >*/
 	sum_a__ = sum_e__ + 1;
 /*<          sum_e = sum_e + delta_n >*/
@@ -142,7 +140,7 @@ static int c__2 = 2;
 	for (i__ = sum_a__; i__ <= i__2; ++i__) {
 /*<             V(i) = 4d0/3d0 * pi * bin_r(k)**3 >*/
 /* Computing 3rd power */
-	    d__1 = bin_r__[k];
+	    d__1 = bin_r[k];
 	    v[i__] = d__1 * (d__1 * d__1) * 4.1887902047863905;
 /*<          enddo >*/
 	}
@@ -193,7 +191,7 @@ L101:
 	double *v, double *max_k__, S_fp kernel, int *s1, int 
 	*s2)
 {
-    static double k, p;
+    double k, p;
     extern double rand_(void);
     extern /* Subroutine */ int find_rand_pair__(int *, int *, 
 	    int *);
@@ -230,21 +228,21 @@ L200:
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
 /* Subroutine */ int coagulate_(int *mm, int *m, double *v, 
-	double *v_comp__, int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr, int *s1, int *s2, logical *bin_change__)
+	double v_comp, int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr, int *s1, int *s2, logical *bin_change__)
 {
     /* Builtin functions */
     int s_wsle(cilist *), do_lio(int *, int *, char *, ftnlen), 
 	    e_wsle(void);
 
     /* Local variables */
-    static int k1, k2, kn;
+    int k1, k2, kn;
     extern /* Subroutine */ int exit_(int *), particle_in_bin__(
 	    double *, int *, double *, int *);
 
     /* Fortran I/O blocks */
-    static cilist io___13 = { 0, 6, 0, 0, 0 };
+    cilist io___13 = { 0, 6, 0, 0, 0 };
 
 
 /*<       int MM           ! INPUT: physical dimension of V >*/
@@ -265,22 +263,22 @@ L200:
 /*<       bin_change = .false. >*/
     /* Parameter adjustments */
     --v;
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     *bin_change__ = FALSE_;
 /* remove s1 and s2 from bins */
 /*<       call particle_in_bin(V(s1), n_bin, bin_v, k1) >*/
-    particle_in_bin__(&v[*s1], n_bin__, &bin_v__[1], &k1);
+    particle_in_bin__(&v[*s1], n_bin__, &bin_v[1], &k1);
 /*<       call particle_in_bin(V(s2), n_bin, bin_v, k2) >*/
-    particle_in_bin__(&v[*s2], n_bin__, &bin_v__[1], &k2);
+    particle_in_bin__(&v[*s2], n_bin__, &bin_v[1], &k2);
 /*<       bin_n(k1) = bin_n(k1) - 1 >*/
-    --bin_n__[k1];
+    --bin_n[k1];
 /*<       bin_n(k2) = bin_n(k2) - 1 >*/
-    --bin_n__[k2];
+    --bin_n[k2];
 /* DEBUG */
 /*      write(*,*)'V(s1),V(s2),k1,k2,n(k1),n(k2) = ', */
 /*     &     V(s1), V(s2), k1, k2, bin_n(k1), bin_n(k2) */
@@ -289,11 +287,11 @@ L200:
 /*      if (bin_n(k2) .eq. 0) write(*,*)'bin became empty:', k2 */
 /* DEBUG */
 /*<       bin_g(k1) = bin_g(k1) - V(s1) >*/
-    bin_g__[k1] -= v[*s1];
+    bin_g[k1] -= v[*s1];
 /*<       bin_g(k2) = bin_g(k2) - V(s2) >*/
-    bin_g__[k2] -= v[*s2];
+    bin_g[k2] -= v[*s2];
 /*<       if ((bin_n(k1) .lt. 0) .or. (bin_n(k2) .lt. 0)) then >*/
-    if (bin_n__[k1] < 0 || bin_n__[k2] < 0) {
+    if (bin_n[k1] < 0 || bin_n[k2] < 0) {
 /*<          write(*,*)'ERROR: invalid bin_n' >*/
 	s_wsle(&io___13);
 	do_lio(&c__9, &c__1, "ERROR: invalid bin_n", (ftnlen)20);
@@ -310,22 +308,22 @@ L200:
     --(*m);
 /* add new particle to bins */
 /*<       call particle_in_bin(V(s1), n_bin, bin_v, kn) >*/
-    particle_in_bin__(&v[*s1], n_bin__, &bin_v__[1], &kn);
+    particle_in_bin__(&v[*s1], n_bin__, &bin_v[1], &kn);
 /* DEBUG */
 /*      write(*,*)'V(s1),kn,n(kn) = ', V(s1), kn, bin_n(kn) */
 /*      write(*,*)'r(kn) = ', bin_r(kn) */
 /*      if (bin_n(kn) .le. 0) write(*,*)'bin became full:', kn */
 /* DEBUG */
 /*<       bin_n(kn) = bin_n(kn) + 1 >*/
-    ++bin_n__[kn];
+    ++bin_n[kn];
 /*<       bin_g(kn) = bin_g(kn) + V(s1) >*/
-    bin_g__[kn] += v[*s1];
+    bin_g[kn] += v[*s1];
 /*<    >*/
-    if (bin_n__[k1] == 0 || bin_n__[k2] == 0) {
+    if (bin_n[k1] == 0 || bin_n[k2] == 0) {
 	*bin_change__ = TRUE_;
     }
 /*<    >*/
-    if (bin_n__[kn] == 1 && kn != k1 && kn != k2) {
+    if (bin_n[kn] == 1 && kn != k1 && kn != k2) {
 	*bin_change__ = TRUE_;
     }
 /* DEBUG */
@@ -349,22 +347,22 @@ L200:
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
 /* Subroutine */ int maybe_coag_pair__(int *mm, int *m, double *v,
-	 double *v_comp__, int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr, double *del_t__, int *n_samp__, S_fp kernel,
+	 double v_comp, int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr, double *del_t__, int *n_samp__, S_fp kernel,
 	 logical *did_coag__, logical *bin_change__)
 {
     /* Builtin functions */
     double exp(double);
 
     /* Local variables */
-    static double k, p;
+    double k, p;
     extern /* Subroutine */ int coagulate_(int *, int *, double *,
 	     double *, int *, double *, double *, double *
 	    , int *, double *, int *, int *, logical *);
-    static int s1, s2;
+    int s1, s2;
     extern double rand_(void);
-    static double expo;
+    double expo;
     extern /* Subroutine */ int find_rand_pair__(int *, int *, 
 	    int *);
 
@@ -388,17 +386,17 @@ L200:
 /*<       call find_rand_pair(M, s1, s2) ! test particles s1, s2 >*/
     /* Parameter adjustments */
     --v;
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     find_rand_pair__(m, &s1, &s2);
 /*<       call kernel(V(s1), V(s2), k) >*/
     (*kernel)(&v[s1], &v[s2], &k);
 /*<       expo = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp >*/
-    expo = k * 1. / *v_comp__ * *del_t__ * (*m * (*m - 1) / 2.) / *n_samp__;
+    expo = k * 1. / v_comp * *del_t__ * (*m * (*m - 1) / 2.) / *n_samp__;
 /*<       p = 1d0 - exp(-expo) ! probability of coagulation >*/
     p = 1. - exp(-expo);
 /*<       bin_change = .false. >*/
@@ -406,8 +404,8 @@ L200:
 /*<       if (dble(rand()) .lt. p) then >*/
     if ((double) rand_() < p) {
 /*<    >*/
-	coagulate_(mm, m, &v[1], v_comp__, n_bin__, &bin_v__[1], &bin_r__[1], 
-		&bin_g__[1], &bin_n__[1], dlnr, &s1, &s2, bin_change__);
+	coagulate_(mm, m, &v[1], v_comp__, n_bin__, &bin_v[1], &bin_r[1], 
+		&bin_g[1], &bin_n[1], dlnr, &s1, &s2, bin_change__);
 /*<          did_coag = .true. >*/
 	*did_coag__ = TRUE_;
 /*<       else >*/
@@ -430,10 +428,10 @@ L200:
     int i__1, i__2;
 
     /* Local variables */
-    static int i__;
-    static double k;
-    static int s1, s2;
-    static double k_sum__;
+    int i__;
+    double k;
+    int s1, s2;
+    double k_sum__;
     extern /* Subroutine */ int find_rand_pair__(int *, int *, 
 	    int *);
 
@@ -477,9 +475,9 @@ L200:
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
 /* Subroutine */ int double_(int *mm, int *m, double *v, 
-	double *v_comp__, int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr)
+	double v_comp, int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr)
 {
     /* System generated locals */
     int i__1;
@@ -489,11 +487,11 @@ L200:
 	    e_wsle(void);
 
     /* Local variables */
-    static int i__;
+    int i__;
     extern /* Subroutine */ int exit_(int *);
 
     /* Fortran I/O blocks */
-    static cilist io___25 = { 0, 6, 0, 0, 0 };
+    cilist io___25 = { 0, 6, 0, 0, 0 };
 
 
 /*<       int MM           ! INPUT: physical dimension of V >*/
@@ -511,10 +509,10 @@ L200:
 /*<       if (M .gt. MM / 2) then >*/
     /* Parameter adjustments */
     --v;
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     if (*m > *mm / 2) {
@@ -538,15 +536,15 @@ L200:
 /*<       M = 2 * M >*/
     *m <<= 1;
 /*<       V_comp = 2d0 * V_comp >*/
-    *v_comp__ *= 2.;
+    v_comp *= 2.;
 /* double bin structures */
 /*<       do i = 1,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          bin_g(i) = bin_g(i) * 2d0 >*/
-	bin_g__[i__] *= 2.;
+	bin_g[i__] *= 2.;
 /*<          bin_n(i) = bin_n(i) * 2 >*/
-	bin_n__[i__] <<= 1;
+	bin_n[i__] <<= 1;
 /*<       enddo >*/
     }
 /*<       return >*/
@@ -556,16 +554,16 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max, use_bin) >*/
-/* Subroutine */ int est_k_max__(int *n_bin__, double *bin_v__, 
-	int *bin_n__, S_fp kernel, double *k_max__, logical *
+/* Subroutine */ int est_k_max__(int n_bin, double *bin_v, 
+	int *bin_n, S_fp kernel, double *k_max__, logical *
 	use_bin__)
 {
     /* System generated locals */
     int i__1, i__2;
 
     /* Local variables */
-    static int i__, j;
-    static double k;
+    int i__, j;
+    double k;
 
 /*<       int n_bin         ! INPUT: number of bins >*/
 /*<       real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins >*/
@@ -582,19 +580,19 @@ L200:
 /*<       do i = 1,n_bin >*/
     /* Parameter adjustments */
     --use_bin__;
-    --bin_n__;
-    --bin_v__;
+    --bin_n;
+    --bin_v;
 
     /* Function Body */
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          use_bin(i) = (bin_n(i) .gt. 0) >*/
-	use_bin__[i__] = bin_n__[i__] > 0;
+	use_bin__[i__] = bin_n[i__] > 0;
 /*<       enddo >*/
     }
 /* add all bins downstream of non-empty bins */
 /*<       do i = 2,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (i__ = 2; i__ <= i__1; ++i__) {
 /*<          if (use_bin(i)) use_bin(i-1) = .true. >*/
 	if (use_bin__[i__]) {
@@ -604,7 +602,7 @@ L200:
     }
 /* add all bins upstream of non-empty bins */
 /*<       do i = (n_bin-1),1,-1 >*/
-    for (i__ = *n_bin__ - 1; i__ >= 1; --i__) {
+    for (i__ = n_bin - 1; i__ >= 1; --i__) {
 /*<          if (use_bin(i)) use_bin(i+1) = .true. >*/
 	if (use_bin__[i__]) {
 	    use_bin__[i__ + 1] = TRUE_;
@@ -614,7 +612,7 @@ L200:
 /*<       k_max = 0d0 >*/
     *k_max__ = 0.;
 /*<       do i = 1,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          if (use_bin(i)) then >*/
 	if (use_bin__[i__]) {
@@ -624,7 +622,7 @@ L200:
 /*<                if (use_bin(j)) then >*/
 		if (use_bin__[j]) {
 /*<                   call kernel(bin_v(i), bin_v(j), k) >*/
-		    (*kernel)(&bin_v__[i__], &bin_v__[j], &k);
+		    (*kernel)(&bin_v[i__], &bin_v[j], &k);
 /*<                   if (k .gt. k_max) then >*/
 		    if (k > *k_max__) {
 /*<                      k_max = k >*/
@@ -646,8 +644,8 @@ L200:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine particle_in_bin(v, n_bin, bin_v, k) >*/
-/* Subroutine */ int particle_in_bin__(double *v, int *n_bin__, 
-	double *bin_v__, int *k)
+/* Subroutine */ int particle_in_bin__(double *v, int n_bin, 
+	double *bin_v, int *k)
 {
 /* FIXME: for log-spaced bins we can do this without search */
 /*<       real*8 v             ! INPUT: volume of particle >*/
@@ -656,7 +654,7 @@ L200:
 /*<       int k            ! OUTPUT: bin number containing particle >*/
 /*<       k = 0 >*/
     /* Parameter adjustments */
-    --bin_v__;
+    --bin_v;
 
     /* Function Body */
     *k = 0;
@@ -665,7 +663,7 @@ L300:
     ++(*k);
 /*      write(*,*)'k,bin_v(k) = ', k, bin_v(k) */
 /*<    >*/
-    if (*k < *n_bin__ && *v > (bin_v__[*k] + bin_v__[*k + 1]) / 2.) {
+    if (*k < n_bin && *v > (bin_v[*k] + bin_v[*k + 1]) / 2.) {
 	goto L300;
     }
 /*<       return >*/
@@ -676,15 +674,15 @@ L300:
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
 /* Subroutine */ int moments_(int *mm, int *m, double *v, 
-	double *v_comp__, int *n_bin__, double *bin_v__, 
-	double *bin_r__, double *bin_g__, int *bin_n__, 
-	double *dlnr)
+	double v_comp, int n_bin, double *bin_v, 
+	double *bin_r, double *bin_g, int *bin_n, 
+	double dlnr)
 {
     /* System generated locals */
     int i__1;
 
     /* Local variables */
-    static int i__, k;
+    int i__, k;
     extern /* Subroutine */ int particle_in_bin__(double *, int *, 
 	    double *, int *);
 
@@ -702,29 +700,29 @@ L300:
 /*<       do k = 1,n_bin >*/
     /* Parameter adjustments */
     --v;
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (k = 1; k <= i__1; ++k) {
 /*<          bin_g(k) = 0d0 >*/
-	bin_g__[k] = 0.;
+	bin_g[k] = 0.;
 /*<          bin_n(k) = 0 >*/
-	bin_n__[k] = 0;
+	bin_n[k] = 0;
 /*<       enddo >*/
     }
 /*<       do i = 1,M >*/
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /*<          call particle_in_bin(V(i), n_bin, bin_v, k) >*/
-	particle_in_bin__(&v[i__], n_bin__, &bin_v__[1], &k);
+	particle_in_bin__(&v[i__], n_bin__, &bin_v[1], &k);
 /*<          bin_g(k) = bin_g(k) + V(i) >*/
-	bin_g__[k] += v[i__];
+	bin_g[k] += v[i__];
 /*<          bin_n(k) = bin_n(k) + 1 >*/
-	++bin_n__[k];
+	++bin_n[k];
 /*<       enddo >*/
     }
 /*<       return >*/
@@ -734,7 +732,7 @@ L300:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine check_event(time, interval, last_time, do_event) >*/
-/* Subroutine */ int check_event__(double *time, double *interval, 
+/* Subroutine */ int check_event__(double time, double *interval, 
 	double *last_time__, logical *do_event__)
 {
     /* System generated locals */
@@ -744,7 +742,7 @@ L300:
     double d_int(double *);
 
     /* Local variables */
-    static double interval_below__;
+    double interval_below__;
 
 /*<       real*8 time       ! INPUT: cubin_rent time >*/
 /*<       real*8 interval   ! INPUT: how often the event should be done >*/
@@ -752,7 +750,7 @@ L300:
 /*<       logical do_event  ! OUTPUT: whether the event should be done >*/
 /*<       real*8 interval_below >*/
 /*<       if (time .eq. 0d0) then >*/
-    if (*time == 0.) {
+    if (time == 0.) {
 /*<          last_time = 0d0 >*/
 	*last_time__ = 0.;
 /*<          do_event = .true. >*/
@@ -760,12 +758,12 @@ L300:
 /*<       else >*/
     } else {
 /*<          interval_below = aint(time / interval) * interval >*/
-	d__1 = *time / *interval;
+	d__1 = time / *interval;
 	interval_below__ = d_int(&d__1) * *interval;
 /*<          if (last_time .lt. interval_below) then >*/
 	if (*last_time__ < interval_below__) {
 /*<             last_time = time >*/
-	    *last_time__ = *time;
+	    *last_time__ = time;
 /*<             do_event = .true. >*/
 	    *do_event__ = TRUE_;
 /*<          else >*/
@@ -783,16 +781,16 @@ L300:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<       subroutine print_header(n_loop, n_bin, n_time) >*/
-/* Subroutine */ int print_header__(int *n_loop__, int *n_bin__, 
+/* Subroutine */ int print_header__(int *n_loop__, int n_bin, 
 	int *n_time__)
 {
     /* Builtin functions */
     int s_wsfe(cilist *), do_fio(int *, char *, ftnlen), e_wsfe(void);
 
     /* Fortran I/O blocks */
-    static cilist io___33 = { 0, 30, 0, "(a10,i10)", 0 };
-    static cilist io___34 = { 0, 30, 0, "(a10,i10)", 0 };
-    static cilist io___35 = { 0, 30, 0, "(a10,i10)", 0 };
+    cilist io___33 = { 0, 30, 0, "(a10,i10)", 0 };
+    cilist io___34 = { 0, 30, 0, "(a10,i10)", 0 };
+    cilist io___35 = { 0, 30, 0, "(a10,i10)", 0 };
 
 
 /*<       int n_loop  ! INPUT: number of loops >*/
@@ -806,7 +804,7 @@ L300:
 /*<       write(30,'(a10,i10)') 'n_bin', n_bin >*/
     s_wsfe(&io___34);
     do_fio(&c__1, "n_bin", (ftnlen)5);
-    do_fio(&c__1, (char *)&(*n_bin__), (ftnlen)sizeof(int));
+    do_fio(&c__1, (char *)&(n_bin), (ftnlen)sizeof(int));
     e_wsfe();
 /*<       write(30,'(a10,i10)') 'n_time', n_time >*/
     s_wsfe(&io___35);
@@ -820,9 +818,9 @@ L300:
 
 /* CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC */
 /*<    >*/
-/* Subroutine */ int print_info__(double *time, double *v_comp__, 
-	int *n_bin__, double *bin_v__, double *bin_r__, 
-	double *bin_g__, int *bin_n__, double *dlnr)
+/* Subroutine */ int print_info__(double time, double v_comp, 
+	int n_bin, double *bin_v, double *bin_r, 
+	double *bin_g, int *bin_n, double dlnr)
 {
     /* System generated locals */
     int i__1;
@@ -832,11 +830,11 @@ L300:
     int s_wsfe(cilist *), do_fio(int *, char *, ftnlen), e_wsfe(void);
 
     /* Local variables */
-    static int k;
+    int k;
 
     /* Fortran I/O blocks */
-    static cilist io___36 = { 0, 30, 0, "(a10,e14.5)", 0 };
-    static cilist io___38 = { 0, 30, 0, "(i8,3e14.5)", 0 };
+    cilist io___36 = { 0, 30, 0, "(a10,e14.5)", 0 };
+    cilist io___38 = { 0, 30, 0, "(i8,3e14.5)", 0 };
 
 
 /*<       real*8 time          ! INPUT: cubin_rent simulation time >*/
@@ -850,26 +848,26 @@ L300:
 /*<       int k >*/
 /*<       write(30,'(a10,e14.5)') 'time', time >*/
     /* Parameter adjustments */
-    --bin_n__;
-    --bin_g__;
-    --bin_r__;
-    --bin_v__;
+    --bin_n;
+    --bin_g;
+    --bin_r;
+    --bin_v;
 
     /* Function Body */
     s_wsfe(&io___36);
     do_fio(&c__1, "time", (ftnlen)4);
-    do_fio(&c__1, (char *)&(*time), (ftnlen)sizeof(double));
+    do_fio(&c__1, (char *)&(time), (ftnlen)sizeof(double));
     e_wsfe();
 /*<       do k = 1,n_bin >*/
-    i__1 = *n_bin__;
+    i__1 = n_bin;
     for (k = 1; k <= i__1; ++k) {
 /*<    >*/
 	s_wsfe(&io___38);
 	do_fio(&c__1, (char *)&k, (ftnlen)sizeof(int));
-	do_fio(&c__1, (char *)&bin_r__[k], (ftnlen)sizeof(double));
-	d__1 = bin_n__[k] / *v_comp__ / *dlnr;
+	do_fio(&c__1, (char *)&bin_r[k], (ftnlen)sizeof(double));
+	d__1 = bin_n[k] / v_comp / dlnr;
 	do_fio(&c__1, (char *)&d__1, (ftnlen)sizeof(double));
-	d__2 = bin_g__[k] / *v_comp__ / *dlnr;
+	d__2 = bin_g[k] / v_comp / dlnr;
 	do_fio(&c__1, (char *)&d__2, (ftnlen)sizeof(double));
 	e_wsfe();
 /*<       enddo >*/

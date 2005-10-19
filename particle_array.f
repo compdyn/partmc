@@ -202,12 +202,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical bin_change   ! OUTPUT: whether bin structure changed
 
       integer s1, s2
-      real*8 expo, p, k
+      real*8 p, k
 
       call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      expo = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp
-      p = 1d0 - exp(-expo) ! probability of coagulation
+      p = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp
       bin_change = .false.
       if (dble(rand()) .lt. p) then
          call coagulate(MM, M, V, V_comp,

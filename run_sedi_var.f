@@ -28,7 +28,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
       call srand(10)
 
-      do i_loop = 1,1
+      do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          

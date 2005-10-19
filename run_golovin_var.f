@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_max, rho_p, N_0, t_print, t_k_avg, V_0
       parameter (MM = 10000)        ! number of particles
       parameter (n_bin = 160)       ! number of bins
-      parameter (n_loop = 1)        ! number of loops
+      parameter (n_loop = 10)       ! number of loops
       parameter (scal = 3)          ! scale factor for bins
       parameter (t_max = 600d0)     ! total simulation time (seconds)
       parameter (rho_p = 1000d0)    ! particle density (kg/m^3)
@@ -32,7 +32,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
       call srand(10)
 
-      do i_loop = 1,1
+      do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          

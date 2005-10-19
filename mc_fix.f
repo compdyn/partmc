@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &     kernel, t_max, del_t, p_max, t_print, loop)
+     &     kernel, t_max, del_t, t_print, loop)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
@@ -21,7 +21,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       external kernel    ! INPUT: kernel procedure
       real*8 t_max       ! INPUT: total simulation time
       real*8 del_t       ! INPUT: timestep
-      real*8 p_max       ! INPUT: maximum coagulation probability
       real*8 t_print     ! INPUT: interval to print info (seconds)
       integer loop       ! INPUT: loop number of run
 
@@ -46,7 +45,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          time = dble(i_top) / dble(nt) * dble(t_max)
          
-         call compute_n_samp(M, k_max, V_comp, del_t, p_max, n_samp)
+         call compute_n_samp(M, k_max, V_comp, del_t, n_samp)
          do i_samp = 1,n_samp
             call maybe_coag_pair(MM, M, V, V_comp,
      &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
@@ -82,19 +81,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compute_n_samp(M, k_max, V_comp,
-     &     del_T, p_max, n_samp)
+     &     del_T, n_samp)
 
       integer M            ! INPUT: number of particles
       real*8 k_max         ! INPUT: maximum kernel value
       real*8 V_comp        ! INPUT: computational volume
       real*8 del_T         ! INPUT: timestep
-      real*8 p_max         ! INPUT: maximum coagulation probability
       integer n_samp       ! OUTPUT: number of samples per timestep
 
       real*8 r_samp
 
-      r_samp = - (k_max * 1d0/V_comp * del_T / log(1 - p_max))
-      n_samp = int(r_samp * M*(M-1)/2)
+      r_samp = k_max * 1d0/V_comp * del_T
+      n_samp = int(r_samp * M*(M-1)/2d0)
 
       return
       end

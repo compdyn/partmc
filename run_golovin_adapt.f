@@ -5,7 +5,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
  
       integer MM, n_bin, n_loop, scal
-      real*8 t_max, rho_p, N_0, t_print, p_max, V_0
+      real*8 t_max, rho_p, N_0, t_print, V_0
       real*8 r_samp_max, del_t_max
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
@@ -15,7 +15,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)       ! interval between printing (s)
-      parameter (p_max = 0.01d0)       ! maximum coagulation probability
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
       parameter (del_t_max = 1d0)      ! maximum timestep
       parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
@@ -50,7 +49,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          call mc_adapt(MM, M, V, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &        kernel_golovin, t_max, t_print, p_max, r_samp_max,
+     &        kernel_golovin, t_max, t_print, r_samp_max,
      &        del_t_max, i_loop)
 
       enddo

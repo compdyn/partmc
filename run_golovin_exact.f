@@ -18,7 +18,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer i_loop
       real*8 dlnr
-      real*8 bin_v(n_bin), bin_r(n_bin), bin_g(n_bin), bin_n(n_bin)
+      real*8 bin_v(n_bin), bin_r(n_bin), bin_g(n_bin)
+      integer bin_n(n_bin)
 
       external soln_golovin_exp
 

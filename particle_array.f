@@ -53,7 +53,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
-      real*8 n_ini(n_bin)  ! INPUT: initial number distribution
+      integer n_ini(n_bin) ! INPUT: initial number distribution
       real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bins
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM)         ! OUTPUT: particle volumes
@@ -66,7 +66,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       sum_e = 0
       do k = 1,n_bin
-         delta_n = int(n_ini(k) * dlnr)
+         delta_n = n_ini(k)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e

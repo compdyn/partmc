@@ -17,14 +17,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (V_0 = 4.1886d-15) ! mean volume of initial distribution
       parameter (t_print = 60)     ! interval between printing (s)
 
-      integer M, i_loop, k
+      integer M, i_loop
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), bin_v(n_bin), bin_r(n_bin)
+      real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
-      integer bin_n(n_bin)
-
-      real*8 pi
-      parameter (pi = 3.14159265358979323846d0)
+      integer n_ini(n_bin), bin_n(n_bin)
 
       external kernel_golovin
 
@@ -35,13 +32,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         
-         ! define initial exponential distribution
-         do k = 1,n_bin
-            n_ini(k) = pi/2d0 * (2d0*bin_r(k))**3 * MM/V_0
-     &           * exp(-(bin_v(k) / V_0))
-         enddo
-
+         call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 

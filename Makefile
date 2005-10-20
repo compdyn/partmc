@@ -5,37 +5,44 @@ RUN_SEDI_ADAPT_OBJS = \
 	run_sedi_adapt.o \
 	mc_adapt.o \
 	kernel_sedi.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_SEDI_FIX_OBJS = \
 	run_sedi_fix.o \
 	mc_fix.o \
 	kernel_sedi.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_SEDI_VAR_OBJS = \
 	run_sedi_var.o \
 	mc_var.o \
 	kernel_sedi.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_GOLOVIN_ADAPT_OBJS = \
 	run_golovin_adapt.o \
 	mc_adapt.o \
 	kernel_golovin.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_GOLOVIN_EXACT_OBJS = \
 	run_golovin_exact.o \
 	mc_exact.o \
 	kernel_golovin.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_GOLOVIN_FIX_OBJS = \
 	run_golovin_fix.o \
 	mc_fix.o \
 	kernel_golovin.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 RUN_GOLOVIN_VAR_OBJS = \
 	run_golovin_var.o \
 	mc_var.o \
 	kernel_golovin.o \
-	particle_array.o
+	particle_array.o \
+	init_dist.o
 PROCESS_OUT_OBJS = \
 	process_out.o
 RUN_SEDI_BIDISPERSE_ODE_OBJS = \

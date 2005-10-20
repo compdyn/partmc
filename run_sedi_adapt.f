@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r_samp_max, del_t_max
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
-      parameter (n_loop = 10)          ! number of loops
+      parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
@@ -18,11 +18,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
       parameter (del_t_max = 1d0)      ! maximum timestep
 
-      integer M, i_loop, k
+      integer M, i_loop
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), bin_v(n_bin), bin_r(n_bin)
+      real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
-      integer bin_n(n_bin)
+      integer n_ini(n_bin), bin_n(n_bin)
 
       external kernel_sedi
 
@@ -33,14 +33,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         
-         ! define bidisperse distribution
-         do k = 1,n_bin
-            n_ini(k) = 0d0
-         enddo
-         n_ini(97) = (MM - 1) / dlnr
-         n_ini(126) = 1 / dlnr
-
+         call init_bidisperse(MM, n_bin, n_ini)
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 

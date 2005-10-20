@@ -16,11 +16,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 60)      ! interval between printing (s)
       parameter (t_k_avg = 0.2d0)   ! interval between estimating k_avg (s)
 
-      integer M, i_loop, k
+      integer M, i_loop
       real*8 V(MM), V_comp, dlnr
-      real*8 n_ini(n_bin), bin_v(n_bin), bin_r(n_bin)
+      real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
-      integer bin_n(n_bin)
+      integer n_ini(n_bin), bin_n(n_bin)
 
       external kernel_sedi
 
@@ -31,14 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         
-         ! define bidisperse distribution
-         do k = 1,n_bin
-            n_ini(k) = 0d0
-         enddo
-         n_ini(97) = (MM - 1) / dlnr
-         n_ini(126) = 1 / dlnr
-
+         call init_bidisperse(MM, n_bin, n_ini)
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          M = M
          V_comp = M / N_0

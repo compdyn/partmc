@@ -44,12 +44,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 
-         do k = 1,MM
-            write(*,*)'k,V(k) = ', k, V(k)
-         enddo
-
-         call exit(2)
-         
          call mc_adapt(MM, M, V, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
      &        kernel_sedi, t_max, t_print,

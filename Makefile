@@ -89,7 +89,7 @@ clean:
 	rm -f $(PROGS) *.o
 
 cleanall: clean
-	rm -f *~ *.d
+	rm -f *~ *.d gmon.out gprof_*
 
 check:
 	ftnchek-3.3.1/ftnchek *.f

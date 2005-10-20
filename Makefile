@@ -38,6 +38,9 @@ RUN_GOLOVIN_VAR_OBJS = \
 	particle_array.o
 PROCESS_OUT_OBJS = \
 	process_out.o
+RUN_SEDI_BIDISPERSE_ODE_OBJS = \
+	kernel_sedi.o \
+	run_sedi_bidisperse_ode.o
 
 PROGS = \
 	run_sedi_adapt \
@@ -47,7 +50,8 @@ PROGS = \
 	run_golovin_exact \
 	run_golovin_fix \
 	run_golovin_var \
-	process_out
+	process_out \
+	run_sedi_bidisperse_ode
 
 all: $(PROGS)
 
@@ -74,6 +78,9 @@ run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
 
 process_out: $(PROCESS_OUT_OBJS)
 	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)
+
+run_sedi_bidisperse_ode: $(RUN_SEDI_BIDISPERSE_ODE_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_BIDISPERSE_ODE_OBJS)
 
 %.o: %.f
 	g77 $(OPTS) -c -o $@ $<

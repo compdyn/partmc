@@ -18,8 +18,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       onethird  = 1d0/3d0
       r1 = (const*a)**onethird
       r2 = (const*b)**onethird
-      call fallbin_g(r1, winf1)
-      call fallbin_g(r2, winf2)
+      call fallg(r1, winf1)
+      call fallg(r2, winf2)
       call effic(r1, r2, ec)
       k = ec * pi* (r1 + r2)**2 * abs(winf1 - winf2)
       return
@@ -27,7 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine fallbin_g(r, winf)
+      subroutine fallg(r, winf)
 
 c terminal velocity of falling drops
       real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma

@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print
-      real*8 r_samp_max, del_t_max
+      real*8 r_samp_max, del_t_max, V_0
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
       parameter (n_loop = 1)           ! number of loops
@@ -17,6 +17,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 60)         ! interval between printing (s)
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
       parameter (del_t_max = 1d0)      ! maximum timestep
+      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
 
       integer M, i_loop
       real*8 V(MM), V_comp, dlnr
@@ -33,7 +34,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         call init_bidisperse(MM, n_bin, n_ini)
+         call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
+         !call init_bidisperse(MM, n_bin, n_ini)
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 

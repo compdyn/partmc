@@ -1,24 +1,20 @@
 
 OPTS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 
-RUN_SEDI_ADAPT_OBJS = \
-	run_sedi_adapt.o \
-	mc_adapt.o \
-	kernel_sedi.o \
-	particle_array.o \
-	init_dist.o
-RUN_SEDI_FIX_OBJS = \
-	run_sedi_fix.o \
-	mc_fix.o \
-	kernel_sedi.o \
-	particle_array.o \
-	init_dist.o
-RUN_SEDI_VAR_OBJS = \
-	run_sedi_var.o \
-	mc_var.o \
-	kernel_sedi.o \
-	particle_array.o \
-	init_dist.o
+PROGS = \
+	process_out \
+	run_golovin_adapt \
+	run_golovin_exact \
+	run_golovin_fix \
+	run_golovin_var \
+	run_sedi_adapt \
+	run_sedi_fix \
+	run_sedi_ode \
+	run_sedi_sect \
+	run_sedi_var
+
+PROCESS_OUT_OBJS = \
+	process_out.o
 RUN_GOLOVIN_ADAPT_OBJS = \
 	run_golovin_adapt.o \
 	mc_adapt.o \
@@ -43,33 +39,35 @@ RUN_GOLOVIN_VAR_OBJS = \
 	kernel_golovin.o \
 	particle_array.o \
 	init_dist.o
-PROCESS_OUT_OBJS = \
-	process_out.o
-RUN_SEDI_BIDISPERSE_ODE_OBJS = \
+RUN_SEDI_ADAPT_OBJS = \
+	run_sedi_adapt.o \
+	mc_adapt.o \
 	kernel_sedi.o \
-	run_sedi_bidisperse_ode.o
-
-PROGS = \
-	run_sedi_adapt \
-	run_sedi_fix \
-	run_sedi_var \
-	run_golovin_adapt \
-	run_golovin_exact \
-	run_golovin_fix \
-	run_golovin_var \
-	process_out \
-	run_sedi_bidisperse_ode
+	particle_array.o \
+	init_dist.o
+RUN_SEDI_FIX_OBJS = \
+	run_sedi_fix.o \
+	mc_fix.o \
+	kernel_sedi.o \
+	particle_array.o \
+	init_dist.o
+RUN_SEDI_ODE_OBJS = \
+	kernel_sedi.o \
+	run_sedi_ode.o
+RUN_SEDI_SECT_OBJS = \
+	kernel_sedi.o \
+	run_sedi_sect.o
+RUN_SEDI_VAR_OBJS = \
+	run_sedi_var.o \
+	mc_var.o \
+	kernel_sedi.o \
+	particle_array.o \
+	init_dist.o
 
 all: $(PROGS)
 
-run_sedi_adapt: $(RUN_SEDI_ADAPT_OBJS)
-	g77 $(OPTS) -o $@ $(RUN_SEDI_ADAPT_OBJS)
-
-run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
-	g77 $(OPTS) -o $@ $(RUN_SEDI_FIX_OBJS)
-
-run_sedi_var: $(RUN_SEDI_VAR_OBJS)
-	g77 $(OPTS) -o $@ $(RUN_SEDI_VAR_OBJS)
+process_out: $(PROCESS_OUT_OBJS)
+	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)
 
 run_golovin_adapt: $(RUN_GOLOVIN_ADAPT_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
@@ -83,11 +81,20 @@ run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
 run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_GOLOVIN_VAR_OBJS)
 
-process_out: $(PROCESS_OUT_OBJS)
-	g77 $(OPTS) -o $@ $(PROCESS_OUT_OBJS)
+run_sedi_adapt: $(RUN_SEDI_ADAPT_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_ADAPT_OBJS)
 
-run_sedi_bidisperse_ode: $(RUN_SEDI_BIDISPERSE_ODE_OBJS)
-	g77 $(OPTS) -o $@ $(RUN_SEDI_BIDISPERSE_ODE_OBJS)
+run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_FIX_OBJS)
+
+run_sedi_ode: $(RUN_SEDI_ODE_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_ODE_OBJS)
+
+run_sedi_sect: $(RUN_SEDI_SECT_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_SECT_OBJS)
+
+run_sedi_var: $(RUN_SEDI_VAR_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_VAR_OBJS)
 
 %.o: %.f
 	g77 $(OPTS) -c -o $@ $<

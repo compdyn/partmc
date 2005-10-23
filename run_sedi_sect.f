@@ -277,19 +277,20 @@ cn *****************************************************************************
 
       integer i, j, im, jm, ip, jp
       real*8 effi, r_tmp, w_tmp, r1, r2, ec_tmp
+      real*8 winf1, winf2
 
       real*8 pi
       parameter (pi = 3.141592654)
 
-      do j = 1,n
-         r_tmp = r(j) / 1d6
-         call fall_g(r_tmp, w_tmp)
-         winf(j) = w_tmp * 100d0
-         rr(j) = r(j) * 1d-4
-      enddo
-
       if (isw.eq.0) then
 c long kernel
+         do j = 1,n
+            r_tmp = r(j) / 1d6
+            call fall_g(r_tmp, w_tmp)
+            winf(j) = w_tmp * 100d0
+            rr(j) = r(j) * 1d-4
+         enddo
+
          do j=1,n
             do i=1,j
                if(r(j).le.50.) then
@@ -306,20 +307,18 @@ c long kernel
          enddo
       elseif (isw.eq.1) then
 c     hall kernel
+         do j = 1,n
+         enddo
+
          do i = 1,n
             do j = 1,n
                r1 = r(i)
                r2 = r(j)
+               call fall_g(r1 / 1d6, winf1)
+               call fall_g(r2 / 1d6, winf2)
                call effic(r1, r2, ec_tmp)
-               ec(i,j) = ec_tmp
-            enddo
-         enddo
-
-         do j=1,n
-            do i=1,j
-               cck(j,i)=pi*(rr(j)+rr(i))*(rr(j)+rr(i))*ec(j,i)*
-     &              abs(winf(j)-winf(i))
-               cck(i,j)=cck(j,i)
+               cck(i,j) = 1d-6 * pi * (r1 + r2)**2 * ec_tmp
+     &              * abs(winf1 - winf2)
             enddo
          enddo
          
@@ -330,6 +329,13 @@ c     hall kernel
          enddo
       elseif (isw.eq.2) then
 c     golovin kernel
+         do j = 1,n
+            r_tmp = r(j) / 1d6
+            call fall_g(r_tmp, w_tmp)
+            winf(j) = w_tmp * 100d0
+            rr(j) = r(j) * 1d-4
+         enddo
+
          do j=1,n
             do i=1,j
                cck(j,i)=1.0*(e(j)+e(i))

@@ -276,22 +276,17 @@ cn *****************************************************************************
       real*8 cck(n,n)
 
       integer i, j, im, jm, ip, jp
-      real*8 effi
+      real*8 effi, r_tmp, w_tmp
 
       real*8 pi
       parameter (pi = 3.141592654)
 
-c      real*8 new_winf(n)
-
-c terminal velocity
-      call local_fallg(n, g, r, e, ck, ec, winf, rr)
-
-c      call new_local_fallg(n, g, r, e, ck, ec, new_winf, rr)
-c      do i = 1,n
-c         write(*,*)'i, rr, winf, new_winf',
-c     &        i, rr(i), winf(i), new_winf(i)
-c      enddo
-c      call exit(2)
+      do j = 1,n
+         r_tmp = r(j) / 1d6
+         call fallg(r_tmp, w_tmp)
+         winf(j) = w_tmp * 100d0
+         rr(j) = r(j) * 1d-4
+      enddo
 
       if (isw.eq.0) then
 c long kernel
@@ -350,103 +345,6 @@ c     two-dimensional linear interpolation of kernel
          enddo
       enddo
 
-      return
-      end
-
-cn ***********************************************************************************
-      
-      subroutine new_local_fallg(n, g, r, e, ck, ec, winf, rr)
-
-      integer n
-      real*8 g(n)
-      real*8 r(n)
-      real*8 e(n)
-      real*8 ck(n,n)
-      real*8 ec(n,n)
-      real*8 winf(n)
-      real*8 rr(n)
-
-      integer i
-      real*8 tr, tw
-      
-      do i = 1,n
-         tr = rr(i) / 1d6
-         call fallg(tr, tw)
-         winf(i) = tw / 100d0
-      enddo
-
-      return
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine local_fallg(n, g, r, e, ck, ec, winf, rr)
-
-      integer n
-      real*8 g(n)
-      real*8 r(n)
-      real*8 e(n)
-      real*8 ck(n,n)
-      real*8 ec(n,n)
-      real*8 winf(n)
-      real*8 rr(n)
-
-      real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
-      real*8 stok, stb, phy, py, x, y, xrey, bond
-      integer i, j
-
-c terminal velocity of falling drops
-      real*8 b(7),c(6)
-      data b /-0.318657e1,0.992696,-0.153193e-2,-0.987059e-3,
-     &        -0.578878e-3,0.855176e-4,-0.327815e-5/
-      data c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
-     &         0.238449e-2/
-
-      eta=1.818e-4
-      xlamb=6.62e-6
-      rhow=1.
-      rhoa=1.225e-3
-      grav=980.665
-      cunh=1.257*xlamb
-      t0=273.15
-      sigma=76.1-0.155*(293.15-t0)
-      stok=2.*grav*(rhow-rhoa)/(9.*eta)
-      stb=32.*rhoa*(rhow-rhoa)*grav/(3.*eta*eta)
-      phy=sigma*sigma*sigma*rhoa*rhoa/((eta**4)*grav*(rhow-rhoa))
-      py=phy**(1./6.)
-c rr: radius in cm-units
-      do j=1,n
-         rr(j)=r(j)*1.e-4
-      enddo
-      do j=1,n
-         if (rr(j).le.1.e-3) then
-            winf(j)=stok*(rr(j)*rr(j)+cunh*rr(j))
-         elseif (rr(j).gt.1.e-3.and.rr(j).le.5.35e-2) then
-            x=log(stb*rr(j)*rr(j)*rr(j))
-            y=0.
-            do i=1,7
-               y=y+b(i)*(x**(i-1))
-            enddo
-            xrey=(1.+cunh/rr(j))*exp(y)
-            winf(j)=xrey*eta/(2.*rhoa*rr(j))
-         elseif (rr(j).gt.5.35e-2) then
-            bond=grav*(rhow-rhoa)*rr(j)*rr(j)/sigma
-            if (rr(j).gt.0.35) bond=grav*(rhow-rhoa)*0.35*0.35/sigma
-            x=log(16.*bond*py/3.)
-            y=0.
-            do i=1,6
-               y=y+c(i)*(x**(i-1))
-            enddo
-            xrey=py*exp(y)
-            winf(j)=xrey*eta/(2.*rhoa*rr(j))
-            if (rr(j).gt.0.35)  winf(j)=xrey*eta/(2.*rhoa*0.35)
-         endif
-
-      enddo
-
-	do j=1,n
-c       WRITE(6,*)'sv ',r(j),winf(j)/100, winf(j)/(100.*(0.03*1.5e-05)**0.25)
-	enddo
       return
       end
 

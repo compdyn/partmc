@@ -95,6 +95,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r2  ! INPUT: radius of second particle
       real*8 ec  ! OUTPUT: collision efficiency
 
+      logical out
+
       real*8 rq, r_help, p, q, ek
       integer k, ir, kk, iq
 C     collision efficiencies of hall kernel
@@ -138,28 +140,50 @@ c     two-dimensional linear interpolation of the collision efficiency
      &     ,0.027,0.027,0.027,0.027,0.027,0.125,0.520,1.400,2.300,3.000
      &     ,4.000,4.000,4.000,4.000,4.000/
 
-      rq = r1 / r2
-      if (rq .gt. 1d0) then
+      if (r1 .gt. r2) then
          r_help = r1
          r1 = r2
          r2 = r_help
-         rq = 1d0 / rq
       endif
+      rq = r1 / r2
 
-      ir = 1
-      do k = 1, 15
-         if (r2 .gt. r0(k)) then
-            ir = k + 1
-         endif
-      enddo
-
-      iq = 1
-      do kk = 1,21
-         if (rq .gt. rat(kk)) then
-            iq = kk + 1
-         endif
-      enddo
+c      ir = 1
+c      do k = 1, 15
+c         if (r2 .gt. r0(k)) then
+c            ir = k + 1
+c         endif
+c      enddo
+c
+c      iq = 1
+c      do kk = 1,21
+c         if (rq .gt. rat(kk)) then
+c            iq = kk + 1
+c         endif
+c      enddo
       
+      ir = 0
+      do k=2,15
+         if (r2.le.r0(k).and.r2.ge.r0(k-1)) then
+            ir=k
+         elseif (r2.gt.r0(15)) then
+            ir=16
+         elseif (r2.lt.r0(1)) then
+            ir=1
+         endif
+      enddo
+      rq=r1/r2
+      iq = 0
+      do kk=2,21
+         if (rq.le.rat(kk).and.rq.gt.rat(kk-1)) iq=kk
+      enddo
+
+      if ((ir .eq. 160) .and. (rq .eq. 155)) then
+         out = .true.
+      else
+         out = .false.
+      endif
+      out = .true.
+
       if (ir .lt. 16) then
          if (ir .ge. 2) then
             p = (r2 - r0(ir - 1)) / (r0(ir) - r0(ir - 1))

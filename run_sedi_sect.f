@@ -283,7 +283,7 @@ cn *****************************************************************************
 
       do j = 1,n
          r_tmp = r(j) / 1d6
-         call fallg(r_tmp, w_tmp)
+         call fall_g(r_tmp, w_tmp)
          winf(j) = w_tmp * 100d0
          rr(j) = r(j) * 1d-4
       enddo

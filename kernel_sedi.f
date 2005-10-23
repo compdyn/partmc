@@ -18,8 +18,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       onethird  = 1d0/3d0
       r1 = (const*a)**onethird
       r2 = (const*b)**onethird
-      call fallg(r1, winf1)
-      call fallg(r2, winf2)
+      call fall_g(r1, winf1)
+      call fall_g(r2, winf2)
       call effic(r1, r2, ec)
       k = ec * pi* (r1 + r2)**2 * abs(winf1 - winf2)
       return
@@ -27,13 +27,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine fallg(r, winf)
+      subroutine fall_g(r, w_inf)
+
+      real*8 r       ! INPUT: particle radius (m)
+      real*8 w_inf   ! OUTPUT: terminal velocity (FIXME: units?)
 
 c terminal velocity of falling drops
       real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
       real*8 stok, stb, phy, py, rr, x, y, xrey, bond
       integer i
-      real*8 r, winf
       real*8 b(7),c(6)
       data b /-0.318657d1,0.992696d0,-0.153193d-2,-0.987059d-3,
      &        -0.578878d-3,0.855176d-4,-0.327815d-5/
@@ -58,7 +60,7 @@ c rr: radius in cm-units
       rr = r * 1d2
 
       if (rr .le. 1d-3) then
-         winf = stok * (rr * rr + cunh * rr)
+         w_inf = stok * (rr * rr + cunh * rr)
       elseif (rr .gt. 1d-3 .and. rr .le. 5.35d-2) then
          x = log(stb * rr * rr * rr)
          y = 0d0
@@ -66,7 +68,7 @@ c rr: radius in cm-units
             y = y + b(i) * (x**(i - 1))
          enddo
          xrey = (1d0 + cunh/rr) * exp(y)
-         winf = xrey * eta / (2d0 * rhoa * rr)
+         w_inf = xrey * eta / (2d0 * rhoa * rr)
       elseif (rr .gt. 5.35d-2) then
          bond = grav * (rhow - rhoa) * rr**2 / sigma
          if (rr .gt. 0.35d0) then
@@ -78,12 +80,12 @@ c rr: radius in cm-units
             y = y + c(i) * (x**(i - 1))
          enddo
          xrey = py * exp(y)
-         winf = xrey * eta / (2d0 * rhoa * rr)
+         w_inf = xrey * eta / (2d0 * rhoa * rr)
          if (rr .gt. 0.35d0) then
-            winf = xrey * eta / (2d0 * rhoa * 0.35d0)
+            w_inf = xrey * eta / (2d0 * rhoa * 0.35d0)
          endif
       endif
-      winf = winf / 100d0
+      w_inf = w_inf / 100d0
       
       return
       end
@@ -91,13 +93,11 @@ c rr: radius in cm-units
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine effic(r1, r2, ec)
-      real*8 r1  ! INPUT: radius of first particle
-      real*8 r2  ! INPUT: radius of second particle
-      real*8 ec  ! OUTPUT: collision efficiency
+      real*8 r1  ! INPUT: radius of first particle (FIXME: units?)
+      real*8 r2  ! INPUT: radius of second particle (FIXME: units?)
+      real*8 ec  ! OUTPUT: collision efficiency (FIXME: units?)
 
-      logical out
-
-      real*8 rq, r_help, p, q, ek
+      real*8 r_small, r_big, rq, r_help, p, q, ek
       integer k, ir, kk, iq
 C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)
@@ -140,53 +140,27 @@ c     two-dimensional linear interpolation of the collision efficiency
      &     ,0.027,0.027,0.027,0.027,0.027,0.125,0.520,1.400,2.300,3.000
      &     ,4.000,4.000,4.000,4.000,4.000/
 
-      if (r1 .gt. r2) then
-         r_help = r1
-         r1 = r2
-         r2 = r_help
-      endif
-      rq = r1 / r2
+      r_small = min(r1, r2)
+      r_big = max(r1, r2)
+      rq = r_small / r_big
 
-c      ir = 1
-c      do k = 1, 15
-c         if (r2 .gt. r0(k)) then
-c            ir = k + 1
-c         endif
-c      enddo
-c
-c      iq = 1
-c      do kk = 1,21
-c         if (rq .gt. rat(kk)) then
-c            iq = kk + 1
-c         endif
-c      enddo
-      
-      ir = 0
-      do k=2,15
-         if (r2.le.r0(k).and.r2.ge.r0(k-1)) then
-            ir=k
-         elseif (r2.gt.r0(15)) then
-            ir=16
-         elseif (r2.lt.r0(1)) then
-            ir=1
+      ir = 1
+      do k = 1, 15
+         if (r_big .gt. r0(k)) then
+            ir = k + 1
          endif
       enddo
-      rq=r1/r2
-      iq = 0
-      do kk=2,21
-         if (rq.le.rat(kk).and.rq.gt.rat(kk-1)) iq=kk
+
+      iq = 1
+      do kk = 1,21
+         if (rq .gt. rat(kk)) then
+            iq = kk + 1
+         endif
       enddo
-
-      if ((ir .eq. 160) .and. (rq .eq. 155)) then
-         out = .true.
-      else
-         out = .false.
-      endif
-      out = .true.
-
+      
       if (ir .lt. 16) then
          if (ir .ge. 2) then
-            p = (r2 - r0(ir - 1)) / (r0(ir) - r0(ir - 1))
+            p = (r_big - r0(ir - 1)) / (r0(ir) - r0(ir - 1))
             q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
             ec = (1d0 - p) * (1d0 - q) * ecoll(ir - 1, iq - 1)
      &           + p * (1d0 - q) * ecoll(ir, iq - 1)
@@ -201,7 +175,9 @@ c      enddo
          ek = (1d0 - q) * ecoll(15, iq - 1) + q * ecoll(15, iq)
          ec = min(ek, 1d0)
       endif
+
       if (ec .lt. 1d-20) stop 99
+
       return
       end
 

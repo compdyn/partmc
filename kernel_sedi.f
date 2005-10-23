@@ -4,9 +4,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine kernel_sedi(a, b, k)
 
-      real*8 a  ! INPUT: size of first particle
-      real*8 b  ! INPUT: size of second particle
-      real*8 k  ! OUTPUT: kernel k(a,b)
+      real*8 a  ! INPUT: volume of first particle (m^3)
+      real*8 b  ! INPUT: volume of second particle (m^3)
+      real*8 k  ! OUTPUT: kernel k(a,b) (m^3/s)
 
       real*8 const,onethird
       real*8 r1,r2,winf1,winf2,ec
@@ -16,12 +16,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       const = 3d0 / (4d0 * pi)
       onethird  = 1d0/3d0
-      r1 = (const*a)**onethird
-      r2 = (const*b)**onethird
-      call fall_g(r1, winf1)
-      call fall_g(r2, winf2)
-      call effic(r1, r2, ec)
-      k = ec * pi* (r1 + r2)**2 * abs(winf1 - winf2)
+      r1 = (const*a)**onethird ! m
+      r2 = (const*b)**onethird ! m
+      call fall_g(r1, winf1) ! winf1 in m/s
+      call fall_g(r2, winf2) ! winf2 in m/s
+      call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
+      k = ec * pi * (r1 + r2)**2 * abs(winf1 - winf2) 
       return
       end
 
@@ -30,7 +30,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine fall_g(r, w_inf)
 
       real*8 r       ! INPUT: particle radius (m)
-      real*8 w_inf   ! OUTPUT: terminal velocity (FIXME: units?)
+      real*8 w_inf   ! OUTPUT: terminal velocity (m/s)
 
 c terminal velocity of falling drops
       real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
@@ -93,11 +93,11 @@ c rr: radius in cm-units
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine effic(r1, r2, ec)
-      real*8 r1  ! INPUT: radius of first particle (FIXME: units?)
-      real*8 r2  ! INPUT: radius of second particle (FIXME: units?)
-      real*8 ec  ! OUTPUT: collision efficiency (FIXME: units?)
+      real*8 r1  ! INPUT: radius of first particle (um)
+      real*8 r2  ! INPUT: radius of second particle (um)
+      real*8 ec  ! OUTPUT: collision efficiency (dimensionless)
 
-      real*8 r_small, r_big, rq, r_help, p, q, ek
+      real*8 r_small, r_big, rq, p, q, ek
       integer k, ir, kk, iq
 C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)

@@ -312,13 +312,14 @@ c     hall kernel
 
          do i = 1,n
             do j = 1,n
-               r1 = r(i)
-               r2 = r(j)
-               call fall_g(r1 / 1d6, winf1)
-               call fall_g(r2 / 1d6, winf2)
-               call effic(r1, r2, ec_tmp)
+               r1 = r(i) ! should be in um
+               r2 = r(j) ! should be in um
+               call fall_g(r1 / 1d6, winf1) ! winf1 in m/s
+               call fall_g(r2 / 1d6, winf2) ! winf2 in m/s
+               call effic(r1, r2, ec_tmp) ! ec_tmp dimensionless
                cck(i,j) = 1d-6 * pi * (r1 + r2)**2 * ec_tmp
      &              * abs(winf1 - winf2)
+               ! cck in cm^3/s = 1d6 * m^3/s
             enddo
          enddo
          

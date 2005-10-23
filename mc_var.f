@@ -55,7 +55,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if (bin_change) then
             call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
          endif
-         del_t = V_comp / (k_avg * (M*(M-1)/2d0))
+         del_t = V_comp / (k_avg * (dble(M)*(dble(M)-1d0)/2d0))
          time = time + del_t
          n_coag = n_coag + 1
 

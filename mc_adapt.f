@@ -4,7 +4,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_adapt(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &     kernel, t_max, t_print, r_samp_max, del_t_max, loop)
+     &     kernel, t_max, t_print, t_progress, r_samp_max, del_t_max,
+     &     loop)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
@@ -20,17 +21,19 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       external kernel      ! INPUT: kernel function
       real*8 t_max         ! INPUT: final time (seconds)
-      real*8 t_print       ! INPUT: interval to print info (seconds)
+      real*8 t_print       ! INPUT: interval to output data (seconds)
+      real*8 t_progress    ! INPUT: interval to print progress (seconds)
       real*8 r_samp_max    ! INPUT: maximum sampling ratio per timestep
       real*8 del_t_max     ! INPUT: maximum timestep
       integer loop         ! INPUT: loop number of run
 
-      real*8 del_t, time, last_print_time, k_max
+      real*8 del_t, time, last_print_time, last_progress_time, k_max
       integer n_samp, i_samp, n_coag
-      logical do_print, did_coag, bin_change
-      real*8 t_start, t_end, t_loop, t_per_samp
+      logical do_print, do_progress, did_coag, bin_change
+      real*8 t_start, t_end, t_est
 
-      time = 0
+      last_progress_time = 0d0
+      time = 0d0
       n_coag = 0
       call moments(MM, M, V, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
@@ -39,9 +42,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
 
+      call cpu_time(t_start)
       do while (time < t_max)
-         call cpu_time(t_start)
-
          call compute_n_samp_del_t(M, V_comp, k_max, r_samp_max,
      &        del_t_max, n_samp, del_t)
          do i_samp = 1,n_samp
@@ -63,15 +65,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if (do_print) call print_info(time, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 
-         call cpu_time(t_end)
-         t_loop = t_end - t_start
-         t_per_samp = t_loop / n_samp
-         write(6,'(a6,a6,a6,a6,a10,a9,a11,a9)')
-     &        'loop', 'time', 'del_t', 'M', 'k_max',
-     &        'n_samp', 't_per_samp', 'n_coag'
-         write(6,'(i6,f6.1,f6.3,i6,e10.3,i9,e11.3,i9)')
-     &        loop, time, del_t, M, k_max, n_samp,
-     &        t_per_samp, n_coag
+         call check_event(time, t_progress, last_progress_time,
+     &        do_progress)
+         if (do_progress) then
+            call cpu_time(t_end)
+            t_est = (t_max - time) / time * (t_end - t_start)
+            write(6,'(a6,a8,a6,a8,a10,a9,a9,a10)')
+     &           'loop', 'time', 'del_t', 'M', 'k_max',
+     &           'n_samp', 'n_coag', 't_est'
+            write(6,'(i6,f8.1,f6.3,i8,e10.3,i9,i9,f10)')
+     &           loop, time, del_t, M, k_max,
+     &           n_samp, n_coag, t_est
+         endif
       enddo
 
       return
@@ -96,7 +101,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       del_t = r_samp_max / c
       if (del_t .gt. del_t_max) del_t = del_t_max
       r_samp = del_t * c
-      n_samp = int(r_samp * M*(M-1)/2)
+      n_samp = int(r_samp * dble(M)*(dble(M)-1d0)/2d0)
 
       return
       end

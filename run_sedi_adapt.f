@@ -3,9 +3,13 @@ C Simulation with sedimentation kernel and adaptive timestepping.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
- 
+
+      ! MM = 2e5, n_bin = 160, t_max = 12000: 123 minutes
+      ! MM = 1e6, n_bin = 160, t_max = 7200:   43 minutes
+      ! MM = 1e7, n_bin = 160, t_max = 1800:   10 minutes
+      ! MM = 1e8, n_bin = 220, t_max = 600:     3 minutes
       integer MM, n_bin, n_loop, scal
-      real*8 t_max, rho_p, N_0, t_print
+      real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 r_samp_max, del_t_max, V_0
       parameter (MM = 10000)           ! number of particles
       parameter (n_bin = 160)          ! number of bins
@@ -14,7 +18,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_max = 600d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
-      parameter (t_print = 60)         ! interval between printing (s)
+      parameter (t_print = 60d0)       ! interval between printing (s)
+      parameter (t_progress = 60d0)    ! interval between progress (s)
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
       parameter (del_t_max = 1d0)      ! maximum timestep
       parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
@@ -41,7 +46,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          call mc_adapt(MM, M, V, V_comp,
      &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &        kernel_sedi, t_max, t_print,
+     &        kernel_sedi, t_max, t_print, t_progress,
      &        r_samp_max, del_t_max, i_loop)
 
       enddo

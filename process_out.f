@@ -5,9 +5,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program process_out
 
       integer n_bin_max, n_loop_max, n_time_max
-      parameter (n_bin_max = 400)  ! maximum number of bins
-      parameter (n_loop_max = 100)  ! maximum number of loops
-      parameter (n_time_max = 100) ! maximum number of times
+      parameter (n_bin_max = 400)   ! maximum number of bins
+      parameter (n_loop_max = 10)   ! maximum number of loops
+      parameter (n_time_max = 1000) ! maximum number of times
       
       integer f_in, f_out_num, f_out_mass
       integer f_out_num_avg, f_out_mass_avg

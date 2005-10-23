@@ -206,7 +206,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       call find_rand_pair(M, s1, s2) ! test particles s1, s2
       call kernel(V(s1), V(s2), k)
-      p = k * 1d0/V_comp * del_t * (M*(M-1)/2d0) / n_samp
+      p = k * 1d0/V_comp * del_t * (dble(M)*(dble(M)-1d0)/2d0) / n_samp
       bin_change = .false.
       if (dble(rand()) .lt. p) then
          call coagulate(MM, M, V, V_comp,

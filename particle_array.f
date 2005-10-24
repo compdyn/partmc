@@ -266,7 +266,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
       
       integer n_bin         ! INPUT: number of bins
-      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins
+      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
       integer bin_n(n_bin)  ! INPUT: number in each bin
       external kernel       ! INPUT: kernel function
       real*8 k_max          ! OUTPUT: maximum kernel value
@@ -312,7 +312,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg)
       
       integer n_bin         ! INPUT: number of bins
-      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins
+      real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
       integer bin_n(n_bin)  ! INPUT: number in each bin
       external kernel       ! INPUT: kernel function
       real*8 k_avg          ! OUTPUT: average kernel value
@@ -346,7 +346,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 v             ! INPUT: volume of particle
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
       integer k            ! OUTPUT: bin number containing particle
 
       k = 0
@@ -441,9 +441,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V_comp        ! INPUT: computational volume
       
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! INPUT: mass in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)  ! INPUT: mass in bins (???)
       integer bin_n(n_bin) ! INPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 

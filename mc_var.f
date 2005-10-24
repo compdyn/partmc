@@ -8,17 +8,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT/OUTPUT: computational volume
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes (m^3)
+      real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
 
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins (???)
       integer bin_n(n_bin) ! OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
-      external kernel    ! INPUT: kernel function
+      external kernel    ! INPUT: kernel function (m^3/s)
       real*8 t_max       ! INPUT: final time (seconds)
       real*8 t_print     ! INPUT: interval to print info (seconds)
       real*8 t_k_avg     ! INPUT: interval to update k_avg (seconds)

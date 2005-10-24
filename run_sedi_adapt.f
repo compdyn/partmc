@@ -21,8 +21,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 60d0)       ! interval between printing (s)
       parameter (t_progress = 60d0)    ! interval between progress (s)
       parameter (r_samp_max = 0.005d0) ! maximum sampling ratio per timestep
-      parameter (del_t_max = 1d0)      ! maximum timestep
-      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
+      parameter (del_t_max = 1d0)      ! maximum timestep (s)
+      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution (m^3)
 
       integer M, i_loop
       real*8 V(MM), V_comp, dlnr

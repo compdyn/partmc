@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_k_avg, V_0
-      parameter (MM = 10000)        ! number of particles
+      parameter (MM = 2e4)        ! number of particles
       parameter (n_bin = 160)       ! number of bins
       parameter (n_loop = 1)        ! number of loops
       parameter (scal = 3)          ! scale factor for bins

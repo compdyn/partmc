@@ -29,11 +29,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
 
       integer MM           ! INPUT: physical dimension of V
-      real*8 V_0           ! INPUT: mean volume of initial distribution
+      real*8 V_0           ! INPUT: mean volume of initial distribution (m^3)
       real*8 dlnr          ! INPUT: bin scale factor
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
       integer n_ini(n_bin) ! OUTPUT: initial number distribution
 
       integer k

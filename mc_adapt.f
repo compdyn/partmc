@@ -9,13 +9,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT/OUTPUT: computational volume
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes (m^3)
+      real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
 
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins               
       integer bin_n(n_bin) ! OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
@@ -88,12 +88,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     r_samp_max, del_t_max, n_samp, del_t)
 
       integer M            ! INPUT: number of particles
-      real*8 V_comp        ! INPUT: computational volume
-      real*8 k_max         ! INPUT: maximum kernel value
+      real*8 V_comp        ! INPUT: computational volume (m^3)
+      real*8 k_max         ! INPUT: maximum kernel value (m^3/s)
       real*8 r_samp_max    ! INPUT: maximum sampling ratio per timestep
-      real*8 del_t_max     ! INPUT: maximum timestep
+      real*8 del_t_max     ! INPUT: maximum timestep (s)
       integer n_samp       ! OUTPUT: number of samples per timestep
-      real*8 del_t         ! OUTPUT: timestep
+      real*8 del_t         ! OUTPUT: timestep (s)
 
       real*8 r_samp, c
 

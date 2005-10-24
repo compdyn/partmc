@@ -2,7 +2,7 @@
 
       integer n, scal, isw
       real*8 dt, rq0b, xmwb, eps, u, rho, emin, tmax
-      parameter (n = 160)          ! number of bins
+      parameter (n = 220)          ! number of bins
       parameter (scal = 4)         ! bin mesh scale factor
       parameter (isw = 1)          ! kernel (0 = long, 1 = hall, 2 = golovin)
       parameter (dt = 1d0)         ! timestep (s)

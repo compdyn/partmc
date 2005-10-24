@@ -16,9 +16,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer n_bin        ! INPUT: number of bins
       integer scal         ! INPUT: scale factor
-      real*8 rho_p         ! INPUT: density
-      real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins
+      real*8 rho_p         ! INPUT: density (kg m^(-3))
+      real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins (m)
       real*8 dlnr          ! OUTPUT: scale factor
 
       integer i
@@ -28,22 +28,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (pi = 3.14159265358979323846d0)
 
       dlnr = dlog(2d0) / (3d0 * scal)
+      ! ratio e(i)/e(i-1)
       ax = 2d0**(1d0 / scal)
       emin = 1d-15
 
       ! FIXME: rewrite in a sane way
       do i = 1,n_bin
-         ! mass (FIXME: units?)
+         ! mass (mg)
          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          ! radius (um)
-         ! FIXME: following line assumes rho_p = 1000
-         r(i) = 1000d0 * dexp(dlog(3d0 * e(i) / (4d0 * pi)) / 3d0)
-         ! volume (FIXME: units?)
+         r(i) = 1d6 * dexp(dlog(3d0 * 1.e-6* e(i) / 
+     &             (4d0 * rho_p * pi)) / 3d0)
+         ! volume (m^3)
          bin_v(i) = 1d-6 * e(i) / rho_p
          ! radius (m)
          bin_r(i) = 1d-6 * r(i)
       enddo
-
       return
       end
 
@@ -54,9 +54,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin        ! INPUT: number of bins
       integer MM           ! INPUT: physical size of V
       integer n_ini(n_bin) ! INPUT: initial number distribution
-      real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bin (m)
       real*8 dlnr          ! INPUT: scale factor
-      real*8 V(MM)         ! OUTPUT: particle volumes
+      real*8 V(MM)         ! OUTPUT: particle volumes  (m^3)
       integer M            ! OUTPUT: logical dimension of V
 
       integer k, i, sum_e, sum_a, delta_n
@@ -103,8 +103,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       integer MM      ! INPUT: physical dimension of V
       integer M       ! INPUT: logical dimension of V
-      real*8 V(MM)    ! INPUT: array of particle volumes
-      real*8 max_k    ! INPUT: maximum value of the kernel
+      real*8 V(MM)    ! INPUT: array of particle volumes   (m^3)
+      real*8 max_k    ! INPUT: maximum value of the kernel (m^3 s^(-1))
       external kernel ! INPUT: kernel function
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
                       !         particles with V(s1/s2) != 0
@@ -128,13 +128,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT: computational volume
+      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes  (m^3)
+      real*8 V_comp        ! INPUT: computational volume   (m^3)
 
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins 
       integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
@@ -365,14 +365,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT: particle volumes
-      real*8 V_comp        ! INPUT: computational volume
+      real*8 V(MM)         ! INPUT: particle volumes (m^3)
+      real*8 V_comp        ! INPUT: computational volume (m^3)
 
       integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
-      integer bin_n(n_bin) ! OUTPUT: number in bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins    (????)
+      integer bin_n(n_bin) ! OUTPUT: number in bins  
       real*8 dlnr          ! INPUT: bin scale factor
       
       integer i, k

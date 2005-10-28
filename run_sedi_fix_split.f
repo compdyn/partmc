@@ -4,14 +4,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
+      ! MM = 1e7, t = 480, r_s = 2.2e-5: 32 minutes
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_0, r_split
-      parameter (MM = 1000000)         ! number of particles
+      parameter (MM = 100000000)       ! number of particles
       parameter (n_bin = 160)          ! number of bins
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
-      parameter (t_max = 600d0)        ! total simulation time (seconds)
+      parameter (t_max = 480d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)       ! interval between printing (s)

@@ -57,7 +57,7 @@ c      write(*,*)'max_use_bin = ', max_use_bin
 
       ! compute k_max_small
       k_max_small = 0d0
-      do i = 1,s_bin
+      do i = 1,s_bin  ! FIXME: go to s_bin+1 to avoid underestimation
          if (use_bin(i)) then
             do j = 1,i
                if (use_bin(j)) then

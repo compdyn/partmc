@@ -28,8 +28,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (pi = 3.14159265358979323846d0)
 
       dlnr = dlog(2d0) / (3d0 * scal)
-      ! ratio e(i)/e(i-1)
-      ax = 2d0**(1d0 / scal)
+      ax = 2d0**(1d0 / scal) ! ratio e(i)/e(i-1)
       emin = 1d-15
 
       ! FIXME: rewrite in a sane way
@@ -37,7 +36,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          ! mass (mg)
          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          ! radius (um)
-         r(i) = 1d6 * dexp(dlog(3d0 * 1.e-6* e(i) / 
+         r(i) = 1d6 * dexp(dlog(3d0 * 1d-6 * e(i) / 
      &             (4d0 * rho_p * pi)) / 3d0)
          ! volume (m^3)
          bin_v(i) = 1d-6 * e(i) / rho_p
@@ -351,7 +350,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       k = 0
  300  k = k + 1
-c      write(*,*)'k,bin_v(k) = ', k, bin_v(k)
       if ((k .lt. n_bin) .and.
      &     (v .gt. (bin_v(k) + bin_v(k+1)) / 2d0)) goto 300
 

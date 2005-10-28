@@ -9,6 +9,7 @@ PROGS = \
 	run_golovin_var \
 	run_sedi_adapt \
 	run_sedi_fix \
+	run_sedi_fix_split \
 	run_sedi_ode \
 	run_sedi_sect \
 	run_sedi_var
@@ -51,6 +52,13 @@ RUN_SEDI_FIX_OBJS = \
 	kernel_sedi.o \
 	particle_array.o \
 	init_dist.o
+RUN_SEDI_FIX_SPLIT_OBJS = \
+	run_sedi_fix_split.o \
+	mc_fix_split.o \
+	kernel_sedi.o \
+	particle_array.o \
+	array_split.o \
+	init_dist.o
 RUN_SEDI_ODE_OBJS = \
 	kernel_sedi.o \
 	run_sedi_ode.o
@@ -86,6 +94,9 @@ run_sedi_adapt: $(RUN_SEDI_ADAPT_OBJS)
 
 run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_SEDI_FIX_OBJS)
+
+run_sedi_fix_split: $(RUN_SEDI_FIX_SPLIT_OBJS)
+	g77 $(OPTS) -o $@ $(RUN_SEDI_FIX_SPLIT_OBJS)
 
 run_sedi_ode: $(RUN_SEDI_ODE_OBJS)
 	g77 $(OPTS) -o $@ $(RUN_SEDI_ODE_OBJS)

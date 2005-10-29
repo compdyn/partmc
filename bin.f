@@ -31,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer b2                ! INPUT: second bin
       real*8 k_max              ! OUTPUT: maximum kernel values
 
-      real*8 v1_high, v1_low, v2_high, v2_low, k
+      real*8 v1, v2, v1_high, v1_low, v2_high, v2_low, k
       integer i, j
 
       integer n_sample

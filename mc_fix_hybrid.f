@@ -28,9 +28,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 VH(n_bin, MM)
       integer MH(n_bin)
       real*8 time, last_print_time, last_progress_time
-      real*8 k_max(n_bin, n_bin)
+      real*8 k_max(n_bin, n_bin), n_samp_real
       integer n_samp, i_samp, n_coag, i, j
-      logical do_print, do_progress, did_coag, bin_change, do_k_max
+      logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
       last_progress_time = 0d0
@@ -46,7 +46,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       call cpu_time(t_start)
       do while (time < t_max)
-         do_k_max = .false.
          do i = 1,n_bin
             do j = 1,n_bin
                call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
@@ -59,14 +58,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $                 bin_v,bin_r, bin_g, bin_n, dlnr, del_t, k_max(i,j
      $                 ), kernel, did_coag, bin_change)
                   if (did_coag) n_coag = n_coag + 1
-                  if (bin_change) do_k_max = .true.
                enddo
             enddo
          enddo
-         if (do_k_max) then
-            if (bin_change) call est_k_max_split(n_bin, s_bin, bin_v,
-     $           bin_n, kernel, k_max_small, k_max_big)
-         endif
          if (M .lt. MM / 2) then
             call double_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
      $           bin_r, bin_g, bin_n, dlnr)
@@ -122,7 +116,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       endif
 
       r_samp = k_max(i,j) * 1d0/V_comp * del_t
-      n_samp_real = r_samp_real
+      n_samp_real = r_samp * n_possible
 
       return
       end

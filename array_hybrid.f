@@ -3,7 +3,7 @@ C     bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      call array_to_hybrid(MM, M, V, n_bin, bin_v, MH, VH)
+      subroutine array_to_hybrid(MM, M, V, n_bin, bin_v, MH, VH)
 
 C     Convert a standard linear particle array V to a hybrid particle
 C     array VH stored by bins.
@@ -107,7 +107,7 @@ C     Find a random pair of particles (b1, s1) and (b2, s2).
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine coagulate_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
-     $     bin_r,bin_g, bin_n, dlnr, b1, s1, b2, s2, bin_change)
+     $     bin_r, bin_g, bin_n, dlnr, b1, s1, b2, s2, bin_change)
 
 C     Join together particles (b1, s1) and (b2, s2), updating all
 C     particle and bin structures to reflect the change. bin_change is
@@ -118,7 +118,7 @@ C     empty bin filled or a filled bin became empty).
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
       integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(MM)        ! INPUT/OUTPUT: particle volumes
+      real*8 VH(n_bin,MM)  ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT: computational volume
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
@@ -130,7 +130,7 @@ C     empty bin filled or a filled bin became empty).
       integer b1           ! INPUT: first particle (bin number)
       integer s1           ! INPUT: first particle (number in bin)
       integer b2           ! INPUT: second particle (bin number)
-      integer s3           ! INPUT: second particle (number in bin)
+      integer s2           ! INPUT: second particle (number in bin)
       logical bin_change   ! OUTPUT: whether an empty bin filled,
                            !         or a filled bin became empty
 
@@ -188,7 +188,7 @@ C     Double number of particles in a hybrid array.
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
       integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(MM)        ! INPUT/OUTPUT: particle volumes
+      real*8 VH(n_bin,MM)  ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT/OUTPUT: computational volume
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
@@ -225,7 +225,7 @@ C     Double number of particles in a hybrid array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine check_hybrid(MM, M, n_bin, MH, VH, n_bin, bin_v, bin_r)
+      subroutine check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
 
 C     Check that V has all particles in the correct bins.
 
@@ -233,7 +233,7 @@ C     Check that V has all particles in the correct bins.
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins
       integer MH(n_bin)    ! INPUT: number of particles per bin
-      real*8 VH(MM)        ! INPUT: particle volumes
+      real*8 VH(n_bin,MM)  ! INPUT: particle volumes
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins

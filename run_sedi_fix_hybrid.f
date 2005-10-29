@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
-      real*8 del_t, V_0, r_split
+      real*8 del_t, V_0
       parameter (MM = 1000000)         ! number of particles
       parameter (n_bin = 160)          ! number of bins
       parameter (n_loop = 1)           ! number of loops
@@ -19,7 +19,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (del_t = 1d0)          ! timestep (s)
       parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution (m^3)
 
-      integer M, i_loop, s_bin
+      integer M, i_loop
       real*8 V(MM), V_comp, dlnr
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
@@ -40,8 +40,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          V_comp = M / N_0
 
          call mc_fix_hybrid(MM, M, V, V_comp, n_bin, bin_v, bin_r, bin_g
-     $        , bin_n, dlnr, kernel, t_max, t_print, t_progress , del_t,
-     $        loop)
+     $        , bin_n, dlnr, kernel_sedi, t_max, t_print, t_progress ,
+     $        del_t, i_loop)
 
       enddo
 

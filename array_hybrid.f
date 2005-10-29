@@ -23,8 +23,14 @@ C     array VH stored by bins.
       enddo
       do i = 1,M
          call particle_in_bin(V(i), n_bin, bin_v, k)
+! DEBUG
+c         write(*,*) 'i, V(i), k = ', i, V(i), k
          MH(k) = MH(k) + 1
+! DEBUG
+c         write(*,*) 'MK(k) = ', MH(k)
          VH(k, MH(k)) = V(i)
+! DEBUG
+c         write(*,*) 'VH(k, MH(k)) = ', VH(k, MH(k))
       enddo
 
       end
@@ -32,8 +38,8 @@ C     array VH stored by bins.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine maybe_coag_pair_hybrid(MM, M, n_bin, MH, VH, V_comp,
-     $     bin_v, bin_r, bin_g, bin_n, dlnr, del_t, k_max, kernel,
-     $     did_coag, bin_change)
+     $     bin_v, bin_r, bin_g, bin_n, dlnr, b1, b2, del_t, k_max,
+     $     kernel, did_coag, bin_change)
 
 C     Choose a random pair for potential coagulation and test its
 C     probability of coagulation. If it happens, do the coagulation and
@@ -52,14 +58,16 @@ C     taken as (kernel / k_max).
       real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
       integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
-      
+
+      integer b1           ! INPUT: bin of first particle
+      integer b2           ! INPUT: bin of second particle
       real*8 del_t         ! INPUT: timestep
       real*8 k_max         ! INPUT: k_max scale factor
       external kernel      ! INPUT: kernel function
       logical did_coag     ! OUTPUT: whether a coagulation occured
       logical bin_change   ! OUTPUT: whether bin structure changed
 
-      integer b1, s1, b2, s2
+      integer s1, s2
       real*8 p, k
 
       bin_change = .false.
@@ -69,7 +77,7 @@ C     taken as (kernel / k_max).
          return
       endif
 
-      call find_rand_pair_hybrid(n_bin, MH, b1, s1, b2, s2)
+      call find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
 
       call kernel(VH(b1, s1), VH(b2, s2), k)
       p = k / k_max

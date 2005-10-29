@@ -1,11 +1,12 @@
 # useful options:
+#   -O2                  optimize
 #   -g                   debugging
 #   -pg                  profiling
 #   -pedantic            strict F77
 #   -fbounds-check       check array accesses
 #   -malign-double       align real*8 on 64-bit boundaries
 #   -funroll-all-loops   unroll "do" and "do while" loops
-FFLAGS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+FFLAGS = -g -fbounds-check -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 LDFLAGS = 
 
 PROGS = \

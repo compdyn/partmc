@@ -20,14 +20,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution (m^3)
 
       integer M, i_loop
-      real*8 V(MM), V_comp, dlnr
+      real*8 V(MM), V_comp, dlnr, VH(n_bin, MM)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
-      integer n_ini(n_bin), bin_n(n_bin)
+      integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
       external kernel_sedi
 
-      open(30,file='out_sedi_fix_split.d')
+      open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
       call srand(17)
 
@@ -39,9 +39,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 
-         call mc_fix_hybrid(MM, M, V, V_comp, n_bin, bin_v, bin_r, bin_g
-     $        , bin_n, dlnr, kernel_sedi, t_max, t_print, t_progress ,
-     $        del_t, i_loop)
+         call mc_fix_hybrid(MM, M, V, n_bin, MH, VH, V_comp, bin_v,
+     $        bin_r, bin_g, bin_n, dlnr, kernel_sedi, t_max, t_print,
+     $        t_progress ,del_t, i_loop)
 
       enddo
 

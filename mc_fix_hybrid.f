@@ -84,7 +84,7 @@ c               write(*,*)'did samples'
 
 c         write(*,*)'about to check_hybrid()'
 ! DEBUG
-         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
+c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
 ! DEBUG
 
          time = time + del_t
@@ -129,9 +129,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 c      write(*,*)'in compute_n_samp_hybrid'
 
       if (i .eq. j) then
-         n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0)
+         n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0) / 2d0
       else
-         n_possible = dble(MH(i)) * dble(MH(j))
+         n_possible = dble(MH(i)) * dble(MH(j)) / 2d0
       endif
 c      write(*,*)'n_possible = ', n_possible
 

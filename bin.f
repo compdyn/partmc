@@ -35,8 +35,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i, j
 
       integer n_sample
-      parameter (n_sample = 3)  ! number of sample points per bin
-      ! FIXME: maybe increase n_sample?
+      parameter (n_sample = 10)  ! number of sample points per bin
 
       ! v1_low < bin_v(b1) < v1_high
       call bin_edge(n_bin, bin_v, b1, v1_low)

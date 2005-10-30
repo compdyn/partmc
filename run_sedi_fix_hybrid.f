@@ -7,8 +7,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MM, TDV, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_0
-      parameter (MM = 1000000)        ! number of particles
-      parameter (TDV = 100000)        ! trailing dimension of VH
+      parameter (MM = 10000000)        ! number of particles
+      parameter (TDV = 1000000)        ! trailing dimension of VH
       parameter (n_bin = 160)          ! number of bins
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins

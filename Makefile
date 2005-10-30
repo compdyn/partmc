@@ -6,8 +6,8 @@
 #   -fbounds-check       check array accesses
 #   -malign-double       align real*8 on 64-bit boundaries
 #   -funroll-all-loops   unroll "do" and "do while" loops
-FFLAGS = -g -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
-LDFLAGS = -g
+FFLAGS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+LDFLAGS = 
 
 PROGS = \
 	process_out \

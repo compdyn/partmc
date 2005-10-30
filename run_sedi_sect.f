@@ -123,7 +123,7 @@ c     n ** ende output
       do i=1,n
          write(15,'(62e14.5)')r(i),gin(i),(gout(j,i),j=1,lmin)
          write(25,'(62e14.5)')r(i),hin(i),(hout(j,i),j=1,lmin)
-         write(35,'(62e14.5)')r(i),bin(i),(bout(j,i),j=1,lmin)
+c         write(35,'(62e14.5)')r(i),bin(i),(bout(j,i),j=1,lmin)
       enddo
 
       end
@@ -302,7 +302,7 @@ c long kernel
                cck(j,i)=pi*(rr(j)+rr(i))*(rr(j)+rr(i))*effi*
      &              abs(winf(j)-winf(i))
                cck(i,j)=cck(j,i)
-               write(7,*)'long ',i,j,r(i),r(j),cck(i,j)
+c               write(7,*)'long ',i,j,r(i),r(j),cck(i,j)
             enddo
          enddo
       elseif (isw.eq.1) then
@@ -325,7 +325,7 @@ c     hall kernel
          
          do i=1,n
             do j=1,n
-               write(7,'(5e14.5)')r(i),r(j),cck(i,j)
+c               write(7,'(5e14.5)')r(i),r(j),cck(i,j)
             enddo
          enddo
       elseif (isw.eq.2) then

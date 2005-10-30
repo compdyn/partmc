@@ -33,34 +33,25 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
-c      write(*,*)'start of mc_fix_hybrid'
-
       last_progress_time = 0d0
       time = 0d0
       tot_n_coag = 0
       call moments(MM, M, V, V_comp, n_bin, bin_v, bin_r, bin_g, bin_n,
      $     dlnr)
-c      write(*,*)'done moments'
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_bin, bin_v, bin_r,
      $     bin_g, bin_n, dlnr)
       call array_to_hybrid(MM, M, V, n_bin, bin_v, MH, VH)
-c      write(*,*)'done array_to_hybrid'
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
-c      write(*,*)'done k_max_binned'
 
       call cpu_time(t_start)
       do while (time < t_max)
-c         write(*,*)'main loop time = ', time
          tot_n_samp = 0
          n_coag = 0
          do i = 1,n_bin
             do j = 1,n_bin
-               ! FIXME: are we handling i == j correctly?
-c               write(*,*)'i,j = ', i, j
                call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
      $              k_max, del_t, n_samp_real)
-c               write(*,*)'n_samp_real = ', n_samp_real
                ! probabalistically determine n_samp to cope with < 1 case
                n_samp = int(n_samp_real)
                if (dble(rand()) .lt. mod(n_samp_real, 1d0)) then
@@ -73,7 +64,6 @@ c               write(*,*)'n_samp_real = ', n_samp_real
      $                 del_t, k_max(i,j), kernel, did_coag, bin_change)
                   if (did_coag) n_coag = n_coag + 1
                enddo
-c               write(*,*)'did samples'
             enddo
          enddo
          tot_n_coag = tot_n_coag + n_coag
@@ -82,7 +72,6 @@ c               write(*,*)'did samples'
      $           bin_r, bin_g, bin_n, dlnr)
          endif
 
-c         write(*,*)'about to check_hybrid()'
 ! DEBUG
 c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
 ! DEBUG
@@ -126,21 +115,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 r_samp
       real*8 n_possible ! use real*8 to avoid integer overflow
 
-c      write(*,*)'in compute_n_samp_hybrid'
-
       if (i .eq. j) then
          n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0) / 2d0
       else
          n_possible = dble(MH(i)) * dble(MH(j)) / 2d0
       endif
-c      write(*,*)'n_possible = ', n_possible
 
-c      write(*,*)'i,j = ', i, j
-c      write(*,*)'k_max(i,j) = ', k_max(i,j)
       r_samp = k_max(i,j) * 1d0/V_comp * del_t
-c      write(*,*)'r_samp = ', r_samp
       n_samp_real = r_samp * n_possible
-c      write(*,*)'n_samp_real = ', n_samp_real
 
       return
       end

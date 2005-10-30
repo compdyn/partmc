@@ -23,14 +23,8 @@ C     array VH stored by bins.
       enddo
       do i = 1,M
          call particle_in_bin(V(i), n_bin, bin_v, k)
-! DEBUG
-c         write(*,*) 'i, V(i), k = ', i, V(i), k
          MH(k) = MH(k) + 1
-! DEBUG
-c         write(*,*) 'MK(k) = ', MH(k)
          VH(k, MH(k)) = V(i)
-! DEBUG
-c         write(*,*) 'VH(k, MH(k)) = ', VH(k, MH(k))
       enddo
 
       end

@@ -4,10 +4,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
-      integer MM, n_bin, n_loop, scal
+      integer MM, TDV, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_0
-      parameter (MM = 1000000)         ! number of particles
+      parameter (MM = 1000000)        ! number of particles
+      parameter (TDV = 100000)        ! trailing dimension of VH
       parameter (n_bin = 160)          ! number of bins
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
@@ -20,7 +21,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution (m^3)
 
       integer M, i_loop
-      real*8 V(MM), V_comp, dlnr, VH(n_bin, MM)
+      real*8 V(MM), V_comp, dlnr, VH(n_bin, TDV)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
@@ -39,7 +40,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 
-         call mc_fix_hybrid(MM, M, V, n_bin, MH, VH, V_comp, bin_v,
+         call mc_fix_hybrid(MM, M, V, n_bin, TDV, MH, VH, V_comp, bin_v,
      $        bin_r, bin_g, bin_n, dlnr, kernel_sedi, t_max, t_print,
      $        t_progress ,del_t, i_loop)
 

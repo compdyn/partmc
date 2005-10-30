@@ -3,7 +3,7 @@ C     bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine array_to_hybrid(MM, M, V, n_bin, bin_v, MH, VH)
+      subroutine array_to_hybrid(MM, M, V, n_bin, bin_v, TDV, MH, VH)
 
 C     Convert a standard linear particle array V to a hybrid particle
 C     array VH stored by bins.
@@ -13,8 +13,9 @@ C     array VH stored by bins.
       real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
       integer n_bin        ! INPUT: number of bins
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! OUTPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! OUTPUT: particle volumes in hybrid array
+      real*8 VH(n_bin,TDV) ! OUTPUT: particle volumes in hybrid array
 
       integer i, k
 
@@ -24,6 +25,10 @@ C     array VH stored by bins.
       do i = 1,M
          call particle_in_bin(V(i), n_bin, bin_v, k)
          MH(k) = MH(k) + 1
+         if (MH(k) .gt. TDV) then
+            write(*,*)'ERROR: TDV too small'
+            call exit(2)
+         endif
          VH(k, MH(k)) = V(i)
       enddo
 
@@ -31,20 +36,20 @@ C     array VH stored by bins.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine maybe_coag_pair_hybrid(MM, M, n_bin, MH, VH, V_comp,
-     $     bin_v, bin_r, bin_g, bin_n, dlnr, b1, b2, del_t, k_max,
-     $     kernel, did_coag, bin_change)
+      subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
+     $     V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, b1, b2, del_t,
+     $     k_max, kernel, did_coag, bin_change)
 
 C     Choose a random pair for potential coagulation and test its
 C     probability of coagulation. If it happens, do the coagulation and
 C     update all structures. The probability of a coagulation will be
 C     taken as (kernel / k_max).
 
-      integer MM           ! INPUT: trailing dimension of V
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! INPUT/OUTPUT: particle volumes
+      real*8 VH(n_bin,TDV) ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT: computational volume
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
@@ -77,7 +82,7 @@ C     taken as (kernel / k_max).
       p = k / k_max
 
       if (dble(rand()) .lt. p) then
-         call coagulate_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
+         call coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
      $        bin_r,bin_g, bin_n, dlnr, b1, s1, b2, s2, bin_change)
          did_coag = .true.
       endif
@@ -108,7 +113,7 @@ C     Find a random pair of particles (b1, s1) and (b2, s2).
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coagulate_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
+      subroutine coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
      $     bin_r, bin_g, bin_n, dlnr, b1, s1, b2, s2, bin_change)
 
 C     Join together particles (b1, s1) and (b2, s2), updating all
@@ -116,11 +121,11 @@ C     particle and bin structures to reflect the change. bin_change is
 C     true if the used bin set changed due to the coagulation (i.e. an
 C     empty bin filled or a filled bin became empty).
 
-      integer MM           ! INPUT: trailing dimension of V
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! INPUT/OUTPUT: particle volumes
+      real*8 VH(n_bin,TDV) ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT: computational volume
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
@@ -181,16 +186,16 @@ C     empty bin filled or a filled bin became empty).
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine double_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
+      subroutine double_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
      $     bin_r, bin_g, bin_n, dlnr)
 
 C     Double number of particles in a hybrid array.
 
-      integer MM           ! INPUT: trailing dimension of V
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! INPUT/OUTPUT: particle volumes
+      real*8 VH(n_bin,TDV) ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT/OUTPUT: computational volume
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
@@ -201,14 +206,13 @@ C     Double number of particles in a hybrid array.
 
       integer i, k
 
-      ! only double if we have enough space to do so
-      if (M .gt. MM / 2) then
-         write(*,*)'ERROR: double without enough space'
-         call exit(2)
-      endif
-      
       ! double VH and associated structures
       do k = 1,n_bin
+         ! only double if we have enough space to do so
+         if (2 * MH(k) .gt. TDV) then
+            write(*,*)'ERROR: double without enough space'
+            call exit(2)
+         endif
          do i = 1,MH(k)
             VH(k, i + MH(k)) = VH(k, i)
          enddo
@@ -227,15 +231,15 @@ C     Double number of particles in a hybrid array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
+      subroutine check_hybrid(M, n_bin, TDV, MH, VH, bin_v, bin_r)
 
 C     Check that V has all particles in the correct bins.
 
-      integer MM           ! INPUT: trailing dimension of V
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! INPUT: particle volumes
+      real*8 VH(n_bin,TDV) ! INPUT: particle volumes
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins

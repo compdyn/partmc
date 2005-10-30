@@ -2,16 +2,17 @@ C     Monte Carlo with fixed timestep and a hybrid array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix_hybrid(MM, M, V, n_bin, MH, VH, V_comp, bin_v,
-     $     bin_r, bin_g, bin_n, dlnr, kernel, t_max, t_print, t_progress
-     $     , del_t, loop)
+      subroutine mc_fix_hybrid(MM, M, V, n_bin, TDV, MH, VH, V_comp,
+     $     bin_v, bin_r, bin_g, bin_n, dlnr, kernel, t_max, t_print,
+     $     t_progress, del_t, loop)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
       real*8 V(MM)         ! INPUT/OUTPUT: particle volumes (m^3)
       integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! OUTPUT: number of particles per bin
-      real*8 VH(n_bin,MM)  ! OUTPUT: particle volumes
+      real*8 VH(n_bin,TDV) ! OUTPUT: particle volumes
       real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
@@ -41,7 +42,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_bin, bin_v, bin_r,
      $     bin_g, bin_n, dlnr)
-      call array_to_hybrid(MM, M, V, n_bin, bin_v, MH, VH)
+      call array_to_hybrid(MM, M, V, n_bin, bin_v, TDV, MH, VH)
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
       call cpu_time(t_start)
@@ -59,7 +60,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                endif
                tot_n_samp = tot_n_samp + n_samp
                do i_samp = 1,n_samp
-                  call maybe_coag_pair_hybrid(MM, M, n_bin, MH, VH,
+                  call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
      $                 V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, i, j,
      $                 del_t, k_max(i,j), kernel, did_coag, bin_change)
                   if (did_coag) n_coag = n_coag + 1
@@ -68,7 +69,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
          tot_n_coag = tot_n_coag + n_coag
          if (M .lt. MM / 2) then
-            call double_hybrid(MM, M, n_bin, MH, VH, V_comp, bin_v,
+            call double_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
      $           bin_r, bin_g, bin_n, dlnr)
          endif
 

@@ -1,6 +1,10 @@
 C     Functions to deal with a particle array VH that is stored by
 C     bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
 
+C     FIXME: MH and bin_n are pretty much identical. Probably best to
+C     ignore it, for symmetry with non-hybrid code, and because in
+C     superparticle code there is a difference.
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine array_to_hybrid(MM, M, V, n_bin, bin_v, TDV, MH, VH)

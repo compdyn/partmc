@@ -1,12 +1,114 @@
-C     Functions to deal with a particle array VH that is stored by
-C     bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
+C     Functions to deal with a particle array VH that is stored by bin
+C     superparticle size. The allowable superparticle factors are 1, a,
+C     a^2, a^3, etc. This is the number of physical particles
+C     represented by the superparticle. In the code the base a is the
+C     variable sup_base.
+C
+C     MS(n_bin, n_fact): MS(b, f) is the number of computational
+C     particles in bin b with factor exponent f.
+C
+C     VS(n_bin, n_fact, TDV): VS(b, f, i) is the volume of the physical
+C     particles that make up the i-th superparticle in bin b with factor
+C     exponent f. This superparticle represents a^{f - 1} physical
+C     particles of this volume.
+C
+C     We use the terminology "size" to refer to the radius/volume/mass
+C     of a physical particle, and "factor" to refer to the number of
+C     physical particles represented by a single computational
+C     superparticle.
+
+C     single particles v0, v1 with rate k
+
+C     super-N particle v0, single particle v1: really N events, so
+C     expect rate kN. One super-N/single collision will produce N
+C     collisions, so use rate k.
+
+C     super-N particles v0, v1: really N^2 events, so expect rate
+C     kN^2. One super-N/super-N collision will produce N collisions, so
+C     use rate kN.
+
+C     2 <--> 10      20 per sec  ==>  k = 0.05
+C     1 <--> 5        5 per sec  ==>  k = 0.2
+
+C     100 <--> 100       k = 0.001  ==>  10 collisions per sec
+C     10x10 <--> 10x10   k = 0.01   ==>  1x10 collisions per sec
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine array_to_hybrid(MM, M, V, n_bin, bin_v, TDV, MH, VH)
+      subroutine init_to_super(n_bin, n_fact, TDV, sup_base, MS, VS,
+     $     n_ini, min_fill)
+
+C     Convert an initial number distribution into a superparticle
+C     array. We try to ensure that we have at least min_fill
+C     computational particles per bin, but within that restriction we
+C     use the biggest superparticles we can. A simple greedy algorithm
+C     is used, which is slightly suboptimal.
+
+      integer n_bin                ! INPUT: number of bins
+      integer n_fact               ! INPUT: number of allowable factors
+      integer TDV                  ! INPUT: trailing dimension of VS
+      integer sup_base             ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)     ! OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV)  ! OUTPUT: volume of physical particles
+      real*8 bin_v(n_bin)          ! INPUT: volume of particles in bins
+      integer bin_n(n_bin)         ! INPUT: desired number of particles in bins
+      integer min_fill             ! INPUT: desired minimum number of
+                                   !        computational particles in each bin
+
+      integer b, f, i
+
+! DEBUG
+      do b = 1,n_bin
+         do f = 1,n_fact
+            MS(b, f) = 99999999
+            do i = 1,TDV
+               VS(b, f, i) = 9e200
+            enddo
+         enddo
+      enddo
+! DEBUG
+
+      ! make MS
+      do b = 1,n_bin
+         ! find the maximum factor we can use which will still result
+         ! in min_fill computational particles of that maximum factor
+         max_f = 0
+         done = .false.
+         do while (.not. done)
+            max_f = max_f + 1
+            if (max_f .ge. n_fact) done = .true.
+            factor = sup_base**((max_f + 1) - 1)
+            if (bin_n(b) / factor .lt. min_fill) done = .true.
+         enddo
+         ! work our way down the factor sizes, starting from the maximum
+         ! factor, with a greedy algorithm that makes as many particles
+         ! of each factor as possible. We finish with factor = 1, so we
+         ! will always exactly have bin_n(b) physical particles represented.
+         n_left = bin_n(b)
+         do f = max_f,1,-1
+            factor = sup_base**(f - 1)
+            MS(b,f) = n_left / factor
+            n_left = n_left - MS(b,f) * factor
+         enddo
+      enddo
+
+      ! make VS
+      do b = 1,n_bin
+         do f = 1,n_fact
+            do i = 1,MS(b,f)
+               VS(b,f,i) = bin_v(b)
+            enddo
+         enddo
+      enddo
+         
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine array_to_super(MM, M, V, n_bin, bin_v, TDV, MH, VH)
 
 C     Convert a standard linear particle array V to a hybrid particle
-C     array VH stored by bins.
+C     array VH stored by bins, with superparticles.
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V

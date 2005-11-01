@@ -80,6 +80,7 @@ RUN_SEDI_ODE_OBJS = \
 	run_sedi_ode.o
 RUN_SEDI_SECT_OBJS = \
 	kernel_sedi.o \
+	array.o \
 	run_sedi_sect.o
 RUN_SEDI_VAR_OBJS = \
 	run_sedi_var.o \

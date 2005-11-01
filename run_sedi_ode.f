@@ -32,9 +32,9 @@ C     the current number of small particles.
       n_small = n_small_init
       n_step = nint(t_max / del_t) + 1
       v_big = v_big_init + (n_small_init - n_small) * v_small
-      write(*,'(a8,a14,a14,a9)'),
+      write(*,'(a8,a14,a14,a9)')
      &     't', 'n_small', 'v_big', 'n_coag'
-      write(*,'(f8.1,e14.5,e14.5,f9.2)'),
+      write(*,'(f8.1,e14.5,e14.5,f9.2)')
      &     time, n_small / V_comp / dlnr, v_big / V_comp / dlnr,
      &     n_small_init - n_small
       do i_step = 1,n_step
@@ -43,9 +43,9 @@ C     the current number of small particles.
      &        V_comp, del_t, n_small)
          v_big = v_big_init + (n_small_init - n_small) * v_small
          if (mod(i_step - 1, nint(1d0 / del_t)) .eq. 0) then
-            write(*,'(a8,a14,a14,a9)'),
+            write(*,'(a8,a14,a14,a9)')
      &           't', 'n_small', 'v_big', 'n_coag'
-            write(*,'(f8.1,e14.5,e14.5,f9.2)'),
+            write(*,'(f8.1,e14.5,e14.5,f9.2)')
      &           time, n_small / V_comp / dlnr, v_big / V_comp / dlnr,
      &           n_small_init - n_small
          endif

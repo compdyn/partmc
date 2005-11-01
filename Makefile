@@ -1,13 +1,12 @@
 # useful flags:
-#   -O2                  optimize
-#   -g                   debugging
-#   -pg                  profiling
-#   -pedantic            strict F77
-#   -fbounds-check       check array accesses
-#   -malign-double       align real*8 on 64-bit boundaries
-#   -funroll-all-loops   unroll "do" and "do while" loops
-FFLAGS = -O2 -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+#   -O              optimize
+#   -g              debugging
+#   -pg             profiling
+#   -pedantic       strict F77
+#   -fbounds-check  check array accesses
+FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 LDFLAGS = 
+F77 = g77
 
 PROGS = \
 	process_out \
@@ -92,43 +91,43 @@ RUN_SEDI_VAR_OBJS = \
 all: $(PROGS)
 
 process_out: $(PROCESS_OUT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(PROCESS_OUT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(PROCESS_OUT_OBJS)
 
 run_golovin_adapt: $(RUN_GOLOVIN_ADAPT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
 
 run_golovin_exact: $(RUN_GOLOVIN_EXACT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_GOLOVIN_EXACT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_EXACT_OBJS)
 
 run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_GOLOVIN_FIX_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_FIX_OBJS)
 
 run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_GOLOVIN_VAR_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_VAR_OBJS)
 
 run_sedi_adapt: $(RUN_SEDI_ADAPT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_ADAPT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_ADAPT_OBJS)
 
 run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_OBJS)
 
 run_sedi_fix_hybrid: $(RUN_SEDI_FIX_HYBRID_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_HYBRID_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_HYBRID_OBJS)
 
 run_sedi_fix_split: $(RUN_SEDI_FIX_SPLIT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_SPLIT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_SPLIT_OBJS)
 
 run_sedi_ode: $(RUN_SEDI_ODE_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_ODE_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_ODE_OBJS)
 
 run_sedi_sect: $(RUN_SEDI_SECT_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_SECT_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_SECT_OBJS)
 
 run_sedi_var: $(RUN_SEDI_VAR_OBJS)
-	g77 $(LDFLAGS) -o $@ $(RUN_SEDI_VAR_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_VAR_OBJS)
 
 %.o: %.f
-	g77 $(FFLAGS) -c -o $@ $<
+	$(F77) $(FFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(PROGS) *.o

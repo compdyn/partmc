@@ -90,7 +90,7 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
             t_est = (t_max - time) / time * (t_end - t_start)
             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M',
      $           'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-            write(6,'(i6,f8.1,i9,i11,i9,i11,f10)') loop, time, M,
+            write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M,
      $           tot_n_samp, n_coag, tot_n_coag, t_est
          endif
       enddo

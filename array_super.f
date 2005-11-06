@@ -16,22 +16,37 @@ C     We use the terminology "size" to refer to the radius/volume/mass
 C     of a physical particle, and "factor" to refer to the number of
 C     physical particles represented by a single computational
 C     superparticle.
-
+C
 C     single particles v0, v1 with rate k
-
+C
 C     super-N particle v0, single particle v1: really N events, so
 C     expect rate kN. One super-N/single collision will produce N
 C     collisions, so use rate k.
-
+C
 C     super-N particles v0, v1: really N^2 events, so expect rate
 C     kN^2. One super-N/super-N collision will produce N collisions, so
 C     use rate kN.
-
+C
 C     2 <--> 10      20 per sec  ==>  k = 0.05
 C     1 <--> 5        5 per sec  ==>  k = 0.2
-
+C
 C     100 <--> 100       k = 0.001  ==>  10 collisions per sec
 C     10x10 <--> 10x10   k = 0.01   ==>  1x10 collisions per sec
+C
+C     super-N particle v0 colliding with super-M particle v1 with N < M:
+C     really NM events, so expect rate kNM. One super-N/super-M
+C     collision will produce M physical collisions, so use rate kN.
+C
+C     100 <--> 1000      k = 0.001  ==>  100 collisions per sec
+C     1x100 <--> 1x1000  k = 0.1    ==>  0.1x1000 collisions per sec
+C
+C     There are two possibilites for how to do the collisions:
+C
+C     1. Do everything per-bin, per-fact, which is just like hybrid, but
+C     with more compartmentalization.
+C
+C     2. Do things just per-bin, then randomly collide either single
+C     particles or superparticles, and account for this fact.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -44,20 +59,20 @@ C     computational particles per bin, but within that restriction we
 C     use the biggest superparticles we can. A simple greedy algorithm
 C     is used, which is slightly suboptimal.
 
-      integer n_bin                ! INPUT: number of bins
-      integer n_fact               ! INPUT: number of allowable factors
-      integer TDV                  ! INPUT: trailing dimension of VS
-      integer sup_base             ! INPUT: factor base of a superparticle
-      integer MS(n_bin,n_fact)     ! OUTPUT: number of superparticles
-      real*8 VS(n_bin,n_fact,TDV)  ! OUTPUT: volume of physical particles
-      real*8 bin_v(n_bin)          ! INPUT: volume of particles in bins
-      integer bin_n(n_bin)         ! INPUT: desired number of particles in bins
-      integer min_fill             ! INPUT: desired minimum number of
-                                   !        computational particles in each bin
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer TDV                 ! INPUT: trailing dimension of VS
+      integer sup_base            ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)    ! OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! OUTPUT: volume of physical particles
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
+      integer bin_n(n_bin)        ! INPUT: desired number of particles in bins
+      integer min_fill            ! INPUT: desired minimum number of
+                                  !        computational particles in each bin
 
       integer b, f, i
 
-! DEBUG
+C DEBUG
       do b = 1,n_bin
          do f = 1,n_fact
             MS(b, f) = 99999999
@@ -66,7 +81,7 @@ C     is used, which is slightly suboptimal.
             enddo
          enddo
       enddo
-! DEBUG
+C DEBUG
 
       ! make MS
       do b = 1,n_bin
@@ -105,68 +120,39 @@ C     is used, which is slightly suboptimal.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine array_to_super(MM, M, V, n_bin, bin_v, TDV, MH, VH)
-
-C     Convert a standard linear particle array V to a hybrid particle
-C     array VH stored by bins, with superparticles.
-
-      integer MM           ! INPUT: physical dimension of V
-      integer M            ! INPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
-      integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      integer TDV          ! INPUT: trailing dimension of VH
-      integer MH(n_bin)    ! OUTPUT: number of particles per bin
-      real*8 VH(n_bin,TDV) ! OUTPUT: particle volumes in hybrid array
-
-      integer i, k
-
-      do k = 1,n_bin
-         MH(k) = 0
-      enddo
-      do i = 1,M
-         call particle_in_bin(V(i), n_bin, bin_v, k)
-         MH(k) = MH(k) + 1
-         if (MH(k) .gt. TDV) then
-            write(*,*)'ERROR: TDV too small'
-            call exit(2)
-         endif
-         VH(k, MH(k)) = V(i)
-      enddo
-
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
-     $     V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, b1, b2, del_t,
-     $     k_max, kernel, did_coag, bin_change)
+      subroutine maybe_coag_pair_super(M, n_bin, n_fact, TDV, sup_base,
+     $     MS, VS, min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr,
+     $     b1, b2, f1, f2, del_t, k_max, kernel, did_coag, bin_change)
 
 C     Choose a random pair for potential coagulation and test its
 C     probability of coagulation. If it happens, do the coagulation and
 C     update all structures. The probability of a coagulation will be
 C     taken as (kernel / k_max).
 
-      integer M            ! INPUT/OUTPUT: number of particles
-      integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH
-      integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-      real*8 VH(n_bin,TDV) ! INPUT/OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT: computational volume
+      integer M                   ! INPUT/OUTPUT: number of particles
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer TDV                 ! INPUT: trailing dimension of VS
+      integer sup_base            ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)    ! INPUT/OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! INPUT/OUTPUT: volume of physical particles
+      integer min_fill            ! INPUT: minimum comp. part. per bin
+      real*8 V_comp               ! INPUT: computational volume
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)         ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)         ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin)        ! INPUT/OUTPUT: number in bins
+      real*8 dlnr                 ! INPUT: bin scale factor
 
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
-      integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-      real*8 dlnr          ! INPUT: bin scale factor
-
-      integer b1           ! INPUT: bin of first particle
-      integer b2           ! INPUT: bin of second particle
-      real*8 del_t         ! INPUT: timestep
-      real*8 k_max         ! INPUT: k_max scale factor
-      external kernel      ! INPUT: kernel function
-      logical did_coag     ! OUTPUT: whether a coagulation occured
-      logical bin_change   ! OUTPUT: whether bin structure changed
+      integer b1                  ! INPUT: bin of first particle
+      integer b2                  ! INPUT: bin of second particle
+      integer f1                  ! INPUT: factor step of first particle
+      integer f2                  ! INPUT: factor step of second particle
+      real*8 del_t                ! INPUT: timestep
+      real*8 k_max                ! INPUT: k_max scale factor
+      external kernel             ! INPUT: kernel function
+      logical did_coag            ! OUTPUT: whether a coagulation occured
+      logical bin_change          ! OUTPUT: whether bin structure changed
 
       integer s1, s2
       real*8 p, k
@@ -193,35 +179,67 @@ C     taken as (kernel / k_max).
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
-      subroutine find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
+      subroutine find_rand_pair_super(n_bin, n_fact, MS, b1, b2, f1, f2,
+     $     s1, s2)
 
-C     Find a random pair of particles (b1, s1) and (b2, s2).
-      
-      integer n_bin     ! INPUT: number of bins
-      integer MH(n_bin) ! INPUT: number particles per bin
-      integer b1        ! INPUT: bin number of first particle
-      integer b2        ! INPUT: bin number of second particle
-      integer s1        ! OUTPUT: first random particle 1 <= s1 <= M(b1)
-      integer s2        ! OUTPUT: second random particle 1 <= s2 <= M(b2)
-                        !         (b1,s1) != (b2,s2)
+C     Find a random pair s1, s2 so that we have a random non-equal pair
+C     of particles (b1, f1, s1) and (b2, f2, s2).
 
- 100  s1 = int(rand() * MH(b1)) + 1
-      if ((s1 .lt. 1) .or. (s1 .gt. MH(b1))) goto 100
- 101  s2 = int(rand() * MH(b2)) + 1
-      if ((s2 .lt. 1) .or. (s2 .gt. MH(b2))) goto 101
+      integer n_bin            ! INPUT: number of bins
+      integer n_fact           ! INPUT: number of allowable factors
+      integer MS(n_bin,n_fact) ! INPUT/OUTPUT: number of superparticles
+      integer b1               ! INPUT: bin of first particle
+      integer b2               ! INPUT: bin of second particle
+      integer f1               ! INPUT: factor step of first particle
+      integer f2               ! INPUT: factor step of second particle
+      integer s1               ! OUTPUT: first random particle
+                               !         1 <= s1 <= M(b1)
+      integer s2               ! OUTPUT: second random particle
+                               !         1 <= s2 <= M(b2)
+                               !         (b1,s1) != (b2,s2)
+
+ 100  s1 = int(rand() * MS(b1,f1)) + 1
+      if ((s1 .lt. 1) .or. (s1 .gt. MS(b1,f1))) goto 100
+ 101  s2 = int(rand() * MS(b2,f2)) + 1
+      if ((s2 .lt. 1) .or. (s2 .gt. MS(b2,f2))) goto 101
       if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
+      subroutine coagulate_super(M, n_bin, TDV, MH, VH, V_comp, bin_v,
      $     bin_r, bin_g, bin_n, dlnr, b1, s1, b2, s2, bin_change)
 
-C     Join together particles (b1, s1) and (b2, s2), updating all
+C     Join together particles (b1, f1, s1) and (b2, f2, s2), updating all
 C     particle and bin structures to reflect the change. bin_change is
 C     true if the used bin set changed due to the coagulation (i.e. an
 C     empty bin filled or a filled bin became empty).
+
+      integer M                   ! INPUT/OUTPUT: number of particles
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer TDV                 ! INPUT: trailing dimension of VS
+      integer sup_base            ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)    ! INPUT/OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! INPUT/OUTPUT: volume of physical particles
+      integer min_fill            ! INPUT: minimum comp. part. per bin
+      real*8 V_comp               ! INPUT: computational volume
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)         ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)         ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin)        ! INPUT/OUTPUT: number in bins
+      real*8 dlnr                 ! INPUT: bin scale factor
+
+      integer b1                  ! INPUT: bin of first particle
+      integer b2                  ! INPUT: bin of second particle
+      integer f1                  ! INPUT: factor step of first particle
+      integer f2                  ! INPUT: factor step of second particle
+      real*8 del_t                ! INPUT: timestep
+      real*8 k_max                ! INPUT: k_max scale factor
+      external kernel             ! INPUT: kernel function
+      logical did_coag            ! OUTPUT: whether a coagulation occured
+      logical bin_change          ! OUTPUT: whether bin structure changed
 
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins

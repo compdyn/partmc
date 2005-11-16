@@ -10,7 +10,7 @@ DIST_NAME = hpmc-$(VERSION)
 #FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 # for gfortran:
 #FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
-FFLAGS = -O -fimplicit-none -w
+FFLAGS = -g -O -fimplicit-none -w
 LDFLAGS = 
 
 F77 = gfortran

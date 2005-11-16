@@ -72,8 +72,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                         call maybe_coag_pair_super(M, n_bin, n_fact, TDV
      $                       , fac_base, MS, VS, min_fill, V_comp, bin_v
      $                       , bin_r, bin_g, bin_n, dlnr, b1, b2, f1, f2
-     $                       , del_t, k_max, kernel, did_coag,
-     $                       bin_change)
+     $                       , del_t, k_max(b1, f1, b2, f2), kernel,
+     $                       did_coag, bin_change)
                         if (did_coag) n_coag = n_coag + 1
                      enddo
                   enddo
@@ -83,13 +83,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          tot_n_coag = tot_n_coag + n_coag
          call max_int_2d(n_bin, n_fact, MS, max_usage)
          if (max_usage .lt. TDV / 2) then
+            write(*,*)'double'
             call double_super(M, n_bin, n_fact, TDV, MS, VS, V_comp,
      $           bin_v, bin_r, bin_g, bin_n, dlnr)
          endif
 
 ! DEBUG
-         call check_super(M, n_bin, n_fact, TDV, fac_base, MS, VS, bin_v
-     $        , bin_r)
+c         call check_super(M, n_bin, n_fact, TDV, fac_base, MS, VS, bin_v
+c     $        , bin_r)
 ! DEBUG
 
          time = time + del_t

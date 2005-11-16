@@ -122,6 +122,9 @@ C DEBUG
          ! factor, with a greedy algorithm that makes as many particles
          ! of each factor as possible. We finish with factor = 1, so we
          ! will always exactly have bin_n(b) physical particles represented.
+         do f = n_fact,(max_f + 1),-1
+            MS(b,f) = 0
+         enddo
          n_left = bin_n(b)
          do f = max_f,1,-1
             factor = fac_base**(f - 1)
@@ -455,8 +458,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do b1 = 1,n_bin
          do b2 = 1,n_bin
             call est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, k)
-            do f1 = 1,n_bin
-               do f2 = 1,n_bin
+            do f1 = 1,n_fact
+               do f2 = 1,n_fact
                   min_f = min(f1, f2)
                   factor = fac_base**(min_f - 1)
                   k_max(b1, f1, b2, f2) = factor * k

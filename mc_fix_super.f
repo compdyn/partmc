@@ -83,7 +83,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          tot_n_coag = tot_n_coag + n_coag
          call max_int_2d(n_bin, n_fact, MS, max_usage)
          if (max_usage .lt. TDV / 2) then
-            write(*,*)'double'
             call double_super(M, n_bin, n_fact, TDV, MS, VS, V_comp,
      $           bin_v, bin_r, bin_g, bin_n, dlnr)
          endif

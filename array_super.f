@@ -282,7 +282,7 @@ C     empty bin filled or a filled bin became empty).
       n2 = fac_base**(f2 - 1)
       bin_n(b1) = bin_n(b1) - n1
       bin_n(b2) = bin_n(b2) - n2
-      bin_g(b1) = bin_g(b1) - n1 * VS(b1, s2, s1)
+      bin_g(b1) = bin_g(b1) - n1 * VS(b1, f1, s1)
       bin_g(b2) = bin_g(b2) - n2 * VS(b2, f2, s2)
       M = M - n1 - n2      ! decrease the total number of particles
       if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then

@@ -36,22 +36,18 @@ C     n_phys_2 = n_comp_2 * factor_2
 C     n_phys_coll = k_phys * n_phys_1 * n_phys_2
 C
 C     n_comp_coll = k_comp * n_comp_1 * n_comp_2
-C     n_phys_coll_per_comp_coll
-C                   = max(factor_1, factor_2) / min(factor_1, factor_2)
+C     n_phys_coll_per_comp_coll = max(factor_1, factor_2)
 C     n_phys_coll = n_phys_coll_per_comp_coll * n_comp_coll
 C
 C     k_phys * n_phys_1 * n_phys_2
 C              = n_phys_coll_per_comp_coll * n_comp_coll
-C              = max(factor_1, factor_2) / min(factor_1, factor_2)
-C                        * k_comp * n_comp_1 * n_comp_2
-C              = max(factor_1, factor_2) / min(factor_1, factor_2)
+C              = max(factor_1, factor_2) * k_comp * n_comp_1 * n_comp_2
+C              = max(factor_1, factor_2)
 C                        * k_comp * n_phys_1 / factor_1 * n_phys_2 / factor_2
 C
-C     k_phys = max(factor_1, factor_2) / min(factor_1, factor_2)
-C              * k_comp / factor_1 / factor_2
-C     k_comp = k_phys
-C              * factor_1 * factor_2
-C              * min(factor_1, factor_2) / max(factor_1, factor_2)
+C     k_phys = max(factor_1, factor_2) * k_comp / factor_1 / factor_2
+C     k_comp = k_phys * factor_1 * factor_2 / max(factor_1, factor_2)
+C            = k_phys * min(factor_1, factor_2)
 C
 C     2 <--> 10          k = 0.05   ==>  20 collisions per sec
 C     1 <--> 5           k = 0.2    ==>  5 collisions per sec
@@ -436,6 +432,58 @@ C     Check that V has all particles in the correct bins.
          write(*,*)'ERROR: check_super() failed'
          call exit(2)
       endif
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine est_k_max_super(n_bin, n_fact, fac_base, bin_v, kernel,
+     $     k_max)
+
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer fac_base            ! INPUT: factor base of a superparticle
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins (m^3)
+      external kernel             ! INPUT: kernel function
+      real*8 k_max(n_bin,n_fact,n_bin,n_fact) ! OUTPUT: maximum kernel values
+
+      integer b1, b2, f1, f2, min_f, factor
+      real*8 k
+      
+      do b1 = 1,n_bin
+         do b2 = 1,n_bin
+            call est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, k)
+            do f1 = 1,n_bin
+               do f2 = 1,n_bin
+                  min_f = min(f1, f2)
+                  factor = fac_base**(min_f - 1)
+                  k_max(b1, f1, b2, f2) = factor * k
+               enddo
+            enddo
+         enddo
+      enddo
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine super_max_bin_usage(n_bin, n_fact, MS, max_usage)
+
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer MS(n_bin,n_fact)    ! INPUT: number of superparticles
+      integer max_usage           ! OUTPUT: max of MS(b, f)
+
+      integer b, f
+
+      max_usage = 0
+      do b = 1,n_bin
+         do f = 1,n_fact
+            if (MS(b, f) .gt. max_usage) then
+               max_usage = MS(b, f)
+            endif
+         enddo
+      enddo
 
       end
 

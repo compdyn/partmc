@@ -30,52 +30,63 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer loop                ! INPUT: loop number of run
 
       real*8 time, last_print_time, last_progress_time
-      real*8 k_max(n_bin, n_bin), n_samp_real
-      integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag
+      real*8 k_max(n_bin, n_fact, n_bin, n_fact), n_samp_real
+      integer n_samp, i_samp, n_coag, b1, b2, f1, f2
+      integer tot_n_samp, tot_n_coag, max_usage
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
       last_progress_time = 0d0
       time = 0d0
       tot_n_coag = 0
-      call moments(MM, M, V, V_comp, n_bin, bin_v, bin_r, bin_g, bin_n,
-     $     dlnr)
+      call init_to_super(n_bin, n_fact, TDV, fac_base, MS, VS, bin_v,
+     $     bin_n, min_fill)
+      call moments_super(n_bin, n_fact, TDV, MS, VS, bin_v, bin_r, bin_g
+     $     , bin_n, dlnr)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_bin, bin_v, bin_r,
      $     bin_g, bin_n, dlnr)
-      call array_to_hybrid(MM, M, V, n_bin, bin_v, TDV, MH, VH)
-      call est_k_max_binned(n_bin, bin_v, kernel, k_max)
+      call est_k_max_super(n_bin, n_fact, fac_base, bin_v, kernel,
+     $     k_max)
 
       call cpu_time(t_start)
       do while (time < t_max)
          tot_n_samp = 0
          n_coag = 0
-         do i = 1,n_bin
-            do j = 1,n_bin
-               call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
-     $              k_max, del_t, n_samp_real)
-               ! probabalistically determine n_samp to cope with < 1 case
-               n_samp = int(n_samp_real)
-               if (dble(rand()) .lt. mod(n_samp_real, 1d0)) then
-                  n_samp = n_samp + 1
-               endif
-               tot_n_samp = tot_n_samp + n_samp
-               do i_samp = 1,n_samp
-                  call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
-     $                 V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, i, j,
-     $                 del_t, k_max(i,j), kernel, did_coag, bin_change)
-                  if (did_coag) n_coag = n_coag + 1
+         do b1 = 1,n_bin
+            do f1 = 1,n_fact
+               do b2 = 1,n_bin
+                  do f2 = 1,n_fact
+                     call compute_n_samp_super(n_bin, n_fact, MS, b1, f1
+     $                    , b2, f2, V_comp, k_max, del_t, n_samp_real)
+                     ! probabalistically determine n_samp to cope with < 1 case
+                     n_samp = int(n_samp_real)
+                     if (dble(rand()) .lt. mod(n_samp_real, 1d0)) then
+                        n_samp = n_samp + 1
+                     endif
+                     tot_n_samp = tot_n_samp + n_samp
+                     do i_samp = 1,n_samp
+                        call maybe_coag_pair_super(M, n_bin, n_fact, TDV
+     $                       , fac_base, MS, VS, min_fill, V_comp, bin_v
+     $                       , bin_r, bin_g, bin_n, dlnr, b1, b2, f1, f2
+     $                       , del_t, k_max, kernel, did_coag,
+     $                       bin_change)
+                        if (did_coag) n_coag = n_coag + 1
+                     enddo
+                  enddo
                enddo
             enddo
          enddo
          tot_n_coag = tot_n_coag + n_coag
-         if (M .lt. MM / 2) then
-            call double_hybrid(M, n_bin, TDV, MH, VH, V_comp, bin_v,
-     $           bin_r, bin_g, bin_n, dlnr)
+         call super_max_bin_usage(n_bin, n_fact, MS, max_usage)
+         if (max_usage .lt. TDV / 2) then
+            call double_super(M, n_bin, n_fact, TDV, MS, VS, V_comp,
+     $           bin_v, bin_r, bin_g, bin_n, dlnr)
          endif
 
 ! DEBUG
-c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
+         call check_super(M, n_bin, n_fact, TDV, fac_base, MS, VS, bin_v
+     $        , bin_r)
 ! DEBUG
 
          time = time + del_t
@@ -96,37 +107,44 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
          endif
       enddo
 
-      return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_n_samp_hybrid(n_bin, MH, i, j, V_comp, k_max,
-     $     del_t, n_samp_real)
+      subroutine compute_n_samp_super(n_bin, n_fact, MS, b1, f1, b2, f2
+     $     , V_comp, k_max, del_t, n_samp_real)
 
-      integer n_bin              ! INPUT: number of bins
-      integer MH(n_bin)          ! INPUT: number particles per bin
-      integer i                  ! INPUT: first bin 
-      integer j                  ! INPUT: second bin
-      real*8 V_comp              ! INPUT: computational volume
-      real*8 k_max(n_bin,n_bin)  ! INPUT: maximum kernel values
-      real*8 del_t               ! INPUT: timestep (s)
-      real*8 n_samp_real         ! OUTPUT: number of samples per timestep
-                                 !         for bin-i to bin-j events
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer MS(n_bin,n_fact)    ! INPUT: number of superparticles
+      integer b1                  ! INPUT: first particle (bin number)
+      integer f1                  ! INPUT: first particle (factor step)
+      integer b2                  ! INPUT: second particle (bin number)
+      integer f2                  ! INPUT: second particle (factor step)
+      real*8 V_comp               ! INPUT: computational volume
+      real*8 k_max(n_bin,n_fact,n_bin,n_fact) ! INPUT: maximum kernel values
+      real*8 del_t                ! INPUT: timestep (s)
+      real*8 n_samp_real          ! OUTPUT: number of samples per timestep
+                                  !         for bin-i to bin-j events
       
       real*8 r_samp
       real*8 n_possible ! use real*8 to avoid integer overflow
 
-      if (i .eq. j) then
-         n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0) / 2d0
+      if ((b1 .eq. b2) .and. (f1 .eq. f2)) then
+         if (f1 .eq. 1) then
+            n_possible = dble(MS(b1, f1)) * (dble(MS(b1, f1)) - 1d0) /
+     $           2d0
+         else
+            ! FIXME: this is only an approximation (better for larger f)
+            n_possible = dble(MS(b1, f1)) * dble(MS(b1, f1)) / 2d0
+         endif
       else
-         n_possible = dble(MH(i)) * dble(MH(j)) / 2d0
+         n_possible = dble(MS(b1, f1)) * dble(MS(b2, f2)) / 2d0
       endif
 
-      r_samp = k_max(i,j) * 1d0/V_comp * del_t
+      r_samp = k_max(b1, f1, b2, f2) * 1d0/V_comp * del_t
       n_samp_real = r_samp * n_possible
 
-      return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

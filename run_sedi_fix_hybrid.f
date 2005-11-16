@@ -1,4 +1,4 @@
-C Simulation with sedimentation kernel, fixed timestepping and split array.
+C Simulation with sedimentation kernel, fixed timestepping and hybrid array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

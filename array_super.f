@@ -60,6 +60,8 @@ C     1x100 <--> 1x1000  k = 0.1    ==>  0.1*1*1 = 0.1x1000 collisions per sec
 C     10x10 <--> 10x100  k = 0.01   ==>  1x100 collisions per sec
 C     10x10 <--> 100x10  k = 0.01   ==>  10x10 collisions per sec
 C
+C     Need to handle self-collision case properly.
+C
 C     There are two possibilites for how to do the collisions:
 C
 C     1. Do everything per-bin, per-fact, which is just like hybrid, but
@@ -98,7 +100,7 @@ C DEBUG
          do f = 1,n_fact
             MS(b, f) = 99999999
             do i = 1,TDV
-               VS(b, f, i) = 9e200
+               VS(b, f, i) = 9d200
             enddo
          enddo
       enddo
@@ -212,7 +214,7 @@ C     of particles (b1, f1, s1) and (b2, f2, s2).
 
       integer n_bin            ! INPUT: number of bins
       integer n_fact           ! INPUT: number of allowable factors
-      integer MS(n_bin,n_fact) ! INPUT/OUTPUT: number of superparticles
+      integer MS(n_bin,n_fact) ! INPUT: number of superparticles
       integer b1               ! INPUT: bin of first particle
       integer b2               ! INPUT: bin of second particle
       integer f1               ! INPUT: factor step of first particle
@@ -314,14 +316,14 @@ C     empty bin filled or a filled bin became empty).
       ! if we don't have min_fill computational particles in the new bin
       ! then split the one we are adding
       f_red = 0 ! factor to split by
- 100  n_comp = 0 ! number of computational particles
+ 200  n_comp = 0 ! number of computational particles
       do f = 1,n_fact
          n_comp = n_comp + MS(bn, f)
       enddo
       n_comp = n_comp + fac_base**f_red ! include the new ones we will add
       if ((n_comp .lt. min_fill) .and. (fn - f_red .gt. 1)) then
          f_red = f_red + 1
-         goto 100 ! try again with one more level of splitting
+         goto 200 ! try again with one more level of splitting
       endif
       n_comp_add = fac_base**f_red  ! number of computational particles to add
       fn = fn - f_red               ! modified factor of new particles
@@ -392,13 +394,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 C     Check that V has all particles in the correct bins.
 
-      integer M                   ! INPUT/OUTPUT: number of particles
+      integer M                   ! INPUT: number of particles
       integer n_bin               ! INPUT: number of bins
       integer n_fact              ! INPUT: number of allowable factors
       integer TDV                 ! INPUT: trailing dimension of VS
       integer fac_base            ! INPUT: factor base of a superparticle
-      integer MS(n_bin,n_fact)    ! INPUT/OUTPUT: number of superparticles
-      real*8 VS(n_bin,n_fact,TDV) ! INPUT/OUTPUT: volume of physical particles
+      integer MS(n_bin,n_fact)    ! INPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! INPUT: volume of physical particles
 
       real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
       real*8 bin_r(n_bin)         ! INPUT: radius of particles in bins
@@ -460,28 +462,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                   k_max(b1, f1, b2, f2) = factor * k
                enddo
             enddo
-         enddo
-      enddo
-
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine super_max_bin_usage(n_bin, n_fact, MS, max_usage)
-
-      integer n_bin               ! INPUT: number of bins
-      integer n_fact              ! INPUT: number of allowable factors
-      integer MS(n_bin,n_fact)    ! INPUT: number of superparticles
-      integer max_usage           ! OUTPUT: max of MS(b, f)
-
-      integer b, f
-
-      max_usage = 0
-      do b = 1,n_bin
-         do f = 1,n_fact
-            if (MS(b, f) .gt. max_usage) then
-               max_usage = MS(b, f)
-            endif
          enddo
       enddo
 

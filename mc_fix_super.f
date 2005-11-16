@@ -2,7 +2,7 @@ C     Monte Carlo with fixed timestep and a superparticle array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix_hybrid(M, n_bin, n_fact, TDV, fac_base, MS, VS,
+      subroutine mc_fix_super(M, n_bin, n_fact, TDV, fac_base, MS, VS,
      $     min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, kernel,
      $     t_max, t_print, t_progress, del_t, loop)
 
@@ -49,6 +49,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call est_k_max_super(n_bin, n_fact, fac_base, bin_v, kernel,
      $     k_max)
 
+! DEBUG
+      call check_super(M, n_bin, n_fact, TDV, fac_base, MS, VS, bin_v,
+     $     bin_r)
+! DEBUG
+
       call cpu_time(t_start)
       do while (time < t_max)
          tot_n_samp = 0
@@ -78,7 +83,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             enddo
          enddo
          tot_n_coag = tot_n_coag + n_coag
-         call super_max_bin_usage(n_bin, n_fact, MS, max_usage)
+         call max_int_2d(n_bin, n_fact, MS, max_usage)
          if (max_usage .lt. TDV / 2) then
             call double_super(M, n_bin, n_fact, TDV, MS, VS, V_comp,
      $           bin_v, bin_r, bin_g, bin_n, dlnr)

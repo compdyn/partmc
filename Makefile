@@ -7,10 +7,13 @@ DIST_NAME = hpmc-$(VERSION)
 #   -pg             profiling
 #   -pedantic       strict F77
 #   -fbounds-check  check array accesses
-FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+#FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+# for gfortran:
+#FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
+FFLAGS = -O -fimplicit-none -w
 LDFLAGS = 
 
-F77 = g77
+F77 = gfortran
 
 PROGS = \
 	process_out \
@@ -22,6 +25,7 @@ PROGS = \
 	run_sedi_fix \
 	run_sedi_fix_hybrid \
 	run_sedi_fix_split \
+	run_sedi_fix_super \
 	run_sedi_ode \
 	run_sedi_sect \
 	run_sedi_var
@@ -79,6 +83,15 @@ run_sedi_fix_split_objs = \
 	array.o \
 	array_split.o \
 	init_dist.o
+run_sedi_fix_super_objs = \
+	run_sedi_fix_super.o \
+	mc_fix_super.o \
+	kernel_sedi.o \
+	array.o \
+	array_super.o \
+	bin.o \
+	init_dist.o \
+	util.o
 run_sedi_ode_objs = \
 	kernel_sedi.o \
 	run_sedi_ode.o
@@ -125,8 +138,11 @@ run_sedi_fix_hybrid: $(run_sedi_fix_hybrid_objs)
 run_sedi_fix_split: $(run_sedi_fix_split_objs)
 	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_split_objs)
 
+run_sedi_fix_super: $(run_sedi_fix_super_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_objs)
+
 run_sedi_ode: $(run_sedi_ode_objs)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_ODE_OBJS)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_ode_objs)
 
 run_sedi_sect: $(run_sedi_sect_objs)
 	$(F77) $(LDFLAGS) -o $@ $(run_sedi_sect_objs)

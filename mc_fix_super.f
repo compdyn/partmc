@@ -41,8 +41,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       tot_n_coag = 0
       call init_to_super(n_bin, n_fact, TDV, fac_base, MS, VS, bin_v,
      $     bin_n, min_fill)
-      call moments_super(n_bin, n_fact, TDV, MS, VS, bin_v, bin_r, bin_g
-     $     , bin_n, dlnr)
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_bin, bin_v, bin_r,
      $     bin_g, bin_n, dlnr)

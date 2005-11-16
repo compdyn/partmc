@@ -22,6 +22,23 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
+
+      integer n_bin             ! INPUT: number of bins
+      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
+      integer bin_n(n_bin)      ! INPUT: number in bins
+      real*8 bin_g(n_bin)       ! OUTPUT: mass in bins
+
+      integer i
+
+      do i = 1,n_bin
+         bin_g(i) = bin_n(i) * bin_v(i)
+      enddo
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, k_max)
 
       integer n_bin             ! INPUT: number of bins

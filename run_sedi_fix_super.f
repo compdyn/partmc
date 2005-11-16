@@ -40,6 +40,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, bin_n)
          !call init_bidisperse(MM, n_bin, n_ini)
+         call bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
          call sum_int_1d(n_bin, bin_n, M)
          V_comp = M / N_0
 

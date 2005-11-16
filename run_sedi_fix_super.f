@@ -7,11 +7,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MM, TDV, n_bin, n_loop, scal, n_fact, fac_base, min_fill
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_0
-      parameter (MM = 1000000)         ! number of particles
+      parameter (MM = 10000000)        ! number of particles
       parameter (TDV = 100000)         ! trailing dimension of VS
       parameter (n_bin = 160)          ! number of bins
       parameter (n_fact = 2)           ! number of factor steps
-      parameter (fac_base = 10)        ! factor base of a superparticle
+      parameter (fac_base = 100)       ! factor base of a superparticle
       parameter (min_fill = 10)        ! minimum comp. part. per bin
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
@@ -44,7 +44,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call sum_int_1d(n_bin, bin_n, M)
          V_comp = M / N_0
 
-         call mc_fix_super(M, n_bin, n_fact, TDV, fac_base, MS, VS,
+         call mc_fix_super(MM, M, n_bin, n_fact, TDV, fac_base, MS, VS,
      $        min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr,
      $        kernel_sedi, t_max, t_print, t_progress, del_t, i_loop)
 

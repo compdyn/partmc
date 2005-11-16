@@ -2,11 +2,12 @@ C     Monte Carlo with fixed timestep and a superparticle array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix_super(M, n_bin, n_fact, TDV, fac_base, MS, VS,
-     $     min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, kernel,
-     $     t_max, t_print, t_progress, del_t, loop)
+      subroutine mc_fix_super(MM, M, n_bin, n_fact, TDV, fac_base, MS,
+     $     VS, min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr,
+     $     kernel, t_max, t_print, t_progress, del_t, loop)
 
-      integer M                   ! INPUT/OUTPUT: number of particles
+      integer MM                  ! INPUT: maximum number of phys. particles
+      integer M                   ! INPUT/OUTPUT: number of phys. particles
       integer n_bin               ! INPUT: number of bins
       integer n_fact              ! INPUT: number of allowable factors
       integer TDV                 ! INPUT: trailing dimension of VS
@@ -32,7 +33,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 time, last_print_time, last_progress_time
       real*8 k_max(n_bin, n_fact, n_bin, n_fact), n_samp_real
       integer n_samp, i_samp, n_coag, b1, b2, f1, f2
-      integer tot_n_samp, tot_n_coag, max_usage
+      integer tot_n_samp, tot_n_coag, max_f, coag_factor
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
@@ -60,6 +61,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             do f1 = 1,n_fact
                do b2 = 1,n_bin
                   do f2 = 1,n_fact
+                     max_f = max(f1, f2)
+                     coag_factor = fac_base**(max_f - 1)
                      call compute_n_samp_super(n_bin, n_fact, MS, b1, f1
      $                    , b2, f2, V_comp, k_max, del_t, n_samp_real)
                      ! probabalistically determine n_samp to cope with < 1 case
@@ -74,15 +77,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $                       , bin_r, bin_g, bin_n, dlnr, b1, b2, f1, f2
      $                       , del_t, k_max(b1, f1, b2, f2), kernel,
      $                       did_coag, bin_change)
-                        if (did_coag) n_coag = n_coag + 1
+                        if (did_coag) n_coag = n_coag + coag_factor
                      enddo
                   enddo
                enddo
             enddo
          enddo
          tot_n_coag = tot_n_coag + n_coag
-         call max_int_2d(n_bin, n_fact, MS, max_usage)
-         if (max_usage .lt. TDV / 2) then
+         if (M .lt. MM / 2) then
             call double_super(M, n_bin, n_fact, TDV, MS, VS, V_comp,
      $           bin_v, bin_r, bin_g, bin_n, dlnr)
          endif

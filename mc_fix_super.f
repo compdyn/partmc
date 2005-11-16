@@ -1,32 +1,33 @@
-C     Monte Carlo with fixed timestep and a hybrid array.
+C     Monte Carlo with fixed timestep and a superparticle array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix_hybrid(MM, M, V, n_bin, TDV, MH, VH, V_comp,
-     $     bin_v, bin_r, bin_g, bin_n, dlnr, kernel, t_max, t_print,
-     $     t_progress, del_t, loop)
+      subroutine mc_fix_hybrid(M, n_bin, n_fact, TDV, fac_base, MS, VS,
+     $     min_fill, V_comp, bin_v, bin_r, bin_g, bin_n, dlnr, kernel,
+     $     t_max, t_print, t_progress, del_t, loop)
 
-      integer MM           ! INPUT: physical dimension of V
-      integer M            ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes (m^3)
-      integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH
-      integer MH(n_bin)    ! OUTPUT: number of particles per bin
-      real*8 VH(n_bin,TDV) ! OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
+      integer M                   ! INPUT/OUTPUT: number of particles
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer TDV                 ! INPUT: trailing dimension of VS
+      integer fac_base            ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)    ! INPUT/OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! INPUT/OUTPUT: volume of physical particles
+      integer min_fill            ! INPUT: minimum comp. part. per bin
+      real*8 V_comp               ! INPUT/OUTPUT: computational volume
 
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins               
-      integer bin_n(n_bin) ! OUTPUT: number in bins
-      real*8 dlnr          ! INPUT: bin scale factor
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)         ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)         ! INPUT/OUTPUT: mass in bins
+      integer bin_n(n_bin)        ! INPUT/OUTPUT: number in bins
+      real*8 dlnr                 ! INPUT: bin scale factor
 
-      external kernel      ! INPUT: kernel function
-      real*8 t_max         ! INPUT: final time (seconds)
-      real*8 t_print       ! INPUT: interval to output data (seconds)
-      real*8 t_progress    ! INPUT: interval to print progress (seconds)
-      real*8 del_t         ! INPUT: timestep
-      integer loop         ! INPUT: loop number of run
+      external kernel             ! INPUT: kernel function
+      real*8 t_max                ! INPUT: final time (seconds)
+      real*8 t_print              ! INPUT: interval to output data (seconds)
+      real*8 t_progress           ! INPUT: interval to print progress (seconds)
+      real*8 del_t                ! INPUT: timestep
+      integer loop                ! INPUT: loop number of run
 
       real*8 time, last_print_time, last_progress_time
       real*8 k_max(n_bin, n_bin), n_samp_real

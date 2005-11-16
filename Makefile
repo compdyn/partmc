@@ -1,3 +1,6 @@
+VERSION = 1.0.0
+DIST_NAME = hpmc-$(VERSION)
+
 # useful flags:
 #   -O              optimize
 #   -g              debugging
@@ -6,6 +9,7 @@
 #   -fbounds-check  check array accesses
 FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 LDFLAGS = 
+
 F77 = g77
 
 PROGS = \
@@ -22,45 +26,45 @@ PROGS = \
 	run_sedi_sect \
 	run_sedi_var
 
-PROCESS_OUT_OBJS = \
+process_out_objs = \
 	process_out.o
-RUN_GOLOVIN_ADAPT_OBJS = \
+run_golovin_adapt_objs = \
 	run_golovin_adapt.o \
 	mc_adapt.o \
 	kernel_golovin.o \
 	array.o \
 	init_dist.o
-RUN_GOLOVIN_EXACT_OBJS = \
+run_golovin_exact_objs = \
 	run_golovin_exact.o \
 	mc_exact.o \
 	kernel_golovin.o \
 	array.o \
 	init_dist.o
-RUN_GOLOVIN_FIX_OBJS = \
+run_golovin_fix_objs = \
 	run_golovin_fix.o \
 	mc_fix.o \
 	kernel_golovin.o \
 	array.o \
 	init_dist.o
-RUN_GOLOVIN_VAR_OBJS = \
+run_golovin_var_objs = \
 	run_golovin_var.o \
 	mc_var.o \
 	kernel_golovin.o \
 	array.o \
 	init_dist.o
-RUN_SEDI_ADAPT_OBJS = \
+run_sedi_adapt_objs = \
 	run_sedi_adapt.o \
 	mc_adapt.o \
 	kernel_sedi.o \
 	array.o \
 	init_dist.o
-RUN_SEDI_FIX_OBJS = \
+run_sedi_fix_objs = \
 	run_sedi_fix.o \
 	mc_fix.o \
 	kernel_sedi.o \
 	array.o \
 	init_dist.o
-RUN_SEDI_FIX_HYBRID_OBJS = \
+run_sedi_fix_hybrid_objs = \
 	run_sedi_fix_hybrid.o \
 	mc_fix_hybrid.o \
 	kernel_sedi.o \
@@ -68,64 +72,67 @@ RUN_SEDI_FIX_HYBRID_OBJS = \
 	array_hybrid.o \
 	bin.o \
 	init_dist.o
-RUN_SEDI_FIX_SPLIT_OBJS = \
+run_sedi_fix_split_objs = \
 	run_sedi_fix_split.o \
 	mc_fix_split.o \
 	kernel_sedi.o \
 	array.o \
 	array_split.o \
 	init_dist.o
-RUN_SEDI_ODE_OBJS = \
+run_sedi_ode_objs = \
 	kernel_sedi.o \
 	run_sedi_ode.o
-RUN_SEDI_SECT_OBJS = \
+run_sedi_sect_objs = \
 	kernel_sedi.o \
 	array.o \
 	run_sedi_sect.o
-RUN_SEDI_VAR_OBJS = \
+run_sedi_var_objs = \
 	run_sedi_var.o \
 	mc_var.o \
 	kernel_sedi.o \
 	array.o \
 	init_dist.o
 
+ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
+ALL_SOURCE = $(ALL_OBJS:.o=.f)
+
 all: $(PROGS)
 
-process_out: $(PROCESS_OUT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(PROCESS_OUT_OBJS)
+process_out: $(process_out_objs)
+	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)
 
-run_golovin_adapt: $(RUN_GOLOVIN_ADAPT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_ADAPT_OBJS)
+run_golovin_adapt: $(run_golovin_adapt_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_golovin_adapt_objs)
 
-run_golovin_exact: $(RUN_GOLOVIN_EXACT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_EXACT_OBJS)
+run_golovin_exact: $(run_golovin_exact_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_golovin_exact_objs)
 
-run_golovin_fix: $(RUN_GOLOVIN_FIX_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_FIX_OBJS)
+run_golovin_fix: $(run_golovin_fix_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_golovin_fix_objs)
 
-run_golovin_var: $(RUN_GOLOVIN_VAR_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_GOLOVIN_VAR_OBJS)
+run_golovin_var: $(run_golovin_var_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_golovin_var_objs)
 
-run_sedi_adapt: $(RUN_SEDI_ADAPT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_ADAPT_OBJS)
+run_sedi_adapt: $(run_sedi_adapt_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_adapt_objs)
 
-run_sedi_fix: $(RUN_SEDI_FIX_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_OBJS)
+run_sedi_fix: $(run_sedi_fix_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_objs)
 
-run_sedi_fix_hybrid: $(RUN_SEDI_FIX_HYBRID_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_HYBRID_OBJS)
+run_sedi_fix_hybrid: $(run_sedi_fix_hybrid_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_hybrid_objs)
 
-run_sedi_fix_split: $(RUN_SEDI_FIX_SPLIT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_FIX_SPLIT_OBJS)
+run_sedi_fix_split: $(run_sedi_fix_split_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_split_objs)
 
-run_sedi_ode: $(RUN_SEDI_ODE_OBJS)
+run_sedi_ode: $(run_sedi_ode_objs)
 	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_ODE_OBJS)
 
-run_sedi_sect: $(RUN_SEDI_SECT_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_SECT_OBJS)
+run_sedi_sect: $(run_sedi_sect_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_sect_objs)
 
-run_sedi_var: $(RUN_SEDI_VAR_OBJS)
-	$(F77) $(LDFLAGS) -o $@ $(RUN_SEDI_VAR_OBJS)
+run_sedi_var: $(run_sedi_var_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_var_objs)
 
 %.o: %.f
 	$(F77) $(FFLAGS) -c -o $@ $<
@@ -141,3 +148,9 @@ check:
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<
+
+dist:
+	mkdir $(DIST_NAME)
+	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
+	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
+	rm -r $(DIST_NAME)

@@ -21,6 +21,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       c_1 = (3.d0/(4d0.*pi))**(1.d0/6.d0)
       c_2 = (6.d0*k_b*T/rho_p)**0.5d0
 
-      k = c_1*c_2*(1/a+1/b)**0.5d0*(a**(1.d0/3.d0)+b**(1d0./3.d0))**2
+      k = c_1*c_2*(1.d0/a+1.d0/b)**0.5d0
+     *     *(a**(1.d0/3.d0)+b**(1d0./3.d0))**2
 
       end

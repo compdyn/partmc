@@ -4,29 +4,45 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine condensation()
 
-      real*8 a  ! INPUT: volume of first particle
-      real*8 k  ! OUTPUT: coagulation kernel
+      real*8 a  ! INPUT: volume of particle before condensation
+      real*8 k  ! OUTPUT: volume of particle after condensation
 
-      real*8 T, rho_p
+      real*8 T, rho_p, RH, pres, pmv, p0T
+      real*8 dmdt, histot
+      real*8 p00, T0
+
       parameter ( T = 298. )     ! Temperature of gas medium in K
       parameter (rho_p = 1800. ) ! particle density in kg m-3
-      
+      parameter (p00 = 611.    ) ! equilibrium water vapor pressure at 273 K in Pa
+      parameter (T0  = 273.15  ) ! in K
+      parameter (pres = 1000.  ) ! ambient pressure in hPa
+
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      call kond(r_h,g_h,gg_h,e_h,temp_h,RH_h,pres_h,
-     &     pmv_h,p0T_h,
-     &     dmdt,histot,lmin,ij,i,i,k)
+! r_h(i)   : radius of droplet (water + aerosol )in bin i (m)
+! gg_h(i,2): mass of water (gg_h(i,1)) and aerosol (gg_h(i,2)) in bin i (kg m-3 = mg cm-3)
+! e_h(i)   : mass of dry aerosol (mg)
+! RH       : relative humidity
 
+      pmv = p0T * RH
+      p0T = p00 *10**(7.45*(T-T0)/(T-38.))
 
+      call kond(r_h, gg_h, e_h, T, RH, pres,
+     &     pmv, p0T,
+     &     dmdt, histot, ij, i, i, k)
+
+! dmdt(i) and histot(i) are output
+! dmdt is growth rate of one droplet in kg s-1
+! histot =  dmdt * 1.e6 / e(i) in s-1
 
       return
       end
 
 cn ****************************************************************
  
-      SUBROUTINE kond(r,g,gg,e,T,RH,p,
-     &                pmv,p0T,dmdt,histot,lmin,ij,ia,ie,k)
+      SUBROUTINE kond(r,gg,e,T,RH,p,
+     &                pmv,p0T,dmdt,histot,ij,ia,ie,k)
 
 cn *** Calculation of the term dm/dt according to Majeed and Wexler, Atmos. Env. (2001)
 cn *** Since Eq. (7) in this paper is an implicit equation (T_a depends on dm/dt), a Newton
@@ -51,14 +67,16 @@ cn *** solver is applied.
       real*8    p0T,hm,rmax,rh
       real*8    T                                ! ambient temperature in K
       real*8    p                                ! ambient pressure  in hPa
-      real      RR,M_w,sig_w,M_s,rho_w,pi,nu,mm
+      real      RR,M_w,sig_w,M_s,rho_w,pi,nu
       real      t1,t2
       real*8    taudiff(imax)
       real*8    g1,g2
-      parameter (RR=8.314, M_w = 18.e-03, mm=1.e-19)
+      parameter (RR=8.314, M_w = 18.e-03)
       parameter (sig_w = 0.073,M_s = 132.e-03, rho_w = 1000.)
-      parameter (pi = 3.1415, nu=3)
+      parameter (nu=3)
       parameter (gmin = 0.)
+
+      parameter (pi = 3.14159265358979323846d0)
 
       do i=ia,ie
          dmdt(i) = 0.
@@ -149,8 +167,7 @@ cn *****************************************************************************
 
       parameter (rho = 1000., rho_a = 1.25, rho_n=1800.)
       parameter (M_w = 18.*1.e-03, M_a = 28.*1.e-3, M_s=132.*1.e-03)
-      parameter (sig = 0.073)
-      parameter (pi = 3.1415) 
+      parameter (sig = 0.073) 
       parameter (R = 8.314)
       parameter (L_v = 2.5e+6)
       parameter (alpha = 1.)                   ! the value 0.045 is also used sometimes ...
@@ -158,6 +175,8 @@ cn *****************************************************************************
       parameter (cp = 1005)
       parameter (nu = 3)                       ! number of ions in the solute
       parameter (eps = 0.25)                   ! solubility of aerosol material
+
+      parameter (pi = 3.14159265358979323846d0)
 cn      parameter (eps = 0.9)
 
 cn ***  conversion hPa in atm

@@ -7,13 +7,14 @@ DIST_NAME = hpmc-$(VERSION)
 #   -pg             profiling
 #   -pedantic       strict F77
 #   -fbounds-check  check array accesses
-#FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 # for gfortran:
 #FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
-FFLAGS = -g -O -fimplicit-none -w
+#FFLAGS = -g -O -fimplicit-none -w
 LDFLAGS = 
 
-F77 = gfortran
+F77 = g77
+#F77 = gfortran
 
 PROGS = \
 	process_out \
@@ -26,6 +27,8 @@ PROGS = \
 	run_sedi_fix_hybrid \
 	run_sedi_fix_split \
 	run_sedi_fix_super \
+	run_sedi_fix_hybrid_bi \
+	run_sedi_fix_super_bi \
 	run_sedi_ode \
 	run_sedi_sect \
 	run_sedi_var
@@ -37,37 +40,43 @@ run_golovin_adapt_objs = \
 	mc_adapt.o \
 	kernel_golovin.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_golovin_exact_objs = \
 	run_golovin_exact.o \
 	mc_exact.o \
 	kernel_golovin.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_golovin_fix_objs = \
 	run_golovin_fix.o \
 	mc_fix.o \
 	kernel_golovin.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_golovin_var_objs = \
 	run_golovin_var.o \
 	mc_var.o \
 	kernel_golovin.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_sedi_adapt_objs = \
 	run_sedi_adapt.o \
 	mc_adapt.o \
 	kernel_sedi.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_sedi_fix_objs = \
 	run_sedi_fix.o \
 	mc_fix.o \
 	kernel_sedi.o \
 	array.o \
-	init_dist.o
+	init_dist.o \
+	bin.o
 run_sedi_fix_hybrid_objs = \
 	run_sedi_fix_hybrid.o \
 	mc_fix_hybrid.o \
@@ -92,6 +101,23 @@ run_sedi_fix_super_objs = \
 	bin.o \
 	init_dist.o \
 	util.o
+run_sedi_fix_hybrid_bi_objs = \
+	run_sedi_fix_hybrid_bi.o \
+	mc_fix_hybrid.o \
+	kernel_sedi.o \
+	array.o \
+	array_hybrid.o \
+	bin.o \
+	init_dist.o
+run_sedi_fix_super_bi_objs = \
+	run_sedi_fix_super_bi.o \
+	mc_fix_super.o \
+	kernel_sedi.o \
+	array.o \
+	array_super.o \
+	bin.o \
+	init_dist.o \
+	util.o
 run_sedi_ode_objs = \
 	kernel_sedi.o \
 	run_sedi_ode.o
@@ -109,7 +135,8 @@ run_sedi_var_objs = \
 ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
 ALL_SOURCE = $(ALL_OBJS:.o=.f)
 
-all: $(PROGS)
+all: run_sedi_fix_super run_sedi_sect
+#all: $(PROGS)
 
 process_out: $(process_out_objs)
 	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)
@@ -140,6 +167,12 @@ run_sedi_fix_split: $(run_sedi_fix_split_objs)
 
 run_sedi_fix_super: $(run_sedi_fix_super_objs)
 	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_objs)
+
+run_sedi_fix_hybrid_bi: $(run_sedi_fix_hybrid_bi_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_hybrid_bi_objs)
+
+run_sedi_fix_super_bi: $(run_sedi_fix_super_bi_objs)
+	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_bi_objs)
 
 run_sedi_ode: $(run_sedi_ode_objs)
 	$(F77) $(LDFLAGS) -o $@ $(run_sedi_ode_objs)

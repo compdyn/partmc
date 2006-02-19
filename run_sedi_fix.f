@@ -6,11 +6,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, del_t, rho_p, N_0, t_print
-      parameter (MM = 10000)       ! number of particles
+      parameter (MM = 10001)       ! number of particles
       parameter (n_bin = 160)      ! number of bins
-      parameter (n_loop = 1)       ! number of loops
+      parameter (n_loop = 10)      ! number of loops
       parameter (scal = 3)         ! scale factor for bins
-      parameter (t_max = 600d0)    ! total simulation time (seconds)
+      parameter (t_max = 240d0)    ! total simulation time (seconds)
       parameter (del_t = 1d0)      ! timestep (seconds)
       parameter (rho_p = 1000d0)   ! particle density (kg m^{-3})
       parameter (N_0 = 1d9)        ! particle number concentration (#/m^3)

@@ -36,6 +36,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer tot_n_samp, tot_n_coag, max_f, coag_factor
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
+! DEBUG
+      integer M_comp
+! DEBUG
 
       last_progress_time = 0d0
       time = 0d0
@@ -109,6 +112,11 @@ c     $        , bin_r)
      $           'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M,
      $           tot_n_samp, n_coag, tot_n_coag, t_est
+! DEBUG
+            call sum_int_2d(n_bin, n_fact, MS, M_comp)
+            write(6,'(a9)'), 'M_comp'
+            write(6,'(i9)'), M_comp
+! DEBUG
          endif
       enddo
 

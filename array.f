@@ -12,7 +12,8 @@ C     dlnr ... FIXME
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
+      subroutine make_grid(n_bin, scal, v_min, bin_v, bin_r,
+     $     dlnr)
 
       integer n_bin        ! INPUT: number of bins
       integer scal         ! INPUT: scale factor
@@ -440,7 +441,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_header(n_loop, n_bin, n_time, n_spec)
+      subroutine print_header(n_loop, n_bin, n_spec, n_time, n_spec)
 
       integer n_loop  ! INPUT: number of loops
       integer n_bin   ! INPUT: number of bins

@@ -10,7 +10,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (MM = 10000000)        ! number of particles
       parameter (TDV = 1000000)        ! trailing dimension of VH
       parameter (n_bin = 160)          ! number of bins
-      parameter (n_loop = 1)           ! number of loops
+      parameter (n_loop = 20)          ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
@@ -30,7 +30,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, nint(t_max / t_print) + 1)
-      call srand(17)
+      call srand(18)
 
       do i_loop = 1,n_loop
 

@@ -12,50 +12,51 @@ C     dlnr ... FIXME
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
+      subroutine make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
 
       integer n_bin        ! INPUT: number of bins
       integer scal         ! INPUT: scale factor
-      real*8 rho_p         ! INPUT: density (kg m^(-3))
       real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins (m^3)
       real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins (m)
       real*8 dlnr          ! OUTPUT: scale factor
 
       integer i
-      real*8 ax, e(n_bin), r(n_bin), emin
+      real*8 ax
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
       dlnr = dlog(2d0) / (3d0 * scal)
-      ax = 2d0**(1d0 / scal) ! ratio e(i)/e(i-1)
-      emin = 1d-15
+      ax = 2d0**(1d0 / scal) ! ratio bin_v(i)/bin_v(i-1)
 
-      ! FIXME: rewrite in a sane way
+
       do i = 1,n_bin
-         ! mass (mg)
-         e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
-         ! radius (um)
-         r(i) = 1d6 * dexp(dlog(3d0 * 1d-6 * e(i) / 
-     &             (4d0 * rho_p * pi)) / 3d0)
          ! volume (m^3)
-         bin_v(i) = 1d-6 * e(i) / rho_p
+         bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          ! radius (m)
-         bin_r(i) = 1d-6 * r(i)
+         bin_r(i) = dexp(dlog(3d0 * bin_v(i) / 
+     &             (4d0 * pi)) / 3d0)
       enddo
+
       return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
+      subroutine compute_volumes(n_bin, n_spec, n_spec_in,
+     *     MM, i_start, i_end, 
+     *     n_ini, bin_r, dlnr, V, M)
 
       integer n_bin        ! INPUT: number of bins
+      integer n_spec       ! INPUT: number of species
+      integer n_spec_in    ! INPUT: index of species
       integer MM           ! INPUT: physical size of V
+      integer i_start      ! INPUT:
+      integer i_end        ! INPUT:
       integer n_ini(n_bin) ! INPUT: initial number distribution
       real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bin (m)
       real*8 dlnr          ! INPUT: scale factor
-      real*8 V(MM)         ! OUTPUT: particle volumes  (m^3)
+      real*8 V(MM,n_spec)  ! OUTPUT: particle volumes  (m^3)
       integer M            ! OUTPUT: logical dimension of V
 
       integer k, i, sum_e, sum_a, delta_n
@@ -63,13 +64,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      sum_e = 0
+      sum_e = i_start - 1
       do k = 1,n_bin
          delta_n = n_ini(k)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i) = 4d0/3d0 * pi * bin_r(k)**3
+            V(i,i_spec_in) = 4d0/3d0 * pi * bin_r(k)**3
          enddo
       enddo
 
@@ -79,7 +80,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-     
+ 
+      subroutine zero_v(MM,n_spec,V)
+
+      integer MM      ! INPUT: 
+      integer n_spec  ! INPUT: number of species
+
+      real*8 V(MM,n_spec)
+
+
+      do i=1,MM
+         do j=1,n_spec
+            V(i,j) = 0.
+         enddo
+      enddo
+
+      return
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine find_rand_pair(M, s1, s2)
       
       integer M       ! INPUT: number of particles
@@ -358,12 +378,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine moments(MM, M, V, V_comp,
+      subroutine moments(MM, M, V, V_comp, n_spec,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT: particle volumes (m^3)
+      integer n_spec       ! INPUT: number of species
+      real*8 V(MM,n_spec)  ! INPUT: particle volumes (m^3)
       real*8 V_comp        ! INPUT: computational volume (m^3)
 
       integer n_bin        ! INPUT: number of bins
@@ -374,13 +395,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 dlnr          ! INPUT: bin scale factor
       
       integer i, k
+      real*8 pv
 
       do k = 1,n_bin
          bin_g(k) = 0d0
          bin_n(k) = 0
       enddo
       do i = 1,M
-         call particle_in_bin(V(i), n_bin, bin_v, k)
+         call particle_vol(MM,n_spec,V,i,pv)
+         call particle_in_bin(pv, n_bin, bin_v, k)
          bin_g(k) = bin_g(k) + V(i)
          bin_n(k) = bin_n(k) + 1
       enddo
@@ -417,15 +440,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
-      subroutine print_header(n_loop, n_bin, n_time)
+      subroutine print_header(n_loop, n_bin, n_time, n_spec)
 
       integer n_loop  ! INPUT: number of loops
       integer n_bin   ! INPUT: number of bins
       integer n_time  ! INPUT: number of times
+      integer n_spec  ! INPUT: number of species
 
       write(30,'(a10,i10)') 'n_loop', n_loop
       write(30,'(a10,i10)') 'n_bin', n_bin
       write(30,'(a10,i10)') 'n_time', n_time
+      write(30,'(a10,i10)') 'n_spec', n_spec
 
       return
       end
@@ -457,3 +482,19 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine particle_vol(MM,n_spec,V,i,pv)
+
+      integer MM           ! INPUT: physical dimension of V
+      integer n_spec       ! INPUT: number of species
+      real*8 V(MM,n_spec)  ! INPUT: particle volumes (m^3)
+      integer i            ! INPUT: particle index
+      real*8 pv            ! OUPUT: total volume of particle
+
+      pv = 0d0
+      do j=1,n_spec
+         pv = pv + V(i,j)
+      enddo
+
+      return
+      end

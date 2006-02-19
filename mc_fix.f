@@ -2,13 +2,14 @@ C Monte Carlo with fixed timestep.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix(MM, M, V, V_comp,
+      subroutine mc_fix(MM, M, V, V_comp, n_spec,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
      &     kernel, t_max, del_t, t_print, loop)
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
-      real*8 V(MM)         ! INPUT/OUTPUT: particle volumes
+      integer n_spec       ! INPUT: number of species
+      real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes
       real*8 V_comp        ! INPUT/OUTPUT: computational volume
 
       integer n_bin        ! INPUT: number of bins
@@ -32,7 +33,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       time = 0d0
       n_coag = 0
 
-      call moments(MM, M, V, V_comp,
+      call moments(MM, M, V, V_comp, n_spec,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
       call print_info(time, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)

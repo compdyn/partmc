@@ -18,6 +18,15 @@ F77 = g77
 
 PROGS = \
 	process_out \
+	run_sedi_fix_hybrid \
+	run_sedi_fix_super \
+	run_sedi_fix_hybrid_bi \
+	run_sedi_fix_super_bi \
+	run_sedi_ode \
+	run_sedi_sect
+
+#PROGS = \
+	process_out \
 	run_golovin_adapt \
 	run_golovin_exact \
 	run_golovin_fix \
@@ -84,7 +93,8 @@ run_sedi_fix_hybrid_objs = \
 	array.o \
 	array_hybrid.o \
 	bin.o \
-	init_dist.o
+	init_dist.o \
+	util.o
 run_sedi_fix_split_objs = \
 	run_sedi_fix_split.o \
 	mc_fix_split.o \
@@ -108,7 +118,8 @@ run_sedi_fix_hybrid_bi_objs = \
 	array.o \
 	array_hybrid.o \
 	bin.o \
-	init_dist.o
+	init_dist.o \
+	util.o
 run_sedi_fix_super_bi_objs = \
 	run_sedi_fix_super_bi.o \
 	mc_fix_super.o \
@@ -135,8 +146,7 @@ run_sedi_var_objs = \
 ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
 ALL_SOURCE = $(ALL_OBJS:.o=.f)
 
-all: run_sedi_fix_super run_sedi_sect
-#all: $(PROGS)
+all: $(PROGS)
 
 process_out: $(process_out_objs)
 	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)

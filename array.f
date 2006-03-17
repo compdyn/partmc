@@ -42,7 +42,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          bin_v(i) = 1d-6 * e(i) / rho_p
          ! radius (m)
          bin_r(i) = 1d-6 * r(i)
+         write(*,*) i, r(i)
       enddo
+      stop
       return
       end
 

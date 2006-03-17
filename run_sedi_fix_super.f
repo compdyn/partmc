@@ -11,11 +11,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (TDV = 100000)         ! trailing dimension of VS
       parameter (n_bin = 160)          ! number of bins
       parameter (n_fact = 2)           ! number of factor steps
-      parameter (fac_base = 100)       ! factor base of a superparticle
+      parameter (fac_base = 10)        ! factor base of a superparticle
       parameter (min_fill = 1)         ! minimum comp. part. per bin
       parameter (n_loop = 10)          ! number of loops
       parameter (scal = 3)             ! scale factor for bins
-      parameter (t_max = 240d0)        ! total simulation time (seconds)
+      parameter (t_max = 300d0)        ! total simulation time (seconds)
       parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)       ! interval between printing (s)

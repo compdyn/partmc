@@ -42,10 +42,8 @@ C     mass and radius grid
       dlnr = log(2d0) / (3d0 * scal)
       ax = 2d0**(1d0 / scal)
       v0 = 4d0 / 3d0 * pi * rq0**3
-      e(1) = 0.5d0 * emin * (ax + 1d0)
-      r(1) = 1000d0 * exp(log(3d0 * e(1) / (4d0 * pi)) / 3d0)
-      do i = 2,n
-         e(i) = ax * e(i - 1)
+      do i = 1,n
+         e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          r(i) = 1000d0 * exp(log(3d0 * e(i) / (4d0 * pi)) / 3d0)
       enddo
 

@@ -45,9 +45,7 @@ C     mass and radius grid
       do i = 1,n
          e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
          r(i) = 1000d0 * exp(log(3d0 * e(i) / (4d0 * pi)) / 3d0)
-         write(*,*) i, r(i)
       enddo
-      stop
 
 C     initial mass distribution
       rq0 = rq0b * 1d-4

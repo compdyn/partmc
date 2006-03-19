@@ -1,18 +1,18 @@
       program coad1d
 
       integer n, scal, isw
-      real*8 dt, rq0b, xmwb, eps, u, rho, emin, tmax
+      real*8 dt, eps, u, rho, emin, tmax, N_0, V_0
       parameter (n = 220)          ! number of bins
       parameter (scal = 4)         ! bin mesh scale factor
       parameter (isw = 1)          ! kernel (0 = long, 1 = hall, 2 = golovin)
       parameter (dt = 1d0)         ! timestep (s)
-      parameter (rq0b = 10d0)      ! mode radius of init dist (um)
-      parameter (xmwb = 4.1886d0)  ! total water content (g/m^3)
       parameter (eps = 100d0)      ! epsilon (cm^2/s^3)
       parameter (u = 2.5d0)        ! u' (m/s)
       parameter (rho = 1000d0)     ! particle density (kg/m^3)
       parameter (emin = 1d-15)     ! 
       parameter (tmax = 600d0)     ! total simulation time (s)
+      parameter (N_0 = 1d9)        ! particle number concentration (#/m^3)
+      parameter (V_0 = 4.1886d-15) ! mean volume of initial distribution (m^3)
 
       real*8 dlnr, ax
       real*8 c(n,n), ima(n,n)
@@ -23,48 +23,39 @@
       real*8 taug(n), taup(n), taul(n), tauu(n)
       real*8 prod(n), ploss(n)
       real*8 bin_v(n), bin_r(n)
+      real*8 n_den(n)
 
       integer i, j, nt, lmin, ij
-      real*8 xn0, xn1, v0, x0, x1
-      real*8 tlmin, t, tau, rq0, xmw
+      real*8 tlmin, t
 
       real*8 pi
       parameter (pi = 3.141592654)
 
-C     g   : spectral mass distribution (mg/cm**3)
+C     g   : spectral mass distribution (mg/cm^3)
 C     e   : droplet mass grid (mg)
 C     r   : droplet radius grid (um)
 C     dlnr: constant grid distance of logarithmic grid 
-C     xn0 : mean initial droplet mass (mg)
-C     xn1 : total initial droplet number concentration (1/cm^3)
 C     ax  : growth factor for consecutive masses
 
 C     mass and radius grid
       call make_grid(n, scal, rho, bin_v, bin_r, dlnr)
       do i = 1,n
-         r(i) = bin_r(i) * 1e6
-         e(i) = bin_v(i) * rho * 1d6
+         r(i) = bin_r(i) * 1e6         ! radius in m to um
+         e(i) = bin_v(i) * rho * 1d6   ! volume in m^3 to mass in mg
       enddo
 
 C     initial mass distribution
-      v0 = 4d0 / 3d0 * pi * rq0**3
-      rq0 = rq0b * 1d-4
-      xmw = xmwb * 1d-3
-      xn0 = 4d0/3d0 * pi * 1000d0 * exp(log(rq0)*3d0)
-      xn1 = xmw / xn0
-      x0 = xn1 / xn0
+      call init_exp(V_0, n, bin_v, bin_r, n_den)
       do i = 1,n
-         x1 = e(i)
-         g(i) = 3d0 * x1**2 * x0 * exp(-(x1 / xn0))
-         if (g(i) .lt. 1d-30) then
-            gin(i) = 0d0
-         else
+         g(i) = n_den(i) * bin_v(i) * rho * N_0
+      enddo
+
+C     save initial distribution
+      do i = 1,n
          gin(i) = g(i)
-         endif
-         write(6,*)'init ',i,r(i),g(i)
       enddo
       
-      call courant(n, rq0, dlnr, scal, ax, c, ima, g, r, e)
+      call courant(n, dlnr, scal, ax, c, ima, g, r, e)
       call trkern (isw, eps, u, n, g, r, e, ck, ec)
 
 C     nt: number of iterations
@@ -97,8 +88,7 @@ C     output for plotting
             tlmin = tlmin - 60d0
             lmin = lmin + 1
             print *,'time in minutes:',lmin
-            tau = xn1 * 1500 * v0*t
-            write(6,*)'time ', t, tau
+             write(6,*)'time ', t
             do i = 1,n
                hin(i) = 3d15 * gin(i) / (4d0 * pi * r(i)**3)     ! m^{-3}
                hout(lmin,i) = 3d15 * g(i) / (4d0 * pi * r(i)**3) ! m^{-3}
@@ -112,13 +102,11 @@ C     output for plotting
          endif
       enddo
 
-         
-
       open(15, file = 'sectionm')
       open(25, file = 'sectionn')
       do i = 1,n
-         write(15,'(62e14.5)') r(i), gin(i), (gout(j,i), j = 1, lmin)
-         write(25,'(62e14.5)') r(i), hin(i), (hout(j,i), j = 1, lmin)
+         write(15,'(62e14.5e3)') r(i), gin(i), (gout(j,i), j = 1, lmin)
+         write(25,'(62e14.5e3)') r(i), hin(i), (hout(j,i), j = 1, lmin)
       enddo
 
       end
@@ -206,10 +194,9 @@ C     gain for positions i, j
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine courant(n, rq0, dlnr, scal, ax, c, ima, g, r, e)
+      subroutine courant(n, dlnr, scal, ax, c, ima, g, r, e)
 
       integer n
-      real*8 rq0
       real*8 dlnr
       integer scal
       real*8 ax

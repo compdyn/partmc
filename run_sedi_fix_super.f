@@ -21,7 +21,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 60d0)       ! interval between printing (s)
       parameter (t_progress = 1d0)     ! interval between progress (s)
       parameter (del_t = 1d0)          ! timestep (s)
-      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution (m^3)
+      parameter (V_0 = 4.1886d-15)     ! mean volume of initial distribution
+                                       ! (m^3)
 
       integer M, i_loop
       real*8 V_comp, dlnr, VS(n_bin, n_fact, TDV)

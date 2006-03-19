@@ -135,6 +135,8 @@ run_sedi_ode_objs = \
 run_sedi_sect_objs = \
 	kernel_sedi.o \
 	array.o \
+	bin.o \
+	init_dist.o \
 	run_sedi_sect.o
 run_sedi_var_objs = \
 	run_sedi_var.o \

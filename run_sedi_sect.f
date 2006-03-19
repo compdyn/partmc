@@ -10,7 +10,7 @@
       parameter (xmwb = 4.1886d0)  ! total water content (g/m^3)
       parameter (eps = 100d0)      ! epsilon (cm^2/s^3)
       parameter (u = 2.5d0)        ! u' (m/s)
-      parameter (rho = 1000d0)     ! particle density (FIXME: units?)
+      parameter (rho = 1000d0)     ! particle density (kg/m^3)
       parameter (emin = 1d-15)     ! 
       parameter (tmax = 600d0)     ! total simulation time (s)
 
@@ -22,6 +22,7 @@
       real*8 gin(n), hin(n), bin(n), bout(3600,n)
       real*8 taug(n), taup(n), taul(n), tauu(n)
       real*8 prod(n), ploss(n)
+      real*8 bin_v(n), bin_r(n)
 
       integer i, j, nt, lmin, ij
       real*8 xn0, xn1, v0, x0, x1
@@ -39,15 +40,14 @@ C     xn1 : total initial droplet number concentration (1/cm^3)
 C     ax  : growth factor for consecutive masses
 
 C     mass and radius grid
-      dlnr = log(2d0) / (3d0 * scal)
-      ax = 2d0**(1d0 / scal)
-      v0 = 4d0 / 3d0 * pi * rq0**3
+      call make_grid(n, scal, rho, bin_v, bin_r, dlnr)
       do i = 1,n
-         e(i) = emin * 0.5d0 * (ax + 1d0) * ax**(i - 1)
-         r(i) = 1000d0 * exp(log(3d0 * e(i) / (4d0 * pi)) / 3d0)
+         r(i) = bin_r(i) * 1e6
+         e(i) = bin_v(i) * rho * 1d6
       enddo
 
 C     initial mass distribution
+      v0 = 4d0 / 3d0 * pi * rq0**3
       rq0 = rq0b * 1d-4
       xmw = xmwb * 1d-3
       xn0 = 4d0/3d0 * pi * 1000d0 * exp(log(rq0)*3d0)
@@ -75,7 +75,12 @@ C     multiply kernel with constant timestep and logarithmic grid distance
             ck(i,j) = ck(i,j) * dt * dlnr
          enddo
       enddo
+
 C     time integration
+
+!      open(30, file = 'out_sedi_sect.d')
+!      print_header(1, n, lmin)
+
       tlmin = 1d-6
       t = 1d-6
       lmin = 0
@@ -106,6 +111,8 @@ C     output for plotting
             call do_mass_balance(n, g, r, dlnr)
          endif
       enddo
+
+         
 
       open(15, file = 'sectionm')
       open(25, file = 'sectionn')

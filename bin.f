@@ -2,6 +2,27 @@ C     Functions that deal with the bin grid.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine bin_kernel(n_bin, bin_v, kernel, k)
+
+C     Computes the kernel for each bin pair
+
+      integer n_bin             ! INPUT: number of bins
+      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
+      external kernel           ! INPUT: kernel function
+      real*8 k(n_bin, n_bin)    ! OUTPUT: kernel values
+
+      integer i, j
+
+      do i = 1,n_bin
+         do j = 1,n_bin
+            call kernel(bin_v(i), bin_v(j), k(i,j))
+         enddo
+      enddo
+      
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine vol_to_lnr(r, f_vol, f_lnr)
 
 C     Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))

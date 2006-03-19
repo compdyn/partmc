@@ -17,9 +17,9 @@
       real*8 dlnr, ax
       real*8 c(n,n), ima(n,n)
       real*8 g(n), r(n), e(n)
-      real*8 ck(n,n), ec(n,n)
+      real*8 k_bin(n,n), ck(n,n), ec(n,n)
       real*8 gout(3600,n), hout(3600,n)
-      real*8 gin(n), hin(n), bin(n), bout(3600,n)
+      real*8 gin(n), hin(n)
       real*8 taug(n), taup(n), taul(n), tauu(n)
       real*8 prod(n), ploss(n)
       real*8 bin_v(n), bin_r(n)
@@ -27,6 +27,8 @@
 
       integer i, j, nt, lmin, ij
       real*8 tlmin, t
+
+      external kernel_sedi
 
       real*8 pi
       parameter (pi = 3.141592654)
@@ -53,10 +55,19 @@ C     initial mass distribution
 C     save initial distribution
       do i = 1,n
          gin(i) = g(i)
+         hin(i) = 3d15 * gin(i) / (4d0 * pi * r(i)**3) ! m^{-3}
       enddo
       
       call courant(n, dlnr, scal, ax, c, ima, g, r, e)
-      call trkern (isw, eps, u, n, g, r, e, ck, ec)
+
+c     precompute kernel values for all pairs of bins
+      call bin_kernel(n, bin_v, kernel_sedi, k_bin)
+      call smooth_bin_kernel(n, k_bin, ck)
+      do i = 1,n
+         do j = 1,n
+            ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
+         enddo
+      enddo
 
 C     nt: number of iterations
       nt = int(tmax / dt) + 1
@@ -90,12 +101,8 @@ C     output for plotting
             print *,'time in minutes:',lmin
              write(6,*)'time ', t
             do i = 1,n
-               hin(i) = 3d15 * gin(i) / (4d0 * pi * r(i)**3)     ! m^{-3}
                hout(lmin,i) = 3d15 * g(i) / (4d0 * pi * r(i)**3) ! m^{-3}
                gout(lmin,i) = g(i)
-               bin(i) = 3d12 * gin(i) / (4d0 * 1000d0 * pi * r(i)**2)
-               bout(lmin,i) = 3d12 * gout(lmin,i)
-     &              / (4d0 * 1000 * pi * r(i)**2)
             enddo
 
             call do_mass_balance(n, g, r, dlnr)
@@ -236,97 +243,31 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine trkern(isw, eps, u, n, g, r, e, ck, ec)
+      subroutine smooth_bin_kernel(n_bin, k, k_smooth)
 
-      integer isw
-      real*8 eps
-      real*8 u
-      integer n
-      real*8 g(n)
-      real*8 r(n)
-      real*8 e(n)
-      real*8 ck(n,n)
-      real*8 ec(n,n)
+C     Smooths kernel values for bin pairs, and halves the self-rate.
 
-      real*8 winf(n)
-      real*8 rr(n)
-      real*8 cck(n,n)
+      integer n_bin                 ! INPUT: number of bins
+      real*8 k(n_bin, n_bin)        ! INPUT: kernel values
+      real*8 k_smooth(n_bin, n_bin) ! OUTPUT: smoothed kernel values
 
-      integer i, j, im, jm, ip, jp
-      real*8 effi, r_tmp, w_tmp, r1, r2, ec_tmp
-      real*8 winf1, winf2
+      integer i, j, im, ip, jm, jp
 
-      real*8 pi
-      parameter (pi = 3.141592654)
-
-      if (isw .eq. 0) then
-C long kernel
-         do j = 1,n
-            r_tmp = r(j) / 1d6
-            call fall_g(r_tmp, w_tmp)
-            winf(j) = w_tmp * 100d0
-            rr(j) = r(j) * 1d-4
-         enddo
-
-         do j = 1,n
-            do i = 1,j
-               if(r(j) .le. 50d0) then
-                  effi = 4.5d0 - 4d0 * r(j) * r(j)
-     &                 * (1d0 - 3d0 / (max(3d0, dble(r(i))) + 1d-2))
-               else
-                  effi = 1d0
-               endif
-               cck(j,i) = pi * (rr(j) + rr(i)) * (rr(j) + rr(i)) * effi
-     &              * abs(winf(j) - winf(i))
-               cck(i,j) = cck(j,i)
-            enddo
-         enddo
-      elseif (isw .eq. 1) then
-C     hall kernel
-         do i = 1,n
-            do j = 1,n
-               r1 = r(i) ! (um)
-               r2 = r(j) ! (um)
-               call fall_g(r1 / 1d6, winf1) ! winf1 in m/s
-               call fall_g(r2 / 1d6, winf2) ! winf2 in m/s
-               call effic(r1, r2, ec_tmp) ! ec_tmp dimensionless
-               cck(i,j) = 1d-6 * pi * (r1 + r2)**2 * ec_tmp
-     &              * abs(winf1 - winf2)
-               ! cck in cm^3/s = 1d6 * m^3/s
-            enddo
-         enddo
-      elseif (isw .eq. 2) then
-C     golovin kernel
-         do j = 1,n
-            r_tmp = r(j) / 1d6
-            call fall_g(r_tmp, w_tmp)
-            winf(j) = w_tmp * 100d0
-            rr(j) = r(j) * 1d-4
-         enddo
-
-         do j = 1,n
-            do i = 1,j
-               cck(j,i) = 1d0 * (e(j) + e(i))
-               cck(i,j) = cck(j,i)
-            enddo
-         enddo
-      endif
-
-C     two-dimensional linear interpolation of kernel
-      do i = 1,n
-         do j = 1,n
+      do i = 1,n_bin
+         do j = 1,n_bin
             jm = max0(j - 1, 1)
             im = max0(i - 1, 1)
-            jp = min0(j + 1, n)
-            ip = min0(i + 1, n)
-            ck(i,j) = 0.125d0 * (cck(i,jm) + cck(im,j)
-     &           + cck(ip,j) + cck(i,jp))
-     &           + 0.5d0 * cck(i,j)
-            if (i .eq. j) ck(i,j) =0.5d0 * ck(i,j)
+            jp = min0(j + 1, n_bin)
+            ip = min0(i + 1, n_bin)
+            k_smooth(i,j) = 0.125d0 * (k(i,jm) + k(im,j)
+     &           + k(ip,j) + k(i,jp))
+     &           + 0.5d0 * k(i,j)
+            if (i .eq. j) then
+               k_smooth(i,j) = 0.5d0 * k_smooth(i,j)
+            endif
          enddo
       enddo
 
-      return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

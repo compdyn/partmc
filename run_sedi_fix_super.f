@@ -27,6 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V_comp, dlnr, VS(n_bin, n_fact, TDV)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin)
+      real*8 n_den(n_bin)
       integer bin_n(n_bin), MS(n_bin, n_fact)
 
       external kernel_sedi
@@ -38,7 +39,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, bin_n)
+         call init_exp(V_0, n_bin, bin_v, bin_r, n_den)
+         call dist_to_n(MM, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
          !call init_bidisperse(MM, n_bin, bin_n)
          call bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
          call sum_int_1d(n_bin, bin_n, M)

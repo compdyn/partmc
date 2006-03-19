@@ -23,6 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V(MM), V_comp, dlnr
       real*8 bin_v(n_bin),  bin_r(n_bin)
       real*8 bin_g(n_bin)
+      real*8 n_den(n_bin)
       integer n_ini(n_bin), bin_n(n_bin)
 
       external kernel_golovin
@@ -34,7 +35,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do i_loop = 1,n_loop
          
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
-         call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
+         call init_exp(V_0, n_bin, bin_v, bin_r, n_den)
+         call dist_to_n(MM, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
          call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
          V_comp = M / N_0
 

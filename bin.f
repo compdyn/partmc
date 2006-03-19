@@ -2,6 +2,24 @@ C     Functions that deal with the bin grid.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine vol_to_lnr(r, f_vol, f_lnr)
+
+C     Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
+C     where vol = 4 pi r^3.
+
+      real*8 r                  ! INPUT: radius (m)
+      real*8 f_vol              ! INPUT: density as a function of volume
+      real*8 f_lnr              ! OUTPUT: density as a function of ln(r)
+      
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      f_lnr = f_vol * 4d0 * pi * r**3
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine bin_edge(n_bin, bin_v, i, v_edge)
 
       integer n_bin             ! INPUT: number of bins

@@ -1,38 +1,34 @@
       program coad1d
 
       integer n, scal, isw
-      real*8 dt, eps, u, rho, emin, tmax, N_0, V_0
+      real*8 eps, u, rho, emin, N_0, V_0
       real*8 t_max, t_print, t_progress, del_t
-      parameter (n = 220)          ! number of bins
-      parameter (scal = 4)         ! bin mesh scale factor
-      parameter (isw = 1)          ! kernel (0 = long, 1 = hall, 2 = golovin)
-      parameter (dt = 1d0)         ! timestep (s)
-      parameter (eps = 100d0)      ! epsilon (cm^2/s^3)
-      parameter (u = 2.5d0)        ! u' (m/s)
-      parameter (rho = 1000d0)     ! particle density (kg/m^3)
-      parameter (emin = 1d-15)     ! 
-      parameter (tmax = 600d0)     ! total simulation time (s)
-      parameter (N_0 = 1d9)        ! particle number concentration (#/m^3)
-      parameter (V_0 = 4.1886d-15) ! mean volume of initial distribution (m^3)
-
-      parameter (t_max = 600d0)        ! total simulation time (seconds)
-      parameter (t_print = 60d0)       ! interval between printing (s)
-      parameter (t_progress = 1d0)     ! interval between progress (s)
-      parameter (del_t = 1d0)          ! timestep (s)
+      parameter (n = 220)           ! number of bins
+      parameter (scal = 4)          ! bin mesh scale factor
+      parameter (isw = 1)           ! kernel (0 = long, 1 = hall, 2 = golovin)
+      parameter (eps = 100d0)       ! epsilon (cm^2/s^3)
+      parameter (u = 2.5d0)         ! u' (m/s)
+      parameter (rho = 1000d0)      ! particle density (kg/m^3)
+      parameter (emin = 1d-15)      ! 
+      parameter (N_0 = 1d9)         ! particle number concentration (#/m^3)
+      parameter (V_0 = 4.1886d-15)  ! mean volume of initial distribution (m^3)
+      parameter (t_max = 600d0)     ! total simulation time (seconds)
+      parameter (t_print = 60d0)    ! interval between printing (s)
+      parameter (t_progress = 10d0) ! interval between progress (s)
+      parameter (del_t = 1d0)       ! timestep (s)
 
       real*8 dlnr
       real*8 c(n,n), ima(n,n)
       real*8 g(n), r(n), e(n)
       real*8 k_bin(n,n), ck(n,n), ec(n,n)
-      real*8 gout(3600,n), hout(3600,n)
-      real*8 gin(n), hin(n)
       real*8 taug(n), taup(n), taul(n), tauu(n)
       real*8 prod(n), ploss(n)
       real*8 bin_v(n), bin_r(n)
       real*8 n_den(n), bin_g_den(n), bin_n_den(n)
+      real*8 time, last_print_time, last_progress_time
 
-      integer i, j, nt, lmin, ij
-      real*8 tlmin, t
+      integer i, j, i_time, num_t
+      logical do_print, do_progress
 
       external kernel_sedi
 
@@ -68,47 +64,44 @@ c     precompute kernel values for all pairs of bins
          enddo
       enddo
 
-C     nt: number of iterations
-      nt = int(tmax / dt) + 1
 C     multiply kernel with constant timestep and logarithmic grid distance
       do i = 1,n
          do j = 1,n
-            ck(i,j) = ck(i,j) * dt * dlnr
+            ck(i,j) = ck(i,j) * del_t * dlnr
          enddo
       enddo
 
-C     time integration
+C     output file
 
       open(30, file = 'out_sedi_sect.d')
       call print_header(1, n, nint(t_max / t_print) + 1)
 
-      do i = 1,n
-         bin_g_den(i) = g(i) / rho
-         bin_n_den(i) = bin_g_den(i) / bin_v(i)
-      enddo
-      call print_info_density(0d0, n, bin_v, bin_r, bin_g_den,
-     $     bin_n_den)
+C     initialize time
 
-      tlmin = 1d-6
-      t = 1d-6
-      lmin = 0
-      do ij = 2,nt
-         t = t + dt
-         tlmin = tlmin + dt
-         write(6,*)'jetzt kommt coad ',t
-C     collision
-         call coad(n, dt, taug, taup, taul, tauu, prod, ploss,
+      last_progress_time = 0d0
+      time = 0d0
+
+C     check initial printing
+
+      call check_event(time, t_print, last_print_time, do_print)
+      if (do_print) then
+         do i = 1,n
+            bin_g_den(i) = g(i) / rho
+            bin_n_den(i) = bin_g_den(i) / bin_v(i)
+         enddo
+         call print_info_density(0d0, n, bin_v, bin_r, bin_g_den,
+     $        bin_n_den)
+      endif
+
+      num_t = nint(t_max / del_t)
+      do i_time = 1, num_t
+         time = t_max * i_time / num_t
+
+         call coad(n, del_t, taug, taup, taul, tauu, prod, ploss,
      &        c, ima, g, r, e, ck, ec)
 
-C     output for plotting
-         if (tlmin .ge. 60d0) then
-            tlmin = tlmin - 60d0
-            lmin = lmin + 1
-            print *,'time in minutes:',lmin
-             write(6,*)'time ', t
-
-            call do_mass_balance(n, g, r, dlnr)
-
+         call check_event(time, t_print, last_print_time, do_print)
+         if (do_print) then
             do i = 1,n
                bin_g_den(i) = g(i) / rho
                bin_n_den(i) = bin_g_den(i) / bin_v(i)
@@ -116,6 +109,15 @@ C     output for plotting
             call print_info_density(0d0, n, bin_v, bin_r, bin_g_den,
      $           bin_n_den)
          endif
+
+         call check_event(time, t_progress, last_progress_time,
+     $        do_progress)
+         if (do_progress) then
+            write(6,'(a6,a8)') 'step', 'time'
+            write(6,'(i6,f8.1)') i_time, time
+         endif
+
+         ! call do_mass_balance(n, g, r, dlnr)
       enddo
 
       end

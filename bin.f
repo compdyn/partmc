@@ -157,25 +157,49 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine print_info(time, V_comp,
      &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
 
-      real*8 time          ! INPUT: cubin_rent simulation time
+      real*8 time          ! INPUT: simulation time
       real*8 V_comp        ! INPUT: computational volume
       
       integer n_bin        ! INPUT: number of bins
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-      real*8 bin_g(n_bin)  ! INPUT: mass in bins (???)
-      integer bin_n(n_bin) ! INPUT: number in bins
+      real*8 bin_g(n_bin)  ! INPUT: volume in bins (m^3)
+      integer bin_n(n_bin) ! INPUT: number in bins (dimensionless)
       real*8 dlnr          ! INPUT: bin scale factor
+
+      real*8 bin_g_den(n_bin), bin_n_den(n_bin)
+      integer k
+
+      do k = 1,n_bin
+         bin_g_den(k) = bin_g(k) / V_comp / dlnr
+         bin_n_den(k) = bin_n(k) / V_comp / dlnr
+      enddo
+      call print_info_density(time, n_bin, bin_v, bin_r, bin_g_den,
+     $     bin_n_den)
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      
+      subroutine print_info_density(time, n_bin, bin_v, bin_r,
+     &     bin_g_den, bin_n_den)
+
+      real*8 time              ! INPUT: simulation time
+      
+      integer n_bin            ! INPUT: number of bins
+      real*8 bin_v(n_bin)      ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)      ! INPUT: radius of particles in bins (m)
+      real*8 bin_g_den(n_bin)  ! INPUT: volume density in bins (dimensionless)
+      real*8 bin_n_den(n_bin)  ! INPUT: number density in bins (1/m^3)
 
       integer k
 
       write(30,'(a10,e14.5)') 'time', time
       do k = 1,n_bin
-         write(30, '(i8,3e14.5)') k, bin_r(k), bin_n(k) / V_comp / dlnr,
-     &        bin_g(k) / V_comp / dlnr
+         write(30, '(i8,3e14.5e3)') k, bin_r(k), bin_n_den(k),
+     &        bin_g_den(k)
       enddo
 
-      return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

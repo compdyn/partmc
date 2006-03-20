@@ -102,7 +102,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          do i_time = 1,n_time
             read(f_in, '(a10,e14.5)') dum, time
             do i_bin = 1,n_bin
-               read(f_in, '(i8,3e14.5)') i, bin_r(i_bin),
+               read(f_in, '(i8,3e14.5e3)') i, bin_r(i_bin),
      &              n(i_loop, i_time, i_bin),
      &              bin_g(i_loop, i_time, i_bin)
             enddo
@@ -130,20 +130,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          write(f_out_num, '(//,a10,i10)') 'time', i_time - 1
          write(f_out_mass, '(//,a10,i10)') 'time', i_time - 1
          do i_bin = 1,n_bin
-            write(f_out_num, '(i8,e14.5,'//n_loop_str//'e14.5)')
+            write(f_out_num, '(i8,e14.5e3,'//n_loop_str//'e14.5e3)')
      &           i_bin, bin_r(i_bin),
      &           (n(i_loop, i_time, i_bin), i_loop = 1,n_loop)
-            write(f_out_mass, '(i8,e14.5,'//n_loop_str//'e14.5)')
+            write(f_out_mass, '(i8,e14.5e3,'//n_loop_str//'e14.5e3)')
      &           i_bin, bin_r(i_bin),
      &           (bin_g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
          enddo
       enddo
 
       do i_bin = 1,n_bin
-         write(f_out_num_avg, '(i8,e14.5,'//n_time_str//'e14.5)')
+         write(f_out_num_avg, '(i8,e14.5e3,'//n_time_str//'e14.5e3)')
      &        i_bin, bin_r(i_bin),
      &        (n_avg(i_time, i_bin), i_time = 1,n_time)
-         write(f_out_mass_avg, '(i8,e14.5,'//n_time_str//'e14.5)')
+         write(f_out_mass_avg, '(i8,e14.5e3,'//n_time_str//'e14.5e3)')
      &        i_bin, bin_r(i_bin),
      &        (g_avg(i_time, i_bin), i_time = 1,n_time)
       enddo

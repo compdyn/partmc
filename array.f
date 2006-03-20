@@ -6,9 +6,57 @@ C     representation and an explicit particle representation.
 C
 C     The sectional representation stores the number and mass of
 C     particles in bins, which are logarithmicly spaced. The bins are
-C     described by the bin_v(n_bin) and bin_r(n_bin) arrays, which store the
-C     volume and radius of the centerpoint of each bin. The variable
-C     dlnr ... FIXME
+C     described by the bin_v(n_bin) and bin_r(n_bin) arrays, which store
+C     the volume and radius of the centerpoint of each bin.
+C
+C     The grid resolution is specified by:
+C
+C     dlnr = ln(r(i+1)) - ln(r(i))
+C
+C     Because the bins are logarithmically spaced this is constant for
+C     all i.
+C
+C     The edges of the bins are not very precisely specified. Instead
+C     there is a procedure bin_edge() that will return the requested
+C     edge between two bins. All code should call this function rather
+C     than assume a particular scheme for determining the bin edges.
+C
+C     bin_n stores the number of particles in each bin. These particles
+C     are assumed to live in a control volume V_comp. Similarly, bin_g
+C     stores the total volume of particles in each bin, once again in
+C     control volume V_comp. These variables should roughly satisfy:
+C
+C     bin_g(i) \approx bin_v(i) * bin_n(i)
+C
+C     The above formula will not be exact, as the particles in the bin
+C     will not all have the same volume bin_v(i) as the centerpoint of
+C     the bin.
+C
+C     To specify a continuous particle size distribution we can give
+C     n(g), where g is particle mass (in kg), and there are n(g)dg
+C     particles per unit volume of mass between g and g + dg. n(g) thus
+C     has units 1/(kg m^3). Alternatively we can specify n(v) where v is
+C     particle volume, or n(r) where r is particle radius, giving n with
+C     units 1/m^6 or 1/m^4, respectively.
+C
+C     Another common convention is to use a logarithmically scaled
+C     independent variable, by letting y = ln(r/r0), so that y is
+C     dimensionless. Then dy = d ln(r/r0) = dr/r, which is also
+C     dimensionless. When converting a distribution n(r) we require
+C     n(r)dr = n(y)dy, so n(y) has units 1/m^3 and is given by:
+C
+C     n(y) = r n(r)
+C
+C     To discretize a distribution n(y) we require
+C
+C     bin_n(i) / V_comp
+C         = \int_{ln(bin_r(i-1/2))}^{ln(bin_r(i+1/2))} n(y) dy
+C         \approx n(ln(bin_r(i))) * (ln(bin_r(i+1/2)) - ln(bin_r(i-1/2)))
+C         = n(ln(bin_r(i))) * ln( bin_r(i+1/2) / bin_r(i-1/2) )
+C         \approx n(ln(bin_r(i))) * dlnr
+C
+C     The same conversions work for volume-density or mass-density as a
+C     function of particle mass, volume or radius.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

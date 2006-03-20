@@ -2,6 +2,7 @@
 
       integer n, scal, isw
       real*8 dt, eps, u, rho, emin, tmax, N_0, V_0
+      real*8 t_max, t_print, t_progress, del_t
       parameter (n = 220)          ! number of bins
       parameter (scal = 4)         ! bin mesh scale factor
       parameter (isw = 1)          ! kernel (0 = long, 1 = hall, 2 = golovin)
@@ -14,7 +15,12 @@
       parameter (N_0 = 1d9)        ! particle number concentration (#/m^3)
       parameter (V_0 = 4.1886d-15) ! mean volume of initial distribution (m^3)
 
-      real*8 dlnr, ax
+      parameter (t_max = 600d0)        ! total simulation time (seconds)
+      parameter (t_print = 60d0)       ! interval between printing (s)
+      parameter (t_progress = 1d0)     ! interval between progress (s)
+      parameter (del_t = 1d0)          ! timestep (s)
+
+      real*8 dlnr
       real*8 c(n,n), ima(n,n)
       real*8 g(n), r(n), e(n)
       real*8 k_bin(n,n), ck(n,n), ec(n,n)
@@ -23,7 +29,7 @@
       real*8 taug(n), taup(n), taul(n), tauu(n)
       real*8 prod(n), ploss(n)
       real*8 bin_v(n), bin_r(n)
-      real*8 n_den(n)
+      real*8 n_den(n), bin_g_den(n), bin_n_den(n)
 
       integer i, j, nt, lmin, ij
       real*8 tlmin, t
@@ -37,7 +43,6 @@ C     g   : spectral mass distribution (mg/cm^3)
 C     e   : droplet mass grid (mg)
 C     r   : droplet radius grid (um)
 C     dlnr: constant grid distance of logarithmic grid 
-C     ax  : growth factor for consecutive masses
 
 C     mass and radius grid
       call make_grid(n, scal, rho, bin_v, bin_r, dlnr)
@@ -52,13 +57,7 @@ C     initial mass distribution
          g(i) = n_den(i) * bin_v(i) * rho * N_0
       enddo
 
-C     save initial distribution
-      do i = 1,n
-         gin(i) = g(i)
-         hin(i) = 3d15 * gin(i) / (4d0 * pi * r(i)**3) ! m^{-3}
-      enddo
-      
-      call courant(n, dlnr, scal, ax, c, ima, g, r, e)
+      call courant(n, dlnr, scal, c, ima, g, r, e)
 
 c     precompute kernel values for all pairs of bins
       call bin_kernel(n, bin_v, kernel_sedi, k_bin)
@@ -80,8 +79,15 @@ C     multiply kernel with constant timestep and logarithmic grid distance
 
 C     time integration
 
-!      open(30, file = 'out_sedi_sect.d')
-!      print_header(1, n, lmin)
+      open(30, file = 'out_sedi_sect.d')
+      call print_header(1, n, nint(t_max / t_print) + 1)
+
+      do i = 1,n
+         bin_g_den(i) = g(i) / rho
+         bin_n_den(i) = bin_g_den(i) / bin_v(i)
+      enddo
+      call print_info_density(0d0, n, bin_v, bin_r, bin_g_den,
+     $     bin_n_den)
 
       tlmin = 1d-6
       t = 1d-6
@@ -100,20 +106,16 @@ C     output for plotting
             lmin = lmin + 1
             print *,'time in minutes:',lmin
              write(6,*)'time ', t
-            do i = 1,n
-               hout(lmin,i) = 3d15 * g(i) / (4d0 * pi * r(i)**3) ! m^{-3}
-               gout(lmin,i) = g(i)
-            enddo
 
             call do_mass_balance(n, g, r, dlnr)
-         endif
-      enddo
 
-      open(15, file = 'sectionm')
-      open(25, file = 'sectionn')
-      do i = 1,n
-         write(15,'(62e14.5e3)') r(i), gin(i), (gout(j,i), j = 1, lmin)
-         write(25,'(62e14.5e3)') r(i), hin(i), (hout(j,i), j = 1, lmin)
+            do i = 1,n
+               bin_g_den(i) = g(i) / rho
+               bin_n_den(i) = bin_g_den(i) / bin_v(i)
+            enddo
+            call print_info_density(0d0, n, bin_v, bin_r, bin_g_den,
+     $           bin_n_den)
+         endif
       enddo
 
       end
@@ -201,12 +203,11 @@ C     gain for positions i, j
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine courant(n, dlnr, scal, ax, c, ima, g, r, e)
+      subroutine courant(n, dlnr, scal, c, ima, g, r, e)
 
       integer n
       real*8 dlnr
       integer scal
-      real*8 ax
       real*8 c(n,n)
       real*8 ima(n,n)
       real*8 g(n)
@@ -298,7 +299,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          x_num = x_num + hh
       enddo
       
-      write(6,*)'mass ', x0, 'max ', x1, 'imax ', imax
+      write(6,*)'mass ', x0, ' max ', x1, ' imax ', imax
       write(6,*)'x_num ', x_num
 
       return

@@ -15,7 +15,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin        ! INPUT: number of bins
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      real*8 bin_g(n_bin)  ! OUTPUT: total mass in bins
+      real*8 bin_gs(n_bin,n_spec) !OUTPUT: species mass in bins
+
       integer bin_n(n_bin) ! OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
@@ -33,10 +35,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       time = 0d0
       n_coag = 0
 
+      write(6,*)'in mc_fix '
       call moments(MM, M, V, V_comp, n_spec,
-     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
-      call print_info(time, V_comp,
-     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+     &     n_bin, bin_v, bin_r, bin_g, bin_gs,bin_n, dlnr)
+      write(6,*)'after moments '
+      call print_info(time, V_comp,n_spec,
+     &     n_bin, bin_v, bin_r, bin_g, bin_gs,bin_n, dlnr)
+
       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
 
       nt = int(dble(t_max) / del_t)
@@ -48,21 +53,21 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call compute_n_samp(M, k_max, V_comp, del_t, n_samp)
          do i_samp = 1,n_samp
-            call maybe_coag_pair(MM, M, V, V_comp,
+            call maybe_coag_pair(MM, M, V, V_comp, n_spec,
      &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
      &           del_t, n_samp, kernel, did_coag, bin_change)
             if (did_coag) n_coag = n_coag + 1
             if (bin_change) call est_k_max(n_bin, bin_v, bin_n,
      &           kernel, k_max)
             if (M .lt. MM / 2) then
-               call double(MM, M, V, V_comp,
+               call double(MM, M, V, V_comp, n_spec,
      &              n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
             endif
          enddo
 
          if (mod(i_top, n_print) .eq. 0) then
-            call print_info(time, V_comp,
-     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+            call print_info(time, V_comp, n_spec,
+     &           n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
          call cpu_time(t_end)

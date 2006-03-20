@@ -28,7 +28,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      write(6,*)'in make_grid '
       dlnr = dlog(2d0) / (3d0 * scal)
       ax = 2d0**(1d0 / scal) ! ratio bin_v(i)/bin_v(i-1)
 
@@ -67,7 +66,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      write(6,*)'in compute_volumes ',n_spec_in,MM,i_start,i_end
       sum_e = i_start - 1
 
       do i=1,i_start
@@ -80,8 +78,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
             V(i,n_spec_in) = 4d0/3d0 * pi * bin_r(k)**3
-            write(6,*)'compute ',
-     &        n_spec_in,k,i,sum_a,sum_e,V(i,n_spec_in)
          enddo
       enddo
 
@@ -89,10 +85,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i=sum_e+1,MM
          V(i,n_spec_in) = 0.
-      enddo
-
-      do i=1,MM
-         write(6,*)'compute vol ',i,M,V(i,n_spec_in)
       enddo
 
       return
@@ -186,6 +178,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k1, k2, kn, i, j
       real*8  pv1, pv2
 
+      write(6,*)'in coagulate ',s1,s2
+      write(6,*)'V ',V(s1,1) , V(s2,1), V(s1,2),V(s2,2)
       bin_change = .false.
 
       call particle_vol(MM,n_spec,V,s1,pv1)
@@ -233,6 +227,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2))
      &     bin_change = .true.
 
+      write(6,*)'all done'
       return
       end
 
@@ -450,12 +445,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i, k, j
       real*8 pv
 
-      write(6,*)'in moments '
-
-      do i=1,M
-         write(6,*)'V(i,1),V(i,2) ',i,V(i,1),V(i,2)
-      enddo
-
       do k = 1,n_bin
          bin_g(k) = 0d0
          bin_n(k) = 0
@@ -465,17 +454,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       enddo
       do i = 1,M
          call particle_vol(MM,n_spec,V,i,pv)
-         write(6,*)'moments pv ', pv
          call particle_in_bin(pv, n_bin, bin_v, k)
-         write(6,*)'moments bin1 ', k, i,bin_g(k),bin_n(k),
-     &                      bin_gs(k,1),bin_gs(k,2),pv
          bin_g(k) = bin_g(k) + pv
          bin_n(k) = bin_n(k) + 1
          do j=1,n_spec
             bin_gs(k,j) = bin_gs(k,j) + V(i,j)
          enddo
-         write(6,*)'moments bin2 ',k,i, bin_g(k),bin_n(k),
-     &                      bin_gs(k,1),bin_gs(k,2),pv
       enddo
 
       return
@@ -516,11 +500,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin   ! INPUT: number of bins
       integer n_time  ! INPUT: number of times
       integer n_spec  ! INPUT: number of species
-      write(6,'(a10,i10)') 'n_loop', n_loop
-      write(6,'(a10,i10)') 'n_bin', n_bin
-      write(6,'(a10,i10)') 'n_time', n_time
-      write(6,'(a10,i10)') 'n_spec', n_spec
-
+ 
       write(30,'(a10,i10)') 'n_loop', n_loop
       write(30,'(a10,i10)') 'n_bin', n_bin
       write(30,'(a10,i10)') 'n_time', n_time
@@ -555,7 +535,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        bin_gs(k,1) / V_comp / dlnr, bin_gs(k,2) / V_comp / dlnr
       enddo
 
-      stop
       return
       end
 
@@ -572,7 +551,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer j
 
       pv = 0d0
-      write(6,*)'particle_vol ',i,V(i,1),V(i,2),V(i,1)+V(i,2)
+
       do j=1,n_spec
          pv = pv + V(i,j)
       enddo

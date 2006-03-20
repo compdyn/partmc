@@ -28,7 +28,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec)
       integer n_ini(n_bin), bin_n(n_bin)
 
-      integer i
       external kernel_golovin
 
       open(30,file='out_golovin_fix.d')

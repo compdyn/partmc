@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_max, del_t, rho_p, N_0, t_print
       real*8 V_01, V_02,v_min
       parameter (MM = 10000)       ! total number of particles
-      parameter (MM_1 = 5000)      ! number pf #1-particles 
+      parameter (MM_1 = 8000)      ! number pf #1-particles 
       parameter (n_bin = 160)      ! number of bins
       parameter (n_spec = 2)       ! number of species
       parameter (n_loop = 10)      ! number of loops
@@ -19,7 +19,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (v_min = 1.e-24)   ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)        ! particle number concentration (#/m^3)
       parameter (V_01 = 4.1886d-15)! mean volume of #1-initial distribution
-      parameter (V_02 = V_01)    ! mean volume of #2-initial distribution
+      parameter (V_02 = 16*V_01)    ! mean volume of #2-initial distribution
       parameter (t_print = 60)     ! interval between printing (s)
 
       integer M, M1, M2, i_loop

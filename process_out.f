@@ -5,9 +5,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program process_out
 
       integer n_bin_max, n_loop_max, n_time_max
+      integer n_spec_max
       parameter (n_bin_max = 400)   ! maximum number of bins
-      parameter (n_loop_max = 100)   ! maximum number of loops
+      parameter (n_loop_max = 100)  ! maximum number of loops
       parameter (n_time_max = 1000) ! maximum number of times
+      parameter (n_spec_max = 5)    ! maximum number of species
       
       integer f_in, f_out_num, f_out_mass
       integer f_out_num_avg, f_out_mass_avg
@@ -17,18 +19,20 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (f_out_num_avg = 23)  ! output number average
       parameter (f_out_mass_avg = 24) ! output mass average
       
-      integer n_bin, n_loop, n_time
+      integer n_bin, n_loop, n_time, n_spec
       character name_in*50, name_out_num*50, name_out_mass*50
       character name_out_num_avg*50, name_out_mass_avg*50
       character dum*100, n_loop_str*10, n_time_str*10
 
       real*8 bin_r(n_bin_max), bin_g(n_loop_max, n_time_max, n_bin_max)
+      real*8 bin_gs(n_loop_max, n_time_max, n_bin_max, n_spec_max)
       real*8 n(n_loop_max, n_time_max, n_bin_max)
       real*8 g_avg(n_time_max, n_bin_max)
+      real*8 gs_avg(n_time_max,n_bin_max,n_spec_max)
       real*8 n_avg(n_time_max, n_bin_max)
 
       real*8 time
-      integer i, i_loop, i_time, i_bin
+      integer i, i_loop, i_time, i_bin, i_spec
 
       ! check there is exactly one commandline argument
       if (iargc() .ne. 1) then
@@ -76,6 +80,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       read(f_in, '(a10,i10)') dum, n_loop
       read(f_in, '(a10,i10)') dum, n_bin
       read(f_in, '(a10,i10)') dum, n_time
+      read(f_in, '(a10,i10)') dum, n_spec
 
       if (n_loop .gt. n_loop_max) then
          write(6,*) 'ERROR: n_loop too large'
@@ -93,6 +98,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       write(6,*) 'n_loop = ', n_loop
       write(6,*) 'n_bin = ', n_bin
       write(6,*) 'n_time = ', n_time
+      write(6,*) 'n_spec = ', n_spec
 
       write(n_loop_str, '(i10)') n_loop
       write(n_time_str, '(i10)') n_time
@@ -102,9 +108,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          do i_time = 1,n_time
             read(f_in, '(a10,e14.5)') dum, time
             do i_bin = 1,n_bin
-               read(f_in, '(i8,3e14.5)') i, bin_r(i_bin),
+               read(f_in, '(i8,5e14.5)') i, bin_r(i_bin),
      &              n(i_loop, i_time, i_bin),
-     &              bin_g(i_loop, i_time, i_bin)
+     &              bin_g(i_loop, i_time, i_bin),
+     &              (bin_gs(i_loop,i_time, i_bin, i_spec),
+     &              i_spec=1,n_spec)
             enddo
          enddo
       enddo
@@ -114,14 +122,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          do i_bin = 1,n_bin
             g_avg(i_time, i_bin) = 0d0
             n_avg(i_time, i_bin) = 0d0
+            do i_spec = 1,n_spec
+               gs_avg(i_time,i_bin, i_spec) = 0d0
+            enddo
             do i_loop = 1,n_loop
                g_avg(i_time, i_bin) = g_avg(i_time, i_bin)
      &              + bin_g(i_loop, i_time, i_bin)
                n_avg(i_time, i_bin) = n_avg(i_time, i_bin)
      &              + n(i_loop, i_time, i_bin)
+               do i_spec = 1,n_spec
+                  gs_avg(i_time, i_bin, i_spec) = 
+     &                 gs_avg(i_time, i_bin, i_spec)
+     &                 +bin_gs(i_loop,i_time,i_bin,i_spec)
+               enddo
             enddo
             g_avg(i_time, i_bin) = g_avg(i_time, i_bin) / n_loop
             n_avg(i_time, i_bin) = n_avg(i_time, i_bin) / n_loop
+            do i_spec=1,n_spec
+               gs_avg(i_time,i_bin,i_spec) = 
+     &              gs_avg(i_time,i_bin,i_spec) / n_loop
+            enddo
          enddo
       enddo
 
@@ -137,6 +157,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &           i_bin, bin_r(i_bin),
      &           (bin_g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
          enddo
+         do i_spec = 1,n_spec
+            write(f_out_mass,*)
+            write(f_out_mass,*)
+            do i_bin=1,n_bin
+               write(f_out_mass, '(i8,e14.5,'//n_loop_str//'e14.5)')
+     &              i_bin, bin_r(i_bin),
+     &              (bin_gs(i_loop, i_time, i_bin,i_spec)
+     &              ,i_loop =1,n_loop)
+            enddo
+         enddo
       enddo
 
       do i_bin = 1,n_bin
@@ -147,6 +177,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        i_bin, bin_r(i_bin),
      &        (g_avg(i_time, i_bin), i_time = 1,n_time)
       enddo
+      do i_spec = 1,n_spec
+         write(f_out_mass_avg,*)
+         write(f_out_mass_avg,*)
+         do i_bin=1,n_bin
+            write(f_out_mass_avg, '(i8,e14.5,'//n_time_str//'e14.5)')
+     &           i_bin, bin_r(i_bin),
+     &           (gs_avg(i_time, i_bin,i_spec),i_time =1,n_time)
+         enddo
+      enddo      
       
       end
       

@@ -81,8 +81,7 @@ C     initialize time
       last_progress_time = 0d0
       time = 0d0
 
-C     check initial printing
-
+C     initial output
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) then
          do i = 1,n
@@ -93,6 +92,7 @@ C     check initial printing
      $        bin_n_den)
       endif
 
+C     main time-stepping loop
       num_t = nint(t_max / del_t)
       do i_time = 1, num_t
          time = t_max * i_time / num_t
@@ -100,6 +100,7 @@ C     check initial printing
          call coad(n, del_t, taug, taup, taul, tauu, prod, ploss,
      &        c, ima, g, r, e, ck, ec)
 
+         ! print output
          call check_event(time, t_print, last_print_time, do_print)
          if (do_print) then
             do i = 1,n
@@ -110,14 +111,13 @@ C     check initial printing
      $           bin_n_den)
          endif
 
+         ! print progress to stdout
          call check_event(time, t_progress, last_progress_time,
      $        do_progress)
          if (do_progress) then
             write(6,'(a6,a8)') 'step', 'time'
             write(6,'(i6,f8.1)') i_time, time
          endif
-
-         ! call do_mass_balance(n, g, r, dlnr)
       enddo
 
       end
@@ -271,40 +271,6 @@ C     Smooths kernel values for bin pairs, and halves the self-rate.
          enddo
       enddo
 
-      end
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine do_mass_balance(n, g, r, dlnr)
-
-      integer n
-      real*8 g(n)
-      real*8 r(n)
-      real*8 dlnr
-
-      real*8 x0, x1, x_num, hh
-      integer i, imax
-
-      real*8 pi
-      parameter (pi = 3.141592654)
-
-      x0 = 0d0
-      x1 = 0d0
-      x_num = 0d0
-      do i = 1,n
-         x0 = x0 + g(i) * dlnr
-         x1 = max(x1, g(i))
-         if (abs(x1 - g(i)) .lt. 1d-9) then
-            imax = i
-         endif
-         hh = 3d+15 * g(i) / (4d0 * pi * r(i)**3) * dlnr
-         x_num = x_num + hh
-      enddo
-      
-      write(6,*)'mass ', x0, ' max ', x1, ' imax ', imax
-      write(6,*)'x_num ', x_num
-
-      return
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

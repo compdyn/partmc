@@ -234,7 +234,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
       subroutine maybe_coag_pair(MM, M, V, V_comp, n_spec,
-     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &           n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr,
      &           del_t, n_samp, kernel, did_coag, bin_change)
 
       integer MM           ! INPUT: physical dimension of V
@@ -247,7 +247,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
       real*8 bin_g(n_bin)  ! INPUT/OUTPUT: total mass in bins
-      real*8 bin_gs(n_bin) ! INPUT/OUTPUT: species mass in bins
+      real*8 bin_gs(n_bin,n_spec) ! INPUT/OUTPUT: species mass in bins
       integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
       

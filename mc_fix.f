@@ -3,7 +3,7 @@ C Monte Carlo with fixed timestep.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix(MM, M, V, V_comp, n_spec,
-     &     n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &     n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr,
      &     kernel, t_max, del_t, t_print, loop)
 
       integer MM           ! INPUT: physical dimension of V
@@ -54,7 +54,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         
          do i_samp = 1,n_samp
             call maybe_coag_pair(MM, M, V, V_comp, n_spec,
-     &           n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &           n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr,
      &           del_t, n_samp, kernel, did_coag, bin_change)
 
             if (did_coag) n_coag = n_coag + 1
@@ -62,7 +62,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &           kernel, k_max)
             if (M .lt. MM / 2) then
                call double(MM, M, V, V_comp, n_spec,
-     &              n_bin, bin_v, bin_r, bin_g, bin_n, dlnr)
+     &              n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
             endif
          enddo
 

@@ -25,7 +25,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer M, M1, M2, i_loop
       real*8 V(MM,n_spec), V_comp, dlnr
       real*8 bin_v(n_bin), bin_r(n_bin)
-      real*8 bin_g(n_bin)
+      real*8 bin_g(n_bin), bin_gs(n_bin,n_spec)
       integer n_ini(n_bin), bin_n(n_bin)
 
       integer i
@@ -54,7 +54,7 @@ cn *** initialise second distribution
          V_comp = M / N_0
 
          call mc_fix(MM, M, V, V_comp,n_spec,
-     &        n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
+     &        n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr,
      &        kernel_golovin, t_max, del_t, t_print, i_loop)
 
       enddo

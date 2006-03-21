@@ -45,13 +45,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine compute_volumes(n_bin, n_spec, n_spec_in,
+      subroutine compute_volumes(n_bin, n_spec, vol_frac,
      *     MM, i_start, i_end, 
      *     n_ini, bin_r, dlnr, V, M)
 
       integer n_bin        ! INPUT: number of bins
       integer n_spec       ! INPUT: number of species
-      integer n_spec_in    ! INPUT: index of species
+      real*8 vol_frac(n_spec) ! INPUT: composition of particles
       integer MM           ! INPUT: physical size of V
       integer i_start      ! INPUT:
       integer i_end        ! INPUT:
@@ -61,31 +61,41 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 V(MM,n_spec)  ! OUTPUT: particle volumes  (m^3)
       integer M            ! OUTPUT: logical dimension of V
 
-      integer k, i, sum_e, sum_a, delta_n
+      real*8 total_vol_frac
+      integer k, i, sum_e, sum_a, delta_n, i_spec
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
       sum_e = i_start - 1
 
-      do i=1,i_start
-         V(i,n_spec_in) = 0.
+c      do i=1,i_start
+c         V(i,n_spec_in) = 0.
+c      enddo
+
+      total_vol_frac = 0.
+      do i=1,n_spec
+         total_vol_frac = total_vol_frac + vol_frac(i)
       enddo
+
 
       do k = 1,n_bin
          delta_n = n_ini(k)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
          do i = sum_a,sum_e
-            V(i,n_spec_in) = 4d0/3d0 * pi * bin_r(k)**3
+            do i_spec = 1,n_spec
+               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * 
+     *              4d0/3d0 * pi * bin_r(k)**3
+            enddo
          enddo
       enddo
 
       M = sum_e-i_start+1
 
-      do i=sum_e+1,MM
-         V(i,n_spec_in) = 0.
-      enddo
+c      do i=sum_e+1,MM
+c         V(i,n_spec_in) = 0.
+c      enddo
 
       return
       end
@@ -178,8 +188,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k1, k2, kn, i, j
       real*8  pv1, pv2
 
-      write(6,*)'in coagulate ',s1,s2
-      write(6,*)'V ',V(s1,1) , V(s2,1), V(s1,2),V(s2,2)
       bin_change = .false.
 
       call particle_vol(MM,n_spec,V,s1,pv1)
@@ -193,6 +201,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       bin_g(k1) = bin_g(k1) - pv1
       bin_g(k2) = bin_g(k2) - pv2
       do j=1,n_spec
+         if((bin_gs(k1,j)-V(s1,j)) .lt.0.) 
+     &        write(6,*)'help gs ',k1,j, bin_gs(k1,j),V(s1,j),
+     &        bin_gs(k1,j)-V(s1,j)
+         if((bin_gs(k2,j)-V(s2,j)) .lt.0.) 
+     &        write(6,*)'help gs ',k2,j, bin_gs(k2,j),V(s2,j),
+     &        bin_gs(k2,j)-V(s2,j)
          bin_gs(k1,j) = bin_gs(k1,j) - V(s1,j)
          bin_gs(k2,j) = bin_gs(k2,j) - V(s2,j)
       enddo
@@ -205,6 +219,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ! add particle 2 onto particle 1
       do i=1,n_spec
          V(s1,i) = V(s1,i) + V(s2,i)
+         if (V(s1,i) .lt. 0) then
+            write(6,*)'help! ',s1,i,V(s1,i)
+         endif
       enddo
 
       ! shift the last particle into empty slot
@@ -226,8 +243,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     bin_change = .true.
       if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2))
      &     bin_change = .true.
-
-      write(6,*)'all done'
       return
       end
 
@@ -526,13 +541,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer bin_n(n_bin) ! INPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
-      integer k
+      integer k, i
 
       write(30,'(a10,e14.5)') 'time', time
       do k = 1,n_bin
-         write(30, '(i8,5e14.5)') k, bin_r(k), bin_n(k) / V_comp / dlnr,
+         write(30, '(i8,20e14.5)')k, bin_r(k), bin_n(k) / V_comp / dlnr,
      &        bin_g(k) / V_comp / dlnr,
-     &        bin_gs(k,1) / V_comp / dlnr, bin_gs(k,2) / V_comp / dlnr
+     &        (bin_gs(k,i) / V_comp / dlnr,i=1,n_spec) 
       enddo
 
       return

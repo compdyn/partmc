@@ -41,6 +41,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call print_info(time, V_comp,n_spec,
      &     n_bin, bin_v, bin_r, bin_g, bin_gs,bin_n, dlnr)
 
+
       call est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
 
       nt = int(dble(t_max) / del_t)

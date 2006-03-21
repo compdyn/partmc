@@ -108,7 +108,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          do i_time = 1,n_time
             read(f_in, '(a10,e14.5)') dum, time
             do i_bin = 1,n_bin
-               read(f_in, '(i8,5e14.5)') i, bin_r(i_bin),
+               read(f_in, '(i8,50e14.5)') i, bin_r(i_bin),
      &              n(i_loop, i_time, i_bin),
      &              bin_g(i_loop, i_time, i_bin),
      &              (bin_gs(i_loop,i_time, i_bin, i_spec),

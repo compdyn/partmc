@@ -6,9 +6,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
  
       integer MM, MM_1, n_bin, n_spec, n_loop, scal
       real*8 t_max, del_t, rho_p, N_0, t_print
-      real*8 V_01, V_02,v_min
+      real*8 V_01, V_02, v_min
       parameter (MM = 10000)       ! total number of particles
-      parameter (MM_1 = 2000)      ! number pf #1-particles 
+      parameter (MM_1 = 2000)      ! number of #1-particles 
       parameter (n_bin = 160)      ! number of bins
       parameter (n_spec = 3)       ! number of species
       parameter (n_loop = 10)      ! number of loops

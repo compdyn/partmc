@@ -34,7 +34,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       real*8 time, last_print_time, last_progress_time
       real*8 k_max(n_bin, n_bin), n_samp_real
-      integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag
+      integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
@@ -42,10 +42,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       time = 0d0
       tot_n_coag = 0
       call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
-     $     bin_n, dlnr)
+     $     bin_gs, bin_n, dlnr)
       call check_event(time, t_print, last_print_time, do_print)
+      write(6,*)'do_print ',do_print
       if (do_print) call print_info(time, V_comp, n_spec, n_bin, bin_v,
      $     bin_r,bin_g, bin_gs, bin_n, dlnr)
+
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
@@ -72,6 +74,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                enddo
             enddo
          enddo
+
          tot_n_coag = tot_n_coag + n_coag
          if (M .lt. MM / 2) then
             call double_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec

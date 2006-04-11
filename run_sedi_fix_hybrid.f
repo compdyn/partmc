@@ -7,11 +7,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_01, V_02, v_min
-      parameter (MM = 10000000)        ! number of particles
-      parameter (TDV = 1000000)        ! trailing dimension of VH
-      parameter (MM_1 = 2000000)       ! number of #1-particles 
+      parameter (MM =  1000000)        ! number of particles
+      parameter (TDV =  100000)        ! trailing dimension of VH
+      parameter (MM_1 = MM/4)       ! number of #1-particles 
       parameter (n_bin = 160)          ! number of bins
-      parameter (n_spec = 1)           ! number of species
+      parameter (n_spec = 3)           ! number of species
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
@@ -21,8 +21,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 60d0)       ! interval between printing (s)
       parameter (t_progress = 1d0)     ! interval between progress (s)
       parameter (del_t = 1d0)          ! timestep (s)
-      parameter (V_01 = 4.1886d-15)    ! mean volume of initial distribution (m^3)
-      parameter (V_02 = 8*V_01)        ! mean volume of #2-initial distribution
+      parameter (V_01 = 8*4.1886d-15)    ! mean volume of initial distribution (m^3)
+      parameter (V_02 = V_01/8)        ! mean volume of #2-initial distribution
 
       integer M, M1, M2, i_loop
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
@@ -42,8 +42,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
 cn *** initialize first distribution
-         vol_frac(1) = 1
-c         vol_frac(2) = 0
+         vol_frac(1) = 0.5
+         vol_frac(2) = 0.5
+         vol_frac(3) = 0.
          call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
          !call init_bidisperse(MM, n_bin, n_ini)
          call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
@@ -51,8 +52,9 @@ c         vol_frac(2) = 0
 
 cn *** initialise second distribution
          call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
-         vol_frac(1) = 0
-c         vol_frac(2) = 0.5
+         vol_frac(1) = 0.
+         vol_frac(2) = 0.5
+         vol_frac(3) = 0.5
          call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
      $        MM, n_ini, bin_r, dlnr, V, M2)
 

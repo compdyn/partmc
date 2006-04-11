@@ -30,6 +30,7 @@ C     array VH stored by bins.
          MH(k) = 0
       enddo
 
+      write(6,*)'in array ',M,n_spec
       do i = 1,M
          call particle_vol(MM,n_spec,V,i,pv)     
          call particle_in_bin(pv, n_bin, bin_v, k)
@@ -43,6 +44,7 @@ C     array VH stored by bins.
          enddo
       enddo
 
+      write(6,*)'array ende '
       end
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -160,9 +162,10 @@ C     empty bin filled or a filled bin became empty).
                            !         or a filled bin became empty
 
       integer bn, i, j
-      real*8 new_v(n_spec), pv1, pv2
+      real*8 new_v(n_spec), pv1, pv2, new_v_tot
 
       bin_change = .false.
+      new_v_tot = 0
 
       call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b1,s1,pv1)
       call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b2,s2,pv2)
@@ -185,10 +188,17 @@ C     empty bin filled or a filled bin became empty).
       do i=1,n_spec
          new_v(i) = VH(b1,s1,i) + VH(b2,s2,i)   ! add particle volumes
       enddo
-      call particle_in_bin(new_v, n_bin, bin_v, bn)  ! find new bin
+
+      do i=1,n_spec
+         new_v_tot = new_v_tot + new_v(i)
+      enddo
+
+      call particle_in_bin(new_v_tot, n_bin, bin_v, bn)  ! find new bin
+
       do i=1,n_spec
          VH(b1, s1,i) = VH(b1, MH(b1),i) ! shift last particle into empty slot
       enddo
+
       MH(b1) = MH(b1) - 1          ! decrease length of array
       do i=1,n_spec
          VH(b2, s2,i) = VH(b2, MH(b2),i) ! same for second particle

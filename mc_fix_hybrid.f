@@ -103,7 +103,7 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
          endif
 
          write(6,*)'vor condensation'
-         call condensation(n_bin,TDV,n_spec)
+         call condensation(VH,MH,n_bin,TDV,n_spec)
 
       enddo
 

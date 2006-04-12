@@ -2,16 +2,16 @@ C Condensation
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine condensation(n_bin,TDV,n_spec)
+      subroutine condensation(VH,MH,n_bin,TDV,n_spec)
 
       integer n_spec, n_bin, TDV
       integer i_water
-      real*8 VH(TDV,n_spec)  ! INPUT/OUTPUT: volume of particle before/after condensation
+      real*8 VH(n_bin,TDV,n_spec)  ! INPUT/OUTPUT: volume of particle before/after condensation
       real*8 MH(n_bin)
 
       real*8 T, rho(n_spec), RH, pres, pmv, p0T
-c      real*8 dmdt(n_bin,TDV)       ! growth rate [kg s-1]
-c      real*8 histot(n_bin,TDV)        ! normalized growth rate: histot=dmdt/m [s-1]
+      real*8 dmdt(n_bin,TDV)       ! growth rate [kg s-1]
+      real*8 histot(n_bin,TDV)        ! normalized growth rate: histot=dmdt/m [s-1]
       real*8 p00, T0
       
       parameter (T = 298. )      ! Temperature of gas medium in K
@@ -26,19 +26,17 @@ c      real*8 histot(n_bin,TDV)        ! normalized growth rate: histot=dmdt/m [
 
       write(6,*)'in condensation ',n_bin,TDV,n_spec
       stop
-c      rho(1) = 1800.
-c      rho(2) = 1800.
-c      rho(3) = 1000.
+      rho(1) = 1800.
+      rho(2) = 1800.
+      rho(3) = 1000.
 
-c      stop
-c      p0T = p00 *10**(7.45*(T-T0)/(T-38.))
-c      pmv = p0T * RH
+      p0T = p00 *10**(7.45*(T-T0)/(T-38.))
+      pmv = p0T * RH
 
   
 ! 
-c      call kond(n_bin,TDV,n_spec)
-!,MH,n_bin,TDV, T, RH, pres, n_spec,i_water,rho,
-!     &     pmv, p0T,dmdt, histot, 1,n_bin)
+      call kond(n_bin,TDV,n_spec,MH,n_bin,TDV, T, RH, pres, n_spec
+     $     ,i_water,rho, pmv, p0T,dmdt, histot, 1,n_bin)
 
 ! dmdt(i) and histot(i) are output
 ! dmdt is growth rate of one droplet in kg s-1
@@ -51,9 +49,8 @@ c      call kond(n_bin,TDV,n_spec)
 
 cn ****************************************************************
  
-      SUBROUTINE kond(n_bin,TDV,n_spec)
-!,MH,n_bin,TDV,T,RH,p,n_spec,i_water,rho,
-!     &                pmv,p0T,dmdt,histot,ia,ie)
+      SUBROUTINE kond(n_bin,TDV,n_spec,MH,n_bin,TDV,T,RH,p,n_spec
+     $     ,i_water,rho, pmv,p0T,dmdt,histot,ia,ie)
 
 cn *** Calculation of the term dm/dt according to Majeed and Wexler, Atmos. Env. (2001)
 cn *** Since Eq. (7) in this paper is an implicit equation (T_a depends on dm/dt), a Newton

@@ -75,7 +75,8 @@ run_sedi_fix_hybrid_objs = \
 	array.o \
 	array_hybrid.o \
 	bin.o \
-	init_dist.o
+	init_dist.o \
+        condensation.o
 run_sedi_fix_split_objs = \
 	run_sedi_fix_split.o \
 	mc_fix_split.o \

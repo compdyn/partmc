@@ -101,6 +101,10 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M,
      $           tot_n_samp, n_coag, tot_n_coag, t_est
          endif
+
+         write(6,*)'vor condensation'
+         call condensation(n_bin,TDV,n_spec)
+
       enddo
 
       return

@@ -7,8 +7,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, t_progress
       real*8 del_t, V_01, V_02, v_min
-      parameter (MM =  1000000)        ! number of particles
-      parameter (TDV =  100000)        ! trailing dimension of VH
+      parameter (MM =  100000)        ! number of particles
+      parameter (TDV =  8000)        ! trailing dimension of VH
       parameter (MM_1 = MM/4)       ! number of #1-particles 
       parameter (n_bin = 160)          ! number of bins
       parameter (n_spec = 3)           ! number of species

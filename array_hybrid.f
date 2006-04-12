@@ -44,6 +44,10 @@ C     array VH stored by bins.
          enddo
       enddo
 
+      do k=1,n_bin
+         write(6,*)'k,MH(k) ',k,MH(k)
+      enddo
+
       write(6,*)'array ende '
       end
 

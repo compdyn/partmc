@@ -2,12 +2,12 @@ C Condensation
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine condensation(VH,MH,n_bin,TDV,n_spec)
+      subroutine condensation(n_bin, TDV, n_spec, MH, VH)
 
       integer n_spec, n_bin, TDV
       integer i_water
       real*8 VH(n_bin,TDV,n_spec)  ! INPUT/OUTPUT: volume of particle before/after condensation
-      real*8 MH(n_bin)
+      integer MH(n_bin)
 
       real*8 T, rho(n_spec), RH, pres, pmv, p0T
       real*8 dmdt(n_bin,TDV)       ! growth rate [kg s-1]
@@ -36,7 +36,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
   
 ! 
       call kond(n_bin,TDV,n_spec,MH,T, RH, pres
-     $     ,i_water,rho, pmv, p0T,dmdt, histot, 1,n_bin)
+     $     ,i_water,rho, pmv, p0T,dmdt, histot, 1,n_bin,VH)
 
 ! dmdt(i) and histot(i) are output
 ! dmdt is growth rate of one droplet in kg s-1
@@ -50,7 +50,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 cn ****************************************************************
  
       subroutine kond(n_bin,TDV,n_spec,MH,T,RH,p
-     $     ,i_water,rho, pmv,p0T,dmdt,histot,ia,ie)
+     $     ,i_water,rho, pmv,p0T,dmdt,histot,ia,ie,VH)
 
 cn *** Calculation of the term dm/dt according to Majeed and Wexler, Atmos. Env. (2001)
 cn *** Since Eq. (7) in this paper is an implicit equation (T_a depends on dm/dt), a Newton
@@ -62,7 +62,7 @@ cn *** solver is applied.
       real*8    xacc,x1,x2
 
       real*8    VH(n_bin,TDV,n_spec)
-      real*8    MH(n_bin)
+      integer    MH(n_bin)
       real*8    x,d
       real*8    dmdt(n_bin,TDV)                       ! growth rate in kg s-1
       real*8    e(n_bin,TDV)

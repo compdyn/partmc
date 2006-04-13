@@ -7,13 +7,14 @@ DIST_NAME = hpmc-$(VERSION)
 #   -pg             profiling
 #   -pedantic       strict F77
 #   -fbounds-check  check array accesses
-FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
+#FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 # for gfortran:
-#FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
+FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
 #FFLAGS = -g -O -fimplicit-none -w
 LDFLAGS = 
 
-F77 = g77
+#F77 = g77
+F77 = gfortran
 
 PROGS = \
 	process_out \

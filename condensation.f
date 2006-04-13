@@ -35,7 +35,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
   
 ! 
-      call kond(n_bin,TDV,n_spec,MH,n_bin,TDV, T, RH, pres, n_spec
+      call kond(n_bin,TDV,n_spec,MH,T, RH, pres
      $     ,i_water,rho, pmv, p0T,dmdt, histot, 1,n_bin)
 
 ! dmdt(i) and histot(i) are output
@@ -49,7 +49,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 cn ****************************************************************
  
-      SUBROUTINE kond(n_bin,TDV,n_spec,MH,n_bin,TDV,T,RH,p,n_spec
+      subroutine kond(n_bin,TDV,n_spec,MH,T,RH,p
      $     ,i_water,rho, pmv,p0T,dmdt,histot,ia,ie)
 
 cn *** Calculation of the term dm/dt according to Majeed and Wexler, Atmos. Env. (2001)

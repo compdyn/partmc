@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_spec_max
       parameter (n_bin_max = 400)   ! maximum number of bins
       parameter (n_loop_max = 100)  ! maximum number of loops
-      parameter (n_time_max = 1000) ! maximum number of times
+      parameter (n_time_max = 100)  ! maximum number of times
       parameter (n_spec_max = 5)    ! maximum number of species
       
       integer f_in, f_out_num, f_out_mass

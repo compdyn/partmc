@@ -37,14 +37,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 ! DEBUG
-      integer M_comp
+      integer M_comp, b, f
 ! DEBUG
 
       last_progress_time = 0d0
       time = 0d0
       tot_n_coag = 0
-      call init_to_super(n_bin, n_fact, TDV, fac_base, MS, VS, bin_v,
-     $     bin_n, min_fill)
+c      call init_to_super(n_bin, n_fact, TDV, fac_base, MS, VS, bin_v,
+c     $     bin_n, min_fill)
+! DEBUG
+      call init_to_super_split(n_bin, n_fact, TDV, fac_base, MS, VS,
+     $     bin_v, bin_n)
+      M = 0
+      do b = 1,n_bin
+         do f = 1,n_fact
+            M = M + MS(b,f) * fac_base**(f-1)
+         enddo
+      enddo
+! DEBUG
       call check_event(time, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_bin, bin_v, bin_r,
      $     bin_g, bin_n, dlnr)

@@ -72,6 +72,65 @@ C     particles or superparticles, and account for this fact.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine init_to_super_split(n_bin, n_fact, TDV, fac_base, MS,
+     $     VS, bin_v, bin_n)
+
+C     Convert an initial number distribution into a superparticle
+C     array. We use particles of size fac_base below v_split, and
+C     particles of size 1 above it.
+
+      integer n_bin               ! INPUT: number of bins
+      integer n_fact              ! INPUT: number of allowable factors
+      integer TDV                 ! INPUT: trailing dimension of VS
+      integer fac_base            ! INPUT: factor base of a superparticle
+      integer MS(n_bin,n_fact)    ! OUTPUT: number of superparticles
+      real*8 VS(n_bin,n_fact,TDV) ! OUTPUT: volume of physical particles
+      real*8 bin_v(n_bin)         ! INPUT: volume of particles in bins
+      integer bin_n(n_bin)        ! INPUT: desired number of particles in bins
+
+      integer b, f, i
+
+C DEBUG
+      do b = 1,n_bin
+         do f = 1,n_fact
+            MS(b, f) = 99999999
+            do i = 1,TDV
+               VS(b, f, i) = 9d200
+            enddo
+         enddo
+      enddo
+C DEBUG
+
+      if (n_fact < 2) then
+         write(*,*) "ERROR: n_fact must be at least 2"
+         call exit(2)
+      endif
+
+      ! make MS
+      do b = 1,n_bin
+         do f = 1,n_fact
+            MS(b,f) = 0
+         enddo
+         if (b .lt. 93) then
+            MS(b,2) = int(bin_n(b) / fac_base)
+         else
+            MS(b,1) = bin_n(b)
+         endif
+      enddo
+
+      ! make VS
+      do b = 1,n_bin
+         do f = 1,n_fact
+            do i = 1,MS(b,f)
+               VS(b,f,i) = bin_v(b)
+            enddo
+         enddo
+      enddo
+
+      end
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine init_to_super(n_bin, n_fact, TDV, fac_base, MS, VS,
      $     bin_v, bin_n, min_fill)
 
@@ -197,6 +256,7 @@ C     taken as (factor * kernel / k_max).
       min_f = min(f1, f2)
       factor = fac_base**(min_f - 1)
       p = factor * k / k_max
+      write(*,*) p
 
       if (dble(rand()) .lt. p) then
          call coagulate_super(M, n_bin, n_fact, TDV, fac_base, MS, VS,
@@ -319,6 +379,9 @@ C     empty bin filled or a filled bin became empty).
       ! if we don't have min_fill computational particles in the new bin
       ! then split the one we are adding
       f_red = 0 ! factor to split by
+! DEBUG
+      goto 201
+! DEBUG
  200  n_comp = 0 ! number of computational particles
       do f = 1,n_fact
          n_comp = n_comp + MS(bn, f)
@@ -328,6 +391,9 @@ C     empty bin filled or a filled bin became empty).
          f_red = f_red + 1
          goto 200 ! try again with one more level of splitting
       endif
+! DEBUG
+ 201  if (bn .ge. 93) f_red = fn - 1
+! DEBUG
       n_comp_add = fac_base**f_red  ! number of computational particles to add
       fn = fn - f_red               ! modified factor of new particles
       do i = 1,n_comp_add

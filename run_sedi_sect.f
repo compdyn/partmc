@@ -170,7 +170,7 @@ C     lower and upper integration limit i0,i1
          do j = i,i1
             k = ima(i,j)
             kp = k + 1
-            
+
             x0 = ck(i,j) * g(i) * g(j)
             x0 = min(x0, g(i) * e(j))
             

@@ -24,15 +24,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      write(6,*)'in condensation ',n_bin,TDV,n_spec
-      stop
       rho(1) = 1800.
       rho(2) = 1800.
       rho(3) = 1000.
 
       p0T = p00 *10**(7.45*(T-T0)/(T-38.))
       pmv = p0T * RH
-
+      write(6,*)'p0T,pmv ',p0T,p00,pmv,RH
   
 ! 
       call kond(n_bin,TDV,n_spec,MH,T, RH, pres
@@ -86,50 +84,50 @@ cn *** solver is applied.
 
       parameter (pi = 3.14159265358979323846d0)
 
-      write(6,*)'in kond'
-
-      stop
-
       do i=ia,ie
          do j=1,TDV
             dmdt(i,j) = 0.
          enddo
       enddo
 
-      x1 = -1000.e-7
+      x1 = 0. 
       x2 = 1000.e-7
       xacc = 1.e-15
 
       g1 = 0.
       g2 = 0.
 
-      do i=ia,ie
+      write(6,*)'ia, ie ',ia,ie
+      do i=1,160
+         write(*,*)'i', i
          do j=1,MH(i)
-          
+            write(6,*)'VH ',i,j,VH(i,j,1),VH(i,j,2),VH(i,j,3)
+         
             g1 = VH(i,j,i_water)*rho(i_water)
-
+            g2 = 0.
             do k=1,n_spec-1
                g2 = g2+VH(i,j,k)*rho(k)
             enddo
 
-            call particle_vol_hybrid(n_bin,TDV,n_spec,VH,j,i,pv)
+            call particle_vol_hybrid(n_bin,TDV,n_spec,VH,i,j,pv)
                
             d= (6/pi*pv)**(1./3.)                ! rn in m, d in m 
+            write(6,*)'g1,g2,pv ',g1,g2,pv,d
 
             if (g1 .ne. 0. .or. g2.ne. 0.) then
 
                call rtnewt(x1,x2,xacc,x,d,g1,g2,pmv,p0T,RH,T,p)
                dmdt(i,j) = x
+               histot(i,j) = dmdt(i,j)/(g1+g2)     ! histot is normalized growth in s-1 
+               dmdt(i,j) = dmdt(i,j)/rho(i_water)  ! dmdt is now the volume growth in m^3 s-1
 
             endif
          enddo
       enddo
 
-cn ** Calculation of histot
       do i=ia,ie
          do j=1,MH(i)
-c            histot(i,j) = dmdt(i,j)*1.e06/e(i,j)
-            write(6,*)'dmdt ', i,j,dmdt(i,j)
+            write(66,*)'dmdt ', i,j,dmdt(i,j),histot(i,j),1/histot(i,j)
          enddo
       enddo
 
@@ -150,6 +148,9 @@ cn *****************************************************************************
       real*8 df, dx, f, d
 
       x = .5*(x1+x2)
+      write(6,*)'rtnewt1 ',x1,x2,xacc,x
+      write(6,*)'rtnewt2 ',d,g1,g2,pmv
+      write(6,*)'rtnewt3 ',p0T,RH,T,p
 
       do j=1,jmax
          call funcd(x,f,df,d,g1,g2,T_a,pmv,p0T,RH,T,p)
@@ -210,6 +211,7 @@ cn *****************************************************************************
       parameter (pi = 3.14159265358979323846d0)
 cn      parameter (eps = 0.9)
 
+        write(6,*)'in funcd '
 cn ***  conversion hPa in atm
 
       p = pin/1013.25

@@ -352,7 +352,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 cn this is maybe not quite right! 
       do j=1,n_spec
          pv = pv + VH(k,i,j)
+         write(6,*)'pv VH ',j,VH(k,i,j)
       enddo
-
+       write(6,*)'pv ',pv,k,i,n_spec
       return
       end

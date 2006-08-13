@@ -239,8 +239,9 @@ cn *** TEST: use the basic expression for D_vp
       c3 = c1 * fact1 * fact2
       c4 = L_v/(2*pi*d_p*k_ap)
 c      c5 = nu*eps*M_w*rho_n*r_n**3/(M_s*rho*((d_p/2)**3-r_n**3))
-
-      c5 = nu*eps*M_w/M_s * g2/g1
+c      c5 = nu*eps*M_w/M_s * g2/g1
+c ** corrected according to Jim's note:
+      c5 = nu*eps*M_w/M_s*g2 / (g1+(rho/rho_n)*eps*g2)
 
 
       f = x- c1*(RH-exp(c2/(T+c4*x)-c5))/(1+c3*exp(c2/(T+c4*x)-c5))

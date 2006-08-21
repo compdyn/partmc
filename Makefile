@@ -29,7 +29,8 @@ PROGS = \
 	run_sedi_fix_super \
 	run_sedi_ode \
 	run_sedi_sect \
-	run_sedi_var
+	run_sedi_var \
+	condensation_plot
 
 process_out_objs = \
 	process_out.o
@@ -107,6 +108,11 @@ run_sedi_var_objs = \
 	kernel_sedi.o \
 	array.o \
 	init_dist.o
+condensation_plot_objs = \
+	condensation_plot.o \
+	condensation.o \
+	array_hybrid.o \
+	array.o
 
 ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
 ALL_SOURCE = $(ALL_OBJS:.o=.f)
@@ -151,6 +157,9 @@ run_sedi_sect: $(run_sedi_sect_objs)
 
 run_sedi_var: $(run_sedi_var_objs)
 	$(F77) $(LDFLAGS) -o $@ $(run_sedi_var_objs)
+
+condensation_plot: $(condensation_plot_objs)
+	$(F77) $(LDFLAGS) -o $@ $(condensation_plot_objs)
 
 %.o: %.f
 	$(F77) $(FFLAGS) -c -o $@ $<

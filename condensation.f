@@ -6,22 +6,23 @@ C
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine cond(n_bin, TDV, n_spec, MH, VH)
+      subroutine cond(n_bin, TDV, n_spec, MH, VH, rho_p)
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH
       integer, intent(in) :: n_spec ! number of species
       integer, intent(in) :: MH(n_bin) ! number of particles per bin
-      real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (???)
+      real*8,  intent(in) :: rho_p(n_spec) ! density of species (kg m^{-3})
+      real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
 
 C     parameters
       real*8 T, RH, p00, T0, pres
       integer i_water
       
       parameter (T = 298d0)     ! Temperature of gas medium (K)
-      parameter (RH = 1.01d0)   ! Relative humidity (???)
+      parameter (RH = 1.01d0)   ! Relative humidity (1)
       parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
-      parameter (T0 = 273.15d0) ! ??? (K)
+      parameter (T0 = 273.15d0) ! Freezing point of water (K)
       parameter (pres = 1d5)    ! ambient pressure (Pa)
       parameter (i_water = 3)   ! water species number
       
@@ -31,13 +32,8 @@ C     parameters
 C     local variables
       real*8 dmdt(n_bin,TDV)    ! growth rates (kg s^{-1})
       real*8 histot(n_bin,TDV)  ! normalized growth rate: histot=dmdt/m (s^{-1})
-      real*8 rho(n_spec)        ! densities (???)
+      real*8 rho(n_spec)        ! densities (kg m^{-3})
       real*8 p0T
-
-!     FIXME: presumeably rho should be passed in as an input?
-      rho(1) = 1800d0
-      rho(2) = 1800d0
-      rho(3) = 1000d0
 
 C     vapor pressure at temperature T
       p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
@@ -72,26 +68,26 @@ C     equation (T_a depends on dm/dt), a Newton solver is applied.
       integer, intent(in) :: n_spec ! number of species
       integer, intent(in) :: MH(n_bin) ! number of particles per bin
       real*8, intent(in) :: T   ! ambient temperature (K)
-      real*8, intent(in) :: RH  ! relative humidity (???)
+      real*8, intent(in) :: RH  ! relative humidity (1)
       real*8, intent(in) :: p   ! ambient pressure (Pa)
       integer, intent(in) :: i_water ! water species number
-      real*8, intent(in) :: rho(n_spec) ! densities of each species (???)
+      real*8, intent(in) :: rho(n_spec) ! densities of each species (kg m^{-3})
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-      real*8, intent(out) :: dmdt(n_bin, TDV) ! growth rates (kg s^{-1})
+      real*8, intent(out) :: dmdt(n_bin, TDV) ! growth rates (kg s^{-1}) / (m^3 s^{-1})
       real*8, intent(out) :: histot(n_bin, TDV) ! growth constants (s^{-1})
-      real*8, intent(in) :: VH(n_bin, TDV, n_spec) ! particle volumes (???)
+      real*8, intent(in) :: VH(n_bin, TDV, n_spec) ! particle volumes (m^3)
 
 C     parameters
-      real*8 RR, M_w, sig_w, M_s, nu, gmin, x1, x2, x_tol, f_tol
+      real*8 RR, M_w, sig_w, M_s, nu, x1, x2, x_tol, f_tol
 
-      parameter (RR = 8.314d0)  ! ??? (???)
-      parameter (M_w = 18d-3)   ! ??? (???)
-      parameter (sig_w = 0.073d0) ! ??? (???)
-      parameter (M_s = 132d-3)  ! ??? (???)
-      parameter (nu = 3d0)      ! ??? (???)
-      parameter (gmin = 0d0)    ! ??? (???)
-      parameter (x1 = 0d0)      ! minimum value of dm/dt (???)
-      parameter (x2 = 1d-3)     ! maximum value of dm/dt (???)
+      parameter (RR = 8.314d0)  ! universal gas constant (J kg^{-1} K{-1})
+      parameter (M_w = 18d-3)   ! molecular weight of water (kg mol^{-1})
+      parameter (sig_w = 0.073d0) ! surface tension of water  (J m^{-2})
+      parameter (M_s = 132d-3)  ! molecular weight of soluble substance (kg mol^{-1})
+      parameter (nu = 3d0)      ! number of ions resulting from the dissociation 
+                                ! of one solute molecule (1)
+      parameter (x1 = 0d0)      ! minimum value of dm/dt (kg s^{-1})
+      parameter (x2 = 1d-3)     ! maximum value of dm/dt (kg s^{-1})
       parameter (x_tol = 1d-15) ! dm/dt tolerance for convergence
       parameter (f_tol = 1d-15) ! function tolerance for convergence
 
@@ -163,14 +159,14 @@ C     at this point.
       real*8, intent(in) :: x2  ! upper bound on dm/dt during solve
       real*8, intent(in) :: x_tol ! tolerance for delta x
       real*8, intent(in) :: f_tol ! tolerance for delta f
-      real*8, intent(in) :: d   ! ??? (???)
-      real*8, intent(in) :: g1  ! ??? (???)
-      real*8, intent(in) :: g2  ! ??? (???)
+      real*8, intent(in) :: d   ! diameter (m)
+      real*8, intent(in) :: g1  ! water mass (kg)
+      real*8, intent(in) :: g2  ! solute mass (kg)
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
       real*8, intent(in) :: RH  ! relative humidity (???)
       real*8, intent(in) :: T   ! ambient temperature (K)
       real*8, intent(in) :: p   ! ambient pressure (Pa)
-      real*8, intent(out) :: x  ! dm/dt (???)
+      real*8, intent(out) :: x  ! dm/dt (kg s^{-1})
 
       integer j_max
       parameter (j_max = 400)   ! maximum number of iterations
@@ -222,12 +218,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 C     Return the error function value and its derivative.
 
-      real*8, intent(in) :: x   ! mass growth rate dm/dt (???)
+      real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
       real*8, intent(in) :: d_p ! diameter (m)
-      real*8, intent(in) :: g1  ! ??? (???)
-      real*8, intent(in) :: g2  ! ??? (???)
+      real*8, intent(in) :: g1  ! water mass (kg)
+      real*8, intent(in) :: g2  ! solute mass (kg)
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-      real*8, intent(in) :: RH  ! relative humidity (???)
+      real*8, intent(in) :: RH  ! relative humidity (1)
       real*8, intent(in) :: T   ! ambient temperature (K)
       real*8, intent(in) :: p   ! ambient pressure (Pa)
       real*8, intent(out) :: f  ! error
@@ -236,26 +232,24 @@ C     Return the error function value and its derivative.
       
 C     parameters
       real*8 rho, rho_a, rho_n, M_w, M_a, M_s, sig, R, L_v, alpha
-      real*8 p00, T0, cp, nu, eps, atm
-      
-      parameter (rho = 1000d0)  ! water density (???)
-      parameter (rho_a = 1.25d0) ! ??? (???)
-      parameter (rho_n = 1800d0) ! ??? (???)
-      parameter (M_w = 18d-3)   ! molecular weight of water (???)
-      parameter (M_a = 28d-3)   ! molecular weight of ??? (???)
-      parameter (M_s = 132d-3)  ! molecular weight of solute (???)
-      parameter (sig = 0.073d0) ! surface energy (???)
-      parameter (R = 8.314d0)   ! universal gas constant (???)
-      parameter (L_v = 2.5d6)   ! latent heat (???)
-      parameter (alpha = 1d0)   ! the value 0.045 is also used sometimes
-      parameter (p00 = 6.11d2)  ! vapor pressure at temp T = 273 K (Pa)
-      parameter (T0 = 273.15d0) ! ??? (K)
-      parameter (cp = 1005d0)   ! ??? (???)
-      parameter (nu = 3d0)      ! number of ions in the solute
-      parameter (eps = 0.25d0)  ! solubility of aerosol material (???)
+      real*8 p00, T0, cp, eps, atm
+      integer nu
+      parameter (rho = 1000d0)  ! water density (kg m^{-3})
+      parameter (rho_a = 1.25d0) ! air density (kg m^{-3})
+      parameter (rho_n = 1800d0) ! solute density (kg m^{-3})
+      parameter (M_w = 18d-3)   ! molecular weight of water (kg mole^{-1})
+      parameter (M_a = 28d-3)   ! molecular weight of air (kg mole^{-1})
+      parameter (M_s = 132d-3)  ! molecular weight of solute (kg mole^{-1})
+      parameter (sig = 0.073d0) ! surface energy (J m^{-2})
+      parameter (R = 8.314d0)   ! universal gas constant (J mole^{-1} K^{-1})
+      parameter (L_v = 2.5d6)   ! latent heat (J kg^{-1})
+      parameter (alpha = 1d0)   ! accomodation coefficient (the value 0.045 is also used sometimes)
+      parameter (p00 = 6.11d2)  ! water saturation vapor pressure at temp T = 273 K (Pa)
+      parameter (T0 = 273.15d0) ! freezing point of water (K)
+      parameter (cp = 1005d0)   ! specific heat of water (J kg^{-1} K^{-1})
+      parameter (nu = 3)        ! number of ions in the solute
+      parameter (eps = 0.25d0)  ! solubility of aerosol material (1)
       parameter (atm = 101325d0) ! atmospheric pressure (Pa)
-
-!     FIXME: should nu be an integer?
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)

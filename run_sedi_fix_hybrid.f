@@ -5,7 +5,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       program MonteCarlo
 
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
-      real*8 t_max, rho_p, N_0, t_print, t_progress
+      real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, V_01, V_02, v_min
       parameter (MM =  100000)        ! number of particles
       parameter (TDV =  8000)        ! trailing dimension of VH
@@ -15,21 +15,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
-      parameter (rho_p = 1000d0)       ! particle density (kg/m^3)
       parameter (v_min = 1.e-24)       ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)       ! interval between printing (s)
       parameter (t_progress = 1d0)     ! interval between progress (s)
       parameter (del_t = 1d0)          ! timestep (s)
       parameter (V_01 = 8*4.1886d-15)    ! mean volume of initial distribution (m^3)
-      parameter (V_02 = V_01/8)        ! mean volume of #2-initial distribution
+      parameter (V_02 = V_01/8)        ! mean volume of #2-initial distribution (m^3)
 
       integer M, M1, M2, i_loop
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
+      real*8 rho_p(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
+      data rho_p / 1800., 1800., 1000. /  ! INPUT: density of species (kg m^{-3})
       external kernel_sedi
 
       open(30,file='out_sedi_fix_hybrid.d')
@@ -62,7 +63,7 @@ cn *** initialise second distribution
          V_comp = M / N_0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
-     &        TDV, MH, VH, V_comp, bin_v,
+     &        TDV, MH, VH, V_comp, bin_v, rho_p,
      $        bin_r, bin_g, bin_gs, bin_n, dlnr, 
      &        kernel_sedi, t_max, t_print,
      $        t_progress ,del_t, i_loop)

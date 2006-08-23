@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, 
      &     MH, VH, V_comp,
-     $     bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, 
+     $     bin_v, rho_p, bin_r, bin_g, bin_gs, bin_n, dlnr, 
      &     kernel, t_max, t_print,
      $     t_progress, del_t, loop)
 
@@ -17,6 +17,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MH(n_bin)    ! OUTPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes
       real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
+      real*8 rho_p(n_spec) ! INPUT: density of species (kg m^{-3})
 
       real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
       real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
@@ -103,7 +104,7 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
          endif
 
          write(6,*)'vor condensation'
-         call condensation(n_bin, TDV, n_spec, MH, VH)
+         call condensation(n_bin, TDV, n_spec, MH, VH, rho_p)
 
       enddo
 

@@ -4,6 +4,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
+      use array
+      use init_dist
+      use mc_fix_hybrid
+
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, V_01, V_02, v_min

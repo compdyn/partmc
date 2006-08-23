@@ -109,7 +109,7 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
       enddo
 
       return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -139,6 +139,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       n_samp_real = r_samp * n_possible
 
       return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

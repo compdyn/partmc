@@ -3,6 +3,10 @@ C Simulation with Golovin kernel and adaptive timestepping.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
+
+      use array
+      use init_dist
+      use mc_adapt
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, V_0

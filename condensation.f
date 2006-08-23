@@ -1,5 +1,9 @@
 C Condensation
 C
+
+      module cond
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine condensation(n_bin, TDV, n_spec, MH, VH)
@@ -28,7 +32,7 @@ C     local variables
       real*8 dmdt(n_bin,TDV)    ! growth rates (kg s^{-1})
       real*8 histot(n_bin,TDV)  ! normalized growth rate: histot=dmdt/m (s^{-1})
       real*8 rho(n_spec)        ! densities (???)
-      real*8 pmv, p0T
+      real*8 p0T
 
 !     FIXME: presumeably rho should be passed in as an input?
       rho(1) = 1800d0
@@ -37,12 +41,11 @@ C     local variables
 
 C     vapor pressure at temperature T
       p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
-      pmv = p0T * RH
 
-      write(6,*) 'p0T, pmv ', p0T, p00, pmv, RH
-  
+C      write(6,*) 'p0T ', p0T, p00, RH
+      
       call cond_rate(n_bin, TDV, n_spec, MH, T, RH, pres, i_water, rho,
-     $     pmv, p0T, dmdt, histot, 1, n_bin, VH)
+     $     p0T, dmdt, histot, VH)
 
 C     dmdt(i) and histot(i) are output
 C     dmdt is growth rate of one droplet (kg s^{-1})
@@ -51,18 +54,18 @@ C     histot =  dmdt * 1d6 / e(i) (s^{-1})
       write(6,*)'ende condensation'
       stop
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
 
       subroutine cond_rate(n_bin, TDV, n_spec, MH, T, RH, p, i_water,
-     $     rho, pmv, p0T, dmdt, histot, ia, ie, VH)
+     $     rho, p0T, dmdt, histot, VH)
 
 C     Calculation of the term dm/dt according to Majeed and Wexler,
 C     Atmos. Env. (2001). Since Eq. (7) in this paper is an implicit
 C     equation (T_a depends on dm/dt), a Newton solver is applied.
 
-C     FIXME: why do we have ia, ie? Aren't they always 1, n_bin?
+      use array_hybrid
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH
@@ -73,23 +76,20 @@ C     FIXME: why do we have ia, ie? Aren't they always 1, n_bin?
       real*8, intent(in) :: p   ! ambient pressure (Pa)
       integer, intent(in) :: i_water ! water species number
       real*8, intent(in) :: rho(n_spec) ! densities of each species (???)
-      real*8, intent(in) :: pmv !
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
       real*8, intent(out) :: dmdt(n_bin, TDV) ! growth rates (kg s^{-1})
       real*8, intent(out) :: histot(n_bin, TDV) ! growth constants (s^{-1})
-      integer, intent(in) :: ia !
-      integer, intent(in) :: ie !
-      real*8, intent(in) :: VH(n_bin, TDV, n_spec) ! particle volumes
+      real*8, intent(in) :: VH(n_bin, TDV, n_spec) ! particle volumes (???)
 
 C     parameters
       real*8 RR, M_w, sig_w, M_s, nu, gmin, x1, x2, x_tol, f_tol
 
-      parameter (RR = 8.314d0)
-      parameter (M_w = 18d-3)
-      parameter (sig_w = 0.073d0)
-      parameter (M_s = 132d-3)
-      parameter (nu = 3d0)
-      parameter (gmin = 0d0)
+      parameter (RR = 8.314d0)  ! ??? (???)
+      parameter (M_w = 18d-3)   ! ??? (???)
+      parameter (sig_w = 0.073d0) ! ??? (???)
+      parameter (M_s = 132d-3)  ! ??? (???)
+      parameter (nu = 3d0)      ! ??? (???)
+      parameter (gmin = 0d0)    ! ??? (???)
       parameter (x1 = 0d0)      ! minimum value of dm/dt (???)
       parameter (x2 = 1d-3)     ! maximum value of dm/dt (???)
       parameter (x_tol = 1d-15) ! dm/dt tolerance for convergence
@@ -102,14 +102,12 @@ C     local variables
       real*8 g1, g2, x, d, pv
       integer i, j, k
 
-      do i = ia,ie
+      do i = 1,n_bin
          do j = 1,TDV
             dmdt(i,j) = 0d0
          enddo
       enddo
       
-      write(6,*)'ia, ie ',ia,ie
-
       do i = 1,n_bin
          write(*,*) 'i', i
          do j = 1,MH(i)
@@ -129,8 +127,8 @@ C     local variables
             write(6,*)'g1,g2,pv ',g1,g2,pv,d
             
             if ((g1 .ne. 0d0) .or. (g2 .ne. 0d0)) then
-               call cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, pmv, p0T,
-     $              RH, T, p, x)
+               call cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, p0T, RH,
+     $              T, p, x)
                dmdt(i,j) = x
                histot(i,j) = dmdt(i,j) / (g1 + g2) ! histot is normalized growth in s^{-1}
                dmdt(i,j) = dmdt(i,j) / rho(i_water) ! dmdt is now the volume growth in m^3 s-1
@@ -140,7 +138,7 @@ C     local variables
 
 !     FIXME: is dm/dt supposed to be a mass or volume growth rate?
       
-      do i = ia,ie
+      do i = 1,n_bin
          do j = 1,MH(i)
             write(66,*) 'dmdt ', i, j, dmdt(i,j), histot(i,j),
      &           1d0/histot(i,j)
@@ -149,11 +147,11 @@ C     local variables
       
       stop
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, pmv, p0T,
+      subroutine cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, p0T,
      &     RH, T, p, x)
 
 C     Newton's method to solve the error equation, determining the
@@ -165,10 +163,9 @@ C     at this point.
       real*8, intent(in) :: x2  ! upper bound on dm/dt during solve
       real*8, intent(in) :: x_tol ! tolerance for delta x
       real*8, intent(in) :: f_tol ! tolerance for delta f
-      real*8, intent(in) :: d   ! 
-      real*8, intent(in) :: g1  ! 
-      real*8, intent(in) :: g2  ! 
-      real*8, intent(in) :: pmv ! ambient vapor pressure (Pa)
+      real*8, intent(in) :: d   ! ??? (???)
+      real*8, intent(in) :: g1  ! ??? (???)
+      real*8, intent(in) :: g2  ! ??? (???)
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
       real*8, intent(in) :: RH  ! relative humidity (???)
       real*8, intent(in) :: T   ! ambient temperature (K)
@@ -184,17 +181,17 @@ C     at this point.
       real*8 T_a, delta_f, delta_x, f, old_f, df
 
       x = (x1 + x2) / 2d0
-      call cond_func(x, d, g1, g2, pmv, p0T, RH, T, p, f, df, T_a)
+      call cond_func(x, d, g1, g2, p0T, RH, T, p, f, df, T_a)
       old_f = f
 
 C      write(6,*)'rtnewt1 ',x1,x2,x_tol,x
-C      write(6,*)'rtnewt2 ',d,g1,g2,pmv
+C      write(6,*)'rtnewt2 ',d,g1,g2
 C      write(6,*)'rtnewt3 ',p0T,RH,T,p
        
       do j = 1,j_max
          delta_x = f / df
          x = x - delta_x
-         call cond_func(x, d, g1, g2, pmv, p0T, RH, T, p, f, df, T_a)
+         call cond_func(x, d, g1, g2, p0T, RH, T, p, f, df, T_a)
          delta_f = f - old_f
          old_f = f
 
@@ -204,6 +201,7 @@ C      write(6,*)'rtnewt3 ',p0T,RH,T,p
             write(0,'(g15.10,g15.10,g15.10)') x, x1, x2
             call exit(1)
          endif
+
          if ((abs(delta_x) .lt. x_tol)
      &        .and. (abs(delta_f) .lt. f_tol)) then
             return              ! successful termination of Newton's method
@@ -215,20 +213,19 @@ C      write(6,*)'rtnewt3 ',p0T,RH,T,p
       write(0,'(g15.10,i17)') x, j_max
       call exit(1)
 
-      end
+      end subroutine
  
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine cond_func(x, d_p, g1, g2, pmv, p0T, RH, T, p, f, df,
+      subroutine cond_func(x, d_p, g1, g2, p0T, RH, T, p, f, df,
      $     T_a)
 
-C     Return the error function value and the its derivative.
+C     Return the error function value and its derivative.
 
       real*8, intent(in) :: x   ! mass growth rate dm/dt (???)
       real*8, intent(in) :: d_p ! diameter (m)
       real*8, intent(in) :: g1  ! ??? (???)
       real*8, intent(in) :: g2  ! ??? (???)
-      real*8, intent(in) :: pmv ! ambient vapor pressure (Pa)
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
       real*8, intent(in) :: RH  ! relative humidity (???)
       real*8, intent(in) :: T   ! ambient temperature (K)
@@ -259,8 +256,6 @@ C     parameters
       parameter (atm = 101325d0) ! atmospheric pressure (Pa)
 
 !     FIXME: should nu be an integer?
-
-!     FIXME: we aren't using pmv.
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
@@ -317,4 +312,7 @@ C     corrected according to Jim's note:
       
       T_a = T + c4 * x
       
-      end
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      end module

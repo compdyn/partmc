@@ -5,6 +5,9 @@ C     FIXME: MH and bin_n are pretty much identical. Probably best to
 C     ignore it, for symmetry with non-hybrid code, and because in
 C     superparticle code there is a difference.
 
+      module array_hybrid
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH
@@ -49,7 +52,7 @@ C     array VH stored by bins.
       enddo
 
       write(6,*)'array ende '
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -108,7 +111,7 @@ C     taken as (kernel / k_max).
          did_coag = .true.
       endif
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      
@@ -130,7 +133,7 @@ C     Find a random pair of particles (b1, s1) and (b2, s2).
       if ((s2 .lt. 1) .or. (s2 .gt. MH(b2))) goto 101
       if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -232,7 +235,7 @@ C     empty bin filled or a filled bin became empty).
       if ((bin_n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2))
      &     bin_change = .true.
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -284,7 +287,7 @@ C     Double number of particles in a hybrid array.
          enddo
       enddo
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -332,7 +335,7 @@ C     Check that V has all particles in the correct bins.
          call exit(2)
       endif
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -356,4 +359,8 @@ cn this is maybe not quite right!
       enddo
        write(6,*)'pv ',pv,k,i,n_spec
       return
-      end
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      end module

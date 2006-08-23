@@ -9,7 +9,7 @@ DIST_NAME = hpmc-$(VERSION)
 #   -fbounds-check  check array accesses
 #FFLAGS = -g -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
 # for gfortran:
-FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
+FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels -Wimplicit-interface
 #FFLAGS = -g -O -fimplicit-none -w
 LDFLAGS = 
 
@@ -114,6 +114,9 @@ condensation_plot_objs = \
 	array_hybrid.o \
 	array.o
 
+condensation.o: array_hybrid.o
+condensation_plot.o: condensation.o
+
 ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
 ALL_SOURCE = $(ALL_OBJS:.o=.f)
 
@@ -161,11 +164,13 @@ run_sedi_var: $(run_sedi_var_objs)
 condensation_plot: $(condensation_plot_objs)
 	$(F77) $(LDFLAGS) -o $@ $(condensation_plot_objs)
 
+%.o : %.mod
+
 %.o: %.f
 	$(F77) $(FFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(PROGS) *.o
+	rm -f $(PROGS) *.o *.mod
 
 cleanall: clean
 	rm -f *~ *.d gmon.out gprof_*

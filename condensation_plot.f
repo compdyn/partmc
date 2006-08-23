@@ -2,22 +2,22 @@ C Condensation
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      program condensation
+      program condensation_plot
 
       integer n_spec, n_bin
       integer i_water
       parameter (n_bin = 120, n_spec = 3)
       real*8 T, rho(n_spec), RH, pres, pmv, p0T
-      real*8 dmdt(n_bin)       ! growth rate [kg s-1]
-      real*8 histot(n_bin)        ! normalized growth rate: histot=dmdt/m [s-1]
+      real*8 dmdt(n_bin)        ! growth rate (kg s^{-1})
+      real*8 histot(n_bin)      ! normalized growth rate: histot=dmdt/m (s^{-1})
       real*8 rn(n_bin),rw(n_bin),g(n_bin,2)
       real*8 p00, T0
       
-      parameter (T = 290d0)      ! temperature of gas medium (K)
-      parameter (RH = 1.03d0)    ! relative humidity
-      parameter (p00 = 611d0)    ! equilibrium water vapor pressure at 273 K (Pa)
+      parameter (T = 290d0)     ! temperature of gas medium (K)
+      parameter (RH = 1.03d0)   ! relative humidity (???)
+      parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
       parameter (T0  = 273.15d0) ! (K)
-      parameter (pres = 1000d0)  ! ambient pressure (hPa)
+      parameter (pres = 1d5)    ! ambient pressure (Pa)
       parameter (i_water = 3)
 
       integer i
@@ -43,13 +43,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call kond_plot(n_bin,n_spec,T, RH, pres,rn,rw,g
      $     ,i_water,rho, pmv, p0T,dmdt, histot, 1,n_bin)
 
-! dmdt(i) and histot(i) are output
-! dmdt is growth rate of one droplet in kg s-1
-! histot =  dmdt * 1.e6 / e(i) in s-1
+C     dmdt(i) and histot(i) are output
+C     dmdt is growth rate of one droplet in kg s^{-1}
+C     histot = dmdt * 1.e6 / e(i) in s^{-1}
 
       write(6,*)'ende condensation'
-      stop
-      return
+
       end
 
 cn ****************************************************************
@@ -79,8 +78,6 @@ cn *** solver is applied.
       integer ie
 
       real*8    x,d
-      real*8    e(n_bin)
-      real*8    pv
 
       real*8    RR,M_w,sig_w,M_s
       real*8 pi,nu
@@ -94,8 +91,8 @@ cn *** solver is applied.
 
       parameter (pi = 3.14159265358979323846d0)
 
-      integer i, j, k
-      real*8 xacc, x1, x2
+      integer i
+      real*8 x_tol, f_tol, x1, x2
 
       do i=ia,ie
             dmdt(i) = 0d0
@@ -103,7 +100,8 @@ cn *** solver is applied.
 
       x1 = 0d0
       x2 = 1000d-7
-      xacc = 1d-15
+      x_tol = 1d-15
+      f_tol = 1d-15
 
       g1 = 0d0
       g2 = 0d0
@@ -114,11 +112,11 @@ cn *** solver is applied.
             g1 = g(i,1)
             g2 = g(i,2)
 
-               call rtnewt(x1,x2,xacc,x,d,g1,g2,pmv,p0T,RH,T,p)
-               dmdt(i) = x
-               histot(i) = dmdt(i)/(g1+g2)     ! histot is normalized growth in s-1 
-               dmdt(i) = dmdt(i)/rho(i_water)  ! dmdt is now the volume growth in m^3 s-1
-
+            call cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, pmv, p0T,
+     $           RH, T, p, x)
+            dmdt(i) = x
+            histot(i) = dmdt(i)/(g1+g2) ! histot is normalized growth in s-1 
+            dmdt(i) = dmdt(i)/rho(i_water) ! dmdt is now the volume growth in m^3 s-1
       enddo
 
       do i=ia,ie

@@ -1,5 +1,8 @@
 C Initial size distributions.
 
+      module init_dist
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine init_bidisperse(MM, n_bin, n_ini)

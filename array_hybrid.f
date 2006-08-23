@@ -16,6 +16,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C     Convert a standard linear particle array V to a hybrid particle
 C     array VH stored by bins.
 
+      use array
+
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
       integer n_spec       ! INPUT: number of species
@@ -145,6 +147,8 @@ C     Join together particles (b1, s1) and (b2, s2), updating all
 C     particle and bin structures to reflect the change. bin_change is
 C     true if the used bin set changed due to the coagulation (i.e. an
 C     empty bin filled or a filled bin became empty).
+
+      use array
 
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
@@ -295,6 +299,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $     bin_r)
 
 C     Check that V has all particles in the correct bins.
+
+      use array
 
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins

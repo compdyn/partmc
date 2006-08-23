@@ -1,12 +1,12 @@
 C Condensation
 C
 
-      module cond
+      module condensation
       contains
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine condensation(n_bin, TDV, n_spec, MH, VH)
+      subroutine cond(n_bin, TDV, n_spec, MH, VH)
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH

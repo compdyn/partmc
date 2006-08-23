@@ -114,60 +114,113 @@ condensation_plot_objs = \
 	array_hybrid.o \
 	array.o
 
-condensation.o: array_hybrid.o
-condensation_plot.o: condensation.o
-
 ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
 ALL_SOURCE = $(ALL_OBJS:.o=.f)
 
+#condensation.o: array_hybrid.o
+#condensation_plot.o: condensation.o
+
 all: $(PROGS)
 
-process_out: $(process_out_objs)
-	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)
+FILES := $(patsubst %.o,%,$(ALL_OBJS))
 
-run_golovin_adapt: $(run_golovin_adapt_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_adapt_objs)
+# These rules assume that USE statements are like "^      use module$"
+# with no extra stuff on the line, and that the module names are the
+# same as the filenames containing the modules, and that all dependencies
+# are expressed via USE statements.
 
-run_golovin_exact: $(run_golovin_exact_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_exact_objs)
+# set variables like filename.deps to the immediate dependencies of filename.f
+find_deps = $(strip $(filter-out use,$(shell grep '^ *use ' $(1))))
+define set_deps
+$(1).deps := $(call find_deps,$(1).f)
+endef
+$(foreach file,$(FILES),$(eval $(call set_deps,$(file))))
 
-run_golovin_fix: $(run_golovin_fix_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_fix_objs)
+# set variables like filename.alldeps to recursively expanded deps of filename.f
+recurse_deps = $(sort $(1) $(foreach f,$(1),$($(f).deps)))
+find_alldeps = $(if $(filter-out $(1),$(call recurse_deps,$(1))),$(call find_alldeps,$(call recurse_deps,$(1))),$(1))
+define set_alldeps
+$(1).alldeps := $(call find_alldeps,$(1))
+endef
+$(foreach file,$(FILES),$(eval $(call set_alldeps,$(file))))
 
-run_golovin_var: $(run_golovin_var_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_var_objs)
+# set object file lists
+define set_objs
+$(1).objs := $(addsuffix .o,$($(1).deps))
+$(1).allobjs := $(addsuffix .o,$($(1).alldeps))
+endef
+$(foreach file,$(FILES),$(eval $(call set_objs,$(file))))
 
-run_sedi_adapt: $(run_sedi_adapt_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_adapt_objs)
+# establish direct dependencies for object files
+define set_obj_deps
+$(1).o: $(1).f $$($(1).objs)
+	$$(F77) $$(FFLAGS) -c -o $$@ $$<
+endef
+$(foreach file,$(FILES),$(eval $(call set_obj_deps,$(file))))
 
-run_sedi_fix: $(run_sedi_fix_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_objs)
+# establish rules for building all programs
+define set_program_build
+$(1): $$($(1).allobjs)
+	$$(F77) $$(LDFLAGS) -o $$@ $$($(1).allobjs)
+endef
+$(foreach prog,$(PROGS),$(eval $(call set_program_build,$(prog))))
 
-run_sedi_fix_hybrid: $(run_sedi_fix_hybrid_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_hybrid_objs)
+test:
+	echo $(condensation_plot.deps)
+	echo $(condensation.deps)
+	echo $(call recurse_deps,condensation_plot)
+	echo $(condensation_plot.alldeps)
+	echo $(addsuffix .o,$(condensation_plot.alldeps))
+	echo $(condensation_plot.temp)
+	echo $(condensation_plot.objs)
+	echo $(condensation_plot.allobjs)
 
-run_sedi_fix_split: $(run_sedi_fix_split_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_split_objs)
-
-run_sedi_fix_super: $(run_sedi_fix_super_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_objs)
-
-run_sedi_ode: $(run_sedi_ode_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_ode_objs)
-
-run_sedi_sect: $(run_sedi_sect_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_sect_objs)
-
-run_sedi_var: $(run_sedi_var_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_var_objs)
-
-condensation_plot: $(condensation_plot_objs)
-	$(F77) $(LDFLAGS) -o $@ $(condensation_plot_objs)
+#process_out: $(process_out_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)
+#
+#run_golovin_adapt: $(run_golovin_adapt_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_golovin_adapt_objs)
+#
+#run_golovin_exact: $(run_golovin_exact_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_golovin_exact_objs)
+#
+#run_golovin_fix: $(run_golovin_fix_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_golovin_fix_objs)
+#
+#run_golovin_var: $(run_golovin_var_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_golovin_var_objs)
+#
+#run_sedi_adapt: $(run_sedi_adapt_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_adapt_objs)
+#
+#run_sedi_fix: $(run_sedi_fix_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_objs)
+#
+#run_sedi_fix_hybrid: $(run_sedi_fix_hybrid_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_hybrid_objs)
+#
+#run_sedi_fix_split: $(run_sedi_fix_split_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_split_objs)
+#
+#run_sedi_fix_super: $(run_sedi_fix_super_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_objs)
+#
+#run_sedi_ode: $(run_sedi_ode_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_ode_objs)
+#
+#run_sedi_sect: $(run_sedi_sect_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_sect_objs)
+#
+#run_sedi_var: $(run_sedi_var_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(run_sedi_var_objs)
+#
+#condensation_plot: $(condensation_plot_objs)
+#	$(F77) $(LDFLAGS) -o $@ $(condensation_plot_objs)
 
 %.o : %.mod
 
-%.o: %.f
-	$(F77) $(FFLAGS) -c -o $@ $<
+#%.o: %.f
+#	$(F77) $(FFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(PROGS) *.o *.mod

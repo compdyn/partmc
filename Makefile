@@ -22,7 +22,7 @@ OTHER = array array_hybrid array_split array_super bin condensation	\
 
 FILES := $(PROGS) $(OTHER)
 
-all: $(PROGS)
+all: TAGS $(PROGS)
 
 # These rules assume that USE statements are like "^ use module$" with
 # no extra stuff on the line, and that the module names are the same as
@@ -81,3 +81,6 @@ dist:
 	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
+
+TAGS:
+	etags $(patsubst %,%.f,$(FILES))

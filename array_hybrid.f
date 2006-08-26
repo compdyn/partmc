@@ -5,7 +5,7 @@ C     FIXME: MH and bin_n are pretty much identical. Probably best to
 C     ignore it, for symmetry with non-hybrid code, and because in
 C     superparticle code there is a difference.
 
-      module array_hybrid
+      module mod_array_hybrid
       contains
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -16,7 +16,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C     Convert a standard linear particle array V to a hybrid particle
 C     array VH stored by bins.
 
-      use array
+      use mod_array
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
@@ -148,7 +148,7 @@ C     particle and bin structures to reflect the change. bin_change is
 C     true if the used bin set changed due to the coagulation (i.e. an
 C     empty bin filled or a filled bin became empty).
 
-      use array
+      use mod_array
 
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
@@ -300,7 +300,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 C     Check that V has all particles in the correct bins.
 
-      use array
+      use mod_array
 
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins

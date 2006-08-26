@@ -4,9 +4,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
-      use array
-      use init_dist
-      use mc_adapt
+      use mod_array
+      use mod_init_dist
+      use mod_mc_adapt
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, V_0

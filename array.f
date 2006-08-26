@@ -10,7 +10,7 @@ C     described by the bin_v(n_bin) and bin_r(n_bin) arrays, which store the
 C     volume and radius of the centerpoint of each bin. The variable
 C     dlnr ... FIXME
 
-      module array
+      module mod_array
       contains
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

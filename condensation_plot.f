@@ -60,7 +60,7 @@ cn *** Calculation of the term dm/dt according to Majeed and Wexler, Atmos. Env.
 cn *** Since Eq. (7) in this paper is an implicit equation (T_a depends on dm/dt), a Newton
 cn *** solver is applied.
 
-      use condensation
+      use mod_condensation
 
       integer n_bin         ! number of bins
       integer n_spec        ! number of species

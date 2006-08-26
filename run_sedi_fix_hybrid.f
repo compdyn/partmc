@@ -4,9 +4,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
-      use array
-      use init_dist
-      use mc_fix_hybrid
+      use mod_array
+      use mod_init_dist
+      use mod_mc_fix_hybrid
 
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
       real*8 t_max, N_0, t_print, t_progress

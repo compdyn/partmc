@@ -1,12 +1,12 @@
 C Condensation
 C
 
-      module condensation
+      module mod_condensation
       contains
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine cond(n_bin, TDV, n_spec, MH, VH, rho_p)
+      subroutine condensation(n_bin, TDV, n_spec, MH, VH, rho_p)
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH
@@ -61,7 +61,7 @@ C     Calculation of the term dm/dt according to Majeed and Wexler,
 C     Atmos. Env. (2001). Since Eq. (7) in this paper is an implicit
 C     equation (T_a depends on dm/dt), a Newton solver is applied.
 
-      use array_hybrid
+      use mod_array_hybrid
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH

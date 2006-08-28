@@ -227,7 +227,7 @@ C     Return the error function value and its derivative.
       real*8, intent(in) :: T   ! ambient temperature (K)
       real*8, intent(in) :: p   ! ambient pressure (Pa)
       real*8, intent(out) :: f  ! error
-      real*8, intent(out) :: df ! derivative of error
+      real*8, intent(out) :: df ! derivative of error with respect to x
       real*8, intent(out) :: T_a ! droplet temperature (K)
       
 C     parameters
@@ -251,29 +251,33 @@ C     parameters
       parameter (eps = 0.25d0)  ! solubility of aerosol material (1)
       parameter (atm = 101325d0) ! atmospheric pressure (Pa)
 
+C     FIXME: nu and eps should be passed as arguments
+      
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
 C     local variables
-      real*8 k_a, k_ap, k_ap1, D_v, D_vp
+      real*8 k_a, k_ap, k_ap_div, D_v, D_vp
       real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
 
-C     molecular diffusion coefficient (basic)
-      D_v = 0.211d0 / (p / atm) * (T / 273d0)**1.94d0 ! cm^2 s^{-1}
+C     molecular diffusion coefficient uncorrected
+      D_v = 0.211d-4 / (p / atm) * (T / 273d0)**1.94d0 ! m^2 s^{-1}
 
-C     diffusion coefficient (corrected for non-continuum effects)
-C     D_v_de = 1d0 + (2d0 * D_v * 1d-4 / (alpha * d_p))
+C     molecular diffusion coefficient corrected for non-continuum effects
+C     D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (alpha * d_p))
 C     &     * (2 * pi * M_w / (R * T))**0.5d0
-C     D_vp = D_v / D_v_de
+C     D_vp = D_v / D_v_div
 
 C     TEST: use the basic expression for D_vp
-      D_vp = D_v * 1d-4         ! m^2 s^{-1}
+      D_vp = D_v                ! m^2 s^{-1}
+C     FIXME: check whether we can reinstate the correction
 
-C     thermal conductivity uncorrected and corrected
+C     thermal conductivity uncorrected
       k_a = 1d-3 * (4.39d0 + 0.071d0 * T) ! J m^{-1} s^{-1} K^{-1}
-      k_ap1 = 1d0 + 2d0 * k_a / (alpha * d_p * rho_a * cp)
-     &     * (2d0 * pi * M_a / (R * T))**0.5d0 ! J m^{-1} s^{-1} K^{-1}
-      k_ap = k_a / k_ap1        ! J m^{-1} s^{-1} K^{-1}
+      k_ap_div = 1d0 + 2d0 * k_a / (alpha * d_p * rho_a * cp)
+     &     * (2d0 * pi * M_a / (R * T))**0.5d0 ! dimensionless
+C     thermal conductivity corrected
+      k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
       rat = p0T / (R * T)
       fact1 = L_v * M_w / (R * T)
@@ -283,28 +287,23 @@ C     thermal conductivity uncorrected and corrected
       c2 = 4d0 * M_w * sig / (R * rho * d_p)
       c3 = c1 * fact1 * fact2
       c4 = L_v / (2d0 * pi * d_p * k_ap)
+C     incorrect expression from Majeed and Wexler:
 C     c5 = nu * eps * M_w * rho_n * r_n**3d0
 C     &     / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
-C     c5 = nu * eps * M_w / M_s * g2 / g1
 C     corrected according to Jim's note:
       c5 = nu * eps * M_w / M_s * g2 / (g1 + (rho / rho_n) * eps * g2)
 
-      f = x - c1 * (RH - exp(c2 / (T + c4 * x) -c5))
-     &     / (1d0 + c3 * exp(c2 / (T + c4 * x) - c5))
+      T_a = T + c4 * x          ! K
+
+      f = x - c1 * (RH - exp(c2 / T_a - c5))
+     &     / (1d0 + c3 * exp(c2 / T_a - c5))
       
-      df = 1d0 + c1 * RH
-     &     * (1d0 + c3 * exp(c2 / (T + c4 * x) -c5))**(-2d0)
-     &     * c3 * exp(c2 / (T + c4 * x) -c5)
-     &     * (-1d0) * c2 * c4 / (T + c4 * x)**2d0
-     &     + c1 * (exp(c2 / (T + c4 * x) - c5)
-     &     * (-1d0) * c2 * c4 / (T + c4 * x)**2d0
-     &     * (1d0 + c3 * exp(c2 / (T + c4 * x) -c5))**(-1d0)
-     &     + exp(c2 / (T + c4 * x) -c5)
-     &     * (-1d0) * (1d0 + c3 * exp(c2 / (T + c4 * x) -c5))**(-2d0)
-     &     * c3 * exp(c2 / (T + c4 * x) - c5)
-     &     * (-1d0) * c2 * c4 / (T + c4 * x)**2d0)
-      
-      T_a = T + c4 * x
+      df = 1d0 + c1 * RH * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 *
+     $     exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 + c1 *
+     $     (exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 * (1d0 + c3
+     $     * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) *
+     $     (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * exp(c2 / T_a -
+     $     c5) * (-1d0) * c2 * c4 / T_a**2d0)
       
       end subroutine
 

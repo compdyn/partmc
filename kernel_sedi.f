@@ -101,8 +101,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k, ir, kk, iq
 C     collision efficiencies of hall kernel
       real*8 rat(21),r0(15),ecoll(15,21)
-      data r0 /6.,8.,10.,15.,20.,25.,30.,40.,50.,
-     &     60.,70.,100.,150.,200.,300./
+      data r0 /6.0d0,8.0d0,10.0d0,15.0d0,20.0d0,25.0d0,30.0d0,40.0d0
+     $     ,50.0d0,60.0d0,70.0d0,100.0d0,150.0d0,200.0d0,300.0d0/
       data rat /0.0d0,0.05d0,0.1d0,0.15d0,0.2d0,0.25d0,0.3d0,0.35d0
      $     ,0.4d0,0.45d0,0.5d0,0.55d0,0.6d0,0.65d0,0.7d0,0.75d0,0.8d0
      $     ,0.85d0,0.9d0,0.95d0,1.0d0/

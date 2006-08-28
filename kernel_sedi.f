@@ -1,5 +1,8 @@
 C Sedimentation coagulation kernel.
 
+      module mod_kernel_sedi
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine kernel_sedi(v1, v2, k)
@@ -23,7 +26,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
       k = ec * pi * (r1 + r2)**2 * abs(winf1 - winf2) 
       return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -88,7 +91,7 @@ c rr: radius in cm-units
       w_inf = w_inf / 100d0
       
       return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -193,6 +196,7 @@ c     two-dimensional linear interpolation of the collision efficiency
       if (ec .lt. 1d-20) stop 99
 
       return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      end module

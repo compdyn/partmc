@@ -31,8 +31,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      dlnr = dlog(2d0) / (3d0 * scal)
-      ax = 2d0**(1d0 / scal) ! ratio bin_v(i)/bin_v(i-1)
+      dlnr = dlog(2d0) / (3d0 * dble(scal))
+      ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
 
 
       do i = 1,n_bin
@@ -76,7 +76,7 @@ c      do i=1,i_start
 c         V(i,n_spec_in) = 0.
 c      enddo
 
-      total_vol_frac = 0.
+      total_vol_frac = 0.d0
       do i=1,n_spec
          total_vol_frac = total_vol_frac + vol_frac(i)
       enddo
@@ -115,7 +115,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do i=1,MM
          do j=1,n_spec
-            V(i,j) = 0.
+            V(i,j) = 0.d0
          enddo
       enddo
 
@@ -204,10 +204,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       bin_g(k1) = bin_g(k1) - pv1
       bin_g(k2) = bin_g(k2) - pv2
       do j=1,n_spec
-         if((bin_gs(k1,j)-V(s1,j)) .lt.0.) 
+         if((bin_gs(k1,j)-V(s1,j)) .lt.0.d0) 
      &        write(6,*)'help gs ',k1,j, bin_gs(k1,j),V(s1,j),
      &        bin_gs(k1,j)-V(s1,j)
-         if((bin_gs(k2,j)-V(s2,j)) .lt.0.) 
+         if((bin_gs(k2,j)-V(s2,j)) .lt.0.d0) 
      &        write(6,*)'help gs ',k2,j, bin_gs(k2,j),V(s2,j),
      &        bin_gs(k2,j)-V(s2,j)
          bin_gs(k1,j) = bin_gs(k1,j) - V(s1,j)
@@ -222,7 +222,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ! add particle 2 onto particle 1
       do i=1,n_spec
          V(s1,i) = V(s1,i) + V(s2,i)
-         if (V(s1,i) .lt. 0) then
+         if (V(s1,i) .lt. 0.d0) then
             write(6,*)'help! ',s1,i,V(s1,i)
          endif
       enddo
@@ -283,7 +283,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call particle_vol(MM,n_spec,V,s1,pv1)
       call particle_vol(MM,n_spec,V,s2,pv2)
       call kernel(pv1, pv2, k)
-      p = k * 1d0/V_comp * del_t * (dble(M)*(dble(M)-1d0)/2d0) / n_samp
+      p = k * 1d0/V_comp * del_t * 
+     &            (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
       bin_change = .false.
       if (dble(rand()) .lt. p) then
          call coagulate(MM, M, V, V_comp, n_spec,
@@ -411,14 +412,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             do j = 1,n_bin
                if (bin_n(j) .gt. 0) then
                   call kernel(bin_v(i), bin_v(j), k)
-                  k_avg = k_avg + k *  bin_n(i) * bin_n(j)
+                  k_avg = k_avg + k *  dble(bin_n(i)) * dble(bin_n(j))
                   div = div + bin_n(i) * bin_n(j)
                endif
             enddo
          endif
       enddo
 
-      k_avg = k_avg / div
+      k_avg = k_avg / dble(div)
 
       return
       end subroutine

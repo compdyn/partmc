@@ -176,7 +176,7 @@ C     empty bin filled or a filled bin became empty).
       real*8 new_v(n_spec), pv1, pv2, new_v_tot
 
       bin_change = .false.
-      new_v_tot = 0
+      new_v_tot = 0.d0
 
       call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b1,s1,pv1)
       call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b2,s2,pv2)

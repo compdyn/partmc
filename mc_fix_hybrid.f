@@ -11,6 +11,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     kernel, t_max, t_print,
      $     t_progress, del_t, loop)
 
+      use mod_array
+      use mod_array_hybrid
+      use mod_bin 
+      use mod_condensation
+
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
       integer n_spec       ! INPUT: number of species

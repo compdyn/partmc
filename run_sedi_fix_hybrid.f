@@ -7,6 +7,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_array
       use mod_init_dist
       use mod_mc_fix_hybrid
+      use mod_kernel_sedi
 
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
       real*8 t_max, N_0, t_print, t_progress
@@ -19,13 +20,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_loop = 1)           ! number of loops
       parameter (scal = 3)             ! scale factor for bins
       parameter (t_max = 600d0)        ! total simulation time (seconds)
-      parameter (v_min = 1.e-24)       ! minimum volume (m^3) for making grid
+      parameter (v_min = 1.d-24)       ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)            ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)       ! interval between printing (s)
       parameter (t_progress = 1d0)     ! interval between progress (s)
       parameter (del_t = 1d0)          ! timestep (s)
-      parameter (V_01 = 8*4.1886d-15)    ! mean volume of initial distribution (m^3)
-      parameter (V_02 = V_01/8)        ! mean volume of #2-initial distribution (m^3)
+      parameter (V_01 = 8.d0*4.1886d-15)    ! mean volume of initial distribution (m^3)
+      parameter (V_02 = V_01/8.d0)        ! mean volume of #2-initial distribution (m^3)
 
       integer M, M1, M2, i_loop
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
@@ -34,8 +35,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 rho_p(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
-      data rho_p / 1800., 1800., 1000. /  ! INPUT: density of species (kg m^{-3})
-      external kernel_sedi
+      data rho_p / 1800.d0, 1800.d0, 1000.d0 /  ! INPUT: density of species (kg m^{-3})
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
@@ -47,9 +47,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
 cn *** initialize first distribution
-         vol_frac(1) = 0.5
-         vol_frac(2) = 0.5
-         vol_frac(3) = 0.
+         vol_frac(1) = 0.5d0
+         vol_frac(2) = 0.5d0
+         vol_frac(3) = 0.d0
          call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
          !call init_bidisperse(MM, n_bin, n_ini)
          call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
@@ -57,14 +57,14 @@ cn *** initialize first distribution
 
 cn *** initialise second distribution
          call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
-         vol_frac(1) = 0.
-         vol_frac(2) = 0.5
-         vol_frac(3) = 0.5
+         vol_frac(1) = 0.d0
+         vol_frac(2) = 0.5d0
+         vol_frac(3) = 0.5d0
          call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
      $        MM, n_ini, bin_r, dlnr, V, M2)
 
          M=M1+M2
-         V_comp = M / N_0
+         V_comp = dble(M) / N_0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p,

@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &     MH, VH, V_comp,
      $     bin_v, rho_p, bin_r, bin_g, bin_gs, bin_n, dlnr, 
      &     kernel, t_max, t_print,
-     $     t_progress, del_t, loop)
+     $     t_progress, del_t, del_t_cond, loop)
 
       use mod_array
       use mod_array_hybrid
@@ -34,22 +34,35 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer bin_n(n_bin) ! OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
-      external kernel      ! INPUT: kernel function
+C      external kernel      ! INPUT: kernel function
       real*8 t_max         ! INPUT: final time (seconds)
       real*8 t_print       ! INPUT: interval to output data (seconds)
       real*8 t_progress    ! INPUT: interval to print progress (seconds)
-      real*8 del_t         ! INPUT: timestep
+      real*8 del_t         ! INPUT: timestep for coagulation
+      real*8 del_t_cond    ! INPUT: timestep for condensation
+     
       integer loop         ! INPUT: loop number of run
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       real*8 time, last_print_time, last_progress_time
       real*8 k_max(n_bin, n_bin), n_samp_real
       integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
+      integer i_cond, n_cond
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
       last_progress_time = 0d0
       time = 0d0
       tot_n_coag = 0
+      n_cond = int(del_t / del_t_cond)+1
+      
       call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
      $     bin_gs, bin_n, dlnr)
       call check_event(time, t_print, last_print_time, do_print)
@@ -93,6 +106,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! DEBUG
 c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
 ! DEBUG
+         write(6,*)'vor cond ', n_cond
+         
+         do i_cond = 1,n_cond
+         write(6,*)'in condensation loop ',i_cond
+             call condensation(n_bin, TDV, n_spec, MH, VH, rho_p, 
+     &           del_t_cond)
+         enddo
 
          time = time + del_t
 
@@ -111,8 +131,6 @@ c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
      $           tot_n_samp, n_coag, tot_n_coag, t_est
          endif
 
-         write(6,*)'vor condensation'
-         call condensation(n_bin, TDV, n_spec, MH, VH, rho_p)
 
       enddo
 

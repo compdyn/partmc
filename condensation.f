@@ -6,14 +6,16 @@ C
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine condensation(n_bin, TDV, n_spec, MH, VH, rho_p)
+      subroutine condensation(n_bin, TDV, n_spec, MH, VH, rho, 
+     &        del_t_cond)
 
       integer, intent(in) :: n_bin ! number of bins
       integer, intent(in) :: TDV ! second dimension of VH
       integer, intent(in) :: n_spec ! number of species
       integer, intent(in) :: MH(n_bin) ! number of particles per bin
-      real*8,  intent(in) :: rho_p(n_spec) ! density of species (kg m^{-3})
+      real*8,  intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
       real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+      real*8, intent(in) :: del_t_cond ! timestep for condensation (s)
 
 C     parameters
       real*8 T, RH, p00, T0, pres
@@ -30,32 +32,26 @@ C     parameters
       parameter (pi = 3.14159265358979323846d0)
 
 C     local variables
-      real*8 dmdt(n_bin,TDV)    ! growth rates (kg s^{-1})
+      real*8 dvdt(n_bin,TDV)    ! growth rates (m^3 s^{-1})
       real*8 histot(n_bin,TDV)  ! normalized growth rate: histot=dmdt/m (s^{-1})
-      real*8 rho(n_spec)        ! densities (kg m^{-3})
       real*8 p0T
 
 C     vapor pressure at temperature T
       p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
 
-C      write(6,*) 'p0T ', p0T, p00, RH
-      
       call cond_rate(n_bin, TDV, n_spec, MH, T, RH, pres, i_water, rho,
-     $     p0T, dmdt, histot, VH)
+     $     p0T, del_t_cond, VH)
 
-C     dmdt(i) and histot(i) are output
-C     dmdt is growth rate of one droplet (kg s^{-1})
+C     dvdt(i) and histot(i) are output
+C     dvdt is growth rate of one droplet (m^3 s^{-1})
 C     histot =  dmdt * 1d6 / e(i) (s^{-1})
-
-      write(6,*)'ende condensation'
-      stop
 
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
 
       subroutine cond_rate(n_bin, TDV, n_spec, MH, T, RH, p, i_water,
-     $     rho, p0T, dmdt, histot, VH)
+     $     rho, p0T, del_t_cond, VH)
 
 C     Calculation of the term dm/dt according to Majeed and Wexler,
 C     Atmos. Env. (2001). Since Eq. (7) in this paper is an implicit
@@ -73,9 +69,8 @@ C     equation (T_a depends on dm/dt), a Newton solver is applied.
       integer, intent(in) :: i_water ! water species number
       real*8, intent(in) :: rho(n_spec) ! densities of each species (kg m^{-3})
       real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-      real*8, intent(out) :: dmdt(n_bin, TDV) ! growth rates (kg s^{-1}) / (m^3 s^{-1})
-      real*8, intent(out) :: histot(n_bin, TDV) ! growth constants (s^{-1})
-      real*8, intent(in) :: VH(n_bin, TDV, n_spec) ! particle volumes (m^3)
+      real*8, intent(in) :: del_t_cond ! timestep condensation (s)
+      real*8, intent(inout) :: VH(n_bin, TDV, n_spec) ! particle volumes (m^3)
 
 C     parameters
       real*8 RR, M_w, sig_w, M_s, nu, x1, x2, x_tol, f_tol
@@ -96,18 +91,17 @@ C     parameters
 
 C     local variables
       real*8 g1, g2, x, d, pv
+      real*8 dvdt(n_bin, TDV), histot(n_bin, TDV)
       integer i, j, k
 
       do i = 1,n_bin
          do j = 1,TDV
-            dmdt(i,j) = 0d0
+            dvdt(i,j) = 0d0
          enddo
       enddo
       
       do i = 1,n_bin
-         write(*,*) 'i', i
          do j = 1,MH(i)
-            write(6,*) 'VH ', i, j, VH(i,j,1), VH(i,j,2), VH(i,j,3)
             
             g1 = VH(i, j, i_water) * rho(i_water)
             g2 = 0d0
@@ -119,30 +113,24 @@ C     local variables
             
             call particle_vol_hybrid(n_bin, TDV, n_spec, VH, i, j, pv)
             
-            d = (6d0 / pi * pv)**(1d0/3d0) ! rn in m, d in m 
-            write(6,*)'g1,g2,pv ',g1,g2,pv,d
+            d = (6d0 / pi * pv)**(1d0/3d0) ! d in m 
             
             if ((g1 .ne. 0d0) .or. (g2 .ne. 0d0)) then
                call cond_newt(x1, x2, x_tol, f_tol, d, g1, g2, p0T, RH,
      $              T, p, x)
-               dmdt(i,j) = x
-               histot(i,j) = dmdt(i,j) / (g1 + g2) ! histot is normalized growth in s^{-1}
-               dmdt(i,j) = dmdt(i,j) / rho(i_water) ! dmdt is now the volume growth in m^3 s-1
+               histot(i,j) = x / (g1 + g2) ! histot is normalized growth in s^{-1}
+               dvdt(i,j) =   x / rho(i_water) ! dvdt is now the volume growth in m^3 s-1
             endif
          enddo
       enddo
 
-!     FIXME: is dm/dt supposed to be a mass or volume growth rate?
-      
       do i = 1,n_bin
          do j = 1,MH(i)
-            write(66,*) 'dmdt ', i, j, dmdt(i,j), histot(i,j),
-     &           1d0/histot(i,j)
+            VH(i,j,3) =  VH(i,j,3) + dvdt(i,j) * del_t_cond
+            if (VH(i,j,3) .lt. 0.d0) VH(i,j,3) = 0.d0
          enddo
       enddo
       
-      stop
-
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -180,10 +168,6 @@ C     at this point.
       call cond_func(x, d, g1, g2, p0T, RH, T, p, f, df, T_a)
       old_f = f
 
-C      write(6,*)'rtnewt1 ',x1,x2,x_tol,x
-C      write(6,*)'rtnewt2 ',d,g1,g2
-C      write(6,*)'rtnewt3 ',p0T,RH,T,p
-       
       do j = 1,j_max
          delta_x = f / df
          x = x - delta_x

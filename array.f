@@ -148,9 +148,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer M       ! INPUT: logical dimension of V
       real*8 V(MM)    ! INPUT: array of particle volumes   (m^3)
       real*8 max_k    ! INPUT: maximum value of the kernel (m^3 s^(-1))
-      external kernel ! INPUT: kernel function
+C      external kernel ! INPUT: kernel function
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
                       !         particles with V(s1/s2) != 0
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       real*8 k, p
 
@@ -271,9 +278,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       real*8 del_t         ! INPUT: timestep
       integer n_samp       ! INPUT: number of samples per timestep
-      external kernel      ! INPUT: kernel function
+C      external kernel      ! INPUT: kernel function
       logical did_coag     ! OUTPUT: whether a coagulation occured
       logical bin_change   ! OUTPUT: whether bin structure changed
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       integer s1, s2
       real*8 p, k
@@ -353,8 +368,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin         ! INPUT: number of bins
       real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
       integer bin_n(n_bin)  ! INPUT: number in each bin
-      external kernel       ! INPUT: kernel function
+C      external kernel       ! INPUT: kernel function
       real*8 k_max          ! OUTPUT: maximum kernel value
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       real*8 k
       integer i, j
@@ -399,8 +422,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_bin         ! INPUT: number of bins
       real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
       integer bin_n(n_bin)  ! INPUT: number in each bin
-      external kernel       ! INPUT: kernel function
+C      external kernel       ! INPUT: kernel function
       real*8 k_avg          ! OUTPUT: average kernel value
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       real*8 k
       integer i, j, div

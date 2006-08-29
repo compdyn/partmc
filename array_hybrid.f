@@ -86,9 +86,17 @@ C     taken as (kernel / k_max).
       integer b2           ! INPUT: bin of second particle
       real*8 del_t         ! INPUT: timestep
       real*8 k_max         ! INPUT: k_max scale factor
-      external kernel      ! INPUT: kernel function
+C      external kernel      ! INPUT: kernel function
       logical did_coag     ! OUTPUT: whether a coagulation occured
       logical bin_change   ! OUTPUT: whether bin structure changed
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       integer s1, s2
       real*8 p, k, pv1, pv2
@@ -361,9 +369,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 cn this is maybe not quite right! 
       do j=1,n_spec
          pv = pv + VH(k,i,j)
-         write(6,*)'pv VH ',j,VH(k,i,j)
       enddo
-       write(6,*)'pv ',pv,k,i,n_spec
       return
       end subroutine
 

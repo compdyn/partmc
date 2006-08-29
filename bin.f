@@ -94,8 +94,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer n_bin             ! INPUT: number of bins
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-      external kernel           ! INPUT: kernel function
+C      external kernel           ! INPUT: kernel function
       real*8 k_max(n_bin,n_bin) ! OUTPUT: maximum kernel values
+
+      interface
+         subroutine kernel(v1, v2, k)
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         real*8, intent(out) :: k
+         end subroutine
+      end interface
 
       integer i, j
 

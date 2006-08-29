@@ -126,8 +126,11 @@ C     local variables
 
       do i = 1,n_bin
          do j = 1,MH(i)
+c            write(6,*)'vor update ',i,j,VH(i,j,3), 
+c     &                 VH(i,j,3) + dvdt(i,j) * del_t_cond
             VH(i,j,3) =  VH(i,j,3) + dvdt(i,j) * del_t_cond
             if (VH(i,j,3) .lt. 0.d0) VH(i,j,3) = 0.d0
+c            write(6,*)'nach update ',i,j,VH(i,j,3)
          enddo
       enddo
       

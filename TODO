@@ -4,6 +4,8 @@ variables.
 
 Remove bin_r, replacing bin_r(i) with vol2rad(bin_v(i))
 
+We are actually storing volumes in bin_g - update comments to reflect this.
+
 Write vol2rad() and rad2vol() in util.f
 
 Change init_exp() to return a floating-point concentration curve

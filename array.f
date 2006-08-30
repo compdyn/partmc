@@ -130,9 +130,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
                       !         particles with (1 <= s1,s2 <= M)
 
- 100  s1 = int(rand() * M) + 1
+      ! FIXME: rand() only returns a REAL*4, so we might not be able to
+      ! generate all integers between 1 and M if M is too big.
+ 100  s1 = int(rand() * float(M)) + 1
       if ((s1 .lt. 1) .or. (s1 .gt. M)) goto 100
- 101  s2 = int(rand() * M) + 1
+ 101  s2 = int(rand() * float(M)) + 1
       if ((s2 .lt. 1) .or. (s2 .gt. M)) goto 101
       if (s1 .eq. s2) goto 101
 
@@ -580,7 +582,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       write(30,'(a10,e14.5)') 'time', time
       do k = 1,n_bin
-         write(30, '(i8,20e14.5)')k, bin_r(k), bin_n(k) / V_comp / dlnr,
+         write(30, '(i8,20e14.5)')k, bin_r(k),
+     &        dble(bin_n(k)) / V_comp / dlnr,
      &        bin_g(k) / V_comp / dlnr,
      &        (bin_gs(k,i) / V_comp / dlnr,i=1,n_spec) 
       enddo
@@ -598,15 +601,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i            ! INPUT: particle index
       real*8 pv            ! OUPUT: total volume of particle
 
-      integer j
+!     FIXME: fix callers to just call particle_vol_base directly
+      call particle_vol_base(n_spec, V(i,:), pv)
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine particle_vol_base(n_spec, V, pv)
+
+      integer, intent(in) :: n_spec ! number of species
+      real*8, intent(in) :: V(n_spec)  ! particle volumes (m^3)
+      real*8, intent(out) :: pv ! total volume of particle
+
+      integer i
 
       pv = 0d0
-
-      do j=1,n_spec
-         pv = pv + V(i,j)
+      do i = 1,n_spec
+         pv = pv + V(i)
       enddo
 
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

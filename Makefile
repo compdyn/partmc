@@ -6,7 +6,8 @@ DIST_NAME = hpmc-$(VERSION)
 #   -g              debugging
 #   -pg             profiling
 #   -fbounds-check  check array accesses
-FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels -Wimplicit-interface
+# FIXME: remove -Wno-unused to start reporting unused variables again
+FFLAGS = -O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
 LDFLAGS = 
 
 F77 = gfortran
@@ -19,6 +20,9 @@ PROGS = process_out run_golovin_adapt run_golovin_exact			\
 OTHER = array array_hybrid array_split array_super bin condensation	\
 	init_dist kernel_golovin kernel_sedi mc_adapt mc_exact mc_fix	\
 	mc_fix_hybrid mc_fix_split mc_fix_super mc_var util
+
+# following files are in free-form fortran
+FREEFORM = condensation
 
 FILES := $(PROGS) $(OTHER)
 
@@ -48,10 +52,13 @@ $(1).allobjs := $$(addsuffix .o,$$($(1).alldeps))
 endef
 $(foreach file,$(FILES),$(eval $(call set_alldeps,$(file))))
 
+# provide flag for free- or fixed-form
+freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
+
 # establish direct dependencies for object files
 define set_obj_deps
 $(1).o: $(1).f $$($(1).objs)
-	$$(F77) $$(FFLAGS) -c -o $$@ $$<
+	$$(F77) $$(call freeflag,$(1)) $$(FFLAGS) -c -o $$@ $$<
 endef
 $(foreach file,$(FILES),$(eval $(call set_obj_deps,$(file))))
 

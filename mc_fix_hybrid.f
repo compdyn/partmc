@@ -16,32 +16,31 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_bin 
       use mod_condensation
 
-      integer MM           ! INPUT: physical dimension of V
-      integer M            ! INPUT/OUTPUT: logical dimension of V
-      integer n_spec       ! INPUT: number of species
-      real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes (m^3)
-      integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH
-      integer MH(n_bin)    ! OUTPUT: number of particles per bin
-      real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes
-      real*8 V_comp        ! INPUT/OUTPUT: computational volume (m^3)
-      real*8 rho_p(n_spec) ! INPUT: density of species (kg m^{-3})
-
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins  
-      real*8 bin_gs(n_bin,n_spec) !OUTPUT: species mass in bins             
-      integer bin_n(n_bin) ! OUTPUT: number in bins
-      real*8 dlnr          ! INPUT: bin scale factor
-
-C      external kernel      ! INPUT: kernel function
-      real*8 t_max         ! INPUT: final time (seconds)
-      real*8 t_print       ! INPUT: interval to output data (seconds)
-      real*8 t_progress    ! INPUT: interval to print progress (seconds)
-      real*8 del_t         ! INPUT: timestep for coagulation
-      real*8 del_t_cond    ! INPUT: timestep for condensation
-     
-      integer loop         ! INPUT: loop number of run
+      integer MM                ! INPUT: physical dimension of V
+      integer M                 ! INPUT/OUTPUT: logical dimension of V
+      integer n_spec            ! INPUT: number of species
+      real*8 V(MM,n_spec)       ! INPUT/OUTPUT: particle volumes (m^3)
+      integer n_bin             ! INPUT: number of bins
+      integer TDV               ! INPUT: trailing dimension of VH
+      integer MH(n_bin)         ! OUTPUT: number of particles per bin
+      real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
+      real*8 V_comp             ! INPUT/OUTPUT: computational volume (m^3)
+      real*8 rho_p(n_spec)      ! INPUT: density of species (kg m^{-3})
+      
+      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
+      real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
+      integer bin_n(n_bin)      ! OUTPUT: number in bins
+      real*8 dlnr               ! INPUT: bin scale factor
+      
+      real*8 t_max              ! INPUT: final time (seconds)
+      real*8 t_print            ! INPUT: interval to output data (seconds)
+      real*8 t_progress         ! INPUT: interval to print progress (seconds)
+      real*8 del_t              ! INPUT: timestep for coagulation
+      real*8 del_t_cond         ! INPUT: timestep for condensation
+      
+      integer loop              ! INPUT: loop number of run
 
       interface
          subroutine kernel(v1, v2, k)
@@ -54,14 +53,12 @@ C      external kernel      ! INPUT: kernel function
       real*8 time, last_print_time, last_progress_time
       real*8 k_max(n_bin, n_bin), n_samp_real
       integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
-      integer i_cond, n_cond
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
 
       last_progress_time = 0d0
       time = 0d0
       tot_n_coag = 0
-      n_cond = int(del_t / del_t_cond)+1
       
       call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
      $     bin_gs, bin_n, dlnr)
@@ -106,14 +103,10 @@ c                  if (did_coag) n_coag = n_coag + 1
 ! DEBUG
 c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
 ! DEBUG
-         write(6,*)'vor cond ', n_cond
-         
-         do i_cond = 1,n_cond
-         write(6,*)'in condensation loop ',i_cond
-             call condensation(n_bin, TDV, n_spec, MH, VH, rho_p, 
-     &           del_t_cond)
-         enddo
 
+         call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
+     &        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+         
          time = time + del_t
 
          call check_event(time, t_print, last_print_time, do_print)

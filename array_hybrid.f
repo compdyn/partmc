@@ -137,9 +137,11 @@ C     Find a random pair of particles (b1, s1) and (b2, s2).
       integer s2        ! OUTPUT: second random particle 1 <= s2 <= M(b2)
                         !         (b1,s1) != (b2,s2)
 
- 100  s1 = int(rand() * MH(b1)) + 1
+      ! FIXME: rand() only returns a REAL*4, so we might not be able to
+      ! generate all integers between 1 and M if M is too big.
+ 100  s1 = int(rand() * float(MH(b1))) + 1
       if ((s1 .lt. 1) .or. (s1 .gt. MH(b1))) goto 100
- 101  s2 = int(rand() * MH(b2)) + 1
+ 101  s2 = int(rand() * float(MH(b2))) + 1
       if ((s2 .lt. 1) .or. (s2 .gt. MH(b2))) goto 101
       if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
@@ -228,6 +230,10 @@ C     empty bin filled or a filled bin became empty).
          call exit(2)
       endif
       MH(bn) = MH(bn) + 1          ! increase the length of array
+      if (MH(bn) .gt. TDV) then
+         write(*,*) 'ERROR: too many particles in bin ', bn
+         call exit(2)
+      end if
       do i=1,n_spec
          VH(bn, MH(bn),i) = new_v(i) ! add the new particle at the end
       enddo
@@ -237,7 +243,7 @@ C     empty bin filled or a filled bin became empty).
       bin_n(bn) = bin_n(bn) + 1
       do i=1,n_spec
          bin_g(bn) = bin_g(bn) + VH(bn, MH(bn),i)
-         bin_gs(bn,i) = bin_gs(bn,i)+VH(bn,MH(bn),i)
+         bin_gs(bn,i) = bin_gs(bn,i) + VH(bn,MH(bn),i)
       enddo
 
       ! did we empty a bin?
@@ -355,6 +361,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine particle_vol_hybrid(n_bin,TDV,n_spec,VH,k,i,pv)
 
+      use mod_array
+
       integer n_spec       ! INPUT: number of species
       integer n_bin        ! INPUT: number of bins
       integer TDV          ! INPUT: trailing dimension of VH      
@@ -363,14 +371,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer k            ! INPUT: bin index
       real*8 pv            ! OUPUT: total volume of particle
 
-      integer j
+!     FIXME: fix callers to just call particle_vol_base directly
+      call particle_vol_base(n_spec, VH(k,i,:), pv)
 
-      pv = 0d0
-cn this is maybe not quite right! 
-      do j=1,n_spec
-         pv = pv + VH(k,i,j)
-      enddo
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

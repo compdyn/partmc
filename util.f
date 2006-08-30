@@ -1,5 +1,64 @@
 C     Common utility functions.
 
+      module mod_util
+      contains
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine vol2rad(v, r)
+
+      real*8, intent(in) :: v  ! volume (m^3)
+      real*8, intent(out) :: r ! radius (m)
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      r = (v / (4d0 / 3d0 * pi))**(1d0/3d0)
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine vol2diam(v, d)
+
+      real*8, intent(in) :: v  ! volume (m^3)
+      real*8, intent(out) :: d ! diameter (m)
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      d = 2d0 * (v / (4d0 / 3d0 * pi))**(1d0/3d0)
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine rad2vol(r, v)
+
+      real*8, intent(in) :: r  ! radius (m)
+      real*8, intent(out) :: v ! volume (m^3)
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      v = 4d0 / 3d0 * pi * r**3d0
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine diam2vol(d, v)
+
+      real*8, intent(in) :: d  ! diameter (m)
+      real*8, intent(out) :: v ! volume (m^3)
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      v = 4d0 / 3d0 * pi * (d / 2d0)**3d0
+
+      end subroutine
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine sum_int_1d(size1, array, sum)
@@ -15,7 +74,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          sum = sum + array(i)
       enddo
       
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -37,6 +96,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
       enddo
 
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      end module

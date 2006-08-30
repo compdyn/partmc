@@ -318,8 +318,8 @@ C     Check that V has all particles in the correct bins.
 
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH
       integer n_spec       ! INPUT: number of species
+      integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
 

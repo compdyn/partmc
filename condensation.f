@@ -30,6 +30,7 @@ contains
     real*8 pv
     
     do bin = 1,n_bin
+       write(*,*) 'condensation in bin ', bin
        do j = 1,MH(bin)
           ! remove the particle volume from the bin data
           call particle_vol_base(n_spec, VH(bin,j,:), pv)
@@ -39,50 +40,64 @@ contains
           end do
           
           ! do the condensation
-          write(*,*) 'condense_particle ', bin, j
           call condense_particle(n_spec, VH(bin,j,:), rho, del_t)
        end do
     end do
 
-    ! resort the particles into bins. This has to be done after all
+    ! re-sort the particles into bins. This has to be done after all
     ! particles are advanced, otherwise we will lose track of which
     ! ones have been advanced and which have not.
     do bin = 1,n_bin
        j = 1
-       do
+       do while (j .le. MH(bin))
           ! find the new volume
           call particle_vol_base(n_spec, VH(bin,j,:), pv)
           call particle_in_bin(pv, n_bin, bin_v, new_bin)
+
+          ! update bin volumes
+          bin_g(new_bin) = bin_g(new_bin) + pv
+          do k = 1,n_spec
+             bin_gs(new_bin,k) = bin_gs(new_bin,k) + VH(bin,j,k)
+          end do
           
-          ! if the volume has changed, move the particle
+          ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
+!             write(*,*) 'n_bin = ', n_bin, ' TDV = ', TDV, ' n_spec = ', n_spec
+
+!             write(*,*) 'bin = ', bin, ' j = ', j, ' MH(bin) = ', MH(bin)
              ! update the bin structures
              bin_n(bin) = bin_n(bin) - 1
              if (bin_n(bin) .lt. 0) then
                 write(*,*) 'ERROR: invalid bin_n'
+!                write(*,'(a15,a15,a15)') 'bin','bin_n(bin)', 'new_bin'
+!                write(*,'(i15,i15,i15)') bin, bin_n(bin), new_bin
                 call exit(2)
              end if
              bin_n(new_bin) = bin_n(new_bin) + 1
-             bin_g(new_bin) = bin_g(new_bin) + pv
-             do k = 1,n_spec
-                bin_gs(new_bin,k) = bin_gs(new_bin,k) + VH(bin,j,k)
-             end do
+!             write(*,*) 'bin = ', bin, ' bin_n(bin) = ', bin_n(bin)
+!             write(*,*) 'new_bin = ', new_bin, ' bin_n(new_bin) = ', bin_n(new_bin)
          
              ! move the particle to the new bin, leaving a hole
              MH(new_bin) = MH(new_bin) + 1
-             if (MH(bin) .gt. TDV) then
+             if (MH(new_bin) .gt. TDV) then
                 write(*,*) 'ERROR: too many particles in bin ', bin
                 call exit(2)
              end if
+!             write(*,*) 'new_bin = ', new_bin, ' MH(new_bin) = ', MH(new_bin)
              do k = 1,n_spec
+!                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
+!                write(*,*) 'new_bin = ', new_bin, ' MH(new_bin) = ', MH(new_bin), ' k = ', k
                 VH(new_bin,MH(new_bin),k) = VH(bin,j,k)
              end do
              
              ! copy the last particle in the current bin into the hole
              do k = 1,n_spec
+!                write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin), ' k = ', k
+!                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
                 VH(bin,j,k) = VH(bin,MH(bin),k)
              end do
              MH(bin) = MH(bin) - 1
+!             write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin)
              if (MH(bin) .lt. 0) then
                 write(*,*) 'ERROR: invalid MH'
                 call exit(2)
@@ -95,7 +110,6 @@ contains
              ! the next particle
              j = j + 1
           end if
-          if (j > MH(bin)) exit
        end do
     end do
 

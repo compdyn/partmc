@@ -100,13 +100,13 @@ c                  if (did_coag) n_coag = n_coag + 1
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
-! DEBUG
-c         call check_hybrid(MM, M, n_bin, MH, VH, bin_v, bin_r)
-! DEBUG
-
          call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
      &        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
          
+! DEBUG
+         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r)
+! DEBUG
+
          time = time + del_t
 
          call check_event(time, t_print, last_print_time, do_print)

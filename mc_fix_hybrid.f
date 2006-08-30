@@ -100,11 +100,14 @@ c                  if (did_coag) n_coag = n_coag + 1
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
+         call check_vols(n_spec, n_bin, TDV, MH, VH)
+
          call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
      &        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
 
          ! print the total amount of each species, summed over all particles
-         
+        
+         call check_vols(n_spec, n_bin, TDV, MH, VH)         
 ! DEBUG
          call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r)
 ! DEBUG
@@ -131,6 +134,40 @@ c                  if (did_coag) n_coag = n_coag + 1
 
       return
       end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine check_vols(n_spec, n_bin, TDV, MH, VH)
+
+C     Check that the total volumes of the different species sum up correctly
+
+      integer n_spec       ! INPUT: number of species
+      integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
+      integer MH(n_bin)    ! INPUT: number of particles per bin
+      real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
+
+
+      integer i, k, j
+      real*8  VH_tot(n_spec)
+
+      do j=1,n_spec
+          VH_tot(j) = 0d0
+      enddo
+
+      do k = 1, n_bin
+          do i = 1, MH(k)
+              do j = 1,n_spec
+                 VH_tot(j) = VH_tot(j) + VH(k,i,j)
+              enddo
+           enddo
+       enddo
+
+       do j=1,n_spec
+           write(*,*)'total volume ', j, VH_tot(j) 
+       enddo
+       end subroutine
+
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

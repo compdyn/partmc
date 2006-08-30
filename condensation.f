@@ -98,12 +98,12 @@ contains
 !                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
                    VH(bin,j,k) = VH(bin,MH(bin),k)
                 end do
-                MH(bin) = MH(bin) - 1
+             end if
+             MH(bin) = MH(bin) - 1
 !             write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin)
-                if (MH(bin) .lt. 0) then
-                   write(*,*) 'ERROR: invalid MH'
-                   call exit(2)
-                end if
+             if (MH(bin) .lt. 0) then
+                write(*,*) 'ERROR: invalid MH'
+                call exit(2)
              end if
 
              ! in this case, don't advance j, so that we will still

@@ -48,7 +48,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do k = 1,n_bin
          n_ini(k) = int(4d0 * pi * bin_r(k)**3 * dble(MM)/V_0
      &        * exp(-(bin_v(k) / V_0)) * dlnr)
-         write(6,*)'n_ini ',k,bin_r(k),n_ini(k)
+c         write(6,*)'n_ini ',k,bin_r(k),n_ini(k)
       enddo
 
       return

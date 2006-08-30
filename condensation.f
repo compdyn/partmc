@@ -20,8 +20,8 @@ contains
     real*8, intent(in) :: del_t         ! total time to integrate
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
     real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
-    real*8, intent(out) :: bin_g(n_bin) ! mass in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species mass in bins
+    real*8, intent(inout) :: bin_g(n_bin) ! mass in bins  
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species mass in bins
     integer, intent(inout) :: bin_n(n_bin)      ! number in bins
     real*8, intent(in) :: dlnr                  ! bin scale factor
     
@@ -91,16 +91,19 @@ contains
              end do
              
              ! copy the last particle in the current bin into the hole
-             do k = 1,n_spec
+             ! if the hole isn't in fact the last particle
+             if (j .lt. MH(bin)) then
+                do k = 1,n_spec
 !                write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin), ' k = ', k
 !                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
-                VH(bin,j,k) = VH(bin,MH(bin),k)
-             end do
-             MH(bin) = MH(bin) - 1
+                   VH(bin,j,k) = VH(bin,MH(bin),k)
+                end do
+                MH(bin) = MH(bin) - 1
 !             write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin)
-             if (MH(bin) .lt. 0) then
-                write(*,*) 'ERROR: invalid MH'
-                call exit(2)
+                if (MH(bin) .lt. 0) then
+                   write(*,*) 'ERROR: invalid MH'
+                   call exit(2)
+                end if
              end if
 
              ! in this case, don't advance j, so that we will still
@@ -125,6 +128,9 @@ contains
 
   subroutine condense_particle(n_spec, V, rho, del_t)
 
+    ! integrates the condensation growth or decay ODE for total time
+    ! del_t
+
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
@@ -146,6 +152,11 @@ contains
 
   subroutine condense_step(n_spec, V, rho, max_dt, dt, done)
 
+    ! Does one timestep (determined by this subroutine) of the
+    ! condensation ODE. The timestep will not exceed max_dt, but might
+    ! be less. If we in fact step all the way to max_dt then done will
+    ! be true.
+    
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  

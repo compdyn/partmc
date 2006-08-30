@@ -39,6 +39,7 @@ contains
           end do
           
           ! do the condensation
+          write(*,*) 'condense_particle ', bin, j
           call condense_particle(n_spec, VH(bin,j,:), rho, del_t)
        end do
     end do

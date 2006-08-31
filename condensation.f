@@ -42,7 +42,7 @@ contains
 !          if (j .eq. 1) then
 !             call find_condense_timestep_variable(n_spec, VH(bin,j,:), &
 !                  rho, i_water, dt)
-!             write(*,*) bin, dt
+!            write(*,*) bin, dt
 !          end if
        end do
     end do
@@ -129,7 +129,7 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
+       call condense_step_rk_fixed(n_spec, V, rho, i_water, del_t - time, &
             time_step, done)
        time = time + time_step
     end do
@@ -156,7 +156,7 @@ contains
     real*8 dvdt
 
     done = .false.
-    call find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
+    call find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
@@ -275,7 +275,6 @@ contains
 
     call particle_vol_base(n_spec, V, pv)
     call cond_newt(n_spec, V, rho, i_water, dvdt)
-    write(*,*) 'pv = ', pv, ' dvdt = ', dvdt
     dt = scale * pv / dvdt
 
   end subroutine find_condense_timestep_variable

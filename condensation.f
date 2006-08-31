@@ -336,8 +336,11 @@ contains
     dmdt = (dmdt_min + dmdt_max) / 2d0
     call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, T_a)
     old_f = f
-    
-    do iter = 1,iter_max
+
+    iter = 0
+    do
+       iter = iter + 1
+
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
        call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, T_a)
@@ -350,20 +353,20 @@ contains
           write(0,'(g15.10,g15.10,g15.10)') dmdt, dmdt_min, dmdt_max
           call exit(1)
        endif
+
+       if (iter .ge. iter_max) then
+          write(0,*) 'ERROR: Newton iteration had too many iterations'
+          write(0,'(a15,a15)') 'dmdt', 'iter_max'
+          write(0,'(g15.10,i15)') dmdt, iter_max
+          call exit(2)
+       end if
        
        if ((abs(delta_dmdt) .lt. dmdt_tol) &
-            .and. (abs(delta_f) .lt. f_tol)) then
-          return ! successful termination of Newton's method
-       endif
+            .and. (abs(delta_f) .lt. f_tol)) exit
     enddo
-    
-    write(0,*) 'ERROR: Newton iteration had too many iterations'
-    write(0,'(a15,a17)') 'dmdt', 'max iterations'
-    write(0,'(g15.10,i17)') dmdt, iter_max
-    call exit(2)
 
     dvdt = dmdt / rho(i_water)
-    
+
   end subroutine cond_newt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

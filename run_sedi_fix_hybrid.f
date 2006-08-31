@@ -9,7 +9,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_mc_fix_hybrid
       use mod_kernel_sedi
 
-      integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal
+      integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, V_01, V_02, v_min
       parameter (MM =  100000)  ! number of particles
@@ -25,9 +25,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (t_print = 1d0) ! interval between printing (s)
       parameter (t_progress = 1d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
-      parameter (del_t_cond = 5d-3) ! timestep for condensation (s)
       parameter (V_01 = 8.d0*4.1886d-15) ! mean volume of initial distribution (m^3)
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)
+      parameter (i_water = 3)   ! water species number
 
       integer M, M1, M2, i_loop
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
@@ -68,10 +68,10 @@ cn *** initialise second distribution
          V_comp = dble(M) / N_0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
-     &        TDV, MH, VH, V_comp, bin_v, rho_p,
+     &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,
      $        bin_r, bin_g, bin_gs, bin_n, dlnr, 
      &        kernel_sedi, t_max, t_print,
-     $        t_progress ,del_t, del_t_cond, i_loop)
+     $        t_progress ,del_t, i_loop)
 
       enddo
 

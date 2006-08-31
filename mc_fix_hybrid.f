@@ -6,10 +6,11 @@ C     Monte Carlo with fixed timestep and a hybrid array.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, 
-     &     MH, VH, V_comp,
-     $     bin_v, rho_p, bin_r, bin_g, bin_gs, bin_n, dlnr, 
-     &     kernel, t_max, t_print,
-     $     t_progress, del_t, del_t_cond, loop)
+     $     MH, VH, V_comp,
+     $     bin_v, rho_p, i_water,
+     $     bin_r, bin_g, bin_gs, bin_n, dlnr, 
+     $     kernel, t_max, t_print,
+     $     t_progress, del_t, loop)
 
       use mod_array
       use mod_array_hybrid
@@ -26,6 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
       real*8 V_comp             ! INPUT/OUTPUT: computational volume (m^3)
       real*8 rho_p(n_spec)      ! INPUT: density of species (kg m^{-3})
+      integer i_water           ! INPUT: water species number
       
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
       real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
@@ -38,7 +40,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 t_print            ! INPUT: interval to output data (seconds)
       real*8 t_progress         ! INPUT: interval to print progress (seconds)
       real*8 del_t              ! INPUT: timestep for coagulation
-      real*8 del_t_cond         ! INPUT: timestep for condensation
       
       integer loop              ! INPUT: loop number of run
 
@@ -63,7 +64,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
      $     bin_gs, bin_n, dlnr)
       call check_event(time, t_print, last_print_time, do_print)
-      write(6,*)'do_print ',do_print
       if (do_print) call print_info(time, V_comp, n_spec, n_bin, bin_v,
      $     bin_r,bin_g, bin_gs, bin_n, dlnr)
 
@@ -100,16 +100,19 @@ c                  if (did_coag) n_coag = n_coag + 1
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
-         call check_vols(n_spec, n_bin, TDV, MH, VH)
+         call check_vols(n_spec, n_bin, TDV, MH, VH, rho_p, bin_v, bin_r
+     &        ,bin_g, bin_gs, bin_n, dlnr)
 
          call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
-     &        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+     &        i_water, del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
 
          ! print the total amount of each species, summed over all particles
         
-         call check_vols(n_spec, n_bin, TDV, MH, VH)         
+         call check_vols(n_spec, n_bin, TDV, MH, VH, rho_p, bin_v, bin_r
+     &        ,bin_g, bin_gs, bin_n, dlnr)
 ! DEBUG
-         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r)
+         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,
+     &        bin_g, bin_gs, bin_n, dlnr)
 ! DEBUG
 
          time = time + del_t
@@ -137,37 +140,60 @@ c                  if (did_coag) n_coag = n_coag + 1
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine check_vols(n_spec, n_bin, TDV, MH, VH)
+      subroutine check_vols(n_spec, n_bin, TDV, MH, VH, rho, bin_v,
+     &     bin_r,bin_g, bin_gs, bin_n, dlnr)
 
 C     Check that the total volumes of the different species sum up correctly
+
+      use mod_array
 
       integer n_spec       ! INPUT: number of species
       integer n_bin        ! INPUT: number of bins
       integer TDV          ! INPUT: trailing dimension of VH
       integer MH(n_bin)    ! INPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
+      real*8 rho(n_spec)      ! INPUT: density of species (kg m^{-3})
 
+      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
+      real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
+      integer bin_n(n_bin)      ! OUTPUT: number in bins
+      real*8 dlnr               ! INPUT: bin scale factor
 
       integer i, k, j
-      real*8  VH_tot(n_spec)
+      real*8 VH_tot(n_spec), bin_tot(n_spec)
+      real*8 VH_tot_t, bin_tot_t, pv
 
-      do j=1,n_spec
+      VH_tot_t = 0d0
+      bin_tot_t = 0d0
+      do j = 1,n_spec
           VH_tot(j) = 0d0
+          bin_tot(j) = 0d0
       enddo
 
       do k = 1, n_bin
-          do i = 1, MH(k)
-              do j = 1,n_spec
-                 VH_tot(j) = VH_tot(j) + VH(k,i,j)
-              enddo
-           enddo
-       enddo
+         bin_tot_t = bin_tot_t + bin_g(k)
+         do j = 1,n_spec
+            bin_tot(j) = bin_tot(j) + bin_gs(k,j)
+         enddo
+         do i = 1, MH(k)
+            call particle_vol_base(n_spec, VH(k,i,:), pv)
+            VH_tot_t = VH_tot_t + pv
+            do j = 1,n_spec
+               VH_tot(j) = VH_tot(j) + VH(k,i,j)
+            enddo
+         enddo
+      enddo
 
-       do j=1,n_spec
-           write(*,*)'total volume ', j, VH_tot(j) 
-       enddo
-       end subroutine
+      write(*,*) 'total VH    volume', VH_tot_t
+      write(*,*) 'total bin_g volume', bin_tot_t
+      do j=1,n_spec
+         write(*,*) 'total VH     volume in species', j, VH_tot(j)
+         write(*,*) 'total bin_gs volume in species', j, bin_tot(j)
+      enddo
 
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -196,7 +222,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       r_samp = k_max(i,j) * 1d0/V_comp * del_t
       n_samp_real = r_samp * n_possible
 
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

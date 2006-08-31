@@ -6,10 +6,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, rho, &
-       del_t,bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+  subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, rho, i_water, &
+       del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
 
     use mod_array
+    use mod_array_hybrid
 
     integer, intent(in) :: n_bin ! number of bins
     integer, intent(in) :: TDV   ! second dimension of VH
@@ -17,6 +18,7 @@ contains
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
+    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: del_t         ! total time to integrate
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
     real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
@@ -28,21 +30,24 @@ contains
     ! local variables
     integer bin, j, new_bin, k
     real*8 pv
-    
+
+! DEBUG
+    real*8 dt
+! DEBUG
+
     do bin = 1,n_bin
        write(*,*) 'condensation in bin ', bin
        do j = 1,MH(bin)
-          ! remove the particle volume from the bin data
-          call particle_vol_base(n_spec, VH(bin,j,:), pv)
-          bin_g(bin) = bin_g(bin) - pv
-          do k = 1,n_spec
-             bin_gs(bin,k) = bin_gs(bin,k) - VH(bin,j,k)
-          end do
-          
-          ! do the condensation
-          call condense_particle(n_spec, VH(bin,j,:), rho, del_t)
+          call condense_particle(n_spec, VH(bin,j,:), rho, i_water, del_t)
+!          if (j .eq. 1) then
+!             call find_condense_timestep_variable(n_spec, VH(bin,j,:), &
+!                  rho, i_water, dt)
+!             write(*,*) bin, dt
+!          end if
        end do
     end do
+
+!    stop
 
     ! re-sort the particles into bins. This has to be done after all
     ! particles are advanced, otherwise we will lose track of which
@@ -50,43 +55,19 @@ contains
     do bin = 1,n_bin
        j = 1
        do while (j .le. MH(bin))
-          ! find the new volume
+          ! find the new volume and new bin
           call particle_vol_base(n_spec, VH(bin,j,:), pv)
           call particle_in_bin(pv, n_bin, bin_v, new_bin)
 
-          ! update bin volumes
-          bin_g(new_bin) = bin_g(new_bin) + pv
-          do k = 1,n_spec
-             bin_gs(new_bin,k) = bin_gs(new_bin,k) + VH(bin,j,k)
-          end do
-          
           ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
-!             write(*,*) 'n_bin = ', n_bin, ' TDV = ', TDV, ' n_spec = ', n_spec
-
-!             write(*,*) 'bin = ', bin, ' j = ', j, ' MH(bin) = ', MH(bin)
-             ! update the bin structures
-             bin_n(bin) = bin_n(bin) - 1
-             if (bin_n(bin) .lt. 0) then
-                write(*,*) 'ERROR: invalid bin_n'
-!                write(*,'(a15,a15,a15)') 'bin','bin_n(bin)', 'new_bin'
-!                write(*,'(i15,i15,i15)') bin, bin_n(bin), new_bin
-                call exit(2)
-             end if
-             bin_n(new_bin) = bin_n(new_bin) + 1
-!             write(*,*) 'bin = ', bin, ' bin_n(bin) = ', bin_n(bin)
-!             write(*,*) 'new_bin = ', new_bin, ' bin_n(new_bin) = ', bin_n(new_bin)
-         
              ! move the particle to the new bin, leaving a hole
              MH(new_bin) = MH(new_bin) + 1
              if (MH(new_bin) .gt. TDV) then
                 write(*,*) 'ERROR: too many particles in bin ', bin
                 call exit(2)
              end if
-!             write(*,*) 'new_bin = ', new_bin, ' MH(new_bin) = ', MH(new_bin)
              do k = 1,n_spec
-!                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
-!                write(*,*) 'new_bin = ', new_bin, ' MH(new_bin) = ', MH(new_bin), ' k = ', k
                 VH(new_bin,MH(new_bin),k) = VH(bin,j,k)
              end do
              
@@ -94,13 +75,10 @@ contains
              ! if the hole isn't in fact the last particle
              if (j .lt. MH(bin)) then
                 do k = 1,n_spec
-!                write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin), ' k = ', k
-!                write(*,*) 'bin = ', bin, ' j = ', j, ' k = ', k
                    VH(bin,j,k) = VH(bin,MH(bin),k)
                 end do
              end if
              MH(bin) = MH(bin) - 1
-!             write(*,*) 'bin = ', bin, ' MH(bin) = ', MH(bin)
              if (MH(bin) .lt. 0) then
                 write(*,*) 'ERROR: invalid MH'
                 call exit(2)
@@ -116,17 +94,25 @@ contains
        end do
     end do
 
+    call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+         bin_r, bin_g, bin_gs, bin_n, dlnr)
+
     ! FIXME: the approach above is inefficient because we might
     ! reprocess particles. For example, if we are doing bin 1 and we
     ! shift a particle up to bin 2, when we do bin 2 we will reprocess
     ! it. It seems to be more trouble than it's worth to worry about
     ! this yet, however.
 
+    ! FIME: working from n_bin down to 1 in the array would help,
+    ! though, with no real penalty. This would bias for the case when
+    ! primarily growth happens, whereas now we are biased towards the
+    ! case when primarily shrinkage happens.
+
   end subroutine condense_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particle(n_spec, V, rho, del_t)
+  subroutine condense_particle(n_spec, V, rho, i_water, del_t)
 
     ! integrates the condensation growth or decay ODE for total time
     ! del_t
@@ -134,6 +120,7 @@ contains
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
+    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: del_t ! total time to integrate
 
     real*8 time_step, time
@@ -142,7 +129,8 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step(n_spec, V, rho, del_t - time, time_step, done)
+       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
+            time_step, done)
        time = time + time_step
     end do
     
@@ -150,7 +138,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step(n_spec, V, rho, max_dt, dt, done)
+  subroutine condense_step_euler(n_spec, V, rho, i_water, max_dt, dt, done)
 
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
@@ -160,64 +148,141 @@ contains
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
+    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: max_dt ! maximum timestep to integrate
     real*8, intent(out) :: dt ! actual timestep used
     logical, intent(out) :: done ! whether we reached the maximum timestep
 
-    ! parameters
-    real*8 T, RH, p00, T0, p
-    integer i_water
-      
-    parameter (T = 298d0)     ! Temperature of gas medium (K)
-    parameter (RH = 1.01d0)   ! Relative humidity (1)
-    parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
-    parameter (T0 = 273.15d0) ! Freezing point of water (K)
-    parameter (p = 1d5)       ! ambient pressure (Pa)
-    parameter (i_water = 3)   ! water species number
-
-    ! local variables
-    real*8 dmdt, p0T, dvdt
+    real*8 dvdt
 
     done = .false.
-    call find_condense_timestep(n_spec, V, rho, dt)
+    call find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    ! vapor pressure at temperature T
-    p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
-
-    call cond_newt(n_spec, V, rho, p0T, RH, T, p, i_water, dmdt)
-
-    ! forward-Euler for now
-    dvdt = dmdt / rho(i_water) ! m^3 s^{-1}
+    call cond_newt(n_spec, V, rho, i_water, dvdt)
     V(i_water) = V(i_water) + dt * dvdt
     V(i_water) = max(0d0, V(i_water))
    
-  end subroutine condense_step
+  end subroutine condense_step_euler
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep(n_spec, V, rho, dt)
+  subroutine condense_step_rk_fixed(n_spec, V, rho, i_water, max_dt, dt, done)
+
+    ! Does one timestep (determined by this subroutine) of the
+    ! condensation ODE. The timestep will not exceed max_dt, but might
+    ! be less. If we in fact step all the way to max_dt then done will
+    ! be true.
+    
+    integer, intent(in) :: n_spec ! number of species
+    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
+    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
+    integer, intent(in) :: i_water ! water species number
+    real*8, intent(in) :: max_dt ! maximum timestep to integrate
+    real*8, intent(out) :: dt ! actual timestep used
+    logical, intent(out) :: done ! whether we reached the maximum timestep
+
+    done = .false.
+    call find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
+    if (dt .ge. max_dt) then
+       dt = max_dt
+       done = .true.
+    end if
+
+    call condense_step_rk(n_spec, V, rho, i_water, dt)
+   
+  end subroutine condense_step_rk_fixed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine condense_step_rk(n_spec, V, rho, i_water, dt)
+
+    ! Does one fixed timestep of RK4.
+    
+    integer, intent(in) :: n_spec ! number of species
+    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
+    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
+    integer, intent(in) :: i_water ! water species number
+    real*8, intent(out) :: dt ! timestep
+
+    ! local variables
+    real*8 dmdt, dvdt, k1, k2, k3, k4
+    real*8 V_tmp(n_spec)
+
+    V_tmp = V
+
+    ! step 1
+    call cond_newt(n_spec, V, rho, i_water, k1)
+
+    ! step 2
+    V_tmp(i_water) = V(i_water) + k1 / 2d0
+    call cond_newt(n_spec, V_tmp, rho, i_water, k2)
+
+    ! step 3
+    V_tmp(i_water) = V(i_water) + k2 / 2d0
+    call cond_newt(n_spec, V_tmp, rho, i_water, k3)
+
+    ! step 4
+    V_tmp(i_water) = V(i_water) + k3
+    call cond_newt(n_spec, V_tmp, rho, i_water, k4)
+
+    V(i_water) = V(i_water) + k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0
+
+    V(i_water) = max(0d0, V(i_water))
+   
+  end subroutine condense_step_rk
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
+
+    ! constant timestep
 
     use mod_array
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
+    integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep to use
 
-    real*8 pv
-
-    call particle_vol_base(n_spec, V, pv)
     dt = 5d-3
 
-  end subroutine find_condense_timestep
+  end subroutine find_condense_timestep_constant
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
+
+    ! timestep is proportional to V / (dV/dt)
+
+    use mod_array
+
+    integer, intent(in) :: n_spec ! number of species
+    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
+    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
+    integer, intent(in) :: i_water ! water species number
+    real*8, intent(out) :: dt ! timestep to use
+
+    ! parameters
+    real*8 scale
+    parameter (scale = 1d0) ! scale factor for timestep
+
+    real*8 pv, dvdt
+
+    call particle_vol_base(n_spec, V, pv)
+    call cond_newt(n_spec, V, rho, i_water, dvdt)
+    write(*,*) 'pv = ', pv, ' dvdt = ', dvdt
+    dt = scale * pv / dvdt
+
+  end subroutine find_condense_timestep_variable
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, rho, p0T, RH, T, p, i_water, dmdt)
+  subroutine cond_newt(n_spec, V, rho, i_water, dvdt)
     
     ! Newton's method to solve the error equation, determining the
     ! growth rate dm/dt. The extra variable T_a is the local
@@ -230,17 +295,19 @@ contains
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-    real*8, intent(in) :: RH  ! relative humidity (???)
-    real*8, intent(in) :: T   ! ambient temperature (K)
-    real*8, intent(in) :: p   ! ambient pressure (Pa)
     integer, intent(in) :: i_water ! water species number
-    real*8, intent(out) :: dmdt  ! dm/dt (kg s^{-1})
+    real*8, intent(out) :: dvdt  ! dv/dt (m^3 s^{-1})
 
     ! parameters
     integer iter_max
+    real*8 T, RH, p00, T0, p
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
+    parameter (T = 298d0)     ! temperature of gas medium (K)
+    parameter (RH = 1.01d0)   ! relative humidity (1)
+    parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
+    parameter (T0 = 273.15d0) ! freezing point of water (K)
+    parameter (p = 1d5)       ! ambient pressure (Pa)
     parameter (dmdt_min = 0d0)      ! minimum value of dm/dt (kg s^{-1})
     parameter (dmdt_max = 1d-3)     ! maximum value of dm/dt (kg s^{-1})
     parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
@@ -249,8 +316,11 @@ contains
 
     ! local variables
     integer iter, k
-    real*8 g_water, g_solute, pv
-    real*8 T_a, delta_f, delta_dmdt, f, old_f, df, d
+    real*8 g_water, g_solute, pv, p0T
+    real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df, d
+
+    ! vapor pressure at temperature T
+    p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
 
     g_water = V(i_water) * rho(i_water)
     g_solute = 0d0
@@ -291,6 +361,8 @@ contains
     write(0,'(a15,a17)') 'dmdt', 'max iterations'
     write(0,'(g15.10,i17)') dmdt, iter_max
     call exit(2)
+
+    dvdt = dmdt / rho(i_water)
     
   end subroutine cond_newt
 

@@ -100,4 +100,29 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      logical function almost_equal(d1, d2)
+
+      ! Tests whether two real numbers are almost equal
+
+      real*8 d1 ! INPUT: first number to compare
+      real*8 d2 ! INPUT: second number to compare
+
+      real*8 eps
+      parameter (eps = 1d-8) ! relative tolerance
+
+C     handle the 0.0 case
+      if (d1 .eq. d2) then
+         almost_equal = .true.
+      else
+         if (abs(d1 - d2) / (abs(d1) + abs(d2)) .lt. eps) then
+            almost_equal = .true.
+         else
+            almost_equal = .false.
+         end if
+      end if
+
+      end function
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       end module

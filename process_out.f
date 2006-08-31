@@ -136,11 +136,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &                 +bin_gs(i_loop,i_time,i_bin,i_spec)
                enddo
             enddo
-            g_avg(i_time, i_bin) = g_avg(i_time, i_bin) / n_loop
-            n_avg(i_time, i_bin) = n_avg(i_time, i_bin) / n_loop
+            g_avg(i_time, i_bin) = g_avg(i_time, i_bin) / dble(n_loop)
+            n_avg(i_time, i_bin) = n_avg(i_time, i_bin) / dble(n_loop)
             do i_spec=1,n_spec
                gs_avg(i_time,i_bin,i_spec) = 
-     &              gs_avg(i_time,i_bin,i_spec) / n_loop
+     &              gs_avg(i_time,i_bin,i_spec) / dble(n_loop)
             enddo
          enddo
       enddo

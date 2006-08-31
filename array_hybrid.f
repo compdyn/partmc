@@ -35,21 +35,60 @@ C     array VH stored by bins.
          MH(k) = 0
       enddo
 
-      write(6,*)'in array ',M,n_spec
       do i = 1,M
-         call particle_vol(MM,n_spec,V,i,pv)     
+         call particle_vol(MM, n_spec, V, i, pv)     
          call particle_in_bin(pv, n_bin, bin_v, k)
          MH(k) = MH(k) + 1
          if (MH(k) .gt. TDV) then
             write(*,*)'ERROR: TDV too small'
             call exit(2)
          endif
-         do j=1,n_spec
+         do j = 1,n_spec
             VH(k, MH(k),j) = V(i,j)
          enddo
       enddo
 
-      write(6,*)'array ende '
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, bin_r
+     &     , bin_g,bin_gs, bin_n, dlnr)
+
+C     Create the bin number and mass arrays from VH.
+
+      use mod_array
+
+      integer n_bin        ! INPUT: number of bins
+      integer TDV          ! INPUT: trailing dimension of VH
+      integer n_spec       ! INPUT: number of species
+      integer MH(n_bin)    ! INPUT: number of particles per bin
+      real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
+      real*8 bin_gs(n_bin,n_spec)  ! OUTPUT: species mass in bins
+      integer bin_n(n_bin) ! OUTPUT: number in bins
+      real*8 dlnr          ! INPUT: bin scale factor
+
+      integer b, j, s
+      real*8 pv
+
+      do b = 1,n_bin
+         bin_g(b) = 0d0
+         do s = 1,n_spec
+            bin_gs(b,s) = 0d0
+         enddo
+         do j = 1,MH(b)
+            call particle_vol_base(n_spec, VH(b,j,:), pv)
+            bin_g(b) = bin_g(b) + pv
+            do s = 1,n_spec
+               bin_gs(b,s) = bin_gs(b,s) + VH(b,j,s)
+            enddo
+         enddo
+         bin_n(b) = MH(b)
+      enddo
+
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -306,11 +345,13 @@ C     Double number of particles in a hybrid array.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v,
-     $     bin_r)
+     $     bin_r, bin_g, bin_gs, bin_n, dlnr)
 
-C     Check that V has all particles in the correct bins.
+C     Check that VH has all particles in the correct bins and that the
+C     bin numbers and masses are correct.
 
       use mod_array
+      use mod_util
 
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins
@@ -319,19 +360,23 @@ C     Check that V has all particles in the correct bins.
       integer MH(n_bin)    ! INPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
 
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
+      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
+      real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
+      real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
+      integer bin_n(n_bin)      ! OUTPUT: number in bins
+      real*8 dlnr               ! INPUT: bin scale factor
 
-      real*8 pv
-      integer i, k, k_check, M_check
+      real*8 pv, check_bin_g, check_bin_gs(n_spec)
+      integer i, k, k_check, M_check, s
       logical error
 
       error = .false.
-      M_check = 0
+
+C     check that all particles are in the correct bins
       do k = 1,n_bin
-         M_check = M_check + MH(k)
          do i = 1,MH(k)
-            call particle_vol_hybrid(n_bin,TDV,n_spec,VH,k,i,pv)
+            call particle_vol_hybrid(n_bin, TDV, n_spec, VH, k, i, pv)
             call particle_in_bin(pv, n_bin, bin_v, k_check)
             if (k .ne. k_check) then
                write(*,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)',
@@ -341,15 +386,67 @@ C     Check that V has all particles in the correct bins.
             endif
          enddo
       enddo
+
+C     check that the total number of particles is correct
+      M_check = 0
+      do k = 1,n_bin
+         M_check = M_check + MH(k)
+      enddo
       if (M .ne. M_check) then
          write(*,'(a10,a10)') 'M', 'M_check'
          write(*,'(i10,i10)') M, M_check
          error = .true.
       endif
+
+C     check the bin_n array
+      do k = 1,n_bin
+         if (MH(k) .ne. bin_n(k)) then
+            write(*,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
+            write(*,'(i10,i10,i10)') k, MH(k), bin_n(k)
+         endif
+      enddo
+
+C     check the bin_g array
+      do k = 1,n_bin
+         check_bin_g = 0d0
+         do i = 1,MH(k)
+            call particle_vol_hybrid(n_bin, TDV, n_spec, VH, k, i, pv)
+            check_bin_g = check_bin_g + pv
+         enddo
+         if (.not. almost_equal(check_bin_g, bin_g(k))) then
+            write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
+            write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
+            error = .true.
+         endif
+      enddo
+
+C     check the bin_gs array
+      do k = 1,n_bin
+         do s = 1,n_spec
+            check_bin_gs(s) = 0d0
+         enddo
+         do i = 1,MH(k)
+            do s = 1,n_spec
+               check_bin_gs(s) = check_bin_gs(s) + VH(k,i,s)
+            enddo
+         enddo
+         do s = 1,n_spec
+            if (.not. almost_equal(check_bin_gs(s), bin_gs(k,s))) then
+               write(*,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)',
+     &              'bin_gs(k,s)'
+               write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s),
+     &              bin_gs(k,s)
+               error = .true.
+            endif
+         enddo
+      enddo
+
       if (error) then
-         write(*,*)'ERROR: check_hybrid() failed'
+         write(*,*) 'ERROR: check_hybrid() failed'
          call exit(2)
       endif
+
+      write(*,*) 'check_hybrid() successful'
 
       end subroutine
 

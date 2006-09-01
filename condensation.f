@@ -409,41 +409,54 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine equilibriate_particle(n_spec, V, rho, i_water, &
-       nu, eps, M_s)
+       nu, eps, M_s, RH)
 
     ! add water to the particle until it is in equilibrium
+
+    use mod_util
+    use mod_array
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
     integer, intent(in) :: i_water ! water species number
-    integer, intent(in) :: nu      ! number of ions in the solute
-    real*8, intent(in) :: eps      ! solubility of aerosol material (1)
-    real*8, intent(in) :: M_s      ! molecular weight of solute (kg mole^{-1})
+    integer, intent(in) :: nu(n_spec-1)      ! number of ions in the solute
+    real*8, intent(in) :: eps(n_spec-1)      ! solubility of aerosol material (1)
+    real*8, intent(in) :: M_s(n_spec)      ! molecular weight of solute (kg mole^{-1})
+    real*8, intent(in) :: RH               ! relative humidity for equilibrium (1)
 
     ! FIXME: nu, eps, M_s should really be arrays of length n_spec
+    ! FIXME: Preliminarily set i_spec = 1. 
 
     ! paramters
-    real*8 x_min, x_max, x_tol
+    real*8 x_min, x_max, x_tol, x1, x2, xacc
+    real*8 c0, c1, c3, c4, dc0, dc2, dc3
+    real*8 rw, x 
+    real*8 A, B, T, T0
 
     real*8 pv
+    real*8 sig_w, RR 
+    integer i_spec
 
+    i_spec = 1
+ 
     call particle_vol_base(n_spec, V, pv)
 
     T = T0
-    A = 4d0 * M_w * sig_w / (RR * T * rho_w)
+    A = 4d0 * M_s(i_water) * sig_w / (RR * T * rho(i_water))
     
-    B = nu * eps * M_w * rho_n * vol2rad(pv)**3.d0 / (M_s * rho_w)
+    B = dble(nu(i_spec)) * eps(i_spec) * M_s(i_water) * rho(i_spec) &
+             * vol2rad(pv)**3.d0 / (M_s(i_spec) * rho(i_water))
     
-    c4 = log(RH) / 8.d0
-    c3 = A / 8.d0
+    c4 = log(RH) / 8d0
+    c3 = A / 8d0
     
-    dc3 = log(RH) / 2.d0
-    dc2 = 3.d0 * A / 8.d0
+    dc3 = log(RH) / 2d0
+    dc2 = 3d0 * A / 8d0
     
-    x1 = 0.d0
-    x2 = 10.d0
-    xacc = 1.d-15
+    x1 = 0d0
+    x2 = 10d0
+    xacc = 1d-15
     
     c1 = B - log(RH) * vol2rad(pv)**3d0
     c0 = A * vol2rad(pv)**3d0
@@ -501,7 +514,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equlibriate_func(x, f, df, d_p, c4, c3, c1, c0, dc3, dc2, dc0)
+  subroutine equilibriate_func(x, f, df, d_p, c4, c3, c1, c0, dc3, dc2, dc0)
 
     real*8 x, f, df, d_p
     real*8 c4, c3, c1, c0, dc3, dc2, dc0
@@ -509,7 +522,7 @@ contains
     f = c4 * x**4d0 - c3 * x**3d0 + c1 * x + c0
     df = dc3 * x**3d0 -dc2 * x**2d0 + dc0
 
-  end subroutine equlibriate_func
+  end subroutine equilibriate_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

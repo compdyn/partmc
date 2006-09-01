@@ -12,6 +12,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, V_01, V_02, v_min
+      real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
+
       parameter (MM =  100000)  ! number of particles
       parameter (TDV =  50000)  ! trailing dimension of VH
       parameter (MM_1 = MM/4)   ! number of #1-particles
@@ -27,6 +29,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (del_t = 1d0)   ! timestep (s)
       parameter (V_01 = 8.d-2*4.1886d-15) ! mean volume of initial distribution (m^3)
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)
+      parameter (d_mean1 = 0.05d-6) ! mean diameter of #1- initial distribution (m)
+      parameter (d_mean2 = 0.2d-6)  ! mean diameter of #2- initial distribution (m)
+      parameter (log_sigma1 = 0.77) ! log(sigma) of #1- initial distribution
+      parameter (log_sigma2 = 0.21) ! log(sigma) of #2- initial distribution
       parameter (i_water = 3)   ! water species number
 
       integer M, M1, M2, i_loop
@@ -34,9 +40,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
       real*8 rho_p(n_spec)
+      real*8 eps(n_spec-1), M_w(n_spec)
+      integer nu(n_spec-1)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
       data rho_p / 1800.d0, 1800.d0, 1000.d0 /  ! INPUT: density of species (kg m^{-3})
+      data nu / 3, 3 /                          ! INPUT: number of ions in the solute (1)
+      data eps / 0.25d0, 0.25d0 /               ! INPUT: solubility of solutes (1)
+      data M_w / 132d-3, 132d-3, 18d-3 /        ! INPUT: molecular weight of species (kg mole^{-1})
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
@@ -48,29 +59,49 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
 cn *** initialize first distribution
-         vol_frac(1) = 0.5d0
-         vol_frac(2) = 0.5d0
-         vol_frac(3) = 0.d0
-         call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
-         !call init_bidisperse(MM, n_bin, n_ini)
+c         vol_frac(1) = 0.5d0
+c         vol_frac(2) = 0.5d0
+c         vol_frac(3) = 0.d0
+c         call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
+c         call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
+c     &        n_ini, bin_v, dlnr, V, M1)
+
+cn *** initialise second distribution
+c         call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
+c         vol_frac(1) = 0.d0
+c         vol_frac(2) = 0.5d0
+c         vol_frac(3) = 0.5d0
+c         call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
+c     $        MM, n_ini, bin_v, dlnr, V, M2)
+
+
+cn *** initialize first distribution
+         call init_log_normal(MM_1, d_mean1, log_sigma1, dlnr, n_bin,
+     &     bin_v, bin_r, n_ini)
+         vol_frac(1) = 1d0
+         vol_frac(2) = 0d0
+         vol_frac(3) = 0d0
          call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
      &        n_ini, bin_v, dlnr, V, M1)
 
 cn *** initialise second distribution
-         call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
-         vol_frac(1) = 0.d0
-         vol_frac(2) = 0.5d0
-         vol_frac(3) = 0.5d0
+         call init_log_normal(MM-MM1, d_mean2, log_sigma2, dlnr, n_bin,
+     &     bin_v, bin_r, n_ini)
+         vol_frac(1) = 0d0
+         vol_frac(2) = 1d0
+         vol_frac(3) = 0d0
          call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
      $        MM, n_ini, bin_v, dlnr, V, M2)
 
          M=M1+M2
          V_comp = dble(M) / N_0
 
+      stop
+
 C     call equlibriate_particle for each particle in V
 C         do i = 1,M
 C            call equilibriate_particle(n_spec, V(i,:), rho, i_water, nu,
-C     &           eps, M_s)
+C     &           eps, M_w, RH_eq)
 C         enddo
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 

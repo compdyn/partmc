@@ -95,7 +95,7 @@ C     Create the bin number and mass arrays from VH.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v,
-     &     bin_r, bin_g, bin_gs, bin_n, dlnr)
+     &     bin_r, dlnr)
 
       ! Takes a VH array where the particle volumes might no longer be
       ! correct for the bins they are in and resorts it so that every
@@ -111,9 +111,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
       real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
       real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
-      real*8, intent(in) :: bin_g(n_bin) ! mass in bins  
-      real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species mass in bins
-      integer, intent(in) :: bin_n(n_bin) ! number in bins
       real*8, intent(in) :: dlnr ! bin scale factor
 
       integer bin, j, new_bin, k

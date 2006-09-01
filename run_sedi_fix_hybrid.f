@@ -67,6 +67,12 @@ cn *** initialise second distribution
          M=M1+M2
          V_comp = dble(M) / N_0
 
+C     call equlibriate_particle for each particle in V
+         do i = 1,M
+            call equilibriate_particle(n_spec, V(i,:), rho, i_water, nu,
+     &           eps, M_s)
+         enddo
+
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,
      $        bin_r, bin_g, bin_gs, bin_n, dlnr, 

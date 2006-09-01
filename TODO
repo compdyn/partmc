@@ -11,3 +11,5 @@ Write vol2rad() and rad2vol() in util.f
 Change init_exp() to return a floating-point concentration curve
 rather than actual number. Let compute_volumes handle the conversion
 to integer.
+
+Add adaptive timestepping for the condensation ODE solver.

@@ -42,7 +42,7 @@ contains
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
     call resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
-         bin_r, bin_g, bin_gs, bin_n, dlnr)
+         bin_r, dlnr)
 
     ! update the bin arrays
     call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &

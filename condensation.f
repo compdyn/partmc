@@ -31,23 +31,12 @@ contains
     integer bin, j, new_bin, k
     real*8 pv
 
-! DEBUG
-    real*8 dt
-! DEBUG
-
     do bin = 1,n_bin
        write(*,*) 'condensation in bin ', bin
        do j = 1,MH(bin)
           call condense_particle(n_spec, VH(bin,j,:), rho, i_water, del_t)
-!          if (j .eq. 1) then
-!             call find_condense_timestep_variable(n_spec, VH(bin,j,:), &
-!                  rho, i_water, dt)
-!            write(*,*) bin, dt
-!          end if
        end do
     end do
-
-!    stop
 
     ! re-sort the particles into bins. This has to be done after all
     ! particles are advanced, otherwise we will lose track of which
@@ -64,7 +53,7 @@ contains
              ! move the particle to the new bin, leaving a hole
              MH(new_bin) = MH(new_bin) + 1
              if (MH(new_bin) .gt. TDV) then
-                write(*,*) 'ERROR: too many particles in bin ', bin
+                write(*,*) 'ERROR: TDV too small for bin ', bin
                 call exit(2)
              end if
              do k = 1,n_spec
@@ -80,7 +69,7 @@ contains
              end if
              MH(bin) = MH(bin) - 1
              if (MH(bin) .lt. 0) then
-                write(*,*) 'ERROR: invalid MH'
+                write(*,*) 'ERROR: invalid MH in bin ', bin
                 call exit(2)
              end if
 

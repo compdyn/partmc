@@ -33,7 +33,6 @@ contains
     real*8 pv
 
     do bin = 1,n_bin
-       write(*,*) 'condensation in bin ', bin
        do j = 1,MH(bin)
           call condense_particle(n_spec, VH(bin,j,:), rho, i_water, del_t)
        end do
@@ -42,61 +41,12 @@ contains
     ! We resort the particles in the bins after all particles are
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
-    do bin = 1,n_bin
-       j = 1
-       do while (j .le. MH(bin))
-          ! find the new volume and new bin
-          call particle_vol_base(n_spec, VH(bin,j,:), pv)
-          call particle_in_bin(pv, n_bin, bin_v, new_bin)
-
-          ! if the bin number has changed, move the particle
-          if (bin .ne. new_bin) then
-             ! move the particle to the new bin, leaving a hole
-             MH(new_bin) = MH(new_bin) + 1
-             if (MH(new_bin) .gt. TDV) then
-                write(*,*) 'ERROR: TDV too small for bin ', bin
-                call exit(2)
-             end if
-             do k = 1,n_spec
-                VH(new_bin,MH(new_bin),k) = VH(bin,j,k)
-             end do
-             
-             ! copy the last particle in the current bin into the hole
-             ! if the hole isn't in fact the last particle
-             if (j .lt. MH(bin)) then
-                do k = 1,n_spec
-                   VH(bin,j,k) = VH(bin,MH(bin),k)
-                end do
-             end if
-             MH(bin) = MH(bin) - 1
-             if (MH(bin) .lt. 0) then
-                write(*,*) 'ERROR: invalid MH in bin ', bin
-                call exit(2)
-             end if
-
-             ! in this case, don't advance j, so that we will still
-             ! process the particle we just moved into the hole
-          else
-             ! if we didn't move the particle, advance j to process
-             ! the next particle
-             j = j + 1
-          end if
-       end do
-    end do
-
-    call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+    call resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
          bin_r, bin_g, bin_gs, bin_n, dlnr)
 
-    ! FIXME: the approach above is inefficient because we might
-    ! reprocess particles. For example, if we are doing bin 1 and we
-    ! shift a particle up to bin 2, when we do bin 2 we will reprocess
-    ! it. It seems to be more trouble than it's worth to worry about
-    ! this yet, however.
-
-    ! FIME: working from n_bin down to 1 in the array would help,
-    ! though, with no real penalty. This would bias for the case when
-    ! primarily growth happens, whereas now we are biased towards the
-    ! case when primarily shrinkage happens.
+    ! update the bin arrays
+    call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+         bin_r, bin_g, bin_gs, bin_n, dlnr)
 
   end subroutine condense_particles
 

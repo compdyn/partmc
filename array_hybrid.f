@@ -94,6 +94,83 @@ C     Create the bin number and mass arrays from VH.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v,
+     &     bin_r, bin_g, bin_gs, bin_n, dlnr)
+
+      ! Takes a VH array where the particle volumes might no longer be
+      ! correct for the bins they are in and resorts it so that every
+      ! particle is in the correct bin.
+
+      use mod_array
+      use mod_bin
+
+      integer, intent(in) :: n_bin ! number of bins
+      integer, intent(in) :: TDV ! second dimension of VH
+      integer, intent(in) :: n_spec ! number of species
+      integer, intent(inout) :: MH(n_bin) ! number of particles per bin
+      real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+      real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
+      real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
+      real*8, intent(in) :: bin_g(n_bin) ! mass in bins  
+      real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species mass in bins
+      integer, intent(in) :: bin_n(n_bin) ! number in bins
+      real*8, intent(in) :: dlnr ! bin scale factor
+
+      integer bin, j, new_bin, k
+      real*8 pv
+
+      ! FIXME: the approach here is inefficient because we might
+      ! reprocess particles. For example, if we are doing bin 1 and we
+      ! shift a particle up to bin 2, when we do bin 2 we will reprocess
+      ! it. It seems to be more trouble than it's worth to worry about
+      ! this yet, however.
+
+      do bin = 1,n_bin
+         j = 1
+         do while (j .le. MH(bin))
+            ! find the new volume and new bin
+            call particle_vol_base(n_spec, VH(bin,j,:), pv)
+            call particle_in_bin(pv, n_bin, bin_v, new_bin)
+
+            ! if the bin number has changed, move the particle
+            if (bin .ne. new_bin) then
+               ! move the particle to the new bin, leaving a hole
+               MH(new_bin) = MH(new_bin) + 1
+               if (MH(new_bin) .gt. TDV) then
+                  write(*,*) 'ERROR: TDV too small for bin ', bin
+                  call exit(2)
+               end if
+               do k = 1,n_spec
+                  VH(new_bin,MH(new_bin),k) = VH(bin,j,k)
+               end do
+             
+               ! copy the last particle in the current bin into the hole
+               ! if the hole isn't in fact the last particle
+               if (j .lt. MH(bin)) then
+                  do k = 1,n_spec
+                     VH(bin,j,k) = VH(bin,MH(bin),k)
+                  end do
+               end if
+               MH(bin) = MH(bin) - 1
+               if (MH(bin) .lt. 0) then
+                  write(*,*) 'ERROR: invalid MH in bin ', bin
+                  call exit(2)
+               end if
+
+               ! in this case, don't advance j, so that we will still
+               ! process the particle we just moved into the hole
+            else
+               ! if we didn't move the particle, advance j to process
+               ! the next particle
+               j = j + 1
+            end if
+         end do
+      end do
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, V_comp,
      $     n_spec, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, b1, b2,
      $     del_t, k_max, kernel, did_coag, bin_change)

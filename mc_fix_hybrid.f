@@ -109,19 +109,12 @@ c                  if (did_coag) n_coag = n_coag + 1
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
-         call check_vols(n_spec, n_bin, TDV, MH, VH, rho_p, bin_v, bin_r
-     &        ,bin_g, bin_gs, bin_n, dlnr)
-
          call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
      &        i_water, del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
 
-         ! print the total amount of each species, summed over all particles
-        
-         call check_vols(n_spec, n_bin, TDV, MH, VH, rho_p, bin_v, bin_r
-     &        ,bin_g, bin_gs, bin_n, dlnr)
 ! DEBUG
-         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,
-     &        bin_g, bin_gs, bin_n, dlnr)
+!         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,
+!     &        bin_g, bin_gs, bin_n, dlnr)
 ! DEBUG
 
          time = time + del_t
@@ -141,65 +134,6 @@ c                  if (did_coag) n_coag = n_coag + 1
      $           tot_n_samp, n_coag, tot_n_coag, t_est
          endif
 
-
-      enddo
-
-      return
-      end subroutine
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      subroutine check_vols(n_spec, n_bin, TDV, MH, VH, rho, bin_v,
-     &     bin_r,bin_g, bin_gs, bin_n, dlnr)
-
-C     Check that the total volumes of the different species sum up correctly
-
-      use mod_array
-
-      integer n_spec       ! INPUT: number of species
-      integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH
-      integer MH(n_bin)    ! INPUT: number of particles per bin
-      real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
-      real*8 rho(n_spec)      ! INPUT: density of species (kg m^{-3})
-
-      real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-      real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
-      real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
-      real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
-      integer bin_n(n_bin)      ! OUTPUT: number in bins
-      real*8 dlnr               ! INPUT: bin scale factor
-
-      integer i, k, j
-      real*8 VH_tot(n_spec), bin_tot(n_spec)
-      real*8 VH_tot_t, bin_tot_t, pv
-
-      VH_tot_t = 0d0
-      bin_tot_t = 0d0
-      do j = 1,n_spec
-          VH_tot(j) = 0d0
-          bin_tot(j) = 0d0
-      enddo
-
-      do k = 1, n_bin
-         bin_tot_t = bin_tot_t + bin_g(k)
-         do j = 1,n_spec
-            bin_tot(j) = bin_tot(j) + bin_gs(k,j)
-         enddo
-         do i = 1, MH(k)
-            call particle_vol_base(n_spec, VH(k,i,:), pv)
-            VH_tot_t = VH_tot_t + pv
-            do j = 1,n_spec
-               VH_tot(j) = VH_tot(j) + VH(k,i,j)
-            enddo
-         enddo
-      enddo
-
-      write(*,*) 'total VH    volume', VH_tot_t
-      write(*,*) 'total bin_g volume', bin_tot_t
-      do j=1,n_spec
-         write(*,*) 'total VH     volume in species', j, VH_tot(j)
-         write(*,*) 'total bin_gs volume in species', j, bin_tot(j)
       enddo
 
       end subroutine

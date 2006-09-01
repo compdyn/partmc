@@ -70,6 +70,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
+      open(35,file='VH0.d')
+      do i = 1,n_bin
+         do j = 1,MH(i)
+            do k = 1,n_spec
+               write(35,*) i, j, k, VH(i,j,k)
+            end do
+         end do
+      end do
+
       call cpu_time(t_start)
       do while (time < t_max)
          tot_n_samp = 0

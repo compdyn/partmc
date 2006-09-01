@@ -17,6 +17,7 @@ C     Convert a standard linear particle array V to a hybrid particle
 C     array VH stored by bins.
 
       use mod_array
+      use mod_bin
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
@@ -194,6 +195,7 @@ C     true if the used bin set changed due to the coagulation (i.e. an
 C     empty bin filled or a filled bin became empty).
 
       use mod_array
+      use mod_bin
 
       integer M            ! INPUT/OUTPUT: number of particles
       integer n_bin        ! INPUT: number of bins
@@ -352,6 +354,7 @@ C     bin numbers and masses are correct.
 
       use mod_array
       use mod_util
+      use mod_bin
 
       integer M            ! INPUT: number of particles
       integer n_bin        ! INPUT: number of bins

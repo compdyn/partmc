@@ -5,59 +5,55 @@ C     Common utility functions.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine vol2rad(v, r)
+      real*8 function vol2rad(v) ! radius (m)
 
       real*8, intent(in) :: v  ! volume (m^3)
-      real*8, intent(out) :: r ! radius (m)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      r = (v / (4d0 / 3d0 * pi))**(1d0/3d0)
+      vol2rad = (v / (4d0 / 3d0 * pi))**(1d0/3d0)
 
-      end subroutine
+      end function
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine vol2diam(v, d)
+      real*8 function vol2diam(v) ! diameter (m)
 
       real*8, intent(in) :: v  ! volume (m^3)
-      real*8, intent(out) :: d ! diameter (m)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      d = 2d0 * (v / (4d0 / 3d0 * pi))**(1d0/3d0)
+      vol2diam = 2d0 * (v / (4d0 / 3d0 * pi))**(1d0/3d0)
 
-      end subroutine
+      end function
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine rad2vol(r, v)
+      real*8 function rad2vol(r) ! volume (m^3)
 
       real*8, intent(in) :: r  ! radius (m)
-      real*8, intent(out) :: v ! volume (m^3)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      v = 4d0 / 3d0 * pi * r**3d0
+      rad2vol = 4d0 / 3d0 * pi * r**3d0
 
-      end subroutine
+      end function
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine diam2vol(d, v)
+      real*8 function diam2vol(d) ! volume (m^3)
 
       real*8, intent(in) :: d  ! diameter (m)
-      real*8, intent(out) :: v ! volume (m^3)
 
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      v = 4d0 / 3d0 * pi * (d / 2d0)**3d0
+      diam2vol = 4d0 / 3d0 * pi * (d / 2d0)**3d0
 
-      end subroutine
+      end function
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

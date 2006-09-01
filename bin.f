@@ -24,6 +24,24 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine particle_in_bin(v, n_bin, bin_v, k)
+      ! FIXME: for log-spaced bins we can do this without search
+
+      real*8 v             ! INPUT: volume of particle
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      integer k            ! OUTPUT: bin number containing particle
+
+      k = 0
+ 300  k = k + 1
+      if ((k .lt. n_bin) .and.
+     &     (v .gt. (bin_v(k) + bin_v(k+1)) / 2d0)) goto 300
+
+      return
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
 
       integer n_bin             ! INPUT: number of bins
@@ -45,7 +63,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer n_bin             ! INPUT: number of bins
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-C     external kernel           ! INPUT: kernel function
       integer b1                ! INPUT: first bin
       integer b2                ! INPUT: second bin
       real*8 k_max              ! OUTPUT: maximum kernel values
@@ -93,7 +110,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       integer n_bin             ! INPUT: number of bins
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-C      external kernel           ! INPUT: kernel function
       real*8 k_max(n_bin,n_bin) ! OUTPUT: maximum kernel values
 
       interface
@@ -108,8 +124,8 @@ C      external kernel           ! INPUT: kernel function
 
       do i = 1,n_bin
          do j = 1,n_bin
-            call est_k_max_for_bin(n_bin, bin_v, kernel, i, j, k_max(i,j
-     $           ))
+            call est_k_max_for_bin(n_bin, bin_v, kernel, i, j,
+     &           k_max(i,j))
          enddo
       enddo
 

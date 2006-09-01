@@ -11,6 +11,7 @@ contains
 
     use mod_array
     use mod_array_hybrid
+    use mod_bin
 
     integer, intent(in) :: n_bin ! number of bins
     integer, intent(in) :: TDV   ! second dimension of VH
@@ -118,7 +119,7 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_rk_fixed(n_spec, V, rho, i_water, del_t - time, &
+       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
             time_step, done)
        time = time + time_step
     end do
@@ -319,7 +320,7 @@ contains
     end do
 
     call particle_vol_base(n_spec, V, pv)
-    call vol2diam(pv, d)
+    d = vol2diam(pv)
 
     dmdt = (dmdt_min + dmdt_max) / 2d0
     call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, T_a)

@@ -50,7 +50,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine compute_volumes(n_bin, n_spec, vol_frac,
      *     MM, i_start, i_end, 
-     *     n_ini, bin_r, dlnr, V, M)
+     *     n_ini, bin_v, dlnr, V, M)
+
+      use mod_bin
 
       integer n_bin        ! INPUT: number of bins
       integer n_spec       ! INPUT: number of species
@@ -59,48 +61,41 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer i_start      ! INPUT:
       integer i_end        ! INPUT:
       integer n_ini(n_bin) ! INPUT: initial number distribution
-      real*8 bin_r(n_bin)  ! INPUT: diameter of particles in bin (m)
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
       real*8 dlnr          ! INPUT: scale factor
       real*8 V(MM,n_spec)  ! OUTPUT: particle volumes  (m^3)
       integer M            ! OUTPUT: logical dimension of V
 
-      real*8 total_vol_frac
-      integer k, i, sum_e, sum_a, delta_n, i_spec
-
       real*8 pi
       parameter (pi = 3.14159265358979323846d0)
 
-      sum_e = i_start - 1
+      real*8 total_vol_frac, v_low, v_high, pv
+      integer k, i, sum_e, sum_a, delta_n, i_spec
 
-c      do i=1,i_start
-c         V(i,n_spec_in) = 0.
-c      enddo
+      sum_e = i_start - 1
 
       total_vol_frac = 0.d0
       do i=1,n_spec
          total_vol_frac = total_vol_frac + vol_frac(i)
       enddo
 
-
       do k = 1,n_bin
          delta_n = n_ini(k)
          sum_a = sum_e + 1
          sum_e = sum_e + delta_n
+         call bin_edge(n_bin, bin_v, k, v_low)
+         call bin_edge(n_bin, bin_v, k + 1, v_high)
          do i = sum_a,sum_e
+            pv = dble(i - sum_a + 1) / dble(sum_e - sum_a + 2)
+     &           * (v_high - v_low) + v_low
             do i_spec = 1,n_spec
-               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * 
-     *              4d0/3d0 * pi * bin_r(k)**3
+               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * pv
             enddo
          enddo
       enddo
 
-      M = sum_e-i_start+1
+      M = sum_e - i_start + 1
 
-c      do i=sum_e+1,MM
-c         V(i,n_spec_in) = 0.
-c      enddo
-
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -177,6 +172,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine coagulate(MM, M, V, V_comp,n_spec,
      &        n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr,
      &        s1, s2, bin_change)
+
+      use mod_bin
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT/OUTPUT: logical dimension of V
@@ -459,26 +456,10 @@ C      external kernel       ! INPUT: kernel function
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine particle_in_bin(v, n_bin, bin_v, k)
-      ! FIXME: for log-spaced bins we can do this without search
-
-      real*8 v             ! INPUT: volume of particle
-      integer n_bin        ! INPUT: number of bins
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-      integer k            ! OUTPUT: bin number containing particle
-
-      k = 0
- 300  k = k + 1
-      if ((k .lt. n_bin) .and.
-     &     (v .gt. (bin_v(k) + bin_v(k+1)) / 2d0)) goto 300
-
-      return
-      end subroutine
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
       subroutine moments(MM, M, V, V_comp, n_spec,
      &     n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+
+      use mod_bin
 
       integer MM           ! INPUT: physical dimension of V
       integer M            ! INPUT: logical dimension of V
@@ -514,7 +495,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
       enddo
 
-      return
       end subroutine
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -588,7 +568,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        (bin_gs(k,i) / V_comp / dlnr,i=1,n_spec) 
       enddo
 
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

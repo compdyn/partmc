@@ -45,7 +45,7 @@ cn *** initialise first distribution
          vol_frac(3) = 0
          call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
          call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
-     $        n_ini,bin_r, dlnr, V, M1)
+     $        n_ini,bin_v, dlnr, V, M1)
 
 cn *** initialise second distribution
          call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
@@ -53,7 +53,7 @@ cn *** initialise second distribution
          vol_frac(2) = 0.5
          vol_frac(3) = 0.5
          call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
-     $        MM, n_ini, bin_r, dlnr, V, M2)
+     $        MM, n_ini, bin_v, dlnr, V, M2)
 
          M=M1+M2
          V_comp = M / N_0

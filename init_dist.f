@@ -49,7 +49,38 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        * exp(-(bin_v(k) / V_0)) * dlnr)
       enddo
 
-      return
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      subroutine init_log_normal(MM, d_mean, log_sigma, dlnr, n_bin,
+     &     bin_v, bin_r, n_ini)
+
+      integer MM           ! INPUT: physical dimension of V
+      real*8 d_mean        ! INPUT: mean diameter of initial distribution (m)
+      real*8 log_sigma     ! INPUT: log_e of the geometric standard
+                           ! deviation of initial distribution (1)
+      real*8 dlnr          ! INPUT: bin scale factor
+      integer n_bin        ! INPUT: number of bins
+      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
+      integer n_ini(n_bin) ! OUTPUT: initial number distribution
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      integer k
+
+      do k = 1,n_bin
+          n_ini(k) = dble(MM) / (sqrt(2d0 * pi) * log_sigma) *
+     &        dexp(-(dlog10(bin_r(k)) - dlog10(d))**2d0
+     &        / (2d0 * log_sigma**2d0)) * dlnr / dlog(10)
+      enddo
+
+      ! The formula above was originally for a distribution in
+      ! log_10(r), while we are using log_e(r). The division by dlog(10)
+      ! at the end corrects for this.
+
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

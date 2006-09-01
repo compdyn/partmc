@@ -423,7 +423,93 @@ contains
 
     ! FIXME: nu, eps, M_s should really be arrays of length n_spec
 
+    ! paramters
+    real*8 x_min, x_max, x_tol
+
+    real*8 pv
+
+    call particle_vol_base(n_spec, V, pv)
+
+    T = T0
+    A = 4d0 * M_w * sig_w / (RR * T * rho_w)
+    
+    B = nu * eps * M_w * rho_n * vol2rad(pv)**3.d0 / (M_s * rho_w)
+    
+    c4 = log(RH) / 8.d0
+    c3 = A / 8.d0
+    
+    dc3 = log(RH) / 2.d0
+    dc2 = 3.d0 * A / 8.d0
+    
+    x1 = 0.d0
+    x2 = 10.d0
+    xacc = 1.d-15
+    
+    c1 = B - log(RH) * vol2rad(pv)**3d0
+    c0 = A * vol2rad(pv)**3d0
+    dc0 = c1
+    
+    call equilibriate_newt(x1, x2, xacc, x, c4, c3, c1, c0, dc3, dc2, dc0)
+    
+    rw = x / 2d0
+
   end subroutine equilibriate_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine equilibriate_newt(x1, x2, xacc, x, c4, c3, c1, c0, dc3, &
+       dc2, dc0)
+
+    real*8, intent(out) :: x
+    real*8, intent(in) :: x1
+    real*8, intent(in) :: x2
+    real*8, intent(in) :: xacc
+    real*8, intent(in) :: c4
+    real*8, intent(in) :: c3
+    real*8, intent(in) :: c1
+    real*8, intent(in) :: c0
+    real*8, intent(in) :: dc3
+    real*8, intent(in) :: dc2
+    real*8, intent(in) :: dc0
+
+    integer jmax
+    parameter (jmax=400)
+    
+    integer j
+    real*8 df, dx, f, d 
+
+    x = 0.5d0 * (x1 + x2)
+    
+    do j = 1,jmax
+       call equilibriate_func(x,f,df,d,c4,c3,c1,c0,dc3,dc2,dc0)
+       dx = f / df
+       x = x - dx
+       if((x .lt. x1) .or. (x .gt. x2)) then
+          write(6,*)'x1,x2,x ',x1,x2,x
+          write(*,*) 'rtnewt jumped out of brackets'
+          exit(2)
+       endif
+       if(abs(dx) .lt. xacc) then
+          return
+       endif
+    enddo
+    
+    write(*,*) 'rtnewt exceeded maximum iteration '
+    exit(2)
+
+  end subroutine equilibriate_newt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine equlibriate_func(x, f, df, d_p, c4, c3, c1, c0, dc3, dc2, dc0)
+
+    real*8 x, f, df, d_p
+    real*8 c4, c3, c1, c0, dc3, dc2, dc0
+
+    f = c4 * x**4d0 - c3 * x**3d0 + c1 * x + c0
+    df = dc3 * x**3d0 -dc2 * x**2d0 + dc0
+
+  end subroutine equlibriate_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

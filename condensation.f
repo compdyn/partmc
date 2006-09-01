@@ -39,9 +39,9 @@ contains
        end do
     end do
 
-    ! re-sort the particles into bins. This has to be done after all
-    ! particles are advanced, otherwise we will lose track of which
-    ! ones have been advanced and which have not.
+    ! We resort the particles in the bins after all particles are
+    ! advanced, otherwise we will lose track of which ones have been
+    ! advanced and which have not.
     do bin = 1,n_bin
        j = 1
        do while (j .le. MH(bin))
@@ -119,7 +119,7 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
+       call condense_step_rk_fixed(n_spec, V, rho, i_water, del_t - time, &
             time_step, done)
        time = time + time_step
     end do
@@ -176,7 +176,7 @@ contains
     logical, intent(out) :: done ! whether we reached the maximum timestep
 
     done = .false.
-    call find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
+    call find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
@@ -208,18 +208,18 @@ contains
     call cond_newt(n_spec, V, rho, i_water, k1)
 
     ! step 2
-    V_tmp(i_water) = V(i_water) + k1 / 2d0
+    V_tmp(i_water) = V(i_water) + dt * k1 / 2d0
     call cond_newt(n_spec, V_tmp, rho, i_water, k2)
 
     ! step 3
-    V_tmp(i_water) = V(i_water) + k2 / 2d0
+    V_tmp(i_water) = V(i_water) + dt * k2 / 2d0
     call cond_newt(n_spec, V_tmp, rho, i_water, k3)
 
     ! step 4
-    V_tmp(i_water) = V(i_water) + k3
+    V_tmp(i_water) = V(i_water) + dt * k3
     call cond_newt(n_spec, V_tmp, rho, i_water, k4)
 
-    V(i_water) = V(i_water) + k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0
+    V(i_water) = V(i_water) + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
 
     V(i_water) = max(0d0, V(i_water))
    
@@ -398,6 +398,8 @@ contains
     parameter (atm = 101325d0) ! atmospheric pressure (Pa)
 
     ! FIXME: nu and eps should be passed as arguments
+
+    ! FIXME: nu, eps, M_s should really be arrays of length n_spec
       
     real*8 pi
     parameter (pi = 3.14159265358979323846d0)
@@ -454,6 +456,25 @@ contains
     
   end subroutine cond_func
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine equilibriate_particle(n_spec, V, rho, i_water, &
+       nu, eps, M_s)
+
+    ! add water to the particle until it is in equilibrium
+
+    integer, intent(in) :: n_spec ! number of species
+    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
+    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
+    integer, intent(in) :: i_water ! water species number
+    integer, intent(in) :: nu      ! number of ions in the solute
+    real*8, intent(in) :: eps      ! solubility of aerosol material (1)
+    real*8, intent(in) :: M_s      ! molecular weight of solute (kg mole^{-1})
+
+    ! FIXME: nu, eps, M_s should really be arrays of length n_spec
+
+  end subroutine equilibriate_particle
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_condensation

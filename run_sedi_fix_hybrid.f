@@ -31,8 +31,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)
       parameter (d_mean1 = 0.2d-6) ! mean diameter of #1- initial distribution (m)
       parameter (d_mean2 = 0.2d-6)  ! mean diameter of #2- initial distribution (m)
-      parameter (log_sigma1 = 0.21d0) ! log(sigma) of #1- initial distribution
-      parameter (log_sigma2 = 0.21d0) ! log(sigma) of #2- initial distribution
+      parameter (log_sigma1 = 0.25d0) ! log(sigma) of #1- initial distribution
+      parameter (log_sigma2 = 0.25d0) ! log(sigma) of #2- initial distribution
       parameter (i_water = 3)   ! water species number
 
       integer M, M1, M2, i_loop, i
@@ -40,15 +40,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
       real*8 rho_p(n_spec)
-      real*8 eps(n_spec-1), M_w(n_spec)
+      real*8 eps(n_spec), M_w(n_spec)
       real*8 RH_eq
-      integer nu(n_spec-1)
+      integer nu(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
       parameter (RH_eq = 0.99d0)                  ! INPUT: equilibrium RH for initial distribution`
       data rho_p / 1800.d0, 1800.d0, 1000.d0 /  ! INPUT: density of species (kg m^{-3})
-      data nu / 3, 3 /                          ! INPUT: number of ions in the solute (1)
-      data eps / 0.25d0, 0.25d0 /               ! INPUT: solubility of solutes (1)
+      data nu / 3, 3, 0 /                          ! INPUT: number of ions in the solute (1)
+      data eps / 0.25d0, 0.25d0, 0d0 /               ! INPUT: solubility of solutes (1)
       data M_w / 132d-3, 132d-3, 18d-3 /        ! INPUT: molecular weight of species (kg mole^{-1})
 
       open(30,file='out_sedi_fix_hybrid.d')
@@ -98,7 +98,7 @@ cn *** initialise second distribution
          M=M1+M2
          V_comp = dble(M) / N_0
 
-c     call equlibriate_particle for each particle in V
+!     call equlibriate_particle for each particle in V
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), rho_p, 
      &           i_water, nu,

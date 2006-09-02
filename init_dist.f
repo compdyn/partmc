@@ -73,7 +73,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       do k = 1,n_bin
           n_ini(k) = int(dble(MM) / (sqrt(2d0 * pi) * log_sigma) *
-     &        dexp(-(dlog10(bin_r(k)) - dlog10(d_mean))**2d0
+     &        dexp(-(dlog10(bin_r(k)) - dlog10(d_mean/2d0))**2d0
      &        / (2d0 * log_sigma**2d0)) * dlnr / dlog(10d0))
       enddo
 

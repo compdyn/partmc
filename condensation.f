@@ -57,6 +57,8 @@ contains
     ! integrates the condensation growth or decay ODE for total time
     ! del_t
 
+    use mod_util
+
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
@@ -65,6 +67,18 @@ contains
 
     real*8 time_step, time
     logical done
+
+    integer i
+    real*8 dvdt
+
+!    do i = 0,20
+!       V(1) = rad2vol(dble(i) / 10000d0 * 1d-6)
+!       V(2) = 0d0
+!       V(3) = rad2vol(1d-6) - V(1)
+!       call cond_newt(n_spec, V, rho, i_water, dvdt)
+!       write(*,*) 'i = ', i, ' dvdt = ', dvdt
+!    end do
+!    stop
     
     time = 0d0
     done = .false.
@@ -159,14 +173,17 @@ contains
 
     ! step 2
     V_tmp(i_water) = V(i_water) + dt * k1 / 2d0
+    V_tmp(i_water) = max(0d0, V_tmp(i_water))
     call cond_newt(n_spec, V_tmp, rho, i_water, k2)
 
     ! step 3
     V_tmp(i_water) = V(i_water) + dt * k2 / 2d0
+    V_tmp(i_water) = max(0d0, V_tmp(i_water))
     call cond_newt(n_spec, V_tmp, rho, i_water, k3)
 
     ! step 4
     V_tmp(i_water) = V(i_water) + dt * k3
+    V_tmp(i_water) = max(0d0, V_tmp(i_water))
     call cond_newt(n_spec, V_tmp, rho, i_water, k4)
 
     V(i_water) = V(i_water) + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
@@ -215,7 +232,7 @@ contains
 
     call particle_vol_base(n_spec, V, pv)
     call cond_newt(n_spec, V, rho, i_water, dvdt)
-    dt = scale * pv / dvdt
+    dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
   
@@ -243,12 +260,12 @@ contains
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
     parameter (T = 298d0)     ! temperature of gas medium (K)
-    parameter (RH = 1.01d0)   ! relative humidity (1)
+    parameter (RH = 0.99d0)   ! relative humidity (1)
     parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
     parameter (T0 = 273.15d0) ! freezing point of water (K)
     parameter (p = 1d5)       ! ambient pressure (Pa)
-    parameter (dmdt_min = 0d0)      ! minimum value of dm/dt (kg s^{-1})
-    parameter (dmdt_max = 1d-3)     ! maximum value of dm/dt (kg s^{-1})
+    parameter (dmdt_min = -1d0)      ! minimum value of dm/dt (kg s^{-1})
+    parameter (dmdt_max = 1d0)     ! maximum value of dm/dt (kg s^{-1})
     parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
     parameter (f_tol = 1d-15) ! function tolerance for convergence
     parameter (iter_max = 400)   ! maximum number of iterations
@@ -288,15 +305,15 @@ contains
        
        if ((dmdt .lt. dmdt_min) .or. (dmdt .gt. dmdt_max)) then
           write(0,*) 'ERROR: Newton iteration exceeded bounds'
-          write(0,'(a15,a15,a15)') 'dmdt', 'lower bound', 'upper bound'
-          write(0,'(g15.10,g15.10,g15.10)') dmdt, dmdt_min, dmdt_max
+          write(0,'(a15,a15,a15,a15)') 'pv', 'dmdt', 'lower bound', 'upper bound'
+          write(0,'(g15.4,g15.4,g15.4,g15.4)') pv, dmdt, dmdt_min, dmdt_max
           call exit(1)
        endif
 
        if (iter .ge. iter_max) then
           write(0,*) 'ERROR: Newton iteration had too many iterations'
-          write(0,'(a15,a15)') 'dmdt', 'iter_max'
-          write(0,'(g15.10,i15)') dmdt, iter_max
+          write(0,'(a15,a15,a15)') 'pv', 'dmdt', 'iter_max'
+          write(0,'(g15.4,g15.4,i15)') pv, dmdt, iter_max
           call exit(2)
        end if
        
@@ -386,11 +403,12 @@ contains
     c3 = c1 * fact1 * fact2
     c4 = L_v / (2d0 * pi * d_p * k_ap)
     ! incorrect expression from Majeed and Wexler:
-    ! c5 = nu * eps * M_w * rho_n * r_n**3d0 &
-    !     / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
+!     c5 = nu * eps * M_w * rho_n * r_n**3d0 &
+!         / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
+      c5 = dble(nu)*eps*M_w/M_s * g2/g1
     ! corrected according to Jim's note:
-    c5 = dble(nu) * eps * M_w / M_s * g2 / &
-         (g1 + (rho / rho_n) * eps * g2)
+!    c5 = dble(nu) * eps * M_w / M_s * g2 / &
+!         (g1 + (rho / rho_n) * eps * g2)
     
     T_a = T + c4 * x ! K
     
@@ -420,8 +438,8 @@ contains
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
     integer, intent(in) :: i_water ! water species number
-    integer, intent(in) :: nu(n_spec-1)      ! number of ions in the solute
-    real*8, intent(in) :: eps(n_spec-1)      ! solubility of aerosol material (1)
+    integer, intent(in) :: nu(n_spec)      ! number of ions in the solute
+    real*8, intent(in) :: eps(n_spec)      ! solubility of aerosol material (1)
     real*8, intent(in) :: M_s(n_spec)      ! molecular weight of solute (kg mole^{-1})
     real*8, intent(in) :: RH               ! relative humidity for equilibrium (1)
 
@@ -442,6 +460,7 @@ contains
 
     integer i_spec
 
+!    write(6,*)'in equilibriate_particle ', V(1), V(2), V(3)
     i_spec = 1
  
     call particle_vol_base(n_spec, V, pv)
@@ -469,6 +488,10 @@ contains
     call equilibriate_newt(x1, x2, xacc, x, c4, c3, c1, c0, dc3, dc2, dc0)
     
     rw = x / 2d0
+
+    V(i_water) = rad2vol(rw) - pv
+
+!    write(6,*)'out equilibriate_particle ', V(1), V(2), V(3)
 
   end subroutine equilibriate_particle
 
@@ -504,7 +527,7 @@ contains
        if((x .lt. x1) .or. (x .gt. x2)) then
           write(6,*)'x1,x2,x ',x1,x2,x
           write(*,*) 'rtnewt jumped out of brackets'
-!          exit(2)
+          call exit(2)
        endif
        if(abs(dx) .lt. xacc) then
           return
@@ -512,7 +535,7 @@ contains
     enddo
     
     write(*,*) 'rtnewt exceeded maximum iteration '
-!    exit(2)
+    call exit(2)
 
   end subroutine equilibriate_newt
 

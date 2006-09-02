@@ -89,9 +89,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             pv = dble(i - sum_a + 1) / dble(sum_e - sum_a + 2)
      &           * (v_high - v_low) + v_low
             do i_spec = 1,n_spec
-C               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * pv
-               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac *
-     *               bin_v(k)
+               V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * pv
             enddo
          enddo
       enddo

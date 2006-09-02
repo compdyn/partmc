@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_init_dist
       use mod_mc_fix_hybrid
       use mod_kernel_sedi
-
+      use mod_condensation
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, V_01, V_02, v_min
@@ -35,7 +35,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (log_sigma2 = 0.21d0) ! log(sigma) of #2- initial distribution
       parameter (i_water = 3)   ! water species number
 
-      integer M, M1, M2, i_loop
+      integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
@@ -98,9 +98,10 @@ cn *** initialise second distribution
          M=M1+M2
          V_comp = dble(M) / N_0
 
-     call equlibriate_particle for each particle in V
+c     call equlibriate_particle for each particle in V
          do i = 1,M
-            call equilibriate_particle(n_spec, V(i,:), rho, i_water, nu,
+            call equilibriate_particle(n_spec, V(i,:), rho_p, 
+     &           i_water, nu,
      &           eps, M_w, RH_eq)
          enddo
 

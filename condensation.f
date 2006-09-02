@@ -436,6 +436,10 @@ contains
 
     real*8 pv
     real*8 sig_w, RR 
+    parameter (sig_w = 0.073d0) ! surface energy (J m^{-2})
+    parameter (RR = 8.314d0)   ! universal gas constant (J mole^{-1} K^{-1})
+    parameter (T0 = 298d0)     ! temperature of gas medium (K)
+
     integer i_spec
 
     i_spec = 1
@@ -500,7 +504,7 @@ contains
        if((x .lt. x1) .or. (x .gt. x2)) then
           write(6,*)'x1,x2,x ',x1,x2,x
           write(*,*) 'rtnewt jumped out of brackets'
-          exit(2)
+!          exit(2)
        endif
        if(abs(dx) .lt. xacc) then
           return
@@ -508,7 +512,7 @@ contains
     enddo
     
     write(*,*) 'rtnewt exceeded maximum iteration '
-    exit(2)
+!    exit(2)
 
   end subroutine equilibriate_newt
 

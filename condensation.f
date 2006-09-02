@@ -71,19 +71,10 @@ contains
     integer i
     real*8 dvdt
 
-!    do i = 0,20
-!       V(1) = rad2vol(dble(i) / 10000d0 * 1d-6)
-!       V(2) = 0d0
-!       V(3) = rad2vol(1d-6) - V(1)
-!       call cond_newt(n_spec, V, rho, i_water, dvdt)
-!       write(*,*) 'i = ', i, ' dvdt = ', dvdt
-!    end do
-!    stop
-    
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_rk_fixed(n_spec, V, rho, i_water, del_t - time, &
+       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
             time_step, done)
        time = time + time_step
     end do
@@ -155,7 +146,7 @@ contains
   subroutine condense_step_rk(n_spec, V, rho, i_water, dt)
 
     ! Does one fixed timestep of RK4.
-    
+
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
@@ -226,7 +217,7 @@ contains
 
     ! parameters
     real*8 scale
-    parameter (scale = 1d0) ! scale factor for timestep
+    parameter (scale = 0.1d0) ! scale factor for timestep
 
     real*8 pv, dvdt
 

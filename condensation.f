@@ -39,7 +39,8 @@ contains
 
     do bin = 1,n_bin
        do j = 1,MH(bin)
-          call condense_particle(n_spec, VH(bin,j,:), rho, i_water, del_t)
+          call condense_particle(n_spec, VH(bin,j,:), rho, i_water, &
+               del_t, env, mat)
        end do
     end do
 
@@ -84,7 +85,7 @@ contains
     done = .false.
     do while (.not. done)
        call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
-            time_step, done)
+            time_step, done, env, mat)
        time = time + time_step
     end do
     
@@ -116,13 +117,14 @@ contains
     real*8 dvdt
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
+    call find_condense_timestep_variable(n_spec, V, rho, i_water, &
+         dt, env, mat)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call cond_newt(n_spec, V, rho, i_water, dvdt)
+    call cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
     V(i_water) = V(i_water) + dt * dvdt
     V(i_water) = max(0d0, V(i_water))
    
@@ -152,13 +154,14 @@ contains
     type(material), intent(in) :: mat    ! material properties
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
+    call find_condense_timestep_variable(n_spec, V, rho, i_water, &
+         dt, env, mat)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call condense_step_rk(n_spec, V, rho, i_water, dt)
+    call condense_step_rk(n_spec, V, rho, i_water, dt, env, mat)
    
   end subroutine condense_step_rk_fixed
 
@@ -186,22 +189,22 @@ contains
     V_tmp = V
 
     ! step 1
-    call cond_newt(n_spec, V, rho, i_water, k1)
+    call cond_newt(n_spec, V, rho, i_water, k1, env, mat)
 
     ! step 2
     V_tmp(i_water) = V(i_water) + dt * k1 / 2d0
     V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k2)
+    call cond_newt(n_spec, V_tmp, rho, i_water, k2, env, mat)
 
     ! step 3
     V_tmp(i_water) = V(i_water) + dt * k2 / 2d0
     V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k3)
+    call cond_newt(n_spec, V_tmp, rho, i_water, k3, env, mat)
 
     ! step 4
     V_tmp(i_water) = V(i_water) + dt * k3
     V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k4)
+    call cond_newt(n_spec, V_tmp, rho, i_water, k4, env, mat)
 
     V(i_water) = V(i_water) + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
 
@@ -258,7 +261,7 @@ contains
     real*8 pv, dvdt
 
     call particle_vol_base(n_spec, V, pv)
-    call cond_newt(n_spec, V, rho, i_water, dvdt)
+    call cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
@@ -321,7 +324,8 @@ contains
     d = vol2diam(pv)
 
     dmdt = (dmdt_min + dmdt_max) / 2d0
-    call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, T_a)
+    call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, &
+         T_a, env, mat)
     old_f = f
 
     iter = 0
@@ -330,7 +334,8 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, T_a)
+       call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, &
+            T_a, env, mat)
        delta_f = f - old_f
        old_f = f
        

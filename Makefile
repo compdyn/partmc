@@ -24,18 +24,61 @@ condensation_plot.o: condensation.o array.o array_hybrid.o bin.o environ.o mater
 array.o: bin.o
 array_hybrid.o: array.o bin.o util.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
-environ.o: constants.o
+environ.o: constants.o material.o
 mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o bin.o util.o constants.o
 
 # temporary hack
 freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
 
+all: TAGS $(PROGS)
+
 %.o: %.f
 	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
 
-all: TAGS $(PROGS)
-
 %.o : %.mod
+
+process_out: process_out.o 
+	$(F77) $(LDFLAGS) -o $@ process_out.o 
+
+run_golovin_adapt: run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o
+	$(F77) $(LDFLAGS) -o $@ run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o
+
+run_golovin_exact: run_golovin_exact.o 
+	$(F77) $(LDFLAGS) -o $@ run_golovin_exact.o 
+
+run_golovin_fix: run_golovin_fix.o 
+	$(F77) $(LDFLAGS) -o $@ run_golovin_fix.o 
+
+run_golovin_var: run_golovin_var.o 
+	$(F77) $(LDFLAGS) -o $@ run_golovin_var.o 
+
+run_sedi_adapt: run_sedi_adapt.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_adapt.o 
+
+run_sedi_fix: run_sedi_fix.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix.o 
+
+run_sedi_fix_hybrid: run_sedi_fix_hybrid.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o bin.o array_hybrid.o util.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o bin.o array_hybrid.o util.o
+
+run_sedi_fix_split: run_sedi_fix_split.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_split.o 
+
+run_sedi_fix_super: run_sedi_fix_super.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_super.o 
+
+run_sedi_ode: run_sedi_ode.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_ode.o 
+
+run_sedi_sect: run_sedi_sect.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_sect.o 
+
+run_sedi_var: run_sedi_var.o 
+	$(F77) $(LDFLAGS) -o $@ run_sedi_var.o 
+
+condensation_plot: condensation_plot.o condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
+	$(F77) $(LDFLAGS) -o $@ condensation_plot.o condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
+
 
 clean:
 	rm -f $(PROGS) *.o *.mod

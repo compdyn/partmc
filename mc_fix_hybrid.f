@@ -115,7 +115,8 @@ c                  if (did_coag) n_coag = n_coag + 1
          endif
 
          call condense_particles(n_bin, TDV, n_spec, MH, VH, rho_p,
-     &        i_water, del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+     &        i_water, del_t, bin_v, bin_r, bin_g, bin_gs, bin_n,
+     &        dlnr, env, mat)
 
 ! DEBUG
 !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,

@@ -123,7 +123,7 @@ cn *** initialise second distribution
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), rho_p, 
      &           i_water, nu,
-     &           eps, M_w, RH_eq)
+     &           eps, M_w, RH_eq, env, mat)
          enddo
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 

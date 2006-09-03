@@ -130,13 +130,21 @@ print """
 # temporary hack
 freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
 
+all: TAGS $(PROGS)
+
 %.o: %.f
 \t$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
 
-all: TAGS $(PROGS)
-
 %.o : %.mod
+"""
 
+for f in progs:
+    dep_objs = " ".join([(d + ".o") for d in deps[f]])
+    print "%s: %s.o %s" % (f, f, dep_objs)
+    print "\t$(F77) $(LDFLAGS) -o $@ %s.o %s" % (f, dep_objs)
+    print
+
+print """
 clean:
 	rm -f $(PROGS) *.o *.mod
 

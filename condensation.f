@@ -7,11 +7,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, rho, i_water, &
-       del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+       del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
     use mod_array
     use mod_array_hybrid
     use mod_bin
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_bin ! number of bins
     integer, intent(in) :: TDV   ! second dimension of VH
@@ -27,6 +29,8 @@ contains
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species mass in bins
     integer, intent(inout) :: bin_n(n_bin)      ! number in bins
     real*8, intent(in) :: dlnr                  ! bin scale factor
+    type(environ), intent(inout) :: env  ! environment state
+    type(material), intent(in) :: mat    ! material properties
     
     ! local variables
     integer bin, j, new_bin, k
@@ -52,18 +56,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particle(n_spec, V, rho, i_water, del_t)
+  subroutine condense_particle(n_spec, V, rho, i_water, del_t, env, mat)
 
     ! integrates the condensation growth or decay ODE for total time
     ! del_t
 
     use mod_util
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
     integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: del_t ! total time to integrate
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     real*8 time_step, time
     logical done
@@ -83,13 +91,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_euler(n_spec, V, rho, i_water, max_dt, dt, done)
+  subroutine condense_step_euler(n_spec, V, rho, i_water, max_dt, dt, &
+       done, env, mat)
 
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true.
     
+    use mod_environ
+    use mod_material
+
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
@@ -97,6 +109,8 @@ contains
     real*8, intent(in) :: max_dt ! maximum timestep to integrate
     real*8, intent(out) :: dt ! actual timestep used
     logical, intent(out) :: done ! whether we reached the maximum timestep
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     real*8 dvdt
 
@@ -115,13 +129,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_rk_fixed(n_spec, V, rho, i_water, max_dt, dt, done)
+  subroutine condense_step_rk_fixed(n_spec, V, rho, i_water, max_dt, &
+       dt, done, env, mat)
 
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true.
     
+    use mod_environ
+    use mod_material
+
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
@@ -129,6 +147,8 @@ contains
     real*8, intent(in) :: max_dt ! maximum timestep to integrate
     real*8, intent(out) :: dt ! actual timestep used
     logical, intent(out) :: done ! whether we reached the maximum timestep
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     done = .false.
     call find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
@@ -143,15 +163,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_rk(n_spec, V, rho, i_water, dt)
+  subroutine condense_step_rk(n_spec, V, rho, i_water, dt, env, mat)
 
     ! Does one fixed timestep of RK4.
+
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
     integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     ! local variables
     real*8 k1, k2, k3, k4
@@ -185,17 +210,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_constant(n_spec, V, rho, i_water, dt)
+  subroutine find_condense_timestep_constant(n_spec, V, rho, i_water, &
+       dt, env, mat)
 
     ! constant timestep
 
     use mod_array
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
     integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep to use
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     dt = 5d-3
 
@@ -203,17 +233,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_variable(n_spec, V, rho, i_water, dt)
+  subroutine find_condense_timestep_variable(n_spec, V, rho, i_water, &
+       dt, env, mat)
 
     ! timestep is proportional to V / (dV/dt)
 
     use mod_array
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
     integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep to use
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     ! parameters
     real*8 scale
@@ -229,7 +264,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, rho, i_water, dvdt)
+  subroutine cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
     
     ! Newton's method to solve the error equation, determining the
     ! growth rate dm/dt. The extra variable T_a is the local
@@ -238,12 +273,16 @@ contains
 
     use mod_util
     use mod_array
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
     integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dvdt  ! dv/dt (m^3 s^{-1})
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
     ! parameters
     integer iter_max
@@ -318,9 +357,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(x, d_p, g1, g2, p0T, RH, T, p, f, df, T_a)
+  subroutine cond_func(x, d_p, g1, g2, p0T, RH, T, p, f, df, T_a, env, mat)
 
     ! Return the error function value and its derivative.
+
+    use mod_environ
+    use mod_material
 
     real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(in) :: d_p ! diameter (m)
@@ -333,6 +375,8 @@ contains
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
     real*8, intent(out) :: T_a ! droplet temperature (K)
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
     
     ! parameters
     real*8 rho, rho_a, rho_n, M_w, M_a, M_s, sig, R, L_v, alpha
@@ -418,12 +462,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine equilibriate_particle(n_spec, V, rho, i_water, &
-       nu, eps, M_s, RH)
+       nu, eps, M_s, RH, env, mat)
 
     ! add water to the particle until it is in equilibrium
 
     use mod_util
     use mod_array
+    use mod_environ
+    use mod_material
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
@@ -433,8 +479,9 @@ contains
     real*8, intent(in) :: eps(n_spec)      ! solubility of aerosol material (1)
     real*8, intent(in) :: M_s(n_spec)      ! molecular weight of solute (kg mole^{-1})
     real*8, intent(in) :: RH               ! relative humidity for equilibrium (1)
+    type(environ), intent(in) :: env     ! environment state
+    type(material), intent(in) :: mat    ! material properties
 
-    ! FIXME: nu, eps, M_s should really be arrays of length n_spec
     ! FIXME: Preliminarily set i_spec = 1. 
 
     ! paramters

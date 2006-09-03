@@ -1,3 +1,4 @@
+! -*- mode: f90;-*-
 
 module mod_environ
 
@@ -15,7 +16,8 @@ contains
 
   subroutine change_water_volume(env, mat, dv)
 
-  use mod_constants
+    use mod_constants
+    use mod_material
 
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
@@ -46,7 +48,8 @@ contains
   subroutine change_temp(env, dt)
 
   type(environ), intent(inout) :: env ! environment state to update
-  real*8 intent(in) :: dt             ! time step (s)
+  real*8, intent(in) :: dt            ! time step (s)
+ 
   real*8 pmv                          ! ambient water vapor pressure (Pa)
 
   pmv = sat_vapor_pressure(env) * env%RH
@@ -65,7 +68,7 @@ contains
 
     type(environ), intent(in) :: env ! environment state
 
-    sat_vapor_pressure = p00 * 10d0**(7.45d0 * (env%T - T0) &
+    sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%T - const%T0) &
          / (env%T - 38d0)) ! Pa
 
   end function sat_vapor_pressure

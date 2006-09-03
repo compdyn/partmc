@@ -1,3 +1,4 @@
+! -*- mode: f90;-*-
 
 module mod_material
 

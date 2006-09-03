@@ -9,19 +9,23 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_mc_fix_hybrid
       use mod_kernel_sedi
       use mod_condensation
+      use mod_environ
+      use mod_material
+      use mod_constants
+
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, V_01, V_02, v_min
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
-      parameter (MM =  100000)  ! number of particles
+      parameter (MM =  10000)  ! number of particles
       parameter (TDV =  50000)  ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 4d0)   ! total simulation time (seconds)
+      parameter (t_max = 1d0)   ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
       parameter (t_print = 1d0) ! interval between printing (s)
@@ -45,11 +49,28 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer nu(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
 
+      type(environ) :: env
+      type(material) :: mat
+
       parameter (RH_eq = 0.99d0)                  ! INPUT: equilibrium RH for initial distribution`
       data rho_p / 1800.d0, 1800.d0, 1000.d0 /  ! INPUT: density of species (kg m^{-3})
       data nu / 3, 3, 0 /                          ! INPUT: number of ions in the solute (1)
       data eps / 0.25d0, 0.25d0, 0d0 /               ! INPUT: solubility of solutes (1)
       data M_w / 132d-3, 132d-3, 18d-3 /        ! INPUT: molecular weight of species (kg mole^{-1})
+
+      env%T = 298d0
+      env%RH = 0.99d0
+
+      mat%n_spec = n_spec
+      mat%i_water = 3
+      allocate(mat%rho(n_spec))
+      mat%rho = (/ 1800.d0, 1800.d0, 1000.d0 /)
+      allocate(mat%nu(n_spec))
+      mat%nu = (/ 3, 3, 0 /)
+      allocate(mat%eps(n_spec))
+      mat%eps = (/ 0.25d0, 0.25d0, 0d0 /)
+      allocate(mat%M_w(n_spec))
+      mat%M_w = (/ 132d-3, 132d-3, 18d-3 /)
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
@@ -109,7 +130,7 @@ cn *** initialise second distribution
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,
      $        bin_r, bin_g, bin_gs, bin_n, dlnr, 
      &        kernel_sedi, t_max, t_print,
-     $        t_progress ,del_t, i_loop)
+     $        t_progress ,del_t, i_loop, env, mat)
 
       enddo
 

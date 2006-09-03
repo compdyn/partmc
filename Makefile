@@ -18,11 +18,12 @@ PROGS = process_out run_golovin_adapt run_golovin_exact			\
 	run_sedi_ode run_sedi_sect run_sedi_var condensation_plot
 
 OTHER = array array_hybrid array_split array_super bin condensation	\
-	init_dist kernel_golovin kernel_sedi mc_adapt mc_exact mc_fix	\
-	mc_fix_hybrid mc_fix_split mc_fix_super mc_var util
+	constants environ init_dist kernel_golovin kernel_sedi		\
+	material mc_adapt mc_exact mc_fix mc_fix_hybrid mc_fix_split	\
+	mc_fix_super mc_var util
 
 # following files are in free-form fortran
-FREEFORM = condensation
+FREEFORM = condensation constants environ material
 
 FILES := $(PROGS) $(OTHER)
 

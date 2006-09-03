@@ -396,10 +396,10 @@ contains
     ! incorrect expression from Majeed and Wexler:
 !     c5 = nu * eps * M_w * rho_n * r_n**3d0 &
 !         / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
-!      c5 = dble(nu)*eps*M_w/M_s * g2/g1
+      c5 = dble(nu)*eps*M_w/M_s * g2/g1
     ! corrected according to Jim's note:
-    c5 = dble(nu) * eps * M_w / M_s * g2 / &
-         (g1 + (rho / rho_n) * eps * g2)
+!    c5 = dble(nu) * eps * M_w / M_s * g2 / &
+!         (g1 + (rho / rho_n) * eps * g2)
     
     T_a = T + c4 * x ! K
     

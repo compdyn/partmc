@@ -10,12 +10,14 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $     bin_v, rho_p, i_water,
      $     bin_r, bin_g, bin_gs, bin_n, dlnr, 
      $     kernel, t_max, t_print,
-     $     t_progress, del_t, loop)
+     $     t_progress, del_t, loop, env, mat)
 
       use mod_array
       use mod_array_hybrid
       use mod_bin 
       use mod_condensation
+      use mod_environ
+      use mod_material
 
       integer MM                ! INPUT: physical dimension of V
       integer M                 ! INPUT/OUTPUT: logical dimension of V
@@ -42,6 +44,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 del_t              ! INPUT: timestep for coagulation
       
       integer loop              ! INPUT: loop number of run
+
+      type(environ), intent(inout) :: env  ! environment state
+      type(material), intent(in) :: mat    ! material properties
 
       interface
          subroutine kernel(v1, v2, k)

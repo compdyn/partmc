@@ -12,5 +12,6 @@ module mod_constants
   real*8, parameter :: M_a = 28d-3   ! molecular weight of air (kg mole^{-1})
   real*8, parameter :: rho_a = 1.25d0 ! air density (kg m^{-3})
   real*8, parameter :: pi = 3.14159265358979323846d0
+  real*8, parameter :: atm = 101325d0 ! atmospheric pressure (Pa)
 
 end module mod_constants

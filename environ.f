@@ -5,6 +5,8 @@ module mod_environ
      real*8 :: T    ! temperature (K)
      real*8 :: RH   ! relative humidity (1)
      real*8 :: V_comp ! computational volume (m^3)
+     real*8 :: p    ! ambient pressure (Pa)
+     real*8 :: dTdt ! change in temperature due to updraft/subsidence (K s^{-1})
   end type environ
 
 contains
@@ -13,15 +15,46 @@ contains
 
   subroutine add_water_volume(env, dv)
 
+  use mod_constants
+
     ! Adds the given water volume to the water vapor and updates all
-    ! enironment quantities.
+    ! environment quantities.
 
     type(environ), intent(inout) :: env ! environment state to update
     real*8, intent(in) :: dv            ! volume of water added (m^3)
 
-    ! FIXME: change RH according to dv
-    
+    real*8 pmv                          ! ambient water vapor pressure (Pa)
+    real*8 mv                           ! ambient water vapor density (kg m^{-3})
+                                        ! pmv and mv are related by the factor M_w/(R*T)
+    real*8 dmv                          ! change of water density (kg m^{-3})
+
+    dmv = dv * rho(i_water) / V_comp    
+
+    pmv = sat_vapor_pressure * RH
+
+    mv = M_w(i_water)/(R*T) * pmv
+
+    mv = mv - dmv    
+
+    RH = R * T / M_w(i_water) * mv / sat_vapor_pressure
+
   end subroutine add_water_volume
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine change_temp(env, dt)
+
+  type(environ), intent(inout) :: env ! environment state to update
+  real*8 intent(in) :: dt
+  real*8 pmv                          ! ambient water vapor pressure (Pa)
+
+  pmv = sat_vapor_pressure * RH
+
+  T = T + dTdt * dt
+
+  RH = pmv / sat_vapor_pressure
+
+  end subroutine change_temp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

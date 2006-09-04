@@ -263,14 +263,14 @@ contains
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
 
-    real*8 :: dmdt_tol = 1d-15 ! dm/dt tolerance for convergence
-    real*8, parameter :: f_tol = 1d-15    ! function tolerance for convergence
-    integer, parameter :: iter_max = 100  ! maximum number of iterations
+    real*8 :: dmdt_rel_tol = 1d-8        ! relative dm/dt convergence tolerance
+    real*8, parameter :: f_tol = 1d-15   ! function convergence tolerance
+    integer, parameter :: iter_max = 100 ! maximum number of iterations
 
-    real*8 dmdt, pm
+    real*8 dmdt, pm, dmdt_tol
 
     pm = particle_mass(V, mat)
-    dmdt_tol = pm / 1d8
+    dmdt_tol = pm * dmdt_rel_tol
 
     dmdt = 0d0
     call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
@@ -452,26 +452,28 @@ contains
     use mod_material
     use mod_constants
 
-    integer, intent(in) :: n_spec ! number of species
+    integer, intent(in) :: n_spec      ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    type(environ), intent(in) :: env   ! environment state
+    type(material), intent(in) :: mat  ! material properties
 
     ! parameters
-    integer, parameter :: it_max = 400   ! maximum iterations
-    real*8, parameter :: dw_tol = 1d-15  ! dw convergence tolerance
-    real*8, parameter :: f_tol = 1d-15   ! function convergence tolerance
-    integer, parameter :: iter_max = 100 ! maximum number of iterations
-    real*8, parameter :: dw_init = 1d0   ! initial value
+    integer, parameter :: it_max = 400     ! maximum iterations
+    real*8, parameter :: pv_rel_tol = 1d-6 ! dw relative convergence tolerance
+    real*8, parameter :: f_tol = 1d-15     ! function convergence tolerance
+    integer, parameter :: iter_max = 100   ! maximum number of iterations
+    real*8, parameter :: dw_init = 1d0     ! initial value
     
     real*8 dw ! wet diameter of particle
-    real*8 pv
+    real*8 dw_tol, pv
 
+    pv = particle_volume(V, mat)
     dw = dw_init
+    ! convert volume relative tolerance to diameter absolute tolerance
+    dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)
     call cond_newt(n_spec, V, dw, env, mat, equilibriate_func, &
          dw_tol, f_tol, iter_max)
-    
-    call particle_vol_base(n_spec, V, pv)
+
     V(mat%i_water) = diam2vol(dw) - pv
 
   end subroutine equilibriate_particle

@@ -257,8 +257,6 @@ contains
     ! temperature, which is also implicitly determined, but not
     ! returned at this point.
 
-    use mod_util
-    use mod_array
     use mod_environ
     use mod_material
 
@@ -272,30 +270,16 @@ contains
     integer iter_max
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
-    parameter (dmdt_min = -1d0)      ! minimum value of dm/dt (kg s^{-1})
-    parameter (dmdt_max = 1d0)     ! maximum value of dm/dt (kg s^{-1})
     parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
     parameter (f_tol = 1d-15) ! function tolerance for convergence
     parameter (iter_max = 400)   ! maximum number of iterations
 
     ! local variables
     integer iter, k
-    real*8 g_water, g_solute, pv
-    real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df, d
+    real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df
 
-    g_water = V(mat%i_water) * mat%rho(mat%i_water)
-    g_solute = 0d0
-    do k = 1,n_spec
-       if (k .ne. mat%i_water) then
-          g_solute = g_solute + V(k) * mat%rho(k)
-       end if
-    end do
-
-    call particle_vol_base(n_spec, V, pv)
-    d = vol2diam(pv)
-
-    dmdt = (dmdt_min + dmdt_max) / 2d0
-    call cond_func(n_spec, V, dmdt, d, f, df, T_a, env, mat)
+    dmdt = 0d0
+    call cond_func(n_spec, V, dmdt, f, df, T_a, env, mat)
     old_f = f
 
     iter = 0
@@ -304,21 +288,15 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(n_spec, V, dmdt, d, f, df, T_a, env, mat)
+       call cond_func(n_spec, V, dmdt, f, df, T_a, env, mat)
        delta_f = f - old_f
        old_f = f
        
-       if ((dmdt .lt. dmdt_min) .or. (dmdt .gt. dmdt_max)) then
-          write(0,*) 'ERROR: Newton iteration exceeded bounds'
-          write(0,'(a15,a15,a15,a15)') 'pv', 'dmdt', 'lower bound', 'upper bound'
-          write(0,'(g15.4,g15.4,g15.4,g15.4)') pv, dmdt, dmdt_min, dmdt_max
-          call exit(1)
-       endif
-
        if (iter .ge. iter_max) then
           write(0,*) 'ERROR: Newton iteration had too many iterations'
-          write(0,'(a15,a15,a15)') 'pv', 'dmdt', 'iter_max'
-          write(0,'(g15.4,g15.4,i15)') pv, dmdt, iter_max
+          write(0,*) 'iter_max = ', iter_max
+          write(0,*) 'dmdt = ', dmdt
+          write(0,*) 'V = ', V
           call exit(2)
        end if
        
@@ -332,10 +310,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(n_spec, V, x, d_p, f, df, T_a, env, mat)
+  subroutine cond_func(n_spec, V, x, f, df, T_a, env, mat)
 
     ! Return the error function value and its derivative.
 
+    use mod_array
+    use mod_util
     use mod_environ
     use mod_material
     use mod_constants
@@ -343,7 +323,6 @@ contains
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
-    real*8, intent(in) :: d_p ! diameter (m)
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
     real*8, intent(out) :: T_a ! droplet temperature (K)
@@ -351,7 +330,7 @@ contains
     type(material), intent(in) :: mat    ! material properties
     
     ! local variables
-    real*8 k_a, k_ap, k_ap_div, D_v, D_vp
+    real*8 k_a, k_ap, k_ap_div, D_v, D_vp, d_p, pv
     real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
     real*8 M_water, M_solute, rho_water, rho_solute
     real*8 eps, nu, g_water, g_solute
@@ -364,6 +343,9 @@ contains
     rho_solute = average_solute_quantity(V, mat, mat%rho)
     g_water = total_water_quantity(V, mat, mat%rho)
     g_solute = total_solute_quantity(V, mat, mat%rho)
+
+    call particle_vol_base(n_spec, V, pv)
+    d_p = vol2diam(pv)
 
     ! molecular diffusion coefficient uncorrected
     D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}

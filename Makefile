@@ -1,4 +1,8 @@
 
+#
+# Auto-generated Makefile --- DO NOT EDIT
+#
+
 VERSION = 1.0.0
 DIST_NAME = hpmc-$(VERSION)
 
@@ -14,6 +18,10 @@ LDFLAGS =
 F77 = gfortran
 
 PROGS = process_out run_golovin_adapt run_golovin_exact run_golovin_fix run_golovin_var run_sedi_adapt run_sedi_fix run_sedi_fix_hybrid run_sedi_fix_split run_sedi_fix_super run_sedi_ode run_sedi_sect run_sedi_var condensation_plot
+
+OTHER = array array_hybrid array_split array_super bin condensation constants environ init_dist kernel_golovin kernel_sedi material mc_adapt mc_exact mc_fix mc_fix_hybrid mc_fix_split mc_fix_super mc_var util
+
+FILES = $(PROGS) $(OTHER)
 
 # temporary hack
 FREEFORM = condensation constants environ material
@@ -36,6 +44,31 @@ all: TAGS $(PROGS)
 	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
 
 %.o : %.mod
+
+clean:
+	rm -f $(PROGS) *.o *.mod
+
+cleanall: clean
+	rm -f *~ *.d gmon.out gprof_*
+
+check:
+	ftnchek-3.3.1/ftnchek *.f
+
+gprof_%: % gmon.out
+	gprof -p -q $< gmon.out > gprof_$<
+
+dist:
+	mkdir $(DIST_NAME)
+	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
+	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
+	rm -r $(DIST_NAME)
+
+TAGS:
+	etags $(patsubst %,%.f,$(FILES))
+
+make:
+	./makemake.py > Makefile.new
+	mv Makefile.new Makefile
 
 process_out: process_out.o 
 	$(F77) $(LDFLAGS) -o $@ process_out.o 
@@ -78,26 +111,4 @@ run_sedi_var: run_sedi_var.o
 
 condensation_plot: condensation_plot.o condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 	$(F77) $(LDFLAGS) -o $@ condensation_plot.o condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
-
-
-clean:
-	rm -f $(PROGS) *.o *.mod
-
-cleanall: clean
-	rm -f *~ *.d gmon.out gprof_*
-
-check:
-	ftnchek-3.3.1/ftnchek *.f
-
-gprof_%: % gmon.out
-	gprof -p -q $< gmon.out > gprof_$<
-
-dist:
-	mkdir $(DIST_NAME)
-	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
-	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
-	rm -r $(DIST_NAME)
-
-TAGS:
-	etags $(patsubst %,%.f,$(FILES))
 

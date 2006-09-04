@@ -369,6 +369,7 @@ contains
 
     use mod_environ
     use mod_material
+    use mod_constants
 
     real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(in) :: d_p ! diameter (m)
@@ -385,39 +386,27 @@ contains
     type(material), intent(in) :: mat    ! material properties
     
     ! parameters
-    real*8 rho, rho_a, rho_n, M_w, M_a, M_s, sig, R, L_v, alpha
-    real*8 p00, T0, cp, eps, atm
+    real*8 rho, rho_n, M_w, M_a, M_s
+    real*8 eps
     integer nu
     parameter (rho = 1000d0)  ! water density (kg m^{-3})
-    parameter (rho_a = 1.25d0) ! air density (kg m^{-3})
     parameter (rho_n = 1800d0) ! solute density (kg m^{-3})
     parameter (M_w = 18d-3)   ! molecular weight of water (kg mole^{-1})
     parameter (M_a = 28d-3)   ! molecular weight of air (kg mole^{-1})
     parameter (M_s = 132d-3)  ! molecular weight of solute (kg mole^{-1})
-    parameter (sig = 0.073d0) ! surface energy (J m^{-2})
-    parameter (R = 8.314d0)   ! universal gas constant (J mole^{-1} K^{-1})
-    parameter (L_v = 2.5d6)   ! latent heat (J kg^{-1})
-    parameter (alpha = 1d0)   ! accomodation coefficient (the value 0.045 is also used sometimes)
-    parameter (p00 = 6.11d2)  ! water saturation vapor pressure at temp T = 273 K (Pa)
-    parameter (T0 = 273.15d0) ! freezing point of water (K)
-    parameter (cp = 1005d0)   ! specific heat of water (J kg^{-1} K^{-1})
     parameter (nu = 3)        ! number of ions in the solute
     parameter (eps = 0.25d0)  ! solubility of aerosol material (1)
-    parameter (atm = 101325d0) ! atmospheric pressure (Pa)
 
     ! FIXME: nu and eps should be passed as arguments
 
     ! FIXME: nu, eps, M_s should really be arrays of length n_spec
       
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-
     ! local variables
     real*8 k_a, k_ap, k_ap_div, D_v, D_vp
     real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
 
     ! molecular diffusion coefficient uncorrected
-    D_v = 0.211d-4 / (p / atm) * (T / 273d0)**1.94d0 ! m^2 s^{-1}
+    D_v = 0.211d-4 / (p / const%atm) * (T / 273d0)**1.94d0 ! m^2 s^{-1}
 
     ! molecular diffusion coefficient corrected for non-continuum effects
     ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (alpha * d_p)) &
@@ -430,23 +419,23 @@ contains
 
     ! thermal conductivity uncorrected
     k_a = 1d-3 * (4.39d0 + 0.071d0 * T) ! J m^{-1} s^{-1} K^{-1}
-    k_ap_div = 1d0 + 2d0 * k_a / (alpha * d_p * rho_a * cp) &
-         * (2d0 * pi * M_a / (R * T))**0.5d0 ! dimensionless
+    k_ap_div = 1d0 + 2d0 * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
+         * (2d0 * const%pi * M_a / (const%R * T))**0.5d0 ! dimensionless
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
-    rat = p0T / (R * T)
-    fact1 = L_v * M_w / (R * T)
-    fact2 = L_v / (2d0 * pi * d_p * k_ap * T)
+    rat = p0T / (const%R * T)
+    fact1 = const%L_v * M_w / (const%R * T)
+    fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * T)
     
-    c1 = 2d0 * pi * d_p * D_vp * M_w * rat
-    c2 = 4d0 * M_w * sig / (R * rho * d_p)
+    c1 = 2d0 * const%pi * d_p * D_vp * M_w * rat
+    c2 = 4d0 * M_w * const%sig / (const%R * rho * d_p)
     c3 = c1 * fact1 * fact2
-    c4 = L_v / (2d0 * pi * d_p * k_ap)
+    c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
     ! incorrect expression from Majeed and Wexler:
 !     c5 = nu * eps * M_w * rho_n * r_n**3d0 &
 !         / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
-      c5 = dble(nu)*eps*M_w/M_s * g2/g1
+      c5 = dble(nu) * eps * M_w / M_s * g2 / g1
     ! corrected according to Jim's note:
 !    c5 = dble(nu) * eps * M_w / M_s * g2 / &
 !         (g1 + (rho / rho_n) * eps * g2)

@@ -22,34 +22,34 @@ progs = ["process_out",
 	 "condensation_plot",
 	 ]
 
-extras = ["array",
-	  "array_hybrid",
-	  "array_split",
-	  "array_super",
-	  "bin",
-	  "condensation",
-	  "constants",
-	  "environ",
-	  "init_dist",
-	  "kernel_golovin",
-	  "kernel_sedi",
-	  "material",
-	  "mc_adapt",
-	  "mc_exact",
-	  "mc_fix",
-	  "mc_fix_hybrid",
-	  "mc_fix_split",
-	  "mc_fix_super",
-	  "mc_var",
-	  "util",
-	  ]
+other = ["array",
+	 "array_hybrid",
+	 "array_split",
+	 "array_super",
+	 "bin",
+	 "condensation",
+	 "constants",
+	 "environ",
+	 "init_dist",
+	 "kernel_golovin",
+	 "kernel_sedi",
+	 "material",
+	 "mc_adapt",
+	 "mc_exact",
+	 "mc_fix",
+	 "mc_fix_hybrid",
+	 "mc_fix_split",
+	 "mc_fix_super",
+	 "mc_var",
+	 "util",
+	 ]
 
 free_form = ["condensation",
 	     "constants",
 	     "environ",
 	     "material"]
 
-all_files = progs + extras
+all_files = progs + other
 
 def get_deps(file):
     deps = []
@@ -98,7 +98,13 @@ def print_deps(obj, deps):
     if deps:
 	print "%s.o: %s" % (obj, " ".join([(d + ".o") for d in deps]))
 
+######################################################################
+
 print """
+#
+# Auto-generated Makefile --- DO NOT EDIT
+#
+
 VERSION = 1.0.0
 DIST_NAME = hpmc-$(VERSION)
 
@@ -115,6 +121,10 @@ F77 = gfortran
 """
 
 print "PROGS = " + " ".join(progs)
+print
+print "OTHER = " + " ".join(other)
+print
+print "FILES = $(PROGS) $(OTHER)"
 print
 
 print "# temporary hack"
@@ -133,18 +143,10 @@ freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
 all: TAGS $(PROGS)
 
 %.o: %.f
-\t$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
+	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
 
 %.o : %.mod
-"""
 
-for f in progs:
-    dep_objs = " ".join([(d + ".o") for d in deps[f]])
-    print "%s: %s.o %s" % (f, f, dep_objs)
-    print "\t$(F77) $(LDFLAGS) -o $@ %s.o %s" % (f, dep_objs)
-    print
-
-print """
 clean:
 	rm -f $(PROGS) *.o *.mod
 
@@ -165,4 +167,16 @@ dist:
 
 TAGS:
 	etags $(patsubst %,%.f,$(FILES))
+
+make:
+	./makemake.py > Makefile.new
+	mv Makefile.new Makefile
 """
+
+for f in progs:
+    dep_objs = " ".join([(d + ".o") for d in deps[f]])
+    print "%s: %s.o %s" % (f, f, dep_objs)
+    print "\t$(F77) $(LDFLAGS) -o $@ %s.o %s" % (f, dep_objs)
+    print
+
+######################################################################

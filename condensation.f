@@ -7,7 +7,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, rho, i_water, &
+  subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, &
        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
     use mod_array
@@ -21,8 +21,6 @@ contains
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: del_t         ! total time to integrate
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
     real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
@@ -39,8 +37,7 @@ contains
 
     do bin = 1,n_bin
        do j = 1,MH(bin)
-          call condense_particle(n_spec, VH(bin,j,:), rho, i_water, &
-               del_t, env, mat)
+          call condense_particle(n_spec, VH(bin,j,:), del_t, env, mat)
        end do
     end do
 
@@ -58,7 +55,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particle(n_spec, V, rho, i_water, del_t, env, mat)
+  subroutine condense_particle(n_spec, V, del_t, env, mat)
 
     ! integrates the condensation growth or decay ODE for total time
     ! del_t
@@ -69,8 +66,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: del_t ! total time to integrate
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -84,7 +79,7 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_euler(n_spec, V, rho, i_water, del_t - time, &
+       call condense_step_euler(n_spec, V, del_t - time, &
             time_step, done, env, mat)
        time = time + time_step
     end do
@@ -93,7 +88,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_euler(n_spec, V, rho, i_water, max_dt, dt, &
+  subroutine condense_step_euler(n_spec, V, max_dt, dt, &
        done, env, mat)
 
     ! Does one timestep (determined by this subroutine) of the
@@ -106,8 +101,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: max_dt ! maximum timestep to integrate
     real*8, intent(out) :: dt ! actual timestep used
     logical, intent(out) :: done ! whether we reached the maximum timestep
@@ -117,22 +110,21 @@ contains
     real*8 dvdt
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, rho, i_water, &
-         dt, env, mat)
+    call find_condense_timestep_variable(n_spec, V, dt, env, mat)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
-    V(i_water) = V(i_water) + dt * dvdt
-    V(i_water) = max(0d0, V(i_water))
+    call cond_newt(n_spec, V, dvdt, env, mat)
+    V(mat%i_water) = V(mat%i_water) + dt * dvdt
+    V(mat%i_water) = max(0d0, V(mat%i_water))
    
   end subroutine condense_step_euler
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_rk_fixed(n_spec, V, rho, i_water, max_dt, &
+  subroutine condense_step_rk_fixed(n_spec, V, max_dt, &
        dt, done, env, mat)
 
     ! Does one timestep (determined by this subroutine) of the
@@ -145,8 +137,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(in) :: max_dt ! maximum timestep to integrate
     real*8, intent(out) :: dt ! actual timestep used
     logical, intent(out) :: done ! whether we reached the maximum timestep
@@ -154,20 +144,19 @@ contains
     type(material), intent(in) :: mat    ! material properties
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, rho, i_water, &
-         dt, env, mat)
+    call find_condense_timestep_variable(n_spec, V, dt, env, mat)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call condense_step_rk(n_spec, V, rho, i_water, dt, env, mat)
+    call condense_step_rk(n_spec, V, dt, env, mat)
    
   end subroutine condense_step_rk_fixed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_rk(n_spec, V, rho, i_water, dt, env, mat)
+  subroutine condense_step_rk(n_spec, V, dt, env, mat)
 
     ! Does one fixed timestep of RK4.
 
@@ -176,8 +165,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -189,33 +176,33 @@ contains
     V_tmp = V
 
     ! step 1
-    call cond_newt(n_spec, V, rho, i_water, k1, env, mat)
+    call cond_newt(n_spec, V, k1, env, mat)
 
     ! step 2
-    V_tmp(i_water) = V(i_water) + dt * k1 / 2d0
-    V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k2, env, mat)
+    V_tmp(mat%i_water) = V(mat%i_water) + dt * k1 / 2d0
+    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
+    call cond_newt(n_spec, V_tmp, k2, env, mat)
 
     ! step 3
-    V_tmp(i_water) = V(i_water) + dt * k2 / 2d0
-    V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k3, env, mat)
+    V_tmp(mat%i_water) = V(mat%i_water) + dt * k2 / 2d0
+    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
+    call cond_newt(n_spec, V_tmp, k3, env, mat)
 
     ! step 4
-    V_tmp(i_water) = V(i_water) + dt * k3
-    V_tmp(i_water) = max(0d0, V_tmp(i_water))
-    call cond_newt(n_spec, V_tmp, rho, i_water, k4, env, mat)
+    V_tmp(mat%i_water) = V(mat%i_water) + dt * k3
+    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
+    call cond_newt(n_spec, V_tmp, k4, env, mat)
 
-    V(i_water) = V(i_water) + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
+    V(mat%i_water) = V(mat%i_water) &
+         + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
 
-    V(i_water) = max(0d0, V(i_water))
+    V(mat%i_water) = max(0d0, V(mat%i_water))
    
   end subroutine condense_step_rk
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_constant(n_spec, V, rho, i_water, &
-       dt, env, mat)
+  subroutine find_condense_timestep_constant(n_spec, V, dt, env, mat)
 
     ! constant timestep
 
@@ -225,8 +212,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep to use
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -237,8 +222,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_variable(n_spec, V, rho, i_water, &
-       dt, env, mat)
+  subroutine find_condense_timestep_variable(n_spec, V, dt, env, mat)
 
     ! timestep is proportional to V / (dV/dt)
 
@@ -248,8 +232,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dt ! timestep to use
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -261,14 +243,14 @@ contains
     real*8 pv, dvdt
 
     call particle_vol_base(n_spec, V, pv)
-    call cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
+    call cond_newt(n_spec, V, dvdt, env, mat)
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, rho, i_water, dvdt, env, mat)
+  subroutine cond_newt(n_spec, V, dvdt, env, mat)
     
     ! Newton's method to solve the error equation, determining the
     ! growth rate dm/dt. The extra variable T_a is the local
@@ -282,8 +264,6 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
     real*8, intent(out) :: dvdt  ! dv/dt (m^3 s^{-1})
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -303,11 +283,11 @@ contains
     real*8 g_water, g_solute, pv
     real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df, d
 
-    g_water = V(i_water) * rho(i_water)
+    g_water = V(mat%i_water) * mat%rho(mat%i_water)
     g_solute = 0d0
     do k = 1,n_spec
-       if (k .ne. i_water) then
-          g_solute = g_solute + V(k) * rho(k)
+       if (k .ne. mat%i_water) then
+          g_solute = g_solute + V(k) * mat%rho(k)
        end if
     end do
 
@@ -348,7 +328,7 @@ contains
             .and. (abs(delta_f) .lt. f_tol)) exit
     enddo
 
-    dvdt = dmdt / rho(i_water)
+    dvdt = dmdt / mat%rho(mat%i_water)
 
   end subroutine cond_newt
 

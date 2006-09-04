@@ -260,26 +260,26 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(out) :: dvdt  ! dv/dt (m^3 s^{-1})
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec     ! number of species
+    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
+    real*8, intent(out) :: dvdt       ! dv/dt (m^3 s^{-1})
+    type(environ), intent(in) :: env  ! environment state
+    type(material), intent(in) :: mat ! material properties
 
     ! parameters
     integer iter_max
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
     parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
-    parameter (f_tol = 1d-15) ! function tolerance for convergence
+    parameter (f_tol = 1d-15)    ! function tolerance for convergence
     parameter (iter_max = 400)   ! maximum number of iterations
 
     ! local variables
     integer iter, k
-    real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df
+    real*8 dmdt, delta_f, delta_dmdt, f, old_f, df
 
     dmdt = 0d0
-    call cond_func(n_spec, V, dmdt, f, df, T_a, env, mat)
+    call cond_func(n_spec, V, dmdt, f, df, env, mat)
     old_f = f
 
     iter = 0
@@ -288,7 +288,7 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(n_spec, V, dmdt, f, df, T_a, env, mat)
+       call cond_func(n_spec, V, dmdt, f, df, env, mat)
        delta_f = f - old_f
        old_f = f
        
@@ -310,7 +310,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(n_spec, V, x, f, df, T_a, env, mat)
+  subroutine cond_func(n_spec, V, x, f, df, env, mat)
 
     ! Return the error function value and its derivative.
 
@@ -325,7 +325,6 @@ contains
     real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
-    real*8, intent(out) :: T_a ! droplet temperature (K)
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
     
@@ -334,6 +333,7 @@ contains
     real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
     real*8 M_water, M_solute, rho_water, rho_solute
     real*8 eps, nu, g_water, g_solute
+    real*8 T_a ! droplet temperature (K), determined as part of solve
 
     M_water = average_water_quantity(V, mat, mat%M_w)
     M_solute = average_solute_quantity(V, mat, mat%M_w)
@@ -395,6 +395,9 @@ contains
          * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) * &
          (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * exp(c2 / T_a - &
          c5) * (-1d0) * c2 * c4 / T_a**2d0)
+
+    ! NOTE: we could return T_a (the droplet temperature) if we have
+    ! any need for it
 
   end subroutine cond_func
   

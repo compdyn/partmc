@@ -15,12 +15,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function average_solute_quantity(mat, quantity)
+  real*8 function average_solute_quantity(V, mat, quantity)
 
-    ! returns the average of the non-water elements of quantity
+    ! returns the volume-average of the non-water elements of quantity
 
-    type(material), intent(in) :: mat    ! material properties
-    real*8, dimension(:), intent(in) :: quantity       ! quantity to average
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    real*8, dimension(:), intent(in) :: quantity  ! quantity to average
+
+    real*8 :: ones(mat%n_spec)
+
+    ones = 1d0
+    average_solute_quantity = total_solute_quantity(V, mat, quantity) &
+         / total_solute_quantity(V, mat, ones)
+
+  end function average_solute_quantity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function total_solute_quantity(V, mat, quantity)
+
+    ! returns the volume-total of the non-water elements of quantity
+
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    real*8, dimension(:), intent(in) :: quantity  ! quantity to total
 
     real*8 total
     integer i
@@ -28,12 +47,40 @@ contains
     total = 0d0
     do i = 1,mat%n_spec
        if (i .ne. mat%i_water) then
-          total = total + quantity(i)
+          total = total + V(i) * quantity(i)
        end if
     end do
-    average_solute_quantity = total / dble(mat%n_spec - 1)
+    total_solute_quantity = total
 
-  end function average_solute_quantity
+  end function total_solute_quantity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function average_water_quantity(V, mat, quantity)
+
+    ! returns the water element of quantity
+
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    real*8, dimension(:), intent(in) :: quantity  ! quantity to average
+
+    average_water_quantity = quantity(mat%i_water)
+
+  end function average_water_quantity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function total_water_quantity(V, mat, quantity)
+
+    ! returns the volume-total of the water element of quantity
+
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    real*8, dimension(:), intent(in) :: quantity  ! quantity to total
+
+    total_water_quantity = V(mat%i_water) * quantity(mat%i_water)
+
+  end function total_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

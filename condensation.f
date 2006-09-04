@@ -115,6 +115,8 @@ contains
        dt = max_dt
        done = .true.
     end if
+!    write(*,*) 'dt = ', dt
+!    stop
 
     call cond_newt(n_spec, V, dvdt, env, mat)
     V(mat%i_water) = V(mat%i_water) + dt * dvdt
@@ -244,6 +246,7 @@ contains
 
     call particle_vol_base(n_spec, V, pv)
     call cond_newt(n_spec, V, dvdt, env, mat)
+!    write(*,*) 'pv = ', pv, ' dvdt = ', dvdt
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
@@ -295,8 +298,7 @@ contains
     d = vol2diam(pv)
 
     dmdt = (dmdt_min + dmdt_max) / 2d0
-    call cond_func(dmdt, d, g_water, g_solute, f, df, &
-         T_a, env, mat)
+    call cond_func(n_spec, V, dmdt, d, f, df, T_a, env, mat)
     old_f = f
 
     iter = 0
@@ -305,8 +307,7 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(dmdt, d, g_water, g_solute, f, df, &
-            T_a, env, mat)
+       call cond_func(n_spec, V, dmdt, d, f, df, T_a, env, mat)
        delta_f = f - old_f
        old_f = f
        
@@ -334,7 +335,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(x, d_p, g1, g2, f, df, T_a, env, mat)
+  subroutine cond_func(n_spec, V, x, d_p, f, df, T_a, env, mat)
 
     ! Return the error function value and its derivative.
 
@@ -342,10 +343,10 @@ contains
     use mod_material
     use mod_constants
 
+    integer, intent(in) :: n_spec ! number of species
+    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(in) :: d_p ! diameter (m)
-    real*8, intent(in) :: g1  ! water mass (kg)
-    real*8, intent(in) :: g2  ! solute mass (kg)
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
     real*8, intent(out) :: T_a ! droplet temperature (K)
@@ -355,19 +356,28 @@ contains
     ! local variables
     real*8 k_a, k_ap, k_ap_div, D_v, D_vp
     real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
-    real*8 M_s, rho, rho_n, eps, nu
+    real*8 M_water, M_solute, rho_water, rho_solute
+    real*8 eps, nu, g_water, g_solute
 
-    M_s = average_solute_quantity(mat, mat%M_w)
-    nu = average_solute_quantity(mat, dble(mat%nu))
-    eps = average_solute_quantity(mat, mat%eps)
-    rho_n = average_solute_quantity(mat, mat%rho)
+    M_water = average_water_quantity(V, mat, mat%M_w)
+    M_solute = average_solute_quantity(V, mat, mat%M_w)
+    nu = average_solute_quantity(V, mat, dble(mat%nu))
+    eps = average_solute_quantity(V, mat, mat%eps)
+    rho_water = average_water_quantity(V, mat, mat%rho)
+    rho_solute = average_solute_quantity(V, mat, mat%rho)
+    g_water = total_water_quantity(V, mat, mat%rho)
+    g_solute = total_solute_quantity(V, mat, mat%rho)
+
+!    write(*,*) 'x = ', x
 
     ! molecular diffusion coefficient uncorrected
     D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
 
+!    write(*,*) 'D_v = ', D_v
+
     ! molecular diffusion coefficient corrected for non-continuum effects
     ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-    !      * (2 * const%pi * mat%M_w(mat%i_water) / (const%R * env%T))**0.5d0
+    !      * (2 * const%pi * M_water / (const%R * env%T))**0.5d0
     ! D_vp = D_v / D_v_div
 
     ! TEST: use the basic expression for D_vp
@@ -382,24 +392,47 @@ contains
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
+!    write(*,*) 'k_ap = ', k_ap
+
+!    write(*,*) 'M_water = ', M_water
+
     rat = sat_vapor_pressure(env) / (const%R * env%T)
-    fact1 = const%L_v * mat%M_w(mat%i_water) / (const%R * env%T)
+    fact1 = const%L_v * M_water / (const%R * env%T)
     fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
     
-    c1 = 2d0 * const%pi * d_p * D_vp * mat%M_w(mat%i_water) * rat
-    c2 = 4d0 * mat%M_w(mat%i_water) &
-         * const%sig / (const%R * mat%rho(mat%i_water) * d_p)
+!    write(*,*) 'rat = ', rat
+!    write(*,*) 'fact1 = ', fact1
+!    write(*,*) 'fact2 = ', fact2
+
+!    write(*,*) 'nu = ', nu
+!    write(*,*) 'eps = ', eps
+!    write(*,*) 'M_water = ', M_water
+!    write(*,*) 'M_solute = ', M_solute
+!    write(*,*) 'g_solute = ', g_solute
+!    write(*,*) 'g_water = ', g_water
+
+    c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
+    c2 = 4d0 * M_water &
+         * const%sig / (const%R * rho_water * d_p)
     c3 = c1 * fact1 * fact2
     c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
     ! incorrect expression from Majeed and Wexler:
-!     c5 = nu * eps * mat%M_w(mat%i_water) * rho_n * r_n**3d0 &
-!         / (M_s * mat%rho(mat%i_water) * ((d_p / 2)**3d0 - r_n**3))
-      c5 = dble(nu) * eps * mat%M_w(mat%i_water) / M_s * g2 / g1
+!     c5 = nu * eps * M_water * rho_solute * r_n**3d0 &
+!         / (M_solute * rho_water * ((d_p / 2)**3d0 - r_n**3))
+    c5 = nu * eps * M_water / M_solute * g_solute / g_water
     ! corrected according to Jim's note:
-!    c5 = dble(nu) * eps * mat%M_w(mat%i_water) / M_s * g2 / &
-!         (g1 + (mat%rho(mat%i_water) / rho_n) * eps * g2)
+!    c5 = nu * eps * M_water / M_solute * g_solute / &
+!         (g_water + (rho_water / rho_solute) * eps * g_solute)
     
+!    write(*,*) 'c1 = ', c1
+!    write(*,*) 'c2 = ', c2
+!    write(*,*) 'c3 = ', c3
+!    write(*,*) 'c4 = ', c4
+!    write(*,*) 'c5 = ', c5
+
     T_a = env%T + c4 * x ! K
+    
+!    write(*,*) 'T_a = ', T_a
     
     f = x - c1 * (env%RH - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
@@ -410,6 +443,8 @@ contains
          * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) * &
          (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * exp(c2 / T_a - &
          c5) * (-1d0) * c2 * c4 / T_a**2d0)
+
+!    write(*,*) 'f = ', f, ' df = ', df
     
   end subroutine cond_func
   

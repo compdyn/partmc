@@ -385,32 +385,22 @@ contains
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
     
-    ! parameters
-    real*8 rho, rho_n, M_w, M_a, M_s
-    real*8 eps
-    integer nu
-    parameter (rho = 1000d0)  ! water density (kg m^{-3})
-    parameter (rho_n = 1800d0) ! solute density (kg m^{-3})
-    parameter (M_w = 18d-3)   ! molecular weight of water (kg mole^{-1})
-    parameter (M_a = 28d-3)   ! molecular weight of air (kg mole^{-1})
-    parameter (M_s = 132d-3)  ! molecular weight of solute (kg mole^{-1})
-    parameter (nu = 3)        ! number of ions in the solute
-    parameter (eps = 0.25d0)  ! solubility of aerosol material (1)
-
-    ! FIXME: nu and eps should be passed as arguments
-
-    ! FIXME: nu, eps, M_s should really be arrays of length n_spec
-      
     ! local variables
     real*8 k_a, k_ap, k_ap_div, D_v, D_vp
     real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
+    real*8 M_s, rho, rho_n, eps, nu
+
+    M_s = average_solute_quantity(mat, mat%M_w)
+    nu = average_solute_quantity(mat, dble(mat%nu))
+    eps = average_solute_quantity(mat, mat%eps)
+    rho_n = average_solute_quantity(mat, mat%rho)
 
     ! molecular diffusion coefficient uncorrected
     D_v = 0.211d-4 / (p / const%atm) * (T / 273d0)**1.94d0 ! m^2 s^{-1}
 
     ! molecular diffusion coefficient corrected for non-continuum effects
-    ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (alpha * d_p)) &
-    !      * (2 * pi * M_w / (R * T))**0.5d0
+    ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
+    !      * (2 * const%pi * mat%M_w(mat%i_water) / (const%R * T))**0.5d0
     ! D_vp = D_v / D_v_div
 
     ! TEST: use the basic expression for D_vp
@@ -420,25 +410,26 @@ contains
     ! thermal conductivity uncorrected
     k_a = 1d-3 * (4.39d0 + 0.071d0 * T) ! J m^{-1} s^{-1} K^{-1}
     k_ap_div = 1d0 + 2d0 * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
-         * (2d0 * const%pi * M_a / (const%R * T))**0.5d0 ! dimensionless
+         * (2d0 * const%pi * const%M_a / (const%R * T))**0.5d0 ! dimensionless
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
     rat = p0T / (const%R * T)
-    fact1 = const%L_v * M_w / (const%R * T)
+    fact1 = const%L_v * mat%M_w(mat%i_water) / (const%R * T)
     fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * T)
     
-    c1 = 2d0 * const%pi * d_p * D_vp * M_w * rat
-    c2 = 4d0 * M_w * const%sig / (const%R * rho * d_p)
+    c1 = 2d0 * const%pi * d_p * D_vp * mat%M_w(mat%i_water) * rat
+    c2 = 4d0 * mat%M_w(mat%i_water) &
+         * const%sig / (const%R * mat%rho(mat%i_water) * d_p)
     c3 = c1 * fact1 * fact2
     c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
     ! incorrect expression from Majeed and Wexler:
-!     c5 = nu * eps * M_w * rho_n * r_n**3d0 &
-!         / (M_s * rho * ((d_p / 2)**3d0 - r_n**3))
-      c5 = dble(nu) * eps * M_w / M_s * g2 / g1
+!     c5 = nu * eps * mat%M_w(mat%i_water) * rho_n * r_n**3d0 &
+!         / (M_s * mat%rho(mat%i_water) * ((d_p / 2)**3d0 - r_n**3))
+      c5 = dble(nu) * eps * mat%M_w(mat%i_water) / M_s * g2 / g1
     ! corrected according to Jim's note:
-!    c5 = dble(nu) * eps * M_w / M_s * g2 / &
-!         (g1 + (rho / rho_n) * eps * g2)
+!    c5 = dble(nu) * eps * mat%M_w(mat%i_water) / M_s * g2 / &
+!         (g1 + (mat%rho(mat%i_water) / rho_n) * eps * g2)
     
     T_a = T + c4 * x ! K
     

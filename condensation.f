@@ -117,9 +117,6 @@ contains
     end if
 
     call cond_growth_rate(n_spec, V, dvdt, env, mat)
-    if (dvdt .ne. 0d0) then
-!       write(*,*) 'rel_dvdt = ', dvdt / particle_volume(V, mat)
-    end if
     V(mat%i_water) = V(mat%i_water) + dt * dvdt
     V(mat%i_water) = max(0d0, V(mat%i_water))
    
@@ -279,10 +276,6 @@ contains
     call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
          dmdt_tol, f_tol, iter_max)
 
-    if (dmdt .ne. 0d0) then
-!       write(*,'(a10,e20.6)') 'dmdt', dmdt
-    end if
-
     dvdt = dmdt / mat%rho(mat%i_water)
 
   end subroutine cond_growth_rate
@@ -375,16 +368,6 @@ contains
     real*8, save :: eps, nu, g_water, g_solute
 
     real*8 T_a ! droplet temperature (K), determined as part of solve
-
-    integer, save :: count_init = 0
-    integer, save :: count_not_init = 0
-
-    if (init) then
-       count_init = count_init + 1
-    else
-       count_not_init = count_not_init + 1
-    end if
-!    write(*,*) count_init, count_not_init
 
     if (init) then
        ! Start of new Newton loop, compute all constants

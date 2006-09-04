@@ -117,6 +117,9 @@ contains
     end if
 
     call cond_growth_rate(n_spec, V, dvdt, env, mat)
+    if (dvdt .ne. 0d0) then
+!       write(*,*) 'rel_dvdt = ', dvdt / particle_volume(V, mat)
+    end if
     V(mat%i_water) = V(mat%i_water) + dt * dvdt
     V(mat%i_water) = max(0d0, V(mat%i_water))
    
@@ -263,15 +266,22 @@ contains
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
 
-    real*8, parameter :: dmdt_tol = 1d-15 ! dm/dt tolerance for convergence
+    real*8 :: dmdt_tol = 1d-15 ! dm/dt tolerance for convergence
     real*8, parameter :: f_tol = 1d-15    ! function tolerance for convergence
     integer, parameter :: iter_max = 100  ! maximum number of iterations
 
-    real*8 dmdt
+    real*8 dmdt, pm
+
+    pm = particle_mass(V, mat)
+    dmdt_tol = pm / 1d8
 
     dmdt = 0d0
     call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
          dmdt_tol, f_tol, iter_max)
+
+    if (dmdt .ne. 0d0) then
+!       write(*,'(a10,e20.6)') 'dmdt', dmdt
+    end if
 
     dvdt = dmdt / mat%rho(mat%i_water)
 
@@ -359,61 +369,77 @@ contains
     real*8, intent(out) :: df ! derivative of error with respect to x
     
     ! local variables
-    real*8 k_a, k_ap, k_ap_div, D_v, D_vp, d_p, pv
-    real*8 rat, fact1, fact2, c1, c2, c3, c4, c5
-    real*8 M_water, M_solute, rho_water, rho_solute
-    real*8 eps, nu, g_water, g_solute
+    real*8, save :: k_a, k_ap, k_ap_div, D_v, D_vp, d_p, pv
+    real*8, save :: rat, fact1, fact2, c1, c2, c3, c4, c5
+    real*8, save :: M_water, M_solute, rho_water, rho_solute
+    real*8, save :: eps, nu, g_water, g_solute
+
     real*8 T_a ! droplet temperature (K), determined as part of solve
 
-    M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
-    M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
-    nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
-    eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
-    rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
-    rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
-    g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
-    g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+    integer, save :: count_init = 0
+    integer, save :: count_not_init = 0
 
-    call particle_vol_base(n_spec, V, pv) ! m^3
-    d_p = vol2diam(pv) ! m
+    if (init) then
+       count_init = count_init + 1
+    else
+       count_not_init = count_not_init + 1
+    end if
+!    write(*,*) count_init, count_not_init
 
-    ! molecular diffusion coefficient uncorrected
-    D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
+    if (init) then
+       ! Start of new Newton loop, compute all constants
 
-    ! molecular diffusion coefficient corrected for non-continuum effects
-    ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-    !      * (2 * const%pi * M_water / (const%R * env%T))**0.5d0
-    ! D_vp = D_v / D_v_div
+       M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
+       M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
+       nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
+       eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
+       rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
+       rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
+       g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
+       g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+       
+       call particle_vol_base(n_spec, V, pv) ! m^3
+       d_p = vol2diam(pv) ! m
+       
+       ! molecular diffusion coefficient uncorrected
+       D_v = 0.211d-4 / (env%p / const%atm) &
+            * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
+       
+       ! molecular diffusion coefficient corrected for non-continuum effects
+       ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
+       !      * (2 * const%pi * M_water / (const%R * env%T))**0.5d0
+       ! D_vp = D_v / D_v_div
+       
+       ! TEST: use the basic expression for D_vp
+       D_vp = D_v                ! m^2 s^{-1}
+       ! FIXME: check whether we can reinstate the correction
+       
+       ! thermal conductivity uncorrected
+       k_a = 1d-3 * (4.39d0 + 0.071d0 * env%T) ! J m^{-1} s^{-1} K^{-1}
+       k_ap_div = 1d0 + 2d0 &
+            * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
+            * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
+       ! thermal conductivity corrected
+       k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
+       
+       rat = sat_vapor_pressure(env) / (const%R * env%T)
+       fact1 = const%L_v * M_water / (const%R * env%T)
+       fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
+       
+       c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
+       c2 = 4d0 * M_water &
+            * const%sig / (const%R * rho_water * d_p)
+       c3 = c1 * fact1 * fact2
+       c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
+       ! incorrect expression from Majeed and Wexler:
+       !     c5 = nu * eps * M_water * rho_solute * r_n**3d0 &
+       !         / (M_solute * rho_water * ((d_p / 2)**3d0 - r_n**3))
+       c5 = nu * eps * M_water / M_solute * g_solute / g_water
+       ! corrected according to Jim's note:
+       !    c5 = nu * eps * M_water / M_solute * g_solute / &
+       !         (g_water + (rho_water / rho_solute) * eps * g_solute)
+    end if
 
-    ! TEST: use the basic expression for D_vp
-    D_vp = D_v                ! m^2 s^{-1}
-    ! FIXME: check whether we can reinstate the correction
-
-    ! thermal conductivity uncorrected
-    k_a = 1d-3 * (4.39d0 + 0.071d0 * env%T) ! J m^{-1} s^{-1} K^{-1}
-    k_ap_div = 1d0 + 2d0 &
-         * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
-         * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
-    ! thermal conductivity corrected
-    k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
-      
-    rat = sat_vapor_pressure(env) / (const%R * env%T)
-    fact1 = const%L_v * M_water / (const%R * env%T)
-    fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
-    
-    c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
-    c2 = 4d0 * M_water &
-         * const%sig / (const%R * rho_water * d_p)
-    c3 = c1 * fact1 * fact2
-    c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
-    ! incorrect expression from Majeed and Wexler:
-!     c5 = nu * eps * M_water * rho_solute * r_n**3d0 &
-!         / (M_solute * rho_water * ((d_p / 2)**3d0 - r_n**3))
-    c5 = nu * eps * M_water / M_solute * g_solute / g_water
-    ! corrected according to Jim's note:
-!    c5 = nu * eps * M_water / M_solute * g_solute / &
-!         (g_water + (rho_water / rho_solute) * eps * g_solute)
-    
     T_a = env%T + c4 * dmdt ! K
     
     f = dmdt - c1 * (env%RH - exp(c2 / T_a - c5)) &

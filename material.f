@@ -15,6 +15,46 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  real*8 function particle_mass(V, mat) ! kg
+
+    ! total mass of the particle
+
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    
+    real*8 pm
+    integer i
+
+    pm = 0d0
+    do i = 1,mat%n_spec
+       pm = pm + V(i) * mat%rho(i)
+    end do
+    particle_mass = pm
+
+  end function particle_mass
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function particle_volume(V, mat) ! m^3
+
+    ! total volume of the particle
+
+    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    type(material), intent(in) :: mat             ! material properties
+    
+    real*8 pv
+    integer i
+
+    pv = 0d0
+    do i = 1,mat%n_spec
+       pv = pv + V(i)
+    end do
+    particle_volume = pv
+
+  end function particle_volume
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   real*8 function average_solute_quantity(V, mat, quantity)
 
     ! returns the volume-average of the non-water elements of quantity

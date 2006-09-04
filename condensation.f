@@ -116,7 +116,7 @@ contains
        done = .true.
     end if
 
-    call cond_newt(n_spec, V, dvdt, env, mat)
+    call cond_growth_rate(n_spec, V, dvdt, env, mat)
     V(mat%i_water) = V(mat%i_water) + dt * dvdt
     V(mat%i_water) = max(0d0, V(mat%i_water))
    
@@ -176,22 +176,22 @@ contains
     V_tmp = V
 
     ! step 1
-    call cond_newt(n_spec, V, k1, env, mat)
+    call cond_growth_rate(n_spec, V, k1, env, mat)
 
     ! step 2
     V_tmp(mat%i_water) = V(mat%i_water) + dt * k1 / 2d0
     V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_newt(n_spec, V_tmp, k2, env, mat)
+    call cond_growth_rate(n_spec, V_tmp, k2, env, mat)
 
     ! step 3
     V_tmp(mat%i_water) = V(mat%i_water) + dt * k2 / 2d0
     V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_newt(n_spec, V_tmp, k3, env, mat)
+    call cond_growth_rate(n_spec, V_tmp, k3, env, mat)
 
     ! step 4
     V_tmp(mat%i_water) = V(mat%i_water) + dt * k3
     V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_newt(n_spec, V_tmp, k4, env, mat)
+    call cond_growth_rate(n_spec, V_tmp, k4, env, mat)
 
     V(mat%i_water) = V(mat%i_water) &
          + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
@@ -243,7 +243,7 @@ contains
     real*8 pv, dvdt
 
     call particle_vol_base(n_spec, V, pv)
-    call cond_newt(n_spec, V, dvdt, env, mat)
+    call cond_growth_rate(n_spec, V, dvdt, env, mat)
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
@@ -265,62 +265,80 @@ contains
 
     real*8, parameter :: dmdt_tol = 1d-15 ! dm/dt tolerance for convergence
     real*8, parameter :: f_tol = 1d-15    ! function tolerance for convergence
-    integer, parameter :: iter_max = 400  ! maximum number of iterations
+    integer, parameter :: iter_max = 100  ! maximum number of iterations
+
+    real*8 dmdt
+
+    dmdt = 0d0
+    call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
+         dmdt_tol, f_tol, iter_max)
+
+    dvdt = dmdt / mat%rho(mat%i_water)
 
   end subroutine cond_growth_rate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, dvdt, env, mat)
+  subroutine cond_newt(n_spec, V, x, env, mat, func, x_tol, f_tol, iter_max)
     
-    ! Newton's method to solve the error equation, determining the
-    ! growth rate dm/dt.
+    ! Scalar Newton's method for condensation functions.
 
     use mod_environ
     use mod_material
 
     integer, intent(in) :: n_spec     ! number of species
     real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    real*8, intent(out) :: dvdt       ! dv/dt (m^3 s^{-1})
+    real*8, intent(inout) :: x        ! variable (set to inital value on call)
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
+    real*8, intent(in) :: x_tol       ! x convergence tolerance
+    real*8, intent(in) :: f_tol       ! f convergence tolerance
+    integer, intent(in) :: iter_max   ! maximum number of iterations
 
+    interface
+       subroutine func(n_spec, V, env, mat, x, f, df)
+         integer, intent(in) :: n_spec     ! number of species
+         real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
+         type(environ), intent(in) :: env  ! environment state
+         type(material), intent(in) :: mat ! material properties
+         real*8, intent(in) :: x           ! independent variable to solve for
+         real*8, intent(out) :: f          ! function to solve
+         real*8, intent(out) :: df         ! derivative df/dx
+       end subroutine func
+    end interface
+    
     integer iter, k
-    real*8 dmdt, delta_f, delta_dmdt, f, old_f, df
+    real*8 delta_f, delta_x, f, old_f, df
 
-    dmdt = 0d0
-    call cond_growth_rate_func(n_spec, V, dmdt, f, df, env, mat)
+    call func(n_spec, V, env, mat, x, f, df)
     old_f = f
 
     iter = 0
     do
        iter = iter + 1
 
-       delta_dmdt = f / df
-       dmdt = dmdt - delta_dmdt
-       call cond_growth_rate_func(n_spec, V, dmdt, f, df, env, mat)
+       delta_x = f / df
+       x = x - delta_x
+       call func(n_spec, V, env, mat, x, f, df)
        delta_f = f - old_f
        old_f = f
        
        if (iter .ge. iter_max) then
-          write(0,*) 'ERROR: Newton iteration had too many iterations'
+          write(0,*) 'ERROR: Newton iteration failed to terminate'
           write(0,*) 'iter_max = ', iter_max
-          write(0,*) 'dmdt = ', dmdt
+          write(0,*) 'x = ', x
           write(0,*) 'V = ', V
-          call exit(2)
+          call exit(1)
        end if
        
-       if ((abs(delta_dmdt) .lt. dmdt_tol) &
-            .and. (abs(delta_f) .lt. f_tol)) exit
+       if ((abs(delta_x) .lt. x_tol) .and. (abs(delta_f) .lt. f_tol)) exit
     enddo
-
-    dvdt = dmdt / mat%rho(mat%i_water)
 
   end subroutine cond_newt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_growth_rate_func(n_spec, V, x, f, df, env, mat)
+  subroutine cond_growth_rate_func(n_spec, V, env, mat, dmdt, f, df)
 
     ! Return the error function value and its derivative.
 
@@ -332,11 +350,11 @@ contains
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: x   ! mass growth rate dm/dt (kg s^{-1})
-    real*8, intent(out) :: f  ! error
-    real*8, intent(out) :: df ! derivative of error with respect to x
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
+    real*8, intent(in) :: dmdt   ! mass growth rate dm/dt (kg s^{-1})
+    real*8, intent(out) :: f  ! error
+    real*8, intent(out) :: df ! derivative of error with respect to x
     
     ! local variables
     real*8 k_a, k_ap, k_ap_div, D_v, D_vp, d_p, pv
@@ -345,17 +363,17 @@ contains
     real*8 eps, nu, g_water, g_solute
     real*8 T_a ! droplet temperature (K), determined as part of solve
 
-    M_water = average_water_quantity(V, mat, mat%M_w)
-    M_solute = average_solute_quantity(V, mat, mat%M_w)
-    nu = average_solute_quantity(V, mat, dble(mat%nu))
-    eps = average_solute_quantity(V, mat, mat%eps)
-    rho_water = average_water_quantity(V, mat, mat%rho)
-    rho_solute = average_solute_quantity(V, mat, mat%rho)
-    g_water = total_water_quantity(V, mat, mat%rho)
-    g_solute = total_solute_quantity(V, mat, mat%rho)
+    M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
+    M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
+    nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
+    eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
+    rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
+    rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
+    g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
+    g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
 
-    call particle_vol_base(n_spec, V, pv)
-    d_p = vol2diam(pv)
+    call particle_vol_base(n_spec, V, pv) ! m^3
+    d_p = vol2diam(pv) ! m
 
     ! molecular diffusion coefficient uncorrected
     D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
@@ -394,9 +412,9 @@ contains
 !    c5 = nu * eps * M_water / M_solute * g_solute / &
 !         (g_water + (rho_water / rho_solute) * eps * g_solute)
     
-    T_a = env%T + c4 * x ! K
+    T_a = env%T + c4 * dmdt ! K
     
-    f = x - c1 * (env%RH - exp(c2 / T_a - c5)) &
+    f = dmdt - c1 * (env%RH - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
     
     df = 1d0 + c1 * env%RH * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
@@ -407,7 +425,7 @@ contains
          c5) * (-1d0) * c2 * c4 / T_a**2d0)
 
     ! NOTE: we could return T_a (the droplet temperature) if we have
-    ! any need for it
+    ! any need for it.
 
   end subroutine cond_growth_rate_func
   
@@ -501,14 +519,14 @@ contains
     real*8 M_water, M_solute, rho_water, rho_solute
     real*8 eps, nu, g_water, g_solute
 
-    M_water = average_water_quantity(V, mat, mat%M_w)
-    M_solute = average_solute_quantity(V, mat, mat%M_w)
-    nu = average_solute_quantity(V, mat, dble(mat%nu))
-    eps = average_solute_quantity(V, mat, mat%eps)
-    rho_water = average_water_quantity(V, mat, mat%rho)
-    rho_solute = average_solute_quantity(V, mat, mat%rho)
-    g_water = total_water_quantity(V, mat, mat%rho)
-    g_solute = total_solute_quantity(V, mat, mat%rho)
+    M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
+    M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
+    nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
+    eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
+    rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
+    rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
+    g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
+    g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
 
     call particle_vol_base(n_spec, V, pv)
 

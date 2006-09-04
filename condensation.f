@@ -448,16 +448,20 @@ contains
 
     ! parameters
     integer, parameter :: it_max = 400   ! maximum iterations
-    real*8, parameter :: x_tol = 1d-15   ! convergence tolerance
-    real*8, parameter :: x_init = 1d0    ! convergence tolerance
+    real*8, parameter :: dw_tol = 1d-15  ! dw convergence tolerance
+    real*8, parameter :: f_tol = 1d-15   ! function convergence tolerance
+    integer, parameter :: iter_max = 100 ! maximum number of iterations
+    real*8, parameter :: dw_init = 1d0   ! initial value
     
-    real*8 x, rw, pv
+    real*8 dw ! wet diameter of particle
+    real*8 pv
 
-    x = x_init
-    call equilibriate_newt(n_spec, V, x, x_tol, it_max, env, mat)
+    dw = dw_init
+    call cond_newt(n_spec, V, dw, env, mat, equilibriate_func, &
+         dw_tol, f_tol, iter_max)
     
     call particle_vol_base(n_spec, V, pv)
-    V(mat%i_water) = diam2vol(x) - pv
+    V(mat%i_water) = diam2vol(dw) - pv
 
   end subroutine equilibriate_particle
 
@@ -481,7 +485,7 @@ contains
     real*8 df, dx, f, d 
 
     do j = 1,it_max
-       call equilibriate_func(n_spec, V, x, f, df, env, mat)
+       call equilibriate_func(n_spec, V, env, mat, x, f, df)
        dx = f / df
        x = x - dx
        if(abs(dx) .lt. x_tol) then
@@ -496,7 +500,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_func(n_spec, V, x, f, df, env, mat)
+  subroutine equilibriate_func(n_spec, V, env, mat, dw, f, df)
 
     use mod_util
     use mod_array
@@ -506,11 +510,11 @@ contains
 
     integer, intent(in) :: n_spec     ! number of species
     real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    real*8, intent(in) :: x           ! wet diameter (m)
-    real*8, intent(out) :: f          ! function value
-    real*8, intent(out) :: df         ! function derivative df/dx
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
+    real*8, intent(in) :: dw          ! wet diameter (m)
+    real*8, intent(out) :: f          ! function value
+    real*8, intent(out) :: df         ! function derivative df/dx
 
     real*8 c0, c1, c3, c4, dc0, dc2, dc3
     real*8 A, B
@@ -544,8 +548,8 @@ contains
     c0 = A * vol2rad(pv)**3d0
     dc0 = c1
     
-    f = c4 * x**4d0 - c3 * x**3d0 + c1 * x + c0
-    df = dc3 * x**3d0 -dc2 * x**2d0 + dc0
+    f = c4 * dw**4d0 - c3 * dw**3d0 + c1 * dw + c0
+    df = dc3 * dw**3d0 -dc2 * dw**2d0 + dc0
 
   end subroutine equilibriate_func
 

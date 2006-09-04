@@ -115,8 +115,6 @@ contains
        dt = max_dt
        done = .true.
     end if
-!    write(*,*) 'dt = ', dt
-!    stop
 
     call cond_newt(n_spec, V, dvdt, env, mat)
     V(mat%i_water) = V(mat%i_water) + dt * dvdt
@@ -246,7 +244,6 @@ contains
 
     call particle_vol_base(n_spec, V, pv)
     call cond_newt(n_spec, V, dvdt, env, mat)
-!    write(*,*) 'pv = ', pv, ' dvdt = ', dvdt
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
@@ -368,12 +365,8 @@ contains
     g_water = total_water_quantity(V, mat, mat%rho)
     g_solute = total_solute_quantity(V, mat, mat%rho)
 
-!    write(*,*) 'x = ', x
-
     ! molecular diffusion coefficient uncorrected
     D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
-
-!    write(*,*) 'D_v = ', D_v
 
     ! molecular diffusion coefficient corrected for non-continuum effects
     ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
@@ -392,25 +385,10 @@ contains
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
-!    write(*,*) 'k_ap = ', k_ap
-
-!    write(*,*) 'M_water = ', M_water
-
     rat = sat_vapor_pressure(env) / (const%R * env%T)
     fact1 = const%L_v * M_water / (const%R * env%T)
     fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
     
-!    write(*,*) 'rat = ', rat
-!    write(*,*) 'fact1 = ', fact1
-!    write(*,*) 'fact2 = ', fact2
-
-!    write(*,*) 'nu = ', nu
-!    write(*,*) 'eps = ', eps
-!    write(*,*) 'M_water = ', M_water
-!    write(*,*) 'M_solute = ', M_solute
-!    write(*,*) 'g_solute = ', g_solute
-!    write(*,*) 'g_water = ', g_water
-
     c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
     c2 = 4d0 * M_water &
          * const%sig / (const%R * rho_water * d_p)
@@ -424,15 +402,7 @@ contains
 !    c5 = nu * eps * M_water / M_solute * g_solute / &
 !         (g_water + (rho_water / rho_solute) * eps * g_solute)
     
-!    write(*,*) 'c1 = ', c1
-!    write(*,*) 'c2 = ', c2
-!    write(*,*) 'c3 = ', c3
-!    write(*,*) 'c4 = ', c4
-!    write(*,*) 'c5 = ', c5
-
     T_a = env%T + c4 * x ! K
-    
-!    write(*,*) 'T_a = ', T_a
     
     f = x - c1 * (env%RH - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
@@ -444,8 +414,6 @@ contains
          (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * exp(c2 / T_a - &
          c5) * (-1d0) * c2 * c4 / T_a**2d0)
 
-!    write(*,*) 'f = ', f, ' df = ', df
-    
   end subroutine cond_func
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

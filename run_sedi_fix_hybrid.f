@@ -124,10 +124,10 @@ cn *** initialise second distribution
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
 
-!         do i = 1,M
-!            write(*,*) i, V(i,:)
-!         end do
-!         stop
+         do i = 1,M
+            write(*,*) i, V(i,:)
+         end do
+         stop
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,

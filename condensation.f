@@ -456,9 +456,8 @@ contains
     x = x_init
     call equilibriate_newt(n_spec, V, x, x_tol, it_max, env, mat)
     
-    rw = x / 2d0
     call particle_vol_base(n_spec, V, pv)
-    V(mat%i_water) = rad2vol(rw) - pv
+    V(mat%i_water) = diam2vol(x) - pv
 
   end subroutine equilibriate_particle
 

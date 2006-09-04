@@ -121,10 +121,13 @@ cn *** initialise second distribution
 
 !     call equlibriate_particle for each particle in V
          do i = 1,M
-            call equilibriate_particle(n_spec, V(i,:), rho_p, 
-     &           i_water, nu,
-     &           eps, M_w, RH_eq, env, mat)
+            call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
+
+!         do i = 1,M
+!            write(*,*) i, V(i,:)
+!         end do
+!         stop
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,

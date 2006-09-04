@@ -250,12 +250,9 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, dvdt, env, mat)
+  subroutine cond_growth_rate(n_spec, V, dvdt, env, mat)
     
-    ! Newton's method to solve the error equation, determining the
-    ! growth rate dm/dt. The extra variable T_a is the local
-    ! temperature, which is also implicitly determined, but not
-    ! returned at this point.
+    ! Find the water volume growth rate due to condensation.
 
     use mod_environ
     use mod_material
@@ -266,20 +263,33 @@ contains
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
 
-    ! parameters
-    integer iter_max
-    real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
+    real*8, parameter :: dmdt_tol = 1d-15 ! dm/dt tolerance for convergence
+    real*8, parameter :: f_tol = 1d-15    ! function tolerance for convergence
+    integer, parameter :: iter_max = 400  ! maximum number of iterations
 
-    parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
-    parameter (f_tol = 1d-15)    ! function tolerance for convergence
-    parameter (iter_max = 400)   ! maximum number of iterations
+  end subroutine cond_growth_rate
 
-    ! local variables
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+  subroutine cond_newt(n_spec, V, dvdt, env, mat)
+    
+    ! Newton's method to solve the error equation, determining the
+    ! growth rate dm/dt.
+
+    use mod_environ
+    use mod_material
+
+    integer, intent(in) :: n_spec     ! number of species
+    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
+    real*8, intent(out) :: dvdt       ! dv/dt (m^3 s^{-1})
+    type(environ), intent(in) :: env  ! environment state
+    type(material), intent(in) :: mat ! material properties
+
     integer iter, k
     real*8 dmdt, delta_f, delta_dmdt, f, old_f, df
 
     dmdt = 0d0
-    call cond_func(n_spec, V, dmdt, f, df, env, mat)
+    call cond_growth_rate_func(n_spec, V, dmdt, f, df, env, mat)
     old_f = f
 
     iter = 0
@@ -288,7 +298,7 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(n_spec, V, dmdt, f, df, env, mat)
+       call cond_growth_rate_func(n_spec, V, dmdt, f, df, env, mat)
        delta_f = f - old_f
        old_f = f
        
@@ -310,7 +320,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(n_spec, V, x, f, df, env, mat)
+  subroutine cond_growth_rate_func(n_spec, V, x, f, df, env, mat)
 
     ! Return the error function value and its derivative.
 
@@ -399,12 +409,11 @@ contains
     ! NOTE: we could return T_a (the droplet temperature) if we have
     ! any need for it
 
-  end subroutine cond_func
+  end subroutine cond_growth_rate_func
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_particle(n_spec, V, rho, i_water, &
-       nu, eps, M_s, RH, env, mat)
+  subroutine equilibriate_particle(n_spec, V, env, mat)
 
     ! add water to the particle until it is in equilibrium
 
@@ -412,104 +421,53 @@ contains
     use mod_array
     use mod_environ
     use mod_material
+    use mod_constants
 
     integer, intent(in) :: n_spec ! number of species
     real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: rho(n_spec) ! density of species (kg m^{-3})  
-    integer, intent(in) :: i_water ! water species number
-    integer, intent(in) :: nu(n_spec)      ! number of ions in the solute
-    real*8, intent(in) :: eps(n_spec)      ! solubility of aerosol material (1)
-    real*8, intent(in) :: M_s(n_spec)      ! molecular weight of solute (kg mole^{-1})
-    real*8, intent(in) :: RH               ! relative humidity for equilibrium (1)
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
 
-    ! FIXME: Preliminarily set i_spec = 1. 
+    ! parameters
+    integer, parameter :: it_max = 400   ! maximum iterations
+    real*8, parameter :: x_tol = 1d-15   ! convergence tolerance
+    real*8, parameter :: x_init = 1d0    ! convergence tolerance
+    
+    real*8 x, rw, pv
 
-    ! paramters
-    real*8 x_min, x_max, x_tol, x1, x2, xacc
-    real*8 c0, c1, c3, c4, dc0, dc2, dc3
-    real*8 rw, x 
-    real*8 A, B, T, T0
-
-    real*8 pv
-    real*8 sig_w, RR 
-    parameter (sig_w = 0.073d0) ! surface energy (J m^{-2})
-    parameter (RR = 8.314d0)   ! universal gas constant (J mole^{-1} K^{-1})
-    parameter (T0 = 298d0)     ! temperature of gas medium (K)
-
-    integer i_spec
-
-!    write(6,*)'in equilibriate_particle ', V(1), V(2), V(3)
-    i_spec = 1
- 
-    call particle_vol_base(n_spec, V, pv)
-
-    T = T0
-    A = 4d0 * M_s(i_water) * sig_w / (RR * T * rho(i_water))
-    
-    B = dble(nu(i_spec)) * eps(i_spec) * M_s(i_water) * rho(i_spec) &
-             * vol2rad(pv)**3.d0 / (M_s(i_spec) * rho(i_water))
-    
-    c4 = log(RH) / 8d0
-    c3 = A / 8d0
-    
-    dc3 = log(RH) / 2d0
-    dc2 = 3d0 * A / 8d0
-    
-    x1 = 0d0
-    x2 = 10d0
-    xacc = 1d-15
-    
-    c1 = B - log(RH) * vol2rad(pv)**3d0
-    c0 = A * vol2rad(pv)**3d0
-    dc0 = c1
-    
-    call equilibriate_newt(x1, x2, xacc, x, c4, c3, c1, c0, dc3, dc2, dc0)
+    x = x_init
+    call equilibriate_newt(n_spec, V, x, x_tol, it_max, env, mat)
     
     rw = x / 2d0
-
-    V(i_water) = rad2vol(rw) - pv
-
-!    write(6,*)'out equilibriate_particle ', V(1), V(2), V(3)
+    call particle_vol_base(n_spec, V, pv)
+    V(mat%i_water) = rad2vol(rw) - pv
 
   end subroutine equilibriate_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_newt(x1, x2, xacc, x, c4, c3, c1, c0, dc3, &
-       dc2, dc0)
+  subroutine equilibriate_newt(n_spec, V, x, x_tol, it_max, env, mat)
 
-    real*8, intent(out) :: x
-    real*8, intent(in) :: x1
-    real*8, intent(in) :: x2
-    real*8, intent(in) :: xacc
-    real*8, intent(in) :: c4
-    real*8, intent(in) :: c3
-    real*8, intent(in) :: c1
-    real*8, intent(in) :: c0
-    real*8, intent(in) :: dc3
-    real*8, intent(in) :: dc2
-    real*8, intent(in) :: dc0
+    use mod_environ
+    use mod_material
+    use mod_constants
 
-    integer jmax
-    parameter (jmax=400)
-    
+    integer, intent(in) :: n_spec     ! number of species
+    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
+    real*8, intent(inout) :: x        ! value (set to init on call)
+    real*8, intent(in) :: x_tol       ! convergence tolerance for x
+    integer, intent(in) :: it_max     ! maximum number of iterations
+    type(environ), intent(in) :: env  ! environment state
+    type(material), intent(in) :: mat ! material properties
+
     integer j
     real*8 df, dx, f, d 
 
-    x = 0.5d0 * (x1 + x2)
-    
-    do j = 1,jmax
-       call equilibriate_func(x,f,df,d,c4,c3,c1,c0,dc3,dc2,dc0)
+    do j = 1,it_max
+       call equilibriate_func(n_spec, V, x, f, df, env, mat)
        dx = f / df
        x = x - dx
-       if((x .lt. x1) .or. (x .gt. x2)) then
-          write(6,*)'x1,x2,x ',x1,x2,x
-          write(*,*) 'rtnewt jumped out of brackets'
-          call exit(2)
-       endif
-       if(abs(dx) .lt. xacc) then
+       if(abs(dx) .lt. x_tol) then
           return
        endif
     enddo
@@ -521,11 +479,54 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_func(x, f, df, d_p, c4, c3, c1, c0, dc3, dc2, dc0)
+  subroutine equilibriate_func(n_spec, V, x, f, df, env, mat)
 
-    real*8 x, f, df, d_p
-    real*8 c4, c3, c1, c0, dc3, dc2, dc0
+    use mod_util
+    use mod_array
+    use mod_environ
+    use mod_material
+    use mod_constants
 
+    integer, intent(in) :: n_spec     ! number of species
+    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
+    real*8, intent(in) :: x           ! wet diameter (m)
+    real*8, intent(out) :: f          ! function value
+    real*8, intent(out) :: df         ! function derivative df/dx
+    type(environ), intent(in) :: env  ! environment state
+    type(material), intent(in) :: mat ! material properties
+
+    real*8 c0, c1, c3, c4, dc0, dc2, dc3
+    real*8 A, B
+    real*8 pv
+    real*8 M_water, M_solute, rho_water, rho_solute
+    real*8 eps, nu, g_water, g_solute
+
+    M_water = average_water_quantity(V, mat, mat%M_w)
+    M_solute = average_solute_quantity(V, mat, mat%M_w)
+    nu = average_solute_quantity(V, mat, dble(mat%nu))
+    eps = average_solute_quantity(V, mat, mat%eps)
+    rho_water = average_water_quantity(V, mat, mat%rho)
+    rho_solute = average_solute_quantity(V, mat, mat%rho)
+    g_water = total_water_quantity(V, mat, mat%rho)
+    g_solute = total_solute_quantity(V, mat, mat%rho)
+
+    call particle_vol_base(n_spec, V, pv)
+
+    A = 4d0 * M_water * const%sig / (const%R * env%T * rho_water)
+    
+    B = nu * eps * M_water * rho_solute &
+         * vol2rad(pv)**3.d0 / (M_solute * rho_water)
+    
+    c4 = log(env%RH) / 8d0
+    c3 = A / 8d0
+    
+    dc3 = log(env%RH) / 2d0
+    dc2 = 3d0 * A / 8d0
+    
+    c1 = B - log(env%RH) * vol2rad(pv)**3d0
+    c0 = A * vol2rad(pv)**3d0
+    dc0 = c1
+    
     f = c4 * x**4d0 - c3 * x**3d0 + c1 * x + c0
     df = dc3 * x**3d0 -dc2 * x**2d0 + dc0
 

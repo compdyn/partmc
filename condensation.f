@@ -290,13 +290,8 @@ contains
 
     ! parameters
     integer iter_max
-    real*8 T, RH, p00, T0, p
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
-    parameter (T = 298d0)     ! temperature of gas medium (K)
-    parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
-    parameter (T0 = 273.15d0) ! freezing point of water (K)
-    parameter (p = 1d5)       ! ambient pressure (Pa)
     parameter (dmdt_min = -1d0)      ! minimum value of dm/dt (kg s^{-1})
     parameter (dmdt_max = 1d0)     ! maximum value of dm/dt (kg s^{-1})
     parameter (dmdt_tol = 1d-15) ! dm/dt tolerance for convergence
@@ -305,11 +300,8 @@ contains
 
     ! local variables
     integer iter, k
-    real*8 g_water, g_solute, pv, p0T
+    real*8 g_water, g_solute, pv
     real*8 dmdt, T_a, delta_f, delta_dmdt, f, old_f, df, d
-
-    ! vapor pressure at temperature T
-    p0T = p00 * 10d0**(7.45d0 * (T - T0) / (T - 38d0)) ! Pa
 
     g_water = V(i_water) * rho(i_water)
     g_solute = 0d0
@@ -323,7 +315,7 @@ contains
     d = vol2diam(pv)
 
     dmdt = (dmdt_min + dmdt_max) / 2d0
-    call cond_func(dmdt, d, g_water, g_solute, p0T, p, f, df, &
+    call cond_func(dmdt, d, g_water, g_solute, f, df, &
          T_a, env, mat)
     old_f = f
 
@@ -333,7 +325,7 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(dmdt, d, g_water, g_solute, p0T, p, f, df, &
+       call cond_func(dmdt, d, g_water, g_solute, f, df, &
             T_a, env, mat)
        delta_f = f - old_f
        old_f = f
@@ -362,7 +354,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(x, d_p, g1, g2, p0T, p, f, df, T_a, env, mat)
+  subroutine cond_func(x, d_p, g1, g2, f, df, T_a, env, mat)
 
     ! Return the error function value and its derivative.
 
@@ -374,8 +366,6 @@ contains
     real*8, intent(in) :: d_p ! diameter (m)
     real*8, intent(in) :: g1  ! water mass (kg)
     real*8, intent(in) :: g2  ! solute mass (kg)
-    real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-    real*8, intent(in) :: p   ! ambient pressure (Pa)
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
     real*8, intent(out) :: T_a ! droplet temperature (K)
@@ -393,7 +383,7 @@ contains
     rho_n = average_solute_quantity(mat, mat%rho)
 
     ! molecular diffusion coefficient uncorrected
-    D_v = 0.211d-4 / (p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
+    D_v = 0.211d-4 / (env%p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
 
     ! molecular diffusion coefficient corrected for non-continuum effects
     ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
@@ -412,7 +402,7 @@ contains
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
-    rat = p0T / (const%R * env%T)
+    rat = sat_vapor_pressure(env) / (const%R * env%T)
     fact1 = const%L_v * mat%M_w(mat%i_water) / (const%R * env%T)
     fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
     

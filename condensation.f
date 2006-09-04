@@ -467,39 +467,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_newt(n_spec, V, x, x_tol, it_max, env, mat)
-
-    use mod_environ
-    use mod_material
-    use mod_constants
-
-    integer, intent(in) :: n_spec     ! number of species
-    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    real*8, intent(inout) :: x        ! value (set to init on call)
-    real*8, intent(in) :: x_tol       ! convergence tolerance for x
-    integer, intent(in) :: it_max     ! maximum number of iterations
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat ! material properties
-
-    integer j
-    real*8 df, dx, f, d 
-
-    do j = 1,it_max
-       call equilibriate_func(n_spec, V, env, mat, x, f, df)
-       dx = f / df
-       x = x - dx
-       if(abs(dx) .lt. x_tol) then
-          return
-       endif
-    enddo
-    
-    write(*,*) 'rtnewt exceeded maximum iteration '
-    call exit(2)
-
-  end subroutine equilibriate_newt
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   subroutine equilibriate_func(n_spec, V, env, mat, dw, f, df)
 
     use mod_util

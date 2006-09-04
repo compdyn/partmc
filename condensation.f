@@ -294,7 +294,6 @@ contains
     real*8 dmdt_min, dmdt_max, dmdt_tol, f_tol
 
     parameter (T = 298d0)     ! temperature of gas medium (K)
-    parameter (RH = 0.99d0)   ! relative humidity (1)
     parameter (p00 = 611d0)   ! equilibrium water vapor pressure at 273 K (Pa)
     parameter (T0 = 273.15d0) ! freezing point of water (K)
     parameter (p = 1d5)       ! ambient pressure (Pa)
@@ -324,7 +323,7 @@ contains
     d = vol2diam(pv)
 
     dmdt = (dmdt_min + dmdt_max) / 2d0
-    call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, &
+    call cond_func(dmdt, d, g_water, g_solute, p0T, p, f, df, &
          T_a, env, mat)
     old_f = f
 
@@ -334,7 +333,7 @@ contains
 
        delta_dmdt = f / df
        dmdt = dmdt - delta_dmdt
-       call cond_func(dmdt, d, g_water, g_solute, p0T, RH, T, p, f, df, &
+       call cond_func(dmdt, d, g_water, g_solute, p0T, p, f, df, &
             T_a, env, mat)
        delta_f = f - old_f
        old_f = f
@@ -363,7 +362,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_func(x, d_p, g1, g2, p0T, RH, T, p, f, df, T_a, env, mat)
+  subroutine cond_func(x, d_p, g1, g2, p0T, p, f, df, T_a, env, mat)
 
     ! Return the error function value and its derivative.
 
@@ -376,8 +375,6 @@ contains
     real*8, intent(in) :: g1  ! water mass (kg)
     real*8, intent(in) :: g2  ! solute mass (kg)
     real*8, intent(in) :: p0T ! vapor pressure at temperature T (Pa)
-    real*8, intent(in) :: RH  ! relative humidity (1)
-    real*8, intent(in) :: T   ! ambient temperature (K)
     real*8, intent(in) :: p   ! ambient pressure (Pa)
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
@@ -396,11 +393,11 @@ contains
     rho_n = average_solute_quantity(mat, mat%rho)
 
     ! molecular diffusion coefficient uncorrected
-    D_v = 0.211d-4 / (p / const%atm) * (T / 273d0)**1.94d0 ! m^2 s^{-1}
+    D_v = 0.211d-4 / (p / const%atm) * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
 
     ! molecular diffusion coefficient corrected for non-continuum effects
     ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-    !      * (2 * const%pi * mat%M_w(mat%i_water) / (const%R * T))**0.5d0
+    !      * (2 * const%pi * mat%M_w(mat%i_water) / (const%R * env%T))**0.5d0
     ! D_vp = D_v / D_v_div
 
     ! TEST: use the basic expression for D_vp
@@ -408,15 +405,16 @@ contains
     ! FIXME: check whether we can reinstate the correction
 
     ! thermal conductivity uncorrected
-    k_a = 1d-3 * (4.39d0 + 0.071d0 * T) ! J m^{-1} s^{-1} K^{-1}
-    k_ap_div = 1d0 + 2d0 * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
-         * (2d0 * const%pi * const%M_a / (const%R * T))**0.5d0 ! dimensionless
+    k_a = 1d-3 * (4.39d0 + 0.071d0 * env%T) ! J m^{-1} s^{-1} K^{-1}
+    k_ap_div = 1d0 + 2d0 &
+         * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
+         * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
     ! thermal conductivity corrected
     k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
       
-    rat = p0T / (const%R * T)
-    fact1 = const%L_v * mat%M_w(mat%i_water) / (const%R * T)
-    fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * T)
+    rat = p0T / (const%R * env%T)
+    fact1 = const%L_v * mat%M_w(mat%i_water) / (const%R * env%T)
+    fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
     
     c1 = 2d0 * const%pi * d_p * D_vp * mat%M_w(mat%i_water) * rat
     c2 = 4d0 * mat%M_w(mat%i_water) &
@@ -431,12 +429,12 @@ contains
 !    c5 = dble(nu) * eps * mat%M_w(mat%i_water) / M_s * g2 / &
 !         (g1 + (mat%rho(mat%i_water) / rho_n) * eps * g2)
     
-    T_a = T + c4 * x ! K
+    T_a = env%T + c4 * x ! K
     
-    f = x - c1 * (RH - exp(c2 / T_a - c5)) &
+    f = x - c1 * (env%RH - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
     
-    df = 1d0 + c1 * RH * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
+    df = 1d0 + c1 * env%RH * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
          exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 + c1 * &
          (exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 * (1d0 + c3 &
          * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) * &

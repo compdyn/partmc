@@ -37,16 +37,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function average_solute_material_weight(mat)
-
-    ! returns the average of the non-water molecular weights
-
-    type(material), intent(in) :: mat    ! material properties
-
-    average_solute_material_weight = average_solute_quantity(mat, mat%M_w)
-
-  end function average_solute_material_weight
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 end module mod_material

@@ -296,11 +296,12 @@ contains
     integer, intent(in) :: iter_max   ! maximum number of iterations
 
     interface
-       subroutine func(n_spec, V, env, mat, x, f, df)
+       subroutine func(n_spec, V, env, mat, init, x, f, df)
          integer, intent(in) :: n_spec     ! number of species
          real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
          type(environ), intent(in) :: env  ! environment state
          type(material), intent(in) :: mat ! material properties
+         logical, intent(in) :: init       ! true if first Newton loop
          real*8, intent(in) :: x           ! independent variable to solve for
          real*8, intent(out) :: f          ! function to solve
          real*8, intent(out) :: df         ! derivative df/dx
@@ -310,7 +311,7 @@ contains
     integer iter, k
     real*8 delta_f, delta_x, f, old_f, df
 
-    call func(n_spec, V, env, mat, x, f, df)
+    call func(n_spec, V, env, mat, .true., x, f, df)
     old_f = f
 
     iter = 0
@@ -319,7 +320,7 @@ contains
 
        delta_x = f / df
        x = x - delta_x
-       call func(n_spec, V, env, mat, x, f, df)
+       call func(n_spec, V, env, mat, .false., x, f, df)
        delta_f = f - old_f
        old_f = f
        
@@ -338,7 +339,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_growth_rate_func(n_spec, V, env, mat, dmdt, f, df)
+  subroutine cond_growth_rate_func(n_spec, V, env, mat, init, dmdt, f, df)
 
     ! Return the error function value and its derivative.
 
@@ -352,6 +353,7 @@ contains
     real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
+    logical, intent(in) :: init       ! true if first Newton loop
     real*8, intent(in) :: dmdt   ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(out) :: f  ! error
     real*8, intent(out) :: df ! derivative of error with respect to x
@@ -467,7 +469,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_func(n_spec, V, env, mat, dw, f, df)
+  subroutine equilibriate_func(n_spec, V, env, mat, init, dw, f, df)
 
     use mod_util
     use mod_array
@@ -479,41 +481,46 @@ contains
     real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
     type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat ! material properties
+    logical, intent(in) :: init       ! true if first Newton loop
     real*8, intent(in) :: dw          ! wet diameter (m)
     real*8, intent(out) :: f          ! function value
     real*8, intent(out) :: df         ! function derivative df/dx
 
-    real*8 c0, c1, c3, c4, dc0, dc2, dc3
-    real*8 A, B
-    real*8 pv
-    real*8 M_water, M_solute, rho_water, rho_solute
-    real*8 eps, nu, g_water, g_solute
+    real*8, save :: c0, c1, c3, c4, dc0, dc2, dc3
+    real*8, save :: A, B
+    real*8, save ::  pv
+    real*8, save :: M_water, M_solute, rho_water, rho_solute
+    real*8, save :: eps, nu, g_water, g_solute
 
-    M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
-    M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
-    nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
-    eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
-    rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
-    rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
-    g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
-    g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+    if (init) then
+       ! Start of new Newton loop, compute all constants
 
-    call particle_vol_base(n_spec, V, pv)
+       M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
+       M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
+       nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
+       eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
+       rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
+       rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
+       g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
+       g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
 
-    A = 4d0 * M_water * const%sig / (const%R * env%T * rho_water)
-    
-    B = nu * eps * M_water * rho_solute &
-         * vol2rad(pv)**3.d0 / (M_solute * rho_water)
-    
-    c4 = log(env%RH) / 8d0
-    c3 = A / 8d0
-    
-    dc3 = log(env%RH) / 2d0
-    dc2 = 3d0 * A / 8d0
-    
-    c1 = B - log(env%RH) * vol2rad(pv)**3d0
-    c0 = A * vol2rad(pv)**3d0
-    dc0 = c1
+       call particle_vol_base(n_spec, V, pv)
+
+       A = 4d0 * M_water * const%sig / (const%R * env%T * rho_water)
+       
+       B = nu * eps * M_water * rho_solute &
+            * vol2rad(pv)**3.d0 / (M_solute * rho_water)
+       
+       c4 = log(env%RH) / 8d0
+       c3 = A / 8d0
+       
+       dc3 = log(env%RH) / 2d0
+       dc2 = 3d0 * A / 8d0
+       
+       c1 = B - log(env%RH) * vol2rad(pv)**3d0
+       c0 = A * vol2rad(pv)**3d0
+       dc0 = c1
+    end if
     
     f = c4 * dw**4d0 - c3 * dw**3d0 + c1 * dw + c0
     df = dc3 * dw**3d0 -dc2 * dw**2d0 + dc0

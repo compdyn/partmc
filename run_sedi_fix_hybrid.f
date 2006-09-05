@@ -21,13 +21,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
       parameter (MM =  100000)  ! number of particles
-      parameter (TDV =  100000)  ! trailing dimension of VH
+      parameter (TDV =  100000) ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 4d0)   ! total simulation time (seconds)
+      parameter (t_max = 10d0)  ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
       parameter (t_print = 0.1d0) ! interval between printing (s)
@@ -55,10 +55,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       mat%eps = (/ 0.25d0, 0.25d0, 0d0 /)
       mat%M_w = (/ 132d-3, 132d-3, 18d-3 /)
 
-      env%T = 298d0   ! (K)
-      env%RH = 0.99d0 ! (1)
-      env%p = 1d5     ! (Pa)
-      env%dTdt = 0d0  ! (K s^{-1})
+      env%T = 298d0       ! (K)
+      env%RH = 0.99d0     ! (1)
+      env%p = 1d5         ! (Pa)
+      env%dTdt = -0.1d0   ! (K s^{-1})
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
@@ -100,7 +100,7 @@ cn *** initialise second distribution
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
 
-         env%RH = 1.0001d0
+!         env%RH = 1.0001d0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH, V_comp
      $        , bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,

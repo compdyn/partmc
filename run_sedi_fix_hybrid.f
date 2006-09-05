@@ -27,12 +27,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 20d0)  ! total simulation time (seconds)
+      parameter (t_max = 20d0*60d0)  ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
-      parameter (t_print = 0.1d0) ! interval between printing (s)
-      parameter (t_progress = 0.1d0) ! interval between progress (s)
-      parameter (del_t = 0.1d0)   ! timestep (s)
+      parameter (t_print = 10d0) ! interval between printing (s)
+      parameter (t_progress = 1d0) ! interval between progress (s)
+      parameter (del_t = 1d0)   ! timestep (s)
       parameter (V_01 = 8.d-2*4.1886d-15) ! mean volume of initial distribution (m^3)
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)
       parameter (d_mean1 = 0.2d-6) ! mean diameter of #1- initial distribution (m)
@@ -55,10 +55,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       mat%eps = (/ 0.25d0, 0.25d0, 0d0 /)
       mat%M_w = (/ 132d-3, 132d-3, 18d-3 /)
 
-      env%T = 298d0       ! (K)
-      env%RH = 0.99d0     ! (1)
+      env%T = 277.4d0       ! (K)
+      env%RH = 0.995d0     ! (1)
       env%p = 1d5         ! (Pa)
-      env%dTdt = -0.1d0   ! (K s^{-1})
+      env%dTdt = -5.5d-4   ! (K s^{-1})
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
@@ -91,16 +91,12 @@ cn *** initialise second distribution
          M=M1+M2
          V_comp = dble(M) / N_0
 
-         env%T = 298d0
-         env%RH = 0.99d0
          env%V_comp = V_comp
 
 !     call equlibriate_particle for each particle in V
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
-
-!         env%RH = 1.0001d0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH, V_comp
      $        , bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,

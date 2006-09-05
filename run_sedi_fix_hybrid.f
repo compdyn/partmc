@@ -12,20 +12,21 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_environ
       use mod_material
       use mod_constants
+      use mod_util
 
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, V_01, V_02, v_min
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
-      parameter (MM =  10000)  ! number of particles
-      parameter (TDV =  50000)  ! trailing dimension of VH
+      parameter (MM =  100000)  ! number of particles
+      parameter (TDV =  100000)  ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 4d0)   ! total simulation time (seconds)
+      parameter (t_max = 1d0)   ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
       parameter (t_print = 0.1d0) ! interval between printing (s)
@@ -48,6 +49,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 RH_eq
       integer nu(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
+
+! DEBUG
+      real*8 pv, d, dvdt
+      real*8 Vp(n_spec)
+! DEBUG
 
       type(environ) :: env
       type(material) :: mat
@@ -74,29 +80,36 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      %     nint(t_max / t_print) + 1)
       call srand(17)
 
-      do i_loop = 1,n_loop
+      env%p = 1d5 ! Pa
+      env%dTdt = 0d0 ! K s^{-1}
 
-         env%T = 298d0
-         env%RH = 0.99d0
+! DEBUG
+!      mat%nu = (/ 2, 2, 0 /)
+!      mat%eps = (/ 1d0, 1d0, 0d0 /)
+      mat%rho = (/ 2000.d0, 2000.d0, 1000.d0 /)
+      env%T = 283d0
+      env%RH = 0.80d0
+      Vp(1) = 1d-16 * 1d-3 / mat%rho(1)
+      Vp(2) = 0d0
+      Vp(3) = 0d0
+      call equilibriate_particle(n_spec, Vp, env, mat)
+      pv = particle_volume(Vp, mat)
+      d = vol2diam(pv)
+!      write(*,*) 'pv = ', pv
+!      write(*,*) 'd = ', d
+      env%RH = 1.01d0
+      call cond_growth_rate(n_spec, Vp, dvdt, env, mat)
+!      write(*,'(a10,e20.7)') 'dvdt = ', dvdt
+!      write(*,'(a10,e20.7)') 'd * dd/dt = ', dvdt / (d * const%pi/2d0)
+!      write(*,'(a10,e20.7)') 'dd/dt = ', dvdt / (d**2 * const%pi/2d0)
+      call condense_particle(n_spec, Vp, 60d0*60d0, env, mat)
+      stop
+! DEBUG
+
+      do i_loop = 1,n_loop
 
          call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
-cn *** initialize first distribution
-c         vol_frac(1) = 0.5d0
-c         vol_frac(2) = 0.5d0
-c         vol_frac(3) = 0.d0
-c         call init_exp(MM_1, V_01, dlnr, n_bin, bin_v, bin_r, n_ini)
-c         call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
-c     &        n_ini, bin_v, dlnr, V, M1)
-
-cn *** initialise second distribution
-c         call init_exp(MM-MM_1, V_02, dlnr, n_bin, bin_v, bin_r, n_ini)
-c         vol_frac(1) = 0.d0
-c         vol_frac(2) = 0.5d0
-c         vol_frac(3) = 0.5d0
-c         call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
-c     $        MM, n_ini, bin_v, dlnr, V, M2)
-
 
 cn *** initialize first distribution
          call init_log_normal(MM_1, d_mean1, log_sigma1, dlnr, n_bin,
@@ -119,12 +132,15 @@ cn *** initialise second distribution
          M=M1+M2
          V_comp = dble(M) / N_0
 
+         env%T = 298d0
+         env%RH = 0.99d0
+
 !     call equlibriate_particle for each particle in V
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
 
-         env%RH = 1.01d0
+         env%RH = 1.0001d0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,

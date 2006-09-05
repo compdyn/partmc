@@ -79,9 +79,10 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_euler(n_spec, V, del_t - time, &
+       call condense_step_rk_fixed(n_spec, V, del_t - time, &
             time_step, done, env, mat)
        time = time + time_step
+       write(*,*) (time/60d0), (vol2diam(particle_volume(V, mat))*1d6)
     end do
     
   end subroutine condense_particle
@@ -238,7 +239,7 @@ contains
 
     ! parameters
     real*8 scale
-    parameter (scale = 0.1d0) ! scale factor for timestep
+    parameter (scale = 0.01d0) ! scale factor for timestep
 
     real*8 pv, dvdt
 
@@ -362,15 +363,21 @@ contains
     real*8, intent(out) :: df ! derivative of error with respect to x
     
     ! local variables
-    real*8, save :: k_a, k_ap, k_ap_div, D_v, D_vp, d_p, pv
+    real*8, save :: k_a, k_ap, k_ap_div, D_v, D_v_div, D_vp, d_p, pv
     real*8, save :: rat, fact1, fact2, c1, c2, c3, c4, c5
     real*8, save :: M_water, M_solute, rho_water, rho_solute
     real*8, save :: eps, nu, g_water, g_solute
 
     real*8 T_a ! droplet temperature (K), determined as part of solve
 
+! DEBUG
+    real*8 t1, t2, t3
+! DEBUG
+
     if (init) then
        ! Start of new Newton loop, compute all constants
+
+!       write(*,*) 'V = ', V
 
        M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
        M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
@@ -380,6 +387,15 @@ contains
        rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
        g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
        g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+
+!       write(*,*) 'M_water = ', M_water
+!       write(*,*) 'M_solute = ', M_solute
+!       write(*,*) 'nu = ', nu
+!       write(*,*) 'eps = ', eps
+!       write(*,*) 'rho_water = ', rho_water
+!       write(*,*) 'rho_solute = ', rho_solute
+!       write(*,*) 'g_water = ', g_water
+!       write(*,*) 'g_solute = ', g_solute
        
        call particle_vol_base(n_spec, V, pv) ! m^3
        d_p = vol2diam(pv) ! m
@@ -387,14 +403,16 @@ contains
        ! molecular diffusion coefficient uncorrected
        D_v = 0.211d-4 / (env%p / const%atm) &
             * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
-       
        ! molecular diffusion coefficient corrected for non-continuum effects
-       ! D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-       !      * (2 * const%pi * M_water / (const%R * env%T))**0.5d0
-       ! D_vp = D_v / D_v_div
+       D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
+            * (2d0 * const%pi * M_water / (const%R * env%T))**0.5d0
+       D_vp = D_v / D_v_div
+       
+!       write(*,*) 'D_v = ', D_v
+!       write(*,*) 'D_vp = ', D_vp
        
        ! TEST: use the basic expression for D_vp
-       D_vp = D_v                ! m^2 s^{-1}
+       ! D_vp = D_v                ! m^2 s^{-1}
        ! FIXME: check whether we can reinstate the correction
        
        ! thermal conductivity uncorrected
@@ -404,11 +422,28 @@ contains
             * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
+
+!       write(*,*) 'k_a = ', k_a
+!       write(*,*) 'k_ap = ', k_ap
        
        rat = sat_vapor_pressure(env) / (const%R * env%T)
        fact1 = const%L_v * M_water / (const%R * env%T)
        fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
-       
+
+!       write(*,*) 'sat_vapor_pressure = ', sat_vapor_pressure(env)
+!       write(*,*) 'sig = ', const%sig
+!       write(*,*) 'L_v = ', const%L_v
+!       write(*,*) 'R = ', const%R
+
+       t1 = rho_water * const%R * env%T &
+            / (sat_vapor_pressure(env) * D_vp * M_water)
+       t2 = const%L_v * rho_water / (k_ap * env%T)
+       t3 = t2 * (fact1 - 1d0)
+ 
+!       write(*,*) 't1 = ', t1
+!       write(*,*) 't2 = ', t2
+!       write(*,*) 't3 = ', t3
+      
        c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
        c2 = 4d0 * M_water &
             * const%sig / (const%R * rho_water * d_p)
@@ -417,10 +452,10 @@ contains
        ! incorrect expression from Majeed and Wexler:
        !     c5 = nu * eps * M_water * rho_solute * r_n**3d0 &
        !         / (M_solute * rho_water * ((d_p / 2)**3d0 - r_n**3))
-       c5 = nu * eps * M_water / M_solute * g_solute / g_water
+       ! c5 = nu * eps * M_water / M_solute * g_solute / g_water
        ! corrected according to Jim's note:
-       !    c5 = nu * eps * M_water / M_solute * g_solute / &
-       !         (g_water + (rho_water / rho_solute) * eps * g_solute)
+           c5 = nu * eps * M_water / M_solute * g_solute / &
+                (g_water + (rho_water / rho_solute) * eps * g_solute)
     end if
 
     T_a = env%T + c4 * dmdt ! K
@@ -437,6 +472,10 @@ contains
 
     ! NOTE: we could return T_a (the droplet temperature) if we have
     ! any need for it.
+    
+!    write(*,*) '******************************************'
+!    write(*,*) 'dmdt = ', dmdt
+!    write(*,*) 'T_a = ', T_a
 
   end subroutine cond_growth_rate_func
   

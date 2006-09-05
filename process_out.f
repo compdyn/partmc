@@ -96,7 +96,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       endif
 
       write(6,*) 'n_loop = ', n_loop
-      write(6,*) 'n_bin = ', n_bin
+      write(6,*) 'n_bin =  ', n_bin
       write(6,*) 'n_time = ', n_time
       write(6,*) 'n_spec = ', n_spec
 

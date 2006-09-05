@@ -79,7 +79,7 @@ contains
     time = 0d0
     done = .false.
     do while (.not. done)
-       call condense_step_rk_fixed(n_spec, V, del_t - time, &
+       call condense_step_euler(n_spec, V, del_t - time, &
             time_step, done, env, mat)
        time = time + time_step
        write(*,*) (time/60d0), (vol2diam(particle_volume(V, mat))*1d6)
@@ -239,7 +239,7 @@ contains
 
     ! parameters
     real*8 scale
-    parameter (scale = 0.01d0) ! scale factor for timestep
+    parameter (scale = 0.1d0) ! scale factor for timestep
 
     real*8 pv, dvdt
 

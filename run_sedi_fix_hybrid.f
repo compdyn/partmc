@@ -86,7 +86,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! DEBUG
 !      mat%nu = (/ 2, 2, 0 /)
 !      mat%eps = (/ 1d0, 1d0, 0d0 /)
-      mat%rho = (/ 2000.d0, 2000.d0, 1000.d0 /)
+!      mat%rho = (/ 2000.d0, 2000.d0, 1000.d0 /)
       env%T = 283d0
       env%RH = 0.80d0
       Vp(1) = 1d-16 * 1d-3 / mat%rho(1)

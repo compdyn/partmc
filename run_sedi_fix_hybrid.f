@@ -25,12 +25,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 1d0)   ! total simulation time (seconds)
+      parameter (t_max = 4d0)   ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
-      parameter (t_print = 1d0) ! interval between printing (s)
-      parameter (t_progress = 1d0) ! interval between progress (s)
-      parameter (del_t = 1d0)   ! timestep (s)
+      parameter (t_print = 0.1d0) ! interval between printing (s)
+      parameter (t_progress = 0.1d0) ! interval between progress (s)
+      parameter (del_t = 0.1d0)   ! timestep (s)
       parameter (V_01 = 8.d-2*4.1886d-15) ! mean volume of initial distribution (m^3)
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)
       parameter (d_mean1 = 0.2d-6) ! mean diameter of #1- initial distribution (m)
@@ -58,9 +58,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       data eps / 0.25d0, 0.25d0, 0d0 /               ! INPUT: solubility of solutes (1)
       data M_w / 132d-3, 132d-3, 18d-3 /        ! INPUT: molecular weight of species (kg mole^{-1})
 
-      env%T = 298d0
-      env%RH = 0.99d0
-
       mat%n_spec = n_spec
       mat%i_water = 3
       allocate(mat%rho(n_spec))
@@ -78,6 +75,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call srand(17)
 
       do i_loop = 1,n_loop
+
+         env%T = 298d0
+         env%RH = 0.99d0
 
          call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
@@ -124,10 +124,7 @@ cn *** initialise second distribution
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
 
-         do i = 1,M
-            write(*,*) i, V(i,:)
-         end do
-         stop
+         env%RH = 1.01d0
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
      &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,

@@ -68,7 +68,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
      $     bin_gs, bin_n, dlnr)
-      call check_event(time, t_print, last_print_time, do_print)
+      call check_event(time, del_t, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_spec, n_bin, bin_v,
      $     bin_r,bin_g, bin_gs, bin_n, dlnr)
 
@@ -124,11 +124,12 @@ c                  if (did_coag) n_coag = n_coag + 1
 
          time = time + del_t
 
-         call check_event(time, t_print, last_print_time, do_print)
+         call check_event(time, del_t, t_print, last_print_time,
+     &        do_print)
          if (do_print) call print_info(time, V_comp, n_spec, n_bin,
      $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
 
-         call check_event(time, t_progress, last_progress_time,
+         call check_event(time, del_t, t_progress, last_progress_time,
      $        do_progress)
          if (do_progress) then
             call cpu_time(t_end)

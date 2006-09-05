@@ -499,29 +499,53 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine check_event(time, interval, last_time, do_event)
+      subroutine check_event(time, timestep, interval, last_time,
+     &     do_event)
 
-      real*8 time       ! INPUT: cubin_rent time
+      ! Computes whether an event is scheduled to take place. The events
+      ! should occur ideally at times 0, interval, 2*interval, etc. The
+      ! events are guaranteed to occur at least interval * (1 -
+      ! tolerance) apart, and if at least interval time has passed then
+      ! the next call is guaranteed to do the event. Otherwise the
+      ! timestep is used to guess whether to do the event.
+
+      real*8 time       ! INPUT: current time
+      real*8 timestep   ! INPUT: an estimate of the time to the next call
       real*8 interval   ! INPUT: how often the event should be done
       real*8 last_time  ! INPUT/OUTPUT: when the event was last done
       logical do_event  ! OUTPUT: whether the event should be done
 
-      real*8 interval_below
+      real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
 
+      real*8 closest_interval_time
+
+      ! if we are at time 0 then do the event unconditionally
       if (time .eq. 0d0) then
          last_time = 0d0
          do_event = .true.
       else
-         interval_below = aint(time / interval) * interval
-         if (last_time .lt. interval_below) then
-            last_time = time
-            do_event = .true.
-         else
+         ! if we are too close to the last time then don't do it
+         if ((time - last_time) .lt. interval * (1d0 - tolerance)) then
             do_event = .false.
+         else
+            ! if it's been too long since the last time then do it
+            if ((time - last_time) .ge. interval) then
+               do_event = .true.
+            else
+               ! gray area -- if we are closer than we will be next
+               ! time then do it
+               closest_interval_time = anint(time / interval) * interval
+               if (abs(time - closest_interval_time)
+     &              .lt. abs(time + timestep - closest_interval_time))
+     &              then
+                  do_event = .true.
+               else
+                  do_event = .false.
+               endif
+            endif
          endif
       endif
 
-      return
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

@@ -15,39 +15,6 @@ C     dlnr ... FIXME
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine make_grid(n_bin, scal, v_min, bin_v, bin_r,
-     $     dlnr)
-
-      integer n_bin        ! INPUT: number of bins
-      integer scal         ! INPUT: scale factor
-      real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins (m^3)
-      real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins (m)
-      real*8 dlnr          ! OUTPUT: scale factor
-      real*8 v_min
-
-      integer i
-      real*8 ax
-
-      real*8 pi
-      parameter (pi = 3.14159265358979323846d0)
-
-      dlnr = dlog(2d0) / (3d0 * dble(scal))
-      ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
-
-
-      do i = 1,n_bin
-         ! volume (m^3)
-         bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
-         ! radius (m)
-         bin_r(i) = dexp(dlog(3d0 * bin_v(i) / 
-     &             (4d0 * pi)) / 3d0)
-      enddo
-
-      return
-      end subroutine
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
       subroutine compute_volumes(n_bin, n_spec, vol_frac,
      *     MM, i_start, i_end, 
      *     n_ini, bin_v, dlnr, V, M)
@@ -568,7 +535,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       subroutine print_info(time, V_comp, n_spec,
-     &     n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+     &     n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+
+      use mod_material
+      use mod_environ
 
       real*8 time          ! INPUT: cubin_rent simulation time
       real*8 V_comp        ! INPUT: computational volume
@@ -581,12 +551,16 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 bin_gs(n_bin,n_spec) !INPUT: species mass in bins
       integer bin_n(n_bin) ! INPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
+      type(environ), intent(inout) :: env  ! environment state
+      type(material), intent(in) :: mat    ! material properties
 
       integer k, i
 
-      write(30,'(a10,e14.5)') 'time', time
+      write(30,'(a10,e20.10)') 'time(s)', time
+      write(30,'(a10,e20.10)') 'temp(K)', env%T
+      write(30,'(a10,e20.10)') 'rh(1)', env%RH
       do k = 1,n_bin
-         write(30, '(i8,20e14.5)')k, bin_r(k),
+         write(30, '(i10,20e20.10)')k, bin_r(k),
      &        dble(bin_n(k)) / V_comp / dlnr,
      &        bin_g(k) / V_comp / dlnr,
      &        (bin_gs(k,i) / V_comp / dlnr,i=1,n_spec) 

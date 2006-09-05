@@ -15,6 +15,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine allocate_material(mat, n_spec)
+
+    type(material), intent(inout) :: mat   ! material properties
+    integer, intent(in) :: n_spec          ! number of species
+
+    mat%n_spec = n_spec
+    allocate(mat%rho(n_spec))
+    allocate(mat%nu(n_spec))
+    allocate(mat%eps(n_spec))
+    allocate(mat%M_w(n_spec))
+
+  end subroutine allocate_material
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   real*8 function particle_mass(V, mat) ! kg
 
     ! total mass of the particle

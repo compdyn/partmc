@@ -7,7 +7,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, 
      $     MH, VH, V_comp,
-     $     bin_v, rho_p, i_water,
+     $     bin_v, i_water,
      $     bin_r, bin_g, bin_gs, bin_n, dlnr, 
      $     kernel, t_max, t_print,
      $     t_progress, del_t, loop, env, mat)
@@ -28,7 +28,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer MH(n_bin)         ! OUTPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
       real*8 V_comp             ! INPUT/OUTPUT: computational volume (m^3)
-      real*8 rho_p(n_spec)      ! INPUT: density of species (kg m^{-3})
       integer i_water           ! INPUT: water species number
       
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
@@ -70,7 +69,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $     bin_gs, bin_n, dlnr)
       call check_event(time, del_t, t_print, last_print_time, do_print)
       if (do_print) call print_info(time, V_comp, n_spec, n_bin, bin_v,
-     $     bin_r,bin_g, bin_gs, bin_n, dlnr)
+     $     bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
 
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
@@ -127,7 +126,7 @@ c                  if (did_coag) n_coag = n_coag + 1
          call check_event(time, del_t, t_print, last_print_time,
      &        do_print)
          if (do_print) call print_info(time, V_comp, n_spec, n_bin,
-     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
          call check_event(time, del_t, t_progress, last_progress_time,
      $        do_progress)

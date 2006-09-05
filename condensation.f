@@ -33,7 +33,9 @@ contains
     
     ! local variables
     integer bin, j, new_bin, k
-    real*8 pv
+    real*8 pv, pre_water_vol, post_water_vol
+
+    pre_water_vol = sum(bin_gs(:,mat%i_water))
 
     do bin = 1,n_bin
        do j = 1,MH(bin)
@@ -50,6 +52,10 @@ contains
     ! update the bin arrays
     call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
          bin_r, bin_g, bin_gs, bin_n, dlnr)
+
+    ! update the environment due to condensation of water
+    post_water_vol = sum(bin_gs(:,mat%i_water))
+    call change_water_volume(env, mat, post_water_vol - pre_water_vol)
 
   end subroutine condense_particles
 
@@ -82,7 +88,6 @@ contains
        call condense_step_euler(n_spec, V, del_t - time, &
             time_step, done, env, mat)
        time = time + time_step
-       write(*,*) (time/60d0), (vol2diam(particle_volume(V, mat))*1d6)
     end do
     
   end subroutine condense_particle

@@ -4,6 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
 
+      use mod_bin
       use mod_array
       use mod_init_dist
       use mod_mc_fix_hybrid
@@ -26,7 +27,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 1d0)   ! total simulation time (seconds)
+      parameter (t_max = 4d0)   ! total simulation time (seconds)
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
       parameter (t_print = 0.1d0) ! interval between printing (s)
@@ -38,77 +39,35 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (d_mean2 = 0.2d-6)  ! mean diameter of #2- initial distribution (m)
       parameter (log_sigma1 = 0.25d0) ! log(sigma) of #1- initial distribution
       parameter (log_sigma2 = 0.25d0) ! log(sigma) of #2- initial distribution
-      parameter (i_water = 3)   ! water species number
 
       integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
-      real*8 rho_p(n_spec)
-      real*8 eps(n_spec), M_w(n_spec)
-      real*8 RH_eq
-      integer nu(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
-
-! DEBUG
-      real*8 pv, d, dvdt
-      real*8 Vp(n_spec)
-! DEBUG
-
       type(environ) :: env
       type(material) :: mat
 
-      parameter (RH_eq = 0.99d0)                  ! INPUT: equilibrium RH for initial distribution`
-      data rho_p / 1800.d0, 1800.d0, 1000.d0 /  ! INPUT: density of species (kg m^{-3})
-      data nu / 3, 3, 0 /                          ! INPUT: number of ions in the solute (1)
-      data eps / 0.25d0, 0.25d0, 0d0 /               ! INPUT: solubility of solutes (1)
-      data M_w / 132d-3, 132d-3, 18d-3 /        ! INPUT: molecular weight of species (kg mole^{-1})
-
-      mat%n_spec = n_spec
+      call allocate_material(mat, n_spec)
       mat%i_water = 3
-      allocate(mat%rho(n_spec))
       mat%rho = (/ 1800.d0, 1800.d0, 1000.d0 /)
-      allocate(mat%nu(n_spec))
       mat%nu = (/ 3, 3, 0 /)
-      allocate(mat%eps(n_spec))
       mat%eps = (/ 0.25d0, 0.25d0, 0d0 /)
-      allocate(mat%M_w(n_spec))
       mat%M_w = (/ 132d-3, 132d-3, 18d-3 /)
+
+      env%T = 298d0   ! (K)
+      env%RH = 0.99d0 ! (1)
+      env%p = 1d5     ! (Pa)
+      env%dTdt = 0d0  ! (K s^{-1})
 
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
      %     nint(t_max / t_print) + 1)
       call srand(17)
 
-      env%p = 1d5 ! Pa
-      env%dTdt = 0d0 ! K s^{-1}
-
-! DEBUG
-!      mat%nu = (/ 2, 2, 0 /)
-!      mat%eps = (/ 1d0, 1d0, 0d0 /)
-!      mat%rho = (/ 2000.d0, 2000.d0, 1000.d0 /)
-      env%T = 283d0
-      env%RH = 0.80d0
-      Vp(1) = 1d-16 * 1d-3 / mat%rho(1)
-      Vp(2) = 0d0
-      Vp(3) = 0d0
-      call equilibriate_particle(n_spec, Vp, env, mat)
-      pv = particle_volume(Vp, mat)
-      d = vol2diam(pv)
-!      write(*,*) 'pv = ', pv
-!      write(*,*) 'd = ', d
-      env%RH = 1.01d0
-      call cond_growth_rate(n_spec, Vp, dvdt, env, mat)
-!      write(*,'(a10,e20.7)') 'dvdt = ', dvdt
-!      write(*,'(a10,e20.7)') 'd * dd/dt = ', dvdt / (d * const%pi/2d0)
-!      write(*,'(a10,e20.7)') 'dd/dt = ', dvdt / (d**2 * const%pi/2d0)
-      call condense_particle(n_spec, Vp, 60d0*60d0, env, mat)
-      stop
-! DEBUG
-
       do i_loop = 1,n_loop
 
-         call make_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
+         call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          call zero_v(MM,n_spec,V)
 
 cn *** initialize first distribution
@@ -134,6 +93,7 @@ cn *** initialise second distribution
 
          env%T = 298d0
          env%RH = 0.99d0
+         env%V_comp = V_comp
 
 !     call equlibriate_particle for each particle in V
          do i = 1,M
@@ -142,11 +102,10 @@ cn *** initialise second distribution
 
          env%RH = 1.0001d0
 
-         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, 
-     &        TDV, MH, VH, V_comp, bin_v, rho_p, i_water,
-     $        bin_r, bin_g, bin_gs, bin_n, dlnr, 
-     &        kernel_sedi, t_max, t_print,
-     $        t_progress ,del_t, i_loop, env, mat)
+         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH, V_comp
+     $        , bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
+     $        kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop,
+     $        env, mat)
 
       enddo
 

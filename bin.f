@@ -5,6 +5,37 @@ C     Functions that deal with the bin grid.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+      subroutine make_bin_grid(n_bin, scal, v_min, bin_v, bin_r,
+     $     dlnr)
+
+      integer n_bin        ! INPUT: number of bins
+      integer scal         ! INPUT: scale factor
+      real*8 v_min         ! INPUT: minimum volume (m^3)
+      real*8 bin_v(n_bin)  ! OUTPUT: volume of particles in bins (m^3)
+      real*8 bin_r(n_bin)  ! OUTPUT: radius of particles in bins (m)
+      real*8 dlnr          ! OUTPUT: scale factor
+
+      integer i
+      real*8 ax
+
+      real*8 pi
+      parameter (pi = 3.14159265358979323846d0)
+
+      dlnr = dlog(2d0) / (3d0 * dble(scal))
+      ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
+
+      do i = 1,n_bin
+         ! volume (m^3)
+         bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
+         ! radius (m)
+         bin_r(i) = dexp(dlog(3d0 * bin_v(i) / 
+     &             (4d0 * pi)) / 3d0)
+      enddo
+
+      end subroutine
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       subroutine bin_edge(n_bin, bin_v, i, v_edge)
 
       integer n_bin             ! INPUT: number of bins

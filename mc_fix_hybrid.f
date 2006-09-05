@@ -122,9 +122,9 @@ c                  if (did_coag) n_coag = n_coag + 1
 ! DEBUG
 
          time = time + del_t
-         if (time .ge. 2d0) then
-            env%dTdt = 0d0
-         endif
+!         if (time .ge. 2d0) then
+!            env%dTdt = 0d0
+!         endif
          call change_temp(env, del_t)
 
          call check_event(time, del_t, t_print, last_print_time,

@@ -488,7 +488,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       ! if we are at time 0 then do the event unconditionally
       if (time .eq. 0d0) then
-         last_time = 0d0
          do_event = .true.
       else
          ! if we are too close to the last time then don't do it
@@ -511,6 +510,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                endif
             endif
          endif
+      endif
+
+      if (do_event) then
+         last_time = time
       endif
 
       end subroutine

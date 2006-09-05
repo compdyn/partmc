@@ -20,8 +20,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 del_t, del_t_cond, V_01, V_02, v_min
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
-      parameter (MM =  100000)  ! number of particles
-      parameter (TDV =  100000) ! trailing dimension of VH
+      parameter (MM =  10000)  ! number of particles
+      parameter (TDV =  10000) ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
@@ -31,7 +31,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (v_min = 1.d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
       parameter (t_print = 10d0) ! interval between printing (s)
-      parameter (t_progress = 1d0) ! interval between progress (s)
+      parameter (t_progress = 10d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
       parameter (V_01 = 8.d-2*4.1886d-15) ! mean volume of initial distribution (m^3)
       parameter (V_02 = V_01/8.d0) ! mean volume of #2-initial distribution (m^3)

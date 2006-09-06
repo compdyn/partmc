@@ -29,10 +29,10 @@ C     species #1 is salt, #2 is dust, and #3 is water
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 20d0*60d0)  ! total simulation time (seconds)
+      parameter (t_max = 20d0)  ! total simulation time (seconds)
       parameter (v_min = 1d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 2d8)     ! particle number concentration (#/m^3)
-      parameter (t_print = 10d0) ! interval between printing (s)
+      parameter (t_print = 1d0) ! interval between printing (s)
       parameter (t_progress = 1d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
       parameter (d_mean1 = 0.266d-6) ! mean diameter of #1- initial distribution (m)

@@ -87,6 +87,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do while (time < t_max)
          tot_n_samp = 0
          n_coag = 0
+         if (.false.) then
          do i = 1,n_bin
             do j = 1,n_bin
                call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
@@ -106,6 +107,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                enddo
             enddo
          enddo
+         endif
 
          tot_n_coag = tot_n_coag + n_coag
          if (M .lt. MM / 2) then

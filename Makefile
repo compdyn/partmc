@@ -26,11 +26,11 @@ FILES = $(PROGS) $(OTHER)
 # temporary hack
 FREEFORM = condensation constants environ material
 
-run_golovin_adapt.o: array.o init_dist.o mc_adapt.o bin.o
-run_sedi_fix_hybrid.o: array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o bin.o array_hybrid.o util.o
+run_golovin_adapt.o: array.o init_dist.o mc_adapt.o bin.o material.o environ.o constants.o
+run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
 condensation_plot.o: condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
-array.o: bin.o
-array_hybrid.o: array.o bin.o util.o
+array.o: bin.o material.o environ.o constants.o
+array_hybrid.o: array.o bin.o util.o material.o environ.o constants.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 environ.o: constants.o material.o
 mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o bin.o util.o constants.o
@@ -73,8 +73,8 @@ make:
 process_out: process_out.o 
 	$(F77) $(LDFLAGS) -o $@ process_out.o 
 
-run_golovin_adapt: run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o
-	$(F77) $(LDFLAGS) -o $@ run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o
+run_golovin_adapt: run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o material.o environ.o constants.o
+	$(F77) $(LDFLAGS) -o $@ run_golovin_adapt.o array.o init_dist.o mc_adapt.o bin.o material.o environ.o constants.o
 
 run_golovin_exact: run_golovin_exact.o 
 	$(F77) $(LDFLAGS) -o $@ run_golovin_exact.o 
@@ -91,8 +91,8 @@ run_sedi_adapt: run_sedi_adapt.o
 run_sedi_fix: run_sedi_fix.o 
 	$(F77) $(LDFLAGS) -o $@ run_sedi_fix.o 
 
-run_sedi_fix_hybrid: run_sedi_fix_hybrid.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o bin.o array_hybrid.o util.o
-	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o bin.o array_hybrid.o util.o
+run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
 
 run_sedi_fix_split: run_sedi_fix_split.o 
 	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_split.o 

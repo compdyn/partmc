@@ -98,11 +98,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                endif
                tot_n_samp = tot_n_samp + n_samp
                do i_samp = 1,n_samp
-c                  call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
-c     $                 V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs,
-c     $                 bin_n, dlnr, i, j, del_t, k_max(i,j), kernel,
-c     $                 did_coag, bin_change)
-c                  if (did_coag) n_coag = n_coag + 1
+                  call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
+     $                 V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs,
+     $                 bin_n, dlnr, i, j, del_t, k_max(i,j), kernel,
+     $                 did_coag, bin_change)
+                  if (did_coag) n_coag = n_coag + 1
                enddo
             enddo
          enddo

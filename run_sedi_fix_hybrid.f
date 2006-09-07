@@ -29,16 +29,17 @@ C     species #1 is salt, #2 is dust, and #3 is water
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
-      parameter (t_max = 20d0)  ! total simulation time (seconds)
       parameter (v_min = 1d-24) ! minimum volume (m^3) for making grid
-      parameter (N_0 = 2d8)     ! particle number concentration (#/m^3)
+      parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
+
+      parameter (t_max = 1200d0)  ! total simulation time (seconds)
       parameter (t_print = 1d0) ! interval between printing (s)
-      parameter (t_progress = 1d0) ! interval between progress (s)
+      parameter (t_progress = 10d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
       parameter (d_mean1 = 0.266d-6) ! mean diameter of #1- initial distribution (m)
       parameter (d_mean2 = 0.05d-6)  ! mean diameter of #2- initial distribution (m)
       parameter (log_sigma1 = 0.21d0) ! log(sigma) of #1- initial distribution
-      parameter (log_sigma2 = 0.77d0) ! log(sigma) of #2- initial distribution
+      parameter (log_sigma2 = 0.6d0) ! log(sigma) of #2- initial distribution
 
       integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
@@ -48,6 +49,10 @@ C     species #1 is salt, #2 is dust, and #3 is water
       type(environ) :: env
       type(material) :: mat
 
+! DEBUG
+      real*8 pv
+! DEBUG
+
       call allocate_material(mat, n_spec)
       mat%i_water = 3
       mat%rho = (/ 2165d0, 2650d0, 1000d0 /)
@@ -56,7 +61,7 @@ C     species #1 is salt, #2 is dust, and #3 is water
       mat%M_w = (/ 58.44d-3, 60.08d-3, 18d-3 /)
 
       env%T = 288d0        ! (K)
-      env%RH = 0.999d0     ! (1)
+      env%RH = 0.99d0      ! (1)
       env%p = 1d5          ! (Pa)
       env%dTdt = -0.01d0   ! (K s^{-1})
 
@@ -95,8 +100,12 @@ cn *** initialise second distribution
 
 !     call equlibriate_particle for each particle in V
          do i = 1,M
+!            pv = particle_volume(V(i,:), mat)
             call equilibriate_particle(n_spec, V(i,:), env, mat)
+!            write(*,*) vol2rad(pv),
+!     &           vol2rad(particle_volume(V(i,:), mat))
          enddo
+!         stop
 
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH, V_comp
      $        , bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,

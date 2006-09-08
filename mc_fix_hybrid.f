@@ -60,8 +60,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
+      integer i_time
 
       last_progress_time = 0d0
+      i_time = 0
       time = 0d0
       tot_n_coag = 0
       
@@ -74,20 +76,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
-      open(35,file='VH0.d')
-      do i = 1,n_bin
-         do j = 1,MH(i)
-            do k = 1,n_spec
-               write(35,*) i, j, k, VH(i,j,k)
-            end do
-         end do
-      end do
+      call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time,
+     $     time)
 
       call cpu_time(t_start)
       do while (time < t_max)
          tot_n_samp = 0
          n_coag = 0
-         if (.false.) then
          do i = 1,n_bin
             do j = 1,n_bin
                call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
@@ -107,7 +102,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                enddo
             enddo
          enddo
-         endif
 
          tot_n_coag = tot_n_coag + n_coag
          if (M .lt. MM / 2) then
@@ -123,6 +117,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !     &        bin_g, bin_gs, bin_n, dlnr)
 ! DEBUG
 
+         i_time = i_time + 1
          time = time + del_t
 !         if (time .ge. 2d0) then
 !            env%dTdt = 0d0
@@ -133,6 +128,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      &        do_print)
          if (do_print) call print_info(time, V_comp, n_spec, n_bin,
      $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+         if (do_print) call write_state_hybrid(n_bin, TDV, n_spec, MH,
+     $        VH, env, i_time, time)
 
          call check_event(time, del_t, t_progress, last_progress_time,
      $        do_progress)

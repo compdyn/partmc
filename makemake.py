@@ -43,6 +43,7 @@ other = ["array",
 	 "mc_fix_super",
 	 "mc_var",
 	 "util",
+	 "state",
 	 ]
 
 free_form = ["condensation",
@@ -50,6 +51,7 @@ free_form = ["condensation",
 	     "environ",
 	     "material",
 	     "process_state",
+	     "state",
 	     ]
 
 all_files = progs + other

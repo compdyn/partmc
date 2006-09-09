@@ -7,6 +7,7 @@ fflags = "-O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -
 ldflags = ""
 
 progs = ["process_out",
+	 "process_state",
 	 "run_golovin_adapt",
 	 "run_golovin_exact",
 	 "run_golovin_fix",
@@ -47,7 +48,9 @@ other = ["array",
 free_form = ["condensation",
 	     "constants",
 	     "environ",
-	     "material"]
+	     "material",
+	     "process_state",
+	     ]
 
 all_files = progs + other
 

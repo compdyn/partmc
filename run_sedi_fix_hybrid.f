@@ -44,7 +44,7 @@ C     species #1 is salt, #2 is dust, and #3 is water
       integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
       real*8 bin_v(n_bin), bin_r(n_bin)
-      real*8 bin_g(n_bin), bin_gs(n_bin,n_spec),vol_frac(n_spec)
+      real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
       type(environ) :: env
       type(material) :: mat

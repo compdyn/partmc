@@ -28,13 +28,13 @@ FREEFORM = condensation constants environ material process_state state
 
 process_state.o: bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
 run_golovin_adapt.o: array.o init_dist.o mc_adapt.o bin.o material.o environ.o constants.o
-run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
+run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 condensation_plot.o: condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 array.o: bin.o material.o environ.o constants.o
 array_hybrid.o: array.o bin.o util.o environ.o material.o constants.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 environ.o: constants.o material.o
-mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o bin.o util.o constants.o
+mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o state.o bin.o util.o constants.o
 state.o: environ.o constants.o material.o
 
 # temporary hack
@@ -96,8 +96,8 @@ run_sedi_adapt: run_sedi_adapt.o
 run_sedi_fix: run_sedi_fix.o 
 	$(F77) $(LDFLAGS) -o $@ run_sedi_fix.o 
 
-run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
-	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o
+run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 
 run_sedi_fix_split: run_sedi_fix_split.o 
 	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_split.o 

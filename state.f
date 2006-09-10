@@ -39,8 +39,8 @@ contains
        write(0,*) 'ERROR: n_bin mismatch'
        call exit(1)
     end if
-    if (TDV .ne. TDV_test) then
-       write(0,*) 'ERROR: TDV mismatch'
+    if (TDV .lt. TDV_test) then
+       write(0,*) 'ERROR: TDV mismatch: too small'
        call exit(1)
     end if
     if (n_spec .ne. n_spec_test) then

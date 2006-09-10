@@ -25,3 +25,6 @@ around, as it should be recalculable from bin_r for each bin.
 remove particle_vol_hybrid(), particle_vol(), particle_vol_base(),
 particle_volume() and replace with sum().
 
+also output bin_v in state
+
+use HDF or CDF or something to store state

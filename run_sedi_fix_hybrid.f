@@ -22,8 +22,8 @@ C     species #1 is salt, #2 is dust, and #3 is water
       real*8 del_t, del_t_cond, v_min
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
-      parameter (MM =  10000)  ! number of particles
-      parameter (TDV =  10000) ! trailing dimension of VH
+      parameter (MM =  500000)  ! number of particles
+      parameter (TDV =  500000) ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
@@ -32,8 +32,8 @@ C     species #1 is salt, #2 is dust, and #3 is water
       parameter (v_min = 1d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
 
-      parameter (t_max = 3600d0)  ! total simulation time (seconds)
-      parameter (t_print = 10d0) ! interval between printing (s)
+      parameter (t_max = 1800d0)  ! total simulation time (seconds)
+      parameter (t_print = 100d0) ! interval between printing (s)
       parameter (t_progress = 1d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
       parameter (d_mean1 = 0.266d-6) ! mean diameter of #1- initial distribution (m)

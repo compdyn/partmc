@@ -9,7 +9,7 @@ program process_state
   use mod_state
 
   integer, parameter :: n_bin = 160    ! number of bins
-  integer, parameter :: TDV = 10000    ! trailing dimension of VH      
+  integer, parameter :: TDV = 500000   ! trailing dimension of VH      
   integer, parameter :: n_spec = 3     ! number of species
   integer, parameter :: scal = 3       ! scale factor for bins
   real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)

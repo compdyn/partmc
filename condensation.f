@@ -511,7 +511,7 @@ contains
     real*8 dw ! wet diameter of particle
     real*8 dw_tol, pv
 
-    pv = particle_volume(V, mat)
+    pv = sum(V)
     dw = dw_init
     ! convert volume relative tolerance to diameter absolute tolerance
     dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)

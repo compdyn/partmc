@@ -60,35 +60,36 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 k_max(n_bin, n_bin), n_samp_real
       integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
       logical do_print, do_progress, did_coag, bin_change
-      real*8 t_start, t_end, t_est
+      real*8 t_start, t_wall_start, t_wall_now, t_wall_est
       integer i_time
       character*100 filename
 
-      last_progress_time = 0d0
       i_time = 0
       time = 0d0
       tot_n_coag = 0
       
-      call moments(MM, M, V, V_comp, n_spec, n_bin, bin_v, bin_r, bin_g,
-     $     bin_gs, bin_n, dlnr)
-      call check_event(time, del_t, t_print, last_print_time, do_print)
-      if (do_print) call print_info(time, V_comp, n_spec, n_bin, bin_v,
-     $     bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
-
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
 
 ! RESTART
       filename = 'start_state1150.d'
-      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
       i_time = 1150
+      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
 ! RESTART
+
+      call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v,
+     &     bin_r, bin_g, bin_gs, bin_n, dlnr)
       
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
+      call print_info(time, V_comp, n_spec, n_bin, bin_v,
+     $     bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
       call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time,
      $     time)
 
-      call cpu_time(t_start)
+      call cpu_time(t_wall_start)
+      t_start = time
+      last_progress_time = time
+      last_print_time = time
       do while (time < t_max)
          tot_n_samp = 0
          n_coag = 0
@@ -128,10 +129,10 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          i_time = i_time + 1
          time = time + del_t
-!         if (time .ge. 2d0) then
-!            env%dTdt = 0d0
-!         endif
          call change_temp(env, del_t)
+         if (time .ge. 1200d0) then
+            env%dTdt = 0d0
+         endif
 
          call check_event(time, del_t, t_print, last_print_time,
      &        do_print)
@@ -143,12 +144,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call check_event(time, del_t, t_progress, last_progress_time,
      $        do_progress)
          if (do_progress) then
-            call cpu_time(t_end)
-            t_est = (t_max - time) / time * (t_end - t_start)
+            call cpu_time(t_wall_now)
+            t_wall_est = (t_max - time) * (t_wall_now - t_wall_start)
+     &           / (time - t_start)
             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M',
      $           'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M,
-     $           tot_n_samp, n_coag, tot_n_coag, t_est
+     $           tot_n_samp, n_coag, tot_n_coag, t_wall_est
          endif
 
       enddo

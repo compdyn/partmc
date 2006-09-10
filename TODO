@@ -21,3 +21,7 @@ and we just multiply this by the density to get the number per bin. We
 should instead multiply the density by ln(bin_right_edge) -
 ln(bin_left_edge) or similar. In general, we should stop passing dlnr
 around, as it should be recalculable from bin_r for each bin.
+
+remove particle_vol_hybrid(), particle_vol(), particle_vol_base(),
+particle_volume() and replace with sum().
+

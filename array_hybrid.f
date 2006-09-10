@@ -548,49 +548,4 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env,
-     $     index, time)
-
-      use mod_environ
-
-      integer n_bin        ! INPUT: number of bins
-      integer TDV          ! INPUT: trailing dimension of VH      
-      integer n_spec       ! INPUT: number of species
-      integer MH(n_bin)    ! INPUT: number of particles per bin
-      real*8 VH(n_bin,TDV,n_spec)  ! INPUT: particle volumes (m^3)
-      type(environ), intent(in) :: env  ! environment state
-      integer index        ! INPUT: filename index
-      real*8 time          ! INPUT: cuurent time (s)
-
-      integer, parameter :: funit = 30  ! unit for output
-
-      character*50 outname
-      integer i, j, k
-
-      write(outname, '(a6,i4.4,a2)') 'state_', index, '.d'
-      open(unit=funit,file=outname)
-      write(funit,'(a20,e20.10)') 'time(s)', time
-      write(funit,'(a20,e20.10)') 'temp(K)', env%T
-      write(funit,'(a20,e20.10)') 'rh(1)', env%RH
-      write(funit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
-      write(funit,'(a20,e20.10)') 'p(Pa)', env%p
-      write(funit,'(a20,i20)') 'n_bin', n_bin
-      write(funit,'(a20,i20)') 'TDV', TDV
-      write(funit,'(a20,i20)') 'n_spec', n_spec
-      do i = 1,n_bin
-         write(funit,'(i20,i20)') i, MH(i)
-      end do
-      do i = 1,n_bin
-         do j = 1,MH(i)
-            do k = 1,n_spec
-               write(funit,'(i12,i12,i12,e30.20)') i, j, k, VH(i,j,k)
-            end do
-         end do
-      end do
-      close(unit=funit)
-
-      end subroutine
-      
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
       end module

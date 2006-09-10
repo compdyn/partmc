@@ -74,6 +74,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       filename = 'start_state1150.d'
       i_time = 1150
       call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
+      M = sum(MH)
 ! RESTART
 
       call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v,

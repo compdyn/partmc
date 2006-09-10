@@ -42,7 +42,7 @@ C     species #1 is salt, #2 is dust, and #3 is water
       parameter (log_sigma2 = 0.6d0) ! log(sigma) of #2- initial distribution
 
       integer M, M1, M2, i_loop, i
-      real*8 V(MM,n_spec), V_comp, dlnr, VH(n_bin,TDV,n_spec)
+      real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
       real*8 bin_v(n_bin), bin_r(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
@@ -90,17 +90,15 @@ cn *** initialise second distribution
      $        MM, n_ini, bin_v, dlnr, V, M2)
 
          M = M1 + M2
-         V_comp = dble(M) / N_0
-
-         env%V_comp = V_comp
+         env%V_comp = dble(M) / N_0
 
 !     call equlibriate_particle for each particle in V
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
 
-         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH, V_comp
-     $        , bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
+         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH,
+     $        bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
      $        kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop,
      $        env, mat)
 

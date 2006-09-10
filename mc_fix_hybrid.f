@@ -6,7 +6,7 @@ C     Monte Carlo with fixed timestep and a hybrid array.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, 
-     $     MH, VH, V_comp,
+     $     MH, VH,
      $     bin_v, i_water,
      $     bin_r, bin_g, bin_gs, bin_n, dlnr, 
      $     kernel, t_max, t_print,
@@ -28,7 +28,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer TDV               ! INPUT: trailing dimension of VH
       integer MH(n_bin)         ! OUTPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
-      real*8 V_comp             ! INPUT/OUTPUT: computational volume (m^3)
       integer i_water           ! INPUT: water species number
       
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
@@ -82,7 +81,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
-      call print_info(time, V_comp, n_spec, n_bin, bin_v,
+      call print_info(time, env%V_comp, n_spec, n_bin, bin_v,
      $     bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
       call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time,
      $     time)
@@ -96,7 +95,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          n_coag = 0
          do i = 1,n_bin
             do j = 1,n_bin
-               call compute_n_samp_hybrid(n_bin, MH, i, j, V_comp,
+               call compute_n_samp_hybrid(n_bin, MH, i, j, env%V_comp,
      $              k_max, del_t, n_samp_real)
                ! probabalistically determine n_samp to cope with < 1 case
                n_samp = int(n_samp_real)
@@ -106,7 +105,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                tot_n_samp = tot_n_samp + n_samp
                do i_samp = 1,n_samp
                   call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH,
-     $                 V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs,
+     $                 env%V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs,
      $                 bin_n, dlnr, i, j, del_t, k_max(i,j), kernel,
      $                 did_coag, bin_change)
                   if (did_coag) n_coag = n_coag + 1
@@ -116,7 +115,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          tot_n_coag = tot_n_coag + n_coag
          if (M .lt. MM / 2) then
-            call double_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec
+            call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
@@ -137,7 +136,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
          call check_event(time, del_t, t_print, last_print_time,
      &        do_print)
-         if (do_print) call print_info(time, V_comp, n_spec, n_bin,
+         if (do_print) call print_info(time, env%V_comp, n_spec, n_bin,
      $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
          if (do_print) call write_state_hybrid(n_bin, TDV, n_spec, MH,
      $        VH, env, i_time, time)

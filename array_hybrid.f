@@ -388,7 +388,7 @@ C     Double number of particles in a hybrid array.
       integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
       real*8 dlnr          ! INPUT: bin scale factor
 
-      integer i, j, k, i_spec
+      integer i, k, i_spec
 
       ! double VH and associated structures
       do k = 1,n_bin
@@ -411,8 +411,8 @@ C     Double number of particles in a hybrid array.
       do i = 1,n_bin
          bin_g(i) = bin_g(i) * 2d0
          bin_n(i) = bin_n(i) * 2
-         do j=1,n_spec
-            bin_gs(i,j) = bin_gs(i,j) * 2d0
+         do i_spec = 1,n_spec
+            bin_gs(i,i_spec) = bin_gs(i,i_spec) * 2d0
          enddo
       enddo
 

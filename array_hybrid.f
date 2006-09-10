@@ -567,7 +567,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       character*50 outname
       integer i, j, k
 
-      write(outname, '(a5,i4.4,a2)') 'state', index, '.d'
+      write(outname, '(a6,i4.4,a2)') 'state_', index, '.d'
       open(unit=funit,file=outname)
       write(funit,'(a20,e20.10)') 'time(s)', time
       write(funit,'(a20,e20.10)') 'temp(K)', env%T

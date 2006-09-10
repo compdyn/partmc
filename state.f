@@ -5,10 +5,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_state(n_bin, TDV, n_spec, MH, VH, env, time, basename)
+  subroutine read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
 
     use mod_environ
     
+    character, intent(in) :: filename*100   ! input filename
     integer, intent(in) :: n_bin            ! number of bins
     integer, intent(in) :: TDV              ! trailing dimension of VH      
     integer, intent(in) :: n_spec           ! number of species
@@ -16,37 +17,14 @@ contains
     real*8, intent(out) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
     type(environ), intent(out) :: env       ! environment state
     real*8, intent(out) :: time             ! current time (s)
-    character, intent(out) :: basename*100   ! basename of the input filename
     
     integer, parameter :: f_in = 20
     
     character :: dum*100
     integer :: i, j, k, dum_int_1, dum_int_2, dum_int_3
     integer :: n_bin_test, TDV_test, n_spec_test
-    
-    ! check there is exactly one commandline argument
-    if (iargc() .ne. 1) then
-       write(0,*) 'Usage: process_out <filename.d>'
-       call exit(1)
-    end if
-    
-    ! get and check first commandline argument (must be "filename.d")
-    call getarg(1, basename)
-    i = len_trim(basename)
-    if (i .gt. 40) then
-       write(0,*) 'ERROR: filename too long'
-       call exit(1)
-    end if
-    if ((basename(i:i) .ne. 'd') .or. &
-         (basename((i-1):(i-1)) .ne. '.')) then
-       write(0,*) 'ERROR: Filename must end in .d'
-       call exit(1)
-    end if
-    
-    open(f_in, file=basename)
-    
-    ! chop .d off the end of the filename to get the basename
-    basename((i-1):i) = '  '
+
+    open(f_in, file=filename)
     
     read(f_in, '(a20,e20.10)') dum, time
     read(f_in, '(a20,e20.10)') dum, env%T

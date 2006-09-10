@@ -18,6 +18,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_condensation
       use mod_environ
       use mod_material
+      use mod_state
 
       integer MM                ! INPUT: physical dimension of V
       integer M                 ! INPUT/OUTPUT: logical dimension of V
@@ -61,6 +62,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       logical do_print, do_progress, did_coag, bin_change
       real*8 t_start, t_end, t_est
       integer i_time
+      character*100 filename
 
       last_progress_time = 0d0
       i_time = 0
@@ -74,6 +76,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $     bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
 
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
+
+! RESTART
+      filename = 'start_state1150.d'
+      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
+      i_time = 1150
+! RESTART
+      
       call est_k_max_binned(n_bin, bin_v, kernel, k_max)
 
       call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time,

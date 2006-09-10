@@ -35,10 +35,13 @@ program process_state
   real*8 :: bin_g_2d(n_bin,n_bin) ! 2D species mass distribution
   integer :: bin_n_mixed(n_bin,3) ! species number by composition
   real*8 :: bin_g_mixed(n_bin,3) ! species mass by composition
+  character :: filename*100  ! input filename
   character :: basename*100  ! basename of the input filename
   integer :: comp_n(n_comp)  ! number in composition bins
 
-  call read_state(n_bin, TDV, n_spec, MH, VH, env, time, basename)
+  call get_filename(filename, basename)
+
+  call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
 
   call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
 
@@ -63,6 +66,40 @@ program process_state
 
 contains
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine get_filename(filename, basename)
+    
+    character, intent(out) :: filename*100  ! input filename
+    character, intent(out) :: basename*100  ! basename of the input filename
+
+    integer i
+    
+    ! check there is exactly one commandline argument
+    if (iargc() .ne. 1) then
+       write(0,*) 'Usage: process_out <filename.d>'
+       call exit(1)
+    end if
+    
+    ! get and check first commandline argument (must be "filename.d")
+    call getarg(1, filename)
+    i = len_trim(filename)
+    if (i .gt. 40) then
+       write(0,*) 'ERROR: filename too long'
+       call exit(1)
+    end if
+    if ((filename(i:i) .ne. 'd') .or. &
+         (filename((i-1):(i-1)) .ne. '.')) then
+       write(0,*) 'ERROR: Filename must end in .d'
+       call exit(1)
+    end if
+    
+    ! chop .d off the end of the filename to get the basename
+    basename = filename
+    basename((i-1):i) = '  '
+    
+  end subroutine get_filename
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine moments_hybrid_2d(n_bin, TDV, n_spec, MH, VH, bin_v, mat, &

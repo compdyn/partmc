@@ -63,6 +63,9 @@ program process_state
        v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
   call write_moments_mixed_2d(basename, n_bin, bin_v, &
        bin_n_mixed, bin_g_mixed)
+  write(8,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
+  write(8,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
+  write(8,*) 'volume in mixed: ', sum(bin_g_mixed(:,3))
 
 contains
 

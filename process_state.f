@@ -209,9 +209,9 @@ contains
        do j = 1,MH(i)
           comp = VH(i,j,spec_1) / (VH(i,j,spec_1) + VH(i,j,spec_2))
           if (comp .lt. cutoff_frac) then
-             k = 1
-          else if (comp .gt. (1d0 - cutoff_frac)) then
              k = 2
+          else if (comp .gt. (1d0 - cutoff_frac)) then
+             k = 1
           else
              k = 3
           end if

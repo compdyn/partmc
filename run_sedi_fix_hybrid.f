@@ -64,7 +64,8 @@ C     species #1 is salt, #2 is dust, and #3 is water
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
      %     nint(t_max / t_print) + 1)
-      call srand(17)
+C      call srand(17)
+      call srand(time())
 
       do i_loop = 1,n_loop
 

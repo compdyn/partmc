@@ -87,14 +87,14 @@ contains
     real*8 :: new_array(n,m)
     integer r
 
-    array = 0
+    array = 0d0
     do r = 0,(n_files - 1)
        write(filename,'(a1,i2.2,a1,a30)') 'r', r, '/', dataname
        call read_data(filename, format_string, n, m, new_array)
        array = array + new_array
     end do
 
-    array = array / n_files
+    array = array / dble(n_files)
 
   end subroutine calc_average
 

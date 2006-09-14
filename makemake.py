@@ -21,6 +21,7 @@ progs = ["process_out",
 	 "run_sedi_sect",
 	 "run_sedi_var",
 	 "condensation_plot",
+         "average",
 	 ]
 
 other = ["array",
@@ -52,6 +53,7 @@ free_form = ["condensation",
 	     "material",
 	     "process_state",
 	     "state",
+             "average",
 	     ]
 
 all_files = progs + other

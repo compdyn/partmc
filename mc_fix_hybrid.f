@@ -66,18 +66,17 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       i_time = 0
       time = 0d0
       tot_n_coag = 0
-      
       call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
 
 ! RESTART
-      filename = 'start_state_0800_2e8.d'
-      i_time = 800
-      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
-      M = sum(MH)
-      do while (M .lt. MM / 2)
-         call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec
-     $        ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
-      enddo
+!      filename = 'start_state_0800_2e8.d'
+!      i_time = 800
+!      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
+!      M = sum(MH)
+!      do while (M .lt. MM / 2)
+!         call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec
+!     $        ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
+!      enddo
 ! RESTART
 
       call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v,
@@ -123,8 +122,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      $           ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
          endif
 
-!         call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t,
-!     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+         call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t,
+     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
 ! DEBUG
 !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,

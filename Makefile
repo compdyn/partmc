@@ -17,9 +17,9 @@ LDFLAGS =
 
 F77 = gfortran
 
-PROGS = process_out process_state run_golovin_adapt run_golovin_exact run_golovin_fix run_golovin_var run_sedi_adapt run_sedi_fix run_sedi_fix_hybrid run_sedi_fix_split run_sedi_fix_super run_sedi_ode run_sedi_sect run_sedi_var condensation_plot average
+PROGS = process_out process_state run_golovin_adapt run_golovin_exact run_golovin_fix run_golovin_var run_constant_exact run_constant_fix_hybrid run_sedi_adapt run_sedi_fix run_sedi_fix_hybrid run_sedi_fix_split run_sedi_fix_super run_sedi_ode run_sedi_sect run_sedi_var condensation_plot average
 
-OTHER = array array_hybrid array_split array_super bin condensation constants environ init_dist kernel_golovin kernel_sedi material mc_adapt mc_exact mc_fix mc_fix_hybrid mc_fix_split mc_fix_super mc_var util state
+OTHER = array array_hybrid array_split array_super bin condensation constants environ init_dist kernel_golovin kernel_sedi kernel_constant material mc_adapt mc_exact mc_fix mc_fix_hybrid mc_fix_split mc_fix_super mc_var util state
 
 FILES = $(PROGS) $(OTHER)
 
@@ -28,12 +28,15 @@ FREEFORM = condensation constants environ material process_state state average
 
 process_state.o: bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
 run_golovin_adapt.o: array.o init_dist.o mc_adapt.o bin.o material.o environ.o constants.o
+run_constant_exact.o: bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+run_constant_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 condensation_plot.o: condensation.o array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 array.o: bin.o material.o environ.o constants.o
 array_hybrid.o: array.o bin.o util.o material.o environ.o constants.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 environ.o: constants.o material.o
+mc_exact.o: array.o environ.o material.o bin.o constants.o
 mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o state.o bin.o util.o constants.o
 state.o: environ.o constants.o material.o
 
@@ -89,6 +92,12 @@ run_golovin_fix: run_golovin_fix.o
 
 run_golovin_var: run_golovin_var.o 
 	$(F77) $(LDFLAGS) -o $@ run_golovin_var.o 
+
+run_constant_exact: run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+	$(F77) $(LDFLAGS) -o $@ run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+
+run_constant_fix_hybrid: run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 
 run_sedi_adapt: run_sedi_adapt.o 
 	$(F77) $(LDFLAGS) -o $@ run_sedi_adapt.o 

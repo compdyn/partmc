@@ -8,38 +8,34 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       use mod_array
       use mod_init_dist
       use mod_mc_fix_hybrid
-      use mod_kernel_sedi
+      use mod_kernel_constant
       use mod_condensation
       use mod_environ
       use mod_material
       use mod_constants
       use mod_util
 
-C     species #1 is salt, #2 is dust, and #3 is water
+C     species #1 is water, only for testing purposes
 
       integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
       real*8 t_max, N_0, t_print, t_progress
       real*8 del_t, del_t_cond, v_min
-      real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
+      real*8 d_mean1, d_mean2, log_sigma1, log_sigma2, V_0
 
       parameter (MM =  10000)  ! number of particles
       parameter (TDV =  10000) ! trailing dimension of VH
-      parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
-      parameter (n_spec = 3)    ! number of species
+      parameter (n_spec = 1)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
       parameter (v_min = 1d-24) ! minimum volume (m^3) for making grid
       parameter (N_0 = 2d8)     ! particle number concentration (#/m^3)
+      parameter (V_0 = 4.1886d-15) ! mean volume of initial distribution (m^3)
 
-      parameter (t_max = 1300d0)  ! total simulation time (seconds)
-      parameter (t_print = 100d0) ! interval between printing (s)
+      parameter (t_max = 480d0)  ! total simulation time (seconds)
+      parameter (t_print = 60d0) ! interval between printing (s)
       parameter (t_progress = 1d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
-      parameter (d_mean1 = 0.266d-6) ! mean diameter of #1- initial distribution (m)
-      parameter (d_mean2 = 0.05d-6)  ! mean diameter of #2- initial distribution (m)
-      parameter (log_sigma1 = 0.21d0) ! log(sigma) of #1- initial distribution
-      parameter (log_sigma2 = 0.6d0) ! log(sigma) of #2- initial distribution
 
       integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
@@ -50,17 +46,17 @@ C     species #1 is salt, #2 is dust, and #3 is water
       type(material) :: mat
 
       call allocate_material(mat, n_spec)
-      mat%i_water = 3
-      mat%rho = (/ 2165d0, 2650d0, 1000d0 /)
-      mat%nu = (/ 2, 2, 0 /)
-      mat%eps = (/ 1d0, 0.05d0, 0d0 /)
-      mat%M_w = (/ 58.44d-3, 60.08d-3, 18d-3 /)
+      mat%i_water = 1
+      mat%rho = (/ 1000d0 /)
+      mat%nu = (/ 0 /)
+      mat%eps = (/ 0d0 /)
+      mat%M_w = (/ 18d-3 /)
 
       env%T = 288d0        ! (K)
-      env%RH = 0.999d0      ! (1)
+      env%RH = 0.999d0     ! (1)
       env%p = 1d5          ! (Pa)
       env%dTdt = -0.01d0   ! (K s^{-1})
-      open(30,file='out_sedi_fix_hybrid.d')
+      open(30,file='out_constant_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
      %     nint(t_max / t_print) + 1)
 C      call srand(17)
@@ -71,33 +67,17 @@ C      call srand(17)
          call zero_v(MM,n_spec,V)
 
 cn *** initialize first distribution
-         call init_log_normal(MM_1, d_mean1, log_sigma1, dlnr, n_bin,
+         call init_exp(MM, V_0, dlnr, n_bin,
      &     bin_v, bin_r, n_ini)
          vol_frac(1) = 1d0
-         vol_frac(2) = 0d0
-         vol_frac(3) = 0d0
-         call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1,
-     &        n_ini, bin_v, dlnr, V, M1)
+         call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM,
+     &        n_ini, bin_v, dlnr, V, M)
 
-cn *** initialise second distribution
-         call init_log_normal(MM-MM_1, d_mean2, log_sigma2, dlnr, n_bin,
-     &     bin_v, bin_r, n_ini)
-         vol_frac(1) = 0d0
-         vol_frac(2) = 1d0
-         vol_frac(3) = 0d0
-         call compute_volumes(n_bin, n_spec, vol_frac, MM, M1+1,
-     $        MM, n_ini, bin_v, dlnr, V, M2)
-
-         M = M1 + M2
          env%V_comp = dble(M) / N_0
-!     call equlibriate_particle for each particle in V
-         do i = 1,M
-            call equilibriate_particle(n_spec, V(i,:), env, mat)
-         enddo
          call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH,
      $        bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
-     $        kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop,
-     $        env, mat)
+     $        kernel_constant, t_max, t_print, t_progress ,del_t,
+     $        i_loop, env, mat)
 
       enddo
 

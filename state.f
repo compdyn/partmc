@@ -81,7 +81,7 @@ contains
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     
-    integer, parameter :: funit = 30  ! unit for output
+    integer, parameter :: funit = 31  ! unit for output
     
     character*50 outname
     integer i, j, k

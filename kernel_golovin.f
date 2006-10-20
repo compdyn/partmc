@@ -1,5 +1,8 @@
 C Golovin coagulation kernel.
 
+      module mod_kernel_golovin
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine kernel_golovin(a, b, k)
@@ -13,8 +16,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       k = beta_1 * (a + b)
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -50,7 +52,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          enddo
       else
          tau = N_0 * V_0 * beta_1 * time
-         T = 1 - exp(-tau)
+         T = 1d0 - exp(-tau)
          do k = 1,n_bin
             rat_v = bin_v(k) / V_0
             x = 2d0 * rat_v * sqrt(T)
@@ -66,16 +68,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       endif
 
       do k = 1,n_bin
-         bin_g(k) = pi/6d0 * rho_p * (2d0*bin_r(k))**3 * bin_n(k)
+         bin_g(k) = pi/6d0 * rho_p * (2d0*bin_r(k))**3 * dble(bin_n(k))
       enddo
 
       do k = 1,n_bin
          bin_g(k) = bin_g(k) * dlnr * V_comp
-         bin_n(k) = int(bin_n(k) * dlnr * V_comp)
+         bin_n(k) = int(dble(bin_n(k)) * dlnr * V_comp)
       enddo
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -104,7 +105,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          if (x .lt. 0d0) r = -r
       endif
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      end module

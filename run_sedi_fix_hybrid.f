@@ -94,8 +94,8 @@ cn *** initialise second distribution
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
-         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH,
-     $        bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
+         call mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, MH, VH,
+     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr ,
      $        kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop,
      $        env, mat)
 

@@ -12,21 +12,23 @@ C     the current number of small particles.
 
       program bidisperse
 
+      use mod_kernel_sedi
+
       real*8 v_small, v_big_init, n_small_init, del_t, t_max, N_0
       integer scal
-      parameter (v_small = 4.8531435E-15)     ! volume of one small particle
-      parameter (v_big_init = 3.94438917E-12) ! init volume of the big particle
+      parameter (v_small = 4.8531435d-15)     ! volume of one small particle
+      parameter (v_big_init = 3.94438917d-12) ! init volume of the big particle
       parameter (n_small_init = 9999d0)       ! init number of small particles
       parameter (del_t = 0.001d0)             ! timestep
       parameter (t_max = 600d0)               ! total simulation time
       parameter (N_0 = 1d9)                   ! particle number concentration
-      parameter (scal = 3)             ! scale factor for bins
+      parameter (scal = 3)                    ! scale factor for bins
 
       integer i_step, n_step
       real*8 n_small, time, V_comp, v_big, dlnr
 
-      V_comp = dble(n_small_init + 1) / N_0
-      dlnr = dlog(2d0) / (3d0 * scal)
+      V_comp = dble(n_small_init + 1d0) / N_0
+      dlnr = dlog(2d0) / (3d0 * dble(scal))
 
       time = 0d0
       n_small = n_small_init
@@ -51,7 +53,7 @@ C     the current number of small particles.
          endif
       enddo
 
-      end
+      contains
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -71,8 +73,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       call kernel_sedi(v_small, v_big, k)
       n_small_dot = - (k * 1d0/V_comp * n_small)
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -108,7 +109,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       n_small = n_small + k1/6d0 + k2/3d0 + k3/3d0 + k4/6d0
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      end program

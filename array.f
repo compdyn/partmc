@@ -519,59 +519,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      
-      subroutine print_header(n_loop, n_bin, n_spec, n_time)
-
-      integer n_loop  ! INPUT: number of loops
-      integer n_bin   ! INPUT: number of bins
-      integer n_time  ! INPUT: number of times
-      integer n_spec  ! INPUT: number of species
- 
-      write(30,'(a10,i10)') 'n_loop', n_loop
-      write(30,'(a10,i10)') 'n_bin', n_bin
-      write(30,'(a10,i10)') 'n_time', n_time
-      write(30,'(a10,i10)') 'n_spec', n_spec
-
-      return
-      end subroutine
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      
-      subroutine print_info(time, V_comp, n_spec,
-     &     n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
-
-      use mod_material
-      use mod_environ
-
-      real*8 time          ! INPUT: cubin_rent simulation time
-      real*8 V_comp        ! INPUT: computational volume
-      
-      integer n_bin        ! INPUT: number of bins
-      integer n_spec       ! INPUT: number of species
-      real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-      real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-      real*8 bin_g(n_bin)  ! INPUT: mass in bins (???)
-      real*8 bin_gs(n_bin,n_spec) !INPUT: species mass in bins
-      integer bin_n(n_bin) ! INPUT: number in bins
-      real*8 dlnr          ! INPUT: bin scale factor
-      type(environ), intent(inout) :: env  ! environment state
-      type(material), intent(in) :: mat    ! material properties
-
-      integer k, i
-
-      write(30,'(a10,e20.10)') 'time(s)', time
-      write(30,'(a10,e20.10)') 'temp(K)', env%T
-      write(30,'(a10,e20.10)') 'rh(1)', env%RH
-      do k = 1,n_bin
-         write(30, '(i10,20e20.10)')k, bin_r(k),
-     &        dble(bin_n(k)) / V_comp / dlnr,
-     &        bin_g(k) / V_comp / dlnr,
-     &        (bin_gs(k,i) / V_comp / dlnr,i=1,n_spec) 
-      enddo
-
-      end subroutine
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine particle_vol(MM,n_spec,V,i,pv)
 

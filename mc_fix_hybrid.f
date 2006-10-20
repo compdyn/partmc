@@ -5,10 +5,9 @@ C     Monte Carlo with fixed timestep and a hybrid array.
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      subroutine mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, 
+      subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, 
      $     MH, VH,
-     $     bin_v, i_water,
-     $     bin_r, bin_g, bin_gs, bin_n, dlnr, 
+     $     bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, 
      $     kernel, t_max, t_print,
      $     t_progress, del_t, loop, env, mat)
 
@@ -28,7 +27,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer TDV               ! INPUT: trailing dimension of VH
       integer MH(n_bin)         ! OUTPUT: number of particles per bin
       real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
-      integer i_water           ! INPUT: water species number
       
       real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
       real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)

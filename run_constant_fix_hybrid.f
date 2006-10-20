@@ -39,7 +39,7 @@ C     species #1 is water, only for testing purposes
 
       integer M, M1, M2, i_loop, i
       real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
-      real*8 bin_v(n_bin), bin_r(n_bin)
+      real*8 bin_v(n_bin), bin_r(n_bin), n_den(n_bin)
       real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
       integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
       type(environ) :: env
@@ -56,6 +56,7 @@ C     species #1 is water, only for testing purposes
       env%RH = 0.999d0     ! (1)
       env%p = 1d5          ! (Pa)
       env%dTdt = -0.01d0   ! (K s^{-1})
+
       open(30,file='out_constant_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
      %     nint(t_max / t_print) + 1)
@@ -67,15 +68,15 @@ C      call srand(17)
          call zero_v(MM,n_spec,V)
 
 cn *** initialize first distribution
-         call init_exp(MM, V_0, dlnr, n_bin,
-     &     bin_v, bin_r, n_ini)
+         call init_exp(V_0, n_bin, bin_v, bin_r, n_den)
+         call dist_to_n(MM, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
          vol_frac(1) = 1d0
          call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM,
      &        n_ini, bin_v, dlnr, V, M)
 
          env%V_comp = dble(M) / N_0
-         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH,
-     $        bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr ,
+         call mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, MH, VH,
+     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr ,
      $        kernel_constant, t_max, t_print, t_progress ,del_t,
      $        i_loop, env, mat)
 

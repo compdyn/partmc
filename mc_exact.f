@@ -12,6 +12,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ! of the particle distribution. They should be replaced by a n_param,
       ! params() pair.
 
+      use mod_bin
       use mod_array
       use mod_environ
       use mod_material

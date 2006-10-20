@@ -8,28 +8,18 @@ ldflags = ""
 
 progs = ["process_out",
 	 "process_state",
-	 "run_golovin_adapt",
 	 "run_golovin_exact",
-	 "run_golovin_fix",
-	 "run_golovin_var",
+	 "run_golovin_fix_hybrid",
          "run_constant_exact",
          "run_constant_fix_hybrid",
-	 "run_sedi_adapt",
-	 "run_sedi_fix",
 	 "run_sedi_fix_hybrid",
-	 "run_sedi_fix_split",
-	 "run_sedi_fix_super",
 	 "run_sedi_ode",
 	 "run_sedi_sect",
-	 "run_sedi_var",
-	 "condensation_plot",
          "average",
 	 ]
 
 other = ["array",
 	 "array_hybrid",
-	 "array_split",
-	 "array_super",
 	 "bin",
 	 "condensation",
 	 "constants",
@@ -39,13 +29,8 @@ other = ["array",
 	 "kernel_sedi",
 	 "kernel_constant",
 	 "material",
-	 "mc_adapt",
 	 "mc_exact",
-	 "mc_fix",
 	 "mc_fix_hybrid",
-	 "mc_fix_split",
-	 "mc_fix_super",
-	 "mc_var",
 	 "util",
 	 "state",
 	 ]
@@ -140,6 +125,11 @@ print
 print "# temporary hack"
 print "FREEFORM = " + " ".join(free_form)
 print
+print "# temporary hack"
+print "freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)"
+print
+print "all: TAGS $(PROGS)"
+print
 
 deps = get_dep_list(all_files)
 full_expand_deps(deps)
@@ -147,11 +137,6 @@ for f in all_files:
     print_deps(f, deps[f])
 
 print """
-# temporary hack
-freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
-
-all: TAGS $(PROGS)
-
 %.o: %.f
 	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
 

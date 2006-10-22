@@ -12,7 +12,7 @@ DIST_NAME = partmc-$(VERSION)
 #   -pg             profiling
 #   -fbounds-check  check array accesses
 # FIXME: remove -Wno-unused to start reporting unused variables again
-FFLAGS = -O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
+FFLAGS = -O -ffree-form -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
 LDFLAGS = 
 
 F77 = gfortran
@@ -22,12 +22,6 @@ PROGS = process_out process_state run_golovin_exact run_golovin_fix_hybrid run_c
 OTHER = array array_hybrid bin condensation constants environ init_dist kernel_golovin kernel_sedi kernel_constant material mc_exact mc_fix_hybrid util state
 
 FILES = $(PROGS) $(OTHER)
-
-# temporary hack
-FREEFORM = condensation constants environ material process_state state average
-
-# temporary hack
-freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
 
 all: TAGS $(PROGS)
 
@@ -50,7 +44,7 @@ mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o stat
 state.o: environ.o constants.o material.o
 
 %.o: %.f
-	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
+	$(F77) $(FFLAGS) -c -o $@ $<
 
 %.o : %.mod
 

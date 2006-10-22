@@ -35,15 +35,6 @@ other = ["array",
 	 "state",
 	 ]
 
-free_form = ["condensation",
-	     "constants",
-	     "environ",
-	     "material",
-	     "process_state",
-	     "state",
-             "average",
-	     ]
-
 all_files = progs + other
 
 def get_deps(file):
@@ -109,7 +100,7 @@ DIST_NAME = partmc-$(VERSION)
 #   -pg             profiling
 #   -fbounds-check  check array accesses
 # FIXME: remove -Wno-unused to start reporting unused variables again
-FFLAGS = -O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
+FFLAGS = -O -ffree-form -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
 LDFLAGS = 
 
 F77 = gfortran
@@ -121,13 +112,6 @@ print "OTHER = " + " ".join(other)
 print
 print "FILES = $(PROGS) $(OTHER)"
 print
-
-print "# temporary hack"
-print "FREEFORM = " + " ".join(free_form)
-print
-print "# temporary hack"
-print "freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)"
-print
 print "all: TAGS $(PROGS)"
 print
 
@@ -138,7 +122,7 @@ for f in all_files:
 
 print """
 %.o: %.f
-	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
+	$(F77) $(FFLAGS) -c -o $@ $<
 
 %.o : %.mod
 

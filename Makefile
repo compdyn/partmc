@@ -55,7 +55,7 @@ state.o: environ.o constants.o material.o
 %.o : %.mod
 
 clean:
-	rm -f $(PROGS) *.o *.mod
+	rm -f $(PROGS) *.o *.mod TAGS
 
 cleanall: clean
 	rm -f *~ *.d gmon.out gprof_*

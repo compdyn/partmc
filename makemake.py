@@ -100,8 +100,8 @@ print """
 # Auto-generated Makefile --- DO NOT EDIT
 #
 
-VERSION = 1.0.0
-DIST_NAME = hpmc-$(VERSION)
+VERSION = 1.1.0
+DIST_NAME = partmc-$(VERSION)
 
 # useful flags:
 #   -O              optimize

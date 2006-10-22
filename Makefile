@@ -1,3 +1,8 @@
+
+#
+# Auto-generated Makefile --- DO NOT EDIT
+#
+
 VERSION = 1.0.0
 DIST_NAME = hpmc-$(VERSION)
 
@@ -5,156 +10,52 @@ DIST_NAME = hpmc-$(VERSION)
 #   -O              optimize
 #   -g              debugging
 #   -pg             profiling
-#   -pedantic       strict F77
 #   -fbounds-check  check array accesses
-#FFLAGS = -O -fcase-preserve -W -Wall -Wimplicit -Wsurprising -Wunused -Wuninitialized
-# for gfortran:
-#FFLAGS = -O -fimplicit-none -W -Wall -Wunused -Wconversion -Wunderflow -Wunused-labels
-FFLAGS = -g -O -fimplicit-none -w
+# FIXME: remove -Wno-unused to start reporting unused variables again
+FFLAGS = -O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
 LDFLAGS = 
 
 F77 = gfortran
 
-PROGS = \
-	process_out \
-	run_golovin_adapt \
-	run_golovin_exact \
-	run_golovin_fix \
-	run_golovin_var \
-	run_sedi_adapt \
-	run_sedi_fix \
-	run_sedi_fix_hybrid \
-	run_sedi_fix_split \
-	run_sedi_fix_super \
-	run_sedi_ode \
-	run_sedi_sect \
-	run_sedi_var
+PROGS = process_out process_state run_golovin_exact run_golovin_fix_hybrid run_constant_exact run_constant_fix_hybrid run_sedi_fix_hybrid run_sedi_ode run_sedi_sect average
 
-process_out_objs = \
-	process_out.o
-run_golovin_adapt_objs = \
-	run_golovin_adapt.o \
-	mc_adapt.o \
-	kernel_golovin.o \
-	array.o \
-	init_dist.o
-run_golovin_exact_objs = \
-	run_golovin_exact.o \
-	mc_exact.o \
-	kernel_golovin.o \
-	array.o \
-	init_dist.o
-run_golovin_fix_objs = \
-	run_golovin_fix.o \
-	mc_fix.o \
-	kernel_golovin.o \
-	array.o \
-	init_dist.o
-run_golovin_var_objs = \
-	run_golovin_var.o \
-	mc_var.o \
-	kernel_golovin.o \
-	array.o \
-	init_dist.o
-run_sedi_adapt_objs = \
-	run_sedi_adapt.o \
-	mc_adapt.o \
-	kernel_sedi.o \
-	array.o \
-	init_dist.o
-run_sedi_fix_objs = \
-	run_sedi_fix.o \
-	mc_fix.o \
-	kernel_sedi.o \
-	array.o \
-	init_dist.o
-run_sedi_fix_hybrid_objs = \
-	run_sedi_fix_hybrid.o \
-	mc_fix_hybrid.o \
-	kernel_sedi.o \
-	array.o \
-	array_hybrid.o \
-	bin.o \
-	init_dist.o
-run_sedi_fix_split_objs = \
-	run_sedi_fix_split.o \
-	mc_fix_split.o \
-	kernel_sedi.o \
-	array.o \
-	array_split.o \
-	init_dist.o
-run_sedi_fix_super_objs = \
-	run_sedi_fix_super.o \
-	mc_fix_super.o \
-	kernel_sedi.o \
-	array.o \
-	array_super.o \
-	bin.o \
-	init_dist.o \
-	util.o
-run_sedi_ode_objs = \
-	kernel_sedi.o \
-	run_sedi_ode.o
-run_sedi_sect_objs = \
-	kernel_sedi.o \
-	array.o \
-	run_sedi_sect.o
-run_sedi_var_objs = \
-	run_sedi_var.o \
-	mc_var.o \
-	kernel_sedi.o \
-	array.o \
-	init_dist.o
+OTHER = array array_hybrid bin condensation constants environ init_dist kernel_golovin kernel_sedi kernel_constant material mc_exact mc_fix_hybrid util state
 
-ALL_OBJS = $(foreach PROG,$(PROGS),$($(PROG)_objs))
-ALL_SOURCE = $(ALL_OBJS:.o=.f)
+FILES = $(PROGS) $(OTHER)
 
-all: $(PROGS)
+# temporary hack
+FREEFORM = condensation constants environ material process_state state average
 
-process_out: $(process_out_objs)
-	$(F77) $(LDFLAGS) -o $@ $(process_out_objs)
+# temporary hack
+freeflag = $(if $(findstring $(1),$(FREEFORM)),-ffree-form,-ffixed-form)
 
-run_golovin_adapt: $(run_golovin_adapt_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_adapt_objs)
+all: TAGS $(PROGS)
 
-run_golovin_exact: $(run_golovin_exact_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_exact_objs)
-
-run_golovin_fix: $(run_golovin_fix_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_fix_objs)
-
-run_golovin_var: $(run_golovin_var_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_golovin_var_objs)
-
-run_sedi_adapt: $(run_sedi_adapt_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_adapt_objs)
-
-run_sedi_fix: $(run_sedi_fix_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_objs)
-
-run_sedi_fix_hybrid: $(run_sedi_fix_hybrid_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_hybrid_objs)
-
-run_sedi_fix_split: $(run_sedi_fix_split_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_split_objs)
-
-run_sedi_fix_super: $(run_sedi_fix_super_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_fix_super_objs)
-
-run_sedi_ode: $(run_sedi_ode_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_ode_objs)
-
-run_sedi_sect: $(run_sedi_sect_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_sect_objs)
-
-run_sedi_var: $(run_sedi_var_objs)
-	$(F77) $(LDFLAGS) -o $@ $(run_sedi_var_objs)
+process_state.o: bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
+run_golovin_exact.o: bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
+run_golovin_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+run_constant_exact.o: bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+run_constant_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+run_sedi_ode.o: kernel_sedi.o
+run_sedi_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
+array.o: bin.o material.o environ.o constants.o
+array_hybrid.o: array.o bin.o util.o material.o environ.o constants.o
+bin.o: material.o environ.o constants.o
+condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
+environ.o: constants.o material.o
+init_dist.o: bin.o material.o environ.o constants.o
+mc_exact.o: bin.o array.o environ.o material.o constants.o
+mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o state.o bin.o util.o constants.o
+state.o: environ.o constants.o material.o
 
 %.o: %.f
-	$(F77) $(FFLAGS) -c -o $@ $<
+	$(F77) $(FFLAGS) $(call freeflag,$(basename $<)) -c -o $@ $<
+
+%.o : %.mod
 
 clean:
-	rm -f $(PROGS) *.o
+	rm -f $(PROGS) *.o *.mod
 
 cleanall: clean
 	rm -f *~ *.d gmon.out gprof_*
@@ -170,3 +71,41 @@ dist:
 	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
+
+TAGS:
+	etags $(patsubst %,%.f,$(FILES))
+
+make:
+	./makemake.py > Makefile.new
+	mv Makefile.new Makefile
+
+process_out: process_out.o 
+	$(F77) $(LDFLAGS) -o $@ process_out.o 
+
+process_state: process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
+	$(F77) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
+
+run_golovin_exact: run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
+	$(F77) $(LDFLAGS) -o $@ run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
+
+run_golovin_fix_hybrid: run_golovin_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_golovin_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+
+run_constant_exact: run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+	$(F77) $(LDFLAGS) -o $@ run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+
+run_constant_fix_hybrid: run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+
+run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+
+run_sedi_ode: run_sedi_ode.o kernel_sedi.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_ode.o kernel_sedi.o
+
+run_sedi_sect: run_sedi_sect.o bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_sect.o bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
+
+average: average.o 
+	$(F77) $(LDFLAGS) -o $@ average.o 
+

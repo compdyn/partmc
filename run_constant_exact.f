@@ -3,14 +3,14 @@ C Exact solution with Golovin kernel.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
- 
+
       use mod_bin
       use mod_mc_exact
-      use mod_kernel_golovin
+      use mod_kernel_constant
       use mod_array
       use mod_environ
       use mod_material
-
+ 
       integer n_bin, n_loop, scal, n_spec
       real*8 t_max, rho_p, N_0, t_print, V_0, V_comp
       real*8 v_min
@@ -20,8 +20,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       parameter (scal = 3)           ! scale factor for bins
       parameter (t_max = 600d0)      ! total simulation time (seconds)
       parameter (rho_p = 1000d0)     ! particle density (kg/m^3)
-      parameter (v_min = 1d-24)      ! minimum volume (m^3) for making grid
-      parameter (N_0 = 1d9)          ! particle number concentration (#/m^3)
+      parameter (v_min = 1.d-24)   ! minimum volume (m^3) for making grid
+      parameter (N_0 = 2d8)          ! particle number concentration (#/m^3)
       parameter (t_print = 60d0)     ! interval between printing (s)
       parameter (V_0 = 4.1886d-15)   ! mean volume of initial distribution
       parameter (V_comp = 1d0)       ! computational volume (dummy value)
@@ -38,7 +38,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       ! FIXME: set environment parameters
 
-      open(30,file='out_golovin_exact.d')
+      open(30,file='out_constant_exact.d')
       call print_header(n_loop, n_bin, n_spec, 
      &     nint(t_max / t_print) + 1)
 
@@ -47,7 +47,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
          
          call mc_exact(n_bin, bin_v, bin_r, bin_g, bin_n, dlnr,
-     &        N_0, V_0, rho_p, soln_golovin_exp, t_max, t_print,
+     &        N_0, V_0, rho_p, soln_constant_exp_cond, t_max, t_print,
      &        i_loop, V_comp, n_spec, env, mat)
 
       enddo

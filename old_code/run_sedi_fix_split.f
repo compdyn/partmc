@@ -42,7 +42,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          call find_split_bin(n_bin, bin_v, r_split, s_bin)
          call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
          !call init_bidisperse(MM, n_bin, n_ini)
-         call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
+         call compute_volumes(n_bin, MM, n_ini, bin_v, dlnr, V, M)
          V_comp = M / N_0
          call find_split_particle(MM, M, V, n_bin, s_bin, bin_v, MS)
 

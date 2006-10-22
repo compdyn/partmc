@@ -3,6 +3,10 @@ C Simulation with Golovin kernel and adaptive timestepping.
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       program MonteCarlo
+
+      use mod_array
+      use mod_init_dist
+      use mod_mc_adapt
  
       integer MM, n_bin, n_loop, scal
       real*8 t_max, rho_p, N_0, t_print, V_0
@@ -35,7 +39,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          
          call make_grid(n_bin, scal, rho_p, bin_v, bin_r, dlnr)
          call init_exp(MM, V_0, dlnr, n_bin, bin_v, bin_r, n_ini)
-         call compute_volumes(n_bin, MM, n_ini, bin_r, dlnr, V, M)
+         call compute_volumes(n_bin, MM, n_ini, bin_v, dlnr, V, M)
          V_comp = M / N_0
 
          call mc_adapt(MM, M, V, V_comp,

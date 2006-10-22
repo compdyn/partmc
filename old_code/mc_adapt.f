@@ -1,5 +1,8 @@
 C Monte Carlo with adaptive timestep.
 
+      module mod_mc_adapt
+      contains
+
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       subroutine mc_adapt(MM, M, V, V_comp,
@@ -73,14 +76,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             write(6,'(a6,a8,a6,a8,a10,a9,a9,a10)')
      &           'loop', 'time', 'del_t', 'M', 'k_max',
      &           'n_samp', 'n_coag', 't_est'
-            write(6,'(i6,f8.1,f6.3,i8,e10.3,i9,i9,f10)')
+            write(6,'(i6,f8.1,f6.3,i8,e10.3,i9,i9,f10.5)')
      &           loop, time, del_t, M, k_max,
      &           n_samp, n_coag, t_est
          endif
       enddo
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
@@ -103,7 +105,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       r_samp = del_t * c
       n_samp = int(r_samp * dble(M)*(dble(M)-1d0)/2d0)
 
-      return
-      end
+      end subroutine
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      end module

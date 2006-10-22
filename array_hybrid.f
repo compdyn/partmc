@@ -1,3 +1,7 @@
+! -*- mode: f90; -*-
+! Copyright (C) 2005,2006 Nicole Riemer and Matthew West
+! Licensed under the GNU General Public License version 2 or (at your
+! option) any later version. See the file COPYING for details.
 C     Functions to deal with a particle array VH that is stored by
 C     bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
 

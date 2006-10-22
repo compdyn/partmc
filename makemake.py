@@ -156,7 +156,7 @@ gprof_%: % gmon.out
 
 dist:
 	mkdir $(DIST_NAME)
-	cp Makefile $(ALL_SOURCE) $(DIST_NAME)
+	cp makemake.py Makefile COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 

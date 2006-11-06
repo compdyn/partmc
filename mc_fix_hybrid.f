@@ -125,8 +125,10 @@ contains
                ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
        endif
        
+       ! NO CONDENSATION IN RESTART RUN
        call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t, &
             bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       ! NO CONDENSATION IN RESTART RUN
        
        ! DEBUG
        !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,

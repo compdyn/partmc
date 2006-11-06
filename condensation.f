@@ -281,14 +281,14 @@ contains
     pm = particle_mass(V, mat)
     dmdt_tol = pm * dmdt_rel_tol
 
-!    dmdt = 0d0
-!    call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
-!         dmdt_tol, f_tol, iter_max)
-
-!    dvdt = dmdt / mat%rho(mat%i_water)
+    dmdt = 0d0
+    call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
+         dmdt_tol, f_tol, iter_max)
+    
+    dvdt = dmdt / mat%rho(mat%i_water)
 
 ! TESTING with constant kernel (comment out all above code)
-    dvdt = 0.25d0 / 60d0 * V(1)
+!    dvdt = 0.25d0 / 60d0 * V(1)
 ! TESTING
 
   end subroutine cond_growth_rate

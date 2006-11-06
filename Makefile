@@ -19,7 +19,7 @@ F77 = gfortran
 
 PROGS = process_out process_state run_golovin_exact run_golovin_fix_hybrid run_constant_exact run_constant_fix_hybrid run_sedi_fix_hybrid run_sedi_ode run_sedi_sect average
 
-OTHER = array array_hybrid bin condensation constants environ init_dist kernel_golovin kernel_sedi kernel_constant material mc_exact mc_fix_hybrid util state
+OTHER = array array_hybrid bin condensation constants environ init_dist kernel_golovin kernel_sedi kernel_brown kernel_constant material mc_exact mc_fix_hybrid util state
 
 FILES = $(PROGS) $(OTHER)
 
@@ -36,7 +36,7 @@ run_golovin_exact.o: bin.o mc_exact.o kernel_golovin.o array.o environ.o materia
 run_golovin_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 run_constant_exact.o: bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
 run_constant_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
-run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o kernel_brown.o array_hybrid.o state.o
 run_sedi_ode.o: kernel_sedi.o
 run_sedi_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
 array.o: bin.o material.o environ.o constants.o
@@ -97,8 +97,8 @@ run_constant_exact: run_constant_exact.o bin.o mc_exact.o kernel_constant.o arra
 run_constant_fix_hybrid: run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 	$(F77) $(LDFLAGS) -o $@ run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 
-run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
-	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
+run_sedi_fix_hybrid: run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o kernel_brown.o array_hybrid.o state.o
+	$(F77) $(LDFLAGS) -o $@ run_sedi_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o kernel_brown.o array_hybrid.o state.o
 
 run_sedi_ode: run_sedi_ode.o kernel_sedi.o
 	$(F77) $(LDFLAGS) -o $@ run_sedi_ode.o kernel_sedi.o

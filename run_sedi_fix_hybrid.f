@@ -23,16 +23,16 @@ C     species #1 is salt, #2 is dust, and #3 is water
       real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
 
       parameter (MM =  10000)  ! number of particles
-      parameter (TDV =  10000) ! trailing dimension of VH
+      parameter (TDV = 10000) ! trailing dimension of VH
       parameter (MM_1 = MM/2)   ! number of #1-particles
       parameter (n_bin = 160)   ! number of bins
       parameter (n_spec = 3)    ! number of species
       parameter (n_loop = 1)    ! number of loops
       parameter (scal = 3)      ! scale factor for bins
       parameter (v_min = 1d-24) ! minimum volume (m^3) for making grid
-      parameter (N_0 = 2d8)     ! particle number concentration (#/m^3)
+      parameter (N_0 = 1d9)     ! particle number concentration (#/m^3)
 
-      parameter (t_max = 1300d0)  ! total simulation time (seconds)
+      parameter (t_max = 800d0)  ! total simulation time (seconds)
       parameter (t_print = 100d0) ! interval between printing (s)
       parameter (t_progress = 1d0) ! interval between progress (s)
       parameter (del_t = 1d0)   ! timestep (s)
@@ -59,7 +59,7 @@ C     species #1 is salt, #2 is dust, and #3 is water
       env%T = 288d0        ! (K)
       env%RH = 0.999d0      ! (1)
       env%p = 1d5          ! (Pa)
-      env%dTdt = -0.01d0   ! (K s^{-1})
+      env%dTdt = -0.02d0   ! (K s^{-1})
       open(30,file='out_sedi_fix_hybrid.d')
       call print_header(n_loop, n_bin, n_spec, 
      %     nint(t_max / t_print) + 1)
@@ -94,13 +94,14 @@ cn *** initialise second distribution
          do i = 1,M
             call equilibriate_particle(n_spec, V(i,:), env, mat)
          enddo
-         call mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, MH, VH,
-     $        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr ,
-     $        kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop,
+         call mc_fix_hybrid(MM, M, V, n_spec, n_bin, TDV, MH, VH,
+     $        bin_v, i_water, bin_r, bin_g, bin_gs, bin_n, dlnr,
+     $        kernel_sedi, t_max, t_print, t_progress,
+     $        del_t, i_loop,
      $        env, mat)
 
       enddo
 
-      end
+      end program
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

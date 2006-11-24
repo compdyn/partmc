@@ -2,9 +2,10 @@
 VERSION = 0.9.0
 DIST_NAME = partmc-$(VERSION)
 
-F77 = gfortran
+# run "make F95=pgf95" to use the Portland Group compiler instead
+F95 = gfortran
 
-ifeq ($(F77),gfortran)
+ifeq ($(F95),gfortran)
     # -O              optimize
     # -g              debugging
     # -pg             profiling
@@ -13,7 +14,7 @@ ifeq ($(F77),gfortran)
   FFLAGS = -O -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
   LDFLAGS = 
 endif
-ifeq ($(F77),pgf95)
+ifeq ($(F95),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
   FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
@@ -39,14 +40,14 @@ include $(patsubst %,%.deps,$(FILES))
 	./makedeps.py $(patsubst %.f,%,$<)
 
 %.o: %.f
-	$(F77) $(FFLAGS) -c -o $@ $<
+	$(F95) $(FFLAGS) -c -o $@ $<
 
 %.o : %.mod
 
 # rules for building all programs
 define set_program_build
 $(1): $(1).o
-	$$(F77) $$(LDFLAGS) -o $$@ $(1).o $$($(1)_deps)
+	$$(F95) $$(LDFLAGS) -o $$@ $(1).o $$($(1)_deps)
 endef
 $(foreach prog,$(PROGS),$(eval $(call set_program_build,$(prog))))
 

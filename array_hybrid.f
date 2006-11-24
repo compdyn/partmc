@@ -24,15 +24,15 @@ contains
     use mod_array
     use mod_bin
     
-    integer MM           ! INPUT: physical dimension of V
-    integer M            ! INPUT: logical dimension of V
-    integer n_spec       ! INPUT: number of species
-    real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer MH(n_bin)    ! OUTPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes in hybrid array
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(in) :: M            !  logical dimension of V
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(out) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes in hybrid array
     
     integer i, j, k
     real*8 pv
@@ -65,17 +65,17 @@ contains
     
     use mod_array
     
-    integer n_bin        ! INPUT: number of bins
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer n_spec       ! INPUT: number of species
-    integer MH(n_bin)    ! INPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
-    real*8 bin_gs(n_bin,n_spec)  ! OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(out) :: bin_g(n_bin)  !  mass in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec)  !  species mass in bins
+    integer, intent(out) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer b, j, s
     real*8 pv
@@ -184,28 +184,28 @@ contains
 
     use mod_util
     
-    integer M            ! INPUT/OUTPUT: number of particles
-    integer n_bin        ! INPUT: number of bins
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer n_spec       ! INPUT: number of species
-    integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! INPUT/OUTPUT: particle volumes
-    real*8 V_comp        ! INPUT: computational volume
+    integer, intent(inout) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    real*8, intent(in) :: V_comp        !  computational volume
     
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
-    real*8 bin_gs(n_bin,n_spec)  ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  mass in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
-    integer b1           ! INPUT: bin of first particle
-    integer b2           ! INPUT: bin of second particle
-    real*8 del_t         ! INPUT: timestep
-    real*8 k_max         ! INPUT: k_max scale factor
-    ! external kernel      ! INPUT: kernel function
-    logical did_coag     ! OUTPUT: whether a coagulation occured
-    logical bin_change   ! OUTPUT: whether bin structure changed
+    integer, intent(in) :: b1           !  bin of first particle
+    integer, intent(in) :: b2           !  bin of second particle
+    real*8, intent(in) :: del_t         !  timestep
+    real*8, intent(in) :: k_max         !  k_max scale factor
+    ! external, intent(in) :: kernel      !  kernel function
+    logical, intent(out) :: did_coag     !  whether a coagulation occured
+    logical, intent(out) :: bin_change   !  whether bin structure changed
     
     interface
        subroutine kernel(v1, v2, k)
@@ -247,13 +247,13 @@ contains
     
     use mod_util
 
-    integer n_bin     ! INPUT: number of bins
-    integer MH(n_bin) ! INPUT: number particles per bin
-    integer b1        ! INPUT: bin number of first particle
-    integer b2        ! INPUT: bin number of second particle
-    integer s1        ! OUTPUT: first random particle 1 <= s1 <= M(b1)
-    integer s2        ! OUTPUT: second random particle 1 <= s2 <= M(b2)
-    !         (b1,s1) != (b2,s2)
+    integer, intent(in) :: n_bin     !  number of bins
+    integer, intent(in) :: MH(n_bin) !  number particles per bin
+    integer, intent(in) :: b1        !  bin number of first particle
+    integer, intent(in) :: b2        !  bin number of second particle
+    integer, intent(out) :: s1       !  first random particle 1 <= s1 <= M(b1)
+    integer, intent(out) :: s2       !  second random particle 1 <= s2 <= M(b2)
+                                     !         (b1,s1) != (b2,s2)
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
@@ -279,26 +279,26 @@ contains
     use mod_array
     use mod_bin
     
-    integer M            ! INPUT/OUTPUT: number of particles
-    integer n_bin        ! INPUT: number of bins
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer n_spec       ! INPUT: number of species
-    integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! INPUT/OUTPUT: particle volumes
-    real*8 V_comp        ! INPUT: computational volume
+    integer, intent(inout) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    real*8, intent(in) :: V_comp        !  computational volume
     
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
-    real*8 bin_gs(n_bin,n_spec)  ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  mass in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
-    integer b1           ! INPUT: first particle (bin number)
-    integer s1           ! INPUT: first particle (number in bin)
-    integer b2           ! INPUT: second particle (bin number)
-    integer s2           ! INPUT: second particle (number in bin)
-    logical bin_change   ! OUTPUT: whether an empty bin filled,
+    integer, intent(in) :: b1           !  first particle (bin number)
+    integer, intent(in) :: s1           !  first particle (number in bin)
+    integer, intent(in) :: b2           !  second particle (bin number)
+    integer, intent(in) :: s2           !  second particle (number in bin)
+    logical, intent(out) :: bin_change   !  whether an empty bin filled,
     !         or a filled bin became empty
     
     integer bn, i, j
@@ -381,20 +381,20 @@ contains
     
     ! Double number of particles in a hybrid array.
     
-    integer M            ! INPUT/OUTPUT: number of particles
-    integer n_bin        ! INPUT: number of bins
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer n_spec       ! INPUT: number of species
-    integer MH(n_bin)    ! INPUT/OUTPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! INPUT/OUTPUT: particle volumes
-    real*8 V_comp        ! INPUT/OUTPUT: computational volume
+    integer, intent(inout) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    real*8, intent(inout) :: V_comp        !  computational volume
     
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
-    real*8 bin_gs(n_bin,n_spec) ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  mass in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer i, k, i_spec
     
@@ -438,19 +438,19 @@ contains
     use mod_util
     use mod_bin
     
-    integer M            ! INPUT: number of particles
-    integer n_bin        ! INPUT: number of bins
-    integer n_spec       ! INPUT: number of species
-    integer TDV          ! INPUT: trailing dimension of VH
-    integer MH(n_bin)    ! INPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! INPUT: particle volumes
+    integer, intent(in) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(in) :: TDV          !  trailing dimension of VH
+    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
+    real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
     
-    real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-    real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
-    real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
-    real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
-    integer bin_n(n_bin)      ! OUTPUT: number in bins
-    real*8 dlnr               ! INPUT: bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins (m)
+    real*8, intent(out) :: bin_g(n_bin)       !  mass in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species mass in bins             
+    integer, intent(out) :: bin_n(n_bin)      !  number in bins
+    real*8, intent(in) :: dlnr               !  bin scale factor
     
     real*8 pv, check_bin_g, check_bin_gs(n_spec)
     integer i, k, k_check, M_check, s
@@ -541,12 +541,12 @@ contains
     
     use mod_array
     
-    integer n_bin        ! INPUT: number of bins
-    integer TDV          ! INPUT: trailing dimension of VH      
-    integer n_spec       ! INPUT: number of species
-    real*8 VH(n_bin,TDV,n_spec)  ! INPUT: particle volumes (m^3)
-    integer i            ! INPUT: particle index
-    integer k            ! INPUT: bin index
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: TDV          !  trailing dimension of VH      
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(in) :: VH(n_bin,TDV,n_spec)  !  particle volumes (m^3)
+    integer, intent(in) :: i            !  particle index
+    integer, intent(in) :: k            !  bin index
     real*8 pv            ! OUPUT: total volume of particle
     
     !     FIXME: fix callers to just call particle_vol_base directly

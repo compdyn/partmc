@@ -91,7 +91,7 @@ print """
 VERSION = 1.1.0
 DIST_NAME = partmc-$(VERSION)
 
-F77 = pgf95
+F77 = gfortran
 
 ifeq ($(F77),gfortran)
     # -O              optimize
@@ -99,9 +99,7 @@ ifeq ($(F77),gfortran)
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -O -ffree-form -fimplicit-none \
-           -W -Wall -Wunused-labels -Wconversion -Wunderflow \
-           -Wimplicit-interface -Wno-unused
+  FFLAGS = -O -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
   LDFLAGS = 
 endif
 ifeq ($(F77),pgf95)

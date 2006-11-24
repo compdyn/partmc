@@ -10,9 +10,9 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_exact(n_bin, bin_v, bin_r, bin_g, bin_n, dlnr, &
-       N_0, V_0, rho_p, soln, t_max, t_print, loop, V_comp, n_spec, &
-       env, mat)
+  subroutine mc_exact(n_bin, n_spec, bin_v, bin_r, bin_g, bin_gs, &
+       bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_print, loop, &
+       V_comp, env, mat)
     ! FIXME: N_0 and V_0 are really parameters for the initial value
     ! of the particle distribution. They should be replaced by a n_param,
     ! params() pair.
@@ -22,21 +22,21 @@ contains
     use mod_environ
     use mod_material
     
-    integer n_bin        ! INPUT: number of bins
-    integer n_spec
-    real*8 bin_v(n_bin)  ! INPUT: volume of bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of bins
-    real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
-    integer bin_n(n_bin) ! OUTPUT: number in bins
-    real*8 bin_gs(n_bin,n_spec) ! OUTPUT: number in bins by species
-    real*8 dlnr          ! INPUT: bin scale factor
-    real*8 N_0           ! INPUT: particle number concentration (#/m^3)
-    real*8 V_0           ! INPUT:
-    real*8 rho_p         ! INPUT: particle density (kg/m^3)
-    real*8 t_max         ! INPUT: total simulation time
-    real*8 t_print       ! INPUT: interval to print info (seconds)
-    integer loop         ! INPUT: loop number of run
-    real*8 V_comp        ! INPUT: computational volume
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of bins
+    real*8, intent(in) :: bin_r(n_bin)  ! radius of bins
+    real*8, intent(out) :: bin_g(n_bin)  ! mass in bins
+    integer, intent(out) :: bin_n(n_bin) ! number in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! number in bins by species
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    real*8, intent(in) :: N_0           ! particle number concentration (#/m^3)
+    real*8, intent(in) :: V_0           ! 
+    real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
+    real*8, intent(in) :: t_max         ! total simulation time
+    real*8, intent(in) :: t_print       ! interval to print info (seconds)
+    integer, intent(in) :: loop         ! loop number of run
+    real*8, intent(in) :: V_comp        ! computational volume
     type(environ), intent(inout) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
     
@@ -47,18 +47,18 @@ contains
        subroutine soln(n_bin, bin_v, bin_r, &
             bin_g, bin_n, dlnr, &
             time, N_0, V_0, rho_p, V_comp)
-         integer n_bin             ! INPUT: number of bins
-         real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins
-         real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins
-         real*8 bin_g(n_bin)       ! OUTPUT: mass in bins
-         integer bin_n(n_bin)      ! OUTPUT: number in bins
-         real*8 dlnr               ! INPUT: bin scale factor
+         integer, intent(in) :: n_bin             !  number of bins
+         real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins
+         real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins
+         real*8, intent(out) :: bin_g(n_bin)       !  mass in bins
+         integer, intent(out) :: bin_n(n_bin)      !  number in bins
+         real*8, intent(in) :: dlnr               !  bin scale factor
          
-         real*8 time               ! INPUT: cubin_rent time
-         real*8 N_0                ! INPUT: particle number concentration (#/m^3)
-         real*8 V_0                ! INPUT:
-         real*8 rho_p              ! INPUT: particle density (kg/m^3)
-         real*8 V_comp             ! INPUT: computational volume
+         real*8, intent(in) :: time               !  cubin_rent time
+         real*8, intent(in) :: N_0                !  particle number concentration (#/m^3)
+         real*8, intent(in) :: V_0                ! 
+         real*8, intent(in) :: rho_p              !  particle density (kg/m^3)
+         real*8, intent(in) :: V_comp             !  computational volume
        end subroutine soln
     end interface
     

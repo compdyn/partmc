@@ -25,17 +25,17 @@ contains
     
     use mod_bin
     
-    integer n_bin        ! INPUT: number of bins
-    integer n_spec       ! INPUT: number of species
-    real*8 vol_frac(n_spec) ! INPUT: composition of particles
-    integer MM           ! INPUT: physical size of V
-    integer i_start      ! INPUT:
-    integer i_end        ! INPUT:
-    integer n_ini(n_bin) ! INPUT: initial number distribution
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-    real*8 dlnr          ! INPUT: scale factor
-    real*8 V(MM,n_spec)  ! OUTPUT: particle volumes  (m^3)
-    integer M            ! OUTPUT: logical dimension of V
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(in) :: vol_frac(n_spec) !  composition of particles
+    integer, intent(in) :: MM           !  physical size of V
+    integer, intent(in) :: i_start      ! 
+    integer, intent(in) :: i_end        ! 
+    integer, intent(in) :: n_ini(n_bin) !  initial number distribution
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          !  scale factor
+    real*8, intent(out) :: V(MM,n_spec)  !  particle volumes  (m^3)
+    integer, intent(out) :: M            !  logical dimension of V
     
     real*8 pi
     parameter (pi = 3.14159265358979323846d0)
@@ -73,8 +73,8 @@ contains
   
   subroutine zero_v(MM,n_spec,V)
     
-    integer MM      ! INPUT: 
-    integer n_spec  ! INPUT: number of species
+    integer, intent(in) :: MM      !  
+    integer, intent(in) :: n_spec  !  number of species
     integer i,j
     real*8 V(MM,n_spec)
     
@@ -94,9 +94,9 @@ contains
     
     use mod_util
 
-    integer M       ! INPUT: number of particles
-    integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
-    !         particles with (1 <= s1,s2 <= M)
+    integer, intent(in) :: M    ! number of particles
+    integer, intent(out) :: s1  ! s1 and s2 are not equal, random
+    integer, intent(out) :: s2  ! particles with (1 <= s1,s2 <= M)
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
@@ -109,19 +109,20 @@ contains
     return
   end subroutine find_rand_pair
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel, &
        s1, s2)
     
     use mod_util
 
-    integer MM      ! INPUT: physical dimension of V
-    integer M       ! INPUT: logical dimension of V
-    real*8 V(MM)    ! INPUT: array of particle volumes   (m^3)
-    real*8 max_k    ! INPUT: maximum value of the kernel (m^3 s^(-1))
-    ! external kernel ! INPUT: kernel function
-    integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
-    !         particles with V(s1/s2) != 0
+    integer, intent(in) :: MM      !  physical dimension of V
+    integer, intent(in) :: M       !  logical dimension of V
+    real*8, intent(in) :: V(MM)    !  array of particle volumes   (m^3)
+    real*8, intent(in) :: max_k    !  maximum value of the kernel (m^3 s^(-1))
+    integer, intent(out) :: s1  !  s1 and s2 are not equal, random
+    integer, intent(out) :: s2  !  particles with V(s1/s2) != 0
+
     interface
        subroutine kernel(v1, v2, k)
          real*8, intent(in) :: v1
@@ -149,23 +150,23 @@ contains
     
     use mod_bin
     
-    integer MM           ! INPUT: physical dimension of V
-    integer M            ! INPUT/OUTPUT: logical dimension of V
-    integer n_spec       ! INPUT: number of species 
-    real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes  (m^3)
-    real*8 V_comp        ! INPUT: computational volume   (m^3)
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(inout) :: M            !  logical dimension of V
+    integer, intent(in) :: n_spec       !  number of species 
+    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes  (m^3)
+    real*8, intent(in) :: V_comp        !  computational volume   (m^3)
     
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: total mass in bins 
-    real*8 bin_gs(n_bin,n_spec)  ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
+    real*8, intent(inout) :: bin_g(n_bin)  !  total mass in bins 
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
-    integer s1           ! INPUT: first particle to coagulate
-    integer s2           ! INPUT: second particle to coagulate
-    logical bin_change   ! OUTPUT: whether an empty bin filled,
+    integer, intent(in) :: s1           !  first particle to coagulate
+    integer, intent(in) :: s2           !  second particle to coagulate
+    logical, intent(out) :: bin_change   !  whether an empty bin filled,
     !         or a filled bin became empty
     
     integer k1, k2, kn, i, j
@@ -236,25 +237,25 @@ contains
     
     use mod_util
 
-    integer MM           ! INPUT: physical dimension of V
-    integer M            ! INPUT/OUTPUT: logical dimension of V
-    integer n_spec       ! INPUT: number of species
-    real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes
-    real*8 V_comp        ! INPUT: computational volume
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(inout) :: M            !  logical dimension of V
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
+    real*8, intent(in) :: V_comp        !  computational volume
     
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: total mass in bins
-    real*8 bin_gs(n_bin,n_spec) ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  total mass in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
-    real*8 del_t         ! INPUT: timestep
-    integer n_samp       ! INPUT: number of samples per timestep
-    ! external kernel      ! INPUT: kernel function
-    logical did_coag     ! OUTPUT: whether a coagulation occured
-    logical bin_change   ! OUTPUT: whether bin structure changed
+    real*8, intent(in) :: del_t         !  timestep
+    integer, intent(in) :: n_samp       !  number of samples per timestep
+    ! external, intent(in) :: kernel      !  kernel function
+    logical, intent(out) :: did_coag     !  whether a coagulation occured
+    logical, intent(out) :: bin_change   !  whether bin structure changed
     
     interface
        subroutine kernel(v1, v2, k)
@@ -292,19 +293,19 @@ contains
   subroutine double(MM, M, V, V_comp, n_spec, &
        n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
     
-    integer MM           ! INPUT: physical dimension of V
-    integer M            ! INPUT/OUTPUT: logical dimension of V
-    integer n_spec       ! INPUT: number of species
-    real*8 V(MM,n_spec)  ! INPUT/OUTPUT: particle volumes
-    real*8 V_comp        ! INPUT/OUTPUT: computational volume
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(inout) :: M            !  logical dimension of V
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
+    real*8, intent(inout) :: V_comp        !  computational volume
     
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! INPUT/OUTPUT: mass in bins
-    real*8 bin_gs(n_bin,n_spec) ! INPUT/OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! INPUT/OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  mass in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species mass in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer i,j
     
@@ -339,11 +340,11 @@ contains
   
   subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
     
-    integer n_bin         ! INPUT: number of bins
-    real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
-    integer bin_n(n_bin)  ! INPUT: number in each bin
-    ! external kernel       ! INPUT: kernel function
-    real*8 k_max          ! OUTPUT: maximum kernel value
+    integer, intent(in) :: n_bin         !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
+    integer, intent(in) :: bin_n(n_bin)  !  number in each bin
+    ! external, intent(in) :: kernel       !  kernel function
+    real*8, intent(out) :: k_max          !  maximum kernel value
     
     interface
        subroutine kernel(v1, v2, k)
@@ -393,11 +394,11 @@ contains
   
   subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg)
     
-    integer n_bin         ! INPUT: number of bins
-    real*8 bin_v(n_bin)   ! INPUT: volume of particles in bins (m^3)
-    integer bin_n(n_bin)  ! INPUT: number in each bin
-    ! external kernel       ! INPUT: kernel function
-    real*8 k_avg          ! OUTPUT: average kernel value
+    integer, intent(in) :: n_bin         !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
+    integer, intent(in) :: bin_n(n_bin)  !  number in each bin
+    ! external, intent(in) :: kernel       !  kernel function
+    real*8, intent(out) :: k_avg          !  average kernel value
     
     interface
        subroutine kernel(v1, v2, k)
@@ -436,19 +437,19 @@ contains
     
     use mod_bin
     
-    integer MM           ! INPUT: physical dimension of V
-    integer M            ! INPUT: logical dimension of V
-    integer n_spec       ! INPUT: number of species
-    real*8 V(MM,n_spec)  ! INPUT: particle volumes (m^3)
-    real*8 V_comp        ! INPUT: computational volume (m^3)
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(in) :: M            !  logical dimension of V
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(in) :: V(MM,n_spec)  !  particle volumes (m^3)
+    real*8, intent(in) :: V_comp        !  computational volume (m^3)
     
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins (m^3)
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins (m)
-    real*8 bin_g(n_bin)  ! OUTPUT: total mass in bins    (????)
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
+    real*8, intent(out) :: bin_g(n_bin)  !  total mass in bins    (????)
     real*8 bin_gs(n_bin,n_spec) !OUTPUT: species mass in bins
-    integer bin_n(n_bin) ! OUTPUT: number in bins  
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(out) :: bin_n(n_bin) !  number in bins  
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer i, k, j
     real*8 pv
@@ -484,11 +485,11 @@ contains
     ! the next call is guaranteed to do the event. Otherwise the
     ! timestep is used to guess whether to do the event.
     
-    real*8 time       ! INPUT: current time
-    real*8 timestep   ! INPUT: an estimate of the time to the next call
-    real*8 interval   ! INPUT: how often the event should be done
-    real*8 last_time  ! INPUT/OUTPUT: when the event was last done
-    logical do_event  ! OUTPUT: whether the event should be done
+    real*8, intent(in) :: time       !  current time
+    real*8, intent(in) :: timestep   !  an estimate of the time to the next call
+    real*8, intent(in) :: interval   !  how often the event should be done
+    real*8, intent(inout) :: last_time  !  when the event was last done
+    logical, intent(out) :: do_event  !  whether the event should be done
     
     real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
     
@@ -530,10 +531,10 @@ contains
   
   subroutine particle_vol(MM,n_spec,V,i,pv)
     
-    integer MM           ! INPUT: physical dimension of V
-    integer n_spec       ! INPUT: number of species
-    real*8 V(MM,n_spec)  ! INPUT: particle volumes (m^3)
-    integer i            ! INPUT: particle index
+    integer, intent(in) :: MM           !  physical dimension of V
+    integer, intent(in) :: n_spec       !  number of species
+    real*8, intent(in) :: V(MM,n_spec)  !  particle volumes (m^3)
+    integer, intent(in) :: i            !  particle index
     real*8 pv            ! OUPUT: total volume of particle
     
     !     FIXME: fix callers to just call particle_vol_base directly

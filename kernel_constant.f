@@ -28,18 +28,18 @@ contains
        bin_g, bin_n, dlnr, &
        time, N_0, V_0, rho_p, V_comp)
     
-    integer n_bin        ! INPUT: number of bins
-    real*8 bin_v(n_bin)  ! INPUT: volume of particles in bins
-    real*8 bin_r(n_bin)  ! INPUT: radius of particles in bins
-    real*8 bin_g(n_bin)  ! OUTPUT: mass in bins
-    integer bin_n(n_bin) ! OUTPUT: number in bins
-    real*8 dlnr          ! INPUT: bin scale factor
+    integer, intent(in) :: n_bin        !  number of bins
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
+    real*8, intent(out) :: bin_g(n_bin)  !  mass in bins
+    integer, intent(out) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
     
-    real*8 time          ! INPUT: cubin_rent time
-    real*8 N_0           ! INPUT: particle number concentration (#/m^3)
-    real*8 V_0           ! INPUT:
-    real*8 rho_p         ! INPUT: particle density (kg/m^3)
-    real*8 V_comp        ! INPUT: computational volume
+    real*8, intent(in) :: time          !  cubin_rent time
+    real*8, intent(in) :: N_0           !  particle number concentration (#/m^3)
+    real*8, intent(in) :: V_0           ! 
+    real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
+    real*8, intent(in) :: V_comp        !  computational volume
     
     real*8 beta_0, tau, T, rat_v, nn, b, x, lambda, sigma
     integer k

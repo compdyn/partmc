@@ -25,28 +25,28 @@ contains
     use mod_material
     use mod_state
     
-    integer MM                ! INPUT: physical dimension of V
-    integer M                 ! INPUT/OUTPUT: logical dimension of V
-    integer n_spec            ! INPUT: number of species
-    real*8 V(MM,n_spec)       ! INPUT/OUTPUT: particle volumes (m^3)
-    integer n_bin             ! INPUT: number of bins
-    integer TDV               ! INPUT: trailing dimension of VH
-    integer MH(n_bin)         ! OUTPUT: number of particles per bin
-    real*8 VH(n_bin,TDV,n_spec) ! OUTPUT: particle volumes (m^3)
+    integer, intent(in) :: MM                !  physical dimension of V
+    integer, intent(inout) :: M                 !  logical dimension of V
+    integer, intent(in) :: n_spec            !  number of species
+    real*8, intent(inout) :: V(MM,n_spec)       !  particle volumes (m^3)
+    integer, intent(in) :: n_bin             !  number of bins
+    integer, intent(in) :: TDV               !  trailing dimension of VH
+    integer, intent(out) :: MH(n_bin)         !  number of particles per bin
+    real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes (m^3)
     
-    real*8 bin_v(n_bin)       ! INPUT: volume of particles in bins (m^3)
-    real*8 bin_r(n_bin)       ! INPUT: radius of particles in bins (m)
-    real*8 bin_g(n_bin)       ! OUTPUT: mass in bins  
-    real*8 bin_gs(n_bin,n_spec) ! OUTPUT: species mass in bins             
-    integer bin_n(n_bin)      ! OUTPUT: number in bins
-    real*8 dlnr               ! INPUT: bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins (m)
+    real*8, intent(out) :: bin_g(n_bin)       !  mass in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species mass in bins
+    integer, intent(out) :: bin_n(n_bin)      !  number in bins
+    real*8, intent(in) :: dlnr               !  bin scale factor
     
-    real*8 t_max              ! INPUT: final time (seconds)
-    real*8 t_print            ! INPUT: interval to output data (seconds)
-    real*8 t_progress         ! INPUT: interval to print progress (seconds)
-    real*8 del_t              ! INPUT: timestep for coagulation
+    real*8, intent(in) :: t_max              !  final time (seconds)
+    real*8, intent(in) :: t_print            !  interval to output data (seconds)
+    real*8, intent(in) :: t_progress         !  interval to print progress (seconds)
+    real*8, intent(in) :: del_t              !  timestep for coagulation
     
-    integer loop              ! INPUT: loop number of run
+    integer, intent(in) :: loop              !  loop number of run
     
     type(environ), intent(inout) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
@@ -171,14 +171,14 @@ contains
   subroutine compute_n_samp_hybrid(n_bin, MH, i, j, V_comp, k_max, &
        del_t, n_samp_real)
     
-    integer n_bin              ! INPUT: number of bins
-    integer MH(n_bin)          ! INPUT: number particles per bin
-    integer i                  ! INPUT: first bin 
-    integer j                  ! INPUT: second bin
-    real*8 V_comp              ! INPUT: computational volume
-    real*8 k_max(n_bin,n_bin)  ! INPUT: maximum kernel values
-    real*8 del_t               ! INPUT: timestep (s)
-    real*8 n_samp_real         ! OUTPUT: number of samples per timestep
+    integer, intent(in) :: n_bin              !  number of bins
+    integer, intent(in) :: MH(n_bin)          !  number particles per bin
+    integer, intent(in) :: i                  !  first bin 
+    integer, intent(in) :: j                  !  second bin
+    real*8, intent(in) :: V_comp              !  computational volume
+    real*8, intent(in) :: k_max(n_bin,n_bin)  !  maximum kernel values
+    real*8, intent(in) :: del_t               !  timestep (s)
+    real*8, intent(out) :: n_samp_real         !  number of samples per timestep
     !         for bin-i to bin-j events
     
     real*8 r_samp

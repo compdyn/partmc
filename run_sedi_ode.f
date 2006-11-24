@@ -65,12 +65,12 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, V_comp, n_small_dot)
     
-    real*8 n_small        ! INPUT: current number of small particles
-    real*8 v_small        ! INPUT: volume of one small particle
-    real*8 v_big_init     ! INPUT: initial volume of the big particle
-    real*8 n_small_init   ! INPUT: initial number of small particles
-    real*8 V_comp         ! INPUT: computational volume
-    real*8 n_small_dot    ! OUTPUT: derivative of n_small
+    real*8, intent(in) :: n_small        !  current number of small particles
+    real*8, intent(in) :: v_small        !  volume of one small particle
+    real*8, intent(in) :: v_big_init     !  initial volume of the big particle
+    real*8, intent(in) :: n_small_init   !  initial number of small particles
+    real*8, intent(in) :: V_comp         !  computational volume
+    real*8, intent(out) :: n_small_dot    !  derivative of n_small
     
     real*8 v_big, k
     
@@ -85,12 +85,12 @@ contains
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        V_comp, del_t, n_small)
     
-    real*8 v_small        ! INPUT: volume of one small particle
-    real*8 v_big_init     ! INPUT: initial volume of the big particle
-    real*8 n_small_init   ! INPUT: initial number of small particles
-    real*8 V_comp         ! INPUT: computational volume
-    real*8 del_t          ! INPUT: timestep
-    real*8 n_small        ! INPUT/OUTPUT: current number of small particles
+    real*8, intent(in) :: v_small        !  volume of one small particle
+    real*8, intent(in) :: v_big_init     !  initial volume of the big particle
+    real*8, intent(in) :: n_small_init   !  initial number of small particles
+    real*8, intent(in) :: V_comp         !  computational volume
+    real*8, intent(in) :: del_t          !  timestep
+    real*8, intent(inout) :: n_small        !  current number of small particles
     
     real*8 n_small_dot, k1, k2, k3, k4
     

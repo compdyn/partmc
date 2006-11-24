@@ -18,6 +18,7 @@ contains
     call random_number(rnd)
     util_rand = rnd
 #else
+    stop
     util_rand = dble(rand())
 #endif
 
@@ -79,9 +80,9 @@ contains
   
   subroutine sum_int_1d(size1, array, sum)
     
-    integer size1             ! INPUT: size of the array
-    integer array(size1)      ! INPUT: array of numbers
-    integer sum               ! OUTPUT: sum of array(i)
+    integer, intent(in) :: size1             !  size of the array
+    integer, intent(in) :: array(size1)      !  array of numbers
+    integer, intent(out) :: sum               !  sum of array(i)
     
     integer i
     
@@ -96,10 +97,10 @@ contains
   
   subroutine max_int_2d(size1, size2, array, max)
     
-    integer size1               ! INPUT: leading size of the array
-    integer size2               ! INPUT: trailing size of the array
-    integer array(size1,size2)  ! INPUT: array of numbers
-    integer max                 ! OUTPUT: max of array(i,j)
+    integer, intent(in) :: size1               !  leading size of the array
+    integer, intent(in) :: size2               !  trailing size of the array
+    integer, intent(in) :: array(size1,size2)  !  array of numbers
+    integer, intent(out) :: max                 !  max of array(i,j)
     
     integer i, j
     
@@ -120,8 +121,8 @@ contains
     
     ! Tests whether two real numbers are almost equal
     
-    real*8 d1 ! INPUT: first number to compare
-    real*8 d2 ! INPUT: second number to compare
+    real*8, intent(in) :: d1 !  first number to compare
+    real*8, intent(in) :: d2 !  second number to compare
     
     real*8 eps
     parameter (eps = 1d-8) ! relative tolerance

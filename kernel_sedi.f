@@ -1,7 +1,11 @@
 ! -*- mode: f90; -*-
 ! Copyright (C) 2005,2006 Nicole Riemer and Matthew West
+! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Subroutines based on coad1d.f by Andreas Bott
+! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
 !
 ! Sedimentation coagulation kernel.
 
@@ -12,9 +16,9 @@ contains
   
   subroutine kernel_sedi(v1, v2, k)
     
-    real*8 v1 ! INPUT: volume of first particle (m^3)
-    real*8 v2 ! INPUT: volume of second particle (m^3)
-    real*8 k  ! OUTPUT: kernel k(a,b) (m^3/s)
+    real*8, intent(in) :: v1 !  volume of first particle (m^3)
+    real*8, intent(in) :: v2 !  volume of second particle (m^3)
+    real*8, intent(out) :: k  !  kernel k(a,b) (m^3/s)
     
     real*8 const, onethird
     real*8 r1, r2, winf1, winf2, ec
@@ -37,8 +41,8 @@ contains
   
   subroutine fall_g(r, w_inf)
     
-    real*8 r       ! INPUT: particle radius (m)
-    real*8 w_inf   ! OUTPUT: terminal velocity (m/s)
+    real*8, intent(in) :: r       !  particle radius (m)
+    real*8, intent(out) :: w_inf   !  terminal velocity (m/s)
     
     ! terminal velocity of falling drops
     real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
@@ -101,9 +105,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine effic(r1, r2, ec)
-    real*8 r1  ! INPUT: radius of first particle (um)
-    real*8 r2  ! INPUT: radius of second particle (um)
-    real*8 ec  ! OUTPUT: collision efficiency (dimensionless)
+    real*8, intent(in) :: r1  !  radius of first particle (um)
+    real*8, intent(in) :: r2  !  radius of second particle (um)
+    real*8, intent(out) :: ec  !  collision efficiency (dimensionless)
     
     real*8 r_small, r_big, rq, p, q, ek
     integer k, ir, kk, iq

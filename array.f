@@ -92,15 +92,17 @@ contains
   
   subroutine find_rand_pair(M, s1, s2)
     
+    use mod_util
+
     integer M       ! INPUT: number of particles
     integer s1, s2  ! OUTPUT: s1 and s2 are not equal, random
     !         particles with (1 <= s1,s2 <= M)
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
-100 s1 = int(rand() * float(M)) + 1
+100 s1 = int(util_rand() * dble(M)) + 1
     if ((s1 .lt. 1) .or. (s1 .gt. M)) goto 100
-101 s2 = int(rand() * float(M)) + 1
+101 s2 = int(util_rand() * dble(M)) + 1
     if ((s2 .lt. 1) .or. (s2 .gt. M)) goto 101
     if (s1 .eq. s2) goto 101
     
@@ -111,6 +113,8 @@ contains
   subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel, &
        s1, s2)
     
+    use mod_util
+
     integer MM      ! INPUT: physical dimension of V
     integer M       ! INPUT: logical dimension of V
     real*8 V(MM)    ! INPUT: array of particle volumes   (m^3)
@@ -132,7 +136,7 @@ contains
     call find_rand_pair(M, s1, s2) ! test particles s1, s2
     call kernel(V(s1), V(s2), k)
     p = k / max_k     ! collision probability   
-    if (dble(rand()) .gt. p ) goto 200
+    if (util_rand() .gt. p ) goto 200
     
     return
   end subroutine find_rand_pair_acc_rej
@@ -230,6 +234,8 @@ contains
        n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
        del_t, n_samp, kernel, did_coag, bin_change)
     
+    use mod_util
+
     integer MM           ! INPUT: physical dimension of V
     integer M            ! INPUT/OUTPUT: logical dimension of V
     integer n_spec       ! INPUT: number of species
@@ -269,7 +275,7 @@ contains
     p = k * 1d0/V_comp * del_t *  &
          (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
     bin_change = .false.
-    if (dble(rand()) .lt. p) then
+    if (util_rand() .lt. p) then
        call coagulate(MM, M, V, V_comp, n_spec, &
             n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
             s1, s2, bin_change)

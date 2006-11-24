@@ -9,6 +9,21 @@ module mod_util
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function util_rand()
+
+    ! returns a random number between 0 and 1
+#ifdef USE_F95_RAND
+    real*8 rnd
+    call random_number(rnd)
+    util_rand = rnd
+#else
+    util_rand = dble(rand())
+#endif
+
+  end function util_rand
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   real*8 function vol2rad(v) ! radius (m)
     

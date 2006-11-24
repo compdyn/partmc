@@ -16,6 +16,7 @@ contains
        kernel, t_max, t_print, &
        t_progress, del_t, loop, env, mat)
     
+    use mod_util
     use mod_array
     use mod_array_hybrid
     use mod_bin 
@@ -105,7 +106,7 @@ contains
                   k_max, del_t, n_samp_real)
              ! probabalistically determine n_samp to cope with < 1 case
              n_samp = int(n_samp_real)
-             if (dble(rand()) .lt. mod(n_samp_real, 1d0)) then
+             if (util_rand() .lt. mod(n_samp_real, 1d0)) then
                 n_samp = n_samp + 1
              endif
              tot_n_samp = tot_n_samp + n_samp

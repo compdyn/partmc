@@ -2,10 +2,6 @@
 
 import re, sys
 
-f77 = "gfortran"
-fflags = "-O -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused"
-ldflags = ""
-
 progs = ["process_out",
 	 "process_state",
 	 "run_golovin_exact",
@@ -89,22 +85,31 @@ def print_deps(obj, deps):
 
 print """
 #
-# Auto-generated Makefile --- DO NOT EDIT
+# Auto-generated Makefile --- DO NOT EDIT --- edit makemake.py instead
 #
 
 VERSION = 1.1.0
 DIST_NAME = partmc-$(VERSION)
 
-# useful flags:
-#   -O              optimize
-#   -g              debugging
-#   -pg             profiling
-#   -fbounds-check  check array accesses
-# FIXME: remove -Wno-unused to start reporting unused variables again
-FFLAGS = -O -ffree-form -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
-LDFLAGS = 
+F77 = pgf95
 
-F77 = gfortran
+ifeq ($(F77),gfortran)
+    # -O              optimize
+    # -g              debugging
+    # -pg             profiling
+    # -fbounds-check  check array accesses
+    # -Wno-unused     disable reporting of unused variables
+  FFLAGS = -O -ffree-form -fimplicit-none \
+           -W -Wall -Wunused-labels -Wconversion -Wunderflow \
+           -Wimplicit-interface -Wno-unused
+  LDFLAGS = 
+endif
+ifeq ($(F77),pgf95)
+    # -Mbounds      array bounds checking
+    # -Mdclchk      check for undeclared variables
+  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
+  LDFLAGS =
+endif
 """
 
 print "PROGS = " + " ".join(progs)

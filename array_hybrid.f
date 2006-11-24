@@ -181,6 +181,8 @@ contains
     ! probability of coagulation. If it happens, do the coagulation and
     ! update all structures. The probability of a coagulation will be
     ! taken as (kernel / k_max).
+
+    use mod_util
     
     integer M            ! INPUT/OUTPUT: number of particles
     integer n_bin        ! INPUT: number of bins
@@ -229,7 +231,7 @@ contains
     call kernel(pv1, pv2, k)
     p = k / k_max
     
-    if (dble(rand()) .lt. p) then
+    if (util_rand() .lt. p) then
        call coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
             ,bin_v,bin_r,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
             bin_change)
@@ -243,6 +245,8 @@ contains
     
     ! Find a random pair of particles (b1, s1) and (b2, s2).
     
+    use mod_util
+
     integer n_bin     ! INPUT: number of bins
     integer MH(n_bin) ! INPUT: number particles per bin
     integer b1        ! INPUT: bin number of first particle
@@ -253,9 +257,9 @@ contains
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
-100 s1 = int(rand() * float(MH(b1))) + 1
+100 s1 = int(util_rand() * dble(MH(b1))) + 1
     if ((s1 .lt. 1) .or. (s1 .gt. MH(b1))) goto 100
-101 s2 = int(rand() * float(MH(b2))) + 1
+101 s2 = int(util_rand() * dble(MH(b2))) + 1
     if ((s2 .lt. 1) .or. (s2 .gt. MH(b2))) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
     

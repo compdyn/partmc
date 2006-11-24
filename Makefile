@@ -1,21 +1,28 @@
 
 #
-# Auto-generated Makefile --- DO NOT EDIT
+# Auto-generated Makefile --- DO NOT EDIT --- edit makemake.py instead
 #
 
 VERSION = 1.1.0
 DIST_NAME = partmc-$(VERSION)
 
-# useful flags:
-#   -O              optimize
-#   -g              debugging
-#   -pg             profiling
-#   -fbounds-check  check array accesses
-# FIXME: remove -Wno-unused to start reporting unused variables again
-FFLAGS = -O -ffree-form -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
-LDFLAGS = 
+F77 = pgf95
 
-F77 = gfortran
+ifeq ($(F77),gfortran)
+    # -O              optimize
+    # -g              debugging
+    # -pg             profiling
+    # -fbounds-check  check array accesses
+    # -Wno-unused     disable reporting of unused variables
+  FFLAGS = -O -ffree-form -fimplicit-none            -W -Wall -Wunused-labels -Wconversion -Wunderflow            -Wimplicit-interface -Wno-unused
+  LDFLAGS = 
+endif
+ifeq ($(F77),pgf95)
+    # -Mbounds      array bounds checking
+    # -Mdclchk      check for undeclared variables
+  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
+  LDFLAGS =
+endif
 
 PROGS = process_out process_state run_golovin_exact run_golovin_fix_hybrid run_constant_exact run_constant_fix_hybrid run_sedi_fix_hybrid run_sedi_ode run_sedi_sect average
 
@@ -26,21 +33,21 @@ FILES = $(PROGS) $(OTHER)
 all: TAGS $(PROGS)
 
 process_state.o: bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
-run_golovin_exact.o: bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
+run_golovin_exact.o: bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o util.o
 run_golovin_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
-run_constant_exact.o: bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+run_constant_exact.o: bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o util.o
 run_constant_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 run_sedi_fix_hybrid.o: bin.o array.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 run_sedi_ode.o: kernel_sedi.o
 run_sedi_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
-array.o: bin.o material.o environ.o constants.o
+array.o: bin.o util.o material.o environ.o constants.o
 array_hybrid.o: array.o bin.o util.o material.o environ.o constants.o
 bin.o: material.o environ.o constants.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 environ.o: constants.o material.o
 init_dist.o: bin.o material.o environ.o constants.o
-mc_exact.o: bin.o array.o environ.o material.o constants.o
-mc_fix_hybrid.o: array.o array_hybrid.o condensation.o environ.o material.o state.o bin.o util.o constants.o
+mc_exact.o: bin.o array.o environ.o material.o constants.o util.o
+mc_fix_hybrid.o: util.o array.o array_hybrid.o condensation.o environ.o material.o state.o bin.o constants.o
 state.o: environ.o constants.o material.o
 
 %.o: %.f
@@ -79,14 +86,14 @@ process_out: process_out.o
 process_state: process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
 	$(F77) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
 
-run_golovin_exact: run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
-	$(F77) $(LDFLAGS) -o $@ run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o
+run_golovin_exact: run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o util.o
+	$(F77) $(LDFLAGS) -o $@ run_golovin_exact.o bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o constants.o util.o
 
 run_golovin_fix_hybrid: run_golovin_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 	$(F77) $(LDFLAGS) -o $@ run_golovin_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_golovin.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 
-run_constant_exact: run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
-	$(F77) $(LDFLAGS) -o $@ run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o
+run_constant_exact: run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o util.o
+	$(F77) $(LDFLAGS) -o $@ run_constant_exact.o bin.o mc_exact.o kernel_constant.o array.o environ.o material.o constants.o util.o
 
 run_constant_fix_hybrid: run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o
 	$(F77) $(LDFLAGS) -o $@ run_constant_fix_hybrid.o bin.o array.o init_dist.o mc_fix_hybrid.o kernel_constant.o condensation.o environ.o material.o constants.o util.o array_hybrid.o state.o

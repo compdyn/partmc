@@ -313,6 +313,8 @@ contains
 
     interface
        subroutine func(n_spec, V, env, mat, init, x, f, df)
+         use mod_environ
+         use mod_material
          integer, intent(in) :: n_spec     ! number of species
          real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
          type(environ), intent(in) :: env  ! environment state

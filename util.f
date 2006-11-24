@@ -18,7 +18,6 @@ contains
     call random_number(rnd)
     util_rand = rnd
 #else
-    stop
     util_rand = dble(rand())
 #endif
 

@@ -2,10 +2,10 @@
 VERSION = 0.9.0
 DIST_NAME = partmc-$(VERSION)
 
-# run "make F95=pgf95" to use the Portland Group compiler instead
-F95 = gfortran
+# run "make FC=pgf95" to use the Portland Group compiler instead
+FC = gfortran
 
-ifeq ($(F95),gfortran)
+ifeq ($(FC),gfortran)
     # -O              optimize
     # -g              debugging
     # -pg             profiling
@@ -14,7 +14,7 @@ ifeq ($(F95),gfortran)
   FFLAGS = -O -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
   LDFLAGS = 
 endif
-ifeq ($(F95),pgf95)
+ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
   FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
@@ -34,25 +34,21 @@ FILES = $(PROGS) $(OTHER)
 
 all: TAGS $(PROGS)
 
-include $(patsubst %,%.deps,$(FILES))
+-include Makefile.deps
 
-%.deps: %.f
-	./makedeps.py $(patsubst %.f,%,$<)
+deps: $(patsubst %,%.f,$(FILES))
+	./makedeps.py --progs $(PROGS) --other $(OTHER)
 
 %.o: %.f
-	$(F95) $(FFLAGS) -c -o $@ $<
+	$(FC) $(FFLAGS) -c -o $@ $<
 
 %.o : %.mod
 
-# rules for building all programs
-define set_program_build
-$(1): $(1).o
-	$$(F95) $$(LDFLAGS) -o $$@ $(1).o $$($(1)_deps)
-endef
-$(foreach prog,$(PROGS),$(eval $(call set_program_build,$(prog))))
-
 clean:
-	rm -f $(PROGS) *.o *.mod *.deps TAGS
+	rm -f $(PROGS) *.o *.mod TAGS
+
+distclean: clean
+	rm -f Makefile.deps
 
 cleanall: clean
 	rm -f *~ *.d gmon.out gprof_*
@@ -63,9 +59,9 @@ check:
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<
 
-dist:
+dist: Makefile.deps
 	mkdir $(DIST_NAME)
-	cp makemake.py Makefile COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
+	cp Makefile Makefile.deps makedeps.py COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 

@@ -11,11 +11,51 @@
 ! superparticle code there is a difference.
 
 module mod_array_hybrid
+
+  type bin_p
+     real*8, dimension(:,:), pointer :: p ! particle volumes
+     ! dimension of p is (# particles in bin) x n_spec
+  end type bin_p
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine init_hybrid(n_spec, VH)
+
+    integer, intent(in) :: n_spec       ! number of species
+    type(bin_p), intent(inout) :: VH(:) ! particle volumes
+    
+    integer :: n_bin = size(VH)
+    integer i
+
+    do i = 1,n_bin
+       allocate(VH(i)%p(n_spec, 1))
+    end do
+
+  end subroutine init_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine enlarge_bin(n_spec, bin)
+
+    integer, intent(in) :: n_spec      ! number of species
+    type(bin_p), intent(inout) :: bin  ! bin data
+
+    integer :: n
+    real*8, dimension(:,:), pointer :: new_p
+
+    n = size(bin%p)
+    allocate(new_p(n * 2, n_spec))
+    new_p(1:n,:) = bin%p
+    deallocate(bin%p)
+    bin%p => new_p
+    
+  end subroutine enlarge_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH &
+  subroutine array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, MH &
        ,VH)
     
     ! Convert a standard linear particle array V to a hybrid particle
@@ -30,9 +70,8 @@ contains
     real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(out) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes in hybrid array
+    type(bin_p), intent(out) :: VH(n_bin) !  particle volumes in hybrid array
     
     integer i, j, k
     real*8 pv
@@ -45,12 +84,11 @@ contains
        call particle_vol(MM, n_spec, V, i, pv)     
        call particle_in_bin(pv, n_bin, bin_v, k)
        MH(k) = MH(k) + 1
-       if (MH(k) .gt. TDV) then
-          write(*,*)'ERROR: TDV too small'
-          call exit(2)
+       if (MH(k) .gt. size(VH(k)%p)) then
+          call enlarge_bin(n_spec, VH(k))
        endif
        do j = 1,n_spec
-          VH(k, MH(k),j) = V(i,j)
+          VH(k)%p(MH(k),j) = V(i,j)
        enddo
     enddo
     

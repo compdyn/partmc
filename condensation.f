@@ -10,7 +10,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, &
+  subroutine condense_particles(n_bin, n_spec, MH, VH, &
        del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
     use mod_array
@@ -20,10 +20,9 @@ contains
     use mod_material
 
     integer, intent(in) :: n_bin ! number of bins
-    integer, intent(in) :: TDV   ! second dimension of VH
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: del_t         ! total time to integrate
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
     real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
@@ -42,18 +41,18 @@ contains
 
     do bin = 1,n_bin
        do j = 1,MH(bin)
-          call condense_particle(n_spec, VH(bin,j,:), del_t, env, mat)
+          call condense_particle(n_spec, VH(bin)%p(j,:), del_t, env, mat)
        end do
     end do
 
     ! We resort the particles in the bins after all particles are
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
-    call resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+    call resort_array_hybrid(n_bin, n_spec, MH, VH, bin_v, &
          bin_r, dlnr)
 
     ! update the bin arrays
-    call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+    call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
          bin_r, bin_g, bin_gs, bin_n, dlnr)
 
     ! update the environment due to condensation of water

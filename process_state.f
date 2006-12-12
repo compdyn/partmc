@@ -12,7 +12,6 @@ program process_state
   use mod_state
 
   integer, parameter :: n_bin = 160    ! number of bins
-  integer, parameter :: TDV = 500000   ! trailing dimension of VH      
   integer, parameter :: n_spec = 3     ! number of species
   integer, parameter :: scal = 3       ! scale factor for bins
   real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)
@@ -24,7 +23,7 @@ program process_state
   integer, parameter :: n_comp = 20    ! number of composition bins
 
   integer :: MH(n_bin)       ! number of particles per bin
-  real*8 :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+  type(bin_p) :: VH(n_bin)   ! particle volumes (m^3)
   type(environ) :: env       ! environment state
   type(material) :: mat      ! material properties
   real*8 :: time             ! current time (s)
@@ -44,25 +43,27 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
+  call init_hybrid(n_spec, MH, VH)
+
+  call read_state(filename, n_bin, n_spec, MH, VH, env, time)
 
   call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
 
   call allocate_material(mat, n_spec)
   
-  call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, bin_r, &
+  call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, bin_r, &
        bin_g, bin_gs, bin_n, dlnr)
   call write_moments(basename, n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n)
 
-  call moments_hybrid_2d(n_bin, TDV, n_spec, MH, VH, bin_v, mat, &
+  call moments_hybrid_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
   call write_moments_2d(basename, n_bin, bin_v, bin_n_2d, bin_g_2d)
 
-  call moments_composition_2d(n_bin, TDV, n_spec, MH, VH, v_cutoff, v_max, &
+  call moments_composition_2d(n_bin, n_spec, MH, VH, v_cutoff, v_max, &
        spec_1, spec_2, n_comp, comp_n)
   call write_composition_2d(basename, n_comp, comp_n)
   
-  call moments_mixed_2d(n_bin, TDV, n_spec, MH, VH, bin_v, mat, &
+  call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
   call write_moments_mixed_2d(basename, n_bin, bin_v, &
        bin_n_mixed, bin_g_mixed)
@@ -108,17 +109,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine moments_hybrid_2d(n_bin, TDV, n_spec, MH, VH, bin_v, mat, &
+  subroutine moments_hybrid_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
     
     use mod_material
     use mod_bin
     
     integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: TDV        ! trailing dimension of VH      
     integer, intent(in) :: n_spec     ! number of species
     integer, intent(in) :: MH(n_bin)  ! number of particles per bin
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins
     type(material), intent(in) :: mat ! material properties
     integer, intent(in) :: spec_1     ! first species
@@ -137,10 +137,10 @@ contains
     
     do i = 1,n_bin
        do j = 1,MH(i)
-          call particle_in_bin(VH(i,j,spec_1), n_bin, bin_v, b1)
-          call particle_in_bin(VH(i,j,spec_2), n_bin, bin_v, b2)
+          call particle_in_bin(VH(i)%p(j,spec_1), n_bin, bin_v, b1)
+          call particle_in_bin(VH(i)%p(j,spec_2), n_bin, bin_v, b2)
           bin_n_2d(b1,b2) = bin_n_2d(b1,b2) + 1
-          bin_g_2d(b1,b2) = bin_g_2d(b1,b2) + particle_volume(VH(i,j,:), mat)
+          bin_g_2d(b1,b2) = bin_g_2d(b1,b2) + particle_volume(VH(i)%p(j,:))
        end do
     end do
     
@@ -148,14 +148,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments_composition_2d(n_bin, TDV, n_spec, MH, VH, &
+  subroutine moments_composition_2d(n_bin, n_spec, MH, VH, &
        v_min, v_max, spec_1, spec_2, n_comp, comp_n)
     
     integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: TDV        ! trailing dimension of VH      
     integer, intent(in) :: n_spec     ! number of species
     integer, intent(in) :: MH(n_bin)  ! number of particles per bin
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: v_min       ! minimum particle volume to use
     real*8, intent(in) :: v_max       ! maximum particle volume to use
     integer, intent(in) :: spec_1     ! first species
@@ -170,7 +169,7 @@ contains
     
     do i = 1,n_bin
        do j = 1,MH(i)
-          comp = VH(i,j,spec_1) / (VH(i,j,spec_1) + VH(i,j,spec_2))
+          comp = VH(i)%p(j,spec_1) / (VH(i)%p(j,spec_1) + VH(i)%p(j,spec_2))
           i_comp = floor(comp * dble(n_comp)) + 1
           if (i_comp .gt. n_comp) i_comp = n_comp
           comp_n(i_comp) = comp_n(i_comp) + 1
@@ -181,17 +180,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments_mixed_2d(n_bin, TDV, n_spec, MH, VH, bin_v, mat, &
+  subroutine moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        v_min, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
     
     use mod_material
     use mod_bin
     
     integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: TDV        ! trailing dimension of VH      
     integer, intent(in) :: n_spec     ! number of species
     integer, intent(in) :: MH(n_bin)  ! number of particles per bin
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins
     type(material), intent(in) :: mat ! material properties
     real*8, intent(in) :: v_min       ! minimum particle volume to use
@@ -210,7 +208,7 @@ contains
     
     do i = 1,n_bin
        do j = 1,MH(i)
-          comp = VH(i,j,spec_1) / (VH(i,j,spec_1) + VH(i,j,spec_2))
+          comp = VH(i)%p(j,spec_1) / (VH(i)%p(j,spec_1) + VH(i)%p(j,spec_2))
           if (comp .lt. cutoff_frac) then
              k = 2
           else if (comp .gt. (1d0 - cutoff_frac)) then
@@ -218,7 +216,7 @@ contains
           else
              k = 3
           end if
-          pv = particle_volume(VH(i,j,:), mat)
+          pv = particle_volume(VH(i)%p(j,:))
           call particle_in_bin(pv, n_bin, bin_v, b)
           bin_n_mixed(b,k) = bin_n_mixed(b,k) + 1
           bin_g_mixed(b,k) = bin_g_mixed(b,k) + pv

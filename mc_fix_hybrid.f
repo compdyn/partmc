@@ -10,7 +10,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, &
+  subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, &
        MH, VH, &
        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
        kernel, t_max, t_print, &
@@ -30,9 +30,8 @@ contains
     integer, intent(in) :: n_spec            !  number of species
     real*8, intent(inout) :: V(MM,n_spec)       !  particle volumes (m^3)
     integer, intent(in) :: n_bin             !  number of bins
-    integer, intent(in) :: TDV               !  trailing dimension of VH
     integer, intent(out) :: MH(n_bin)         !  number of particles per bin
-    real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes (m^3)
+    type(bin_p), intent(out) :: VH(n_bin) !  particle volumes (m^3)
     
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
     real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins (m)
@@ -70,27 +69,27 @@ contains
     i_time = 0
     time = 0d0
     tot_n_coag = 0
-    call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH, VH)
+    call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, MH, VH)
     
     ! RESTART
     !      filename = 'start_state_0800_2e8.d'
     !      i_time = 800
-    !      call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
+    !      call read_state(filename, n_bin, n_spec, MH, VH, env, time)
     !      M = sum(MH)
     !      do while (M .lt. MM / 2)
-    !         call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec
+    !         call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec
     !     $        ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
     !      enddo
     ! RESTART
     
-    call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+    call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
          bin_r, bin_g, bin_gs, bin_n, dlnr)
     
     call est_k_max_binned(n_bin, bin_v, kernel, k_max)
     
     call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
          bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
-    call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time, &
+    call write_state_hybrid(n_bin, n_spec, MH, VH, env, i_time, &
          time)
     
     call cpu_time(t_wall_start)
@@ -111,7 +110,7 @@ contains
              endif
              tot_n_samp = tot_n_samp + n_samp
              do i_samp = 1,n_samp
-                call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, &
+                call maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
                      env%V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs, &
                      bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
                      did_coag, bin_change)
@@ -122,17 +121,17 @@ contains
        
        tot_n_coag = tot_n_coag + n_coag
        if (M .lt. MM / 2) then
-          call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec &
+          call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec &
                ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
        endif
        
        ! NO CONDENSATION IN RESTART RUN
-       call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t, &
+       call condense_particles(n_bin, n_spec, MH, VH, del_t, &
             bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
        ! NO CONDENSATION IN RESTART RUN
        
        ! DEBUG
-       !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,
+       !         call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, bin_r,
        !     &        bin_g, bin_gs, bin_n, dlnr)
        ! DEBUG
        
@@ -147,7 +146,7 @@ contains
             do_print)
        if (do_print) call print_info(time, env%V_comp, n_spec, n_bin, &
             bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
-       if (do_print) call write_state_hybrid(n_bin, TDV, n_spec, MH, &
+       if (do_print) call write_state_hybrid(n_bin, n_spec, MH, &
             VH, env, i_time, time)
        
        call check_event(time, del_t, t_progress, last_progress_time, &

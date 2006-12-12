@@ -151,16 +151,16 @@ contains
     
     integer b, j, s
     
+    bin_g = 0d0
+    bin_gs = 0d0
     do b = 1,n_bin
-       bin_g(b) = 0d0
-       bin_gs(b,:) = 0d0
        do j = 1,MH(b)
           bin_g(b) = bin_g(b) + particle_volume(VH(b)%p(j,:))
           bin_gs(b,:) = bin_gs(b,:) + VH(b)%p(j,:)
        enddo
-       bin_n(b) = MH(b)
     enddo
-    
+    bin_n = MH
+   
   end subroutine moments_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -394,7 +394,6 @@ contains
     call particle_in_bin(new_v_tot, n_bin, bin_v, bn)  ! find new bin
     
     VH(b1)%p(s1,:) = VH(b1)%p(MH(b1),:) ! shift last particle into empty slot
-    
     MH(b1) = MH(b1) - 1          ! decrease length of array
     VH(b2)%p(s2,:) = VH(b2)%p(MH(b2),:) ! same for second particle
     MH(b2) = MH(b2) - 1
@@ -403,7 +402,7 @@ contains
        call exit(2)
     endif
     MH(bn) = MH(bn) + 1          ! increase the length of array
-    if (MH(bn) .gt. size(VH(bn)%p,1)) then
+    if (MH(bn) > size(VH(bn)%p,1)) then
        call enlarge_bin(VH(bn))
     end if
     VH(bn)%p(MH(bn),:) = new_v  ! add the new particle at the end

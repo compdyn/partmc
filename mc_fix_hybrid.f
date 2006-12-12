@@ -126,13 +126,13 @@ contains
        endif
        
        ! NO CONDENSATION IN RESTART RUN
-       call condense_particles(n_bin, n_spec, MH, VH, del_t, &
-            bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+!       call condense_particles(n_bin, n_spec, MH, VH, del_t, &
+!            bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
        ! NO CONDENSATION IN RESTART RUN
        
        ! DEBUG
-       !         call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, bin_r,
-       !     &        bin_g, bin_gs, bin_n, dlnr)
+       call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, bin_r, &
+            bin_g, bin_gs, bin_n, dlnr)
        ! DEBUG
        
        i_time = i_time + 1

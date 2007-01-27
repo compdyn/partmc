@@ -243,10 +243,10 @@ contains
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
     real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(in) :: bin_g(n_bin)  !  volume in bins (m^3)
-    real*8 bin_gs(n_bin,n_spec) !INPUT: species mass in bins
+    real*8, intent(in) :: bin_gs(n_bin,n_spec) !  species mass in bins
     integer, intent(in) :: bin_n(n_bin) !  number in bins (dimensionless)
     real*8, intent(in) :: dlnr          !  bin scale factor
-    type(environ), intent(inout) :: env  ! environment state
+    type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
     
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
@@ -278,7 +278,7 @@ contains
     real*8, intent(in) :: bin_gs_den(n_bin,n_spec)  !  species volume density in bins
     ! (dimensionless)
     real*8, intent(in) :: bin_n_den(n_bin)  !  number density in bins (1/m^3)
-    type(environ), intent(inout) :: env  ! environment state
+    type(environ), intent(in) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
     
     integer k

@@ -447,7 +447,7 @@ contains
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
     real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(out) :: bin_g(n_bin)  !  total mass in bins    (????)
-    real*8 bin_gs(n_bin,n_spec) !OUTPUT: species mass in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species mass in bins
     integer, intent(out) :: bin_n(n_bin) !  number in bins  
     real*8, intent(in) :: dlnr          !  bin scale factor
     

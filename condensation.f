@@ -350,8 +350,13 @@ contains
           call exit(1)
        end if
        
-       if ((abs(delta_x) .lt. x_tol) .and. (abs(delta_f) .lt. f_tol)) exit
-    enddo
+       ! FIXME: gfortran 4.1.1 requires the "then" in the following
+       ! statement, rather than using a single-line "if" statement.
+       if ((abs(delta_x) .lt. x_tol) &
+            .and. (abs(delta_f) .lt. f_tol)) then
+          exit
+       end if
+    end do
 
   end subroutine cond_newt
 

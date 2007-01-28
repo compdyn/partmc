@@ -46,10 +46,6 @@ program run_golovin_fix_hybrid
   type(environ) :: env
   type(material) :: mat
 
-  ! DEBUG
-  integer k
-  ! DEBUG
-
   call init_hybrid(n_spec, MH, VH)
   
   call allocate_material(mat, n_spec)
@@ -74,13 +70,7 @@ program run_golovin_fix_hybrid
      call zero_v(MM, n_spec, V)
      vol_frac(1) = 1d0
      call init_exp(V_0, n_bin, bin_v, bin_r, n_den)
-     do k = 1,n_bin
-        write(*,*) 'run k = ', k, ' n_den = ', n_den(k)
-     end do
      call dist_to_n(MM, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
-     do k = 1,n_bin
-        write(*,*) 'run k = ', k, ' bin_n = ', bin_n(k)
-     end do
      call compute_volumes(n_bin, n_spec, vol_frac, MM, 1, MM, &
           bin_n, bin_v, dlnr, V, M)
      

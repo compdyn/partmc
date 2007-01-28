@@ -43,19 +43,6 @@ contains
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i, sum_e, sum_a, delta_n, i_spec
 
-    write(*,*) '-------------------------------------------------------'
-    write(*,*) 'n_bin = ', n_bin
-    write(*,*) 'n_spec = ', n_spec
-    do k = 1,n_spec
-       write(*,*) 'k = ', k, ' vol_frac = ', vol_frac(k)
-    end do
-    write(*,*) 'MM = ', MM
-    write(*,*) 'i_start = ', i_start
-    write(*,*) 'i_end = ', i_end
-    do k = 1,n_bin
-       write(*,*) 'k = ', k, ' n_ini = ', n_ini(k)
-    end do
-    
     sum_e = i_start - 1
     
     total_vol_frac = 0.d0
@@ -64,17 +51,11 @@ contains
     enddo
     
     do k = 1,n_bin
-       write(*,*) 'k = ', k
        delta_n = n_ini(k)
-       write(*,*) 'delta_n = ', delta_n
        sum_a = sum_e + 1
-       write(*,*) 'sum_a = ', sum_a
        sum_e = sum_e + delta_n
-       write(*,*) 'sum_e = ', sum_e
        call bin_edge(n_bin, bin_v, k, v_low)
-       write(*,*) 'v_low = ', v_low
        call bin_edge(n_bin, bin_v, k + 1, v_high)
-       write(*,*) 'v_high = ', v_high
        do i = sum_a,sum_e
           pv = dble(i - sum_a + 1) / dble(sum_e - sum_a + 2) &
                * (v_high - v_low) + v_low

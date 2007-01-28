@@ -10,18 +10,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine bin_kernel(n_bin, bin_v, kernel, k)
+  subroutine bin_kernel(n_bin, bin_v, kernel, env, k)
+   
+    use mod_environ
     
     ! Computes the kernel for each bin pair
     
     integer, intent(in) :: n_bin            !  number of bins
     real*8, intent(in) :: bin_v(n_bin)      !  volume of particles in bins (m^3)
-    real*8, intent(out) :: k(n_bin,n_bin)    !  kernel values
-    
+    real*8, intent(out) :: k(n_bin,n_bin)   !  kernel values
+    type(environ), intent(in) :: env        ! environment state
+
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -30,7 +35,7 @@ contains
     
     do i = 1,n_bin
        do j = 1,n_bin
-          call kernel(bin_v(i), bin_v(j), k(i,j))
+          call kernel(bin_v(i), bin_v(j), env, k(i,j))
        enddo
     enddo
     
@@ -140,18 +145,24 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, k_max)
-    
+  subroutine est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, env, k_max)
+   
+    use mod_environ
+ 
     integer, intent(in) :: n_bin             !  number of bins
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
     integer, intent(in) :: b1                !  first bin
     integer, intent(in) :: b2                !  second bin
     real*8, intent(out) :: k_max              !  maximum kernel values
+
+    type(environ), intent(in) :: env  ! environment state    
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -177,7 +188,7 @@ contains
                v1_low * dble(i - 1) / dble(n_sample - 1)
           v2 = v2_high * dble(n_sample - j) / dble(n_sample - 1) + &
                v2_low * dble(j - 1) / dble(n_sample - 1)
-          call kernel(v1, v2, k)
+          call kernel(v1, v2, env, k)
           if (k .gt. k_max) k_max = k
        enddo
     enddo
@@ -186,16 +197,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_binned(n_bin, bin_v, kernel, k_max)
+  subroutine est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
+
+    use mod_environ
     
     integer, intent(in) :: n_bin             !  number of bins
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
     real*8, intent(out) :: k_max(n_bin,n_bin) !  maximum kernel values
+    type(environ), intent(in) :: env  ! environment state
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -205,7 +221,7 @@ contains
     do i = 1,n_bin
        do j = 1,n_bin
           call est_k_max_for_bin(n_bin, bin_v, kernel, i, j, &
-               k_max(i,j))
+               env, k_max(i,j))
        enddo
     enddo
     

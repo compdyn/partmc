@@ -52,9 +52,11 @@ contains
     type(material), intent(in) :: mat    ! material properties
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env 
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -86,7 +88,7 @@ contains
     call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
          bin_r, bin_g, bin_gs, bin_n, dlnr)
     
-    call est_k_max_binned(n_bin, bin_v, kernel, k_max)
+    call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
     
     call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
          bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
@@ -114,7 +116,7 @@ contains
                 call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, &
                      env%V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs, &
                      bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
-                     did_coag, bin_change)
+                     env, did_coag, bin_change)
                 if (did_coag) n_coag = n_coag + 1
              enddo
           enddo
@@ -127,8 +129,8 @@ contains
        endif
        
        ! NO CONDENSATION IN RESTART RUN
-       call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t, &
-            bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       !call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t, &
+       !     bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
        ! NO CONDENSATION IN RESTART RUN
        
        ! DEBUG

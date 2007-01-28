@@ -18,9 +18,12 @@
 program run_sedi_ode
   
   use mod_kernel_sedi
+  use mod_environ
   
   real*8 v_small, v_big_init, n_small_init, del_t, t_max, N_0
   integer scal
+  type(environ) :: env                    ! environment state
+
   parameter (v_small = 4.8531435d-15)     ! volume of one small particle
   parameter (v_big_init = 3.94438917d-12) ! init volume of the big particle
   parameter (n_small_init = 9999d0)       ! init number of small particles
@@ -65,6 +68,8 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, V_comp, n_small_dot)
     
+    use mod_environ
+
     real*8, intent(in) :: n_small        !  current number of small particles
     real*8, intent(in) :: v_small        !  volume of one small particle
     real*8, intent(in) :: v_big_init     !  initial volume of the big particle
@@ -75,7 +80,7 @@ contains
     real*8 v_big, k
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
-    call kernel_sedi(v_small, v_big, k)
+    call kernel_sedi(v_small, v_big, env, k)
     n_small_dot = - (k * 1d0/V_comp * n_small)
     
   end subroutine bidisperse_f

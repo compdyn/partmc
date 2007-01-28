@@ -87,7 +87,7 @@ program run_sedi_sect
   call courant(n, dlnr, scal, c, ima, g, r, e)
   
   ! precompute kernel values for all pairs of bins
-  call bin_kernel(n, bin_v, kernel_sedi, k_bin)
+  call bin_kernel(n, bin_v, kernel_sedi, env, k_bin)
   call smooth_bin_kernel(n, k_bin, ck)
   do i = 1,n
      do j = 1,n

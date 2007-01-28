@@ -175,7 +175,7 @@ contains
   
   subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, V_comp, &
        n_spec, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
-       del_t, k_max, kernel, did_coag, bin_change)
+       del_t, k_max, kernel, env, did_coag, bin_change)
     
     ! Choose a random pair for potential coagulation and test its
     ! probability of coagulation. If it happens, do the coagulation and
@@ -183,7 +183,8 @@ contains
     ! taken as (kernel / k_max).
 
     use mod_util
-    
+    use mod_environ
+
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: TDV          !  trailing dimension of VH
@@ -198,6 +199,7 @@ contains
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species mass in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
+    type(environ), intent(in) :: env        ! environment state
     
     integer, intent(in) :: b1           !  bin of first particle
     integer, intent(in) :: b2           !  bin of second particle
@@ -208,9 +210,11 @@ contains
     logical, intent(out) :: bin_change   !  whether bin structure changed
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env 
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -228,7 +232,7 @@ contains
     call find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
     call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b1,s1,pv1)
     call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b2,s2,pv2)
-    call kernel(pv1, pv2, k)
+    call kernel(pv1, pv2, env, k)
     p = k / k_max
     
     if (util_rand() .lt. p) then

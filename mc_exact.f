@@ -46,7 +46,10 @@ contains
     interface
        subroutine soln(n_bin, bin_v, bin_r, &
             bin_g, bin_n, dlnr, &
-            time, N_0, V_0, rho_p, V_comp)
+            time, N_0, V_0, rho_p, V_comp, env)
+
+         use mod_environ
+
          integer, intent(in) :: n_bin             !  number of bins
          real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins
          real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins
@@ -59,6 +62,7 @@ contains
          real*8, intent(in) :: V_0                ! 
          real*8, intent(in) :: rho_p              !  particle density (kg/m^3)
          real*8, intent(in) :: V_comp             !  computational volume
+         type(environ), intent(in) :: env         ! environment state
        end subroutine soln
     end interface
     
@@ -66,7 +70,7 @@ contains
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * dble(t_max)
        call soln(n_bin, bin_v, bin_r, bin_g, bin_n, dlnr, &
-            time, N_0, V_0, rho_p, V_comp)
+            time, N_0, V_0, rho_p, V_comp, env)
        
        do i=1,n_bin
           bin_gs(i,1) = bin_g(i)

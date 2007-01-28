@@ -111,10 +111,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel, &
+  subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel, env, &
        s1, s2)
     
     use mod_util
+    use mod_environ
 
     integer, intent(in) :: MM      !  physical dimension of V
     integer, intent(in) :: M       !  logical dimension of V
@@ -122,11 +123,14 @@ contains
     real*8, intent(in) :: max_k    !  maximum value of the kernel (m^3 s^(-1))
     integer, intent(out) :: s1  !  s1 and s2 are not equal, random
     integer, intent(out) :: s2  !  particles with V(s1/s2) != 0
-
+    type(environ), intent(in) :: env        ! environment state
+    
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -135,7 +139,7 @@ contains
     
 200 continue
     call find_rand_pair(M, s1, s2) ! test particles s1, s2
-    call kernel(V(s1), V(s2), k)
+    call kernel(V(s1), V(s2), env, k)
     p = k / max_k     ! collision probability   
     if (util_rand() .gt. p ) goto 200
     
@@ -233,9 +237,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
   subroutine maybe_coag_pair(MM, M, V, V_comp, n_spec, &
        n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
-       del_t, n_samp, kernel, did_coag, bin_change)
+       del_t, n_samp, kernel, env, did_coag, bin_change)
     
     use mod_util
+    use mod_environ
 
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
@@ -256,11 +261,14 @@ contains
     ! external, intent(in) :: kernel      !  kernel function
     logical, intent(out) :: did_coag     !  whether a coagulation occured
     logical, intent(out) :: bin_change   !  whether bin structure changed
+    type(environ), intent(in) :: env        ! environment state
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env 
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -272,7 +280,7 @@ contains
     call find_rand_pair(M, s1, s2) ! test particles s1, s2
     call particle_vol(MM,n_spec,V,s1,pv1)
     call particle_vol(MM,n_spec,V,s2,pv2)
-    call kernel(pv1, pv2, k)
+    call kernel(pv1, pv2, env, k)
     p = k * 1d0/V_comp * del_t *  &
          (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
     bin_change = .false.
@@ -338,18 +346,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max(n_bin, bin_v, bin_n, kernel, k_max)
-    
+  subroutine est_k_max(n_bin, bin_v, bin_n, kernel, env, k_max)
+   
+    use mod_environ
+ 
     integer, intent(in) :: n_bin         !  number of bins
     real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
     integer, intent(in) :: bin_n(n_bin)  !  number in each bin
     ! external, intent(in) :: kernel       !  kernel function
     real*8, intent(out) :: k_max          !  maximum kernel value
+    type(environ), intent(in) :: env        ! environment state
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -378,7 +391,7 @@ contains
        if (use_bin(i)) then
           do j = 1,i
              if (use_bin(j)) then
-                call kernel(bin_v(i), bin_v(j), k)
+                call kernel(bin_v(i), bin_v(j), env, k)
                 if (k .gt. k_max) then
                    k_max = k
                 endif
@@ -392,18 +405,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, k_avg)
-    
+  subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, env, k_avg)
+   
+    use mod_environ
+ 
     integer, intent(in) :: n_bin         !  number of bins
     real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
     integer, intent(in) :: bin_n(n_bin)  !  number in each bin
     ! external, intent(in) :: kernel       !  kernel function
     real*8, intent(out) :: k_avg          !  average kernel value
+    type(environ), intent(in) :: env        ! environment state
     
     interface
-       subroutine kernel(v1, v2, k)
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
+         type(environ), intent(in) :: env
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -417,7 +435,7 @@ contains
        if (bin_n(i) .gt. 0) then
           do j = 1,n_bin
              if (bin_n(j) .gt. 0) then
-                call kernel(bin_v(i), bin_v(j), k)
+                call kernel(bin_v(i), bin_v(j), env, k)
                 k_avg = k_avg + k *  dble(bin_n(i)) * dble(bin_n(j))
                 div = div + bin_n(i) * bin_n(j)
              endif

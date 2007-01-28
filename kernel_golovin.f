@@ -10,16 +10,19 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine kernel_golovin(a, b, k)
+  subroutine kernel_golovin(v1, v2, env, k)
+
+    use mod_environ
     
-    real*8, intent(in) :: a  !  volume of first particle
-    real*8, intent(in) :: b  !  volume of second particle
+    real*8, intent(in) :: v1  !  volume of first particle
+    real*8, intent(in) :: v2  !  volume of second particle
     real*8, intent(out) :: k  !  coagulation kernel
     
     real*8 beta_1
     parameter (beta_1 = 1000d0)
+    type(environ), intent(in) :: env  ! environment state
     
-    k = beta_1 * (a + b)
+    k = beta_1 * (v1 + v2)
     
   end subroutine kernel_golovin
   
@@ -27,7 +30,9 @@ contains
   
   subroutine soln_golovin_exp(n_bin, bin_v, bin_r, &
        bin_g, bin_n, dlnr, &
-       time, N_0, V_0, rho_p, V_comp)
+       time, N_0, V_0, rho_p, V_comp, env)
+
+    use mod_environ
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -41,6 +46,8 @@ contains
     real*8, intent(in) :: V_0           ! 
     real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
     real*8, intent(in) :: V_comp        !  computational volume
+
+    type(environ), intent(in) :: env  ! environment state
     
     real*8 beta_1, tau, T, rat_v, nn, b, x
     integer k
@@ -48,7 +55,7 @@ contains
     real*8 pi
     parameter (pi = 3.14159265358979323846d0)
     
-    call kernel_golovin(1d0, 0d0, beta_1)
+    call kernel_golovin(1d0, 0d0, env, beta_1)
     
     if (time .eq. 0d0) then
        do k = 1,n_bin

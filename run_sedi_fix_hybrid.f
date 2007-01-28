@@ -58,13 +58,13 @@ program run_sedi_fix_hybrid
   mat%i_water = 3
   mat%rho = (/ 2165d0, 2650d0, 1000d0 /)
   mat%nu = (/ 2, 2, 0 /)
-  mat%eps = (/ 1d0, 0.05d0, 0d0 /)
+  mat%eps = (/ 1d0, 0.5d0, 0d0 /)
   mat%M_w = (/ 58.44d-3, 60.08d-3, 18d-3 /)
   
   env%T = 288d0        ! (K)
   env%RH = 0.999d0      ! (1)
   env%p = 1d5          ! (Pa)
-  env%dTdt = -0.02d0   ! (K s^{-1})
+  env%dTdt = -0.01d0   ! (K s^{-1})
   open(30,file='out_sedi_fix_hybrid.d')
   
   call print_header(n_loop, n_bin, n_spec,  &

@@ -14,26 +14,28 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine kernel_sedi(v1, v2, k)
+  subroutine kernel_sedi(v1, v2, env, k)
+
+    use mod_environ
+    use mod_constants
     
     real*8, intent(in) :: v1 !  volume of first particle (m^3)
     real*8, intent(in) :: v2 !  volume of second particle (m^3)
     real*8, intent(out) :: k  !  kernel k(a,b) (m^3/s)
     
-    real*8 const, onethird
+    real*8 constant, onethird
     real*8 r1, r2, winf1, winf2, ec
+
+    type(environ), intent(in) :: env  ! environment state
     
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-    
-    const = 3d0 / (4d0 * pi)
+    constant = 3d0 / (4d0 * const%pi)
     onethird  = 1d0/3d0
-    r1 = (const*v1)**onethird ! m
-    r2 = (const*v2)**onethird ! m
+    r1 = (constant*v1)**onethird ! m
+    r2 = (constant*v2)**onethird ! m
     call fall_g(r1, winf1) ! winf1 in m/s
     call fall_g(r2, winf2) ! winf2 in m/s
     call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
-    k = ec * pi * (r1 + r2)**2 * abs(winf1 - winf2) 
+    k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
     return
   end subroutine kernel_sedi
   

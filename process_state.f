@@ -31,13 +31,13 @@ program process_state
   real*8 :: bin_v(n_bin)     ! volume of particles in bins
   real*8 :: bin_r(n_bin)     ! radius of particles in bins
   real*8 :: dlnr             ! bin scale factor
-  real*8 :: bin_g(n_bin)     ! mass in bins
-  real*8 :: bin_gs(n_bin,n_spec) ! species mass in bins
+  real*8 :: bin_g(n_bin)     ! volume in bins
+  real*8 :: bin_gs(n_bin,n_spec) ! species volume in bins
   integer :: bin_n(n_bin)    ! number in bins
   integer :: bin_n_2d(n_bin,n_bin) ! 2D species number distribution
-  real*8 :: bin_g_2d(n_bin,n_bin) ! 2D species mass distribution
+  real*8 :: bin_g_2d(n_bin,n_bin) ! 2D species volume distribution
   integer :: bin_n_mixed(n_bin,3) ! species number by composition
-  real*8 :: bin_g_mixed(n_bin,3) ! species mass by composition
+  real*8 :: bin_g_mixed(n_bin,3) ! species volume by composition
   character :: filename*100  ! input filename
   character :: basename*100  ! basename of the input filename
   integer :: comp_n(n_comp)  ! number in composition bins
@@ -125,10 +125,8 @@ contains
     integer, intent(in) :: spec_2     ! second species
     integer, intent(out) :: bin_n_2d(n_bin,n_bin) ! 2D species number
                                                   ! distribution
-    real*8, intent(out) :: bin_g_2d(n_bin,n_bin)  ! 2D species mass
+    real*8, intent(out) :: bin_g_2d(n_bin,n_bin)  ! 2D species volume
                                                   ! distribution
-    
-    ! FIXME: is bin_g_2d a mass or volume?
 
     integer :: i, j, b1, b2
     
@@ -200,7 +198,7 @@ contains
     integer, intent(in) :: spec_2     ! second species
     real*8, intent(in) :: cutoff_frac ! fraction to count as mixed
     integer, intent(out) :: bin_n_mixed(n_bin,3) ! species number by composition
-    real*8, intent(out) :: bin_g_mixed(n_bin,3) ! species mass by composition
+    real*8, intent(out) :: bin_g_mixed(n_bin,3) ! species volume by composition
     
     integer :: i, j, b, k
     real*8 :: comp, pv
@@ -237,8 +235,8 @@ contains
     integer, intent(in) :: n_bin           ! number of bins
     integer, intent(in) :: n_spec          ! number of species
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
-    real*8, intent(in) :: bin_g(n_bin)     ! mass in bins
-    real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species mass in bins
+    real*8, intent(in) :: bin_g(n_bin)     ! volume in bins
+    real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(in) :: bin_n(n_bin)    ! number in bins
     
     integer, parameter :: f_out = 20
@@ -271,7 +269,7 @@ contains
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
     integer, intent(in) :: bin_n_2d(n_bin,n_bin) ! 2D species number
                                                  ! distribution
-    real*8, intent(in) :: bin_g_2d(n_bin,n_bin)  ! 2D species mass distribution
+    real*8, intent(in) :: bin_g_2d(n_bin,n_bin)  ! 2D species volume distribution
     
     integer, parameter :: f_out = 20
     
@@ -332,7 +330,7 @@ contains
     integer, intent(in) :: n_bin           ! number of bins
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
     integer, intent(in) :: bin_n_mixed(n_bin,3) ! species number by composition
-    real*8, intent(in) :: bin_g_mixed(n_bin,3) ! species mass by composition
+    real*8, intent(in) :: bin_g_mixed(n_bin,3) ! species volume by composition
     
     integer, parameter :: f_out = 20
     

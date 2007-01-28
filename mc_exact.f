@@ -26,7 +26,7 @@ contains
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: bin_v(n_bin)  ! volume of bins
     real*8, intent(in) :: bin_r(n_bin)  ! radius of bins
-    real*8, intent(out) :: bin_g(n_bin)  ! mass in bins
+    real*8, intent(out) :: bin_g(n_bin)  ! volume in bins
     integer, intent(out) :: bin_n(n_bin) ! number in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! number in bins by species
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -53,7 +53,7 @@ contains
          integer, intent(in) :: n_bin             !  number of bins
          real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins
          real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins
-         real*8, intent(out) :: bin_g(n_bin)       !  mass in bins
+         real*8, intent(out) :: bin_g(n_bin)       !  volume in bins
          integer, intent(out) :: bin_n(n_bin)      !  number in bins
          real*8, intent(in) :: dlnr               !  bin scale factor
          

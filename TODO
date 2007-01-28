@@ -1,3 +1,32 @@
+make deps isn't happening automatically
+
+Fix mc_exact to also use the t_print = 0d0 convention to not print.
+
+Stop using magic file number 30 for the output file.
+
+Add a "make test" to run everything and compare the output files of
+various things.
+
+Rename t_print to t_output and t_progress to t_print
+
+Change endif/enddo to end if/end do
+
+Change copyrights to include 2007
+
+Make sure all functions have a description at the top of them
+
+Reformat parameter description comments and remove double spaces
+
+Add restart arguments to mc_fix_hybrid to get it to restart
+
+Add do_coagulation and do_condensation parameters to mc_fix_hybrid to
+tell it whether to do each process.
+
+Remove dT/dt from env and pass mc_fix_hybrid a list of times and
+temps, so that it can do linear interpolation to set the
+temperature. Write a function in util.f to actually do the linear
+interpolation.
+
 Rename bin_r, bin_v, bin_g, bin_n to make it clear that bin_r/bin_v
 are the independent variables, while bin_g/bin_n are the dependent
 variables.
@@ -11,6 +40,8 @@ Write vol2rad() and rad2vol() in util.f
 Change init_exp() to return a floating-point concentration curve
 rather than actual number. Let compute_volumes handle the conversion
 to integer.
+
+deps: should be changed to Makefile.deps: in Makefile
 
 Add adaptive timestepping for the condensation ODE solver.
 

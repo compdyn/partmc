@@ -33,7 +33,8 @@ program run_sedi_fix_hybrid
   real*8, parameter :: N_0 = 1d9     ! particle number concentration (#/m^3)
   
   real*8, parameter :: t_max = 800d0 ! total simulation time (seconds)
-  real*8, parameter :: t_print = 100d0 ! interval between printing (s)
+  real*8, parameter :: t_print = 100d0 ! interval between output (s)
+  real*8, parameter :: t_state = 0d0 ! interval between state output (s)
   real*8, parameter :: t_progress = 1d0 ! interval between progress (s)
   real*8, parameter :: del_t = 1d0   ! timestep (s)
 
@@ -79,7 +80,7 @@ program run_sedi_fix_hybrid
      call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
      call zero_v(MM,n_spec,V)
      
-     ! n *** initialize first distribution
+     ! initialize first distribution
      call init_log_normal(MM_1, d_mean1, log_sigma1, dlnr, n_bin, &
           bin_v, bin_r, n_ini)
      vol_frac(1) = 1d0
@@ -88,7 +89,7 @@ program run_sedi_fix_hybrid
      call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1, &
           n_ini, bin_v, dlnr, V, M1)
      
-     ! n *** initialise second distribution
+     ! initialise second distribution
      call init_log_normal(MM-MM_1, d_mean2, log_sigma2, dlnr, n_bin, &
           bin_v, bin_r, n_ini)
      vol_frac(1) = 0d0
@@ -105,9 +106,9 @@ program run_sedi_fix_hybrid
      enddo
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr , &
-          kernel_sedi, t_max, t_print, t_progress ,del_t, i_loop, &
-          env, mat)
-     
+          kernel_sedi, t_max, t_print, t_state, t_progress, &
+          del_t, i_loop, env, mat)
+
   enddo
   
 end program run_sedi_fix_hybrid

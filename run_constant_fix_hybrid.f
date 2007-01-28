@@ -33,9 +33,10 @@ program run_constant_fix_hybrid
   real*8, parameter :: V_0 = 4.1886d-15 ! mean volume of initial
                                         ! distribution (m^3)
   
-  real*8, parameter :: t_max = 480d0  ! total simulation time (seconds)
-  real*8, parameter :: t_print = 60d0 ! interval between printing (s)
-  real*8, parameter :: t_progress = 1d0 ! interval between progress (s)
+  real*8, parameter :: t_max = 480d0 ! total simulation time (seconds)
+  real*8, parameter :: t_print = 60d0 ! interval between output (s)
+  real*8, parameter :: t_state = 0d0 ! interval between state output (s)
+  real*8, parameter :: t_progress = 1d0 ! interval between progress printing (s)
   real*8, parameter :: del_t = 1d0   ! timestep (s)
   
   integer M, M1, M2, i_loop, i
@@ -81,7 +82,7 @@ program run_constant_fix_hybrid
      env%V_comp = dble(M) / N_0
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr , &
-          kernel_constant, t_max, t_print, t_progress ,del_t, &
+          kernel_constant, t_max, t_print, t_state, t_progress ,del_t, &
           i_loop, env, mat)
      
   enddo

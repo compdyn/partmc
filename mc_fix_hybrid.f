@@ -13,7 +13,7 @@ contains
   subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, &
        MH, VH, &
        bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
-       kernel, t_max, t_print, &
+       kernel, t_max, t_print, t_state, &
        t_progress, del_t, loop, env, mat)
     
     use mod_util
@@ -41,8 +41,9 @@ contains
     real*8, intent(in) :: dlnr               !  bin scale factor
     
     real*8, intent(in) :: t_max              !  final time (seconds)
-    real*8, intent(in) :: t_print            !  interval to output data (seconds)
-    real*8, intent(in) :: t_progress         !  interval to print progress (seconds)
+    real*8, intent(in) :: t_print            !  interval to output data, or zero to not output (seconds)
+    real*8, intent(in) :: t_state            !  interval to output state, or zero to not output (seconds)
+    real*8, intent(in) :: t_progress         !  interval to print progress, or zero to not print (seconds)
     real*8, intent(in) :: del_t              !  timestep for coagulation
     
     integer, intent(in) :: loop              !  loop number of run
@@ -58,14 +59,14 @@ contains
        end subroutine kernel
     end interface
     
-    real*8 time, last_print_time, last_progress_time
+    real*8 time, last_print_time, last_state_time, last_progress_time
     real*8 k_max(n_bin, n_bin), n_samp_real
     integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
-    logical do_print, do_progress, did_coag, bin_change
+    logical do_print, do_state, do_progress, did_coag, bin_change
     real*8 t_start, t_wall_start, t_wall_now, t_wall_est
     integer i_time
     character*100 filename
-    
+
     i_time = 0
     time = 0d0
     tot_n_coag = 0
@@ -86,15 +87,21 @@ contains
          bin_r, bin_g, bin_gs, bin_n, dlnr)
     
     call est_k_max_binned(n_bin, bin_v, kernel, k_max)
-    
-    call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
-         bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
-    call write_state_hybrid(n_bin, n_spec, MH, VH, env, i_time, &
-         time)
+
+    if (t_print > 0d0) then
+       call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
+            bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+    end if
+
+    if (t_state > 0d0) then
+       call write_state_hybrid(n_bin, n_spec, MH, VH, env, i_time, &
+            time)
+    end if
     
     call cpu_time(t_wall_start)
     t_start = time
     last_progress_time = time
+    last_state_time = time
     last_print_time = time
     do while (time < t_max)
        tot_n_samp = 0
@@ -137,29 +144,40 @@ contains
        
        i_time = i_time + 1
        time = time + del_t
+
+       ! FIXME: change to linear interpolation
        call change_temp(env, del_t)
        if (time .ge. 1200d0) then
           env%dTdt = 0d0
        endif
+
+       if (t_print > 0d0) then
+          call check_event(time, del_t, t_print, last_print_time, &
+               do_print)
+          if (do_print) call print_info(time, env%V_comp, n_spec, n_bin, &
+               bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       end if
+
+       if (t_state > 0d0) then
+          call check_event(time, del_t, t_state, last_state_time, &
+               do_state)
+          if (do_state) call write_state_hybrid(n_bin, n_spec, MH, &
+               VH, env, i_time, time)
+       end if
        
-       call check_event(time, del_t, t_print, last_print_time, &
-            do_print)
-       if (do_print) call print_info(time, env%V_comp, n_spec, n_bin, &
-            bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
-       if (do_print) call write_state_hybrid(n_bin, n_spec, MH, &
-            VH, env, i_time, time)
-       
-       call check_event(time, del_t, t_progress, last_progress_time, &
-            do_progress)
-       if (do_progress) then
-          call cpu_time(t_wall_now)
-          t_wall_est = (t_max - time) * (t_wall_now - t_wall_start) &
-               / (time - t_start)
-          write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M', &
-               'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-          write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M, &
-               tot_n_samp, n_coag, tot_n_coag, t_wall_est
-       endif
+       if (t_progress > 0d0) then
+          call check_event(time, del_t, t_progress, last_progress_time, &
+               do_progress)
+          if (do_progress) then
+             call cpu_time(t_wall_now)
+             t_wall_est = (t_max - time) * (t_wall_now - t_wall_start) &
+                  / (time - t_start)
+             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M', &
+                  'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
+             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M, &
+                  tot_n_samp, n_coag, tot_n_coag, t_wall_est
+          end if
+       end if
        
     enddo
     

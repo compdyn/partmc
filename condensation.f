@@ -349,7 +349,10 @@ contains
           call exit(1)
        end if
        
-       if ((abs(delta_x) .lt. x_tol) .and. (abs(delta_f) .lt. f_tol)) exit
+       if ((abs(delta_x) .lt. x_tol) &
+            .and. (abs(delta_f) .lt. f_tol)) then
+          exit
+       end if
     enddo
 
   end subroutine cond_newt

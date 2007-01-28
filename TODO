@@ -1,3 +1,5 @@
+Fix up initialization with n_den, n_ini and bin_n
+
 make deps isn't happening automatically
 
 Fix mc_exact to also use the t_print = 0d0 convention to not print.

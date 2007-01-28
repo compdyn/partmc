@@ -42,7 +42,7 @@ program run_golovin_fix_hybrid
   type(bin_p) VH(n_bin)
   real*8 bin_v(n_bin), bin_r(n_bin), n_den(n_bin)
   real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
-  integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
+  integer bin_n(n_bin), MH(n_bin)
   type(environ) :: env
   type(material) :: mat
 
@@ -82,7 +82,7 @@ program run_golovin_fix_hybrid
         write(*,*) 'run k = ', k, ' bin_n = ', bin_n(k)
      end do
      call compute_volumes(n_bin, n_spec, vol_frac, MM, 1, MM, &
-          n_ini,bin_v, dlnr, V, M)
+          bin_n, bin_v, dlnr, V, M)
      
      env%V_comp = dble(M) / N_0
      

@@ -38,6 +38,8 @@ contains
        bin_v, n_ini)
     
     ! FIXME: make this return a number density
+
+    use mod_util
     
     integer, intent(in) :: MM           !  physical dimension of V
     real*8, intent(in) :: d_mean        !  mean diameter of initial distribution (m)
@@ -95,6 +97,7 @@ contains
     ! n(v) = N_0 / V_0 exp(- v / V_0)
     
     use mod_bin
+    use mod_util
     
     real*8, intent(in) :: V_0           !  mean volume of initial distribution (m^3)
     integer, intent(in) :: n_bin        !  number of bins
@@ -106,7 +109,7 @@ contains
     
     do k = 1,n_bin
        n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
-       call vol_to_lnr(n_den_vol, n_den(k))
+       call vol_to_lnr(vol2rad(bin_v(k)),n_den_vol, n_den(k))
     enddo
     
   end subroutine init_exp

@@ -33,6 +33,7 @@ contains
        time, N_0, V_0, rho_p, V_comp, env)
 
     use mod_environ
+    use mod_util
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins

@@ -278,6 +278,7 @@ contains
     
     use mod_material
     use mod_environ
+    use mod_util
     
     real*8, intent(in) :: time              !  simulation time
     

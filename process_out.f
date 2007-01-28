@@ -44,6 +44,7 @@ program process_out
   character dum*100, n_loop_str*10, n_time_str*10
   
   real*8 time(n_loop_max, n_time_max), time_avg(n_time_max)
+  real*8 bin_r(n_bin_max)
   real*8 bin_g(n_loop_max, n_time_max, n_bin_max)
   real*8 bin_gs(n_loop_max, n_time_max, n_bin_max, n_spec_max)
   real*8 n(n_loop_max, n_time_max, n_bin_max)
@@ -155,7 +156,7 @@ program process_out
         read(f_in, '(a10,e20.10)') dum, temp(i_loop, i_time)
         read(f_in, '(a10,e20.10)') dum, rh(i_loop, i_time)
         do i_bin = 1,n_bin
-           read(f_in, '(i10,50e20.10)') i, vol2rad(bin_v(i_bin)), &
+           read(f_in, '(i10,50e20.10)') i, bin_r(i_bin), &
                 n(i_loop, i_time, i_bin), &
                 bin_g(i_loop, i_time, i_bin), &
                 (bin_gs(i_loop,i_time, i_bin, i_spec), &
@@ -213,10 +214,10 @@ program process_out
      write(f_out_mass, '(//,a10,i10)') 'time', i_time - 1
      do i_bin = 1,n_bin
         write(f_out_num, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-             i_bin, vol2rad(bin_v(i_bin)), &
+             i_bin, bin_r(i_bin), &
              (n(i_loop, i_time, i_bin), i_loop = 1,n_loop)
         write(f_out_mass, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-             i_bin, vol2rad(bin_v(i_bin)), &
+             i_bin, bin_r(i_bin), &
              (bin_g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
      enddo
      do i_spec = 1,n_spec
@@ -224,7 +225,7 @@ program process_out
         write(f_out_mass,*)
         do i_bin=1,n_bin
            write(f_out_mass, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-                i_bin, vol2rad(bin_v(i_bin), &
+                i_bin, bin_r(i_bin), &
                 (bin_gs(i_loop, i_time, i_bin,i_spec) &
                 ,i_loop =1,n_loop)
         enddo
@@ -234,10 +235,10 @@ program process_out
   ! output averaged number and mass data
   do i_bin = 1,n_bin
      write(f_out_num_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-          i_bin, vol2rad(bin_v(i_bin)), &
+          i_bin, bin_r(i_bin), &
           (n_avg(i_time, i_bin), i_time = 1,n_time)
      write(f_out_mass_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-          i_bin, vol2rad(bin_v(i_bin)), &
+          i_bin, bin_r(i_bin), &
           (g_avg(i_time, i_bin), i_time = 1,n_time)
   enddo
   do i_spec = 1,n_spec
@@ -245,7 +246,7 @@ program process_out
      write(f_out_mass_avg,*)
      do i_bin=1,n_bin
         write(f_out_mass_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-             i_bin, vol2rad(bin_v(i_bin)), &
+             i_bin, bin_r(i_bin), &
              (gs_avg(i_time, i_bin,i_spec),i_time =1,n_time)
      enddo
   enddo

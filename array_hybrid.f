@@ -306,7 +306,8 @@ contains
     
   end subroutine maybe_coag_pair_hybrid
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
     
     ! Find a random pair of particles (b1, s1) and (b2, s2).
@@ -369,12 +370,12 @@ contains
     
     integer bn, i, j
     real*8 new_v(n_spec), pv1, pv2, new_v_tot
-    
+
     bin_change = .false.
     
     pv1 = particle_volume(VH(b1)%p(s1,:))
     pv2 = particle_volume(VH(b2)%p(s2,:))
-    
+
     ! remove s1 and s2 from bins
     bin_n(b1) = bin_n(b1) - 1
     bin_n(b2) = bin_n(b2) - 1
@@ -386,21 +387,27 @@ contains
        write(*,*)'ERROR: invalid bin_n'
        call exit(2)
     endif
-    
+
     ! do coagulation in MH, VH arrays
     new_v(:) = VH(b1)%p(s1,:) + VH(b2)%p(s2,:)   ! add particle volumes
     new_v_tot = sum(new_v)
-    
+
     call particle_in_bin(new_v_tot, n_bin, bin_v, bn)  ! find new bin
-    
-    VH(b1)%p(s1,:) = VH(b1)%p(MH(b1),:) ! shift last particle into empty slot
-    MH(b1) = MH(b1) - 1          ! decrease length of array
-    VH(b2)%p(s2,:) = VH(b2)%p(MH(b2),:) ! same for second particle
-    MH(b2) = MH(b2) - 1
+
+    ! handle a tricky corner case
+    if ((b1 .eq. b2) .and. (s2 .eq. MH(b2))) then
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1)-1,:)
+       MH(b1) = MH(b1) - 2
+    else
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1),:) ! shift last particle into empty slot
+       MH(b1) = MH(b1) - 1                 ! decrease length of array
+       VH(b2)%p(s2,:) = VH(b2)%p(MH(b2),:) ! same for second particle
+       MH(b2) = MH(b2) - 1
+    end if
     if ((MH(b1) .lt. 0) .or. (MH(b2) .lt. 0)) then
        write(*,*)'ERROR: invalid MH'
        call exit(2)
-    endif
+    end if
     MH(bn) = MH(bn) + 1          ! increase the length of array
     if (MH(bn) > size(VH(bn)%p,1)) then
        call enlarge_bin(VH(bn))
@@ -412,7 +419,7 @@ contains
     bin_n(bn) = bin_n(bn) + 1
     bin_g(bn) = bin_g(bn) + sum(VH(bn)%p(MH(bn),:))
     bin_gs(bn,:) = bin_gs(bn,:) + VH(bn)%p(MH(bn),:)
-    
+
     ! did we empty a bin?
     if ((bin_n(b1) .eq. 0) .or. (bin_n(b2) .eq. 0)) &
          bin_change = .true.
@@ -423,7 +430,7 @@ contains
     ! possibly repack memory
     call shrink_bin(MH(b1), VH(b1))
     call shrink_bin(MH(b2), VH(b2))
-    
+
   end subroutine coagulate_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -495,7 +502,7 @@ contains
     integer, intent(out) :: bin_n(n_bin)      !  number in bins
     real*8, intent(in) :: dlnr               !  bin scale factor
     
-    real*8 pv, check_bin_g, check_bin_gs(n_spec)
+    real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
     integer i, k, k_check, M_check, s
     logical error
     
@@ -541,7 +548,8 @@ contains
           pv = particle_volume(VH(k)%p(i,:))
           check_bin_g = check_bin_g + pv
        enddo
-       if (.not. almost_equal(check_bin_g, bin_g(k))) then
+       vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
+       if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
           write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
           write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
           error = .true.
@@ -550,9 +558,11 @@ contains
     
     ! check the bin_gs array
     do k = 1,n_bin
-       check_bin_gs = sum(VH(k)%p, 1)
+       check_bin_gs = sum(VH(k)%p(1:MH(k),:), 1)
+       vol_tol = bin_v(k) / 1d3 ! abs tolerance 1e3 less than single particle
        do s = 1,n_spec
-          if (.not. almost_equal(check_bin_gs(s), bin_gs(k,s))) then
+          if (.not. almost_equal_abs(check_bin_gs(s), bin_gs(k,s), &
+                                     vol_tol)) then
              write(*,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
                   'bin_gs(k,s)'
              write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
@@ -566,8 +576,6 @@ contains
        write(*,*) 'ERROR: check_hybrid() failed'
        call exit(2)
     endif
-    
-    write(*,*) 'check_hybrid() successful'
     
   end subroutine check_hybrid
   

@@ -27,10 +27,10 @@ program run_golovin_fix_hybrid
   integer, parameter :: n_loop = 10     ! number of loops
   integer, parameter :: scal = 3        ! scale factor for bins
   
-  real*8, parameter :: t_max = 1300d0   ! total simulation time (seconds)
-  real*8, parameter :: t_print = 100d0  ! interval between output (s)
+  real*8, parameter :: t_max = 600d0   ! total simulation time (seconds)
+  real*8, parameter :: t_print = 60d0  ! interval between output (s)
   real*8, parameter :: t_state = 0d0    ! interval between state output (s)
-  real*8, parameter :: t_progress = 100d0 ! interval between progress (s)
+  real*8, parameter :: t_progress = 60d0 ! interval between progress (s)
   real*8, parameter :: del_t = 1d0      ! timestep (s)
   
   real*8, parameter :: v_min = 1d-24    ! minimum volume (m^3) for making grid
@@ -60,7 +60,7 @@ program run_golovin_fix_hybrid
   env%p = 1d5          ! (Pa)
   env%dTdt = -0.01d0   ! (K s^{-1})
   
-  open(30,file='out_golovin_fix.d')
+  open(30,file='out_golovin_fix_hybrid.d')
   call print_header(n_loop, n_bin, n_spec, nint(t_max / t_print) + 1)
   call srand(10)
 

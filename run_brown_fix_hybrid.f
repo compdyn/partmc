@@ -48,7 +48,7 @@ program run_brown_fix_hybrid
   
   integer M, M1, M2, i_loop, i
   real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
-  real*8 bin_v(n_bin)
+  real*8 bin_v(n_bin), n_den(n_bin)
   real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
   integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
   type(environ) :: env
@@ -66,28 +66,28 @@ program run_brown_fix_hybrid
   env%p = 1d5          ! (Pa)
   env%dTdt = -0.00d0   ! (K s^{-1})
   open(30,file='out_brown_fix_hybrid.d')
-  
+
   call print_header(n_loop, n_bin, n_spec,  &
        nint(t_max / t_print) + 1)
   call srand(17)
   !call srand(time())
   do i_loop = 1,n_loop
-     
      call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
      call zero_v(MM,n_spec,V)
      
      ! n *** initialize first distribution
-     call init_log_normal(MM_1, d_mean1, log_sigma1, dlnr, n_bin, &
-          bin_v, n_ini)
+     call init_log_normal(d_mean1, log_sigma1, n_bin, &
+          bin_v, n_den)
+     call dist_to_n(MM_1, dlnr, n_bin, bin_v, n_den, n_ini)
      vol_frac(1) = 1d0
      vol_frac(2) = 0d0
      vol_frac(3) = 0d0
      call compute_volumes(n_bin, n_spec, vol_frac, MM, 1,MM_1, &
           n_ini, bin_v, dlnr, V, M1)
-     
      ! n *** initialise second distribution
-     call init_log_normal(MM-MM_1, d_mean2, log_sigma2, dlnr, n_bin, &
-          bin_v, n_ini)
+     call init_log_normal(d_mean2, log_sigma2, n_bin, &
+          bin_v, n_den)
+     call dist_to_n(MM-MM_1, dlnr, n_bin, bin_v, n_den, n_ini)
      vol_frac(1) = 0d0
      vol_frac(2) = 1d0
      vol_frac(3) = 0d0

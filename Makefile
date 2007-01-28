@@ -11,7 +11,7 @@ ifeq ($(FC),gfortran)
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -O -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
+  FFLAGS = -O -g -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
   LDFLAGS = 
 endif
 ifeq ($(FC),pgf95)

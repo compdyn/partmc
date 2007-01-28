@@ -29,7 +29,6 @@ program process_state
   type(material) :: mat      ! material properties
   real*8 :: time             ! current time (s)
   real*8 :: bin_v(n_bin)     ! volume of particles in bins
-  real*8 :: bin_r(n_bin)     ! radius of particles in bins
   real*8 :: dlnr             ! bin scale factor
   real*8 :: bin_g(n_bin)     ! volume in bins
   real*8 :: bin_gs(n_bin,n_spec) ! species volume in bins
@@ -46,11 +45,11 @@ program process_state
 
   call read_state(filename, n_bin, TDV, n_spec, MH, VH, env, time)
 
-  call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
+  call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
 
   call allocate_material(mat, n_spec)
   
-  call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, bin_r, &
+  call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr)
   call write_moments(basename, n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n)
 

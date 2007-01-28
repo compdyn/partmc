@@ -35,7 +35,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine init_log_normal(MM, d_mean, log_sigma, dlnr, n_bin, &
-       bin_v, bin_r, n_ini)
+       bin_v, n_ini)
     
     ! FIXME: make this return a number density
     
@@ -46,7 +46,6 @@ contains
     real*8, intent(in) :: dlnr          !  bin scale factor
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     integer, intent(out) :: n_ini(n_bin) !  initial number distribution
     
     real*8 pi
@@ -56,7 +55,7 @@ contains
     
     do k = 1,n_bin
        n_ini(k) = int(dble(MM) / (sqrt(2d0 * pi) * log_sigma) * &
-            dexp(-(dlog10(bin_r(k)) - dlog10(d_mean/2d0))**2d0 &
+            dexp(-(dlog10(vol2rad(bin_v(k))) - dlog10(d_mean/2d0))**2d0 &
             / (2d0 * log_sigma**2d0)) * dlnr / dlog(10d0))
     enddo
     
@@ -68,7 +67,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine dist_to_n(N, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
+  subroutine dist_to_n(N, dlnr, n_bin, bin_v, n_den, bin_n)
     
     ! Convert a number density (in ln(r)) to actual number of particles
     ! in each bin.
@@ -77,7 +76,6 @@ contains
     real*8, intent(in) :: dlnr          !  bin scale factor
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(in) :: n_den(n_bin)  !  initial number density (#(ln(r))d(ln(r)))
     integer, intent(out) :: bin_n(n_bin) !  number distribution
     
@@ -91,7 +89,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_exp(V_0, n_bin, bin_v, bin_r, n_den)
+  subroutine init_exp(V_0, n_bin, bin_v, n_den)
     
     ! Exponential distribution in volume (or mass)
     ! n(v) = N_0 / V_0 exp(- v / V_0)
@@ -101,7 +99,6 @@ contains
     real*8, intent(in) :: V_0           !  mean volume of initial distribution (m^3)
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(out) :: n_den(n_bin)  !  initial number density (#(ln(r))d(ln(r)))
     
     integer k
@@ -109,7 +106,7 @@ contains
     
     do k = 1,n_bin
        n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
-       call vol_to_lnr(bin_r(k), n_den_vol, n_den(k))
+       call vol_to_lnr(n_den_vol, n_den(k))
     enddo
     
   end subroutine init_exp

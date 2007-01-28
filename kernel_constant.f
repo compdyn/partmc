@@ -28,7 +28,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_constant_exp_cond(n_bin, bin_v, bin_r, &
+  subroutine soln_constant_exp_cond(n_bin, bin_v, &
        bin_g, bin_n, dlnr, &
        time, N_0, V_0, rho_p, V_comp, env)
 
@@ -36,7 +36,6 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
     integer, intent(out) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
@@ -60,7 +59,7 @@ contains
     
     if (time .eq. 0d0) then
        do k = 1,n_bin
-          bin_n(k) = int(pi/2d0 * (2d0*bin_r(k))**3 * N_0/V_0 &
+          bin_n(k) = int(pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
                * exp(-(bin_v(k)/V_0)))
        enddo
     else
@@ -70,12 +69,12 @@ contains
           x = 2d0 * rat_v / (tau + 2d0)
           nn = 4d0 * N_0 / (V_0 * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
-          bin_n(k) = int(pi/2d0 * (2d0*bin_r(k))**3d0 * nn)
+          bin_n(k) = int(pi/2d0 * (2d0*vol2rad(bin_v(k)))**3d0 * nn)
        enddo
     endif
     
     do k = 1,n_bin
-       bin_g(k) = pi/6d0 * rho_p * (2d0*bin_r(k))**3d0 &
+       bin_g(k) = pi/6d0 * rho_p * (2d0*vol2rad(bin_v(k)))**3d0 &
             * dble(bin_n(k))
     enddo
     

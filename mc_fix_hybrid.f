@@ -12,7 +12,7 @@ contains
   
   subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, &
        MH, VH, &
-       bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
+       bin_v, bin_g, bin_gs, bin_n, dlnr, &
        kernel, t_max, t_print, &
        t_progress, del_t, loop, env, mat)
     
@@ -35,7 +35,6 @@ contains
     real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes (m^3)
     
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins (m)
     real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
     real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(out) :: bin_n(n_bin)      !  number in bins
@@ -81,17 +80,17 @@ contains
     !      M = sum(MH)
     !      do while (M .lt. MM / 2)
     !         call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec
-    !     $        ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
+    !     $        ,bin_v, bin_g, bin_gs, bin_n, dlnr)
     !      enddo
     ! RESTART
     
     call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
-         bin_r, bin_g, bin_gs, bin_n, dlnr)
+         bin_g, bin_gs, bin_n, dlnr)
     
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
     
     call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
-         bin_r,bin_g, bin_gs, bin_n, dlnr, env, mat)
+         bin_g, bin_gs, bin_n, dlnr, env, mat)
     call write_state_hybrid(n_bin, TDV, n_spec, MH, VH, env, i_time, &
          time)
     
@@ -114,7 +113,7 @@ contains
              tot_n_samp = tot_n_samp + n_samp
              do i_samp = 1,n_samp
                 call maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, &
-                     env%V_comp, n_spec, bin_v, bin_r, bin_g, bin_gs, &
+                     env%V_comp, n_spec, bin_v, bin_g, bin_gs, &
                      bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
                      env, did_coag, bin_change)
                 if (did_coag) n_coag = n_coag + 1
@@ -125,16 +124,16 @@ contains
        tot_n_coag = tot_n_coag + n_coag
        if (M .lt. MM / 2) then
           call double_hybrid(M, n_bin, TDV, MH, VH, env%V_comp, n_spec &
-               ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
+               ,bin_v,  bin_g, bin_gs, bin_n, dlnr)
        endif
        
        ! NO CONDENSATION IN RESTART RUN
        !call condense_particles(n_bin, TDV, n_spec, MH, VH, del_t, &
-       !     bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       !     bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
        ! NO CONDENSATION IN RESTART RUN
        
        ! DEBUG
-       !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, bin_r,
+       !         call check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v,
        !     &        bin_g, bin_gs, bin_n, dlnr)
        ! DEBUG
        
@@ -148,7 +147,7 @@ contains
        call check_event(time, del_t, t_print, last_print_time, &
             do_print)
        if (do_print) call print_info(time, env%V_comp, n_spec, n_bin, &
-            bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+            bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
        if (do_print) call write_state_hybrid(n_bin, TDV, n_spec, MH, &
             VH, env, i_time, time)
        

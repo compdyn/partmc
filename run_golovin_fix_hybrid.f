@@ -41,7 +41,7 @@ program run_golovin_fix_hybrid
   
   integer M, i_loop
   real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
-  real*8 bin_v(n_bin), bin_r(n_bin), n_den(n_bin)
+  real*8 bin_v(n_bin), n_den(n_bin)
   real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
   integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
   type(environ) :: env
@@ -66,18 +66,18 @@ program run_golovin_fix_hybrid
   
   do i_loop = 1,n_loop
      
-     call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
+     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
      call zero_v(MM, n_spec, V)
      vol_frac(1) = 1d0
-     call init_exp(V_0, n_bin, bin_v, bin_r, n_den)
-     call dist_to_n(MM, dlnr, n_bin, bin_v, bin_r, n_den, bin_n)
+     call init_exp(V_0, n_bin, bin_v, n_den)
+     call dist_to_n(MM, dlnr, n_bin, bin_v, n_den, bin_n)
      call compute_volumes(n_bin, n_spec, vol_frac, MM, 1, MM, &
           n_ini,bin_v, dlnr, V, M)
      
      env%V_comp = dble(M) / N_0
      
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, MH, VH, &
-          bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
+          bin_v, bin_g, bin_gs, bin_n, dlnr, &
           kernel_golovin, t_max, t_print, t_progress, del_t, i_loop, &
           env, mat)
      

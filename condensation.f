@@ -11,7 +11,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine condense_particles(n_bin, TDV, n_spec, MH, VH, &
-       del_t, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
     use mod_array
     use mod_array_hybrid
@@ -26,7 +26,6 @@ contains
     real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: del_t         ! total time to integrate
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
-    real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
     real*8, intent(inout) :: bin_g(n_bin) ! volume in bins  
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(inout) :: bin_n(n_bin)      ! number in bins
@@ -50,11 +49,11 @@ contains
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
     call resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
-         bin_r, dlnr)
+         dlnr)
 
     ! update the bin arrays
     call moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
-         bin_r, bin_g, bin_gs, bin_n, dlnr)
+         bin_g, bin_gs, bin_n, dlnr)
 
     ! update the environment due to condensation of water
     post_water_vol = sum(bin_gs(:,mat%i_water))

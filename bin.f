@@ -61,14 +61,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, &
+  subroutine make_bin_grid(n_bin, scal, v_min, bin_v, &
        dlnr)
     
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: scal         !  scale factor
     real*8, intent(in) :: v_min         !  minimum volume (m^3)
     real*8, intent(out) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(out) :: dlnr          !  scale factor
     
     integer i
@@ -83,9 +82,6 @@ contains
     do i = 1,n_bin
        ! volume (m^3)
        bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
-       ! radius (m)
-       bin_r(i) = dexp(dlog(3d0 * bin_v(i) /  &
-            (4d0 * pi)) / 3d0)
     enddo
     
   end subroutine make_bin_grid
@@ -246,7 +242,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine print_info(time, V_comp, n_spec, &
-       n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
     
     use mod_material
     use mod_environ
@@ -257,7 +253,6 @@ contains
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(in) :: bin_g(n_bin)  !  volume in bins (m^3)
     real*8, intent(in) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(in) :: bin_n(n_bin) !  number in bins (dimensionless)
@@ -271,14 +266,14 @@ contains
     bin_g_den = bin_g / V_comp / dlnr
     bin_gs_den = bin_gs / V_comp / dlnr
     bin_n_den = dble(bin_n) / V_comp / dlnr
-    call print_info_density(time, n_bin, n_spec, bin_v, bin_r, &
+    call print_info_density(time, n_bin, n_spec, bin_v, &
          bin_g_den, bin_gs_den, bin_n_den, env, mat)
     
   end subroutine print_info
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine print_info_density(time, n_bin, n_spec, bin_v, bin_r, &
+  subroutine print_info_density(time, n_bin, n_spec, bin_v, &
        bin_g_den, bin_gs_den, bin_n_den, env, mat)
     
     use mod_material
@@ -289,7 +284,6 @@ contains
     integer, intent(in) :: n_bin            !  number of bins
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(in) :: bin_v(n_bin)      !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)      !  radius of particles in bins (m)
     real*8, intent(in) :: bin_g_den(n_bin)  !  volume density in bins (dimensionless)
     real*8, intent(in) :: bin_gs_den(n_bin,n_spec)  !  species volume density in bins
     ! (dimensionless)
@@ -303,8 +297,8 @@ contains
     write(30,'(a10,e20.10)') 'temp(K)', env%T
     write(30,'(a10,e20.10)') 'rh(1)', env%RH
     do k = 1,n_bin
-       write(30, '(i10,20e20.10)') k, bin_r(k), bin_n_den(k), &
-            bin_g_den(k), bin_gs_den(k,:)
+       write(30, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
+            bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
     enddo
     
   end subroutine print_info_density

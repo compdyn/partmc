@@ -11,8 +11,8 @@
 !
 ! The sectional representation stores the number and mass of particles
 ! in bins, which are logarithmicly spaced. The bins are described by
-! the bin_v(n_bin) and bin_r(n_bin) arrays, which store the volume and
-! radius of the centerpoint of each bin. The variable dlnr ... FIXME
+! the bin_v(n_bin) array, which stores the volume
+! of the centerpoint of each bin. The variable dlnr ... FIXME
 
 module mod_array
 contains
@@ -149,7 +149,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine coagulate(MM, M, V, V_comp,n_spec, &
-       n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
        s1, s2, bin_change)
     
     use mod_bin
@@ -162,8 +162,7 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
-    real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins 
+     real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins 
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volumes in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
@@ -236,7 +235,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
   subroutine maybe_coag_pair(MM, M, V, V_comp, n_spec, &
-       n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
        del_t, n_samp, kernel, env, did_coag, bin_change)
     
     use mod_util
@@ -250,8 +249,7 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins
+     real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
@@ -286,7 +284,7 @@ contains
     bin_change = .false.
     if (util_rand() .lt. p) then
        call coagulate(MM, M, V, V_comp, n_spec, &
-            n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, &
+            n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
             s1, s2, bin_change)
        did_coag = .true.
     else
@@ -299,7 +297,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine double(MM, M, V, V_comp, n_spec, &
-       n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr)
     
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
@@ -309,7 +307,6 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
@@ -451,7 +448,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine moments(MM, M, V, V_comp, n_spec, &
-       n_bin, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr)
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr)
     
     use mod_bin
     
@@ -463,7 +460,6 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins (m)
     real*8, intent(out) :: bin_g(n_bin)  !  total volume in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(out) :: bin_n(n_bin) !  number in bins  

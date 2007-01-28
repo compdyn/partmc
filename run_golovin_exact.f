@@ -33,7 +33,7 @@ program run_golovin_exact
   
   integer i_loop
   real*8 dlnr
-  real*8 bin_v(n_bin), bin_r(n_bin), bin_g(n_bin)
+  real*8 bin_v(n_bin), bin_g(n_bin)
   real*8 bin_gs(n_bin,n_spec)
   integer bin_n(n_bin)
   type(environ) :: env
@@ -50,9 +50,9 @@ program run_golovin_exact
   
   do i_loop = 1,n_loop
      
-     call make_bin_grid(n_bin, scal, v_min, bin_v, bin_r, dlnr)
+     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
      
-     call mc_exact(n_bin, n_spec, bin_v, bin_r, bin_g, bin_gs, &
+     call mc_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
           bin_n, dlnr, N_0, V_0, rho_p, soln_golovin_exp, t_max, &
           t_print, i_loop, V_comp, env, mat)
      

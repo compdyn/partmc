@@ -41,7 +41,7 @@ program run_sedi_sect
   real*8 k_bin(n,n), ck(n,n), ec(n,n)
   real*8 taug(n), taup(n), taul(n), tauu(n)
   real*8 prod(n), ploss(n)
-  real*8 bin_v(n), bin_r(n)
+  real*8 bin_v(n)
   real*8 n_den(n), bin_g_den(n), bin_n_den(n)
   real*8 time, last_print_time, last_progress_time
   
@@ -72,14 +72,14 @@ program run_sedi_sect
   ! dlnr: constant grid distance of logarithmic grid 
   
   ! mass and radius grid
-  call make_bin_grid(n, scal, rho, bin_v, bin_r, dlnr)
+  call make_bin_grid(n, scal, rho, bin_v, dlnr)
   do i = 1,n
-     r(i) = bin_r(i) * 1d6         ! radius in m to um
+     r(i) = vol2rad(bin_v(i)) * 1d6         ! radius in m to um
      e(i) = bin_v(i) * rho * 1d6   ! volume in m^3 to mass in mg
   enddo
   
   ! initial mass distribution
-  call init_exp(V_0, n, bin_v, bin_r, n_den)
+  call init_exp(V_0, n, bin_v, n_den)
   do i = 1,n
      g(i) = n_den(i) * bin_v(i) * rho * N_0
   enddo
@@ -117,7 +117,7 @@ program run_sedi_sect
         bin_g_den(i) = g(i) / rho
         bin_n_den(i) = bin_g_den(i) / bin_v(i)
      enddo
-     call print_info_density(0d0, n, 1, bin_v, bin_r, bin_g_den, &
+     call print_info_density(0d0, n, 1, bin_v, bin_g_den, &
           bin_g_den, bin_n_den, env, mat)
   endif
   
@@ -137,7 +137,7 @@ program run_sedi_sect
            bin_g_den(i) = g(i) / rho
            bin_n_den(i) = bin_g_den(i) / bin_v(i)
         enddo
-        call print_info_density(0d0, n, 1, bin_v, bin_r, bin_g_den, &
+        call print_info_density(0d0, n, 1, bin_v, bin_g_den, &
              bin_g_den, bin_n_den, env, mat)
      endif
      

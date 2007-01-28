@@ -10,7 +10,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_exact(n_bin, n_spec, bin_v, bin_r, bin_g, bin_gs, &
+  subroutine mc_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
        bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_print, loop, &
        V_comp, env, mat)
     ! FIXME: N_0 and V_0 are really parameters for the initial value
@@ -25,7 +25,6 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: bin_v(n_bin)  ! volume of bins
-    real*8, intent(in) :: bin_r(n_bin)  ! radius of bins
     real*8, intent(out) :: bin_g(n_bin)  ! volume in bins
     integer, intent(out) :: bin_n(n_bin) ! number in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! number in bins by species
@@ -44,7 +43,7 @@ contains
     real*8 time
     
     interface
-       subroutine soln(n_bin, bin_v, bin_r, &
+       subroutine soln(n_bin, bin_v, &
             bin_g, bin_n, dlnr, &
             time, N_0, V_0, rho_p, V_comp, env)
 
@@ -52,7 +51,6 @@ contains
 
          integer, intent(in) :: n_bin             !  number of bins
          real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins
-         real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins
          real*8, intent(out) :: bin_g(n_bin)       !  volume in bins
          integer, intent(out) :: bin_n(n_bin)      !  number in bins
          real*8, intent(in) :: dlnr               !  bin scale factor
@@ -69,7 +67,7 @@ contains
     n_time = int(t_max / t_print)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * dble(t_max)
-       call soln(n_bin, bin_v, bin_r, bin_g, bin_n, dlnr, &
+       call soln(n_bin, bin_v, bin_g, bin_n, dlnr, &
             time, N_0, V_0, rho_p, V_comp, env)
        
        do i=1,n_bin
@@ -77,7 +75,7 @@ contains
        enddo
        
        call print_info(time, V_comp,n_spec, &
-            n_bin, bin_v, bin_r, bin_g, bin_gs,bin_n, dlnr, env, mat)
+            n_bin, bin_v, bin_g, bin_gs,bin_n, dlnr, env, mat)
     enddo
     
   end subroutine mc_exact

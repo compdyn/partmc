@@ -58,7 +58,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, bin_r &
+  subroutine moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v &
        , bin_g,bin_gs, bin_n, dlnr)
     
     ! Create the bin number and mass arrays from VH.
@@ -71,7 +71,6 @@ contains
     integer, intent(in) :: MH(n_bin)    !  number of particles per bin
     real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec)  !  species volume in bins
     integer, intent(out) :: bin_n(n_bin) !  number in bins
@@ -100,7 +99,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
-       bin_r, dlnr)
+        dlnr)
     
     ! Takes a VH array where the particle volumes might no longer be
     ! correct for the bins they are in and resorts it so that every
@@ -115,7 +114,6 @@ contains
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
-    real*8, intent(in) ::  bin_r(n_bin) ! radius of particles in bins (m)
     real*8, intent(in) :: dlnr ! bin scale factor
     
     integer bin, j, new_bin, k
@@ -174,7 +172,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, V_comp, &
-       n_spec, bin_v, bin_r, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
+       n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
        del_t, k_max, kernel, env, did_coag, bin_change)
     
     ! Choose a random pair for potential coagulation and test its
@@ -194,7 +192,6 @@ contains
     real*8, intent(in) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
@@ -237,7 +234,7 @@ contains
     
     if (util_rand() .lt. p) then
        call coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
-            ,bin_v,bin_r,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
+            ,bin_v,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
             bin_change)
        did_coag = .true.
     endif
@@ -272,7 +269,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
-       ,bin_v,bin_r, bin_g, bin_gs,bin_n, dlnr, b1, s1, b2, s2, &
+       ,bin_v, bin_g, bin_gs,bin_n, dlnr, b1, s1, b2, s2, &
        bin_change)
     
     ! Join together particles (b1, s1) and (b2, s2), updating all
@@ -292,7 +289,6 @@ contains
     real*8, intent(in) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
@@ -381,7 +377,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine double_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
-       ,bin_v,bin_r, bin_g, bin_gs, bin_n, dlnr)
+       ,bin_v, bin_g, bin_gs, bin_n, dlnr)
     
     ! Double number of particles in a hybrid array.
     
@@ -394,7 +390,6 @@ contains
     real*8, intent(inout) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(in) :: bin_r(n_bin)  !  radius of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
@@ -433,7 +428,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, &
-       bin_r, bin_g, bin_gs, bin_n, dlnr)
+        bin_g, bin_gs, bin_n, dlnr)
     
     ! Check that VH has all particles in the correct bins and that the
     ! bin numbers and masses are correct.
@@ -450,7 +445,6 @@ contains
     real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
     
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_r(n_bin)       !  radius of particles in bins (m)
     real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
     real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins             
     integer, intent(out) :: bin_n(n_bin)      !  number in bins

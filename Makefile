@@ -61,7 +61,7 @@ gprof_%: % gmon.out
 
 dist: Makefile.deps
 	mkdir $(DIST_NAME)
-	cp Makefile Makefile.deps makedeps.py COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
+	cp Makefile Makefile.deps makedeps.py TODO COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 

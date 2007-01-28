@@ -141,4 +141,31 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  logical function almost_equal_abs(d1, d2, abs_tol)
+    
+    ! Tests whether two real numbers are almost equal
+    
+    real*8, intent(in) :: d1 !  first number to compare
+    real*8, intent(in) :: d2 !  second number to compare
+    real*8, intent(in) :: abs_tol ! tolerance for when d1 equals d2
+    
+    real*8 eps
+    parameter (eps = 1d-8) ! relative tolerance
+    
+    ! handle the 0.0 case
+    if (d1 .eq. d2) then
+       almost_equal_abs = .true.
+    else
+       if ((abs(d1 - d2) .lt. abs_tol) .or. &
+            (abs(d1 - d2) / (abs(d1) + abs(d2)) .lt. eps)) then
+          almost_equal_abs = .true.
+       else
+          almost_equal_abs = .false.
+       end if
+    end if
+    
+  end function almost_equal_abs
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
 end module mod_util

@@ -42,12 +42,7 @@ contains
     
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i, sum_e, sum_a, delta_n, i_spec
-    
-! DEBUG
-    do k = 1,n_bin
-       write(*,*) 'k = ', k, ' n_ini = ', n_ini(k)
-    end do
-! DEBUG
+
     sum_e = i_start - 1
     
     total_vol_frac = 0.d0

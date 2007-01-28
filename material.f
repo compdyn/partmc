@@ -53,18 +53,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function particle_volume(V, mat) ! m^3
+  real*8 function particle_volume(V) ! m^3
 
     ! total volume of the particle
 
     real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
     
     real*8 pv
-    integer i
+    integer i, n_spec
 
+    n_spec = size(V)
     pv = 0d0
-    do i = 1,mat%n_spec
+    do i = 1,n_spec
        pv = pv + V(i)
     end do
     particle_volume = pv

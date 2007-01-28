@@ -11,6 +11,7 @@ program run_brown_fix_hybrid
   
   use mod_bin
   use mod_array
+  use mod_array_hybrid
   use mod_init_dist
   use mod_mc_fix_hybrid
   use mod_kernel_brown
@@ -22,13 +23,12 @@ program run_brown_fix_hybrid
   
   ! species #1 is salt, #2 is dust, and #3 is water
   
-  integer MM, MM_1, TDV, n_bin, n_spec, n_loop, scal, i_water
-  real*8 t_max, N_0, t_print, t_progress
+  integer MM, MM_1, n_bin, n_spec, n_loop, scal, i_water
+  real*8 t_max, N_0, t_print, t_state, t_progress
   real*8 del_t, del_t_cond, v_min
   real*8 d_mean1, d_mean2, log_sigma1, log_sigma2
   
   parameter (MM =  100000)  ! number of particles
-  parameter (TDV =  10000) ! trailing dimension of VH
   parameter (MM_1 = MM/2)   ! number of #1-particles
   parameter (n_bin = 160)   ! number of bins
   parameter (n_spec = 3)    ! number of species
@@ -38,8 +38,9 @@ program run_brown_fix_hybrid
   parameter (N_0 = 1d11)     ! particle number concentration (#/m^3)
   
   parameter (t_max = 3d0*3600d0)  ! total simulation time (seconds)
-  parameter (t_print = 600d0) ! interval between printing (s)
-  parameter (t_progress = 1d0) ! interval between progress (s)
+  parameter (t_print = 600d0) ! interval between output (s)
+  parameter (t_state = 0d0)   ! interval between state output (s)
+  parameter (t_progress = 1d0) ! interval between printing progress (s)
   parameter (del_t = 1d0)   ! timestep (s)
   parameter (d_mean1 = 0.1d-6) ! mean diameter of #1- initial distribution (m)
   parameter (d_mean2 = 0.05d-6)  ! mean diameter of #2- initial distribution (m)
@@ -47,13 +48,16 @@ program run_brown_fix_hybrid
   parameter (log_sigma2 = 0.2d0) ! log(sigma) of #2- initial distribution
   
   integer M, M1, M2, i_loop, i
-  real*8 V(MM,n_spec), dlnr, VH(n_bin,TDV,n_spec)
+  real*8 V(MM,n_spec), dlnr
+  type(bin_p) VH(n_bin)
   real*8 bin_v(n_bin), n_den(n_bin)
   real*8 bin_g(n_bin), bin_gs(n_bin,n_spec), vol_frac(n_spec)
   integer n_ini(n_bin), bin_n(n_bin), MH(n_bin)
   type(environ) :: env
   type(material) :: mat
-  
+
+  call init_hybrid(n_spec, MH, VH)
+
   call allocate_material(mat, n_spec)
   mat%i_water = 3
   mat%rho = (/ 2165d0, 2650d0, 1000d0 /)
@@ -100,10 +104,10 @@ program run_brown_fix_hybrid
      do i = 1,M
         call equilibriate_particle(n_spec, V(i,:), env, mat)
      enddo
-     call mc_fix_hybrid(MM, M, n_spec, V, n_bin, TDV, MH, VH, &
+     call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_g, bin_gs, bin_n, dlnr , &
-          kernel_brown, t_max, t_print, t_progress ,del_t, i_loop, &
-          env, mat)
+          kernel_brown, t_max, t_print, t_state, t_progress ,del_t, &
+          i_loop, env, mat)
      
   enddo
   

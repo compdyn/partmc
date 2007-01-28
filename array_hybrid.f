@@ -11,16 +11,92 @@
 ! superparticle code there is a difference.
 
 module mod_array_hybrid
+
+  type bin_p
+     real*8, dimension(:,:), pointer :: p ! particle volumes
+     ! dimension of p is (# particles in bin) x n_spec
+  end type bin_p
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine init_hybrid(n_spec, MH, VH)
+
+    ! Initializes a hybrid array to have zero particles in each bin.
+
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(out) :: MH(:)       ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(size(MH)) ! particle volumes
+    
+    integer :: n_bin
+    integer i
+
+    n_bin = size(VH)
+    do i = 1,n_bin
+       allocate(VH(i)%p(0, n_spec))
+    end do
+    MH = 0
+
+  end subroutine init_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine enlarge_bin(bin)
+
+    ! Enlarges the given bin (which must be allocated) by at least one
+    ! element (currently doubles the length).
+
+    type(bin_p), intent(inout) :: bin  ! bin data
+
+    integer :: n_part, n_spec, new_n_part
+    real*8, dimension(:,:), pointer :: new_p
+
+    n_part = size(bin%p, 1)
+    n_spec = size(bin%p, 2)
+    new_n_part = max(n_part * 2, n_part + 1)
+    allocate(new_p(new_n_part, n_spec))
+    new_p(1:n_part,:) = bin%p
+    deallocate(bin%p)
+    bin%p => new_p
+    
+  end subroutine enlarge_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine shrink_bin(n_used, bin)
+
+    ! Possibly shrinks the storage of the given bin, ensuring that it
+    ! is at least of length n_used (currently halves the length or
+    ! does nothing).
+
+    integer, intent(in) :: n_used      ! number of used entries in bin
+    type(bin_p), intent(inout) :: bin  ! bin data
+
+    integer :: n_part, n_spec, new_n_part
+    real*8, dimension(:,:), pointer :: new_p
+
+    n_part = size(bin%p, 1)
+    n_spec = size(bin%p, 2)
+    new_n_part = n_part / 2
+    if (n_used <= new_n_part) then
+       allocate(new_p(new_n_part, n_spec))
+       new_p(:,:) = bin%p(1:new_n_part,:)
+       deallocate(bin%p)
+       bin%p => new_p
+    end if
+
+  end subroutine shrink_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, TDV, MH &
+  subroutine array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, MH &
        ,VH)
     
     ! Convert a standard linear particle array V to a hybrid particle
     ! array VH stored by bins.
-    
+
+    use mod_material
     use mod_array
     use mod_bin
     
@@ -30,9 +106,8 @@ contains
     real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(out) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(out) :: VH(n_bin,TDV,n_spec) !  particle volumes in hybrid array
+    type(bin_p), intent(out) :: VH(n_bin) !  particle volumes in hybrid array
     
     integer i, j, k
     real*8 pv
@@ -42,34 +117,31 @@ contains
     enddo
     
     do i = 1,M
-       call particle_vol(MM, n_spec, V, i, pv)     
+       pv = particle_volume(V(i,:))     
        call particle_in_bin(pv, n_bin, bin_v, k)
        MH(k) = MH(k) + 1
-       if (MH(k) .gt. TDV) then
-          write(*,*)'ERROR: TDV too small'
-          call exit(2)
+       if (MH(k) .gt. size(VH(k)%p,1)) then
+          call enlarge_bin(VH(k))
        endif
-       do j = 1,n_spec
-          VH(k, MH(k),j) = V(i,j)
-       enddo
+       VH(k)%p(MH(k),:) = V(i,:)
     enddo
     
   end subroutine array_to_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v &
-       , bin_g,bin_gs, bin_n, dlnr)
+  subroutine moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
+       bin_g,bin_gs, bin_n, dlnr)
     
     ! Create the bin number and mass arrays from VH.
-    
+
+    use mod_material
     use mod_array
     
     integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(in) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
     real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec)  !  species volume in bins
@@ -77,42 +149,36 @@ contains
     real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer b, j, s
-    real*8 pv
     
+    bin_g = 0d0
+    bin_gs = 0d0
     do b = 1,n_bin
-       bin_g(b) = 0d0
-       do s = 1,n_spec
-          bin_gs(b,s) = 0d0
-       enddo
        do j = 1,MH(b)
-          call particle_vol_base(n_spec, VH(b,j,:), pv)
-          bin_g(b) = bin_g(b) + pv
-          do s = 1,n_spec
-             bin_gs(b,s) = bin_gs(b,s) + VH(b,j,s)
-          enddo
+          bin_g(b) = bin_g(b) + particle_volume(VH(b)%p(j,:))
+          bin_gs(b,:) = bin_gs(b,:) + VH(b)%p(j,:)
        enddo
-       bin_n(b) = MH(b)
     enddo
-    
+    bin_n = MH
+   
   end subroutine moments_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine resort_array_hybrid(n_bin, TDV, n_spec, MH, VH, bin_v, &
+  subroutine resort_array_hybrid(n_bin, n_spec, MH, VH, bin_v, &
         dlnr)
     
     ! Takes a VH array where the particle volumes might no longer be
     ! correct for the bins they are in and resorts it so that every
     ! particle is in the correct bin.
-    
+
+    use mod_material
     use mod_array
     use mod_bin
     
     integer, intent(in) :: n_bin ! number of bins
-    integer, intent(in) :: TDV ! second dimension of VH
     integer, intent(in) :: n_spec ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) ! particle volumes (m^3)
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr ! bin scale factor
     
@@ -129,27 +195,22 @@ contains
        j = 1
        do while (j .le. MH(bin))
           ! find the new volume and new bin
-          call particle_vol_base(n_spec, VH(bin,j,:), pv)
+          pv = particle_volume(VH(bin)%p(j,:))
           call particle_in_bin(pv, n_bin, bin_v, new_bin)
           
           ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
              ! move the particle to the new bin, leaving a hole
              MH(new_bin) = MH(new_bin) + 1
-             if (MH(new_bin) .gt. TDV) then
-                write(*,*) 'ERROR: TDV too small for bin ', bin
-                call exit(2)
+             if (MH(new_bin) .gt. size(VH(new_bin)%p,1)) then
+                call enlarge_bin(VH(new_bin))
              end if
-             do k = 1,n_spec
-                VH(new_bin,MH(new_bin),k) = VH(bin,j,k)
-             end do
+             VH(new_bin)%p(MH(new_bin),:) = VH(bin)%p(j,:)
              
              ! copy the last particle in the current bin into the hole
              ! if the hole isn't in fact the last particle
              if (j .lt. MH(bin)) then
-                do k = 1,n_spec
-                   VH(bin,j,k) = VH(bin,MH(bin),k)
-                end do
+                VH(bin)%p(j,:) = VH(bin)%p(MH(bin),:)
              end if
              MH(bin) = MH(bin) - 1
              if (MH(bin) .lt. 0) then
@@ -166,12 +227,17 @@ contains
           end if
        end do
     end do
+
+    ! now shrink the bin storage if necessary
+    do bin = 1,n_bin
+       call shrink_bin(MH(bin), VH(bin))
+    end do
     
   end subroutine resort_array_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine maybe_coag_pair_hybrid(M, n_bin, TDV, MH, VH, V_comp, &
+  subroutine maybe_coag_pair_hybrid(M, n_bin, MH, VH, V_comp, &
        n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
        del_t, k_max, kernel, env, did_coag, bin_change)
     
@@ -180,15 +246,15 @@ contains
     ! update all structures. The probability of a coagulation will be
     ! taken as (kernel / k_max).
 
+    use mod_material
     use mod_util
     use mod_environ
 
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
     real*8, intent(in) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -227,13 +293,13 @@ contains
     endif
     
     call find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
-    call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b1,s1,pv1)
-    call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b2,s2,pv2)
+    pv1 = particle_volume(VH(b1)%p(s1,:))
+    pv2 = particle_volume(VH(b2)%p(s2,:))
     call kernel(pv1, pv2, env, k)
     p = k / k_max
     
     if (util_rand() .lt. p) then
-       call coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
+       call coagulate_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
             ,bin_v,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
             bin_change)
        did_coag = .true.
@@ -241,7 +307,8 @@ contains
     
   end subroutine maybe_coag_pair_hybrid
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
     
     ! Find a random pair of particles (b1, s1) and (b2, s2).
@@ -268,7 +335,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine coagulate_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
+  subroutine coagulate_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
        ,bin_v, bin_g, bin_gs,bin_n, dlnr, b1, s1, b2, s2, &
        bin_change)
     
@@ -276,16 +343,16 @@ contains
     ! particle and bin structures to reflect the change. bin_change is
     ! true if the used bin set changed due to the coagulation (i.e. an
     ! empty bin filled or a filled bin became empty).
-    
+
+    use mod_material
     use mod_array
     use mod_bin
     
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
     real*8, intent(in) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -303,90 +370,81 @@ contains
     
     integer bn, i, j
     real*8 new_v(n_spec), pv1, pv2, new_v_tot
-    
+
     bin_change = .false.
-    new_v_tot = 0.d0
     
-    call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b1,s1,pv1)
-    call particle_vol_hybrid(n_bin,TDV,n_spec,VH,b2,s2,pv2)
-    
+    pv1 = particle_volume(VH(b1)%p(s1,:))
+    pv2 = particle_volume(VH(b2)%p(s2,:))
+
     ! remove s1 and s2 from bins
     bin_n(b1) = bin_n(b1) - 1
     bin_n(b2) = bin_n(b2) - 1
     bin_g(b1) = bin_g(b1) - pv1
     bin_g(b2) = bin_g(b2) - pv2
-    do j=1,n_spec
-       bin_gs(b1,j) = bin_gs(b1,j) - VH(b1,s1,j)
-       bin_gs(b2,j) = bin_gs(b2,j) - VH(b2,s2,j)
-    enddo
-    if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then
+    bin_gs(b1,:) = bin_gs(b1,:) - VH(b1)%p(s1,:)
+    bin_gs(b2,:) = bin_gs(b2,:) - VH(b2)%p(s2,:)
+     if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then
        write(*,*)'ERROR: invalid bin_n'
        call exit(2)
     endif
-    
+
     ! do coagulation in MH, VH arrays
-    do i=1,n_spec
-       new_v(i) = VH(b1,s1,i) + VH(b2,s2,i)   ! add particle volumes
-    enddo
-    
-    do i=1,n_spec
-       new_v_tot = new_v_tot + new_v(i)
-    enddo
-    
+    new_v(:) = VH(b1)%p(s1,:) + VH(b2)%p(s2,:)   ! add particle volumes
+    new_v_tot = sum(new_v)
+
     call particle_in_bin(new_v_tot, n_bin, bin_v, bn)  ! find new bin
-    
-    do i=1,n_spec
-       VH(b1, s1,i) = VH(b1, MH(b1),i) ! shift last particle into empty slot
-    enddo
-    
-    MH(b1) = MH(b1) - 1          ! decrease length of array
-    do i=1,n_spec
-       VH(b2, s2,i) = VH(b2, MH(b2),i) ! same for second particle
-    enddo
-    MH(b2) = MH(b2) - 1
+
+    ! handle a tricky corner case
+    if ((b1 .eq. b2) .and. (s2 .eq. MH(b2))) then
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1)-1,:)
+       MH(b1) = MH(b1) - 2
+    else
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1),:) ! shift last particle into empty slot
+       MH(b1) = MH(b1) - 1                 ! decrease length of array
+       VH(b2)%p(s2,:) = VH(b2)%p(MH(b2),:) ! same for second particle
+       MH(b2) = MH(b2) - 1
+    end if
     if ((MH(b1) .lt. 0) .or. (MH(b2) .lt. 0)) then
        write(*,*)'ERROR: invalid MH'
        call exit(2)
-    endif
-    MH(bn) = MH(bn) + 1          ! increase the length of array
-    if (MH(bn) .gt. TDV) then
-       write(*,*) 'ERROR: too many particles in bin ', bn
-       call exit(2)
     end if
-    do i=1,n_spec
-       VH(bn, MH(bn),i) = new_v(i) ! add the new particle at the end
-    enddo
+    MH(bn) = MH(bn) + 1          ! increase the length of array
+    if (MH(bn) > size(VH(bn)%p,1)) then
+       call enlarge_bin(VH(bn))
+    end if
+    VH(bn)%p(MH(bn),:) = new_v  ! add the new particle at the end
     M = M - 1                    ! decrease the total number of particles
     
     ! add new particle to bins
     bin_n(bn) = bin_n(bn) + 1
-    do i=1,n_spec
-       bin_g(bn) = bin_g(bn) + VH(bn, MH(bn),i)
-       bin_gs(bn,i) = bin_gs(bn,i) + VH(bn,MH(bn),i)
-    enddo
-    
+    bin_g(bn) = bin_g(bn) + sum(VH(bn)%p(MH(bn),:))
+    bin_gs(bn,:) = bin_gs(bn,:) + VH(bn)%p(MH(bn),:)
+
     ! did we empty a bin?
     if ((bin_n(b1) .eq. 0) .or. (bin_n(b2) .eq. 0)) &
          bin_change = .true.
     ! did we start a new bin?
     if ((bin_n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
          bin_change = .true.
-    
+
+    ! possibly repack memory
+    call shrink_bin(MH(b1), VH(b1))
+    call shrink_bin(MH(b2), VH(b2))
+
   end subroutine coagulate_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine double_hybrid(M, n_bin, TDV, MH, VH, V_comp, n_spec &
+  subroutine double_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
        ,bin_v, bin_g, bin_gs, bin_n, dlnr)
     
     ! Double number of particles in a hybrid array.
     
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(inout) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
     real*8, intent(inout) :: V_comp        !  computational volume
     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -399,15 +457,11 @@ contains
     
     ! double VH and associated structures
     do k = 1,n_bin
-       ! only double if we have enough space to do so
-       if (2 * MH(k) .gt. TDV) then
-          write(*,*)'ERROR: double without enough space'
-          call exit(2)
-       endif
        do i = 1,MH(k)
-          do i_spec = 1,n_spec
-             VH(k, i + MH(k),i_spec) = VH(k, i, i_spec)
-          enddo
+          if (i + MH(k) > size(VH(k)%p,1)) then
+             call enlarge_bin(VH(k))
+          end if
+          VH(k)%p(i + MH(k), :) = VH(k)%p(i, :)
        enddo
        MH(k) = 2 * MH(k)
     enddo
@@ -415,24 +469,21 @@ contains
     V_comp = 2d0 * V_comp
     
     ! double bin structures
-    do i = 1,n_bin
-       bin_g(i) = bin_g(i) * 2d0
-       bin_n(i) = bin_n(i) * 2
-       do i_spec = 1,n_spec
-          bin_gs(i,i_spec) = bin_gs(i,i_spec) * 2d0
-       enddo
-    enddo
+    bin_g = bin_g * 2d0
+    bin_n = bin_n * 2
+    bin_gs = bin_gs * 2d0
     
   end subroutine double_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine check_hybrid(M, n_bin, n_spec, TDV, MH, VH, bin_v, &
+  subroutine check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, &
         bin_g, bin_gs, bin_n, dlnr)
     
     ! Check that VH has all particles in the correct bins and that the
     ! bin numbers and masses are correct.
-    
+
+    use mod_material
     use mod_array
     use mod_util
     use mod_bin
@@ -440,9 +491,8 @@ contains
     integer, intent(in) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: n_spec       !  number of species
-    integer, intent(in) :: TDV          !  trailing dimension of VH
     integer, intent(in) :: MH(n_bin)    !  number of particles per bin
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec) !  particle volumes
+    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
     
     real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
     real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
@@ -450,7 +500,7 @@ contains
     integer, intent(out) :: bin_n(n_bin)      !  number in bins
     real*8, intent(in) :: dlnr               !  bin scale factor
     
-    real*8 pv, check_bin_g, check_bin_gs(n_spec)
+    real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
     integer i, k, k_check, M_check, s
     logical error
     
@@ -459,7 +509,7 @@ contains
     ! check that all particles are in the correct bins
     do k = 1,n_bin
        do i = 1,MH(k)
-          call particle_vol_hybrid(n_bin, TDV, n_spec, VH, k, i, pv)
+          pv = particle_volume(VH(k)%p(i,:))
           call particle_in_bin(pv, n_bin, bin_v, k_check)
           if (k .ne. k_check) then
              write(*,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)', &
@@ -493,10 +543,11 @@ contains
     do k = 1,n_bin
        check_bin_g = 0d0
        do i = 1,MH(k)
-          call particle_vol_hybrid(n_bin, TDV, n_spec, VH, k, i, pv)
+          pv = particle_volume(VH(k)%p(i,:))
           check_bin_g = check_bin_g + pv
        enddo
-       if (.not. almost_equal(check_bin_g, bin_g(k))) then
+       vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
+       if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
           write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
           write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
           error = .true.
@@ -505,16 +556,11 @@ contains
     
     ! check the bin_gs array
     do k = 1,n_bin
+       check_bin_gs = sum(VH(k)%p(1:MH(k),:), 1)
+       vol_tol = bin_v(k) / 1d3 ! abs tolerance 1e3 less than single particle
        do s = 1,n_spec
-          check_bin_gs(s) = 0d0
-       enddo
-       do i = 1,MH(k)
-          do s = 1,n_spec
-             check_bin_gs(s) = check_bin_gs(s) + VH(k,i,s)
-          enddo
-       enddo
-       do s = 1,n_spec
-          if (.not. almost_equal(check_bin_gs(s), bin_gs(k,s))) then
+          if (.not. almost_equal_abs(check_bin_gs(s), bin_gs(k,s), &
+                                     vol_tol)) then
              write(*,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
                   'bin_gs(k,s)'
              write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
@@ -529,28 +575,7 @@ contains
        call exit(2)
     endif
     
-    write(*,*) 'check_hybrid() successful'
-    
   end subroutine check_hybrid
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine particle_vol_hybrid(n_bin,TDV,n_spec,VH,k,i,pv)
-    
-    use mod_array
-    
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: TDV          !  trailing dimension of VH      
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(in) :: VH(n_bin,TDV,n_spec)  !  particle volumes (m^3)
-    integer, intent(in) :: i            !  particle index
-    integer, intent(in) :: k            !  bin index
-    real*8 pv            ! OUPUT: total volume of particle
-    
-    !     FIXME: fix callers to just call particle_vol_base directly
-    call particle_vol_base(n_spec, VH(k,i,:), pv)
-    
-  end subroutine particle_vol_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

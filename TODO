@@ -25,7 +25,7 @@ Stop using magic file number 30 for the output file.
 Add a "make test" to run everything and compare the output files of
 various things.
 
-Rename t_print to t_output and t_progress to t_print
+Rename t_print to t_output
 
 Change endif/enddo to end if/end do
 

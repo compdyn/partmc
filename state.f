@@ -45,6 +45,8 @@ contains
        write(0,*) 'ERROR: n_spec mismatch'
        call exit(1)
     end if
+
+    
     
     do i = 1,n_bin
        read(f_in,'(i20,i20)') dum_int_1, MH(i)
@@ -53,7 +55,7 @@ contains
     do i = 1,n_bin
        do j = 1,MH(i)
           do k = 1,n_spec
-             if (k > size(VH(i)%p,1)) then
+             if (j > size(VH(i)%p,1)) then
                 call enlarge_bin(VH(i))
              end if
              read(f_in,'(i12,i12,i12,e30.20)') &
@@ -87,7 +89,7 @@ contains
     character*50 outname
     integer i, j, k
     
-    write(outname, '(a6,i4.4,a2)') 'state_', index, '.d'
+    write(outname, '(a6,i8.8,a2)') 'state_', index, '.d'
     open(unit=funit,file=outname)
     write(funit,'(a20,e20.10)') 'time(s)', time
     write(funit,'(a20,e20.10)') 'temp(K)', env%T

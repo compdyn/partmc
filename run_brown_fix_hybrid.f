@@ -39,8 +39,8 @@ program run_brown_fix_hybrid
   
   parameter (t_max = 3d0*3600d0)  ! total simulation time (seconds)
   parameter (t_print = 600d0) ! interval between output (s)
-  parameter (t_state = 0d0)   ! interval between state output (s)
-  parameter (t_progress = 1d0) ! interval between printing progress (s)
+  parameter (t_state = 600d0) ! interval between state output (s)
+  parameter (t_progress = 60d0) ! interval between printing progress (s)
   parameter (del_t = 1d0)   ! timestep (s)
   parameter (d_mean1 = 0.1d-6) ! mean diameter of #1- initial distribution (m)
   parameter (d_mean2 = 0.05d-6)  ! mean diameter of #2- initial distribution (m)

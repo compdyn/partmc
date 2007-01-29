@@ -52,19 +52,21 @@ program process_state
   
   call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr)
-  call write_moments(basename, n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n)
+  call write_moments(basename, n_bin, n_spec, dlnr, env, bin_v, &
+       bin_g, bin_gs, bin_n)
 
   call moments_hybrid_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
-  call write_moments_2d(basename, n_bin, bin_v, bin_n_2d, bin_g_2d)
+  call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
+       bin_n_2d, bin_g_2d)
 
   call moments_composition_2d(n_bin, n_spec, MH, VH, v_cutoff, v_max, &
        spec_1, spec_2, n_comp, comp_n)
-  call write_composition_2d(basename, n_comp, comp_n)
+  call write_composition_2d(basename, n_comp, dlnr, env, comp_n)
   
   call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
-  call write_moments_mixed_2d(basename, n_bin, bin_v, &
+  call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
        bin_n_mixed, bin_g_mixed)
   write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
   write(6,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
@@ -224,13 +226,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine write_moments(basename, n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n)
+  subroutine write_moments(basename, n_bin, n_spec, dlnr, env, &
+             bin_v, bin_g, bin_gs, bin_n)
     
     use mod_util
     
     character, intent(in) :: basename*100  ! basename of the input filename
     integer, intent(in) :: n_bin           ! number of bins
     integer, intent(in) :: n_spec          ! number of species
+    type(environ) :: env       ! environment state
+    real*8, intent(in) :: dlnr
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
     real*8, intent(in) :: bin_g(n_bin)     ! volume in bins
     real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species volume in bins
@@ -248,7 +253,8 @@ contains
     
     do i = 1,n_bin
        write(f_out,'(i20,e20.10,i20,e20.10)') i, vol2rad(bin_v(i)), &
-            bin_n(i), bin_g(i)
+            dble(bin_n(i)) / dlnr / env%V_comp, &
+            dble(bin_g(i)) / dlnr / env%V_comp
     end do
     
     close(unit=f_out)
@@ -257,12 +263,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine write_moments_2d(basename, n_bin, bin_v, bin_n_2d, bin_g_2d)
+  subroutine write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
+             bin_n_2d, bin_g_2d)
     
     use mod_util
     
     character, intent(in) :: basename*100  ! basename of the input filename
     integer, intent(in) :: n_bin           ! number of bins
+    type(environ) :: env       ! environment state
+    real*8, intent(in) :: dlnr
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
     integer, intent(in) :: bin_n_2d(n_bin,n_bin) ! 2D species number
                                                  ! distribution
@@ -282,7 +291,8 @@ contains
        do j = 1,n_bin
           write(f_out,'(i20,i20,e20.10,e20.10,i20,e20.10)') &
                i, j, vol2rad(bin_v(i)), vol2rad(bin_v(j)), &
-               bin_n_2d(i,j), bin_g_2d(i,j)
+               dble(bin_n_2d(i,j)) / dlnr / env%V_comp, &
+               dble(bin_g_2d(i,j)) / dlnr / env%V_comp
        end do
     end do
     
@@ -292,12 +302,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine write_composition_2d(basename, n_comp, comp_n)
+  subroutine write_composition_2d(basename, n_comp, dlnr, env, comp_n)
     
     character, intent(in) :: basename*100  ! basename of the input filename
     integer, intent(in) :: n_comp          ! number of composition bins
     integer, intent(in) :: comp_n(n_comp)  ! number in composition bins
-    
+    type(environ) :: env       ! environment state
+    real*8, intent(in) :: dlnr
+
     integer, parameter :: f_out = 20
     
     character :: filename*100
@@ -309,7 +321,7 @@ contains
     open(f_out, file=filename)
     
     do i = 1,n_comp
-       write(f_out,'(i20,i20)') i, comp_n(i)
+       write(f_out,'(i20,i20)') i, dble(comp_n(i)) / dlnr / env%V_comp
     end do
     
     close(unit=f_out)
@@ -318,13 +330,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine write_moments_mixed_2d(basename, n_bin, bin_v, &
+  subroutine write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
        bin_n_mixed, bin_g_mixed)
     
     use mod_util
     
     character, intent(in) :: basename*100  ! basename of the input filename
     integer, intent(in) :: n_bin           ! number of bins
+    type(environ) :: env       ! environment state
+    real*8, intent(in) :: dlnr
     real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
     integer, intent(in) :: bin_n_mixed(n_bin,3) ! species number by composition
     real*8, intent(in) :: bin_g_mixed(n_bin,3) ! species volume by composition
@@ -341,7 +355,8 @@ contains
     
     do i = 1,n_bin
        write(f_out,'(i20,e20.10,3i20,3e20.10)') i, vol2rad(bin_v(i)), &
-            bin_n_mixed(i,:), bin_g_mixed(i,:)
+            dble(bin_n_mixed(i,:)) / dlnr / env%V_comp, &
+            dble(bin_g_mixed(i,:)) / dlnr / env%V_comp
     end do
     
     close(unit=f_out)

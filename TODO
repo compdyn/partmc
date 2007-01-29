@@ -1,3 +1,9 @@
+Change naming of state_XXXX.d to include sedi/brown/whatever
+
+Golovin exact truncates at r = 3.2E-5
+
+Rename out_XXXX_mass_avg.d to out_XXXX_vol_avg.d
+
 Rename read_state to read_state_hybrid and also write_state.
 
 Remove debug code in cond_growth_rate_func()

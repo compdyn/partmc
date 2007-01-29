@@ -5,7 +5,8 @@
 !
 ! Brownian coagulation kernel.
 ! See Seinfeld, Atmospheric chemistry and physics of air pollution,
-! page 396.
+! page 394 (equation 10.18)
+! This expression is based on the assumption that the continuum regime applies.
     
 module mod_kernel_brown
 contains

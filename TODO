@@ -5,6 +5,7 @@ Remove debug code in cond_growth_rate_func()
 Replace pi with const%pi
 
 Remove old style parameter declarations
+Reformat parameter description comments and remove double spaces
 
 Mass from mc_exact seems to be 10^3 higher than from mc for golovin?
 
@@ -29,11 +30,7 @@ Rename t_print to t_output
 
 Change endif/enddo to end if/end do
 
-Change copyrights to include 2007
-
 Make sure all functions have a description at the top of them
-
-Reformat parameter description comments and remove double spaces
 
 Add restart arguments to mc_fix_hybrid to get it to restart
 
@@ -51,7 +48,19 @@ variables.
 
 deps: should be changed to Makefile.deps: in Makefile
 
+rho_a should be shifted from constants to environ
+check whether atm should also shift from constants to environ
+
+clean up the whole particle_vol_hybrid(), particle_vol(),
+particle_vol_base(), particle_volume() thing
+
+also output bin_v in state
+
+-----------------------------------------------------------------------------
+
 Add adaptive timestepping for the condensation ODE solver.
+
+Add implicit timestepping for the condensation ODE solver.
 
 The initialization routines in init_dist.f are assuming
 logarithmically spaced bins, irrespective of what bin_r and bin_v
@@ -61,12 +70,4 @@ should instead multiply the density by ln(bin_right_edge) -
 ln(bin_left_edge) or similar. In general, we should stop passing dlnr
 around, as it should be recalculable from bin_r for each bin.
 
-remove particle_vol_hybrid(), particle_vol(), particle_vol_base(),
-particle_volume() and replace with sum().
-
-also output bin_v in state
-
 use HDF or CDF or something to store state
-
-rho_a should be shifted from constants to environ
-check whether atm should also shift from constants to environ

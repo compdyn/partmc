@@ -75,7 +75,7 @@ contains
     endif
     
     do k = 1,n_bin
-       bin_g(k) = pi/6d0 * rho_p * (2d0*vol2rad(bin_v(k)))**3d0 &
+       bin_g(k) = pi/6d0 * (2d0*vol2rad(bin_v(k)))**3d0 &
             * dble(bin_n(k))
     enddo
     

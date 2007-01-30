@@ -13,8 +13,6 @@ Replace pi with const%pi
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
 
-Mass from mc_exact seems to be 10^3 higher than from mc for golovin?
-
 Are we outputting integer number or number density? Which should it
 be? Fix this.
 

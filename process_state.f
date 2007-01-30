@@ -254,7 +254,7 @@ contains
     do i = 1,n_bin
        write(f_out,'(i20,e20.10,e20.10,e20.10)') i, vol2rad(bin_v(i)), &
             dble(bin_n(i)) / dlnr / env%V_comp, &
-            dble(bin_g(i)) / dlnr / env%V_comp
+            bin_g(i) / dlnr / env%V_comp
     end do
     
     close(unit=f_out)
@@ -292,7 +292,7 @@ contains
           write(f_out,'(i20,i20,e20.10,e20.10,e20.10,e20.10)') &
                i, j, vol2rad(bin_v(i)), vol2rad(bin_v(j)), &
                dble(bin_n_2d(i,j)) / dlnr / env%V_comp, &
-               dble(bin_g_2d(i,j)) / dlnr / env%V_comp
+               bin_g_2d(i,j) / dlnr / env%V_comp
        end do
     end do
     
@@ -356,7 +356,7 @@ contains
     do i = 1,n_bin
        write(f_out,'(i20,e20.10,3e20.10,3e20.10)') i, vol2rad(bin_v(i)), &
             dble(bin_n_mixed(i,:)) / dlnr / env%V_comp, &
-            dble(bin_g_mixed(i,:)) / dlnr / env%V_comp
+            bin_g_mixed(i,:) / dlnr / env%V_comp
     end do
     
     close(unit=f_out)

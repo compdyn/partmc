@@ -23,7 +23,7 @@ contains
     
     integer, parameter :: f_in = 20
     
-    character :: dum(1000)
+    character :: dum*1000
     integer :: i, j, k, dum_int_1, dum_int_2, dum_int_3
     integer :: n_bin_test, n_spec_test
 

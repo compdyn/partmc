@@ -46,6 +46,10 @@ program run_brown_fix_hybrid
   parameter (d_mean2 = 0.05d-6)  ! mean diameter of #2- initial distribution (m)
   parameter (log_sigma1 = 0.21d0) ! log(sigma) of #1- initial distribution
   parameter (log_sigma2 = 0.2d0) ! log(sigma) of #2- initial distribution
+
+  logical, parameter :: do_condensation = .false.  ! whether to do condensation
+  logical, parameter :: do_restart = .false.       ! restart from saved state?
+  character(len=*), parameter :: restart_name = "" ! filename to restart from
   
   integer M, M1, M2, i_loop, i
   real*8 V(MM,n_spec), dlnr
@@ -105,8 +109,9 @@ program run_brown_fix_hybrid
         call equilibriate_particle(n_spec, V(i,:), env, mat)
      enddo
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
-          bin_v, bin_g, bin_gs, bin_n, dlnr , &
+          bin_v, bin_g, bin_gs, bin_n, dlnr, &
           kernel_brown, t_max, t_print, t_state, t_progress ,del_t, &
+          do_condensation, do_restart, restart_name, &
           i_loop, env, mat)
      
   enddo

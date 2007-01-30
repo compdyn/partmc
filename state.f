@@ -13,7 +13,7 @@ contains
     use mod_environ
     use mod_array_hybrid
     
-    character, intent(in) :: filename*100   ! input filename
+    character(len=*), intent(in) :: filename       ! input filename
     integer, intent(in) :: n_bin            ! number of bins
     integer, intent(in) :: n_spec           ! number of species
     integer, intent(out) :: MH(n_bin)       ! number of particles per bin
@@ -23,7 +23,7 @@ contains
     
     integer, parameter :: f_in = 20
     
-    character :: dum*100
+    character :: dum(1000)
     integer :: i, j, k, dum_int_1, dum_int_2, dum_int_3
     integer :: n_bin_test, n_spec_test
 

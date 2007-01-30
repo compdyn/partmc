@@ -10,11 +10,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, &
-       MH, VH, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, &
-       kernel, t_max, t_print, t_state, &
-       t_progress, del_t, loop, env, mat)
+  subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
+       bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
+       t_max, t_print, t_state, t_progress, del_t, &
+       do_condensation, do_restart, restart_name, &
+       loop, env, mat)
     
     use mod_util
     use mod_array
@@ -25,30 +25,36 @@ contains
     use mod_material
     use mod_state
     
-    integer, intent(in) :: MM                !  physical dimension of V
-    integer, intent(inout) :: M                 !  logical dimension of V
-    integer, intent(in) :: n_spec            !  number of species
-    real*8, intent(inout) :: V(MM,n_spec)       !  particle volumes (m^3)
-    integer, intent(in) :: n_bin             !  number of bins
-    integer, intent(out) :: MH(n_bin)         !  number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin) !  particle volumes (m^3)
+    integer, intent(in) :: MM                ! physical dimension of V
+    integer, intent(inout) :: M              ! logical dimension of V
+    integer, intent(in) :: n_spec            ! number of species
+    real*8, intent(inout) :: V(MM,n_spec)    ! particle volumes (m^3)
+    integer, intent(in) :: n_bin             ! number of bins
+    integer, intent(out) :: MH(n_bin)        ! number of particles per bin
+    type(bin_p), intent(out) :: VH(n_bin)    ! particle volumes (m^3)
     
-    real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins
-    integer, intent(out) :: bin_n(n_bin)      !  number in bins
-    real*8, intent(in) :: dlnr               !  bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin)      ! volume in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
+    integer, intent(out) :: bin_n(n_bin)     ! number in bins
+    real*8, intent(in) :: dlnr               ! bin scale factor
     
-    real*8, intent(in) :: t_max              !  final time (seconds)
-    real*8, intent(in) :: t_print            !  interval to output data, or zero to not output (seconds)
-    real*8, intent(in) :: t_state            !  interval to output state, or zero to not output (seconds)
-    real*8, intent(in) :: t_progress         !  interval to print progress, or zero to not print (seconds)
-    real*8, intent(in) :: del_t              !  timestep for coagulation
+    real*8, intent(in) :: t_max              ! final time (seconds)
+    real*8, intent(in) :: t_print            ! interval to output data, or
+                                             ! zero to not output (seconds)
+    real*8, intent(in) :: t_state            ! interval to output state, or
+                                             ! zero to not output (seconds)
+    real*8, intent(in) :: t_progress         ! interval to print progress, or
+                                             ! zero to not print (seconds)
+    real*8, intent(in) :: del_t              ! timestep for coagulation
     
-    integer, intent(in) :: loop              !  loop number of run
+    logical, intent(in) :: do_condensation   ! whether to do condensation
+    logical, intent(in) :: do_restart        ! whether to restart from state
+    character(len=*), intent(in) :: restart_name ! name of state to restart from
+    integer, intent(in) :: loop              ! loop number of run
     
-    type(environ), intent(inout) :: env  ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    type(environ), intent(inout) :: env      ! environment state
+    type(material), intent(in) :: mat        ! material properties
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -73,16 +79,15 @@ contains
     tot_n_coag = 0
     call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, MH, VH)
     
-    ! RESTART
-    !      filename = 'start_state_0800_2e8.d'
-    !      i_time = 800
-    !      call read_state(filename, n_bin, n_spec, MH, VH, env, time)
-    !      M = sum(MH)
-    !      do while (M .lt. MM / 2)
-    !         call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec
-    !     $        ,bin_v, bin_g, bin_gs, bin_n, dlnr)
-    !      enddo
-    ! RESTART
+    if (do_restart) then
+       call read_state(restart_name, n_bin, n_spec, MH, VH, env, time)
+       i_time = nint(time / del_t)
+       M = sum(MH)
+       do while (M .lt. MM / 2)
+          call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec, &
+               bin_v, bin_g, bin_gs, bin_n, dlnr)
+       end do
+    end if
     
     call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
          bin_g, bin_gs, bin_n, dlnr)
@@ -133,15 +138,15 @@ contains
                ,bin_v,  bin_g, bin_gs, bin_n, dlnr)
        endif
        
-       ! NO CONDENSATION IN RESTART RUN
-!       call condense_particles(n_bin, n_spec, MH, VH, del_t, &
-!            bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
-       ! NO CONDENSATION IN RESTART RUN
+       if (do_condensation) then
+          call condense_particles(n_bin, n_spec, MH, VH, del_t, &
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       end if
        
-       ! DEBUG
-       call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, &
-            bin_g, bin_gs, bin_n, dlnr)
-       ! DEBUG
+       ! DEBUG: enable to check array handling
+       ! call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, &
+       !     bin_g, bin_gs, bin_n, dlnr)
+       ! DEBUG: end
        
        i_time = i_time + 1
        time = time + del_t

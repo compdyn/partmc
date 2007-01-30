@@ -1,3 +1,6 @@
+Make process_out and process_state do dynamic allocation of arrays
+after reading size information from the file.
+
 Change naming of state_XXXX.d to include sedi/brown/whatever
 
 Golovin exact truncates at r = 3.2E-5

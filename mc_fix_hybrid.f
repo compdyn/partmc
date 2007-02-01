@@ -13,7 +13,7 @@ contains
   subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
        t_max, t_print, t_state, t_progress, del_t, &
-       do_condensation, do_restart, restart_name, &
+       do_coagulation, do_condensation, do_restart, restart_name, &
        loop, env, mat)
     
     use mod_util
@@ -25,8 +25,8 @@ contains
     use mod_material
     use mod_state
     
-    integer, intent(in) :: MM                ! physical dimension of V
-    integer, intent(inout) :: M              ! logical dimension of V
+    integer, intent(in) :: MM                ! maximum number of particles
+    integer, intent(inout) :: M              ! actual number of particles
     integer, intent(in) :: n_spec            ! number of species
     real*8, intent(inout) :: V(MM,n_spec)    ! particle volumes (m^3)
     integer, intent(in) :: n_bin             ! number of bins
@@ -48,6 +48,7 @@ contains
                                              ! zero to not print (seconds)
     real*8, intent(in) :: del_t              ! timestep for coagulation
     
+    logical, intent(in) :: do_coagulation    ! whether to do coagulation
     logical, intent(in) :: do_condensation   ! whether to do condensation
     logical, intent(in) :: do_restart        ! whether to restart from state
     character(len=*), intent(in) :: restart_name ! name of state to restart from
@@ -67,9 +68,9 @@ contains
     end interface
     
     real*8 time, last_print_time, last_state_time, last_progress_time
-    real*8 k_max(n_bin, n_bin), n_samp_real
-    integer n_samp, i_samp, n_coag, i, j, tot_n_samp, tot_n_coag, k
-    logical do_print, do_state, do_progress, did_coag, bin_change
+    real*8 k_max(n_bin, n_bin)
+    integer n_coag, tot_n_samp, tot_n_coag
+    logical do_print, do_state, do_progress, did_coag
     real*8 t_start, t_wall_start, t_wall_now, t_wall_est
     integer i_time
     character*100 filename
@@ -110,34 +111,14 @@ contains
     last_state_time = time
     last_print_time = time
     do while (time < t_max)
-       tot_n_samp = 0
-       n_coag = 0
-       do i = 1,n_bin
-          do j = 1,n_bin
-             call compute_n_samp_hybrid(n_bin, MH, i, j, env%V_comp, &
-                  k_max, del_t, n_samp_real)
-             ! probabalistically determine n_samp to cope with < 1 case
-             n_samp = int(n_samp_real)
-             if (util_rand() .lt. mod(n_samp_real, 1d0)) then
-                n_samp = n_samp + 1
-             endif
-             tot_n_samp = tot_n_samp + n_samp
-             do i_samp = 1,n_samp
-                call maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
-                     env%V_comp, n_spec, bin_v, bin_g, bin_gs, &
-                     bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
-                     env, did_coag, bin_change)
-                if (did_coag) n_coag = n_coag + 1
-             enddo
-          enddo
-       enddo
-       
+       if (do_coagulation) then
+          call coag_fix_hybrid(MM, M, n_spec, n_bin, MH, VH, &
+               bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, &
+               env, mat, tot_n_samp, n_coag)
+       end if
+
        tot_n_coag = tot_n_coag + n_coag
-       if (M .lt. MM / 2) then
-          call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec &
-               ,bin_v,  bin_g, bin_gs, bin_n, dlnr)
-       endif
-       
+
        if (do_condensation) then
           call condense_particles(n_bin, n_spec, MH, VH, del_t, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
@@ -190,19 +171,95 @@ contains
   end subroutine mc_fix_hybrid
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine coag_fix_hybrid(MM, M, n_spec, n_bin, MH, VH, bin_v, &
+       bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, env, mat, &
+       tot_n_samp, n_coag)
+
+    use mod_util
+    use mod_array
+    use mod_array_hybrid
+    use mod_bin 
+    use mod_environ
+    use mod_material
+    
+    integer, intent(in) :: MM                ! maximum number of particles
+    integer, intent(inout) :: M              ! actual number of particles
+    integer, intent(in) :: n_spec            ! number of species
+    integer, intent(in) :: n_bin             ! number of bins
+    integer, intent(out) :: MH(n_bin)        ! number of particles per bin
+    type(bin_p), intent(out) :: VH(n_bin)    ! particle volumes (m^3)
+    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin)      ! volume in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
+    integer, intent(out) :: bin_n(n_bin)     ! number in bins
+    real*8, intent(in) :: dlnr               ! bin scale factor
+    real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
+    real*8, intent(in) :: del_t              ! timestep for coagulation
+    type(environ), intent(inout) :: env      ! environment state
+    type(material), intent(in) :: mat        ! material properties
+    integer, intent(out) :: tot_n_samp       ! total number of samples tested
+    integer, intent(out) :: n_coag           ! number of coagulation events
+
+    interface
+       subroutine kernel(v1, v2, env, k)
+         use mod_environ
+         real*8, intent(in) :: v1
+         real*8, intent(in) :: v2
+         type(environ), intent(in) :: env 
+         real*8, intent(out) :: k
+       end subroutine kernel
+    end interface
+    
+    logical did_coag, bin_change
+    integer i, j, n_samp, i_samp
+    real*8 n_samp_real
+
+    tot_n_samp = 0
+    n_coag = 0
+    do i = 1,n_bin
+       do j = 1,n_bin
+          call compute_n_samp_hybrid(n_bin, MH, i, j, env%V_comp, &
+               k_max, del_t, n_samp_real)
+          ! probabalistically determine n_samp to cope with < 1 case
+          n_samp = int(n_samp_real)
+          if (util_rand() .lt. mod(n_samp_real, 1d0)) then
+             n_samp = n_samp + 1
+          endif
+          tot_n_samp = tot_n_samp + n_samp
+          do i_samp = 1,n_samp
+             call maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
+                  env%V_comp, n_spec, bin_v, bin_g, bin_gs, &
+                  bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
+                  env, did_coag, bin_change)
+             if (did_coag) n_coag = n_coag + 1
+          enddo
+       enddo
+    enddo
+    
+    ! if we have less than half the maximum number of particles
+    ! then double until we fill up the array
+    do while (M .lt. MM / 2)
+       call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec, &
+            bin_v, bin_g, bin_gs, bin_n, dlnr)
+    end do
+    
+  end subroutine coag_fix_hybrid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine compute_n_samp_hybrid(n_bin, MH, i, j, V_comp, k_max, &
        del_t, n_samp_real)
     
-    integer, intent(in) :: n_bin              !  number of bins
-    integer, intent(in) :: MH(n_bin)          !  number particles per bin
-    integer, intent(in) :: i                  !  first bin 
-    integer, intent(in) :: j                  !  second bin
-    real*8, intent(in) :: V_comp              !  computational volume
-    real*8, intent(in) :: k_max(n_bin,n_bin)  !  maximum kernel values
-    real*8, intent(in) :: del_t               !  timestep (s)
-    real*8, intent(out) :: n_samp_real         !  number of samples per timestep
-    !         for bin-i to bin-j events
+    integer, intent(in) :: n_bin         ! number of bins
+    integer, intent(in) :: MH(n_bin)     ! number particles per bin
+    integer, intent(in) :: i             ! first bin 
+    integer, intent(in) :: j             ! second bin
+    real*8, intent(in) :: V_comp         ! computational volume
+    real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
+    real*8, intent(in) :: del_t          ! timestep (s)
+    real*8, intent(out) :: n_samp_real   ! number of samples per timestep
+                                         ! for bin-i to bin-j events
     
     real*8 r_samp
     real*8 n_possible ! use real*8 to avoid integer overflow

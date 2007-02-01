@@ -39,6 +39,7 @@ program run_constant_fix_hybrid
   real*8, parameter :: t_progress = 1d0 ! interval between progress printing (s)
   real*8, parameter :: del_t = 1d0   ! timestep (s)
 
+  logical, parameter :: do_coagulation = .true.    ! whether to do condensation
   logical, parameter :: do_condensation = .false.  ! whether to do condensation
   logical, parameter :: do_restart = .false.       ! restart from saved state?
   character(len=*), parameter :: restart_name = "" ! filename to restart from
@@ -87,7 +88,7 @@ program run_constant_fix_hybrid
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_g, bin_gs, bin_n, dlnr , &
           kernel_constant, t_max, t_print, t_state, t_progress ,del_t, &
-          do_condensation, do_restart, restart_name, &
+          do_coagulation, do_condensation, do_restart, restart_name, &
           i_loop, env, mat)
      
   enddo

@@ -71,8 +71,9 @@ program process_state
   write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
   write(6,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
   write(6,*) 'volume in mixed: ', sum(bin_g_mixed(:,3))
-  write(6,*) 'volume total:    ', sum(bin_g_mixed(:,1)) + &
-                  sum(bin_g_mixed(:,2))+sum(bin_g_mixed(:,3))
+  write(6,*) 'volume total: ', sum(bin_g)
+  write(6,*) 'volume in species: ', sum(bin_gs,1)
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

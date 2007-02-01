@@ -47,6 +47,7 @@ program run_sedi_fix_hybrid
   real*8, parameter :: log_sigma2 = 0.6d0  ! log(sigma) of #2- initial
                                            ! distribution
   
+  logical, parameter :: do_coagulation = .true.    ! whether to do condensation
   logical, parameter :: do_condensation = .false.  ! whether to do condensation
   logical, parameter :: do_restart = .false.       ! restart from saved state?
   character(len=*), parameter :: restart_name = "" ! filename to restart from
@@ -113,7 +114,7 @@ program run_sedi_fix_hybrid
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_g, bin_gs, bin_n, dlnr , &
           kernel_sedi, t_max, t_print, t_state, t_progress, del_t, &
-          do_condensation, do_restart, restart_name, &
+          do_coagulation, do_condensation, do_restart, restart_name, &
           i_loop, env, mat)
 
   enddo

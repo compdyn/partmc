@@ -37,6 +37,7 @@ program run_golovin_fix_hybrid
   real*8, parameter :: N_0 = 1d9        ! particle number concentration (#/m^3)
   real*8, parameter :: V_0 = 4.1886d-15 ! mean volume of #1-initial distribution
   
+  logical, parameter :: do_coagulation = .true.    ! whether to do condensation
   logical, parameter :: do_condensation = .false.  ! whether to do condensation
   logical, parameter :: do_restart = .false.       ! restart from saved state?
   character(len=*), parameter :: restart_name = "" ! filename to restart from
@@ -83,7 +84,7 @@ program run_golovin_fix_hybrid
      call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, bin_v, &
           bin_g, bin_gs, bin_n, dlnr, kernel_golovin, t_max, &
           t_print, t_state, t_progress, del_t, &
-          do_condensation, do_restart, restart_name, &
+          do_coagulation, do_condensation, do_restart, restart_name, &
           i_loop, env, mat)
      
   enddo

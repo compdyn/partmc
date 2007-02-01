@@ -1,3 +1,6 @@
+We keep track of M all the time (total number of particles). Should we
+just recalc from sum(MH) when we need it?
+
 Make process_out and process_state do dynamic allocation of arrays
 after reading size information from the file.
 
@@ -38,11 +41,6 @@ Rename t_print to t_output
 Change endif/enddo to end if/end do
 
 Make sure all functions have a description at the top of them
-
-Add restart arguments to mc_fix_hybrid to get it to restart
-
-Add do_coagulation and do_condensation parameters to mc_fix_hybrid to
-tell it whether to do each process.
 
 Remove dT/dt from env and pass mc_fix_hybrid a list of times and
 temps, so that it can do linear interpolation to set the

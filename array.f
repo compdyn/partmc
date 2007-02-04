@@ -148,18 +148,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine coagulate(MM, M, V, V_comp,n_spec, &
+  subroutine coagulate(MM, M, V, n_spec, &
        n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-       s1, s2, bin_change)
+       s1, s2, env, bin_change)
     
     use mod_bin
-    
+    use mod_environ
+   
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
     integer, intent(in) :: n_spec       !  number of species 
     real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes  (m^3)
-    real*8, intent(in) :: V_comp        !  computational volume   (m^3)
-    
+     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
      real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins 
@@ -169,6 +169,7 @@ contains
     
     integer, intent(in) :: s1           !  first particle to coagulate
     integer, intent(in) :: s2           !  second particle to coagulate
+    type(environ), intent(in) :: env        ! environment state
     logical, intent(out) :: bin_change   !  whether an empty bin filled,
     !         or a filled bin became empty
     
@@ -234,7 +235,7 @@ contains
   end subroutine coagulate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
-  subroutine maybe_coag_pair(MM, M, V, V_comp, n_spec, &
+  subroutine maybe_coag_pair(MM, M, V, n_spec, &
        n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
        del_t, n_samp, kernel, env, did_coag, bin_change)
     
@@ -245,8 +246,7 @@ contains
     integer, intent(inout) :: M            !  logical dimension of V
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
-    real*8, intent(in) :: V_comp        !  computational volume
-    
+     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
      real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins
@@ -279,13 +279,13 @@ contains
     call particle_vol(MM,n_spec,V,s1,pv1)
     call particle_vol(MM,n_spec,V,s2,pv2)
     call kernel(pv1, pv2, env, k)
-    p = k * 1d0/V_comp * del_t *  &
+    p = k * 1d0/env%V_comp * del_t *  &
          (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
     bin_change = .false.
     if (util_rand() .lt. p) then
-       call coagulate(MM, M, V, V_comp, n_spec, &
+       call coagulate(MM, M, V, n_spec, &
             n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-            s1, s2, bin_change)
+            s1, s2, env, bin_change)
        did_coag = .true.
     else
        did_coag = .false.
@@ -296,14 +296,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine double(MM, M, V, V_comp, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr)
-    
+  subroutine double(MM, M, V, n_spec, &
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+
+    use mod_environ
+
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
-    real*8, intent(inout) :: V_comp        !  computational volume
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -311,6 +312,7 @@ contains
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
+    type(environ), intent(in) :: env        ! environment state
     
     integer i,j
     
@@ -327,7 +329,7 @@ contains
        enddo
     enddo
     M = 2 * M
-    V_comp = 2d0 * V_comp
+    env%V_comp = 2d0 * env%V_comp
     
     ! double bin structures
     do i = 1,n_bin
@@ -447,16 +449,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments(MM, M, V, V_comp, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr)
+  subroutine moments(MM, M, V, n_spec, &
+       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env)
     
     use mod_bin
-    
+    use mod_environ
+
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(in) :: M            !  logical dimension of V
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(in) :: V(MM,n_spec)  !  particle volumes (m^3)
-    real*8, intent(in) :: V_comp        !  computational volume (m^3)
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
@@ -464,6 +466,7 @@ contains
     real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(out) :: bin_n(n_bin) !  number in bins  
     real*8, intent(in) :: dlnr          !  bin scale factor
+    type(environ), intent(in) :: env        ! environment state
     
     integer i, k, j
     real*8 pv

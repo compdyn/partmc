@@ -237,7 +237,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine maybe_coag_pair_hybrid(M, n_bin, MH, VH, V_comp, &
+  subroutine maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
        n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
        del_t, k_max, kernel, env, did_coag, bin_change)
     
@@ -255,8 +255,7 @@ contains
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
-    real*8, intent(in) :: V_comp        !  computational volume
-    
+     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
@@ -299,9 +298,9 @@ contains
     p = k / k_max
     
     if (util_rand() .lt. p) then
-       call coagulate_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
+       call coagulate_hybrid(M, n_bin, MH, VH, n_spec &
             ,bin_v,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
-            bin_change)
+            env, bin_change)
        did_coag = .true.
     endif
     
@@ -335,9 +334,9 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine coagulate_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
+  subroutine coagulate_hybrid(M, n_bin, MH, VH, n_spec &
        ,bin_v, bin_g, bin_gs,bin_n, dlnr, b1, s1, b2, s2, &
-       bin_change)
+       env, bin_change)
     
     ! Join together particles (b1, s1) and (b2, s2), updating all
     ! particle and bin structures to reflect the change. bin_change is
@@ -353,8 +352,7 @@ contains
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
-    real*8, intent(in) :: V_comp        !  computational volume
-    
+     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
@@ -365,7 +363,8 @@ contains
     integer, intent(in) :: s1           !  first particle (number in bin)
     integer, intent(in) :: b2           !  second particle (bin number)
     integer, intent(in) :: s2           !  second particle (number in bin)
-    logical, intent(out) :: bin_change   !  whether an empty bin filled,
+    type(environ), intent(in) :: env    ! environment state
+    logical, intent(out) :: bin_change  !  whether an empty bin filled,
     !         or a filled bin became empty
     
     integer bn, i, j
@@ -435,8 +434,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine double_hybrid(M, n_bin, MH, VH, V_comp, n_spec &
-       ,bin_v, bin_g, bin_gs, bin_n, dlnr)
+  subroutine double_hybrid(M, n_bin, MH, VH, n_spec &
+       ,bin_v, bin_g, bin_gs, bin_n, dlnr, env)
     
     ! Double number of particles in a hybrid array.
     
@@ -445,12 +444,12 @@ contains
     integer, intent(in) :: n_spec       !  number of species
     integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
-    real*8, intent(inout) :: V_comp        !  computational volume
-    
+     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    type(environ), intent(in) :: env        ! environment state 
     real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer i, k, i_spec
@@ -466,7 +465,7 @@ contains
        MH(k) = 2 * MH(k)
     enddo
     M = 2 * M
-    V_comp = 2d0 * V_comp
+    env%V_comp = 2d0 * env%V_comp
     
     ! double bin structures
     bin_g = bin_g * 2d0

@@ -30,7 +30,7 @@ contains
   
   subroutine soln_constant_exp_cond(n_bin, bin_v, &
        bin_g, bin_n, dlnr, &
-       time, N_0, V_0, rho_p, V_comp, env)
+       time, N_0, V_0, rho_p, env)
 
     use mod_environ
     use mod_util
@@ -45,7 +45,6 @@ contains
     real*8, intent(in) :: N_0           !  particle number concentration (#/m^3)
     real*8, intent(in) :: V_0           ! 
     real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
-    real*8, intent(in) :: V_comp        !  computational volume
 
     type(environ), intent(in) :: env  ! environment state
     
@@ -80,8 +79,8 @@ contains
     enddo
     
     do k = 1,n_bin
-       bin_g(k) = bin_g(k) * dlnr * V_comp
-       bin_n(k) = int(dble(bin_n(k)) * dlnr * V_comp)
+       bin_g(k) = bin_g(k) * dlnr * env%V_comp
+       bin_n(k) = int(dble(bin_n(k)) * dlnr * env%V_comp)
     enddo
     
   end subroutine soln_constant_exp_cond

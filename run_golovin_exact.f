@@ -17,7 +17,7 @@ program run_golovin_exact
   use mod_material
   
   integer n_bin, n_loop, scal, n_spec
-  real*8 t_max, rho_p, N_0, t_print, V_0, V_comp
+  real*8 t_max, rho_p, N_0, t_print, V_0
   real*8 v_min
   parameter (n_spec = 1)
   parameter (n_bin = 160)        ! number of bins
@@ -29,7 +29,6 @@ program run_golovin_exact
   parameter (N_0 = 1d9)          ! particle number concentration (#/m^3)
   parameter (t_print = 60d0)     ! interval between printing (s)
   parameter (V_0 = 4.1886d-15)   ! mean volume of initial distribution
-  parameter (V_comp = 1d0)       ! computational volume (dummy value)
   
   integer i_loop
   real*8 dlnr
@@ -42,8 +41,12 @@ program run_golovin_exact
   call allocate_material(mat, n_spec)
   ! FIXME: set rho and other material parameters
   
-  ! FIXME: set environment parameters
-  
+  env%T = 288d0        ! (K)
+  env%RH = 0.999d0     ! (1)
+  env%p = 1d5          ! (Pa)
+  env%dTdt = -0.01d0   ! (K s^{-1})
+  env%V_comp = 1d0     ! computational volume, dummy variable
+
   open(30,file='out_golovin_exact.d')
   call print_header(n_loop, n_bin, n_spec,  &
        nint(t_max / t_print) + 1)
@@ -54,7 +57,7 @@ program run_golovin_exact
      
      call mc_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
           bin_n, dlnr, N_0, V_0, rho_p, soln_golovin_exp, t_max, &
-          t_print, i_loop, V_comp, env, mat)
+          t_print, i_loop, env, mat)
      
   enddo
   

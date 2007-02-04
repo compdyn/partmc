@@ -241,14 +241,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine print_info(time, V_comp, n_spec, &
+  subroutine print_info(time, n_spec, &
        n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
     
     use mod_material
     use mod_environ
     
     real*8, intent(in) :: time          !  simulation time
-    real*8, intent(in) :: V_comp        !  computational volume
     
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: n_spec       !  number of species
@@ -263,9 +262,9 @@ contains
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
     real*8 bin_n_den(n_bin)
     
-    bin_g_den = bin_g / V_comp / dlnr
-    bin_gs_den = bin_gs / V_comp / dlnr
-    bin_n_den = dble(bin_n) / V_comp / dlnr
+    bin_g_den = bin_g / env%V_comp / dlnr
+    bin_gs_den = bin_gs / env%V_comp / dlnr
+    bin_n_den = dble(bin_n) / env%V_comp / dlnr
     call print_info_density(time, n_bin, n_spec, bin_v, &
          bin_g_den, bin_gs_den, bin_n_den, env, mat)
     

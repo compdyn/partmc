@@ -33,9 +33,9 @@ program run_sedi_ode
   parameter (scal = 3)                    ! scale factor for bins
   
   integer i_step, n_step
-  real*8 n_small, time, V_comp, v_big, dlnr
+  real*8 n_small, time, v_big, dlnr
   
-  V_comp = dble(n_small_init + 1d0) / N_0
+  env%V_comp = dble(n_small_init + 1d0) / N_0
   dlnr = dlog(2d0) / (3d0 * dble(scal))
   
   time = 0d0
@@ -45,18 +45,18 @@ program run_sedi_ode
   write(*,'(a8,a14,a14,a9)') &
        't', 'n_small', 'v_big', 'n_coag'
   write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-       time, n_small / V_comp / dlnr, v_big / V_comp / dlnr, &
+       time, n_small / env%V_comp / dlnr, v_big / env%V_comp / dlnr, &
        n_small_init - n_small
   do i_step = 1,n_step
      time = dble(i_step - 1) * del_t
      call bidisperse_step(v_small, v_big_init, n_small_init, &
-          V_comp, del_t, n_small)
+          env, del_t, n_small)
      v_big = v_big_init + (n_small_init - n_small) * v_small
      if (mod(i_step - 1, nint(1d0 / del_t)) .eq. 0) then
         write(*,'(a8,a14,a14,a9)') &
              't', 'n_small', 'v_big', 'n_coag'
         write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-             time, n_small / V_comp / dlnr, v_big / V_comp / dlnr, &
+             time, n_small / env%V_comp / dlnr, v_big / env%V_comp / dlnr, &
              n_small_init - n_small
      endif
   enddo
@@ -66,7 +66,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
-       n_small_init, V_comp, n_small_dot)
+       n_small_init, env, n_small_dot)
     
     use mod_environ
 
@@ -74,27 +74,29 @@ contains
     real*8, intent(in) :: v_small        !  volume of one small particle
     real*8, intent(in) :: v_big_init     !  initial volume of the big particle
     real*8, intent(in) :: n_small_init   !  initial number of small particles
-    real*8, intent(in) :: V_comp         !  computational volume
+    type(environ), intent(in) :: env        ! environment state
     real*8, intent(out) :: n_small_dot    !  derivative of n_small
     
     real*8 v_big, k
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
     call kernel_sedi(v_small, v_big, env, k)
-    n_small_dot = - (k * 1d0/V_comp * n_small)
+    n_small_dot = - (k * 1d0/env%V_comp * n_small)
     
   end subroutine bidisperse_f
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
-       V_comp, del_t, n_small)
+       env, del_t, n_small)
     
+    use mod_environ
+
     real*8, intent(in) :: v_small        !  volume of one small particle
     real*8, intent(in) :: v_big_init     !  initial volume of the big particle
     real*8, intent(in) :: n_small_init   !  initial number of small particles
-    real*8, intent(in) :: V_comp         !  computational volume
     real*8, intent(in) :: del_t          !  timestep
+    type(environ), intent(in) :: env        ! environment state
     real*8, intent(inout) :: n_small        !  current number of small particles
     
     real*8 n_small_dot, k1, k2, k3, k4
@@ -102,19 +104,19 @@ contains
     ! integrate ODE with Runge-Kutta-4
     
     call bidisperse_f(n_small, &
-         v_small, v_big_init, n_small_init, V_comp, n_small_dot)
+         v_small, v_big_init, n_small_init, env, n_small_dot)
     k1 = del_t * n_small_dot
     
     call bidisperse_f(n_small + k1/2d0, &
-         v_small, v_big_init, n_small_init, V_comp, n_small_dot)
+         v_small, v_big_init, n_small_init, env, n_small_dot)
     k2 = del_t * n_small_dot
     
     call bidisperse_f(n_small + k2/2d0, &
-         v_small, v_big_init, n_small_init, V_comp, n_small_dot)
+         v_small, v_big_init, n_small_init, env, n_small_dot)
     k3 = del_t * n_small_dot
     
     call bidisperse_f(n_small + k3, &
-         v_small, v_big_init, n_small_init, V_comp, n_small_dot)
+         v_small, v_big_init, n_small_init, env, n_small_dot)
     k4 = del_t * n_small_dot
     
     n_small = n_small + k1/6d0 + k2/3d0 + k3/3d0 + k4/6d0

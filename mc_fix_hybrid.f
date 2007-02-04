@@ -85,8 +85,8 @@ contains
        i_time = nint(time / del_t)
        M = sum(MH)
        do while (M .lt. MM / 2)
-          call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr)
+          call double_hybrid(M, n_bin, MH, VH, n_spec, &
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env)
        end do
     end if
     
@@ -96,7 +96,7 @@ contains
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
     if (t_print > 0d0) then
-       call print_info(time, env%V_comp, n_spec, n_bin, bin_v, &
+       call print_info(time, n_spec, n_bin, bin_v, &
             bin_g, bin_gs, bin_n, dlnr, env, mat)
     end if
 
@@ -141,7 +141,7 @@ contains
        if (t_print > 0d0) then
           call check_event(time, del_t, t_print, last_print_time, &
                do_print)
-          if (do_print) call print_info(time, env%V_comp, n_spec, n_bin, &
+          if (do_print) call print_info(time, n_spec, n_bin, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
        end if
 
@@ -219,8 +219,8 @@ contains
     n_coag = 0
     do i = 1,n_bin
        do j = 1,n_bin
-          call compute_n_samp_hybrid(n_bin, MH, i, j, env%V_comp, &
-               k_max, del_t, n_samp_real)
+          call compute_n_samp_hybrid(n_bin, MH, i, j, &
+               k_max, del_t, env, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = int(n_samp_real)
           if (util_rand() .lt. mod(n_samp_real, 1d0)) then
@@ -229,7 +229,7 @@ contains
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
              call maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
-                  env%V_comp, n_spec, bin_v, bin_g, bin_gs, &
+                  n_spec, bin_v, bin_g, bin_gs, &
                   bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
                   env, did_coag, bin_change)
              if (did_coag) n_coag = n_coag + 1
@@ -240,24 +240,26 @@ contains
     ! if we have less than half the maximum number of particles
     ! then double until we fill up the array
     do while (M .lt. MM / 2)
-       call double_hybrid(M, n_bin, MH, VH, env%V_comp, n_spec, &
-            bin_v, bin_g, bin_gs, bin_n, dlnr)
+       call double_hybrid(M, n_bin, MH, VH,  n_spec, &
+            bin_v, bin_g, bin_gs, bin_n, dlnr, env)
     end do
     
   end subroutine coag_fix_hybrid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine compute_n_samp_hybrid(n_bin, MH, i, j, V_comp, k_max, &
-       del_t, n_samp_real)
+  subroutine compute_n_samp_hybrid(n_bin, MH, i, j, k_max, &
+       del_t, env, n_samp_real)
+
+    use mod_environ
     
     integer, intent(in) :: n_bin         ! number of bins
     integer, intent(in) :: MH(n_bin)     ! number particles per bin
     integer, intent(in) :: i             ! first bin 
     integer, intent(in) :: j             ! second bin
-    real*8, intent(in) :: V_comp         ! computational volume
     real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
     real*8, intent(in) :: del_t          ! timestep (s)
+    type(environ), intent(in) :: env        ! environment state
     real*8, intent(out) :: n_samp_real   ! number of samples per timestep
                                          ! for bin-i to bin-j events
     
@@ -270,7 +272,7 @@ contains
        n_possible = dble(MH(i)) * dble(MH(j)) / 2d0
     endif
     
-    r_samp = k_max(i,j) * 1d0/V_comp * del_t
+    r_samp = k_max(i,j) * 1d0/env%V_comp * del_t
     n_samp_real = r_samp * n_possible
     
   end subroutine compute_n_samp_hybrid

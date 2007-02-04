@@ -312,7 +312,7 @@ contains
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
-    type(environ), intent(in) :: env        ! environment state
+    type(environ), intent(inout) :: env        ! environment state
     
     integer i,j
     

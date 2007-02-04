@@ -346,6 +346,7 @@ contains
     use mod_material
     use mod_array
     use mod_bin
+    use mod_environ
     
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
@@ -438,6 +439,8 @@ contains
        ,bin_v, bin_g, bin_gs, bin_n, dlnr, env)
     
     ! Double number of particles in a hybrid array.
+
+    use mod_environ
     
     integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
@@ -449,7 +452,7 @@ contains
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
-    type(environ), intent(in) :: env        ! environment state 
+    type(environ), intent(inout) :: env        ! environment state 
     real*8, intent(in) :: dlnr          !  bin scale factor
     
     integer i, k, i_spec

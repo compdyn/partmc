@@ -6,8 +6,6 @@ after reading size information from the file.
 
 Change naming of state_XXXX.d to include sedi/brown/whatever
 
-Golovin exact truncates at r = 3.2E-5
-
 Rename out_XXXX_mass_avg.d to out_XXXX_vol_avg.d
 
 Rename read_state to read_state_hybrid and also write_state.
@@ -76,3 +74,7 @@ ln(bin_left_edge) or similar. In general, we should stop passing dlnr
 around, as it should be recalculable from bin_r for each bin.
 
 use HDF or CDF or something to store state
+
+get a better bessel function so that we can compute the exact goloving solution for
+larger arguments.
+

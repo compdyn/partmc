@@ -19,9 +19,9 @@ set title "Golovin kernel, exponential initial condition"
 plot [1e-7:1e-3] [1e4:1e10] "out_golovin_fix_hybrid_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
 replot "out_golovin_fix_hybrid_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
 replot "out_golovin_fix_hybrid_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out_golovin_exact_num_avg.d" using 2:3 w l title "Analytical (0 mins)"
-replot "out_golovin_exact_num_avg.d" using 2:8 w l title "Analytical (5 mins)"
-replot "out_golovin_exact_num_avg.d" using 2:13 w l title "Analytical (10 mins)"
+replot "out_golovin_exact_num_avg.d" using 2:3  title "Analytical (0 mins)"
+replot "out_golovin_exact_num_avg.d" using 2:8  title "Analytical (5 mins)"
+replot "out_golovin_exact_num_avg.d" using 2:13  title "Analytical (10 mins)"
 set terminal postscript eps
 set output "plot_golovin_num.eps"
 replot

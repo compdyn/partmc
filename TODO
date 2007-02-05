@@ -1,3 +1,7 @@
+Write a run_exact that process spec files too.
+
+Separate out utility code from run_mc.f to read_spec.f
+
 Check units (#/m/m^3) on plots made by test programs.
 
 Fix problem with tabs in files read by run_mc.
@@ -84,6 +88,6 @@ around, as it should be recalculable from bin_r for each bin.
 
 use HDF or CDF or something to store state
 
-get a better bessel function so that we can compute the exact goloving solution for
-larger arguments.
+get a better bessel function so that we can compute the exact golovin
+solution for larger arguments.
 

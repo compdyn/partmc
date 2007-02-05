@@ -21,9 +21,8 @@ ifeq ($(FC),pgf95)
   LDFLAGS =
 endif
 
-PROGS = process_out process_state run_golovin_exact		\
-	run_golovin_fix_hybrid run_sedi_fix_hybrid run_sedi_ode	\
-	run_sedi_sect run_brown_fix_hybrid average run_mc	\
+PROGS = process_out process_state run_golovin_exact run_sedi_ode	\
+	run_sedi_sect run_brown_fix_hybrid average run_mc		\
 	run_sedi_sect_test run_sedi_fix_hybrid_test
 
 OTHER = array array_hybrid bin condensation constants environ	\
@@ -51,7 +50,7 @@ distclean: clean
 	rm -f Makefile.deps
 
 cleanall: clean
-	rm -f *~ *.d gmon.out gprof_*
+	rm -f *~ *.d *.pdf *.eps gmon.out gprof_*
 
 check:
 	ftnchek-3.3.1/ftnchek *.f

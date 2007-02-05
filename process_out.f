@@ -18,18 +18,18 @@ program process_out
   
   integer f_in
   integer f_out_time, f_out_time_avg
-  integer f_out_num, f_out_mass
-  integer f_out_num_avg, f_out_mass_avg
+  integer f_out_num, f_out_vol
+  integer f_out_num_avg, f_out_vol_avg
   integer f_out_temp, f_out_temp_avg
   integer f_out_rh, f_out_rh_avg
   parameter (f_in = 20)           ! input
   parameter (f_out_num = 21)      ! output number
-  parameter (f_out_mass = 22)     ! output mass
+  parameter (f_out_vol = 22)     ! output vol
   parameter (f_out_temp = 23)     ! output temperature
   parameter (f_out_rh = 24)       ! output relative humidity
   parameter (f_out_time = 25)     ! output time
   parameter (f_out_num_avg = 26)  ! output number average
-  parameter (f_out_mass_avg = 27) ! output mass average
+  parameter (f_out_vol_avg = 27) ! output vol average
   parameter (f_out_temp_avg = 28) ! output temperature average
   parameter (f_out_rh_avg = 29)   ! output relative humidity average
   parameter (f_out_time_avg = 30) ! output time average
@@ -37,9 +37,9 @@ program process_out
   integer n_bin, n_loop, n_time, n_spec
   character name_in*50
   character name_out_time*50, name_out_time_avg*50
-  character name_out_num*50, name_out_mass*50
+  character name_out_num*50, name_out_vol*50
   character name_out_temp*50, name_out_rh*50
-  character name_out_num_avg*50, name_out_mass_avg*50
+  character name_out_num_avg*50, name_out_vol_avg*50
   character name_out_temp_avg*50, name_out_rh_avg*50
   character dum*100, n_loop_str*10, n_time_str*10
   
@@ -77,34 +77,34 @@ program process_out
   
   ! compute names of output files
   name_out_num = name_in
-  name_out_mass = name_in
+  name_out_vol = name_in
   name_out_temp = name_in
   name_out_rh = name_in
   name_out_time = name_in
   name_out_num_avg = name_in
-  name_out_mass_avg = name_in
+  name_out_vol_avg = name_in
   name_out_temp_avg = name_in
   name_out_rh_avg = name_in
   name_out_time_avg = name_in
   name_out_num((i-1):) = '_num.d'
-  name_out_mass((i-1):) = '_mass.d'
+  name_out_vol((i-1):) = '_vol.d'
   name_out_temp((i-1):) = '_temp.d'
   name_out_rh((i-1):) = '_rh.d'
   name_out_time((i-1):) = '_time.d'
   name_out_num_avg((i-1):) = '_num_avg.d'
-  name_out_mass_avg((i-1):) = '_mass_avg.d'
+  name_out_vol_avg((i-1):) = '_vol_avg.d'
   name_out_temp_avg((i-1):) = '_temp_avg.d'
   name_out_rh_avg((i-1):) = '_rh_avg.d'
   name_out_time_avg((i-1):) = '_time_avg.d'
   
   write(6,*) 'name_in = ', name_in
   write(6,*) 'name_out_num = ', name_out_num
-  write(6,*) 'name_out_mass = ', name_out_mass
+  write(6,*) 'name_out_vol = ', name_out_vol
   write(6,*) 'name_out_temp = ', name_out_temp
   write(6,*) 'name_out_rh = ', name_out_rh
   write(6,*) 'name_out_time = ', name_out_time
   write(6,*) 'name_out_num_avg = ', name_out_num_avg
-  write(6,*) 'name_out_mass_avg = ', name_out_mass_avg
+  write(6,*) 'name_out_vol_avg = ', name_out_vol_avg
   write(6,*) 'name_out_temp_avg = ', name_out_temp_avg
   write(6,*) 'name_out_rh_avg = ', name_out_rh_avg
   write(6,*) 'name_out_time_avg = ', name_out_time_avg
@@ -112,12 +112,12 @@ program process_out
   ! open files
   open(f_in, file=name_in)
   open(f_out_num, file=name_out_num)
-  open(f_out_mass, file=name_out_mass)
+  open(f_out_vol, file=name_out_vol)
   open(f_out_temp, file=name_out_temp)
   open(f_out_rh, file=name_out_rh)
   open(f_out_time, file=name_out_time)
   open(f_out_num_avg, file=name_out_num_avg)
-  open(f_out_mass_avg, file=name_out_mass_avg)
+  open(f_out_vol_avg, file=name_out_vol_avg)
   open(f_out_temp_avg, file=name_out_temp_avg)
   open(f_out_rh_avg, file=name_out_rh_avg)
   open(f_out_time_avg, file=name_out_time_avg)
@@ -208,23 +208,23 @@ program process_out
      enddo
   enddo
   
-  ! output raw number and mass data
+  ! output raw number and vol data
   do i_time = 1,n_time
      write(f_out_num, '(//,a10,i10)') 'time', i_time - 1
-     write(f_out_mass, '(//,a10,i10)') 'time', i_time - 1
+     write(f_out_vol, '(//,a10,i10)') 'time', i_time - 1
      do i_bin = 1,n_bin
         write(f_out_num, '(i10,e20.10,'//n_loop_str//'e20.10)') &
              i_bin, bin_r(i_bin), &
              (n(i_loop, i_time, i_bin), i_loop = 1,n_loop)
-        write(f_out_mass, '(i10,e20.10,'//n_loop_str//'e20.10)') &
+        write(f_out_vol, '(i10,e20.10,'//n_loop_str//'e20.10)') &
              i_bin, bin_r(i_bin), &
              (bin_g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
      enddo
      do i_spec = 1,n_spec
-        write(f_out_mass,*)
-        write(f_out_mass,*)
+        write(f_out_vol,*)
+        write(f_out_vol,*)
         do i_bin=1,n_bin
-           write(f_out_mass, '(i10,e20.10,'//n_loop_str//'e20.10)') &
+           write(f_out_vol, '(i10,e20.10,'//n_loop_str//'e20.10)') &
                 i_bin, bin_r(i_bin), &
                 (bin_gs(i_loop, i_time, i_bin,i_spec) &
                 ,i_loop =1,n_loop)
@@ -232,20 +232,20 @@ program process_out
      enddo
   enddo
   
-  ! output averaged number and mass data
+  ! output averaged number and vol data
   do i_bin = 1,n_bin
      write(f_out_num_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
           i_bin, bin_r(i_bin), &
           (n_avg(i_time, i_bin), i_time = 1,n_time)
-     write(f_out_mass_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
+     write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
           i_bin, bin_r(i_bin), &
           (g_avg(i_time, i_bin), i_time = 1,n_time)
   enddo
   do i_spec = 1,n_spec
-     write(f_out_mass_avg,*)
-     write(f_out_mass_avg,*)
+     write(f_out_vol_avg,*)
+     write(f_out_vol_avg,*)
      do i_bin=1,n_bin
-        write(f_out_mass_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
+        write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
              i_bin, bin_r(i_bin), &
              (gs_avg(i_time, i_bin,i_spec),i_time =1,n_time)
      enddo

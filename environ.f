@@ -11,10 +11,27 @@ module mod_environ
      real*8 :: V_comp ! computational volume (m^3)
      real*8 :: p    ! ambient pressure (Pa)
      real*8 :: dTdt ! change in temperature due to updraft/subsidence (K s^{-1})
+     integer :: n_temps ! number of temperature set-points
+     real*8, dimension(:), pointer :: temp_times ! times at temp set-points
+     real*8, dimension(:), pointer :: temps      ! temps at temp set-points
+
   end type environ
   
 contains
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine allocate_environ_temps(env, n_temps)
+
+    type(environ), intent(inout) :: env   ! environment
+    integer, intent(in) :: n_temps        ! number of temperature set-points
+
+    env%n_temps = n_temps
+    allocate(env%temp_times(n_temps))
+    allocate(env%temps(n_temps))
+
+  end subroutine allocate_environ_temps
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine change_water_volume(env, mat, dv)

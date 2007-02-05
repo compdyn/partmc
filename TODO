@@ -1,3 +1,16 @@
+Fix problem with tabs in files read by run_mc.
+
+Make process_out and process_state use allocatable arrays.
+
+Make process_state not need to have everything set inside it.
+
+Remove n_ini in all the run* files to avoid confusion. Just use bin_n instead.
+
+Make a bin structure to store all the bin data. Add bin_edges so that
+we have bin_centers and bin_edges. Use a 1D_search to locate particle
+in bin. Compute the bin_centers and bin_edges using something like
+logspace(1e-24,1e-4,160).
+
 We keep track of M all the time (total number of particles). Should we
 just recalc from sum(MH) when we need it?
 

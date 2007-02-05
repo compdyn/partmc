@@ -22,7 +22,7 @@ ifeq ($(FC),pgf95)
 endif
 
 PROGS = process_out process_state run_golovin_exact		\
-	run_golovin_fix_hybrid run_sedi_fix_hybrid run_sedi_ode	\
+	run_sedi_ode	\
 	run_sedi_sect run_brown_fix_hybrid average run_mc	\
         run_sedi_sect_test run_sedi_fix_hybrid_test                     \
         run_sedi_fix_hybrid_testbi

@@ -35,12 +35,12 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
 set key left top
-plot [1e-7:1e-3] [0:1.e-5]  "out_sedi_fix_hybrid_mass_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out_sedi_fix_hybrid_mass_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out_sedi_fix_hybrid_mass_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out_sedi_sect_mass_avg.d" using 2:3 w l title "Sectional (0 mins)"
-replot "out_sedi_sect_mass_avg.d" using 2:8 w l title "Sectional (5 mins)"
-replot "out_sedi_sect_mass_avg.d" using 2:13 w l title "Sectional (10 mins)"
+plot [1e-7:1e-3] [0:1.e-5]  "out_sedi_fix_hybrid_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out_sedi_fix_hybrid_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out_sedi_fix_hybrid_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out_sedi_sect_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
+replot "out_sedi_sect_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
+replot "out_sedi_sect_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
 set output "plot_sedi_vol.eps"
 replot

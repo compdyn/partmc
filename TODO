@@ -12,20 +12,10 @@ Make process_state not need to have everything set inside it.
 
 Remove n_ini in all the run* files to avoid confusion. Just use bin_n instead.
 
-Make a bin structure to store all the bin data. Add bin_edges so that
-we have bin_centers and bin_edges. Use a 1D_search to locate particle
-in bin. Compute the bin_centers and bin_edges using something like
-logspace(1e-24,1e-4,160).
-
-We keep track of M all the time (total number of particles). Should we
-just recalc from sum(MH) when we need it?
-
 Make process_out and process_state do dynamic allocation of arrays
 after reading size information from the file.
 
 Change naming of state_XXXX.d to include sedi/brown/whatever
-
-Rename out_XXXX_mass_avg.d to out_XXXX_vol_avg.d
 
 Rename read_state to read_state_hybrid and also write_state.
 
@@ -35,10 +25,6 @@ Replace pi with const%pi
 
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
-
-Rename run_sedi_fix_hybrid to run_sedi_mc and same with output files.
-
-make deps isn't happening automatically
 
 Fix mc_exact to also use the t_print = 0d0 convention to not print.
 
@@ -61,8 +47,6 @@ interpolation.
 Rename bin_r, bin_v, bin_g, bin_n to make it clear that bin_r/bin_v
 are the independent variables, while bin_g/bin_n are the dependent
 variables.
-
-deps: should be changed to Makefile.deps: in Makefile
 
 rho_a should be shifted from constants to environ
 check whether atm should also shift from constants to environ
@@ -90,4 +74,12 @@ use HDF or CDF or something to store state
 
 get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.
+
+Make a bin structure to store all the bin data. Add bin_edges so that
+we have bin_centers and bin_edges. Use a 1D_search to locate particle
+in bin. Compute the bin_centers and bin_edges using something like
+logspace(1e-24,1e-4,160).
+
+We keep track of M all the time (total number of particles). Should we
+just recalc from sum(MH) when we need it?
 

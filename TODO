@@ -2,8 +2,6 @@ Write a run_exact that process spec files too.
 
 Separate out utility code from run_mc.f to read_spec.f
 
-Check units (#/m/m^3) on plots made by test programs.
-
 Fix problem with tabs in files read by run_mc.
 
 Make process_out and process_state use allocatable arrays.

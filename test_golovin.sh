@@ -14,7 +14,7 @@ echo Plotting number density
 gnuplot -persist <<ENDNUM
 set logscale
 set xlabel "radius (m)"
-set ylabel "number density (#/m/m^3)"
+set ylabel "number density (#/m^3)
 set title "Golovin kernel, exponential initial condition"
 plot [1e-7:1e-3] [1e4:1e10] "out_golovin_fix_hybrid_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
 replot "out_golovin_fix_hybrid_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
@@ -32,7 +32,7 @@ echo Plotting volume density
 gnuplot -persist <<ENDVOL
 set logscale
 set xlabel "radius (m)"
-set ylabel "volume density (m^3/m/m^3)"
+set ylabel "volume density (m^3/m^3)"
 set title "Golovin kernel, exponential initial condition"
 set key left top
 plot [1e-7:1e-3] [1e-14:1e-4] "out_golovin_fix_hybrid_mass_avg.d" using 2:3 title "Monte Carlo (0 mins)"

@@ -17,13 +17,7 @@ Replace pi with const%pi
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
 
-Are we outputting integer number or number density? Which should it
-be? Fix this.
-
 Rename run_sedi_fix_hybrid to run_sedi_mc and same with output files.
-
-Add test code to check total volume and total volume per species at
-start and end of the run.
 
 make deps isn't happening automatically
 

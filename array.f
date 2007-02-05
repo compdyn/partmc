@@ -49,7 +49,6 @@ contains
     do i=1,n_spec
        total_vol_frac = total_vol_frac + vol_frac(i)
     enddo
-    
     do k = 1,n_bin
        delta_n = n_ini(k)
        sum_a = sum_e + 1
@@ -64,9 +63,7 @@ contains
           enddo
        enddo
     enddo
-    
     M = sum_e - i_start + 1
-    
   end subroutine compute_volumes
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

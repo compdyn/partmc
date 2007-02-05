@@ -12,11 +12,13 @@ run_constant_fix_hybrid.o: bin.o array.o array_hybrid.o init_dist.o mc_fix_hybri
 kernel_constant.o: environ.o util.o constants.o material.o
 kernel_brown.o: environ.o constants.o material.o
 kernel_sedi.o: environ.o constants.o material.o
+run_sedi_fix_hybrid_test.o: bin.o array.o array_hybrid.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
 run_brown_fix_hybrid.o: bin.o array.o array_hybrid.o init_dist.o mc_fix_hybrid.o kernel_brown.o condensation.o environ.o material.o constants.o util.o state.o
 state.o: environ.o array_hybrid.o constants.o material.o array.o bin.o util.o
 run_golovin_exact.o: bin.o mc_exact.o kernel_golovin.o array.o environ.o material.o util.o constants.o
 init_dist.o: util.o bin.o environ.o material.o constants.o
 mc_exact.o: bin.o array.o environ.o material.o util.o constants.o
+run_sedi_sect_test.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
 bin.o: environ.o material.o util.o constants.o
 run_sedi_fix_hybrid.o: bin.o array.o array_hybrid.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
 array_hybrid.o: material.o array.o bin.o util.o environ.o constants.o
@@ -57,3 +59,9 @@ run_brown_fix_hybrid: run_brown_fix_hybrid.o bin.o array.o array_hybrid.o init_d
 
 average: average.o 
 	$(FC) $(LDFLAGS) -o $@ average.o 
+
+run_sedi_sect_test: run_sedi_sect_test.o bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
+	$(FC) $(LDFLAGS) -o $@ run_sedi_sect_test.o bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
+
+run_sedi_fix_hybrid_test: run_sedi_fix_hybrid_test.o bin.o array.o array_hybrid.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
+	$(FC) $(LDFLAGS) -o $@ run_sedi_fix_hybrid_test.o bin.o array.o array_hybrid.o init_dist.o mc_fix_hybrid.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o

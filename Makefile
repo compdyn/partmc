@@ -24,7 +24,8 @@ endif
 PROGS = process_out process_state run_golovin_exact			\
 	run_golovin_fix_hybrid run_constant_exact			\
 	run_constant_fix_hybrid run_sedi_fix_hybrid run_sedi_ode	\
-	run_sedi_sect run_brown_fix_hybrid average
+	run_sedi_sect run_brown_fix_hybrid average                      \
+        run_sedi_sect_test run_sedi_fix_hybrid_test
 
 OTHER = array array_hybrid bin condensation constants environ	\
 	init_dist kernel_golovin kernel_sedi kernel_constant	\

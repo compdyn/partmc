@@ -1,4 +1,4 @@
-output_name sedi_fix_hybrid     # name of output files
+output_name dust_salt           # name of output files
 n_loop 1                        # number of Monte Carlo loops
 N_0 1d9                         # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
@@ -30,7 +30,7 @@ n_init_dist 2                   # number of initial distributions
 
 # first distribution - salt particles
 n_p 5000                        # number of particles
-vol_frac 1 0 0                   # composition proportions of species
+vol_frac 1 0 0                  # composition proportions of species
 dist_type log_normal            # type of distribution
 dist_mean_diam 0.266d-6         # mean diameter (m)
 dist_std_dev 0.21               # standard deviation (m)

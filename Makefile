@@ -21,13 +21,12 @@ ifeq ($(FC),pgf95)
   LDFLAGS =
 endif
 
-PROGS = process_out process_state run_sedi_ode run_sect_sedi		\
-	run_brown_fix_hybrid average partbox run_sedi_fix_hybrid_test	\
-	run_sedi_fix_hybrid_testbi
+PROGS = process_out process_state run_sedi_ode run_brown_fix_hybrid	\
+	average partbox run_sedi_fix_hybrid_testbi
 
-OTHER = array array_hybrid bin condensation constants environ	\
-	init_dist kernel_golovin kernel_sedi kernel_constant	\
-	kernel_brown material mc_exact mc_fix_hybrid util state	\
+OTHER = array array_hybrid bin condensation constants environ		\
+	init_dist kernel_golovin kernel_sedi kernel_constant		\
+	kernel_brown material mc_exact mc_fix_hybrid util sect state	\
 	read_spec
 
 FILES = $(PROGS) $(OTHER)

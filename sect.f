@@ -7,7 +7,7 @@
 ! Sectional code based on coad1d.f by Andreas Bott
 ! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
 
-module sect
+module mod_sect
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -26,7 +26,8 @@ contains
     integer, intent(in) :: n_bin             ! number of bins
     real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr               ! bin scale factor
-    real*8, intent(out) :: n_den(n_bin)      ! initial number density
+    real*8, intent(in) :: n_den(n_bin)       ! initial number density
+    real*8, intent(in) :: N_0                ! particle concentration (#/m^3)
     
     real*8, intent(in) :: t_max              ! final time (seconds)
     real*8, intent(in) :: del_t              ! timestep for coagulation
@@ -44,8 +45,7 @@ contains
     real*8 k_bin(n_bin,n_bin), ck(n_bin,n_bin), ec(n_bin,n_bin)
     real*8 taug(n_bin), taup(n_bin), taul(n_bin), tauu(n_bin)
     real*8 prod(n_bin), ploss(n_bin)
-    real*8 bin_v(n_bin)
-    real*8 n_den(n_bin), bin_g_den(n_bin), bin_n_den(n_bin)
+    real*8 bin_g_den(n_bin), bin_n_den(n_bin)
     real*8 time, last_print_time, last_progress_time
     
     integer i, j, i_time, num_t
@@ -81,7 +81,7 @@ contains
        if (g(i) .le. 1d-80) g(i) = 0d0    ! fix problem with gnuplot
     enddo
     
-    call courant(n_bin, dlnr, scal, c, ima, g, r, e)
+    call courant(n_bin, dlnr, c, ima, g, r, e)
     
     ! precompute kernel values for all pairs of bins
     call bin_kernel(n_bin, bin_v, kernel_sedi, env, k_bin)
@@ -299,4 +299,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module sect
+end module mod_sect

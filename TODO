@@ -4,17 +4,11 @@ Rename mc_exact() -- it isn't an MC at all!
 
 Pass n_loop into mc_fix_hybrid so that we can do a better time estimation.
 
-Write a run_exact that process spec files too.
-
-Separate out utility code from run_mc.f to read_spec.f
-
 Fix problem with tabs in files read by run_mc.
 
 Make process_out and process_state use allocatable arrays.
 
 Make process_state not need to have everything set inside it.
-
-Remove n_ini in all the run* files to avoid confusion. Just use bin_n instead.
 
 Make process_out and process_state do dynamic allocation of arrays
 after reading size information from the file.
@@ -32,9 +26,6 @@ Reformat parameter description comments and remove double spaces
 
 Stop using magic file number 30 for the output file.
 
-Add a "make test" to run everything and compare the output files of
-various things.
-
 Rename t_print to t_output
 
 Change endif/enddo to end if/end do
@@ -46,17 +37,11 @@ temps, so that it can do linear interpolation to set the
 temperature. Write a function in util.f to actually do the linear
 interpolation.
 
-Rename bin_r, bin_v, bin_g, bin_n to make it clear that bin_r/bin_v
-are the independent variables, while bin_g/bin_n are the dependent
-variables.
-
 rho_a should be shifted from constants to environ
 check whether atm should also shift from constants to environ
 
 clean up the whole particle_vol_hybrid(), particle_vol(),
 particle_vol_base(), particle_volume() thing
-
-also output bin_v in state
 
 -----------------------------------------------------------------------------
 

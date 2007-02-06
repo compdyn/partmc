@@ -273,6 +273,9 @@ contains
     write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
     open(30,file=out_file_name)
     call print_header(1, n_bin, mat%n_spec, nint(t_max / t_print) + 1)
+
+    allocate(bin_n(n_bin), bin_v(n_bin), bin_g(n_bin))
+    allocate(bin_gs(n_bin,mat%n_spec))
     
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
@@ -290,6 +293,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine partbox_sect(spec)
+
+    use mod_material
+    use mod_environ
+    use mod_sect
+    use mod_kernel_sedi
+    use mod_kernel_golovin
+    use mod_bin
+    use mod_array
+    use mod_init_dist
 
     type(spec_file), intent(out) :: spec     ! spec file
 

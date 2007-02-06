@@ -11,8 +11,11 @@ program process_state
   use mod_array_hybrid
   use mod_state
 
-  integer, parameter :: n_bin = 160    ! number of bins
-  integer, parameter :: n_spec = 3     ! number of species
+!  integer, parameter :: n_bin = 160    ! number of bins
+!  integer, parameter :: n_spec = 3     ! number of species
+  integer n_bin                        ! number of bins
+  integer n_spec                       ! number of species
+
   integer, parameter :: scal = 3       ! scale factor for bins
   real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)
   real*8, parameter :: v_max = 1d24    ! maximum volume for particles (m^3)
@@ -22,20 +25,20 @@ program process_state
   real*8, parameter :: cutoff_frac = 0.01d0 ! fraction to count as mixed
   integer, parameter :: n_comp = 20    ! number of composition bins
 
-  integer :: MH(n_bin)       ! number of particles per bin
-  type(bin_p) :: VH(n_bin)   ! particle volumes (m^3)
+  integer, allocatable :: MH(:)       ! number of particles per bin
+  type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
   type(environ) :: env       ! environment state
   type(material) :: mat      ! material properties
   real*8 :: time             ! current time (s)
-  real*8 :: bin_v(n_bin)     ! volume of particles in bins
+  real*8, allocatable :: bin_v(:)     ! volume of particles in bins
   real*8 :: dlnr             ! bin scale factor
-  real*8 :: bin_g(n_bin)     ! volume in bins
-  real*8 :: bin_gs(n_bin,n_spec) ! species volume in bins
-  integer :: bin_n(n_bin)    ! number in bins
-  integer :: bin_n_2d(n_bin,n_bin) ! 2D species number distribution
-  real*8 :: bin_g_2d(n_bin,n_bin) ! 2D species volume distribution
-  integer :: bin_n_mixed(n_bin,3) ! species number by composition
-  real*8 :: bin_g_mixed(n_bin,3) ! species volume by composition
+  real*8, allocatable :: bin_g(:)     ! volume in bins
+  real*8, allocatable :: bin_gs(:,:) ! species volume in bins
+  integer, allocatable :: bin_n(:)    ! number in bins
+  integer, allocatable :: bin_n_2d(:,:) ! 2D species number distribution
+  real*8, allocatable :: bin_g_2d(:,:) ! 2D species volume distribution
+  integer, allocatable :: bin_n_mixed(:,:) ! species number by composition
+  real*8, allocatable :: bin_g_mixed(:,:) ! species volume by composition
   character :: filename*100  ! input filename
   character :: basename*100  ! basename of the input filename
   integer :: comp_n(n_comp)  ! number in composition bins
@@ -45,6 +48,17 @@ program process_state
   call init_hybrid(n_spec, MH, VH)
 
   call read_state(filename, n_bin, n_spec, MH, VH, env, time)
+
+  allocate(MH(n_bin))
+  allocate(VH(n_bin))
+  allocate(bin_v(n_bin))
+  allocate(bin_g(n_bin))
+  allocate(bin_gs(n_bin,n_spec))
+  allocate(bin_n(n_bin))
+  allocate(bin_g_2d(n_bin,n_bin))
+  allocate(bin_n_2d(n_bin,n_bin))
+  allocate(bin_n_mixed(n_bin,3))
+  allocate(bin_g_mixed(n_bin,3))
 
   call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
 

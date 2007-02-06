@@ -11,10 +11,6 @@ program process_out
   
   integer n_bin_max, n_loop_max, n_time_max
   integer n_spec_max
-  parameter (n_bin_max = 400)   ! maximum number of bins
-  parameter (n_loop_max = 100)  ! maximum number of loops
-  parameter (n_time_max = 250)  ! maximum number of times
-  parameter (n_spec_max = 5)    ! maximum number of species
   
   integer f_in
   integer f_out_time, f_out_time_avg
@@ -42,18 +38,18 @@ program process_out
   character name_out_num_avg*50, name_out_vol_avg*50
   character name_out_temp_avg*50, name_out_rh_avg*50
   character dum*100, n_loop_str*10, n_time_str*10
-  
-  real*8 time(n_loop_max, n_time_max), time_avg(n_time_max)
-  real*8 bin_r(n_bin_max)
-  real*8 bin_g(n_loop_max, n_time_max, n_bin_max)
-  real*8 bin_gs(n_loop_max, n_time_max, n_bin_max, n_spec_max)
-  real*8 n(n_loop_max, n_time_max, n_bin_max)
-  real*8 g_avg(n_time_max, n_bin_max)
-  real*8 gs_avg(n_time_max,n_bin_max,n_spec_max)
-  real*8 n_avg(n_time_max, n_bin_max)
-  real*8 temp(n_loop_max, n_time_max), temp_avg(n_time_max)
-  real*8 rh(n_loop_max, n_time_max), rh_avg(n_time_max)
-  
+ 
+  real*8, allocatable :: time(:,:), time_avg(:)
+  real*8, allocatable :: bin_r(:)
+  real*8, allocatable :: bin_g(:,:,:)
+  real*8, allocatable :: bin_gs(:,:,:,:)
+  real*8, allocatable :: n(:,:,:)
+  real*8, allocatable :: g_avg(:,:)
+  real*8, allocatable :: gs_avg(:,:,:)
+  real*8, allocatable :: n_avg(:,:)
+  real*8, allocatable :: temp(:,:), temp_avg(:)
+  real*8, allocatable :: rh(:,:), rh_avg(:)
+ 
   integer i, i_loop, i_time, i_bin, i_spec
   
   ! check there is exactly one commandline argument
@@ -128,19 +124,34 @@ program process_out
   read(f_in, '(a10,i10)') dum, n_time
   read(f_in, '(a10,i10)') dum, n_spec
   
-  if (n_loop .gt. n_loop_max) then
-     write(6,*) 'ERROR: n_loop too large'
-     call exit(2)
-  endif
-  if (n_bin .gt. n_bin_max) then
-     write(6,*) 'ERROR: n_bin too large'
-     call exit(2)
-  endif
-  if (n_time .gt. n_time_max) then
-     write(6,*) 'ERROR: n_time too large'
-     call exit(2)
-  endif
+!  if (n_loop .gt. n_loop_max) then
+!     write(6,*) 'ERROR: n_loop too large'
+!     call exit(2)
+!  endif
+!  if (n_bin .gt. n_bin_max) then
+!     write(6,*) 'ERROR: n_bin too large'
+!     call exit(2)
+!  endif
+!  if (n_time .gt. n_time_max) then
+!     write(6,*) 'ERROR: n_time too large'
+!     call exit(2)
+!  endif
   
+  allocate (time(n_loop, n_time))
+  allocate (time_avg(n_time))
+  allocate (bin_r(n_bin))
+  allocate (bin_g(n_loop, n_time, n_bin))
+  allocate (bin_gs(n_loop, n_time, n_bin, n_spec))
+  allocate (n(n_loop, n_time, n_bin))
+  allocate (g_avg(n_time, n_bin))
+  allocate (gs_avg(n_time,n_bin,n_spec))
+  allocate (n_avg(n_time, n_bin))
+  allocate (temp(n_loop, n_time))
+  allocate (temp_avg(n_time))
+  allocate (rh(n_loop, n_time))
+  allocate (rh_avg(n_time))
+ 
+
   write(6,*) 'n_loop = ', n_loop
   write(6,*) 'n_bin =  ', n_bin
   write(6,*) 'n_time = ', n_time

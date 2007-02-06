@@ -9,9 +9,6 @@
 
 program process_out
   
-  integer n_bin_max, n_loop_max, n_time_max
-  integer n_spec_max
-  
   integer f_in
   integer f_out_time, f_out_time_avg
   integer f_out_num, f_out_vol
@@ -20,12 +17,12 @@ program process_out
   integer f_out_rh, f_out_rh_avg
   parameter (f_in = 20)           ! input
   parameter (f_out_num = 21)      ! output number
-  parameter (f_out_vol = 22)     ! output vol
+  parameter (f_out_vol = 22)      ! output vol
   parameter (f_out_temp = 23)     ! output temperature
   parameter (f_out_rh = 24)       ! output relative humidity
   parameter (f_out_time = 25)     ! output time
   parameter (f_out_num_avg = 26)  ! output number average
-  parameter (f_out_vol_avg = 27) ! output vol average
+  parameter (f_out_vol_avg = 27)  ! output vol average
   parameter (f_out_temp_avg = 28) ! output temperature average
   parameter (f_out_rh_avg = 29)   ! output relative humidity average
   parameter (f_out_time_avg = 30) ! output time average
@@ -124,33 +121,19 @@ program process_out
   read(f_in, '(a10,i10)') dum, n_time
   read(f_in, '(a10,i10)') dum, n_spec
   
-!  if (n_loop .gt. n_loop_max) then
-!     write(6,*) 'ERROR: n_loop too large'
-!     call exit(2)
-!  endif
-!  if (n_bin .gt. n_bin_max) then
-!     write(6,*) 'ERROR: n_bin too large'
-!     call exit(2)
-!  endif
-!  if (n_time .gt. n_time_max) then
-!     write(6,*) 'ERROR: n_time too large'
-!     call exit(2)
-!  endif
-  
-  allocate (time(n_loop, n_time))
-  allocate (time_avg(n_time))
-  allocate (bin_r(n_bin))
-  allocate (bin_g(n_loop, n_time, n_bin))
-  allocate (bin_gs(n_loop, n_time, n_bin, n_spec))
-  allocate (n(n_loop, n_time, n_bin))
-  allocate (g_avg(n_time, n_bin))
-  allocate (gs_avg(n_time,n_bin,n_spec))
-  allocate (n_avg(n_time, n_bin))
-  allocate (temp(n_loop, n_time))
-  allocate (temp_avg(n_time))
-  allocate (rh(n_loop, n_time))
-  allocate (rh_avg(n_time))
- 
+  allocate(time(n_loop, n_time))
+  allocate(time_avg(n_time))
+  allocate(bin_r(n_bin))
+  allocate(bin_g(n_loop, n_time, n_bin))
+  allocate(bin_gs(n_loop, n_time, n_bin, n_spec))
+  allocate(n(n_loop, n_time, n_bin))
+  allocate(g_avg(n_time, n_bin))
+  allocate(gs_avg(n_time,n_bin,n_spec))
+  allocate(n_avg(n_time, n_bin))
+  allocate(temp(n_loop, n_time))
+  allocate(temp_avg(n_time))
+  allocate(rh(n_loop, n_time))
+  allocate(rh_avg(n_time))
 
   write(6,*) 'n_loop = ', n_loop
   write(6,*) 'n_bin =  ', n_bin

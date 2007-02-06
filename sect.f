@@ -51,9 +51,6 @@ contains
     integer i, j, i_time, num_t
     logical do_print, do_progress
   
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-  
     interface
        subroutine kernel(v1, v2, env, k)
          use mod_environ

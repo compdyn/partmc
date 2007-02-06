@@ -48,14 +48,13 @@ contains
     ! Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
     ! where vol = 4 pi r^3.
     
+    use mod_constants
+    
     real*8, intent(in) :: r                  !  radius (m)
     real*8, intent(in) :: f_vol              !  density as a function of volume
     real*8, intent(out) :: f_lnr              !  density as a function of ln(r)
     
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-    
-    f_lnr = f_vol * 4d0 * pi * r**3
+    f_lnr = f_vol * 4d0 * const%pi * r**3
     
   end subroutine vol_to_lnr
   
@@ -72,9 +71,6 @@ contains
     
     integer i
     real*8 ax
-    
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
     
     dlnr = dlog(2d0) / (3d0 * dble(scal))
     ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)

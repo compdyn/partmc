@@ -34,6 +34,7 @@ contains
 
     use mod_environ
     use mod_util
+    use mod_constants
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -51,14 +52,11 @@ contains
     real*8 beta_1, tau, T, rat_v, nn, b, x
     integer k
     
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-    
     call kernel_golovin(1d0, 0d0, env, beta_1)
     
     if (time .eq. 0d0) then
        do k = 1,n_bin
-          bin_n(k) = int(pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
+          bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
                * exp(-(bin_v(k)/V_0)))
        enddo
     else
@@ -74,12 +72,12 @@ contains
           endif
           nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
-          bin_n(k) = int(pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn)
+          bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn)
        enddo
     endif
     
     do k = 1,n_bin
-       bin_g(k) = pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * dble(bin_n(k))
+       bin_g(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * dble(bin_n(k))
     enddo
     
     do k = 1,n_bin

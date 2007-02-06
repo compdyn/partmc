@@ -37,9 +37,6 @@ contains
     real*8, intent(out) :: V(MM,n_spec)  !  particle volumes  (m^3)
     integer, intent(out) :: M            !  logical dimension of V
     
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-    
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i, sum_e, sum_a, delta_n, i_spec
 

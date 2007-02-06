@@ -63,6 +63,7 @@ contains
        bin_v, n_den)
     
     use mod_util
+    use mod_constants
     
     real*8, intent(in) :: d_mean        !  mean diameter of initial distribution (m)
     real*8, intent(in) :: log_sigma     !  log_e of the geometric standard
@@ -72,13 +73,10 @@ contains
     real*8,  intent(out) :: n_den(n_bin) !  initial number density (#(ln(r))d(ln(r)))
                                          ! (normalized)
     
-    real*8 pi
-    parameter (pi = 3.14159265358979323846d0)
-    
     integer k
     
     do k = 1,n_bin
-       n_den(k) = 1d0 / (sqrt(2d0 * pi) * log_sigma) * &
+       n_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
             dexp(-(dlog10(vol2rad(bin_v(k))) - dlog10(d_mean/2d0))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
     enddo

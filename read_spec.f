@@ -15,6 +15,8 @@ module mod_read_spec
      integer :: line_num         ! current line number
   end type spec_file
 
+  logical, parameter :: DEBUG_OUTPUT = .false.
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -126,9 +128,9 @@ contains
     call check_name(spec, line, name, rest)
     read(rest, '(a)', iostat=ios) var
     call check_read_iostat(spec, ios, 'string')
-! DEBUG
-    write(*,*) 'string: ', trim(name), ' = ', trim(var)
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'string: ', trim(name), ' = ', trim(var)
+    end if
     
   end subroutine read_string
 
@@ -147,9 +149,9 @@ contains
     call check_name(spec, line, name, rest)
     read(rest, '(i20)', iostat=ios) var
     call check_read_iostat(spec, ios, 'integer')
-! DEBUG
-    write(*,*) 'integer: ', trim(name), ' = ', var
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'integer: ', trim(name), ' = ', var
+    end if
 
   end subroutine read_integer
 
@@ -168,9 +170,9 @@ contains
     call check_name(spec, line, name, rest)
     read(rest, '(f20.0)', iostat=ios) var
     call check_read_iostat(spec, ios, 'real')
-! DEBUG
-    write(*,*) 'real: ', trim(name), ' = ', var
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'real: ', trim(name), ' = ', var
+    end if
 
   end subroutine read_real
 
@@ -207,9 +209,9 @@ contains
             spec%name, ' at line ', spec%line_num
        call exit(1)
     end if
-! DEBUG
-    write(*,*) 'logical: ', trim(name), ' = ', var
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'logical: ', trim(name), ' = ', var
+    end if
 
   end subroutine read_logical
 
@@ -244,9 +246,9 @@ contains
             trim(spec%name), ' on line ', spec%line_num
        call exit(1)
     end if
-! DEBUG
-    write(*,*) 'integer array: ', trim(name), ' = ', var
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'integer array: ', trim(name), ' = ', var
+    end if
     
   end subroutine read_integer_array
 
@@ -281,9 +283,9 @@ contains
             trim(spec%name), ' on line ', spec%line_num
        call exit(1)
     end if
-! DEBUG
-    write(*,*) 'real array: ', trim(name), ' = ', var
-! DEBUG
+    if (DEBUG_OUTPUT) then
+       write(*,*) 'real array: ', trim(name), ' = ', var
+    end if
 
   end subroutine read_real_array
 

@@ -1,12 +1,12 @@
 #!/bin/sh
 
-echo ./run_sedi_fix_hybrid_test
-./run_sedi_fix_hybrid_test
-echo ./process_out out_sedi_fix_hybrid.d
-./process_out out_sedi_fix_hybrid.d
+echo ./run_mc sedi_exp.spec
+./run_mc sedi_exp.spec
+echo ./process_out out_sedi_exp_mc.d
+./process_out out_sedi_exp_mc.d
 
-echo ./run_sedi_sect_test
-./run_sedi_sect_test
+echo ./run_sect_sedi
+./run_sect_sedi
 echo ./process_out out_sedi_sect.d
 ./process_out out_sedi_sect.d
 
@@ -16,9 +16,9 @@ set logscale x
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
-plot [1e-7:1e-3]  "out_sedi_fix_hybrid_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out_sedi_fix_hybrid_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out_sedi_fix_hybrid_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+plot [1e-7:1e-3]  "out_sedi_exp_mc_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out_sedi_exp_mc_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out_sedi_exp_mc_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
 replot "out_sedi_sect_num_avg.d" using 2:3 w l title "Sectional (0 mins)"
 replot "out_sedi_sect_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out_sedi_sect_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
@@ -35,9 +35,9 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
 set key left top
-plot [1e-7:1e-3] [0:1.e-5]  "out_sedi_fix_hybrid_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out_sedi_fix_hybrid_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out_sedi_fix_hybrid_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+plot [1e-7:1e-3] [0:1.e-5]  "out_sedi_exp_mc_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out_sedi_exp_mc_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out_sedi_exp_mc_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
 replot "out_sedi_sect_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
 replot "out_sedi_sect_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out_sedi_sect_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"

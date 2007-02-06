@@ -1,6 +1,6 @@
 
-VERSION = 0.9.0
-DIST_NAME = partmc-$(VERSION)
+VERSION = 1.0.0
+DIST_NAME = partbox-$(VERSION)
 
 # run "make FC=pgf95" to use the Portland Group compiler instead
 FC = gfortran
@@ -21,15 +21,14 @@ ifeq ($(FC),pgf95)
   LDFLAGS =
 endif
 
-PROGS = process_out process_state run_golovin_exact		\
-	run_sedi_ode	\
-	run_sedi_sect run_brown_fix_hybrid average run_mc	\
-        run_sedi_sect_test run_sedi_fix_hybrid_test                     \
-        run_sedi_fix_hybrid_testbi
+PROGS = process_out process_state run_sedi_ode run_sect_sedi		\
+	run_brown_fix_hybrid average partbox run_sedi_fix_hybrid_test	\
+	run_sedi_fix_hybrid_testbi
 
 OTHER = array array_hybrid bin condensation constants environ	\
 	init_dist kernel_golovin kernel_sedi kernel_constant	\
-	kernel_brown material mc_exact mc_fix_hybrid util state
+	kernel_brown material mc_exact mc_fix_hybrid util state	\
+	read_spec
 
 FILES = $(PROGS) $(OTHER)
 
@@ -53,9 +52,6 @@ distclean: clean
 
 cleanall: clean
 	rm -f *~ *.d *.pdf *.eps gmon.out gprof_*
-
-check:
-	ftnchek-3.3.1/ftnchek *.f
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

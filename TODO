@@ -1,3 +1,9 @@
+Should we auto-remake Makefile.deps or not?
+
+Rename mc_exact() -- it isn't an MC at all!
+
+Pass n_loop into mc_fix_hybrid so that we can do a better time estimation.
+
 Write a run_exact that process spec files too.
 
 Separate out utility code from run_mc.f to read_spec.f
@@ -23,8 +29,6 @@ Replace pi with const%pi
 
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
-
-Fix mc_exact to also use the t_print = 0d0 convention to not print.
 
 Stop using magic file number 30 for the output file.
 

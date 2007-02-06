@@ -11,7 +11,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mc_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
-       bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_print, loop, &
+       bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_print, &
        env, mat)
     ! FIXME: N_0 and V_0 are really parameters for the initial value
     ! of the particle distribution. They should be replaced by a n_param,
@@ -34,7 +34,6 @@ contains
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     real*8, intent(in) :: t_max         ! total simulation time
     real*8, intent(in) :: t_print       ! interval to print info (seconds)
-    integer, intent(in) :: loop         ! loop number of run
     type(environ), intent(inout) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
     

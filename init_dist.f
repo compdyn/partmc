@@ -7,6 +7,31 @@
 
 module mod_init_dist
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
+
+    ! multiplexer to make an initial distribution based on its name
+
+    character(len=*), intent(in) :: dist_type ! type of distribution
+    real*8, intent(in) :: dist_args     ! distribution parameters
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: n_den(n_bin) ! initial number density 
+                                        ! (#(ln(r))d(ln(r))) (normalized)
+
+    if (trim(dist_type) == 'log_normal') then
+       call init_log_normal(dist_args(i,1), dist_args(i,2), n_bin, &
+            bin_v, n_den)
+    elseif (trim(dist_type) == 'exp') then
+       call init_exp(dist_args(i,1), n_bin, bin_v, n_den)
+    else
+       write(*,*) 'ERROR: unknown distribution type: ', trim(dist_types(i))
+       call exit(1)
+    end if
+
+  end subroutine init_dist
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

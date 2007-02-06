@@ -14,7 +14,6 @@ module mod_environ
      integer :: n_temps ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points
-
   end type environ
   
 contains

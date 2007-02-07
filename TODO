@@ -1,3 +1,5 @@
+Change init procedure to just make VH directly, not first making V.
+
 Shift code into a separate (partbox?) repository for PNNL to access.
 
 Add the rest of the kernels and init_dists to the various bits of partbox.f

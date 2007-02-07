@@ -8,7 +8,7 @@ program process_state
   use mod_bin
   use mod_environ
   use mod_material
-  use mod_array_hybrid
+  use mod_array
   use mod_state
 
 !  integer, parameter :: n_bin = 160    ! number of bins
@@ -45,7 +45,7 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call init_hybrid(n_spec, MH, VH)
+  call init_array(n_spec, MH, VH)
 
   call read_state(filename, n_bin, n_spec, MH, VH, env, time)
 
@@ -64,12 +64,12 @@ program process_state
 
   call allocate_material(mat, n_spec)
   
-  call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
+  call moments(n_bin, n_spec, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr)
   call write_moments(basename, n_bin, n_spec, dlnr, env, bin_v, &
        bin_g, bin_gs, bin_n)
 
-  call moments_hybrid_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+  call moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
   call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
        bin_n_2d, bin_g_2d)
@@ -126,7 +126,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine moments_hybrid_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+  subroutine moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
     
     use mod_material
@@ -159,7 +159,7 @@ contains
        end do
     end do
     
-  end subroutine moments_hybrid_2d
+  end subroutine moments_2d
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

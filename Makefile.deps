@@ -2,41 +2,36 @@
 # DO NOT EDIT --- auto-generated file
 #
 
-process_state.o: bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
+process_state.o: bin.o environ.o material.o array.o state.o util.o constants.o
 kernel_golovin.o: environ.o util.o constants.o material.o
-array.o: bin.o util.o environ.o material.o constants.o
+array.o: bin.o material.o util.o environ.o constants.o
 kernel_constant.o: environ.o util.o constants.o material.o
+test_sedi_bidisperse_ode.o: kernel_sedi.o environ.o constants.o material.o
 kernel_brown.o: environ.o constants.o material.o
 kernel_sedi.o: environ.o constants.o material.o
-state.o: environ.o array_hybrid.o constants.o material.o array.o bin.o util.o
+state.o: environ.o array.o constants.o material.o bin.o util.o
 run_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
 init_dist.o: util.o constants.o bin.o environ.o material.o
-run_mc.o: util.o array.o array_hybrid.o condensation.o environ.o material.o state.o constants.o bin.o
+run_mc.o: util.o array.o condensation.o environ.o material.o state.o constants.o bin.o
 read_spec.o: material.o environ.o constants.o
 bin.o: environ.o constants.o material.o util.o
-array_hybrid.o: material.o array.o bin.o util.o environ.o constants.o
 util.o: constants.o
 run_exact.o: bin.o array.o environ.o material.o constants.o util.o
-condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
-run_sedi_ode.o: kernel_sedi.o environ.o constants.o material.o
-run_sedi_fix_hybrid_testbi.o: bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
-partbox.o: read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
+condensation.o: array.o bin.o environ.o material.o util.o constants.o
+partbox.o: read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 environ.o: constants.o material.o
 
 process_out: process_out.o 
 	$(FC) $(LDFLAGS) -o $@ process_out.o 
 
-process_state: process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
-	$(FC) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array_hybrid.o state.o util.o constants.o array.o
+process_state: process_state.o bin.o environ.o material.o array.o state.o util.o constants.o
+	$(FC) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array.o state.o util.o constants.o
 
-run_sedi_ode: run_sedi_ode.o kernel_sedi.o environ.o constants.o material.o
-	$(FC) $(LDFLAGS) -o $@ run_sedi_ode.o kernel_sedi.o environ.o constants.o material.o
+test_sedi_bidisperse_ode: test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o
+	$(FC) $(LDFLAGS) -o $@ test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o
 
 average: average.o 
 	$(FC) $(LDFLAGS) -o $@ average.o 
 
-partbox: partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
-	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
-
-run_sedi_fix_hybrid_testbi: run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
-	$(FC) $(LDFLAGS) -o $@ run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
+partbox: partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
+	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o

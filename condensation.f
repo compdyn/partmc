@@ -14,7 +14,6 @@ contains
        del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
 
     use mod_array
-    use mod_array_hybrid
     use mod_bin
     use mod_environ
     use mod_material
@@ -47,11 +46,11 @@ contains
     ! We resort the particles in the bins after all particles are
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
-    call resort_array_hybrid(n_bin, n_spec, MH, VH, bin_v, &
+    call resort_array(n_bin, n_spec, MH, VH, bin_v, &
          dlnr)
 
     ! update the bin arrays
-    call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
+    call moments(n_bin, n_spec, MH, VH, bin_v, &
          bin_g, bin_gs, bin_n, dlnr)
 
     ! update the environment due to condensation of water

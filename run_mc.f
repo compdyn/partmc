@@ -3,14 +3,14 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Monte Carlo with fixed timestep and a hybrid array.
+! Monte Carlo with fixed timestep and particles stored per-bin.
 
 module mod_run_mc
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_mc(MM, M, n_spec, V, n_bin, MH, VH, &
+  subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
        t_max, t_output, t_state, t_progress, del_t, &
        do_coagulation, do_condensation, do_restart, restart_name, &
@@ -18,7 +18,6 @@ contains
     
     use mod_util
     use mod_array
-    use mod_array_hybrid
     use mod_bin 
     use mod_condensation
     use mod_environ
@@ -28,10 +27,9 @@ contains
     integer, intent(in) :: MM                ! maximum number of particles
     integer, intent(inout) :: M              ! actual number of particles
     integer, intent(in) :: n_spec            ! number of species
-    real*8, intent(inout) :: V(MM,n_spec)    ! particle volumes (m^3)
     integer, intent(in) :: n_bin             ! number of bins
     integer, intent(out) :: MH(n_bin)        ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin)    ! particle volumes (m^3)
+    type(bin_p), intent(inout) :: VH(n_bin)  ! particle volumes (m^3)
     
     real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
     real*8, intent(out) :: bin_g(n_bin)      ! volume in bins  
@@ -80,19 +78,18 @@ contains
     i_time = 0
     time = 0d0
     tot_n_coag = 0
-    call array_to_hybrid(MM, M, V, n_spec, n_bin, bin_v, MH, VH)
     
     if (do_restart) then
        call read_state(restart_name, n_bin, n_spec, MH, VH, env, time)
        i_time = nint(time / del_t)
        M = sum(MH)
        do while (M .lt. MM / 2)
-          call double_hybrid(M, n_bin, MH, VH, n_spec, &
+          call double(M, n_bin, MH, VH, n_spec, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env)
        end do
     end if
     
-    call moments_hybrid(n_bin, n_spec, MH, VH, bin_v, &
+    call moments(n_bin, n_spec, MH, VH, bin_v, &
          bin_g, bin_gs, bin_n, dlnr)
     
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
@@ -103,7 +100,7 @@ contains
     end if
 
     if (t_state > 0d0) then
-       call write_state_hybrid(n_bin, n_spec, MH, VH, env, i_time, &
+       call write_state(n_bin, n_spec, MH, VH, env, i_time, &
             time)
     end if
     
@@ -113,7 +110,7 @@ contains
     last_output_time = time
     do while (time < t_max)
        if (do_coagulation) then
-          call coag_fix_hybrid(MM, M, n_spec, n_bin, MH, VH, &
+          call mc_coag(MM, M, n_spec, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, &
                env, mat, tot_n_samp, n_coag)
        end if
@@ -126,7 +123,7 @@ contains
        end if
        
        ! DEBUG: enable to check array handling
-       ! call check_hybrid(M, n_bin, n_spec, MH, VH, bin_v, &
+       ! call check_array(M, n_bin, n_spec, MH, VH, bin_v, &
        !     bin_g, bin_gs, bin_n, dlnr)
        ! DEBUG: end
        
@@ -149,7 +146,7 @@ contains
        if (t_state > 0d0) then
           call check_event(time, del_t, t_state, last_state_time, &
                do_state)
-          if (do_state) call write_state_hybrid(n_bin, n_spec, MH, &
+          if (do_state) call write_state(n_bin, n_spec, MH, &
                VH, env, i_time, time)
        end if
        
@@ -175,13 +172,12 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_fix_hybrid(MM, M, n_spec, n_bin, MH, VH, bin_v, &
+  subroutine mc_coag(MM, M, n_spec, n_bin, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, env, mat, &
        tot_n_samp, n_coag)
 
     use mod_util
     use mod_array
-    use mod_array_hybrid
     use mod_bin 
     use mod_environ
     use mod_material
@@ -222,7 +218,7 @@ contains
     n_coag = 0
     do i = 1,n_bin
        do j = 1,n_bin
-          call compute_n_samp_hybrid(n_bin, MH, i, j, &
+          call compute_n_samp(n_bin, MH, i, j, &
                k_max, del_t, env, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = int(n_samp_real)
@@ -231,7 +227,7 @@ contains
           endif
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
-             call maybe_coag_pair_hybrid(M, n_bin, MH, VH, &
+             call maybe_coag_pair(M, n_bin, MH, VH, &
                   n_spec, bin_v, bin_g, bin_gs, &
                   bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
                   env, did_coag, bin_change)
@@ -243,15 +239,15 @@ contains
     ! if we have less than half the maximum number of particles
     ! then double until we fill up the array
     do while (M .lt. MM / 2)
-       call double_hybrid(M, n_bin, MH, VH,  n_spec, &
+       call double(M, n_bin, MH, VH,  n_spec, &
             bin_v, bin_g, bin_gs, bin_n, dlnr, env)
     end do
     
-  end subroutine coag_fix_hybrid
+  end subroutine mc_coag
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine compute_n_samp_hybrid(n_bin, MH, i, j, k_max, &
+  subroutine compute_n_samp(n_bin, MH, i, j, k_max, &
        del_t, env, n_samp_real)
 
     use mod_environ
@@ -278,7 +274,7 @@ contains
     r_samp = k_max(i,j) * 1d0/env%V_comp * del_t
     n_samp_real = r_samp * n_possible
     
-  end subroutine compute_n_samp_hybrid
+  end subroutine compute_n_samp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

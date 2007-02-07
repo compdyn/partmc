@@ -54,7 +54,6 @@ contains
 
     use mod_bin
     use mod_array
-    use mod_array_hybrid
     use mod_init_dist
     use mod_condensation
     use mod_kernel_sedi
@@ -68,13 +67,12 @@ contains
 
     integer, parameter :: MAX_DIST_ARGS = 10
     
-    integer :: MM, M, M_new, i_loop
+    integer :: MM, M, M_new, i_loop, i, i_bin
     character(len=300) :: out_file_name
     integer, allocatable :: MH(:), bin_n(:)
     type(bin_p), allocatable ::  VH(:)
-    real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:), V(:,:)
+    real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
     real*8 :: dlnr, t_wall_start
-    integer :: i
     
     character(len=300) :: output_name ! name of output files
     integer :: n_loop             ! number of Monte Carlo loops
@@ -147,9 +145,10 @@ contains
     ! finished reading .spec data, now do the run
     
     MM = sum(dist_n_part)
-    allocate(MH(n_bin), VH(n_bin), V(MM,mat%n_spec), bin_v(n_bin), n_den(n_bin))
+    allocate(MH(n_bin), VH(n_bin), bin_v(n_bin), n_den(n_bin))
     allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
-    call init_hybrid(mat%n_spec, MH, VH)
+    call init_array(mat%n_spec, MH, VH)
+    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
     write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
     open(30,file=out_file_name)
@@ -164,35 +163,36 @@ contains
     call cpu_time(t_wall_start)
     do i_loop = 1,n_loop
        
-       call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
-       call zero_v(MM, mat%n_spec, V)
+       call zero_array(mat%n_spec, MH, VH)
        
-       M = 1
        do i = 1,n_init_dist
           call init_dist(dist_types(i), dist_args(i,:), n_bin, bin_v, n_den)
           call dist_to_n(dist_n_part(i), dlnr, n_bin, bin_v, n_den, bin_n)
-          call compute_volumes(n_bin, mat%n_spec, dist_vol_frac(i,:), &
-               MM, M, M + dist_n_part(i) - 1, bin_n, bin_v, dlnr, V, M_new)
-          M = M + M_new
+          call add_particles(n_bin, mat%n_spec, dist_vol_frac(i,:), &
+               bin_v, bin_n, MH, VH)
        end do
-       
+
+       M = sum(MH)
        env%V_comp = dble(M) / N_0
        
-       ! call equlibriate_particle for each particle in V
+       ! equlibriate all particles if condensation is active
        if (do_condensation) then
-          do i = 1,M
-             call equilibriate_particle(mat%n_spec, V(i,:), env, mat)
+          do i_bin = 1,n_bin
+             do i = 1,MH(i_bin)
+                call equilibriate_particle(mat%n_spec, VH(i_bin)%p(i,:), &
+                     env, mat)
+             end do
           end do
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
                kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
                kernel_golovin, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
@@ -212,7 +212,6 @@ contains
 
     use mod_bin
     use mod_array
-    use mod_array_hybrid
     use mod_init_dist
     use mod_condensation
     use mod_kernel_sedi

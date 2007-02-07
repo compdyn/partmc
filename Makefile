@@ -21,19 +21,20 @@ ifeq ($(FC),pgf95)
   LDFLAGS =
 endif
 
-PROGS = process_out process_state run_sedi_ode average partbox	\
-	run_sedi_fix_hybrid_testbi
+PROGS = process_out process_state test_sedi_bidisperse_ode average	\
+	partbox
 
-OTHER = array array_hybrid bin condensation constants environ		\
-	init_dist kernel_golovin kernel_sedi kernel_constant		\
-	kernel_brown material run_exact run_mc util run_sect state	\
-	read_spec
+OTHER = array bin condensation constants environ init_dist	\
+	kernel_golovin kernel_sedi kernel_constant kernel_brown	\
+	material run_exact run_mc util run_sect state read_spec
 
-FILES = $(PROGS) $(OTHER)
+ALL_FILES = $(PROGS) $(OTHER)
+ALL_SOURCE = $(patsubst %,%.f,$(ALL_FILES))
+ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 
 all: Makefile.deps TAGS $(PROGS)
 
-Makefile.deps: $(patsubst %,%.f,$(FILES))
+Makefile.deps: $(ALL_SOURCE)
 	./makedeps.py --progs $(PROGS) --other $(OTHER)
 
 -include Makefile.deps
@@ -46,9 +47,6 @@ Makefile.deps: $(patsubst %,%.f,$(FILES))
 clean:
 	rm -f $(PROGS) *.o *.mod TAGS
 
-distclean: clean
-	rm -f Makefile.deps
-
 cleanall: clean
 	rm -f *~ *.d *.pdf *.eps gmon.out gprof_*
 
@@ -57,9 +55,9 @@ gprof_%: % gmon.out
 
 dist: Makefile.deps
 	mkdir $(DIST_NAME)
-	cp Makefile Makefile.deps makedeps.py TODO COPYING README $(patsubst %,%.f,$(FILES)) $(DIST_NAME)
+	cp Makefile Makefile.deps makedeps.py TODO COPYING README $(ALL_SOURCE) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 
-TAGS:
-	etags $(patsubst %,%.f,$(FILES))
+TAGS: $(ALL_SOURCE)
+	etags $(ALL_SOURCE)

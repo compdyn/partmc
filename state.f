@@ -11,7 +11,7 @@ contains
   subroutine read_state(filename, n_bin, n_spec, MH, VH, env, time)
 
     use mod_environ
-    use mod_array_hybrid
+    use mod_array
     
     character(len=*), intent(in) :: filename       ! input filename
     integer, intent(in) :: n_bin            ! number of bins
@@ -70,11 +70,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_state_hybrid(n_bin, n_spec, MH, VH, env, &
+  subroutine write_state(n_bin, n_spec, MH, VH, env, &
        index, time)
     
     use mod_environ
-    use mod_array_hybrid
+    use mod_array
     
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -110,7 +110,7 @@ contains
     end do
     close(unit=funit)
     
-  end subroutine write_state_hybrid
+  end subroutine write_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

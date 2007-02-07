@@ -3,259 +3,293 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Utility functions for handling V array of particle volumes.
+! Functions to deal with a particle array VH that is stored by
+! bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
 !
-! There are two different representations of particle size
-! distributions used throughout this code: a sectional representation
-! and an explicit particle representation.
-!
-! The sectional representation stores the number and mass of particles
-! in bins, which are logarithmicly spaced. The bins are described by
-! the bin_v(n_bin) array, which stores the volume
-! of the centerpoint of each bin. The variable dlnr ... FIXME
+! FIXME: MH and bin_n are pretty much identical. Probably best to
+! ignore it for now, because this will all change with the
+! superparticle code.
 
 module mod_array
+
+  type bin_p
+     real*8, dimension(:,:), pointer :: p ! particle volumes
+     ! dimension of p is (# particles in bin) x n_spec
+  end type bin_p
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine init_array(n_spec, MH, VH)
+
+    ! Initializes an array to have zero particles in each bin. Do not
+    ! call this more than once on a given array, use zero_array()
+    ! instead to reset an array.
+
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(out) :: MH(:)       ! number of particles per bin
+    type(bin_p), intent(out) :: VH(size(MH)) ! particle volumes
+    
+    integer :: n_bin
+    integer i
+
+    n_bin = size(VH)
+    do i = 1,n_bin
+       allocate(VH(i)%p(0, n_spec))
+    end do
+    MH = 0
+
+  end subroutine init_array
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine zero_array(n_spec, MH, VH)
+
+    ! Resets an array to have zero particles per bin. The array must
+    ! already have had init_array() called on it.
+
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(out) :: MH(:)       ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(size(MH)) ! particle volumes
+    
+    integer :: n_bin
+    integer i
+
+    n_bin = size(VH)
+    do i = 1,n_bin
+       deallocate(VH(i)%p)
+       allocate(VH(i)%p(0, n_spec))
+    end do
+    MH = 0
+
+  end subroutine zero_array
   
-  subroutine compute_volumes(n_bin, n_spec, vol_frac, &
-       MM, i_start, i_end,  &
-       n_ini, bin_v, dlnr, V, M)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine enlarge_bin(bin)
+
+    ! Enlarges the given bin (which must be allocated) by at least one
+    ! element (currently doubles the length).
+
+    type(bin_p), intent(inout) :: bin  ! bin data
+
+    integer :: n_part, n_spec, new_n_part
+    real*8, dimension(:,:), pointer :: new_p
+
+    n_part = size(bin%p, 1)
+    n_spec = size(bin%p, 2)
+    new_n_part = max(n_part * 2, n_part + 1)
+    allocate(new_p(new_n_part, n_spec))
+    new_p(1:n_part,:) = bin%p
+    deallocate(bin%p)
+    bin%p => new_p
+    
+  end subroutine enlarge_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine shrink_bin(n_used, bin)
+
+    ! Possibly shrinks the storage of the given bin, ensuring that it
+    ! is at least of length n_used (currently halves the length or
+    ! does nothing).
+
+    integer, intent(in) :: n_used      ! number of used entries in bin
+    type(bin_p), intent(inout) :: bin  ! bin data
+
+    integer :: n_part, n_spec, new_n_part
+    real*8, dimension(:,:), pointer :: new_p
+
+    n_part = size(bin%p, 1)
+    n_spec = size(bin%p, 2)
+    new_n_part = n_part / 2
+    if (n_used <= new_n_part) then
+       allocate(new_p(new_n_part, n_spec))
+       new_p(:,:) = bin%p(1:new_n_part,:)
+       deallocate(bin%p)
+       bin%p => new_p
+    end if
+
+  end subroutine shrink_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine add_particles(n_bin, n_spec, vol_frac, &
+       bin_v, bin_n, MH, VH)
+
+    ! makes particles from the given number distribution and appends
+    ! them to the VH array
     
     use mod_bin
     
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(in) :: vol_frac(n_spec) !  composition of particles
-    integer, intent(in) :: MM           !  physical size of V
-    integer, intent(in) :: i_start      ! 
-    integer, intent(in) :: i_end        ! 
-    integer, intent(in) :: n_ini(n_bin) !  initial number distribution
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          !  scale factor
-    real*8, intent(out) :: V(MM,n_spec)  !  particle volumes  (m^3)
-    integer, intent(out) :: M            !  logical dimension of V
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    integer, intent(in) :: bin_n(n_bin) ! number in bins
+    integer, intent(out) :: MH(n_bin)   ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     
     real*8 total_vol_frac, v_low, v_high, pv
-    integer k, i, sum_e, sum_a, delta_n, i_spec
+    integer k, i
 
-    sum_e = i_start - 1
-    
-    total_vol_frac = 0.d0
-    do i=1,n_spec
-       total_vol_frac = total_vol_frac + vol_frac(i)
-    end do
+    total_vol_frac = sum(vol_frac)
     do k = 1,n_bin
-       delta_n = n_ini(k)
-       sum_a = sum_e + 1
-       sum_e = sum_e + delta_n
        call bin_edge(n_bin, bin_v, k, v_low)
        call bin_edge(n_bin, bin_v, k + 1, v_high)
-       do i = sum_a,sum_e
-          pv = dble(i - sum_a + 1) / dble(sum_e - sum_a + 2) &
-               * (v_high - v_low) + v_low
-          do i_spec = 1,n_spec
-             V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * pv
-          end do
+       do i = 1,bin_n(k)
+          pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
+          MH(k) = MH(k) + 1
+          if (MH(k) .gt. size(VH(k)%p,1)) then
+             call enlarge_bin(VH(k))
+          end if
+          VH(k)%p(MH(k),:) = vol_frac / total_vol_frac * pv
        end do
     end do
-    M = sum_e - i_start + 1
-  end subroutine compute_volumes
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine zero_v(MM,n_spec,V)
-    
-    integer, intent(in) :: MM      !  
-    integer, intent(in) :: n_spec  !  number of species
-    integer i,j
-    real*8 V(MM,n_spec)
-    
-    
-    do i=1,MM
-       do j=1,n_spec
-          V(i,j) = 0.d0
-       end do
-    end do
-    
-    return
-  end subroutine zero_v
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine find_rand_pair(M, s1, s2)
-    
-    use mod_util
 
-    integer, intent(in) :: M    ! number of particles
-    integer, intent(out) :: s1  ! s1 and s2 are not equal, random
-    integer, intent(out) :: s2  ! particles with (1 <= s1,s2 <= M)
-    
-    ! FIXME: rand() only returns a REAL*4, so we might not be able to
-    ! generate all integers between 1 and M if M is too big.
-100 s1 = int(util_rand() * dble(M)) + 1
-    if ((s1 .lt. 1) .or. (s1 .gt. M)) goto 100
-101 s2 = int(util_rand() * dble(M)) + 1
-    if ((s2 .lt. 1) .or. (s2 .gt. M)) goto 101
-    if (s1 .eq. s2) goto 101
-    
-    return
-  end subroutine find_rand_pair
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine find_rand_pair_acc_rej(MM, M, V, max_k, kernel, env, &
-       s1, s2)
-    
-    use mod_util
-    use mod_environ
-
-    integer, intent(in) :: MM      !  physical dimension of V
-    integer, intent(in) :: M       !  logical dimension of V
-    real*8, intent(in) :: V(MM)    !  array of particle volumes   (m^3)
-    real*8, intent(in) :: max_k    !  maximum value of the kernel (m^3 s^(-1))
-    integer, intent(out) :: s1  !  s1 and s2 are not equal, random
-    integer, intent(out) :: s2  !  particles with V(s1/s2) != 0
-    type(environ), intent(in) :: env        ! environment state
-    
-    interface
-       subroutine kernel(v1, v2, env, k)
-         use mod_environ
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(environ), intent(in) :: env
-         real*8, intent(out) :: k
-       end subroutine kernel
-    end interface
-    
-    real*8 k, p
-    
-200 continue
-    call find_rand_pair(M, s1, s2) ! test particles s1, s2
-    call kernel(V(s1), V(s2), env, k)
-    p = k / max_k     ! collision probability   
-    if (util_rand() .gt. p ) goto 200
-    
-    return
-  end subroutine find_rand_pair_acc_rej
+  end subroutine add_particles
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine coagulate(MM, M, V, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-       s1, s2, env, bin_change)
+  subroutine moments(n_bin, n_spec, MH, VH, bin_v, &
+       bin_g,bin_gs, bin_n, dlnr)
     
-    use mod_bin
-    use mod_environ
+    ! Create the bin number and mass arrays from VH.
+
     use mod_material
-   
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(inout) :: M            !  logical dimension of V
-    integer, intent(in) :: n_spec       !  number of species 
-    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes  (m^3)
-     
+    
     integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-     real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins 
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volumes in bins
-    integer, intent(inout) :: bin_n(n_bin) !  number in bins
-    real*8, intent(in) :: dlnr          !  bin scale factor
-    
-    integer, intent(in) :: s1           !  first particle to coagulate
-    integer, intent(in) :: s2           !  second particle to coagulate
-    type(environ), intent(in) :: env        ! environment state
-    logical, intent(out) :: bin_change   !  whether an empty bin filled,
-    !         or a filled bin became empty
-    
-    integer k1, k2, kn, i, j
-    real*8  pv1, pv2
-    
-    bin_change = .false.
-    
-    pv1 = particle_volume(V(s1,:))
-    pv2 = particle_volume(V(s2,:))
-    
-    ! remove s1 and s2 from bins
-    call particle_in_bin(pv1, n_bin, bin_v, k1)
-    call particle_in_bin(pv2, n_bin, bin_v, k2)
-    bin_n(k1) = bin_n(k1) - 1
-    bin_n(k2) = bin_n(k2) - 1
-    bin_g(k1) = bin_g(k1) - pv1
-    bin_g(k2) = bin_g(k2) - pv2
-    do j=1,n_spec
-       if((bin_gs(k1,j)-V(s1,j)) .lt.0.d0)  &
-            write(6,*)'help gs ',k1,j, bin_gs(k1,j),V(s1,j), &
-            bin_gs(k1,j)-V(s1,j)
-       if((bin_gs(k2,j)-V(s2,j)) .lt.0.d0)  &
-            write(6,*)'help gs ',k2,j, bin_gs(k2,j),V(s2,j), &
-            bin_gs(k2,j)-V(s2,j)
-       bin_gs(k1,j) = bin_gs(k1,j) - V(s1,j)
-       bin_gs(k2,j) = bin_gs(k2,j) - V(s2,j)
-    end do
-    
-    if ((bin_n(k1) .lt. 0) .or. (bin_n(k2) .lt. 0)) then
-       write(*,*)'ERROR: invalid bin_n'
-       call exit(2)
-    end if
-    
-    ! add particle 2 onto particle 1
-    do i=1,n_spec
-       V(s1,i) = V(s1,i) + V(s2,i)
-       if (V(s1,i) .lt. 0.d0) then
-          write(6,*)'help! ',s1,i,V(s1,i)
-       end if
-    end do
-    
-    ! shift the last particle into empty slot
-    do i=1,n_spec
-       V(s2,i) = V(M,i)
-    end do
-    M = M - 1    ! shorten array
-    
-    ! add new particle to bins
-    pv1 = particle_volume(V(s1,:))
-    call particle_in_bin(pv1, n_bin, bin_v, kn)
-    bin_n(kn) = bin_n(kn) + 1
-    bin_g(kn) = bin_g(kn) + pv1
-    do j=1,n_spec
-       bin_gs(kn,j) = bin_gs(kn,j) + V(s1,j)
-    end do
-    
-    if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0)) &
-         bin_change = .true.
-    if ((bin_n(kn) .eq. 1) .and. (kn .ne. k1) .and. (kn .ne. k2)) &
-         bin_change = .true.
-    return
-  end subroutine coagulate
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! &
-  subroutine maybe_coag_pair(MM, M, V, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-       del_t, n_samp, kernel, env, did_coag, bin_change)
-    
-    use mod_util
-    use mod_environ
-    use mod_material
-
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(inout) :: M            !  logical dimension of V
     integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
-     
-    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
+    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-     real*8, intent(inout) :: bin_g(n_bin)  !  total volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec)  !  species volume in bins
+    integer, intent(out) :: bin_n(n_bin) !  number in bins
     real*8, intent(in) :: dlnr          !  bin scale factor
     
+    integer b, j, s
+    
+    bin_g = 0d0
+    bin_gs = 0d0
+    do b = 1,n_bin
+       do j = 1,MH(b)
+          bin_g(b) = bin_g(b) + particle_volume(VH(b)%p(j,:))
+          bin_gs(b,:) = bin_gs(b,:) + VH(b)%p(j,:)
+       end do
+    end do
+    bin_n = MH
+   
+  end subroutine moments
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine resort_array(n_bin, n_spec, MH, VH, bin_v, &
+        dlnr)
+    
+    ! Takes a VH array where the particle volumes might no longer be
+    ! correct for the bins they are in and resorts it so that every
+    ! particle is in the correct bin.
+
+    use mod_material
+    use mod_bin
+    
+    integer, intent(in) :: n_bin ! number of bins
+    integer, intent(in) :: n_spec ! number of species
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
+    real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr ! bin scale factor
+    
+    integer bin, j, new_bin, k
+    real*8 pv
+    
+    ! FIXME: the approach here is inefficient because we might
+    ! reprocess particles. For example, if we are doing bin 1 and we
+    ! shift a particle up to bin 2, when we do bin 2 we will reprocess
+    ! it. It seems to be more trouble than it's worth to worry about
+    ! this yet, however.
+    
+    do bin = 1,n_bin
+       j = 1
+       do while (j .le. MH(bin))
+          ! find the new volume and new bin
+          pv = particle_volume(VH(bin)%p(j,:))
+          call particle_in_bin(pv, n_bin, bin_v, new_bin)
+          
+          ! if the bin number has changed, move the particle
+          if (bin .ne. new_bin) then
+             ! move the particle to the new bin, leaving a hole
+             MH(new_bin) = MH(new_bin) + 1
+             if (MH(new_bin) .gt. size(VH(new_bin)%p,1)) then
+                call enlarge_bin(VH(new_bin))
+             end if
+             VH(new_bin)%p(MH(new_bin),:) = VH(bin)%p(j,:)
+             
+             ! copy the last particle in the current bin into the hole
+             ! if the hole isn't in fact the last particle
+             if (j .lt. MH(bin)) then
+                VH(bin)%p(j,:) = VH(bin)%p(MH(bin),:)
+             end if
+             MH(bin) = MH(bin) - 1
+             if (MH(bin) .lt. 0) then
+                write(*,*) 'ERROR: invalid MH in bin ', bin
+                call exit(2)
+             end if
+             
+             ! in this case, don't advance j, so that we will still
+             ! process the particle we just moved into the hole
+          else
+             ! if we didn't move the particle, advance j to process
+             ! the next particle
+             j = j + 1
+          end if
+       end do
+    end do
+
+    ! now shrink the bin storage if necessary
+    do bin = 1,n_bin
+       call shrink_bin(MH(bin), VH(bin))
+    end do
+    
+  end subroutine resort_array
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine maybe_coag_pair(M, n_bin, MH, VH, &
+       n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, b1, b2, &
+       del_t, k_max, kernel, env, did_coag, bin_change)
+    
+    ! Choose a random pair for potential coagulation and test its
+    ! probability of coagulation. If it happens, do the coagulation and
+    ! update all structures. The probability of a coagulation will be
+    ! taken as (kernel / k_max).
+
+    use mod_material
+    use mod_util
+    use mod_environ
+
+    integer, intent(inout) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+     
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
+    type(environ), intent(in) :: env        ! environment state
+    
+    integer, intent(in) :: b1           !  bin of first particle
+    integer, intent(in) :: b2           !  bin of second particle
     real*8, intent(in) :: del_t         !  timestep
-    integer, intent(in) :: n_samp       !  number of samples per timestep
+    real*8, intent(in) :: k_max         !  k_max scale factor
     ! external, intent(in) :: kernel      !  kernel function
     logical, intent(out) :: did_coag     !  whether a coagulation occured
     logical, intent(out) :: bin_change   !  whether bin structure changed
-    type(environ), intent(in) :: env        ! environment state
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -268,224 +302,300 @@ contains
     end interface
     
     integer s1, s2
-    real*8 p, k
-    real*8 pv1, pv2
+    real*8 p, k, pv1, pv2
     
-    call find_rand_pair(M, s1, s2) ! test particles s1, s2
-    pv1 = particle_volume(V(s1,:))
-    pv2 = particle_volume(V(s2,:))
-    call kernel(pv1, pv2, env, k)
-    p = k * 1d0/env%V_comp * del_t *  &
-         (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
     bin_change = .false.
-    if (util_rand() .lt. p) then
-       call coagulate(MM, M, V, n_spec, &
-            n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-            s1, s2, env, bin_change)
-       did_coag = .true.
-    else
-       did_coag = .false.
+    did_coag = .false.
+    
+    if ((MH(b1) .le. 0) .or. (MH(b2) .le. 0)) then
+       return
     end if
     
-    return
+    call find_rand_pair(n_bin, MH, b1, b2, s1, s2)
+    pv1 = particle_volume(VH(b1)%p(s1,:))
+    pv2 = particle_volume(VH(b2)%p(s2,:))
+    call kernel(pv1, pv2, env, k)
+    p = k / k_max
+    
+    if (util_rand() .lt. p) then
+       call coagulate(M, n_bin, MH, VH, n_spec &
+            ,bin_v,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
+            env, bin_change)
+       did_coag = .true.
+    end if
+    
   end subroutine maybe_coag_pair
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine find_rand_pair(n_bin, MH, b1, b2, s1, s2)
+    
+    ! Find a random pair of particles (b1, s1) and (b2, s2).
+    
+    use mod_util
+
+    integer, intent(in) :: n_bin     !  number of bins
+    integer, intent(in) :: MH(n_bin) !  number particles per bin
+    integer, intent(in) :: b1        !  bin number of first particle
+    integer, intent(in) :: b2        !  bin number of second particle
+    integer, intent(out) :: s1       !  first random particle 1 <= s1 <= M(b1)
+    integer, intent(out) :: s2       !  second random particle 1 <= s2 <= M(b2)
+                                     !         (b1,s1) != (b2,s2)
+    
+    ! FIXME: rand() only returns a REAL*4, so we might not be able to
+    ! generate all integers between 1 and M if M is too big.
+100 s1 = int(util_rand() * dble(MH(b1))) + 1
+    if ((s1 .lt. 1) .or. (s1 .gt. MH(b1))) goto 100
+101 s2 = int(util_rand() * dble(MH(b2))) + 1
+    if ((s2 .lt. 1) .or. (s2 .gt. MH(b2))) goto 101
+    if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
+    
+  end subroutine find_rand_pair
   
-  subroutine double(MM, M, V, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine coagulate(M, n_bin, MH, VH, n_spec &
+       ,bin_v, bin_g, bin_gs,bin_n, dlnr, b1, s1, b2, s2, &
+       env, bin_change)
+    
+    ! Join together particles (b1, s1) and (b2, s2), updating all
+    ! particle and bin structures to reflect the change. bin_change is
+    ! true if the used bin set changed due to the coagulation (i.e. an
+    ! empty bin filled or a filled bin became empty).
+
+    use mod_material
+    use mod_bin
+    use mod_environ
+    
+    integer, intent(inout) :: M            !  number of particles
+    integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+     
+    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
+    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: dlnr          !  bin scale factor
+    
+    integer, intent(in) :: b1           !  first particle (bin number)
+    integer, intent(in) :: s1           !  first particle (number in bin)
+    integer, intent(in) :: b2           !  second particle (bin number)
+    integer, intent(in) :: s2           !  second particle (number in bin)
+    type(environ), intent(in) :: env    ! environment state
+    logical, intent(out) :: bin_change  !  whether an empty bin filled,
+    !         or a filled bin became empty
+    
+    integer bn, i, j
+    real*8 new_v(n_spec), pv1, pv2, new_v_tot
+
+    bin_change = .false.
+    
+    pv1 = particle_volume(VH(b1)%p(s1,:))
+    pv2 = particle_volume(VH(b2)%p(s2,:))
+
+    ! remove s1 and s2 from bins
+    bin_n(b1) = bin_n(b1) - 1
+    bin_n(b2) = bin_n(b2) - 1
+    bin_g(b1) = bin_g(b1) - pv1
+    bin_g(b2) = bin_g(b2) - pv2
+    bin_gs(b1,:) = bin_gs(b1,:) - VH(b1)%p(s1,:)
+    bin_gs(b2,:) = bin_gs(b2,:) - VH(b2)%p(s2,:)
+     if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then
+       write(*,*)'ERROR: invalid bin_n'
+       call exit(2)
+    end if
+
+    ! do coagulation in MH, VH arrays
+    new_v(:) = VH(b1)%p(s1,:) + VH(b2)%p(s2,:)   ! add particle volumes
+    new_v_tot = sum(new_v)
+
+    call particle_in_bin(new_v_tot, n_bin, bin_v, bn)  ! find new bin
+
+    ! handle a tricky corner case
+    if ((b1 .eq. b2) .and. (s2 .eq. MH(b2))) then
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1)-1,:)
+       MH(b1) = MH(b1) - 2
+    else
+       VH(b1)%p(s1,:) = VH(b1)%p(MH(b1),:) ! shift last particle into empty slot
+       MH(b1) = MH(b1) - 1                 ! decrease length of array
+       VH(b2)%p(s2,:) = VH(b2)%p(MH(b2),:) ! same for second particle
+       MH(b2) = MH(b2) - 1
+    end if
+    if ((MH(b1) .lt. 0) .or. (MH(b2) .lt. 0)) then
+       write(*,*)'ERROR: invalid MH'
+       call exit(2)
+    end if
+    MH(bn) = MH(bn) + 1          ! increase the length of array
+    if (MH(bn) > size(VH(bn)%p,1)) then
+       call enlarge_bin(VH(bn))
+    end if
+    VH(bn)%p(MH(bn),:) = new_v  ! add the new particle at the end
+    M = M - 1                    ! decrease the total number of particles
+    
+    ! add new particle to bins
+    bin_n(bn) = bin_n(bn) + 1
+    bin_g(bn) = bin_g(bn) + sum(VH(bn)%p(MH(bn),:))
+    bin_gs(bn,:) = bin_gs(bn,:) + VH(bn)%p(MH(bn),:)
+
+    ! did we empty a bin?
+    if ((bin_n(b1) .eq. 0) .or. (bin_n(b2) .eq. 0)) &
+         bin_change = .true.
+    ! did we start a new bin?
+    if ((bin_n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
+         bin_change = .true.
+
+    ! possibly repack memory
+    call shrink_bin(MH(b1), VH(b1))
+    call shrink_bin(MH(b2), VH(b2))
+
+  end subroutine coagulate
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine double(M, n_bin, MH, VH, n_spec &
+       ,bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+    
+    ! Doubles number of particles in an array.
 
     use mod_environ
-
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(inout) :: M            !  logical dimension of V
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(inout) :: V(MM,n_spec)  !  particle volumes
     
+    integer, intent(inout) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+     
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    type(environ), intent(inout) :: env        ! environment state 
     real*8, intent(in) :: dlnr          !  bin scale factor
-    type(environ), intent(inout) :: env        ! environment state
     
-    integer i,j
+    integer i, k, i_spec
     
-    ! only double if we have enough space to do so
-    if (M .gt. MM / 2) then
-       write(*,*)'ERROR: double without enough space'
-       call exit(2)
-    end if
-    
-    ! double V and associated structures
-    do i = 1,M
-       do j=1,n_spec
-          V(i + M,j) = V(i,j)
+    ! double VH and associated structures
+    do k = 1,n_bin
+       do i = 1,MH(k)
+          if (i + MH(k) > size(VH(k)%p,1)) then
+             call enlarge_bin(VH(k))
+          end if
+          VH(k)%p(i + MH(k), :) = VH(k)%p(i, :)
        end do
+       MH(k) = 2 * MH(k)
     end do
     M = 2 * M
     env%V_comp = 2d0 * env%V_comp
     
     ! double bin structures
-    do i = 1,n_bin
-       bin_g(i) = bin_g(i) * 2d0
-       bin_n(i) = bin_n(i) * 2
-       do j=1,n_spec
-          bin_gs(i,j) = bin_gs(i,j) * 2d0
-       end do
-    end do
+    bin_g = bin_g * 2d0
+    bin_n = bin_n * 2
+    bin_gs = bin_gs * 2d0
     
-    return
   end subroutine double
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max(n_bin, bin_v, bin_n, kernel, env, k_max)
-   
-    use mod_environ
- 
-    integer, intent(in) :: n_bin         !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
-    integer, intent(in) :: bin_n(n_bin)  !  number in each bin
-    ! external, intent(in) :: kernel       !  kernel function
-    real*8, intent(out) :: k_max          !  maximum kernel value
-    type(environ), intent(in) :: env        ! environment state
+  subroutine check_array(M, n_bin, n_spec, MH, VH, bin_v, &
+        bin_g, bin_gs, bin_n, dlnr)
     
-    interface
-       subroutine kernel(v1, v2, env, k)
-         use mod_environ
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(environ), intent(in) :: env
-         real*8, intent(out) :: k
-       end subroutine kernel
-    end interface
-    
-    real*8 k
-    integer i, j
-    logical use_bin(n_bin)
-    
-    ! use_bin starts as non-empty bins
-    do i = 1,n_bin
-       use_bin(i) = (bin_n(i) .gt. 0)
-    end do
-    
-    ! add all bins downstream of non-empty bins
-    do i = 2,n_bin
-       if (use_bin(i)) use_bin(i-1) = .true.
-    end do
-    
-    ! add all bins upstream of non-empty bins
-    do i = (n_bin-1),1,-1
-       if (use_bin(i)) use_bin(i+1) = .true.
-    end do
-    
-    k_max = 0d0
-    do i = 1,n_bin
-       if (use_bin(i)) then
-          do j = 1,i
-             if (use_bin(j)) then
-                call kernel(bin_v(i), bin_v(j), env, k)
-                if (k .gt. k_max) then
-                   k_max = k
-                end if
-             end if
-          end do
-       end if
-    end do
-    
-    return
-  end subroutine est_k_max
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine est_k_avg(n_bin, bin_v, bin_n, kernel, env, k_avg)
-   
-    use mod_environ
- 
-    integer, intent(in) :: n_bin         !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
-    integer, intent(in) :: bin_n(n_bin)  !  number in each bin
-    ! external, intent(in) :: kernel       !  kernel function
-    real*8, intent(out) :: k_avg          !  average kernel value
-    type(environ), intent(in) :: env        ! environment state
-    
-    interface
-       subroutine kernel(v1, v2, env, k)
-         use mod_environ
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(environ), intent(in) :: env
-         real*8, intent(out) :: k
-       end subroutine kernel
-    end interface
-    
-    real*8 k
-    integer i, j, div
-    
-    k_avg = 0d0
-    div = 0
-    do i = 1,n_bin
-       if (bin_n(i) .gt. 0) then
-          do j = 1,n_bin
-             if (bin_n(j) .gt. 0) then
-                call kernel(bin_v(i), bin_v(j), env, k)
-                k_avg = k_avg + k *  dble(bin_n(i)) * dble(bin_n(j))
-                div = div + bin_n(i) * bin_n(j)
-             end if
-          end do
-       end if
-    end do
-    
-    k_avg = k_avg / dble(div)
-    
-    return
-  end subroutine est_k_avg
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine moments(MM, M, V, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env)
-    
-    use mod_bin
-    use mod_environ
-    use mod_material
+    ! Check that VH has all particles in the correct bins and that the
+    ! bin numbers and masses are correct.
 
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(in) :: M            !  logical dimension of V
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(in) :: V(MM,n_spec)  !  particle volumes (m^3)
+    use mod_material
+    use mod_util
+    use mod_bin
     
+    integer, intent(in) :: M            !  number of particles
     integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)  !  total volume in bins
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins
-    integer, intent(out) :: bin_n(n_bin) !  number in bins  
-    real*8, intent(in) :: dlnr          !  bin scale factor
-    type(environ), intent(in) :: env        ! environment state
+    integer, intent(in) :: n_spec       !  number of species
+    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
+    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
     
-    integer i, k, j
-    real*8 pv
+    real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins             
+    integer, intent(out) :: bin_n(n_bin)      !  number in bins
+    real*8, intent(in) :: dlnr               !  bin scale factor
     
+    real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
+    integer i, k, k_check, M_check, s
+    logical error
+    
+    error = .false.
+    
+    ! check that all particles are in the correct bins
     do k = 1,n_bin
-       bin_g(k) = 0d0
-       bin_n(k) = 0
-       do j=1,n_spec
-          bin_gs(k,j) = 0d0
-       end do
-    end do
-    do i = 1,M
-       pv = particle_volume(V(i,:))
-       call particle_in_bin(pv, n_bin, bin_v, k)
-       bin_g(k) = bin_g(k) + pv
-       bin_n(k) = bin_n(k) + 1
-       do j=1,n_spec
-          bin_gs(k,j) = bin_gs(k,j) + V(i,j)
+       do i = 1,MH(k)
+          pv = particle_volume(VH(k)%p(i,:))
+          call particle_in_bin(pv, n_bin, bin_v, k_check)
+          if (k .ne. k_check) then
+             write(*,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)', &
+                  'k_check'
+             write(*,'(i10,i10,e12.5,i10)') k, i, pv, k_check
+             error = .true.
+          end if
        end do
     end do
     
-  end subroutine moments
+    ! check that the total number of particles is correct
+    M_check = 0
+    do k = 1,n_bin
+       M_check = M_check + MH(k)
+    end do
+    if (M .ne. M_check) then
+       write(*,'(a10,a10)') 'M', 'M_check'
+       write(*,'(i10,i10)') M, M_check
+       error = .true.
+    end if
+    
+    ! check the bin_n array
+    do k = 1,n_bin
+       if (MH(k) .ne. bin_n(k)) then
+          write(*,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
+          write(*,'(i10,i10,i10)') k, MH(k), bin_n(k)
+       end if
+    end do
+    
+    ! check the bin_g array
+    do k = 1,n_bin
+       check_bin_g = 0d0
+       do i = 1,MH(k)
+          pv = particle_volume(VH(k)%p(i,:))
+          check_bin_g = check_bin_g + pv
+       end do
+       vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
+       if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
+          write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
+          write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
+          error = .true.
+       end if
+    end do
+    
+    ! check the bin_gs array
+    do k = 1,n_bin
+       check_bin_gs = sum(VH(k)%p(1:MH(k),:), 1)
+       vol_tol = bin_v(k) / 1d3 ! abs tolerance 1e3 less than single particle
+       do s = 1,n_spec
+          if (.not. almost_equal_abs(check_bin_gs(s), bin_gs(k,s), &
+                                     vol_tol)) then
+             write(*,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
+                  'bin_gs(k,s)'
+             write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
+                  bin_gs(k,s)
+             error = .true.
+          end if
+       end do
+    end do
+    
+    if (error) then
+       write(*,*) 'ERROR: check_array() failed'
+       call exit(2)
+    end if
+    
+  end subroutine check_array
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

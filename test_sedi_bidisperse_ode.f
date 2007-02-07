@@ -15,7 +15,7 @@
 ! a one-dimensional ODE which we treat as being defined in terms of
 ! the current number of small particles.
 
-program run_sedi_ode
+program test_sedi_bidisperse_ode
   
   use mod_kernel_sedi
   use mod_environ
@@ -125,4 +125,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end program run_sedi_ode
+end program test_sedi_bidisperse_ode

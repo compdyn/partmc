@@ -249,7 +249,7 @@ contains
 
     real*8 pv, dvdt
 
-    call particle_vol_base(n_spec, V, pv)
+     pv = particle_volume(V)
     call cond_growth_rate(n_spec, V, dvdt, env, mat)
     dt = abs(scale * pv / dvdt)
 
@@ -284,10 +284,6 @@ contains
          dmdt_tol, f_tol, iter_max)
     
     dvdt = dmdt / mat%rho(mat%i_water)
-
-! TESTING with constant kernel (comment out all above code)
-!    dvdt = 0.25d0 / 60d0 * V(1)
-! TESTING
 
   end subroutine cond_growth_rate
 
@@ -387,14 +383,8 @@ contains
 
     real*8 T_a ! droplet temperature (K), determined as part of solve
 
-! DEBUG
-    real*8 t1, t2, t3
-! DEBUG
-
     if (init) then
        ! Start of new Newton loop, compute all constants
-
-!       write(*,*) 'V = ', V
 
        M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
        M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
@@ -405,16 +395,7 @@ contains
        g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
        g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
 
-!       write(*,*) 'M_water = ', M_water
-!       write(*,*) 'M_solute = ', M_solute
-!       write(*,*) 'nu = ', nu
-!       write(*,*) 'eps = ', eps
-!       write(*,*) 'rho_water = ', rho_water
-!       write(*,*) 'rho_solute = ', rho_solute
-!       write(*,*) 'g_water = ', g_water
-!       write(*,*) 'g_solute = ', g_solute
-       
-       call particle_vol_base(n_spec, V, pv) ! m^3
+       pv = particle_volume(V) ! m^3
        d_p = vol2diam(pv) ! m
        
        ! molecular diffusion coefficient uncorrected
@@ -424,9 +405,6 @@ contains
        D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
             * (2d0 * const%pi * M_water / (const%R * env%T))**0.5d0
        D_vp = D_v / D_v_div
-       
-!       write(*,*) 'D_v = ', D_v
-!       write(*,*) 'D_vp = ', D_vp
        
        ! TEST: use the basic expression for D_vp
        ! D_vp = D_v                ! m^2 s^{-1}
@@ -440,27 +418,10 @@ contains
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
 
-!       write(*,*) 'k_a = ', k_a
-!       write(*,*) 'k_ap = ', k_ap
-       
        rat = sat_vapor_pressure(env) / (const%R * env%T)
        fact1 = const%L_v * M_water / (const%R * env%T)
        fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
 
-!       write(*,*) 'sat_vapor_pressure = ', sat_vapor_pressure(env)
-!       write(*,*) 'sig = ', const%sig
-!       write(*,*) 'L_v = ', const%L_v
-!       write(*,*) 'R = ', const%R
-
-       t1 = rho_water * const%R * env%T &
-            / (sat_vapor_pressure(env) * D_vp * M_water)
-       t2 = const%L_v * rho_water / (k_ap * env%T)
-       t3 = t2 * (fact1 - 1d0)
- 
-!       write(*,*) 't1 = ', t1
-!       write(*,*) 't2 = ', t2
-!       write(*,*) 't3 = ', t3
-      
        c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
        c2 = 4d0 * M_water &
             * const%sig / (const%R * rho_water * d_p)
@@ -489,10 +450,6 @@ contains
 
     ! NOTE: we could return T_a (the droplet temperature) if we have
     ! any need for it.
-    
-!    write(*,*) '******************************************'
-!    write(*,*) 'dmdt = ', dmdt
-!    write(*,*) 'T_a = ', T_a
 
   end subroutine cond_growth_rate_func
   
@@ -571,7 +528,7 @@ contains
        g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
        g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
 
-       call particle_vol_base(n_spec, V, pv)
+       pv = particle_volume(V)
 
        A = 4d0 * M_water * const%sig / (const%R * env%T * rho_water)
        

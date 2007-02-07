@@ -21,7 +21,7 @@ program partbox
   if (iargc() .ne. 1) then
      write(6,*) 'Usage: run_mc <filename.d>'
      call exit(2)
-  endif
+  end if
   
   ! get and check first commandline argument (must be "filename.spec")
   call getarg(1, in_name)
@@ -61,7 +61,7 @@ contains
     use mod_kernel_golovin
     use mod_material
     use mod_environ
-    use mod_mc_fix_hybrid
+    use mod_mc
     use mod_read_spec
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -73,7 +73,7 @@ contains
     integer, allocatable :: MH(:), bin_n(:)
     type(bin_p), allocatable ::  VH(:)
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:), V(:,:)
-    real*8 :: dlnr
+    real*8 :: dlnr, t_wall_start
     integer :: i
     
     character(len=300) :: output_name ! name of output files
@@ -83,7 +83,7 @@ contains
     
     real*8 :: t_max               ! total simulation time (s)
     real*8 :: del_t               ! timestep (s)
-    real*8 :: t_print             ! output interval (0 disables) (s)
+    real*8 :: t_output            ! output interval (0 disables) (s)
     real*8 :: t_state             ! state output interval (0 disables) (s)
     real*8 :: t_progress          ! progress printing interval (0 disables) (s)
     
@@ -113,7 +113,7 @@ contains
     
     call read_real(spec, 't_max', t_max)
     call read_real(spec, 'del_t', del_t)
-    call read_real(spec, 't_print', t_print)
+    call read_real(spec, 't_output', t_output)
     call read_real(spec, 't_state', t_state)
     call read_real(spec, 't_progress', t_progress)
     
@@ -153,14 +153,15 @@ contains
     
     write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
     open(30,file=out_file_name)
-    call print_header(n_loop, n_bin, mat%n_spec, nint(t_max / t_print) + 1)
+    call print_header(n_loop, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
     
     if (rand_init /= 0) then
        call srand(rand_init)
     else
        call srand(time())
     end if
-    
+
+    call cpu_time(t_wall_start)
     do i_loop = 1,n_loop
        
        call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
@@ -185,23 +186,23 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call mc_fix_hybrid(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
-               kernel_sedi, t_max, t_print, t_state, t_progress, del_t, &
+               kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
-               i_loop, env, mat)
+               i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
-          call mc_fix_hybrid(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
-               kernel_golovin, t_max, t_print, t_state, t_progress, del_t, &
+               kernel_golovin, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
-               i_loop, env, mat)
+               i_loop, n_loop, t_wall_start, env, mat)
        else
           write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
        end if
        
-    enddo
+    end do
 
   end subroutine partbox_mc
 
@@ -218,7 +219,7 @@ contains
     use mod_kernel_golovin
     use mod_material
     use mod_environ
-    use mod_mc_exact
+    use mod_exact
     use mod_read_spec
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -235,7 +236,7 @@ contains
     real*8 :: mean_vol              ! mean volume of initial distribution
     
     real*8 :: t_max               ! total simulation time (s)
-    real*8 :: t_print             ! output interval (0 disables) (s)
+    real*8 :: t_output            ! output interval (0 disables) (s)
     
     type(material) :: mat         ! material data
     type(environ) :: env          ! environment data
@@ -257,7 +258,7 @@ contains
     end if
     
     call read_real(spec, 't_max', t_max)
-    call read_real(spec, 't_print', t_print)
+    call read_real(spec, 't_output', t_output)
     
     call read_material(spec, mat)
     call read_environ(spec, env)
@@ -272,7 +273,7 @@ contains
     
     write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
     open(30,file=out_file_name)
-    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_print) + 1)
+    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
 
     allocate(bin_n(n_bin), bin_v(n_bin), bin_g(n_bin))
     allocate(bin_gs(n_bin,mat%n_spec))
@@ -280,9 +281,9 @@ contains
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
     if (trim(soln_name) == 'golovin_exp') then
-       call mc_exact(n_bin, mat%n_spec, bin_v, bin_g, bin_gs, &
+       call exact(n_bin, mat%n_spec, bin_v, bin_g, bin_gs, &
             bin_n, dlnr, N_0, mean_vol, mat%rho(1), soln_golovin_exp, t_max, &
-            t_print, env, mat)
+            t_output, env, mat)
     else
        write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -318,7 +319,7 @@ contains
     
     real*8 :: t_max               ! total simulation time (s)
     real*8 :: del_t               ! timestep (s)
-    real*8 :: t_print             ! output interval (0 disables) (s)
+    real*8 :: t_output            ! output interval (0 disables) (s)
     real*8 :: t_progress          ! progress printing interval (0 disables) (s)
     
     type(material) :: mat         ! material data
@@ -340,7 +341,7 @@ contains
 
     call read_real(spec, 't_max', t_max)
     call read_real(spec, 'del_t', del_t)
-    call read_real(spec, 't_print', t_print)
+    call read_real(spec, 't_output', t_output)
     call read_real(spec, 't_progress', t_progress)
 
     call read_material(spec, mat)
@@ -359,7 +360,7 @@ contains
     
     write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
     open(30,file=out_file_name)
-    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_print) + 1)
+    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
     
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
@@ -367,10 +368,10 @@ contains
 
     if (trim(kernel_name) == 'sedi') then
        call sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_sedi, &
-            t_max, del_t, t_print, t_progress, mat, env)
+            t_max, del_t, t_output, t_progress, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
        call sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
-            t_max, del_t, t_print, t_progress, mat, env)
+            t_max, del_t, t_output, t_progress, mat, env)
     else
        write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

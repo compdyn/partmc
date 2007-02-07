@@ -58,7 +58,7 @@ contains
        do k = 1,n_bin
           bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
                * exp(-(bin_v(k)/V_0)))
-       enddo
+       end do
     else
        tau = N_0 * V_0 * beta_1 * time
        T = 1d0 - exp(-tau)
@@ -69,21 +69,21 @@ contains
              call bessi1(x, b)
           else
              b = 0d0
-          endif
+          end if
           nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
           bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn)
-       enddo
-    endif
+       end do
+    end if
     
     do k = 1,n_bin
        bin_g(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * dble(bin_n(k))
-    enddo
+    end do
     
     do k = 1,n_bin
        bin_g(k) = bin_g(k) * dlnr * env%V_comp
        bin_n(k) = int(dble(bin_n(k)) * dlnr * env%V_comp)
-    enddo
+    end do
     
   end subroutine soln_golovin_exp
   
@@ -112,7 +112,7 @@ contains
        r = (exp(ax)/sqrt(ax))*(q1+y*(q2+y*(q3+y*(q4+ &
             y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))))
        if (x .lt. 0d0) r = -r
-    endif
+    end if
     
   end subroutine bessi1
   

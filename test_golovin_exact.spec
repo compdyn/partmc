@@ -5,7 +5,7 @@ soln golovin_exp                # solution type
 mean_vol 4.1886d-15             # mean volume (m^3)
 
 t_max 600                       # total simulation time (s)
-t_print 60                      # output interval (0 disables) (s)
+t_output 60                     # output interval (0 disables) (s)
 
 n_spec 1                        # number of species
 i_water 1                       # species number that is water

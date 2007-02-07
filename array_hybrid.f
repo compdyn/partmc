@@ -114,7 +114,7 @@ contains
     
     do k = 1,n_bin
        MH(k) = 0
-    enddo
+    end do
     
     do i = 1,M
        pv = particle_volume(V(i,:))     
@@ -122,9 +122,9 @@ contains
        MH(k) = MH(k) + 1
        if (MH(k) .gt. size(VH(k)%p,1)) then
           call enlarge_bin(VH(k))
-       endif
+       end if
        VH(k)%p(MH(k),:) = V(i,:)
-    enddo
+    end do
     
   end subroutine array_to_hybrid
   
@@ -156,8 +156,8 @@ contains
        do j = 1,MH(b)
           bin_g(b) = bin_g(b) + particle_volume(VH(b)%p(j,:))
           bin_gs(b,:) = bin_gs(b,:) + VH(b)%p(j,:)
-       enddo
-    enddo
+       end do
+    end do
     bin_n = MH
    
   end subroutine moments_hybrid
@@ -289,7 +289,7 @@ contains
     
     if ((MH(b1) .le. 0) .or. (MH(b2) .le. 0)) then
        return
-    endif
+    end if
     
     call find_rand_pair_hybrid(n_bin, MH, b1, b2, s1, s2)
     pv1 = particle_volume(VH(b1)%p(s1,:))
@@ -302,7 +302,7 @@ contains
             ,bin_v,bin_g, bin_gs, bin_n, dlnr, b1, s1, b2, s2, &
             env, bin_change)
        did_coag = .true.
-    endif
+    end if
     
   end subroutine maybe_coag_pair_hybrid
   
@@ -386,7 +386,7 @@ contains
      if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then
        write(*,*)'ERROR: invalid bin_n'
        call exit(2)
-    endif
+    end if
 
     ! do coagulation in MH, VH arrays
     new_v(:) = VH(b1)%p(s1,:) + VH(b2)%p(s2,:)   ! add particle volumes
@@ -464,9 +464,9 @@ contains
              call enlarge_bin(VH(k))
           end if
           VH(k)%p(i + MH(k), :) = VH(k)%p(i, :)
-       enddo
+       end do
        MH(k) = 2 * MH(k)
-    enddo
+    end do
     M = 2 * M
     env%V_comp = 2d0 * env%V_comp
     
@@ -518,28 +518,28 @@ contains
                   'k_check'
              write(*,'(i10,i10,e12.5,i10)') k, i, pv, k_check
              error = .true.
-          endif
-       enddo
-    enddo
+          end if
+       end do
+    end do
     
     ! check that the total number of particles is correct
     M_check = 0
     do k = 1,n_bin
        M_check = M_check + MH(k)
-    enddo
+    end do
     if (M .ne. M_check) then
        write(*,'(a10,a10)') 'M', 'M_check'
        write(*,'(i10,i10)') M, M_check
        error = .true.
-    endif
+    end if
     
     ! check the bin_n array
     do k = 1,n_bin
        if (MH(k) .ne. bin_n(k)) then
           write(*,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
           write(*,'(i10,i10,i10)') k, MH(k), bin_n(k)
-       endif
-    enddo
+       end if
+    end do
     
     ! check the bin_g array
     do k = 1,n_bin
@@ -547,14 +547,14 @@ contains
        do i = 1,MH(k)
           pv = particle_volume(VH(k)%p(i,:))
           check_bin_g = check_bin_g + pv
-       enddo
+       end do
        vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
        if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
           write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
           write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
           error = .true.
-       endif
-    enddo
+       end if
+    end do
     
     ! check the bin_gs array
     do k = 1,n_bin
@@ -568,14 +568,14 @@ contains
              write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
                   bin_gs(k,s)
              error = .true.
-          endif
-       enddo
-    enddo
+          end if
+       end do
+    end do
     
     if (error) then
        write(*,*) 'ERROR: check_hybrid() failed'
        call exit(2)
-    endif
+    end if
     
   end subroutine check_hybrid
   

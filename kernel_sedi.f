@@ -80,25 +80,25 @@ contains
        y = 0d0
        do i = 1,7
           y = y + b(i) * (x**(i - 1))
-       enddo
+       end do
        xrey = (1d0 + cunh/rr) * exp(y)
        w_inf = xrey * eta / (2d0 * rhoa * rr)
     elseif (rr .gt. 5.35d-2) then
        bond = grav * (rhow - rhoa) * rr**2 / sigma
        if (rr .gt. 0.35d0) then
           bond = grav * (rhow - rhoa) * 0.35d0**2 / sigma
-       endif
+       end if
        x = log(16d0 * bond * py / 3d0)
        y = 0d0
        do i = 1,6
           y = y + c(i) * (x**(i - 1))
-       enddo
+       end do
        xrey = py * exp(y)
        w_inf = xrey * eta / (2d0 * rhoa * rr)
        if (rr .gt. 0.35d0) then
           w_inf = xrey * eta / (2d0 * rhoa * 0.35d0)
-       endif
-    endif
+       end if
+    end if
     w_inf = w_inf / 100d0
     
     return
@@ -176,15 +176,15 @@ contains
     do k = 1, 15
        if (r_big .gt. r0(k)) then
           ir = k + 1
-       endif
-    enddo
+       end if
+    end do
     
     iq = 1
     do kk = 1,21
        if (rq .gt. rat(kk)) then
           iq = kk + 1
-       endif
-    enddo
+       end if
+    end do
     
     if (ir .lt. 16) then
        if (ir .ge. 2) then
@@ -197,12 +197,12 @@ contains
        else
           q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
           ec = (1d0 - q) * ecoll(1, iq - 1) + q * ecoll(1, iq)
-       endif
+       end if
     else
        q = (rq - rat(iq - 1)) / (rat(iq) - rat(iq - 1))
        ek = (1d0 - q) * ecoll(15, iq - 1) + q * ecoll(15, iq)
        ec = min(ek, 1d0)
-    endif
+    end if
     
     if (ec .lt. 1d-20) stop 99
     

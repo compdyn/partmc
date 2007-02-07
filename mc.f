@@ -5,16 +5,16 @@
 !
 ! Monte Carlo with fixed timestep and a hybrid array.
 
-module mod_mc_fix_hybrid
+module mod_mc
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
+  subroutine mc(MM, M, n_spec, V, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
-       t_max, t_print, t_state, t_progress, del_t, &
+       t_max, t_output, t_state, t_progress, del_t, &
        do_coagulation, do_condensation, do_restart, restart_name, &
-       loop, env, mat)
+       i_loop, n_loop, t_wall_start, env, mat)
     
     use mod_util
     use mod_array
@@ -40,7 +40,7 @@ contains
     real*8, intent(in) :: dlnr               ! bin scale factor
     
     real*8, intent(in) :: t_max              ! final time (seconds)
-    real*8, intent(in) :: t_print            ! interval to output data, or
+    real*8, intent(in) :: t_output           ! interval to output data, or
                                              ! zero to not output (seconds)
     real*8, intent(in) :: t_state            ! interval to output state, or
                                              ! zero to not output (seconds)
@@ -52,7 +52,9 @@ contains
     logical, intent(in) :: do_condensation   ! whether to do condensation
     logical, intent(in) :: do_restart        ! whether to restart from state
     character(len=*), intent(in) :: restart_name ! name of state to restart from
-    integer, intent(in) :: loop              ! loop number of run
+    integer, intent(in) :: i_loop            ! loop number of run
+    integer, intent(in) :: n_loop            ! total number of loops
+    real*8, intent(in) :: t_wall_start       ! cpu_time() of start
     
     type(environ), intent(inout) :: env      ! environment state
     type(material), intent(in) :: mat        ! material properties
@@ -67,11 +69,11 @@ contains
        end subroutine kernel
     end interface
     
-    real*8 time, last_print_time, last_state_time, last_progress_time
+    real*8 time, last_output_time, last_state_time, last_progress_time
     real*8 k_max(n_bin, n_bin)
     integer n_coag, tot_n_samp, tot_n_coag
     logical do_print, do_state, do_progress, did_coag
-    real*8 t_start, t_wall_start, t_wall_now, t_wall_est
+    real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer i_time
     character*100 filename
 
@@ -95,7 +97,7 @@ contains
     
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
-    if (t_print > 0d0) then
+    if (t_output > 0d0) then
        call print_info(time, n_spec, n_bin, bin_v, &
             bin_g, bin_gs, bin_n, dlnr, env, mat)
     end if
@@ -105,11 +107,10 @@ contains
             time)
     end if
     
-    call cpu_time(t_wall_start)
     t_start = time
     last_progress_time = time
     last_state_time = time
-    last_print_time = time
+    last_output_time = time
     do while (time < t_max)
        if (do_coagulation) then
           call coag_fix_hybrid(MM, M, n_spec, n_bin, MH, VH, &
@@ -138,8 +139,8 @@ contains
           env%dTdt = 0d0
        endif
 
-       if (t_print > 0d0) then
-          call check_event(time, del_t, t_print, last_print_time, &
+       if (t_output > 0d0) then
+          call check_event(time, del_t, t_output, last_output_time, &
                do_print)
           if (do_print) call print_info(time, n_spec, n_bin, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
@@ -157,18 +158,20 @@ contains
                do_progress)
           if (do_progress) then
              call cpu_time(t_wall_now)
-             t_wall_est = (t_max - time) * (t_wall_now - t_wall_start) &
-                  / (time - t_start)
+             prop_done = (dble(i_loop - 1) + (time - t_start) &
+                  / (t_max - t_start)) / dble(n_loop)
+             t_wall_est = (1d0 - prop_done) / prop_done &
+                  * (t_wall_now - t_wall_start)
              write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M', &
                   'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') loop, time, M, &
+             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') i_loop, time, M, &
                   tot_n_samp, n_coag, tot_n_coag, t_wall_est
           end if
        end if
        
     enddo
     
-  end subroutine mc_fix_hybrid
+  end subroutine mc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -279,4 +282,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_mc_fix_hybrid
+end module mod_mc

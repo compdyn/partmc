@@ -59,7 +59,7 @@ contains
        do k = 1,n_bin
           bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
                * exp(-(bin_v(k)/V_0)))
-       enddo
+       end do
     else
        tau = N_0 * beta_0 * time
        do k = 1,n_bin
@@ -68,18 +68,18 @@ contains
           nn = 4d0 * N_0 / (V_0 * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3d0 * nn)
-       enddo
-    endif
+       end do
+    end if
     
     do k = 1,n_bin
        bin_g(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3d0 &
             * dble(bin_n(k))
-    enddo
+    end do
     
     do k = 1,n_bin
        bin_g(k) = bin_g(k) * dlnr * env%V_comp
        bin_n(k) = int(dble(bin_n(k)) * dlnr * env%V_comp)
-    enddo
+    end do
     
   end subroutine soln_constant_exp_cond
   

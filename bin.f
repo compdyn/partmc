@@ -36,8 +36,8 @@ contains
     do i = 1,n_bin
        do j = 1,n_bin
           call kernel(bin_v(i), bin_v(j), env, k(i,j))
-       enddo
-    enddo
+       end do
+    end do
     
   end subroutine bin_kernel
   
@@ -78,7 +78,7 @@ contains
     do i = 1,n_bin
        ! volume (m^3)
        bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
-    enddo
+    end do
     
   end subroutine make_bin_grid
   
@@ -97,7 +97,7 @@ contains
        v_edge = bin_v(n_bin) + (bin_v(n_bin) - bin_v(n_bin - 1)) / 2d0
     else
        v_edge = (bin_v(i - 1) + bin_v(i)) / 2d0
-    endif
+    end if
     
   end subroutine bin_edge
   
@@ -131,7 +131,7 @@ contains
     
     do i = 1,n_bin
        bin_g(i) = dble(bin_n(i)) * bin_v(i)
-    enddo
+    end do
     
   end subroutine bin_n_to_g
   
@@ -182,8 +182,8 @@ contains
                v2_low * dble(j - 1) / dble(n_sample - 1)
           call kernel(v1, v2, env, k)
           if (k .gt. k_max) k_max = k
-       enddo
-    enddo
+       end do
+    end do
     
   end subroutine est_k_max_for_bin
   
@@ -214,8 +214,8 @@ contains
        do j = 1,n_bin
           call est_k_max_for_bin(n_bin, bin_v, kernel, i, j, &
                env, k_max(i,j))
-       enddo
-    enddo
+       end do
+    end do
     
   end subroutine est_k_max_binned
   
@@ -295,7 +295,7 @@ contains
     do k = 1,n_bin
        write(30, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
             bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
-    enddo
+    end do
     
   end subroutine print_info_density
   

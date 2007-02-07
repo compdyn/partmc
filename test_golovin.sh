@@ -1,12 +1,12 @@
 #!/bin/sh
 
-echo ./partbox golovin_mc.spec
-./partbox golovin_mc.spec
+echo ./partbox test_golovin_mc.spec
+./partbox test_golovin_mc.spec
 echo ./process_out out_golovin_mc.d
 ./process_out out_golovin_mc.d
 
-echo ./partbox golovin_exact.spec
-./partbox golovin_exact.spec
+echo ./partbox test_golovin_exact.spec
+./partbox test_golovin_exact.spec
 echo ./process_out out_golovin_exact.d
 ./process_out out_golovin_exact.d
 

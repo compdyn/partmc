@@ -319,6 +319,7 @@ contains
     do while (.not. done)
        call read_line(spec, line)
        call strip_comment(line)
+       call tabs_to_spaces(line)
        if (len_trim(line) > 0) then
           done = .true.
        end if
@@ -366,6 +367,22 @@ contains
     
   end subroutine strip_comment
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine tabs_to_spaces(line)
+
+    character(len=*), intent(inout) :: line ! complete input line
+
+    integer i
+
+    do i = 1,len(line)
+       if (ichar(line(i:i)) == 9) then
+          line(i:i) = ' '
+       end if
+    end do
+
+  end subroutine tabs_to_spaces
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine check_name(spec, line, name, rest)

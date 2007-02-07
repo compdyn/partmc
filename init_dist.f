@@ -46,11 +46,11 @@ contains
     if (MM .lt. 126) then
        write(*,*)'ERROR: MM too small for bidisperse'
        call exit(2)
-    endif
+    end if
     
     do k = 1,n_bin
        n_ini(k) = 0
-    enddo
+    end do
     n_ini(97) = MM - 1
     n_ini(126) = 1
     
@@ -79,7 +79,7 @@ contains
        n_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
             dexp(-(dlog10(vol2rad(bin_v(k))) - dlog10(d_mean/2d0))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
-    enddo
+    end do
     
     ! The formula above was originally for a distribution in
     ! log_10(r), while we are using log_e(r). The division by dlog(10)
@@ -106,7 +106,7 @@ contains
     
     do k = 1,n_bin
        bin_n(k) = int(dble(N) * n_den(k) * dlnr)
-    enddo
+    end do
     
   end subroutine dist_to_n
   
@@ -131,7 +131,7 @@ contains
     do k = 1,n_bin
        n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
        call vol_to_lnr(vol2rad(bin_v(k)),n_den_vol, n_den(k))
-    enddo
+    end do
     
   end subroutine init_exp
   

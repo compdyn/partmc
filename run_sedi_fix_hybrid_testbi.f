@@ -13,7 +13,7 @@ program run_sedi_fix_hybrid_testbi
   use mod_array
   use mod_array_hybrid
   use mod_init_dist
-  use mod_mc_fix_hybrid
+  use mod_mc
   use mod_kernel_sedi
   use mod_condensation
   use mod_environ
@@ -33,7 +33,7 @@ program run_sedi_fix_hybrid_testbi
   real*8, parameter :: V_0 = 4.1886d-15 ! mean volume of #1-initial distribution
   
   real*8, parameter :: t_max = 600d0 ! total simulation time (seconds)
-  real*8, parameter :: t_print = 60d0 ! interval between output (s)
+  real*8, parameter :: t_output = 60d0 ! interval between output (s)
   real*8, parameter :: t_state = 0d0 ! interval between state output (s)
   real*8, parameter :: t_progress = 60d0 ! interval between progress (s)
   real*8, parameter :: del_t = 1d0   ! timestep (s)
@@ -68,7 +68,7 @@ program run_sedi_fix_hybrid_testbi
   open(30,file='out_sedi_fix_hybrid.d')
   
   call print_header(n_loop, n_bin, n_spec,  &
-       nint(t_max / t_print) + 1)
+       nint(t_max / t_output) + 1)
 
   ! call srand(17)
   call srand(time())
@@ -84,11 +84,11 @@ program run_sedi_fix_hybrid_testbi
           bin_n, bin_v, dlnr, V, M)
      
      env%V_comp = dble(M) / N_0
-     call mc_fix_hybrid(MM, M, n_spec, V, n_bin, MH, VH, &
+     call mc(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_g, bin_gs, bin_n, dlnr , &
-          kernel_sedi, t_max, t_print, t_state, t_progress, del_t, &
+          kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
           do_coagulation, do_condensation, do_restart, restart_name, &
-          i_loop, env, mat)
+          i_loop, n_loop, 0d0, env, mat)
 
   enddo
   

@@ -8,7 +8,7 @@ dist_mean_vol 4.1886d-15        # mean diameter (m)
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
-t_print 60                      # output interval (0 disables) (s)
+t_output 60                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_spec 1                        # number of species

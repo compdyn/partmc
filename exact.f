@@ -5,13 +5,13 @@
 !
 ! Exact solution output.
 
-module mod_mc_exact
+module mod_exact
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
-       bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_print, &
+  subroutine exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
+       bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_output, &
        env, mat)
     ! FIXME: N_0 and V_0 are really parameters for the initial value
     ! of the particle distribution. They should be replaced by a n_param,
@@ -33,7 +33,7 @@ contains
     real*8, intent(in) :: V_0           ! 
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     real*8, intent(in) :: t_max         ! total simulation time
-    real*8, intent(in) :: t_print       ! interval to print info (seconds)
+    real*8, intent(in) :: t_output      ! interval to print info (seconds)
     type(environ), intent(inout) :: env  ! environment state
     type(material), intent(in) :: mat    ! material properties
     
@@ -61,7 +61,7 @@ contains
        end subroutine soln
     end interface
     
-    n_time = int(t_max / t_print)
+    n_time = int(t_max / t_output)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * dble(t_max)
        call soln(n_bin, bin_v, bin_g, bin_n, dlnr, &
@@ -69,14 +69,14 @@ contains
        
        do i=1,n_bin
           bin_gs(i,1) = bin_g(i)
-       enddo
+       end do
        
        call print_info(time, n_spec, &
             n_bin, bin_v, bin_g, bin_gs,bin_n, dlnr, env, mat)
-    enddo
+    end do
     
-  end subroutine mc_exact
+  end subroutine exact
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_mc_exact
+end module mod_exact

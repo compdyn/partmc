@@ -1,3 +1,5 @@
+Rename mc.f exact.f and sect.f to run_*
+
 Change init procedure to just make VH directly, not first making V.
 
 Shift code into a separate (partbox?) repository for PNNL to access.
@@ -6,33 +8,16 @@ Add the rest of the kernels and init_dists to the various bits of partbox.f
 
 Should we auto-remake Makefile.deps or not?
 
-Rename mc_exact() -- it isn't an MC at all!
-
-Pass n_loop into mc_fix_hybrid so that we can do a better time estimation.
-
-Fix problem with tabs in files read by run_mc.
-
-Make process_out and process_state use allocatable arrays.
+Make process_state use allocatable arrays.
 
 Make process_state not need to have everything set inside it.
 
-Make process_out and process_state do dynamic allocation of arrays
-after reading size information from the file.
-
 Change naming of state_XXXX.d to include sedi/brown/whatever
-
-Rename read_state to read_state_hybrid and also write_state.
-
-Remove debug code in cond_growth_rate_func()
 
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
 
 Stop using magic file number 30 for the output file.
-
-Rename t_print to t_output
-
-Change endif/enddo to end if/end do
 
 Make sure all functions have a description at the top of them
 
@@ -44,14 +29,9 @@ interpolation.
 rho_a should be shifted from constants to environ
 check whether atm should also shift from constants to environ
 
-clean up the whole particle_vol_hybrid(), particle_vol(),
-particle_vol_base(), particle_volume() thing
-
 -----------------------------------------------------------------------------
 
-Add adaptive timestepping for the condensation ODE solver.
-
-Add implicit timestepping for the condensation ODE solver.
+Add implicit, adaptive timestepping for the condensation ODE solver.
 
 The initialization routines in init_dist.f are assuming
 logarithmically spaced bins, irrespective of what bin_r and bin_v

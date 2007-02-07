@@ -45,7 +45,7 @@ contains
     total_vol_frac = 0.d0
     do i=1,n_spec
        total_vol_frac = total_vol_frac + vol_frac(i)
-    enddo
+    end do
     do k = 1,n_bin
        delta_n = n_ini(k)
        sum_a = sum_e + 1
@@ -57,9 +57,9 @@ contains
                * (v_high - v_low) + v_low
           do i_spec = 1,n_spec
              V(i,i_spec) = vol_frac(i_spec)/total_vol_frac * pv
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
     M = sum_e - i_start + 1
   end subroutine compute_volumes
   
@@ -76,8 +76,8 @@ contains
     do i=1,MM
        do j=1,n_spec
           V(i,j) = 0.d0
-       enddo
-    enddo
+       end do
+    end do
     
     return
   end subroutine zero_v
@@ -148,6 +148,7 @@ contains
     
     use mod_bin
     use mod_environ
+    use mod_material
    
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
@@ -172,8 +173,8 @@ contains
     
     bin_change = .false.
     
-    call particle_vol(MM,n_spec,V,s1,pv1)
-    call particle_vol(MM,n_spec,V,s2,pv2)
+    pv1 = particle_volume(V(s1,:))
+    pv2 = particle_volume(V(s2,:))
     
     ! remove s1 and s2 from bins
     call particle_in_bin(pv1, n_bin, bin_v, k1)
@@ -191,35 +192,35 @@ contains
             bin_gs(k2,j)-V(s2,j)
        bin_gs(k1,j) = bin_gs(k1,j) - V(s1,j)
        bin_gs(k2,j) = bin_gs(k2,j) - V(s2,j)
-    enddo
+    end do
     
     if ((bin_n(k1) .lt. 0) .or. (bin_n(k2) .lt. 0)) then
        write(*,*)'ERROR: invalid bin_n'
        call exit(2)
-    endif
+    end if
     
     ! add particle 2 onto particle 1
     do i=1,n_spec
        V(s1,i) = V(s1,i) + V(s2,i)
        if (V(s1,i) .lt. 0.d0) then
           write(6,*)'help! ',s1,i,V(s1,i)
-       endif
-    enddo
+       end if
+    end do
     
     ! shift the last particle into empty slot
     do i=1,n_spec
        V(s2,i) = V(M,i)
-    enddo
+    end do
     M = M - 1    ! shorten array
     
     ! add new particle to bins
-    call particle_vol(MM,n_spec,V,s1,pv1)
+    pv1 = particle_volume(V(s1,:))
     call particle_in_bin(pv1, n_bin, bin_v, kn)
     bin_n(kn) = bin_n(kn) + 1
     bin_g(kn) = bin_g(kn) + pv1
     do j=1,n_spec
        bin_gs(kn,j) = bin_gs(kn,j) + V(s1,j)
-    enddo
+    end do
     
     if ((bin_n(k1) .eq. 0) .or. (bin_n(k2) .eq. 0)) &
          bin_change = .true.
@@ -235,6 +236,7 @@ contains
     
     use mod_util
     use mod_environ
+    use mod_material
 
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(inout) :: M            !  logical dimension of V
@@ -270,8 +272,8 @@ contains
     real*8 pv1, pv2
     
     call find_rand_pair(M, s1, s2) ! test particles s1, s2
-    call particle_vol(MM,n_spec,V,s1,pv1)
-    call particle_vol(MM,n_spec,V,s2,pv2)
+    pv1 = particle_volume(V(s1,:))
+    pv2 = particle_volume(V(s2,:))
     call kernel(pv1, pv2, env, k)
     p = k * 1d0/env%V_comp * del_t *  &
          (dble(M)*(dble(M)-1d0)/2d0) / dble(n_samp)
@@ -283,7 +285,7 @@ contains
        did_coag = .true.
     else
        did_coag = .false.
-    endif
+    end if
     
     return
   end subroutine maybe_coag_pair
@@ -314,14 +316,14 @@ contains
     if (M .gt. MM / 2) then
        write(*,*)'ERROR: double without enough space'
        call exit(2)
-    endif
+    end if
     
     ! double V and associated structures
     do i = 1,M
        do j=1,n_spec
           V(i + M,j) = V(i,j)
-       enddo
-    enddo
+       end do
+    end do
     M = 2 * M
     env%V_comp = 2d0 * env%V_comp
     
@@ -331,8 +333,8 @@ contains
        bin_n(i) = bin_n(i) * 2
        do j=1,n_spec
           bin_gs(i,j) = bin_gs(i,j) * 2d0
-       enddo
-    enddo
+       end do
+    end do
     
     return
   end subroutine double
@@ -367,17 +369,17 @@ contains
     ! use_bin starts as non-empty bins
     do i = 1,n_bin
        use_bin(i) = (bin_n(i) .gt. 0)
-    enddo
+    end do
     
     ! add all bins downstream of non-empty bins
     do i = 2,n_bin
        if (use_bin(i)) use_bin(i-1) = .true.
-    enddo
+    end do
     
     ! add all bins upstream of non-empty bins
     do i = (n_bin-1),1,-1
        if (use_bin(i)) use_bin(i+1) = .true.
-    enddo
+    end do
     
     k_max = 0d0
     do i = 1,n_bin
@@ -387,11 +389,11 @@ contains
                 call kernel(bin_v(i), bin_v(j), env, k)
                 if (k .gt. k_max) then
                    k_max = k
-                endif
-             endif
-          enddo
-       endif
-    enddo
+                end if
+             end if
+          end do
+       end if
+    end do
     
     return
   end subroutine est_k_max
@@ -431,10 +433,10 @@ contains
                 call kernel(bin_v(i), bin_v(j), env, k)
                 k_avg = k_avg + k *  dble(bin_n(i)) * dble(bin_n(j))
                 div = div + bin_n(i) * bin_n(j)
-             endif
-          enddo
-       endif
-    enddo
+             end if
+          end do
+       end if
+    end do
     
     k_avg = k_avg / dble(div)
     
@@ -448,6 +450,7 @@ contains
     
     use mod_bin
     use mod_environ
+    use mod_material
 
     integer, intent(in) :: MM           !  physical dimension of V
     integer, intent(in) :: M            !  logical dimension of V
@@ -470,105 +473,19 @@ contains
        bin_n(k) = 0
        do j=1,n_spec
           bin_gs(k,j) = 0d0
-       enddo
-    enddo
+       end do
+    end do
     do i = 1,M
-       call particle_vol(MM,n_spec,V,i,pv)
+       pv = particle_volume(V(i,:))
        call particle_in_bin(pv, n_bin, bin_v, k)
        bin_g(k) = bin_g(k) + pv
        bin_n(k) = bin_n(k) + 1
        do j=1,n_spec
           bin_gs(k,j) = bin_gs(k,j) + V(i,j)
-       enddo
-    enddo
+       end do
+    end do
     
   end subroutine moments
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine check_event(time, timestep, interval, last_time, &
-       do_event)
-    
-    ! Computes whether an event is scheduled to take place. The events
-    ! should occur ideally at times 0, interval, 2*interval, etc. The
-    ! events are guaranteed to occur at least interval * (1 -
-    ! tolerance) apart, and if at least interval time has passed then
-    ! the next call is guaranteed to do the event. Otherwise the
-    ! timestep is used to guess whether to do the event.
-    
-    real*8, intent(in) :: time       !  current time
-    real*8, intent(in) :: timestep   !  an estimate of the time to the next call
-    real*8, intent(in) :: interval   !  how often the event should be done
-    real*8, intent(inout) :: last_time  !  when the event was last done
-    logical, intent(out) :: do_event  !  whether the event should be done
-    
-    real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
-    
-    real*8 closest_interval_time
-    
-    ! if we are at time 0 then do the event unconditionally
-    if (time .eq. 0d0) then
-       do_event = .true.
-    else
-       ! if we are too close to the last time then don't do it
-       if ((time - last_time) .lt. interval * (1d0 - tolerance)) then
-          do_event = .false.
-       else
-          ! if it's been too long since the last time then do it
-          if ((time - last_time) .ge. interval) then
-             do_event = .true.
-          else
-             ! gray area -- if we are closer than we will be next
-             ! time then do it
-             closest_interval_time = anint(time / interval) * interval
-             if (abs(time - closest_interval_time) &
-                  .lt. abs(time + timestep - closest_interval_time)) &
-                  then
-                do_event = .true.
-             else
-                do_event = .false.
-             endif
-          endif
-       endif
-    endif
-    
-    if (do_event) then
-       last_time = time
-    endif
-    
-  end subroutine check_event
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine particle_vol(MM,n_spec,V,i,pv)
-    
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(in) :: V(MM,n_spec)  !  particle volumes (m^3)
-    integer, intent(in) :: i            !  particle index
-    real*8 pv            ! OUPUT: total volume of particle
-    
-    !     FIXME: fix callers to just call particle_vol_base directly
-    call particle_vol_base(n_spec, V(i,:), pv)
-    
-  end subroutine particle_vol
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine particle_vol_base(n_spec, V, pv)
-    
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(in) :: V(n_spec)  ! particle volumes (m^3)
-    real*8, intent(out) :: pv ! total volume of particle
-    
-    integer i
-    
-    pv = 0d0
-    do i = 1,n_spec
-       pv = pv + V(i)
-    enddo
-    
-  end subroutine particle_vol_base
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

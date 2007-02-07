@@ -164,4 +164,58 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  subroutine check_event(time, timestep, interval, last_time, &
+       do_event)
+    
+    ! Computes whether an event is scheduled to take place. The events
+    ! should occur ideally at times 0, interval, 2*interval, etc. The
+    ! events are guaranteed to occur at least interval * (1 -
+    ! tolerance) apart, and if at least interval time has passed then
+    ! the next call is guaranteed to do the event. Otherwise the
+    ! timestep is used to guess whether to do the event.
+    
+    real*8, intent(in) :: time       !  current time
+    real*8, intent(in) :: timestep   !  an estimate of the time to the next call
+    real*8, intent(in) :: interval   !  how often the event should be done
+    real*8, intent(inout) :: last_time  !  when the event was last done
+    logical, intent(out) :: do_event  !  whether the event should be done
+    
+    real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
+    
+    real*8 closest_interval_time
+    
+    ! if we are at time 0 then do the event unconditionally
+    if (time .eq. 0d0) then
+       do_event = .true.
+    else
+       ! if we are too close to the last time then don't do it
+       if ((time - last_time) .lt. interval * (1d0 - tolerance)) then
+          do_event = .false.
+       else
+          ! if it's been too long since the last time then do it
+          if ((time - last_time) .ge. interval) then
+             do_event = .true.
+          else
+             ! gray area -- if we are closer than we will be next
+             ! time then do it
+             closest_interval_time = anint(time / interval) * interval
+             if (abs(time - closest_interval_time) &
+                  .lt. abs(time + timestep - closest_interval_time)) &
+                  then
+                do_event = .true.
+             else
+                do_event = .false.
+             end if
+          end if
+       end if
+    end if
+    
+    if (do_event) then
+       last_time = time
+    end if
+    
+  end subroutine check_event
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
 end module mod_util

@@ -13,7 +13,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
-       t_print, t_progress, mat, env)
+       t_output, t_progress, mat, env)
   
     use mod_bin
     use mod_array
@@ -31,7 +31,7 @@ contains
     
     real*8, intent(in) :: t_max              ! final time (seconds)
     real*8, intent(in) :: del_t              ! timestep for coagulation
-    real*8, intent(in) :: t_print            ! interval to output data, or
+    real*8, intent(in) :: t_output           ! interval to output data, or
                                              ! zero to not output (seconds)
     real*8, intent(in) :: t_progress         ! interval to print progress, or
                                              ! zero to not print (seconds)
@@ -46,7 +46,7 @@ contains
     real*8 taug(n_bin), taup(n_bin), taul(n_bin), tauu(n_bin)
     real*8 prod(n_bin), ploss(n_bin)
     real*8 bin_g_den(n_bin), bin_n_den(n_bin)
-    real*8 time, last_print_time, last_progress_time
+    real*8 time, last_output_time, last_progress_time
     
     integer i, j, i_time, num_t
     logical do_print, do_progress
@@ -98,14 +98,14 @@ contains
     
     ! output file
     open(30, file = 'out_sedi_sect.d')
-    call print_header(1, n_bin, 1, nint(t_max / t_print) + 1)
+    call print_header(1, n_bin, 1, nint(t_max / t_output) + 1)
     
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
     
     ! initial output
-    call check_event(time, del_t, t_print, last_print_time, do_print)
+    call check_event(time, del_t, t_output, last_output_time, do_print)
     if (do_print) then
        do i = 1,n_bin
           bin_g_den(i) = g(i) / mat%rho(1)
@@ -124,7 +124,7 @@ contains
             c, ima, g, r, e, ck, ec)
        
        ! print output
-       call check_event(time, del_t, t_print, last_print_time, &
+       call check_event(time, del_t, t_output, last_output_time, &
             do_print)
        if (do_print) then
           do i = 1,n_bin

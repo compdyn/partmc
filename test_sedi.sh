@@ -1,12 +1,12 @@
 #!/bin/sh
 
-echo ./partbox sedi_mc.spec
-./partbox sedi_mc.spec
+echo ./partbox test_sedi_mc.spec
+./partbox test_sedi_mc.spec
 echo ./process_out out_sedi_mc.d
 ./process_out out_sedi_mc.d
 
-echo ./partbox sedi_sect.spec
-./partbox sedi_sect.spec
+echo ./partbox test_sedi_sect.spec
+./partbox test_sedi_sect.spec
 echo ./process_out out_sedi_sect.d
 ./process_out out_sedi_sect.d
 

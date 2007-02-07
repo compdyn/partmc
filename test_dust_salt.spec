@@ -5,7 +5,7 @@ kernel sedi                     # coagulation kernel
 
 t_max 800                       # total simulation time (s)
 del_t 1                         # timestep (s)
-t_print 100                     # output interval (0 disables) (s)
+t_output 100                    # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 1                    # progress printing interval (0 disables) (s)
 
@@ -21,10 +21,6 @@ temp_times 0                    # times of temperature set-points
 temps 288                       # temperatures at temperature set-points (K)
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
-
-# initial distributions can be:
-#    init_log_normal <mean diameter (m)> <standard deviation (m)>
-#    init_exponential 
 
 n_init_dist 2                   # number of initial distributions
 

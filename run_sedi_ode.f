@@ -58,8 +58,8 @@ program run_sedi_ode
         write(*,'(f8.1,e14.5,e14.5,f9.2)') &
              time, n_small / env%V_comp / dlnr, v_big / env%V_comp / dlnr, &
              n_small_init - n_small
-     endif
-  enddo
+     end if
+  end do
   
 contains
   

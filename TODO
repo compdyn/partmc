@@ -6,10 +6,8 @@ Make process_state use allocatable arrays.
 
 Make process_state not need to have everything set inside it.
 
-Change naming of state_XXXX.d to include sedi/brown/whatever
-
 Remove old style parameter declarations
-Reformat parameter description comments and remove double spaces
+Reformat argument description comments and remove double spaces
 
 Make sure all functions have a description at the top of them
 

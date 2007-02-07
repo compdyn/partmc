@@ -67,6 +67,7 @@ contains
 
     integer, parameter :: max_dist_args = 10
     integer, parameter :: output_unit = 32
+    integer, parameter :: state_unit = 33
     
     integer :: MM, M, M_new, i_loop, i, i_bin
     integer, allocatable :: MH(:), bin_n(:)
@@ -185,17 +186,19 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, &
-               bin_g, bin_gs, bin_n, dlnr, kernel_sedi, t_max, &
-               t_output, t_state, t_progress, del_t, output_unit, &
-               output_name, do_coagulation, do_condensation, do_restart, &
-               restart_name, i_loop, n_loop, t_wall_start, env, mat)
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
+               t_state, t_progress, del_t, output_unit, state_unit, &
+               output_name, do_coagulation, do_condensation, &
+               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
+               env, mat)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, &
-               bin_g, bin_gs, bin_n, dlnr, kernel_golovin, t_max, &
-               t_output, t_state, t_progress, del_t, output_unit, &
-               output_name, do_coagulation, do_condensation, do_restart, &
-               restart_name, i_loop, n_loop, t_wall_start, env, mat)
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
+               t_state, t_progress, del_t, output_unit, state_unit, &
+               output_name, do_coagulation, do_condensation, &
+               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
+               env, mat)
        else
           write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)

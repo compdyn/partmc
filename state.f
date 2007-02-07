@@ -75,17 +75,16 @@ contains
     
     use mod_environ
     use mod_array
-
+    
+    integer, intent(in) :: state_unit   ! unit number to use for state file
     character(len=*), intent(in) :: state_name ! name of state file
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin)  ! particle volumes (m^3)
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     type(environ), intent(in) :: env    ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
-    
-    integer, parameter :: funit = 31    ! unit for output
     
     character*300 filename
     integer i, j, k
@@ -93,24 +92,24 @@ contains
     write(filename, '(a,a,a,i8.8,a)') 'state_', trim(state_name), &
          '_', index, '.d'
     open(unit=state_unit, file=filename)
-    write(funit,'(a20,e20.10)') 'time(s)', time
-    write(funit,'(a20,e20.10)') 'temp(K)', env%T
-    write(funit,'(a20,e20.10)') 'rh(1)', env%RH
-    write(funit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
-    write(funit,'(a20,e20.10)') 'p(Pa)', env%p
-    write(funit,'(a20,i20)') 'n_bin', n_bin
-    write(funit,'(a20,i20)') 'n_spec', n_spec
+    write(state_unit,'(a20,e20.10)') 'time(s)', time
+    write(state_unit,'(a20,e20.10)') 'temp(K)', env%T
+    write(state_unit,'(a20,e20.10)') 'rh(1)', env%RH
+    write(state_unit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
+    write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
+    write(state_unit,'(a20,i20)') 'n_bin', n_bin
+    write(state_unit,'(a20,i20)') 'n_spec', n_spec
     do i = 1,n_bin
-       write(funit,'(i20,i20)') i, MH(i)
+       write(state_unit,'(i20,i20)') i, MH(i)
     end do
     do i = 1,n_bin
        do j = 1,MH(i)
           do k = 1,n_spec
-             write(funit,'(i12,i12,i12,e30.20)') i, j, k, VH(i)%p(j,k)
+             write(state_unit,'(i12,i12,i12,e30.20)') i, j, k, VH(i)%p(j,k)
           end do
        end do
     end do
-    close(unit=funit)
+    close(unit=state_unit)
     
   end subroutine write_state
 

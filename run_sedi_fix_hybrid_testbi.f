@@ -13,7 +13,7 @@ program run_sedi_fix_hybrid_testbi
   use mod_array
   use mod_array_hybrid
   use mod_init_dist
-  use mod_mc
+  use mod_run_mc
   use mod_kernel_sedi
   use mod_condensation
   use mod_environ
@@ -84,7 +84,7 @@ program run_sedi_fix_hybrid_testbi
           bin_n, bin_v, dlnr, V, M)
      
      env%V_comp = dble(M) / N_0
-     call mc(MM, M, n_spec, V, n_bin, MH, VH, &
+     call run_mc(MM, M, n_spec, V, n_bin, MH, VH, &
           bin_v, bin_g, bin_gs, bin_n, dlnr , &
           kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
           do_coagulation, do_condensation, do_restart, restart_name, &

@@ -61,7 +61,7 @@ contains
     use mod_kernel_golovin
     use mod_material
     use mod_environ
-    use mod_mc
+    use mod_run_mc
     use mod_read_spec
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -186,13 +186,13 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call run_mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
                kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
-          call mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
+          call run_mc(MM, M, mat%n_spec, V, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, &
                kernel_golovin, t_max, t_output, t_state, t_progress, del_t, &
                do_coagulation, do_condensation, do_restart, restart_name, &
@@ -219,7 +219,7 @@ contains
     use mod_kernel_golovin
     use mod_material
     use mod_environ
-    use mod_exact
+    use mod_run_exact
     use mod_read_spec
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -281,7 +281,7 @@ contains
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
     if (trim(soln_name) == 'golovin_exp') then
-       call exact(n_bin, mat%n_spec, bin_v, bin_g, bin_gs, &
+       call run_exact(n_bin, mat%n_spec, bin_v, bin_g, bin_gs, &
             bin_n, dlnr, N_0, mean_vol, mat%rho(1), soln_golovin_exp, t_max, &
             t_output, env, mat)
     else
@@ -297,7 +297,7 @@ contains
 
     use mod_material
     use mod_environ
-    use mod_sect
+    use mod_run_sect
     use mod_kernel_sedi
     use mod_kernel_golovin
     use mod_bin
@@ -367,10 +367,10 @@ contains
     call init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
 
     if (trim(kernel_name) == 'sedi') then
-       call sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_sedi, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_sedi, &
             t_max, del_t, t_output, t_progress, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
-       call sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
             t_max, del_t, t_output, t_progress, mat, env)
     else
        write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

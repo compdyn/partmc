@@ -5,12 +5,12 @@
 !
 ! Exact solution output.
 
-module mod_exact
+module mod_run_exact
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
+  subroutine run_exact(n_bin, n_spec, bin_v, bin_g, bin_gs, &
        bin_n, dlnr, N_0, V_0, rho_p, soln, t_max, t_output, &
        env, mat)
     ! FIXME: N_0 and V_0 are really parameters for the initial value
@@ -75,8 +75,8 @@ contains
             n_bin, bin_v, bin_g, bin_gs,bin_n, dlnr, env, mat)
     end do
     
-  end subroutine exact
+  end subroutine run_exact
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_exact
+end module mod_run_exact

@@ -26,7 +26,8 @@ PROGS = process_out process_state run_sedi_ode average partbox	\
 
 OTHER = array array_hybrid bin condensation constants environ		\
 	init_dist kernel_golovin kernel_sedi kernel_constant		\
-	kernel_brown material exact mc util sect state read_spec
+	kernel_brown material run_exact run_mc util run_sect state	\
+	read_spec
 
 FILES = $(PROGS) $(OTHER)
 

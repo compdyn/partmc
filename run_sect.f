@@ -7,12 +7,12 @@
 ! Sectional code based on coad1d.f by Andreas Bott
 ! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
 
-module mod_sect
+module mod_run_sect
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
+  subroutine run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
        t_output, t_progress, mat, env)
   
     use mod_bin
@@ -96,10 +96,6 @@ contains
        enddo
     enddo
     
-    ! output file
-    open(30, file = 'out_sedi_sect.d')
-    call print_header(1, n_bin, 1, nint(t_max / t_output) + 1)
-    
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
@@ -144,7 +140,7 @@ contains
        endif
     enddo
 
-  end subroutine sect
+  end subroutine run_sect
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -296,4 +292,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_sect
+end module mod_run_sect

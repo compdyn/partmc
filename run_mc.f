@@ -5,12 +5,12 @@
 !
 ! Monte Carlo with fixed timestep and a hybrid array.
 
-module mod_mc
+module mod_run_mc
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mc(MM, M, n_spec, V, n_bin, MH, VH, &
+  subroutine run_mc(MM, M, n_spec, V, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
        t_max, t_output, t_state, t_progress, del_t, &
        do_coagulation, do_condensation, do_restart, restart_name, &
@@ -171,7 +171,7 @@ contains
        
     enddo
     
-  end subroutine mc
+  end subroutine run_mc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -282,4 +282,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_mc
+end module mod_run_mc

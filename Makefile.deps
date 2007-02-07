@@ -9,19 +9,19 @@ kernel_constant.o: environ.o util.o constants.o material.o
 kernel_brown.o: environ.o constants.o material.o
 kernel_sedi.o: environ.o constants.o material.o
 state.o: environ.o array_hybrid.o constants.o material.o array.o bin.o util.o
+run_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
 init_dist.o: util.o constants.o bin.o environ.o material.o
+run_mc.o: util.o array.o array_hybrid.o condensation.o environ.o material.o state.o constants.o bin.o
 read_spec.o: material.o environ.o constants.o
 bin.o: environ.o constants.o material.o util.o
 array_hybrid.o: material.o array.o bin.o util.o environ.o constants.o
 util.o: constants.o
-exact.o: bin.o array.o environ.o material.o constants.o util.o
+run_exact.o: bin.o array.o environ.o material.o constants.o util.o
 condensation.o: array.o array_hybrid.o bin.o environ.o material.o util.o constants.o
 run_sedi_ode.o: kernel_sedi.o environ.o constants.o material.o
-mc.o: util.o array.o array_hybrid.o condensation.o environ.o material.o state.o constants.o bin.o
-run_sedi_fix_hybrid_testbi.o: bin.o array.o array_hybrid.o init_dist.o mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
-partbox.o: read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o mc.o exact.o sect.o constants.o util.o state.o
+run_sedi_fix_hybrid_testbi.o: bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
+partbox.o: read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 environ.o: constants.o material.o
-sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
 
 process_out: process_out.o 
 	$(FC) $(LDFLAGS) -o $@ process_out.o 
@@ -35,8 +35,8 @@ run_sedi_ode: run_sedi_ode.o kernel_sedi.o environ.o constants.o material.o
 average: average.o 
 	$(FC) $(LDFLAGS) -o $@ average.o 
 
-partbox: partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o mc.o exact.o sect.o constants.o util.o state.o
-	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o mc.o exact.o sect.o constants.o util.o state.o
+partbox: partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
+	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o array_hybrid.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 
-run_sedi_fix_hybrid_testbi: run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
-	$(FC) $(LDFLAGS) -o $@ run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
+run_sedi_fix_hybrid_testbi: run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o
+	$(FC) $(LDFLAGS) -o $@ run_sedi_fix_hybrid_testbi.o bin.o array.o array_hybrid.o init_dist.o run_mc.o kernel_sedi.o condensation.o environ.o material.o constants.o util.o state.o

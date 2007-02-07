@@ -119,8 +119,7 @@ contains
     real*8, intent(in) :: d1 !  first number to compare
     real*8, intent(in) :: d2 !  second number to compare
     
-    real*8 eps
-    parameter (eps = 1d-8) ! relative tolerance
+    real*8, parameter :: eps = 1d-8 ! relative tolerance
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -145,8 +144,7 @@ contains
     real*8, intent(in) :: d2 !  second number to compare
     real*8, intent(in) :: abs_tol ! tolerance for when d1 equals d2
     
-    real*8 eps
-    parameter (eps = 1d-8) ! relative tolerance
+    real*8, parameter :: eps = 1d-8 ! relative tolerance
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then

@@ -166,8 +166,7 @@ contains
     real*8 ck(n_bin,n_bin)
     real*8 ec(n_bin,n_bin)
     
-    real*8 gmin
-    parameter (gmin = 1d-60)
+    real*8, parameter :: gmin = 1d-60
     
     integer i, i0, i1, j, k, kp
     real*8 x0, gsi, gsj, gsk, gk, x1, flux

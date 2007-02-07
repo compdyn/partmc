@@ -41,15 +41,15 @@ contains
     
     real*8, intent(in) :: time          !  current time
     real*8, intent(in) :: N_0           !  particle number concentration (#/m^3)
-    real*8, intent(in) :: V_0           ! 
+    real*8, intent(in) :: V_0           ! FIXME: what is this?
     real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
 
-    type(environ), intent(in) :: env  ! environment state
+    type(environ), intent(in) :: env    ! environment state
     
-    real*8 beta_0, tau, T, rat_v, nn, b, x, lambda, sigma
+    real*8 beta_0, tau, T, rat_v, nn, b, x, sigma
     integer k
     
-    parameter (lambda = 1d0)
+    integer, parameter :: lambda = 1d0  ! FIXME: what is this?
     
     call kernel_constant(1d0, 1d0, env, beta_0)
     

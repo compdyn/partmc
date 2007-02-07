@@ -162,8 +162,7 @@ contains
     real*8 v1, v2, v1_high, v1_low, v2_high, v2_low, k
     integer i, j
     
-    integer n_sample
-    parameter (n_sample = 10)  ! number of sample points per bin
+    integer, parameter :: n_sample = 10  ! number of sample points per bin
     
     ! v1_low < bin_v(b1) < v1_high
     call bin_edge(n_bin, bin_v, b1, v1_low)

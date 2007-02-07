@@ -16,11 +16,10 @@ contains
     
     real*8, intent(in) :: v1  !  volume of first particle
     real*8, intent(in) :: v2  !  volume of second particle
+    type(environ), intent(in) :: env ! environment state
     real*8, intent(out) :: k  !  coagulation kernel
     
-    real*8 beta_1
-    parameter (beta_1 = 1000d0)
-    type(environ), intent(in) :: env  ! environment state
+    real*8, parameter :: beta_1 = 1000d0
     
     k = beta_1 * (v1 + v2)
     

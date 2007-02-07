@@ -242,9 +242,7 @@ contains
     type(environ), intent(in) :: env     ! environment state
     type(material), intent(in) :: mat    ! material properties
 
-    ! parameters
-    real*8 scale
-    parameter (scale = 0.1d0) ! scale factor for timestep
+    real*8, parameter :: scale = 0.1d0   ! scale factor for timestep
 
     real*8 pv, dvdt
 

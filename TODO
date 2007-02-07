@@ -11,8 +11,6 @@ Change naming of state_XXXX.d to include sedi/brown/whatever
 Remove old style parameter declarations
 Reformat parameter description comments and remove double spaces
 
-Stop using magic file number 30 for the output file.
-
 Make sure all functions have a description at the top of them
 
 Remove dT/dt from env and pass mc_fix_hybrid a list of times and
@@ -46,5 +44,5 @@ in bin. Compute the bin_centers and bin_edges using something like
 logspace(1e-24,1e-4,160).
 
 We keep track of M all the time (total number of particles). Should we
-just recalc from sum(MH) when we need it?
-
+just recalc from sum(MH) when we need it? When do we even need it? For
+progress display to test the need for double.

@@ -65,10 +65,10 @@ contains
 
     type(spec_file), intent(out) :: spec     ! spec file
 
-    integer, parameter :: MAX_DIST_ARGS = 10
+    integer, parameter :: max_dist_args = 10
+    integer, parameter :: output_unit = 32
     
     integer :: MM, M, M_new, i_loop, i, i_bin
-    character(len=300) :: out_file_name
     integer, allocatable :: MH(:), bin_n(:)
     type(bin_p), allocatable ::  VH(:)
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
@@ -122,7 +122,7 @@ contains
     allocate(dist_n_part(n_init_dist))
     allocate(dist_vol_frac(n_init_dist, mat%n_spec))
     allocate(dist_types(n_init_dist))
-    allocate(dist_args(n_init_dist, MAX_DIST_ARGS))
+    allocate(dist_args(n_init_dist, max_dist_args))
     
     do i = 1,n_init_dist
        call read_integer(spec, 'n_p', dist_n_part(i))
@@ -150,9 +150,8 @@ contains
     call init_array(mat%n_spec, MH, VH)
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
-    write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
-    open(30,file=out_file_name)
-    call print_header(n_loop, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
+    call output_open(output_unit, output_name, n_loop, n_bin, &
+         mat%n_spec, nint(t_max / t_output) + 1)
     
     if (rand_init /= 0) then
        call srand(rand_init)
@@ -186,17 +185,17 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, &
-               kernel_sedi, t_max, t_output, t_state, t_progress, del_t, &
-               do_coagulation, do_condensation, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat)
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, &
+               bin_g, bin_gs, bin_n, dlnr, kernel_sedi, t_max, &
+               t_output, t_state, t_progress, del_t, output_unit, &
+               output_name, do_coagulation, do_condensation, do_restart, &
+               restart_name, i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, &
-               kernel_golovin, t_max, t_output, t_state, t_progress, del_t, &
-               do_coagulation, do_condensation, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat)
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, &
+               bin_g, bin_gs, bin_n, dlnr, kernel_golovin, t_max, &
+               t_output, t_state, t_progress, del_t, output_unit, &
+               output_name, do_coagulation, do_condensation, do_restart, &
+               restart_name, i_loop, n_loop, t_wall_start, env, mat)
        else
           write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
@@ -223,16 +222,17 @@ contains
 
     type(spec_file), intent(out) :: spec     ! spec file
 
-    integer, allocatable :: bin_n(:)
-    real*8, allocatable :: bin_v(:), bin_g(:), bin_gs(:,:)
+    integer, parameter :: output_unit = 32
+
+    real*8, allocatable :: bin_v(:)
+    real*8, allocatable :: bin_g_den(:), bin_gs_den(:,:), bin_n_den(:)
     real*8 :: dlnr
-    character(len=300) :: out_file_name
     
     character(len=300) :: output_name ! name of output files
     real*8 :: N_0                 ! particle concentration (#/m^3)
 
     character(len=100) :: soln_name ! exact solution name
-    real*8 :: mean_vol              ! mean volume of initial distribution
+    real*8 :: mean_vol            ! mean volume of initial distribution
     
     real*8 :: t_max               ! total simulation time (s)
     real*8 :: t_output            ! output interval (0 disables) (s)
@@ -270,19 +270,18 @@ contains
 
     ! finished reading .spec data, now do the run
     
-    write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
-    open(30,file=out_file_name)
-    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
+    call output_open(output_unit, output_name, 1, n_bin, &
+         mat%n_spec, nint(t_max / t_output) + 1)
 
-    allocate(bin_n(n_bin), bin_v(n_bin), bin_g(n_bin))
-    allocate(bin_gs(n_bin,mat%n_spec))
+    allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
+    allocate(bin_gs_den(n_bin,mat%n_spec))
     
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
     if (trim(soln_name) == 'golovin_exp') then
-       call run_exact(n_bin, mat%n_spec, bin_v, bin_g, bin_gs, &
-            bin_n, dlnr, N_0, mean_vol, mat%rho(1), soln_golovin_exp, t_max, &
-            t_output, env, mat)
+       call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
+            bin_n_den, N_0, mean_vol, mat%rho(1), soln_golovin_exp, &
+            t_max, t_output, output_unit, env, mat)
     else
        write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -305,7 +304,8 @@ contains
 
     type(spec_file), intent(out) :: spec     ! spec file
 
-    integer, parameter :: MAX_DIST_ARGS = 10
+    integer, parameter :: max_dist_args = 10
+    integer, parameter :: output_unit = 32
 
     character(len=300) :: out_file_name
     integer, allocatable :: bin_n(:)
@@ -325,7 +325,7 @@ contains
     type(environ) :: env          ! environment data
     
     character(len=100) :: dist_type ! initial distribution
-    real*8 :: dist_args(MAX_DIST_ARGS) ! distribution arguments
+    real*8 :: dist_args(max_dist_args) ! distribution arguments
     
     integer :: n_bin              ! number of bins
     real*8 :: v_min               ! volume of smallest bin (m^3)
@@ -357,9 +357,8 @@ contains
     allocate(bin_v(n_bin), n_den(n_bin))
     allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
     
-    write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
-    open(30,file=out_file_name)
-    call print_header(1, n_bin, mat%n_spec, nint(t_max / t_output) + 1)
+    call output_open(output_unit, output_name, 1, n_bin, &
+         mat%n_spec, nint(t_max / t_output) + 1)
     
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
@@ -367,10 +366,10 @@ contains
 
     if (trim(kernel_name) == 'sedi') then
        call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_sedi, &
-            t_max, del_t, t_output, t_progress, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
-            t_max, del_t, t_output, t_progress, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, mat, env)
     else
        write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

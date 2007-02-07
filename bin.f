@@ -220,31 +220,39 @@ contains
   end subroutine est_k_max_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine print_header(n_loop, n_bin, n_spec, n_time)
-    
+
+  subroutine output_open(output_unit, output_name, n_loop, n_bin, &
+       n_spec, n_time)
+
+    integer, intent(in) :: output_unit ! unit number to output to
+    character(len=300) :: output_name ! name of output
     integer, intent(in) :: n_loop  !  number of loops
     integer, intent(in) :: n_bin   !  number of bins
     integer, intent(in) :: n_time  !  number of times
     integer, intent(in) :: n_spec  !  number of species
+
+    character(len=300) :: out_file_name
+
+    write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
+    open(unit=output_unit, file=out_file_name)
+
+    write(output_unit,'(a10,i10)') 'n_loop', n_loop
+    write(output_unit,'(a10,i10)') 'n_bin', n_bin
+    write(output_unit,'(a10,i10)') 'n_time', n_time
+    write(output_unit,'(a10,i10)') 'n_spec', n_spec
     
-    write(30,'(a10,i10)') 'n_loop', n_loop
-    write(30,'(a10,i10)') 'n_bin', n_bin
-    write(30,'(a10,i10)') 'n_time', n_time
-    write(30,'(a10,i10)') 'n_spec', n_spec
-    
-  end subroutine print_header
+  end subroutine output_open
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine print_info(time, n_spec, &
-       n_bin, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+  subroutine output_info(output_unit, time, n_bin, n_spec, &
+       bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
     
     use mod_material
     use mod_environ
     
+    integer, intent(in) :: output_unit  ! unit number to output to
     real*8, intent(in) :: time          !  simulation time
-    
     integer, intent(in) :: n_bin        !  number of bins
     integer, intent(in) :: n_spec       !  number of species
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
@@ -252,8 +260,8 @@ contains
     real*8, intent(in) :: bin_gs(n_bin,n_spec) !  species volume in bins
     integer, intent(in) :: bin_n(n_bin) !  number in bins (dimensionless)
     real*8, intent(in) :: dlnr          !  bin scale factor
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
     
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
     real*8 bin_n_den(n_bin)
@@ -261,27 +269,27 @@ contains
     bin_g_den = bin_g / env%V_comp / dlnr
     bin_gs_den = bin_gs / env%V_comp / dlnr
     bin_n_den = dble(bin_n) / env%V_comp / dlnr
-    call print_info_density(time, n_bin, n_spec, bin_v, &
+    call output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
          bin_g_den, bin_gs_den, bin_n_den, env, mat)
     
-  end subroutine print_info
+  end subroutine output_info
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine print_info_density(time, n_bin, n_spec, bin_v, &
+  subroutine output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
        bin_g_den, bin_gs_den, bin_n_den, env, mat)
     
     use mod_material
     use mod_environ
     use mod_util
     
-    real*8, intent(in) :: time              !  simulation time
-    
-    integer, intent(in) :: n_bin            !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(in) :: bin_v(n_bin)      !  volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_g_den(n_bin)  !  volume density in bins (dimensionless)
-    real*8, intent(in) :: bin_gs_den(n_bin,n_spec)  !  species volume density in bins
+    integer, intent(in) :: output_unit   ! unit number to output to
+    real*8, intent(in) :: time           !  simulation time
+    integer, intent(in) :: n_bin         !  number of bins
+    integer, intent(in) :: n_spec        !  number of species
+    real*8, intent(in) :: bin_v(n_bin)   !  volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_g_den(n_bin) !  volume density in bins (dimensionless)
+    real*8, intent(in) :: bin_gs_den(n_bin,n_spec) ! species volume density in bins
     ! (dimensionless)
     real*8, intent(in) :: bin_n_den(n_bin)  !  number density in bins (1/m^3)
     type(environ), intent(in) :: env  ! environment state
@@ -289,15 +297,15 @@ contains
     
     integer k
     
-    write(30,'(a10,e20.10)') 'time(s)', time
-    write(30,'(a10,e20.10)') 'temp(K)', env%T
-    write(30,'(a10,e20.10)') 'rh(1)', env%RH
+    write(output_unit,'(a10,e20.10)') 'time(s)', time
+    write(output_unit,'(a10,e20.10)') 'temp(K)', env%T
+    write(output_unit,'(a10,e20.10)') 'rh(1)', env%RH
     do k = 1,n_bin
-       write(30, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
+       write(output_unit, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
             bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
     end do
     
-  end subroutine print_info_density
+  end subroutine output_info_density
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

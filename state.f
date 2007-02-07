@@ -70,12 +70,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_state(n_bin, n_spec, MH, VH, env, &
+  subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, VH, env, &
        index, time)
     
     use mod_environ
     use mod_array
-    
+
+    character(len=*), intent(in) :: state_name ! name of state file
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
@@ -86,11 +87,12 @@ contains
     
     integer, parameter :: funit = 31    ! unit for output
     
-    character*50 outname
+    character*300 filename
     integer i, j, k
     
-    write(outname, '(a6,i8.8,a2)') 'state_', index, '.d'
-    open(unit=funit,file=outname)
+    write(filename, '(a,a,a,i8.8,a)') 'state_', trim(state_name), &
+         '_', index, '.d'
+    open(unit=state_unit, file=filename)
     write(funit,'(a20,e20.10)') 'time(s)', time
     write(funit,'(a20,e20.10)') 'temp(K)', env%T
     write(funit,'(a20,e20.10)') 'rh(1)', env%RH

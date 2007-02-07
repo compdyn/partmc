@@ -13,7 +13,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
-       t_output, t_progress, mat, env)
+       t_output, t_progress, output_unit, mat, env)
   
     use mod_bin
     use mod_array
@@ -35,6 +35,7 @@ contains
                                              ! zero to not output (seconds)
     real*8, intent(in) :: t_progress         ! interval to print progress, or
                                              ! zero to not print (seconds)
+    integer, intent(in) :: output_unit       ! unit number to output to
 
     type(environ), intent(inout) :: env      ! environment state
     type(material), intent(in) :: mat        ! material properties
@@ -49,7 +50,7 @@ contains
     real*8 time, last_output_time, last_progress_time
     
     integer i, j, i_time, num_t
-    logical do_print, do_progress
+    logical do_output, do_progress
   
     interface
        subroutine kernel(v1, v2, env, k)
@@ -101,13 +102,13 @@ contains
     time = 0d0
     
     ! initial output
-    call check_event(time, del_t, t_output, last_output_time, do_print)
-    if (do_print) then
+    call check_event(time, del_t, t_output, last_output_time, do_output)
+    if (do_output) then
        do i = 1,n_bin
           bin_g_den(i) = g(i) / mat%rho(1)
           bin_n_den(i) = bin_g_den(i) / bin_v(i)
        enddo
-       call print_info_density(0d0, n_bin, 1, bin_v, bin_g_den, &
+       call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
             bin_g_den, bin_n_den, env, mat)
     endif
     
@@ -121,14 +122,14 @@ contains
        
        ! print output
        call check_event(time, del_t, t_output, last_output_time, &
-            do_print)
-       if (do_print) then
+            do_output)
+       if (do_output) then
           do i = 1,n_bin
              bin_g_den(i) = g(i) / mat%rho(1)
              bin_n_den(i) = bin_g_den(i) / bin_v(i)
           enddo
-          call print_info_density(0d0, n_bin, 1, bin_v, bin_g_den, &
-               bin_g_den, bin_n_den, env, mat)
+          call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, &
+               bin_g_den, bin_g_den, bin_n_den, env, mat)
        endif
        
        ! print progress to stdout

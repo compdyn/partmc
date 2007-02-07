@@ -12,7 +12,7 @@ contains
   
   subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, &
-       t_max, t_output, t_state, t_progress, del_t, &
+       t_max, t_output, t_state, t_progress, del_t, output_unit, state_name, &
        do_coagulation, do_condensation, do_restart, restart_name, &
        i_loop, n_loop, t_wall_start, env, mat)
     
@@ -45,6 +45,8 @@ contains
     real*8, intent(in) :: t_progress         ! interval to print progress, or
                                              ! zero to not print (seconds)
     real*8, intent(in) :: del_t              ! timestep for coagulation
+    integer, intent(in) :: output_unit       ! unit number to output to
+    character(len=*), intent(in) :: state_name ! name for state files
     
     logical, intent(in) :: do_coagulation    ! whether to do coagulation
     logical, intent(in) :: do_condensation   ! whether to do condensation
@@ -70,7 +72,7 @@ contains
     real*8 time, last_output_time, last_state_time, last_progress_time
     real*8 k_max(n_bin, n_bin)
     integer n_coag, tot_n_samp, tot_n_coag
-    logical do_print, do_state, do_progress, did_coag
+    logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer i_time
     character*100 filename
@@ -95,12 +97,12 @@ contains
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
     if (t_output > 0d0) then
-       call print_info(time, n_spec, n_bin, bin_v, &
+       call output_info(output_unit, time, n_bin, n_spec, bin_v, &
             bin_g, bin_gs, bin_n, dlnr, env, mat)
     end if
 
     if (t_state > 0d0) then
-       call write_state(n_bin, n_spec, MH, VH, env, i_time, &
+       call write_state(state_name, n_bin, n_spec, MH, VH, env, i_time, &
             time)
     end if
     
@@ -138,15 +140,15 @@ contains
 
        if (t_output > 0d0) then
           call check_event(time, del_t, t_output, last_output_time, &
-               do_print)
-          if (do_print) call print_info(time, n_spec, n_bin, &
+               do_output)
+          if (do_output) call output_info(output_unit, time, n_bin, n_spec, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
        end if
 
        if (t_state > 0d0) then
           call check_event(time, del_t, t_state, last_state_time, &
                do_state)
-          if (do_state) call write_state(n_bin, n_spec, MH, &
+          if (do_state) call write_state(state_name, n_bin, n_spec, MH, &
                VH, env, i_time, time)
        end if
        

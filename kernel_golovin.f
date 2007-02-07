@@ -28,8 +28,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_golovin_exp(n_bin, bin_v, &
-       bin_g, bin_n, dlnr, &
+  subroutine soln_golovin_exp(n_bin, bin_v, bin_g_den, bin_n_den, &
        time, N_0, V_0, rho_p, env)
 
     use mod_environ
@@ -38,13 +37,12 @@ contains
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
-    integer, intent(out) :: bin_n(n_bin) !  number in bins
-    real*8, intent(in) :: dlnr          !  bin scale factor
+    real*8, intent(out) :: bin_g_den(n_bin) ! volume density in bins
+    real*8, intent(out) :: bin_n_den(n_bin) ! number density in bins
     
     real*8, intent(in) :: time          !  cubin_rent time
     real*8, intent(in) :: N_0           !  particle number concentration (#/m^3)
-    real*8, intent(in) :: V_0           ! 
+    real*8, intent(in) :: V_0           ! FIXME: what is this?
     real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
  
     type(environ), intent(in) :: env  ! environment state
@@ -56,8 +54,8 @@ contains
     
     if (time .eq. 0d0) then
        do k = 1,n_bin
-          bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
-               * exp(-(bin_v(k)/V_0)))
+          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 &
+               * N_0/V_0 * exp(-(bin_v(k)/V_0))
        end do
     else
        tau = N_0 * V_0 * beta_1 * time
@@ -72,17 +70,12 @@ contains
           end if
           nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
-          bin_n(k) = int(const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn)
+          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn
        end do
     end if
     
     do k = 1,n_bin
-       bin_g(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * dble(bin_n(k))
-    end do
-    
-    do k = 1,n_bin
-       bin_g(k) = bin_g(k) * dlnr * env%V_comp
-       bin_n(k) = int(dble(bin_n(k)) * dlnr * env%V_comp)
+       bin_g_den(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * bin_n_den(k)
     end do
     
   end subroutine soln_golovin_exp

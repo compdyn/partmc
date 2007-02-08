@@ -83,7 +83,8 @@ contains
     tot_n_coag = 0
     
     if (do_restart) then
-       call read_state(restart_name, n_bin, n_spec, MH, VH, env, time)
+       call read_state(restart_name, n_bin, n_spec, MH, VH, bin_v, dlnr, &
+              env, time)
        i_time = nint(time / del_t)
        M = sum(MH)
        do while (M .lt. MM / 2)
@@ -104,7 +105,7 @@ contains
 
     if (t_state > 0d0) then
        call write_state(state_unit, state_name, n_bin, n_spec, &
-            MH, VH, env, i_time, time)
+            MH, VH, bin_v, dlnr, env, i_time, time)
     end if
     
     t_start = time
@@ -150,7 +151,7 @@ contains
           call check_event(time, del_t, t_state, last_state_time, &
                do_state)
           if (do_state) call write_state(state_unit, state_name, n_bin, &
-               n_spec, MH, VH, env, i_time, time)
+               n_spec, MH, VH, bin_v, dlnr, env, i_time, time)
        end if
        
        if (t_progress > 0d0) then

@@ -23,11 +23,11 @@ program process_state
 
   integer, pointer :: MH(:)
   type(bin_p), pointer :: VH(:)
+  real*8, pointer :: bin_v(:)
 
   type(environ) :: env       ! environment state
   type(material) :: mat      ! material properties
   real*8 :: time             ! current time (s)
-  real*8, allocatable :: bin_v(:)     ! volume of particles in bins
   real*8 :: dlnr             ! bin scale factor
   real*8, allocatable :: bin_g(:)     ! volume in bins
   real*8, allocatable :: bin_gs(:,:) ! species volume in bins
@@ -42,9 +42,8 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call read_state(filename, n_bin, n_spec, MH, VH, env, time)
+  call read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, env, time)
 
-  allocate(bin_v(n_bin))
   allocate(bin_g(n_bin))
   allocate(bin_gs(n_bin,n_spec))
   allocate(bin_n(n_bin))

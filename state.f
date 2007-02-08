@@ -8,16 +8,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_state(filename, n_bin, n_spec, MH, VH, env, time)
+  subroutine read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, &
+    env, time)
 
     use mod_environ
     use mod_array
     
     character(len=*), intent(in) :: filename       ! input filename
+    real*8, intent(out) :: dlnr               ! bin scale factor
     integer, intent(out) :: n_bin            ! number of bins
     integer, intent(out) :: n_spec           ! number of species
     integer, pointer :: MH(:)       ! number of particles per bin
     type(bin_p), pointer :: VH(:)   ! particle volumes (m^3)
+    real*8, pointer :: bin_v(:)       ! volume of particles in bins (m^3)
     type(environ), intent(out) :: env       ! environment state
     real*8, intent(out) :: time             ! current time (s)
     
@@ -36,7 +39,7 @@ contains
     read(f_in, '(a20,e20.10)') dum, env%p
     read(f_in, '(a20,i20)') dum, n_bin
     read(f_in, '(a20,i20)') dum, n_spec
-
+    read(f_in, '(a20,e20.10)') dum, dlnr
     
 !    if (n_bin .ne. n_bin_test) then
 !       write(0,*) 'ERROR: n_bin mismatch'
@@ -49,8 +52,13 @@ contains
 
     allocate(MH(n_bin))
     allocate(VH(n_bin))
+    allocate(bin_v(n_bin))
 
     call init_array(n_spec, MH, VH)    
+
+    do i = 1,n_bin
+       read(f_in,'(i20,e30.20)') dum_int_1, bin_v(i)
+    end do
     
     do i = 1,n_bin
        read(f_in,'(i20,i20)') dum_int_1, MH(i)
@@ -74,8 +82,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, VH, env, &
-       index, time)
+  subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, &
+       VH, bin_v, dlnr, env, index, time)
     
     use mod_environ
     use mod_array
@@ -84,8 +92,10 @@ contains
     character(len=*), intent(in) :: state_name ! name of state file
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: dlnr               ! bin scale factor
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     type(environ), intent(in) :: env    ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
@@ -103,6 +113,11 @@ contains
     write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
     write(state_unit,'(a20,i20)') 'n_bin', n_bin
     write(state_unit,'(a20,i20)') 'n_spec', n_spec
+    write(state_unit,'(a20,e20.10)') 'dlnr', dlnr
+
+    do i = 1,n_bin 
+       write(state_unit,'(i20,e30.20)') i, bin_v(i)
+    end do  
     do i = 1,n_bin
        write(state_unit,'(i20,i20)') i, MH(i)
     end do

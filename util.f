@@ -235,5 +235,58 @@ contains
   end subroutine open_existing
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function find_1d(n, x_vals, x) ! position of x
+
+    ! Takes an array of x_vals, and a single x value, and returns the
+    ! position p such that x_vals(p) <= x < x_vals(p+1). If p == 0
+    ! then x < x_vals(1) and if p == n then x_vals(n) <= x. x_vals
+    ! must be sorted.
+
+    integer, intent(in) :: n           ! number of values
+    real*8, intent(in) :: x_vals(n)    ! x value array, must be sorted
+    real*8, intent(in) :: x            ! value to interpolate at
+
+    integer p
+
+    p = 1
+    do while ((p <= n) .and. (x >= x_vals(p)))
+       p = p + 1
+    end do
+    p = p - 1
+    find_1d = p
+
+  end function find_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function interp_1d(n, x_vals, y_vals, x) ! y value at x
+
+    ! Takes an array of x and y, and a single x value, and returns the
+    ! corresponding y using linear interpolation. x_vals must be
+    ! sorted.
+
+    integer, intent(in) :: n           ! number of values
+    real*8, intent(in) :: x_vals(n)    ! x value array, must be sorted
+    real*8, intent(in) :: y_vals(n)    ! y value array
+    real*8, intent(in) :: x            ! value to interpolate at
+
+    integer p
+    real*8 y, alpha
+
+    p = find_1d(n, x_vals, x)
+    if (p == 0) then
+       y = y_vals(1)
+    elseif (p == n) then
+       y = y_vals(n)
+    else
+       alpha = (x - x_vals(p)) / (x_vals(p+1) - x_vals(p))
+       y = (1d0 - alpha) * y_vals(p) + alpha * y_vals(p+1)
+    end if
+    interp_1d = y
+
+  end function interp_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_util

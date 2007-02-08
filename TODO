@@ -18,6 +18,9 @@ Make sedi_bidisperse testcase.
 
 Change errors to write to (0,*) for stderr.
 
+If there are spaces just after the name in .spec files then we get an
+error.
+
 -----------------------------------------------------------------------------
 
 Add implicit, adaptive timestepping for the condensation ODE solver.

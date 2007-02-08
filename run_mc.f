@@ -80,6 +80,7 @@ contains
 
     i_time = 0
     time = 0d0
+    call update_environ(env, time)
     tot_n_coag = 0
     
     if (do_restart) then
@@ -134,11 +135,7 @@ contains
        i_time = i_time + 1
        time = time + del_t
 
-       ! FIXME: change to linear interpolation
-       call change_temp(env, del_t)
-       if (time .ge. 1200d0) then
-          env%dTdt = 0d0
-       endif
+       call update_environ(env, time)
 
        if (t_output > 0d0) then
           call check_event(time, del_t, t_output, last_output_time, &

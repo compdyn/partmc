@@ -10,7 +10,6 @@ module mod_environ
      real*8 :: RH   ! relative humidity (1)
      real*8 :: V_comp ! computational volume (m^3)
      real*8 :: p    ! ambient pressure (Pa)
-     real*8 :: dTdt ! change in temperature due to updraft/subsidence (K s^{-1})
      integer :: n_temps ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points
@@ -61,18 +60,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine change_temp(env, dt)
+  subroutine update_environ(env, time)
     
+    ! Update time-dependent contents of the environment (currently
+    ! just temperature).
+
+    use mod_util
+
     type(environ), intent(inout) :: env ! environment state to update
-    real*8, intent(in) :: dt            ! time step (s)
+    real*8, intent(in) :: time          ! current time (s)
     
     real*8 pmv      ! ambient water vapor pressure (Pa)
     
     pmv = sat_vapor_pressure(env) * env%RH
-    env%T = env%T + env%dTdt * dt
+    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     env%RH = pmv / sat_vapor_pressure(env)
     
-  end subroutine change_temp
+  end subroutine update_environ
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

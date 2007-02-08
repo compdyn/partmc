@@ -1,15 +1,18 @@
-Shift code into a separate (partbox?) repository for PNNL to access.
+Shift code into a separate (partbox?) repository for PNNL to access - Matt
 
-Reformat argument description comments.
+Reformat argument description comments - Matt
 
-Make sure all functions have a description at the top of them
+Make sure all functions have a description at the top of them - Matt
 
-rho_a should be shifted from constants to environ
-check whether atm should also shift from constants to environ
+Rest process_state - Nicole
 
-Make dust_salt testcase with condensation and process_state.
+rho_a should be shifted from constants to environ - Nicole
 
-Make sedi_bidisperse testcase.
+Check whether atm should also shift from constants to environ - Nicole
+
+Make dust_salt testcase with condensation and process_state - Nicole
+
+Make sedi_bidisperse testcase - Matt
 
 -----------------------------------------------------------------------------
 

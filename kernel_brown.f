@@ -18,9 +18,9 @@ contains
     use mod_environ
     use mod_constants
 
-    real*8, intent(in) :: v1 !  volume of first particle (m^3)
-    real*8, intent(in) :: v2 !  volume of second particle (m^3)
-    real*8, intent(out) :: k  !  kernel k(a,b) (m^3/s)
+    real*8, intent(in) :: v1 ! volume of first particle (m^3)
+    real*8, intent(in) :: v2 ! volume of second particle (m^3)
+    real*8, intent(out) :: k  ! kernel k(a,b) (m^3/s)
 
     real*8 c_1, a_third, b_third
       

@@ -75,9 +75,9 @@ contains
   
   subroutine sum_int_1d(size1, array, sum)
     
-    integer, intent(in) :: size1             !  size of the array
-    integer, intent(in) :: array(size1)      !  array of numbers
-    integer, intent(out) :: sum               !  sum of array(i)
+    integer, intent(in) :: size1             ! size of the array
+    integer, intent(in) :: array(size1)      ! array of numbers
+    integer, intent(out) :: sum               ! sum of array(i)
     
     integer i
     
@@ -92,10 +92,10 @@ contains
   
   subroutine max_int_2d(size1, size2, array, max)
     
-    integer, intent(in) :: size1               !  leading size of the array
-    integer, intent(in) :: size2               !  trailing size of the array
-    integer, intent(in) :: array(size1,size2)  !  array of numbers
-    integer, intent(out) :: max                 !  max of array(i,j)
+    integer, intent(in) :: size1               ! leading size of the array
+    integer, intent(in) :: size2               ! trailing size of the array
+    integer, intent(in) :: array(size1,size2)  ! array of numbers
+    integer, intent(out) :: max                 ! max of array(i,j)
     
     integer i, j
     
@@ -116,8 +116,8 @@ contains
     
     ! Tests whether two real numbers are almost equal
     
-    real*8, intent(in) :: d1 !  first number to compare
-    real*8, intent(in) :: d2 !  second number to compare
+    real*8, intent(in) :: d1 ! first number to compare
+    real*8, intent(in) :: d2 ! second number to compare
     
     real*8, parameter :: eps = 1d-8 ! relative tolerance
     
@@ -140,8 +140,8 @@ contains
     
     ! Tests whether two real numbers are almost equal
     
-    real*8, intent(in) :: d1 !  first number to compare
-    real*8, intent(in) :: d2 !  second number to compare
+    real*8, intent(in) :: d1 ! first number to compare
+    real*8, intent(in) :: d2 ! second number to compare
     real*8, intent(in) :: abs_tol ! tolerance for when d1 equals d2
     
     real*8, parameter :: eps = 1d-8 ! relative tolerance
@@ -172,11 +172,11 @@ contains
     ! the next call is guaranteed to do the event. Otherwise the
     ! timestep is used to guess whether to do the event.
     
-    real*8, intent(in) :: time       !  current time
-    real*8, intent(in) :: timestep   !  an estimate of the time to the next call
-    real*8, intent(in) :: interval   !  how often the event should be done
-    real*8, intent(inout) :: last_time  !  when the event was last done
-    logical, intent(out) :: do_event  !  whether the event should be done
+    real*8, intent(in) :: time       ! current time
+    real*8, intent(in) :: timestep   ! an estimate of the time to the next call
+    real*8, intent(in) :: interval   ! how often the event should be done
+    real*8, intent(inout) :: last_time  ! when the event was last done
+    logical, intent(out) :: do_event  ! whether the event should be done
     
     real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
     

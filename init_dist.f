@@ -27,7 +27,7 @@ contains
     elseif (trim(dist_type) == 'exp') then
        call init_exp(dist_args(1), n_bin, bin_v, n_den)
     else
-       write(*,*) 'ERROR: unknown distribution type: ', trim(dist_type)
+       write(0,*) 'ERROR: unknown distribution type: ', trim(dist_type)
        call exit(1)
     end if
 
@@ -37,14 +37,14 @@ contains
   
   subroutine init_bidisperse(MM, n_bin, n_ini)
     
-    integer, intent(in) :: MM           !  physical dimension of V
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(out) :: n_ini(n_bin) !  initial number distribution
+    integer, intent(in) :: MM           ! physical dimension of V
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(out) :: n_ini(n_bin) ! initial number distribution
     
     integer k
     
     if (MM .lt. 126) then
-       write(*,*)'ERROR: MM too small for bidisperse'
+       write(0,*)'ERROR: MM too small for bidisperse'
        call exit(2)
     end if
     
@@ -65,12 +65,12 @@ contains
     use mod_util
     use mod_constants
     
-    real*8, intent(in) :: d_mean        !  mean diameter of initial distribution (m)
-    real*8, intent(in) :: log_sigma     !  log_e of the geometric standard
+    real*8, intent(in) :: d_mean        ! mean diameter of initial distribution (m)
+    real*8, intent(in) :: log_sigma     ! log_e of the geometric standard
     ! deviation of initial distribution (1)
-    integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8,  intent(out) :: n_den(n_bin) !  initial number density (#(ln(r))d(ln(r)))
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8,  intent(out) :: n_den(n_bin) ! initial number density (#(ln(r))d(ln(r)))
                                          ! (normalized)
     
     integer k
@@ -94,13 +94,13 @@ contains
     ! Convert a number density (in ln(r)) to actual number of particles
     ! in each bin.
     
-    integer, intent(in) :: N            !  total number of particles (approximate)
-    real*8, intent(in) :: dlnr          !  bin scale factor
-    integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(in) :: n_den(n_bin)  !  initial number density (#(ln(r))d(ln(r)))
-                                        !  n_den(n_bin) has to be normalized
-    integer, intent(out) :: bin_n(n_bin) !  number distribution
+    integer, intent(in) :: N            ! total number of particles (approximate)
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: n_den(n_bin)  ! initial number density (#(ln(r))d(ln(r)))
+                                        ! n_den(n_bin) has to be normalized
+    integer, intent(out) :: bin_n(n_bin) ! number distribution
     
     integer k
     
@@ -120,10 +120,10 @@ contains
     use mod_bin
     use mod_util
     
-    real*8, intent(in) :: V_0           !  mean volume of initial distribution (m^3)
-    integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin)  !  initial number density (#(ln(r))d(ln(r)))
+    real*8, intent(in) :: V_0           ! mean volume of initial distribution (m^3)
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: n_den(n_bin)  ! initial number density (#(ln(r))d(ln(r)))
     
     integer k
     real*8 n_den_vol

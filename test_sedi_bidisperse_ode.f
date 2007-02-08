@@ -70,12 +70,12 @@ contains
     
     use mod_environ
 
-    real*8, intent(in) :: n_small        !  current number of small particles
-    real*8, intent(in) :: v_small        !  volume of one small particle
-    real*8, intent(in) :: v_big_init     !  initial volume of the big particle
-    real*8, intent(in) :: n_small_init   !  initial number of small particles
+    real*8, intent(in) :: n_small        ! current number of small particles
+    real*8, intent(in) :: v_small        ! volume of one small particle
+    real*8, intent(in) :: v_big_init     ! initial volume of the big particle
+    real*8, intent(in) :: n_small_init   ! initial number of small particles
     type(environ), intent(in) :: env        ! environment state
-    real*8, intent(out) :: n_small_dot    !  derivative of n_small
+    real*8, intent(out) :: n_small_dot    ! derivative of n_small
     
     real*8 v_big, k
     
@@ -92,12 +92,12 @@ contains
     
     use mod_environ
 
-    real*8, intent(in) :: v_small        !  volume of one small particle
-    real*8, intent(in) :: v_big_init     !  initial volume of the big particle
-    real*8, intent(in) :: n_small_init   !  initial number of small particles
-    real*8, intent(in) :: del_t          !  timestep
+    real*8, intent(in) :: v_small        ! volume of one small particle
+    real*8, intent(in) :: v_big_init     ! initial volume of the big particle
+    real*8, intent(in) :: n_small_init   ! initial number of small particles
+    real*8, intent(in) :: del_t          ! timestep
     type(environ), intent(in) :: env        ! environment state
-    real*8, intent(inout) :: n_small        !  current number of small particles
+    real*8, intent(inout) :: n_small        ! current number of small particles
     
     real*8 n_small_dot, k1, k2, k3, k4
     

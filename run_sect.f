@@ -267,9 +267,9 @@ contains
     
     ! Smooths kernel values for bin pairs, and halves the self-rate.
     
-    integer, intent(in) :: n_bin                !  number of bins
-    real*8, intent(in) :: k(n_bin,n_bin)        !  kernel values
-    real*8, intent(out) :: k_smooth(n_bin,n_bin) !  smoothed kernel values
+    integer, intent(in) :: n_bin                ! number of bins
+    real*8, intent(in) :: k(n_bin,n_bin)        ! kernel values
+    real*8, intent(out) :: k_smooth(n_bin,n_bin) ! smoothed kernel values
     
     integer i, j, im, ip, jm, jp
     

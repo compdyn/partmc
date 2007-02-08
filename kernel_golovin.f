@@ -14,10 +14,10 @@ contains
 
     use mod_environ
     
-    real*8, intent(in) :: v1  !  volume of first particle
-    real*8, intent(in) :: v2  !  volume of second particle
+    real*8, intent(in) :: v1  ! volume of first particle
+    real*8, intent(in) :: v2  ! volume of second particle
     type(environ), intent(in) :: env ! environment state
-    real*8, intent(out) :: k  !  coagulation kernel
+    real*8, intent(out) :: k  ! coagulation kernel
     
     real*8, parameter :: beta_1 = 1000d0
     
@@ -34,15 +34,15 @@ contains
     use mod_util
     use mod_constants
     
-    integer, intent(in) :: n_bin        !  number of bins
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     real*8, intent(out) :: bin_g_den(n_bin) ! volume density in bins
     real*8, intent(out) :: bin_n_den(n_bin) ! number density in bins
     
-    real*8, intent(in) :: time          !  cubin_rent time
-    real*8, intent(in) :: N_0           !  particle number concentration (#/m^3)
+    real*8, intent(in) :: time          ! cubin_rent time
+    real*8, intent(in) :: N_0           ! particle number concentration (#/m^3)
     real*8, intent(in) :: V_0           ! FIXME: what is this?
-    real*8, intent(in) :: rho_p         !  particle density (kg/m^3)
+    real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
  
     type(environ), intent(in) :: env  ! environment state
     
@@ -84,8 +84,8 @@ contains
   subroutine bessi1(x, r)
     ! bessel function
     
-    real*8, intent(in) :: x   !  function argument
-    real*8, intent(out) :: r   !  function value
+    real*8, intent(in) :: x   ! function argument
+    real*8, intent(out) :: r   ! function value
     
     real*8 ax
     real*8 p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y

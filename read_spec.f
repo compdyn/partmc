@@ -33,7 +33,7 @@ contains
     spec%unit = unit
     open(unit=spec%unit, status='old', file=spec%name, iostat=ios)
     if (ios /= 0) then
-       write(*,*) 'ERROR: unable to open file ', spec%name, ': ', ios
+       write(0,*) 'ERROR: unable to open file ', spec%name, ': ', ios
        call exit(1)
     end if
 
@@ -64,7 +64,7 @@ contains
     elseif (trim(dist_type) == 'exp') then
        call read_real(spec, 'dist_mean_vol', dist_args(1))
     else
-       write(*,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
+       write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
             trim(dist_type), ' in file ', trim(spec%name), &
             ' at line ', spec%line_num
        call exit(1)
@@ -129,7 +129,7 @@ contains
     read(rest, '(a)', iostat=ios) var
     call check_read_iostat(spec, ios, 'string')
     if (DEBUG_OUTPUT) then
-       write(*,*) 'string: ', trim(name), ' = ', trim(var)
+       write(0,*) 'string: ', trim(name), ' = ', trim(var)
     end if
     
   end subroutine read_string
@@ -150,7 +150,7 @@ contains
     read(rest, '(i20)', iostat=ios) var
     call check_read_iostat(spec, ios, 'integer')
     if (DEBUG_OUTPUT) then
-       write(*,*) 'integer: ', trim(name), ' = ', var
+       write(0,*) 'integer: ', trim(name), ' = ', var
     end if
 
   end subroutine read_integer
@@ -171,7 +171,7 @@ contains
     read(rest, '(f20.0)', iostat=ios) var
     call check_read_iostat(spec, ios, 'real')
     if (DEBUG_OUTPUT) then
-       write(*,*) 'real: ', trim(name), ' = ', var
+       write(0,*) 'real: ', trim(name), ' = ', var
     end if
 
   end subroutine read_real
@@ -205,12 +205,12 @@ contains
          .or. (trim(str_var) == '0')) then
        var = .false.
     else
-       write(*,'(a,a,a,i3)') 'ERROR: reading logical from file ', &
+       write(0,'(a,a,a,i3)') 'ERROR: reading logical from file ', &
             spec%name, ' at line ', spec%line_num
        call exit(1)
     end if
     if (DEBUG_OUTPUT) then
-       write(*,*) 'logical: ', trim(name), ' = ', var
+       write(0,*) 'logical: ', trim(name), ' = ', var
     end if
 
   end subroutine read_logical
@@ -233,7 +233,7 @@ contains
        ind = index(rest, ' ')
        temp = rest(1:ind)
        if (len_trim(temp) == 0) then
-          write(*,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
+          write(0,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
                trim(spec%name), ' on line ', spec%line_num
           call exit(1)
        end if
@@ -242,12 +242,12 @@ contains
        call check_read_iostat(spec, ios, 'integer array')
     end do
     if (len_trim(rest) > 0) then
-       write(*,'(a,a,a,i3)') 'ERROR: too much data in file ', &
+       write(0,'(a,a,a,i3)') 'ERROR: too much data in file ', &
             trim(spec%name), ' on line ', spec%line_num
        call exit(1)
     end if
     if (DEBUG_OUTPUT) then
-       write(*,*) 'integer array: ', trim(name), ' = ', var
+       write(0,*) 'integer array: ', trim(name), ' = ', var
     end if
     
   end subroutine read_integer_array
@@ -270,7 +270,7 @@ contains
        ind = index(rest, ' ')
        temp = rest(1:ind)
        if (len_trim(temp) == 0) then
-          write(*,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
+          write(0,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
                trim(spec%name), ' on line ', spec%line_num
           call exit(1)
        end if
@@ -279,12 +279,12 @@ contains
        call check_read_iostat(spec, ios, 'real array')
     end do
     if (len_trim(rest) > 0) then
-       write(*,'(a,a,a,i3)') 'ERROR: too much data in file ', &
+       write(0,'(a,a,a,i3)') 'ERROR: too much data in file ', &
             trim(spec%name), ' on line ', spec%line_num
        call exit(1)
     end if
     if (DEBUG_OUTPUT) then
-       write(*,*) 'real array: ', trim(name), ' = ', var
+       write(0,*) 'real array: ', trim(name), ' = ', var
     end if
 
   end subroutine read_real_array
@@ -298,7 +298,7 @@ contains
     character(len=*), intent(in) :: type    ! type being read during error
 
     if (ios /= 0) then
-       write(*,'(a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
+       write(0,'(a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
             ' from file ', trim(spec%name), ' at line ', spec%line_num, &
             ': IOSTAT = ', ios
        call exit(1)
@@ -339,14 +339,14 @@ contains
     read(unit=spec%unit, fmt='(a)', end=100, iostat=ios) line
     spec%line_num = spec%line_num + 1
     if (ios /= 0) then
-       write(*,*) 'ERROR: reading from ', trim(spec%name), &
+       write(0,*) 'ERROR: reading from ', trim(spec%name), &
             ' at line ', spec%line_num, ': IOSTAT = ', ios
        call exit(1)
     end if
 
     return
 
-100 write(*,*) 'ERROR: end of file ', trim(spec%name), &
+100 write(0,*) 'ERROR: end of file ', trim(spec%name), &
          ' unexpected at line ', spec%line_num
     call exit(1)
     
@@ -396,7 +396,7 @@ contains
 
     name_len = len_trim(name)
     if (index(line, name(1:name_len)) /= 1) then
-       write(*,'(a,i3,a,a,a,a)') 'ERROR: line ', spec%line_num, &
+       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', spec%line_num, &
             ' of input file ', trim(spec%name), &
             ' must begin with: ', trim(name)
        call exit(1)

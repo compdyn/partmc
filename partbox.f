@@ -42,7 +42,7 @@ program partbox
   elseif (trim(run_type) == 'sect') then
      call partbox_sect(spec)
   else
-     write(*,*) 'ERROR: unknown run_type: ', trim(run_type)
+     write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
      call exit(1)
   end if
 
@@ -216,7 +216,7 @@ contains
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
        else
-          write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
+          write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
        end if
        
@@ -273,7 +273,7 @@ contains
     elseif (trim(soln_name) == 'constant_exp_cond') then
        call read_real(spec, 'mean_vol', mean_vol)
     else
-       write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
+       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
     end if
     
@@ -308,7 +308,7 @@ contains
             bin_n_den, N_0, mean_vol, mat%rho(1), soln_constant_exp_cond, &
             t_max, t_output, output_unit, env, mat)
     else
-       write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
+       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
     end if
     
@@ -404,7 +404,7 @@ contains
        call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_brown, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     else
-       write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
+       write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)
     end if
     

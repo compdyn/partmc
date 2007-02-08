@@ -123,9 +123,9 @@ contains
     
     use mod_bin
     
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    real*8, intent(in) :: vol_frac(n_spec) !  composition of particles
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: vol_frac(n_spec) ! composition of particles
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     integer, intent(in) :: bin_n(n_bin) ! number in bins
     integer, intent(out) :: MH(n_bin)   ! number of particles per bin
@@ -159,15 +159,15 @@ contains
 
     use mod_material
     
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(out) :: bin_g(n_bin)  !  volume in bins
-    real*8, intent(out) :: bin_gs(n_bin,n_spec)  !  species volume in bins
-    integer, intent(out) :: bin_n(n_bin) !  number in bins
-    real*8, intent(in) :: dlnr          !  bin scale factor
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    real*8, intent(out) :: bin_g(n_bin)  ! volume in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    integer, intent(out) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
     integer b, j, s
     
@@ -234,7 +234,7 @@ contains
              end if
              MH(bin) = MH(bin) - 1
              if (MH(bin) .lt. 0) then
-                write(*,*) 'ERROR: invalid MH in bin ', bin
+                write(0,*) 'ERROR: invalid MH in bin ', bin
                 call exit(2)
              end if
              
@@ -270,26 +270,26 @@ contains
     use mod_util
     use mod_environ
 
-    integer, intent(inout) :: M            !  number of particles
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+    integer, intent(inout) :: M            ! number of particles
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) !  number in bins
-    real*8, intent(in) :: dlnr          !  bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    integer, intent(inout) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     type(environ), intent(in) :: env        ! environment state
     
-    integer, intent(in) :: b1           !  bin of first particle
-    integer, intent(in) :: b2           !  bin of second particle
-    real*8, intent(in) :: del_t         !  timestep
-    real*8, intent(in) :: k_max         !  k_max scale factor
-    ! external, intent(in) :: kernel      !  kernel function
-    logical, intent(out) :: did_coag     !  whether a coagulation occured
-    logical, intent(out) :: bin_change   !  whether bin structure changed
+    integer, intent(in) :: b1           ! bin of first particle
+    integer, intent(in) :: b2           ! bin of second particle
+    real*8, intent(in) :: del_t         ! timestep
+    real*8, intent(in) :: k_max         ! k_max scale factor
+    ! external, intent(in) :: kernel      ! kernel function
+    logical, intent(out) :: did_coag     ! whether a coagulation occured
+    logical, intent(out) :: bin_change   ! whether bin structure changed
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -334,12 +334,12 @@ contains
     
     use mod_util
 
-    integer, intent(in) :: n_bin     !  number of bins
-    integer, intent(in) :: MH(n_bin) !  number particles per bin
-    integer, intent(in) :: b1        !  bin number of first particle
-    integer, intent(in) :: b2        !  bin number of second particle
-    integer, intent(out) :: s1       !  first random particle 1 <= s1 <= M(b1)
-    integer, intent(out) :: s2       !  second random particle 1 <= s2 <= M(b2)
+    integer, intent(in) :: n_bin     ! number of bins
+    integer, intent(in) :: MH(n_bin) ! number particles per bin
+    integer, intent(in) :: b1        ! bin number of first particle
+    integer, intent(in) :: b2        ! bin number of second particle
+    integer, intent(out) :: s1       ! first random particle 1 <= s1 <= M(b1)
+    integer, intent(out) :: s2       ! second random particle 1 <= s2 <= M(b2)
                                      !         (b1,s1) != (b2,s2)
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
@@ -367,24 +367,24 @@ contains
     use mod_bin
     use mod_environ
     
-    integer, intent(inout) :: M            !  number of particles
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+    integer, intent(inout) :: M            ! number of particles
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  !  species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) !  number in bins
-    real*8, intent(in) :: dlnr          !  bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    integer, intent(inout) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
-    integer, intent(in) :: b1           !  first particle (bin number)
-    integer, intent(in) :: s1           !  first particle (number in bin)
-    integer, intent(in) :: b2           !  second particle (bin number)
-    integer, intent(in) :: s2           !  second particle (number in bin)
+    integer, intent(in) :: b1           ! first particle (bin number)
+    integer, intent(in) :: s1           ! first particle (number in bin)
+    integer, intent(in) :: b2           ! second particle (bin number)
+    integer, intent(in) :: s2           ! second particle (number in bin)
     type(environ), intent(in) :: env    ! environment state
-    logical, intent(out) :: bin_change  !  whether an empty bin filled,
+    logical, intent(out) :: bin_change  ! whether an empty bin filled,
     !         or a filled bin became empty
     
     integer bn, i, j
@@ -403,7 +403,7 @@ contains
     bin_gs(b1,:) = bin_gs(b1,:) - VH(b1)%p(s1,:)
     bin_gs(b2,:) = bin_gs(b2,:) - VH(b2)%p(s2,:)
      if ((bin_n(b1) .lt. 0) .or. (bin_n(b2) .lt. 0)) then
-       write(*,*)'ERROR: invalid bin_n'
+       write(0,*)'ERROR: invalid bin_n'
        call exit(2)
     end if
 
@@ -424,7 +424,7 @@ contains
        MH(b2) = MH(b2) - 1
     end if
     if ((MH(b1) .lt. 0) .or. (MH(b2) .lt. 0)) then
-       write(*,*)'ERROR: invalid MH'
+       write(0,*)'ERROR: invalid MH'
        call exit(2)
     end if
     MH(bn) = MH(bn) + 1          ! increase the length of array
@@ -461,18 +461,18 @@ contains
 
     use mod_environ
     
-    integer, intent(inout) :: M            !  number of particles
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    integer, intent(inout) :: MH(n_bin)    !  number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) !  particle volumes
+    integer, intent(inout) :: M            ! number of particles
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
-    real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  !  volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec) !  species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) !  number in bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
+    integer, intent(inout) :: bin_n(n_bin) ! number in bins
     type(environ), intent(inout) :: env        ! environment state 
-    real*8, intent(in) :: dlnr          !  bin scale factor
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
     integer i, k, i_spec
     
@@ -508,17 +508,17 @@ contains
     use mod_util
     use mod_bin
     
-    integer, intent(in) :: M            !  number of particles
-    integer, intent(in) :: n_bin        !  number of bins
-    integer, intent(in) :: n_spec       !  number of species
-    integer, intent(in) :: MH(n_bin)    !  number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) !  particle volumes
+    integer, intent(in) :: M            ! number of particles
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
+    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
     
-    real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)       !  volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) !  species volume in bins             
-    integer, intent(out) :: bin_n(n_bin)      !  number in bins
-    real*8, intent(in) :: dlnr               !  bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin)       ! volume in bins  
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins             
+    integer, intent(out) :: bin_n(n_bin)      ! number in bins
+    real*8, intent(in) :: dlnr               ! bin scale factor
     
     real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
     integer i, k, k_check, M_check, s
@@ -532,9 +532,9 @@ contains
           pv = particle_volume(VH(k)%p(i,:))
           call particle_in_bin(pv, n_bin, bin_v, k_check)
           if (k .ne. k_check) then
-             write(*,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)', &
+             write(0,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)', &
                   'k_check'
-             write(*,'(i10,i10,e12.5,i10)') k, i, pv, k_check
+             write(0,'(i10,i10,e12.5,i10)') k, i, pv, k_check
              error = .true.
           end if
        end do
@@ -546,16 +546,16 @@ contains
        M_check = M_check + MH(k)
     end do
     if (M .ne. M_check) then
-       write(*,'(a10,a10)') 'M', 'M_check'
-       write(*,'(i10,i10)') M, M_check
+       write(0,'(a10,a10)') 'M', 'M_check'
+       write(0,'(i10,i10)') M, M_check
        error = .true.
     end if
     
     ! check the bin_n array
     do k = 1,n_bin
        if (MH(k) .ne. bin_n(k)) then
-          write(*,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
-          write(*,'(i10,i10,i10)') k, MH(k), bin_n(k)
+          write(0,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
+          write(0,'(i10,i10,i10)') k, MH(k), bin_n(k)
        end if
     end do
     
@@ -568,8 +568,8 @@ contains
        end do
        vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
        if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
-          write(*,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
-          write(*,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
+          write(0,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
+          write(0,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
           error = .true.
        end if
     end do
@@ -581,9 +581,9 @@ contains
        do s = 1,n_spec
           if (.not. almost_equal_abs(check_bin_gs(s), bin_gs(k,s), &
                                      vol_tol)) then
-             write(*,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
+             write(0,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
                   'bin_gs(k,s)'
-             write(*,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
+             write(0,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
                   bin_gs(k,s)
              error = .true.
           end if
@@ -591,7 +591,7 @@ contains
     end do
     
     if (error) then
-       write(*,*) 'ERROR: check_array() failed'
+       write(0,*) 'ERROR: check_array() failed'
        call exit(2)
     end if
     

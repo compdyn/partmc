@@ -46,15 +46,15 @@ contains
 
          use mod_environ
 
-         integer, intent(in) :: n_bin             !  number of bins
-         real*8, intent(in) :: bin_v(n_bin)       !  volume of particles in bins
-         real*8, intent(out) :: bin_g_den(n_bin)  !  volume density in bins
-         real*8, intent(out) :: bin_n_den(n_bin)  !  number density in bins
+         integer, intent(in) :: n_bin             ! number of bins
+         real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins
+         real*8, intent(out) :: bin_g_den(n_bin)  ! volume density in bins
+         real*8, intent(out) :: bin_n_den(n_bin)  ! number density in bins
          
-         real*8, intent(in) :: time               !  cubin_rent time
-         real*8, intent(in) :: N_0                !  particle number concentration (#/m^3)
+         real*8, intent(in) :: time               ! cubin_rent time
+         real*8, intent(in) :: N_0                ! particle number concentration (#/m^3)
          real*8, intent(in) :: V_0                ! 
-         real*8, intent(in) :: rho_p              !  particle density (kg/m^3)
+         real*8, intent(in) :: rho_p              ! particle density (kg/m^3)
          type(environ), intent(in) :: env         ! environment state
        end subroutine soln
     end interface

@@ -1,13 +1,8 @@
 Shift code into a separate (partbox?) repository for PNNL to access.
 
-Reformat argument description comments and remove double spaces
+Reformat argument description comments.
 
 Make sure all functions have a description at the top of them
-
-Remove dT/dt from env and pass mc_fix_hybrid a list of times and
-temps, so that it can do linear interpolation to set the
-temperature. Write a function in util.f to actually do the linear
-interpolation.
 
 rho_a should be shifted from constants to environ
 check whether atm should also shift from constants to environ
@@ -15,8 +10,6 @@ check whether atm should also shift from constants to environ
 Make dust_salt testcase with condensation and process_state.
 
 Make sedi_bidisperse testcase.
-
-Change errors to write to (0,*) for stderr.
 
 If there are spaces just after the name in .spec files then we get an
 error.

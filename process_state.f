@@ -11,22 +11,16 @@ program process_state
   use mod_array
   use mod_state
 
-!  integer, parameter :: n_bin = 160    ! number of bins
-!  integer, parameter :: n_spec = 3     ! number of species
   integer n_bin                        ! number of bins
   integer n_spec                       ! number of species
 
   integer, parameter :: scal = 3       ! scale factor for bins
   real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)
-  real*8, parameter :: v_max = 1d24    ! maximum volume for particles (m^3)
-  real*8, parameter :: v_cutoff = 1d-5 ! volume between large and small (m^3)
   integer, parameter :: spec_1 = 1     ! first solute species
   integer, parameter :: spec_2 = 2     ! second solute species
   real*8, parameter :: cutoff_frac = 0.01d0 ! fraction to count as mixed
   integer, parameter :: n_comp = 20    ! number of composition bins
 
- ! integer, allocatable :: MH(:)       ! number of particles per bin
- ! type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
   integer, pointer :: MH(:)
   type(bin_p), pointer :: VH(:)
 
@@ -74,12 +68,12 @@ program process_state
        call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
           bin_n_2d, bin_g_2d)
 
-       call moments_composition_2d(n_bin, n_spec, MH, VH, v_cutoff, v_max, &
+       call moments_composition_2d(n_bin, n_spec, MH, VH, &
           spec_1, spec_2, n_comp, comp_n)
        call write_composition_2d(basename, n_comp, dlnr, env, comp_n)
   
        call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
-          v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
+           spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
        call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
           bin_n_mixed, bin_g_mixed)
        write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
@@ -167,14 +161,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine moments_composition_2d(n_bin, n_spec, MH, VH, &
-       v_min, v_max, spec_1, spec_2, n_comp, comp_n)
+       spec_1, spec_2, n_comp, comp_n)
     
     integer, intent(in) :: n_bin      ! number of bins
     integer, intent(in) :: n_spec     ! number of species
     integer, intent(in) :: MH(n_bin)  ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: v_min       ! minimum particle volume to use
-    real*8, intent(in) :: v_max       ! maximum particle volume to use
     integer, intent(in) :: spec_1     ! first species
     integer, intent(in) :: spec_2     ! second species
     integer, intent(in) :: n_comp     ! number of composition bins
@@ -199,7 +191,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
-       v_min, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
+       spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
     
     use mod_material
     use mod_bin
@@ -210,8 +202,6 @@ contains
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins
     type(material), intent(in) :: mat ! material properties
-    real*8, intent(in) :: v_min       ! minimum particle volume to use
-    real*8, intent(in) :: v_max       ! maximum particle volume to use
     integer, intent(in) :: spec_1     ! first species
     integer, intent(in) :: spec_2     ! second species
     real*8, intent(in) :: cutoff_frac ! fraction to count as mixed

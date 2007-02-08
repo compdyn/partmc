@@ -25,8 +25,11 @@ program process_state
   real*8, parameter :: cutoff_frac = 0.01d0 ! fraction to count as mixed
   integer, parameter :: n_comp = 20    ! number of composition bins
 
-  integer, allocatable :: MH(:)       ! number of particles per bin
-  type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
+ ! integer, allocatable :: MH(:)       ! number of particles per bin
+ ! type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
+  integer, pointer :: MH(:)
+  type(bin_p), pointer :: VH(:)
+
   type(environ) :: env       ! environment state
   type(material) :: mat      ! material properties
   real*8 :: time             ! current time (s)
@@ -45,12 +48,8 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call init_array(n_spec, MH, VH)
-
   call read_state(filename, n_bin, n_spec, MH, VH, env, time)
 
-  allocate(MH(n_bin))
-  allocate(VH(n_bin))
   allocate(bin_v(n_bin))
   allocate(bin_g(n_bin))
   allocate(bin_gs(n_bin,n_spec))
@@ -69,24 +68,28 @@ program process_state
   call write_moments(basename, n_bin, n_spec, dlnr, env, bin_v, &
        bin_g, bin_gs, bin_n)
 
-  call moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
-       spec_1, spec_2, bin_n_2d, bin_g_2d)
-  call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
-       bin_n_2d, bin_g_2d)
+  if (n_spec > 1) then
+       call moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+          spec_1, spec_2, bin_n_2d, bin_g_2d)
+       call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
+          bin_n_2d, bin_g_2d)
 
-  call moments_composition_2d(n_bin, n_spec, MH, VH, v_cutoff, v_max, &
-       spec_1, spec_2, n_comp, comp_n)
-  call write_composition_2d(basename, n_comp, dlnr, env, comp_n)
+       call moments_composition_2d(n_bin, n_spec, MH, VH, v_cutoff, v_max, &
+          spec_1, spec_2, n_comp, comp_n)
+       call write_composition_2d(basename, n_comp, dlnr, env, comp_n)
   
-  call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
-       v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
-  call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
-       bin_n_mixed, bin_g_mixed)
-  write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
-  write(6,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
-  write(6,*) 'volume in mixed: ', sum(bin_g_mixed(:,3))
-  write(6,*) 'volume total: ', sum(bin_g)
-  write(6,*) 'volume in species: ', sum(bin_gs,1)
+       call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+          v_cutoff, v_max, spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
+       call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
+          bin_n_mixed, bin_g_mixed)
+       write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
+       write(6,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
+       write(6,*) 'volume in mixed: ', sum(bin_g_mixed(:,3))
+       write(6,*) 'volume total: ', sum(bin_g)
+       write(6,*) 'volume in species: ', sum(bin_gs,1)
+   else
+       write(6,*) 'volume total: ', sum(bin_g)
+   endif
 
 contains
 

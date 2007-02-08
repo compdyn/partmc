@@ -14,10 +14,10 @@ contains
     use mod_array
     
     character(len=*), intent(in) :: filename       ! input filename
-    integer, intent(in) :: n_bin            ! number of bins
-    integer, intent(in) :: n_spec           ! number of species
-    integer, intent(out) :: MH(n_bin)       ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin)   ! particle volumes (m^3)
+    integer, intent(out) :: n_bin            ! number of bins
+    integer, intent(out) :: n_spec           ! number of species
+    integer, pointer :: MH(:)       ! number of particles per bin
+    type(bin_p), pointer :: VH(:)   ! particle volumes (m^3)
     type(environ), intent(out) :: env       ! environment state
     real*8, intent(out) :: time             ! current time (s)
     
@@ -34,19 +34,23 @@ contains
     read(f_in, '(a20,e20.10)') dum, env%RH
     read(f_in, '(a20,e20.10)') dum, env%V_comp
     read(f_in, '(a20,e20.10)') dum, env%p
-    read(f_in, '(a20,i20)') dum, n_bin_test
-    read(f_in, '(a20,i20)') dum, n_spec_test
-    
-    if (n_bin .ne. n_bin_test) then
-       write(0,*) 'ERROR: n_bin mismatch'
-       call exit(1)
-    end if
-    if (n_spec .ne. n_spec_test) then
-       write(0,*) 'ERROR: n_spec mismatch'
-       call exit(1)
-    end if
+    read(f_in, '(a20,i20)') dum, n_bin
+    read(f_in, '(a20,i20)') dum, n_spec
 
     
+!    if (n_bin .ne. n_bin_test) then
+!       write(0,*) 'ERROR: n_bin mismatch'
+!       call exit(1)
+!    end if
+!    if (n_spec .ne. n_spec_test) then
+!       write(0,*) 'ERROR: n_spec mismatch'
+!       call exit(1)
+!    end if
+
+    allocate(MH(n_bin))
+    allocate(VH(n_bin))
+
+    call init_array(n_spec, MH, VH)    
     
     do i = 1,n_bin
        read(f_in,'(i20,i20)') dum_int_1, MH(i)

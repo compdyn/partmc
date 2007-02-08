@@ -36,6 +36,7 @@ contains
        write(0,*) 'ERROR: unable to open file ', spec%name, ': ', ios
        call exit(1)
     end if
+    spec%line_num = 0
 
   end subroutine open_spec
 
@@ -238,6 +239,7 @@ contains
           call exit(1)
        end if
        rest = rest((ind+1):len_trim(rest))
+       call strip_leading_spaces(rest)
        read(temp, '(i20)', iostat=ios) var(i)
        call check_read_iostat(spec, ios, 'integer array')
     end do
@@ -275,6 +277,7 @@ contains
           call exit(1)
        end if
        rest = rest((ind+1):len_trim(rest))
+       call strip_leading_spaces(rest)
        read(temp, '(f20.0)', iostat=ios) var(i)
        call check_read_iostat(spec, ios, 'real array')
     end do
@@ -320,6 +323,7 @@ contains
        call read_line(spec, line)
        call strip_comment(line)
        call tabs_to_spaces(line)
+       call strip_leading_spaces(line)
        if (len_trim(line) > 0) then
           done = .true.
        end if
@@ -369,6 +373,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine strip_leading_spaces(line)
+
+    character(len=*), intent(inout) :: line ! complete input line
+
+    integer i
+
+    if (len_trim(line) > 0) then
+       i = verify(line, ' ') ! first character not a space
+       line = line(i:)
+    end if
+
+  end subroutine strip_leading_spaces
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine tabs_to_spaces(line)
 
     character(len=*), intent(inout) :: line ! complete input line
@@ -401,7 +420,8 @@ contains
             ' must begin with: ', trim(name)
        call exit(1)
     end if
-    rest = line((name_len+2):len_trim(line))
+    rest = line((name_len+2):)
+    call strip_leading_spaces(rest)
     
   end subroutine check_name
   

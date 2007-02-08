@@ -111,7 +111,7 @@ contains
     call read_real_array(spec, n_temps, 'temps', env%temps)
     call read_real(spec, 'RH', env%RH)
     call read_real(spec, 'pressure', env%p)
-    
+    call read_real(spec, 'rho_a', env%rho_a)  
   end subroutine read_environ
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -410,7 +410,7 @@ contains
        ! thermal conductivity uncorrected
        k_a = 1d-3 * (4.39d0 + 0.071d0 * env%T) ! J m^{-1} s^{-1} K^{-1}
        k_ap_div = 1d0 + 2d0 &
-            * k_a / (const%alpha * d_p * const%rho_a * const%cp) &
+            * k_a / (const%alpha * d_p * env%rho_a * const%cp) &
             * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}

@@ -4,12 +4,6 @@ Reformat argument description comments - Matt
 
 Make sure all functions have a description at the top of them - Matt
 
-Test process_state - Nicole
-
-rho_a should be shifted from constants to environ - Nicole
-
-Check whether atm should also shift from constants to environ - Nicole
-
 Make dust_salt testcase with condensation and process_state - Nicole
 
 Make sedi_bidisperse testcase - Matt

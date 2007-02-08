@@ -22,6 +22,7 @@ temp_times 0                    # times of temperature set-points
 temps 288                       # temperatures at temperature set-points (K)
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
+rho_a 1.25                      # initial air density (kg/m^3)
 
 n_init_dist 1                   # number of initial distributions
 

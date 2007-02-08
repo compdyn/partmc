@@ -16,7 +16,6 @@ module mod_constants
                              ! (0.045 is sometimes used)
      real*8 :: cp = 1005d0   ! specific heat of water (J kg^{-1} K^{-1})
      real*8 :: M_a = 28d-3   ! molecular weight of air (kg mole^{-1})
-     real*8 :: rho_a = 1.25d0 ! air density (kg m^{-3})
      real*8 :: atm = 101325d0 ! atmospheric standard sea level pressure (Pa)
      real*8 :: k_b = 1.3806505d-23 ! Boltzmann constant in J K^{-1}
      real*8 :: mu = 1.78d-5   ! dynamic viscosity of air in kg m^{-1} s^{-1}

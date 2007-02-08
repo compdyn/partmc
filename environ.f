@@ -9,7 +9,8 @@ module mod_environ
      real*8 :: T    ! temperature (K)
      real*8 :: RH   ! relative humidity (1)
      real*8 :: V_comp ! computational volume (m^3)
-     real*8 :: p    ! ambient pressure (Pa)
+     real*8 :: p     ! ambient pressure (Pa)
+     real*8 :: rho_a ! air density (kg m^{-3})
      integer :: n_temps ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points

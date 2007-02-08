@@ -28,7 +28,7 @@ contains
     integer, intent(inout) :: M              ! actual number of particles
     integer, intent(in) :: n_spec            ! number of species
     integer, intent(in) :: n_bin             ! number of bins
-    integer, intent(out) :: MH(n_bin)        ! number of particles per bin
+    integer, intent(inout) :: MH(n_bin)        ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin)  ! particle volumes (m^3)
     
     real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)

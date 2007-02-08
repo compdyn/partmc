@@ -83,8 +83,8 @@ contains
     tot_n_coag = 0
     
     if (do_restart) then
-       call read_state(restart_name, n_bin, n_spec, MH, VH, bin_v, dlnr, &
-              env, time)
+       call read_state(state_unit, restart_name, n_bin, n_spec, &
+            MH, VH, env, time)
        i_time = nint(time / del_t)
        M = sum(MH)
        do while (M .lt. MM / 2)

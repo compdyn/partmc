@@ -8,56 +8,127 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, &
-    env, time)
+  subroutine read_state_header(state_unit, filename, n_bin, n_spec)
+
+    ! Read only the header of the state file.
+    
+    use mod_environ
+    use mod_array
+    use mod_util
+       
+    integer, intent(in) :: state_unit   ! unit number to use for state file
+    character(len=*), intent(in) :: filename       ! input filename
+    integer, intent(out) :: n_bin            ! number of bins
+    integer, intent(out) :: n_spec           ! number of species
+       
+    character :: dum*1000
+
+    call open_existing(state_unit, filename)
+
+    read(state_unit, '(a20,i20)') dum, n_bin
+    read(state_unit, '(a20,i20)') dum, n_spec
+
+    close(unit=state_unit)
+
+  end subroutine read_state_header
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_state_bins(state_unit, filename, n_bin, bin_v, dlnr)
+
+    ! Read the bin_v array out of the state file.
+    
+    use mod_environ
+    use mod_array
+    use mod_util
+       
+    integer, intent(in) :: state_unit   ! unit number to use for state file
+    character(len=*), intent(in) :: filename ! input filename
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(out) :: bin_v(n_bin) ! volume of particles in bins (m^3)
+    real*8, intent(out) :: dlnr         ! bin scale factor
+       
+    character :: dum*1000
+    integer :: i, n_bin_test, dum_int
+    real*8 :: dum_real
+
+    call open_existing(state_unit, filename)
+
+    read(state_unit, '(a20,i20)') dum, n_bin_test
+    read(state_unit, '(a20,i20)') dum, dum_int
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+    read(state_unit, '(a20,e20.10)') dum, dlnr
+
+    if (n_bin_test /= n_bin) then
+       write(0,*) 'ERROR: n_bin mismatch when reading state'
+       call exit(1)
+    end if
+    
+    do i = 1,n_bin
+       read(state_unit,'(i20,e30.20)') dum_int, bin_v(i)
+    end do
+
+    close(unit=state_unit)
+
+  end subroutine read_state_bins
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_state(state_unit, filename, n_bin, n_spec, &
+       MH, VH, env, time)
+
+    ! Read the entire state file (including the header).
 
     use mod_environ
     use mod_array
+    use mod_util
     
+    integer, intent(in) :: state_unit   ! unit number to use for state file
     character(len=*), intent(in) :: filename       ! input filename
-    real*8, intent(out) :: dlnr               ! bin scale factor
     integer, intent(in) :: n_bin            ! number of bins
     integer, intent(in) :: n_spec           ! number of species
     integer, intent(out) :: MH(n_bin)       ! number of particles per bin
     type(bin_p), intent(out) :: VH(n_bin)   ! particle volumes (m^3)
-    real*8, intent(out) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
     type(environ), intent(out) :: env       ! environment state
     real*8, intent(out) :: time             ! current time (s)
-    
-    integer, parameter :: f_in = 20
     
     character :: dum*1000
     integer :: i, j, k, dum_int_1, dum_int_2, dum_int_3
     integer :: n_bin_test, n_spec_test
+    real*8 :: dum_real
 
-    open(f_in, file=filename)
+    call open_existing(state_unit, filename)
     
-    read(f_in, '(a20,e20.10)') dum, time
-    read(f_in, '(a20,e20.10)') dum, env%T
-    read(f_in, '(a20,e20.10)') dum, env%RH
-    read(f_in, '(a20,e20.10)') dum, env%V_comp
-    read(f_in, '(a20,e20.10)') dum, env%p
-    read(f_in, '(a20,i20)') dum
-    read(f_in, '(a20,i20)') dum
-    read(f_in, '(a20,e20.10)') dum, dlnr
+    read(state_unit, '(a20,i20)') dum, n_bin_test
+    read(state_unit, '(a20,i20)') dum, n_spec_test
+    read(state_unit, '(a20,e20.10)') dum, time
+    read(state_unit, '(a20,e20.10)') dum, env%T
+    read(state_unit, '(a20,e20.10)') dum, env%RH
+    read(state_unit, '(a20,e20.10)') dum, env%V_comp
+    read(state_unit, '(a20,e20.10)') dum, env%p
+    read(state_unit, '(a20,e20.10)') dum, dum_real
+
+    if (n_bin_test /= n_bin) then
+       write(0,*) 'ERROR: n_bin mismatch when reading state'
+       call exit(1)
+    end if
+    if (n_spec_test /= n_spec) then
+       write(0,*) 'ERROR: n_spec mismatch when reading state'
+       call exit(1)
+    end if
     
-!    if (n_bin .ne. n_bin_test) then
-!       write(0,*) 'ERROR: n_bin mismatch'
-!       call exit(1)
-!    end if
-!    if (n_spec .ne. n_spec_test) then
-!       write(0,*) 'ERROR: n_spec mismatch'
-!       call exit(1)
-!    end if
-
-    call init_array(n_spec, MH, VH)    
-
     do i = 1,n_bin
-       read(f_in,'(i20,e30.20)') dum_int_1, bin_v(i)
+       read(state_unit,'(i20,e30.20)') dum_int_1, dum_real
     end do
     
+    call zero_array(n_spec, MH, VH)    
+
     do i = 1,n_bin
-       read(f_in,'(i20,i20)') dum_int_1, MH(i)
+       read(state_unit,'(i20,i20)') dum_int_1, MH(i)
     end do
     
     do i = 1,n_bin
@@ -66,44 +137,16 @@ contains
              if (j > size(VH(i)%p,1)) then
                 call enlarge_bin(VH(i))
              end if
-             read(f_in,'(i12,i12,i12,e30.20)') &
-                  dum_int_1, dum_int_2, dum_int_2, VH(i)%p(j,k)
+             read(state_unit,'(i12,i12,i12,e30.20)') &
+                  dum_int_1, dum_int_2, dum_int_3, VH(i)%p(j,k)
           end do
        end do
     end do
     
-    close(unit=f_in)
+    close(unit=state_unit)
     
   end subroutine read_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_state_header(filename, n_bin, n_spec)
-    
-    use mod_environ
-    use mod_array
-       
-    character(len=*), intent(in) :: filename       ! input filename
-    integer, intent(out) :: n_bin            ! number of bins
-    integer, intent(out) :: n_spec           ! number of species
-    integer, parameter :: f_in = 20
-       
-    character :: dum*1000
-
-    open(f_in, file=filename)
-
-    read(f_in, '(a20,e20.10)') dum
-    read(f_in, '(a20,e20.10)') dum
-    read(f_in, '(a20,e20.10)') dum
-    read(f_in, '(a20,e20.10)') dum
-    read(f_in, '(a20,e20.10)') dum
-    read(f_in, '(a20,i20)') dum, n_bin
-    read(f_in, '(a20,i20)') dum, n_spec
-
-    close(unit=f_in)
-
-  end subroutine read_state_header
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, &
@@ -130,13 +173,13 @@ contains
     write(filename, '(a,a,a,i8.8,a)') 'state_', trim(state_name), &
          '_', index, '.d'
     open(unit=state_unit, file=filename)
+    write(state_unit,'(a20,i20)') 'n_bin', n_bin
+    write(state_unit,'(a20,i20)') 'n_spec', n_spec
     write(state_unit,'(a20,e20.10)') 'time(s)', time
     write(state_unit,'(a20,e20.10)') 'temp(K)', env%T
     write(state_unit,'(a20,e20.10)') 'rh(1)', env%RH
     write(state_unit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
     write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
-    write(state_unit,'(a20,i20)') 'n_bin', n_bin
-    write(state_unit,'(a20,i20)') 'n_spec', n_spec
     write(state_unit,'(a20,e20.10)') 'dlnr', dlnr
 
     do i = 1,n_bin 

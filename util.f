@@ -215,5 +215,25 @@ contains
   end subroutine check_event
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine open_existing(unit, filename)
+
+    ! Opens a file for reading that must already exist, checking for
+    ! errors.
+
+    integer, intent(in) :: unit               ! unit to open with
+    character(len=*), intent(in) :: filename  ! filename of file to open
+
+    integer ios
+
+    open(unit=unit, file=filename, status='old', iostat=ios)
+    if (ios /= 0) then
+       write(0,*) 'ERROR: unable to open file ', filename, ': IOSTAT = ', ios
+       call exit(1)
+    end if
+
+  end subroutine open_existing
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_util

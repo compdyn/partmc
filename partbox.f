@@ -58,6 +58,8 @@ contains
     use mod_condensation
     use mod_kernel_sedi
     use mod_kernel_golovin
+    use mod_kernel_constant
+    use mod_kernel_brown
     use mod_material
     use mod_environ
     use mod_run_mc
@@ -199,6 +201,20 @@ contains
                output_name, do_coagulation, do_condensation, &
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
+       elseif (trim(kernel_name) == 'constant') then
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
+               t_state, t_progress, del_t, output_unit, state_unit, &
+               output_name, do_coagulation, do_condensation, &
+               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
+               env, mat)
+       elseif (trim(kernel_name) == 'brown') then
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
+               t_state, t_progress, del_t, output_unit, state_unit, &
+               output_name, do_coagulation, do_condensation, &
+               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
+               env, mat)
        else
           write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
@@ -216,8 +232,8 @@ contains
     use mod_array
     use mod_init_dist
     use mod_condensation
-    use mod_kernel_sedi
     use mod_kernel_golovin
+    use mod_kernel_constant
     use mod_material
     use mod_environ
     use mod_run_exact
@@ -254,6 +270,8 @@ contains
 
     if (trim(soln_name) == 'golovin_exp') then
        call read_real(spec, 'mean_vol', mean_vol)
+    elseif (trim(soln_name) == 'constant_exp_cond') then
+       call read_real(spec, 'mean_vol', mean_vol)
     else
        write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -285,6 +303,10 @@ contains
        call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
             bin_n_den, N_0, mean_vol, mat%rho(1), soln_golovin_exp, &
             t_max, t_output, output_unit, env, mat)
+    elseif (trim(soln_name) == 'golovin_exp') then
+       call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
+            bin_n_den, N_0, mean_vol, mat%rho(1), soln_constant_exp_cond, &
+            t_max, t_output, output_unit, env, mat)
     else
        write(*,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -301,6 +323,8 @@ contains
     use mod_run_sect
     use mod_kernel_sedi
     use mod_kernel_golovin
+    use mod_kernel_constant
+    use mod_kernel_brown
     use mod_bin
     use mod_array
     use mod_init_dist
@@ -372,6 +396,12 @@ contains
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
+            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+    elseif (trim(kernel_name) == 'constant') then
+       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_constant, &
+            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+    elseif (trim(kernel_name) == 'brown') then
+       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_brown, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     else
        write(*,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

@@ -33,6 +33,7 @@ contains
 
     use mod_environ
     use mod_util
+    use mod_constants
     
     integer, intent(in) :: n_bin        !  number of bins
     real*8, intent(in) :: bin_v(n_bin)  !  volume of particles in bins
@@ -49,7 +50,7 @@ contains
     real*8 beta_0, tau, T, rat_v, nn, b, x, sigma
     integer k
     
-    integer, parameter :: lambda = 1d0  ! FIXME: what is this?
+    real*8, parameter :: lambda = 1d0   ! FIXME: what is this?
     
     call kernel_constant(1d0, 1d0, env, beta_0)
     

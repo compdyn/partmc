@@ -14,6 +14,7 @@ program process_state
   integer n_bin                        ! number of bins
   integer n_spec                       ! number of species
 
+  integer, parameter :: state_unit = 33 ! unit to use for state files
   integer, parameter :: scal = 3       ! scale factor for bins
   real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)
   integer, parameter :: spec_1 = 1     ! first solute species
@@ -42,7 +43,7 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call read_state_header(filename, n_bin, n_spec)
+  call read_state_header(state_unit, filename, n_bin, n_spec)
 
   allocate(MH(n_bin))
   allocate(VH(n_bin))
@@ -55,7 +56,9 @@ program process_state
   allocate(bin_n_mixed(n_bin,3))
   allocate(bin_g_mixed(n_bin,3))
 
- call read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, env, time)
+  call init_array(n_spec, MH, VH)
+  call read_state_bins(state_unit, filename, n_bin, bin_v, dlnr)
+  call read_state(state_unit, filename, n_bin, n_spec, MH, VH, env, time)
 
   call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
 

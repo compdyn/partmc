@@ -16,11 +16,11 @@ contains
     
     character(len=*), intent(in) :: filename       ! input filename
     real*8, intent(out) :: dlnr               ! bin scale factor
-    integer, intent(out) :: n_bin            ! number of bins
-    integer, intent(out) :: n_spec           ! number of species
-    integer, pointer :: MH(:)       ! number of particles per bin
-    type(bin_p), pointer :: VH(:)   ! particle volumes (m^3)
-    real*8, pointer :: bin_v(:)       ! volume of particles in bins (m^3)
+    integer, intent(in) :: n_bin            ! number of bins
+    integer, intent(in) :: n_spec           ! number of species
+    integer, intent(out) :: MH(n_bin)       ! number of particles per bin
+    type(bin_p), intent(out) :: VH(n_bin)   ! particle volumes (m^3)
+    real*8, intent(out) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
     type(environ), intent(out) :: env       ! environment state
     real*8, intent(out) :: time             ! current time (s)
     
@@ -37,8 +37,8 @@ contains
     read(f_in, '(a20,e20.10)') dum, env%RH
     read(f_in, '(a20,e20.10)') dum, env%V_comp
     read(f_in, '(a20,e20.10)') dum, env%p
-    read(f_in, '(a20,i20)') dum, n_bin
-    read(f_in, '(a20,i20)') dum, n_spec
+    read(f_in, '(a20,i20)') dum
+    read(f_in, '(a20,i20)') dum
     read(f_in, '(a20,e20.10)') dum, dlnr
     
 !    if (n_bin .ne. n_bin_test) then
@@ -49,10 +49,6 @@ contains
 !       write(0,*) 'ERROR: n_spec mismatch'
 !       call exit(1)
 !    end if
-
-    allocate(MH(n_bin))
-    allocate(VH(n_bin))
-    allocate(bin_v(n_bin))
 
     call init_array(n_spec, MH, VH)    
 
@@ -79,6 +75,34 @@ contains
     close(unit=f_in)
     
   end subroutine read_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_state_header(filename, n_bin, n_spec)
+    
+    use mod_environ
+    use mod_array
+       
+    character(len=*), intent(in) :: filename       ! input filename
+    integer, intent(out) :: n_bin            ! number of bins
+    integer, intent(out) :: n_spec           ! number of species
+    integer, parameter :: f_in = 20
+       
+    character :: dum*1000
+
+    open(f_in, file=filename)
+
+    read(f_in, '(a20,e20.10)') dum
+    read(f_in, '(a20,e20.10)') dum
+    read(f_in, '(a20,e20.10)') dum
+    read(f_in, '(a20,e20.10)') dum
+    read(f_in, '(a20,e20.10)') dum
+    read(f_in, '(a20,i20)') dum, n_bin
+    read(f_in, '(a20,i20)') dum, n_spec
+
+    close(unit=f_in)
+
+  end subroutine read_state_header
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

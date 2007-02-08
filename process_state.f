@@ -21,9 +21,9 @@ program process_state
   real*8, parameter :: cutoff_frac = 0.01d0 ! fraction to count as mixed
   integer, parameter :: n_comp = 20    ! number of composition bins
 
-  integer, pointer :: MH(:)
-  type(bin_p), pointer :: VH(:)
-  real*8, pointer :: bin_v(:)
+  integer, allocatable :: MH(:)       ! number of particles per bin
+  type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
+  real*8, allocatable :: bin_v(:)     ! volume of particles in bins
 
   type(environ) :: env       ! environment state
   type(material) :: mat      ! material properties
@@ -42,8 +42,11 @@ program process_state
 
   call get_filename(filename, basename)
 
-  call read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, env, time)
+  call read_state_header(filename, n_bin, n_spec)
 
+  allocate(MH(n_bin))
+  allocate(VH(n_bin))
+  allocate(bin_v(n_bin))
   allocate(bin_g(n_bin))
   allocate(bin_gs(n_bin,n_spec))
   allocate(bin_n(n_bin))
@@ -51,6 +54,8 @@ program process_state
   allocate(bin_n_2d(n_bin,n_bin))
   allocate(bin_n_mixed(n_bin,3))
   allocate(bin_g_mixed(n_bin,3))
+
+ call read_state(filename, n_bin, n_spec, MH, VH, bin_v, dlnr, env, time)
 
   call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
 

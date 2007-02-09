@@ -80,7 +80,7 @@ contains
 
     i_time = 0
     time = 0d0
-    call update_environ(env, time)
+    call init_environ(env, time)
     tot_n_coag = 0
     
     if (do_restart) then

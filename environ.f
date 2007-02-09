@@ -61,10 +61,27 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  subroutine init_environ(env, time)
+    
+    ! Initialize the time-dependent contents of the
+    ! environment. Thereafter update_environ() should be used.
+
+    use mod_util
+
+    type(environ), intent(inout) :: env ! environment state to update
+    real*8, intent(in) :: time          ! current time (s)
+    
+    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
+    
+  end subroutine init_environ
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
   subroutine update_environ(env, time)
     
     ! Update time-dependent contents of the environment (currently
-    ! just temperature).
+    ! just temperature). init_environ() should have been called at the
+    ! start.
 
     use mod_util
 
@@ -73,10 +90,9 @@ contains
     
     real*8 pmv      ! ambient water vapor pressure (Pa)
 
-    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     pmv = sat_vapor_pressure(env) * env%RH
+    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     env%RH = pmv / sat_vapor_pressure(env)
-
     
   end subroutine update_environ
   

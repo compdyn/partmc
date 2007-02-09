@@ -179,6 +179,7 @@ contains
        
        ! equlibriate all particles if condensation is active
        if (do_condensation) then
+	write(6,*)'equilibriate '
           do i_bin = 1,n_bin
              do i = 1,MH(i_bin)
                 call equilibriate_particle(mat%n_spec, VH(i_bin)%p(i,:), &
@@ -186,7 +187,8 @@ contains
              end do
           end do
        end if
-       
+       write(6,*)'equilibriate done '
+
        if (trim(kernel_name) == 'sedi') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &

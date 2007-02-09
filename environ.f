@@ -72,10 +72,11 @@ contains
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 pmv      ! ambient water vapor pressure (Pa)
-    
-    pmv = sat_vapor_pressure(env) * env%RH
+
     env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
+    pmv = sat_vapor_pressure(env) * env%RH
     env%RH = pmv / sat_vapor_pressure(env)
+
     
   end subroutine update_environ
   

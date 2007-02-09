@@ -1,3 +1,4 @@
+run_type mc                     # Monte Carlo run
 output_name dust_salt           # name of output files
 n_loop 1                        # number of Monte Carlo loops
 N_0 1d9                         # particle concentration (#/m^3)
@@ -16,9 +17,9 @@ nu 2 2 0                        # number of ions in solution of each species (1)
 eps 1 0.5 0                     # solubility of species (1)
 M_w 58.44d-3 60.08d-3 18d-3     # molecular weight of species (kg/mole)
 
-n_temps 1                       # number of temperature set-points
-temp_times 0                    # times of temperature set-points
-temps 288                       # temperatures at temperature set-points (K)
+n_temps 2                       # number of temperature set-points
+temp_times 0 800                    # times of temperature set-points (s)
+temps 288 280                      # temperatures at temperature set-points (K)
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
 rho_a 1.25                      # initial air density (kg/m^3)

@@ -6,7 +6,7 @@
 ! This program is a huge hack to average together results from many
 ! runs, obtained from process_state. It is extremely non-general.
 
-program average
+program process_average
 
   character*100 dataname
   character*100 format_string_in
@@ -126,4 +126,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program average
+end program process_average

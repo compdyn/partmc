@@ -51,6 +51,7 @@ program test_sedi_bidisperse_state_to_count
      call read_state(state_unit, state_name, n_bin, n_spec, MH, VH, env, time)
 
      ! if there is only one particle, assume it is big
+     n_small = 0
      if (sum(MH) == 1) then
         n_small = 0
         j = 1

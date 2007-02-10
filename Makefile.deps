@@ -31,8 +31,8 @@ process_state: process_state.o bin.o environ.o material.o array.o state.o util.o
 test_sedi_bidisperse_ode: test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o util.o
 	$(FC) $(LDFLAGS) -o $@ test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o util.o
 
-average: average.o 
-	$(FC) $(LDFLAGS) -o $@ average.o 
+process_average: process_average.o 
+	$(FC) $(LDFLAGS) -o $@ process_average.o 
 
 partbox: partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o

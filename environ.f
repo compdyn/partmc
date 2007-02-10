@@ -6,12 +6,12 @@
 module mod_environ
   
   type environ
-     real*8 :: T    ! temperature (K)
-     real*8 :: RH   ! relative humidity (1)
-     real*8 :: V_comp ! computational volume (m^3)
-     real*8 :: p     ! ambient pressure (Pa)
-     real*8 :: rho_a ! air density (kg m^{-3})
-     integer :: n_temps ! number of temperature set-points
+     real*8 :: T                        ! temperature (K)
+     real*8 :: RH                       ! relative humidity (1)
+     real*8 :: V_comp                   ! computational volume (m^3)
+     real*8 :: p                        ! ambient pressure (Pa)
+     real*8 :: rho_a                    ! air density (kg m^{-3})
+     integer :: n_temps                 ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points
   end type environ
@@ -22,8 +22,8 @@ contains
 
   subroutine allocate_environ_temps(env, n_temps)
 
-    type(environ), intent(inout) :: env   ! environment
-    integer, intent(in) :: n_temps        ! number of temperature set-points
+    type(environ), intent(inout) :: env ! environment
+    integer, intent(in) :: n_temps      ! number of temperature set-points
 
     env%n_temps = n_temps
     allocate(env%temp_times(n_temps))
@@ -102,7 +102,7 @@ contains
     
     use mod_constants
     
-    type(environ), intent(in) :: env ! environment state
+    type(environ), intent(in) :: env    ! environment state
     
     sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%T - const%T0) &
          / (env%T - 38d0)) ! Pa

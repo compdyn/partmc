@@ -19,14 +19,13 @@ contains
     use mod_environ
     use mod_constants
     
-    real*8, intent(in) :: v1 ! volume of first particle (m^3)
-    real*8, intent(in) :: v2 ! volume of second particle (m^3)
-    real*8, intent(out) :: k  ! kernel k(a,b) (m^3/s)
+    real*8, intent(in) :: v1            ! volume of first particle (m^3)
+    real*8, intent(in) :: v2            ! volume of second particle (m^3)
+    type(environ), intent(in) :: env    ! environment state
+    real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
     
     real*8 constant, onethird
     real*8 r1, r2, winf1, winf2, ec
-
-    type(environ), intent(in) :: env  ! environment state
     
     constant = 3d0 / (4d0 * const%pi)
     onethird  = 1d0/3d0
@@ -43,8 +42,8 @@ contains
   
   subroutine fall_g(r, w_inf)
     
-    real*8, intent(in) :: r       ! particle radius (m)
-    real*8, intent(out) :: w_inf   ! terminal velocity (m/s)
+    real*8, intent(in) :: r             ! particle radius (m)
+    real*8, intent(out) :: w_inf        ! terminal velocity (m/s)
     
     ! terminal velocity of falling drops
     real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
@@ -106,9 +105,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine effic(r1, r2, ec)
-    real*8, intent(in) :: r1  ! radius of first particle (um)
-    real*8, intent(in) :: r2  ! radius of second particle (um)
-    real*8, intent(out) :: ec  ! collision efficiency (dimensionless)
+    real*8, intent(in) :: r1            ! radius of first particle (um)
+    real*8, intent(in) :: r2            ! radius of second particle (um)
+    real*8, intent(out) :: ec           ! collision efficiency (dimensionless)
     
     real*8 r_small, r_big, rq, p, q, ek
     integer k, ir, kk, iq

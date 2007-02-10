@@ -9,16 +9,16 @@
 
 program process_out
   
-  integer, parameter :: f_in = 20           ! input
-  integer, parameter :: f_out_num = 21      ! output number
-  integer, parameter :: f_out_vol = 22      ! output vol
-  integer, parameter :: f_out_temp = 23     ! output temperature
-  integer, parameter :: f_out_rh = 24       ! output relative humidity
-  integer, parameter :: f_out_time = 25     ! output time
-  integer, parameter :: f_out_num_avg = 26  ! output number average
-  integer, parameter :: f_out_vol_avg = 27  ! output vol average
+  integer, parameter :: f_in = 20       ! input
+  integer, parameter :: f_out_num = 21  ! output number
+  integer, parameter :: f_out_vol = 22  ! output vol
+  integer, parameter :: f_out_temp = 23 ! output temperature
+  integer, parameter :: f_out_rh = 24   ! output relative humidity
+  integer, parameter :: f_out_time = 25 ! output time
+  integer, parameter :: f_out_num_avg = 26 ! output number average
+  integer, parameter :: f_out_vol_avg = 27 ! output vol average
   integer, parameter :: f_out_temp_avg = 28 ! output temperature average
-  integer, parameter :: f_out_rh_avg = 29   ! output relative humidity average
+  integer, parameter :: f_out_rh_avg = 29 ! output relative humidity average
   integer, parameter :: f_out_time_avg = 30 ! output time average
   
   integer n_bin, n_loop, n_time, n_spec

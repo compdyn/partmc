@@ -23,22 +23,20 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_bin             ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr               ! bin scale factor
-    real*8, intent(in) :: n_den(n_bin)       ! initial number density
-    real*8, intent(in) :: N_0                ! particle concentration (#/m^3)
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    real*8, intent(in) :: n_den(n_bin)  ! initial number density
+    real*8, intent(in) :: N_0           ! particle concentration (#/m^3)
     
-    real*8, intent(in) :: t_max              ! final time (seconds)
-    real*8, intent(in) :: del_t              ! timestep for coagulation
-    real*8, intent(in) :: t_output           ! interval to output data, or
-                                             ! zero to not output (seconds)
-    real*8, intent(in) :: t_progress         ! interval to print progress, or
-                                             ! zero to not print (seconds)
-    integer, intent(in) :: output_unit       ! unit number to output to
+    real*8, intent(in) :: t_max         ! final time (seconds)
+    real*8, intent(in) :: del_t         ! timestep for coagulation
+    real*8, intent(in) :: t_output      ! output interval (0 disables) (s)
+    real*8, intent(in) :: t_progress    ! progress interval (0 disables) (s)
+    integer, intent(in) :: output_unit  ! unit number to output to
 
-    type(environ), intent(inout) :: env      ! environment state
-    type(material), intent(in) :: mat        ! material properties
+    type(environ), intent(inout) :: env ! environment state
+    type(material), intent(in) :: mat   ! material properties
     
     real*8 c(n_bin,n_bin)
     integer ima(n_bin,n_bin)
@@ -69,14 +67,14 @@ contains
     
     ! mass and radius grid
     do i = 1,n_bin
-       r(i) = vol2rad(bin_v(i)) * 1d6         ! radius in m to um
+       r(i) = vol2rad(bin_v(i)) * 1d6       ! radius in m to um
        e(i) = bin_v(i) * mat%rho(1) * 1d6   ! volume in m^3 to mass in mg
     enddo
     
     ! initial mass distribution
     do i = 1,n_bin
        g(i) = n_den(i) * bin_v(i) * mat%rho(1) * N_0
-       if (g(i) .le. 1d-80) g(i) = 0d0    ! fix problem with gnuplot
+       if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
     enddo
     
     call courant(n_bin, dlnr, c, ima, g, r, e)
@@ -267,8 +265,8 @@ contains
     
     ! Smooths kernel values for bin pairs, and halves the self-rate.
     
-    integer, intent(in) :: n_bin                ! number of bins
-    real*8, intent(in) :: k(n_bin,n_bin)        ! kernel values
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: k(n_bin,n_bin) ! kernel values
     real*8, intent(out) :: k_smooth(n_bin,n_bin) ! smoothed kernel values
     
     integer i, j, im, ip, jm, jp

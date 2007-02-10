@@ -20,15 +20,15 @@ program test_sedi_bidisperse_ode
   use mod_kernel_sedi
   use mod_environ
   
-  real*8, parameter :: v_small = 4d-15         ! volume of one small particle
-  real*8, parameter :: v_big_init = 4d-12      ! init volume of big particle
-  real*8, parameter :: n_small_init = 10000d0  ! init number of small particles
-  real*8, parameter :: t_max = 600d0           ! total simulation time
-  real*8, parameter :: del_t = 0.001d0         ! timestep
-  real*8, parameter :: t_progress = 10d0       ! how often to print progress
-  real*8, parameter :: N_0 = 1d9               ! particle number concentration
-  integer, parameter :: scal = 3               ! scale factor for bins
-  integer, parameter :: out_unit = 33          ! output unit number
+  real*8, parameter :: v_small = 4d-15  ! volume of one small particle
+  real*8, parameter :: v_big_init = 4d-12 ! init volume of big particle
+  real*8, parameter :: n_small_init = 10000d0 ! init number of small particles
+  real*8, parameter :: t_max = 600d0    ! total simulation time
+  real*8, parameter :: del_t = 0.001d0  ! timestep
+  real*8, parameter :: t_progress = 10d0 ! how often to print progress
+  real*8, parameter :: N_0 = 1d9        ! particle number concentration
+  integer, parameter :: scal = 3        ! scale factor for bins
+  integer, parameter :: out_unit = 33   ! output unit number
   character(len=*), parameter :: out_name = "counts_sedi_bidisperse_ode.d"
   
   type(environ) :: env
@@ -76,12 +76,12 @@ contains
     
     use mod_environ
 
-    real*8, intent(in) :: n_small        ! current number of small particles
-    real*8, intent(in) :: v_small        ! volume of one small particle
-    real*8, intent(in) :: v_big_init     ! initial volume of the big particle
-    real*8, intent(in) :: n_small_init   ! initial number of small particles
-    type(environ), intent(in) :: env        ! environment state
-    real*8, intent(out) :: n_small_dot    ! derivative of n_small
+    real*8, intent(in) :: n_small       ! current number of small particles
+    real*8, intent(in) :: v_small       ! volume of one small particle
+    real*8, intent(in) :: v_big_init    ! initial volume of the big particle
+    real*8, intent(in) :: n_small_init  ! initial number of small particles
+    type(environ), intent(in) :: env    ! environment state
+    real*8, intent(out) :: n_small_dot  ! derivative of n_small
     
     real*8 v_big, k
     
@@ -98,12 +98,12 @@ contains
     
     use mod_environ
 
-    real*8, intent(in) :: v_small        ! volume of one small particle
-    real*8, intent(in) :: v_big_init     ! initial volume of the big particle
-    real*8, intent(in) :: n_small_init   ! initial number of small particles
-    real*8, intent(in) :: del_t          ! timestep
-    type(environ), intent(in) :: env        ! environment state
-    real*8, intent(inout) :: n_small        ! current number of small particles
+    real*8, intent(in) :: v_small       ! volume of one small particle
+    real*8, intent(in) :: v_big_init    ! initial volume of the big particle
+    real*8, intent(in) :: n_small_init  ! initial number of small particles
+    type(environ), intent(in) :: env    ! environment state
+    real*8, intent(in) :: del_t         ! timestep
+    real*8, intent(inout) :: n_small    ! current number of small particles
     
     real*8 n_small_dot, k1, k2, k3, k4
     

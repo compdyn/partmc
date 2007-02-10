@@ -1,7 +1,5 @@
 Shift code into a separate (partbox?) repository for PNNL to access - Matt
 
-Reformat argument description comments - Matt
-
 Make sure all functions have a description at the top of them - Matt
 
 Make dust_salt testcase with condensation and process_state - Nicole

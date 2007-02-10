@@ -11,35 +11,35 @@ program process_state
   use mod_array
   use mod_state
 
-  integer n_bin                        ! number of bins
-  integer n_spec                       ! number of species
+  integer :: n_bin                      ! number of bins
+  integer :: n_spec                     ! number of species
 
   integer, parameter :: state_unit = 33 ! unit to use for state files
-  integer, parameter :: scal = 3       ! scale factor for bins
-  real*8, parameter :: v_min = 1d-24   ! minimum volume for making grid (m^3)
-  integer, parameter :: spec_1 = 1     ! first solute species
-  integer, parameter :: spec_2 = 2     ! second solute species
+  integer, parameter :: scal = 3        ! scale factor for bins
+  real*8, parameter :: v_min = 1d-24    ! minimum volume for making grid (m^3)
+  integer, parameter :: spec_1 = 1      ! first solute species
+  integer, parameter :: spec_2 = 2      ! second solute species
   real*8, parameter :: cutoff_frac = 0.01d0 ! fraction to count as mixed
-  integer, parameter :: n_comp = 20    ! number of composition bins
+  integer, parameter :: n_comp = 20     ! number of composition bins
 
-  integer, allocatable :: MH(:)       ! number of particles per bin
-  type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
-  real*8, allocatable :: bin_v(:)     ! volume of particles in bins
+  integer, allocatable :: MH(:)         ! number of particles per bin
+  type(bin_p), allocatable :: VH(:)     ! particle volumes (m^3)
+  real*8, allocatable :: bin_v(:)       ! volume of particles in bins
 
-  type(environ) :: env       ! environment state
-  type(material) :: mat      ! material properties
-  real*8 :: time             ! current time (s)
-  real*8 :: dlnr             ! bin scale factor
-  real*8, allocatable :: bin_g(:)     ! volume in bins
-  real*8, allocatable :: bin_gs(:,:) ! species volume in bins
-  integer, allocatable :: bin_n(:)    ! number in bins
+  type(environ) :: env                  ! environment state
+  type(material) :: mat                 ! material properties
+  real*8 :: time                        ! current time (s)
+  real*8 :: dlnr                        ! bin scale factor
+  real*8, allocatable :: bin_g(:)       ! volume in bins
+  real*8, allocatable :: bin_gs(:,:)    ! species volume in bins
+  integer, allocatable :: bin_n(:)      ! number in bins
   integer, allocatable :: bin_n_2d(:,:) ! 2D species number distribution
-  real*8, allocatable :: bin_g_2d(:,:) ! 2D species volume distribution
+  real*8, allocatable :: bin_g_2d(:,:)  ! 2D species volume distribution
   integer, allocatable :: bin_n_mixed(:,:) ! species number by composition
   real*8, allocatable :: bin_g_mixed(:,:) ! species volume by composition
-  character :: filename*100  ! input filename
-  character :: basename*100  ! basename of the input filename
-  integer :: comp_n(n_comp)  ! number in composition bins
+  character :: filename*100             ! input filename
+  character :: basename*100             ! basename of the input filename
+  integer :: comp_n(n_comp)             ! number in composition bins
 
   call get_filename(filename, basename)
 
@@ -98,8 +98,8 @@ contains
 
   subroutine get_filename(filename, basename)
     
-    character, intent(out) :: filename*100  ! input filename
-    character, intent(out) :: basename*100  ! basename of the input filename
+    character, intent(out) :: filename*100 ! input filename
+    character, intent(out) :: basename*100 ! basename of the input filename
 
     integer i
     
@@ -136,18 +136,16 @@ contains
     use mod_material
     use mod_bin
     
-    integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: n_spec     ! number of species
-    integer, intent(in) :: MH(n_bin)  ! number of particles per bin
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins
-    type(material), intent(in) :: mat ! material properties
-    integer, intent(in) :: spec_1     ! first species
-    integer, intent(in) :: spec_2     ! second species
-    integer, intent(out) :: bin_n_2d(n_bin,n_bin) ! 2D species number
-                                                  ! distribution
-    real*8, intent(out) :: bin_g_2d(n_bin,n_bin)  ! 2D species volume
-                                                  ! distribution
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    type(material), intent(in) :: mat   ! material properties
+    integer, intent(in) :: spec_1       ! first species
+    integer, intent(in) :: spec_2       ! second species
+    integer, intent(out) :: bin_n_2d(n_bin,n_bin) ! 2D species number dist
+    real*8, intent(out) :: bin_g_2d(n_bin,n_bin) ! 2D species volume dist
 
     integer :: i, j, b1, b2
     
@@ -170,13 +168,13 @@ contains
   subroutine moments_composition_2d(n_bin, n_spec, MH, VH, &
        spec_1, spec_2, n_comp, comp_n)
     
-    integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: n_spec     ! number of species
-    integer, intent(in) :: MH(n_bin)  ! number of particles per bin
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
-    integer, intent(in) :: spec_1     ! first species
-    integer, intent(in) :: spec_2     ! second species
-    integer, intent(in) :: n_comp     ! number of composition bins
+    integer, intent(in) :: spec_1       ! first species
+    integer, intent(in) :: spec_2       ! second species
+    integer, intent(in) :: n_comp       ! number of composition bins
     integer, intent(out) :: comp_n(n_comp) ! number in composition bins
     
     integer :: i, j, i_comp
@@ -203,15 +201,15 @@ contains
     use mod_material
     use mod_bin
     
-    integer, intent(in) :: n_bin      ! number of bins
-    integer, intent(in) :: n_spec     ! number of species
-    integer, intent(in) :: MH(n_bin)  ! number of particles per bin
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins
-    type(material), intent(in) :: mat ! material properties
-    integer, intent(in) :: spec_1     ! first species
-    integer, intent(in) :: spec_2     ! second species
-    real*8, intent(in) :: cutoff_frac ! fraction to count as mixed
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    type(material), intent(in) :: mat   ! material properties
+    integer, intent(in) :: spec_1       ! first species
+    integer, intent(in) :: spec_2       ! second species
+    real*8, intent(in) :: cutoff_frac   ! fraction to count as mixed
     integer, intent(out) :: bin_n_mixed(n_bin,3) ! species number by composition
     real*8, intent(out) :: bin_g_mixed(n_bin,3) ! species volume by composition
     
@@ -247,15 +245,15 @@ contains
     
     use mod_util
     
-    character, intent(in) :: basename*100  ! basename of the input filename
-    integer, intent(in) :: n_bin           ! number of bins
-    integer, intent(in) :: n_spec          ! number of species
-    type(environ) :: env       ! environment state
-    real*8, intent(in) :: dlnr
-    real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
-    real*8, intent(in) :: bin_g(n_bin)     ! volume in bins
+    character, intent(in) :: basename*100 ! basename of the input filename
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(environ) :: env                ! environment state
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    real*8, intent(in) :: bin_g(n_bin)  ! volume in bins
     real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(in) :: bin_n(n_bin)    ! number in bins
+    integer, intent(in) :: bin_n(n_bin) ! number in bins
     
     integer, parameter :: f_out = 20
     
@@ -284,14 +282,13 @@ contains
     
     use mod_util
     
-    character, intent(in) :: basename*100  ! basename of the input filename
-    integer, intent(in) :: n_bin           ! number of bins
-    type(environ) :: env       ! environment state
-    real*8, intent(in) :: dlnr
-    real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
-    integer, intent(in) :: bin_n_2d(n_bin,n_bin) ! 2D species number
-                                                 ! distribution
-    real*8, intent(in) :: bin_g_2d(n_bin,n_bin)  ! 2D species volume distribution
+    character, intent(in) :: basename*100 ! basename of the input filename
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(environ) :: env                ! environment state
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
+    integer, intent(in) :: bin_n_2d(n_bin,n_bin) ! 2D species number dist
+    real*8, intent(in) :: bin_g_2d(n_bin,n_bin) ! 2D species volume dist
     
     integer, parameter :: f_out = 20
     
@@ -320,11 +317,11 @@ contains
   
   subroutine write_composition_2d(basename, n_comp, dlnr, env, comp_n)
     
-    character, intent(in) :: basename*100  ! basename of the input filename
-    integer, intent(in) :: n_comp          ! number of composition bins
-    integer, intent(in) :: comp_n(n_comp)  ! number in composition bins
-    type(environ) :: env       ! environment state
-    real*8, intent(in) :: dlnr
+    character, intent(in) :: basename*100 ! basename of the input filename
+    integer, intent(in) :: n_comp       ! number of composition bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(environ) :: env                ! environment state
+    integer, intent(in) :: comp_n(n_comp) ! number in composition bins
 
     integer, parameter :: f_out = 20
     
@@ -351,11 +348,11 @@ contains
     
     use mod_util
     
-    character, intent(in) :: basename*100  ! basename of the input filename
-    integer, intent(in) :: n_bin           ! number of bins
-    type(environ) :: env       ! environment state
-    real*8, intent(in) :: dlnr
-    real*8, intent(in) :: bin_v(n_bin)     ! volume of particles in bins
+    character, intent(in) :: basename*100 ! basename of the input filename
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(environ) :: env                ! environment state
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     integer, intent(in) :: bin_n_mixed(n_bin,3) ! species number by composition
     real*8, intent(in) :: bin_g_mixed(n_bin,3) ! species volume by composition
     

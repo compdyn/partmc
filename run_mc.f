@@ -24,42 +24,39 @@ contains
     use mod_material
     use mod_state
     
-    integer, intent(in) :: MM                ! maximum number of particles
-    integer, intent(inout) :: M              ! actual number of particles
-    integer, intent(in) :: n_spec            ! number of species
-    integer, intent(in) :: n_bin             ! number of bins
-    integer, intent(inout) :: MH(n_bin)      ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin)  ! particle volumes (m^3)
+    integer, intent(in) :: MM           ! maximum number of particles
+    integer, intent(inout) :: M         ! actual number of particles
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)      ! volume in bins  
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin)     ! number in bins
-    real*8, intent(in) :: dlnr               ! bin scale factor
+    integer, intent(out) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
-    real*8, intent(in) :: t_max              ! final time (seconds)
-    real*8, intent(in) :: t_output           ! interval to output data, or
-                                             ! zero to not output (seconds)
-    real*8, intent(in) :: t_state            ! interval to output state, or
-                                             ! zero to not output (seconds)
-    real*8, intent(in) :: t_progress         ! interval to print progress, or
-                                             ! zero to not print (seconds)
-    real*8, intent(in) :: del_t              ! timestep for coagulation
-    integer, intent(in) :: output_unit       ! unit number to output to
-    integer, intent(in) :: state_unit        ! unit number for state files
+    real*8, intent(in) :: t_max         ! final time (seconds)
+    real*8, intent(in) :: t_output      ! output interval (0 disables) (s)
+    real*8, intent(in) :: t_state       ! state output interval (0 disables) (s)
+    real*8, intent(in) :: t_progress    ! progress interval (0 disables) (s)
+    real*8, intent(in) :: del_t         ! timestep for coagulation
+    integer, intent(in) :: output_unit  ! unit number to output to
+    integer, intent(in) :: state_unit   ! unit number for state files
     character(len=*), intent(in) :: state_name ! name for state files
     
-    logical, intent(in) :: do_coagulation    ! whether to do coagulation
-    logical, intent(in) :: allow_double      ! allow doubling if needed
-    logical, intent(in) :: do_condensation   ! whether to do condensation
-    logical, intent(in) :: do_restart        ! whether to restart from state
+    logical, intent(in) :: do_coagulation ! whether to do coagulation
+    logical, intent(in) :: allow_double ! allow doubling if needed
+    logical, intent(in) :: do_condensation ! whether to do condensation
+    logical, intent(in) :: do_restart   ! whether to restart from state
     character(len=*), intent(in) :: restart_name ! name of state to restart from
-    integer, intent(in) :: i_loop            ! loop number of run
-    integer, intent(in) :: n_loop            ! total number of loops
-    real*8, intent(in) :: t_wall_start       ! cpu_time() of start
+    integer, intent(in) :: i_loop       ! loop number of run
+    integer, intent(in) :: n_loop       ! total number of loops
+    real*8, intent(in) :: t_wall_start  ! cpu_time() of start
     
-    type(environ), intent(inout) :: env      ! environment state
-    type(material), intent(in) :: mat        ! material properties
+    type(environ), intent(inout) :: env ! environment state
+    type(material), intent(in) :: mat   ! material properties
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -186,24 +183,24 @@ contains
     use mod_environ
     use mod_material
     
-    integer, intent(in) :: MM                ! maximum number of particles
-    integer, intent(inout) :: M              ! actual number of particles
-    integer, intent(in) :: n_spec            ! number of species
-    integer, intent(in) :: n_bin             ! number of bins
-    integer, intent(out) :: MH(n_bin)        ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin)    ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)      ! volume in bins  
+    integer, intent(in) :: MM           ! maximum number of particles
+    integer, intent(inout) :: M         ! actual number of particles
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(out) :: MH(n_bin)   ! number of particles per bin
+    type(bin_p), intent(out) :: VH(n_bin) ! particle volumes (m^3)
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin)     ! number in bins
-    real*8, intent(in) :: dlnr               ! bin scale factor
+    integer, intent(out) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
-    real*8, intent(in) :: del_t              ! timestep for coagulation
-    logical, intent(in) :: allow_double      ! allow doubling if needed
-    type(environ), intent(inout) :: env      ! environment state
-    type(material), intent(in) :: mat        ! material properties
-    integer, intent(out) :: tot_n_samp       ! total number of samples tested
-    integer, intent(out) :: n_coag           ! number of coagulation events
+    real*8, intent(in) :: del_t         ! timestep for coagulation
+    logical, intent(in) :: allow_double ! allow doubling if needed
+    type(environ), intent(inout) :: env ! environment state
+    type(material), intent(in) :: mat   ! material properties
+    integer, intent(out) :: tot_n_samp  ! total number of samples tested
+    integer, intent(out) :: n_coag      ! number of coagulation events
 
     interface
        subroutine kernel(v1, v2, env, k)
@@ -259,15 +256,14 @@ contains
 
     use mod_environ
     
-    integer, intent(in) :: n_bin         ! number of bins
-    integer, intent(in) :: MH(n_bin)     ! number particles per bin
-    integer, intent(in) :: i             ! first bin 
-    integer, intent(in) :: j             ! second bin
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: MH(n_bin)    ! number particles per bin
+    integer, intent(in) :: i            ! first bin 
+    integer, intent(in) :: j            ! second bin
     real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
-    real*8, intent(in) :: del_t          ! timestep (s)
-    type(environ), intent(in) :: env        ! environment state
-    real*8, intent(out) :: n_samp_real   ! number of samples per timestep
-                                         ! for bin-i to bin-j events
+    real*8, intent(in) :: del_t         ! timestep (s)
+    type(environ), intent(in) :: env    ! environment state
+    real*8, intent(out) :: n_samp_real  ! number of samples per timestep
     
     real*8 r_samp
     real*8 n_possible ! use real*8 to avoid integer overflow

@@ -50,8 +50,8 @@ contains
     real*8, intent(in) :: big_num       ! number of big particle
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    integer, intent(inout) :: MH(n_bin)      ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin)  ! particle volumes (m^3)
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
+    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     
     integer i_small, i_big, n_big
 
@@ -75,12 +75,11 @@ contains
     use mod_util
     use mod_constants
     
-    real*8, intent(in) :: d_mean        ! mean diameter of initial distribution (m)
-    real*8, intent(in) :: log_sigma     ! log_e of the geometric standard
-                                        ! deviation of initial distribution (1)
+    real*8, intent(in) :: d_mean        ! mean diameter of initial dist (m)
+    real*8, intent(in) :: log_sigma     ! log_e(geom. std dev(init dist)) (1)
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8,  intent(out) :: n_den(n_bin) ! initial number density (#(ln(r))d(ln(r)))
+    real*8,  intent(out) :: n_den(n_bin) ! init number den (#(ln(r))d(ln(r)))
                                          ! (normalized)
     
     integer k
@@ -104,11 +103,11 @@ contains
     ! Convert a number density (in ln(r)) to actual number of particles
     ! in each bin.
     
-    integer, intent(in) :: N            ! total number of particles (approximate)
+    integer, intent(in) :: N            ! total number of particles (approx)
     real*8, intent(in) :: dlnr          ! bin scale factor
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: n_den(n_bin)  ! initial number density (#(ln(r))d(ln(r)))
+    real*8, intent(in) :: n_den(n_bin)  ! init number density (#(ln(r))d(ln(r)))
                                         ! n_den(n_bin) has to be normalized
     integer, intent(out) :: bin_n(n_bin) ! number distribution
     
@@ -130,10 +129,10 @@ contains
     use mod_bin
     use mod_util
     
-    real*8, intent(in) :: V_0           ! mean volume of initial distribution (m^3)
+    real*8, intent(in) :: V_0           ! mean volume of init dist (m^3)
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin)  ! initial number density (#(ln(r))d(ln(r)))
+    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
     
     integer k
     real*8 n_den_vol

@@ -6,12 +6,12 @@
 module mod_material
 
   type material
-     integer n_spec
-     integer i_water ! water species number
-     real*8, dimension(:), pointer ::  rho ! densities (kg m^{-3})
-     integer, dimension(:), pointer :: nu ! number of ions in the solute
-     real*8, dimension(:), pointer :: eps ! solubilities (1)
-     real*8, dimension(:), pointer :: M_w ! molecular weights (kg mole^{-1})
+     integer :: n_spec                  ! number of species
+     integer :: i_water                 ! water species number
+     real*8, pointer ::  rho(:)         ! densities (kg m^{-3})
+     integer, pointer :: nu(:)          ! number of ions in the solute
+     real*8, pointer :: eps(:)          ! solubilities (1)
+     real*8, pointer :: M_w(:)          ! molecular weights (kg mole^{-1})
   end type material
 
 contains
@@ -20,8 +20,8 @@ contains
 
   subroutine allocate_material(mat, n_spec)
 
-    type(material), intent(inout) :: mat   ! material properties
-    integer, intent(in) :: n_spec          ! number of species
+    type(material), intent(inout) :: mat ! material properties
+    integer, intent(in) :: n_spec       ! number of species
 
     mat%n_spec = n_spec
     allocate(mat%rho(n_spec))
@@ -37,8 +37,8 @@ contains
 
     ! total mass of the particle
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
+    type(material), intent(in) :: mat   ! material properties
     
     real*8 pm
     integer i
@@ -57,7 +57,7 @@ contains
 
     ! total volume of the particle
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
     
     real*8 pv
     integer i, n_spec
@@ -77,9 +77,9 @@ contains
 
     ! returns the volume-average of the non-water elements of quantity
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
-    real*8, dimension(:), intent(in) :: quantity  ! quantity to average
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
+    type(material), intent(in) :: mat   ! material properties
+    real*8, intent(in) :: quantity(:)   ! quantity to average
 
     real*8 :: ones(mat%n_spec)
 
@@ -95,9 +95,9 @@ contains
 
     ! returns the volume-total of the non-water elements of quantity
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
-    real*8, dimension(:), intent(in) :: quantity  ! quantity to total
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
+    type(material), intent(in) :: mat   ! material properties
+    real*8, intent(in) :: quantity(:)   ! quantity to total
 
     real*8 total
     integer i
@@ -118,9 +118,9 @@ contains
 
     ! returns the water element of quantity
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
-    real*8, dimension(:), intent(in) :: quantity  ! quantity to average
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
+    type(material), intent(in) :: mat   ! material properties
+    real*8, intent(in) :: quantity(:)   ! quantity to average
 
     average_water_quantity = quantity(mat%i_water)
 
@@ -132,9 +132,9 @@ contains
 
     ! returns the volume-total of the water element of quantity
 
-    real*8, dimension(:), intent(in) :: V         ! species volumes (m^3)
-    type(material), intent(in) :: mat             ! material properties
-    real*8, dimension(:), intent(in) :: quantity  ! quantity to total
+    real*8, intent(in) :: V(:)          ! species volumes (m^3)
+    type(material), intent(in) :: mat   ! material properties
+    real*8, intent(in) :: quantity(:)   ! quantity to total
 
     total_water_quantity = V(mat%i_water) * quantity(mat%i_water)
 

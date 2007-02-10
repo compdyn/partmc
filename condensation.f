@@ -236,13 +236,13 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(out) :: dt ! timestep to use
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    real*8, intent(out) :: dt           ! timestep to use
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
-    real*8, parameter :: scale = 0.1d0   ! scale factor for timestep
+    real*8, parameter :: scale = 0.1d0  ! scale factor for timestep
 
     real*8 pv, dvdt
 
@@ -261,14 +261,14 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec     ! number of species
-    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    real*8, intent(out) :: dvdt       ! dv/dt (m^3 s^{-1})
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    real*8, intent(out) :: dvdt         ! dv/dt (m^3 s^{-1})
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
-    real*8 :: dmdt_rel_tol = 1d-8        ! relative dm/dt convergence tolerance
-    real*8, parameter :: f_tol = 1d-15   ! function convergence tolerance
+    real*8, parameter :: dmdt_rel_tol = 1d-8 ! relative dm/dt convergence tol
+    real*8, parameter :: f_tol = 1d-15  ! function convergence tolerance
     integer, parameter :: iter_max = 100 ! maximum number of iterations
 
     real*8 dmdt, pm, dmdt_tol
@@ -293,14 +293,14 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec     ! number of species
-    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    real*8, intent(inout) :: x        ! variable (set to inital value on call)
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat ! material properties
-    real*8, intent(in) :: x_tol       ! x convergence tolerance
-    real*8, intent(in) :: f_tol       ! f convergence tolerance
-    integer, intent(in) :: iter_max   ! maximum number of iterations
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    real*8, intent(inout) :: x          ! variable (set to inital value on call)
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
+    real*8, intent(in) :: x_tol         ! x convergence tolerance
+    real*8, intent(in) :: f_tol         ! f convergence tolerance
+    integer, intent(in) :: iter_max     ! maximum number of iterations
 
     interface
        subroutine func(n_spec, V, env, mat, init, x, f, df)
@@ -363,14 +363,14 @@ contains
     use mod_material
     use mod_constants
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
-    logical, intent(in) :: init       ! true if first Newton loop
-    real*8, intent(in) :: dmdt   ! mass growth rate dm/dt (kg s^{-1})
-    real*8, intent(out) :: f  ! error
-    real*8, intent(out) :: df ! derivative of error with respect to x
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
+    logical, intent(in) :: init         ! true if first Newton loop
+    real*8, intent(in) :: dmdt          ! mass growth rate dm/dt (kg s^{-1})
+    real*8, intent(out) :: f            ! error
+    real*8, intent(out) :: df           ! derivative of error with respect to x
     
     ! local variables
     real*8, save :: k_a, k_ap, k_ap_div, D_v, D_v_div, D_vp, d_p, pv
@@ -462,10 +462,10 @@ contains
     use mod_material
     use mod_constants
 
-    integer, intent(in) :: n_spec      ! number of species
-    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    type(environ), intent(in) :: env   ! environment state
-    type(material), intent(in) :: mat  ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     ! parameters
     integer, parameter :: it_max = 400     ! maximum iterations
@@ -498,14 +498,14 @@ contains
     use mod_material
     use mod_constants
 
-    integer, intent(in) :: n_spec     ! number of species
-    real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat ! material properties
-    logical, intent(in) :: init       ! true if first Newton loop
-    real*8, intent(in) :: dw          ! wet diameter (m)
-    real*8, intent(out) :: f          ! function value
-    real*8, intent(out) :: df         ! function derivative df/dx
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
+    logical, intent(in) :: init         ! true if first Newton loop
+    real*8, intent(in) :: dw            ! wet diameter (m)
+    real*8, intent(out) :: f            ! function value
+    real*8, intent(out) :: df           ! function derivative df/dx
 
     real*8, save :: c0, c1, c3, c4, dc0, dc2, dc3
     real*8, save :: A, B

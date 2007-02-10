@@ -10,9 +10,9 @@
 module mod_read_spec
 
   type spec_file
-     character(len=300) :: name  ! filename
-     integer :: unit             ! attached unit
-     integer :: line_num         ! current line number
+     character(len=300) :: name         ! filename
+     integer :: unit                    ! attached unit
+     integer :: line_num                ! current line number
   end type spec_file
 
   logical, parameter :: DEBUG_OUTPUT = .false.
@@ -23,9 +23,9 @@ contains
 
   subroutine open_spec(spec, filename, unit)
 
-    type(spec_file), intent(out) :: spec     ! spec file
+    type(spec_file), intent(out) :: spec ! spec file
     character(len=*), intent(in) :: filename ! name of file to open
-    integer, intent(in) :: unit              ! unit number to use
+    integer, intent(in) :: unit         ! unit number to use
 
     integer ios
 
@@ -44,7 +44,7 @@ contains
 
   subroutine close_spec(spec)
 
-    type(spec_file), intent(in) :: spec     ! spec file
+    type(spec_file), intent(in) :: spec ! spec file
 
     close(spec%unit)
 
@@ -54,9 +54,9 @@ contains
 
   subroutine read_init_dist(spec, dist_type, dist_args)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
+    type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(out) :: dist_type ! type of init distribution
-    real*8, intent(out) :: dist_args(:)     ! distribution parameters
+    real*8, intent(out) :: dist_args(:) ! distribution parameters
 
     call read_string(spec, 'dist_type', dist_type)
     if (trim(dist_type) == 'log_normal') then
@@ -83,8 +83,8 @@ contains
 
     use mod_material
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    type(material), intent(out) :: mat      ! material data
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(out) :: mat  ! material data
 
     integer :: n_spec
 
@@ -104,8 +104,8 @@ contains
 
     use mod_environ
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    type(environ), intent(out) :: env       ! environment data
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(environ), intent(out) :: env   ! environment data
 
     integer :: n_temps
 
@@ -122,9 +122,9 @@ contains
 
   subroutine read_string(spec, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(in) :: name    ! name that should start line
-    character(len=*), intent(out) :: var    ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name ! name that should start line
+    character(len=*), intent(out) :: var ! variable to store data
 
     character(len=300) :: line, rest
     integer :: ios
@@ -143,9 +143,9 @@ contains
 
   subroutine read_integer(spec, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(in) :: name    ! name that should start line
-    integer, intent(out) :: var             ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name ! name that should start line
+    integer, intent(out) :: var         ! variable to store data
 
     character(len=300) :: line, rest
     integer :: ios
@@ -164,9 +164,9 @@ contains
 
   subroutine read_real(spec, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(in) :: name    ! name that should start line
-    real*8, intent(out) :: var              ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name ! name that should start line
+    real*8, intent(out) :: var          ! variable to store data
 
     character(len=300) :: line, rest
     integer :: ios
@@ -185,9 +185,9 @@ contains
 
   subroutine read_logical(spec, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(in) :: name    ! name that should start line
-    logical, intent(out) :: var             ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name ! name that should start line
+    logical, intent(out) :: var         ! variable to store data
 
     character(len=300) :: line, rest
     character(len=20) :: str_var
@@ -224,10 +224,10 @@ contains
 
   subroutine read_integer_array(spec, len, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    integer, intent(in) :: len              ! array length
-    character(len=*), intent(in) :: name    ! name that should start line
-    integer, intent(out) :: var(len)        ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: len          ! array length
+    character(len=*), intent(in) :: name ! name that should start line
+    integer, intent(out) :: var(len)    ! variable to store data
 
     character(len=300) :: line, rest, temp
     integer :: ios, ind, i
@@ -262,10 +262,10 @@ contains
 
   subroutine read_real_array(spec, len, name, var)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    integer, intent(in) :: len              ! array length
-    character(len=*), intent(in) :: name    ! name that should start line
-    real*8, intent(out) :: var(len)         ! variable to store data
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: len          ! array length
+    character(len=*), intent(in) :: name ! name that should start line
+    real*8, intent(out) :: var(len)     ! variable to store data
 
     character(len=300) :: line, rest, temp
     integer :: ios, ind, i
@@ -300,9 +300,9 @@ contains
 
   subroutine check_read_iostat(spec, ios, type)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    integer, intent(in) :: ios              ! iostat result
-    character(len=*), intent(in) :: type    ! type being read during error
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: ios          ! iostat result
+    character(len=*), intent(in) :: type ! type being read during error
 
     if (ios /= 0) then
        write(0,'(a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
@@ -317,8 +317,8 @@ contains
 
   subroutine read_next_data_line(spec, line)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(out) :: line   ! complete line read
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(out) :: line ! complete line read
 
     logical :: done
 
@@ -339,8 +339,8 @@ contains
 
   subroutine read_line(spec, line)
 
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(out) :: line   ! complete line read
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(out) :: line ! complete line read
 
     integer ios
 
@@ -410,10 +410,10 @@ contains
   
   subroutine check_name(spec, line, name, rest)
     
-    type(spec_file), intent(inout) :: spec  ! spec file
-    character(len=*), intent(in) :: line   ! complete input line
-    character(len=*), intent(in) :: name   ! name that should start line
-    character(len=*), intent(out) :: rest  ! remainder of line without name
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: line ! complete input line
+    character(len=*), intent(in) :: name ! name that should start line
+    character(len=*), intent(out) :: rest ! remainder of line without name
     
     integer name_len
 

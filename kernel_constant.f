@@ -14,14 +14,13 @@ contains
 
     use mod_environ
     
-    real*8, intent(in) :: v1  ! volume of first particle
-    real*8, intent(in) :: v2  ! volume of second particle
-    real*8, intent(out) :: k ! coagulation kernel
+    real*8, intent(in) :: v1            ! volume of first particle
+    real*8, intent(in) :: v2            ! volume of second particle
+    type(environ), intent(in) :: env    ! environment state
+    real*8, intent(out) :: k            ! coagulation kernel
     
     real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
     
-    type(environ), intent(in) :: env  ! environment state
-
     k = beta_0
     
   end subroutine kernel_constant
@@ -44,7 +43,6 @@ contains
     real*8, intent(in) :: N_0           ! particle number concentration (#/m^3)
     real*8, intent(in) :: V_0           ! FIXME: what is this?
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
-
     type(environ), intent(in) :: env    ! environment state
     
     real*8 beta_0, tau, T, rat_v, nn, b, x, sigma

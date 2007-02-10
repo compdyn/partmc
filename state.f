@@ -17,9 +17,9 @@ contains
     use mod_util
        
     integer, intent(in) :: state_unit   ! unit number to use for state file
-    character(len=*), intent(in) :: filename       ! input filename
-    integer, intent(out) :: n_bin            ! number of bins
-    integer, intent(out) :: n_spec           ! number of species
+    character(len=*), intent(in) :: filename ! input filename
+    integer, intent(out) :: n_bin       ! number of bins
+    integer, intent(out) :: n_spec      ! number of species
        
     character :: dum*1000
 
@@ -88,13 +88,13 @@ contains
     use mod_util
     
     integer, intent(in) :: state_unit   ! unit number to use for state file
-    character(len=*), intent(in) :: filename       ! input filename
-    integer, intent(in) :: n_bin            ! number of bins
-    integer, intent(in) :: n_spec           ! number of species
-    integer, intent(out) :: MH(n_bin)       ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin)   ! particle volumes (m^3)
-    type(environ), intent(out) :: env       ! environment state
-    real*8, intent(out) :: time             ! current time (s)
+    character(len=*), intent(in) :: filename ! input filename
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(out) :: MH(n_bin)   ! number of particles per bin
+    type(bin_p), intent(out) :: VH(n_bin) ! particle volumes (m^3)
+    type(environ), intent(out) :: env   ! environment state
+    real*8, intent(out) :: time         ! current time (s)
     
     character :: dum*1000
     integer :: i, j, k, dum_int_1, dum_int_2, dum_int_3
@@ -159,7 +159,7 @@ contains
     character(len=*), intent(in) :: state_name ! name of state file
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    real*8, intent(in) :: dlnr               ! bin scale factor
+    real*8, intent(in) :: dlnr          ! bin scale factor
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)

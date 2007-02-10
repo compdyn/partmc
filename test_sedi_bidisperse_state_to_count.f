@@ -13,22 +13,22 @@ program test_sedi_bidisperse_state_to_count
   use mod_state
   use mod_array
 
-  integer, parameter :: out_unit = 33          ! output unit number
-  integer, parameter :: state_unit = 34        ! state file unit number
+  integer, parameter :: out_unit = 33   ! output unit number
+  integer, parameter :: state_unit = 34 ! state file unit number
   character(len=*), parameter :: out_name = "counts_sedi_bidisperse_mc.d"
   character(len=*), parameter :: state_prefix = "state_sedi_bidisperse_mc_"
-  integer, parameter :: n_time = 600           ! number of state files
-  integer, parameter :: time_inc = 10          ! increment for state files
+  integer, parameter :: n_time = 600    ! number of state files
+  integer, parameter :: time_inc = 10   ! increment for state files
   
-  character(len=1000) state_name      ! name of state file to read
-  integer, allocatable :: MH(:)       ! number of particles per bin
-  type(bin_p), allocatable :: VH(:)   ! particle volumes (m^3)
-  integer n_bin                       ! number of bins
-  integer n_spec                      ! number of species
-  real*8, allocatable :: bin_v(:)     ! volume of particles in bins
-  type(environ) :: env                ! environment state
-  real*8 :: time                      ! current time (s)
-  real*8 :: dlnr                      ! bin scale factor
+  character(len=1000) :: state_name     ! name of state file to read
+  integer, allocatable :: MH(:)         ! number of particles per bin
+  type(bin_p), allocatable :: VH(:)     ! particle volumes (m^3)
+  integer :: n_bin                      ! number of bins
+  integer :: n_spec                     ! number of species
+  real*8, allocatable :: bin_v(:)       ! volume of particles in bins
+  type(environ) :: env                  ! environment state
+  real*8 :: time                        ! current time (s)
+  real*8 :: dlnr                        ! bin scale factor
 
   integer i, j, k, n_small
   real*8 v_big

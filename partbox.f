@@ -76,36 +76,37 @@ contains
     type(bin_p), allocatable ::  VH(:)
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
     real*8 :: dlnr, t_wall_start
+
+    character(len=300) :: output_name   ! name of output files
+    integer :: n_loop                   ! number of Monte Carlo loops
+    real*8 :: N_0                       ! particle concentration (#/m^3)
+    character(len=100) :: kernel_name   ! coagulation kernel name
     
-    character(len=300) :: output_name ! name of output files
-    integer :: n_loop             ! number of Monte Carlo loops
-    real*8 :: N_0                 ! particle concentration (#/m^3)
-    character(len=100) :: kernel_name ! coagulation kernel name
+    real*8 :: t_max                     ! total simulation time (s)
+    real*8 :: del_t                     ! timestep (s)
+    real*8 :: t_output                  ! output interval (0 disables) (s)
+    real*8 :: t_state                   ! state output interval (0 disables) (s)
+    real*8 :: t_progress                ! progress interval (0 disables) (s)
     
-    real*8 :: t_max               ! total simulation time (s)
-    real*8 :: del_t               ! timestep (s)
-    real*8 :: t_output            ! output interval (0 disables) (s)
-    real*8 :: t_state             ! state output interval (0 disables) (s)
-    real*8 :: t_progress          ! progress printing interval (0 disables) (s)
+    type(material) :: mat               ! material data
+    type(environ) :: env                ! environment data
     
-    type(material) :: mat         ! material data
-    type(environ) :: env          ! environment data
-    
-    integer :: n_init_dist        ! number of initial distributions
+    integer :: n_init_dist              ! number of initial distributions
     integer, allocatable :: dist_n_part(:) ! distribution particle numbers
     character(len=100), allocatable :: dist_types(:) ! distribution names
     real*8, allocatable :: dist_args(:,:) ! distribution arguments
     real*8, allocatable :: dist_vol_frac(:,:) ! distribution composition
     
-    integer :: n_bin              ! number of bins
-    real*8 :: v_min               ! volume of smallest bin (m^3)
-    integer :: scal               ! scale factor (integer)
+    integer :: n_bin                    ! number of bins
+    real*8 :: v_min                     ! volume of smallest bin (m^3)
+    integer :: scal                     ! scale factor (integer)
     
-    integer :: rand_init          ! random initialization (0 to auto-init)
-    logical :: do_coagulation     ! do coagulation? (yes/no)
-    logical :: do_condensation    ! do condensation? (yes/no)
-    logical :: do_restart         ! restart from stored state? (yes/no)
-    character(len=300) :: restart_name ! filename to restart from
+    integer :: rand_init                ! random initialization (0 to auto-init)
+    logical :: do_coagulation           ! do coagulation? (yes/no)
+    logical :: allow_double             ! allow doubling? (yes/no)
+    logical :: do_condensation          ! do condensation? (yes/no)
+    logical :: do_restart               ! restart from stored state? (yes/no)
+    character(len=300) :: restart_name  ! filename to restart from
     
     call read_string(spec, 'output_name', output_name)
     call read_integer(spec, 'n_loop', n_loop)
@@ -139,6 +140,7 @@ contains
     
     call read_integer(spec, 'rand_init', rand_init)
     call read_logical(spec, 'do_coagulation', do_coagulation)
+    call read_logical(spec, 'allow_double', allow_double)
     call read_logical(spec, 'do_condensation', do_condensation)
     call read_logical(spec, 'do_restart', do_restart)
     call read_string(spec, 'restart_name', restart_name)
@@ -168,10 +170,15 @@ contains
        call zero_array(mat%n_spec, MH, VH)
        
        do i = 1,n_init_dist
-          call init_dist(dist_types(i), dist_args(i,:), n_bin, bin_v, n_den)
-          call dist_to_n(dist_n_part(i), dlnr, n_bin, bin_v, n_den, bin_n)
-          call add_particles(n_bin, mat%n_spec, dist_vol_frac(i,:), &
-               bin_v, bin_n, MH, VH)
+          if (trim(dist_types(i)) == "bidisperse") then
+             call init_bidisperse(MM, dist_args(i,1), dist_args(i,2), &
+                  dist_args(i,3), n_bin, bin_v, MH, VH)
+          else
+             call init_dist(dist_types(i), dist_args(i,:), n_bin, bin_v, n_den)
+             call dist_to_n(dist_n_part(i), dlnr, n_bin, bin_v, n_den, bin_n)
+             call add_particles(n_bin, mat%n_spec, dist_vol_frac(i,:), &
+                  bin_v, bin_n, MH, VH)
+          end if
        end do
 
        M = sum(MH)
@@ -179,7 +186,6 @@ contains
        
        ! equlibriate all particles if condensation is active
        if (do_condensation) then
-	write(6,*)'equilibriate '
           do i_bin = 1,n_bin
              do i = 1,MH(i_bin)
                 call equilibriate_particle(mat%n_spec, VH(i_bin)%p(i,:), &
@@ -187,34 +193,33 @@ contains
              end do
           end do
        end if
-       write(6,*)'equilibriate done '
-
+       
        if (trim(kernel_name) == 'sedi') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, do_condensation, &
+               output_name, do_coagulation, allow_double, do_condensation, &
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, do_condensation, &
+               output_name, do_coagulation, allow_double, do_condensation, &
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, do_condensation, &
+               output_name, do_coagulation, allow_double, do_condensation, &
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, do_condensation, &
+               output_name, do_coagulation, allow_double, do_condensation, &
                do_restart, restart_name, i_loop, n_loop, t_wall_start, &
                env, mat)
        else
@@ -249,21 +254,21 @@ contains
     real*8, allocatable :: bin_g_den(:), bin_gs_den(:,:), bin_n_den(:)
     real*8 :: dlnr
     
-    character(len=300) :: output_name ! name of output files
-    real*8 :: N_0                 ! particle concentration (#/m^3)
+    character(len=300) :: output_name   ! name of output files
+    real*8 :: N_0                       ! particle concentration (#/m^3)
 
-    character(len=100) :: soln_name ! exact solution name
-    real*8 :: mean_vol            ! mean volume of initial distribution
+    character(len=100) :: soln_name     ! exact solution name
+    real*8 :: mean_vol                  ! mean volume of initial distribution
     
-    real*8 :: t_max               ! total simulation time (s)
-    real*8 :: t_output            ! output interval (0 disables) (s)
+    real*8 :: t_max                     ! total simulation time (s)
+    real*8 :: t_output                  ! output interval (0 disables) (s)
     
-    type(material) :: mat         ! material data
-    type(environ) :: env          ! environment data
+    type(material) :: mat               ! material data
+    type(environ) :: env                ! environment data
 
-    integer :: n_bin              ! number of bins
-    real*8 :: v_min               ! volume of smallest bin (m^3)
-    integer :: scal               ! scale factor (integer)
+    integer :: n_bin                    ! number of bins
+    real*8 :: v_min                     ! volume of smallest bin (m^3)
+    integer :: scal                     ! scale factor (integer)
     
     call read_string(spec, 'output_name', output_name)
     call read_real(spec, 'N_0', N_0)
@@ -341,24 +346,24 @@ contains
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
     real*8 :: dlnr
     
-    character(len=300) :: output_name ! name of output files
-    real*8 :: N_0                 ! particle concentration (#/m^3)
-    character(len=100) :: kernel_name ! coagulation kernel name
+    character(len=300) :: output_name   ! name of output files
+    real*8 :: N_0                       ! particle concentration (#/m^3)
+    character(len=100) :: kernel_name   ! coagulation kernel name
     
-    real*8 :: t_max               ! total simulation time (s)
-    real*8 :: del_t               ! timestep (s)
-    real*8 :: t_output            ! output interval (0 disables) (s)
-    real*8 :: t_progress          ! progress printing interval (0 disables) (s)
+    real*8 :: t_max                     ! total simulation time (s)
+    real*8 :: del_t                     ! timestep (s)
+    real*8 :: t_output                  ! output interval (0 disables) (s)
+    real*8 :: t_progress                ! progress interval (0 disables) (s)
     
-    type(material) :: mat         ! material data
-    type(environ) :: env          ! environment data
+    type(material) :: mat               ! material data
+    type(environ) :: env                ! environment data
     
-    character(len=100) :: dist_type ! initial distribution
-    real*8 :: dist_args(max_dist_args) ! distribution arguments
+    character(len=100) :: dist_type     ! initial distribution
+    real*8 :: dist_args(max_dist_args)  ! distribution arguments
     
-    integer :: n_bin              ! number of bins
-    real*8 :: v_min               ! volume of smallest bin (m^3)
-    integer :: scal               ! scale factor (integer)
+    integer :: n_bin                    ! number of bins
+    real*8 :: v_min                     ! volume of smallest bin (m^3)
+    integer :: scal                     ! scale factor (integer)
     
     call read_string(spec, 'output_name', output_name)
     call read_real(spec, 'N_0', N_0)

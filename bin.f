@@ -16,10 +16,10 @@ contains
     
     ! Computes the kernel for each bin pair
     
-    integer, intent(in) :: n_bin            ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)      ! volume of particles in bins (m^3)
-    real*8, intent(out) :: k(n_bin,n_bin)   ! kernel values
-    type(environ), intent(in) :: env        ! environment state
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: k(n_bin,n_bin) ! kernel values
+    type(environ), intent(in) :: env    ! environment state
 
     interface
        subroutine kernel(v1, v2, env, k)
@@ -50,9 +50,9 @@ contains
     
     use mod_constants
     
-    real*8, intent(in) :: r                  ! radius (m)
-    real*8, intent(in) :: f_vol              ! density as a function of volume
-    real*8, intent(out) :: f_lnr              ! density as a function of ln(r)
+    real*8, intent(in) :: r             ! radius (m)
+    real*8, intent(in) :: f_vol         ! density as a function of volume
+    real*8, intent(out) :: f_lnr        ! density as a function of ln(r)
     
     f_lnr = f_vol * 4d0 * const%pi * r**3
     
@@ -66,8 +66,8 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: scal         ! scale factor
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
-    real*8, intent(out) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: dlnr          ! scale factor
+    real*8, intent(out) :: bin_v(n_bin) ! volume of particles in bins (m^3)
+    real*8, intent(out) :: dlnr         ! scale factor
     
     integer i
     real*8 ax
@@ -76,8 +76,7 @@ contains
     ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
     
     do i = 1,n_bin
-       ! volume (m^3)
-       bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)
+       bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)  ! (m^3)
     end do
     
   end subroutine make_bin_grid
@@ -86,10 +85,10 @@ contains
   
   subroutine bin_edge(n_bin, bin_v, i, v_edge)
     
-    integer, intent(in) :: n_bin             ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    integer, intent(in) :: i                 ! edge number (1 <= i <= n_bin + 1)
-    real*8, intent(out) :: v_edge             ! volume at edge
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
+    real*8, intent(out) :: v_edge       ! volume at edge
     
     if (i .eq. 1) then
        v_edge = bin_v(1) - (bin_v(2) - bin_v(1)) / 2d0
@@ -104,13 +103,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine particle_in_bin(v, n_bin, bin_v, k)
-    ! FIXME: for log-spaced bins we can do this without search
     
     real*8, intent(in) :: v             ! volume of particle
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     integer, intent(out) :: k            ! bin number containing particle
     
+    ! FIXME: for log-spaced bins we can do this without search, but we
+    ! plan to switch to arbitrary bins at some point, so maybe just
+    ! leave it like it is for now.
+
     k = 0
 300 k = k + 1
     if ((k .lt. n_bin) .and. &
@@ -122,10 +124,10 @@ contains
   
   subroutine bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
     
-    integer, intent(in) :: n_bin             ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    integer, intent(in) :: bin_n(n_bin)      ! number in bins
-    real*8, intent(out) :: bin_g(n_bin)      ! volume in bins
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    integer, intent(in) :: bin_n(n_bin) ! number in bins
+    real*8, intent(out) :: bin_g(n_bin) ! volume in bins
     
     integer i
     
@@ -141,13 +143,12 @@ contains
    
     use mod_environ
  
-    integer, intent(in) :: n_bin             ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    integer, intent(in) :: b1                ! first bin
-    integer, intent(in) :: b2                ! second bin
-    real*8, intent(out) :: k_max              ! maximum kernel values
-
-    type(environ), intent(in) :: env  ! environment state    
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    integer, intent(in) :: b1           ! first bin
+    integer, intent(in) :: b2           ! second bin
+    type(environ), intent(in) :: env    ! environment state    
+    real*8, intent(out) :: k_max        ! maximum kernel values
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -192,10 +193,10 @@ contains
 
     use mod_environ
     
-    integer, intent(in) :: n_bin             ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    real*8, intent(out) :: k_max(n_bin,n_bin) ! maximum kernel values
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     type(environ), intent(in) :: env  ! environment state
+    real*8, intent(out) :: k_max(n_bin,n_bin) ! maximum kernel values
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -223,12 +224,12 @@ contains
   subroutine output_open(output_unit, output_name, n_loop, n_bin, &
        n_spec, n_time)
 
-    integer, intent(in) :: output_unit ! unit number to output to
-    character(len=300) :: output_name ! name of output
-    integer, intent(in) :: n_loop  ! number of loops
-    integer, intent(in) :: n_bin   ! number of bins
-    integer, intent(in) :: n_time  ! number of times
-    integer, intent(in) :: n_spec  ! number of species
+    integer, intent(in) :: output_unit  ! unit number to output to
+    character(len=300) :: output_name   ! name of output
+    integer, intent(in) :: n_loop       ! number of loops
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    integer, intent(in) :: n_time       ! number of times
 
     character(len=300) :: out_file_name
 
@@ -282,17 +283,16 @@ contains
     use mod_environ
     use mod_util
     
-    integer, intent(in) :: output_unit   ! unit number to output to
-    real*8, intent(in) :: time           ! simulation time
-    integer, intent(in) :: n_bin         ! number of bins
-    integer, intent(in) :: n_spec        ! number of species
-    real*8, intent(in) :: bin_v(n_bin)   ! volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_g_den(n_bin) ! volume density in bins (dimensionless)
-    real*8, intent(in) :: bin_gs_den(n_bin,n_spec) ! species volume density in bins
-    ! (dimensionless)
-    real*8, intent(in) :: bin_n_den(n_bin)  ! number density in bins (1/m^3)
-    type(environ), intent(in) :: env  ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: output_unit  ! unit number to output to
+    real*8, intent(in) :: time          ! simulation time
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_g_den(n_bin) ! volume density in bins (1)
+    real*8, intent(in) :: bin_gs_den(n_bin,n_spec) ! spec vol den in bins (1)
+    real*8, intent(in) :: bin_n_den(n_bin) ! number density in bins (1/m^3)
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
     
     integer k
     

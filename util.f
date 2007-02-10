@@ -228,7 +228,8 @@ contains
 
     open(unit=unit, file=filename, status='old', iostat=ios)
     if (ios /= 0) then
-       write(0,*) 'ERROR: unable to open file ', filename, ': IOSTAT = ', ios
+       write(0,*) 'ERROR: unable to open file ', trim(filename), &
+            ': IOSTAT = ', ios
        call exit(1)
     end if
 

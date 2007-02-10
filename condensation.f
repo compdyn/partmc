@@ -18,18 +18,18 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_bin ! number of bins
+    integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: del_t         ! total time to integrate
-    real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(inout) :: bin_g(n_bin) ! volume in bins  
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(inout) :: bin_n(n_bin)      ! number in bins
-    real*8, intent(in) :: dlnr                  ! bin scale factor
-    type(environ), intent(inout) :: env  ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(inout) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(environ), intent(inout) :: env ! environment state
+    type(material), intent(in) :: mat   ! material properties
     
     ! local variables
     integer bin, j, new_bin, k
@@ -70,11 +70,11 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: del_t ! total time to integrate
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
+    real*8, intent(in) :: del_t         ! total time to integrate
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     real*8 time_step, time
     logical done
@@ -105,13 +105,13 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: max_dt ! maximum timestep to integrate
-    real*8, intent(out) :: dt ! actual timestep used
-    logical, intent(out) :: done ! whether we reached the maximum timestep
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
+    real*8, intent(in) :: max_dt        ! maximum timestep to integrate
+    real*8, intent(out) :: dt           ! actual timestep used
+    logical, intent(out) :: done        ! did we reach the maximum timestep?
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     real*8 dvdt
 
@@ -141,13 +141,13 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(in) :: max_dt ! maximum timestep to integrate
-    real*8, intent(out) :: dt ! actual timestep used
-    logical, intent(out) :: done ! whether we reached the maximum timestep
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
+    real*8, intent(in) :: max_dt        ! maximum timestep to integrate
+    real*8, intent(out) :: dt           ! actual timestep used
+    logical, intent(out) :: done        ! did we reach the maximum timestep?
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     done = .false.
     call find_condense_timestep_variable(n_spec, V, dt, env, mat)
@@ -169,11 +169,11 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(inout) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(out) :: dt ! timestep
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
+    real*8, intent(out) :: dt           ! timestep
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     ! local variables
     real*8 k1, k2, k3, k4
@@ -216,11 +216,11 @@ contains
     use mod_environ
     use mod_material
 
-    integer, intent(in) :: n_spec ! number of species
-    real*8, intent(in) :: V(n_spec) ! particle volumes (m^3)
-    real*8, intent(out) :: dt ! timestep to use
-    type(environ), intent(in) :: env     ! environment state
-    type(material), intent(in) :: mat    ! material properties
+    integer, intent(in) :: n_spec       ! number of species
+    real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
+    real*8, intent(out) :: dt           ! timestep to use
+    type(environ), intent(in) :: env    ! environment state
+    type(material), intent(in) :: mat   ! material properties
 
     dt = 5d-3
 

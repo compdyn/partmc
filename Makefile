@@ -22,7 +22,7 @@ ifeq ($(FC),pgf95)
 endif
 
 PROGS = process_out process_state test_sedi_bidisperse_ode average	\
-	partbox
+	partbox test_sedi_bidisperse_state_to_count
 
 OTHER = array bin condensation constants environ init_dist	\
 	kernel_golovin kernel_sedi kernel_constant kernel_brown	\

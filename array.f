@@ -72,7 +72,7 @@ contains
     ! Enlarges the given bin (which must be allocated) by at least one
     ! element (currently doubles the length).
 
-    type(bin_p), intent(inout) :: bin  ! bin data
+    type(bin_p), intent(inout) :: bin   ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
@@ -89,14 +89,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine enlarge_bin_to(bin, n)
+
+    ! Enlarges the given bin so that it is at least of size n.
+
+    type(bin_p), intent(inout) :: bin   ! bin data
+    integer, intent(in) :: n            ! minimum new size of bin
+
+    do while (size(bin%p,1) < n)
+       call enlarge_bin(bin)
+    end do
+
+  end subroutine enlarge_bin_to
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine shrink_bin(n_used, bin)
 
     ! Possibly shrinks the storage of the given bin, ensuring that it
     ! is at least of length n_used (currently halves the length or
     ! does nothing).
 
-    integer, intent(in) :: n_used      ! number of used entries in bin
-    type(bin_p), intent(inout) :: bin  ! bin data
+    integer, intent(in) :: n_used       ! number of used entries in bin
+    type(bin_p), intent(inout) :: bin   ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
@@ -122,7 +137,7 @@ contains
     ! them to the VH array
     
     use mod_bin
-    
+
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: vol_frac(n_spec) ! composition of particles
@@ -141,9 +156,7 @@ contains
        do i = 1,bin_n(k)
           pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
           MH(k) = MH(k) + 1
-          if (MH(k) .gt. size(VH(k)%p,1)) then
-             call enlarge_bin(VH(k))
-          end if
+          call enlarge_bin_to(VH(k), MH(k))
           VH(k)%p(MH(k),:) = vol_frac / total_vol_frac * pv
        end do
     end do
@@ -164,8 +177,8 @@ contains
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(out) :: bin_g(n_bin)  ! volume in bins
-    real*8, intent(out) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    real*8, intent(out) :: bin_g(n_bin) ! volume in bins
+    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(out) :: bin_n(n_bin) ! number in bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     
@@ -195,12 +208,12 @@ contains
     use mod_material
     use mod_bin
     
-    integer, intent(in) :: n_bin ! number of bins
-    integer, intent(in) :: n_spec ! number of species
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin) ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr ! bin scale factor
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
     integer bin, j, new_bin, k
     real*8 pv
@@ -222,9 +235,7 @@ contains
           if (bin .ne. new_bin) then
              ! move the particle to the new bin, leaving a hole
              MH(new_bin) = MH(new_bin) + 1
-             if (MH(new_bin) .gt. size(VH(new_bin)%p,1)) then
-                call enlarge_bin(VH(new_bin))
-             end if
+             call enlarge_bin_to(VH(new_bin), MH(new_bin))
              VH(new_bin)%p(MH(new_bin),:) = VH(bin)%p(j,:)
              
              ! copy the last particle in the current bin into the hole
@@ -270,26 +281,25 @@ contains
     use mod_util
     use mod_environ
 
-    integer, intent(inout) :: M            ! number of particles
+    integer, intent(inout) :: M         ! number of particles
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    real*8, intent(inout) :: bin_g(n_bin) ! volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(inout) :: bin_n(n_bin) ! number in bins
     real*8, intent(in) :: dlnr          ! bin scale factor
-    type(environ), intent(in) :: env        ! environment state
+    type(environ), intent(in) :: env    ! environment state
     
     integer, intent(in) :: b1           ! bin of first particle
     integer, intent(in) :: b2           ! bin of second particle
     real*8, intent(in) :: del_t         ! timestep
     real*8, intent(in) :: k_max         ! k_max scale factor
-    ! external, intent(in) :: kernel      ! kernel function
-    logical, intent(out) :: did_coag     ! whether a coagulation occured
-    logical, intent(out) :: bin_change   ! whether bin structure changed
+    logical, intent(out) :: did_coag    ! whether a coagulation occured
+    logical, intent(out) :: bin_change  ! whether bin structure changed
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -334,13 +344,13 @@ contains
     
     use mod_util
 
-    integer, intent(in) :: n_bin     ! number of bins
-    integer, intent(in) :: MH(n_bin) ! number particles per bin
-    integer, intent(in) :: b1        ! bin number of first particle
-    integer, intent(in) :: b2        ! bin number of second particle
-    integer, intent(out) :: s1       ! first random particle 1 <= s1 <= M(b1)
-    integer, intent(out) :: s2       ! second random particle 1 <= s2 <= M(b2)
-                                     !         (b1,s1) != (b2,s2)
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: MH(n_bin)    ! number particles per bin
+    integer, intent(in) :: b1           ! bin number of first particle
+    integer, intent(in) :: b2           ! bin number of second particle
+    integer, intent(out) :: s1          ! first rand particle 1 <= s1 <= M(b1)
+    integer, intent(out) :: s2          ! second rand particle 1 <= s2 <= M(b2)
+                                        !         (b1,s1) != (b2,s2)
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
@@ -367,15 +377,15 @@ contains
     use mod_bin
     use mod_environ
     
-    integer, intent(inout) :: M            ! number of particles
+    integer, intent(inout) :: M         ! number of particles
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec)  ! species volume in bins
+    real*8, intent(inout) :: bin_g(n_bin) ! volume in bins
+    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(inout) :: bin_n(n_bin) ! number in bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     
@@ -385,7 +395,7 @@ contains
     integer, intent(in) :: s2           ! second particle (number in bin)
     type(environ), intent(in) :: env    ! environment state
     logical, intent(out) :: bin_change  ! whether an empty bin filled,
-    !         or a filled bin became empty
+                                        ! or a filled bin became empty
     
     integer bn, i, j
     real*8 new_v(n_spec), pv1, pv2, new_v_tot
@@ -428,10 +438,8 @@ contains
        call exit(2)
     end if
     MH(bn) = MH(bn) + 1          ! increase the length of array
-    if (MH(bn) > size(VH(bn)%p,1)) then
-       call enlarge_bin(VH(bn))
-    end if
-    VH(bn)%p(MH(bn),:) = new_v  ! add the new particle at the end
+    call enlarge_bin_to(VH(bn), MH(bn))
+    VH(bn)%p(MH(bn),:) = new_v   ! add the new particle at the end
     M = M - 1                    ! decrease the total number of particles
     
     ! add new particle to bins
@@ -461,29 +469,25 @@ contains
 
     use mod_environ
     
-    integer, intent(inout) :: M            ! number of particles
+    integer, intent(inout) :: M         ! number of particles
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin)    ! number of particles per bin
+    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
      
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin)  ! volume in bins
+    real*8, intent(inout) :: bin_g(n_bin) ! volume in bins
     real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
     integer, intent(inout) :: bin_n(n_bin) ! number in bins
-    type(environ), intent(inout) :: env        ! environment state 
+    type(environ), intent(inout) :: env ! environment state 
     real*8, intent(in) :: dlnr          ! bin scale factor
     
     integer i, k, i_spec
     
     ! double VH and associated structures
     do k = 1,n_bin
-       do i = 1,MH(k)
-          if (i + MH(k) > size(VH(k)%p,1)) then
-             call enlarge_bin(VH(k))
-          end if
-          VH(k)%p(i + MH(k), :) = VH(k)%p(i, :)
-       end do
+       call enlarge_bin_to(VH(k), 2 * MH(k))
+       VH(k)%p((MH(k)+1):, :) = VH(k)%p(1:MH(k), :)
        MH(k) = 2 * MH(k)
     end do
     M = 2 * M
@@ -514,11 +518,11 @@ contains
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
     
-    real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin)       ! volume in bins  
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins             
-    integer, intent(out) :: bin_n(n_bin)      ! number in bins
-    real*8, intent(in) :: dlnr               ! bin scale factor
+    integer, intent(out) :: bin_n(n_bin) ! number in bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
     
     real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
     integer i, k, k_check, M_check, s

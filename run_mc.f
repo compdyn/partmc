@@ -13,8 +13,8 @@ contains
   subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, bin_v, bin_g, &
        bin_gs, bin_n, dlnr, kernel, t_max, t_output, t_state, &
        t_progress, del_t, output_unit, state_unit, state_name, &
-       do_coagulation, do_condensation, do_restart, restart_name, &
-       i_loop, n_loop, t_wall_start, env, mat)
+       do_coagulation, allow_double, do_condensation, do_restart, &
+       restart_name, i_loop, n_loop, t_wall_start, env, mat)
     
     use mod_util
     use mod_array
@@ -28,7 +28,7 @@ contains
     integer, intent(inout) :: M              ! actual number of particles
     integer, intent(in) :: n_spec            ! number of species
     integer, intent(in) :: n_bin             ! number of bins
-    integer, intent(inout) :: MH(n_bin)        ! number of particles per bin
+    integer, intent(inout) :: MH(n_bin)      ! number of particles per bin
     type(bin_p), intent(inout) :: VH(n_bin)  ! particle volumes (m^3)
     
     real*8, intent(in) :: bin_v(n_bin)       ! volume of particles in bins (m^3)
@@ -50,6 +50,7 @@ contains
     character(len=*), intent(in) :: state_name ! name for state files
     
     logical, intent(in) :: do_coagulation    ! whether to do coagulation
+    logical, intent(in) :: allow_double      ! allow doubling if needed
     logical, intent(in) :: do_condensation   ! whether to do condensation
     logical, intent(in) :: do_restart        ! whether to restart from state
     character(len=*), intent(in) :: restart_name ! name of state to restart from
@@ -88,10 +89,12 @@ contains
             MH, VH, env, time)
        i_time = nint(time / del_t)
        M = sum(MH)
-       do while (M .lt. MM / 2)
-          call double(M, n_bin, MH, VH, n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env)
-       end do
+       if (allow_double) then
+          do while (M .lt. MM / 2)
+             call double(M, n_bin, MH, VH, n_spec, &
+                  bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+          end do
+       end if
     end if
     
     call moments(n_bin, n_spec, MH, VH, bin_v, &
@@ -117,7 +120,7 @@ contains
        if (do_coagulation) then
           call mc_coag(MM, M, n_spec, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, &
-               env, mat, tot_n_samp, n_coag)
+               allow_double, env, mat, tot_n_samp, n_coag)
        end if
 
        tot_n_coag = tot_n_coag + n_coag
@@ -129,7 +132,7 @@ contains
        
        ! DEBUG: enable to check array handling
        ! call check_array(M, n_bin, n_spec, MH, VH, bin_v, &
-       !     bin_g, bin_gs, bin_n, dlnr)
+       !      bin_g, bin_gs, bin_n, dlnr)
        ! DEBUG: end
        
        i_time = i_time + 1
@@ -174,8 +177,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine mc_coag(MM, M, n_spec, n_bin, MH, VH, bin_v, &
-       bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, env, mat, &
-       tot_n_samp, n_coag)
+       bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, allow_double, &
+       env, mat, tot_n_samp, n_coag)
 
     use mod_util
     use mod_array
@@ -196,6 +199,7 @@ contains
     real*8, intent(in) :: dlnr               ! bin scale factor
     real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
     real*8, intent(in) :: del_t              ! timestep for coagulation
+    logical, intent(in) :: allow_double      ! allow doubling if needed
     type(environ), intent(inout) :: env      ! environment state
     type(material), intent(in) :: mat        ! material properties
     integer, intent(out) :: tot_n_samp       ! total number of samples tested
@@ -236,13 +240,15 @@ contains
           enddo
        enddo
     enddo
-    
+
     ! if we have less than half the maximum number of particles
     ! then double until we fill up the array
-    do while (M .lt. MM / 2)
-       call double(M, n_bin, MH, VH,  n_spec, &
-            bin_v, bin_g, bin_gs, bin_n, dlnr, env)
-    end do
+    if (allow_double) then
+       do while (M .lt. MM / 2)
+          call double(M, n_bin, MH, VH,  n_spec, &
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+       end do
+    end if
     
   end subroutine mc_coag
 

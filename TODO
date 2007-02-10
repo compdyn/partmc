@@ -6,7 +6,7 @@ Make sure all functions have a description at the top of them - Matt
 
 Make dust_salt testcase with condensation and process_state - Nicole
 
-Make sedi_bidisperse testcase - Matt
+Sectional code dies because it accesses c in courant before init - Matt
 
 -----------------------------------------------------------------------------
 
@@ -20,15 +20,16 @@ should instead multiply the density by ln(bin_right_edge) -
 ln(bin_left_edge) or similar. In general, we should stop passing dlnr
 around, as it should be recalculable from bin_r for each bin.
 
-use HDF or CDF or something to store state
+Use HDF or CDF or something to store state.
 
-get a better bessel function so that we can compute the exact golovin
+Get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.
 
 Make a bin structure to store all the bin data. Add bin_edges so that
 we have bin_centers and bin_edges. Use a 1D_search to locate particle
 in bin. Compute the bin_centers and bin_edges using something like
-logspace(1e-24,1e-4,160).
+logspace(1e-24,1e-4,160), rather than always assuming logarithmically
+spaced bins.
 
 We keep track of M all the time (total number of particles). Should we
 just recalc from sum(MH) when we need it? When do we even need it? For

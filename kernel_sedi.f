@@ -36,7 +36,7 @@ contains
     call fall_g(r2, winf2) ! winf2 in m/s
     call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
-    return
+
   end subroutine kernel_sedi
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,7 +101,6 @@ contains
     end if
     w_inf = w_inf / 100d0
     
-    return
   end subroutine fall_g
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -206,7 +205,6 @@ contains
     
     if (ec .lt. 1d-20) stop 99
     
-    return
   end subroutine effic
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -11,13 +11,14 @@ kernel_brown.o: environ.o constants.o material.o util.o
 kernel_sedi.o: environ.o constants.o material.o util.o
 state.o: environ.o array.o util.o constants.o material.o bin.o
 run_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
-init_dist.o: util.o constants.o bin.o environ.o material.o
+init_dist.o: array.o bin.o util.o constants.o material.o environ.o
 run_mc.o: util.o array.o condensation.o environ.o material.o state.o constants.o bin.o
 read_spec.o: material.o environ.o constants.o util.o
 bin.o: environ.o constants.o material.o util.o
 util.o: constants.o
 run_exact.o: bin.o array.o environ.o material.o constants.o util.o
 condensation.o: array.o bin.o environ.o material.o util.o constants.o
+test_sedi_bidisperse_state_to_count.o: environ.o material.o state.o array.o constants.o util.o bin.o
 partbox.o: read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 environ.o: constants.o material.o util.o
 
@@ -35,3 +36,6 @@ average: average.o
 
 partbox: partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 	$(FC) $(LDFLAGS) -o $@ partbox.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
+
+test_sedi_bidisperse_state_to_count: test_sedi_bidisperse_state_to_count.o environ.o material.o state.o array.o constants.o util.o bin.o
+	$(FC) $(LDFLAGS) -o $@ test_sedi_bidisperse_state_to_count.o environ.o material.o state.o array.o constants.o util.o bin.o

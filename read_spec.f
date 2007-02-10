@@ -64,6 +64,10 @@ contains
        call read_real(spec, 'dist_std_dev', dist_args(2))
     elseif (trim(dist_type) == 'exp') then
        call read_real(spec, 'dist_mean_vol', dist_args(1))
+    elseif (trim(dist_type) == 'bidisperse') then
+       call read_real(spec, 'dist_small_vol', dist_args(1))
+       call read_real(spec, 'dist_big_vol', dist_args(2))
+       call read_real(spec, 'dist_big_num', dist_args(3))
     else
        write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
             trim(dist_type), ' in file ', trim(spec%name), &

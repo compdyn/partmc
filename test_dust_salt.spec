@@ -4,7 +4,7 @@ n_loop 1                        # number of Monte Carlo loops
 N_0 1d9                         # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
-t_max 60                       # total simulation time (s)
+t_max 800                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 10                    # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
@@ -14,7 +14,7 @@ n_spec 3                        # number of species
 i_water 3                       # species number that is water
 rho 2165 2650 1000              # density of species (kg/m^3)
 nu 2 2 0                        # number of ions in solution of each species (1)
-eps 1 0.05 0                     # solubility of species (1)
+eps 1 0.5 0                     # solubility of species (1)
 M_w 58.44d-3 60.08d-3 18d-3     # molecular weight of species (kg/mole)
 
 n_temps 2                       # number of temperature set-points

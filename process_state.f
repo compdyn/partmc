@@ -83,13 +83,13 @@ program process_state
            spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
        call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
           bin_n_mixed, bin_g_mixed)
-       write(6,*) 'volume in pure species 1: ', sum(bin_g_mixed(:,1))
-       write(6,*) 'volume in pure species 2: ', sum(bin_g_mixed(:,2))
-       write(6,*) 'volume in mixed: ', sum(bin_g_mixed(:,3))
-       write(6,*) 'volume total: ', sum(bin_g)
-       write(6,*) 'volume in species: ', sum(bin_gs,1)
+       write(6,*) 'volume density in pure species 1: ', sum(bin_g_mixed(:,1))/env%V_comp
+       write(6,*) 'volume density in pure species 2: ', sum(bin_g_mixed(:,2))/env%V_comp
+       write(6,*) 'volume density in mixed: ', sum(bin_g_mixed(:,3))/env%V_comp
+       write(6,*) 'volume density total: ', sum(bin_g)/env%V_comp
+       write(6,*) 'volume density in species: ', sum(bin_gs,1)/env%V_comp
    else
-       write(6,*) 'volume total: ', sum(bin_g)
+       write(6,*) 'volume density total: ', sum(bin_g)/env%V_comp
    endif
 
 contains

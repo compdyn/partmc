@@ -139,6 +139,8 @@ contains
              end if
              read(state_unit,'(i12,i12,i12,e30.20)') &
                   dum_int_1, dum_int_2, dum_int_3, VH(i)%p(j,k)
+             write(*,'(i12,i12,i12,e30.20)') &
+                  i,j,k, VH(i)%p(j,k)
           end do
        end do
     end do

@@ -68,12 +68,13 @@ contains
        end subroutine kernel
     end interface
     
-    real*8 time, last_output_time, last_state_time, last_progress_time
+    real*8 time, pre_time
+    real*8 last_output_time, last_state_time, last_progress_time
     real*8 k_max(n_bin, n_bin)
     integer n_coag, tot_n_samp, tot_n_coag
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
-    integer i_time
+    integer i_time, pre_i_time
     character*100 filename
 
     i_time = 0
@@ -92,6 +93,21 @@ contains
                   bin_v, bin_g, bin_gs, bin_n, dlnr, env)
           end do
        end if
+       ! write data into output file so that it will look correct
+       pre_time = 0d0
+       last_output_time = pre_time
+       call moments(n_bin, n_spec, MH, VH, bin_v, &
+            bin_g, bin_gs, bin_n, dlnr)
+       do pre_i_time = 0,(i_time - 1)
+          call update_environ(env, pre_time)
+          if (t_output > 0d0) then
+             call check_event(pre_time, del_t, t_output, last_output_time, &
+                  do_output)
+             if (do_output) call output_info(output_unit, pre_time, &
+                  n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+          end if
+          pre_time = pre_time + del_t
+       end do
     end if
     
     call moments(n_bin, n_spec, MH, VH, bin_v, &

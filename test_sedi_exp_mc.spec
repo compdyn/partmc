@@ -1,6 +1,6 @@
 run_type mc                     # Monte Carlo
 output_name sedi_exp_mc         # name of output files
-n_loop 1                        # number of Monte Carlo loops
+n_loop 10                       # number of Monte Carlo loops
 N_0 1d9                         # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
@@ -34,7 +34,7 @@ n_bin 160                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)
 scal 3                          # scale factor (integer)
 
-rand_init 17                    # random initialization (0 to auto-generate)
+rand_init 22                    # random initialization (0 to auto-generate)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

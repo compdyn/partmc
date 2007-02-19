@@ -18,8 +18,8 @@ eps 1 0.5 0                     # solubility of species (1)
 M_w 58.44d-3 60.08d-3 18d-3     # molecular weight of species (kg/mole)
 
 n_temps 2                       # number of temperature set-points
-temp_times 0 800                    # times of temperature set-points (s)
-temps 288 280                      # temperatures at temperature set-points (K)
+temp_times 0 800                # times of temperature set-points (s)
+temps 288 280                   # temperatures at temperature set-points (K)
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
 rho_a 1.25                      # initial air density (kg/m^3)
@@ -46,6 +46,7 @@ scal 3                          # scale factor (integer)
 
 rand_init 17                    # random initialization (0 to 
 do_coagulation yes              # whether to do coagulation (yes/no)
+allow_double yes                # double when particle number is small (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
 restart_name dust_salt_state_000000800.d  # filename to restart from

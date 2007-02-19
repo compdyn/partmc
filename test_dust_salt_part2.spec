@@ -39,6 +39,7 @@ scal 3                          # scale factor (integer)
 
 rand_init 17                    # random initialization (0 to 
 do_coagulation yes              # whether to do coagulation (yes/no)
+allow_double yes                # double when particle number is small (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_restart yes                  # whether to restart from stored state (yes/no)
 restart_name state_dust_salt_part1_00000800.d  # filename to restart from

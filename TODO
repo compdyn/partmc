@@ -9,6 +9,9 @@ Make dust_salt testcase with condensation and process_state. Need to
 have some plots showing composition and something involving multiple
 species. - Nicole
 
+Make dust_salt case where brownian coagulation is included
+in addition to gravitational coagulation - Nicole
+
 Add init_equilib option to control whether we equilibriate? - Matt
 
 -----------------------------------------------------------------------------

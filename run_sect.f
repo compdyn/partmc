@@ -12,8 +12,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
-       t_output, t_progress, output_unit, mat, env)
+  subroutine run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel, &
+       t_max, del_t, t_output, t_progress, output_unit, mat, env)
 
     ! Run a sectional simulation.
   
@@ -29,7 +29,7 @@ contains
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
     real*8, intent(in) :: n_den(n_bin)  ! initial number density
-    real*8, intent(in) :: N_0           ! particle concentration (#/m^3)
+    real*8, intent(in) :: num_conc      ! particle concentration (#/m^3)
     
     real*8, intent(in) :: t_max         ! final time (seconds)
     real*8, intent(in) :: del_t         ! timestep for coagulation
@@ -75,7 +75,7 @@ contains
     
     ! initial mass distribution
     do i = 1,n_bin
-       g(i) = n_den(i) * bin_v(i) * mat%rho(1) * N_0
+       g(i) = n_den(i) * bin_v(i) * mat%rho(1) * num_conc
        if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
     enddo
     

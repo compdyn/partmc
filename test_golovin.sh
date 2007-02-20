@@ -1,5 +1,22 @@
 #!/bin/sh
 
+cat <<ENDINFO
+
+Golovin Test-case
+-----------------
+
+This tests the Monte Carlo coagulation code for the Golovin kernel
+with an exponential initial condition for which an analytical solution
+is known. The Monte Carlo code is looped and average to reduce
+error. To improve the quality of the results either the number of
+loops or the number of particles can be increased.
+
+This test-case demonstrates generating exact solutions and using
+repeated loops of the Monte Carlo code to reduce the error, and serves
+as model verification against an analytical solution.
+
+ENDINFO
+
 echo ./partbox test_golovin_mc.spec
 ./partbox test_golovin_mc.spec
 echo ./process_out out_golovin_mc.d

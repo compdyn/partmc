@@ -1,6 +1,6 @@
 run_type sect                   # sectional code
 output_name sedi_exp_sect       # name of output files
-N_0 1d9                         # particle concentration (#/m^3)
+num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
 dist_type exp                   # type of initial distribution

@@ -1,5 +1,32 @@
 #!/bin/sh
 
+cat <<ENDINFO
+
+Dust/Sea-salt Test-case
+-----------------------
+
+The initial condition is two log-normal distributions, one of small
+dust particles and one of larger salt particles. The run in done in
+two phases:
+
+1. Until 800s condensation is active and dominates the evolution. This
+   is very expensive, so only a few particles are used. The internal
+   state is output at the end of this run.
+
+2. The simulation is restarted from the saved state but with
+   condensation turned off, as coagulation now dominates. This is run
+   with many particles as it is compartively cheap and needs lots of
+   particles to obtain acceptable resolution.
+
+There is no exact solution for this simulation, and 1D sectional codes
+cannot determine the particle mixing state. The results are thus
+simply plotted on their own, without a comparison.
+
+This test-case demonstates condensation, restarting from saved state,
+and processing state for multi-species simulations.
+
+ENDINFO
+
 echo ./partbox test_dust_salt_part1.spec
 #./partbox test_dust_salt_part1.spec
 echo ./process_out out_dust_salt_part1.d

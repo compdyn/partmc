@@ -80,7 +80,7 @@ contains
 
     character(len=300) :: output_name   ! name of output files
     integer :: n_loop                   ! number of Monte Carlo loops
-    real*8 :: N_0                       ! particle concentration (#/m^3)
+    real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
     
     real*8 :: t_max                     ! total simulation time (s)
@@ -111,7 +111,7 @@ contains
     
     call read_string(spec, 'output_name', output_name)
     call read_integer(spec, 'n_loop', n_loop)
-    call read_real(spec, 'N_0', N_0)
+    call read_real(spec, 'num_conc', num_conc)
     call read_string(spec, 'kernel', kernel_name)
     
     call read_real(spec, 't_max', t_max)
@@ -183,7 +183,7 @@ contains
        end do
 
        M = sum(MH)
-       env%V_comp = dble(M) / N_0
+       env%V_comp = dble(M) / num_conc
        
        ! equlibriate all particles if condensation is active
        if (do_condensation) then
@@ -256,7 +256,7 @@ contains
     real*8 :: dlnr
     
     character(len=300) :: output_name   ! name of output files
-    real*8 :: N_0                       ! particle concentration (#/m^3)
+    real*8 :: num_conc                  ! particle concentration (#/m^3)
 
     character(len=100) :: soln_name     ! exact solution name
     real*8 :: mean_vol                  ! mean volume of initial distribution
@@ -272,7 +272,7 @@ contains
     integer :: scal                     ! scale factor (integer)
     
     call read_string(spec, 'output_name', output_name)
-    call read_real(spec, 'N_0', N_0)
+    call read_real(spec, 'num_conc', num_conc)
 
     call read_string(spec, 'soln', soln_name)
 
@@ -309,11 +309,11 @@ contains
     
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, N_0, mean_vol, mat%rho(1), soln_golovin_exp, &
+            bin_n_den, num_conc, mean_vol, mat%rho(1), soln_golovin_exp, &
             t_max, t_output, output_unit, env, mat)
     elseif (trim(soln_name) == 'golovin_exp') then
        call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, N_0, mean_vol, mat%rho(1), soln_constant_exp_cond, &
+            bin_n_den, num_conc, mean_vol, mat%rho(1), soln_constant_exp_cond, &
             t_max, t_output, output_unit, env, mat)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
@@ -348,7 +348,7 @@ contains
     real*8 :: dlnr
     
     character(len=300) :: output_name   ! name of output files
-    real*8 :: N_0                       ! particle concentration (#/m^3)
+    real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
     
     real*8 :: t_max                     ! total simulation time (s)
@@ -367,7 +367,7 @@ contains
     integer :: scal                     ! scale factor (integer)
     
     call read_string(spec, 'output_name', output_name)
-    call read_real(spec, 'N_0', N_0)
+    call read_real(spec, 'num_conc', num_conc)
 
     call read_string(spec, 'kernel', kernel_name)
 
@@ -400,16 +400,16 @@ contains
     call init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
 
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_sedi, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_sedi, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_golovin, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_golovin, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_constant, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_constant, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel_brown, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_brown, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

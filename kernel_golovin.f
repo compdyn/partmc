@@ -30,7 +30,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine soln_golovin_exp(n_bin, bin_v, bin_g_den, bin_n_den, &
-       time, N_0, V_0, rho_p, env)
+       time, num_conc, mean_vol, rho_p, env)
 
     ! Exact solution with the Golovin coagulation kernel and
     ! exponential initial condition.
@@ -45,8 +45,8 @@ contains
     real*8, intent(out) :: bin_n_den(n_bin) ! number density in bins
     
     real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: N_0           ! particle number concentration (#/m^3)
-    real*8, intent(in) :: V_0           ! FIXME: what is this?
+    real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
+    real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(environ), intent(in) :: env    ! environment state
     
@@ -58,20 +58,20 @@ contains
     if (time .eq. 0d0) then
        do k = 1,n_bin
           bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 &
-               * N_0/V_0 * exp(-(bin_v(k)/V_0))
+               * num_conc / mean_vol * exp(-(bin_v(k)/mean_vol))
        end do
     else
-       tau = N_0 * V_0 * beta_1 * time
+       tau = num_conc * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
        do k = 1,n_bin
-          rat_v = bin_v(k) / V_0
+          rat_v = bin_v(k) / mean_vol
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
           else
              b = 0d0
           end if
-          nn = N_0/bin_v(k) * (1d0 - T) / sqrt(T) &
+          nn = num_conc / bin_v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
           bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn
        end do

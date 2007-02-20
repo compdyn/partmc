@@ -1,7 +1,7 @@
 run_type mc                     # Monte Carlo run
 output_name dust_salt_part1     # name of output files
 n_loop 1                        # number of Monte Carlo loops
-N_0 1d9                         # particle concentration (#/m^3)
+num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
 t_max 800                       # total simulation time (s)

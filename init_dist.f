@@ -106,15 +106,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_exp(V_0, n_bin, bin_v, n_den)
+  subroutine init_exp(mean_vol, n_bin, bin_v, n_den)
     
     ! Exponential distribution in volume
-    ! n(v) = N_0 / V_0 exp(- v / V_0)
+    ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
     
     use mod_bin
     use mod_util
     
-    real*8, intent(in) :: V_0           ! mean volume of init dist (m^3)
+    real*8, intent(in) :: mean_vol      ! mean volume of init dist (m^3)
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
@@ -123,7 +123,7 @@ contains
     real*8 n_den_vol
     
     do k = 1,n_bin
-       n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
+       n_den_vol = 1d0 / mean_vol * exp(-(bin_v(k) / mean_vol))
        call vol_to_lnr(vol2rad(bin_v(k)), n_den_vol, n_den(k))
     end do
     

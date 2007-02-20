@@ -1,5 +1,27 @@
 #!/bin/sh
 
+cat <<ENDINFO
+
+Sedimentation Exponential Test-case
+-----------------------------------
+
+The initial condition is a single species of particle with an
+exponential distribution and the simulation using the sedimentation
+kernel. No analytical solution is known for this case, so a sectional
+code is use as verification.
+
+To improve the quality of results it is best to increase the number of
+particles, rather than averaging multiple loops of Monte Carlo. This
+is a challenging simulation for particle-resolved models as many small
+particles are needed to accurately resolve the small number of large
+particles (and is motivating current work on a variable-resolution
+super-particle version of the code).
+
+This test-case demonstrates the use of the sectional model and
+comparison of sectional runs with Monte Carlo runs.
+
+ENDINFO
+
 echo ./partbox test_sedi_exp_mc.spec
 ./partbox test_sedi_exp_mc.spec
 echo ./process_out out_sedi_exp_mc.d

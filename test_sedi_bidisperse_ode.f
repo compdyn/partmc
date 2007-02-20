@@ -26,7 +26,7 @@ program test_sedi_bidisperse_ode
   real*8, parameter :: t_max = 600d0    ! total simulation time
   real*8, parameter :: del_t = 0.001d0  ! timestep
   real*8, parameter :: t_progress = 10d0 ! how often to print progress
-  real*8, parameter :: N_0 = 1d9        ! particle number concentration
+  real*8, parameter :: num_conc = 1d9   ! particle number concentration (#/m^3)
   integer, parameter :: scal = 3        ! scale factor for bins
   integer, parameter :: out_unit = 33   ! output unit number
   character(len=*), parameter :: out_name = "counts_sedi_bidisperse_ode.d"
@@ -35,7 +35,7 @@ program test_sedi_bidisperse_ode
   integer :: i_step, n_step
   real*8 :: n_small, time, v_big, dlnr
   
-  env%V_comp = dble(n_small_init + 1d0) / N_0
+  env%V_comp = dble(n_small_init + 1d0) / num_conc
   dlnr = dlog(2d0) / (3d0 * dble(scal))
 
   open(unit=out_unit, file=out_name)

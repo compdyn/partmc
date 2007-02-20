@@ -1,16 +1,15 @@
 Shift code into a separate (partbox?) repository for PNNL to access - Matt
 
+PartBox or PartMC? - Matt
+
+Add reference at top of run_sect.f and kernel_sedi.f giving a
+reference to a paper of Bott's where he discusses the method. - Nicole
+
 Make dust_salt testcase with condensation and process_state. Need to
 have some plots showing composition and something involving multiple
 species. - Nicole
 
-PartBox or PartMC? - Matt
-
-Lots of FIXMEs relating to V_0. Probably should rename to mean_diam or
-whatever it really is. - Nicole
-
-Add reference at top of run_sect.f and kernel_sedi.f giving a
-reference to a paper of Bott's where he discusses the method. - Nicole
+Add init_equilib option to control whether we equilibriate? - Matt
 
 -----------------------------------------------------------------------------
 
@@ -24,7 +23,7 @@ should instead multiply the density by ln(bin_right_edge) -
 ln(bin_left_edge) or similar. In general, we should stop passing dlnr
 around, as it should be recalculable from bin_r for each bin.
 
-Use HDF or CDF or something to store state.
+Use HDF or CDF or something to store state. (and output?)
 
 Get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.
@@ -36,5 +35,5 @@ logspace(1e-24,1e-4,160), rather than always assuming logarithmically
 spaced bins.
 
 We keep track of M all the time (total number of particles). Should we
-just recalc from sum(MH) when we need it? When do we even need it? For
-progress display to test the need for double.
+just recalc from sum(MH) when we need it? When do we even need it?
+Just for progress display and to test the need for double?

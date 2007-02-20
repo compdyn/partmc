@@ -30,7 +30,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine soln_constant_exp_cond(n_bin, bin_v, bin_g_den, bin_n_den, &
-       time, N_0, V_0, rho_p, env)
+       time, num_conc, mean_vol, rho_p, env)
 
     ! Exact solution with a constant coagulation kernel and an
     ! exponential initial condition.
@@ -45,8 +45,8 @@ contains
     real*8, intent(out) :: bin_n_den(n_bin) ! number density in bins
     
     real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: N_0           ! particle number concentration (#/m^3)
-    real*8, intent(in) :: V_0           ! FIXME: what is this?
+    real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
+    real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(environ), intent(in) :: env    ! environment state
     
@@ -59,15 +59,15 @@ contains
     
     if (time .eq. 0d0) then
        do k = 1,n_bin
-          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * N_0/V_0 &
-               * exp(-(bin_v(k)/V_0))
+          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 &
+               * num_conc / mean_vol * exp(-(bin_v(k)/mean_vol))
        end do
     else
-       tau = N_0 * beta_0 * time
+       tau = num_conc * beta_0 * time
        do k = 1,n_bin
-          rat_v = bin_v(k) / V_0
+          rat_v = bin_v(k) / mean_vol
           x = 2d0 * rat_v / (tau + 2d0)
-          nn = 4d0 * N_0 / (V_0 * ( tau + 2d0 ) ** 2d0) &
+          nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3d0 * nn
        end do

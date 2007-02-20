@@ -4,6 +4,12 @@
 ! option) any later version. See the file COPYING for details.
 !
 ! Initial size distributions.
+!
+! The initial size distributions are computed as number densities, so
+! they can be used for both sectional and particle-resolved
+! simulations. The routine dist_to_n() converts a number density
+! distribution to an actual number of particles ready for a
+! particle-resolved simulation.
 
 module mod_init_dist
 contains
@@ -12,7 +18,7 @@ contains
   
   subroutine init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
 
-    ! multiplexer to make an initial distribution based on its name
+    ! Multiplexer to make an initial distribution based on its name.
 
     character(len=*), intent(in) :: dist_type ! type of distribution
     real*8, intent(in) :: dist_args(:)  ! distribution parameters
@@ -71,6 +77,8 @@ contains
   
   subroutine init_log_normal(d_mean, log_sigma, n_bin, &
        bin_v, n_den)
+
+    ! Compute a log-normal distribution.
     
     use mod_util
     use mod_constants
@@ -98,6 +106,31 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  subroutine init_exp(V_0, n_bin, bin_v, n_den)
+    
+    ! Exponential distribution in volume
+    ! n(v) = N_0 / V_0 exp(- v / V_0)
+    
+    use mod_bin
+    use mod_util
+    
+    real*8, intent(in) :: V_0           ! mean volume of init dist (m^3)
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
+    
+    integer k
+    real*8 n_den_vol
+    
+    do k = 1,n_bin
+       n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
+       call vol_to_lnr(vol2rad(bin_v(k)), n_den_vol, n_den(k))
+    end do
+    
+  end subroutine init_exp
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
   subroutine dist_to_n(N, dlnr, n_bin, bin_v, n_den, bin_n)
     
     ! Convert a number density (in ln(r)) to actual number of particles
@@ -118,31 +151,6 @@ contains
     end do
     
   end subroutine dist_to_n
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine init_exp(V_0, n_bin, bin_v, n_den)
-    
-    ! Exponential distribution in volume (or mass)
-    ! n(v) = N_0 / V_0 exp(- v / V_0)
-    
-    use mod_bin
-    use mod_util
-    
-    real*8, intent(in) :: V_0           ! mean volume of init dist (m^3)
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
-    
-    integer k
-    real*8 n_den_vol
-    
-    do k = 1,n_bin
-       n_den_vol = 1d0 / V_0 * exp(-(bin_v(k) / V_0))
-       call vol_to_lnr(vol2rad(bin_v(k)),n_den_vol, n_den(k))
-    end do
-    
-  end subroutine init_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

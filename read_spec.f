@@ -3,7 +3,13 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Routines to read data out of .spec files
+! Routines to read data out of .spec files.
+!
+! .spec files have a very simple format, with one variable (scalar or
+! 1D array) per line. Each line must begin with the variable
+! name. Variables must be specified in a certain order, and they may
+! not be skipped. Blank lines are ok. Comments are everything after a
+! # character.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -22,6 +28,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine open_spec(spec, filename, unit)
+
+    ! Open a .spec file.
 
     type(spec_file), intent(out) :: spec ! spec file
     character(len=*), intent(in) :: filename ! name of file to open
@@ -44,6 +52,8 @@ contains
 
   subroutine close_spec(spec)
 
+    ! Close a .spec file.
+
     type(spec_file), intent(in) :: spec ! spec file
 
     close(spec%unit)
@@ -53,6 +63,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine read_init_dist(spec, dist_type, dist_args)
+
+    ! Read initial distribution specification from a .spec file.
 
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(out) :: dist_type ! type of init distribution
@@ -81,6 +93,8 @@ contains
 
   subroutine read_material(spec, mat)
 
+    ! Read material specification from a .spec file.
+
     use mod_material
 
     type(spec_file), intent(inout) :: spec ! spec file
@@ -102,6 +116,8 @@ contains
 
   subroutine read_environ(spec, env)
 
+    ! Read environment specification from a .spec file.
+
     use mod_environ
 
     type(spec_file), intent(inout) :: spec ! spec file
@@ -121,6 +137,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine read_string(spec, name, var)
+
+    ! Read a string from a .spec file.
 
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(in) :: name ! name that should start line
@@ -143,6 +161,8 @@ contains
 
   subroutine read_integer(spec, name, var)
 
+    ! Read an integer from a .spec file.
+
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(in) :: name ! name that should start line
     integer, intent(out) :: var         ! variable to store data
@@ -164,6 +184,8 @@ contains
 
   subroutine read_real(spec, name, var)
 
+    ! Read a real number from a .spec file.
+
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(in) :: name ! name that should start line
     real*8, intent(out) :: var          ! variable to store data
@@ -184,6 +206,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine read_logical(spec, name, var)
+
+    ! Read a logical value from a .spec file.
 
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(in) :: name ! name that should start line
@@ -224,6 +248,8 @@ contains
 
   subroutine read_integer_array(spec, len, name, var)
 
+    ! Read an array of integers from a .spec file.
+
     type(spec_file), intent(inout) :: spec ! spec file
     integer, intent(in) :: len          ! array length
     character(len=*), intent(in) :: name ! name that should start line
@@ -262,6 +288,8 @@ contains
 
   subroutine read_real_array(spec, len, name, var)
 
+    ! Read an array of real numbers from a .spec file.
+    
     type(spec_file), intent(inout) :: spec ! spec file
     integer, intent(in) :: len          ! array length
     character(len=*), intent(in) :: name ! name that should start line
@@ -300,6 +328,8 @@ contains
 
   subroutine check_read_iostat(spec, ios, type)
 
+    ! Check the IOSTAT and error if it is bad.
+
     type(spec_file), intent(inout) :: spec ! spec file
     integer, intent(in) :: ios          ! iostat result
     character(len=*), intent(in) :: type ! type being read during error
@@ -316,6 +346,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine read_next_data_line(spec, line)
+
+    ! Read the next line from the .spec file that contains useful data.
 
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(out) :: line ! complete line read
@@ -338,6 +370,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine read_line(spec, line)
+
+    ! Read a single line from a .spec file.
 
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(out) :: line ! complete line read
@@ -363,6 +397,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine strip_comment(line)
+
+    ! Strip the comments from a line. Comments are everything after
+    ! the first # character.
     
     character(len=*), intent(inout) :: line ! complete input line
     
@@ -379,6 +416,8 @@ contains
 
   subroutine strip_leading_spaces(line)
 
+    ! Strip leading spaces from a string.
+
     character(len=*), intent(inout) :: line ! complete input line
 
     integer i
@@ -393,6 +432,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine tabs_to_spaces(line)
+
+    ! Expand all tabs in a line into single spaces (one tab makes one
+    ! space).
 
     character(len=*), intent(inout) :: line ! complete input line
 
@@ -409,6 +451,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine check_name(spec, line, name, rest)
+
+    ! Checks that the leading text on a line is the expected variable
+    ! name.
     
     type(spec_file), intent(inout) :: spec ! spec file
     character(len=*), intent(in) :: line ! complete input line

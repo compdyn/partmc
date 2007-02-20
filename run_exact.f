@@ -13,9 +13,13 @@ contains
   subroutine run_exact(n_bin, n_spec, bin_v, bin_g_den, bin_gs_den, &
        bin_n_den, N_0, V_0, rho_p, soln, t_max, t_output, output_unit, &
        env, mat)
+
     ! FIXME: N_0 and V_0 are really parameters for the initial value
     ! of the particle distribution. They should be replaced by a n_param,
     ! params() pair.
+
+    ! "Run" an exact solution, output data in the same format as
+    ! particle-resolved or sectional simulations.
     
     use mod_bin
     use mod_array

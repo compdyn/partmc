@@ -12,6 +12,8 @@ contains
   
   subroutine kernel_constant(v1, v2, env, k)
 
+    ! Constant coagulation kernel.
+
     use mod_environ
     
     real*8, intent(in) :: v1            ! volume of first particle
@@ -29,6 +31,9 @@ contains
   
   subroutine soln_constant_exp_cond(n_bin, bin_v, bin_g_den, bin_n_den, &
        time, N_0, V_0, rho_p, env)
+
+    ! Exact solution with a constant coagulation kernel and an
+    ! exponential initial condition.
 
     use mod_environ
     use mod_util

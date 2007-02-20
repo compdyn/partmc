@@ -1,14 +1,16 @@
 Shift code into a separate (partbox?) repository for PNNL to access - Matt
 
-Make sure all functions have a description at the top of them - Matt
-
-Make dust_salt testcase with condensation and process_state - Nicole
-
-Sectional code dies because it accesses c in courant before init - Matt
+Make dust_salt testcase with condensation and process_state. Need to
+have some plots showing composition and something involving multiple
+species. - Nicole
 
 PartBox or PartMC? - Matt
 
-Add loop counter to state filename - Matt
+Lots of FIXMEs relating to V_0. Probably should rename to mean_diam or
+whatever it really is. - Nicole
+
+Add reference at top of run_sect.f and kernel_sedi.f giving a
+reference to a paper of Bott's where he discusses the method. - Nicole
 
 -----------------------------------------------------------------------------
 

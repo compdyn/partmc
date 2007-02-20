@@ -4,6 +4,10 @@
 ! option) any later version. See the file COPYING for details.
 !
 ! Functions that deal with the bin grid.
+!
+! The grid of bins is logarithmically spaced, an assumption that is
+! quite heavily incorporated into the code. At some point in the
+! future it would be nice to relax this assumption.
 
 module mod_bin
 contains
@@ -14,7 +18,8 @@ contains
    
     use mod_environ
     
-    ! Computes the kernel for each bin pair
+    ! Computes an array of kernel values for each bin pair. k(i,j) is
+    ! the kernel value at the midpoint of bins i and j.
     
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
@@ -60,8 +65,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine make_bin_grid(n_bin, scal, v_min, bin_v, &
-       dlnr)
+  subroutine make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+
+    ! Generates the bin grid, given the minimum volume, number of grid
+    ! points, and the scale factor.
     
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: scal         ! scale factor
@@ -84,6 +91,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bin_edge(n_bin, bin_v, i, v_edge)
+
+    ! Given a bin grid (which stores the center points of the bins),
+    ! find the given edge volume.
     
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
@@ -104,10 +114,12 @@ contains
   
   subroutine particle_in_bin(v, n_bin, bin_v, k)
     
+    ! Find the bin number that contains a given particle.
+    
     real*8, intent(in) :: v             ! volume of particle
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    integer, intent(out) :: k            ! bin number containing particle
+    integer, intent(out) :: k           ! bin number containing particle
     
     ! FIXME: for log-spaced bins we can do this without search, but we
     ! plan to switch to arbitrary bins at some point, so maybe just
@@ -123,6 +135,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
+
+    ! Convert a number of particles per bin to the total volume per
+    ! bin.
     
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
@@ -140,6 +155,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, env, k_max)
+
+    ! Samples within bins b1 and b2 to find the maximum value of the
+    ! kernel between particles from the two bins.
    
     use mod_environ
  
@@ -191,6 +209,10 @@ contains
   
   subroutine est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
+    ! Computes an array of maximum kernel values. Given particles v1
+    ! in bin b1 and v2 in bin b2, it is approximately true that
+    ! kernel(v1,v2) <= k_max(b1,b2).
+
     use mod_environ
     
     integer, intent(in) :: n_bin        ! number of bins
@@ -224,6 +246,8 @@ contains
   subroutine output_open(output_unit, output_name, n_loop, n_bin, &
        n_spec, n_time)
 
+    ! Open an output file for writing.
+
     integer, intent(in) :: output_unit  ! unit number to output to
     character(len=300) :: output_name   ! name of output
     integer, intent(in) :: n_loop       ! number of loops
@@ -247,6 +271,10 @@ contains
   
   subroutine output_info(output_unit, time, n_bin, n_spec, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+
+    ! Write the current binned data to the output file. This version
+    ! of the function takes absolute number and absolute volume
+    ! per-bin (as produced by a particle-resolved code, for example).
     
     use mod_material
     use mod_environ
@@ -278,6 +306,10 @@ contains
   
   subroutine output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
        bin_g_den, bin_gs_den, bin_n_den, env, mat)
+
+    ! Write the current binned data to the output file. This version
+    ! of the function takes number and volume densities (as produced
+    ! by a sectional code, for example).
     
     use mod_material
     use mod_environ

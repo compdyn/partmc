@@ -49,4 +49,4 @@ do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # double when particle number is small (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
-restart_name dust_salt_state_000000800.d  # filename to restart from
+restart_name XXXX.d             # filename to restart from

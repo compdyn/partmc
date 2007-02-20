@@ -3,7 +3,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Condensation
+! Condensation routines for water condensing onto particles.
 
 module mod_condensation
 contains
@@ -12,6 +12,10 @@ contains
 
   subroutine condense_particles(n_bin, n_spec, MH, VH, &
        del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+
+    ! Do condensation to all the particles for a given time interval,
+    ! including updating the environment to account for the lost
+    ! vapor.
 
     use mod_array
     use mod_bin
@@ -63,8 +67,8 @@ contains
 
   subroutine condense_particle(n_spec, V, del_t, env, mat)
 
-    ! integrates the condensation growth or decay ODE for total time
-    ! del_t
+    ! Integrate the condensation growth or decay ODE for total time
+    ! del_t for a single particle.
 
     use mod_util
     use mod_environ
@@ -100,7 +104,7 @@ contains
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
     ! be less. If we in fact step all the way to max_dt then done will
-    ! be true.
+    ! be true. This uses the explicit (forward) Euler integrator.
     
     use mod_environ
     use mod_material
@@ -136,7 +140,7 @@ contains
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
     ! be less. If we in fact step all the way to max_dt then done will
-    ! be true.
+    ! be true. This uses the explicit 4th-order Runge-Kutta integrator.
     
     use mod_environ
     use mod_material
@@ -164,7 +168,7 @@ contains
 
   subroutine condense_step_rk(n_spec, V, dt, env, mat)
 
-    ! Does one fixed timestep of RK4.
+    ! Does one fixed timestep of Runge-Kutta-4.
 
     use mod_environ
     use mod_material
@@ -210,7 +214,7 @@ contains
 
   subroutine find_condense_timestep_constant(n_spec, V, dt, env, mat)
 
-    ! constant timestep
+    ! Just returns a constant timestep.
 
     use mod_array
     use mod_environ
@@ -230,7 +234,7 @@ contains
 
   subroutine find_condense_timestep_variable(n_spec, V, dt, env, mat)
 
-    ! timestep is proportional to V / (dV/dt)
+    ! Computes a timestep proportional to V / (dV/dt).
 
     use mod_array
     use mod_environ
@@ -288,7 +292,8 @@ contains
       
   subroutine cond_newt(n_spec, V, x, env, mat, func, x_tol, f_tol, iter_max)
     
-    ! Scalar Newton's method for condensation functions.
+    ! Scalar Newton's method for solving the implicit condensation
+    ! functions.
 
     use mod_environ
     use mod_material
@@ -355,7 +360,8 @@ contains
 
   subroutine cond_growth_rate_func(n_spec, V, env, mat, init, dmdt, f, df)
 
-    ! Return the error function value and its derivative.
+    ! Return the error function value and its derivative for the
+    ! implicit growth rate function.
 
     use mod_array
     use mod_util
@@ -454,7 +460,7 @@ contains
 
   subroutine equilibriate_particle(n_spec, V, env, mat)
 
-    ! add water to the particle until it is in equilibrium
+    ! Add water to the particle until it is in equilibrium.
 
     use mod_util
     use mod_array
@@ -491,6 +497,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine equilibriate_func(n_spec, V, env, mat, init, dw, f, df)
+
+    ! Return the error function value and its derivative for the
+    ! implicit function that determines the equilibrium state of a
+    ! particle.
 
     use mod_util
     use mod_array

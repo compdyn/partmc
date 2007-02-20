@@ -2,6 +2,11 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Process the saved state files to obtain summary data. This is pretty
+! much a hack at the moment, as lots of the processing routines are
+! specific to particles iwth 3 species, of which one is water and the
+! other two are of interest.
 
 program process_state
 

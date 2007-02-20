@@ -14,6 +14,8 @@ contains
 
   subroutine run_sect(n_bin, bin_v, dlnr, n_den, N_0, kernel, t_max, del_t, &
        t_output, t_progress, output_unit, mat, env)
+
+    ! Run a sectional simulation.
   
     use mod_bin
     use mod_array
@@ -77,7 +79,7 @@ contains
        if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
     enddo
     
-    call courant(n_bin, dlnr, c, ima, g, r, e)
+    call courant(n_bin, dlnr, e, ima, c)
     
     ! precompute kernel values for all pairs of bins
     call bin_kernel(n_bin, bin_v, kernel_sedi, env, k_bin)
@@ -146,7 +148,7 @@ contains
   subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
        c, ima, g, r, e, ck, ec)
     
-    ! collision subroutine, exponential approach
+    ! Collision subroutine, exponential approach.
     
     integer n_bin
     real*8 dt
@@ -222,19 +224,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine courant(n_bin, dlnr, c, ima, g, r, e)
+  subroutine courant(n_bin, dlnr, e, ima, c)
+
+    ! Determines the Courant number for each bin pair.
     
-    integer n_bin
-    real*8 dlnr
-    real*8 c(n_bin,n_bin)
-    integer ima(n_bin,n_bin)
-    real*8 g(n_bin)
-    real*8 r(n_bin)
-    real*8 e(n_bin)
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    real*8, intent(in) :: e(n_bin)      ! droplet mass grid (mg)
+    integer, intent(out) :: ima(n_bin,n_bin) ! FIXME: what is this?
+    real*8, intent(out) :: c(n_bin,n_bin) ! Courant number for bin pairs
     
     integer i, j, k, kk
     real*8 x0
-    
+
+    c = 0d0 ! added to avoid uninitialized access errors
     do i = 1,n_bin
        do j = i,n_bin
           x0 = e(i) + e(j)

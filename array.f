@@ -3,12 +3,41 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Functions to deal with a particle array VH that is stored by
-! bin. VH(i_bin,i) is the i-th particle in the i_bin-th bin.
+! The array VH is the main storage of the particle sizes and
+! compositions, together with its sizing array MH. The particles in VH
+! are stored sorted per-bin, to improve efficiency of sampling. If a
+! particle has total volume pv then calling particle_in_bin(pv, n_bin,
+! v_bin, i_bin) finds the bin number i_bin that that particle should
+! go in. That particle is then stored as VH(i_bin)%p(i_part,:), where
+! i_part is the index within the bin. VH(i_bin)%p(i_part,i_spec) is
+! the volume of the i_spec-th species in the i_part-th particle in the
+! i_bin-th bin.
 !
 ! FIXME: MH and bin_n are pretty much identical. Probably best to
 ! ignore it for now, because this will all change with the
 ! superparticle code.
+!
+! Typically most of the bins have only a few particles, while a small
+! number of bins have many particles. To avoid having too much storage
+! allocated for the bins with only a few particles, we do dynamic
+! allocation/deallocation of the storage per-bin.
+!
+! With Fortran 90 we can't have arrays of arrays, so we have to use an
+! array of pointers, and then allocate each pointer. We really want a
+! 3D structure, with indices (i_bin, i_part, i_spec) specifiying
+! species i_spec in particle number i_part stored in bin i_bin. This
+! is stored as an array of pointers, one per bin, pointing to 2D
+! arrays for which each row is a single particle (with the columns
+! giving the volumes of the individual species).
+!
+! To avoid doing allocation and deallocation every time we add or
+! remove a particle to a bin, we always double or halve the bin
+! storage as necessary. The actual number of particles stored in a bin
+! will generally be less than the actual memory allocated for that
+! bin, so we store the current number of particles in a bin in the
+! array MH. The allocated size of bin storage in VH(i_bin) is not
+! stored explicitly, but can be obtained with the Fortran 90 SIZE()
+! intrinsic function.
 
 module mod_array
 
@@ -47,7 +76,8 @@ contains
   subroutine zero_array(n_spec, MH, VH)
 
     ! Resets an array to have zero particles per bin. The array must
-    ! already have had init_array() called on it.
+    ! already have had init_array() called on it once. This function
+    ! can be called more than once on the same array.
 
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(out) :: MH(:)       ! number of particles per bin
@@ -107,8 +137,7 @@ contains
   subroutine shrink_bin(n_used, bin)
 
     ! Possibly shrinks the storage of the given bin, ensuring that it
-    ! is at least of length n_used (currently halves the length or
-    ! does nothing).
+    ! is at least of length n_used.
 
     integer, intent(in) :: n_used       ! number of used entries in bin
     type(bin_p), intent(inout) :: bin   ! bin data
@@ -119,12 +148,19 @@ contains
     n_part = size(bin%p, 1)
     n_spec = size(bin%p, 2)
     new_n_part = n_part / 2
-    if (n_used <= new_n_part) then
+    do while (n_used <= new_n_part)
        allocate(new_p(new_n_part, n_spec))
        new_p(:,:) = bin%p(1:new_n_part,:)
        deallocate(bin%p)
        bin%p => new_p
-    end if
+       n_part = new_n_part
+       new_n_part = n_part / 2
+       ! FIXME: gfortran 4.1.1 requires the "then" in the following
+       ! statement, rather than using a single-line "if" statement.
+       if (new_n_part == 0) then
+          exit
+       end if
+    end do
 
   end subroutine shrink_bin
 
@@ -133,8 +169,8 @@ contains
   subroutine add_particles(n_bin, n_spec, vol_frac, &
        bin_v, bin_n, MH, VH)
 
-    ! makes particles from the given number distribution and appends
-    ! them to the VH array
+    ! Makes particles from the given number distribution and appends
+    ! them to the VH array.
     
     use mod_bin
 
@@ -506,7 +542,7 @@ contains
         bin_g, bin_gs, bin_n, dlnr)
     
     ! Check that VH has all particles in the correct bins and that the
-    ! bin numbers and masses are correct.
+    ! bin numbers and masses are correct. This is for debugging only.
 
     use mod_material
     use mod_util

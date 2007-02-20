@@ -12,7 +12,9 @@ contains
 
   real*8 function util_rand()
 
-    ! returns a random number between 0 and 1
+    ! Returns a random number between 0 and 1. Call this function
+    ! rather than rand() or random_number() directly, as some
+    ! compilers have trouble with one or the other.
 
 #ifdef USE_F95_RAND
     real*8 rnd
@@ -28,6 +30,8 @@ contains
   
   real*8 function vol2rad(v)            ! radius (m)
 
+    ! Convert volume to radius.
+
     use mod_constants
     
     real*8, intent(in) :: v             ! volume (m^3)
@@ -40,6 +44,8 @@ contains
   
   real*8 function vol2diam(v)           ! diameter (m)
     
+    ! Convert volume to diameter.
+
     use mod_constants
     
     real*8, intent(in) :: v             ! volume (m^3)
@@ -52,6 +58,8 @@ contains
   
   real*8 function rad2vol(r)            ! volume (m^3)
     
+    ! Convert radius to volume.
+
     use mod_constants
     
     real*8, intent(in) :: r             ! radius (m)
@@ -64,6 +72,8 @@ contains
   
   real*8 function diam2vol(d)           ! volume (m^3)
     
+    ! Convert diameter to volume.
+
     use mod_constants
     
     real*8, intent(in) :: d             ! diameter (m)
@@ -74,48 +84,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine sum_int_1d(size1, array, sum)
-    
-    integer, intent(in) :: size1        ! size of the array
-    integer, intent(in) :: array(size1) ! array of numbers
-    integer, intent(out) :: sum         ! sum of array(i)
-    
-    integer i
-    
-    sum = 0
-    do i = 1,size1
-       sum = sum + array(i)
-    enddo
-    
-  end subroutine sum_int_1d
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine max_int_2d(size1, size2, array, max)
-    
-    integer, intent(in) :: size1        ! leading size of the array
-    integer, intent(in) :: size2        ! trailing size of the array
-    integer, intent(in) :: array(size1,size2) ! array of numbers
-    integer, intent(out) :: max         ! max of array(i,j)
-    
-    integer i, j
-    
-    max = 0
-    do i = 1,size1
-       do j = 1,size2
-          if (array(i, j) .gt. max) then
-             max = array(i, j)
-          endif
-       enddo
-    enddo
-    
-  end subroutine max_int_2d
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
   logical function almost_equal(d1, d2)
     
-    ! Tests whether two real numbers are almost equal
+    ! Tests whether two real numbers are almost equal using only a
+    ! relative tolerance.
     
     real*8, intent(in) :: d1            ! first number to compare
     real*8, intent(in) :: d2            ! second number to compare
@@ -139,7 +111,8 @@ contains
   
   logical function almost_equal_abs(d1, d2, abs_tol)
     
-    ! Tests whether two real numbers are almost equal
+    ! Tests whether two real numbers are almost equal using an
+    ! absolute and relative tolerance.
     
     real*8, intent(in) :: d1            ! first number to compare
     real*8, intent(in) :: d2            ! second number to compare

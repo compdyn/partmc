@@ -16,6 +16,8 @@ contains
   
   subroutine kernel_sedi(v1, v2, env, k)
 
+    ! Sedimentation coagulation kernel.
+
     use mod_environ
     use mod_constants
     
@@ -41,6 +43,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine fall_g(r, w_inf)
+
+    ! Finds the terminal velocity of a particle based on its size.
     
     real*8, intent(in) :: r             ! particle radius (m)
     real*8, intent(out) :: w_inf        ! terminal velocity (m/s)
@@ -105,6 +109,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine effic(r1, r2, ec)
+
+    ! Coagulation efficiency. Determines the chance that two particles
+    ! will actually coagulate, given that they approach close enough
+    ! to do so.
+
     real*8, intent(in) :: r1            ! radius of first particle (um)
     real*8, intent(in) :: r2            ! radius of second particle (um)
     real*8, intent(out) :: ec           ! collision efficiency (dimensionless)

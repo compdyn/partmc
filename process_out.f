@@ -8,6 +8,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 program process_out
+
+  use mod_util
   
   integer, parameter :: f_in = 20       ! input
   integer, parameter :: f_out_num = 21  ! output number
@@ -21,14 +23,14 @@ program process_out
   integer, parameter :: f_out_rh_avg = 29 ! output relative humidity average
   integer, parameter :: f_out_time_avg = 30 ! output time average
   
-  integer n_bin, n_loop, n_time, n_spec
-  character name_in*50
-  character name_out_time*50, name_out_time_avg*50
-  character name_out_num*50, name_out_vol*50
-  character name_out_temp*50, name_out_rh*50
-  character name_out_num_avg*50, name_out_vol_avg*50
-  character name_out_temp_avg*50, name_out_rh_avg*50
-  character dum*100, n_loop_str*10, n_time_str*10
+  integer :: n_bin, n_loop, n_time, n_spec
+  character(len=1000) :: name_in
+  character(len=1000) :: name_out_time, name_out_time_avg
+  character(len=1000) :: name_out_num, name_out_vol
+  character(len=1000) :: name_out_temp, name_out_rh
+  character(len=1000) :: name_out_num_avg, name_out_vol_avg
+  character(len=1000) :: name_out_temp_avg, name_out_rh_avg
+  character(len=1000) :: dum, n_loop_str, n_time_str
  
   real*8, allocatable :: time(:,:), time_avg(:)
   real*8, allocatable :: bin_r(:)
@@ -41,7 +43,7 @@ program process_out
   real*8, allocatable :: temp(:,:), temp_avg(:)
   real*8, allocatable :: rh(:,:), rh_avg(:)
  
-  integer i, i_loop, i_time, i_bin, i_spec
+  integer :: i, i_loop, i_time, i_bin, i_spec
   
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
@@ -84,20 +86,20 @@ program process_out
   name_out_rh_avg((i-1):) = '_rh_avg.d'
   name_out_time_avg((i-1):) = '_time_avg.d'
   
-  write(6,*) 'name_in = ', name_in
-  write(6,*) 'name_out_num = ', name_out_num
-  write(6,*) 'name_out_vol = ', name_out_vol
-  write(6,*) 'name_out_temp = ', name_out_temp
-  write(6,*) 'name_out_rh = ', name_out_rh
-  write(6,*) 'name_out_time = ', name_out_time
-  write(6,*) 'name_out_num_avg = ', name_out_num_avg
-  write(6,*) 'name_out_vol_avg = ', name_out_vol_avg
-  write(6,*) 'name_out_temp_avg = ', name_out_temp_avg
-  write(6,*) 'name_out_rh_avg = ', name_out_rh_avg
-  write(6,*) 'name_out_time_avg = ', name_out_time_avg
+  write(6,*) 'name_in = ', trim(name_in)
+  write(6,*) 'name_out_num = ', trim(name_out_num)
+  write(6,*) 'name_out_vol = ', trim(name_out_vol)
+  write(6,*) 'name_out_temp = ', trim(name_out_temp)
+  write(6,*) 'name_out_rh = ', trim(name_out_rh)
+  write(6,*) 'name_out_time = ', trim(name_out_time)
+  write(6,*) 'name_out_num_avg = ', trim(name_out_num_avg)
+  write(6,*) 'name_out_vol_avg = ', trim(name_out_vol_avg)
+  write(6,*) 'name_out_temp_avg = ', trim(name_out_temp_avg)
+  write(6,*) 'name_out_rh_avg = ', trim(name_out_rh_avg)
+  write(6,*) 'name_out_time_avg = ', trim(name_out_time_avg)
   
   ! open files
-  open(f_in, file=name_in)
+  call open_existing(f_in, name_in)
   open(f_out_num, file=name_out_num)
   open(f_out_vol, file=name_out_vol)
   open(f_out_temp, file=name_out_temp)

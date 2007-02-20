@@ -2,6 +2,8 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Material parameters.
 
 module mod_material
 
@@ -20,6 +22,9 @@ contains
 
   subroutine allocate_material(mat, n_spec)
 
+    ! Allocate storage for material parameters given the number of
+    ! species.
+
     type(material), intent(inout) :: mat ! material properties
     integer, intent(in) :: n_spec       ! number of species
 
@@ -35,7 +40,7 @@ contains
 
   real*8 function particle_mass(V, mat) ! kg
 
-    ! total mass of the particle
+    ! Total mass of the particle.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     type(material), intent(in) :: mat   ! material properties
@@ -55,7 +60,7 @@ contains
 
   real*8 function particle_volume(V) ! m^3
 
-    ! total volume of the particle
+    ! Total volume of the particle.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     
@@ -75,7 +80,7 @@ contains
 
   real*8 function average_solute_quantity(V, mat, quantity)
 
-    ! returns the volume-average of the non-water elements of quantity
+    ! Returns the volume-average of the non-water elements of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     type(material), intent(in) :: mat   ! material properties
@@ -93,7 +98,7 @@ contains
 
   real*8 function total_solute_quantity(V, mat, quantity)
 
-    ! returns the volume-total of the non-water elements of quantity
+    ! Returns the volume-total of the non-water elements of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     type(material), intent(in) :: mat   ! material properties
@@ -116,7 +121,7 @@ contains
 
   real*8 function average_water_quantity(V, mat, quantity)
 
-    ! returns the water element of quantity
+    ! Returns the water element of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     type(material), intent(in) :: mat   ! material properties
@@ -130,7 +135,7 @@ contains
 
   real*8 function total_water_quantity(V, mat, quantity)
 
-    ! returns the volume-total of the water element of quantity
+    ! Returns the volume-total of the water element of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
     type(material), intent(in) :: mat   ! material properties

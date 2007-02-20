@@ -12,6 +12,8 @@ contains
   
   subroutine kernel_golovin(v1, v2, env, k)
 
+    ! Golovin coagulation kernel.
+
     use mod_environ
     
     real*8, intent(in) :: v1            ! volume of first particle
@@ -29,6 +31,9 @@ contains
   
   subroutine soln_golovin_exp(n_bin, bin_v, bin_g_den, bin_n_den, &
        time, N_0, V_0, rho_p, env)
+
+    ! Exact solution with the Golovin coagulation kernel and
+    ! exponential initial condition.
 
     use mod_environ
     use mod_util
@@ -77,11 +82,14 @@ contains
     end do
     
   end subroutine soln_golovin_exp
-  
-  ! CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bessi1(x, r)
-    ! bessel function
+
+    ! Bessel function.
+    ! This looks like it was taken from Numerical Recipes.
+    ! FIXME: Where did this come from? What license does it have?
     
     real*8, intent(in) :: x             ! function argument
     real*8, intent(out) :: r            ! function value

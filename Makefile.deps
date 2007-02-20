@@ -18,12 +18,13 @@ bin.o: environ.o constants.o material.o util.o
 util.o: constants.o
 run_exact.o: bin.o array.o environ.o material.o constants.o util.o
 condensation.o: array.o bin.o environ.o material.o util.o constants.o
+process_out.o: util.o constants.o
 test_sedi_bidisperse_state_to_count.o: environ.o material.o state.o array.o constants.o util.o bin.o
 partbox.o: read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o run_exact.o run_sect.o constants.o util.o state.o
 environ.o: constants.o material.o util.o
 
-process_out: process_out.o 
-	$(FC) $(LDFLAGS) -o $@ process_out.o 
+process_out: process_out.o util.o constants.o
+	$(FC) $(LDFLAGS) -o $@ process_out.o util.o constants.o
 
 process_state: process_state.o bin.o environ.o material.o array.o state.o util.o constants.o
 	$(FC) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array.o state.o util.o constants.o

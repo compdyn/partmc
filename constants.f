@@ -2,6 +2,16 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Useful physical constants. These should all be absolute constants
+! and environment parameters that in principle could change should go
+! in environ.f.
+!
+! To access a constant in a subroutine you should "use mod_constants"
+! and then the constant value is accessed with const%pi or
+! similar. Note that the type is called consts (with a trailing s) but
+! the single saved variable to access them is called const (without a
+! trailing s).
 
 module mod_constants
 
@@ -18,7 +28,6 @@ module mod_constants
      real*8 :: atm = 101325d0           ! atm. standard sea level pressure (Pa)
      real*8 :: k_b = 1.3806505d-23      ! Boltzmann constant in J K^{-1}
      real*8 :: mu = 1.78d-5             ! dynamic visc. air (kg m^{-1} s^{-1})
-
   end type consts
 
   type(consts), save :: const

@@ -2,6 +2,14 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Save and restore the state of particle-resolved Monte Carlo
+! runs. The state file should contain enough data to restart the
+! simulation at the point it was written.
+!
+! Because it contains the full state of every particle, this is also
+! the best way to gain complete access to all statistics of the
+! simulation.
 
 module mod_state
 contains
@@ -10,7 +18,8 @@ contains
 
   subroutine read_state_header(state_unit, filename, n_bin, n_spec)
 
-    ! Read only the header of the state file.
+    ! Open the state file, read only the header and then close it
+    ! again.
     
     use mod_environ
     use mod_array
@@ -36,7 +45,8 @@ contains
 
   subroutine read_state_bins(state_unit, filename, n_bin, bin_v, dlnr)
 
-    ! Read the bin_v array out of the state file.
+    ! Open the state file, read only the bin_v array out and then
+    ! close the file again.
     
     use mod_environ
     use mod_array
@@ -81,7 +91,8 @@ contains
   subroutine read_state(state_unit, filename, n_bin, n_spec, &
        MH, VH, env, time)
 
-    ! Read the entire state file (including the header).
+    ! Open and read the entire state file (including the header) and
+    ! then close it.
 
     use mod_environ
     use mod_array
@@ -150,7 +161,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, &
-       VH, bin_v, dlnr, env, index, time)
+       VH, bin_v, dlnr, env, index, time, i_loop)
+
+    ! Write the current state.
     
     use mod_environ
     use mod_array
@@ -166,12 +179,13 @@ contains
     type(environ), intent(in) :: env    ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
+    integer, intent(in) :: i_loop       ! current loop number
     
     character*300 filename
     integer i, j, k
     
-    write(filename, '(a,a,a,i8.8,a)') 'state_', trim(state_name), &
-         '_', index, '.d'
+    write(filename, '(a,a,a,i4.4,a,i8.8,a)') 'state_', trim(state_name), &
+         '_', i_loop, '_', index, '.d'
     open(unit=state_unit, file=filename)
     write(state_unit,'(a20,i20)') 'n_bin', n_bin
     write(state_unit,'(a20,i20)') 'n_spec', n_spec

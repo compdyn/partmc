@@ -15,6 +15,8 @@ contains
        t_progress, del_t, output_unit, state_unit, state_name, &
        do_coagulation, allow_double, do_condensation, do_restart, &
        restart_name, i_loop, n_loop, t_wall_start, env, mat)
+
+    ! Do a particle-resolved Monte Carlo simulation.
     
     use mod_util
     use mod_array
@@ -122,7 +124,7 @@ contains
 
     if (t_state > 0d0) then
        call write_state(state_unit, state_name, n_bin, n_spec, &
-            MH, VH, bin_v, dlnr, env, i_time, time)
+            MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
     end if
     
     t_start = time
@@ -164,7 +166,7 @@ contains
           call check_event(time, del_t, t_state, last_state_time, &
                do_state)
           if (do_state) call write_state(state_unit, state_name, n_bin, &
-               n_spec, MH, VH, bin_v, dlnr, env, i_time, time)
+               n_spec, MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
        end if
        
        if (t_progress > 0d0) then
@@ -192,6 +194,8 @@ contains
   subroutine mc_coag(MM, M, n_spec, n_bin, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, allow_double, &
        env, mat, tot_n_samp, n_coag)
+
+    ! Do coagulation for time del_t.
 
     use mod_util
     use mod_array
@@ -269,6 +273,9 @@ contains
   
   subroutine compute_n_samp(n_bin, MH, i, j, k_max, &
        del_t, env, n_samp_real)
+
+    ! Compute the number of samples required for the pair of bins
+    ! (i,j).
 
     use mod_environ
     

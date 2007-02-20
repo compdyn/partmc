@@ -3,7 +3,8 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Top level driver that reads .spec file and calls simulation routines.
+! Top level driver that reads the .spec file and calls simulation
+! routines.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -2,6 +2,13 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
+!
+! Environment parameters.
+!
+! The temperature profile is proscribed as a function of time by
+! giving a number of times and the corresponding temperatures. Linear
+! interpolation is used between the times, with constant interpolation
+! outside of the range of times.
 
 module mod_environ
   
@@ -21,6 +28,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine allocate_environ_temps(env, n_temps)
+
+    ! Allocate storage for a given number of temperature set points.
 
     type(environ), intent(inout) :: env ! environment
     integer, intent(in) :: n_temps      ! number of temperature set-points
@@ -99,6 +108,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   real*8 function sat_vapor_pressure(env) ! Pa
+
+    ! Computes the current saturation vapor pressure.
     
     use mod_constants
     

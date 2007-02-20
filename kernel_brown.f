@@ -15,6 +15,8 @@ contains
 
   subroutine kernel_brown(v1, v2, env, k)
 
+    ! Compute the Brownian coagulation kernel.
+
     use mod_environ
     use mod_constants
 

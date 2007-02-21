@@ -6,6 +6,8 @@
 !
 ! Sectional code based on coad1d.f by Andreas Bott
 ! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
+! A. Bott, A flux method for the numerical solution of the stochastic
+! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
 
 module mod_run_sect
 contains

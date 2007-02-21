@@ -2,9 +2,6 @@ Shift code into a separate (partbox?) repository for PNNL to access - Matt
 
 PartBox or PartMC? - Matt
 
-Add reference at top of run_sect.f and kernel_sedi.f giving a
-reference to a paper of Bott's where he discusses the method. - Nicole
-
 Make dust_salt testcase with condensation and process_state. Need to
 have some plots showing composition and something involving multiple
 species. - Nicole

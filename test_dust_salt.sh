@@ -30,12 +30,19 @@ ENDINFO
 echo ./partbox test_dust_salt_part1.spec
 #./partbox test_dust_salt_part1.spec
 echo ./process_out out_dust_salt_part1.d
-./process_out out_dust_salt_part1.d
+#./process_out out_dust_salt_part1.d
 
 echo ./partbox test_dust_salt_part2.spec
-./partbox test_dust_salt_part2.spec
+#./partbox test_dust_salt_part2.spec
 echo ./process_out out_dust_salt_part2.d
-./process_out out_dust_salt_part2.d
+#./process_out out_dust_salt_part2.d
+
+echo ./process_state state_dust_salt_part1_0001_00000000.d
+#./process_state state_dust_salt_part1_0001_00000000.d
+echo ./process_state state_dust_salt_part2_0001_00000800.d
+#./process_state state_dust_salt_part2_0001_00000800.d
+echo ./process_state state_dust_salt_part2_0001_00001200.d
+#./process_state state_dust_salt_part2_0001_00001200.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM
@@ -69,3 +76,24 @@ set output "plot_dust_salt_vol.eps"
 replot
 ENDVOL
 epstopdf plot_dust_salt_vol.eps
+
+echo Plotting composition
+gnuplot -persist <<ENDCOM
+set logscale
+set xlabel "radius (m)"
+set ylabel "number density (1/m^3)"
+set title "Testcase dust and seasalt"
+set key left top
+plot [1e-8:1e-3] [1e3:1e10] "state_dust_salt_part1_0001_00000000_moments_comp.d" using 2:3 w l title "species 1 (0 s)"
+replot "state_dust_salt_part1_0001_00000000_moments_comp.d" using 2:4 w l title "species 2 (0 s)"
+replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:3 w l title "species 1 (800 s)"
+replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:4 w l title "species 2 (800 s)"
+replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:5 w l title "mixed (800 s)"
+replot "state_dust_salt_part2_0001_00001200_moments_comp.d" using 2:3 w l title "species 1 (1200 s)"
+replot "state_dust_salt_part2_0001_00001200_moments_comp.d" using 2:4 w l title "species 2 (1200 s)"
+replot "state_dust_salt_part2_0001_00001200_moments_comp.d" using 2:5 w l title "mixed (1200 s)"
+set terminal postscript eps
+set output "plot_dust_salt_comp.eps"
+replot
+ENDCOM
+epstopdf plot_dust_salt_comp.eps

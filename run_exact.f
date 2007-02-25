@@ -64,8 +64,10 @@ contains
     end interface
     
     n_time = nint(t_max / t_output)
+    call init_environ(env, 0d0)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * t_max
+       call update_environ(env, time)
        call soln(n_bin, bin_v, bin_g_den, bin_n_den, time, &
             num_conc, mean_vol, rho_p, env)
        bin_gs_den(:,1) = bin_g_den

@@ -102,6 +102,7 @@ contains
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
+    call init_environ(env, time)
     
     ! initial output
     call check_event(time, del_t, t_output, last_output_time, do_output)
@@ -118,6 +119,7 @@ contains
     num_t = nint(t_max / del_t)
     do i_time = 1, num_t
        time = t_max * dble(i_time) / dble(num_t)
+       call update_environ(env, time)
        
        call coad(n_bin, del_t, taug, taup, taul, tauu, prod, ploss, &
             c, ima, g, r, e, ck, ec)

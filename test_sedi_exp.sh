@@ -24,13 +24,13 @@ comparison of sectional runs with Monte Carlo runs.
 
 ENDINFO
 
-echo ./partbox test_sedi_exp_mc.spec
-./partbox test_sedi_exp_mc.spec
+echo ./partmc test_sedi_exp_mc.spec
+./partmc test_sedi_exp_mc.spec
 echo ./process_out out_sedi_exp_mc.d
 ./process_out out_sedi_exp_mc.d
 
-echo ./partbox test_sedi_exp_sect.spec
-./partbox test_sedi_exp_sect.spec
+echo ./partmc test_sedi_exp_sect.spec
+./partmc test_sedi_exp_sect.spec
 echo ./process_out out_sedi_exp_sect.d
 ./process_out out_sedi_exp_sect.d
 

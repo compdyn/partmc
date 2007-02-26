@@ -43,7 +43,7 @@ program process_out
   real*8, allocatable :: temp(:,:), temp_avg(:)
   real*8, allocatable :: rh(:,:), rh_avg(:)
  
-  integer :: i, i_loop, i_time, i_bin, i_spec
+  integer :: i, i_loop, i_time, i_bin, i_spec, dum_int
   
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
@@ -142,9 +142,11 @@ program process_out
   ! read all data
   do i_loop = 1,n_loop
      do i_time = 1,n_time
+        read(f_in, '(a10,i20)') dum, dum_int
         read(f_in, '(a10,e20.10)') dum, time(i_loop, i_time)
         read(f_in, '(a10,e20.10)') dum, temp(i_loop, i_time)
         read(f_in, '(a10,e20.10)') dum, rh(i_loop, i_time)
+        read(f_in, '(a)') dum
         do i_bin = 1,n_bin
            read(f_in, '(i10,50e20.10)') i, bin_r(i_bin), &
                 n(i_loop, i_time, i_bin), &
@@ -202,6 +204,10 @@ program process_out
   do i_time = 1,n_time
      write(f_out_num, '(//,a10,i10)') 'time', i_time - 1
      write(f_out_vol, '(//,a10,i10)') 'time', i_time - 1
+     write(f_out_num, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+          'num den per loop (#/m^3)'
+     write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+          'vol den per loop (m^3/m^3)'
      do i_bin = 1,n_bin
         write(f_out_num, '(i10,e20.10,'//n_loop_str//'e20.10)') &
              i_bin, bin_r(i_bin), &
@@ -213,6 +219,10 @@ program process_out
      do i_spec = 1,n_spec
         write(f_out_vol,*)
         write(f_out_vol,*)
+        write(f_out_vol, '(a1,a19)') '#', 'time', i_time - 1
+        write(f_out_vol, '(a1,a19)') '#', 'species num', i_spec
+        write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+             'vol den per loop (m^3/m^3)'
         do i_bin=1,n_bin
            write(f_out_vol, '(i10,e20.10,'//n_loop_str//'e20.10)') &
                 i_bin, bin_r(i_bin), &
@@ -223,6 +233,10 @@ program process_out
   enddo
   
   ! output averaged number and vol data
+  write(f_out_num_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+       'num den at each time (#/m^3)'
+  write(f_out_vol_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+       'vol den at each time (m^3/m^3)'
   do i_bin = 1,n_bin
      write(f_out_num_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
           i_bin, bin_r(i_bin), &
@@ -234,14 +248,23 @@ program process_out
   do i_spec = 1,n_spec
      write(f_out_vol_avg,*)
      write(f_out_vol_avg,*)
+     write(f_out_vol, '(a1,a19)') '#', 'species num', i_spec
+     write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+          'species vol den at each time (m^3/m^3)'
      do i_bin=1,n_bin
         write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
              i_bin, bin_r(i_bin), &
-             (gs_avg(i_time, i_bin,i_spec),i_time =1,n_time)
+             (gs_avg(i_time, i_bin,i_spec),i_time = 1,n_time)
      enddo
   enddo
   
   ! output time, temperature and relative humidity data
+  write(f_out_temp, '(a1,a19,a35)') '#', 'time(s)', 'temp(K) at each loop'
+  write(f_out_rh, '(a1,a19,a35)') '#', 'time(s)', 'RH(1) at each loop'
+  write(f_out_time, '(a1,a9,a35)') '#', 'time_num', 'time(s) at each loop'
+  write(f_out_temp_avg, '(a1,a19,a20)') '#', 'time(s)', 'temp(K)'
+  write(f_out_rh_avg, '(a1,a19,a20)') '#', 'time(s)', 'RH(1)'
+  write(f_out_time_avg, '(a1,a9,a20)') '#', 'time_num', 'time(s)'
   do i_time = 1,n_time
      write(f_out_temp, '(e20.10,'//n_loop_str//'e20.10)') &
           time_avg(i_time), &

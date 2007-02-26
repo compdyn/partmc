@@ -8,7 +8,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-program partbox
+program partmc
 
   use mod_read_spec
 
@@ -37,11 +37,11 @@ program partbox
   call read_string(spec, 'run_type', run_type)
 
   if (trim(run_type) == 'mc') then
-     call partbox_mc(spec)
+     call partmc_mc(spec)
   elseif (trim(run_type) == 'exact') then
-     call partbox_exact(spec)
+     call partmc_exact(spec)
   elseif (trim(run_type) == 'sect') then
-     call partbox_sect(spec)
+     call partmc_sect(spec)
   else
      write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
      call exit(1)
@@ -51,7 +51,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partbox_mc(spec)
+  subroutine partmc_mc(spec)
 
     use mod_bin
     use mod_array
@@ -230,11 +230,11 @@ contains
        
     end do
 
-  end subroutine partbox_mc
+  end subroutine partmc_mc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partbox_exact(spec)
+  subroutine partmc_exact(spec)
 
     use mod_bin
     use mod_array
@@ -320,11 +320,11 @@ contains
        call exit(1)
     end if
     
-  end subroutine partbox_exact
+  end subroutine partmc_exact
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partbox_sect(spec)
+  subroutine partmc_sect(spec)
 
     use mod_material
     use mod_environ
@@ -416,10 +416,10 @@ contains
        call exit(1)
     end if
     
-  end subroutine partbox_sect
+  end subroutine partmc_sect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program partbox
+end program partmc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

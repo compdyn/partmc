@@ -112,7 +112,7 @@ contains
           bin_n_den(i) = bin_g_den(i) / bin_v(i)
        end do
        call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
-            bin_g_den, bin_n_den, env, mat)
+            bin_g_den, bin_n_den, env, mat, 1)
     end if
     
     ! main time-stepping loop
@@ -133,7 +133,7 @@ contains
              bin_n_den(i) = bin_g_den(i) / bin_v(i)
           end do
           call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, &
-               bin_g_den, bin_g_den, bin_n_den, env, mat)
+               bin_g_den, bin_g_den, bin_n_den, env, mat, 1)
        end if
        
        ! print progress to stdout

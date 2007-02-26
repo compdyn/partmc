@@ -29,7 +29,7 @@ makedeps.py requires Python (tested with version 2.4.2).
 USAGE
 -----
 
-The main partbox command reads .spec files and does the run specified
+The main partmc command reads .spec files and does the run specified
 therein. Either Monte Carlo runs, sectional code runs, or exact
 solutions can be generated. A run produces binned summary data in a
 file called out_*.d which can be processed with process_out to

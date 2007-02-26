@@ -27,13 +27,13 @@ and processing state for multi-species simulations.
 
 ENDINFO
 
-echo ./partbox test_dust_salt_part1.spec
-#./partbox test_dust_salt_part1.spec
+echo ./partmc test_dust_salt_part1.spec
+#./partmc test_dust_salt_part1.spec
 echo ./process_out out_dust_salt_part1.d
 #./process_out out_dust_salt_part1.d
 
-echo ./partbox test_dust_salt_part2.spec
-#./partbox test_dust_salt_part2.spec
+echo ./partmc test_dust_salt_part2.spec
+#./partmc test_dust_salt_part2.spec
 echo ./process_out out_dust_salt_part2.d
 #./process_out out_dust_salt_part2.d
 

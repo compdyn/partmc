@@ -191,7 +191,7 @@ contains
     write(state_unit,'(a20,i20)') 'n_spec', n_spec
     write(state_unit,'(a20,e20.10)') 'time(s)', time
     write(state_unit,'(a20,e20.10)') 'temp(K)', env%T
-    write(state_unit,'(a20,e20.10)') 'rh(1)', env%RH
+    write(state_unit,'(a20,e20.10)') 'RH(1)', env%RH
     write(state_unit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
     write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
     write(state_unit,'(a20,e20.10)') 'dlnr', dlnr

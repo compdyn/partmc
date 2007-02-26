@@ -106,7 +106,8 @@ contains
              call check_event(pre_time, del_t, t_output, last_output_time, &
                   do_output)
              if (do_output) call output_info(output_unit, pre_time, &
-                  n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+                  n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, &
+                  env, mat, i_loop)
           end if
           pre_time = pre_time + del_t
        end do
@@ -119,7 +120,7 @@ contains
 
     if (t_output > 0d0) then
        call output_info(output_unit, time, n_bin, n_spec, bin_v, &
-            bin_g, bin_gs, bin_n, dlnr, env, mat)
+            bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
     end if
 
     if (t_state > 0d0) then
@@ -159,7 +160,7 @@ contains
           call check_event(time, del_t, t_output, last_output_time, &
                do_output)
           if (do_output) call output_info(output_unit, time, n_bin, n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
        end if
 
        if (t_state > 0d0) then

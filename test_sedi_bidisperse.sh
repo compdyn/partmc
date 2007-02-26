@@ -26,8 +26,8 @@ general-purpose solution.
 
 ENDINFO
 
-echo ./partbox test_sedi_bidisperse_mc.spec
-./partbox test_sedi_bidisperse_mc.spec
+echo ./partmc test_sedi_bidisperse_mc.spec
+./partmc test_sedi_bidisperse_mc.spec
 echo ./test_sedi_bidisperse_state_to_count
 ./test_sedi_bidisperse_state_to_count
 

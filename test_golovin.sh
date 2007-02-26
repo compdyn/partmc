@@ -17,13 +17,13 @@ as model verification against an analytical solution.
 
 ENDINFO
 
-echo ./partbox test_golovin_mc.spec
-./partbox test_golovin_mc.spec
+echo ./partmc test_golovin_mc.spec
+./partmc test_golovin_mc.spec
 echo ./process_out out_golovin_mc.d
 ./process_out out_golovin_mc.d
 
-echo ./partbox test_golovin_exact.spec
-./partbox test_golovin_exact.spec
+echo ./partmc test_golovin_exact.spec
+./partmc test_golovin_exact.spec
 echo ./process_out out_golovin_exact.d
 ./process_out out_golovin_exact.d
 

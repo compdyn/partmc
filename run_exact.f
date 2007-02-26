@@ -73,7 +73,7 @@ contains
        bin_gs_den(:,1) = bin_g_den
 
        call output_info_density(output_unit, time, n_bin, n_spec, &
-            bin_v, bin_g_den, bin_gs_den, bin_n_den, env, mat)
+            bin_v, bin_g_den, bin_gs_den, bin_n_den, env, mat, 1)
     end do
     
   end subroutine run_exact

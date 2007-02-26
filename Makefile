@@ -1,6 +1,6 @@
 
 VERSION = 1.0.0
-DIST_NAME = partbox-$(VERSION)
+DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
 # run "make FC=pgf95" to use the Portland Group compiler instead
@@ -23,7 +23,7 @@ ifeq ($(FC),pgf95)
 endif
 
 PROGS = process_out process_state test_sedi_bidisperse_ode		\
-	process_average partbox test_sedi_bidisperse_state_to_count
+	process_average partmc test_sedi_bidisperse_state_to_count
 
 OTHER = array bin condensation constants environ init_dist	\
 	kernel_golovin kernel_sedi kernel_constant kernel_brown	\

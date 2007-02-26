@@ -270,7 +270,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_info(output_unit, time, n_bin, n_spec, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes absolute number and absolute volume
@@ -290,6 +290,7 @@ contains
     real*8, intent(in) :: dlnr          ! bin scale factor
     type(environ), intent(in) :: env    ! environment state
     type(material), intent(in) :: mat   ! material properties
+    integer, intent(in) :: i_loop       ! current loop number
     
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
     real*8 bin_n_den(n_bin)
@@ -298,14 +299,14 @@ contains
     bin_gs_den = bin_gs / env%V_comp / dlnr
     bin_n_den = dble(bin_n) / env%V_comp / dlnr
     call output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
-         bin_g_den, bin_gs_den, bin_n_den, env, mat)
+         bin_g_den, bin_gs_den, bin_n_den, env, mat, i_loop)
     
   end subroutine output_info
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
-       bin_g_den, bin_gs_den, bin_n_den, env, mat)
+       bin_g_den, bin_gs_den, bin_n_den, env, mat, i_loop)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes number and volume densities (as produced
@@ -325,12 +326,17 @@ contains
     real*8, intent(in) :: bin_n_den(n_bin) ! number density in bins (1/m^3)
     type(environ), intent(in) :: env    ! environment state
     type(material), intent(in) :: mat   ! material properties
+    integer, intent(in) :: i_loop       ! current loop number
     
     integer k
-    
+
+    write(output_unit,'(a10,i20)') 'loop_num', i_loop
     write(output_unit,'(a10,e20.10)') 'time(s)', time
     write(output_unit,'(a10,e20.10)') 'temp(K)', env%T
-    write(output_unit,'(a10,e20.10)') 'rh(1)', env%RH
+    write(output_unit,'(a10,e20.10)') 'RH(1)', env%RH
+    write(output_unit,'(a1,a9,a20,a20,a20,a30)') '#', 'bin_num', &
+         'radius(m)', 'tot num (#/m^3)', 'tot vol (m^3/m^3)', &
+         'vol per species (m^3/m^3)'
     do k = 1,n_bin
        write(output_unit, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
             bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)

@@ -9,6 +9,10 @@ species. - Nicole
 Make dust_salt case where brownian coagulation is included
 in addition to gravitational coagulation - Nicole
 
+Stop the auto-making of deps for release - Matt
+
+Add header info to output files to describe fields?
+
 -----------------------------------------------------------------------------
 
 Add implicit, adaptive timestepping for the condensation ODE solver.

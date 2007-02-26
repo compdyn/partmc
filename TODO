@@ -11,6 +11,8 @@ in addition to gravitational coagulation - Nicole
 
 Add init_equilib option to control whether we equilibriate? - Matt
 
+Add rand_init for run_sect - Matt
+
 -----------------------------------------------------------------------------
 
 Add implicit, adaptive timestepping for the condensation ODE solver.

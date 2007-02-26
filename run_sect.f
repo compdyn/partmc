@@ -73,13 +73,13 @@ contains
     do i = 1,n_bin
        r(i) = vol2rad(bin_v(i)) * 1d6       ! radius in m to um
        e(i) = bin_v(i) * mat%rho(1) * 1d6   ! volume in m^3 to mass in mg
-    enddo
+    end do
     
     ! initial mass distribution
     do i = 1,n_bin
        g(i) = n_den(i) * bin_v(i) * mat%rho(1) * num_conc
        if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
-    enddo
+    end do
     
     call courant(n_bin, dlnr, e, ima, c)
     
@@ -89,15 +89,15 @@ contains
     do i = 1,n_bin
        do j = 1,n_bin
           ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
-       enddo
-    enddo
+       end do
+    end do
     
     ! multiply kernel with constant timestep and logarithmic grid distance
     do i = 1,n_bin
        do j = 1,n_bin
           ck(i,j) = ck(i,j) * del_t * dlnr
-       enddo
-    enddo
+       end do
+    end do
     
     ! initialize time
     last_progress_time = 0d0
@@ -110,10 +110,10 @@ contains
        do i = 1,n_bin
           bin_g_den(i) = g(i) / mat%rho(1)
           bin_n_den(i) = bin_g_den(i) / bin_v(i)
-       enddo
+       end do
        call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
             bin_g_den, bin_n_den, env, mat)
-    endif
+    end if
     
     ! main time-stepping loop
     num_t = nint(t_max / del_t)
@@ -131,10 +131,10 @@ contains
           do i = 1,n_bin
              bin_g_den(i) = g(i) / mat%rho(1)
              bin_n_den(i) = bin_g_den(i) / bin_v(i)
-          enddo
+          end do
           call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, &
                bin_g_den, bin_g_den, bin_n_den, env, mat)
-       endif
+       end if
        
        ! print progress to stdout
        call check_event(time, del_t, t_progress, last_progress_time, &
@@ -142,8 +142,8 @@ contains
        if (do_progress) then
           write(6,'(a6,a8)') 'step', 'time'
           write(6,'(i6,f8.1)') i_time, time
-       endif
-    enddo
+       end if
+    end do
 
   end subroutine run_sect
   
@@ -174,55 +174,57 @@ contains
     
     integer i, i0, i1, j, k, kp
     real*8 x0, gsi, gsj, gsk, gk, x1, flux
-    
+
     do i = 1,n_bin
        prod(i) = 0d0
        ploss(i) = 0d0
-    enddo
+    end do
     
     ! lower and upper integration limit i0,i1
     do i0 = 1,(n_bin - 1)
        if (g(i0) .gt. gmin) goto 2000
-    enddo
+    end do
 2000 continue
     do i1 = (n_bin - 1),1,-1
        if (g(i1) .gt. gmin) goto 2010
-    enddo
+    end do
 2010 continue
     
     do i = i0,i1
        do j = i,i1
-          k = ima(i,j)
-          kp = k + 1
+          k = ima(i,j) ! k = 0 means that i + j goes nowhere
+          if (k > 0) then
+             kp = k + 1
           
-          x0 = ck(i,j) * g(i) * g(j)
-          x0 = min(x0, g(i) * e(j))
-          
-          if (j .ne. k) x0 = min(x0, g(j) * e(i))
-          gsi = x0 / e(j)
-          gsj = x0 / e(i)
-          gsk = gsi + gsj
-          
-          ! loss from positions i, j
-          ploss(i) = ploss(i) + gsi
-          ploss(j) = ploss(j) + gsj
-          g(i) = g(i) - gsi
-          g(j) = g(j) - gsj
-          gk = g(k) + gsk
-          
-          if (gk .gt. gmin) then
-             x1 = log(g(kp) / gk + 1d-60)
-             flux = gsk / x1 * (exp(0.5d0 * x1) &
-                  - exp(x1 * (0.5d0 - c(i,j))))
-             flux = min(flux, gk)
-             g(k) = gk - flux
-             g(kp) = g(kp) + flux
-             ! gain for positions i, j
-             prod(k) =  prod(k) + gsk - flux           
-             prod(kp) = prod(kp) + flux
-          endif
-       enddo
-    enddo
+             x0 = ck(i,j) * g(i) * g(j)
+             x0 = min(x0, g(i) * e(j))
+             
+             if (j .ne. k) x0 = min(x0, g(j) * e(i))
+             gsi = x0 / e(j)
+             gsj = x0 / e(i)
+             gsk = gsi + gsj
+             
+             ! loss from positions i, j
+             ploss(i) = ploss(i) + gsi
+             ploss(j) = ploss(j) + gsj
+             g(i) = g(i) - gsi
+             g(j) = g(j) - gsj
+             gk = g(k) + gsk
+             
+             if (gk .gt. gmin) then
+                x1 = log(g(kp) / gk + 1d-60)
+                flux = gsk / x1 * (exp(0.5d0 * x1) &
+                     - exp(x1 * (0.5d0 - c(i,j))))
+                flux = min(flux, gk)
+                g(k) = gk - flux
+                g(kp) = g(kp) + flux
+                ! gain for positions i, j
+                prod(k) =  prod(k) + gsk - flux           
+                prod(kp) = prod(kp) + flux
+             end if
+          end if
+       end do
+    end do
     
   end subroutine coad
   
@@ -235,16 +237,18 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     real*8, intent(in) :: e(n_bin)      ! droplet mass grid (mg)
-    integer, intent(out) :: ima(n_bin,n_bin) ! FIXME: what is this?
+    integer, intent(out) :: ima(n_bin,n_bin) ! i + j goes in bin ima(i,j)
     real*8, intent(out) :: c(n_bin,n_bin) ! Courant number for bin pairs
     
     integer i, j, k, kk
     real*8 x0
 
     c = 0d0 ! added to avoid uninitialized access errors
+    ima = 0 ! ima(i,j) = 0 means that particles i + j go nowhere
     do i = 1,n_bin
        do j = i,n_bin
           x0 = e(i) + e(j)
+          ! FIXME: replace below with particle_in_bin()
           do k = j,n_bin
              if ((e(k) .ge. x0) .and. (e(k-1) .lt. x0)) then
                 if (c(i,j) .lt. 1d0 - 1d-08) then
@@ -253,16 +257,16 @@ contains
                 else
                    c(i,j) = 0d0
                    kk = k
-                endif
+                end if
                 ima(i,j) = min(n_bin - 1, kk)
                 goto 2000
-             endif
-          enddo
+             end if
+          end do
 2000      continue
           c(j,i) = c(i,j)
           ima(j,i) = ima(i,j)
-       enddo
-    enddo
+       end do
+    end do
     
   end subroutine courant
   
@@ -289,9 +293,9 @@ contains
                + 0.5d0 * k(i,j)
           if (i .eq. j) then
              k_smooth(i,j) = 0.5d0 * k_smooth(i,j)
-          endif
-       enddo
-    enddo
+          end if
+       end do
+    end do
     
   end subroutine smooth_bin_kernel
   

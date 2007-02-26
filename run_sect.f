@@ -193,22 +193,23 @@ contains
     do i = i0,i1
        do j = i,i1
           k = ima(i,j) ! k = 0 means that i + j goes nowhere
-          if (k > 0) then
-             kp = k + 1
+          kp = k + 1
           
-             x0 = ck(i,j) * g(i) * g(j)
-             x0 = min(x0, g(i) * e(j))
+          x0 = ck(i,j) * g(i) * g(j)
+          x0 = min(x0, g(i) * e(j))
+          
+          if (j .ne. k) x0 = min(x0, g(j) * e(i))
+          gsi = x0 / e(j)
+          gsj = x0 / e(i)
+          gsk = gsi + gsj
              
-             if (j .ne. k) x0 = min(x0, g(j) * e(i))
-             gsi = x0 / e(j)
-             gsj = x0 / e(i)
-             gsk = gsi + gsj
-             
-             ! loss from positions i, j
-             ploss(i) = ploss(i) + gsi
-             ploss(j) = ploss(j) + gsj
-             g(i) = g(i) - gsi
-             g(j) = g(j) - gsj
+          ! loss from positions i, j
+          ploss(i) = ploss(i) + gsi
+          ploss(j) = ploss(j) + gsj
+          g(i) = g(i) - gsi
+          g(j) = g(j) - gsj
+
+          if (k > 0) then ! do we have a valid bin for the coagulation result?
              gk = g(k) + gsk
              
              if (gk .gt. gmin) then

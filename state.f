@@ -78,6 +78,7 @@ contains
        call exit(1)
     end if
     
+    read(state_unit,'(a)') dum
     do i = 1,n_bin
        read(state_unit,'(i20,e30.20)') dum_int, bin_v(i)
     end do
@@ -131,17 +132,20 @@ contains
        write(0,*) 'ERROR: n_spec mismatch when reading state'
        call exit(1)
     end if
-    
+
+    read(state_unit,'(a)') dum
     do i = 1,n_bin
        read(state_unit,'(i20,e30.20)') dum_int_1, dum_real
     end do
     
     call zero_array(n_spec, MH, VH)    
 
+    read(state_unit,'(a)') dum
     do i = 1,n_bin
        read(state_unit,'(i20,i20)') dum_int_1, MH(i)
     end do
     
+    read(state_unit,'(a)') dum
     do i = 1,n_bin
        do j = 1,MH(i)
           do k = 1,n_spec
@@ -196,12 +200,16 @@ contains
     write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
     write(state_unit,'(a20,e20.10)') 'dlnr', dlnr
 
+    write(state_unit,'(a1,a19,a30)') '#', 'bin_num', 'vol of bin (m^3)'
     do i = 1,n_bin 
        write(state_unit,'(i20,e30.20)') i, bin_v(i)
     end do  
+    write(state_unit,'(a1,a19,a20)') '#', 'bin_num', 'num in bin (#)'
     do i = 1,n_bin
        write(state_unit,'(i20,i20)') i, MH(i)
     end do
+    write(state_unit,'(a1,a11,a12,a12,a30)') '#', 'bin_num', 'index', &
+         'species', 'volume (m^3)'
     do i = 1,n_bin
        do j = 1,MH(i)
           do k = 1,n_spec

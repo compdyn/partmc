@@ -2,7 +2,7 @@
 PartMC - Particle-resolved Monte Carlo code for coagulation and condensation
 
 Version 1.0.0
-Released 2007-02-20
+Released 2007-02-26
 
 http://tableau.stanford.edu/~mwest/group/PartMC
 http://carrot.msrc.sunysb.edu/~nicole/research/montecarlo/
@@ -58,6 +58,6 @@ which is called automatically by the main Makefile.
 CHANGELOG
 ---------
 
-1.0.0 - 2007-02-20
+1.0.0 - 2007-02-26
   * First release, including hierarchical coagulation and full water
     condensation.

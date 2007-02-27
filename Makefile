@@ -3,6 +3,9 @@ VERSION = 1.0.0
 DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
+# set to "yes" if building as a developer, otherwise "no"
+DEV_BUILD = yes
+
 # run "make FC=pgf95" to use the Portland Group compiler instead
 FC = gfortran
 
@@ -43,10 +46,19 @@ ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(patsubst %,%.f,$(ALL_FILES))
 ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 
+ifeq ($(DEV_BUILD),yes)
+# developers should rebuild Makefile.deps and TAGS
 all: Makefile.deps TAGS $(PROGS)
 
 Makefile.deps: $(ALL_SOURCE)
 	./makedeps.py --progs $(PROGS) --other $(OTHER)
+
+TAGS: $(ALL_SOURCE)
+	etags $(ALL_SOURCE)
+else
+# non-developers should only build the programs
+all: $(PROGS)
+endif
 
 -include Makefile.deps
 
@@ -56,22 +68,20 @@ Makefile.deps: $(ALL_SOURCE)
 %.o : %.mod
 
 clean:
-	rm -f $(PROGS) *.o *.mod TAGS
+	rm -f $(PROGS) *.o *.mod
 
 cleanall: clean
-	rm -f *~ *.d *.pdf *.eps gmon.out gprof_*
+	rm -f *~ *.d *.pdf *.eps gmon.out gprof_* TAGS Makefile.deps
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<
 
-dist: Makefile.deps
+dist: Makefile.deps TAGS
 	grep -q "Version $(VERSION)" README
 	grep -q "Released $(DATE)" README
 	grep -q "$(VERSION) - $(DATE)" README
+	grep -q "DEV_BUILD = no" Makefile
 	mkdir $(DIST_NAME)
 	cp $(DIST_FILES) $(TEST_FILES) $(ALL_SOURCE) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
-
-TAGS: $(ALL_SOURCE)
-	etags $(ALL_SOURCE)

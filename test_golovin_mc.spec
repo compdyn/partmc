@@ -1,13 +1,13 @@
 run_type mc                     # Monte Carlo run
 output_name golovin_mc          # name of output files
-n_loop 1                       # number of Monte Carlo loops
+n_loop 10                       # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel golovin                  # coagulation kernel
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
-t_state 600                       # state output interval (0 disables) (s)
+t_state 0                       # state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_spec 1                        # number of species

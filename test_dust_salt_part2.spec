@@ -4,7 +4,7 @@ n_loop 10                       # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
-t_max 1200                      # total simulation time (s)
+t_max 1000                      # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 100                    # output interval (0 disables) (s)
 t_state 100                     # state output interval (0 disables) (s)

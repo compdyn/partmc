@@ -248,8 +248,8 @@ program process_out
   do i_spec = 1,n_spec
      write(f_out_vol_avg,*)
      write(f_out_vol_avg,*)
-     write(f_out_vol, '(a1,a19)') '#', 'species num', i_spec
-     write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
+     write(f_out_vol_avg, '(a1,a19,i20)') '#', 'species num =', i_spec
+     write(f_out_vol_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
           'species vol den at each time (m^3/m^3)'
      do i_bin=1,n_bin
         write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &

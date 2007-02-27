@@ -40,7 +40,7 @@ gnuplot -persist <<ENDNUM
 set xlabel "time (s)"
 set ylabel "number density of small particles (#/m^3)"
 set title "Sedimentation kernel, bidisperse initial condition"
-plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Particle resolved"
+plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:2 w l title "ODE"
 set terminal postscript eps
 set output "plot_sedi_bidisperse_num_small.eps"
@@ -54,7 +54,7 @@ set logscale y
 set xlabel "time (s)"
 set ylabel "number density of small particles (#/m^3)"
 set title "Sedimentation kernel, bidisperse initial condition"
-plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Particle resolved"
+plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:2 w l title "ODE"
 set terminal postscript eps
 set output "plot_sedi_bidisperse_num_small_log.eps"
@@ -68,7 +68,7 @@ set xlabel "time (s)"
 set ylabel "volume density of big particles (m^3/m^3)"
 set title "Sedimentation kernel, bidisperse initial condition"
 set key right bottom
-plot "counts_sedi_bidisperse_mc.d" using 1:3 title "Particle resolved"
+plot "counts_sedi_bidisperse_mc.d" using 1:3 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:3 w l title "ODE"
 set terminal postscript eps
 set output "plot_sedi_bidisperse_vol_big.eps"

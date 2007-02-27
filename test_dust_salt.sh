@@ -51,10 +51,10 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)
 set title "Testcase dust and seasalt"
-plot [1e-7:1e-3] [1e4:1e10] "out_dust_salt_part1_num_avg.d" using 2:3 title "Particle resolved (0 s)"
-replot "out_dust_salt_part1_num_avg.d" using 2:7 title "Particle resolved (400 s)"
-replot "out_dust_salt_part1_num_avg.d" using 2:11 title "Particle resolved (800 s)"
-replot "out_dust_salt_part2_num_avg.d" using 2:13 title "Particle resolved (1000 s)"
+plot [1e-7:1e-3] [1e4:1e10] "out_dust_salt_part1_num_avg.d" using 2:3 title "Monte Carlo (0 s)"
+replot "out_dust_salt_part1_num_avg.d" using 2:7 title "Monte Carlo (400 s)"
+replot "out_dust_salt_part1_num_avg.d" using 2:11 title "Monte Carlo (800 s)"
+replot "out_dust_salt_part2_num_avg.d" using 2:13 title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "plot_dust_salt_num.eps"
 replot
@@ -68,10 +68,10 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Testcase dust and seasalt"
 set key left top
-plot [1e-7:1e-3] [1e-14:1e-4] "out_dust_salt_part1_vol_avg.d" using 2:3 title "Particle resolved (0 s)"
-replot "out_dust_salt_part1_vol_avg.d" using 2:7 title "Particle resolved (400 s)"
-replot "out_dust_salt_part1_vol_avg.d" using 2:11 title "Particle resolved (800 s)"
-replot "out_dust_salt_part2_vol_avg.d" using 2:13 title "Particle resolved (1000 s)"
+plot [1e-7:1e-3] [1e-14:1e-4] "out_dust_salt_part1_vol_avg.d" using 2:3 title "Monte Carlo (0 s)"
+replot "out_dust_salt_part1_vol_avg.d" using 2:7 title "Monte Carlo (400 s)"
+replot "out_dust_salt_part1_vol_avg.d" using 2:11 title "Monte Carlo (800 s)"
+replot "out_dust_salt_part2_vol_avg.d" using 2:13 title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "plot_dust_salt_vol.eps"
 replot

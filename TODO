@@ -1,10 +1,3 @@
-Shift code into a separate (partbox?) repository for PNNL to access - Matt
-
-Make dust_salt testcase with condensation and process_state. Need to
-have some plots showing composition and something involving multiple
-species. - Nicole
-
------------------------------------------------------------------------------
 
 Add implicit, adaptive timestepping for the condensation ODE solver.
 

@@ -23,6 +23,7 @@ This test-case demonstrates the use of the sectional model and
 comparison of sectional runs with Monte Carlo runs.
 
 ENDINFO
+sleep 1
 
 echo ./partmc test_sedi_exp_mc.spec
 ./partmc test_sedi_exp_mc.spec

@@ -4,8 +4,6 @@ Make dust_salt testcase with condensation and process_state. Need to
 have some plots showing composition and something involving multiple
 species. - Nicole
 
-Stop the auto-making of deps for release - Matt
-
 -----------------------------------------------------------------------------
 
 Add implicit, adaptive timestepping for the condensation ODE solver.

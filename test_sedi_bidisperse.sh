@@ -25,6 +25,7 @@ program) to process the data. This is not supposed to be a
 general-purpose solution.
 
 ENDINFO
+sleep 1
 
 echo ./partmc test_sedi_bidisperse_mc.spec
 ./partmc test_sedi_bidisperse_mc.spec

@@ -16,6 +16,7 @@ repeated loops of the Monte Carlo code to reduce the error, and serves
 as model verification against an analytical solution.
 
 ENDINFO
+sleep 1
 
 echo ./partmc test_golovin_mc.spec
 ./partmc test_golovin_mc.spec

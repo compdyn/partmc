@@ -26,6 +26,7 @@ This test-case demonstates condensation, restarting from saved state,
 and processing state for multi-species simulations.
 
 ENDINFO
+sleep 1
 
 echo ./partmc test_dust_salt_part1.spec
 #./partmc test_dust_salt_part1.spec

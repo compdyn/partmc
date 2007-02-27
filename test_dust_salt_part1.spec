@@ -10,6 +10,7 @@ t_output 100                    # output interval (0 disables) (s)
 t_state 800                     # state output interval (0 disables) (s)
 t_progress 1                    # progress printing interval (0 disables) (s)
 
+# species are 1 = salt, 2 = dust, 3 = water
 n_spec 3                        # number of species
 i_water 3                       # species number that is water
 rho 2165 2650 1000              # density of species (kg/m^3)

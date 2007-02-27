@@ -29,21 +29,21 @@ ENDINFO
 sleep 1
 
 echo ./partmc test_dust_salt_part1.spec
-#./partmc test_dust_salt_part1.spec
+./partmc test_dust_salt_part1.spec
 echo ./process_out out_dust_salt_part1.d
-#./process_out out_dust_salt_part1.d
+./process_out out_dust_salt_part1.d
 
 echo ./partmc test_dust_salt_part2.spec
-#./partmc test_dust_salt_part2.spec
+./partmc test_dust_salt_part2.spec
 echo ./process_out out_dust_salt_part2.d
-#./process_out out_dust_salt_part2.d
+./process_out out_dust_salt_part2.d
 
 echo ./process_state state_dust_salt_part1_0001_00000000.d
-#./process_state state_dust_salt_part1_0001_00000000.d
+./process_state state_dust_salt_part1_0001_00000000.d
 echo ./process_state state_dust_salt_part2_0001_00000800.d
-#./process_state state_dust_salt_part2_0001_00000800.d
+./process_state state_dust_salt_part2_0001_00000800.d
 echo ./process_state state_dust_salt_part2_0001_00001200.d
-#./process_state state_dust_salt_part2_0001_00001200.d
+./process_state state_dust_salt_part2_0001_00001200.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM

@@ -53,7 +53,7 @@ replot
 ENDNUM
 epstopdf plot_sedi_exp_num.eps
 
-echo Plotting number density
+echo Plotting logarithmic number density
 gnuplot -persist <<ENDNUMLOG
 set logscale
 set xlabel "radius (m)"
@@ -89,7 +89,7 @@ replot
 ENDVOL
 epstopdf plot_sedi_exp_vol.eps
 
-echo Plotting volume density
+echo Plotting logarithmic volume density
 gnuplot -persist <<ENDVOLLOG
 set logscale
 set xlabel "radius (m)"

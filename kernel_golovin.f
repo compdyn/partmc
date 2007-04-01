@@ -76,7 +76,7 @@ contains
           bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 * nn
        end do
     end if
-    
+
     do k = 1,n_bin
        bin_g_den(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3 * bin_n_den(k)
     end do
@@ -86,6 +86,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bessi1(x, r)
+
+    ! $I_1(x)$
+    ! Modified Bessel function of the first kind
 
     ! Bessel function.
     ! This looks like it was taken from Numerical Recipes.

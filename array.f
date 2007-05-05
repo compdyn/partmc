@@ -190,7 +190,10 @@ contains
        call bin_edge(n_bin, bin_v, k, v_low)
        call bin_edge(n_bin, bin_v, k + 1, v_high)
        do i = 1,bin_n(k)
-          pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
+          ! we used to do:
+          ! pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
+          ! but this doesn't actually work as well as:
+          pv = bin_v(k)
           MH(k) = MH(k) + 1
           call enlarge_bin_to(VH(k), MH(k))
           VH(k)%p(MH(k),:) = vol_frac / total_vol_frac * pv

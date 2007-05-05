@@ -79,7 +79,7 @@ contains
     integer i
     real*8 ax
     
-    dlnr = dlog(2d0) / (3d0 * dble(scal))
+    dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
     ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
     
     do i = 1,n_bin

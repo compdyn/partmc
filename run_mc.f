@@ -291,6 +291,7 @@ contains
     
     real*8 r_samp
     real*8 n_possible ! use real*8 to avoid integer overflow
+    ! FIXME: should use integer*8 or integer(kind = 8)
     
     if (i .eq. j) then
        n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0) / 2d0

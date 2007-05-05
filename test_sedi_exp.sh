@@ -10,15 +10,6 @@ exponential distribution and the simulation using the sedimentation
 kernel. No analytical solution is known for this case, so a sectional
 code is use as verification.
 
-To improve the quality of results it is best to increase the number of
-particles, rather than averaging multiple loops of Monte Carlo. More
-particles resolves the mis-match at later times between MC and
-sectional output. This is a challenging simulation for
-particle-resolved models as many small particles are needed to
-accurately resolve the small number of large particles (and is
-motivating current work on a variable-resolution super-particle
-version of the code).
-
 This test-case demonstrates the use of the sectional model and
 comparison of sectional runs with Monte Carlo runs.
 

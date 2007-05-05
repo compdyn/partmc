@@ -6,7 +6,8 @@ DATE := $(shell date +"%Y-%m-%d")
 # set to "yes" if building as a developer, otherwise "no"
 DEV_BUILD = yes
 
-# run "make FC=pgf95" to use the Portland Group compiler instead
+# run "make FC=pgf95" or "make FC=pgf90" o use the Portland Grou
+#  compiler instead
 FC = gfortran
 
 ifeq ($(FC),gfortran)
@@ -21,6 +22,10 @@ endif
 ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
+  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
+  LDFLAGS =
+endif
+ifeq ($(FC),pgf90)
   FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
   LDFLAGS =
 endif

@@ -10,13 +10,16 @@
 ! name. Variables must be specified in a certain order, and they may
 ! not be skipped. Blank lines are ok. Comments are everything after a
 ! # character and are ignored.
+!
+! FIXME: lots of memory leaks in this code
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module mod_read_spec
 
-  logical, parameter :: DEBUG_OUTPUT = .false.
-  integer, parameter :: MAX_CHAR_LEN = 300
+  logical, parameter :: DEBUG_OUTPUT = .false. ! .true. for verbose output
+  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of a line or variable
+  integer, parameter :: MAX_LINES = 500 ! max lines in an array
 
   type spec_file
      character(len=MAX_CHAR_LEN) :: name ! filename
@@ -69,6 +72,21 @@ contains
     call free_unit(spec%unit)
 
   end subroutine close_spec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine copy_spec_line(from_line, to_line)
+
+    ! Copies a spec_line.
+
+    type(spec_line), intent(in) :: from_line ! original line
+    type(spec_line), intent(out) :: to_line ! new line
+
+    to_line%name = from_line%name
+    allocate(to_line%data(size(from_line%data)))
+    to_line%data = from_line%data
+
+  end subroutine copy_spec_line
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -270,6 +288,76 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine read_spec_line_list(spec, max_lines, line_list)
+
+    ! Read a list of spec_lines from a file, stopping at max_lines
+    ! or EOF.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
+    type(spec_line), pointer :: line_list(:) ! list of spec_lines
+
+    logical :: eof
+    integer :: i, num_lines
+    type(spec_line) :: temp_line_list(MAX_LINES)
+
+    ! read file, working out how many lines we have
+    num_lines = 0
+    eof = .false.
+    call read_spec_line(spec, temp_line_list(num_lines + 1), eof)
+    do while (.not. eof)
+       num_lines = num_lines + 1
+       if (max_lines > 0) then
+          if (num_lines >= max_lines) then
+             eof = .true.
+          end if
+       end if
+       if (.not. eof) then
+          call read_spec_line(spec, temp_line_list(num_lines + 1), eof)
+       end if
+    end do
+
+    ! allocate actual list
+    allocate(line_list(num_lines))
+
+    ! copy data to actual list
+    do i = 1,num_lines
+       call copy_spec_line(temp_line_list(i), line_list(i))
+    end do
+
+  end subroutine read_spec_line_list
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_spec_line_array(spec, max_lines, line_array)
+
+    ! Read an array of spec_lines from a file, stopping at max_lines
+    ! or EOF. All lines must have the same length.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
+    type(spec_line), pointer :: line_array(:) ! array of spec_lines
+
+    integer i, line_length
+
+    call read_spec_line_list(spec, max_lines, line_array)
+    if (size(line_array) > 0) then
+       line_length = size(line_array(i)%data)
+       do i = 2,size(line_array)
+          if (size(line_array(i)%data) /= line_length) then
+             write(0,'(a,a,i3,a,a,a)') 'ERROR: tried to read ', &
+                  'array before line ', spec%line_num, &
+                  ' of input file ', trim(spec%name), &
+                  ' but lines contain varying numbers of elements'
+             call exit(1)
+          end if
+       end do
+    end if
+    
+  end subroutine read_spec_line_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine check_line_name(spec, line, name)
 
     ! Check that the name of the line data is as given.
@@ -318,7 +406,7 @@ contains
     type(spec_line), intent(in) :: line ! spec line
     integer, intent(in) :: length       ! expected data length
 
-    if (len(line%data) /= length) then
+    if (size(line%data) /= length) then
        write(0,*) 'ERROR: expected ', length, ' data items on line ', &
             spec%line_num, ' of file ', trim(spec%name)
        call exit(1)
@@ -410,7 +498,7 @@ contains
     end if
     string_to_logical = val
 
-  end function string_to_integer
+  end function string_to_logical
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -447,7 +535,7 @@ contains
     call read_spec_line_no_eof(spec, line)
     call check_line_name(spec, line, name)
     call check_line_length(spec, line, 1)
-    var = string_to_real(line%data(1))
+    var = string_to_real(spec, line%data(1))
 
   end subroutine read_real
 
@@ -466,7 +554,7 @@ contains
     call read_spec_line_no_eof(spec, line)
     call check_line_name(spec, line, name)
     call check_line_length(spec, line, 1)
-    var = string_to_logical(line%data(1))
+    var = string_to_logical(spec, line%data(1))
 
   end subroutine read_logical
 
@@ -488,6 +576,40 @@ contains
     var = line%data(1)
 
   end subroutine read_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_real_array(spec, max_lines, names, vals)
+
+    ! Read an array of lines with real data. All lines must have the
+    ! same number of data elements.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
+    character(len=MAX_CHAR_LEN), pointer :: names(:) ! names of lines
+    real*8, pointer :: vals(:,:)          ! data values
+
+    type(spec_line), pointer :: line_array(:)
+    integer :: num_lines, line_length, i, j
+
+    call read_spec_line_array(spec, max_lines, line_array)
+    num_lines = size(line_array)
+    if (num_lines > 0) then
+       line_length = size(line_array(1)%data)
+       allocate(names(num_lines))
+       allocate(vals(num_lines, line_length))
+       do i = 1,num_lines
+          names(i) = line_array(i)%name
+          do j = 1,line_length
+             vals(i,j) = string_to_real(spec, line_array(i)%data(j))
+          end do
+       end do
+    else
+       allocate(names(0))
+       allocate(vals(0,0))
+    end if
+
+  end subroutine read_real_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -539,9 +661,9 @@ contains
     call read_string(spec, 'gas_init_conc', gas_name)
     call open_spec(gas_spec, gas_name)
     do i = 1,n_species
-       call read_named_real(gas_spec, species_name, species_conc)
-       species = allocate_gas_species(gas, species_name)
-       gas%conc(species) = species_conc
+!       call read_named_real(gas_spec, species_name, species_conc)
+!       species = allocate_gas_species(gas, species_name)
+!       gas%conc(species) = species_conc
     end do
     call close_spec(gas_spec)
 

@@ -652,20 +652,34 @@ contains
     type(gas_chem), intent(out) :: gas     ! gas data
 
     integer :: n_species, species, i
-    character(len=300) :: gas_name, species_name
+    character(len=MAX_CHAR_LEN) :: gas_name
     type(spec_file) :: gas_spec
-    real*8 :: species_conc
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_conc(:,:)
+    integer :: species_conc_shape(2)
 
-    call read_integer(spec, 'n_gas_spec', n_species)
-    call allocate_gas(gas, n_species)
+    ! read the gas data from the specified file
     call read_string(spec, 'gas_init_conc', gas_name)
     call open_spec(gas_spec, gas_name)
-    do i = 1,n_species
-!       call read_named_real(gas_spec, species_name, species_conc)
-!       species = allocate_gas_species(gas, species_name)
-!       gas%conc(species) = species_conc
-    end do
+    call read_real_array(gas_spec, 0, species_name, species_conc)
     call close_spec(gas_spec)
+
+    ! check the data size
+    species_conc_shape = shape(species_conc)
+    if (species_conc_shape(2) /= 1) then
+       write(0,*) 'ERROR: each line in ', trim(gas_name), &
+            ' should only contain one value'
+       call exit(1)
+    end if
+
+    ! allocate and copy over the data
+    n_species = species_conc_shape(1)
+    call allocate_gas(gas, n_species)
+    do i = 1,n_species
+       gas%name(i) = species_name(i)
+       gas%conc(i) = species_conc(i,1)
+    end do
+    call set_gas_mosaic_map(gas)
 
   end subroutine read_gas
 
@@ -680,15 +694,41 @@ contains
     type(spec_file), intent(inout) :: spec ! spec file
     type(material), intent(out) :: mat  ! material data
 
-    integer :: n_spec
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN) :: aero_name
+    type(spec_file) :: aero_spec
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
 
-    call read_integer(spec, 'n_spec', n_spec)
-    call allocate_material(mat, n_spec)
-    call read_integer(spec, 'i_water', mat%i_water)
-    call read_real_array(spec, n_spec, 'rho', mat%rho)
-    call read_integer_array(spec, n_spec, 'nu', mat%nu)
-    call read_real_array(spec, n_spec, 'eps', mat%eps)
-    call read_real_array(spec, n_spec, 'M_w', mat%M_w)
+    ! read the aerosol data from the specified file
+    call read_string(spec, 'aerosol_data', aero_name)
+    call open_spec(aero_spec, aero_name)
+    call read_real_array(aero_spec, 0, species_name, species_data)
+    call close_spec(aero_spec)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    if (species_data_shape(2) /= 4) then
+       write(0,*) 'ERROR: each line in ', trim(aero_name), &
+            ' should contain exactly 4 values'
+       call exit(1)
+    end if
+
+    ! allocate and copy over the data
+    n_species = species_data_shape(1)
+    call allocate_material(mat, n_species)
+    do i = 1,n_species
+       mat%name(i) = species_name(i)
+       if (species_name(i) == "H2O") then
+          mat%i_water = i
+       end if
+       mat%rho(i) = species_data(i,1)
+       mat%nu(i) = int(species_data(i,2))
+       mat%eps(i) = species_data(i,3)
+       mat%M_w(i) = species_data(i,4)
+    end do
+    call set_material_mosaic_map(mat)
 
   end subroutine read_material
 
@@ -704,11 +744,36 @@ contains
     type(environ), intent(out) :: env   ! environment data
 
     integer :: n_temps
+    character(len=MAX_CHAR_LEN) :: temp_name
+    type(spec_file) :: temp_spec
+    character(len=MAX_CHAR_LEN), pointer :: times_name(:), temps_name(:)
+    real*8, pointer :: times_data(:,:), temps_data(:,:)
+    integer :: times_data_shape(2), temps_data_shape(2)
 
-    call read_integer(spec, 'n_temps', n_temps)
+    ! read the tempurature data from the specified file
+    call read_string(spec, 'temp_profile', temp_name)
+    call open_spec(temp_spec, temp_name)
+    call read_real_array(temp_spec, 1, times_name, times_data)
+    call check_name(temp_spec, "time", times_name(1))
+    ! FIXME: add a min_lines arg to read_real_array to ensure that
+    ! really got one line here
+    call read_real_array(temp_spec, 1, temps_name, temps_data)
+    call check_name(temp_spec, "temp", temps_name(1))
+    call close_spec(temp_spec)
+
+    ! check the data size
+    times_data_shape = shape(times_data)
+    temps_data_shape = shape(temps_data)
+    if (times_data_shape(2) /= temps_data_shape(2)) then
+       write(0,*) 'ERROR: file ', trim(temp_name), &
+            ' should contain exactly two lines with equal numbers of values'
+       call exit(1)
+    end if
+    n_temps = temps_data_shape(2)
+
     call allocate_environ_temps(env, n_temps)
-    call read_real_array(spec, n_temps, 'temp_times', env%temp_times)
-    call read_real_array(spec, n_temps, 'temps', env%temps)
+    env%temp_times = times_data(1,:)
+    env%temps = temps_data(1,:)
     call read_real(spec, 'RH', env%RH)
     call read_real(spec, 'pressure', env%p)
     call read_real(spec, 'rho_a', env%rho_a)
@@ -719,6 +784,53 @@ contains
     call read_integer(spec, 'start_day', env%start_day)
 
   end subroutine read_environ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_vol_frac(spec, mat, vol_frac)
+
+    ! Read volume fractions from a data file.
+
+    use mod_material
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(in) :: mat   ! material data
+    real*8, intent(out) :: vol_frac(:)  ! aerosol species volume fractions
+
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN) :: aero_name
+    type(spec_file) :: aero_spec
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
+
+    ! read the aerosol data from the specified file
+    call read_string(spec, 'aerosol_data', aero_name)
+    call open_spec(aero_spec, aero_name)
+    call read_real_array(aero_spec, 0, species_name, species_data)
+    call close_spec(aero_spec)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    if (species_data_shape(2) /= 1) then
+       write(0,*) 'ERROR: each line in ', trim(aero_name), &
+            ' should contain exactly one data value'
+       call exit(1)
+    end if
+
+    ! copy over the data
+    vol_frac = 0d0
+    do i = 1,n_species
+       species = material_spec_by_name(mat, species_name(i))
+       if (species == 0) then
+          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
+               ' in file ', trim(aero_name)
+          call exit(1)
+       end if
+       vol_frac(species) = species_data(i,1)
+    end do
+
+  end subroutine read_vol_frac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

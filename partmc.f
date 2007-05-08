@@ -122,9 +122,9 @@ contains
     call read_real(spec, 't_state', t_state)
     call read_real(spec, 't_progress', t_progress)
 
+    call read_environ(spec, env)
     call read_gas(spec, gas)
     call read_material(spec, mat)
-    call read_environ(spec, env)
     
     call read_integer(spec, 'n_init_dist', n_init_dist)
     allocate(dist_n_part(n_init_dist))
@@ -134,7 +134,7 @@ contains
     
     do i = 1,n_init_dist
        call read_integer(spec, 'n_p', dist_n_part(i))
-       call read_real_array(spec, mat%n_spec, 'vol_frac', dist_vol_frac(i,:))
+       call read_vol_frac(spec, mat, dist_vol_frac(i,:))
        call read_init_dist(spec, dist_types(i), dist_args(i,:))
     end do
     

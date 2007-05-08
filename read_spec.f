@@ -18,7 +18,7 @@
 module mod_read_spec
 
   logical, parameter :: DEBUG_OUTPUT = .false. ! .true. for verbose output
-  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of a line or variable
+  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of line or variable
   integer, parameter :: MAX_LINES = 500 ! max lines in an array
 
   type spec_file
@@ -233,12 +233,12 @@ contains
     rest = line_string
     done = .false.
     do while (.not. done)
-       i = verify(rest, ' ') ! first non-space
-       if (i == 0) then ! only spaces left
+       if (len_trim(rest) == 0) then ! only spaces left
           done = .true.
        else
           ! strip the data element
           n_data = n_data + 1
+          i = index(rest, ' ') ! first space
           rest = rest(i:)
           call strip_leading_spaces(rest)
        end if
@@ -250,12 +250,12 @@ contains
     rest = line_string
     done = .false.
     do while (.not. done)
-       i = verify(rest, ' ') ! first non-space
-       if (i == 0) then ! only spaces left
+       if (len_trim(rest) == 0) then ! only spaces left
           done = .true.
        else
           ! strip the data element
           n_data = n_data + 1
+          i = index(rest, ' ') ! first space
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
           call strip_leading_spaces(rest)
@@ -299,7 +299,7 @@ contains
 
     logical :: eof
     integer :: i, num_lines
-    type(spec_line) :: temp_line_list(MAX_LINES)
+    type(spec_line) :: temp_line_list(500) ! FIXME: use MAX_LINES instead
 
     ! read file, working out how many lines we have
     num_lines = 0
@@ -342,7 +342,7 @@ contains
 
     call read_spec_line_list(spec, max_lines, line_array)
     if (size(line_array) > 0) then
-       line_length = size(line_array(i)%data)
+       line_length = size(line_array(1)%data)
        do i = 2,size(line_array)
           if (size(line_array(i)%data) /= line_length) then
              write(0,'(a,a,i3,a,a,a)') 'ERROR: tried to read ', &
@@ -805,7 +805,7 @@ contains
     integer :: species_data_shape(2)
 
     ! read the aerosol data from the specified file
-    call read_string(spec, 'aerosol_data', aero_name)
+    call read_string(spec, 'vol_frac', aero_name)
     call open_spec(aero_spec, aero_name)
     call read_real_array(aero_spec, 0, species_name, species_data)
     call close_spec(aero_spec)

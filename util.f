@@ -9,7 +9,7 @@ module mod_util
 
   integer, parameter :: max_units = 200
   integer, parameter :: unit_offset = 10
-  logical, save :: unit_used(max_units)
+  logical, save :: unit_used(max_units) = .false.
 
 contains
   
@@ -33,6 +33,7 @@ contains
        write(0,*) 'ERROR: no more units available - need to free_unit()'
        call exit(1)
     end if
+    unit_used(i) = .true.
     get_unit = i + unit_offset
 
   end function get_unit
@@ -265,9 +266,16 @@ contains
 
     integer p
 
+    if (n == 0) then
+       find_1d = 0
+       return
+    end if
     p = 1
-    do while ((p <= n) .and. (x >= x_vals(p)))
+    do while (x >= x_vals(p))
        p = p + 1
+       if (p > n) then
+          exit
+       end if
     end do
     p = p - 1
     find_1d = p

@@ -84,7 +84,7 @@ contains
 
     type(environ), intent(inout) :: env ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
-    
+
     env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     
   end subroutine init_environ

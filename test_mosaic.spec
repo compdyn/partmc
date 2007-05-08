@@ -16,6 +16,7 @@ pressure 1d5                    # initial pressure (Pa)
 rho_a 1.25                      # initial air density (kg/m^3)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
+altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 

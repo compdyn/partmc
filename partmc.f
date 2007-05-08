@@ -12,7 +12,6 @@ program partmc
 
   use mod_read_spec
 
-  integer, parameter :: in_unit = 32
   type(spec_file) :: spec
   character(len=300) :: in_name
   character(len=100) :: run_type
@@ -32,7 +31,7 @@ program partmc
      call exit(2)
   end if
 
-  call open_spec(spec, in_name, in_unit)
+  call open_spec(spec, in_name)
 
   call read_string(spec, 'run_type', run_type)
 
@@ -65,6 +64,7 @@ contains
     use mod_environ
     use mod_run_mc
     use mod_read_spec
+    use mod_gas
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -88,7 +88,8 @@ contains
     real*8 :: t_output                  ! output interval (0 disables) (s)
     real*8 :: t_state                   ! state output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
-    
+
+    type(gas_chem) :: gas               ! gas data
     type(material) :: mat               ! material data
     type(environ) :: env                ! environment data
     
@@ -106,6 +107,7 @@ contains
     logical :: do_coagulation           ! do coagulation? (yes/no)
     logical :: allow_double             ! allow doubling? (yes/no)
     logical :: do_condensation          ! do condensation? (yes/no)
+    logical :: do_mosaic                ! do MOSAIC? (yes/no)
     logical :: do_restart               ! restart from stored state? (yes/no)
     character(len=300) :: restart_name  ! filename to restart from
     
@@ -119,7 +121,8 @@ contains
     call read_real(spec, 't_output', t_output)
     call read_real(spec, 't_state', t_state)
     call read_real(spec, 't_progress', t_progress)
-    
+
+    call read_gas(spec, gas)
     call read_material(spec, mat)
     call read_environ(spec, env)
     
@@ -143,6 +146,7 @@ contains
     call read_logical(spec, 'do_coagulation', do_coagulation)
     call read_logical(spec, 'allow_double', allow_double)
     call read_logical(spec, 'do_condensation', do_condensation)
+    call read_logical(spec, 'do_mosaic', do_mosaic)
     call read_logical(spec, 'do_restart', do_restart)
     call read_string(spec, 'restart_name', restart_name)
     
@@ -199,30 +203,30 @@ contains
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, do_condensation, &
-               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat)
+               output_name, do_coagulation, allow_double, &
+               do_condensation, do_mosaic, do_restart, &
+               restart_name, i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, do_condensation, &
-               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat)
+               output_name, do_coagulation, allow_double, &
+               do_condensation, do_mosaic, do_restart, restart_name, &
+               i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, do_condensation, &
-               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat)
+               output_name, do_coagulation, allow_double, &
+               do_condensation, do_mosaic, do_restart, restart_name, &
+               i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, do_condensation, &
-               do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat)
+               output_name, do_coagulation, allow_double, &
+               do_condensation, do_mosaic, do_restart, restart_name, &
+               i_loop, n_loop, t_wall_start, env, mat)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)

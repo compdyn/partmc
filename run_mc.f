@@ -13,8 +13,8 @@ contains
   subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, bin_v, bin_g, &
        bin_gs, bin_n, dlnr, kernel, t_max, t_output, t_state, &
        t_progress, del_t, output_unit, state_unit, state_name, &
-       do_coagulation, allow_double, do_condensation, do_restart, &
-       restart_name, i_loop, n_loop, t_wall_start, env, mat)
+       do_coagulation, allow_double, do_condensation, do_mosaic, &
+       do_restart, restart_name, i_loop, n_loop, t_wall_start, env, mat)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -25,6 +25,7 @@ contains
     use mod_environ
     use mod_material
     use mod_state
+    use mod_mosaic
     
     integer, intent(in) :: MM           ! maximum number of particles
     integer, intent(inout) :: M         ! actual number of particles
@@ -39,7 +40,7 @@ contains
     integer, intent(out) :: bin_n(n_bin) ! number in bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     
-    real*8, intent(in) :: t_max         ! final time (seconds)
+    real*8, intent(in) :: t_max         ! final time (s)
     real*8, intent(in) :: t_output      ! output interval (0 disables) (s)
     real*8, intent(in) :: t_state       ! state output interval (0 disables) (s)
     real*8, intent(in) :: t_progress    ! progress interval (0 disables) (s)
@@ -51,6 +52,7 @@ contains
     logical, intent(in) :: do_coagulation ! whether to do coagulation
     logical, intent(in) :: allow_double ! allow doubling if needed
     logical, intent(in) :: do_condensation ! whether to do condensation
+    logical, intent(in) :: do_mosaic    ! whether to do MOSAIC
     logical, intent(in) :: do_restart   ! whether to restart from state
     character(len=*), intent(in) :: restart_name ! name of state to restart from
     integer, intent(in) :: i_loop       ! loop number of run
@@ -82,6 +84,8 @@ contains
     i_time = 0
     time = 0d0
     call init_environ(env, time)
+    n_coag = 0
+    tot_n_samp = 0
     tot_n_coag = 0
     
     if (do_restart) then
@@ -144,6 +148,12 @@ contains
        if (do_condensation) then
           call condense_particles(n_bin, n_spec, MH, VH, del_t, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       end if
+
+       if (do_mosaic) then
+          call singlestep_mosaic(M, n_spec, n_bin, MH, VH, bin_v, &
+               bin_g, bin_gs, bin_n, dlnr, time, del_t, &
+               env, mat)
        end if
        
        ! DEBUG: enable to check array handling

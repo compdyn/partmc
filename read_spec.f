@@ -9,36 +9,43 @@
 ! 1D array) per line. Each line must begin with the variable
 ! name. Variables must be specified in a certain order, and they may
 ! not be skipped. Blank lines are ok. Comments are everything after a
-! # character.
+! # character and are ignored.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module mod_read_spec
 
+  logical, parameter :: DEBUG_OUTPUT = .false.
+  integer, parameter :: MAX_CHAR_LEN = 300
+
   type spec_file
-     character(len=300) :: name         ! filename
+     character(len=MAX_CHAR_LEN) :: name ! filename
      integer :: unit                    ! attached unit
      integer :: line_num                ! current line number
   end type spec_file
 
-  logical, parameter :: DEBUG_OUTPUT = .false.
+  type spec_line
+     character(len=MAX_CHAR_LEN) :: name ! variable name
+     character(len=MAX_CHAR_LEN), pointer :: data(:) ! array of data as strings
+  end type spec_line
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine open_spec(spec, filename, unit)
+  subroutine open_spec(spec, filename)
 
     ! Open a .spec file.
 
+    use mod_util
+
     type(spec_file), intent(out) :: spec ! spec file
     character(len=*), intent(in) :: filename ! name of file to open
-    integer, intent(in) :: unit         ! unit number to use
 
-    integer ios
+    integer :: ios, unit
 
     spec%name = trim(filename)
-    spec%unit = unit
+    spec%unit = get_unit()
     open(unit=spec%unit, status='old', file=spec%name, iostat=ios)
     if (ios /= 0) then
        write(0,*) 'ERROR: unable to open file ', spec%name, ': ', ios
@@ -54,11 +61,433 @@ contains
 
     ! Close a .spec file.
 
+    use mod_util
+
     type(spec_file), intent(in) :: spec ! spec file
 
     close(spec%unit)
+    call free_unit(spec%unit)
 
   end subroutine close_spec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_line(spec, line, eof)
+
+    ! Read a single line from a .spec file, signaling if we have hit EOF.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(out) :: line ! complete line read
+    logical, intent(out) :: eof           ! true if at EOF
+
+    integer ios
+
+    read(unit=spec%unit, fmt='(a)', end=100, iostat=ios) line
+    spec%line_num = spec%line_num + 1
+    if (ios /= 0) then
+       write(0,*) 'ERROR: reading from ', trim(spec%name), &
+            ' at line ', spec%line_num, ': IOSTAT = ', ios
+       call exit(1)
+    end if
+    eof = .false.
+    return
+
+100 line = ""
+    eof = .true.
+    
+  end subroutine read_line
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine strip_comment(line)
+
+    ! Strip the comments from a line. Comments are everything after
+    ! the first # character.
+    
+    character(len=*), intent(inout) :: line ! complete input line
+    
+    integer hash_index
+    
+    hash_index = index(line, '#')
+    if (hash_index > 0) then
+       line = line(1:(hash_index - 1))
+    end if
+    
+  end subroutine strip_comment
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine tabs_to_spaces(line)
+
+    ! Expand all tabs in a line into single spaces (one tab makes one
+    ! space).
+
+    character(len=*), intent(inout) :: line ! complete input line
+
+    integer i
+
+    do i = 1,len(line)
+       if (ichar(line(i:i)) == 9) then
+          line(i:i) = ' '
+       end if
+    end do
+
+  end subroutine tabs_to_spaces
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine strip_leading_spaces(line)
+
+    ! Strip leading spaces from a string.
+
+    character(len=*), intent(inout) :: line ! complete input line
+
+    integer i
+
+    if (len_trim(line) > 0) then
+       i = verify(line, ' ') ! first character not a space
+       line = line(i:)
+    end if
+
+  end subroutine strip_leading_spaces
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_next_data_line(spec, line, eof)
+
+    ! Read the next line from the .spec file that contains useful data
+    ! (stripping comments and blank lines).
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(out) :: line ! complete line read
+    logical, intent(out) :: eof           ! true if EOF encountered
+
+    logical :: done
+
+    done = .false.
+    do while (.not. done)
+       call read_line(spec, line, eof)
+       if (eof) then
+          done = .true.
+       else
+          call strip_comment(line)
+          call tabs_to_spaces(line)
+          call strip_leading_spaces(line)
+          if (len_trim(line) > 0) then
+             done = .true.
+          end if
+       end if
+    end do
+
+  end subroutine read_next_data_line
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_spec_line(spec, line, eof)
+
+    ! Read a spec_line from the spec_file.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(spec_line), intent(out) :: line  ! spec line
+    logical, intent(out) :: eof           ! true if EOF encountered
+
+    character(len=MAX_CHAR_LEN) :: line_string, rest
+    integer i, n_data
+    logical done
+
+    call read_next_data_line(spec, line_string, eof)
+    if (eof) return
+
+    ! strip off the name
+    i = index(line_string, ' ') ! first space
+    if (i == 0) then
+       write(0,'(a,i3,a,a,a)') 'ERROR: line ', spec%line_num, &
+            ' of input file ', trim(spec%name), &
+            ' is malformed'
+       call exit(1)
+    end if
+    line%name = line_string(1:(i-1))
+    line_string = line_string(i:)
+    call strip_leading_spaces(line_string)
+
+    ! figure out how many data items we have (consecutive non-spaces)
+    n_data = 0
+    rest = line_string
+    done = .false.
+    do while (.not. done)
+       i = verify(rest, ' ') ! first non-space
+       if (i == 0) then ! only spaces left
+          done = .true.
+       else
+          ! strip the data element
+          n_data = n_data + 1
+          rest = rest(i:)
+          call strip_leading_spaces(rest)
+       end if
+    end do
+
+    ! allocate the data and read out the data items
+    allocate(line%data(n_data))
+    n_data = 0
+    rest = line_string
+    done = .false.
+    do while (.not. done)
+       i = verify(rest, ' ') ! first non-space
+       if (i == 0) then ! only spaces left
+          done = .true.
+       else
+          ! strip the data element
+          n_data = n_data + 1
+          line%data(n_data) = rest(1:(i-1))
+          rest = rest(i:)
+          call strip_leading_spaces(rest)
+       end if
+    end do
+    
+  end subroutine read_spec_line
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_spec_line_no_eof(spec, line)
+
+    ! Read a spec_line from the spec_file. This will always succeed or
+    ! error out, so should only be called if we know there should be a
+    ! valid line coming.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(spec_line), intent(out) :: line  ! spec line
+
+    logical :: eof
+
+    call read_spec_line(spec, line, eof)
+    if (eof) then
+       write(0,*) 'ERROR: end of file ', trim(spec%name), &
+            ' unexpected at line ', spec%line_num
+       call exit(1)
+    end if
+
+  end subroutine read_spec_line_no_eof
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine check_line_name(spec, line, name)
+
+    ! Check that the name of the line data is as given.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    type(spec_line), intent(in) :: line ! spec line
+    character(len=*), intent(in) :: name ! expected line name
+
+    if (line%name /= name) then
+       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', spec%line_num, &
+            ' of input file ', trim(spec%name), &
+            ' must begin with: ', trim(name)
+       call exit(1)
+    end if
+
+  end subroutine check_line_name
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine check_name(spec, name, read_name)
+
+    ! Checks that the read_name is the same as name.
+    
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name   ! name that we should have
+    character(len=*), intent(in) :: read_name ! name that we do have
+    
+    integer name_len, read_name_len
+
+    if (name /= read_name) then
+       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', spec%line_num, &
+            ' of input file ', trim(spec%name), &
+            ' must begin with: ', trim(name)
+       call exit(1)
+    end if
+    
+  end subroutine check_name
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine check_line_length(spec, line, length)
+
+    ! Check that the length of the line data is as given.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    type(spec_line), intent(in) :: line ! spec line
+    integer, intent(in) :: length       ! expected data length
+
+    if (len(line%data) /= length) then
+       write(0,*) 'ERROR: expected ', length, ' data items on line ', &
+            spec%line_num, ' of file ', trim(spec%name)
+       call exit(1)
+    end if
+
+  end subroutine check_line_length
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine check_read_iostat(spec, ios, type)
+
+    ! Check the IOSTAT and error if it is bad.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    integer, intent(in) :: ios          ! iostat result
+    character(len=*), intent(in) :: type ! type being read during error
+
+    if (ios /= 0) then
+       write(0,'(a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
+            ' from file ', trim(spec%name), ' at line ', spec%line_num, &
+            ': IOSTAT = ', ios
+       call exit(1)
+    end if
+
+  end subroutine check_read_iostat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function string_to_integer(spec, string)
+
+    ! Convert a string to an integer.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    character(len=*), intent(in) :: string ! string to convert
+    
+    integer :: val
+    integer :: ios
+
+    read(string, '(i20)', iostat=ios) val
+    call check_read_iostat(spec, ios, "integer")
+    string_to_integer = val
+
+  end function string_to_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function string_to_real(spec, string)
+
+    ! Convert a string to an real.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    character(len=*), intent(in) :: string ! string to convert
+    
+    real*8 :: val
+    integer :: ios
+
+    read(string, '(f20.0)', iostat=ios) val
+    call check_read_iostat(spec, ios, "real")
+    string_to_real = val
+
+  end function string_to_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  logical function string_to_logical(spec, string)
+
+    ! Convert a string to an logical.
+
+    type(spec_file), intent(in) :: spec ! spec file
+    character(len=*), intent(in) :: string ! string to convert
+    
+    logical :: val
+    integer :: ios
+
+    if ((trim(string) == 'yes') &
+         .or. (trim(string) == 'y') &
+         .or. (trim(string) == 'true') &
+         .or. (trim(string) == 't') &
+         .or. (trim(string) == '1')) then
+       val = .true.
+    elseif ((trim(string) == 'no') &
+         .or. (trim(string) == 'n') &
+         .or. (trim(string) == 'false') &
+         .or. (trim(string) == 'f') &
+         .or. (trim(string) == '0')) then
+       val = .false.
+    else
+       call check_read_iostat(spec, 1, "logical")
+    end if
+    string_to_logical = val
+
+  end function string_to_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_integer(spec, name, var)
+
+    ! Read an integer from a .spec file that must have the given name.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name  ! name
+    integer, intent(out) :: var           ! variable to store data
+
+    type(spec_line) :: line
+
+    call read_spec_line_no_eof(spec, line)
+    call check_line_name(spec, line, name)
+    call check_line_length(spec, line, 1)
+    var = string_to_integer(spec, line%data(1))
+
+  end subroutine read_integer
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_real(spec, name, var)
+
+    ! Read a real number from a .spec file that must have the given
+    ! name.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name  ! name
+    real*8, intent(out) :: var            ! variable to store data
+
+    type(spec_line) :: line
+
+    call read_spec_line_no_eof(spec, line)
+    call check_line_name(spec, line, name)
+    call check_line_length(spec, line, 1)
+    var = string_to_real(line%data(1))
+
+  end subroutine read_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_logical(spec, name, var)
+
+    ! Read a logical from a .spec file that must have a given name.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name  ! name
+    logical, intent(out) :: var           ! variable to store data
+
+    type(spec_line) :: line
+
+    call read_spec_line_no_eof(spec, line)
+    call check_line_name(spec, line, name)
+    call check_line_length(spec, line, 1)
+    var = string_to_logical(line%data(1))
+
+  end subroutine read_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_string(spec, name, var)
+
+    ! Read a string from a .spec file that must have a given name.
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    character(len=*), intent(in) :: name  ! name
+    character(len=*), intent(out) :: var  ! variable to store data
+
+    type(spec_line) :: line
+
+    call read_spec_line_no_eof(spec, line)
+    call check_line_name(spec, line, name)
+    call check_line_length(spec, line, 1)
+    var = line%data(1)
+
+  end subroutine read_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -88,6 +517,35 @@ contains
     end if
 
   end subroutine read_init_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_gas(spec, gas)
+
+    ! Read gas concentrations from a .spec file.
+
+    use mod_gas
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(gas_chem), intent(out) :: gas     ! gas data
+
+    integer :: n_species, species, i
+    character(len=300) :: gas_name, species_name
+    type(spec_file) :: gas_spec
+    real*8 :: species_conc
+
+    call read_integer(spec, 'n_gas_spec', n_species)
+    call allocate_gas(gas, n_species)
+    call read_string(spec, 'gas_init_conc', gas_name)
+    call open_spec(gas_spec, gas_name)
+    do i = 1,n_species
+       call read_named_real(gas_spec, species_name, species_conc)
+       species = allocate_gas_species(gas, species_name)
+       gas%conc(species) = species_conc
+    end do
+    call close_spec(gas_spec)
+
+  end subroutine read_gas
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -131,349 +589,15 @@ contains
     call read_real_array(spec, n_temps, 'temps', env%temps)
     call read_real(spec, 'RH', env%RH)
     call read_real(spec, 'pressure', env%p)
-    call read_real(spec, 'rho_a', env%rho_a)  
+    call read_real(spec, 'rho_a', env%rho_a)
+    call read_real(spec, 'latitude', env%latitude)
+    call read_real(spec, 'longitude', env%longitude)
+    call read_real(spec, 'altitude', env%altitude)
+    call read_real(spec, 'start_time', env%start_time)
+    call read_integer(spec, 'start_day', env%start_day)
+
   end subroutine read_environ
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_string(spec, name, var)
-
-    ! Read a string from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(in) :: name ! name that should start line
-    character(len=*), intent(out) :: var ! variable to store data
-
-    character(len=300) :: line, rest
-    integer :: ios
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    read(rest, '(a)', iostat=ios) var
-    call check_read_iostat(spec, ios, 'string')
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'string: ', trim(name), ' = ', trim(var)
-    end if
-    
-  end subroutine read_string
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_integer(spec, name, var)
-
-    ! Read an integer from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(in) :: name ! name that should start line
-    integer, intent(out) :: var         ! variable to store data
-
-    character(len=300) :: line, rest
-    integer :: ios
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    read(rest, '(i20)', iostat=ios) var
-    call check_read_iostat(spec, ios, 'integer')
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'integer: ', trim(name), ' = ', var
-    end if
-
-  end subroutine read_integer
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_real(spec, name, var)
-
-    ! Read a real number from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(in) :: name ! name that should start line
-    real*8, intent(out) :: var          ! variable to store data
-
-    character(len=300) :: line, rest
-    integer :: ios
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    read(rest, '(f20.0)', iostat=ios) var
-    call check_read_iostat(spec, ios, 'real')
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'real: ', trim(name), ' = ', var
-    end if
-
-  end subroutine read_real
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_logical(spec, name, var)
-
-    ! Read a logical value from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(in) :: name ! name that should start line
-    logical, intent(out) :: var         ! variable to store data
-
-    character(len=300) :: line, rest
-    character(len=20) :: str_var
-    integer :: ios
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    read(rest, '(a)', iostat=ios) str_var
-    call check_read_iostat(spec, ios, 'string')
-    if ((trim(str_var) == 'yes') &
-         .or. (trim(str_var) == 'y') &
-         .or. (trim(str_var) == 'true') &
-         .or. (trim(str_var) == 't') &
-         .or. (trim(str_var) == '1')) then
-       var = .true.
-    elseif ((trim(str_var) == 'no') &
-         .or. (trim(str_var) == 'n') &
-         .or. (trim(str_var) == 'false') &
-         .or. (trim(str_var) == 'f') &
-         .or. (trim(str_var) == '0')) then
-       var = .false.
-    else
-       write(0,'(a,a,a,i3)') 'ERROR: reading logical from file ', &
-            spec%name, ' at line ', spec%line_num
-       call exit(1)
-    end if
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'logical: ', trim(name), ' = ', var
-    end if
-
-  end subroutine read_logical
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_integer_array(spec, len, name, var)
-
-    ! Read an array of integers from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    integer, intent(in) :: len          ! array length
-    character(len=*), intent(in) :: name ! name that should start line
-    integer, intent(out) :: var(len)    ! variable to store data
-
-    character(len=300) :: line, rest, temp
-    integer :: ios, ind, i
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    do i = 1,len
-       ind = index(rest, ' ')
-       temp = rest(1:ind)
-       if (len_trim(temp) == 0) then
-          write(0,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
-               trim(spec%name), ' on line ', spec%line_num
-          call exit(1)
-       end if
-       rest = rest((ind+1):len_trim(rest))
-       call strip_leading_spaces(rest)
-       read(temp, '(i20)', iostat=ios) var(i)
-       call check_read_iostat(spec, ios, 'integer array')
-    end do
-    if (len_trim(rest) > 0) then
-       write(0,'(a,a,a,i3)') 'ERROR: too much data in file ', &
-            trim(spec%name), ' on line ', spec%line_num
-       call exit(1)
-    end if
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'integer array: ', trim(name), ' = ', var
-    end if
-    
-  end subroutine read_integer_array
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_real_array(spec, len, name, var)
-
-    ! Read an array of real numbers from a .spec file.
-    
-    type(spec_file), intent(inout) :: spec ! spec file
-    integer, intent(in) :: len          ! array length
-    character(len=*), intent(in) :: name ! name that should start line
-    real*8, intent(out) :: var(len)     ! variable to store data
-
-    character(len=300) :: line, rest, temp
-    integer :: ios, ind, i
-
-    call read_next_data_line(spec, line)
-    call check_name(spec, line, name, rest)
-    do i = 1,len
-       ind = index(rest, ' ')
-       temp = rest(1:ind)
-       if (len_trim(temp) == 0) then
-          write(0,'(a,a,a,i3)') 'ERROR: insufficient data in file ', &
-               trim(spec%name), ' on line ', spec%line_num
-          call exit(1)
-       end if
-       rest = rest((ind+1):len_trim(rest))
-       call strip_leading_spaces(rest)
-       read(temp, '(f20.0)', iostat=ios) var(i)
-       call check_read_iostat(spec, ios, 'real array')
-    end do
-    if (len_trim(rest) > 0) then
-       write(0,'(a,a,a,i3)') 'ERROR: too much data in file ', &
-            trim(spec%name), ' on line ', spec%line_num
-       call exit(1)
-    end if
-    if (DEBUG_OUTPUT) then
-       write(0,*) 'real array: ', trim(name), ' = ', var
-    end if
-
-  end subroutine read_real_array
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine check_read_iostat(spec, ios, type)
-
-    ! Check the IOSTAT and error if it is bad.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    integer, intent(in) :: ios          ! iostat result
-    character(len=*), intent(in) :: type ! type being read during error
-
-    if (ios /= 0) then
-       write(0,'(a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
-            ' from file ', trim(spec%name), ' at line ', spec%line_num, &
-            ': IOSTAT = ', ios
-       call exit(1)
-    end if
-
-  end subroutine check_read_iostat
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_next_data_line(spec, line)
-
-    ! Read the next line from the .spec file that contains useful data.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(out) :: line ! complete line read
-
-    logical :: done
-
-    done = .false.
-    do while (.not. done)
-       call read_line(spec, line)
-       call strip_comment(line)
-       call tabs_to_spaces(line)
-       call strip_leading_spaces(line)
-       if (len_trim(line) > 0) then
-          done = .true.
-       end if
-    end do
-
-  end subroutine read_next_data_line
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_line(spec, line)
-
-    ! Read a single line from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(out) :: line ! complete line read
-
-    integer ios
-
-    read(unit=spec%unit, fmt='(a)', end=100, iostat=ios) line
-    spec%line_num = spec%line_num + 1
-    if (ios /= 0) then
-       write(0,*) 'ERROR: reading from ', trim(spec%name), &
-            ' at line ', spec%line_num, ': IOSTAT = ', ios
-       call exit(1)
-    end if
-
-    return
-
-100 write(0,*) 'ERROR: end of file ', trim(spec%name), &
-         ' unexpected at line ', spec%line_num
-    call exit(1)
-    
-  end subroutine read_line
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine strip_comment(line)
-
-    ! Strip the comments from a line. Comments are everything after
-    ! the first # character.
-    
-    character(len=*), intent(inout) :: line ! complete input line
-    
-    integer hash_index
-    
-    hash_index = index(line, '#')
-    if (hash_index > 0) then
-       line = line(1:(hash_index - 1))
-    end if
-    
-  end subroutine strip_comment
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine strip_leading_spaces(line)
-
-    ! Strip leading spaces from a string.
-
-    character(len=*), intent(inout) :: line ! complete input line
-
-    integer i
-
-    if (len_trim(line) > 0) then
-       i = verify(line, ' ') ! first character not a space
-       line = line(i:)
-    end if
-
-  end subroutine strip_leading_spaces
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine tabs_to_spaces(line)
-
-    ! Expand all tabs in a line into single spaces (one tab makes one
-    ! space).
-
-    character(len=*), intent(inout) :: line ! complete input line
-
-    integer i
-
-    do i = 1,len(line)
-       if (ichar(line(i:i)) == 9) then
-          line(i:i) = ' '
-       end if
-    end do
-
-  end subroutine tabs_to_spaces
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine check_name(spec, line, name, rest)
-
-    ! Checks that the leading text on a line is the expected variable
-    ! name.
-    
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(in) :: line ! complete input line
-    character(len=*), intent(in) :: name ! name that should start line
-    character(len=*), intent(out) :: rest ! remainder of line without name
-    
-    integer name_len
-
-    name_len = len_trim(name)
-    if (index(line, name(1:name_len)) /= 1) then
-       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', spec%line_num, &
-            ' of input file ', trim(spec%name), &
-            ' must begin with: ', trim(name)
-       call exit(1)
-    end if
-    rest = line((name_len+2):)
-    call strip_leading_spaces(rest)
-    
-  end subroutine check_name
-  
 end module mod_read_spec
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

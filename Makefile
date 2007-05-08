@@ -10,32 +10,36 @@ DEV_BUILD = yes
 #  compiler instead
 FC = gfortran
 
+MOSAIC_LIBDIR = /Users/mwest/t/MOSAIC.24/compile/
+MOSAIC_MODDIR = /Users/mwest/t/MOSAIC.24/compile/
+
 ifeq ($(FC),gfortran)
     # -O              optimize
     # -g              debugging
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused
-  LDFLAGS = 
+  FFLAGS = -g -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR)
+  LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
-  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
-  LDFLAGS =
+  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf90)
-  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND
-  LDFLAGS =
+  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 
 PROGS = process_out process_state test_sedi_bidisperse_ode		\
 	process_average partmc test_sedi_bidisperse_state_to_count
 
-OTHER = array bin condensation constants environ init_dist	\
-	kernel_golovin kernel_sedi kernel_constant kernel_brown	\
-	material run_exact run_mc util run_sect state read_spec
+OTHER = array bin condensation constants environ init_dist		\
+	kernel_golovin kernel_sedi kernel_constant kernel_brown		\
+	material run_exact run_mc util run_sect state read_spec mosaic	\
+	gas
 
 DIST_FILES = Makefile Makefile.deps makedeps.py TODO COPYING README
 
@@ -51,11 +55,13 @@ ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(patsubst %,%.f,$(ALL_FILES))
 ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 
+PARTMC_LIBS = -lmosaic
+
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
 all: Makefile.deps TAGS $(PROGS)
 
-Makefile.deps: $(ALL_SOURCE)
+Makefile.deps: makedeps.py $(ALL_SOURCE)
 	./makedeps.py --progs $(PROGS) --other $(OTHER)
 
 TAGS: $(ALL_SOURCE)

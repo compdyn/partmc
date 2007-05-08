@@ -18,6 +18,11 @@ module mod_environ
      real*8 :: V_comp                   ! computational volume (m^3)
      real*8 :: p                        ! ambient pressure (Pa)
      real*8 :: rho_a                    ! air density (kg m^{-3})
+     real*8 :: longitude                ! longitude (degrees)
+     real*8 :: latitude                 ! latitude (degrees)
+     real*8 :: altitude                 ! altitude (m)
+     real*8 :: start_time               ! start time (s since 00:00 UTC)
+     integer :: start_day               ! start day of year (UTC)
      integer :: n_temps                 ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points

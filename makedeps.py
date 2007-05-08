@@ -69,8 +69,9 @@ def print_deps(progs, other, dep_lists):
 	    outf.write("%s.o: %s\n" % (f, deps_str))
     for f in progs:
 	deps_str = " ".join([(d + ".o") for d in dep_lists[f]])
-	outf.write("\n%s: %s.o %s\n\t$(FC) $(LDFLAGS) -o $@ %s.o %s\n"
-		   % (f, f, deps_str, f, deps_str))
+	outf.write("\n%s: %s.o %s\n\t$(FC) $(LDFLAGS) -o $@ %s.o %s %s\n"
+		   % (f, f, deps_str, f, deps_str,
+		      "$(" + f.upper() + "_LIBS)"))
     outf.close()
 
 def process_args(args):

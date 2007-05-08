@@ -6,8 +6,49 @@
 ! Common utility functions.
 
 module mod_util
+
+  integer, parameter :: max_units = 200
+  integer, parameter :: unit_offset = 10
+  logical, save :: unit_used(max_units)
+
 contains
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function get_unit()
+
+    ! Returns an available unit number. This should be freed by free_unit().
+
+    integer i
+    logical found_unit
+
+    found_unit = .false.
+    do i = 1,max_units
+       if (.not. unit_used(i)) then
+          found_unit = .true.
+          exit
+       end if
+    end do
+    if (.not. found_unit) then
+       write(0,*) 'ERROR: no more units available - need to free_unit()'
+       call exit(1)
+    end if
+    get_unit = i + unit_offset
+
+  end function get_unit
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine free_unit(unit)
+
+    ! Frees a unit number returned by get_unit().
+
+    integer, intent(in) :: unit
+
+    unit_used(unit - unit_offset) = .false.
+
+  end subroutine free_unit
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   real*8 function util_rand()

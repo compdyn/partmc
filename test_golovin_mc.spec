@@ -20,8 +20,8 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-gas_init_conc gas_init.dat      # initial gas concentrations
-aerosol_data aerosol.dat        # file containing aerosol data
+gas_init_conc test_golovin_gas_init.dat # initial gas concentrations
+aerosol_data test_golovin_aerosol.dat # file containing aerosol data
 
 n_init_dist 1                   # number of initial aerosol distributions
 

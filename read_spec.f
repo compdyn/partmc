@@ -51,7 +51,8 @@ contains
     spec%unit = get_unit()
     open(unit=spec%unit, status='old', file=spec%name, iostat=ios)
     if (ios /= 0) then
-       write(0,*) 'ERROR: unable to open file ', spec%name, ': ', ios
+       write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
+            trim(spec%name), ': ', ios
        call exit(1)
     end if
     spec%line_num = 0

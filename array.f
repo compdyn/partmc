@@ -526,7 +526,7 @@ contains
     ! double VH and associated structures
     do k = 1,n_bin
        call enlarge_bin_to(VH(k), 2 * MH(k))
-       VH(k)%p((MH(k)+1):, :) = VH(k)%p(1:MH(k), :)
+       VH(k)%p((MH(k)+1):(2*MH(k)), :) = VH(k)%p(1:MH(k), :)
        MH(k) = 2 * MH(k)
     end do
     M = 2 * M

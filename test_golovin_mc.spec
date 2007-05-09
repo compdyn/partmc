@@ -1,6 +1,6 @@
 run_type mc                     # Monte Carlo run
 output_name golovin_mc          # name of output files
-n_loop 10                       # number of Monte Carlo loops
+n_loop 1                       # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel golovin                  # coagulation kernel
 

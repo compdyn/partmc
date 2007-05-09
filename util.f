@@ -258,7 +258,7 @@ contains
     ! Takes an array of x_vals, and a single x value, and returns the
     ! position p such that x_vals(p) <= x < x_vals(p+1). If p == 0
     ! then x < x_vals(1) and if p == n then x_vals(n) <= x. x_vals
-    ! must be sorted.
+    ! must be sorted in increasing order.
 
     integer, intent(in) :: n            ! number of values
     real*8, intent(in) :: x_vals(n)     ! x value array, must be sorted

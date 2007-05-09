@@ -234,6 +234,8 @@ contains
   subroutine courant(n_bin, dlnr, e, ima, c)
 
     ! Determines the Courant number for each bin pair.
+
+    use mod_util
     
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -249,26 +251,20 @@ contains
     do i = 1,n_bin
        do j = i,n_bin
           x0 = e(i) + e(j)
-          ! FIXME: replace below with particle_in_bin()
-          do k = j,n_bin
-!DEBUG
-             write(*,*) "-------------------------------"
-             write(*,*) shape(e)
-             write(*,*) k
-!DEBUG
-             if ((e(k) .ge. x0) .and. (e(k-1) .lt. x0)) then
-                if (c(i,j) .lt. 1d0 - 1d-08) then
-                   kk = k - 1
-                   c(i,j) = log(x0 / e(k-1)) / (3d0 * dlnr)
-                else
-                   c(i,j) = 0d0
-                   kk = k
-                end if
-                ima(i,j) = min(n_bin - 1, kk)
-                goto 2000
+          ! FIXME: should use particle_in_bin(), but that is actually
+          ! slightly different than what was always done here
+          k = find_1d(n_bin, e, x0)
+          if (k < n_bin) then
+             k = k - 1
+             if (c(i,j) .lt. 1d0 - 1d-08) then
+                kk = k - 1
+                c(i,j) = log(x0 / e(k-1)) / (3d0 * dlnr)
+             else
+                c(i,j) = 0d0
+                kk = k
              end if
-          end do
-2000      continue
+             ima(i,j) = min(n_bin - 1, kk)
+          end if
           c(j,i) = c(i,j)
           ima(j,i) = ima(i,j)
        end do

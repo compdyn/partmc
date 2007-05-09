@@ -250,6 +250,7 @@ contains
     use mod_environ
     use mod_run_exact
     use mod_read_spec
+    use mod_gas
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -270,6 +271,7 @@ contains
     
     type(material) :: mat               ! material data
     type(environ) :: env                ! environment data
+    type(gas_chem) :: gas               ! gas data
 
     integer :: n_bin                    ! number of bins
     real*8 :: v_min                     ! volume of smallest bin (m^3)
@@ -292,8 +294,9 @@ contains
     call read_real(spec, 't_max', t_max)
     call read_real(spec, 't_output', t_output)
     
-    call read_material(spec, mat)
     call read_environ(spec, env)
+    call read_gas(spec, gas)
+    call read_material(spec, mat)
 
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)

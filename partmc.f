@@ -343,6 +343,7 @@ contains
     use mod_bin
     use mod_array
     use mod_init_dist
+    use mod_gas
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -365,6 +366,7 @@ contains
     
     type(material) :: mat               ! material data
     type(environ) :: env                ! environment data
+    type(gas_chem) :: gas               ! gas data
     
     character(len=100) :: dist_type     ! initial distribution
     real*8 :: dist_args(max_dist_args)  ! distribution arguments
@@ -385,8 +387,9 @@ contains
     call read_real(spec, 't_output', t_output)
     call read_real(spec, 't_progress', t_progress)
 
-    call read_material(spec, mat)
     call read_environ(spec, env)
+    call read_gas(spec, gas)
+    call read_material(spec, mat)
 
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)

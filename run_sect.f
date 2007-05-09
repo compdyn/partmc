@@ -251,6 +251,11 @@ contains
           x0 = e(i) + e(j)
           ! FIXME: replace below with particle_in_bin()
           do k = j,n_bin
+!DEBUG
+             write(*,*) "-------------------------------"
+             write(*,*) shape(e)
+             write(*,*) k
+!DEBUG
              if ((e(k) .ge. x0) .and. (e(k-1) .lt. x0)) then
                 if (c(i,j) .lt. 1d0 - 1d-08) then
                    kk = k - 1

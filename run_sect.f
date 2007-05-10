@@ -255,7 +255,7 @@ contains
           ! slightly different than what was always done here
           k = find_1d(n_bin, e, x0)
           if (k < n_bin) then
-             k = k - 1
+             k = k + 1
              if (c(i,j) .lt. 1d0 - 1d-08) then
                 kk = k - 1
                 c(i,j) = log(x0 / e(k-1)) / (3d0 * dlnr)

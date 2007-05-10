@@ -28,22 +28,22 @@ and processing state for multi-species simulations.
 ENDINFO
 sleep 1
 
-echo ./partmc test_dust_salt_part1.spec
-./partmc test_dust_salt_part1.spec
-echo ./process_out out_dust_salt_part1.d
-./process_out out_dust_salt_part1.d
+echo ../src/partmc test_dust_salt_part1.spec
+../src/partmc test_dust_salt_part1.spec
+echo ../src/process_out out_dust_salt_part1.d
+../src/process_out out_dust_salt_part1.d
 
-echo ./partmc test_dust_salt_part2.spec
-./partmc test_dust_salt_part2.spec
-echo ./process_out out_dust_salt_part2.d
-./process_out out_dust_salt_part2.d
+echo ../src/partmc test_dust_salt_part2.spec
+../src/partmc test_dust_salt_part2.spec
+echo ../src/process_out out_dust_salt_part2.d
+../src/process_out out_dust_salt_part2.d
 
-echo ./process_state state_dust_salt_part1_0001_00000000.d
-./process_state state_dust_salt_part1_0001_00000000.d
-echo ./process_state state_dust_salt_part2_0001_00000800.d
-./process_state state_dust_salt_part2_0001_00000800.d
-echo ./process_state state_dust_salt_part2_0001_00001000.d
-./process_state state_dust_salt_part2_0001_00001000.d
+echo ../src/process_state state_dust_salt_part1_0001_00000000.d
+../src/process_state state_dust_salt_part1_0001_00000000.d
+echo ../src/process_state state_dust_salt_part2_0001_00000800.d
+../src/process_state state_dust_salt_part2_0001_00000800.d
+echo ../src/process_state state_dust_salt_part2_0001_00001000.d
+../src/process_state state_dust_salt_part2_0001_00001000.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM

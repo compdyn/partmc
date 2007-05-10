@@ -27,8 +27,8 @@ general-purpose solution.
 ENDINFO
 sleep 1
 
-echo ./partmc test_sedi_bidisperse_mc.spec
-./partmc test_sedi_bidisperse_mc.spec
+echo ../src/partmc test_sedi_bidisperse_mc.spec
+../src/partmc test_sedi_bidisperse_mc.spec
 echo ./test_sedi_bidisperse_state_to_count
 ./test_sedi_bidisperse_state_to_count
 

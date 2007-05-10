@@ -18,15 +18,15 @@ as model verification against an analytical solution.
 ENDINFO
 sleep 1
 
-echo ./partmc test_golovin_mc.spec
-./partmc test_golovin_mc.spec
-echo ./process_out out_golovin_mc.d
-./process_out out_golovin_mc.d
+echo ../src/partmc test_golovin_mc.spec
+../src/partmc test_golovin_mc.spec
+echo ../src/process_out out_golovin_mc.d
+../src/process_out out_golovin_mc.d
 
-echo ./partmc test_golovin_exact.spec
-./partmc test_golovin_exact.spec
-echo ./process_out out_golovin_exact.d
-./process_out out_golovin_exact.d
+echo ../src/partmc test_golovin_exact.spec
+../src/partmc test_golovin_exact.spec
+echo ../src/process_out out_golovin_exact.d
+../src/process_out out_golovin_exact.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM

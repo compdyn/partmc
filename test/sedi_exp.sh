@@ -16,15 +16,15 @@ comparison of sectional runs with Monte Carlo runs.
 ENDINFO
 sleep 1
 
-echo ./partmc test_sedi_exp_mc.spec
-./partmc test_sedi_exp_mc.spec
-echo ./process_out out_sedi_exp_mc.d
-./process_out out_sedi_exp_mc.d
+echo ../src/partmc test_sedi_exp_mc.spec
+../src/partmc test_sedi_exp_mc.spec
+echo ../src/process_out out_sedi_exp_mc.d
+../src/process_out out_sedi_exp_mc.d
 
-echo ./partmc test_sedi_exp_sect.spec
-./partmc test_sedi_exp_sect.spec
-echo ./process_out out_sedi_exp_sect.d
-./process_out out_sedi_exp_sect.d
+echo ../src/partmc test_sedi_exp_sect.spec
+../src/partmc test_sedi_exp_sect.spec
+echo ../src/process_out out_sedi_exp_sect.d
+../src/process_out out_sedi_exp_sect.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM

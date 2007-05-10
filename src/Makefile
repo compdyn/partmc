@@ -61,8 +61,8 @@ ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
 all: Makefile.deps TAGS $(PROGS)
 
-Makefile.deps: makedeps.py $(ALL_SOURCE)
-	./makedeps.py --progs $(PROGS) --other $(OTHER)
+Makefile.deps: ../makedeps.py $(ALL_SOURCE)
+	../makedeps.py --progs $(PROGS) --other $(OTHER)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)

@@ -1,4 +1,3 @@
-! -*- mode: f90; -*-
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your

@@ -1,4 +1,3 @@
-! -*- mode: f90; -*-
 ! Copyright (C) 2007 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.

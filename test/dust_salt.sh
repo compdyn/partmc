@@ -28,13 +28,13 @@ and processing state for multi-species simulations.
 ENDINFO
 sleep 1
 
-echo ../src/partmc test_dust_salt_part1.spec
-../src/partmc test_dust_salt_part1.spec
+echo ../src/partmc dust_salt_part1.spec
+../src/partmc dust_salt_part1.spec
 echo ../src/process_out out_dust_salt_part1.d
 ../src/process_out out_dust_salt_part1.d
 
-echo ../src/partmc test_dust_salt_part2.spec
-../src/partmc test_dust_salt_part2.spec
+echo ../src/partmc dust_salt_part2.spec
+../src/partmc dust_salt_part2.spec
 echo ../src/process_out out_dust_salt_part2.d
 ../src/process_out out_dust_salt_part2.d
 

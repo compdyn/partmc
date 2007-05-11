@@ -33,8 +33,6 @@ ifeq ($(FC),pgf90)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 
-SUBDIRS := src test
-
 PROGS := src/process_out src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode			\
 	test/sedi_bidisperse_state_to_count

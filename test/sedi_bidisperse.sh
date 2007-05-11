@@ -43,10 +43,10 @@ set title "Sedimentation kernel, bidisperse initial condition"
 plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:2 w l title "ODE"
 set terminal postscript eps
-set output "plot_sedi_bidisperse_num_small.eps"
+set output "out/plot_sedi_bidisperse_num_small.eps"
 replot
 ENDNUM
-epstopdf plot_sedi_bidisperse_num_small.eps
+epstopdf out/plot_sedi_bidisperse_num_small.eps
 
 echo "Plotting number density of small particles (logarithmic)"
 gnuplot -persist <<ENDNUM
@@ -57,10 +57,10 @@ set title "Sedimentation kernel, bidisperse initial condition"
 plot "counts_sedi_bidisperse_mc.d" using 1:2 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:2 w l title "ODE"
 set terminal postscript eps
-set output "plot_sedi_bidisperse_num_small_log.eps"
+set output "out/plot_sedi_bidisperse_num_small_log.eps"
 replot
 ENDNUM
-epstopdf plot_sedi_bidisperse_num_small_log.eps
+epstopdf out/plot_sedi_bidisperse_num_small_log.eps
 
 echo "Plotting volume density of big particle"
 gnuplot -persist <<ENDVOL
@@ -71,7 +71,7 @@ set key right bottom
 plot "counts_sedi_bidisperse_mc.d" using 1:3 title "Monte Carlo"
 replot "counts_sedi_bidisperse_ode.d" using 1:3 w l title "ODE"
 set terminal postscript eps
-set output "plot_sedi_bidisperse_vol_big.eps"
+set output "out/plot_sedi_bidisperse_vol_big.eps"
 replot
 ENDVOL
-epstopdf plot_sedi_bidisperse_vol_big.eps
+epstopdf out/plot_sedi_bidisperse_vol_big.eps

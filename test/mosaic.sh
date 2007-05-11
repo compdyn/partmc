@@ -41,10 +41,10 @@ replot "out/out_golovin_exact_num_avg.d" using 2:3 w l title "Analytical (0 mins
 replot "out/out_golovin_exact_num_avg.d" using 2:8 w l title "Analytical (5 mins)"
 replot "out/out_golovin_exact_num_avg.d" using 2:13 w l title "Analytical (10 mins)"
 set terminal postscript eps
-set output "plot_golovin_num.eps"
+set output "out/plot_golovin_num.eps"
 replot
 ENDNUM
-epstopdf plot_golovin_num.eps
+epstopdf out/plot_golovin_num.eps
 
 echo Plotting volume density
 gnuplot -persist <<ENDVOL
@@ -60,7 +60,7 @@ replot "out/out_golovin_exact_vol_avg.d" using 2:3 w l title "Analytical (0 mins
 replot "out/out_golovin_exact_vol_avg.d" using 2:8 w l title "Analytical (5 mins)"
 replot "out/out_golovin_exact_vol_avg.d" using 2:13 w l title "Analytical (10 mins)"
 set terminal postscript eps
-set output "plot_golovin_vol.eps"
+set output "out/plot_golovin_vol.eps"
 replot
 ENDVOL
-epstopdf plot_golovin_vol.eps
+epstopdf out/plot_golovin_vol.eps

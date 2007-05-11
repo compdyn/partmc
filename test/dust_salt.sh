@@ -56,10 +56,10 @@ replot "out/out_dust_salt_part1_num_avg.d" using 2:7 w l title "Monte Carlo (400
 replot "out/out_dust_salt_part1_num_avg.d" using 2:11 w l title "Monte Carlo (800 s)"
 replot "out/out_dust_salt_part2_num_avg.d" using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
-set output "plot_dust_salt_num.eps"
+set output "out/plot_dust_salt_num.eps"
 replot
 ENDNUM
-epstopdf plot_dust_salt_num.eps
+epstopdf out/plot_dust_salt_num.eps
 
 echo Plotting volume density
 gnuplot -persist <<ENDVOL
@@ -73,10 +73,10 @@ replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:7 w l title "Monte Ca
 replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:11 w l title "Monte Carlo (800 s)"
 replot "out/out_dust_salt_part2_vol_avg.d" index 0 using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
-set output "plot_dust_salt_vol.eps"
+set output "out/plot_dust_salt_vol.eps"
 replot
 ENDVOL
-epstopdf plot_dust_salt_vol.eps
+epstopdf out/plot_dust_salt_vol.eps
 
 echo Plotting composition
 gnuplot -persist <<ENDCOM
@@ -93,7 +93,7 @@ replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:3 w l title 
 replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:4 w l title "species 2 (1000 s)"
 replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:5 w l title "mixed (1000 s)"
 set terminal postscript eps
-set output "plot_dust_salt_comp.eps"
+set output "out/plot_dust_salt_comp.eps"
 replot
 ENDCOM
-epstopdf plot_dust_salt_comp.eps
+epstopdf out/plot_dust_salt_comp.eps

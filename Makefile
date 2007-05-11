@@ -1,3 +1,5 @@
+.SUFFIXES:
+.SUFFIXES: .f90 .o .deps .mod
 
 VERSION = 1.0.0
 DIST_NAME = partmc-$(VERSION)
@@ -72,6 +74,8 @@ ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
 ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 ALL_DEPS = $(patsubst %,%.deps,$(ALL_FILES))
 
+.PHONY: all
+
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
 all: TAGS $(PROGS)
@@ -117,18 +121,22 @@ test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
 
+.PHONY: clean
 clean:
 	rm -f $(PROGS) $(ALL_OBJS)
 
+.PHONY: cleanall
 cleanall: clean
 	rm -f *~ src/*~ test/*~ src/*.mod
 
+.PHONY: distclean
 distclean: cleanall
 	rm -f test/*.d test/*.pdf test/*.eps test/gmon.out test/gprof_*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<
 
+.PHONY: dist
 dist: Makefile.deps TAGS
 	grep -q "Version $(VERSION)" README
 	grep -q "Released $(DATE)" README

@@ -39,10 +39,10 @@ replot "out/out_sedi_exp_sect_num_avg.d" using 2:3 w l title "Sectional (0 mins)
 replot "out/out_sedi_exp_sect_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out/out_sedi_exp_sect_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
-set output "plot_sedi_exp_num.eps"
+set output "out/plot_sedi_exp_num.eps"
 replot
 ENDNUM
-epstopdf plot_sedi_exp_num.eps
+epstopdf out/plot_sedi_exp_num.eps
 
 echo Plotting logarithmic number density
 gnuplot -persist <<ENDNUMLOG
@@ -57,10 +57,10 @@ replot "out/out_sedi_exp_sect_num_avg.d" using 2:3 w l title "Sectional (0 mins)
 replot "out/out_sedi_exp_sect_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out/out_sedi_exp_sect_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
-set output "plot_sedi_exp_num_log.eps"
+set output "out/plot_sedi_exp_num_log.eps"
 replot
 ENDNUMLOG
-epstopdf plot_sedi_exp_num_log.eps
+epstopdf out/plot_sedi_exp_num_log.eps
 
 echo Plotting volume density
 gnuplot -persist <<ENDVOL
@@ -75,10 +75,10 @@ replot "out/out_sedi_exp_sect_vol_avg.d" using 2:3 w l title "Sectional (0 mins)
 replot "out/out_sedi_exp_sect_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out/out_sedi_exp_sect_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
-set output "plot_sedi_exp_vol.eps"
+set output "out/plot_sedi_exp_vol.eps"
 replot
 ENDVOL
-epstopdf plot_sedi_exp_vol.eps
+epstopdf out/plot_sedi_exp_vol.eps
 
 echo Plotting logarithmic volume density
 gnuplot -persist <<ENDVOLLOG
@@ -93,7 +93,7 @@ replot "out/out_sedi_exp_sect_vol_avg.d" using 2:3 w l title "Sectional (0 mins)
 replot "out/out_sedi_exp_sect_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
 replot "out/out_sedi_exp_sect_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
-set output "plot_sedi_exp_vol_log.eps"
+set output "out/plot_sedi_exp_vol_log.eps"
 replot
 ENDVOLLOG
-epstopdf plot_sedi_exp_vol_log.eps
+epstopdf out/plot_sedi_exp_vol_log.eps

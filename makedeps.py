@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-SOURCE_SUFFIX = ".f"
+SOURCE_SUFFIX = ".f90"
 OBJECT_SUFFIX = ".o"
 
 import re, sys, os

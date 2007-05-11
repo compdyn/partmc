@@ -52,7 +52,7 @@ TEST_FILES = test_dust_salt.sh test_dust_salt_part1.spec		\
              test_sedi_exp_mc.spec test_sedi_exp_sect.spec
 
 ALL_FILES = $(PROGS) $(OTHER)
-ALL_SOURCE = $(patsubst %,%.f,$(ALL_FILES))
+ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
 ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 
 PARTMC_LIBS = -lmosaic
@@ -73,7 +73,7 @@ endif
 
 -include Makefile.deps
 
-%.o: %.f
+%.o: %.f90
 	$(FC) $(FFLAGS) -c -o $@ $<
 
 %.o : %.mod

@@ -21,10 +21,10 @@ contains
     use mod_material
     use mod_state
     use mod_gas
-    use module_data_mosaic_kind
-    use module_data_mosaic_aero
-    use module_data_mosaic_gas
-    use module_data_mosaic_main
+    use module_data_mosaic_kind ! NO_AUTO_DEP
+    use module_data_mosaic_aero ! NO_AUTO_DEP
+    use module_data_mosaic_gas ! NO_AUTO_DEP
+    use module_data_mosaic_main ! NO_AUTO_DEP
     
     integer, intent(inout) :: M         ! actual number of particles
     integer, intent(in) :: n_spec       ! number of species

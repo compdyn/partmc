@@ -481,6 +481,7 @@ contains
     logical :: val
     integer :: ios
 
+    val = .false.
     if ((trim(string) == 'yes') &
          .or. (trim(string) == 'y') &
          .or. (trim(string) == 'true') &
@@ -817,6 +818,7 @@ contains
             ' should contain exactly one data value'
        call exit(1)
     end if
+    n_species = species_data_shape(1)
 
     ! copy over the data
     vol_frac = 0d0

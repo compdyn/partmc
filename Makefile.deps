@@ -1,43 +1,38 @@
-#
 # DO NOT EDIT --- auto-generated file
-#
-
-process_state.o: bin.o environ.o material.o array.o state.o util.o constants.o
-kernel_golovin.o: environ.o util.o constants.o material.o
-array.o: bin.o material.o util.o environ.o constants.o
-kernel_constant.o: environ.o util.o constants.o material.o
-test_sedi_bidisperse_ode.o: kernel_sedi.o environ.o constants.o material.o util.o
-kernel_brown.o: environ.o constants.o material.o util.o
-kernel_sedi.o: environ.o constants.o material.o util.o
-partmc.o: read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o gas.o run_exact.o run_sect.o util.o constants.o state.o mosaic.o
-state.o: environ.o array.o util.o constants.o material.o bin.o
-run_sect.o: bin.o array.o kernel_sedi.o util.o init_dist.o environ.o material.o constants.o
-init_dist.o: array.o bin.o util.o constants.o material.o environ.o
-mosaic.o: constants.o util.o array.o condensation.o environ.o material.o state.o gas.o bin.o
-run_mc.o: util.o array.o condensation.o environ.o material.o state.o mosaic.o constants.o bin.o gas.o
-read_spec.o: util.o gas.o material.o environ.o constants.o
-bin.o: environ.o constants.o material.o util.o
-util.o: constants.o
-run_exact.o: bin.o array.o environ.o material.o constants.o util.o
-condensation.o: array.o bin.o environ.o material.o util.o constants.o
-process_out.o: util.o constants.o
-test_sedi_bidisperse_state_to_count.o: environ.o material.o state.o array.o constants.o util.o bin.o
-environ.o: constants.o material.o util.o
-
-process_out: process_out.o util.o constants.o
-	$(FC) $(LDFLAGS) -o $@ process_out.o util.o constants.o $(PROCESS_OUT_LIBS)
-
-process_state: process_state.o bin.o environ.o material.o array.o state.o util.o constants.o
-	$(FC) $(LDFLAGS) -o $@ process_state.o bin.o environ.o material.o array.o state.o util.o constants.o $(PROCESS_STATE_LIBS)
-
-test_sedi_bidisperse_ode: test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o util.o
-	$(FC) $(LDFLAGS) -o $@ test_sedi_bidisperse_ode.o kernel_sedi.o environ.o constants.o material.o util.o $(TEST_SEDI_BIDISPERSE_ODE_LIBS)
-
-process_average: process_average.o 
-	$(FC) $(LDFLAGS) -o $@ process_average.o  $(PROCESS_AVERAGE_LIBS)
-
-partmc: partmc.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o gas.o run_exact.o run_sect.o util.o constants.o state.o mosaic.o
-	$(FC) $(LDFLAGS) -o $@ partmc.o read_spec.o bin.o array.o init_dist.o condensation.o kernel_sedi.o kernel_golovin.o kernel_constant.o kernel_brown.o material.o environ.o run_mc.o gas.o run_exact.o run_sect.o util.o constants.o state.o mosaic.o $(PARTMC_LIBS)
-
-test_sedi_bidisperse_state_to_count: test_sedi_bidisperse_state_to_count.o environ.o material.o state.o array.o constants.o util.o bin.o
-	$(FC) $(LDFLAGS) -o $@ test_sedi_bidisperse_state_to_count.o environ.o material.o state.o array.o constants.o util.o bin.o $(TEST_SEDI_BIDISPERSE_STATE_TO_COUNT_LIBS)
+src/process_out.o: src/mod_util.mod
+src/process_state.o: src/mod_bin.mod src/mod_environ.mod src/mod_material.mod src/mod_array.mod src/mod_state.mod src/mod_util.mod
+src/partmc.o: src/mod_read_spec.mod src/mod_bin.mod src/mod_array.mod src/mod_init_dist.mod src/mod_condensation.mod src/mod_kernel_sedi.mod src/mod_kernel_golovin.mod src/mod_kernel_constant.mod src/mod_kernel_brown.mod src/mod_material.mod src/mod_environ.mod src/mod_run_mc.mod src/mod_gas.mod src/mod_run_exact.mod src/mod_run_sect.mod
+test/sedi_bidisperse_ode.o: src/mod_kernel_sedi.mod src/mod_environ.mod
+test/sedi_bidisperse_state_to_count.o: src/mod_environ.mod src/mod_material.mod src/mod_state.mod src/mod_array.mod
+src/array.o: src/mod_bin.mod src/mod_material.mod src/mod_util.mod src/mod_environ.mod
+src/mod_array.mod: src/mod_bin.mod src/mod_material.mod src/mod_util.mod src/mod_environ.mod
+src/bin.o: src/mod_environ.mod src/mod_constants.mod src/mod_material.mod src/mod_util.mod
+src/mod_bin.mod: src/mod_environ.mod src/mod_constants.mod src/mod_material.mod src/mod_util.mod
+src/condensation.o: src/mod_array.mod src/mod_bin.mod src/mod_environ.mod src/mod_material.mod src/mod_util.mod src/mod_constants.mod
+src/mod_condensation.mod: src/mod_array.mod src/mod_bin.mod src/mod_environ.mod src/mod_material.mod src/mod_util.mod src/mod_constants.mod
+src/environ.o: src/mod_constants.mod src/mod_material.mod src/mod_util.mod
+src/mod_environ.mod: src/mod_constants.mod src/mod_material.mod src/mod_util.mod
+src/init_dist.o: src/mod_array.mod src/mod_bin.mod src/mod_util.mod src/mod_constants.mod
+src/mod_init_dist.mod: src/mod_array.mod src/mod_bin.mod src/mod_util.mod src/mod_constants.mod
+src/kernel_golovin.o: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod
+src/mod_kernel_golovin.mod: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod
+src/kernel_sedi.o: src/mod_environ.mod src/mod_constants.mod
+src/mod_kernel_sedi.mod: src/mod_environ.mod src/mod_constants.mod
+src/kernel_constant.o: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod
+src/mod_kernel_constant.mod: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod
+src/kernel_brown.o: src/mod_environ.mod src/mod_constants.mod
+src/mod_kernel_brown.mod: src/mod_environ.mod src/mod_constants.mod
+src/run_exact.o: src/mod_bin.mod src/mod_array.mod src/mod_environ.mod src/mod_material.mod
+src/mod_run_exact.mod: src/mod_bin.mod src/mod_array.mod src/mod_environ.mod src/mod_material.mod
+src/run_mc.o: src/mod_util.mod src/mod_array.mod src/mod_bin.mod src/mod_condensation.mod src/mod_environ.mod src/mod_material.mod src/mod_state.mod src/mod_mosaic.mod
+src/mod_run_mc.mod: src/mod_util.mod src/mod_array.mod src/mod_bin.mod src/mod_condensation.mod src/mod_environ.mod src/mod_material.mod src/mod_state.mod src/mod_mosaic.mod
+src/util.o: src/mod_constants.mod
+src/mod_util.mod: src/mod_constants.mod
+src/run_sect.o: src/mod_bin.mod src/mod_array.mod src/mod_kernel_sedi.mod src/mod_util.mod src/mod_init_dist.mod src/mod_environ.mod src/mod_material.mod
+src/mod_run_sect.mod: src/mod_bin.mod src/mod_array.mod src/mod_kernel_sedi.mod src/mod_util.mod src/mod_init_dist.mod src/mod_environ.mod src/mod_material.mod
+src/state.o: src/mod_environ.mod src/mod_array.mod src/mod_util.mod
+src/mod_state.mod: src/mod_environ.mod src/mod_array.mod src/mod_util.mod
+src/read_spec.o: src/mod_util.mod src/mod_gas.mod src/mod_material.mod src/mod_environ.mod
+src/mod_read_spec.mod: src/mod_util.mod src/mod_gas.mod src/mod_material.mod src/mod_environ.mod
+src/mosaic.o: src/mod_constants.mod src/mod_util.mod src/mod_array.mod src/mod_bin.mod src/mod_condensation.mod src/mod_environ.mod src/mod_material.mod src/mod_state.mod src/mod_gas.mod
+src/mod_mosaic.mod: src/mod_constants.mod src/mod_util.mod src/mod_array.mod src/mod_bin.mod src/mod_condensation.mod src/mod_environ.mod src/mod_material.mod src/mod_state.mod src/mod_gas.mod

@@ -69,10 +69,10 @@ sedi_bidisperse_state_to_count_OBJS :=			\
 	src/material.o src/state.o src/array.o src/constants.o	\
 	src/util.o src/bin.o
 
-SRC = $(PROGS) $(OTHER)
-ALL_SOURCE = $(patsubst %,%.f90,$(SRC))
-ALL_OBJS = $(patsubst %,%.o,$(SRC))
-ALL_DEPS = $(patsubst %,%.deps,$(SRC))
+ALL_FILES = $(PROGS) $(OTHER)
+ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
+ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
+ALL_DEPS = $(patsubst %,%.deps,$(ALL_FILES))
 
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
@@ -88,8 +88,10 @@ else
 all: $(PROGS)
 endif
 
-#-include $(patsubst %,%.deps,$(SRC))
+-include Makefile.deps
 
+# we can also do per-sourcefile deps, instead of a single Makefile.deps
+#-include $(patsubst %,%.deps,$(ALL_FILES))
 #%.deps: %.f90 make_mod_deps.py
 #	./make_mod_deps.py -o $@ $<
 

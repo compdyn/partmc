@@ -77,7 +77,7 @@ contains
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
     real*8 :: dlnr, t_wall_start
 
-    character(len=300) :: output_name   ! name of output files
+    character(len=300) :: output_file   ! name of output files
     integer :: n_loop                   ! number of Monte Carlo loops
     real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
@@ -110,7 +110,7 @@ contains
     logical :: do_restart               ! restart from stored state? (yes/no)
     character(len=300) :: restart_name  ! filename to restart from
     
-    call read_string(spec, 'output_name', output_name)
+    call read_string(spec, 'output_file', output_file)
     call read_integer(spec, 'n_loop', n_loop)
     call read_real(spec, 'num_conc', num_conc)
     call read_string(spec, 'kernel', kernel_name)
@@ -159,7 +159,7 @@ contains
     call init_array(mat%n_spec, MH, VH)
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
-    call output_open(output_unit, output_name, n_loop, n_bin, &
+    call output_open(output_unit, output_file, n_loop, n_bin, &
          mat%n_spec, nint(t_max / t_output) + 1)
     
     if (rand_init /= 0) then
@@ -202,28 +202,28 @@ contains
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, &
+               output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
                restart_name, i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, &
+               output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, &
+               output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_name, do_coagulation, allow_double, &
+               output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat)
        else
@@ -259,7 +259,7 @@ contains
     real*8, allocatable :: bin_g_den(:), bin_gs_den(:,:), bin_n_den(:)
     real*8 :: dlnr
     
-    character(len=300) :: output_name   ! name of output files
+    character(len=300) :: output_file   ! name of output files
     real*8 :: num_conc                  ! particle concentration (#/m^3)
 
     character(len=100) :: soln_name     ! exact solution name
@@ -276,7 +276,7 @@ contains
     real*8 :: v_min                     ! volume of smallest bin (m^3)
     integer :: scal                     ! scale factor (integer)
     
-    call read_string(spec, 'output_name', output_name)
+    call read_string(spec, 'output_file', output_file)
     call read_real(spec, 'num_conc', num_conc)
 
     call read_string(spec, 'soln', soln_name)
@@ -305,7 +305,7 @@ contains
 
     ! finished reading .spec data, now do the run
     
-    call output_open(output_unit, output_name, 1, n_bin, &
+    call output_open(output_unit, output_file, 1, n_bin, &
          mat%n_spec, nint(t_max / t_output) + 1)
 
     allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
@@ -354,7 +354,7 @@ contains
     real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
     real*8 :: dlnr
     
-    character(len=300) :: output_name   ! name of output files
+    character(len=300) :: output_file   ! name of output files
     real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
     
@@ -374,7 +374,7 @@ contains
     real*8 :: v_min                     ! volume of smallest bin (m^3)
     integer :: scal                     ! scale factor (integer)
     
-    call read_string(spec, 'output_name', output_name)
+    call read_string(spec, 'output_file', output_file)
     call read_real(spec, 'num_conc', num_conc)
 
     call read_string(spec, 'kernel', kernel_name)
@@ -401,7 +401,7 @@ contains
     allocate(bin_v(n_bin), n_den(n_bin))
     allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
     
-    call output_open(output_unit, output_name, 1, n_bin, &
+    call output_open(output_unit, output_file, 1, n_bin, &
          mat%n_spec, nint(t_max / t_output) + 1)
     
     call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)

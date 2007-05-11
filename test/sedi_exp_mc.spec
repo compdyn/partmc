@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo
-output_name sedi_exp_mc         # name of output files
+output_file out/out_sedi_exp_mc.d # name of output file
 n_loop 1                        # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel

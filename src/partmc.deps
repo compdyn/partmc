@@ -1,0 +1,2 @@
+# DO NOT EDIT --- auto-generated file
+src/partmc.o: src/mod_read_spec.mod src/mod_bin.mod src/mod_array.mod src/mod_init_dist.mod src/mod_condensation.mod src/mod_kernel_sedi.mod src/mod_kernel_golovin.mod src/mod_kernel_constant.mod src/mod_kernel_brown.mod src/mod_material.mod src/mod_environ.mod src/mod_run_mc.mod src/mod_gas.mod src/mod_run_exact.mod src/mod_run_sect.mod

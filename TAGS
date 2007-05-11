@@ -21,8 +21,8 @@ src/partmc.f90,104
   subroutine partmc_sect(333,12275
 
 test/sedi_bidisperse_ode.f90,73
-  subroutine bidisperse_f(73,3006
-  subroutine bidisperse_step(95,3853
+  subroutine bidisperse_f(73,3010
+  subroutine bidisperse_step(95,3857
 
 src/array.f90,492
   subroutine init_array(52,2367
@@ -53,8 +53,8 @@ src/bin.f90,504
   subroutine est_k_max_binned(209,6904
        subroutine kernel(223,7445
   subroutine output_open(245,8006
-  subroutine output_info(271,8972
-  subroutine output_info_density(307,10589
+  subroutine output_info(268,8862
+  subroutine output_info_density(304,10479
 
 src/condensation.f90,560
   subroutine condense_particles(12,364

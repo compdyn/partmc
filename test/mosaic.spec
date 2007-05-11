@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo run
-output_name mosaic              # name of output files
+output_file out/out_mosaic.d # name of output file
 n_loop 1                        # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel golovin                  # coagulation kernel

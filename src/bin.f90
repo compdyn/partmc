@@ -242,22 +242,19 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_open(output_unit, output_name, n_loop, n_bin, &
+  subroutine output_open(output_unit, output_file, n_loop, n_bin, &
        n_spec, n_time)
 
     ! Open an output file for writing.
 
     integer, intent(in) :: output_unit  ! unit number to output to
-    character(len=300) :: output_name   ! name of output
+    character(len=300) :: output_file   ! output filename
     integer, intent(in) :: n_loop       ! number of loops
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: n_time       ! number of times
 
-    character(len=300) :: out_file_name
-
-    write(out_file_name, '(a,a,a)') 'out_', trim(output_name), '.d'
-    open(unit=output_unit, file=out_file_name)
+    open(unit=output_unit, file=output_file)
 
     write(output_unit,'(a10,i10)') 'n_loop', n_loop
     write(output_unit,'(a10,i10)') 'n_bin', n_bin

@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/kernel_golovin.o: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod
+src/mod_kernel_golovin.mod: src/mod_environ.mod src/mod_util.mod src/mod_constants.mod

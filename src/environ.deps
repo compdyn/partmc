@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/environ.o: src/mod_constants.mod src/mod_material.mod src/mod_util.mod
+src/mod_environ.mod: src/mod_constants.mod src/mod_material.mod src/mod_util.mod

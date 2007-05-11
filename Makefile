@@ -76,8 +76,9 @@ ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
 all: TAGS $(PROGS)
 
-Makefile.deps: make_mod_deps.py $(ALL_SOURCE)
-	./make_mod_deps.py -o $@ $(ALL_SOURCE)
+# centralized dependencies
+#Makefile.deps: make_mod_deps.py $(ALL_SOURCE)
+#	./make_mod_deps.py -o $@ $(ALL_SOURCE)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
@@ -86,16 +87,21 @@ else
 all: $(PROGS)
 endif
 
--include Makefile.deps
+# centralized dependencies
+# also need to remove the %.deps dependency for each source file
+# if we use a centralized dependency file. We can make each source file
+# depend on Makefile.deps, but then we are forced to do a complete rebuild
+# if an file changes.
+#-include Makefile.deps
 
 # we can also do per-sourcefile deps, instead of a single Makefile.deps
-#-include $(patsubst %,%.deps,$(ALL_FILES))
-#%.deps: %.f90 make_mod_deps.py
-#	./make_mod_deps.py -o $@ $<
+-include $(patsubst %,%.deps,$(ALL_FILES))
+%.deps: %.f90 make_mod_deps.py
+	./make_mod_deps.py -o $@ $<
 
-src/%.o src/mod_%.mod: src/%.f90 Makefile.deps
+src/%.o src/mod_%.mod: src/%.f90 src/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-test/%.o test/mod_%.mod: test/%.f90 Makefile.deps
+test/%.o test/mod_%.mod: test/%.f90 test/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/process_out: $(process_out_OBJS)

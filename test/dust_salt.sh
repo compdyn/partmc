@@ -30,13 +30,13 @@ sleep 1
 
 echo ../src/partmc dust_salt_part1.spec
 ../src/partmc dust_salt_part1.spec
-echo ../src/process_out out_dust_salt_part1.d
-../src/process_out out_dust_salt_part1.d
+echo ../src/process_out out/out_dust_salt_part1.d
+../src/process_out out/out_dust_salt_part1.d
 
 echo ../src/partmc dust_salt_part2.spec
 ../src/partmc dust_salt_part2.spec
-echo ../src/process_out out_dust_salt_part2.d
-../src/process_out out_dust_salt_part2.d
+echo ../src/process_out out/out_dust_salt_part2.d
+../src/process_out out/out_dust_salt_part2.d
 
 echo ../src/process_state state_dust_salt_part1_0001_00000000.d
 ../src/process_state state_dust_salt_part1_0001_00000000.d
@@ -51,10 +51,10 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)
 set title "Testcase dust and seasalt"
-plot [1e-8:1e-3] [1e3:1e10] "out_dust_salt_part1_num_avg.d" using 2:3 w l title "Monte Carlo (0 s)"
-replot "out_dust_salt_part1_num_avg.d" using 2:7 w l title "Monte Carlo (400 s)"
-replot "out_dust_salt_part1_num_avg.d" using 2:11 w l title "Monte Carlo (800 s)"
-replot "out_dust_salt_part2_num_avg.d" using 2:13 w l title "Monte Carlo (1000 s)"
+plot [1e-8:1e-3] [1e3:1e10] "out/out_dust_salt_part1_num_avg.d" using 2:3 w l title "Monte Carlo (0 s)"
+replot "out/out_dust_salt_part1_num_avg.d" using 2:7 w l title "Monte Carlo (400 s)"
+replot "out/out_dust_salt_part1_num_avg.d" using 2:11 w l title "Monte Carlo (800 s)"
+replot "out/out_dust_salt_part2_num_avg.d" using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "plot_dust_salt_num.eps"
 replot
@@ -68,10 +68,10 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Testcase dust and seasalt"
 set key top left
-plot [1e-8:1e-3] [1e-14:1e-4] "out_dust_salt_part1_vol_avg.d" index 0 using 2:3 w l title "Monte Carlo (0 s)"
-replot "out_dust_salt_part1_vol_avg.d" index 0 using 2:7 w l title "Monte Carlo (400 s)"
-replot "out_dust_salt_part1_vol_avg.d" index 0 using 2:11 w l title "Monte Carlo (800 s)"
-replot "out_dust_salt_part2_vol_avg.d" index 0 using 2:13 w l title "Monte Carlo (1000 s)"
+plot [1e-8:1e-3] [1e-14:1e-4] "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:3 w l title "Monte Carlo (0 s)"
+replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:7 w l title "Monte Carlo (400 s)"
+replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:11 w l title "Monte Carlo (800 s)"
+replot "out/out_dust_salt_part2_vol_avg.d" index 0 using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "plot_dust_salt_vol.eps"
 replot

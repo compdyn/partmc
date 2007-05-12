@@ -21,17 +21,17 @@ ifeq ($(FC),gfortran)
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -O -Jsrc -Isrc -ffree-form -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+  FFLAGS = -g -O -Jsrc -Isrc -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
-  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf90)
-  FFLAGS = -O -Mfree -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 

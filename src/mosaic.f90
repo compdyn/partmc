@@ -21,10 +21,15 @@ contains
     use mod_material
     use mod_state
     use mod_gas
-    use module_data_mosaic_kind ! NO_AUTO_DEP
-    use module_data_mosaic_aero ! NO_AUTO_DEP
-    use module_data_mosaic_gas ! NO_AUTO_DEP
-    use module_data_mosaic_main ! NO_AUTO_DEP
+
+    use module_data_mosaic_aero, only: nbin_a, aer, mGAS_AER_XFER, &
+         mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM
+
+    use module_data_mosaic_main, only: tbeg_mo, tbeg_dd, tbeg_hh, &
+         tbeg_hh, tbeg_mm, tbeg_ss, trun_dd, trun_hh, trun_mm, &
+         trun_ss, dt_min, dt_aeroptic_min, rlon, rlat, zalt_m, RH, te, &
+         pr_atm, cnn, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
+         msolar, mphoto
     
     integer, intent(inout) :: M         ! actual number of particles
     integer, intent(in) :: n_spec       ! number of species
@@ -43,6 +48,7 @@ contains
     
     type(environ), intent(inout) :: env ! environment state
     type(material), intent(in) :: mat   ! material properties
+    type(gas_chem), intent(inout) :: gas ! gas chemistry
 
     ! MOSAIC function interfaces
     interface
@@ -58,7 +64,7 @@ contains
 
     ! local variables
     real*8 :: t_utc ! time (s since 00:00 UTC)
-    integer :: i_bin, i_num, i_spec, i_mosaic
+    integer :: i_bin, i_num, i_spec, i_mosaic, i_spec_mosaic
 
     t_utc = env%start_time + t
 
@@ -90,21 +96,35 @@ contains
     rlat = env%latitude
     zalt_m = env%altitude
 
-    ! environmental parameters
+    ! environmental parameters: map PartMC -> MOSAIC
     RH = env%RH
     te = env%T
     pr_atm = env%p / const%atm
 
-    ! aerosol data
+    ! aerosol data: map PartMC -> MOSAIC
     nbin_a = M
-    i_mosaic = 0
+    i_mosaic = 0 ! MOSAIC bin number
+    aer = 0d0
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)
+          i_mosaic = i_mosaic + 1
           do i_spec = 1,n_spec
-             i_mosaic = i_mosaic + 1
-             aer(i_spec, jtotal, i_mosaic) = VH(i_bin)%p(i_num, i_spec)
+             i_spec_mosaic = mat%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                aer(i_spec_mosaic, jtotal, i_mosaic) &
+                     = VH(i_bin)%p(i_num, i_spec)
+             end if
           end do
        end do
+    end do
+
+    ! gas chemistry: map PartMC -> MOSAIC
+    cnn = 0d0
+    do i_spec = 1,gas%n_spec
+       i_spec_mosaic = gas%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          cnn(i_spec_mosaic) = gas%conc(i_spec)
+       end if
     end do
 
     ! parameters
@@ -129,6 +149,36 @@ contains
     end if
     call IntegrateChemistry
     call DoMassBalance
+
+    ! environmental parameters: map MOSAIC -> PartMC
+    env%RH = RH
+    env%T = te
+    env%p = pr_atm * const%atm
+
+    ! aerosol data: map MOSAIC -> PartMC
+    nbin_a = M
+    i_mosaic = 0 ! MOSAIC bin number
+    aer = 0d0
+    do i_bin = 1,n_bin
+       do i_num = 1,MH(i_bin)
+          i_mosaic = i_mosaic + 1
+          do i_spec = 1,n_spec
+             i_spec_mosaic = mat%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                VH(i_bin)%p(i_num, i_spec) = &
+                     aer(i_spec_mosaic, jtotal, i_mosaic)
+             end if
+          end do
+       end do
+    end do
+
+    ! gas chemistry: map MOSAIC -> PartMC
+    do i_spec = 1,gas%n_spec
+       i_spec_mosaic = gas%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          gas%conc(i_spec) = cnn(i_spec_mosaic)
+       end if
+    end do
 
   end subroutine singlestep_mosaic
 

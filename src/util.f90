@@ -311,5 +311,79 @@ contains
   end function interp_1d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function string_to_integer(string)
+
+    ! Convert a string to an integer.
+
+    character(len=*), intent(in) :: string ! string to convert
+    
+    integer :: val
+    integer :: ios
+
+    read(string, '(i20)', iostat=ios) val
+    if (ios /= 0) then
+       write(0,'(a,a,a,i3)') 'Error converting ', string, &
+            'to integer: IOSTAT = ', ios
+       call exit(1)
+    end if
+    string_to_integer = val
+
+  end function string_to_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function string_to_real(string)
+
+    ! Convert a string to an real.
+
+    character(len=*), intent(in) :: string ! string to convert
+    
+    real*8 :: val
+    integer :: ios
+
+    read(string, '(f20.0)', iostat=ios) val
+    if (ios /= 0) then
+       write(0,'(a,a,a,i3)') 'Error converting ', string, &
+            'to real: IOSTAT = ', ios
+       call exit(1)
+    end if
+    string_to_real = val
+
+  end function string_to_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  logical function string_to_logical(string)
+
+    ! Convert a string to an logical.
+
+    character(len=*), intent(in) :: string ! string to convert
+    
+    logical :: val
+    integer :: ios
+
+    val = .false.
+    if ((trim(string) == 'yes') &
+         .or. (trim(string) == 'y') &
+         .or. (trim(string) == 'true') &
+         .or. (trim(string) == 't') &
+         .or. (trim(string) == '1')) then
+       val = .true.
+    elseif ((trim(string) == 'no') &
+         .or. (trim(string) == 'n') &
+         .or. (trim(string) == 'false') &
+         .or. (trim(string) == 'f') &
+         .or. (trim(string) == '0')) then
+       val = .false.
+    else
+       write(0,'(a,a,a)') 'Error converting ', string, 'to logical'
+       call exit(1)
+    end if
+    string_to_logical = val
+
+  end function string_to_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_util

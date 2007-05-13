@@ -1,4 +1,4 @@
 #     dens (kg/m^3)   ions in soln (1)    solubility (1)   molec wght (kg/mole)
-H20            1000                  0                 0                  18d-3
+H2O            1000                  0                 0                  18d-3
 seasalt        2165                  2                 1               58.44d-3
 dust           2650                  2               0.5               60.08d-3

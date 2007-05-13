@@ -72,6 +72,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine set_material_water_index(mat)
+
+    ! Fills in mat%i_water.
+
+    type(material), intent(inout) :: mat  ! material data
+
+    integer :: i
+
+    do i = 1,mat%n_spec
+       if (mat%name(i) == "H2O") then
+          mat%i_water = i
+       end if
+    end do
+
+  end subroutine set_material_water_index
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine set_material_mosaic_map(mat)
 
     ! Fills in mat%mosaic_index.

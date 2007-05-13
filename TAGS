@@ -102,16 +102,17 @@ src/kernel_constant.f90,81
 src/kernel_brown.f90,34
   subroutine kernel_brown(15,512
 
-src/material.f90,424
+src/material.f90,471
   subroutine allocate_material(26,1070
   integer function material_spec_by_name(47,1666
-  subroutine set_material_mosaic_map(75,2371
-  real*8 function particle_mass(116,3960
-  real*8 function particle_volume(136,4412
-  real*8 function average_solute_quantity(156,4818
-  real*8 function total_solute_quantity(174,5422
-  real*8 function average_water_quantity(197,6064
-  real*8 function total_water_quantity(211,6524
+  subroutine set_material_water_index(75,2371
+  subroutine set_material_mosaic_map(93,2752
+  real*8 function particle_mass(134,4341
+  real*8 function particle_volume(154,4793
+  real*8 function average_solute_quantity(174,5199
+  real*8 function total_solute_quantity(192,5803
+  real*8 function average_water_quantity(215,6445
+  real*8 function total_water_quantity(229,6905
 
 src/run_exact.f90,63
   subroutine run_exact(12,327
@@ -124,7 +125,7 @@ src/run_mc.f90,167
        subroutine kernel(239,9365
   subroutine compute_n_samp(287,10884
 
-src/util.f90,484
+src/util.f90,622
   integer function get_unit(17,456
   subroutine free_unit(42,1049
   real*8 function util_rand(54,1310
@@ -138,6 +139,9 @@ src/util.f90,484
   subroutine open_existing(234,6752
   integer function find_1d(255,7350
   real*8 function interp_1d(286,8182
+  integer function string_to_integer(315,9063
+  real*8 function string_to_real(336,9589
+  logical function string_to_logical(357,10100
 
 src/run_sect.f90,164
   subroutine run_sect(16,556
@@ -152,7 +156,7 @@ src/state.f90,145
   subroutine read_state(91,2888
   subroutine write_state(166,5281
 
-src/read_spec.f90,1134
+src/read_spec.f90,1197
   subroutine open_spec(38,1359
   subroutine close_spec(63,1996
   subroutine copy_spec_line(78,2282
@@ -169,19 +173,20 @@ src/read_spec.f90,1134
   subroutine check_name(380,11053
   subroutine check_line_length(401,11729
   subroutine check_read_iostat(419,12320
-  integer function string_to_integer(438,12937
-  real*8 function string_to_real(456,13415
-  logical function string_to_logical(474,13878
-  subroutine read_integer(506,14784
-  subroutine read_real(525,15385
-  subroutine read_logical(545,15984
-  subroutine read_string(564,16580
-  subroutine read_real_array(583,17148
-  subroutine read_init_dist(617,18287
-  subroutine read_gas(646,19470
-  subroutine read_material(689,20779
-  subroutine read_environ(738,22332
-  subroutine read_vol_frac(791,24341
+  integer function spec_string_to_integer(438,12937
+  real*8 function spec_string_to_real(456,13430
+  logical function spec_string_to_logical(474,13908
+  subroutine read_integer(506,14829
+  subroutine read_real(525,15435
+  subroutine read_logical(545,16039
+  subroutine read_string(564,16640
+  subroutine read_real_array(583,17208
+  subroutine read_init_dist(617,18352
+  subroutine read_gas(646,19535
+  subroutine read_material_from_file(689,20844
+  subroutine read_material(733,22195
+  subroutine read_environ(755,22835
+  subroutine read_vol_frac(808,24844
 
 src/mosaic.f90,208
   subroutine singlestep_mosaic(12,296
@@ -196,6 +201,8 @@ src/gas.f90,120
   subroutine set_gas_mosaic_map(66,1888
 
 src/constants.f90,0
+
+src/equilib.f90,0
 
 test/sedi_bidisperse_state_to_count.f90,0
 

@@ -37,7 +37,7 @@ endif
 
 PROGS := src/process_out src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode			\
-	test/sedi_bidisperse_state_to_count
+	test/sedi_bidisperse_state_to_count src/equilib
 
 OTHER := src/array src/bin src/condensation src/constants src/environ	\
 	src/init_dist src/kernel_golovin src/kernel_sedi		\
@@ -68,6 +68,9 @@ sedi_bidisperse_state_to_count_OBJS :=			\
 	test/sedi_bidisperse_state_to_count.o src/environ.o	\
 	src/material.o src/state.o src/array.o src/constants.o	\
 	src/util.o src/bin.o
+equilib_OBJS := src/equilib.o src/material.o src/environ.o		\
+	src/condensation.o src/read_spec.o src/util.o src/array.o	\
+	src/constants.o src/gas.o src/bin.o
 
 ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
@@ -120,6 +123,8 @@ test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
 test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
+src/equilib: $(equilib_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 
 .PHONY: clean
 clean:

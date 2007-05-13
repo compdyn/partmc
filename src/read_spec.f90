@@ -435,7 +435,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function string_to_integer(spec, string)
+  integer function spec_string_to_integer(spec, string)
 
     ! Convert a string to an integer.
 
@@ -447,13 +447,13 @@ contains
 
     read(string, '(i20)', iostat=ios) val
     call check_read_iostat(spec, ios, "integer")
-    string_to_integer = val
+    spec_string_to_integer = val
 
-  end function string_to_integer
+  end function spec_string_to_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function string_to_real(spec, string)
+  real*8 function spec_string_to_real(spec, string)
 
     ! Convert a string to an real.
 
@@ -465,13 +465,13 @@ contains
 
     read(string, '(f20.0)', iostat=ios) val
     call check_read_iostat(spec, ios, "real")
-    string_to_real = val
+    spec_string_to_real = val
 
-  end function string_to_real
+  end function spec_string_to_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  logical function string_to_logical(spec, string)
+  logical function spec_string_to_logical(spec, string)
 
     ! Convert a string to an logical.
 
@@ -497,9 +497,9 @@ contains
     else
        call check_read_iostat(spec, 1, "logical")
     end if
-    string_to_logical = val
+    spec_string_to_logical = val
 
-  end function string_to_logical
+  end function spec_string_to_logical
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -516,7 +516,7 @@ contains
     call read_spec_line_no_eof(spec, line)
     call check_line_name(spec, line, name)
     call check_line_length(spec, line, 1)
-    var = string_to_integer(spec, line%data(1))
+    var = spec_string_to_integer(spec, line%data(1))
 
   end subroutine read_integer
   
@@ -536,7 +536,7 @@ contains
     call read_spec_line_no_eof(spec, line)
     call check_line_name(spec, line, name)
     call check_line_length(spec, line, 1)
-    var = string_to_real(spec, line%data(1))
+    var = spec_string_to_real(spec, line%data(1))
 
   end subroutine read_real
 
@@ -555,7 +555,7 @@ contains
     call read_spec_line_no_eof(spec, line)
     call check_line_name(spec, line, name)
     call check_line_length(spec, line, 1)
-    var = string_to_logical(spec, line%data(1))
+    var = spec_string_to_logical(spec, line%data(1))
 
   end subroutine read_logical
 
@@ -602,7 +602,7 @@ contains
        do i = 1,num_lines
           names(i) = line_array(i)%name
           do j = 1,line_length
-             vals(i,j) = string_to_real(spec, line_array(i)%data(j))
+             vals(i,j) = spec_string_to_real(spec, line_array(i)%data(j))
           end do
        end do
     else
@@ -686,7 +686,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_material(spec, mat)
+  subroutine read_material_from_file(spec, mat)
 
     ! Read material specification from a .spec file.
 
@@ -696,22 +696,16 @@ contains
     type(material), intent(out) :: mat  ! material data
 
     integer :: n_species, species, i
-    character(len=MAX_CHAR_LEN) :: aero_name
-    type(spec_file) :: aero_spec
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
     integer :: species_data_shape(2)
 
-    ! read the aerosol data from the specified file
-    call read_string(spec, 'aerosol_data', aero_name)
-    call open_spec(aero_spec, aero_name)
-    call read_real_array(aero_spec, 0, species_name, species_data)
-    call close_spec(aero_spec)
+    call read_real_array(spec, 0, species_name, species_data)
 
     ! check the data size
     species_data_shape = shape(species_data)
     if (species_data_shape(2) /= 4) then
-       write(0,*) 'ERROR: each line in ', trim(aero_name), &
+       write(0,*) 'ERROR: each line in ', trim(spec%name), &
             ' should contain exactly 4 values'
        call exit(1)
     end if
@@ -729,7 +723,30 @@ contains
        mat%eps(i) = species_data(i,3)
        mat%M_w(i) = species_data(i,4)
     end do
+    call set_material_water_index(mat)
     call set_material_mosaic_map(mat)
+
+  end subroutine read_material_from_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_material(spec, mat)
+
+    ! Read material specification from a .spec file.
+
+    use mod_material
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(out) :: mat  ! material data
+
+    character(len=MAX_CHAR_LEN) :: aero_name
+    type(spec_file) :: aero_spec
+
+    ! read the aerosol data from the specified file
+    call read_string(spec, 'aerosol_data', aero_name)
+    call open_spec(aero_spec, aero_name)
+    call read_material_from_file(aero_spec, mat)
+    call close_spec(aero_spec)
 
   end subroutine read_material
 

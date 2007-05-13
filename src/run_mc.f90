@@ -13,7 +13,8 @@ contains
        bin_gs, bin_n, dlnr, kernel, t_max, t_output, t_state, &
        t_progress, del_t, output_unit, state_unit, state_name, &
        do_coagulation, allow_double, do_condensation, do_mosaic, &
-       do_restart, restart_name, i_loop, n_loop, t_wall_start, env, mat)
+       do_restart, restart_name, i_loop, n_loop, t_wall_start, &
+       env, mat, gas)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -23,6 +24,7 @@ contains
     use mod_condensation
     use mod_environ
     use mod_material
+    use mod_gas
     use mod_state
     use mod_mosaic
     
@@ -60,6 +62,7 @@ contains
     
     type(environ), intent(inout) :: env ! environment state
     type(material), intent(in) :: mat   ! material properties
+    type(gas_chem), intent(inout) :: gas   ! gas chemistry
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -152,7 +155,7 @@ contains
        if (do_mosaic) then
           call singlestep_mosaic(M, n_spec, n_bin, MH, VH, bin_v, &
                bin_g, bin_gs, bin_n, dlnr, time, del_t, &
-               env, mat)
+               env, mat, gas)
        end if
        
        ! DEBUG: enable to check array handling

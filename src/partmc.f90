@@ -18,7 +18,7 @@ program partmc
   
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
-     write(6,*) 'Usage: run_mc <filename.d>'
+     write(6,*) 'Usage: partmc <filename.d>'
      call exit(2)
   end if
   
@@ -204,28 +204,29 @@ contains
                t_state, t_progress, del_t, output_unit, state_unit, &
                output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
-               restart_name, i_loop, n_loop, t_wall_start, env, mat)
+               restart_name, i_loop, n_loop, t_wall_start, &
+               env, mat, gas)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat)
+               i_loop, n_loop, t_wall_start, env, mat, gas)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat)
+               i_loop, n_loop, t_wall_start, env, mat, gas)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                output_file, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat)
+               i_loop, n_loop, t_wall_start, env, mat, gas)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)

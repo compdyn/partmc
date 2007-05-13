@@ -1,5 +1,5 @@
 .SUFFIXES:
-.SUFFIXES: .F90 .o .deps .mod
+.SUFFIXES: .f90 .o .deps .mod
 
 VERSION = 1.0.0
 DIST_NAME = partmc-$(VERSION)
@@ -21,7 +21,7 @@ ifeq ($(FC),gfortran)
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -O -Jsrc -Isrc -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+  FFLAGS = -g -O -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf95)
@@ -70,7 +70,7 @@ sedi_bidisperse_state_to_count_OBJS :=			\
 	src/util.o src/bin.o
 
 ALL_FILES = $(PROGS) $(OTHER)
-ALL_SOURCE = $(patsubst %,%.F90,$(ALL_FILES))
+ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
 ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
 ALL_DEPS = $(patsubst %,%.deps,$(ALL_FILES))
 
@@ -100,13 +100,13 @@ endif
 
 # we can also do per-sourcefile deps, instead of a single Makefile.deps
 -include $(patsubst %,%.deps,$(ALL_FILES))
-%.deps: %.F90 make_mod_deps.py
+%.deps: %.f90 make_mod_deps.py
 	./make_mod_deps.py -o $@ $<
 
-src/%.o src/mod_%.mod: src/%.F90 src/%.deps
-	$(FC) $(FFLAGS) -c -o $(patsubst %.F90,%.o,$<) $<
-test/%.o test/mod_%.mod: test/%.F90 test/%.deps
-	$(FC) $(FFLAGS) -c -o $(patsubst %.F90,%.o,$<) $<
+src/%.o src/mod_%.mod: src/%.f90 src/%.deps
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
+test/%.o test/mod_%.mod: test/%.f90 test/%.deps
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/process_out: $(process_out_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_out_OBJS)

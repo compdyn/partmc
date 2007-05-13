@@ -10,7 +10,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine singlestep_mosaic(M, n_spec, n_bin, MH, VH, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, mat)
+       bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, mat, gas)
 
     use mod_constants
     use mod_util
@@ -23,7 +23,8 @@ contains
     use mod_gas
 
     use module_data_mosaic_aero, only: nbin_a, aer, mGAS_AER_XFER, &
-         mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM
+         mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
+         jtotal
 
     use module_data_mosaic_main, only: tbeg_mo, tbeg_dd, tbeg_hh, &
          tbeg_hh, tbeg_mm, tbeg_ss, trun_dd, trun_hh, trun_mm, &

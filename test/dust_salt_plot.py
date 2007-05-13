@@ -10,17 +10,17 @@ g = graphxy(width = 15,
 	    y = axis.log(min = 1e3, max = 1e10,
 			 title = "number density (\#/m$^3$)"),
 	    key = key.key(pos = "tr", dist = 0.1))
-g.plot([data.file("out_dust_salt_part1_num_avg.d", x = 2, y = 3,
+g.plot([data.file("dust_salt_part1_out_num_avg.d", x = 2, y = 3,
 		  title = "Monte Carlo (0 s)"),
-	data.file("out_dust_salt_part1_num_avg.d", x = 2, y = 7,
+	data.file("dust_salt_part1_out_num_avg.d", x = 2, y = 7,
 		  title = "Monte Carlo (400 s)"),
-	data.file("out_dust_salt_part1_num_avg.d", x = 2, y = 11,
+	data.file("dust_salt_part1_out_num_avg.d", x = 2, y = 11,
 		  title = "Monte Carlo (800 s)"),
-	data.file("out_dust_salt_part1_num_avg.d", x = 2, y = 13,
+	data.file("dust_salt_part1_out_num_avg.d", x = 2, y = 13,
 		  title = "Monte Carlo (1000 s)")],
        styles = [style.line()])
-g.writeEPSfile("plot_dust_salt_num")
-g.writePDFfile("plot_dust_salt_num")
+g.writeEPSfile("dust_salt_num")
+g.writePDFfile("dust_salt_num")
 
 g = graphxy(width = 15,
 	    x = axis.log(min = 1e-8, max = 1e-3,
@@ -28,17 +28,17 @@ g = graphxy(width = 15,
 	    y = axis.log(min = 1e-14, max = 1e-4,
 			 title = "volume density (m$^3$/m$^3$)"),
 	    key = key.key(pos = "tl", dist = 0.1))
-g.plot([data.file("out_dust_salt_part1_vol_avg.d", x = 2, y = 3,
+g.plot([data.file("dust_salt_part1_out_vol_avg.d", x = 2, y = 3,
 		  title = "Monte Carlo (0 s)"),
-	data.file("out_dust_salt_part1_vol_avg.d", x = 2, y = 7,
+	data.file("dust_salt_part1_out_vol_avg.d", x = 2, y = 7,
 		  title = "Monte Carlo (400 s)"),
-	data.file("out_dust_salt_part1_vol_avg.d", x = 2, y = 11,
+	data.file("dust_salt_part1_out_vol_avg.d", x = 2, y = 11,
 		  title = "Monte Carlo (800 s)"),
-	data.file("out_dust_salt_part1_vol_avg.d", x = 2, y = 13,
+	data.file("dust_salt_part1_out_vol_avg.d", x = 2, y = 13,
 		  title = "Monte Carlo (1000s)")],
        styles = [style.line()])
-g.writeEPSfile("plot_dust_salt_vol")
-g.writePDFfile("plot_dust_salt_vol")
+g.writeEPSfile("dust_salt_vol")
+g.writePDFfile("dust_salt_vol")
 
 g = graphxy(width = 15,
 	    x = axis.log(min = 1e-8, max = 1e-3,
@@ -71,5 +71,5 @@ g.plot([data.file("state_dust_salt_part1_0001_00000000_moments_comp.d",
 		  x = 2, y = 5,
 		  title = "mixed (1000s)")],
        styles = [style.line()])
-g.writeEPSfile("plot_dust_salt_comp")
-g.writePDFfile("plot_dust_salt_comp")
+g.writeEPSfile("dust_salt_comp")
+g.writePDFfile("dust_salt_comp")

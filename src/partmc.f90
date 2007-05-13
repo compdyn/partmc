@@ -78,6 +78,7 @@ contains
     real*8 :: dlnr, t_wall_start
 
     character(len=300) :: output_file   ! name of output files
+    character(len=300) :: state_prefix  ! prefix for state files
     integer :: n_loop                   ! number of Monte Carlo loops
     real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
@@ -111,6 +112,7 @@ contains
     character(len=300) :: restart_name  ! filename to restart from
     
     call read_string(spec, 'output_file', output_file)
+    call read_string(spec, 'state_prefix', state_prefix)
     call read_integer(spec, 'n_loop', n_loop)
     call read_real(spec, 'num_conc', num_conc)
     call read_string(spec, 'kernel', kernel_name)
@@ -202,7 +204,7 @@ contains
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_file, do_coagulation, allow_double, &
+               state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
                restart_name, i_loop, n_loop, t_wall_start, &
                env, mat, gas)
@@ -210,21 +212,21 @@ contains
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_file, do_coagulation, allow_double, &
+               state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat, gas)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_file, do_coagulation, allow_double, &
+               state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat, gas)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
-               output_file, do_coagulation, allow_double, &
+               state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat, gas)
        else

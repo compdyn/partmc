@@ -17,8 +17,8 @@ src/process_average.f90,134
 
 src/partmc.f90,104
   subroutine partmc_mc(52,1348
-  subroutine partmc_exact(241,9143
-  subroutine partmc_sect(334,12312
+  subroutine partmc_exact(243,9269
+  subroutine partmc_sect(336,12438
 
 test/sedi_bidisperse_ode.f90,73
   subroutine bidisperse_f(73,3010
@@ -119,10 +119,10 @@ src/run_exact.f90,63
 
 src/run_mc.f90,167
   subroutine run_mc(12,363
-       subroutine kernel(68,3063
-  subroutine mc_coag(207,7846
-       subroutine kernel(239,9355
-  subroutine compute_n_samp(287,10874
+       subroutine kernel(68,3069
+  subroutine mc_coag(207,7856
+       subroutine kernel(239,9365
+  subroutine compute_n_samp(287,10884
 
 src/util.f90,484
   integer function get_unit(17,456
@@ -180,8 +180,8 @@ src/read_spec.f90,1134
   subroutine read_init_dist(617,18287
   subroutine read_gas(646,19470
   subroutine read_material(689,20779
-  subroutine read_environ(738,22331
-  subroutine read_vol_frac(791,24340
+  subroutine read_environ(738,22332
+  subroutine read_vol_frac(791,24341
 
 src/mosaic.f90,208
   subroutine singlestep_mosaic(12,296

@@ -163,7 +163,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_state(state_unit, state_name, n_bin, n_spec, MH, &
+  subroutine write_state(state_unit, state_prefix, n_bin, n_spec, MH, &
        VH, bin_v, dlnr, env, index, time, i_loop)
 
     ! Write the current state.
@@ -172,7 +172,7 @@ contains
     use mod_array
     
     integer, intent(in) :: state_unit   ! unit number to use for state file
-    character(len=*), intent(in) :: state_name ! name of state file
+    character(len=*), intent(in) :: state_prefix ! prefix of state file
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -187,7 +187,7 @@ contains
     character*300 filename
     integer i, j, k
     
-    write(filename, '(a,a,a,i4.4,a,i8.8,a)') 'state_', trim(state_name), &
+    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
          '_', i_loop, '_', index, '.d'
     open(unit=state_unit, file=filename)
     write(state_unit,'(a20,i20)') 'n_bin', n_bin

@@ -22,13 +22,13 @@ if [[ ! -d out ]]; then mkdir out; fi
 
 echo ../src/partmc golovin_mc.spec
 ../src/partmc golovin_mc.spec
-echo ../src/process_out out/out_golovin_mc.d
-../src/process_out out/out_golovin_mc.d
+echo ../src/process_out out/golovin_mc_out.d
+../src/process_out out/golovin_mc_out.d
 
 echo ../src/partmc golovin_exact.spec
 ../src/partmc golovin_exact.spec
-echo ../src/process_out out/out_golovin_exact.d
-../src/process_out out/out_golovin_exact.d
+echo ../src/process_out out/golovin_exact_out.d
+../src/process_out out/golovin_exact_out.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM
@@ -36,17 +36,17 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)
 set title "Golovin kernel, exponential initial condition"
-plot [1e-7:1e-3] [1e4:1e10] "out/out_golovin_mc_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/out_golovin_mc_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/out_golovin_mc_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/out_golovin_exact_num_avg.d" using 2:3 w l title "Analytical (0 mins)"
-replot "out/out_golovin_exact_num_avg.d" using 2:8 w l title "Analytical (5 mins)"
-replot "out/out_golovin_exact_num_avg.d" using 2:13 w l title "Analytical (10 mins)"
+plot [1e-7:1e-3] [1e4:1e10] "out/golovin_mc_out_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/golovin_mc_out_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/golovin_mc_out_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/golovin_exact_out_num_avg.d" using 2:3 w l title "Analytical (0 mins)"
+replot "out/golovin_exact_out_num_avg.d" using 2:8 w l title "Analytical (5 mins)"
+replot "out/golovin_exact_out_num_avg.d" using 2:13 w l title "Analytical (10 mins)"
 set terminal postscript eps
-set output "out/plot_golovin_num.eps"
+set output "out/golovin_plot_num.eps"
 replot
 ENDNUM
-epstopdf out/plot_golovin_num.eps
+epstopdf out/golovin_plot_num.eps
 
 echo Plotting volume density
 gnuplot -persist <<ENDVOL
@@ -55,14 +55,14 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Golovin kernel, exponential initial condition"
 set key left top
-plot [1e-7:1e-3] [1e-14:1e-4] "out/out_golovin_mc_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/out_golovin_mc_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/out_golovin_mc_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/out_golovin_exact_vol_avg.d" using 2:3 w l title "Analytical (0 mins)"
-replot "out/out_golovin_exact_vol_avg.d" using 2:8 w l title "Analytical (5 mins)"
-replot "out/out_golovin_exact_vol_avg.d" using 2:13 w l title "Analytical (10 mins)"
+plot [1e-7:1e-3] [1e-14:1e-4] "out/golovin_mc_out_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/golovin_mc_out_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/golovin_mc_out_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/golovin_exact_out_vol_avg.d" using 2:3 w l title "Analytical (0 mins)"
+replot "out/golovin_exact_out_vol_avg.d" using 2:8 w l title "Analytical (5 mins)"
+replot "out/golovin_exact_out_vol_avg.d" using 2:13 w l title "Analytical (10 mins)"
 set terminal postscript eps
-set output "out/plot_golovin_vol.eps"
+set output "out/golovin_plot_vol.eps"
 replot
 ENDVOL
-epstopdf out/plot_golovin_vol.eps
+epstopdf out/golovin_plot_vol.eps

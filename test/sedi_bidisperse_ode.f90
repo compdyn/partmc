@@ -28,7 +28,7 @@ program test_sedi_bidisperse_ode
   real*8, parameter :: num_conc = 1d9   ! particle number concentration (#/m^3)
   integer, parameter :: scal = 3        ! scale factor for bins
   integer, parameter :: out_unit = 33   ! output unit number
-  character(len=*), parameter :: out_name = "out/counts_sedi_bidisperse_ode.d"
+  character(len=*), parameter :: out_name = "out/sedi_bidisperse_ode_counts.d"
   
   type(environ) :: env
   integer :: i_step, n_step

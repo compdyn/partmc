@@ -11,7 +11,7 @@ contains
   
   subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, bin_v, bin_g, &
        bin_gs, bin_n, dlnr, kernel, t_max, t_output, t_state, &
-       t_progress, del_t, output_unit, state_unit, state_name, &
+       t_progress, del_t, output_unit, state_unit, state_prefix, &
        do_coagulation, allow_double, do_condensation, do_mosaic, &
        do_restart, restart_name, i_loop, n_loop, t_wall_start, &
        env, mat, gas)
@@ -48,7 +48,7 @@ contains
     real*8, intent(in) :: del_t         ! timestep for coagulation
     integer, intent(in) :: output_unit  ! unit number to output to
     integer, intent(in) :: state_unit   ! unit number for state files
-    character(len=*), intent(in) :: state_name ! name for state files
+    character(len=*), intent(in) :: state_prefix ! prefix for state files
     
     logical, intent(in) :: do_coagulation ! whether to do coagulation
     logical, intent(in) :: allow_double ! allow doubling if needed
@@ -130,7 +130,7 @@ contains
     end if
 
     if (t_state > 0d0) then
-       call write_state(state_unit, state_name, n_bin, n_spec, &
+       call write_state(state_unit, state_prefix, n_bin, n_spec, &
             MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
     end if
     
@@ -178,7 +178,7 @@ contains
        if (t_state > 0d0) then
           call check_event(time, del_t, t_state, last_state_time, &
                do_state)
-          if (do_state) call write_state(state_unit, state_name, n_bin, &
+          if (do_state) call write_state(state_unit, state_prefix, n_bin, &
                n_spec, MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
        end if
        

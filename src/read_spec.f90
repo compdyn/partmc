@@ -725,7 +725,7 @@ contains
           mat%i_water = i
        end if
        mat%rho(i) = species_data(i,1)
-       mat%nu(i) = int(species_data(i,2))
+       mat%nu(i) = nint(species_data(i,2))
        mat%eps(i) = species_data(i,3)
        mat%M_w(i) = species_data(i,4)
     end do

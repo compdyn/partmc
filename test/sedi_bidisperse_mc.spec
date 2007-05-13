@@ -1,5 +1,6 @@
 run_type mc                     # Monte Carlo
-output_file out/out_sedi_bidisperse_mc.d # name of output file
+output_file out/sedi_bidisperse_mc_out.d #  output filename
+state_prefix out/sedi_bidisperse_mc_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
@@ -10,23 +11,23 @@ t_output 60                     # output interval (0 disables) (s)
 t_state 10                      # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
-n_spec 1                        # number of species
-i_water 1                       # species number that is water
-rho 1000                        # density of species (kg/m^3)
-nu 0                            # number of ions in solution of each species (1)
-eps 0                           # solubility of species (1)
-M_w 18d-3                       # molecular weight of species (kg/mole)
-
-n_temps 1                       # number of temperature set-points
-temp_times 0                    # times of temperature set-points
-temps 288                       # temperatures at temperature set-points (K)
+temp_profile temp_constant_15C.dat # temperature profile file
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
 rho_a 1.25                      # initial air density (kg/m^3)
+latitude 40                     # latitude (degrees, -90 to 90)
+longitude 0                     # longitude (degrees, -180 to 180)
+altitude 0                      # altitude (m)
+start_time 0                    # start time (s since 00:00 UTC)
+start_day 1                     # start day of year (UTC)
 
-n_init_dist 1                   # number of initial distributions
+gas_init_conc gas_init_standard.dat # initial gas concentrations
+aerosol_data aerosol_water.dat  # file containing aerosol data
+
+n_init_dist 1                   # number of initial aerosol distributions
+
 n_p 10001                       # number of particles
-vol_frac 1                      # composition proportions of species
+vol_frac comp_water.dat         # composition proportions of species
 dist_type bidisperse            # type of distribution
 dist_small_vol 4d-15            # volume of each small particle
 dist_big_vol 4d-12              # initial volume of each big particle
@@ -40,5 +41,6 @@ rand_init 17                    # random initialization (0 to auto-generate)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double no                 # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
+do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
 restart_name XXXX.d             # filename to restart from

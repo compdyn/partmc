@@ -14,8 +14,8 @@ program test_sedi_bidisperse_state_to_count
 
   integer, parameter :: out_unit = 33   ! output unit number
   integer, parameter :: state_unit = 34 ! state file unit number
-  character(len=*), parameter :: out_name = "out/counts_sedi_bidisperse_mc.d"
-  character(len=*), parameter :: state_prefix = "out/state_sedi_bidisperse_mc_0001_"
+  character(len=*), parameter :: out_name = "out/sedi_bidisperse_mc_counts.d"
+  character(len=*), parameter :: state_prefix = "out/sedi_bidisperse_mc_state_0001_"
   integer, parameter :: n_time = 600    ! number of state files
   integer, parameter :: time_inc = 10   ! increment for state files
   

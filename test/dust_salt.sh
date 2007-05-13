@@ -30,20 +30,20 @@ sleep 1
 
 echo ../src/partmc dust_salt_part1.spec
 ../src/partmc dust_salt_part1.spec
-echo ../src/process_out out/out_dust_salt_part1.d
-../src/process_out out/out_dust_salt_part1.d
+echo ../src/process_out out/dust_salt_part1_out.d
+../src/process_out out/dust_salt_part1_out.d
 
 echo ../src/partmc dust_salt_part2.spec
 ../src/partmc dust_salt_part2.spec
-echo ../src/process_out out/out_dust_salt_part2.d
-../src/process_out out/out_dust_salt_part2.d
+echo ../src/process_out out/dust_salt_part2_out.d
+../src/process_out out/dust_salt_part2_out.d
 
-echo ../src/process_state state_dust_salt_part1_0001_00000000.d
-../src/process_state state_dust_salt_part1_0001_00000000.d
-echo ../src/process_state state_dust_salt_part2_0001_00000800.d
-../src/process_state state_dust_salt_part2_0001_00000800.d
-echo ../src/process_state state_dust_salt_part2_0001_00001000.d
-../src/process_state state_dust_salt_part2_0001_00001000.d
+echo ../src/process_state dust_salt_part1_state_0001_00000000.d
+../src/process_state dust_salt_part1_state_0001_00000000.d
+echo ../src/process_state dust_salt_part2_state_0001_00000800.d
+../src/process_state dust_salt_part2_state_0001_00000800.d
+echo ../src/process_state dust_salt_part2_state_0001_00001000.d
+../src/process_state dust_salt_part2_state_0001_00001000.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM
@@ -51,10 +51,10 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)
 set title "Testcase dust and seasalt"
-plot [1e-8:1e-3] [1e3:1e10] "out/out_dust_salt_part1_num_avg.d" using 2:3 w l title "Monte Carlo (0 s)"
-replot "out/out_dust_salt_part1_num_avg.d" using 2:7 w l title "Monte Carlo (400 s)"
-replot "out/out_dust_salt_part1_num_avg.d" using 2:11 w l title "Monte Carlo (800 s)"
-replot "out/out_dust_salt_part2_num_avg.d" using 2:13 w l title "Monte Carlo (1000 s)"
+plot [1e-8:1e-3] [1e3:1e10] "out/dust_salt_part1_out_num_avg.d" using 2:3 w l title "Monte Carlo (0 s)"
+replot "out/dust_salt_part1_out_num_avg.d" using 2:7 w l title "Monte Carlo (400 s)"
+replot "out/dust_salt_part1_out_num_avg.d" using 2:11 w l title "Monte Carlo (800 s)"
+replot "out/dust_salt_part2_out_num_avg.d" using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "out/plot_dust_salt_num.eps"
 replot
@@ -68,10 +68,10 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Testcase dust and seasalt"
 set key top left
-plot [1e-8:1e-3] [1e-14:1e-4] "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:3 w l title "Monte Carlo (0 s)"
-replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:7 w l title "Monte Carlo (400 s)"
-replot "out/out_dust_salt_part1_vol_avg.d" index 0 using 2:11 w l title "Monte Carlo (800 s)"
-replot "out/out_dust_salt_part2_vol_avg.d" index 0 using 2:13 w l title "Monte Carlo (1000 s)"
+plot [1e-8:1e-3] [1e-14:1e-4] "out/dust_salt_part1_out_vol_avg.d" index 0 using 2:3 w l title "Monte Carlo (0 s)"
+replot "out/dust_salt_part1_out_vol_avg.d" index 0 using 2:7 w l title "Monte Carlo (400 s)"
+replot "out/dust_salt_part1_out_vol_avg.d" index 0 using 2:11 w l title "Monte Carlo (800 s)"
+replot "out/dust_salt_part2_out_vol_avg.d" index 0 using 2:13 w l title "Monte Carlo (1000 s)"
 set terminal postscript eps
 set output "out/plot_dust_salt_vol.eps"
 replot
@@ -84,14 +84,14 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)"
 set title "Testcase dust and seasalt"
-plot [1e-8:1e-3] [1e3:1e10] "state_dust_salt_part1_0001_00000000_moments_comp.d" using 2:3 w l title "species 1 (0 s)"
-replot "state_dust_salt_part1_0001_00000000_moments_comp.d" using 2:4 w l title "species 2 (0 s)"
-replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:3 w l title "species 1 (800 s)"
-replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:4 w l title "species 2 (800 s)"
-replot "state_dust_salt_part2_0001_00000800_moments_comp.d" using 2:5 w l title "mixed (800 s)"
-replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:3 w l title "species 1 (1000 s)"
-replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:4 w l title "species 2 (1000 s)"
-replot "state_dust_salt_part2_0001_00001000_moments_comp.d" using 2:5 w l title "mixed (1000 s)"
+plot [1e-8:1e-3] [1e3:1e10] "dust_salt_part1_state_0001_00000000_moments_comp.d" using 2:3 w l title "species 1 (0 s)"
+replot "dust_salt_part1_state_0001_00000000_moments_comp.d" using 2:4 w l title "species 2 (0 s)"
+replot "dust_salt_part2_state_0001_00000800_moments_comp.d" using 2:3 w l title "species 1 (800 s)"
+replot "dust_salt_part2_state_0001_00000800_moments_comp.d" using 2:4 w l title "species 2 (800 s)"
+replot "dust_salt_part2_state_0001_00000800_moments_comp.d" using 2:5 w l title "mixed (800 s)"
+replot "dust_salt_part2_state_0001_00001000_moments_comp.d" using 2:3 w l title "species 1 (1000 s)"
+replot "dust_salt_part2_state_0001_00001000_moments_comp.d" using 2:4 w l title "species 2 (1000 s)"
+replot "dust_salt_part2_state_0001_00001000_moments_comp.d" using 2:5 w l title "mixed (1000 s)"
 set terminal postscript eps
 set output "out/plot_dust_salt_comp.eps"
 replot

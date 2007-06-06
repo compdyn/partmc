@@ -190,10 +190,10 @@ src/read_spec.f90,1197
 
 src/mosaic.f90,208
   subroutine singlestep_mosaic(12,296
-       subroutine UpdateTime(56,2082
-       subroutine SolarZenithAngle(58,2146
-       subroutine IntegrateChemistry(60,2222
-       subroutine DoMassBalance(62,2302
+       subroutine UpdateTime(56,2091
+       subroutine SolarZenithAngle(58,2155
+       subroutine IntegrateChemistry(60,2231
+       subroutine DoMassBalance(62,2311
 
 src/gas.f90,120
   subroutine allocate_gas(22,780

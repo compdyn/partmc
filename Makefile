@@ -21,7 +21,7 @@ ifeq ($(FC),gfortran)
     # -pg             profiling
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -O -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+  FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf95)

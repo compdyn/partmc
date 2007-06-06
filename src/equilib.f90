@@ -23,6 +23,10 @@ program equilib
   character(len=300) :: tmp_str
   integer :: i
 
+  open(unit=40, file="temp.dat")
+  write(40, *) "Realling running!"
+  close(40)
+
   ! read aerosol data
   call open_spec(aero_spec, aero_file)
   call read_material_from_file(aero_spec, mat)
@@ -43,6 +47,7 @@ program equilib
   env%RH = string_to_real(tmp_str)
 
   allocate(V(mat%n_spec))
+  V = 0d0
   do i = 2,mat%n_spec
      call getarg(i + 1, tmp_str)
      V(i) = string_to_real(tmp_str)
@@ -50,13 +55,17 @@ program equilib
 
   call equilibriate_particle(mat%n_spec, V, env, mat)
 
+  write(*,*) 'temp = ', env%T, ' K'
+  write(*,*) 'RH = ', env%RH
+  write(*,*) ''
+
   do i = 1,mat%n_spec
-     write(*,*) mat%name(i), V(i)
+     write(*,*) mat%name(i), V(i), ' m^{-3}'
   end do
 
   write(*,*) ''
-  write(*,*) 'Equilibrium water volume: ', V(mat%i_water)
-  write(*,*) 'Dry volume: ', sum(V) - V(mat%i_water)
-  write(*,*) 'West volume: ', sum(V)
+  write(*,*) 'Equilibrium water volume: ', V(mat%i_water), ' m^{-3}'
+  write(*,*) 'Dry volume: ', sum(V) - V(mat%i_water), ' m^{-3}'
+  write(*,*) 'Wet volume: ', sum(V), ' m^{-3}'
 
 end program equilib

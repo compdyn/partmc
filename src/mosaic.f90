@@ -24,7 +24,7 @@ contains
 
     use module_data_mosaic_aero, only: nbin_a, aer, mGAS_AER_XFER, &
          mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
-         jtotal
+         jtotal, water_a
 
     use module_data_mosaic_main, only: tbeg_mo, tbeg_dd, tbeg_hh, &
          tbeg_hh, tbeg_mm, tbeg_ss, trun_dd, trun_hh, trun_mm, &
@@ -116,6 +116,8 @@ contains
                      = VH(i_bin)%p(i_num, i_spec)
              end if
           end do
+          ! handle water specially
+          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water)
        end do
     end do
 
@@ -170,6 +172,8 @@ contains
                      aer(i_spec_mosaic, jtotal, i_mosaic)
              end if
           end do
+          ! handle water specially
+          VH(i_bin)%p(i_num,mat%i_water) = water_a(i_mosaic)
        end do
     end do
 

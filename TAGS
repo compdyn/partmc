@@ -107,12 +107,12 @@ src/material.f90,471
   integer function material_spec_by_name(47,1666
   subroutine set_material_water_index(75,2371
   subroutine set_material_mosaic_map(93,2752
-  real*8 function particle_mass(134,4341
-  real*8 function particle_volume(154,4793
-  real*8 function average_solute_quantity(174,5199
-  real*8 function total_solute_quantity(192,5803
-  real*8 function average_water_quantity(215,6445
-  real*8 function total_water_quantity(229,6905
+  real*8 function particle_mass(126,3800
+  real*8 function particle_volume(146,4252
+  real*8 function average_solute_quantity(166,4658
+  real*8 function total_solute_quantity(184,5262
+  real*8 function average_water_quantity(207,5904
+  real*8 function total_water_quantity(221,6364
 
 src/run_exact.f90,63
   subroutine run_exact(12,327

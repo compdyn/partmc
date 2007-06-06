@@ -57,13 +57,13 @@ contains
     ! rather than rand() or random_number() directly, as some
     ! compilers have trouble with one or the other.
 
-!#ifdef USE_F95_RAND
+#ifdef USE_F95_RAND
     real*8 rnd
     call random_number(rnd)
     util_rand = rnd
-!#else
-!    util_rand = dble(rand())
-!#endif
+#else
+    util_rand = dble(rand())
+#endif
 
   end function util_rand
   

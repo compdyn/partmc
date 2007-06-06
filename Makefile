@@ -12,8 +12,8 @@ DEV_BUILD = yes
 #  compiler instead
 FC = gfortran
 
-MOSAIC_LIBDIR = /Users/mwest/t/MOSAIC.24/compile/
-MOSAIC_MODDIR = /Users/mwest/t/MOSAIC.24/compile/
+MOSAIC_LIBDIR = /Users/mwest/t/mos/MOSAIC.24/compile/
+MOSAIC_MODDIR = /Users/mwest/t/mos/MOSAIC.24/compile/
 
 ifeq ($(FC),gfortran)
     # -O              optimize
@@ -34,6 +34,8 @@ ifeq ($(FC),pgf90)
   FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
+
+-include Makefile.local
 
 PROGS := src/process_out src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode			\

@@ -334,7 +334,7 @@ contains
          'radius(m)', 'tot num (#/m^3)', 'tot vol (m^3/m^3)', &
          'vol per species (m^3/m^3)'
     do k = 1,n_bin
-       write(output_unit, '(i10,20e20.10)') k, vol2rad(bin_v(k)), &
+       write(output_unit, '(i10,23e20.10)') k, vol2rad(bin_v(k)), &
             bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
     end do
     

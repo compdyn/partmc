@@ -18,8 +18,8 @@ rho_a 1.25                      # initial air density (kg/m^3)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 0                    # start time (s since 00:00 UTC)
-start_day 1                     # start day of year (UTC)
+start_time 43200                # start time (s since 00:00 UTC)
+start_day 10                    # start day of year (UTC)
 
 gas_init_conc gas_init_mosaic.dat # initial gas concentrations
 aerosol_data aerosol_mosaic.dat # file containing aerosol data

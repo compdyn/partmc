@@ -96,8 +96,6 @@ contains
 
     type(material), intent(inout) :: mat  ! material data
 
-    ! FIXME: this list is wrong (it is the gas phase list, but should
-    ! be the aerosol list)
     integer, parameter :: n_mosaic_species = 19
     character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
          "SO4_a", "NO3_a", "Cl_a", "NH4_a", "CO3_a", "MSA_a", "Na_a", "Ca_a", &

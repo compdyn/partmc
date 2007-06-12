@@ -26,12 +26,13 @@ contains
          mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
          jtotal, water_a
 
-    use module_data_mosaic_main, only: tbeg_mo, tbeg_dd, tbeg_hh, &
-         tbeg_hh, tbeg_mm, tbeg_ss, trun_dd, trun_hh, trun_mm, &
-         trun_ss, dt_min, dt_aeroptic_min, rlon, rlat, zalt_m, RH, te, &
-         pr_atm, cnn, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
-         msolar, mphoto
-    
+    use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
+         dt_sec, dt_min, dt_aeroptic_min, rlon, rlat, zalt_m, RH, te, &
+         pr_atm, cnn, cair_mlc, cair_molm3, h2o, o2, h2, ppb, avogad, deg2rad, &
+         mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
+
+    implicit none    
+
     integer, intent(inout) :: M         ! actual number of particles
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: n_bin        ! number of bins
@@ -53,84 +54,39 @@ contains
 
     ! MOSAIC function interfaces
     interface
-       subroutine UpdateTime()
-       end subroutine UpdateTime
        subroutine SolarZenithAngle()
        end subroutine SolarZenithAngle
+       subroutine LoadPeroxyParameters()
+       end subroutine LoadPeroxyParameters
+       subroutine init_data_modules()
+       end subroutine init_data_modules
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
-       subroutine DoMassBalance()
-       end subroutine DoMassBalance
+       function WaterVapor(RH, cair_mlc, te, pr_atm)
+       end function WaterVapor
+!       subroutine DoMassBalance()
+!       end subroutine DoMassBalance
     end interface
 
+
     ! local variables
-    real*8 :: t_utc ! time (s since 00:00 UTC)
+    real*8 :: time_UTC ! 24-hr UTC clock time (hr)
+    real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
+    real*8 :: conv_fac(20), dum_var
     integer :: i_bin, i_num, i_spec, i_mosaic, i_spec_mosaic
 
-    t_utc = env%start_time + t
+    logical first
+    save first
+    data first/.true./
 
-    ! set MOSAIC data
 
-    ! beginning date
-    tbeg_mo = 0 ! FIXME: determine these from env%start_day
-    tbeg_dd = 0
-    tbeg_hh = 0
 
-    ! beginning time
-    tbeg_hh = 0 ! FIXME: determine these from env%start_time
-    tbeg_mm = 0
-    tbeg_ss = 0
+!---------------------------------------------------------
+! set MOSAIC data once at the beginning of the simulation
+    if(first)then
+      first=.false.
 
-    ! run time
-    trun_dd = 0 ! hopefully we don't need to set these
-    trun_hh = 0
-    trun_mm = 0
-    trun_ss = 0
-
-    ! transport timestep (min)
-    dt_min = 0d0
-    ! aerosol optics timestep (min)
-    dt_aeroptic_min = 0d0
-
-    ! geographic location
-    rlon = env%longitude
-    rlat = env%latitude
-    zalt_m = env%altitude
-
-    ! environmental parameters: map PartMC -> MOSAIC
-    RH = env%RH
-    te = env%T
-    pr_atm = env%p / const%atm
-
-    ! aerosol data: map PartMC -> MOSAIC
-    nbin_a = M
-    i_mosaic = 0 ! MOSAIC bin number
-    aer = 0d0
-    do i_bin = 1,n_bin
-       do i_num = 1,MH(i_bin)
-          i_mosaic = i_mosaic + 1
-          do i_spec = 1,n_spec
-             i_spec_mosaic = mat%mosaic_index(i_spec)
-             if (i_spec_mosaic > 0) then
-                aer(i_spec_mosaic, jtotal, i_mosaic) &
-                     = VH(i_bin)%p(i_num, i_spec)
-             end if
-          end do
-          ! handle water specially
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water)
-       end do
-    end do
-
-    ! gas chemistry: map PartMC -> MOSAIC
-    cnn = 0d0
-    do i_spec = 1,gas%n_spec
-       i_spec_mosaic = gas%mosaic_index(i_spec)
-       if (i_spec_mosaic > 0) then
-          cnn(i_spec_mosaic) = gas%conc(i_spec)
-       end if
-    end do
-
-    ! parameters
+! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
     maer = 1                ! 1 = aer chem on, 0 = aer chem off
@@ -146,19 +102,111 @@ contains
     rtol_eqb_ASTEM = 0.01d0 ! relative eqb tolerance. range: 0.01 - 0.03
     ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
 
-    call UpdateTime
-    if(msolar.eq.1)then
-       call SolarZenithAngle
-    end if
-    call IntegrateChemistry
-    call DoMassBalance
+! time variables
+      dt_sec = del_t				! time-step (s)
+      tmar21_sec = (79*24 + 12)*3600		! noon, mar 21, UTC
+      tbeg_sec = env%start_day*24*3600 + &	! time since the beg of year 00:00, UTC (s)
+                 env%start_time 
+      time_UTC = env%start_time/3600		! 24-hr UTC clock time (hr)
 
-    ! environmental parameters: map MOSAIC -> PartMC
+! geographic location
+      rlon = env%longitude * deg2rad		! longitude
+      rlat = env%latitude * deg2rad		! latitude
+      zalt_m = env%altitude			! altitude (m)
+
+! environmental parameters: map PartMC -> MOSAIC
+      RH = env%RH
+      te = env%T
+      pr_atm = env%p / const%atm
+
+      call init_data_modules			! initialize many indices and variables
+      call LoadPeroxyParameters			! Aperox and Bperox only once
+
+      cair_mlc = avogad*pr_atm/(82.056*te)	! air conc [molec/cc]
+      cair_molm3 = 1.e6*pr_atm/(82.056*te)	! air conc [mol/m^3]
+      ppb = 1.e+9
+
+    endif
+!----------------------------------------------------------
+
+! update time variables
+    tcur_sec = tbeg_sec + t			! current (old) time since the beg of year 00:00, UTC (s)
+    time_UTC = time_UTC + dt_sec/3600.
+
+    if(time_UTC .ge. 24.0)then
+      time_UTC = time_UTC - 24.0
+    endif
+
+    tmid_sec = tcur_sec + 0.5*dt_sec
+    if(tmid_sec .ge. tmar21_sec)then
+      tmid_sec = tmid_sec - tmar21_sec		! seconds since noon, march 21
+    else
+      tmid_sec = tmid_sec + &
+                 ((365-79)*24 - 12)*3600	! seconds since noon, march 21
+    endif
+
+
+    ! transport timestep (min)
+    dt_min = dt_sec/60.
+    ! aerosol optics timestep (min)
+    dt_aeroptic_min = 0d0
+
+
+!----------------------------------------------------------
+! aerosol data: map PartMC -> MOSAIC
+
+    do i_spec = 1, n_spec
+      conv_fac(i_spec) = 1.D9*mat%rho(i_spec)/(mat%M_w(i_spec)*env%V_comp)  ! converts m^3(species) to nmol(species)/m^3(air)
+    enddo
+
+
+    nbin_a = M
+    i_mosaic = 0 ! MOSAIC bin number
+    aer = 0d0
+    do i_bin = 1,n_bin
+       do i_num = 1,MH(i_bin)
+          i_mosaic = i_mosaic + 1
+          do i_spec = 1,n_spec
+             i_spec_mosaic = mat%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                aer(i_spec_mosaic, jtotal, i_mosaic) &		! convert m^3(species) to nmol(species)/m^3(air)
+                     = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec)
+             end if
+          end do
+          ! handle water specially
+          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water)*mat%rho(mat%i_water)/env%V_comp  ! convert m^3(water) to kg(water)/m^3(air)
+       end do
+    end do
+
+! gas chemistry: map PartMC -> MOSAIC
+    cnn = 0d0
+    do i_spec = 1,gas%n_spec
+       i_spec_mosaic = gas%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          cnn(i_spec_mosaic) = gas%conc(i_spec)*cair_mlc/ppb	! convert ppbv to molec/cc
+       end if
+    end do
+
+
+
+
+    if(msolar.eq.1)then
+      call SolarZenithAngle
+    end if
+
+    call IntegrateChemistry
+
+!    call DoMassBalance
+
+
+
+
+! environmental parameters: map MOSAIC -> PartMC
     env%RH = RH
     env%T = te
     env%p = pr_atm * const%atm
 
-    ! aerosol data: map MOSAIC -> PartMC
+! aerosol data: map MOSAIC -> PartMC
     nbin_a = M
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0
@@ -169,19 +217,19 @@ contains
              i_spec_mosaic = mat%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 VH(i_bin)%p(i_num, i_spec) = &
-                     aer(i_spec_mosaic, jtotal, i_mosaic)
+                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec)	! convert nmol(species)/m^3(air) to m^3(species)
              end if
           end do
           ! handle water specially
-          VH(i_bin)%p(i_num,mat%i_water) = water_a(i_mosaic)
+          VH(i_bin)%p(i_num,mat%i_water) = water_a(i_mosaic)/mat%rho(mat%i_water)*env%V_comp  ! convert kg(water)/m^3(air) to m^3(water)
        end do
     end do
 
-    ! gas chemistry: map MOSAIC -> PartMC
+! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas%n_spec
        i_spec_mosaic = gas%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
-          gas%conc(i_spec) = cnn(i_spec_mosaic)
+          gas%conc(i_spec) = cnn(i_spec_mosaic)/cair_mlc*ppb  ! convert molec/cc to ppbv
        end if
     end do
 

@@ -12,8 +12,8 @@ DEV_BUILD = yes
 #  compiler instead
 FC = gfortran
 
-MOSAIC_LIBDIR = /Users/mwest/t/mos/MOSAIC.24/compile/
-MOSAIC_MODDIR = /Users/mwest/t/mos/MOSAIC.24/compile/
+MOSAIC_LIBDIR = $(HOME)/proj/mosaic/trunk/compile/
+MOSAIC_MODDIR = $(HOME)/proj/mosaic/trunk/compile/
 
 ifeq ($(FC),gfortran)
     # -O              optimize
@@ -75,9 +75,9 @@ equilib_OBJS := src/equilib.o src/material.o src/environ.o		\
 	src/constants.o src/gas.o src/bin.o
 
 ALL_FILES = $(PROGS) $(OTHER)
-ALL_SOURCE = $(patsubst %,%.f90,$(ALL_FILES))
-ALL_OBJS = $(patsubst %,%.o,$(ALL_FILES))
-ALL_DEPS = $(patsubst %,%.deps,$(ALL_FILES))
+ALL_SOURCE = $(ALL_FILES:%=%.f90)
+ALL_OBJS = $(ALL_FILES:%=%.o)
+ALL_DEPS = $(ALL_FILES:%=%.deps)
 
 .PHONY: all
 
@@ -104,7 +104,7 @@ endif
 #-include Makefile.deps
 
 # we can also do per-sourcefile deps, instead of a single Makefile.deps
--include $(patsubst %,%.deps,$(ALL_FILES))
+-include $(ALL_FILES:%=%.deps)
 %.deps: %.f90 make_mod_deps.py
 	./make_mod_deps.py -o $@ $<
 

@@ -62,7 +62,8 @@ contains
        end subroutine init_data_modules
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
-       function WaterVapor(RH, cair_mlc, te, pr_atm)
+       real*8 function WaterVapor(RH, cair_mlc, te, pr_atm)
+         real*8 :: RH, cair_mlc, te, pr_atm
        end function WaterVapor
 !       subroutine DoMassBalance()
 !       end subroutine DoMassBalance
@@ -103,51 +104,51 @@ contains
     ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
 
 ! time variables
-      dt_sec = del_t				! time-step (s)
-      tmar21_sec = (79*24 + 12)*3600		! noon, mar 21, UTC
-      tbeg_sec = env%start_day*24*3600 + &	! time since the beg of year 00:00, UTC (s)
-                 env%start_time 
-      time_UTC = env%start_time/3600		! 24-hr UTC clock time (hr)
+      dt_sec = del_t                            ! time-step (s)
+      tmar21_sec = dble((79*24 + 12)*3600)      ! noon, mar 21, UTC
+      tbeg_sec = env%start_day*24*3600 + &      ! time since the beg of year 00:00, UTC (s)
+                 nint(env%start_time)
+      time_UTC = env%start_time/3600d0          ! 24-hr UTC clock time (hr)
 
 ! geographic location
-      rlon = env%longitude * deg2rad		! longitude
-      rlat = env%latitude * deg2rad		! latitude
-      zalt_m = env%altitude			! altitude (m)
+      rlon = env%longitude * deg2rad            ! longitude
+      rlat = env%latitude * deg2rad             ! latitude
+      zalt_m = env%altitude                     ! altitude (m)
 
 ! environmental parameters: map PartMC -> MOSAIC
       RH = env%RH
       te = env%T
       pr_atm = env%p / const%atm
 
-      call init_data_modules			! initialize many indices and variables
-      call LoadPeroxyParameters			! Aperox and Bperox only once
+      call init_data_modules                    ! initialize many indices and variables
+      call LoadPeroxyParameters                 ! Aperox and Bperox only once
 
-      cair_mlc = avogad*pr_atm/(82.056*te)	! air conc [molec/cc]
-      cair_molm3 = 1.e6*pr_atm/(82.056*te)	! air conc [mol/m^3]
-      ppb = 1.e+9
+      cair_mlc = avogad*pr_atm/(82.056d0*te)    ! air conc [molec/cc]
+      cair_molm3 = 1d6*pr_atm/(82.056d0*te)     ! air conc [mol/m^3]
+      ppb = 1d9
 
     endif
 !----------------------------------------------------------
 
 ! update time variables
-    tcur_sec = tbeg_sec + t			! current (old) time since the beg of year 00:00, UTC (s)
-    time_UTC = time_UTC + dt_sec/3600.
+    tcur_sec = dble(tbeg_sec) + t               ! current (old) time since the beg of year 00:00, UTC (s)
+    time_UTC = time_UTC + dt_sec/3600d0
 
-    if(time_UTC .ge. 24.0)then
-      time_UTC = time_UTC - 24.0
+    if(time_UTC .ge. 24d0)then
+      time_UTC = time_UTC - 24d0
     endif
 
-    tmid_sec = tcur_sec + 0.5*dt_sec
+    tmid_sec = tcur_sec + 0.5d0*dt_sec
     if(tmid_sec .ge. tmar21_sec)then
-      tmid_sec = tmid_sec - tmar21_sec		! seconds since noon, march 21
+      tmid_sec = tmid_sec - tmar21_sec          ! seconds since noon, march 21
     else
       tmid_sec = tmid_sec + &
-                 ((365-79)*24 - 12)*3600	! seconds since noon, march 21
+                 dble(((365-79)*24 - 12)*3600)  ! seconds since noon, march 21
     endif
 
 
     ! transport timestep (min)
-    dt_min = dt_sec/60.
+    dt_min = dt_sec/60d0
     ! aerosol optics timestep (min)
     dt_aeroptic_min = 0d0
 
@@ -169,7 +170,7 @@ contains
           do i_spec = 1,n_spec
              i_spec_mosaic = mat%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
-                aer(i_spec_mosaic, jtotal, i_mosaic) &		! convert m^3(species) to nmol(species)/m^3(air)
+                aer(i_spec_mosaic, jtotal, i_mosaic) &          ! convert m^3(species) to nmol(species)/m^3(air)
                      = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec)
              end if
           end do
@@ -183,7 +184,7 @@ contains
     do i_spec = 1,gas%n_spec
        i_spec_mosaic = gas%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
-          cnn(i_spec_mosaic) = gas%conc(i_spec)*cair_mlc/ppb	! convert ppbv to molec/cc
+          cnn(i_spec_mosaic) = gas%conc(i_spec)*cair_mlc/ppb    ! convert ppbv to molec/cc
        end if
     end do
 
@@ -217,7 +218,7 @@ contains
              i_spec_mosaic = mat%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 VH(i_bin)%p(i_num, i_spec) = &
-                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec)	! convert nmol(species)/m^3(air) to m^3(species)
+                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec)      ! convert nmol(species)/m^3(air) to m^3(species)
              end if
           end do
           ! handle water specially

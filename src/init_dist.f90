@@ -31,6 +31,8 @@ contains
             bin_v, n_den)
     elseif (trim(dist_type) == 'exp') then
        call init_exp(dist_args(1), n_bin, bin_v, n_den)
+    elseif (trim(dist_type) == 'mono') then
+       call init_mono(dist_args(1), n_bin, bin_v, n_den)
     else
        write(0,*) 'ERROR: unknown distribution type: ', trim(dist_type)
        call exit(1)
@@ -127,6 +129,28 @@ contains
     end do
     
   end subroutine init_exp
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine init_mono(vol, n_bin, bin_v, n_den)
+    
+    ! Mono-disperse distribution at mean_vol
+    
+    use mod_bin
+    use mod_util
+    
+    real*8, intent(in) :: vol           ! volume of each particle (m^3)
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
+    
+    integer k
+
+    n_den = 0d0
+    call particle_in_bin(vol, n_bin, bin_v, k)
+    n_den(k) = 1d0
+    
+  end subroutine init_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

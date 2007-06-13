@@ -8,7 +8,7 @@ kernel golovin                  # coagulation kernel
 t_max 600                       # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
-t_state 0                       # state output interval (0 disables) (s)
+t_state 60                      # state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 temp_profile temp_constant_15C.dat # temperature profile file
@@ -28,8 +28,8 @@ n_init_dist 1                   # number of initial aerosol distributions
 
 n_p 10                          # number of particles
 vol_frac comp_mosaic.dat        # composition proportions of species
-dist_type exp                   # type of distribution
-dist_mean_vol 4.1886d-15        # mean volume (m^3)
+dist_type mono                  # type of distribution
+dist_vol 4.1886d-15             # mean volume (m^3)
 
 n_bin 160                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)

@@ -628,6 +628,8 @@ contains
        call read_real(spec, 'dist_std_dev', dist_args(2))
     elseif (trim(dist_type) == 'exp') then
        call read_real(spec, 'dist_mean_vol', dist_args(1))
+    elseif (trim(dist_type) == 'mono') then
+       call read_real(spec, 'dist_vol', dist_args(1))
     elseif (trim(dist_type) == 'bidisperse') then
        call read_real(spec, 'dist_small_vol', dist_args(1))
        call read_real(spec, 'dist_big_vol', dist_args(2))

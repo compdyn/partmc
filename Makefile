@@ -12,8 +12,9 @@ DEV_BUILD = yes
 #  compiler instead
 FC = gfortran
 
-MOSAIC_LIBDIR = $(HOME)/proj/mosaic/trunk/compile/
-MOSAIC_MODDIR = $(HOME)/proj/mosaic/trunk/compile/
+MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
+MOSAIC_LIBDIR = $(MOSAIC_DIR)
+MOSAIC_MODDIR = $(MOSAIC_DIR)
 
 ifeq ($(FC),gfortran)
     # -O              optimize

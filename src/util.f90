@@ -385,5 +385,41 @@ contains
   end function string_to_logical
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function sample_pdf(n, pdf)
+
+    ! Sample the given probability density function. That is,
+    ! return a number k = 1,...,n such that prob(k) = pdf(k) / sum(pdf).
+
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(in) :: pdf(n)        ! probability density function
+                                        ! (not normalized)
+
+    real*8 :: pdf_tot
+    integer :: k
+    logical :: found
+
+    ! use accept-reject
+    found = .false.
+    pdf_tot = sum(pdf)
+    if (minval(pdf) < 0d0) then
+       write(0,*) 'ERROR: pdf contains negative values'
+       call exit(1)
+    end if
+    if (pdf_tot <= 0d0) then
+       write(*,*) 'ERROR: pdf is not positive'
+       call exit(1)
+    end if
+    do while (.not. found)
+       k = mod(int(util_rand() * dble(n)), n) + 1
+       if (util_rand() < pdf(k) / pdf_tot) then
+          found = .true.
+       end if
+    end do
+    sample_pdf = k
+
+  end function sample_pdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_util

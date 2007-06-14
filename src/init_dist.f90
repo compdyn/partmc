@@ -17,7 +17,8 @@ contains
   
   subroutine init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
 
-    ! Multiplexer to make an initial distribution based on its name.
+    ! Multiplexer to make an initial distribution based on its
+    ! name. These should be normalized so that sum(n_den) = 1/dlnr.
 
     character(len=*), intent(in) :: dist_type ! type of distribution
     real*8, intent(in) :: dist_args(:)  ! distribution parameters
@@ -149,6 +150,7 @@ contains
     n_den = 0d0
     call particle_in_bin(vol, n_bin, bin_v, k)
     n_den(k) = 1d0
+    ! FIXME: should really be 1/dlnr rather than 1
     
   end subroutine init_mono
   
@@ -159,6 +161,8 @@ contains
     ! Convert a number density (in ln(r)) to actual number of particles
     ! in each bin.
     
+    use mod_util
+
     integer, intent(in) :: N            ! total number of particles (approx)
     real*8, intent(in) :: dlnr          ! bin scale factor
     integer, intent(in) :: n_bin        ! number of bins
@@ -167,11 +171,46 @@ contains
                                         ! n_den(n_bin) has to be normalized
     integer, intent(out) :: bin_n(n_bin) ! number distribution
     
-    integer k
-    
+    integer :: k
+    real*8 :: bin_n_real, n_den_tot
+
+    ! FIXME: we shouldn't need to do this, as the distributions n_den
+    ! that are passed to us should already satisfy sum(n_den) = 1/dlnr,
+    ! but this is not the case for monodisperse so we hack it like
+    ! this for now
+    n_den_tot = sum(n_den)
+
+    ! assign a best guess for each bin independently
     do k = 1,n_bin
-       bin_n(k) = int(dble(N) * n_den(k) * dlnr)
+       ! FIXME: should really be (* dlnr) rather than (/ n_den_tot)
+       ! but see above
+       bin_n_real = dble(N) * n_den(k) / n_den_tot
+       bin_n(k) = int(bin_n_real)
+       ! ensure that we have the correct mean value with integer number
+       if (util_rand() < mod(bin_n_real, 1d0)) then
+          bin_n(k) = bin_n(k) + 1
+       end if
     end do
+
+    ! if we have too few particles then add more in the right proportions
+    do while (sum(bin_n) < N)
+       k = sample_pdf(n_bin, n_den)
+       bin_n(k) = bin_n(k) + 1
+    end do
+    
+    ! if we have too many particles then remove in the right proportions
+    do while (sum(bin_n) > N)
+       k = sample_pdf(n_bin, n_den)
+       if (bin_n(k) > 0) then
+          bin_n(k) = bin_n(k) - 1
+       end if
+    end do
+
+    ! asserts
+    if (sum(bin_n) /= N) then
+       write(0,*) 'ERROR: generated incorrect number of particles'
+       call exit(1)
+    end if
     
   end subroutine dist_to_n
   

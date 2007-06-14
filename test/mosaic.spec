@@ -26,7 +26,7 @@ aerosol_data aerosol_mosaic.dat # file containing aerosol data
 
 n_init_dist 1                   # number of initial aerosol distributions
 
-n_p 10                          # number of particles
+n_p 3                           # number of particles
 vol_frac comp_mosaic.dat        # composition proportions of species
 dist_type mono                  # type of distribution
 dist_vol 4.1886d-15             # mean volume (m^3)

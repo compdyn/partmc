@@ -22,9 +22,10 @@ contains
     use mod_state
     use mod_gas
 
-    use module_data_mosaic_aero, only: nbin_a, aer, mGAS_AER_XFER, &
-         mDYNAMIC_SOLVER, alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
-         jtotal, water_a
+    use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
+         alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
+         jtotal, water_a, &
+         mGAS_AER_XFER, mDYNAMIC_SOLVER
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, rlon, rlat, zalt_m, RH, te, &
@@ -62,9 +63,9 @@ contains
        end subroutine init_data_modules
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
-       real*8 function WaterVapor(RH, cair_mlc, te, pr_atm)
-         real*8 :: RH, cair_mlc, te, pr_atm
-       end function WaterVapor
+!       real*8 function WaterVapor(RH, cair_mlc, te, pr_atm)
+!       real*8 :: RH, cair_mlc, te, pr_atm
+!       end function WaterVapor
 !       subroutine DoMassBalance()
 !       end subroutine DoMassBalance
     end interface
@@ -175,7 +176,9 @@ contains
              end if
           end do
           ! handle water specially
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water)*mat%rho(mat%i_water)/env%V_comp  ! convert m^3(water) to kg(water)/m^3(air)
+          water_a(i_mosaic)    = VH(i_bin)%p(i_num,mat%i_water)*mat%rho(mat%i_water)/env%V_comp  ! convert m^3(water) to kg(water)/m^3(air)
+          num_a(i_mosaic)      = 1.D0/env%V_comp		! number conc. (#/cc(air))
+          jhyst_leg(i_mosaic)  = 1
        end do
     end do
 

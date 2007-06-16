@@ -1,0 +1,7 @@
+n_modes 1                       # number of initial aerosol distributions
+
+# first mode
+n_p 3                           # number of particles
+vol_frac comp_mosaic.dat        # composition proportions of species
+mode_type mono                  # type of distribution
+vol 4.1886d-15                  # mean volume (m^3)

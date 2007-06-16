@@ -25,6 +25,8 @@ contains
     use mod_init_dist
     use mod_environ
     use mod_material
+    use mod_kernel
+    use mod_output
 
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)

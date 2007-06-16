@@ -6,49 +6,84 @@
 
 module mod_gas
 
-  type gas_chem
+  type gas_data_t
      integer :: n_spec                   ! number of species
-     real*8, pointer :: conc(:)          ! length n_spec, concentration (ppb)
+     real*8, pointer :: M_w(:)           ! molecular weight (kg mole^{-1})
      character(len=10), pointer :: name(:) ! length n_spec, name of species
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                          ! mosaic index of species i, or 0 if
                                          ! there is no match
-  end type gas_chem
+  end type gas_data_t
+
+  type gas_state_t
+     real*8, pointer :: conc(:)          ! length n_spec, concentration (ppb)
+  end type gas_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_gas(gas, n_spec)
+  subroutine allocate_gas_data(n_spec, gas_data)
 
     ! Allocate storage for gas species.
 
-    type(gas_chem), intent(inout) :: gas  ! gas data
     integer, intent(in) :: n_spec         ! number of species
+    type(gas_data_t), intent(out) :: gas_data ! gas data
 
-    gas%n_spec = n_spec
-    allocate(gas%conc(n_spec))
-    allocate(gas%name(n_spec))
-    allocate(gas%mosaic_index(n_spec))
+    gas_data%n_spec = n_spec
+    allocate(gas_data%M_w(n_spec))
+    allocate(gas_data%name(n_spec))
+    allocate(gas_data%mosaic_index(n_spec))
 
-  end subroutine allocate_gas
+  end subroutine allocate_gas_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function gas_spec_by_name(gas, name)
+  subroutine allocate_gas_state(gas_data, gas_state)
+
+    ! Allocate storage for gas species.
+
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(out) :: gas_state ! gas state to be allocated
+
+    allocate(gas_state%conc(gas_data%n_spec))
+
+  end subroutine allocate_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine copy_gas_state(from_state, to_state)
+
+    ! Copy to an already allocated to_state.
+
+    type(gas_state_t), intent(in) :: from_state ! existing gas state
+    type(gas_state_t), intent(out) :: to_state ! must be allocated already
+
+    integer :: n_spec
+
+    n_spec = size(from_state%conc)
+    deallocate(to_state%conc)
+    allocate(to_state%conc(n_spec))
+    to_state%conc = from_state%conc
+
+  end subroutine copy_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function gas_spec_by_name(gas_data, name)
 
     ! Returns the number of the species in gas with the given name, or
     ! returns 0 if there is no such species.
 
-    type(gas_chem), intent(in) :: gas     ! gas data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
     character*10, intent(in) :: name      ! name of species to find
 
     integer i
     logical found
 
     found = .false.
-    do i = 1,gas%n_spec
-       if (index(name, gas%name(i)) == 1) then
+    do i = 1,gas_data%n_spec
+       if (index(name, gas_data%name(i)) == 1) then
           found = .true.
           exit
        end if
@@ -63,11 +98,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_gas_mosaic_map(gas)
+  subroutine set_gas_mosaic_map(gas_data)
 
-    ! Fills in gas%mosaic_index.
+    ! Fills in gas_data%mosaic_index.
 
-    type(gas_chem), intent(inout) :: gas  ! gas data
+    type(gas_data_t), intent(inout) :: gas_data ! gas data
 
     integer, parameter :: n_mosaic_species = 77
     character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
@@ -85,16 +120,16 @@ contains
 
     integer spec, mosaic_spec, i
 
-    gas%mosaic_index = 0
-    do spec = 1,gas%n_spec
+    gas_data%mosaic_index = 0
+    do spec = 1,gas_data%n_spec
        mosaic_spec = 0
        do i = 1,n_mosaic_species
-          if (gas%name(spec) == mosaic_species(i)) then
+          if (gas_data%name(spec) == mosaic_species(i)) then
              mosaic_spec = i
           end if
        end do
        if (mosaic_spec > 0) then
-          gas%mosaic_index(spec) = mosaic_spec
+          gas_data%mosaic_index(spec) = mosaic_spec
        end if
     end do
 

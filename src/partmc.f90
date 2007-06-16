@@ -64,6 +64,7 @@ contains
     use mod_run_mc
     use mod_read_spec
     use mod_gas
+    use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -89,8 +90,18 @@ contains
     real*8 :: t_state                   ! state output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
 
-    type(gas_chem) :: gas               ! gas data
+    type(gas_data_t) :: gas_data        ! gas data
+    type(gas_state_t) :: gas_init       ! gas initial condition
+    type(gas_state_t) :: gas_emissions  ! gas emissions
+    type(gas_state_t) :: gas_background ! gas background state
+    type(gas_state_t) :: gas_state      ! gas current state for run
+
     type(material) :: mat               ! material data
+    type(aerosol) :: aero_init          ! aerosol initial condition
+    type(aerosol) :: aero_emissions     ! aerosol emissions
+    type(aerosol) :: aero_background    ! aerosol background
+    type(aerosol) :: aero_state         ! aerosol current state for run
+
     type(environ) :: env                ! environment data
     
     integer :: n_init_dist              ! number of initial distributions
@@ -124,25 +135,31 @@ contains
     call read_real(spec, 't_progress', t_progress)
 
     call read_environ(spec, env)
-    call read_gas(spec, gas)
-    call read_material(spec, mat)
-    
-    call read_integer(spec, 'n_init_dist', n_init_dist)
-    allocate(dist_n_part(n_init_dist))
-    allocate(dist_vol_frac(n_init_dist, mat%n_spec))
-    allocate(dist_types(n_init_dist))
-    allocate(dist_args(n_init_dist, max_dist_args))
-    
-    do i = 1,n_init_dist
-       call read_integer(spec, 'n_p', dist_n_part(i))
-       call read_vol_frac(spec, mat, dist_vol_frac(i,:))
-       call read_init_dist(spec, dist_types(i), dist_args(i,:))
-    end do
-    
+
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)
     call read_integer(spec, 'scal', scal)
+    allocate(bin_v(n_bin), n_den(n_bin))
+    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
     
+    call read_gas_data(spec, gas_data)
+    call read_gas_state(spec, gas_data, 'gas_init', gas_init)
+    call read_gas_state(spec, gas_data, 'gas_emissions', gas_emissions)
+    call read_gas_state(spec, gas_data, 'gas_background', gas_background)
+
+    call read_material(spec, mat)
+    call allocate_aerosol(n_bin, mat%n_spec, aero_init)
+    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
+         'aerosol_init', aero_init)
+    call allocate_aerosol(n_bin, mat%n_spec, aero_emissions)
+    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
+         'aerosol_emissions', aero_emissions)
+    call allocate_aerosol(n_bin, mat%n_spec, aero_background)
+    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
+         'aerosol_background', aero_background)
+
+    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
+
     call read_integer(spec, 'rand_init', rand_init)
     call read_logical(spec, 'do_coagulation', do_coagulation)
     call read_logical(spec, 'allow_double', allow_double)
@@ -155,12 +172,6 @@ contains
 
     ! finished reading .spec data, now do the run
     
-    MM = sum(dist_n_part)
-    allocate(MH(n_bin), VH(n_bin), bin_v(n_bin), n_den(n_bin))
-    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
-    call init_array(mat%n_spec, MH, VH)
-    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
-    
     call output_open(output_unit, output_file, n_loop, n_bin, &
          mat%n_spec, nint(t_max / t_output) + 1)
     
@@ -170,22 +181,18 @@ contains
        call srand(time())
     end if
 
+    allocate(MH(n_bin), VH(n_bin))
+    call init_array(mat%n_spec, MH, VH)
+
+    call allocate_gas_state(gas_data, gas_state)
+    call allocate_aerosol(n_bin, mat%n_spec, aero_state)
     call cpu_time(t_wall_start)
     do i_loop = 1,n_loop
        
-       call zero_array(mat%n_spec, MH, VH)
-       
-       do i = 1,n_init_dist
-          if (trim(dist_types(i)) == "bidisperse") then
-             call init_bidisperse(MM, dist_args(i,1), dist_args(i,2), &
-                  dist_args(i,3), n_bin, bin_v, MH, VH)
-          else
-             call init_dist(dist_types(i), dist_args(i,:), n_bin, bin_v, n_den)
-             call dist_to_n(dist_n_part(i), dlnr, n_bin, bin_v, n_den, bin_n)
-             call add_particles(n_bin, mat%n_spec, dist_vol_frac(i,:), &
-                  bin_v, bin_n, MH, VH)
-          end if
-       end do
+       call copy_gas_state(gas_init, gas_state)
+       call copy_aerosol(aero_init, aero_state)
+       ! FIXME: should be passing aero_state directly to run_mc
+       call copy_aerosol_to_array(aero_state, MH, VH)
 
        M = sum(MH)
        env%V_comp = dble(M) / num_conc
@@ -201,34 +208,34 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
                restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat, gas)
+               env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas)
+               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas)
+               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas)
+               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
@@ -253,6 +260,7 @@ contains
     use mod_run_exact
     use mod_read_spec
     use mod_gas
+    use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -273,7 +281,6 @@ contains
     
     type(material) :: mat               ! material data
     type(environ) :: env                ! environment data
-    type(gas_chem) :: gas               ! gas data
 
     integer :: n_bin                    ! number of bins
     real*8 :: v_min                     ! volume of smallest bin (m^3)
@@ -297,7 +304,6 @@ contains
     call read_real(spec, 't_output', t_output)
     
     call read_environ(spec, env)
-    call read_gas(spec, gas)
     call read_material(spec, mat)
 
     call read_integer(spec, 'n_bin', n_bin)
@@ -346,6 +352,7 @@ contains
     use mod_array
     use mod_init_dist
     use mod_gas
+    use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -367,8 +374,8 @@ contains
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     
     type(material) :: mat               ! material data
+    type(aerosol) :: aero_init          ! aerosol initial condition
     type(environ) :: env                ! environment data
-    type(gas_chem) :: gas               ! gas data
     
     character(len=100) :: dist_type     ! initial distribution
     real*8 :: dist_args(max_dist_args)  ! distribution arguments
@@ -382,35 +389,30 @@ contains
 
     call read_string(spec, 'kernel', kernel_name)
 
-    call read_init_dist(spec, dist_type, dist_args)
-
     call read_real(spec, 't_max', t_max)
     call read_real(spec, 'del_t', del_t)
     call read_real(spec, 't_output', t_output)
     call read_real(spec, 't_progress', t_progress)
 
-    call read_environ(spec, env)
-    call read_gas(spec, gas)
-    call read_material(spec, mat)
-
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)
     call read_integer(spec, 'scal', scal)
+    allocate(bin_v(n_bin), n_den(n_bin))
+    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
+    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+    
+    call read_environ(spec, env)
+    call read_material(spec, mat)
+
+    call read_aerosol_mode(spec, mat, n_bin, bin_v, dlnr, n_den)
 
     call close_spec(spec)
 
     ! finished reading .spec data, now do the run
 
-    allocate(bin_v(n_bin), n_den(n_bin))
-    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
-    
     call output_open(output_unit, output_file, 1, n_bin, &
          mat%n_spec, nint(t_max / t_output) + 1)
     
-    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
-    
-    call init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
-
     if (trim(kernel_name) == 'sedi') then
        call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_sedi, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)

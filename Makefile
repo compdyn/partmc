@@ -46,7 +46,8 @@ OTHER := src/array src/bin src/condensation src/constants src/environ	\
 	src/init_dist src/kernel_golovin src/kernel_sedi		\
 	src/kernel_constant src/kernel_brown src/material		\
 	src/run_exact src/run_mc src/util src/run_sect src/state	\
-	src/read_spec src/mosaic src/gas
+	src/read_spec src/mosaic src/gas src/coagulate src/kernel	\
+	src/output
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -63,7 +64,8 @@ partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/array.o	\
 	src/kernel_golovin.o src/kernel_constant.o src/kernel_brown.o	\
 	src/material.o src/environ.o src/run_mc.o src/gas.o		\
 	src/run_exact.o src/run_sect.o src/util.o src/constants.o	\
-	src/state.o src/mosaic.o
+	src/state.o src/mosaic.o src/coagulate.o src/kernel.o		\
+	src/output.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o		\
 	src/kernel_sedi.o src/environ.o src/constants.o src/material.o	\
 	src/util.o
@@ -73,7 +75,7 @@ sedi_bidisperse_state_to_count_OBJS :=			\
 	src/util.o src/bin.o
 equilib_OBJS := src/equilib.o src/material.o src/environ.o		\
 	src/condensation.o src/read_spec.o src/util.o src/array.o	\
-	src/constants.o src/gas.o src/bin.o
+	src/constants.o src/gas.o src/bin.o src/init_dist.o
 
 ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(ALL_FILES:%=%.f90)

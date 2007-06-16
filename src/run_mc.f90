@@ -14,7 +14,7 @@ contains
        t_progress, del_t, output_unit, state_unit, state_prefix, &
        do_coagulation, allow_double, do_condensation, do_mosaic, &
        do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-       env, mat, gas)
+       env, mat, gas_data, gas_state)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -27,6 +27,9 @@ contains
     use mod_gas
     use mod_state
     use mod_mosaic
+    use mod_coagulate
+    use mod_kernel
+    use mod_output
     
     integer, intent(in) :: MM           ! maximum number of particles
     integer, intent(inout) :: M         ! actual number of particles
@@ -62,7 +65,8 @@ contains
     
     type(environ), intent(inout) :: env ! environment state
     type(material), intent(in) :: mat   ! material properties
-    type(gas_chem), intent(inout) :: gas   ! gas chemistry
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(inout) :: gas_state ! gas state
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -155,7 +159,7 @@ contains
        if (do_mosaic) then
           call singlestep_mosaic(M, n_spec, n_bin, MH, VH, bin_v, &
                bin_g, bin_gs, bin_n, dlnr, time, del_t, &
-               env, mat, gas)
+               env, mat, gas_data, gas_state)
        end if
        
        ! DEBUG: enable to check array handling
@@ -215,6 +219,7 @@ contains
     use mod_bin 
     use mod_environ
     use mod_material
+    use mod_coagulate
     
     integer, intent(in) :: MM           ! maximum number of particles
     integer, intent(inout) :: M         ! actual number of particles

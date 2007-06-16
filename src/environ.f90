@@ -10,6 +10,9 @@
 ! outside of the range of times.
 
 module mod_environ
+
+  use mod_array
+  use mod_gas
   
   type environ
      real*8 :: T                        ! temperature (K)
@@ -25,6 +28,10 @@ module mod_environ
      integer :: n_temps                 ! number of temperature set-points
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points
+     type(gas_state_t) :: gas_emissions ! gas emissions
+     type(gas_state_t) :: gas_background ! background gas concentrations
+     type(aerosol) :: aero_emissions    ! aerosol emissions
+     type(aerosol) :: aero_background   ! aerosol background
   end type environ
   
 contains

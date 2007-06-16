@@ -1,0 +1,8 @@
+# species    initial concentration (ppb)
+NO		2.0
+NO2		5.0
+O3		50.0
+CO		80.0
+PAR		20.0
+OLET		5.0
+OLEI		3.0

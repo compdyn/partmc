@@ -17,8 +17,7 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-gas_init_conc gas_init_standard.dat # initial gas concentrations
-aerosol_data aerosol_water.dat  # file containing aerosol data
+aerosol_data aerosol_data_water.dat # file containing aerosol data
 
 n_bin 160                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)

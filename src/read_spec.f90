@@ -614,77 +614,96 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_init_dist(spec, dist_type, dist_args)
+  subroutine read_gas_data(spec, gas_data)
 
-    ! Read initial distribution specification from a .spec file.
-
-    type(spec_file), intent(inout) :: spec ! spec file
-    character(len=*), intent(out) :: dist_type ! type of init distribution
-    real*8, intent(out) :: dist_args(:) ! distribution parameters
-
-    call read_string(spec, 'dist_type', dist_type)
-    if (trim(dist_type) == 'log_normal') then
-       call read_real(spec, 'dist_mean_diam', dist_args(1))
-       call read_real(spec, 'dist_std_dev', dist_args(2))
-    elseif (trim(dist_type) == 'exp') then
-       call read_real(spec, 'dist_mean_vol', dist_args(1))
-    elseif (trim(dist_type) == 'mono') then
-       call read_real(spec, 'dist_vol', dist_args(1))
-    elseif (trim(dist_type) == 'bidisperse') then
-       call read_real(spec, 'dist_small_vol', dist_args(1))
-       call read_real(spec, 'dist_big_vol', dist_args(2))
-       call read_real(spec, 'dist_big_num', dist_args(3))
-    else
-       write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
-            trim(dist_type), ' in file ', trim(spec%name), &
-            ' at line ', spec%line_num
-       call exit(1)
-    end if
-
-  end subroutine read_init_dist
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine read_gas(spec, gas)
-
-    ! Read gas concentrations from a .spec file.
+    ! Read gas data from a .spec file.
 
     use mod_gas
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(gas_chem), intent(out) :: gas     ! gas data
+    type(gas_data_t), intent(out) :: gas_data ! gas data
 
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN) :: gas_name
     type(spec_file) :: gas_spec
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_conc(:,:)
-    integer :: species_conc_shape(2)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
 
     ! read the gas data from the specified file
-    call read_string(spec, 'gas_init_conc', gas_name)
+    call read_string(spec, 'gas_data', gas_name)
     call open_spec(gas_spec, gas_name)
-    call read_real_array(gas_spec, 0, species_name, species_conc)
+    call read_real_array(gas_spec, 0, species_name, species_data)
     call close_spec(gas_spec)
 
     ! check the data size
-    species_conc_shape = shape(species_conc)
-    if (species_conc_shape(2) /= 1) then
+    species_data_shape = shape(species_data)
+    if (species_data_shape(2) /= 1) then
        write(0,*) 'ERROR: each line in ', trim(gas_name), &
             ' should only contain one value'
        call exit(1)
     end if
 
     ! allocate and copy over the data
-    n_species = species_conc_shape(1)
-    call allocate_gas(gas, n_species)
+    n_species = species_data_shape(1)
+    call allocate_gas_data(n_species, gas_data)
     do i = 1,n_species
-       gas%name(i) = species_name(i)
-       gas%conc(i) = species_conc(i,1)
+       gas_data%name(i) = species_name(i)
+       gas_data%M_w(i) = species_data(i,1)
     end do
-    call set_gas_mosaic_map(gas)
+    call set_gas_mosaic_map(gas_data)
 
-  end subroutine read_gas
+  end subroutine read_gas_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_gas_state(spec, gas_data, name, gas_state)
+
+    ! Read gas state from the file named on the line read from spec.
+
+    use mod_gas
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(gas_data_t), intent(out) :: gas_data ! gas data
+    character(len=*), intent(in) :: name ! name of data line for filename
+    type(gas_state_t), intent(out) :: gas_state ! gas data
+
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(spec_file) :: read_spec
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
+
+    ! read the filename then read the data from that file
+    call read_string(spec, name, read_name)
+    call open_spec(read_spec, read_name)
+    call read_real_array(read_spec, 0, species_name, species_data)
+    call close_spec(read_spec)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    n_species = species_data_shape(1)
+    if (.not. ((species_data_shape(2) == 1) .or. (n_species == 0))) then
+       write(0,*) 'ERROR: each line in ', trim(read_name), &
+            ' should contain exactly one data value'
+       call exit(1)
+    end if
+
+    ! copy over the data
+    call allocate_gas_state(gas_data, gas_state)
+    gas_state%conc = 0d0
+    do i = 1,n_species
+       species = gas_spec_by_name(gas_data, species_name(i))
+       if (species == 0) then
+          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
+               ' in file ', trim(read_name)
+          call exit(1)
+       end if
+       gas_state%conc(species) = species_data(i,1)
+    end do
+
+  end subroutine read_gas_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -706,14 +725,14 @@ contains
 
     ! check the data size
     species_data_shape = shape(species_data)
-    if (species_data_shape(2) /= 4) then
+    n_species = species_data_shape(1)
+    if (.not. ((species_data_shape(2) == 4) .or. (n_species == 0))) then
        write(0,*) 'ERROR: each line in ', trim(spec%name), &
             ' should contain exactly 4 values'
        call exit(1)
     end if
 
     ! allocate and copy over the data
-    n_species = species_data_shape(1)
     call allocate_material(mat, n_species)
     do i = 1,n_species
        mat%name(i) = species_name(i)
@@ -784,12 +803,17 @@ contains
     ! check the data size
     times_data_shape = shape(times_data)
     temps_data_shape = shape(temps_data)
+    n_temps = temps_data_shape(2)
+    if (n_temps < 1) then
+       write(0,*) 'ERROR: file ', trim(temp_name), &
+            ' must contain at least one line of data'
+       call exit(1)
+    end if
     if (times_data_shape(2) /= temps_data_shape(2)) then
        write(0,*) 'ERROR: file ', trim(temp_name), &
             ' should contain exactly two lines with equal numbers of values'
        call exit(1)
     end if
-    n_temps = temps_data_shape(2)
 
     call allocate_environ_temps(env, n_temps)
     env%temp_times = times_data(1,:)
@@ -832,12 +856,17 @@ contains
 
     ! check the data size
     species_data_shape = shape(species_data)
+    n_species = species_data_shape(1)
+    if (n_species < 1) then
+       write(0,*) 'ERROR: file ', trim(aero_name), &
+            ' must contain at least one line of data'
+       call exit(1)
+    end if
     if (species_data_shape(2) /= 1) then
        write(0,*) 'ERROR: each line in ', trim(aero_name), &
             ' should contain exactly one data value'
        call exit(1)
     end if
-    n_species = species_data_shape(1)
 
     ! copy over the data
     vol_frac = 0d0
@@ -853,6 +882,119 @@ contains
 
   end subroutine read_vol_frac
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_aerosol_mode(spec, mat, n_bin, bin_v, dlnr, n_den)
+
+    ! Read one mode of an aerosol distribution.
+
+    use mod_material
+    use mod_array
+    use mod_init_dist
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(in) :: mat   ! material data
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    real*8 :: n_den(n_bin)              ! mode density
+
+    character(len=MAX_CHAR_LEN) :: mode_type
+    real*8 :: mean_vol, std_dev, vol, small_vol, big_vol, big_num
+
+    call read_string(spec, 'mode_type', mode_type)
+    if (trim(mode_type) == 'log_normal') then
+       call read_real(spec, 'dist_mean_diam', mean_vol)
+       call read_real(spec, 'dist_std_dev', std_dev)
+       call init_log_normal(mean_vol, std_dev, n_bin, bin_v, n_den)
+    elseif (trim(mode_type) == 'exp') then
+       call read_real(spec, 'mean_vol', mean_vol)
+       call init_exp(mean_vol, n_bin, bin_v, n_den)
+    elseif (trim(mode_type) == 'mono') then
+       call read_real(spec, 'vol', vol)
+       call init_mono(vol, n_bin, bin_v, n_den)
+    elseif (trim(mode_type) == 'bidisperse') then
+       call read_real(spec, 'small_vol', small_vol)
+       call read_real(spec, 'big_vol', big_vol)
+       call read_real(spec, 'big_num', big_num)
+       ! FIXME: change bidisperse generate a real density,
+       ! will probably need to specify the number again here
+!       call init_bidisperse(n_part, small_vol, big_vol, &
+!            big_num, n_bin, bin_v, aero)
+       write(0,*) 'ERROR: unimplemented'
+       call exit(1)
+    else
+       write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
+            trim(mode_type), ' in file ', trim(spec%name), &
+            ' at line ', spec%line_num
+       call exit(1)
+    end if
+
+  end subroutine read_aerosol_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_aerosol_from_file(spec, mat, n_bin, bin_v, dlnr, aero)
+
+    ! Read aerosol distribution.
+
+    use mod_material
+    use mod_array
+    use mod_init_dist
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(in) :: mat   ! material data
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(aerosol), intent(out) :: aero  ! aerosol distribution
+
+    integer :: n_modes, i
+    integer :: n_part
+    real*8 :: vol_frac(mat%n_spec)
+    real*8 :: n_den(n_bin)
+    integer :: bin_n(n_bin)
+
+    call read_integer(spec, 'n_modes', n_modes)
+    do i = 1,n_modes
+       call read_integer(spec, 'n_p', n_part)
+       call read_vol_frac(spec, mat, vol_frac)
+       call read_aerosol_mode(spec, mat, n_bin, bin_v, dlnr, n_den)
+       call dist_to_n(n_part, dlnr, n_bin, bin_v, n_den, bin_n)
+       call add_particles(n_bin, mat%n_spec, vol_frac, &
+            bin_v, bin_n, aero)
+    end do
+
+  end subroutine read_aerosol_from_file
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_aerosol(spec, mat, n_bin, bin_v, dlnr, name, aero)
+
+    ! Read aerosol distribution from filename on line in spec.
+
+    use mod_material
+    use mod_array
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(material), intent(in) :: mat   ! material data
+    integer, intent(in) :: n_bin        ! number of bins
+    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    real*8, intent(in) :: dlnr          ! bin scale factor
+    character(len=*), intent(in) :: name ! name of data line for filename
+    type(aerosol), intent(out) :: aero  ! aerosol distribution
+
+    character(len=MAX_CHAR_LEN) :: aero_name
+    type(spec_file) :: aero_spec
+
+    ! read the aerosol data from the specified file
+    call read_string(spec, name, aero_name)
+    call open_spec(aero_spec, aero_name)
+    call read_aerosol_from_file(aero_spec, mat, n_bin, bin_v, dlnr, aero)
+    call close_spec(aero_spec)
+
+  end subroutine read_aerosol
+    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module mod_read_spec

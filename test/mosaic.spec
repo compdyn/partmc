@@ -21,19 +21,19 @@ altitude 0                      # altitude (m)
 start_time 43200                # start time (s since 00:00 UTC)
 start_day 10                    # start day of year (UTC)
 
-gas_init_conc gas_init_mosaic.dat # initial gas concentrations
-aerosol_data aerosol_mosaic.dat # file containing aerosol data
-
-n_init_dist 1                   # number of initial aerosol distributions
-
-n_p 10                           # number of particles
-vol_frac comp_mosaic.dat        # composition proportions of species
-dist_type mono                  # type of distribution
-dist_vol 4.1886d-15             # mean volume (m^3)
-
 n_bin 160                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)
 scal 3                          # scale factor (integer)
+
+gas_data mosaic_gas_data.dat    # file containing gas data
+gas_init mosaic_gas_init.dat    # initial gas concentrations
+gas_emissions mosaic_gas_emissions.dat # gas emissions file
+gas_background mosaic_gas_background.dat # background gas concentrations file
+
+aerosol_data mosaic_aerosol_data.dat # file containing aerosol data
+aerosol_init mosaic_aerosol_init.dat # aerosol initial condition file
+aerosol_emissions mosaic_aerosol_emissions.dat # aerosol emissions file
+aerosol_background mosaic_aerosol_background.dat # aerosol background file
 
 rand_init 17                    # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)

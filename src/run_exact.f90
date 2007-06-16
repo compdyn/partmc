@@ -24,6 +24,7 @@ contains
     use mod_array
     use mod_environ
     use mod_material
+    use mod_output
     
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species

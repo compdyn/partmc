@@ -44,7 +44,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine init_bidisperse(M, small_vol, big_vol, big_num, &
-       n_bin, bin_v, MH, VH)
+       n_bin, bin_v, aero)
     
     ! This is not like the other init functions. It does not produce a
     ! number density. Instead it generates MH and VH directly.
@@ -58,20 +58,19 @@ contains
     real*8, intent(in) :: big_num       ! number of big particle
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
+    type(aerosol), intent(inout) :: aero ! aerosol
     
     integer i_small, i_big, n_big
 
     n_big = nint(big_num)
     call particle_in_bin(small_vol, n_bin, bin_v, i_small)
     call particle_in_bin(big_vol, n_bin, bin_v, i_big)
-    MH(i_small) = M - n_big
-    MH(i_big) = n_big
-    call enlarge_bin_to(VH(i_small), MH(i_small))
-    call enlarge_bin_to(VH(i_big), MH(i_big))
-    VH(i_small)%p = small_vol
-    VH(i_big)%p = big_vol
+    aero%n(i_small) = M - n_big
+    aero%n(i_big) = n_big
+    call enlarge_bin_to(aero%v(i_small), aero%n(i_small))
+    call enlarge_bin_to(aero%v(i_big), aero%n(i_big))
+    aero%v(i_small)%p = small_vol
+    aero%v(i_big)%p = big_vol
 
   end subroutine init_bidisperse
   

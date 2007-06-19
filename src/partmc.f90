@@ -92,14 +92,10 @@ contains
 
     type(gas_data_t) :: gas_data        ! gas data
     type(gas_state_t) :: gas_init       ! gas initial condition
-    type(gas_state_t) :: gas_emissions  ! gas emissions
-    type(gas_state_t) :: gas_background ! gas background state
     type(gas_state_t) :: gas_state      ! gas current state for run
 
     type(material) :: mat               ! material data
     type(aerosol) :: aero_init          ! aerosol initial condition
-    type(aerosol) :: aero_emissions     ! aerosol emissions
-    type(aerosol) :: aero_background    ! aerosol background
     type(aerosol) :: aero_state         ! aerosol current state for run
 
     type(environ) :: env                ! environment data
@@ -144,19 +140,23 @@ contains
     
     call read_gas_data(spec, gas_data)
     call read_gas_state(spec, gas_data, 'gas_init', gas_init)
-    call read_gas_state(spec, gas_data, 'gas_emissions', gas_emissions)
-    call read_gas_state(spec, gas_data, 'gas_background', gas_background)
+    call read_gas_state(spec, gas_data, 'gas_emissions', env%gas_emissions)
+    call read_real(spec, 'gas_emission_rate', env%gas_emission_rate)
+    call read_gas_state(spec, gas_data, 'gas_background', env%gas_background)
+    call read_real(spec, 'gas_dilution_rate', env%gas_dilution_rate)
 
     call read_material(spec, mat)
     call allocate_aerosol(n_bin, mat%n_spec, aero_init)
     call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
          'aerosol_init', aero_init)
-    call allocate_aerosol(n_bin, mat%n_spec, aero_emissions)
+    call allocate_aerosol(n_bin, mat%n_spec, env%aero_emissions)
     call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
-         'aerosol_emissions', aero_emissions)
-    call allocate_aerosol(n_bin, mat%n_spec, aero_background)
+         'aerosol_emissions', env%aero_emissions)
+    call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
+    call allocate_aerosol(n_bin, mat%n_spec, env%aero_background)
     call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
-         'aerosol_background', aero_background)
+         'aerosol_background', env%aero_background)
+    call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
     allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
 

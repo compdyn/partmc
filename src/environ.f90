@@ -29,9 +29,13 @@ module mod_environ
      real*8, dimension(:), pointer :: temp_times ! times at temp set-points
      real*8, dimension(:), pointer :: temps      ! temps at temp set-points
      type(gas_state_t) :: gas_emissions ! gas emissions
+     real*8 :: gas_emission_rate        ! gas emisssion rate (s^{-1})
      type(gas_state_t) :: gas_background ! background gas concentrations
+     real*8 :: gas_dilution_rate        ! gas-background dilution rate (s^{-1})
      type(aerosol) :: aero_emissions    ! aerosol emissions
+     real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
      type(aerosol) :: aero_background   ! aerosol background
+     real*8 :: aero_dilution_rate       ! aero-background dilution rate (s^{-1})
   end type environ
   
 contains
@@ -99,9 +103,8 @@ contains
   
   subroutine update_environ(env, time)
     
-    ! Update time-dependent contents of the environment (currently
-    ! just temperature). init_environ() should have been called at the
-    ! start.
+    ! Update time-dependent contents of the environment. init_environ()
+    ! should have been called at the start.
 
     use mod_util
 
@@ -110,6 +113,7 @@ contains
     
     real*8 pmv      ! ambient water vapor pressure (Pa)
 
+    ! update temperature and relative humidity
     pmv = sat_vapor_pressure(env) * env%RH
     env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     env%RH = pmv / sat_vapor_pressure(env)
@@ -131,6 +135,32 @@ contains
     
   end function sat_vapor_pressure
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_update_from_environ(env, delta_t, gas_data, gas_state)
+
+    ! Do emissions and background dilution from the environment.
+
+    use mod_gas
+
+    type(environ), intent(in) :: env    ! current environment
+    real*8, intent(in) :: delta_t       ! time increment to update over
+    type(gas_data_t), intent(in) :: gas_data ! gas data values
+    type(gas_state_t), intent(inout) :: gas_state ! gas state to update
+
+    integer :: i
+    real*8 :: emission, dilution
+
+    do i = 1,gas_data%n_spec
+       emission = delta_t * env%gas_emission_rate &
+            * env%gas_emissions%conc(i)
+       dilution = delta_t * env%gas_dilution_rate &
+            * (env%gas_background%conc(i) - gas_state%conc(i))
+       gas_state%conc(i) = gas_state%conc(i) + emission + dilution
+    end do
+
+  end subroutine gas_update_from_environ
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_environ

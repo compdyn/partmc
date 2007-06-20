@@ -57,7 +57,7 @@ EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 process_out_OBJS := src/process_out.o src/util.o src/constants.o
 process_state_OBJS := src/process_state.o src/bin.o src/environ.o	\
 	src/material.o src/array.o src/state.o src/util.o		\
-	src/constants.o
+	src/constants.o src/gas.o
 process_average_OBJS := src/process_average.o
 partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/array.o	\
 	src/init_dist.o src/condensation.o src/kernel_sedi.o		\
@@ -68,7 +68,7 @@ partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/array.o	\
 	src/output.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o		\
 	src/kernel_sedi.o src/environ.o src/constants.o src/material.o	\
-	src/util.o
+	src/util.o src/gas.o src/array.o
 sedi_bidisperse_state_to_count_OBJS :=			\
 	test/sedi_bidisperse_state_to_count.o src/environ.o	\
 	src/material.o src/state.o src/array.o src/constants.o	\

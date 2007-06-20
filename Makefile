@@ -68,7 +68,7 @@ partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/array.o	\
 	src/output.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o		\
 	src/kernel_sedi.o src/environ.o src/constants.o src/material.o	\
-	src/util.o src/gas.o src/array.o
+	src/util.o src/gas.o src/array.o src/bin.o
 sedi_bidisperse_state_to_count_OBJS :=			\
 	test/sedi_bidisperse_state_to_count.o src/environ.o	\
 	src/material.o src/state.o src/array.o src/constants.o	\

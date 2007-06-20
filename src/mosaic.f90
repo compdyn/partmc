@@ -85,7 +85,7 @@ contains
 
       ! parameters
       mmode = 1               ! 1 = time integration, 2 = parametric analysis
-      mgas = 1                ! 1 = gas chem on, 0 = gas chem off
+      mgas = 0                ! 1 = gas chem on, 0 = gas chem off
       maer = 1                ! 1 = aer chem on, 0 = aer chem off
       mcld = 0                ! 1 = cld chem on, 0 = cld chem off
       maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off
@@ -112,9 +112,9 @@ contains
       zalt_m = env%altitude                     ! altitude (m)
 
       ! environmental parameters: map PartMC -> MOSAIC
-      RH = env%RH
-      te = env%T
-      pr_atm = env%p / const%atm
+      RH = env%RH * 100.d0			! relative humidity (%)
+      te = env%T				! temperature (K)
+      pr_atm = env%p / const%atm		! pressure (atm)
 
       call init_data_modules                    ! initialize indices and vars
       call LoadPeroxyParameters                 ! Aperox and Bperox only once
@@ -158,7 +158,7 @@ contains
 
     nbin_a = M
     i_mosaic = 0 ! MOSAIC bin number
-    aer = 0d0
+    aer = 0d0							! initialize to zero
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
@@ -166,15 +166,15 @@ contains
              i_spec_mosaic = mat%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
-                aer(i_spec_mosaic, jtotal, i_mosaic) &
-                     = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec)
+                aer(i_spec_mosaic, jtotal, i_mosaic) &		! nmol/m^3(air)
+                     = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water) &
+          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water) &	! kg(water)/m^3(air)
                * mat%rho(mat%i_water) / env%V_comp
-          num_a(i_mosaic) = 1.D0/env%V_comp ! number conc. (#/cc(air))
+          num_a(i_mosaic) = 1.D0/env%V_comp 			! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do
@@ -196,14 +196,13 @@ contains
     call IntegrateChemistry
 
     ! environmental parameters: map MOSAIC -> PartMC
-    env%RH = RH
+    env%RH = RH/100.d0
     env%T = te
     env%p = pr_atm * const%atm
 
     ! aerosol data: map MOSAIC -> PartMC
     nbin_a = M
     i_mosaic = 0 ! MOSAIC bin number
-    aer = 0d0
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
@@ -212,7 +211,7 @@ contains
              if (i_spec_mosaic > 0) then
                 VH(i_bin)%p(i_num, i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
-                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec)
+                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially

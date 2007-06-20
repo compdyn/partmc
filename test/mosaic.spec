@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo run
 output_file out/mosaic_out.d    # name of output file
 state_prefix out/mosaic_state   # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-num_conc 1d9                    # particle concentration (#/m^3)
+num_conc 1d3                    # particle concentration (#/m^3)
 kernel golovin                  # coagulation kernel
 
 t_max 600                       # total simulation time (s)
@@ -12,7 +12,7 @@ t_state 60                      # state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 temp_profile temp_constant_15C.dat # temperature profile file
-RH 0.999                        # initial relative humidity (1)
+RH 0.85                         # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
 rho_a 1.25                      # initial air density (kg/m^3)
 latitude 40                     # latitude (degrees, -90 to 90)

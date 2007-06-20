@@ -72,7 +72,7 @@ sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o		\
 sedi_bidisperse_state_to_count_OBJS :=			\
 	test/sedi_bidisperse_state_to_count.o src/environ.o	\
 	src/material.o src/state.o src/array.o src/constants.o	\
-	src/util.o src/bin.o
+	src/util.o src/bin.o src/gas.o
 equilib_OBJS := src/equilib.o src/material.o src/environ.o		\
 	src/condensation.o src/read_spec.o src/util.o src/array.o	\
 	src/constants.o src/gas.o src/bin.o src/init_dist.o

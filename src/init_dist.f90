@@ -84,8 +84,8 @@ contains
     use mod_util
     use mod_constants
     
-    real*8, intent(in) :: d_mean        ! mean diameter of initial dist (m)
-    real*8, intent(in) :: log_sigma     ! log_e(geom. std dev(init dist)) (1)
+    real*8, intent(in) :: d_mean        ! geometric mean diameter of initial number dist (m)
+    real*8, intent(in) :: log_sigma     ! log_10(geom. std dev(init dist)) (1)
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8,  intent(out) :: n_den(n_bin) ! init number den (#(ln(r))d(ln(r)))

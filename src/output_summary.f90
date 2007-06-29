@@ -8,7 +8,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_open(output_unit, output_file, n_loop, n_bin, &
+  subroutine output_summary_open(output_unit, output_file, n_loop, n_bin, &
        n_spec, n_time)
 
     ! Open an output file for writing.
@@ -27,11 +27,11 @@ contains
     write(output_unit,'(a10,i10)') 'n_time', n_time
     write(output_unit,'(a10,i10)') 'n_spec', n_spec
     
-  end subroutine output_open
+  end subroutine output_summary_open
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine output_info(output_unit, time, n_bin, n_spec, &
+  subroutine output_summary(output_unit, time, n_bin, n_spec, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
 
     ! Write the current binned data to the output file. This version
@@ -60,14 +60,14 @@ contains
     bin_g_den = bin_g / env%V_comp / dlnr
     bin_gs_den = bin_gs / env%V_comp / dlnr
     bin_n_den = dble(bin_n) / env%V_comp / dlnr
-    call output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
+    call output_summary_density(output_unit, time, n_bin, n_spec, bin_v, &
          bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
     
-  end subroutine output_info
+  end subroutine output_summary
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
+  subroutine output_summary_density(output_unit, time, n_bin, n_spec, bin_v, &
        bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
 
     ! Write the current binned data to the output file. This version
@@ -104,7 +104,7 @@ contains
             bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
     end do
     
-  end subroutine output_info_density
+  end subroutine output_summary_density
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

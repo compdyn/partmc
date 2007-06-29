@@ -40,7 +40,7 @@ endif
 
 PROGS := src/process_summary src/process_full src/process_average	\
 	src/partmc test/sedi_bidisperse_ode				\
-	test/sedi_bidisperse_output_to_count src/equilib
+	test/sedi_bidisperse_state_to_count src/equilib
 
 OTHER := src/aero_state src/bin src/condensation src/constants		\
 	src/environ src/aero_dist src/kernel_golovin src/kernel_sedi	\
@@ -70,8 +70,8 @@ sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/environ.o src/constants.o			\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
 	src/aero_state.o src/bin.o
-sedi_bidisperse_output_to_count_OBJS :=				\
-	test/sedi_bidisperse_output_to_count.o src/environ.o	\
+sedi_bidisperse_state_to_count_OBJS :=				\
+	test/sedi_bidisperse_state_to_count.o src/environ.o	\
 	src/aero_data.o src/output_state.o src/aero_state.o	\
 	src/constants.o src/util.o src/bin.o src/gas_data.o	\
 	src/gas_state.o
@@ -129,8 +129,8 @@ src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) -lmosaic
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
-test/sedi_bidisperse_output_to_count: $(sedi_bidisperse_output_to_count_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_output_to_count_OBJS)
+test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
 src/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 

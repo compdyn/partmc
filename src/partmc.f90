@@ -65,7 +65,7 @@ contains
     use mod_read_spec
     use mod_gas_data
     use mod_gas_state
-    use mod_output
+    use mod_output_summary
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -176,7 +176,7 @@ contains
 
     ! finished reading .spec data, now do the run
     
-    call output_open(output_unit, output_file, n_loop, n_bin, &
+    call output_summary_open(output_unit, output_file, n_loop, n_bin, &
          aero_data%n_spec, nint(t_max / t_output) + 1)
     
     if (rand_init /= 0) then
@@ -266,7 +266,7 @@ contains
     use mod_read_spec
     use mod_gas_data
     use mod_gas_state
-    use mod_output
+    use mod_output_summary
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -321,7 +321,7 @@ contains
 
     ! finished reading .spec data, now do the run
     
-    call output_open(output_unit, output_file, 1, n_bin, &
+    call output_summary_open(output_unit, output_file, 1, n_bin, &
          aero_data%n_spec, nint(t_max / t_output) + 1)
 
     allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
@@ -363,7 +363,7 @@ contains
     use mod_aero_dist
     use mod_gas_data
     use mod_gas_state
-    use mod_output
+    use mod_output_summary
 
     type(spec_file), intent(out) :: spec     ! spec file
 
@@ -429,7 +429,7 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call output_open(output_unit, output_file, 1, n_bin, &
+    call output_summary_open(output_unit, output_file, 1, n_bin, &
          aero_data%n_spec, nint(t_max / t_output) + 1)
     
     if (trim(kernel_name) == 'sedi') then

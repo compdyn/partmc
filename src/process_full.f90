@@ -13,7 +13,7 @@ program process_full
   use mod_environ
   use mod_aero_data
   use mod_aero_state
-  use mod_output_full
+  use mod_output_state
 
   integer :: n_bin                      ! number of bins
   integer :: n_spec                     ! number of species

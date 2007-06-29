@@ -26,11 +26,11 @@ contains
     use mod_aero_data
     use mod_gas_data
     use mod_gas_state
-    use mod_state
+    use mod_output_state
     use mod_mosaic
     use mod_coagulation
     use mod_kernel
-    use mod_output
+    use mod_output_summary
     
     integer, intent(in) :: MM           ! maximum number of particles
     integer, intent(inout) :: M         ! actual number of particles
@@ -116,7 +116,7 @@ contains
           if (t_output > 0d0) then
              call check_event(pre_time, del_t, t_output, last_output_time, &
                   do_output)
-             if (do_output) call output_info(output_unit, pre_time, &
+             if (do_output) call output_summary(output_unit, pre_time, &
                   n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, &
                   env, aero_data, i_loop)
           end if
@@ -130,7 +130,7 @@ contains
     call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
     if (t_output > 0d0) then
-       call output_info(output_unit, time, n_bin, n_spec, bin_v, &
+       call output_summary(output_unit, time, n_bin, n_spec, bin_v, &
             bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
     end if
 
@@ -176,7 +176,7 @@ contains
        if (t_output > 0d0) then
           call check_event(time, del_t, t_output, last_output_time, &
                do_output)
-          if (do_output) call output_info(output_unit, time, n_bin, n_spec, &
+          if (do_output) call output_summary(output_unit, time, n_bin, n_spec, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
        end if
 

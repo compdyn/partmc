@@ -24,7 +24,7 @@ contains
     use mod_aero_state
     use mod_environ
     use mod_aero_data
-    use mod_output
+    use mod_output_summary
     
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -72,7 +72,7 @@ contains
             num_conc, mean_vol, rho_p, env)
        bin_gs_den(:,1) = bin_g_den
 
-       call output_info_density(output_unit, time, n_bin, n_spec, &
+       call output_summary_density(output_unit, time, n_bin, n_spec, &
             bin_v, bin_g_den, bin_gs_den, bin_n_den, env, aero_data, 1)
     end do
     

@@ -10,7 +10,7 @@
 ! the best way to gain complete access to all statistics of the
 ! simulation.
 
-module mod_state
+module mod_output_state
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -222,4 +222,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_state
+end module mod_output_state

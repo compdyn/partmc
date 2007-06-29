@@ -7,7 +7,7 @@
 ! specific to particles iwth 3 species, of which one is water and the
 ! other two are of interest.
 
-program process_full
+program process_state
 
   use mod_bin
   use mod_environ
@@ -113,7 +113,7 @@ contains
     
     ! check there is exactly one commandline argument
     if (iargc() .ne. 1) then
-       write(0,*) 'Usage: process_full <filename.d>'
+       write(0,*) 'Usage: process_state <filename.d>'
        call exit(1)
     end if
     
@@ -386,6 +386,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end program process_full
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+end program process_state

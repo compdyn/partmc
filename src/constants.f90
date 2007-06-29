@@ -14,7 +14,7 @@
 
 module mod_constants
 
-  type consts
+  type const_t
      real*8 :: pi = 3.14159265358979323846d0
      real*8 :: p00 = 611d0              ! equil. water vapor press at 273 K (Pa)
      real*8 :: T0 = 273.15d0            ! freezing point of water (K)
@@ -27,8 +27,8 @@ module mod_constants
      real*8 :: atm = 101325d0           ! atm. standard sea level pressure (Pa)
      real*8 :: k_b = 1.3806505d-23      ! Boltzmann constant in J K^{-1}
      real*8 :: mu = 1.78d-5             ! dynamic visc. air (kg m^{-1} s^{-1})
-  end type consts
+  end type const_t
 
-  type(consts), save :: const
+  type(const_t), save :: const
 
 end module mod_constants

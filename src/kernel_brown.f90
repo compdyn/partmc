@@ -26,7 +26,7 @@ contains
 
 !   real*8 c_1, a_third, b_third
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
-    integer lundiag
+    integer lundiag1, lundiag2
 
 !   c_1 = 2d0 * const%k_b * env%T / (3.d0 * const%mu)
 !   a_third = v1**(1.d0/3.d0)
@@ -38,8 +38,10 @@ contains
 ! calculate brownian kernel using coagsolv code
     dens1 = 1.8d3
     dens2 = 1.8d3
-    lundiag = -91
-    call coagsolv_kernel( v1, v2, dens1, dens2, env%t, env%p, lundiag, k )
+    lundiag1 = -91
+    lundiag2 = -92
+    call brownian_kernel( v1, v2, dens1, dens2, env%t, env%p,   &
+                          lundiag1, lundiag2, k )
 
 
   end subroutine kernel_brown
@@ -47,147 +49,81 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      subroutine coagsolv(   &
+
+      subroutine brownian_kernel(   &
         vol_i_inp, vol_j_inp, den_i_inp, den_j_inp,   &
-        tk, press, lunout, coagcoef )
+        tk, press, lundiag1, lundiag2, bckernel )
 !
-! *********************************************************************
-! ***************** written by mark jacobson (1993) *******************
-! ***           (c) copyright, 1993 by mark z. jacobson             ***
-! ***              this version modified december, 2001             *** 
-! ***                       (650) 723-6836                          ***
-! *********************************************************************
-!                                                                     *
-!  cccccc   ooooo      a      gggggg   ssssss  ooooo   l     v      v *
-! c        o     o    a a    g        s       o     o  l      v    v  *
-! c        o     o   a   a   g   ggg   sssss  o     o  l       v  v   *
-! c        o     o  aaaaaaa  g     g        s o     o  l        v v   *
-!  cccccc   ooooo  a       a  gggggg  ssssss   ooooo   lllllll   v    *
-!                                                                     *
-! *********************************************************************
-! the use of this module implies that the user agrees not to sell the *
-! module or any portion of it, not to remove the copyright notice from*   
-! it, and not to change the name of the module, "coagsolv". users may *
-! modify the module as needed or incorporate it into a larger model.  *
-! any special requests with regard to this module may be directed to  *
-! jacobson@stanford.edu.                                              *
-! *********************************************************************
+! this routine calculates brownian coagulation kernel
+! using on eqn 16.28 of   
+!    jacobson,  m. z. (1999) fundamentals of atmospheric modeling.
+!       cambridge university press, new york, 656 pp.
 !
-! *********************************************************************
-! * this routine calculates brownian coagulation kernels              *
-! *                                                                   *
-! * it was adapted (by r. easter, june-2007)                          *
-! * from a box-model version of "coagsolv"                            *
-! * that was obtained from mark jacobson in 2003                      *
-! *                                                                   * 
-! *********************************************************************
-! *                         references                                *  
-! *                                                                   * 
-! * jacobson m. z., turco r. p., jensen, e. j. and toon o. b. (1994)  *
-! *  modeling coagulation among particles of different compostion     *
-! *  and size. atmos. environ. 28a, 1327 - 1338.                      *
-! *                                                                   *
-! * jacobson m. z. (1999) fundamentals of atmospheric modeling.       *
-! *  cambridge university press, new york, 656 pp.                    *
-! *                                                                   *
-! *********************************************************************
+! r. easter, june 2007
 !
       implicit none
 
-!   IN arguments
-      real*8, intent(in) :: vol_i_inp, vol_j_inp  ! wet (ambient) particle volumes (m3)
-      real*8, intent(in) :: den_i_inp, den_j_inp  ! wet (ambient) particle densities (kg/m3)
-      real*8, intent(in) :: tk                    ! air temperature (K)
-      real*8, intent(in) :: press                 ! air pressure (Pa)
-      integer, intent(in) :: lunout               ! logical unit for warning & diagnostic output
+! arguments
+      real*8,  intent(in) :: vol_i_inp, vol_j_inp  ! wet (ambient) particle volumes (m3)
+      real*8,  intent(in) :: den_i_inp, den_j_inp  ! wet (ambient) particle densities (kg/m3)
+      real*8,  intent(in) :: tk                    ! air temperature (K)
+      real*8,  intent(in) :: press                 ! air pressure (Pa)
+      integer, intent(in) :: lundiag1, lundiag2    ! logical units for diagnostic output
 
-!   OUT arguments
-      real*8, intent(out) :: coagcoef              ! coag kernel (m3/s)
+      real*8,  intent(out) :: bckernel             ! brownian coag kernel (m3/s)
 
-!   local variables
-      integer i, j, lunb
-
-      real*8 aknud, amu, avg,   &
-             boltg, bpm,   &
-             cbr, consmu, cpi,   &
-             deltp1, deltr,   &
-             divis, dti1, dti2,   &
-             fourpi,   &
-             ggr, gmfp,   &
-             onepi,   &
-             patm, pmfp,   &
-             rgas2, rho3, rsuma, rsumsq,   &
-             sumdc,   &
-             term1, term2, third, tworad,   &
-             viscosk, vthermg,   &
-             wtair
-
-      real*8 den_i, den_j,         &  ! particle wet density (g/cm3)
-             difcof_i, difcof_j,   &
-             rad_i, rad_j,         &  ! particle wet radius (cm)
-             sumdp_i, sumdp_j,     &
-             sumvt_i, sumvt_j,     &
-             vol_i, vol_j,         &  ! particle wet volume (cm3)
-             vthermp_i, vthermp_j
-
+! local variables
       integer, parameter :: nbin_maxd = 1000
       integer, save :: nbin = 0
+      integer :: i, j
       integer :: k, m, n
+
       real*8, save :: rad_sv(nbin_maxd)
-      real*8 :: duma
+      real*8 ::   &
+             avogad,   &
+             bckernel1, boltz,   &
+             cunning,   &
+             deltasq_i, deltasq_j,   &
+             den_i, den_j,   &
+             diffus_i, diffus_j, diffus_sum,   &
+             freepath,   &
+             gasfreepath, gasspeed,   &
+             knud,   &
+             mwair,   &
+             pi, pi43inv,   &
+             rad_i, rad_j, rad_sum,   &
+             rgas, rhoair,   &
+             speedsq_i, speedsq_j,   &
+             third, tmp1, tmp2,   &
+             viscosd, viscosk,   &
+             vol_i, vol_j
 
-
-! *********************************************************************
-! the "coagsolv" entry point cannot be used
-! *********************************************************************
-      write( *, '(/a/)' ) '*** the "coagsolv" entry cannot be used ***'
-      stop
-      return
-
-
-! *********************************************************************
-! this is the "active" entry point
-! *********************************************************************
-      entry coagsolv_kernel(   &
-        vol_i_inp, vol_j_inp, den_i_inp, den_j_inp,   &
-        tk, press, lunout, coagcoef )
-
-
-! *********************************************************************
-! set some parameters
-! *********************************************************************
 !
-! boltg   = boltzmann's 1.38054e-16        (erg k-1 = g cm**2 sec-1 k-1)
-! wtair   = molecular weight of air (g mol-1)
-! avg     = avogadro's number (molec. mol-1)
-! rgas2   = gas constant (l-atm mol-1 k-1)
-! amu     = dynamic viscosity of air (g cm-1 sec-1)
-!           est value at 20 c = 1.815e-04
-! patm    = air pressure (atmospheres)
-! rho3    = air density (g cm-3)
-! viscosk = kinematic viscosity = amu / denair = (cm**2 sec-1)
-! vthermg = mean thermal velocity of air molecules (cm sec-1)
-! gmfp    = mean free path of an air molecule  = 2 x viscosk /
-!           thermal velocity of air molecules (gmfp units of cm)
+! boltz   = boltzmann's constant (erg/K = g*cm2/s/K)
+! avogad  = avogadro's number (molecules/mol)
+! mwair   = molecular weight of air (g/mol)
+! rgas    = gas constant (atmos/(mol/liter)/K)
+! rhoair  = air density (g/cm3)
+! viscosd = air dynamic viscosity (g/cm/s)
+! viscosk = air kinematic viscosity (cm2/s)
+! gasspeed    = air molecule mean thermal velocity (cm/s)
+! gasfreepath = air molecule mean free path (cm)
 !
-      third     = 1. / 3.
-      onepi     = 3.14159265358979
-      fourpi    = 4. * onepi
-      cpi       = fourpi / 3.
+      third  = 1.0/3.0
+      pi      = 3.1415926536
+      pi43inv = 3.0/(4.0*pi)
 
-      boltg     = 1.38054e-16
-      wtair     = 28.966
-      avg       = 6.02252e+23
-      rgas2     = 0.08206
-      consmu    = 1.8325e-04 * (296.16 + 120.0)
+      boltz  = 1.38054e-16
+      avogad = 6.02252e+23
+      mwair  = 28.966
+      rgas = 0.08206
 
-      patm = press / 1.01325d5
-      amu       = (consmu / (tk + 120.)) * (tk / 296.16)**1.5
-      rho3      = patm * wtair * 0.001 / (rgas2 * tk)
-      viscosk   = amu / rho3
-      vthermg   = sqrt(8. * boltg * tk * avg / (onepi * wtair))
-      gmfp      = 2.0 * viscosk / vthermg
+      rhoair    = 0.001 * ((press/1.01325d5)*mwair/(rgas*tk))
 
+      viscosd = (1.8325e-04*(296.16+120.0)/(tk+120.0)) * (tk/296.16)**1.5
+      viscosk = viscosd/rhoair
+      gasspeed = sqrt(8.0*boltz*tk*avogad/(pi*mwair))
+      gasfreepath = 2.0*viscosk/gasspeed
 
 !
 ! following code attempts to construct the bin radius values
@@ -196,23 +132,21 @@ contains
 !
       i = -2
       j = -1
-      lunb = max( lunout+1, 92 )
-
-      if (lunout > 0) then
+      if (lundiag2 > 0) then
          if (nbin == 0) rad_sv(:) = -1.0
          if (nbin == 0) write(*,*) '*** den_i,j =', den_i_inp, den_j_inp
 
          vol_i = vol_i_inp * 1.0d+6
          vol_j = vol_j_inp * 1.0d+6
-         rad_i = (vol_i/cpi)**third
-         rad_j = (vol_j/cpi)**third
+         rad_i = (vol_i*pi43inv)**third
+         rad_j = (vol_j*pi43inv)**third
 
          do k = 1, 2
-            duma = rad_i
-            if (k == 2) duma = rad_j
+            tmp1 = rad_i
+            if (k == 2) tmp1 = rad_j
             m = -1
             do n = 1, nbin
-               if (abs((duma/rad_sv(n))-1.0) <= 1.0e-5) then
+               if (abs((tmp1/rad_sv(n))-1.0) <= 1.0e-5) then
                   m = n
                   exit
                end if
@@ -224,7 +158,7 @@ contains
                    write(*,*) '    rad_i, rad_j =', rad_i, rad_j
                    stop
                end if
-               rad_sv(nbin) = duma
+               rad_sv(nbin) = tmp1
                m = nbin
             end if
             if (k == 1) i = m
@@ -233,91 +167,69 @@ contains
       end if
 
 !
-! *********************************************************************
-!              coagulation kernel from fuchs equations
-! *********************************************************************
-! difcof  = brownian particle diffus coef  (cm**2 sec-1)
-!         = boltg * t * bpm / (6 * pi * mu * r(i))
-!         = 5.25e-04 (diam = 0.01um); 6.23e-7 (diam = 0.5 um) seinfeld p.325.
-! vthermp = avg thermal vel of particle    (cm sec-1)
-!         = (8 * boltg * t / (pi * masmolec)**0.5
-! pmfp    = mean free path of particle     (cm)
-!         = 8 * di / (pi * vthermp)
-! bpm     = correction for particle shape and for effects of low mean
-!           free path of air. (toon et al., 1989, physical processes in
-!           polar stratospheric ice clouds, jgr 94, 11,359. f1 and f2 are
-!           included in the expression below (shape effects correction)
-!         = 1 + kn[a + bexp(-c/kn)]
-! deltp1  = if particles with mean free path pmfp leave the surface of
-!           an absorbing sphere in all directions, each being probably
-!           equal, then deltp1 is the mean distance from the surface of the
-!           sphere reached by particles after covering a distance pmfp. (cm).
-! cbr     = coag kernel (cm3 partic-1 s-1) due to brownian motion (fuchs, 1964)
-! rrate   = coag kernal (cm3 partic-1 s-1) * time step (s)
+! coagulation kernel from eqn 16.28 of jacobson (1999) text
 !
-
-       if (lunout > 0) then
-          write(lunout,'(/a,1p,2e12.4)') 'tk, patm', tk, patm
-          write(lunout,'(a)')   &
+! diffus_i/j  = particle brownian diffusion coefficient  (cm2/s)
+! speedsq_i/j = square of particle mean thermal velocity (cm/s)
+! freepath    = particle mean free path (cm)
+! cunning     = cunningham slip-flow correction factor
+! deltasq_i/j = square of "delta_i" in eqn 16.29
+!
+! bckernel1   = brownian coagulation kernel (cm3/s)
+!
+       if (lundiag1 > 0) then
+          write(lundiag1,'(/a,1p,2e12.4)') 'tk, patm', tk, (press/1.01325d5)
+          write(lundiag1,'(a)')   &
           'i, j, coagcoef (cm3/s), dpwet_i,j (um), denswet_i,j (g/cm3)'
        end if
 
-         den_i      = den_i_inp * 1.0d-3
-         vol_i      = vol_i_inp * 1.0d+6
-         rad_i      = (vol_i/cpi)**third
+       den_i     = den_i_inp * 1.0d-3   ! particle wet density (g/cm3)
+       vol_i     = vol_i_inp * 1.0d+6   ! particle wet volume (cm3)
+       rad_i     = (vol_i*pi43inv)**third   ! particle wet radius (cm)
 
-         tworad     = rad_i + rad_i  
-         aknud      = gmfp/rad_i  
-         bpm        = 1. + aknud*(1.257 + 0.42*exp(-1.1/aknud))
-         difcof_i   = boltg*tk*bpm/(6.*onepi*rad_i*amu)
-         vthermp_i  = sqrt( 8.*boltg*tk/(onepi*den_i*vol_i) )
-         sumvt_i    = vthermp_i*vthermp_i 
-         pmfp       = 8.*difcof_i/(onepi*vthermp_i)
-         dti1       = tworad + pmfp
-         dti2       = (4.*rad_i*rad_i + pmfp*pmfp)**1.5
-         divis      = 0.166667/(rad_i*pmfp)
-         deltp1     = divis*(dti1*dti1*dti1 - dti2) - tworad
-         sumdp_i    = deltp1   * deltp1
+       knud      = gasfreepath/rad_i  
+       cunning   = 1.0 + knud*(1.249 + 0.42*exp(-0.87/knud))
+       diffus_i  = boltz*tk*cunning/(6.0*pi*rad_i*viscosd)
+       speedsq_i = 8.0*boltz*tk/(pi*den_i*vol_i)
+       freepath  = 8.0*diffus_i/(pi*sqrt(speedsq_i))
+       tmp1      = (2.0*rad_i + freepath)**3
+       tmp2      = (4.0*rad_i*rad_i + freepath*freepath)**1.5
+       deltasq_i = ( (tmp1-tmp2)/(6.0*rad_i*freepath) - 2.0*rad_i )**2
 
-           den_j      = den_j_inp * 1.0d-3
-           vol_j      = vol_j_inp * 1.0d+6
-           rad_j      = (vol_j/cpi)**third
+       den_j     = den_j_inp * 1.0d-3
+       vol_j     = vol_j_inp * 1.0d+6
+       rad_j     = (vol_j*pi43inv)**third
 
-           tworad     = rad_j + rad_j  
-           aknud      = gmfp/rad_j  
-           bpm        = 1. + aknud*(1.257 + 0.42*exp(-1.1/aknud))
-           difcof_j   = boltg*tk*bpm/(6.*onepi*rad_j*amu)
-           vthermp_j  = sqrt( 8.*boltg*tk/(onepi*den_j*vol_j) )
-           sumvt_j    = vthermp_j*vthermp_j 
-           pmfp       = 8.*difcof_j/(onepi*vthermp_j)
-           dti1       = tworad + pmfp
-           dti2       = (4.*rad_j*rad_j + pmfp*pmfp)**1.5
-           divis      = 0.166667/(rad_j*pmfp)
-           deltp1     = divis*(dti1*dti1*dti1 - dti2) - tworad
-           sumdp_j    = deltp1   * deltp1
+       knud      = gasfreepath/rad_j  
+       cunning   = 1.0 + knud*(1.249 + 0.42*exp(-0.87/knud))
+       diffus_j  = boltz*tk*cunning/(6.0*pi*rad_j*viscosd)
+       speedsq_j = 8.0*boltz*tk/(pi*den_j*vol_j)
+       freepath  = 8.0*diffus_j/(pi*sqrt(speedsq_j))
+       tmp1      = (2.0*rad_j + freepath)**3
+       tmp2      = (4.0*rad_j*rad_j + freepath*freepath)**1.5
+       deltasq_j = ( (tmp1-tmp2)/(6.0*rad_j*freepath) - 2.0*rad_j )**2
 
-           rsuma      = rad_i  + rad_j
-           rsumsq     = rsuma*rsuma
-           sumdc      = difcof_i + difcof_j 
-           ggr        = sqrt(sumvt_i + sumvt_j)
-           deltr      = sqrt(sumdp_i + sumdp_j)
-           term1      = rsuma/(rsuma + deltr)
-           term2      = 4.*sumdc/(rsuma*ggr)
-           cbr        = fourpi*rsuma*sumdc/(term1 + term2)
+       rad_sum    = rad_i + rad_j
+       diffus_sum = diffus_i + diffus_j 
+       tmp1       = rad_sum/(rad_sum + sqrt(deltasq_i + deltasq_j))
+       tmp2       = 4.0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
+       bckernel1  = 4.0*pi*rad_sum*diffus_sum/(tmp1 + tmp2)
 
-           coagcoef   = cbr * 1.0d-6
+       bckernel   = bckernel1 * 1.0d-6
 
-           if ((lunout > 0) .and. (i <= j)) then
-               write(lunout,'(1p,2i4,5e12.4)')   &
-                  i, j, cbr, 2.0e4*rad_i, 2.0e4*rad_j, den_i, den_j
-               write(lunout,'(1p,2i4,5e12.4)')   &
-                  i, j, coagcoef, vol_i, vol_i_inp, vol_j, vol_j_inp
-               write(lunb,  '(1p,2i4,5e12.4)')   &
-                  i, j, cbr, 2.0e4*rad_i, 2.0e4*rad_j, den_i, den_j
-           end if
+       if ((lundiag1 > 0) .and. (i <= j)) then
+          write(lundiag1,'(1p,2i4,5e12.4)')   &
+             i, j, bckernel1, 2.0e4*rad_i, 2.0e4*rad_j, den_i, den_j
+          write(lundiag1,'(1p,2i4,5e12.4)')   &
+             i, j, bckernel, vol_i, vol_i_inp, vol_j, vol_j_inp
+          if (lundiag2 > 0) then
+              write(lundiag2,  '(1p,2i4,5e12.4)')   &
+              i, j, bckernel1, 2.0e4*rad_i, 2.0e4*rad_j, den_i, den_j
+          end if
+       end if
 
       return
-      end subroutine coagsolv
+      end subroutine brownian_kernel
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

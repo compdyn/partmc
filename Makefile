@@ -42,12 +42,12 @@ PROGS := src/process_out src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode			\
 	test/sedi_bidisperse_state_to_count src/equilib
 
-OTHER := src/array src/bin src/condensation src/constants src/environ	\
-	src/init_dist src/kernel_golovin src/kernel_sedi		\
-	src/kernel_constant src/kernel_brown src/material		\
+OTHER := src/aero_state src/bin src/condensation src/constants		\
+	src/environ src/aero_dist src/kernel_golovin src/kernel_sedi	\
+	src/kernel_constant src/kernel_brown src/aero_data		\
 	src/run_exact src/run_mc src/util src/run_sect src/state	\
-	src/read_spec src/mosaic src/gas src/coagulate src/kernel	\
-	src/output
+	src/read_spec src/mosaic src/gas_data src/gas_state		\
+	src/coagulate src/kernel src/output
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -56,26 +56,28 @@ EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 
 process_out_OBJS := src/process_out.o src/util.o src/constants.o
 process_state_OBJS := src/process_state.o src/bin.o src/environ.o	\
-	src/material.o src/array.o src/state.o src/util.o		\
-	src/constants.o src/gas.o
+	src/aero_data.o src/aero_state.o src/state.o src/util.o		\
+	src/constants.o src/gas_data.o src/gas_state.o
 process_average_OBJS := src/process_average.o
-partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/array.o	\
-	src/init_dist.o src/condensation.o src/kernel_sedi.o		\
+partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/aero_state.o	\
+	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
 	src/kernel_golovin.o src/kernel_constant.o src/kernel_brown.o	\
-	src/material.o src/environ.o src/run_mc.o src/gas.o		\
-	src/run_exact.o src/run_sect.o src/util.o src/constants.o	\
-	src/state.o src/mosaic.o src/coagulate.o src/kernel.o		\
-	src/output.o
-sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o		\
-	src/kernel_sedi.o src/environ.o src/constants.o src/material.o	\
-	src/util.o src/gas.o src/array.o src/bin.o
-sedi_bidisperse_state_to_count_OBJS :=			\
-	test/sedi_bidisperse_state_to_count.o src/environ.o	\
-	src/material.o src/state.o src/array.o src/constants.o	\
-	src/util.o src/bin.o src/gas.o
-equilib_OBJS := src/equilib.o src/material.o src/environ.o		\
-	src/condensation.o src/read_spec.o src/util.o src/array.o	\
-	src/constants.o src/gas.o src/bin.o src/init_dist.o
+	src/aero_data.o src/environ.o src/run_mc.o src/gas_data.o	\
+	src/gas_state.o src/run_exact.o src/run_sect.o src/util.o	\
+	src/constants.o src/state.o src/mosaic.o src/coagulate.o	\
+	src/kernel.o src/output.o
+sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
+	src/kernel_sedi.o src/environ.o src/constants.o			\
+	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
+	src/aero_state.o src/bin.o
+sedi_bidisperse_state_to_count_OBJS :=					\
+	test/sedi_bidisperse_state_to_count.o src/environ.o		\
+	src/aero_data.o src/state.o src/aero_state.o src/constants.o	\
+	src/util.o src/bin.o src/gas_data.o src/gas_state.o
+equilib_OBJS := src/equilib.o src/aero_data.o src/environ.o		\
+	src/condensation.o src/read_spec.o src/util.o src/aero_state.o	\
+	src/constants.o src/gas_data.o src/gas_state.o src/bin.o	\
+	src/aero_dist.o
 
 ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(ALL_FILES:%=%.f90)

@@ -11,8 +11,8 @@ program process_state
 
   use mod_bin
   use mod_environ
-  use mod_material
-  use mod_array
+  use mod_aero_data
+  use mod_aero_state
   use mod_state
 
   integer :: n_bin                      ! number of bins
@@ -32,7 +32,7 @@ program process_state
   type(bin_grid_t) :: bin_grid          ! bin grid
 
   type(environ) :: env                  ! environment state
-  type(material) :: mat                 ! material properties
+  type(aero_data_t) :: aero_data                 ! aerosol data
   real*8 :: time                        ! current time (s)
   real*8 :: dlnr                        ! bin scale factor
   real*8, allocatable :: bin_g(:)       ! volume in bins
@@ -70,7 +70,7 @@ program process_state
   bin_v = bin_grid%v
   dlnr = bin_grid%dlnr
 
-  call allocate_material(mat, n_spec)
+  call allocate_aero_data(aero_data, n_spec)
   
   call moments(n_bin, n_spec, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr)
@@ -78,7 +78,7 @@ program process_state
        bin_g, bin_gs, bin_n)
 
   if (n_spec > 1) then
-       call moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+       call moments_2d(n_bin, n_spec, MH, VH, bin_v, aero_data, &
           spec_1, spec_2, bin_n_2d, bin_g_2d)
        call write_moments_2d(basename, n_bin, dlnr, env, bin_v, &
           bin_n_2d, bin_g_2d)
@@ -87,7 +87,7 @@ program process_state
           spec_1, spec_2, n_comp, comp_n)
        call write_composition_2d(basename, n_comp, dlnr, env, comp_n)
   
-       call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+       call moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, aero_data, &
            spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
        call write_moments_mixed_2d(basename, n_bin, dlnr, env, bin_v, &
           bin_n_mixed, bin_g_mixed)
@@ -138,10 +138,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine moments_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+  subroutine moments_2d(n_bin, n_spec, MH, VH, bin_v, aero_data, &
        spec_1, spec_2, bin_n_2d, bin_g_2d)
     
-    use mod_material
+    use mod_aero_data
     use mod_bin
     
     integer, intent(in) :: n_bin        ! number of bins
@@ -149,7 +149,7 @@ contains
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: spec_1       ! first species
     integer, intent(in) :: spec_2       ! second species
     integer, intent(out) :: bin_n_2d(n_bin,n_bin) ! 2D species number dist
@@ -203,10 +203,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, mat, &
+  subroutine moments_mixed_2d(n_bin, n_spec, MH, VH, bin_v, aero_data, &
        spec_1, spec_2, cutoff_frac, bin_n_mixed, bin_g_mixed)
     
-    use mod_material
+    use mod_aero_data
     use mod_bin
     
     integer, intent(in) :: n_bin        ! number of bins
@@ -214,7 +214,7 @@ contains
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
     type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: spec_1       ! first species
     integer, intent(in) :: spec_2       ! second species
     real*8, intent(in) :: cutoff_frac   ! fraction to count as mixed

@@ -9,7 +9,7 @@
 program equilib
 
   use mod_read_spec
-  use mod_material
+  use mod_aero_data
   use mod_environ
   use mod_util
   use mod_condensation
@@ -18,7 +18,7 @@ program equilib
 
   type(spec_file) :: aero_spec
   type(environ) :: env
-  type(material) :: mat
+  type(aero_data_t) :: aero_data
   real*8, allocatable :: V(:)
   character(len=300) :: tmp_str
   integer :: i
@@ -29,13 +29,13 @@ program equilib
 
   ! read aerosol data
   call open_spec(aero_spec, aero_file)
-  call read_material_from_file(aero_spec, mat)
+  call read_aero_data_from_file(aero_spec, aero_data)
   call close_spec(aero_spec)
 
   ! check command line arguments
-  if (iargc() .ne. (1 + mat%n_spec)) then
+  if (iargc() .ne. (1 + aero_data%n_spec)) then
      write(6,*) 'Usage: partmc <temp> <RH> <species volumes>'
-     write(6,'(a,i3,a)') 'Need ', (mat%n_spec - 1), ' species volumes'
+     write(6,'(a,i3,a)') 'Need ', (aero_data%n_spec - 1), ' species volumes'
      call exit(2)
   end if
   
@@ -46,26 +46,26 @@ program equilib
   call getarg(2, tmp_str)
   env%RH = string_to_real(tmp_str)
 
-  allocate(V(mat%n_spec))
+  allocate(V(aero_data%n_spec))
   V = 0d0
-  do i = 2,mat%n_spec
+  do i = 2,aero_data%n_spec
      call getarg(i + 1, tmp_str)
      V(i) = string_to_real(tmp_str)
   end do
 
-  call equilibriate_particle(mat%n_spec, V, env, mat)
+  call equilibriate_particle(aero_data%n_spec, V, env, aero_data)
 
   write(*,*) 'temp = ', env%T, ' K'
   write(*,*) 'RH = ', env%RH
   write(*,*) ''
 
-  do i = 1,mat%n_spec
-     write(*,*) mat%name(i), V(i), ' m^{-3}'
+  do i = 1,aero_data%n_spec
+     write(*,*) aero_data%name(i), V(i), ' m^{-3}'
   end do
 
   write(*,*) ''
-  write(*,*) 'Equilibrium water volume: ', V(mat%i_water), ' m^{-3}'
-  write(*,*) 'Dry volume: ', sum(V) - V(mat%i_water), ' m^{-3}'
+  write(*,*) 'Equilibrium water volume: ', V(aero_data%i_water), ' m^{-3}'
+  write(*,*) 'Dry volume: ', sum(V) - V(aero_data%i_water), ' m^{-3}'
   write(*,*) 'Wet volume: ', sum(V), ' m^{-3}'
 
 end program equilib

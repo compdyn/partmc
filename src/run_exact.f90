@@ -11,7 +11,7 @@ contains
   
   subroutine run_exact(n_bin, n_spec, bin_v, bin_g_den, bin_gs_den, &
        bin_n_den, num_conc, mean_vol, rho_p, soln, t_max, t_output, &
-       output_unit, env, mat)
+       output_unit, env, aero_data)
 
     ! FIXME: num_conc and mean_vol are really parameters for the
     ! initial value of the particle distribution. They should be
@@ -21,9 +21,9 @@ contains
     ! particle-resolved or sectional simulations.
     
     use mod_bin
-    use mod_array
+    use mod_aero_state
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_output
     
     integer, intent(in) :: n_bin        ! number of bins
@@ -39,7 +39,7 @@ contains
     real*8, intent(in) :: t_output      ! interval to output info (seconds)
     integer, intent(in) :: output_unit  ! unit number to output to
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
     integer i_time, n_time
     real*8 time
@@ -73,7 +73,7 @@ contains
        bin_gs_den(:,1) = bin_g_den
 
        call output_info_density(output_unit, time, n_bin, n_spec, &
-            bin_v, bin_g_den, bin_gs_den, bin_n_den, env, mat, 1)
+            bin_v, bin_g_den, bin_gs_den, bin_n_den, env, aero_data, 1)
     end do
     
   end subroutine run_exact

@@ -2,11 +2,11 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Material parameters.
+! Aerosol data 
 
-module mod_material
+module mod_aero_data
 
-  type material
+  type aero_data_t
      integer :: n_spec                  ! number of species
      integer :: i_water                 ! water species number
      character(len=10), pointer :: name(:) ! len n_spec, name of species
@@ -17,84 +17,84 @@ module mod_material
      integer, pointer :: nu(:)          ! len n_spec, num ions in solute
      real*8, pointer :: eps(:)          ! len n_spec, solubilities (1)
      real*8, pointer :: M_w(:)          ! len n_spec, molec wghts (kg mole^{-1})
-  end type material
+  end type aero_data_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_material(mat, n_spec)
+  subroutine allocate_aero_data(aero_data, n_spec)
 
-    ! Allocate storage for material parameters given the number of
+    ! Allocate storage for aero_data parameters given the number of
     ! species.
 
-    type(material), intent(inout) :: mat ! material properties
+    type(aero_data_t), intent(inout) :: aero_data ! aerosol data
     integer, intent(in) :: n_spec       ! number of species
 
-    mat%n_spec = n_spec
-    allocate(mat%name(n_spec))
-    allocate(mat%mosaic_index(n_spec))
-    allocate(mat%rho(n_spec))
-    allocate(mat%nu(n_spec))
-    allocate(mat%eps(n_spec))
-    allocate(mat%M_w(n_spec))
-    mat%i_water = 0
+    aero_data%n_spec = n_spec
+    allocate(aero_data%name(n_spec))
+    allocate(aero_data%mosaic_index(n_spec))
+    allocate(aero_data%rho(n_spec))
+    allocate(aero_data%nu(n_spec))
+    allocate(aero_data%eps(n_spec))
+    allocate(aero_data%M_w(n_spec))
+    aero_data%i_water = 0
 
-  end subroutine allocate_material
+  end subroutine allocate_aero_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function material_spec_by_name(mat, name)
+  integer function aero_data_spec_by_name(aero_data, name)
 
-    ! Returns the number of the species in mat with the given name, or
+    ! Returns the number of the species in aero_data with the given name, or
     ! returns 0 if there is no such species.
 
-    type(material), intent(in) :: mat     ! material data
+    type(aero_data_t), intent(in) :: aero_data     ! aero_data data
     character*10, intent(in) :: name      ! name of species to find
 
     integer i
     logical found
 
     found = .false.
-    do i = 1,mat%n_spec
-       if (index(name, mat%name(i)) == 1) then
+    do i = 1,aero_data%n_spec
+       if (index(name, aero_data%name(i)) == 1) then
           found = .true.
           exit
        end if
     end do
     if (found) then
-       material_spec_by_name = i
+       aero_data_spec_by_name = i
     else
-       material_spec_by_name = 0
+       aero_data_spec_by_name = 0
     end if
 
-  end function material_spec_by_name
+  end function aero_data_spec_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_material_water_index(mat)
+  subroutine set_aero_data_water_index(aero_data)
 
-    ! Fills in mat%i_water.
+    ! Fills in aero_data%i_water.
 
-    type(material), intent(inout) :: mat  ! material data
+    type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
 
     integer :: i
 
-    do i = 1,mat%n_spec
-       if (mat%name(i) == "H2O") then
-          mat%i_water = i
+    do i = 1,aero_data%n_spec
+       if (aero_data%name(i) == "H2O") then
+          aero_data%i_water = i
        end if
     end do
 
-  end subroutine set_material_water_index
+  end subroutine set_aero_data_water_index
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_material_mosaic_map(mat)
+  subroutine set_aero_data_mosaic_map(aero_data)
 
-    ! Fills in mat%mosaic_index.
+    ! Fills in aero_data%mosaic_index.
 
-    type(material), intent(inout) :: mat  ! material data
+    type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
 
     integer, parameter :: n_mosaic_species = 19
     character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
@@ -104,36 +104,36 @@ contains
 
     integer spec, mosaic_spec, i
 
-    mat%mosaic_index = 0
-    do spec = 1,mat%n_spec
+    aero_data%mosaic_index = 0
+    do spec = 1,aero_data%n_spec
        mosaic_spec = 0
        do i = 1,n_mosaic_species
-          if (mat%name(spec) == mosaic_species(i)) then
+          if (aero_data%name(spec) == mosaic_species(i)) then
              mosaic_spec = i
           end if
        end do
        if (mosaic_spec > 0) then
-          mat%mosaic_index(spec) = mosaic_spec
+          aero_data%mosaic_index(spec) = mosaic_spec
        end if
     end do
 
-  end subroutine set_material_mosaic_map
+  end subroutine set_aero_data_mosaic_map
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function particle_mass(V, mat) ! kg
+  real*8 function particle_mass(V, aero_data) ! kg
 
     ! Total mass of the particle.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
     real*8 pm
     integer i
 
     pm = 0d0
-    do i = 1,mat%n_spec
-       pm = pm + V(i) * mat%rho(i)
+    do i = 1,aero_data%n_spec
+       pm = pm + V(i) * aero_data%rho(i)
     end do
     particle_mass = pm
 
@@ -161,38 +161,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function average_solute_quantity(V, mat, quantity)
+  real*8 function average_solute_quantity(V, aero_data, quantity)
 
     ! Returns the volume-average of the non-water elements of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to average
 
-    real*8 :: ones(mat%n_spec)
+    real*8 :: ones(aero_data%n_spec)
 
     ones = 1d0
-    average_solute_quantity = total_solute_quantity(V, mat, quantity) &
-         / total_solute_quantity(V, mat, ones)
+    average_solute_quantity = total_solute_quantity(V, aero_data, quantity) &
+         / total_solute_quantity(V, aero_data, ones)
 
   end function average_solute_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function total_solute_quantity(V, mat, quantity)
+  real*8 function total_solute_quantity(V, aero_data, quantity)
 
     ! Returns the volume-total of the non-water elements of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to total
 
     real*8 total
     integer i
 
     total = 0d0
-    do i = 1,mat%n_spec
-       if (i .ne. mat%i_water) then
+    do i = 1,aero_data%n_spec
+       if (i .ne. aero_data%i_water) then
           total = total + V(i) * quantity(i)
        end if
     end do
@@ -202,32 +202,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function average_water_quantity(V, mat, quantity)
+  real*8 function average_water_quantity(V, aero_data, quantity)
 
     ! Returns the water element of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to average
 
-    average_water_quantity = quantity(mat%i_water)
+    average_water_quantity = quantity(aero_data%i_water)
 
   end function average_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function total_water_quantity(V, mat, quantity)
+  real*8 function total_water_quantity(V, aero_data, quantity)
 
     ! Returns the volume-total of the water element of quantity.
 
     real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to total
 
-    total_water_quantity = V(mat%i_water) * quantity(mat%i_water)
+    total_water_quantity = V(aero_data%i_water) * quantity(aero_data%i_water)
 
   end function total_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_material
+end module mod_aero_data

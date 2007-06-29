@@ -14,17 +14,18 @@ contains
        t_progress, del_t, output_unit, state_unit, state_prefix, &
        do_coagulation, allow_double, do_condensation, do_mosaic, &
        do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-       env, mat, gas_data, gas_state)
+       env, aero_data, gas_data, gas_state)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
     use mod_util
-    use mod_array
+    use mod_aero_state
     use mod_bin 
     use mod_condensation
     use mod_environ
-    use mod_material
-    use mod_gas
+    use mod_aero_data
+    use mod_gas_data
+    use mod_gas_state
     use mod_state
     use mod_mosaic
     use mod_coagulate
@@ -64,7 +65,7 @@ contains
     real*8, intent(in) :: t_wall_start  ! cpu_time() of start
     
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     
@@ -117,7 +118,7 @@ contains
                   do_output)
              if (do_output) call output_info(output_unit, pre_time, &
                   n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-                  env, mat, i_loop)
+                  env, aero_data, i_loop)
           end if
           pre_time = pre_time + del_t
        end do
@@ -130,7 +131,7 @@ contains
 
     if (t_output > 0d0) then
        call output_info(output_unit, time, n_bin, n_spec, bin_v, &
-            bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
+            bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
     end if
 
     if (t_state > 0d0) then
@@ -146,20 +147,20 @@ contains
        if (do_coagulation) then
           call mc_coag(MM, M, n_spec, n_bin, MH, VH, &
                bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, &
-               allow_double, env, mat, tot_n_samp, n_coag)
+               allow_double, env, aero_data, tot_n_samp, n_coag)
        end if
 
        tot_n_coag = tot_n_coag + n_coag
 
        if (do_condensation) then
           call condense_particles(n_bin, n_spec, MH, VH, del_t, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data)
        end if
 
        if (do_mosaic) then
           call singlestep_mosaic(M, n_spec, n_bin, MH, VH, bin_v, &
                bin_g, bin_gs, bin_n, dlnr, time, del_t, &
-               env, mat, gas_data, gas_state)
+               env, aero_data, gas_data, gas_state)
        end if
        
        ! DEBUG: enable to check array handling
@@ -176,7 +177,7 @@ contains
           call check_event(time, del_t, t_output, last_output_time, &
                do_output)
           if (do_output) call output_info(output_unit, time, n_bin, n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
+               bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
        end if
 
        if (t_state > 0d0) then
@@ -210,15 +211,15 @@ contains
 
   subroutine mc_coag(MM, M, n_spec, n_bin, MH, VH, bin_v, &
        bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, allow_double, &
-       env, mat, tot_n_samp, n_coag)
+       env, aero_data, tot_n_samp, n_coag)
 
     ! Do coagulation for time del_t.
 
     use mod_util
-    use mod_array
+    use mod_aero_state
     use mod_bin 
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_coagulate
     
     integer, intent(in) :: MM           ! maximum number of particles
@@ -236,7 +237,7 @@ contains
     real*8, intent(in) :: del_t         ! timestep for coagulation
     logical, intent(in) :: allow_double ! allow doubling if needed
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(out) :: tot_n_samp  ! total number of samples tested
     integer, intent(out) :: n_coag      ! number of coagulation events
 

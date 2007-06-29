@@ -10,18 +10,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine singlestep_mosaic(M, n_spec, n_bin, MH, VH, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, mat, &
+       bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, aero_data, &
        gas_data, gas_state)
 
     use mod_constants
     use mod_util
-    use mod_array
+    use mod_aero_state
     use mod_bin 
     use mod_condensation
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_state
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
 
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
@@ -49,7 +50,7 @@ contains
     real*8, intent(in) :: del_t         ! timestep for coagulation
     
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
 
@@ -153,7 +154,7 @@ contains
 
     do i_spec = 1, n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
-      conv_fac(i_spec) = 1.D9*mat%rho(i_spec)/(mat%M_w(i_spec)*env%V_comp)
+      conv_fac(i_spec) = 1.D9*aero_data%rho(i_spec)/(aero_data%M_w(i_spec)*env%V_comp)
     enddo
 
     nbin_a = M
@@ -163,7 +164,7 @@ contains
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
           do i_spec = 1,n_spec
-             i_spec_mosaic = mat%mosaic_index(i_spec)
+             i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, jtotal, i_mosaic) &          ! nmol/m^3(air)
@@ -172,8 +173,8 @@ contains
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water) &  ! kg(water)/m^3(air)
-               * mat%rho(mat%i_water) / env%V_comp
+          water_a(i_mosaic) = VH(i_bin)%p(i_num,aero_data%i_water) &  ! kg(water)/m^3(air)
+               * aero_data%rho(aero_data%i_water) / env%V_comp
           num_a(i_mosaic) = 1.D0/env%V_comp                     ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
@@ -207,7 +208,7 @@ contains
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
           do i_spec = 1,n_spec
-             i_spec_mosaic = mat%mosaic_index(i_spec)
+             i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 VH(i_bin)%p(i_num, i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
@@ -216,8 +217,8 @@ contains
           end do
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
-          VH(i_bin)%p(i_num,mat%i_water) = water_a(i_mosaic) &
-               / mat%rho(mat%i_water) * env%V_comp
+          VH(i_bin)%p(i_num,aero_data%i_water) = water_a(i_mosaic) &
+               / aero_data%rho(aero_data%i_water) * env%V_comp
        end do
     end do
 

@@ -10,11 +10,11 @@
 ! distribution to an actual number of particles ready for a
 ! particle-resolved simulation.
 
-module mod_init_dist
+module mod_aero_dist
 
   type aero_mode_t
      real*8, pointer :: n_den(:)        ! len n_bin, number density (#/m^3)
-     real*8, pointer :: vol_frac(:)     ! len mat%n_spec, species fractions (1)
+     real*8, pointer :: vol_frac(:)     ! len aero_data%n_spec, species fractions (1)
   end type aero_mode_t
 
   type aero_dist_t
@@ -26,17 +26,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine dist_total_n_den(bin_grid, mat, dist, n_den)
+  subroutine dist_total_n_den(bin_grid, aero_data, dist, n_den)
       
     ! Compute the total number density of an aerosol distribution.
     
-    use mod_material
+    use mod_aero_data
     use mod_bin
-    use mod_array
+    use mod_aero_state
     use mod_util
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     type(aero_dist_t), intent(in) :: dist ! aerosol distribution
     real*8, intent(out) :: n_den(bin_grid%n_bin) ! total number density (#/m^3)
 
@@ -51,20 +51,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine dist_to_part(bin_grid, mat, dist, n_part, aero)
+  subroutine dist_to_part(bin_grid, aero_data, dist, n_part, aero)
 
     ! Convert a continuous distribution into particles.
     
-    use mod_material
+    use mod_aero_data
     use mod_bin
-    use mod_array
+    use mod_aero_state
     use mod_util
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     type(aero_dist_t), intent(in) :: dist ! aerosol distribution
     integer, intent(in) :: n_part       ! total number of particles
-    type(aerosol), intent(out) :: aero  ! aerosol distribution, will be alloced
+    type(aero_state_t), intent(out) :: aero  ! aerosol distribution, will be alloced
 
     integer :: i
     real*8 :: total_n_den
@@ -83,11 +83,11 @@ contains
     call vec_cts_to_disc(dist%n_modes, mode_n_dens, n_part, mode_n_parts)
 
     ! allocate particles within each mode in proportion to mode shape
-    call allocate_aerosol(bin_grid%n_bin, mat%n_spec, aero)
+    call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero)
     do i = 1,dist%n_modes
        call vec_cts_to_disc(bin_grid%n_bin, dist%modes(i)%n_den, &
             mode_n_parts(i), num_per_bin)
-       call add_particles(bin_grid, mat, dist%modes(i)%vol_frac, &
+       call add_particles(bin_grid, aero_data, dist%modes(i)%vol_frac, &
             num_per_bin, aero)
     end do
 
@@ -150,7 +150,7 @@ contains
     ! This is not like the other init functions. It does not produce a
     ! number density. Instead it generates MH and VH directly.
 
-    use mod_array
+    use mod_aero_state
     use mod_bin
 
     integer, intent(in) :: M            ! total number of particles
@@ -159,7 +159,7 @@ contains
     real*8, intent(in) :: big_num       ! number of big particle
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    type(aerosol), intent(inout) :: aero ! aerosol
+    type(aero_state_t), intent(inout) :: aero ! aerosol
     
     integer i_small, i_big, n_big
 
@@ -256,4 +256,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_init_dist
+end module mod_aero_dist

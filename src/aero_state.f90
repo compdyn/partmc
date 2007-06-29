@@ -38,24 +38,24 @@
 ! stored explicitly, but can be obtained with the Fortran 90 SIZE()
 ! intrinsic function.
 
-module mod_array
+module mod_aero_state
 
   type bin_p
      real*8, dimension(:,:), pointer :: p ! particle volumes (m^3)
      ! dimension of p is (# particles in bin) x n_spec
   end type bin_p
 
-  type aerosol
+  type aero_state_t
      integer, dimension(:), pointer :: n ! number of particles per bin
      type(bin_p), dimension(:), pointer :: v ! particle volumes (m^3)
      real*8 :: comp_vol                 ! computational volume (m^3)
-  end type aerosol
+  end type aero_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_aerosol(n_bin, n_spec, aero)
+  subroutine allocate_aero_state(n_bin, n_spec, aero)
 
     ! Initializes aerosol arrays to have zero particles in each
     ! bin. Do not call this more than once on a given aerosol, use
@@ -63,7 +63,7 @@ contains
 
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    type(aerosol), intent(inout) :: aero ! aerosol to initialize
+    type(aero_state_t), intent(inout) :: aero ! aerosol to initialize
     
     integer i
 
@@ -75,15 +75,15 @@ contains
        allocate(aero%v(i)%p(0, n_spec))
     end do
 
-  end subroutine allocate_aerosol
+  end subroutine allocate_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine deallocate_aerosol(aero)
+  subroutine deallocate_aero_state(aero)
 
     ! Deallocates a previously allocated aerosol.
 
-    type(aerosol), intent(inout) :: aero ! aerosol to initialize
+    type(aero_state_t), intent(inout) :: aero ! aerosol to initialize
     
     integer :: n_bin, i
 
@@ -94,17 +94,17 @@ contains
     end do
     deallocate(aero%v)
 
-  end subroutine deallocate_aerosol
+  end subroutine deallocate_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine copy_aerosol(from_aero, to_aero)
+  subroutine copy_aero_state(from_aero, to_aero)
 
     ! Copies aerosol to a destination that has already had
-    ! allocate_aerosol() called on it.
+    ! allocate_aero_state() called on it.
 
-    type(aerosol), intent(in) :: from_aero ! reference aerosol
-    type(aerosol), intent(inout) :: to_aero ! must already be allocated
+    type(aero_state_t), intent(in) :: from_aero ! reference aerosol
+    type(aero_state_t), intent(inout) :: to_aero ! must already be allocated
     
     integer :: n_bin, n_spec, n_part, i
     integer :: arr_shape(2)
@@ -113,8 +113,8 @@ contains
     arr_shape = shape(from_aero%v(1)%p)
     n_spec = arr_shape(2)
 
-    call deallocate_aerosol(to_aero)
-    call allocate_aerosol(n_bin, n_spec, to_aero)
+    call deallocate_aero_state(to_aero)
+    call allocate_aero_state(n_bin, n_spec, to_aero)
 
     to_aero%n = from_aero%n
     do i = 1,n_bin
@@ -124,15 +124,15 @@ contains
        to_aero%v(i)%p = from_aero%v(i)%p(1:n_part,:)
     end do
 
-  end subroutine copy_aerosol
+  end subroutine copy_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine copy_aerosol_to_array(from_aero, MH, VH)
+  subroutine copy_aero_state_to_array(from_aero, MH, VH)
 
     ! Copies aerosol to arrays that are already allocated.
 
-    type(aerosol), intent(in) :: from_aero ! reference aerosol
+    type(aero_state_t), intent(in) :: from_aero ! reference aerosol
     integer, intent(out) :: MH(:)       ! number of particles per bin
     type(bin_p), intent(out) :: VH(size(MH)) ! particle volumes
 
@@ -157,7 +157,7 @@ contains
        VH(i)%p = from_aero%v(i)%p(1:n_part,:)
     end do
 
-  end subroutine copy_aerosol_to_array
+  end subroutine copy_aero_state_to_array
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -279,19 +279,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine add_particles(bin_grid, mat, vol_frac, bin_n, aero)
+  subroutine add_particles(bin_grid, aero_data, vol_frac, bin_n, aero)
 
     ! Makes particles from the given number distribution and appends
     ! them to the VH array.
     
     use mod_bin
-    use mod_material
+    use mod_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(material), intent(in) :: mat   ! material data
-    real*8, intent(in) :: vol_frac(mat%n_spec) ! composition of particles
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    real*8, intent(in) :: vol_frac(aero_data%n_spec) ! composition of particles
     integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins
-    type(aerosol), intent(inout) :: aero ! aerosol, must be allocated already
+    type(aero_state_t), intent(inout) :: aero ! aerosol, must be allocated already
     
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i
@@ -320,7 +320,7 @@ contains
     
     ! Create the bin number and mass arrays from VH.
 
-    use mod_material
+    use mod_aero_data
     
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -355,7 +355,7 @@ contains
     ! correct for the bins they are in and resorts it so that every
     ! particle is in the correct bin.
 
-    use mod_material
+    use mod_aero_data
     use mod_bin
     
     integer, intent(in) :: n_bin        ! number of bins
@@ -424,7 +424,7 @@ contains
     ! Check that VH has all particles in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
 
-    use mod_material
+    use mod_aero_data
     use mod_util
     use mod_bin
     
@@ -519,4 +519,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_array
+end module mod_aero_state

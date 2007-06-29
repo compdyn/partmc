@@ -1,2 +1,2 @@
 # DO NOT EDIT --- auto-generated file
-src/process_state.o: src/mod_bin.mod src/mod_environ.mod src/mod_material.mod src/mod_array.mod src/mod_state.mod src/mod_util.mod
+src/process_state.o: src/mod_bin.mod src/mod_environ.mod src/mod_aero_data.mod src/mod_aero_state.mod src/mod_state.mod src/mod_util.mod

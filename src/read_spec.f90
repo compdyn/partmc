@@ -618,7 +618,8 @@ contains
 
     ! Read gas data from a .spec file.
 
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
 
     type(spec_file), intent(inout) :: spec ! spec file
     type(gas_data_t), intent(out) :: gas_data ! gas data
@@ -661,7 +662,8 @@ contains
 
     ! Read gas state from the file named on the line read from spec.
 
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
 
     type(spec_file), intent(inout) :: spec ! spec file
     type(gas_data_t), intent(out) :: gas_data ! gas data
@@ -707,14 +709,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_material_from_file(spec, mat)
+  subroutine read_aero_data_from_file(spec, aero_data)
 
-    ! Read material specification from a .spec file.
+    ! Read aero_data specification from a .spec file.
 
-    use mod_material
+    use mod_aero_data
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(out) :: mat  ! material data
+    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
 
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
@@ -733,32 +735,32 @@ contains
     end if
 
     ! allocate and copy over the data
-    call allocate_material(mat, n_species)
+    call allocate_aero_data(aero_data, n_species)
     do i = 1,n_species
-       mat%name(i) = species_name(i)
+       aero_data%name(i) = species_name(i)
        if (species_name(i) == "H2O") then
-          mat%i_water = i
+          aero_data%i_water = i
        end if
-       mat%rho(i) = species_data(i,1)
-       mat%nu(i) = nint(species_data(i,2))
-       mat%eps(i) = species_data(i,3)
-       mat%M_w(i) = species_data(i,4)
+       aero_data%rho(i) = species_data(i,1)
+       aero_data%nu(i) = nint(species_data(i,2))
+       aero_data%eps(i) = species_data(i,3)
+       aero_data%M_w(i) = species_data(i,4)
     end do
-    call set_material_water_index(mat)
-    call set_material_mosaic_map(mat)
+    call set_aero_data_water_index(aero_data)
+    call set_aero_data_mosaic_map(aero_data)
 
-  end subroutine read_material_from_file
+  end subroutine read_aero_data_from_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_material(spec, mat)
+  subroutine read_aero_data(spec, aero_data)
 
-    ! Read material specification from a .spec file.
+    ! Read aero_data specification from a .spec file.
 
-    use mod_material
+    use mod_aero_data
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(out) :: mat  ! material data
+    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
 
     character(len=MAX_CHAR_LEN) :: aero_name
     type(spec_file) :: aero_spec
@@ -766,10 +768,10 @@ contains
     ! read the aerosol data from the specified file
     call read_string(spec, 'aerosol_data', aero_name)
     call open_spec(aero_spec, aero_name)
-    call read_material_from_file(aero_spec, mat)
+    call read_aero_data_from_file(aero_spec, aero_data)
     call close_spec(aero_spec)
 
-  end subroutine read_material
+  end subroutine read_aero_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -831,14 +833,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_vol_frac(spec, mat, vol_frac)
+  subroutine read_vol_frac(spec, aero_data, vol_frac)
 
     ! Read volume fractions from a data file.
 
-    use mod_material
+    use mod_aero_data
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     real*8, intent(out) :: vol_frac(:)  ! aerosol species volume fractions
 
     integer :: n_species, species, i
@@ -871,7 +873,7 @@ contains
     ! copy over the data
     vol_frac = 0d0
     do i = 1,n_species
-       species = material_spec_by_name(mat, species_name(i))
+       species = aero_data_spec_by_name(aero_data, species_name(i))
        if (species == 0) then
           write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
                ' in file ', trim(aero_name)
@@ -884,17 +886,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_mode_shape(spec, mat, n_bin, bin_v, dlnr, n_den)
+  subroutine read_aero_mode_shape(spec, aero_data, n_bin, bin_v, dlnr, n_den)
 
     ! Read the shape (number density) of one mode of an aerosol
     ! distribution.
 
-    use mod_material
-    use mod_array
-    use mod_init_dist
+    use mod_aero_data
+    use mod_aero_state
+    use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -940,41 +942,41 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_mode(spec, mat, n_bin, bin_v, dlnr, mode)
+  subroutine read_aero_mode(spec, aero_data, n_bin, bin_v, dlnr, mode)
 
     ! Read one mode of an aerosol distribution (number density and
     ! volume fractions).
 
-    use mod_material
-    use mod_array
-    use mod_init_dist
+    use mod_aero_data
+    use mod_aero_state
+    use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
     type(aero_mode_t), intent(inout) :: mode ! aerosol mode, will be allocated
 
     allocate(mode%n_den(n_bin))
-    allocate(mode%vol_frac(mat%n_spec))
-    call read_vol_frac(spec, mat, mode%vol_frac)
-    call read_aero_mode_shape(spec, mat, n_bin, bin_v, dlnr, mode%n_den)
+    allocate(mode%vol_frac(aero_data%n_spec))
+    call read_vol_frac(spec, aero_data, mode%vol_frac)
+    call read_aero_mode_shape(spec, aero_data, n_bin, bin_v, dlnr, mode%n_den)
 
   end subroutine read_aero_mode
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_dist(spec, mat, n_bin, bin_v, dlnr, dist)
+  subroutine read_aero_dist(spec, aero_data, n_bin, bin_v, dlnr, dist)
 
     ! Read continuous aerosol distribution composed of several modes.
 
-    use mod_material
-    use mod_array
-    use mod_init_dist
+    use mod_aero_data
+    use mod_aero_state
+    use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -985,23 +987,23 @@ contains
     call read_integer(spec, 'n_modes', dist%n_modes)
     allocate(dist%modes(dist%n_modes))
     do i = 1,dist%n_modes
-       call read_aero_mode(spec, mat, n_bin, bin_v, dlnr, dist%modes(i))
+       call read_aero_mode(spec, aero_data, n_bin, bin_v, dlnr, dist%modes(i))
     end do
 
   end subroutine read_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_dist_filename(spec, mat, n_bin, bin_v, dlnr, name, dist)
+  subroutine read_aero_dist_filename(spec, aero_data, n_bin, bin_v, dlnr, name, dist)
 
     ! Read aerosol distribution from filename on line in spec.
 
-    use mod_material
-    use mod_array
-    use mod_init_dist
+    use mod_aero_data
+    use mod_aero_state
+    use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(material), intent(in) :: mat   ! material data
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -1014,7 +1016,7 @@ contains
     ! read the aerosol data from the specified file
     call read_string(spec, name, read_name)
     call open_spec(read_spec, read_name)
-    call read_aero_dist(read_spec, mat, n_bin, bin_v, dlnr, dist)
+    call read_aero_dist(read_spec, aero_data, n_bin, bin_v, dlnr, dist)
     call close_spec(read_spec)
 
   end subroutine read_aero_dist_filename

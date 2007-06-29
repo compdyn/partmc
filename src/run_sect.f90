@@ -14,17 +14,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(n_bin, bin_v, dlnr, n_den, kernel, &
-       t_max, del_t, t_output, t_progress, output_unit, mat, env)
+       t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
 
     ! Run a sectional simulation.
   
     use mod_bin
-    use mod_array
+    use mod_aero_state
     use mod_kernel_sedi
     use mod_util
-    use mod_init_dist
+    use mod_aero_dist
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_kernel
     use mod_output
 
@@ -40,7 +40,7 @@ contains
     integer, intent(in) :: output_unit  ! unit number to output to
 
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
     real*8 c(n_bin,n_bin)
     integer ima(n_bin,n_bin)
@@ -72,12 +72,12 @@ contains
     ! mass and radius grid
     do i = 1,n_bin
        r(i) = vol2rad(bin_v(i)) * 1d6       ! radius in m to um
-       e(i) = bin_v(i) * mat%rho(1) * 1d6   ! volume in m^3 to mass in mg
+       e(i) = bin_v(i) * aero_data%rho(1) * 1d6   ! volume in m^3 to mass in mg
     end do
     
     ! initial mass distribution
     do i = 1,n_bin
-       g(i) = n_den(i) * bin_v(i) * mat%rho(1)
+       g(i) = n_den(i) * bin_v(i) * aero_data%rho(1)
        if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
     end do
     
@@ -108,11 +108,11 @@ contains
     call check_event(time, del_t, t_output, last_output_time, do_output)
     if (do_output) then
        do i = 1,n_bin
-          bin_g_den(i) = g(i) / mat%rho(1)
+          bin_g_den(i) = g(i) / aero_data%rho(1)
           bin_n_den(i) = bin_g_den(i) / bin_v(i)
        end do
        call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
-            bin_g_den, bin_n_den, env, mat, 1)
+            bin_g_den, bin_n_den, env, aero_data, 1)
     end if
     
     ! main time-stepping loop
@@ -129,11 +129,11 @@ contains
             do_output)
        if (do_output) then
           do i = 1,n_bin
-             bin_g_den(i) = g(i) / mat%rho(1)
+             bin_g_den(i) = g(i) / aero_data%rho(1)
              bin_n_den(i) = bin_g_den(i) / bin_v(i)
           end do
           call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, &
-               bin_g_den, bin_g_den, bin_n_den, env, mat, 1)
+               bin_g_den, bin_g_den, bin_n_den, env, aero_data, 1)
        end if
        
        ! print progress to stdout

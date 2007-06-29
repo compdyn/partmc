@@ -10,16 +10,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine condense_particles(n_bin, n_spec, MH, VH, &
-       del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat)
+       del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data)
 
     ! Do condensation to all the particles for a given time interval,
     ! including updating the environment to account for the lost
     ! vapor.
 
-    use mod_array
+    use mod_aero_state
     use mod_bin
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -32,17 +32,17 @@ contains
     integer, intent(inout) :: bin_n(n_bin) ! number in bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     type(environ), intent(inout) :: env ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
     ! local variables
     integer bin, j, new_bin, k
     real*8 pv, pre_water_vol, post_water_vol
 
-    pre_water_vol = sum(bin_gs(:,mat%i_water))
+    pre_water_vol = sum(bin_gs(:,aero_data%i_water))
 
     do bin = 1,n_bin
        do j = 1,MH(bin)
-          call condense_particle(n_spec, VH(bin)%p(j,:), del_t, env, mat)
+          call condense_particle(n_spec, VH(bin)%p(j,:), del_t, env, aero_data)
        end do
     end do
 
@@ -57,27 +57,27 @@ contains
          bin_g, bin_gs, bin_n, dlnr)
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(bin_gs(:,mat%i_water))
-    call change_water_volume(env, mat, post_water_vol - pre_water_vol)
+    post_water_vol = sum(bin_gs(:,aero_data%i_water))
+    call change_water_volume(env, aero_data, post_water_vol - pre_water_vol)
 
   end subroutine condense_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particle(n_spec, V, del_t, env, mat)
+  subroutine condense_particle(n_spec, V, del_t, env, aero_data)
 
     ! Integrate the condensation growth or decay ODE for total time
     ! del_t for a single particle.
 
     use mod_util
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
     real*8, intent(in) :: del_t         ! total time to integrate
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     real*8 time_step, time
     logical done
@@ -89,7 +89,7 @@ contains
     done = .false.
     do while (.not. done)
        call condense_step_euler(n_spec, V, del_t - time, &
-            time_step, done, env, mat)
+            time_step, done, env, aero_data)
        time = time + time_step
     end do
     
@@ -98,7 +98,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine condense_step_euler(n_spec, V, max_dt, dt, &
-       done, env, mat)
+       done, env, aero_data)
 
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
@@ -106,7 +106,7 @@ contains
     ! be true. This uses the explicit (forward) Euler integrator.
     
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
@@ -114,27 +114,27 @@ contains
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     real*8 dvdt
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, dt, env, mat)
+    call find_condense_timestep_variable(n_spec, V, dt, env, aero_data)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call cond_growth_rate(n_spec, V, dvdt, env, mat)
-    V(mat%i_water) = V(mat%i_water) + dt * dvdt
-    V(mat%i_water) = max(0d0, V(mat%i_water))
+    call cond_growth_rate(n_spec, V, dvdt, env, aero_data)
+    V(aero_data%i_water) = V(aero_data%i_water) + dt * dvdt
+    V(aero_data%i_water) = max(0d0, V(aero_data%i_water))
    
   end subroutine condense_step_euler
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine condense_step_rk_fixed(n_spec, V, max_dt, &
-       dt, done, env, mat)
+       dt, done, env, aero_data)
 
     ! Does one timestep (determined by this subroutine) of the
     ! condensation ODE. The timestep will not exceed max_dt, but might
@@ -142,7 +142,7 @@ contains
     ! be true. This uses the explicit 4th-order Runge-Kutta integrator.
     
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
@@ -150,33 +150,33 @@ contains
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     done = .false.
-    call find_condense_timestep_variable(n_spec, V, dt, env, mat)
+    call find_condense_timestep_variable(n_spec, V, dt, env, aero_data)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
 
-    call condense_step_rk(n_spec, V, dt, env, mat)
+    call condense_step_rk(n_spec, V, dt, env, aero_data)
    
   end subroutine condense_step_rk_fixed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_step_rk(n_spec, V, dt, env, mat)
+  subroutine condense_step_rk(n_spec, V, dt, env, aero_data)
 
     ! Does one fixed timestep of Runge-Kutta-4.
 
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
     real*8, intent(out) :: dt           ! timestep
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     ! local variables
     real*8 k1, k2, k3, k4
@@ -185,45 +185,45 @@ contains
     V_tmp = V
 
     ! step 1
-    call cond_growth_rate(n_spec, V, k1, env, mat)
+    call cond_growth_rate(n_spec, V, k1, env, aero_data)
 
     ! step 2
-    V_tmp(mat%i_water) = V(mat%i_water) + dt * k1 / 2d0
-    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_growth_rate(n_spec, V_tmp, k2, env, mat)
+    V_tmp(aero_data%i_water) = V(aero_data%i_water) + dt * k1 / 2d0
+    V_tmp(aero_data%i_water) = max(0d0, V_tmp(aero_data%i_water))
+    call cond_growth_rate(n_spec, V_tmp, k2, env, aero_data)
 
     ! step 3
-    V_tmp(mat%i_water) = V(mat%i_water) + dt * k2 / 2d0
-    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_growth_rate(n_spec, V_tmp, k3, env, mat)
+    V_tmp(aero_data%i_water) = V(aero_data%i_water) + dt * k2 / 2d0
+    V_tmp(aero_data%i_water) = max(0d0, V_tmp(aero_data%i_water))
+    call cond_growth_rate(n_spec, V_tmp, k3, env, aero_data)
 
     ! step 4
-    V_tmp(mat%i_water) = V(mat%i_water) + dt * k3
-    V_tmp(mat%i_water) = max(0d0, V_tmp(mat%i_water))
-    call cond_growth_rate(n_spec, V_tmp, k4, env, mat)
+    V_tmp(aero_data%i_water) = V(aero_data%i_water) + dt * k3
+    V_tmp(aero_data%i_water) = max(0d0, V_tmp(aero_data%i_water))
+    call cond_growth_rate(n_spec, V_tmp, k4, env, aero_data)
 
-    V(mat%i_water) = V(mat%i_water) &
+    V(aero_data%i_water) = V(aero_data%i_water) &
          + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
 
-    V(mat%i_water) = max(0d0, V(mat%i_water))
+    V(aero_data%i_water) = max(0d0, V(aero_data%i_water))
    
   end subroutine condense_step_rk
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_constant(n_spec, V, dt, env, mat)
+  subroutine find_condense_timestep_constant(n_spec, V, dt, env, aero_data)
 
     ! Just returns a constant timestep.
 
-    use mod_array
+    use mod_aero_state
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     real*8, intent(out) :: dt           ! timestep to use
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     dt = 5d-3
 
@@ -231,44 +231,44 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_condense_timestep_variable(n_spec, V, dt, env, mat)
+  subroutine find_condense_timestep_variable(n_spec, V, dt, env, aero_data)
 
     ! Computes a timestep proportional to V / (dV/dt).
 
-    use mod_array
+    use mod_aero_state
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     real*8, intent(out) :: dt           ! timestep to use
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     real*8, parameter :: scale = 0.1d0  ! scale factor for timestep
 
     real*8 pv, dvdt
 
      pv = particle_volume(V)
-    call cond_growth_rate(n_spec, V, dvdt, env, mat)
+    call cond_growth_rate(n_spec, V, dvdt, env, aero_data)
     dt = abs(scale * pv / dvdt)
 
   end subroutine find_condense_timestep_variable
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_growth_rate(n_spec, V, dvdt, env, mat)
+  subroutine cond_growth_rate(n_spec, V, dvdt, env, aero_data)
     
     ! Find the water volume growth rate due to condensation.
 
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     real*8, intent(out) :: dvdt         ! dv/dt (m^3 s^{-1})
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     real*8, parameter :: dmdt_rel_tol = 1d-8 ! relative dm/dt convergence tol
     real*8, parameter :: f_tol = 1d-15  ! function convergence tolerance
@@ -276,44 +276,44 @@ contains
 
     real*8 dmdt, pm, dmdt_tol
 
-    pm = particle_mass(V, mat)
+    pm = particle_mass(V, aero_data)
     dmdt_tol = pm * dmdt_rel_tol
 
     dmdt = 0d0
-    call cond_newt(n_spec, V, dmdt, env, mat, cond_growth_rate_func, &
+    call cond_newt(n_spec, V, dmdt, env, aero_data, cond_growth_rate_func, &
          dmdt_tol, f_tol, iter_max)
     
-    dvdt = dmdt / mat%rho(mat%i_water)
+    dvdt = dmdt / aero_data%rho(aero_data%i_water)
 
   end subroutine cond_growth_rate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-  subroutine cond_newt(n_spec, V, x, env, mat, func, x_tol, f_tol, iter_max)
+  subroutine cond_newt(n_spec, V, x, env, aero_data, func, x_tol, f_tol, iter_max)
     
     ! Scalar Newton's method for solving the implicit condensation
     ! functions.
 
     use mod_environ
-    use mod_material
+    use mod_aero_data
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     real*8, intent(inout) :: x          ! variable (set to inital value on call)
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: x_tol         ! x convergence tolerance
     real*8, intent(in) :: f_tol         ! f convergence tolerance
     integer, intent(in) :: iter_max     ! maximum number of iterations
 
     interface
-       subroutine func(n_spec, V, env, mat, init, x, f, df)
+       subroutine func(n_spec, V, env, aero_data, init, x, f, df)
          use mod_environ
-         use mod_material
+         use mod_aero_data
          integer, intent(in) :: n_spec     ! number of species
          real*8, intent(in) :: V(n_spec)   ! particle volumes (m^3)
          type(environ), intent(in) :: env  ! environment state
-         type(material), intent(in) :: mat ! material properties
+         type(aero_data_t), intent(in) :: aero_data ! aerosol data
          logical, intent(in) :: init       ! true if first Newton loop
          real*8, intent(in) :: x           ! independent variable to solve for
          real*8, intent(out) :: f          ! function to solve
@@ -324,7 +324,7 @@ contains
     integer iter, k
     real*8 delta_f, delta_x, f, old_f, df
 
-    call func(n_spec, V, env, mat, .true., x, f, df)
+    call func(n_spec, V, env, aero_data, .true., x, f, df)
     old_f = f
 
     iter = 0
@@ -333,7 +333,7 @@ contains
 
        delta_x = f / df
        x = x - delta_x
-       call func(n_spec, V, env, mat, .false., x, f, df)
+       call func(n_spec, V, env, aero_data, .false., x, f, df)
        delta_f = f - old_f
        old_f = f
        
@@ -357,21 +357,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine cond_growth_rate_func(n_spec, V, env, mat, init, dmdt, f, df)
+  subroutine cond_growth_rate_func(n_spec, V, env, aero_data, init, dmdt, f, df)
 
     ! Return the error function value and its derivative for the
     ! implicit growth rate function.
 
-    use mod_array
+    use mod_aero_state
     use mod_util
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_constants
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dmdt          ! mass growth rate dm/dt (kg s^{-1})
     real*8, intent(out) :: f            ! error
@@ -388,14 +388,14 @@ contains
     if (init) then
        ! Start of new Newton loop, compute all constants
 
-       M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
-       M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
-       nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
-       eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
-       rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
-       rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
-       g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
-       g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+       M_water = average_water_quantity(V, aero_data, aero_data%M_w)     ! (kg mole^{-1})
+       M_solute = average_solute_quantity(V, aero_data, aero_data%M_w)   ! (kg mole^{-1})
+       nu = average_solute_quantity(V, aero_data, dble(aero_data%nu))    ! (1)
+       eps = average_solute_quantity(V, aero_data, aero_data%eps)        ! (1)
+       rho_water = average_water_quantity(V, aero_data, aero_data%rho)   ! (kg m^{-3})
+       rho_solute = average_solute_quantity(V, aero_data, aero_data%rho) ! (kg m^{-3})
+       g_water = total_water_quantity(V, aero_data, aero_data%rho)       ! (kg)
+       g_solute = total_solute_quantity(V, aero_data, aero_data%rho)     ! (kg)
 
        pv = particle_volume(V) ! m^3
        d_p = vol2diam(pv) ! m
@@ -457,20 +457,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_particle(n_spec, V, env, mat)
+  subroutine equilibriate_particle(n_spec, V, env, aero_data)
 
     ! Add water to the particle until it is in equilibrium.
 
     use mod_util
-    use mod_array
+    use mod_aero_state
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_constants
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(inout) :: V(n_spec)  ! particle volumes (m^3)
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
 
     ! parameters
     integer, parameter :: it_max = 400     ! maximum iterations
@@ -486,31 +486,31 @@ contains
     dw = dw_init
     ! convert volume relative tolerance to diameter absolute tolerance
     dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)
-    call cond_newt(n_spec, V, dw, env, mat, equilibriate_func, &
+    call cond_newt(n_spec, V, dw, env, aero_data, equilibriate_func, &
          dw_tol, f_tol, iter_max)
 
-    V(mat%i_water) = diam2vol(dw) - pv
+    V(aero_data%i_water) = diam2vol(dw) - pv
 
   end subroutine equilibriate_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine equilibriate_func(n_spec, V, env, mat, init, dw, f, df)
+  subroutine equilibriate_func(n_spec, V, env, aero_data, init, dw, f, df)
 
     ! Return the error function value and its derivative for the
     ! implicit function that determines the equilibrium state of a
     ! particle.
 
     use mod_util
-    use mod_array
+    use mod_aero_state
     use mod_environ
-    use mod_material
+    use mod_aero_data
     use mod_constants
 
     integer, intent(in) :: n_spec       ! number of species
     real*8, intent(in) :: V(n_spec)     ! particle volumes (m^3)
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dw            ! wet diameter (m)
     real*8, intent(out) :: f            ! function value
@@ -525,14 +525,14 @@ contains
     if (init) then
        ! Start of new Newton loop, compute all constants
 
-       M_water = average_water_quantity(V, mat, mat%M_w)     ! (kg mole^{-1})
-       M_solute = average_solute_quantity(V, mat, mat%M_w)   ! (kg mole^{-1})
-       nu = average_solute_quantity(V, mat, dble(mat%nu))    ! (1)
-       eps = average_solute_quantity(V, mat, mat%eps)        ! (1)
-       rho_water = average_water_quantity(V, mat, mat%rho)   ! (kg m^{-3})
-       rho_solute = average_solute_quantity(V, mat, mat%rho) ! (kg m^{-3})
-       g_water = total_water_quantity(V, mat, mat%rho)       ! (kg)
-       g_solute = total_solute_quantity(V, mat, mat%rho)     ! (kg)
+       M_water = average_water_quantity(V, aero_data, aero_data%M_w)     ! (kg mole^{-1})
+       M_solute = average_solute_quantity(V, aero_data, aero_data%M_w)   ! (kg mole^{-1})
+       nu = average_solute_quantity(V, aero_data, dble(aero_data%nu))    ! (1)
+       eps = average_solute_quantity(V, aero_data, aero_data%eps)        ! (1)
+       rho_water = average_water_quantity(V, aero_data, aero_data%rho)   ! (kg m^{-3})
+       rho_solute = average_solute_quantity(V, aero_data, aero_data%rho) ! (kg m^{-3})
+       g_water = total_water_quantity(V, aero_data, aero_data%rho)       ! (kg)
+       g_solute = total_solute_quantity(V, aero_data, aero_data%rho)     ! (kg)
 
        pv = particle_volume(V)
 

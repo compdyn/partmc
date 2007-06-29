@@ -19,10 +19,10 @@ contains
     ! update all structures. The probability of a coagulation will be
     ! taken as (kernel / k_max).
 
-    use mod_material
+    use mod_aero_data
     use mod_util
     use mod_environ
-    use mod_array
+    use mod_aero_state
 
     integer, intent(inout) :: M         ! number of particles
     integer, intent(in) :: n_bin        ! number of bins
@@ -86,7 +86,7 @@ contains
     ! Find a random pair of particles (b1, s1) and (b2, s2).
     
     use mod_util
-    use mod_array
+    use mod_aero_state
 
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: MH(n_bin)    ! number particles per bin
@@ -117,10 +117,10 @@ contains
     ! true if the used bin set changed due to the coagulation (i.e. an
     ! empty bin filled or a filled bin became empty).
 
-    use mod_material
+    use mod_aero_data
     use mod_bin
     use mod_environ
-    use mod_array
+    use mod_aero_state
     
     integer, intent(inout) :: M         ! number of particles
     integer, intent(in) :: n_bin        ! number of bins

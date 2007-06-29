@@ -8,9 +8,9 @@
 program test_sedi_bidisperse_state_to_count
   
   use mod_environ
-  use mod_material
+  use mod_aero_data
   use mod_state
-  use mod_array
+  use mod_aero_state
 
   integer, parameter :: out_unit = 33   ! output unit number
   integer, parameter :: state_unit = 34 ! state file unit number

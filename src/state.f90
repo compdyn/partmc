@@ -21,7 +21,7 @@ contains
     ! again.
     
     use mod_environ
-    use mod_array
+    use mod_aero_state
     use mod_util
        
     integer, intent(in) :: state_unit   ! unit number to use for state file
@@ -48,7 +48,7 @@ contains
     ! close the file again.
     
     use mod_environ
-    use mod_array
+    use mod_aero_state
     use mod_util
        
     integer, intent(in) :: state_unit   ! unit number to use for state file
@@ -95,7 +95,7 @@ contains
     ! then close it.
 
     use mod_environ
-    use mod_array
+    use mod_aero_state
     use mod_util
     
     integer, intent(in) :: state_unit   ! unit number to use for state file
@@ -169,7 +169,7 @@ contains
     ! Write the current state.
     
     use mod_environ
-    use mod_array
+    use mod_aero_state
     
     integer, intent(in) :: state_unit   ! unit number to use for state file
     character(len=*), intent(in) :: state_prefix ! prefix of state file

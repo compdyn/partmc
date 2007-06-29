@@ -52,18 +52,19 @@ contains
   subroutine partmc_mc(spec)
 
     use mod_bin
-    use mod_array
-    use mod_init_dist
+    use mod_aero_state
+    use mod_aero_dist
     use mod_condensation
     use mod_kernel_sedi
     use mod_kernel_golovin
     use mod_kernel_constant
     use mod_kernel_brown
-    use mod_material
+    use mod_aero_data
     use mod_environ
     use mod_run_mc
     use mod_read_spec
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
     use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -94,10 +95,10 @@ contains
     type(gas_state_t) :: gas_init       ! gas initial condition
     type(gas_state_t) :: gas_state      ! gas current state for run
 
-    type(material) :: mat               ! material data
+    type(aero_data_t) :: aero_data               ! aero_data data
     type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
-    type(aerosol) :: aero_init          ! aerosol initial condition
-    type(aerosol) :: aero_state         ! aerosol current state for run
+    type(aero_state_t) :: aero_init          ! aerosol initial condition
+    type(aero_state_t) :: aero_state         ! aerosol current state for run
 
     type(environ) :: env                ! environment data
     
@@ -150,18 +151,18 @@ contains
     call read_gas_state(spec, gas_data, 'gas_background', env%gas_background)
     call read_real(spec, 'gas_dilution_rate', env%gas_dilution_rate)
 
-    call read_material(spec, mat)
-    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_data(spec, aero_data)
+    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_init', aero_init_dist)
-    call dist_to_part(bin_grid, mat, aero_init_dist, n_part, aero_init)
-    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+    call dist_to_part(bin_grid, aero_data, aero_init_dist, n_part, aero_init)
+    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_emissions', env%aero_emissions)
     call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
-    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_background', env%aero_background)
     call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
-    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
+    allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
 
     call read_integer(spec, 'rand_init', rand_init)
     call read_logical(spec, 'do_coagulation', do_coagulation)
@@ -176,7 +177,7 @@ contains
     ! finished reading .spec data, now do the run
     
     call output_open(output_unit, output_file, n_loop, n_bin, &
-         mat%n_spec, nint(t_max / t_output) + 1)
+         aero_data%n_spec, nint(t_max / t_output) + 1)
     
     if (rand_init /= 0) then
        call srand(rand_init)
@@ -185,17 +186,17 @@ contains
     end if
 
     allocate(MH(n_bin), VH(n_bin))
-    call init_array(mat%n_spec, MH, VH)
+    call init_array(aero_data%n_spec, MH, VH)
 
     call allocate_gas_state(gas_data, gas_state)
-    call allocate_aerosol(n_bin, mat%n_spec, aero_state)
+    call allocate_aero_state(n_bin, aero_data%n_spec, aero_state)
     call cpu_time(t_wall_start)
     do i_loop = 1,n_loop
        
        call copy_gas_state(gas_init, gas_state)
-       call copy_aerosol(aero_init, aero_state)
+       call copy_aero_state(aero_init, aero_state)
        ! FIXME: should be passing aero_state directly to run_mc
-       call copy_aerosol_to_array(aero_state, MH, VH)
+       call copy_aero_state_to_array(aero_state, MH, VH)
 
        M = sum(MH)
        MM = M
@@ -205,41 +206,41 @@ contains
        if (do_condensation) then
           do i_bin = 1,n_bin
              do i = 1,MH(i_bin)
-                call equilibriate_particle(mat%n_spec, VH(i_bin)%p(i,:), &
-                     env, mat)
+                call equilibriate_particle(aero_data%n_spec, VH(i_bin)%p(i,:), &
+                     env, aero_data)
              end do
           end do
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, bin_grid%dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
                restart_name, i_loop, n_loop, t_wall_start, &
-               env, mat, gas_data, gas_state)
+               env, aero_data, gas_data, gas_state)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, bin_grid%dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
+               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, bin_grid%dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
+               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
                bin_gs, bin_n, bin_grid%dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
+               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
@@ -254,16 +255,17 @@ contains
   subroutine partmc_exact(spec)
 
     use mod_bin
-    use mod_array
-    use mod_init_dist
+    use mod_aero_state
+    use mod_aero_dist
     use mod_condensation
     use mod_kernel_golovin
     use mod_kernel_constant
-    use mod_material
+    use mod_aero_data
     use mod_environ
     use mod_run_exact
     use mod_read_spec
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
     use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -283,7 +285,7 @@ contains
     real*8 :: t_max                     ! total simulation time (s)
     real*8 :: t_output                  ! output interval (0 disables) (s)
     
-    type(material) :: mat               ! material data
+    type(aero_data_t) :: aero_data               ! aero_data data
     type(environ) :: env                ! environment data
 
     integer :: n_bin                    ! number of bins
@@ -309,7 +311,7 @@ contains
     call read_real(spec, 't_output', t_output)
     
     call read_environ(spec, env)
-    call read_material(spec, mat)
+    call read_aero_data(spec, aero_data)
 
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)
@@ -320,10 +322,10 @@ contains
     ! finished reading .spec data, now do the run
     
     call output_open(output_unit, output_file, 1, n_bin, &
-         mat%n_spec, nint(t_max / t_output) + 1)
+         aero_data%n_spec, nint(t_max / t_output) + 1)
 
     allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
-    allocate(bin_gs_den(n_bin,mat%n_spec))
+    allocate(bin_gs_den(n_bin,aero_data%n_spec))
     
     call make_bin_grid(n_bin, scal, v_min, bin_grid)
     ! FIXME: delete following
@@ -331,13 +333,13 @@ contains
     dlnr = bin_grid%dlnr
     
     if (trim(soln_name) == 'golovin_exp') then
-       call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, num_conc, mean_vol, mat%rho(1), soln_golovin_exp, &
-            t_max, t_output, output_unit, env, mat)
+       call run_exact(n_bin, aero_data%n_spec, bin_v, bin_g_den, bin_gs_den, &
+            bin_n_den, num_conc, mean_vol, aero_data%rho(1), soln_golovin_exp, &
+            t_max, t_output, output_unit, env, aero_data)
     elseif (trim(soln_name) == 'golovin_exp') then
-       call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, num_conc, mean_vol, mat%rho(1), soln_constant_exp_cond, &
-            t_max, t_output, output_unit, env, mat)
+       call run_exact(n_bin, aero_data%n_spec, bin_v, bin_g_den, bin_gs_den, &
+            bin_n_den, num_conc, mean_vol, aero_data%rho(1), soln_constant_exp_cond, &
+            t_max, t_output, output_unit, env, aero_data)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -349,7 +351,7 @@ contains
 
   subroutine partmc_sect(spec)
 
-    use mod_material
+    use mod_aero_data
     use mod_environ
     use mod_run_sect
     use mod_kernel_sedi
@@ -357,9 +359,10 @@ contains
     use mod_kernel_constant
     use mod_kernel_brown
     use mod_bin
-    use mod_array
-    use mod_init_dist
-    use mod_gas
+    use mod_aero_state
+    use mod_aero_dist
+    use mod_gas_data
+    use mod_gas_state
     use mod_output
 
     type(spec_file), intent(out) :: spec     ! spec file
@@ -381,9 +384,9 @@ contains
     real*8 :: t_output                  ! output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     
-    type(material) :: mat               ! material data
+    type(aero_data_t) :: aero_data               ! aero_data data
     type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
-    type(aerosol) :: aero_init          ! aerosol initial condition
+    type(aero_state_t) :: aero_init          ! aerosol initial condition
     type(environ) :: env                ! environment data
     
     character(len=100) :: dist_type     ! initial distribution
@@ -414,33 +417,33 @@ contains
     dlnr = bin_grid%dlnr
     
     call read_environ(spec, env)
-    call read_material(spec, mat)
+    call read_aero_data(spec, aero_data)
 
-    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
+    allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
 
-    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_init', aero_init_dist)
-    call dist_total_n_den(bin_grid, mat, aero_init_dist, n_den)
+    call dist_total_n_den(bin_grid, aero_data, aero_init_dist, n_den)
     
     call close_spec(spec)
 
     ! finished reading .spec data, now do the run
 
     call output_open(output_unit, output_file, 1, n_bin, &
-         mat%n_spec, nint(t_max / t_output) + 1)
+         aero_data%n_spec, nint(t_max / t_output) + 1)
     
     if (trim(kernel_name) == 'sedi') then
        call run_sect(n_bin, bin_v, dlnr, n_den, kernel_sedi, &
-            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(n_bin, bin_v, dlnr, n_den, kernel_golovin, &
-            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
     elseif (trim(kernel_name) == 'constant') then
        call run_sect(n_bin, bin_v, dlnr, n_den, kernel_constant, &
-            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
     elseif (trim(kernel_name) == 'brown') then
        call run_sect(n_bin, bin_v, dlnr, n_den, kernel_brown, &
-            t_max, del_t, t_output, t_progress, output_unit, mat, env)
+            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

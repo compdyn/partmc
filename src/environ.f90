@@ -11,9 +11,10 @@
 
 module mod_environ
 
-  use mod_array
-  use mod_gas
-  use mod_init_dist
+  use mod_aero_state
+  use mod_gas_data
+  use mod_gas_state
+  use mod_aero_dist
   
   type environ
      real*8 :: T                        ! temperature (K)
@@ -58,16 +59,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine change_water_volume(env, mat, dv)
+  subroutine change_water_volume(env, aero_data, dv)
     
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
     
     use mod_constants
-    use mod_material
+    use mod_aero_data
     
     type(environ), intent(inout) :: env ! environment state to update
-    type(material), intent(in)   :: mat ! material constants
+    type(aero_data_t), intent(in)   :: aero_data ! aero_data constants
     real*8, intent(in) :: dv            ! volume of water added (m^3)
     
     real*8 pmv     ! ambient water vapor pressure (Pa)
@@ -75,11 +76,11 @@ contains
                    ! pmv and mv are related by the factor M_w/(R*T)
     real*8 dmv     ! change of water density (kg m^{-3})
     
-    dmv = dv * mat%rho(mat%i_water) / env%V_comp
+    dmv = dv * aero_data%rho(aero_data%i_water) / env%V_comp
     pmv = sat_vapor_pressure(env) * env%RH
-    mv = mat%M_w(mat%i_water)/(const%R*env%T) * pmv
+    mv = aero_data%M_w(aero_data%i_water)/(const%R*env%T) * pmv
     mv = mv - dmv    
-    env%RH = const%R * env%T / mat%M_w(mat%i_water) * mv &
+    env%RH = const%R * env%T / aero_data%M_w(aero_data%i_water) * mv &
          / sat_vapor_pressure(env)
     
   end subroutine change_water_volume
@@ -142,7 +143,8 @@ contains
 
     ! Do emissions and background dilution from the environment.
 
-    use mod_gas
+    use mod_gas_data
+    use mod_gas_state
 
     type(environ), intent(in) :: env    ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over

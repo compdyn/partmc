@@ -32,13 +32,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_info(output_unit, time, n_bin, n_spec, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, env, mat, i_loop)
+       bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes absolute number and absolute volume
     ! per-bin (as produced by a particle-resolved code, for example).
     
-    use mod_material
+    use mod_aero_data
     use mod_environ
     
     integer, intent(in) :: output_unit  ! unit number to output to
@@ -51,7 +51,7 @@ contains
     integer, intent(in) :: bin_n(n_bin) ! number in bins (dimensionless)
     real*8, intent(in) :: dlnr          ! bin scale factor
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: i_loop       ! current loop number
     
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
@@ -61,20 +61,20 @@ contains
     bin_gs_den = bin_gs / env%V_comp / dlnr
     bin_n_den = dble(bin_n) / env%V_comp / dlnr
     call output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
-         bin_g_den, bin_gs_den, bin_n_den, env, mat, i_loop)
+         bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
     
   end subroutine output_info
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_info_density(output_unit, time, n_bin, n_spec, bin_v, &
-       bin_g_den, bin_gs_den, bin_n_den, env, mat, i_loop)
+       bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes number and volume densities (as produced
     ! by a sectional code, for example).
     
-    use mod_material
+    use mod_aero_data
     use mod_environ
     use mod_util
     
@@ -87,7 +87,7 @@ contains
     real*8, intent(in) :: bin_gs_den(n_bin,n_spec) ! spec vol den in bins (1)
     real*8, intent(in) :: bin_n_den(n_bin) ! number density in bins (1/m^3)
     type(environ), intent(in) :: env    ! environment state
-    type(material), intent(in) :: mat   ! material properties
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: i_loop       ! current loop number
     
     integer k

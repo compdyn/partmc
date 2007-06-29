@@ -29,6 +29,7 @@ program process_state
   integer, allocatable :: MH(:)         ! number of particles per bin
   type(bin_p), allocatable :: VH(:)     ! particle volumes (m^3)
   real*8, allocatable :: bin_v(:)       ! volume of particles in bins
+  type(bin_grid_t) :: bin_grid          ! bin grid
 
   type(environ) :: env                  ! environment state
   type(material) :: mat                 ! material properties
@@ -64,7 +65,10 @@ program process_state
   call read_state_bins(state_unit, filename, n_bin, bin_v, dlnr)
   call read_state(state_unit, filename, n_bin, n_spec, MH, VH, env, time)
 
-  call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+  call make_bin_grid(n_bin, scal, v_min, bin_grid)
+  ! FIXME: eventually delete following two lines
+  bin_v = bin_grid%v
+  dlnr = bin_grid%dlnr
 
   call allocate_material(mat, n_spec)
   

@@ -13,6 +13,7 @@ module mod_environ
 
   use mod_array
   use mod_gas
+  use mod_init_dist
   
   type environ
      real*8 :: T                        ! temperature (K)
@@ -32,9 +33,9 @@ module mod_environ
      real*8 :: gas_emission_rate        ! gas emisssion rate (s^{-1})
      type(gas_state_t) :: gas_background ! background gas concentrations
      real*8 :: gas_dilution_rate        ! gas-background dilution rate (s^{-1})
-     type(aerosol) :: aero_emissions    ! aerosol emissions
+     type(aero_dist_t) :: aero_emissions ! aerosol emissions
      real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
-     type(aerosol) :: aero_background   ! aerosol background
+     type(aero_dist_t) :: aero_background ! aerosol background
      real*8 :: aero_dilution_rate       ! aero-background dilution rate (s^{-1})
   end type environ
   

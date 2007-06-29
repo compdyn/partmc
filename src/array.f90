@@ -48,6 +48,7 @@ module mod_array
   type aerosol
      integer, dimension(:), pointer :: n ! number of particles per bin
      type(bin_p), dimension(:), pointer :: v ! particle volumes (m^3)
+     real*8 :: comp_vol                 ! computational volume (m^3)
   end type aerosol
 
 contains
@@ -278,33 +279,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine add_particles(n_bin, n_spec, vol_frac, &
-       bin_v, bin_n, aero)
+  subroutine add_particles(bin_grid, mat, vol_frac, bin_n, aero)
 
     ! Makes particles from the given number distribution and appends
     ! them to the VH array.
     
     use mod_bin
+    use mod_material
 
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    real*8, intent(in) :: vol_frac(n_spec) ! composition of particles
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    integer, intent(in) :: bin_n(n_bin) ! number in bins
-    type(aerosol), intent(inout) :: aero ! aerosol
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(material), intent(in) :: mat   ! material data
+    real*8, intent(in) :: vol_frac(mat%n_spec) ! composition of particles
+    integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins
+    type(aerosol), intent(inout) :: aero ! aerosol, must be allocated already
     
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i
 
     total_vol_frac = sum(vol_frac)
-    do k = 1,n_bin
-       call bin_edge(n_bin, bin_v, k, v_low)
-       call bin_edge(n_bin, bin_v, k + 1, v_high)
+    do k = 1,bin_grid%n_bin
+       call bin_edge(bin_grid%n_bin, bin_grid%v, k, v_low)
+       call bin_edge(bin_grid%n_bin, bin_grid%v, k + 1, v_high)
        do i = 1,bin_n(k)
           ! we used to do:
           ! pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
           ! but this doesn't actually work as well as:
-          pv = bin_v(k)
+          pv = bin_grid%v(k)
           aero%n(k) = aero%n(k) + 1
           call enlarge_bin_to(aero%v(k), aero%n(k))
           aero%v(k)%p(aero%n(k),:) = vol_frac / total_vol_frac * pv

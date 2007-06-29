@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo
 output_file out/sedi_exp_mc_out.d # name of output file
 state_prefix out/sedi_exp_mc_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-num_conc 1d9                    # particle concentration (#/m^3)
+n_part 10000000                 # total number of particles
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
@@ -33,7 +33,7 @@ gas_background gas_none.dat     # background gas concentrations file
 gas_dilution_rate 1e-3          # gas dilution rate with background (s^{-1})
 
 aerosol_data aerosol_data_water.dat # file containing aerosol data
-aerosol_init sedi_exp_mc_init.dat # aerosol initial condition file
+aerosol_init sedi_exp_init.dat # aerosol initial condition file
 aerosol_emissions aerosol_none.dat # aerosol emissions file
 aerosol_emission_rate 1e-3      # aerosol emission rate (s^{-1})
 aerosol_background aerosol_none.dat # aerosol background file

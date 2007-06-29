@@ -13,7 +13,7 @@ module mod_bin
   type bin_grid_t
      integer :: n_bin
      real*8, pointer :: v(:)            ! len n_bin, bin center volumes (m^3)
-     real*8, pointer :: dlnr            ! bin scale factor (1)
+     real*8 :: dlnr                     ! bin scale factor (1)
   end type bin_grid_t
 
   type bin_dist_t
@@ -29,7 +29,7 @@ contains
   subroutine vol_to_lnr(r, f_vol, f_lnr)
     
     ! Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
-    ! where vol = 4 pi r^3.
+    ! where vol = 4/3 pi r^3.
     
     use mod_constants
     
@@ -43,7 +43,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+  subroutine make_bin_grid(n_bin, scal, v_min, bin_grid)
 
     ! Generates the bin grid, given the minimum volume, number of grid
     ! points, and the scale factor.
@@ -51,17 +51,18 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: scal         ! scale factor
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
-    real*8, intent(out) :: bin_v(n_bin) ! volume of particles in bins (m^3)
-    real*8, intent(out) :: dlnr         ! scale factor
+    type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
     
     integer i
     real*8 ax
-    
-    dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
+
+    bin_grid%n_bin = n_bin
+    bin_grid%dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
     ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
-    
+
+    allocate(bin_grid%v(n_bin))
     do i = 1,n_bin
-       bin_v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)  ! (m^3)
+       bin_grid%v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)  ! (m^3)
     end do
     
   end subroutine make_bin_grid

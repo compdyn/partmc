@@ -81,7 +81,7 @@ contains
     character(len=300) :: output_file   ! name of output files
     character(len=300) :: state_prefix  ! prefix for state files
     integer :: n_loop                   ! number of Monte Carlo loops
-    real*8 :: num_conc                  ! particle concentration (#/m^3)
+    integer :: n_part                   ! total number of particles
     character(len=100) :: kernel_name   ! coagulation kernel name
     
     real*8 :: t_max                     ! total simulation time (s)
@@ -95,6 +95,7 @@ contains
     type(gas_state_t) :: gas_state      ! gas current state for run
 
     type(material) :: mat               ! material data
+    type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
     type(aerosol) :: aero_init          ! aerosol initial condition
     type(aerosol) :: aero_state         ! aerosol current state for run
 
@@ -109,6 +110,7 @@ contains
     integer :: n_bin                    ! number of bins
     real*8 :: v_min                     ! volume of smallest bin (m^3)
     integer :: scal                     ! scale factor (integer)
+    type(bin_grid_t) :: bin_grid        ! bin grid
     
     integer :: rand_init                ! random initialization (0 to auto-init)
     logical :: do_coagulation           ! do coagulation? (yes/no)
@@ -121,7 +123,7 @@ contains
     call read_string(spec, 'output_file', output_file)
     call read_string(spec, 'state_prefix', state_prefix)
     call read_integer(spec, 'n_loop', n_loop)
-    call read_real(spec, 'num_conc', num_conc)
+    call read_integer(spec, 'n_part', n_part)
     call read_string(spec, 'kernel', kernel_name)
     
     call read_real(spec, 't_max', t_max)
@@ -135,8 +137,11 @@ contains
     call read_integer(spec, 'n_bin', n_bin)
     call read_real(spec, 'v_min', v_min)
     call read_integer(spec, 'scal', scal)
-    allocate(bin_v(n_bin), n_den(n_bin))
-    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+
+    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+    ! FIXME: remove the following two lines once we convert to use bin_grid
+    allocate(bin_v(n_bin))
+    bin_v = bin_grid%v
     
     call read_gas_data(spec, gas_data)
     call read_gas_state(spec, gas_data, 'gas_init', gas_init)
@@ -146,15 +151,13 @@ contains
     call read_real(spec, 'gas_dilution_rate', env%gas_dilution_rate)
 
     call read_material(spec, mat)
-    call allocate_aerosol(n_bin, mat%n_spec, aero_init)
-    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
-         'aerosol_init', aero_init)
-    call allocate_aerosol(n_bin, mat%n_spec, env%aero_emissions)
-    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
+    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+         'aerosol_init', aero_init_dist)
+    call dist_to_part(bin_grid, mat, aero_init_dist, n_part, aero_init)
+    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_emissions', env%aero_emissions)
     call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
-    call allocate_aerosol(n_bin, mat%n_spec, env%aero_background)
-    call read_aerosol(spec, mat, n_bin, bin_v, dlnr, &
+    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
          'aerosol_background', env%aero_background)
     call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
@@ -195,7 +198,8 @@ contains
        call copy_aerosol_to_array(aero_state, MH, VH)
 
        M = sum(MH)
-       env%V_comp = dble(M) / num_conc
+       MM = M
+       env%V_comp = dble(M) / dist_num_conc(bin_grid, aero_init_dist)
        
        ! equlibriate all particles if condensation is active
        if (do_condensation) then
@@ -208,30 +212,30 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, dlnr, kernel_sedi, t_max, t_output, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, bin_grid%dlnr, kernel_sedi, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, &
                restart_name, i_loop, n_loop, t_wall_start, &
                env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, dlnr, kernel_golovin, t_max, t_output, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, bin_grid%dlnr, kernel_golovin, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, dlnr, kernel_constant, t_max, t_output, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, bin_grid%dlnr, kernel_constant, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
                i_loop, n_loop, t_wall_start, env, mat, gas_data, gas_state)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(M, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, dlnr, kernel_brown, t_max, t_output, &
+          call run_mc(MM, M, mat%n_spec, n_bin, MH, VH, bin_v, bin_g, &
+               bin_gs, bin_n, bin_grid%dlnr, kernel_brown, t_max, t_output, &
                t_state, t_progress, del_t, output_unit, state_unit, &
                state_prefix, do_coagulation, allow_double, &
                do_condensation, do_mosaic, do_restart, restart_name, &
@@ -285,6 +289,7 @@ contains
     integer :: n_bin                    ! number of bins
     real*8 :: v_min                     ! volume of smallest bin (m^3)
     integer :: scal                     ! scale factor (integer)
+    type(bin_grid_t) :: bin_grid        ! bin grid
     
     call read_string(spec, 'output_file', output_file)
     call read_real(spec, 'num_conc', num_conc)
@@ -320,7 +325,10 @@ contains
     allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
     allocate(bin_gs_den(n_bin,mat%n_spec))
     
-    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+    ! FIXME: delete following
+    bin_v = bin_grid%v
+    dlnr = bin_grid%dlnr
     
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(n_bin, mat%n_spec, bin_v, bin_g_den, bin_gs_den, &
@@ -374,6 +382,7 @@ contains
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     
     type(material) :: mat               ! material data
+    type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
     type(aerosol) :: aero_init          ! aerosol initial condition
     type(environ) :: env                ! environment data
     
@@ -383,7 +392,8 @@ contains
     integer :: n_bin                    ! number of bins
     real*8 :: v_min                     ! volume of smallest bin (m^3)
     integer :: scal                     ! scale factor (integer)
-    
+    type(bin_grid_t) :: bin_grid        ! bin grid
+
     call read_string(spec, 'output_file', output_file)
     call read_real(spec, 'num_conc', num_conc)
 
@@ -398,14 +408,20 @@ contains
     call read_real(spec, 'v_min', v_min)
     call read_integer(spec, 'scal', scal)
     allocate(bin_v(n_bin), n_den(n_bin))
-    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
-    call make_bin_grid(n_bin, scal, v_min, bin_v, dlnr)
+    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+    ! FIXME: eventually delete following
+    bin_v = bin_grid%v
+    dlnr = bin_grid%dlnr
     
     call read_environ(spec, env)
     call read_material(spec, mat)
 
-    call read_aerosol_mode(spec, mat, n_bin, bin_v, dlnr, n_den)
+    allocate(bin_g(n_bin), bin_gs(n_bin,mat%n_spec), bin_n(n_bin))
 
+    call read_aero_dist_filename(spec, mat, n_bin, bin_v, bin_grid%dlnr, &
+         'aerosol_init', aero_init_dist)
+    call dist_total_n_den(bin_grid, mat, aero_init_dist, n_den)
+    
     call close_spec(spec)
 
     ! finished reading .spec data, now do the run
@@ -414,16 +430,16 @@ contains
          mat%n_spec, nint(t_max / t_output) + 1)
     
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_sedi, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_sedi, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_golovin, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_golovin, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_constant, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_constant, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, num_conc, kernel_brown, &
+       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_brown, &
             t_max, del_t, t_output, t_progress, output_unit, mat, env)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

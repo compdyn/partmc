@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo run
 output_file out/golovin_mc_out.d # name of output file
 state_prefix out/golovin_mc_state # prefix of state files
 n_loop 10                       # number of Monte Carlo loops
-num_conc 1d9                    # particle concentration (#/m^3)
+n_part 10000                    # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel
 
 t_max 600                       # total simulation time (s)

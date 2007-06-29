@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo run
 output_file out/mosaic_out.d    # name of output file
 state_prefix out/mosaic_state   # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-num_conc 1d3                    # particle concentration (#/m^3)
+n_part 3                        # total number of particles
 kernel golovin                  # coagulation kernel
 
 t_max 600                       # total simulation time (s)

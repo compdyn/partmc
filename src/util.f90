@@ -421,5 +421,48 @@ contains
   end function sample_pdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    subroutine vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
+
+      ! Convert a continuous vector into a discrete vector with n_samp
+      ! samples. Returns discrete vector whose relative entry sizes
+      ! are \ell_1 closest to the continuous vector.
+
+      integer, intent(in) :: n          ! number of entries in vector
+      real*8, intent(in) :: vec_cts(n)  ! continuous vector
+      integer, intent(in) :: n_samp     ! number of discrete samples to use
+      integer, intent(out) :: vec_disc(n) ! discretized vector
+
+      integer :: k(1)
+      real*8 :: vec_tot
+
+      vec_tot = sum(vec_cts)
+
+      ! assign a best guess for each bin independently
+      vec_disc = nint(vec_cts / vec_tot * dble(n_samp))
+
+      ! if we have too few particles then add more
+      do while (sum(vec_disc) < n_samp)
+         k = minloc(abs(dble(vec_disc + 1) - vec_cts) &
+              - abs(dble(vec_disc) - vec_cts))
+         vec_disc(k) = vec_disc(k) + 1
+      end do
+    
+      ! if we have too many particles then remove some
+      do while (sum(vec_disc) > n_samp)
+         k = minloc(abs(dble(vec_disc - 1) - vec_cts) &
+              - abs(dble(vec_disc) - vec_cts))
+         vec_disc(k) = vec_disc(k) - 1
+      end do
+    
+      ! asserts
+      if (sum(vec_disc) /= n_samp) then
+         write(0,*) 'ERROR: generated incorrect number of samples'
+         call exit(1)
+      end if
+
+    end subroutine vec_cts_to_disc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_util

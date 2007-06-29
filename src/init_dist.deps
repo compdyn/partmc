@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/init_dist.o: src/mod_array.mod src/mod_bin.mod src/mod_util.mod src/mod_constants.mod
-src/mod_init_dist.mod: src/mod_array.mod src/mod_bin.mod src/mod_util.mod src/mod_constants.mod
+src/init_dist.o: src/mod_material.mod src/mod_bin.mod src/mod_array.mod src/mod_util.mod src/mod_constants.mod
+src/mod_init_dist.mod: src/mod_material.mod src/mod_bin.mod src/mod_array.mod src/mod_util.mod src/mod_constants.mod

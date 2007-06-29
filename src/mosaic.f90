@@ -112,9 +112,9 @@ contains
       zalt_m = env%altitude                     ! altitude (m)
 
       ! environmental parameters: map PartMC -> MOSAIC
-      RH = env%RH * 100.d0			! relative humidity (%)
-      te = env%T				! temperature (K)
-      pr_atm = env%p / const%atm		! pressure (atm)
+      RH = env%RH * 100.d0                      ! relative humidity (%)
+      te = env%T                                ! temperature (K)
+      pr_atm = env%p / const%atm                ! pressure (atm)
 
       call init_data_modules                    ! initialize indices and vars
       call LoadPeroxyParameters                 ! Aperox and Bperox only once
@@ -158,7 +158,7 @@ contains
 
     nbin_a = M
     i_mosaic = 0 ! MOSAIC bin number
-    aer = 0d0							! initialize to zero
+    aer = 0d0                                                   ! initialize to zero
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
@@ -166,15 +166,15 @@ contains
              i_spec_mosaic = mat%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
-                aer(i_spec_mosaic, jtotal, i_mosaic) &		! nmol/m^3(air)
+                aer(i_spec_mosaic, jtotal, i_mosaic) &          ! nmol/m^3(air)
                      = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water) &	! kg(water)/m^3(air)
+          water_a(i_mosaic) = VH(i_bin)%p(i_num,mat%i_water) &  ! kg(water)/m^3(air)
                * mat%rho(mat%i_water) / env%V_comp
-          num_a(i_mosaic) = 1.D0/env%V_comp 			! number conc. (#/cc(air))
+          num_a(i_mosaic) = 1.D0/env%V_comp                     ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do

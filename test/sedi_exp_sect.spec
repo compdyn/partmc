@@ -24,5 +24,4 @@ start_day 1                     # start day of year (UTC)
 
 aerosol_data aerosol_data_water.dat  # file containing aerosol data
 
-mode_type exp                   # type of initial distribution
-mean_vol 4.1886d-15             # mean diameter (m)
+aerosol_init sedi_exp_init.dat  # initial aerosol distribution

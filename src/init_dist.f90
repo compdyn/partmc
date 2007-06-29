@@ -11,7 +11,108 @@
 ! particle-resolved simulation.
 
 module mod_init_dist
+
+  type aero_mode_t
+     real*8, pointer :: n_den(:)        ! len n_bin, number density (#/m^3)
+     real*8, pointer :: vol_frac(:)     ! len mat%n_spec, species fractions (1)
+  end type aero_mode_t
+
+  type aero_dist_t
+     integer :: n_modes
+     type(aero_mode_t), pointer :: modes(:) ! len n_mode, internally mixed modes
+  end type aero_dist_t
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine dist_total_n_den(bin_grid, mat, dist, n_den)
+      
+    ! Compute the total number density of an aerosol distribution.
+    
+    use mod_material
+    use mod_bin
+    use mod_array
+    use mod_util
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(material), intent(in) :: mat   ! material data
+    type(aero_dist_t), intent(in) :: dist ! aerosol distribution
+    real*8, intent(out) :: n_den(bin_grid%n_bin) ! total number density (#/m^3)
+
+    integer :: i
+
+    n_den = 0d0
+    do i = 1,dist%n_modes
+       n_den = n_den + dist%modes(i)%n_den
+    end do
+
+  end subroutine dist_total_n_den
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine dist_to_part(bin_grid, mat, dist, n_part, aero)
+
+    ! Convert a continuous distribution into particles.
+    
+    use mod_material
+    use mod_bin
+    use mod_array
+    use mod_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(material), intent(in) :: mat   ! material data
+    type(aero_dist_t), intent(in) :: dist ! aerosol distribution
+    integer, intent(in) :: n_part       ! total number of particles
+    type(aerosol), intent(out) :: aero  ! aerosol distribution, will be alloced
+
+    integer :: i
+    real*8 :: total_n_den
+    real*8 :: mode_n_dens(dist%n_modes)
+    integer :: mode_n_parts(dist%n_modes)
+    integer :: num_per_bin(bin_grid%n_bin)
+
+    ! find the total number density of each mode
+    total_n_den = 0d0
+    do i = 1,dist%n_modes
+       mode_n_dens(i) = sum(dist%modes(i)%n_den)
+    end do
+    total_n_den = sum(mode_n_dens)
+
+    ! allocate particles to modes proportional to their number densities
+    call vec_cts_to_disc(dist%n_modes, mode_n_dens, n_part, mode_n_parts)
+
+    ! allocate particles within each mode in proportion to mode shape
+    call allocate_aerosol(bin_grid%n_bin, mat%n_spec, aero)
+    do i = 1,dist%n_modes
+       call vec_cts_to_disc(bin_grid%n_bin, dist%modes(i)%n_den, &
+            mode_n_parts(i), num_per_bin)
+       call add_particles(bin_grid, mat, dist%modes(i)%vol_frac, &
+            num_per_bin, aero)
+    end do
+
+  end subroutine dist_to_part
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function dist_num_conc(bin_grid, dist) ! #/m^3
+
+    ! Returns the total number concentration in #/m^3 of a distribution.
+
+    use mod_bin
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_dist_t), intent(in) :: dist ! aerosol distribution
+
+    integer :: i
+    
+    dist_num_conc = 0d0
+    do i = 1,dist%n_modes
+       dist_num_conc = dist_num_conc + sum(dist%modes(i)%n_den)
+    end do
+    dist_num_conc = dist_num_conc * bin_grid%dlnr
+
+  end function dist_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -152,66 +253,6 @@ contains
     ! FIXME: should really be 1/dlnr rather than 1
     
   end subroutine init_mono
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine dist_to_n(N, dlnr, n_bin, bin_v, n_den, bin_n)
-    
-    ! Convert a number density (in ln(r)) to actual number of particles
-    ! in each bin.
-    
-    use mod_util
-
-    integer, intent(in) :: N            ! total number of particles (approx)
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: n_den(n_bin)  ! init number density (#(ln(r))d(ln(r)))
-                                        ! n_den(n_bin) has to be normalized
-    integer, intent(out) :: bin_n(n_bin) ! number distribution
-    
-    integer :: k
-    real*8 :: bin_n_real, n_den_tot
-
-    ! FIXME: we shouldn't need to do this, as the distributions n_den
-    ! that are passed to us should already satisfy sum(n_den) = 1/dlnr,
-    ! but this is not the case for monodisperse so we hack it like
-    ! this for now
-    n_den_tot = sum(n_den)
-
-    ! assign a best guess for each bin independently
-    do k = 1,n_bin
-       ! FIXME: should really be (* dlnr) rather than (/ n_den_tot)
-       ! but see above
-       bin_n_real = dble(N) * n_den(k) / n_den_tot
-       bin_n(k) = int(bin_n_real)
-       ! ensure that we have the correct mean value with integer number
-       if (util_rand() < mod(bin_n_real, 1d0)) then
-          bin_n(k) = bin_n(k) + 1
-       end if
-    end do
-
-    ! if we have too few particles then add more in the right proportions
-    do while (sum(bin_n) < N)
-       k = sample_pdf(n_bin, n_den)
-       bin_n(k) = bin_n(k) + 1
-    end do
-    
-    ! if we have too many particles then remove in the right proportions
-    do while (sum(bin_n) > N)
-       k = sample_pdf(n_bin, n_den)
-       if (bin_n(k) > 0) then
-          bin_n(k) = bin_n(k) - 1
-       end if
-    end do
-
-    ! asserts
-    if (sum(bin_n) /= N) then
-       write(0,*) 'ERROR: generated incorrect number of particles'
-       call exit(1)
-    end if
-    
-  end subroutine dist_to_n
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

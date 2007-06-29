@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo run
-output_file out/dust_salt_part1_out.d # name of output file
+output_file out/dust_salt_part1_summary.d # name of output file
 state_prefix out/dust_salt_part1_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 num_conc 1d9                    # particle concentration (#/m^3)

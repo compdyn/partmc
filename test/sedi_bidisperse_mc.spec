@@ -1,8 +1,8 @@
 run_type mc                     # Monte Carlo
-output_file out/sedi_bidisperse_mc_out.d #  output filename
+output_file out/sedi_bidisperse_mc_summary.d #  output filename
 state_prefix out/sedi_bidisperse_mc_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-num_conc 1d9                    # particle concentration (#/m^3)
+n_part 10001                    # number of Monte Carlo particles
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
@@ -21,21 +21,23 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-gas_init_conc gas_init_standard.dat # initial gas concentrations
-aerosol_data aerosol_water.dat  # file containing aerosol data
-
-n_init_dist 1                   # number of initial aerosol distributions
-
-n_p 10001                       # number of particles
-vol_frac comp_water.dat         # composition proportions of species
-dist_type bidisperse            # type of distribution
-dist_small_vol 4d-15            # volume of each small particle
-dist_big_vol 4d-12              # initial volume of each big particle
-dist_big_num 1                  # initial number of big particles
-
 n_bin 250                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)
 scal 3                          # scale factor (integer)
+
+gas_data gas_data_simple.dat    # file containing gas data
+gas_init gas_init_simple.dat    # initial gas concentrations
+gas_emissions gas_none.dat      # gas emissions file
+gas_emission_rate 1e-3          # gas emission rate (s^{-1})
+gas_background gas_none.dat     # background gas concentrations file
+gas_dilution_rate 1e-3          # gas dilution rate with background (s^{-1})
+
+aerosol_data aerosol_data_water.dat # file containing aerosol data
+aerosol_init sedi_bidisperse_mc_init.dat # aerosol initial condition file
+aerosol_emissions aerosol_none.dat # aerosol emissions file
+aerosol_emission_rate 1e-3      # aerosol emission rate (s^{-1})
+aerosol_background aerosol_none.dat # aerosol background file
+aerosol_dilution_rate 1e-3      # aerosol dilution rate with background (s^{-1})
 
 rand_init 17                    # random initialization (0 to auto-generate)
 do_coagulation yes              # whether to do coagulation (yes/no)

@@ -886,21 +886,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_mode_shape(spec, aero_data, n_bin, bin_v, dlnr, n_den)
+  subroutine read_aero_mode_shape(spec, aero_data, bin_grid, n_den)
 
     ! Read the shape (number density) of one mode of an aerosol
     ! distribution.
 
+    use mod_bin
     use mod_aero_data
     use mod_aero_state
     use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    real*8 :: n_den(n_bin)              ! mode density
+    type(aero_data_t), intent(in) :: aero_data ! aero_data data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8 :: n_den(bin_grid%n_bin)     ! mode density
 
     real*8 :: num_conc
     character(len=MAX_CHAR_LEN) :: mode_type
@@ -911,23 +910,13 @@ contains
     if (trim(mode_type) == 'log_normal') then
        call read_real(spec, 'dist_mean_diam', mean_vol)
        call read_real(spec, 'dist_std_dev', std_dev)
-       call init_log_normal(mean_vol, std_dev, n_bin, bin_v, n_den)
+       call init_log_normal(mean_vol, std_dev, bin_grid, n_den)
     elseif (trim(mode_type) == 'exp') then
        call read_real(spec, 'mean_vol', mean_vol)
-       call init_exp(mean_vol, n_bin, bin_v, n_den)
+       call init_exp(mean_vol, bin_grid, n_den)
     elseif (trim(mode_type) == 'mono') then
        call read_real(spec, 'vol', vol)
-       call init_mono(vol, n_bin, bin_v, n_den)
-    elseif (trim(mode_type) == 'bidisperse') then
-       call read_real(spec, 'small_vol', small_vol)
-       call read_real(spec, 'big_vol', big_vol)
-       call read_real(spec, 'big_num', big_num)
-       ! FIXME: change bidisperse generate a real density,
-       ! will probably need to specify the number again here
-!       call init_bidisperse(n_part, small_vol, big_vol, &
-!            big_num, n_bin, bin_v, aero)
-       write(0,*) 'ERROR: unimplemented'
-       call exit(1)
+       call init_mono(vol, bin_grid, n_den)
     else
        write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
             trim(mode_type), ' in file ', trim(spec%name), &
@@ -935,51 +924,48 @@ contains
        call exit(1)
     end if
 
-    ! FIXME: assumes n_den is normalized
     n_den = n_den * num_conc
 
   end subroutine read_aero_mode_shape
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_mode(spec, aero_data, n_bin, bin_v, dlnr, mode)
+  subroutine read_aero_mode(spec, aero_data, bin_grid, mode)
 
     ! Read one mode of an aerosol distribution (number density and
     ! volume fractions).
 
+    use mod_bin
     use mod_aero_data
     use mod_aero_state
     use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_mode_t), intent(inout) :: mode ! aerosol mode, will be allocated
 
-    allocate(mode%n_den(n_bin))
+    allocate(mode%n_den(bin_grid%n_bin))
     allocate(mode%vol_frac(aero_data%n_spec))
     call read_vol_frac(spec, aero_data, mode%vol_frac)
-    call read_aero_mode_shape(spec, aero_data, n_bin, bin_v, dlnr, mode%n_den)
+    call read_aero_mode_shape(spec, aero_data, bin_grid, mode%n_den)
 
   end subroutine read_aero_mode
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_dist(spec, aero_data, n_bin, bin_v, dlnr, dist)
+  subroutine read_aero_dist(spec, aero_data, bin_grid, dist)
 
     ! Read continuous aerosol distribution composed of several modes.
 
+    use mod_bin
     use mod_aero_data
     use mod_aero_state
     use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(inout) :: dist ! aerosol dist, will be allocated
 
     integer :: i
@@ -987,26 +973,25 @@ contains
     call read_integer(spec, 'n_modes', dist%n_modes)
     allocate(dist%modes(dist%n_modes))
     do i = 1,dist%n_modes
-       call read_aero_mode(spec, aero_data, n_bin, bin_v, dlnr, dist%modes(i))
+       call read_aero_mode(spec, aero_data, bin_grid, dist%modes(i))
     end do
 
   end subroutine read_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_aero_dist_filename(spec, aero_data, n_bin, bin_v, dlnr, name, dist)
+  subroutine read_aero_dist_filename(spec, aero_data, bin_grid, name, dist)
 
     ! Read aerosol distribution from filename on line in spec.
 
+    use mod_bin
     use mod_aero_data
     use mod_aero_state
     use mod_aero_dist
 
     type(spec_file), intent(inout) :: spec ! spec file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     character(len=*), intent(in) :: name ! name of data line for filename
     type(aero_dist_t), intent(inout) :: dist ! aerosol distribution
 
@@ -1016,7 +1001,7 @@ contains
     ! read the aerosol data from the specified file
     call read_string(spec, name, read_name)
     call open_spec(read_spec, read_name)
-    call read_aero_dist(read_spec, aero_data, n_bin, bin_v, dlnr, dist)
+    call read_aero_dist(read_spec, aero_data, bin_grid, dist)
     call close_spec(read_spec)
 
   end subroutine read_aero_dist_filename

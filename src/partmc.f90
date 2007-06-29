@@ -152,13 +152,13 @@ contains
     call read_real(spec, 'gas_dilution_rate', env%gas_dilution_rate)
 
     call read_aero_data(spec, aero_data)
-    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
     call dist_to_part(bin_grid, aero_data, aero_init_dist, n_part, aero_init)
-    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_emissions', env%aero_emissions)
     call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
-    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_background', env%aero_background)
     call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
@@ -421,7 +421,7 @@ contains
 
     allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
 
-    call read_aero_dist_filename(spec, aero_data, n_bin, bin_v, bin_grid%dlnr, &
+    call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
     call dist_total_n_den(bin_grid, aero_data, aero_init_dist, n_den)
     

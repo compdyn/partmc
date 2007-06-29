@@ -27,3 +27,7 @@ Just for progress display and to test the need for double?
 Specify number of particles in the main .spec file and then for each
 mode specify only the the number concentration. This would also permit
 the sectional code to be run with an arbitrary sum of initial modes.
+
+Cache bin edges in bin_grid
+
+make_bin_grid should take r_min, r_max and n_bin

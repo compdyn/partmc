@@ -2,13 +2,15 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Initial size distributions.
+! Aerosol size distributions.
 !
 ! The initial size distributions are computed as number densities, so
 ! they can be used for both sectional and particle-resolved
 ! simulations. The routine dist_to_n() converts a number density
 ! distribution to an actual number of particles ready for a
 ! particle-resolved simulation.
+!
+! Initial distributions should be normalized so that sum(n_den) = 1/dlnr.
 
 module mod_aero_dist
 
@@ -116,87 +118,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_dist(dist_type, dist_args, n_bin, bin_v, n_den)
-
-    ! Multiplexer to make an initial distribution based on its
-    ! name. These should be normalized so that sum(n_den) = 1/dlnr.
-
-    character(len=*), intent(in) :: dist_type ! type of distribution
-    real*8, intent(in) :: dist_args(:)  ! distribution parameters
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin) ! initial number density 
-                                        ! (#(ln(r))d(ln(r))) (normalized)
-
-    if (trim(dist_type) == 'log_normal') then
-       call init_log_normal(dist_args(1), dist_args(2), n_bin, &
-            bin_v, n_den)
-    elseif (trim(dist_type) == 'exp') then
-       call init_exp(dist_args(1), n_bin, bin_v, n_den)
-    elseif (trim(dist_type) == 'mono') then
-       call init_mono(dist_args(1), n_bin, bin_v, n_den)
-    else
-       write(0,*) 'ERROR: unknown distribution type: ', trim(dist_type)
-       call exit(1)
-    end if
-
-  end subroutine init_dist
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine init_bidisperse(M, small_vol, big_vol, big_num, &
-       n_bin, bin_v, aero)
-    
-    ! This is not like the other init functions. It does not produce a
-    ! number density. Instead it generates MH and VH directly.
-
-    use mod_aero_state
-    use mod_bin
-
-    integer, intent(in) :: M            ! total number of particles
-    real*8, intent(in) :: small_vol     ! volume of small particles (m^3)
-    real*8, intent(in) :: big_vol       ! volume of big particle (m^3)
-    real*8, intent(in) :: big_num       ! number of big particle
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    type(aero_state_t), intent(inout) :: aero ! aerosol
-    
-    integer i_small, i_big, n_big
-
-    n_big = nint(big_num)
-    call particle_in_bin(small_vol, n_bin, bin_v, i_small)
-    call particle_in_bin(big_vol, n_bin, bin_v, i_big)
-    aero%n(i_small) = M - n_big
-    aero%n(i_big) = n_big
-    call enlarge_bin_to(aero%v(i_small), aero%n(i_small))
-    call enlarge_bin_to(aero%v(i_big), aero%n(i_big))
-    aero%v(i_small)%p = small_vol
-    aero%v(i_big)%p = big_vol
-
-  end subroutine init_bidisperse
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine init_log_normal(d_mean, log_sigma, n_bin, &
-       bin_v, n_den)
+  subroutine init_log_normal(d_mean, log_sigma, bin_grid, n_den)
 
     ! Compute a log-normal distribution.
     
+    use mod_bin
     use mod_util
     use mod_constants
     
     real*8, intent(in) :: d_mean        ! geometric mean diameter of initial number dist (m)
     real*8, intent(in) :: log_sigma     ! log_10(geom. std dev(init dist)) (1)
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8,  intent(out) :: n_den(n_bin) ! init number den (#(ln(r))d(ln(r)))
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8,  intent(out) :: n_den(bin_grid%n_bin) ! init number den (#(ln(r))d(ln(r)))
                                          ! (normalized)
     
     integer k
     
-    do k = 1,n_bin
+    do k = 1,bin_grid%n_bin
        n_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
-            dexp(-(dlog10(vol2rad(bin_v(k))) - dlog10(d_mean/2d0))**2d0 &
+            dexp(-(dlog10(vol2rad(bin_grid%v(k))) - dlog10(d_mean/2d0))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
     end do
     
@@ -208,7 +148,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_exp(mean_vol, n_bin, bin_v, n_den)
+  subroutine init_exp(mean_vol, bin_grid, n_den)
     
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
@@ -217,23 +157,22 @@ contains
     use mod_util
     
     real*8, intent(in) :: mean_vol      ! mean volume of init dist (m^3)
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(out) :: n_den(bin_grid%n_bin) ! init number density (#(ln(r))d(ln(r)))
     
     integer k
     real*8 n_den_vol
     
-    do k = 1,n_bin
-       n_den_vol = 1d0 / mean_vol * exp(-(bin_v(k) / mean_vol))
-       call vol_to_lnr(vol2rad(bin_v(k)), n_den_vol, n_den(k))
+    do k = 1,bin_grid%n_bin
+       n_den_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
+       call vol_to_lnr(vol2rad(bin_grid%v(k)), n_den_vol, n_den(k))
     end do
     
   end subroutine init_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_mono(vol, n_bin, bin_v, n_den)
+  subroutine init_mono(vol, bin_grid, n_den)
     
     ! Mono-disperse distribution at mean_vol
     
@@ -241,16 +180,14 @@ contains
     use mod_util
     
     real*8, intent(in) :: vol           ! volume of each particle (m^3)
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: n_den(n_bin) ! init number density (#(ln(r))d(ln(r)))
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(out) :: n_den(bin_grid%n_bin) ! init number density (#(ln(r))d(ln(r)))
     
     integer k
 
     n_den = 0d0
-    call particle_in_bin(vol, n_bin, bin_v, k)
-    n_den(k) = 1d0
-    ! FIXME: should really be 1/dlnr rather than 1
+    call particle_in_bin(vol, bin_grid%n_bin, bin_grid%v, k)
+    n_den(k) = 1d0 / bin_grid%dlnr
     
   end subroutine init_mono
   

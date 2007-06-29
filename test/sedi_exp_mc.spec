@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo
-output_file out/sedi_exp_mc_out.d # name of output file
+output_file out/sedi_exp_mc_summary.d # name of output file
 state_prefix out/sedi_exp_mc_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 n_part 10000000                 # total number of particles

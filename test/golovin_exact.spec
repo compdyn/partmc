@@ -1,5 +1,5 @@
 run_type exact                  # exact solution
-output_file out/golovin_exact_out.d # name of output file
+output_file out/golovin_exact_summary.d # name of output file
 num_conc 1d9                    # particle concentration (#/m^3)
 soln golovin_exp                # solution type
 mean_vol 4.1886d-15             # mean volume (m^3)

@@ -18,13 +18,13 @@ sleep 1
 
 echo ../src/partmc sedi_exp_mc.spec
 ../src/partmc sedi_exp_mc.spec
-echo ../src/process_out out/sedi_exp_mc_out.d
-../src/process_out out/sedi_exp_mc_out.d
+echo ../src/process_summary out/sedi_exp_mc_summary.d
+../src/process_summary out/sedi_exp_mc_summary.d
 
 echo ../src/partmc sedi_exp_sect.spec
 ../src/partmc sedi_exp_sect.spec
-echo ../src/process_out out/sedi_exp_sect_out.d
-../src/process_out out/sedi_exp_sect_out.d
+echo ../src/process_summary out/sedi_exp_sect_summary.d
+../src/process_summary out/sedi_exp_sect_summary.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM
@@ -32,12 +32,12 @@ set logscale x
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
-plot [1e-7:1e-2] "out/sedi_exp_mc_out_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/sedi_exp_mc_out_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/sedi_exp_mc_out_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:3 w l title "Sectional (0 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
+plot [1e-7:1e-2] "out/sedi_exp_mc_summary_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/sedi_exp_mc_summary_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/sedi_exp_mc_summary_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:3 w l title "Sectional (0 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
 set output "out/sedi_exp_plot_num.eps"
 replot
@@ -50,12 +50,12 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
-plot [1e-7:1e-2] [1e2:1e10] "out/sedi_exp_mc_out_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/sedi_exp_mc_out_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/sedi_exp_mc_out_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:3 w l title "Sectional (0 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
-replot "out/sedi_exp_sect_out_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
+plot [1e-7:1e-2] [1e2:1e10] "out/sedi_exp_mc_summary_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/sedi_exp_mc_summary_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/sedi_exp_mc_summary_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:3 w l title "Sectional (0 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:8 w l title "Sectional (5 mins)"
+replot "out/sedi_exp_sect_summary_num_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
 set output "out/sedi_exp_plot_num_log.eps"
 replot
@@ -68,12 +68,12 @@ set logscale x
 set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
-plot [1e-7:1e-2] [0:8e-6]  "out/sedi_exp_mc_out_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/sedi_exp_mc_out_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/sedi_exp_mc_out_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
+plot [1e-7:1e-2] [0:8e-6]  "out/sedi_exp_mc_summary_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/sedi_exp_mc_summary_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/sedi_exp_mc_summary_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
 set output "out/sedi_exp_plot_vol.eps"
 replot
@@ -86,12 +86,12 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Sedimentation kernel, exponential initial condition"
-plot [1e-7:1e-2] [1e-20:1e3]  "out/sedi_exp_mc_out_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/sedi_exp_mc_out_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/sedi_exp_mc_out_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
-replot "out/sedi_exp_sect_out_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
+plot [1e-7:1e-2] [1e-20:1e3]  "out/sedi_exp_mc_summary_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
+replot "out/sedi_exp_mc_summary_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
+replot "out/sedi_exp_mc_summary_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:3 w l title "Sectional (0 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:8 w l title "Sectional (5 mins)"
+replot "out/sedi_exp_sect_summary_vol_avg.d" using 2:13 w l title "Sectional (10 mins)"
 set terminal postscript eps
 set output "out/sedi_exp_plot_vol_log.eps"
 replot

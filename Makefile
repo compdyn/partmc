@@ -40,7 +40,7 @@ endif
 
 PROGS := src/process_summary src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode				\
-	test/sedi_bidisperse_state_to_count src/equilib
+	test/sedi_bidisperse_state_to_count equilib/equilib
 
 OTHER := src/aero_state src/bin src/condensation src/constants		\
 	src/environ src/aero_dist src/kernel_golovin src/kernel_sedi	\
@@ -75,7 +75,7 @@ sedi_bidisperse_state_to_count_OBJS :=				\
 	src/aero_data.o src/output_state.o src/aero_state.o	\
 	src/constants.o src/util.o src/bin.o src/gas_data.o	\
 	src/gas_state.o
-equilib_OBJS := src/equilib.o src/aero_data.o src/environ.o		\
+equilib_OBJS := equilib/equilib.o src/aero_data.o src/environ.o		\
 	src/condensation.o src/read_spec.o src/util.o src/aero_state.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/bin.o	\
 	src/aero_dist.o
@@ -118,6 +118,8 @@ src/%.o src/mod_%.mod: src/%.f90 src/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 test/%.o test/mod_%.mod: test/%.f90 test/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
+equilib/%.o equilib/mod_%.mod: equilib/%.f90 equilib/%.deps
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/process_summary: $(process_summary_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
@@ -131,7 +133,7 @@ test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
 test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
-src/equilib: $(equilib_OBJS)
+equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 
 .PHONY: clean
@@ -140,11 +142,11 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ src/*.mod
+	rm -f *~ src/*~ test/*~ equilib/*~ src/*.mod
 
 .PHONY: distclean
 distclean: cleanall
-	rm -f test/*.d test/*.pdf test/*.eps test/gmon.out test/gprof_*
+	rm -f test/out/* test/gmon.out test/gprof_*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

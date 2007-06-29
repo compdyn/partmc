@@ -38,7 +38,7 @@ endif
 
 -include Makefile.local
 
-PROGS := src/process_summary src/process_full src/process_average	\
+PROGS := src/process_summary src/process_state src/process_average	\
 	src/partmc test/sedi_bidisperse_ode				\
 	test/sedi_bidisperse_state_to_count src/equilib
 
@@ -55,7 +55,7 @@ EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	sedi_exp_mc.spec sedi_exp_sect.spec
 
 process_summary_OBJS := src/process_summary.o src/util.o src/constants.o
-process_full_OBJS := src/process_full.o src/bin.o src/environ.o		\
+process_state_OBJS := src/process_state.o src/bin.o src/environ.o	\
 	src/aero_data.o src/aero_state.o src/output_state.o src/util.o	\
 	src/constants.o src/gas_data.o src/gas_state.o
 process_average_OBJS := src/process_average.o
@@ -121,8 +121,8 @@ test/%.o test/mod_%.mod: test/%.f90 test/%.deps
 
 src/process_summary: $(process_summary_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
-src/process_full: $(process_full_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_full_OBJS)
+src/process_state: $(process_state_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS)
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
 src/partmc: $(partmc_OBJS)

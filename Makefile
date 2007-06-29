@@ -38,25 +38,25 @@ endif
 
 -include Makefile.local
 
-PROGS := src/process_out src/process_state src/process_average	\
-	src/partmc test/sedi_bidisperse_ode			\
-	test/sedi_bidisperse_state_to_count src/equilib
+PROGS := src/process_summary src/process_full src/process_average	\
+	src/partmc test/sedi_bidisperse_ode				\
+	test/sedi_bidisperse_output_to_count src/equilib
 
 OTHER := src/aero_state src/bin src/condensation src/constants		\
 	src/environ src/aero_dist src/kernel_golovin src/kernel_sedi	\
 	src/kernel_constant src/kernel_brown src/aero_data		\
-	src/run_exact src/run_mc src/util src/run_sect src/state	\
-	src/read_spec src/mosaic src/gas_data src/gas_state		\
-	src/coagulate src/kernel src/output
+	src/run_exact src/run_mc src/util src/run_sect			\
+	src/output_state src/read_spec src/mosaic src/gas_data		\
+	src/gas_state src/coagulation src/kernel src/output_summary
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
 	sedi_bidisperse.sh sedi_bidisperse_mc.spec sedi_exp.sh		\
 	sedi_exp_mc.spec sedi_exp_sect.spec
 
-process_out_OBJS := src/process_out.o src/util.o src/constants.o
-process_state_OBJS := src/process_state.o src/bin.o src/environ.o	\
-	src/aero_data.o src/aero_state.o src/state.o src/util.o		\
+process_summary_OBJS := src/process_summary.o src/util.o src/constants.o
+process_full_OBJS := src/process_full.o src/bin.o src/environ.o		\
+	src/aero_data.o src/aero_state.o src/output_state.o src/util.o	\
 	src/constants.o src/gas_data.o src/gas_state.o
 process_average_OBJS := src/process_average.o
 partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/aero_state.o	\
@@ -64,16 +64,17 @@ partmc_OBJS := src/partmc.o src/read_spec.o src/bin.o src/aero_state.o	\
 	src/kernel_golovin.o src/kernel_constant.o src/kernel_brown.o	\
 	src/aero_data.o src/environ.o src/run_mc.o src/gas_data.o	\
 	src/gas_state.o src/run_exact.o src/run_sect.o src/util.o	\
-	src/constants.o src/state.o src/mosaic.o src/coagulate.o	\
-	src/kernel.o src/output.o
+	src/constants.o src/output_state.o src/mosaic.o			\
+	src/coagulation.o src/kernel.o src/output_summary.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/environ.o src/constants.o			\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
 	src/aero_state.o src/bin.o
-sedi_bidisperse_state_to_count_OBJS :=					\
-	test/sedi_bidisperse_state_to_count.o src/environ.o		\
-	src/aero_data.o src/state.o src/aero_state.o src/constants.o	\
-	src/util.o src/bin.o src/gas_data.o src/gas_state.o
+sedi_bidisperse_output_to_count_OBJS :=				\
+	test/sedi_bidisperse_output_to_count.o src/environ.o	\
+	src/aero_data.o src/output_state.o src/aero_state.o	\
+	src/constants.o src/util.o src/bin.o src/gas_data.o	\
+	src/gas_state.o
 equilib_OBJS := src/equilib.o src/aero_data.o src/environ.o		\
 	src/condensation.o src/read_spec.o src/util.o src/aero_state.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/bin.o	\
@@ -118,18 +119,18 @@ src/%.o src/mod_%.mod: src/%.f90 src/%.deps
 test/%.o test/mod_%.mod: test/%.f90 test/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
-src/process_out: $(process_out_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_out_OBJS)
-src/process_state: $(process_state_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS)
+src/process_summary: $(process_summary_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
+src/process_full: $(process_full_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(process_full_OBJS)
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
 src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) -lmosaic
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
-test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
+test/sedi_bidisperse_output_to_count: $(sedi_bidisperse_output_to_count_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_output_to_count_OBJS)
 src/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 

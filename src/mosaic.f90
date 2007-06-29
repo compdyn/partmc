@@ -20,7 +20,7 @@ contains
     use mod_condensation
     use mod_environ
     use mod_aero_data
-    use mod_state
+    use mod_output_full
     use mod_gas_data
     use mod_gas_state
 

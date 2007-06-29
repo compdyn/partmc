@@ -2,14 +2,14 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Process state files to produce number of small particles and volume
+! Process output files to produce number of small particles and volume
 ! of big particle.
 
-program test_sedi_bidisperse_state_to_count
+program test_sedi_bidisperse_output_to_count
   
   use mod_environ
   use mod_aero_data
-  use mod_state
+  use mod_output_full
   use mod_aero_state
 
   integer, parameter :: out_unit = 33   ! output unit number
@@ -80,4 +80,4 @@ program test_sedi_bidisperse_state_to_count
 
   close(out_unit)
 
-end program test_sedi_bidisperse_state_to_count
+end program test_sedi_bidisperse_output_to_count

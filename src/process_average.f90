@@ -3,7 +3,7 @@
 ! option) any later version. See the file COPYING for details.
 !
 ! This program is a huge hack to average together results from many
-! runs, obtained from process_state. It is extremely non-general.
+! runs, obtained from process_full. It is extremely non-general.
 
 program process_average
 

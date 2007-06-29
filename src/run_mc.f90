@@ -28,7 +28,7 @@ contains
     use mod_gas_state
     use mod_state
     use mod_mosaic
-    use mod_coagulate
+    use mod_coagulation
     use mod_kernel
     use mod_output
     
@@ -220,7 +220,7 @@ contains
     use mod_bin 
     use mod_environ
     use mod_aero_data
-    use mod_coagulate
+    use mod_coagulation
     
     integer, intent(in) :: MM           ! maximum number of particles
     integer, intent(inout) :: M         ! actual number of particles

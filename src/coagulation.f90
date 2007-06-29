@@ -4,7 +4,7 @@
 !
 ! Coagulation subroutines.
 
-module mod_coagulate
+module mod_coagulation
 
 contains
 
@@ -247,4 +247,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_coagulate
+end module mod_coagulation

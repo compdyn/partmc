@@ -26,7 +26,7 @@ contains
     use mod_environ
     use mod_aero_data
     use mod_kernel
-    use mod_output
+    use mod_output_summary
 
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
@@ -111,7 +111,7 @@ contains
           bin_g_den(i) = g(i) / aero_data%rho(1)
           bin_n_den(i) = bin_g_den(i) / bin_v(i)
        end do
-       call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
+       call output_summary_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
             bin_g_den, bin_n_den, env, aero_data, 1)
     end if
     
@@ -132,7 +132,7 @@ contains
              bin_g_den(i) = g(i) / aero_data%rho(1)
              bin_n_den(i) = bin_g_den(i) / bin_v(i)
           end do
-          call output_info_density(output_unit, 0d0, n_bin, 1, bin_v, &
+          call output_summary_density(output_unit, 0d0, n_bin, 1, bin_v, &
                bin_g_den, bin_g_den, bin_n_den, env, aero_data, 1)
        end if
        

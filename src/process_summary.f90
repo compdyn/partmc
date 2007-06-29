@@ -6,7 +6,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-program process_out
+program process_summary
 
   use mod_util
   
@@ -46,7 +46,7 @@ program process_out
   
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
-     write(6,*) 'Usage: process_out <filename.d>'
+     write(6,*) 'Usage: process_summary <filename.d>'
      call exit(2)
   endif
   
@@ -282,6 +282,6 @@ program process_out
           i_time, time_avg(i_time)
   enddo
   
-end program process_out
+end program process_summary
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

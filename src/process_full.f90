@@ -7,13 +7,13 @@
 ! specific to particles iwth 3 species, of which one is water and the
 ! other two are of interest.
 
-program process_state
+program process_full
 
   use mod_bin
   use mod_environ
   use mod_aero_data
   use mod_aero_state
-  use mod_state
+  use mod_output_full
 
   integer :: n_bin                      ! number of bins
   integer :: n_spec                     ! number of species
@@ -113,7 +113,7 @@ contains
     
     ! check there is exactly one commandline argument
     if (iargc() .ne. 1) then
-       write(0,*) 'Usage: process_out <filename.d>'
+       write(0,*) 'Usage: process_full <filename.d>'
        call exit(1)
     end if
     
@@ -386,6 +386,6 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end program process_state
+end program process_full
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

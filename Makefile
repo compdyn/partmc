@@ -138,7 +138,7 @@ equilib/equilib: $(equilib_OBJS)
 
 .PHONY: clean
 clean:
-	rm -f $(PROGS) $(ALL_OBJS)
+	rm -f TAGS $(PROGS) $(ALL_OBJS)
 
 .PHONY: cleanall
 cleanall: clean

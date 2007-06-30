@@ -102,9 +102,6 @@ contains
     call read_real(spec, 't_state', mc_opt%t_state)
     call read_real(spec, 't_progress', mc_opt%t_progress)
 
-    mc_opt%output_unit = get_unit()
-    mc_opt%state_unit = get_unit()
-
     call read_environ(spec, env)
 
     call read_bin_grid(spec, bin_grid)
@@ -140,6 +137,9 @@ contains
 
     ! finished reading .spec data, now do the run
     
+    mc_opt%output_unit = get_unit()
+    mc_opt%state_unit = get_unit()
+
     call output_summary_open(mc_opt%output_unit, output_file, &
          mc_opt%n_loop, bin_grid%n_bin, aero_data%n_spec, &
          nint(mc_opt%t_max / mc_opt%t_output) + 1)
@@ -150,6 +150,7 @@ contains
        call srand(time())
     end if
 
+    call allocate_bin_dist(bin_grid%n_bin, aero_data%n_spec, bin_dist)
     call allocate_gas_state(gas_data, gas_state)
     call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)

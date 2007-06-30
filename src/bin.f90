@@ -25,6 +25,36 @@ module mod_bin
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine allocate_bin_grid(n_bin, bin_grid)
+
+    ! Allocates a bin_grid.
+
+    integer, intent(in) :: n_bin        ! number of bins
+    type(bin_grid_t), intent(out) :: bin_grid ! bin grid
+
+    bin_grid%n_bin = n_bin
+    allocate(bin_grid%v(n_bin))
+
+  end subroutine allocate_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine allocate_bin_dist(n_bin, n_spec, bin_dist)
+
+    ! Allocates a bin_dist.
+
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    type(bin_dist_t), intent(out) :: bin_dist ! bin distribution
+
+    allocate(bin_dist%v(n_bin))
+    allocate(bin_dist%vs(n_bin, n_spec))
+    allocate(bin_dist%n(n_bin))
+
+  end subroutine allocate_bin_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine vol_to_lnr(r, f_vol, f_lnr)
     
@@ -53,14 +83,13 @@ contains
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
     type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
     
-    integer i
-    real*8 ax
+    integer :: i
+    real*8 :: ax
 
-    bin_grid%n_bin = n_bin
+    call allocate_bin_grid(n_bin, bin_grid)
     bin_grid%dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
-    ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
 
-    allocate(bin_grid%v(n_bin))
+    ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
     do i = 1,n_bin
        bin_grid%v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)  ! (m^3)
     end do

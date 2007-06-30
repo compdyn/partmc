@@ -46,7 +46,7 @@ module mod_aero_state
   end type bin_p
 
   type aero_state_t
-     integer, dimension(:), pointer :: n ! number of particles per bin
+     integer, dimension(:), pointer :: n ! number of particles in each bin
      type(bin_p), dimension(:), pointer :: v ! particle volumes (m^3)
      real*8 :: comp_vol                 ! computational volume (m^3)
   end type aero_state_t
@@ -124,8 +124,22 @@ contains
        to_aero%v(i)%p = from_aero%v(i)%p(1:n_part,:)
     end do
 
+    to_aero%comp_vol = from_aero%comp_vol
+
   end subroutine copy_aero_state
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function total_particles(aero)
+
+    ! Returns the total number of particles in an aerosol distribution.
+
+    type(aero_state_t), intent(in) :: aero ! aerosol state
+
+    total_particles = sum(aero%n)
+
+  end function total_particles
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine copy_aero_state_to_array(from_aero, MH, VH)

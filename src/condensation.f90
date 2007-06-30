@@ -559,4 +559,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  subroutine equilibriate_aero(bin_grid, env, aero_data, aero_state)
+    
+    ! call equilibriate_particle() on each particle in the aerosol
+
+    use mod_bin
+    use mod_environ
+    use mod_aero_data
+    use mod_aero_state
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(environ), intent(inout) :: env ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+
+    integer :: i_bin, i
+    
+    do i_bin = 1,bin_grid%n_bin
+       do i = 1,aero_state%n(i_bin)
+          call equilibriate_particle(aero_data%n_spec, &
+               aero_state%v(i_bin)%p(i,:), env, aero_data)
+       end do
+    end do
+
+  end subroutine equilibriate_aero
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
 end module mod_condensation

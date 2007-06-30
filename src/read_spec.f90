@@ -1008,4 +1008,26 @@ contains
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine read_bin_grid(spec, bin_grid)
+
+    ! Read the specification for a bin_grid from a spec file and
+    ! generate it.
+
+    use mod_bin
+
+    type(spec_file), intent(inout) :: spec ! spec file
+    type(bin_grid_t), intent(out) :: bin_grid ! bin grid
+
+    integer :: n_bin, scal
+    real*8 :: v_min
+
+    call read_integer(spec, 'n_bin', n_bin)
+    call read_real(spec, 'v_min', v_min)
+    call read_integer(spec, 'scal', scal)
+    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+
+  end subroutine read_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_read_spec

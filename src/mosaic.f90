@@ -9,7 +9,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine singlestep_mosaic(M, n_spec, n_bin, MH, VH, &
+  subroutine singlestep_mosaic(n_spec, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, aero_data, &
        gas_data, gas_state)
 
@@ -34,7 +34,6 @@ contains
          pr_atm, cnn, cair_mlc, cair_molm3, h2o, o2, h2, ppb, avogad, deg2rad, &
          mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
 
-    integer, intent(inout) :: M         ! actual number of particles
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
@@ -157,7 +156,7 @@ contains
       conv_fac(i_spec) = 1.D9*aero_data%rho(i_spec)/(aero_data%M_w(i_spec)*env%V_comp)
     enddo
 
-    nbin_a = M
+    nbin_a = sum(MH)
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0                                                   ! initialize to zero
     do i_bin = 1,n_bin
@@ -202,7 +201,6 @@ contains
     env%p = pr_atm * const%atm
 
     ! aerosol data: map MOSAIC -> PartMC
-    nbin_a = M
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)

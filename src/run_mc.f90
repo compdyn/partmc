@@ -5,16 +5,34 @@
 ! Monte Carlo with fixed timestep and particles stored per-bin.
 
 module mod_run_mc
+
+  type mc_opt_t
+    integer :: n_part_max               ! maximum number of particles
+    real*8 :: t_max                     ! final time (s)
+    real*8 :: t_output                  ! output interval (0 disables) (s)
+    real*8 :: t_state                   ! state output interval (0 disables) (s)
+    real*8 :: t_progress                ! progress interval (0 disables) (s)
+    real*8 :: del_t                     ! timestep for coagulation
+    integer :: output_unit              ! unit number to output to
+    integer :: state_unit               ! unit number for state files
+    character(len=300) :: state_prefix  ! prefix for state files
+    logical :: do_coagulation           ! whether to do coagulation
+    logical :: allow_double             ! allow doubling if needed
+    logical :: do_condensation          ! whether to do condensation
+    logical :: do_mosaic                ! whether to do MOSAIC
+    logical :: do_restart               ! whether to restart from state
+    character(len=300) :: restart_name  ! name of state to restart from
+    integer :: i_loop                   ! loop number of run
+    integer :: n_loop                   ! total number of loops
+    real*8 :: t_wall_start              ! cpu_time() of start
+  end type mc_opt_t
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_mc(MM, M, n_spec, n_bin, MH, VH, bin_v, bin_g, &
-       bin_gs, bin_n, dlnr, kernel, t_max, t_output, t_state, &
-       t_progress, del_t, output_unit, state_unit, state_prefix, &
-       do_coagulation, allow_double, do_condensation, do_mosaic, &
-       do_restart, restart_name, i_loop, n_loop, t_wall_start, &
-       env, aero_data, gas_data, gas_state)
+  subroutine run_mc(kernel, bin_grid, bin_dist, env, aero_data, &
+    aero_state, gas_data, gas_state, mc_opt)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -31,44 +49,17 @@ contains
     use mod_coagulation
     use mod_kernel
     use mod_output_summary
-    
-    integer, intent(in) :: MM           ! maximum number of particles
-    integer, intent(inout) :: M         ! actual number of particles
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
-    
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    
-    real*8, intent(in) :: t_max         ! final time (s)
-    real*8, intent(in) :: t_output      ! output interval (0 disables) (s)
-    real*8, intent(in) :: t_state       ! state output interval (0 disables) (s)
-    real*8, intent(in) :: t_progress    ! progress interval (0 disables) (s)
-    real*8, intent(in) :: del_t         ! timestep for coagulation
-    integer, intent(in) :: output_unit  ! unit number to output to
-    integer, intent(in) :: state_unit   ! unit number for state files
-    character(len=*), intent(in) :: state_prefix ! prefix for state files
-    
-    logical, intent(in) :: do_coagulation ! whether to do coagulation
-    logical, intent(in) :: allow_double ! allow doubling if needed
-    logical, intent(in) :: do_condensation ! whether to do condensation
-    logical, intent(in) :: do_mosaic    ! whether to do MOSAIC
-    logical, intent(in) :: do_restart   ! whether to restart from state
-    character(len=*), intent(in) :: restart_name ! name of state to restart from
-    integer, intent(in) :: i_loop       ! loop number of run
-    integer, intent(in) :: n_loop       ! total number of loops
-    real*8, intent(in) :: t_wall_start  ! cpu_time() of start
-    
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
     type(environ), intent(inout) :: env ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
-    
+    type(mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
+
+    ! FIXME: can we shift this to a module? mod_kernel presumably
     interface
        subroutine kernel(v1, v2, env, k)
          use mod_environ
@@ -81,8 +72,8 @@ contains
     
     real*8 time, pre_time
     real*8 last_output_time, last_state_time, last_progress_time
-    real*8 k_max(n_bin, n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag
+    real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
+    integer n_coag, tot_n_samp, tot_n_coag, M
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer i_time, pre_i_time
@@ -95,71 +86,81 @@ contains
     tot_n_samp = 0
     tot_n_coag = 0
     
-    if (do_restart) then
-       call read_state(state_unit, restart_name, n_bin, n_spec, &
-            MH, VH, env, time)
-       i_time = nint(time / del_t)
-       M = sum(MH)
-       if (allow_double) then
-          do while (M .lt. MM / 2)
-             call double(M, n_bin, MH, VH, n_spec, &
-                  bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+    if (mc_opt%do_restart) then
+       call read_state(mc_opt%state_unit, mc_opt%restart_name, &
+            bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+            aero_state%v, env, time)
+       i_time = nint(time / mc_opt%del_t)
+       if (mc_opt%allow_double) then
+          do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
+             M = total_particles(aero_state)
+             call double(M, bin_grid%n_bin, aero_state%n, aero_state%v, &
+                  aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
+                  bin_dist%n, bin_grid%dlnr, env)
           end do
        end if
        ! write data into output file so that it will look correct
        pre_time = 0d0
        last_output_time = pre_time
-       call moments(n_bin, n_spec, MH, VH, bin_v, &
-            bin_g, bin_gs, bin_n, dlnr)
+       call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+            aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
+            bin_dist%n, bin_grid%dlnr)
        do pre_i_time = 0,(i_time - 1)
           call update_environ(env, pre_time)
-          if (t_output > 0d0) then
-             call check_event(pre_time, del_t, t_output, last_output_time, &
-                  do_output)
-             if (do_output) call output_summary(output_unit, pre_time, &
-                  n_bin, n_spec, bin_v, bin_g, bin_gs, bin_n, dlnr, &
-                  env, aero_data, i_loop)
+          if (mc_opt%t_output > 0d0) then
+             call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
+                  last_output_time, do_output)
+             if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
+                  bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
+                  bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
+                  env, aero_data, mc_opt%i_loop)
           end if
-          pre_time = pre_time + del_t
+          pre_time = pre_time + mc_opt%del_t
        end do
     end if
-    
-    call moments(n_bin, n_spec, MH, VH, bin_v, &
-         bin_g, bin_gs, bin_n, dlnr)
-    
-    call est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
 
-    if (t_output > 0d0) then
-       call output_summary(output_unit, time, n_bin, n_spec, bin_v, &
-            bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
+    call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+         aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
+         bin_dist%n, bin_grid%dlnr)
+    
+    call est_k_max_binned(bin_grid%n_bin, bin_grid%v, kernel, env, k_max)
+
+    if (mc_opt%t_output > 0d0) then
+       call output_summary(mc_opt%output_unit, time, bin_grid%n_bin, &
+            aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
+            bin_dist%n, bin_grid%dlnr, env, aero_data, mc_opt%i_loop)
     end if
 
-    if (t_state > 0d0) then
-       call write_state(state_unit, state_prefix, n_bin, n_spec, &
-            MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
+    if (mc_opt%t_state > 0d0) then
+       call write_state(mc_opt%state_unit, mc_opt%state_prefix, &
+            bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+            aero_state%v, bin_grid%v, bin_grid%dlnr, env, i_time, &
+            time, mc_opt%i_loop)
     end if
     
     t_start = time
     last_progress_time = time
     last_state_time = time
     last_output_time = time
-    do while (time < t_max)
-       if (do_coagulation) then
-          call mc_coag(MM, M, n_spec, n_bin, MH, VH, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, &
-               allow_double, env, aero_data, tot_n_samp, n_coag)
+    do while (time < mc_opt%t_max)
+       if (mc_opt%do_coagulation) then
+          call mc_coag(kernel, bin_grid, bin_dist, env, aero_data, &
+               aero_state, mc_opt, k_max, tot_n_samp, n_coag)
        end if
 
        tot_n_coag = tot_n_coag + n_coag
 
-       if (do_condensation) then
-          call condense_particles(n_bin, n_spec, MH, VH, del_t, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data)
+       if (mc_opt%do_condensation) then
+          call condense_particles(bin_grid%n_bin, aero_data%n_spec, &
+               aero_state%n, aero_state%v, mc_opt%del_t, bin_grid%v, &
+               bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
+               env, aero_data)
        end if
 
-       if (do_mosaic) then
-          call singlestep_mosaic(M, n_spec, n_bin, MH, VH, bin_v, &
-               bin_g, bin_gs, bin_n, dlnr, time, del_t, &
+       if (mc_opt%do_mosaic) then
+          call singlestep_mosaic(aero_data%n_spec, bin_grid%n_bin, &
+               aero_state%n, aero_state%v, bin_grid%v, bin_dist%v, &
+               bin_dist%vs, bin_dist%n, bin_grid%dlnr, time, mc_opt%del_t, &
                env, aero_data, gas_data, gas_state)
        end if
        
@@ -169,37 +170,42 @@ contains
        ! DEBUG: end
        
        i_time = i_time + 1
-       time = time + del_t
+       time = time + mc_opt%del_t
 
        call update_environ(env, time)
 
-       if (t_output > 0d0) then
-          call check_event(time, del_t, t_output, last_output_time, &
-               do_output)
-          if (do_output) call output_summary(output_unit, time, n_bin, n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
+       if (mc_opt%t_output > 0d0) then
+          call check_event(time, mc_opt%del_t, mc_opt%t_output, &
+               last_output_time, do_output)
+          if (do_output) call output_summary(mc_opt%output_unit, time, &
+               bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
+               bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
+               env, aero_data, mc_opt%i_loop)
        end if
 
-       if (t_state > 0d0) then
-          call check_event(time, del_t, t_state, last_state_time, &
-               do_state)
-          if (do_state) call write_state(state_unit, state_prefix, n_bin, &
-               n_spec, MH, VH, bin_v, dlnr, env, i_time, time, i_loop)
+       if (mc_opt%t_state > 0d0) then
+          call check_event(time, mc_opt%del_t, mc_opt%t_state, &
+               last_state_time, do_state)
+          if (do_state) call write_state(mc_opt%state_unit, &
+               mc_opt%state_prefix, bin_grid%n_bin, aero_data%n_spec, &
+               aero_state%n, aero_state%v, bin_grid%v, bin_grid%dlnr, &
+               env, i_time, time, mc_opt%i_loop)
        end if
        
-       if (t_progress > 0d0) then
-          call check_event(time, del_t, t_progress, last_progress_time, &
-               do_progress)
+       if (mc_opt%t_progress > 0d0) then
+          call check_event(time, mc_opt%del_t, mc_opt%t_progress, &
+               last_progress_time, do_progress)
           if (do_progress) then
              call cpu_time(t_wall_now)
-             prop_done = (dble(i_loop - 1) + (time - t_start) &
-                  / (t_max - t_start)) / dble(n_loop)
+             prop_done = (dble(mc_opt%i_loop - 1) + (time - t_start) &
+                  / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
              t_wall_est = (1d0 - prop_done) / prop_done &
-                  * (t_wall_now - t_wall_start)
+                  * (t_wall_now - mc_opt%t_wall_start)
              write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M', &
                   'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') i_loop, time, M, &
-                  tot_n_samp, n_coag, tot_n_coag, t_wall_est
+             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
+                  total_particles(aero_state), tot_n_samp, n_coag, &
+                  tot_n_coag, t_wall_est
           end if
        end if
        
@@ -209,9 +215,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine mc_coag(MM, M, n_spec, n_bin, MH, VH, bin_v, &
-       bin_g, bin_gs, bin_n, dlnr, kernel, k_max, del_t, allow_double, &
-       env, aero_data, tot_n_samp, n_coag)
+  subroutine mc_coag(kernel, bin_grid, bin_dist, env, aero_data, &
+       aero_state, mc_opt, k_max, tot_n_samp, n_coag)
 
     ! Do coagulation for time del_t.
 
@@ -221,23 +226,14 @@ contains
     use mod_environ
     use mod_aero_data
     use mod_coagulation
-    
-    integer, intent(in) :: MM           ! maximum number of particles
-    integer, intent(inout) :: M         ! actual number of particles
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(out) :: MH(n_bin)   ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
-    real*8, intent(in) :: del_t         ! timestep for coagulation
-    logical, intent(in) :: allow_double ! allow doubling if needed
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
     type(environ), intent(inout) :: env ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
+    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! maximum kernel
     integer, intent(out) :: tot_n_samp  ! total number of samples tested
     integer, intent(out) :: n_coag      ! number of coagulation events
 
@@ -252,15 +248,15 @@ contains
     end interface
     
     logical did_coag, bin_change
-    integer i, j, n_samp, i_samp
+    integer i, j, n_samp, i_samp, M
     real*8 n_samp_real
 
     tot_n_samp = 0
     n_coag = 0
-    do i = 1,n_bin
-       do j = 1,n_bin
-          call compute_n_samp(n_bin, MH, i, j, &
-               k_max, del_t, env, n_samp_real)
+    do i = 1,bin_grid%n_bin
+       do j = 1,bin_grid%n_bin
+          call compute_n_samp(aero_state%n(i), aero_state%n(j), i == j, &
+               k_max(i,j), aero_state%comp_vol, mc_opt%del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = int(n_samp_real)
           if (util_rand() .lt. mod(n_samp_real, 1d0)) then
@@ -268,10 +264,12 @@ contains
           endif
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
-             call maybe_coag_pair(M, n_bin, MH, VH, &
-                  n_spec, bin_v, bin_g, bin_gs, &
-                  bin_n, dlnr, i, j, del_t, k_max(i,j), kernel, &
-                  env, did_coag, bin_change)
+             M = total_particles(aero_state)
+             call maybe_coag_pair(M, bin_grid%n_bin, aero_state%n, &
+                  aero_state%v, aero_data%n_spec, bin_grid%v, &
+                  bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
+                  i, j, mc_opt%del_t, k_max(i,j), kernel, env, did_coag, &
+                  bin_change)
              if (did_coag) n_coag = n_coag + 1
           enddo
        enddo
@@ -279,45 +277,45 @@ contains
 
     ! if we have less than half the maximum number of particles
     ! then double until we fill up the array
-    if (allow_double) then
-       do while (M .lt. MM / 2)
-          call double(M, n_bin, MH, VH,  n_spec, &
-               bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+    if (mc_opt%allow_double) then
+       do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
+          M = total_particles(aero_state)
+          call double(M, bin_grid%n_bin, aero_state%n, aero_state%v, &
+               aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
+               bin_dist%n, bin_grid%dlnr, env)
        end do
     end if
     
   end subroutine mc_coag
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine compute_n_samp(n_bin, MH, i, j, k_max, &
-       del_t, env, n_samp_real)
 
-    ! Compute the number of samples required for the pair of bins
-    ! (i,j).
+  subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
+       del_t, n_samp_real)
+  
+    ! Compute the number of samples required for the pair of bins.
 
     use mod_environ
-    
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: MH(n_bin)    ! number particles per bin
-    integer, intent(in) :: i            ! first bin 
-    integer, intent(in) :: j            ! second bin
-    real*8, intent(in) :: k_max(n_bin,n_bin) ! maximum kernel values
+
+    integer, intent(in) :: ni           ! number particles in first bin 
+    integer, intent(in) :: nj           ! number particles in second bin
+    logical, intent(in) :: same_bin     ! whether first bin is second bin
+    real*8, intent(in) :: k_max         ! maximum kernel value
+    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
     real*8, intent(in) :: del_t         ! timestep (s)
-    type(environ), intent(in) :: env    ! environment state
     real*8, intent(out) :: n_samp_real  ! number of samples per timestep
     
     real*8 r_samp
     real*8 n_possible ! use real*8 to avoid integer overflow
     ! FIXME: should use integer*8 or integer(kind = 8)
     
-    if (i .eq. j) then
-       n_possible = dble(MH(i)) * (dble(MH(j)) - 1d0) / 2d0
+    if (same_bin) then
+       n_possible = dble(ni) * (dble(nj) - 1d0) / 2d0
     else
-       n_possible = dble(MH(i)) * dble(MH(j)) / 2d0
+       n_possible = dble(ni) * dble(nj) / 2d0
     endif
     
-    r_samp = k_max(i,j) * 1d0/env%V_comp * del_t
+    r_samp = k_max / comp_vol * del_t
     n_samp_real = r_samp * n_possible
     
   end subroutine compute_n_samp

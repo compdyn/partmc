@@ -66,83 +66,48 @@ contains
     use mod_gas_data
     use mod_gas_state
     use mod_output_summary
+    use mod_util
 
-    type(spec_file), intent(out) :: spec     ! spec file
-
-    integer, parameter :: max_dist_args = 10
-    integer, parameter :: output_unit = 32
-    integer, parameter :: state_unit = 33
-    
-    integer :: MM, M, M_new, i_loop, i, i_bin
-    integer, allocatable :: MH(:), bin_n(:)
-    type(bin_p), allocatable ::  VH(:)
-    real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
-    real*8 :: dlnr, t_wall_start
+    type(spec_file), intent(out) :: spec ! spec file
 
     character(len=300) :: output_file   ! name of output files
     character(len=300) :: state_prefix  ! prefix for state files
-    integer :: n_loop                   ! number of Monte Carlo loops
-    integer :: n_part                   ! total number of particles
     character(len=100) :: kernel_name   ! coagulation kernel name
     
-    real*8 :: t_max                     ! total simulation time (s)
-    real*8 :: del_t                     ! timestep (s)
-    real*8 :: t_output                  ! output interval (0 disables) (s)
-    real*8 :: t_state                   ! state output interval (0 disables) (s)
-    real*8 :: t_progress                ! progress interval (0 disables) (s)
-
     type(gas_data_t) :: gas_data        ! gas data
     type(gas_state_t) :: gas_init       ! gas initial condition
     type(gas_state_t) :: gas_state      ! gas current state for run
 
-    type(aero_data_t) :: aero_data               ! aero_data data
+    type(aero_data_t) :: aero_data      ! aero_data data
     type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
-    type(aero_state_t) :: aero_init          ! aerosol initial condition
-    type(aero_state_t) :: aero_state         ! aerosol current state for run
+    type(aero_state_t) :: aero_init     ! aerosol initial condition
+    type(aero_state_t) :: aero_state    ! aerosol current state for run
 
     type(environ) :: env                ! environment data
-    
-    integer :: n_init_dist              ! number of initial distributions
-    integer, allocatable :: dist_n_part(:) ! distribution particle numbers
-    character(len=100), allocatable :: dist_types(:) ! distribution names
-    real*8, allocatable :: dist_args(:,:) ! distribution arguments
-    real*8, allocatable :: dist_vol_frac(:,:) ! distribution composition
-    
-    integer :: n_bin                    ! number of bins
-    real*8 :: v_min                     ! volume of smallest bin (m^3)
-    integer :: scal                     ! scale factor (integer)
     type(bin_grid_t) :: bin_grid        ! bin grid
-    
-    integer :: rand_init                ! random initialization (0 to auto-init)
-    logical :: do_coagulation           ! do coagulation? (yes/no)
-    logical :: allow_double             ! allow doubling? (yes/no)
-    logical :: do_condensation          ! do condensation? (yes/no)
-    logical :: do_mosaic                ! do MOSAIC? (yes/no)
-    logical :: do_restart               ! restart from stored state? (yes/no)
-    character(len=300) :: restart_name  ! filename to restart from
+    type(bin_dist_t) :: bin_dist        ! binned distributions
+    type(mc_opt_t) :: mc_opt            ! Monte Carlo options
+
+    integer :: i_loop, rand_init
     
     call read_string(spec, 'output_file', output_file)
-    call read_string(spec, 'state_prefix', state_prefix)
-    call read_integer(spec, 'n_loop', n_loop)
-    call read_integer(spec, 'n_part', n_part)
+    call read_string(spec, 'state_prefix', mc_opt%state_prefix)
+    call read_integer(spec, 'n_loop', mc_opt%n_loop)
+    call read_integer(spec, 'n_part', mc_opt%n_part_max)
     call read_string(spec, 'kernel', kernel_name)
     
-    call read_real(spec, 't_max', t_max)
-    call read_real(spec, 'del_t', del_t)
-    call read_real(spec, 't_output', t_output)
-    call read_real(spec, 't_state', t_state)
-    call read_real(spec, 't_progress', t_progress)
+    call read_real(spec, 't_max', mc_opt%t_max)
+    call read_real(spec, 'del_t', mc_opt%del_t)
+    call read_real(spec, 't_output', mc_opt%t_output)
+    call read_real(spec, 't_state', mc_opt%t_state)
+    call read_real(spec, 't_progress', mc_opt%t_progress)
+
+    mc_opt%output_unit = get_unit()
+    mc_opt%state_unit = get_unit()
 
     call read_environ(spec, env)
 
-    call read_integer(spec, 'n_bin', n_bin)
-    call read_real(spec, 'v_min', v_min)
-    call read_integer(spec, 'scal', scal)
-
-    call make_bin_grid(n_bin, scal, v_min, bin_grid)
-    ! FIXME: remove the following two lines once we convert to use bin_grid
-    allocate(bin_v(n_bin))
-    bin_v = bin_grid%v
+    call read_bin_grid(spec, bin_grid)
     
     call read_gas_data(spec, gas_data)
     call read_gas_state(spec, gas_data, 'gas_init', gas_init)
@@ -154,7 +119,8 @@ contains
     call read_aero_data(spec, aero_data)
     call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
-    call dist_to_part(bin_grid, aero_data, aero_init_dist, n_part, aero_init)
+    call dist_to_part(bin_grid, aero_data, aero_init_dist, &
+         mc_opt%n_part_max, aero_init)
     call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_emissions', env%aero_emissions)
     call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
@@ -162,22 +128,21 @@ contains
          'aerosol_background', env%aero_background)
     call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
-    allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
-
     call read_integer(spec, 'rand_init', rand_init)
-    call read_logical(spec, 'do_coagulation', do_coagulation)
-    call read_logical(spec, 'allow_double', allow_double)
-    call read_logical(spec, 'do_condensation', do_condensation)
-    call read_logical(spec, 'do_mosaic', do_mosaic)
-    call read_logical(spec, 'do_restart', do_restart)
-    call read_string(spec, 'restart_name', restart_name)
+    call read_logical(spec, 'do_coagulation', mc_opt%do_coagulation)
+    call read_logical(spec, 'allow_double', mc_opt%allow_double)
+    call read_logical(spec, 'do_condensation', mc_opt%do_condensation)
+    call read_logical(spec, 'do_mosaic', mc_opt%do_mosaic)
+    call read_logical(spec, 'do_restart', mc_opt%do_restart)
+    call read_string(spec, 'restart_name', mc_opt%restart_name)
     
     call close_spec(spec)
 
     ! finished reading .spec data, now do the run
     
-    call output_summary_open(output_unit, output_file, n_loop, n_bin, &
-         aero_data%n_spec, nint(t_max / t_output) + 1)
+    call output_summary_open(mc_opt%output_unit, output_file, &
+         mc_opt%n_loop, bin_grid%n_bin, aero_data%n_spec, &
+         nint(mc_opt%t_max / mc_opt%t_output) + 1)
     
     if (rand_init /= 0) then
        call srand(rand_init)
@@ -185,62 +150,35 @@ contains
        call srand(time())
     end if
 
-    allocate(MH(n_bin), VH(n_bin))
-    call init_array(aero_data%n_spec, MH, VH)
-
     call allocate_gas_state(gas_data, gas_state)
-    call allocate_aero_state(n_bin, aero_data%n_spec, aero_state)
-    call cpu_time(t_wall_start)
-    do i_loop = 1,n_loop
+    call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call cpu_time(mc_opt%t_wall_start)
+
+    do i_loop = 1,mc_opt%n_loop
+       mc_opt%i_loop = i_loop
        
        call copy_gas_state(gas_init, gas_state)
        call copy_aero_state(aero_init, aero_state)
-       ! FIXME: should be passing aero_state directly to run_mc
-       call copy_aero_state_to_array(aero_state, MH, VH)
 
-       M = sum(MH)
-       MM = M
-       env%V_comp = dble(M) / dist_num_conc(bin_grid, aero_init_dist)
+       ! FIXME: delete this soon
+       env%V_comp = aero_state%comp_vol
        
-       ! equlibriate all particles if condensation is active
-       if (do_condensation) then
-          do i_bin = 1,n_bin
-             do i = 1,MH(i_bin)
-                call equilibriate_particle(aero_data%n_spec, VH(i_bin)%p(i,:), &
-                     env, aero_data)
-             end do
-          end do
+       if (mc_opt%do_condensation) then
+          call equilibriate_aero(bin_grid, env, aero_data, aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, bin_grid%dlnr, kernel_sedi, t_max, t_output, &
-               t_state, t_progress, del_t, output_unit, state_unit, &
-               state_prefix, do_coagulation, allow_double, &
-               do_condensation, do_mosaic, do_restart, &
-               restart_name, i_loop, n_loop, t_wall_start, &
-               env, aero_data, gas_data, gas_state)
+          call run_mc(kernel_sedi, bin_grid, bin_dist, env, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, bin_grid%dlnr, kernel_golovin, t_max, t_output, &
-               t_state, t_progress, del_t, output_unit, state_unit, &
-               state_prefix, do_coagulation, allow_double, &
-               do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
+          call run_mc(kernel_golovin, bin_grid, bin_dist, env, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, bin_grid%dlnr, kernel_constant, t_max, t_output, &
-               t_state, t_progress, del_t, output_unit, state_unit, &
-               state_prefix, do_coagulation, allow_double, &
-               do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
+          call run_mc(kernel_constant, bin_grid, bin_dist, env, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(MM, M, aero_data%n_spec, n_bin, MH, VH, bin_v, bin_g, &
-               bin_gs, bin_n, bin_grid%dlnr, kernel_brown, t_max, t_output, &
-               t_state, t_progress, del_t, output_unit, state_unit, &
-               state_prefix, do_coagulation, allow_double, &
-               do_condensation, do_mosaic, do_restart, restart_name, &
-               i_loop, n_loop, t_wall_start, env, aero_data, gas_data, gas_state)
+          call run_mc(kernel_brown, bin_grid, bin_dist, env, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)

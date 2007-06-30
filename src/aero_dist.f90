@@ -93,6 +93,8 @@ contains
             num_per_bin, aero)
     end do
 
+    aero%comp_vol = dble(n_part) / dist_num_conc(bin_grid, dist)
+
   end subroutine dist_to_part
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

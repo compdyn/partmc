@@ -31,3 +31,14 @@ the sectional code to be run with an arbitrary sum of initial modes.
 Cache bin edges in bin_grid
 
 make_bin_grid should take r_min, r_max and n_bin
+
+remove bin_dist and use aero_dists instead. change aero_dist to
+directly store density per species, rather than vol_frac.
+
+rename environ to env_t
+
+treat bin_dist just as a summary thing. have something in
+output_summary that computes the summary data and outputs it.
+
+write proper serialization code for all objects. change
+read/write_state() to use it.

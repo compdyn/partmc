@@ -59,7 +59,7 @@ contains
 
     ! Initializes aerosol arrays to have zero particles in each
     ! bin. Do not call this more than once on a given aerosol, use
-    ! zero_aerosol() instead to reset to zero.
+    ! zero_aero_state() instead to reset to zero.
 
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -198,27 +198,26 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine zero_array(n_spec, MH, VH)
+  subroutine zero_aero_state(aero_state)
 
-    ! Resets an array to have zero particles per bin. The array must
-    ! already have had init_array() called on it once. This function
-    ! can be called more than once on the same array.
+    ! Resets an aero_state to have zero particles per bin. This must
+    ! already have had allocate_aero_state() called on it. This
+    ! function can be called more than once on the same state.
 
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(out) :: MH(:)       ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(size(MH)) ! particle volumes
+    type(aero_state_t), intent(inout) :: aero_state ! state to zero
     
-    integer :: n_bin
-    integer i
+    integer :: i, n_bin, n_spec, p_shape(2)
 
-    n_bin = size(VH)
+    n_bin = size(aero_state%v)
+    p_shape = shape(aero_state%v(1)%p)
+    n_spec = p_shape(2)
     do i = 1,n_bin
-       deallocate(VH(i)%p)
-       allocate(VH(i)%p(0, n_spec))
+       deallocate(aero_state%v(i)%p)
+       allocate(aero_state%v(i)%p(0, n_spec))
     end do
-    MH = 0
+    aero_state%n = 0
 
-  end subroutine zero_array
+  end subroutine zero_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

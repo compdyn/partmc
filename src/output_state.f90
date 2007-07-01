@@ -88,22 +88,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine read_state(state_unit, filename, n_bin, n_spec, &
-       MH, VH, env, time)
+  subroutine read_state(state_unit, filename, bin_grid, aero_data, &
+       aero_state, env, time)
 
     ! Open and read the entire state file (including the header) and
     ! then close it.
 
-    use mod_environ
+    use mod_bin
+    use mod_aero_data
     use mod_aero_state
+    use mod_environ
     use mod_util
-    
+
     integer, intent(in) :: state_unit   ! unit number to use for state file
     character(len=*), intent(in) :: filename ! input filename
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(out) :: MH(n_bin)   ! number of particles per bin
-    type(bin_p), intent(out) :: VH(n_bin) ! particle volumes (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(environ), intent(out) :: env   ! environment state
     real*8, intent(out) :: time         ! current time (s)
     
@@ -119,40 +120,40 @@ contains
     read(state_unit, '(a20,e20.10)') dum, time
     read(state_unit, '(a20,e20.10)') dum, env%T
     read(state_unit, '(a20,e20.10)') dum, env%RH
-    read(state_unit, '(a20,e20.10)') dum, env%V_comp
+    read(state_unit, '(a20,e20.10)') dum, aero_state%comp_vol
     read(state_unit, '(a20,e20.10)') dum, env%p
     read(state_unit, '(a20,e20.10)') dum, dum_real
 
-    if (n_bin_test /= n_bin) then
+    if (n_bin_test /= bin_grid%n_bin) then
        write(0,*) 'ERROR: n_bin mismatch when reading state'
        call exit(1)
     end if
-    if (n_spec_test /= n_spec) then
+    if (n_spec_test /= aero_data%n_spec) then
        write(0,*) 'ERROR: n_spec mismatch when reading state'
        call exit(1)
     end if
 
     read(state_unit,'(a)') dum
-    do i = 1,n_bin
+    do i = 1,bin_grid%n_bin
        read(state_unit,'(i20,e30.20)') dum_int_1, dum_real
     end do
     
-    call zero_array(n_spec, MH, VH)    
+    call zero_aero_state(aero_state)
 
     read(state_unit,'(a)') dum
-    do i = 1,n_bin
-       read(state_unit,'(i20,i20)') dum_int_1, MH(i)
+    do i = 1,bin_grid%n_bin
+       read(state_unit,'(i20,i20)') dum_int_1, aero_state%n(i)
     end do
     
     read(state_unit,'(a)') dum
-    do i = 1,n_bin
-       do j = 1,MH(i)
-          do k = 1,n_spec
-             if (j > size(VH(i)%p,1)) then
-                call enlarge_bin(VH(i))
+    do i = 1,bin_grid%n_bin
+       do j = 1,aero_state%n(i)
+          do k = 1,aero_data%n_spec
+             if (j > size(aero_state%v(i)%p,1)) then
+                call enlarge_bin(aero_state%v(i))
              end if
              read(state_unit,'(i12,i12,i12,e30.20)') &
-                  dum_int_1, dum_int_2, dum_int_3, VH(i)%p(j,k)
+                  dum_int_1, dum_int_2, dum_int_3, aero_state%v(i)%p(j,k)
           end do
        end do
     end do
@@ -163,22 +164,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_state(state_unit, state_prefix, n_bin, n_spec, MH, &
-       VH, bin_v, dlnr, env, index, time, i_loop)
+  subroutine write_state(state_unit, state_prefix, bin_grid, aero_data, &
+       aero_state, env, index, time, i_loop)
 
     ! Write the current state.
-    
-    use mod_environ
+
+    use mod_bin
+    use mod_aero_data
     use mod_aero_state
+    use mod_environ
+    use mod_util
     
     integer, intent(in) :: state_unit   ! unit number to use for state file
     character(len=*), intent(in) :: state_prefix ! prefix of state file
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(environ), intent(in) :: env    ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
@@ -190,29 +191,30 @@ contains
     write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
          '_', i_loop, '_', index, '.d'
     open(unit=state_unit, file=filename)
-    write(state_unit,'(a20,i20)') 'n_bin', n_bin
-    write(state_unit,'(a20,i20)') 'n_spec', n_spec
+    write(state_unit,'(a20,i20)') 'n_bin', bin_grid%n_bin
+    write(state_unit,'(a20,i20)') 'n_spec', aero_data%n_spec
     write(state_unit,'(a20,e20.10)') 'time(s)', time
     write(state_unit,'(a20,e20.10)') 'temp(K)', env%T
     write(state_unit,'(a20,e20.10)') 'RH(1)', env%RH
-    write(state_unit,'(a20,e20.10)') 'V_comp(m^3)', env%V_comp
+    write(state_unit,'(a20,e20.10)') 'V_comp(m^3)', aero_state%comp_vol
     write(state_unit,'(a20,e20.10)') 'p(Pa)', env%p
-    write(state_unit,'(a20,e20.10)') 'dlnr', dlnr
+    write(state_unit,'(a20,e20.10)') 'dlnr', bin_grid%dlnr
 
     write(state_unit,'(a1,a19,a30)') '#', 'bin_num', 'vol of bin (m^3)'
-    do i = 1,n_bin 
-       write(state_unit,'(i20,e30.20)') i, bin_v(i)
+    do i = 1,bin_grid%n_bin 
+       write(state_unit,'(i20,e30.20)') i, bin_grid%v(i)
     end do  
     write(state_unit,'(a1,a19,a20)') '#', 'bin_num', 'num in bin (#)'
-    do i = 1,n_bin
-       write(state_unit,'(i20,i20)') i, MH(i)
+    do i = 1,bin_grid%n_bin
+       write(state_unit,'(i20,i20)') i, aero_state%n(i)
     end do
     write(state_unit,'(a1,a11,a12,a12,a30)') '#', 'bin_num', 'index', &
          'species', 'volume (m^3)'
-    do i = 1,n_bin
-       do j = 1,MH(i)
-          do k = 1,n_spec
-             write(state_unit,'(i12,i12,i12,e30.20)') i, j, k, VH(i)%p(j,k)
+    do i = 1,bin_grid%n_bin
+       do j = 1,aero_state%n(i)
+          do k = 1,aero_data%n_spec
+             write(state_unit,'(i12,i12,i12,e30.20)') i, j, k, &
+                  aero_state%v(i)%p(j,k)
           end do
        end do
     end do

@@ -19,7 +19,6 @@ module mod_environ
   type environ
      real*8 :: T                        ! temperature (K)
      real*8 :: RH                       ! relative humidity (1)
-     real*8 :: V_comp                   ! computational volume (m^3)
      real*8 :: p                        ! ambient pressure (Pa)
      real*8 :: rho_a                    ! air density (kg m^{-3})
      real*8 :: longitude                ! longitude (degrees)
@@ -69,14 +68,14 @@ contains
     
     type(environ), intent(inout) :: env ! environment state to update
     type(aero_data_t), intent(in)   :: aero_data ! aero_data constants
-    real*8, intent(in) :: dv            ! volume of water added (m^3)
+    real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
     
     real*8 pmv     ! ambient water vapor pressure (Pa)
     real*8 mv      ! ambient water vapor density (kg m^{-3})
                    ! pmv and mv are related by the factor M_w/(R*T)
     real*8 dmv     ! change of water density (kg m^{-3})
     
-    dmv = dv * aero_data%rho(aero_data%i_water) / env%V_comp
+    dmv = dv * aero_data%rho(aero_data%i_water)
     pmv = sat_vapor_pressure(env) * env%RH
     mv = aero_data%M_w(aero_data%i_water)/(const%R*env%T) * pmv
     mv = mv - dmv    

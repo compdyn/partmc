@@ -73,7 +73,7 @@ contains
     real*8 time, pre_time
     real*8 last_output_time, last_state_time, last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag, M
+    integer n_coag, tot_n_samp, tot_n_coag
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer i_time, pre_i_time
@@ -88,15 +88,11 @@ contains
     
     if (mc_opt%do_restart) then
        call read_state(mc_opt%state_unit, mc_opt%restart_name, &
-            bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-            aero_state%v, env, time)
+            bin_grid, aero_data, aero_state, env, time)
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then
           do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-             M = total_particles(aero_state)
-             call double(M, bin_grid%n_bin, aero_state%n, aero_state%v, &
-                  aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
-                  bin_dist%n, bin_grid%dlnr, env)
+             call double(bin_grid, bin_dist, aero_data, aero_state)
           end do
        end if
        ! write data into output file so that it will look correct
@@ -113,7 +109,7 @@ contains
              if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
                   bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
                   bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-                  env, aero_data, mc_opt%i_loop)
+                  env, aero_data, mc_opt%i_loop, aero_state%comp_vol)
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
@@ -128,14 +124,14 @@ contains
     if (mc_opt%t_output > 0d0) then
        call output_summary(mc_opt%output_unit, time, bin_grid%n_bin, &
             aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
-            bin_dist%n, bin_grid%dlnr, env, aero_data, mc_opt%i_loop)
+            bin_dist%n, bin_grid%dlnr, env, aero_data, mc_opt%i_loop, &
+            aero_state%comp_vol)
     end if
 
     if (mc_opt%t_state > 0d0) then
        call write_state(mc_opt%state_unit, mc_opt%state_prefix, &
-            bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-            aero_state%v, bin_grid%v, bin_grid%dlnr, env, i_time, &
-            time, mc_opt%i_loop)
+            bin_grid, aero_data, aero_state, env, i_time, time, &
+            mc_opt%i_loop)
     end if
     
     t_start = time
@@ -151,22 +147,22 @@ contains
        tot_n_coag = tot_n_coag + n_coag
 
        if (mc_opt%do_condensation) then
-          call condense_particles(bin_grid%n_bin, aero_data%n_spec, &
-               aero_state%n, aero_state%v, mc_opt%del_t, bin_grid%v, &
-               bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-               env, aero_data)
+          call condense_particles(bin_grid, bin_dist, env, aero_data, &
+               aero_state, mc_opt%del_t)
        end if
 
        if (mc_opt%do_mosaic) then
           call singlestep_mosaic(aero_data%n_spec, bin_grid%n_bin, &
                aero_state%n, aero_state%v, bin_grid%v, bin_dist%v, &
                bin_dist%vs, bin_dist%n, bin_grid%dlnr, time, mc_opt%del_t, &
-               env, aero_data, gas_data, gas_state)
+               env, aero_data, gas_data, gas_state, aero_state%comp_vol)
        end if
        
        ! DEBUG: enable to check array handling
-       ! call check_array(M, n_bin, n_spec, MH, VH, bin_v, &
-       !      bin_g, bin_gs, bin_n, dlnr)
+       ! M = total_particles(aero_state)
+       ! call check_array(M, bin_grid%n_bin, aero_data%n_spec, &
+       !      aero_state%n, aero_state%v, bin_grid%v, bin_dist%v, &
+       !      bin_dist%vs, bin_dist%n, bin_grid%dlnr)
        ! DEBUG: end
        
        i_time = i_time + 1
@@ -180,15 +176,14 @@ contains
           if (do_output) call output_summary(mc_opt%output_unit, time, &
                bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
                bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-               env, aero_data, mc_opt%i_loop)
+               env, aero_data, mc_opt%i_loop, aero_state%comp_vol)
        end if
 
        if (mc_opt%t_state > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_state, &
                last_state_time, do_state)
           if (do_state) call write_state(mc_opt%state_unit, &
-               mc_opt%state_prefix, bin_grid%n_bin, aero_data%n_spec, &
-               aero_state%n, aero_state%v, bin_grid%v, bin_grid%dlnr, &
+               mc_opt%state_prefix, bin_grid, aero_data, aero_state, &
                env, i_time, time, mc_opt%i_loop)
        end if
        
@@ -201,8 +196,8 @@ contains
                   / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
              t_wall_est = (1d0 - prop_done) / prop_done &
                   * (t_wall_now - mc_opt%t_wall_start)
-             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', 'M', &
-                  'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
+             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', &
+                  'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
              write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
                   total_particles(aero_state), tot_n_samp, n_coag, &
                   tot_n_coag, t_wall_est
@@ -265,6 +260,11 @@ contains
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
              M = total_particles(aero_state)
+             ! check we still have enough particles to coagulate
+             if ((aero_state%n(i) < 1) .or. (aero_state%n(j) < 1) &
+                  .or. ((i == j) .and. (aero_state%n(i) < 2))) then
+                exit
+             end if
              call maybe_coag_pair(M, bin_grid%n_bin, aero_state%n, &
                   aero_state%v, aero_data%n_spec, bin_grid%v, &
                   bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
@@ -279,10 +279,7 @@ contains
     ! then double until we fill up the array
     if (mc_opt%allow_double) then
        do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-          M = total_particles(aero_state)
-          call double(M, bin_grid%n_bin, aero_state%n, aero_state%v, &
-               aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
-               bin_dist%n, bin_grid%dlnr, env)
+          call double(bin_grid, bin_dist, aero_data, aero_state)
        end do
     end if
     

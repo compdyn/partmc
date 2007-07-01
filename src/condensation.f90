@@ -9,8 +9,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particles(n_bin, n_spec, MH, VH, &
-       del_t, bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data)
+  subroutine condense_particles(bin_grid, bin_dist, env, aero_data, &
+       aero_state, del_t)
 
     ! Do condensation to all the particles for a given time interval,
     ! including updating the environment to account for the lost
@@ -21,44 +21,41 @@ contains
     use mod_environ
     use mod_aero_data
 
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: del_t         ! total time to integrate
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(inout) :: bin_g(n_bin) ! volume in bins  
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(inout) :: bin_dist ! binned distributions
     type(environ), intent(inout) :: env ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    real*8, intent(in) :: del_t         ! total time to integrate
     
     ! local variables
     integer bin, j, new_bin, k
     real*8 pv, pre_water_vol, post_water_vol
 
-    pre_water_vol = sum(bin_gs(:,aero_data%i_water))
+    pre_water_vol = sum(bin_dist%vs(:,aero_data%i_water))
 
-    do bin = 1,n_bin
-       do j = 1,MH(bin)
-          call condense_particle(n_spec, VH(bin)%p(j,:), del_t, env, aero_data)
+    do bin = 1,bin_grid%n_bin
+       do j = 1,aero_state%n(bin)
+          call condense_particle(aero_data%n_spec, &
+               aero_state%v(bin)%p(j,:), del_t, env, aero_data)
        end do
     end do
 
     ! We resort the particles in the bins after all particles are
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
-    call resort_array(n_bin, n_spec, MH, VH, bin_v, &
-         dlnr)
+    call resort_array(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+         aero_state%v, bin_grid%v, bin_grid%dlnr)
 
     ! update the bin arrays
-    call moments(n_bin, n_spec, MH, VH, bin_v, &
-         bin_g, bin_gs, bin_n, dlnr)
+    call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
+         aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
+         bin_dist%n, bin_grid%dlnr)
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(bin_gs(:,aero_data%i_water))
-    call change_water_volume(env, aero_data, post_water_vol - pre_water_vol)
+    post_water_vol = sum(bin_dist%vs(:,aero_data%i_water))
+    call change_water_volume(env, aero_data, &
+         (post_water_vol - pre_water_vol) / aero_state%comp_vol)
 
   end subroutine condense_particles
 

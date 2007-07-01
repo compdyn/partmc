@@ -38,9 +38,9 @@ endif
 
 -include Makefile.local
 
-PROGS := src/process_summary src/process_state src/process_average	\
-	src/partmc test/sedi_bidisperse_ode				\
-	test/sedi_bidisperse_state_to_count equilib/equilib
+PROGS := src/process_summary src/process_average	\
+	src/partmc 				\
+	equilib/equilib
 
 OTHER := src/aero_state src/bin src/condensation src/constants		\
 	src/environ src/aero_dist src/kernel_golovin src/kernel_sedi	\

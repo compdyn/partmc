@@ -161,9 +161,6 @@ contains
        call copy_gas_state(gas_init, gas_state)
        call copy_aero_state(aero_init, aero_state)
 
-       ! FIXME: delete this soon
-       env%V_comp = aero_state%comp_vol
-       
        if (mc_opt%do_condensation) then
           call equilibriate_aero(bin_grid, env, aero_data, aero_state)
        end if

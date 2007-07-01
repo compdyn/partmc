@@ -95,6 +95,13 @@ contains
     integer, intent(out) :: s1          ! first rand particle 1 <= s1 <= M(b1)
     integer, intent(out) :: s2          ! second rand particle 1 <= s2 <= M(b2)
                                         !         (b1,s1) != (b2,s2)
+
+    if ((MH(b1) < 1) .or. (MH(b2) < 1) .or. &
+         ((b1 == b2) .and. (MH(b1) < 2))) then
+       write(*,*) 'ERROR: find_rand_pair(): insufficient particles in bins', &
+            b1, b2
+       call exit(1)
+    end if
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
@@ -207,41 +214,35 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine double(M, n_bin, MH, VH, n_spec &
-       ,bin_v, bin_g, bin_gs, bin_n, dlnr, env)
+  subroutine double(bin_grid, bin_dist, aero_data, aero_state)
     
-    ! Doubles number of particles in an array.
+    ! Doubles number of particles.
 
+    use mod_bin
+    use mod_aero_data
+    use mod_aero_state
     use mod_environ
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
-    integer, intent(inout) :: M         ! number of particles
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
-     
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(inout) :: bin_g(n_bin) ! volume in bins
-    real*8, intent(inout) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(inout) :: bin_n(n_bin) ! number in bins
-    type(environ), intent(inout) :: env ! environment state 
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    integer k, n
     
-    integer i, k, i_spec
-    
-    ! double VH and associated structures
-    do k = 1,n_bin
-       call enlarge_bin_to(VH(k), 2 * MH(k))
-       VH(k)%p((MH(k)+1):(2*MH(k)), :) = VH(k)%p(1:MH(k), :)
-       MH(k) = 2 * MH(k)
+    ! double aero_state and associated structures
+    do k = 1,bin_grid%n_bin
+       n = aero_state%n(k)
+       call enlarge_bin_to(aero_state%v(k), 2 * n)
+       aero_state%v(k)%p((n+1):(2*n), :) = aero_state%v(k)%p(1:n, :)
+       aero_state%n(k) = 2 * aero_state%n(k)
     end do
-    M = 2 * M
-    env%V_comp = 2d0 * env%V_comp
+    aero_state%comp_vol = 2d0 * aero_state%comp_vol
     
     ! double bin structures
-    bin_g = bin_g * 2d0
-    bin_n = bin_n * 2
-    bin_gs = bin_gs * 2d0
+    bin_dist%v = bin_dist%v * 2d0
+    bin_dist%n = bin_dist%n * 2
+    bin_dist%vs = bin_dist%vs * 2d0
     
   end subroutine double
   

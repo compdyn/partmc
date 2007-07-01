@@ -32,7 +32,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_summary(output_unit, time, n_bin, n_spec, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop)
+       bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop, comp_vol)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes absolute number and absolute volume
@@ -53,13 +53,14 @@ contains
     type(environ), intent(in) :: env    ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: i_loop       ! current loop number
+    real*8, intent(in) :: comp_vol      ! FIXME: temporary hack
     
     real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
     real*8 bin_n_den(n_bin)
     
-    bin_g_den = bin_g / env%V_comp / dlnr
-    bin_gs_den = bin_gs / env%V_comp / dlnr
-    bin_n_den = dble(bin_n) / env%V_comp / dlnr
+    bin_g_den = bin_g / comp_vol / dlnr
+    bin_gs_den = bin_gs / comp_vol / dlnr
+    bin_n_den = dble(bin_n) / comp_vol / dlnr
     call output_summary_density(output_unit, time, n_bin, n_spec, bin_v, &
          bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
     

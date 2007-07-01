@@ -11,7 +11,7 @@ contains
 
   subroutine singlestep_mosaic(n_spec, n_bin, MH, VH, &
        bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, aero_data, &
-       gas_data, gas_state)
+       gas_data, gas_state, comp_vol)
 
     use mod_constants
     use mod_util
@@ -52,6 +52,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
+
+    real*8, intent(in) :: comp_vol      ! FIXME: temporary hack
 
     ! MOSAIC function interfaces
     interface
@@ -153,12 +155,13 @@ contains
 
     do i_spec = 1, n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
-      conv_fac(i_spec) = 1.D9*aero_data%rho(i_spec)/(aero_data%M_w(i_spec)*env%V_comp)
+      conv_fac(i_spec) = 1.D9*aero_data%rho(i_spec) &
+           / (aero_data%M_w(i_spec)*comp_vol)
     enddo
 
     nbin_a = sum(MH)
     i_mosaic = 0 ! MOSAIC bin number
-    aer = 0d0                                                   ! initialize to zero
+    aer = 0d0    ! initialize to zero
     do i_bin = 1,n_bin
        do i_num = 1,MH(i_bin)
           i_mosaic = i_mosaic + 1
@@ -173,8 +176,8 @@ contains
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
           water_a(i_mosaic) = VH(i_bin)%p(i_num,aero_data%i_water) &  ! kg(water)/m^3(air)
-               * aero_data%rho(aero_data%i_water) / env%V_comp
-          num_a(i_mosaic) = 1.D0/env%V_comp                     ! number conc. (#/cc(air))
+               * aero_data%rho(aero_data%i_water) / comp_vol
+          num_a(i_mosaic) = 1.D0/comp_vol                     ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do
@@ -216,7 +219,7 @@ contains
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
           VH(i_bin)%p(i_num,aero_data%i_water) = water_a(i_mosaic) &
-               / aero_data%rho(aero_data%i_water) * env%V_comp
+               / aero_data%rho(aero_data%i_water) * comp_vol
        end do
     end do
 

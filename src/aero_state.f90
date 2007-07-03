@@ -327,6 +327,54 @@ contains
   end subroutine add_particles
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_to_part(bin_grid, aero_data, aero_dist, &
+       n_part, aero_state)
+
+    ! Convert a continuous distribution into particles.
+    
+    use mod_aero_data
+    use mod_bin
+    use mod_aero_dist
+    use mod_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aero_data data
+    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
+    integer, intent(in) :: n_part       ! total number of particles
+    type(aero_state_t), intent(out) :: aero_state ! aerosol distribution,
+                                                  ! will be alloced
+
+    integer :: i
+    real*8 :: total_n_den
+    real*8 :: mode_n_dens(aero_dist%n_modes)
+    integer :: mode_n_parts(aero_dist%n_modes)
+    integer :: num_per_bin(bin_grid%n_bin)
+
+    ! find the total number density of each mode
+    total_n_den = 0d0
+    do i = 1,aero_dist%n_modes
+       mode_n_dens(i) = sum(aero_dist%modes(i)%n_den)
+    end do
+    total_n_den = sum(mode_n_dens)
+
+    ! allocate particles to modes proportional to their number densities
+    call vec_cts_to_disc(aero_dist%n_modes, mode_n_dens, n_part, mode_n_parts)
+
+    ! allocate particles within each mode in proportion to mode shape
+    call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    do i = 1,aero_dist%n_modes
+       call vec_cts_to_disc(bin_grid%n_bin, aero_dist%modes(i)%n_den, &
+            mode_n_parts(i), num_per_bin)
+       call add_particles(bin_grid, aero_data, aero_dist%modes(i)%vol_frac, &
+            num_per_bin, aero_state)
+    end do
+
+    aero_state%comp_vol = dble(n_part) / dist_num_conc(bin_grid, aero_dist)
+
+  end subroutine aero_dist_to_part
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine moments(n_bin, n_spec, MH, VH, bin_v, &
        bin_g,bin_gs, bin_n, dlnr)

@@ -116,7 +116,7 @@ contains
     call read_aero_data(spec, aero_data)
     call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
-    call dist_to_part(bin_grid, aero_data, aero_init_dist, &
+    call aero_dist_to_part(bin_grid, aero_data, aero_init_dist, &
          mc_opt%n_part_max, aero_init)
     call read_aero_dist_filename(spec, aero_data, bin_grid, &
          'aerosol_emissions', env%aero_emissions)

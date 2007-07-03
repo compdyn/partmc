@@ -47,4 +47,34 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_write_gas_state(file, gas_state)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(gas_state_t), intent(in) :: gas_state ! gas_state to write
+
+    call inout_write_real_array(file, "conc(ppb)", gas_state%conc)
+    
+  end subroutine inout_write_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_gas_state(file, gas_state)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(gas_state_t), intent(out) :: gas_state ! gas_state to read
+
+    call inout_read_real_array(file, "conc(ppb)", gas_state%conc)
+    
+  end subroutine inout_read_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_gas_state

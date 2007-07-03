@@ -129,9 +129,9 @@ contains
     end if
 
     if (mc_opt%t_state > 0d0) then
-       call write_state(mc_opt%state_unit, mc_opt%state_prefix, &
-            bin_grid, aero_data, aero_state, env, i_time, time, &
-            mc_opt%i_loop)
+       call inout_write_state(mc_opt%state_prefix, bin_grid, &
+            aero_data, aero_state, gas_data, gas_state, env, i_time, &
+            time, mc_opt%i_loop)
     end if
     
     t_start = time
@@ -182,9 +182,9 @@ contains
        if (mc_opt%t_state > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_state, &
                last_state_time, do_state)
-          if (do_state) call write_state(mc_opt%state_unit, &
-               mc_opt%state_prefix, bin_grid, aero_data, aero_state, &
-               env, i_time, time, mc_opt%i_loop)
+          if (do_state) call inout_write_state(mc_opt%state_prefix, bin_grid, &
+            aero_data, aero_state, gas_data, gas_state, env, i_time, &
+            time, mc_opt%i_loop)
        end if
        
        if (mc_opt%t_progress > 0d0) then

@@ -194,5 +194,81 @@ contains
   end subroutine init_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  subroutine inout_write_aero_mode(file, aero_mode)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
+
+    call inout_write_real_array(file, "num_density(#/m^3)", aero_mode%n_den)
+    call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
+
+  end subroutine inout_write_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_aero_dist(file, aero_dist)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(aero_dist_t), intent(in) :: aero_dist ! aero_dist to write
+
+    integer :: i
+    
+    call inout_write_integer(file, "n_modes", aero_dist%n_modes)
+    do i = 1,aero_dist%n_modes
+       call inout_write_integer(file, "mode_number", i)
+       call inout_write_aero_mode(file, aero_dist%modes(i))
+    end do
+
+  end subroutine inout_write_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_aero_mode(file, aero_mode)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
+
+    call inout_read_real_array(file, "num_density(#/m^3)", aero_mode%n_den)
+    call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
+
+  end subroutine inout_read_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_aero_dist(file, aero_dist)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(aero_dist_t), intent(out) :: aero_dist ! aero_dist to read
+
+    integer :: i, check_i
+    
+    call inout_read_integer(file, "n_modes", aero_dist%n_modes)
+    allocate(aero_dist%modes(aero_dist%n_modes))
+    do i = 1,aero_dist%n_modes
+       call inout_read_integer(file, "mode_number", check_i)
+       call inout_check_index(file, i, check_i)
+       call inout_read_aero_mode(file, aero_dist%modes(i))
+    end do
+
+  end subroutine inout_read_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_aero_dist

@@ -27,8 +27,8 @@ module mod_environ
      real*8 :: start_time               ! start time (s since 00:00 UTC)
      integer :: start_day               ! start day of year (UTC)
      integer :: n_temps                 ! number of temperature set-points
-     real*8, dimension(:), pointer :: temp_times ! times at temp set-points
-     real*8, dimension(:), pointer :: temps      ! temps at temp set-points
+     real*8, pointer :: temp_times(:)   ! times at temp set-points (s)
+     real*8, pointer :: temps(:)        ! temps at temp set-points (K)
      type(gas_state_t) :: gas_emissions ! gas emissions
      real*8 :: gas_emission_rate        ! gas emisssion rate (s^{-1})
      type(gas_state_t) :: gas_background ! background gas concentrations
@@ -162,6 +162,74 @@ contains
     end do
 
   end subroutine gas_update_from_environ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_env(file, env)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(environ), intent(in) :: env    ! environment to write
+    
+    call inout_write_real(file, "temp(K)", env%T)
+    call inout_write_real(file, "rel_humidity(1)", env%RH)
+    call inout_write_real(file, "pressure(Pa)", env%p)
+    call inout_write_real(file, "air_density(kg/m^3)", env%rho_a)
+    call inout_write_real(file, "longitude(deg)", env%longitude)
+    call inout_write_real(file, "latitude(deg)", env%latitude)
+    call inout_write_real(file, "altitude(m)", env%altitude)
+    call inout_write_real(file, "start_time(s)", env%start_time)
+    call inout_write_integer(file, "start_day(days)", env%start_day)
+    call inout_write_integer(file, "num_temps", env%n_temps)
+    call inout_write_real_array(file, "temp_times(s)", env%temp_times)
+    call inout_write_real_array(file, "temps(K)", env%temps)
+    call inout_write_gas_state(file, env%gas_emissions)
+    call inout_write_real(file, "gas_emit_rate(1/s)", env%gas_emission_rate)
+    call inout_write_gas_state(file, env%gas_background)
+    call inout_write_real(file, "gas_dilute_rate(1/s)", env%gas_dilution_rate)
+    call inout_write_aero_dist(file, env%aero_emissions)
+    call inout_write_real(file, "aero_emit_rate(1/s)", env%aero_emission_rate)
+    call inout_write_aero_dist(file, env%aero_background)
+    call inout_write_real(file, "aero_dilute_rat(1/s)", env%aero_dilution_rate)
+
+  end subroutine inout_write_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_env(file, env)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(environ), intent(out) :: env    ! environment to read
+    
+    call inout_read_real(file, "temp(K)", env%T)
+    call inout_read_real(file, "rel_humidity(1)", env%RH)
+    call inout_read_real(file, "pressure(Pa)", env%p)
+    call inout_read_real(file, "air_density(kg/m^3)", env%rho_a)
+    call inout_read_real(file, "longitude(deg)", env%longitude)
+    call inout_read_real(file, "latitude(deg)", env%latitude)
+    call inout_read_real(file, "altitude(m)", env%altitude)
+    call inout_read_real(file, "start_time(s)", env%start_time)
+    call inout_read_integer(file, "start_day(days)", env%start_day)
+    call inout_read_integer(file, "num_temps", env%n_temps)
+    call inout_read_real_array(file, "temp_times(s)", env%temp_times)
+    call inout_read_real_array(file, "temps(K)", env%temps)
+    call inout_read_gas_state(file, env%gas_emissions)
+    call inout_read_real(file, "gas_emit_rate(1/s)", env%gas_emission_rate)
+    call inout_read_gas_state(file, env%gas_background)
+    call inout_read_real(file, "gas_dilute_rate(1/s)", env%gas_dilution_rate)
+    call inout_read_aero_dist(file, env%aero_emissions)
+    call inout_read_real(file, "aero_emit_rate(1/s)", env%aero_emission_rate)
+    call inout_read_aero_dist(file, env%aero_background)
+    call inout_read_real(file, "aero_dilute_rat(1/s)", env%aero_dilution_rate)
+
+  end subroutine inout_read_env
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

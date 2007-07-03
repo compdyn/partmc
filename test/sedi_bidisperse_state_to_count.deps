@@ -1,2 +1,2 @@
 # DO NOT EDIT --- auto-generated file
-test/sedi_bidisperse_state_to_count.o: src/mod_environ.mod src/mod_aero_data.mod src/mod_output_state.mod src/mod_aero_state.mod
+test/sedi_bidisperse_state_to_count.o: src/mod_bin.mod src/mod_environ.mod src/mod_aero_data.mod src/mod_output_state.mod src/mod_aero_state.mod src/mod_gas_data.mod src/mod_gas_state.mod src/mod_aero_dist.mod

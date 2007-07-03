@@ -27,7 +27,7 @@ program process_state
   integer, parameter :: n_comp = 20     ! number of composition bins
 
   integer, allocatable :: MH(:)         ! number of particles per bin
-  type(bin_p), allocatable :: VH(:)     ! particle volumes (m^3)
+  type(bin_p_t), allocatable :: VH(:)     ! particle volumes (m^3)
   real*8, allocatable :: bin_v(:)       ! volume of particles in bins
   type(bin_grid_t) :: bin_grid          ! bin grid
 
@@ -147,7 +147,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
+    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: spec_1       ! first species
@@ -179,7 +179,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
+    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     integer, intent(in) :: spec_1       ! first species
     integer, intent(in) :: spec_2       ! second species
     integer, intent(in) :: n_comp       ! number of composition bins
@@ -212,7 +212,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes (m^3)
+    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: spec_1       ! first species

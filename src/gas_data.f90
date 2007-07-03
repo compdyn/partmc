@@ -102,4 +102,42 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_write_gas_data(file, gas_data)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(gas_data_t), intent(in) :: gas_data ! gas_data to write
+
+    call inout_write_integer(file, "n_spec", gas_data%n_spec)
+    call inout_write_real_array(file, "M_w(kg/mole)", gas_data%M_w)
+    call inout_write_string_array(file, "species_names", gas_data%name)
+    call inout_write_integer_array(file, "mosaic_indices", &
+         gas_data%mosaic_index)
+    
+  end subroutine inout_write_gas_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_gas_data(file, gas_data)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(gas_data_t), intent(out) :: gas_data ! gas_data to read
+
+    call inout_read_integer(file, "n_spec", gas_data%n_spec)
+    call inout_read_real_array(file, "M_w(kg/mole)", gas_data%M_w)
+    call inout_read_string_array(file, "species_names", gas_data%name)
+    call inout_read_integer_array(file, "mosaic_indices", &
+         gas_data%mosaic_index)
+    
+  end subroutine inout_read_gas_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_gas_data

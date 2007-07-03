@@ -28,7 +28,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
+    type(bin_p_t), intent(inout) :: VH(n_bin) ! particle volumes
      
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin) ! volume in bins
@@ -133,7 +133,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes
+    type(bin_p_t), intent(inout) :: VH(n_bin) ! particle volumes
      
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     real*8, intent(inout) :: bin_g(n_bin) ! volume in bins

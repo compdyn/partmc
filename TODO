@@ -33,7 +33,8 @@ Cache bin edges in bin_grid
 make_bin_grid should take r_min, r_max and n_bin
 
 remove bin_dist and use aero_dists instead. change aero_dist to
-directly store density per species, rather than vol_frac.
+directly store density per species, rather than vol_frac. change
+aero_mode_t to just be a 2D array per bin/species.
 
 rename environ to env_t
 
@@ -42,3 +43,9 @@ output_summary that computes the summary data and outputs it.
 
 write proper serialization code for all objects. change
 read/write_state() to use it.
+
+use size(array,dim) rather than shape()
+
+add inout_read_named_real_array() and similar to do what
+read_real_array() does in read_spec.f90 now, then separate out the
+spec_*() functions for compound datatypes into the respective files

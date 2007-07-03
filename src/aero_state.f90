@@ -40,14 +40,14 @@
 
 module mod_aero_state
 
-  type bin_p
+  type bin_p_t
      real*8, dimension(:,:), pointer :: p ! particle volumes (m^3)
      ! dimension of p is (# particles in bin) x n_spec
-  end type bin_p
+  end type bin_p_t
 
   type aero_state_t
      integer, dimension(:), pointer :: n ! number of particles in each bin
-     type(bin_p), dimension(:), pointer :: v ! particle volumes (m^3)
+     type(bin_p_t), dimension(:), pointer :: v ! particle volumes (m^3)
      real*8 :: comp_vol                 ! computational volume (m^3)
   end type aero_state_t
 
@@ -148,7 +148,7 @@ contains
 
     type(aero_state_t), intent(in) :: from_aero ! reference aerosol
     integer, intent(out) :: MH(:)       ! number of particles per bin
-    type(bin_p), intent(out) :: VH(size(MH)) ! particle volumes
+    type(bin_p_t), intent(out) :: VH(size(MH)) ! particle volumes
 
     integer :: n_bin, n_spec, n_part, i
     integer :: arr_shape(2)
@@ -183,7 +183,7 @@ contains
 
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(out) :: MH(:)       ! number of particles per bin
-    type(bin_p), intent(out) :: VH(size(MH)) ! particle volumes
+    type(bin_p_t), intent(out) :: VH(size(MH)) ! particle volumes
     
     integer :: n_bin
     integer i
@@ -226,7 +226,7 @@ contains
     ! Enlarges the given bin (which must be allocated) by at least one
     ! element (currently doubles the length).
 
-    type(bin_p), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin   ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
@@ -248,7 +248,7 @@ contains
 
     ! Enlarges the given bin so that it is at least of size n.
 
-    type(bin_p), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin   ! bin data
     integer, intent(in) :: n            ! minimum new size of bin
 
     do while (size(bin%p,1) < n)
@@ -265,7 +265,7 @@ contains
     ! is at least of length n_used.
 
     integer, intent(in) :: n_used       ! number of used entries in bin
-    type(bin_p), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin   ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
@@ -338,7 +338,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
+    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
     real*8, intent(out) :: bin_g(n_bin) ! volume in bins
     real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
@@ -374,7 +374,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
+    type(bin_p_t), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(in) :: dlnr          ! bin scale factor
     
@@ -445,7 +445,7 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p), intent(in) :: VH(n_bin) ! particle volumes
+    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes
     
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
@@ -530,6 +530,115 @@ contains
     
   end subroutine check_array
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_bin_p(file, bin_p)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(bin_p_t), intent(in) :: bin_p ! bin_p to write
+
+    call inout_write_real_array_2d(file, 'bin_p', bin_p%p)
+    
+  end subroutine inout_write_bin_p
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_bin_p_array(file, bin_ps)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(bin_p_t), intent(in) :: bin_ps(:) ! bin_p array to write
+
+    integer :: length, i
+
+    length = size(bin_ps)
+    call inout_write_integer(file, 'bin_p_array_len', length)
+    do i = 1,length
+       call inout_write_integer(file, 'bin_p_array_entry', i)
+       call inout_write_bin_p(file, bin_ps(i))
+    end do
+    
+  end subroutine inout_write_bin_p_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_aero_state(file, aero_state)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(aero_state_t), intent(in) :: aero_state ! aero_state to write
+
+    call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
+    call inout_write_integer_array(file, "number_per_bin", aero_state%n)
+    call inout_write_bin_p_array(file, aero_state%v)
+    
+  end subroutine inout_write_aero_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_bin_p(file, bin_p)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(bin_p_t), intent(out) :: bin_p ! bin_p to read
+
+    call inout_read_real_array_2d(file, 'bin_p', bin_p%p)
+    
+  end subroutine inout_read_bin_p
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_bin_p_array(file, bin_ps)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(bin_p_t), pointer :: bin_ps(:) ! bin_p array to read
+
+    integer :: length, i, check_i
+
+    call inout_read_integer(file, 'bin_p_array_len', length)
+    allocate(bin_ps(length))
+    do i = 1,length
+       call inout_read_integer(file, 'bin_p_array_entry', check_i)
+       call inout_check_index(file, i, check_i)
+       call inout_read_bin_p(file, bin_ps(i))
+    end do
+    
+  end subroutine inout_read_bin_p_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_aero_state(file, aero_state)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(aero_state_t), intent(out) :: aero_state ! aero_state to read
+
+    call inout_read_real(file, "comp_vol(m^3)", aero_state%comp_vol)
+    call inout_read_integer_array(file, "number_per_bin", aero_state%n)
+    call inout_read_bin_p_array(file, aero_state%v)
+    
+  end subroutine inout_read_aero_state
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_aero_state

@@ -230,4 +230,50 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_write_aero_data(file, aero_data)
+    
+    ! Write full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to write to
+    type(aero_data_t), intent(in) :: aero_data ! aero_data to write
+
+    call inout_write_integer(file, "n_spec", aero_data%n_spec)
+    call inout_write_integer(file, "i_water", aero_data%i_water)
+    call inout_write_string_array(file, "species_names", aero_data%name)
+    call inout_write_integer_array(file, "mosaic_indices", &
+         aero_data%mosaic_index)
+    call inout_write_real_array(file, "rho(kg/m^3)", aero_data%rho)
+    call inout_write_integer_array(file, "nu", aero_data%nu)
+    call inout_write_real_array(file, "eps(1)", aero_data%eps)
+    call inout_write_real_array(file, "M_w(kg/mole)", aero_data%M_w)
+    
+  end subroutine inout_write_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_read_aero_data(file, aero_data)
+    
+    ! Read full state.
+    
+    use mod_inout
+    
+    type(inout_file_t), intent(inout) :: file ! file to read from
+    type(aero_data_t), intent(out) :: aero_data ! aero_data to read
+
+    call inout_read_integer(file, "n_spec", aero_data%n_spec)
+    call inout_read_integer(file, "i_water", aero_data%i_water)
+    call inout_read_string_array(file, "species_names", aero_data%name)
+    call inout_read_integer_array(file, "mosaic_indices", &
+         aero_data%mosaic_index)
+    call inout_read_real_array(file, "rho(kg/m^3)", aero_data%rho)
+    call inout_read_integer_array(file, "nu", aero_data%nu)
+    call inout_read_real_array(file, "eps(1)", aero_data%eps)
+    call inout_read_real_array(file, "M_w(kg/mole)", aero_data%M_w)
+    
+  end subroutine inout_read_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_aero_data

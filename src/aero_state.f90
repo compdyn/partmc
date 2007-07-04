@@ -322,7 +322,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments(bin_grid, aero_binned, aero_data, aero_state)
+  subroutine aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
     
     ! Create the bin number and mass arrays from aero_state%v.
 
@@ -348,7 +348,7 @@ contains
     end do
     aero_binned%n = aero_state%n
    
-  end subroutine moments
+  end subroutine aero_state_to_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

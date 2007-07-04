@@ -9,7 +9,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine singlestep_mosaic(bin_grid, bin_dist, env, aero_data, &
+  subroutine singlestep_mosaic(bin_grid, env, aero_data, &
        aero_state, gas_data, gas_state, t, del_t)
 
     use mod_constants
@@ -34,7 +34,6 @@ contains
          mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state

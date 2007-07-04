@@ -54,6 +54,7 @@ contains
     use mod_bin
     use mod_aero_state
     use mod_aero_dist
+    use mod_aero_binned
     use mod_condensation
     use mod_kernel_sedi
     use mod_kernel_golovin
@@ -84,7 +85,7 @@ contains
 
     type(environ) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
-    type(bin_dist_t) :: bin_dist        ! binned distributions
+    type(aero_binned_t) :: aero_binned        ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
 
     integer :: i_loop, rand_init
@@ -150,7 +151,7 @@ contains
        call srand(time())
     end if
 
-    call alloc_bin_dist(bin_grid%n_bin, aero_data%n_spec, bin_dist)
+    call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     call allocate_gas_state(gas_data, gas_state)
     call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
@@ -166,16 +167,16 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(kernel_sedi, bin_grid, bin_dist, env, aero_data, &
+          call run_mc(kernel_sedi, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(kernel_golovin, bin_grid, bin_dist, env, aero_data, &
+          call run_mc(kernel_golovin, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(kernel_constant, bin_grid, bin_dist, env, aero_data, &
+          call run_mc(kernel_constant, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(kernel_brown, bin_grid, bin_dist, env, aero_data, &
+          call run_mc(kernel_brown, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

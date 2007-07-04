@@ -13,7 +13,7 @@
 ! of the i_spec-th species in the i_part-th particle in the i_bin-th
 ! bin.
 !
-! FIXME: aero_state%n and bin_dist%n are pretty much
+! FIXME: aero_state%n and aero_binned%n are pretty much
 ! identical. Probably best to ignore it for now, because this will all
 ! change with the superparticle code.
 !
@@ -322,30 +322,31 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments(bin_grid, bin_dist, aero_data, aero_state)
+  subroutine moments(bin_grid, aero_binned, aero_data, aero_state)
     
     ! Create the bin number and mass arrays from aero_state%v.
 
     use mod_bin
     use mod_aero_data
+    use mod_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
     integer b, j, s
     
-    bin_dist%v = 0d0
-    bin_dist%vs = 0d0
+    aero_binned%v = 0d0
+    aero_binned%vs = 0d0
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%n(b)
-          bin_dist%v(b) = bin_dist%v(b) &
+          aero_binned%v(b) = aero_binned%v(b) &
                + particle_volume(aero_state%v(b)%p(j,:))
-          bin_dist%vs(b,:) = bin_dist%vs(b,:) + aero_state%v(b)%p(j,:)
+          aero_binned%vs(b,:) = aero_binned%vs(b,:) + aero_state%v(b)%p(j,:)
        end do
     end do
-    bin_dist%n = aero_state%n
+    aero_binned%n = aero_state%n
    
   end subroutine moments
   
@@ -418,7 +419,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
+  subroutine check_aero_state(bin_grid, aero_binned, aero_data, aero_state)
     
     ! Check that all particles are in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
@@ -426,9 +427,10 @@ contains
     use mod_util
     use mod_bin
     use mod_aero_data
+    use mod_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
@@ -452,15 +454,15 @@ contains
        end do
     end do
     
-    ! check the bin_dist%n array
+    ! check the aero_binned%n array
     do k = 1,bin_grid%n_bin
-       if (aero_state%n(k) .ne. bin_dist%n(k)) then
-          write(0,'(a10,a10,a10)') 'k', 'aero_state%n(k)', 'bin_dist%n(k)'
-          write(0,'(i10,i10,i10)') k, aero_state%n(k), bin_dist%n(k)
+       if (aero_state%n(k) .ne. aero_binned%n(k)) then
+          write(0,'(a10,a10,a10)') 'k', 'aero_state%n(k)', 'aero_binned%n(k)'
+          write(0,'(i10,i10,i10)') k, aero_state%n(k), aero_binned%n(k)
        end if
     end do
     
-    ! check the bin_dist%v array
+    ! check the aero_binned%v array
     do k = 1,bin_grid%n_bin
        check_bin_v = 0d0
        do i = 1,aero_state%n(k)
@@ -468,24 +470,24 @@ contains
           check_bin_v = check_bin_v + pv
        end do
        vol_tol = bin_grid%v(k) / 1d6 ! tolerance 1e6 less than single particle
-       if (.not. almost_equal_abs(check_bin_v, bin_dist%v(k), vol_tol)) then
-          write(0,'(a10,a15,a15)') 'k', 'check_bin_v', 'bin_dist%v(k)'
-          write(0,'(i10,e15.5,e15.5)') k, check_bin_v, bin_dist%v(k)
+       if (.not. almost_equal_abs(check_bin_v, aero_binned%v(k), vol_tol)) then
+          write(0,'(a10,a15,a15)') 'k', 'check_bin_v', 'aero_binned%v(k)'
+          write(0,'(i10,e15.5,e15.5)') k, check_bin_v, aero_binned%v(k)
           error = .true.
        end if
     end do
     
-    ! check the bin_dist%vs array
+    ! check the aero_binned%vs array
     do k = 1,bin_grid%n_bin
        check_bin_vs = sum(aero_state%v(k)%p(1:aero_state%n(k),:), 1)
        vol_tol = bin_grid%v(k) / 1d3 ! tolerance 1e3 less than single particle
        do s = 1,aero_data%n_spec
-          if (.not. almost_equal_abs(check_bin_vs(s), bin_dist%vs(k,s), &
+          if (.not. almost_equal_abs(check_bin_vs(s), aero_binned%vs(k,s), &
                                      vol_tol)) then
              write(0,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_vs(s)', &
-                  'bin_dist%vs(k,s)'
+                  'aero_binned%vs(k,s)'
              write(0,'(i10,i10,e20.5,e15.5)') k, s, check_bin_vs(s), &
-                  bin_dist%vs(k,s)
+                  aero_binned%vs(k,s)
              error = .true.
           end if
        end do

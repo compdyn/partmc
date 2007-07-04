@@ -10,7 +10,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine maybe_coag_pair(bin_grid, bin_dist, env, aero_data, &
+  subroutine maybe_coag_pair(bin_grid, aero_binned, env, aero_data, &
        aero_state, b1, b2, del_t, k_max, kernel, did_coag, bin_change)
     
     ! Choose a random pair for potential coagulation and test its
@@ -23,9 +23,10 @@ contains
     use mod_util
     use mod_environ
     use mod_aero_state
+    use mod_aero_binned
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -63,7 +64,7 @@ contains
     p = k / k_max
     
     if (util_rand() .lt. p) then
-       call coagulate(bin_grid, bin_dist, env, aero_data, aero_state, &
+       call coagulate(bin_grid, aero_binned, env, aero_data, aero_state, &
             b1, s1, b2, s2, bin_change)
        did_coag = .true.
     end if
@@ -121,7 +122,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine coagulate(bin_grid, bin_dist, env, aero_data, aero_state, &
+  subroutine coagulate(bin_grid, aero_binned, env, aero_data, aero_state, &
        b1, s1, b2, s2, bin_change)
 
     ! Join together particles (b1, s1) and (b2, s2), updating all
@@ -133,9 +134,10 @@ contains
     use mod_bin
     use mod_environ
     use mod_aero_state
+    use mod_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -155,14 +157,14 @@ contains
     pv2 = particle_volume(aero_state%v(b2)%p(s2,:))
 
     ! remove s1 and s2 from bins
-    bin_dist%n(b1) = bin_dist%n(b1) - 1
-    bin_dist%n(b2) = bin_dist%n(b2) - 1
-    bin_dist%v(b1) = bin_dist%v(b1) - pv1
-    bin_dist%v(b2) = bin_dist%v(b2) - pv2
-    bin_dist%vs(b1,:) = bin_dist%vs(b1,:) - aero_state%v(b1)%p(s1,:)
-    bin_dist%vs(b2,:) = bin_dist%vs(b2,:) - aero_state%v(b2)%p(s2,:)
-     if ((bin_dist%n(b1) .lt. 0) .or. (bin_dist%n(b2) .lt. 0)) then
-       write(0,*)'ERROR: invalid bin_dist%n'
+    aero_binned%n(b1) = aero_binned%n(b1) - 1
+    aero_binned%n(b2) = aero_binned%n(b2) - 1
+    aero_binned%v(b1) = aero_binned%v(b1) - pv1
+    aero_binned%v(b2) = aero_binned%v(b2) - pv2
+    aero_binned%vs(b1,:) = aero_binned%vs(b1,:) - aero_state%v(b1)%p(s1,:)
+    aero_binned%vs(b2,:) = aero_binned%vs(b2,:) - aero_state%v(b2)%p(s2,:)
+     if ((aero_binned%n(b1) .lt. 0) .or. (aero_binned%n(b2) .lt. 0)) then
+       write(0,*)'ERROR: invalid aero_binned%n'
        call exit(2)
     end if
 
@@ -193,17 +195,17 @@ contains
     aero_state%v(bn)%p(aero_state%n(bn),:) = new_v ! add new particle at end
     
     ! add new particle to bins
-    bin_dist%n(bn) = bin_dist%n(bn) + 1
-    bin_dist%v(bn) = bin_dist%v(bn) &
+    aero_binned%n(bn) = aero_binned%n(bn) + 1
+    aero_binned%v(bn) = aero_binned%v(bn) &
          + sum(aero_state%v(bn)%p(aero_state%n(bn),:))
-    bin_dist%vs(bn,:) = bin_dist%vs(bn,:) &
+    aero_binned%vs(bn,:) = aero_binned%vs(bn,:) &
          + aero_state%v(bn)%p(aero_state%n(bn),:)
 
     ! did we empty a bin?
-    if ((bin_dist%n(b1) .eq. 0) .or. (bin_dist%n(b2) .eq. 0)) &
+    if ((aero_binned%n(b1) .eq. 0) .or. (aero_binned%n(b2) .eq. 0)) &
          bin_change = .true.
     ! did we start a new bin?
-    if ((bin_dist%n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
+    if ((aero_binned%n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
          bin_change = .true.
 
     ! possibly repack memory
@@ -214,7 +216,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine double(bin_grid, bin_dist, aero_data, aero_state)
+  subroutine double(bin_grid, aero_binned, aero_data, aero_state)
     
     ! Doubles number of particles.
 
@@ -222,9 +224,10 @@ contains
     use mod_aero_data
     use mod_aero_state
     use mod_environ
+    use mod_aero_binned
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
@@ -240,9 +243,9 @@ contains
     aero_state%comp_vol = 2d0 * aero_state%comp_vol
     
     ! double bin structures
-    bin_dist%v = bin_dist%v * 2d0
-    bin_dist%n = bin_dist%n * 2
-    bin_dist%vs = bin_dist%vs * 2d0
+    aero_binned%v = aero_binned%v * 2d0
+    aero_binned%n = aero_binned%n * 2
+    aero_binned%vs = aero_binned%vs * 2d0
     
   end subroutine double
   

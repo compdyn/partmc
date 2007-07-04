@@ -9,7 +9,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_particles(bin_grid, bin_dist, env, aero_data, &
+  subroutine condense_particles(bin_grid, aero_binned, env, aero_data, &
        aero_state, del_t)
 
     ! Do condensation to all the particles for a given time interval,
@@ -18,11 +18,12 @@ contains
 
     use mod_aero_state
     use mod_bin
+    use mod_aero_binned
     use mod_environ
     use mod_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(inout) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -32,7 +33,7 @@ contains
     integer bin, j, new_bin, k
     real*8 pv, pre_water_vol, post_water_vol
 
-    pre_water_vol = sum(bin_dist%vs(:,aero_data%i_water))
+    pre_water_vol = sum(aero_binned%vs(:,aero_data%i_water))
 
     do bin = 1,bin_grid%n_bin
        do j = 1,aero_state%n(bin)
@@ -47,10 +48,10 @@ contains
     call resort_aero_state(bin_grid, aero_state)
 
     ! update the bin arrays
-    call moments(bin_grid, bin_dist, aero_data, aero_state)
+    call moments(bin_grid, aero_binned, aero_data, aero_state)
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(bin_dist%vs(:,aero_data%i_water))
+    post_water_vol = sum(aero_binned%vs(:,aero_data%i_water))
     call change_water_volume(env, aero_data, &
          (post_water_vol - pre_water_vol) / aero_state%comp_vol)
 

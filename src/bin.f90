@@ -16,12 +16,6 @@ module mod_bin
      real*8 :: dlnr                     ! bin scale factor (1)
   end type bin_grid_t
 
-  type bin_dist_t
-     real*8, pointer :: v(:)            ! len n_bin, volume per bin (m^3)
-     real*8, pointer :: vs(:,:)         ! n_bin x n_spec, vol per bin&spec (m^3)
-     integer, pointer :: n(:)           ! len n_bin, number per bin (1)
-  end type bin_dist_t
-
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -40,22 +34,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_bin_dist(n_bin, n_spec, bin_dist)
-
-    ! Allocates a bin_dist.
-
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    type(bin_dist_t), intent(out) :: bin_dist ! bin distribution
-
-    allocate(bin_dist%v(n_bin))
-    allocate(bin_dist%vs(n_bin, n_spec))
-    allocate(bin_dist%n(n_bin))
-
-  end subroutine alloc_bin_dist
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   subroutine free_bin_grid(bin_grid)
 
     ! Frees all memory.
@@ -65,20 +43,6 @@ contains
     deallocate(bin_grid%v)
 
   end subroutine free_bin_grid
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine free_bin_dist(bin_dist)
-
-    ! Frees all memory.
-
-    type(bin_dist_t), intent(inout) :: bin_dist ! bin_dist to free
-
-    deallocate(bin_dist%v)
-    deallocate(bin_dist%vs)
-    deallocate(bin_dist%n)
-
-  end subroutine free_bin_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

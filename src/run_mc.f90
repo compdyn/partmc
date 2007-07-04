@@ -31,7 +31,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_mc(kernel, bin_grid, bin_dist, env, aero_data, &
+  subroutine run_mc(kernel, bin_grid, aero_binned, env, aero_data, &
     aero_state, gas_data, gas_state, mc_opt)
 
     ! Do a particle-resolved Monte Carlo simulation.
@@ -39,6 +39,7 @@ contains
     use mod_util
     use mod_aero_state
     use mod_bin 
+    use mod_aero_binned
     use mod_condensation
     use mod_environ
     use mod_aero_data
@@ -51,7 +52,7 @@ contains
     use mod_output_summary
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -92,33 +93,33 @@ contains
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then
           do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-             call double(bin_grid, bin_dist, aero_data, aero_state)
+             call double(bin_grid, aero_binned, aero_data, aero_state)
           end do
        end if
        ! write data into output file so that it will look correct
        pre_time = 0d0
        last_output_time = pre_time
-       call moments(bin_grid, bin_dist, aero_data, aero_state)
+       call moments(bin_grid, aero_binned, aero_data, aero_state)
        do pre_i_time = 0,(i_time - 1)
           call update_environ(env, pre_time)
           if (mc_opt%t_output > 0d0) then
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
              if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
-                  bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+                  bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
                   env, mc_opt%i_loop, aero_state%comp_vol)
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
     end if
 
-    call moments(bin_grid, bin_dist, aero_data, aero_state)
+    call moments(bin_grid, aero_binned, aero_data, aero_state)
     
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 
     if (mc_opt%t_output > 0d0) then
        call output_summary(mc_opt%output_unit, pre_time, &
-            bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+            bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
             env, mc_opt%i_loop, aero_state%comp_vol)
     end if
 
@@ -134,24 +135,24 @@ contains
     last_output_time = time
     do while (time < mc_opt%t_max)
        if (mc_opt%do_coagulation) then
-          call mc_coag(kernel, bin_grid, bin_dist, env, aero_data, &
+          call mc_coag(kernel, bin_grid, aero_binned, env, aero_data, &
                aero_state, mc_opt, k_max, tot_n_samp, n_coag)
        end if
 
        tot_n_coag = tot_n_coag + n_coag
 
        if (mc_opt%do_condensation) then
-          call condense_particles(bin_grid, bin_dist, env, aero_data, &
+          call condense_particles(bin_grid, aero_binned, env, aero_data, &
                aero_state, mc_opt%del_t)
        end if
 
        if (mc_opt%do_mosaic) then
-          call singlestep_mosaic(bin_grid, bin_dist, env, aero_data, &
+          call singlestep_mosaic(bin_grid, env, aero_data, &
                aero_state, gas_data, gas_state, time, mc_opt%del_t)
        end if
        
        ! DEBUG: enable to check array handling
-       ! call check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
+       ! call check_aero_state(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
        
        i_time = i_time + 1
@@ -163,7 +164,7 @@ contains
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
           if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
-               bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+               bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
                env, mc_opt%i_loop, aero_state%comp_vol)
        end if
 
@@ -198,20 +199,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine mc_coag(kernel, bin_grid, bin_dist, env, aero_data, &
+  subroutine mc_coag(kernel, bin_grid, aero_binned, env, aero_data, &
        aero_state, mc_opt, k_max, tot_n_samp, n_coag)
 
     ! Do coagulation for time del_t.
 
     use mod_util
     use mod_aero_state
-    use mod_bin 
+    use mod_bin
+    use mod_aero_binned
     use mod_environ
     use mod_aero_data
     use mod_coagulation
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -253,7 +255,7 @@ contains
                   .or. ((i == j) .and. (aero_state%n(i) < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, bin_dist, env, aero_data, &
+             call maybe_coag_pair(bin_grid, aero_binned, env, aero_data, &
                   aero_state, i, j, mc_opt%del_t, k_max(i,j), kernel, &
                   did_coag, bin_change)
              if (did_coag) n_coag = n_coag + 1
@@ -265,7 +267,7 @@ contains
     ! then double until we fill up the array
     if (mc_opt%allow_double) then
        do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-          call double(bin_grid, bin_dist, aero_data, aero_state)
+          call double(bin_grid, aero_binned, aero_data, aero_state)
        end do
     end if
     

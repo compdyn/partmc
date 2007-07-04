@@ -8,15 +8,15 @@
 
 program equilib
 
-  use mod_read_spec
+  use mod_inout
   use mod_aero_data
   use mod_environ
   use mod_util
   use mod_condensation
 
-  character(len=*), parameter :: aero_file = "aerosol.dat"
+  character(len=*), parameter :: aero_filename = "aerosol.dat"
 
-  type(spec_file) :: aero_spec
+  type(inout_file_t) :: file
   type(environ) :: env
   type(aero_data_t) :: aero_data
   real*8, allocatable :: V(:)
@@ -28,9 +28,9 @@ program equilib
   close(40)
 
   ! read aerosol data
-  call open_spec(aero_spec, aero_file)
-  call read_aero_data_from_file(aero_spec, aero_data)
-  call close_spec(aero_spec)
+  call inout_open_read(aero_filename, file)
+  call inout_read_aero_data(file, aero_data)
+  call inout_close(file)
 
   ! check command line arguments
   if (iargc() .ne. (1 + aero_data%n_spec)) then

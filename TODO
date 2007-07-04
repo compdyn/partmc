@@ -21,6 +21,9 @@ spaced bins.
 
 make_bin_grid should take r_min, r_max and n_bin
 
+store densities directly in bin_dist so that it is independent of
+comp_vol. Then we won't need output_summary_density() anymore.
+
 remove bin_dist and use aero_dists instead. change aero_dist to
 directly store density per species, rather than vol_frac. change
 aero_mode_t to just be a 2D array per bin/species.

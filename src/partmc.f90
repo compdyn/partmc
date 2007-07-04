@@ -71,7 +71,6 @@ contains
     type(inout_file_t), intent(out) :: file ! spec file
 
     character(len=300) :: output_file   ! name of output files
-    character(len=300) :: state_prefix  ! prefix for state files
     character(len=100) :: kernel_name   ! coagulation kernel name
     
     type(gas_data_t) :: gas_data        ! gas data
@@ -191,6 +190,7 @@ contains
 
   subroutine partmc_exact(file)
 
+    use mod_util
     use mod_bin
     use mod_aero_state
     use mod_aero_dist
@@ -207,76 +207,49 @@ contains
 
     type(inout_file_t), intent(out) :: file     ! spec file
 
-    integer, parameter :: output_unit = 32
-
-    real*8, allocatable :: bin_v(:)
-    real*8, allocatable :: bin_g_den(:), bin_gs_den(:,:), bin_n_den(:)
-    real*8 :: dlnr
-    
     character(len=300) :: output_file   ! name of output files
-    real*8 :: num_conc                  ! particle concentration (#/m^3)
-
     character(len=100) :: soln_name     ! exact solution name
-    real*8 :: mean_vol                  ! mean volume of initial distribution
-    
-    real*8 :: t_max                     ! total simulation time (s)
-    real*8 :: t_output                  ! output interval (0 disables) (s)
-    
     type(aero_data_t) :: aero_data               ! aero_data data
     type(environ) :: env                ! environment data
-
-    integer :: n_bin                    ! number of bins
-    real*8 :: v_min                     ! volume of smallest bin (m^3)
-    integer :: scal                     ! scale factor (integer)
+    type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
     
     call inout_read_string(file, 'output_file', output_file)
-    call inout_read_real(file, 'num_conc', num_conc)
+    call inout_read_real(file, 'num_conc', exact_opt%num_conc)
 
     call inout_read_string(file, 'soln', soln_name)
 
     if (trim(soln_name) == 'golovin_exp') then
-       call inout_read_real(file, 'mean_vol', mean_vol)
+       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
     elseif (trim(soln_name) == 'constant_exp_cond') then
-       call inout_read_real(file, 'mean_vol', mean_vol)
+       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
     end if
     
-    call inout_read_real(file, 't_max', t_max)
-    call inout_read_real(file, 't_output', t_output)
+    call inout_read_real(file, 't_max', exact_opt%t_max)
+    call inout_read_real(file, 't_output', exact_opt%t_output)
     
     call spec_read_environ(file, env)
     call spec_read_aero_data(file, aero_data)
-
-    call inout_read_integer(file, 'n_bin', n_bin)
-    call inout_read_real(file, 'v_min', v_min)
-    call inout_read_integer(file, 'scal', scal)
+    call spec_read_bin_grid(file, bin_grid)
 
     call inout_close(file)
 
     ! finished reading .spec data, now do the run
-    
-    call output_summary_open(output_unit, output_file, 1, n_bin, &
-         aero_data%n_spec, nint(t_max / t_output) + 1)
 
-    allocate(bin_v(n_bin), bin_g_den(n_bin), bin_n_den(n_bin))
-    allocate(bin_gs_den(n_bin,aero_data%n_spec))
-    
-    call make_bin_grid(n_bin, scal, v_min, bin_grid)
-    ! FIXME: delete following
-    bin_v = bin_grid%v
-    dlnr = bin_grid%dlnr
+    exact_opt%output_unit = get_unit()
+    call output_summary_open(exact_opt%output_unit, output_file, 1, &
+         bin_grid%n_bin, aero_data%n_spec, &
+         nint(exact_opt%t_max / exact_opt%t_output) + 1)
     
     if (trim(soln_name) == 'golovin_exp') then
-       call run_exact(n_bin, aero_data%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, num_conc, mean_vol, aero_data%rho(1), soln_golovin_exp, &
-            t_max, t_output, output_unit, env, aero_data)
+       call run_exact(bin_grid, env, aero_data, exact_opt, &
+            soln_golovin_exp)
     elseif (trim(soln_name) == 'golovin_exp') then
-       call run_exact(n_bin, aero_data%n_spec, bin_v, bin_g_den, bin_gs_den, &
-            bin_n_den, num_conc, mean_vol, aero_data%rho(1), soln_constant_exp_cond, &
-            t_max, t_output, output_unit, env, aero_data)
+       call run_exact(bin_grid, env, aero_data, exact_opt, &
+            soln_constant_exp_cond)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -304,6 +277,7 @@ contains
     use mod_output_summary
 
     type(inout_file_t), intent(out) :: file ! spec file
+
     character(len=300) :: output_file   ! name of output files
     character(len=100) :: kernel_name   ! coagulation kernel name
     type(run_sect_opt_t) :: sect_opt    ! sectional code options

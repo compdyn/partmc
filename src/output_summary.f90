@@ -31,64 +31,64 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine output_summary(output_unit, time, n_bin, n_spec, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, env, aero_data, i_loop, comp_vol)
+  subroutine output_summary(output_unit, time, bin_grid, aero_data, &
+       bin_v, bin_vs, bin_n, env, i_loop, comp_vol)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes absolute number and absolute volume
     ! per-bin (as produced by a particle-resolved code, for example).
     
+    use mod_bin
     use mod_aero_data
     use mod_environ
     
     integer, intent(in) :: output_unit  ! unit number to output to
     real*8, intent(in) :: time          ! simulation time
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_g(n_bin)  ! volume in bins (m^3)
-    real*8, intent(in) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(in) :: bin_n(n_bin) ! number in bins (dimensionless)
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    real*8, intent(in) :: bin_v(bin_grid%n_bin) ! volume in bins (m^3)
+    real*8, intent(in) :: bin_vs(bin_grid%n_bin,aero_data%n_spec) ! volume per
+                                        ! bin and species (m^3)
+    integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins (dim-less)
     type(environ), intent(in) :: env    ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: i_loop       ! current loop number
-    real*8, intent(in) :: comp_vol      ! FIXME: temporary hack
+    real*8, intent(in) :: comp_vol      ! FIXME: temporary hack until
+                                        ! aero_dist stores densities
     
-    real*8 bin_g_den(n_bin), bin_gs_den(n_bin,n_spec)
-    real*8 bin_n_den(n_bin)
+    real*8 :: bin_v_den(bin_grid%n_bin), bin_n_den(bin_grid%n_bin)
+    real*8 :: bin_vs_den(bin_grid%n_bin,aero_data%n_spec)
     
-    bin_g_den = bin_g / comp_vol / dlnr
-    bin_gs_den = bin_gs / comp_vol / dlnr
-    bin_n_den = dble(bin_n) / comp_vol / dlnr
-    call output_summary_density(output_unit, time, n_bin, n_spec, bin_v, &
-         bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
+    bin_v_den = bin_v / comp_vol / bin_grid%dlnr
+    bin_vs_den = bin_vs / comp_vol / bin_grid%dlnr
+    bin_n_den = dble(bin_n) / comp_vol / bin_grid%dlnr
+    call output_summary_density(output_unit, time, bin_grid, aero_data, &
+         bin_v_den, bin_vs_den, bin_n_den, env, i_loop)
     
   end subroutine output_summary
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine output_summary_density(output_unit, time, n_bin, n_spec, bin_v, &
-       bin_g_den, bin_gs_den, bin_n_den, env, aero_data, i_loop)
+  subroutine output_summary_density(output_unit, time, bin_grid, &
+       aero_data, bin_v_den, bin_vs_den, bin_n_den, env, i_loop)
 
     ! Write the current binned data to the output file. This version
     ! of the function takes number and volume densities (as produced
     ! by a sectional code, for example).
-    
+
+    use mod_bin
     use mod_aero_data
     use mod_environ
     use mod_util
     
     integer, intent(in) :: output_unit  ! unit number to output to
     real*8, intent(in) :: time          ! simulation time
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: bin_g_den(n_bin) ! volume density in bins (1)
-    real*8, intent(in) :: bin_gs_den(n_bin,n_spec) ! spec vol den in bins (1)
-    real*8, intent(in) :: bin_n_den(n_bin) ! number density in bins (1/m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    real*8, intent(in) :: bin_v_den(bin_grid%n_bin) ! volume density in bins (1)
+    real*8, intent(in) :: bin_vs_den(bin_grid%n_bin,aero_data%n_spec) ! volume
+                                        ! density per bin and per species (1)
+    real*8, intent(in) :: bin_n_den(bin_grid%n_bin) ! num dens in bins (1/m^3)
     type(environ), intent(in) :: env    ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     integer, intent(in) :: i_loop       ! current loop number
     
     integer k
@@ -100,9 +100,9 @@ contains
     write(output_unit,'(a1,a9,a20,a20,a20,a30)') '#', 'bin_num', &
          'radius(m)', 'tot num (#/m^3)', 'tot vol (m^3/m^3)', &
          'vol per species (m^3/m^3)'
-    do k = 1,n_bin
-       write(output_unit, '(i10,23e20.10)') k, vol2rad(bin_v(k)), &
-            bin_n_den(k), bin_g_den(k), bin_gs_den(k,:)
+    do k = 1,bin_grid%n_bin
+       write(output_unit, '(i10,23e20.10)') k, vol2rad(bin_grid%v(k)), &
+            bin_n_den(k), bin_v_den(k), bin_vs_den(k,:)
     end do
     
   end subroutine output_summary_density

@@ -120,8 +120,8 @@ contains
           bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
        end do
        call output_summary_density(sect_opt%output_unit, 0d0, &
-            bin_grid%n_bin, 1, bin_grid%v, bin_g_den, bin_g_den, &
-            bin_n_den, env, aero_data, 1)
+            bin_grid, aero_data, bin_g_den, bin_g_den, &
+            bin_n_den, env, 1)
     end if
     
     ! main time-stepping loop
@@ -142,8 +142,8 @@ contains
              bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
           end do
           call output_summary_density(sect_opt%output_unit, 0d0, &
-               bin_grid%n_bin, 1, bin_grid%v, bin_g_den, bin_g_den, &
-               bin_n_den, env, aero_data, 1)
+               bin_grid, aero_data, bin_g_den, bin_g_den, &
+               bin_n_den, env, 1)
        end if
        
        ! print progress to stdout

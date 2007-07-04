@@ -105,9 +105,8 @@ contains
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
              if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
-                  bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
-                  bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-                  env, aero_data, mc_opt%i_loop, aero_state%comp_vol)
+                  bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+                  env, mc_opt%i_loop, aero_state%comp_vol)
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
@@ -118,10 +117,9 @@ contains
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 
     if (mc_opt%t_output > 0d0) then
-       call output_summary(mc_opt%output_unit, time, bin_grid%n_bin, &
-            aero_data%n_spec, bin_grid%v, bin_dist%v, bin_dist%vs, &
-            bin_dist%n, bin_grid%dlnr, env, aero_data, mc_opt%i_loop, &
-            aero_state%comp_vol)
+       call output_summary(mc_opt%output_unit, pre_time, &
+            bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+            env, mc_opt%i_loop, aero_state%comp_vol)
     end if
 
     if (mc_opt%t_state > 0d0) then
@@ -164,10 +162,9 @@ contains
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
-          if (do_output) call output_summary(mc_opt%output_unit, time, &
-               bin_grid%n_bin, aero_data%n_spec, bin_grid%v, &
-               bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-               env, aero_data, mc_opt%i_loop, aero_state%comp_vol)
+          if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
+               bin_grid, aero_data, bin_dist%v, bin_dist%vs, bin_dist%n, &
+               env, mc_opt%i_loop, aero_state%comp_vol)
        end if
 
        if (mc_opt%t_state > 0d0) then

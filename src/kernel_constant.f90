@@ -28,20 +28,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_constant_exp_cond(n_bin, bin_v, bin_g_den, bin_n_den, &
+  subroutine soln_constant_exp_cond(bin_grid, bin_g_den, bin_n_den, &
        time, num_conc, mean_vol, rho_p, env)
 
     ! Exact solution with a constant coagulation kernel and an
     ! exponential initial condition.
 
+    use mod_bin
     use mod_environ
     use mod_util
     use mod_constants
     
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(out) :: bin_g_den(n_bin) ! volume density in bins
-    real*8, intent(out) :: bin_n_den(n_bin) ! number density in bins
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(out) :: bin_g_den(bin_grid%n_bin) ! volume density in bins
+    real*8, intent(out) :: bin_n_den(bin_grid%n_bin) ! number density in bins
     
     real*8, intent(in) :: time          ! current time
     real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
@@ -57,23 +57,23 @@ contains
     call kernel_constant(1d0, 1d0, env, beta_0)
     
     if (time .eq. 0d0) then
-       do k = 1,n_bin
-          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3 &
-               * num_conc / mean_vol * exp(-(bin_v(k)/mean_vol))
+       do k = 1,bin_grid%n_bin
+          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_grid%v(k)))**3 &
+               * num_conc / mean_vol * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
        tau = num_conc * beta_0 * time
-       do k = 1,n_bin
-          rat_v = bin_v(k) / mean_vol
+       do k = 1,bin_grid%n_bin
+          rat_v = bin_grid%v(k) / mean_vol
           x = 2d0 * rat_v / (tau + 2d0)
           nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
-          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_v(k)))**3d0 * nn
+          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_grid%v(k)))**3d0 * nn
        end do
     end if
     
-    do k = 1,n_bin
-       bin_g_den(k) = const%pi/6d0 * (2d0*vol2rad(bin_v(k)))**3d0 &
+    do k = 1,bin_grid%n_bin
+       bin_g_den(k) = const%pi/6d0 * (2d0*vol2rad(bin_grid%v(k)))**3d0 &
             * bin_n_den(k)
     end do
     

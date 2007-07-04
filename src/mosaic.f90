@@ -9,9 +9,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine singlestep_mosaic(n_spec, n_bin, MH, VH, &
-       bin_v, bin_g, bin_gs, bin_n, dlnr, t, del_t, env, aero_data, &
-       gas_data, gas_state, comp_vol)
+  subroutine singlestep_mosaic(bin_grid, bin_dist, env, aero_data, &
+       aero_state, gas_data, gas_state, t, del_t)
 
     use mod_constants
     use mod_util
@@ -34,26 +33,15 @@ contains
          pr_atm, cnn, cair_mlc, cair_molm3, h2o, o2, h2, ppb, avogad, deg2rad, &
          mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
 
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p_t), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
-    
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    
-    real*8, intent(in) :: t             ! current time (s)
-    real*8, intent(in) :: del_t         ! timestep for coagulation
-    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
     type(environ), intent(inout) :: env ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
-
-    real*8, intent(in) :: comp_vol      ! FIXME: temporary hack
+    real*8, intent(in) :: t             ! current time (s)
+    real*8, intent(in) :: del_t         ! timestep for coagulation
 
     ! MOSAIC function interfaces
     interface
@@ -153,31 +141,32 @@ contains
     !----------------------------------------------------------
     ! aerosol data: map PartMC -> MOSAIC
 
-    do i_spec = 1, n_spec
+    do i_spec = 1,aero_data%n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
-      conv_fac(i_spec) = 1.D9*aero_data%rho(i_spec) &
-           / (aero_data%M_w(i_spec)*comp_vol)
+      conv_fac(i_spec) = 1.D9 * aero_data%rho(i_spec) &
+           / (aero_data%M_w(i_spec) * aero_state%comp_vol)
     enddo
 
-    nbin_a = sum(MH)
+    nbin_a = sum(aero_state%n)
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
-    do i_bin = 1,n_bin
-       do i_num = 1,MH(i_bin)
+    do i_bin = 1,bin_grid%n_bin
+       do i_num = 1,aero_state%n(i_bin)
           i_mosaic = i_mosaic + 1
-          do i_spec = 1,n_spec
+          do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
-                aer(i_spec_mosaic, jtotal, i_mosaic) &          ! nmol/m^3(air)
-                     = VH(i_bin)%p(i_num, i_spec)*conv_fac(i_spec_mosaic)
+                aer(i_spec_mosaic, jtotal, i_mosaic) &   ! nmol/m^3(air)
+                     = aero_state%v(i_bin)%p(i_num, i_spec) &
+                     * conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = VH(i_bin)%p(i_num,aero_data%i_water) &  ! kg(water)/m^3(air)
-               * aero_data%rho(aero_data%i_water) / comp_vol
-          num_a(i_mosaic) = 1.D0/comp_vol                     ! number conc. (#/cc(air))
+          water_a(i_mosaic) = aero_state%v(i_bin)%p(i_num,aero_data%i_water) &
+               * aero_data%rho(aero_data%i_water) / aero_state%comp_vol
+          num_a(i_mosaic) = 1.D0/aero_state%comp_vol ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do
@@ -205,21 +194,22 @@ contains
 
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
-    do i_bin = 1,n_bin
-       do i_num = 1,MH(i_bin)
+    do i_bin = 1,bin_grid%n_bin
+       do i_num = 1,aero_state%n(i_bin)
           i_mosaic = i_mosaic + 1
-          do i_spec = 1,n_spec
+          do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
-                VH(i_bin)%p(i_num, i_spec) = &
+                aero_state%v(i_bin)%p(i_num, i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
-                     aer(i_spec_mosaic, jtotal, i_mosaic)/conv_fac(i_spec_mosaic)
+                     aer(i_spec_mosaic, jtotal, i_mosaic) &
+                     / conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
-          VH(i_bin)%p(i_num,aero_data%i_water) = water_a(i_mosaic) &
-               / aero_data%rho(aero_data%i_water) * comp_vol
+          aero_state%v(i_bin)%p(i_num,aero_data%i_water) = water_a(i_mosaic) &
+               / aero_data%rho(aero_data%i_water) * aero_state%comp_vol
        end do
     end do
 

@@ -26,7 +26,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_bin_grid(n_bin, bin_grid)
+  subroutine alloc_bin_grid(n_bin, bin_grid)
 
     ! Allocates a bin_grid.
 
@@ -36,11 +36,11 @@ contains
     bin_grid%n_bin = n_bin
     allocate(bin_grid%v(n_bin))
 
-  end subroutine allocate_bin_grid
+  end subroutine alloc_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_bin_dist(n_bin, n_spec, bin_dist)
+  subroutine alloc_bin_dist(n_bin, n_spec, bin_dist)
 
     ! Allocates a bin_dist.
 
@@ -52,7 +52,33 @@ contains
     allocate(bin_dist%vs(n_bin, n_spec))
     allocate(bin_dist%n(n_bin))
 
-  end subroutine allocate_bin_dist
+  end subroutine alloc_bin_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine free_bin_grid(bin_grid)
+
+    ! Frees all memory.
+
+    type(bin_grid_t), intent(inout) :: bin_grid ! bin_grid to free
+
+    deallocate(bin_grid%v)
+
+  end subroutine free_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine free_bin_dist(bin_dist)
+
+    ! Frees all memory.
+
+    type(bin_dist_t), intent(inout) :: bin_dist ! bin_dist to free
+
+    deallocate(bin_dist%v)
+    deallocate(bin_dist%vs)
+    deallocate(bin_dist%n)
+
+  end subroutine free_bin_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -86,7 +112,7 @@ contains
     integer :: i
     real*8 :: ax
 
-    call allocate_bin_grid(n_bin, bin_grid)
+    call alloc_bin_grid(n_bin, bin_grid)
     bin_grid%dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
 
     ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
@@ -98,35 +124,35 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine bin_edge(n_bin, bin_v, i, v_edge)
+  subroutine bin_edge(bin_grid, i, v_edge)
 
-    ! Given a bin grid (which stores the center points of the bins),
+    ! Given a bin_grid (which stores the center points of the bins),
     ! find the given edge volume.
     
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
     real*8, intent(out) :: v_edge       ! volume at edge
     
     if (i .eq. 1) then
-       v_edge = bin_v(1) - (bin_v(2) - bin_v(1)) / 2d0
-    elseif (i .eq. (n_bin + 1)) then
-       v_edge = bin_v(n_bin) + (bin_v(n_bin) - bin_v(n_bin - 1)) / 2d0
+       v_edge = bin_grid%v(1) - (bin_grid%v(2) - bin_grid%v(1)) / 2d0
+    elseif (i .eq. (bin_grid%n_bin + 1)) then
+       v_edge = bin_grid%v(bin_grid%n_bin) &
+            + (bin_grid%v(bin_grid%n_bin) &
+            - bin_grid%v(bin_grid%n_bin - 1)) / 2d0
     else
-       v_edge = (bin_v(i - 1) + bin_v(i)) / 2d0
+       v_edge = (bin_grid%v(i - 1) + bin_grid%v(i)) / 2d0
     end if
     
   end subroutine bin_edge
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine particle_in_bin(v, n_bin, bin_v, k)
+  subroutine particle_in_bin(v, bin_grid, k)
     
     ! Find the bin number that contains a given particle.
     
     real*8, intent(in) :: v             ! volume of particle
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(out) :: k           ! bin number containing particle
     
     ! FIXME: for log-spaced bins we can do this without search, but we
@@ -135,33 +161,13 @@ contains
 
     k = 0
 300 k = k + 1
-    if (k .lt. n_bin) then
-       if (v .gt. (bin_v(k) + bin_v(k+1)) / 2d0) then
+    if (k .lt. bin_grid%n_bin) then
+       if (v .gt. (bin_grid%v(k) + bin_grid%v(k+1)) / 2d0) then
           goto 300
        end if
     end if
     
   end subroutine particle_in_bin
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine bin_n_to_g(n_bin, bin_v, bin_n, bin_g)
-
-    ! Convert a number of particles per bin to the total volume per
-    ! bin.
-    
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    integer, intent(in) :: bin_n(n_bin) ! number in bins
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins
-    
-    integer i
-    
-    do i = 1,n_bin
-       bin_g(i) = dble(bin_n(i)) * bin_v(i)
-    end do
-    
-  end subroutine bin_n_to_g
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

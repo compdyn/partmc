@@ -44,13 +44,10 @@ contains
     ! We resort the particles in the bins after all particles are
     ! advanced, otherwise we will lose track of which ones have been
     ! advanced and which have not.
-    call resort_array(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-         aero_state%v, bin_grid%v, bin_grid%dlnr)
+    call resort_aero_state(bin_grid, aero_state)
 
     ! update the bin arrays
-    call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-         aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
-         bin_dist%n, bin_grid%dlnr)
+    call moments(bin_grid, bin_dist, aero_data, aero_state)
 
     ! update the environment due to condensation of water
     post_water_vol = sum(bin_dist%vs(:,aero_data%i_water))

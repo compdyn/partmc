@@ -40,3 +40,14 @@ read_real_array() does in read_spec.f90 now, then separate out the
 spec_*() functions for compound datatypes into the respective files
 
 convert all num_conc and similar to num_den or similar
+
+stop passing bin_grid and aero_data around just to get n_bin and
+n_spec. Instead derive on the spot from array sizes.
+
+split singlestep_mosaic() to an _init() and the real _step() thing.
+
+add separate del_t for mosaic, coag, and cond.
+
+change run_sect and run_exact to generate aero_dists
+
+fix up output_summary to use aero_state, etc, and also inout_file_t

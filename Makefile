@@ -19,11 +19,11 @@ MOSAIC_MODDIR = $(MOSAIC_DIR)
 ifeq ($(FC),gfortran)
     # -O              optimize
     # -g              debugging
-    # -pg             profiling
+    # -pg             profiling (must also be used on LDFLAGS)
     # -fbounds-check  check array accesses
     # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
-  LDFLAGS = -L$(MOSAIC_LIBDIR)
+  FFLAGS = -pg -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wunused-labels -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+  LDFLAGS = -pg -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking

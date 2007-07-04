@@ -151,9 +151,9 @@ contains
        call srand(time())
     end if
 
-    call allocate_bin_dist(bin_grid%n_bin, aero_data%n_spec, bin_dist)
+    call alloc_bin_dist(bin_grid%n_bin, aero_data%n_spec, bin_dist)
     call allocate_gas_state(gas_data, gas_state)
-    call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
     do i_loop = 1,mc_opt%n_loop

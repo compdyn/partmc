@@ -44,18 +44,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_binned(n_bin, bin_v, kernel, env, k_max)
+  subroutine est_k_max_binned(bin_grid, kernel, env, k_max)
 
     ! Computes an array of maximum kernel values. Given particles v1
     ! in bin b1 and v2 in bin b2, it is approximately true that
     ! kernel(v1,v2) <= k_max(b1,b2).
 
+    use mod_bin
     use mod_environ
     
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(environ), intent(in) :: env  ! environment state
-    real*8, intent(out) :: k_max(n_bin,n_bin) ! maximum kernel values
+    real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! max kern vals
     
     interface
        subroutine kernel(v1, v2, env, k)
@@ -69,10 +69,9 @@ contains
     
     integer i, j
     
-    do i = 1,n_bin
-       do j = 1,n_bin
-          call est_k_max_for_bin(n_bin, bin_v, kernel, i, j, &
-               env, k_max(i,j))
+    do i = 1,bin_grid%n_bin
+       do j = 1,bin_grid%n_bin
+          call est_k_max_for_bin(bin_grid, kernel, i, j, env, k_max(i,j))
        end do
     end do
     
@@ -80,7 +79,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_for_bin(n_bin, bin_v, kernel, b1, b2, env, k_max)
+  subroutine est_k_max_for_bin(bin_grid, kernel, b1, b2, env, k_max)
 
     ! Samples within bins b1 and b2 to find the maximum value of the
     ! kernel between particles from the two bins.
@@ -88,8 +87,7 @@ contains
     use mod_environ
     use mod_bin
  
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin
     integer, intent(in) :: b2           ! second bin
     type(environ), intent(in) :: env    ! environment state    
@@ -111,12 +109,12 @@ contains
     integer, parameter :: n_sample = 10  ! number of sample points per bin
     
     ! v1_low < bin_v(b1) < v1_high
-    call bin_edge(n_bin, bin_v, b1, v1_low)
-    call bin_edge(n_bin, bin_v, b1 + 1, v1_high)
+    call bin_edge(bin_grid, b1, v1_low)
+    call bin_edge(bin_grid, b1 + 1, v1_high)
     
     ! v2_low < bin_v(b2) < v2_high
-    call bin_edge(n_bin, bin_v, b2, v2_low)
-    call bin_edge(n_bin, bin_v, b2 + 1, v2_high)
+    call bin_edge(bin_grid, b2, v2_low)
+    call bin_edge(bin_grid, b2 + 1, v2_high)
     
     k_max = 0d0
     do i = 1,n_sample

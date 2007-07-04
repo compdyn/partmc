@@ -2,19 +2,20 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! The array VH is the main storage of the particle sizes and
-! compositions, together with its sizing array MH. The particles in VH
-! are stored sorted per-bin, to improve efficiency of sampling. If a
-! particle has total volume pv then calling particle_in_bin(pv, n_bin,
-! v_bin, i_bin) finds the bin number i_bin that that particle should
-! go in. That particle is then stored as VH(i_bin)%p(i_part,:), where
-! i_part is the index within the bin. VH(i_bin)%p(i_part,i_spec) is
-! the volume of the i_spec-th species in the i_part-th particle in the
-! i_bin-th bin.
+! The array aero_state%v is the main storage of the particle sizes and
+! compositions, together with its sizing array aero_state%n. The
+! particles in aero_state%v are stored sorted per-bin, to improve
+! efficiency of sampling. If a particle has total volume pv then
+! calling particle_in_bin(pv, n_bin, v_bin, i_bin) finds the bin
+! number i_bin that that particle should go in. That particle is then
+! stored as aero_state%v(i_bin)%p(i_part,:), where i_part is the index
+! within the bin. aero_state%v(i_bin)%p(i_part,i_spec) is the volume
+! of the i_spec-th species in the i_part-th particle in the i_bin-th
+! bin.
 !
-! FIXME: MH and bin_n are pretty much identical. Probably best to
-! ignore it for now, because this will all change with the
-! superparticle code.
+! FIXME: aero_state%n and bin_dist%n are pretty much
+! identical. Probably best to ignore it for now, because this will all
+! change with the superparticle code.
 !
 ! Typically most of the bins have only a few particles, while a small
 ! number of bins have many particles. To avoid having too much storage
@@ -34,9 +35,9 @@
 ! storage as necessary. The actual number of particles stored in a bin
 ! will generally be less than the actual memory allocated for that
 ! bin, so we store the current number of particles in a bin in the
-! array MH. The allocated size of bin storage in VH(i_bin) is not
-! stored explicitly, but can be obtained with the Fortran 90 SIZE()
-! intrinsic function.
+! array aero_state%n. The allocated size of bin storage in
+! aero_state%v(i_bin) is not stored explicitly, but can be obtained
+! with the Fortran 90 SIZE() intrinsic function.
 
 module mod_aero_state
 
@@ -55,7 +56,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_aero_state(n_bin, n_spec, aero)
+  subroutine alloc_aero_state(n_bin, n_spec, aero)
 
     ! Initializes aerosol arrays to have zero particles in each
     ! bin. Do not call this more than once on a given aerosol, use
@@ -75,11 +76,11 @@ contains
        allocate(aero%v(i)%p(0, n_spec))
     end do
 
-  end subroutine allocate_aero_state
+  end subroutine alloc_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine deallocate_aero_state(aero)
+  subroutine free_aero_state(aero)
 
     ! Deallocates a previously allocated aerosol.
 
@@ -94,14 +95,14 @@ contains
     end do
     deallocate(aero%v)
 
-  end subroutine deallocate_aero_state
+  end subroutine free_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine copy_aero_state(from_aero, to_aero)
 
     ! Copies aerosol to a destination that has already had
-    ! allocate_aero_state() called on it.
+    ! alloc_aero_state() called on it.
 
     type(aero_state_t), intent(in) :: from_aero ! reference aerosol
     type(aero_state_t), intent(inout) :: to_aero ! must already be allocated
@@ -113,8 +114,8 @@ contains
     arr_shape = shape(from_aero%v(1)%p)
     n_spec = arr_shape(2)
 
-    call deallocate_aero_state(to_aero)
-    call allocate_aero_state(n_bin, n_spec, to_aero)
+    call free_aero_state(to_aero)
+    call alloc_aero_state(n_bin, n_spec, to_aero)
 
     to_aero%n = from_aero%n
     do i = 1,n_bin
@@ -130,78 +131,22 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function total_particles(aero)
+  integer function total_particles(aero_state)
 
     ! Returns the total number of particles in an aerosol distribution.
 
-    type(aero_state_t), intent(in) :: aero ! aerosol state
+    type(aero_state_t), intent(in) :: aero_state ! aerosol state
 
-    total_particles = sum(aero%n)
+    total_particles = sum(aero_state%n)
 
   end function total_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine copy_aero_state_to_array(from_aero, MH, VH)
-
-    ! Copies aerosol to arrays that are already allocated.
-
-    type(aero_state_t), intent(in) :: from_aero ! reference aerosol
-    integer, intent(out) :: MH(:)       ! number of particles per bin
-    type(bin_p_t), intent(out) :: VH(size(MH)) ! particle volumes
-
-    integer :: n_bin, n_spec, n_part, i
-    integer :: arr_shape(2)
-
-    n_bin = size(from_aero%n)
-    arr_shape = shape(from_aero%v(1)%p)
-    n_spec = arr_shape(2)
-
-    do i = 1,n_bin
-       deallocate(VH(i)%p)
-    end do
-
-    call init_array(n_spec, MH, VH)
-
-    MH = from_aero%n
-    do i = 1,n_bin
-       arr_shape = shape(from_aero%v(i)%p)
-       n_part = arr_shape(1)
-       call enlarge_bin_to(VH(i), n_part)
-       VH(i)%p = from_aero%v(i)%p(1:n_part,:)
-    end do
-
-  end subroutine copy_aero_state_to_array
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine init_array(n_spec, MH, VH)
-
-    ! Initializes an array to have zero particles in each bin. Do not
-    ! call this more than once on a given array, use zero_array()
-    ! instead to reset an array.
-
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(out) :: MH(:)       ! number of particles per bin
-    type(bin_p_t), intent(out) :: VH(size(MH)) ! particle volumes
-    
-    integer :: n_bin
-    integer i
-
-    n_bin = size(VH)
-    do i = 1,n_bin
-       allocate(VH(i)%p(0, n_spec))
-    end do
-    MH = 0
-
-  end subroutine init_array
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   subroutine zero_aero_state(aero_state)
 
     ! Resets an aero_state to have zero particles per bin. This must
-    ! already have had allocate_aero_state() called on it. This
+    ! already have had alloc_aero_state() called on it. This
     ! function can be called more than once on the same state.
 
     type(aero_state_t), intent(inout) :: aero_state ! state to zero
@@ -295,7 +240,7 @@ contains
   subroutine add_particles(bin_grid, aero_data, vol_frac, bin_n, aero)
 
     ! Makes particles from the given number distribution and appends
-    ! them to the VH array.
+    ! them to the aero_state%v array.
     
     use mod_bin
     use mod_aero_data
@@ -304,15 +249,16 @@ contains
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     real*8, intent(in) :: vol_frac(aero_data%n_spec) ! composition of particles
     integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins
-    type(aero_state_t), intent(inout) :: aero ! aerosol, must be allocated already
+    type(aero_state_t), intent(inout) :: aero ! aerosol, must be
+                                              ! allocated already
     
     real*8 total_vol_frac, v_low, v_high, pv
     integer k, i
 
     total_vol_frac = sum(vol_frac)
     do k = 1,bin_grid%n_bin
-       call bin_edge(bin_grid%n_bin, bin_grid%v, k, v_low)
-       call bin_edge(bin_grid%n_bin, bin_grid%v, k + 1, v_high)
+       call bin_edge(bin_grid, k, v_low)
+       call bin_edge(bin_grid, k + 1, v_high)
        do i = 1,bin_n(k)
           ! we used to do:
           ! pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low
@@ -362,7 +308,7 @@ contains
     call vec_cts_to_disc(aero_dist%n_modes, mode_n_dens, n_part, mode_n_parts)
 
     ! allocate particles within each mode in proportion to mode shape
-    call allocate_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     do i = 1,aero_dist%n_modes
        call vec_cts_to_disc(bin_grid%n_bin, aero_dist%modes(i)%n_den, &
             mode_n_parts(i), num_per_bin)
@@ -376,41 +322,36 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine moments(n_bin, n_spec, MH, VH, bin_v, &
-       bin_g,bin_gs, bin_n, dlnr)
+  subroutine moments(bin_grid, bin_dist, aero_data, aero_state)
     
-    ! Create the bin number and mass arrays from VH.
+    ! Create the bin number and mass arrays from aero_state%v.
 
+    use mod_bin
     use mod_aero_data
     
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins
-    integer, intent(out) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
     integer b, j, s
     
-    bin_g = 0d0
-    bin_gs = 0d0
-    do b = 1,n_bin
-       do j = 1,MH(b)
-          bin_g(b) = bin_g(b) + particle_volume(VH(b)%p(j,:))
-          bin_gs(b,:) = bin_gs(b,:) + VH(b)%p(j,:)
+    bin_dist%v = 0d0
+    bin_dist%vs = 0d0
+    do b = 1,bin_grid%n_bin
+       do j = 1,aero_state%n(b)
+          bin_dist%v(b) = bin_dist%v(b) &
+               + particle_volume(aero_state%v(b)%p(j,:))
+          bin_dist%vs(b,:) = bin_dist%vs(b,:) + aero_state%v(b)%p(j,:)
        end do
     end do
-    bin_n = MH
+    bin_dist%n = aero_state%n
    
   end subroutine moments
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine resort_array(n_bin, n_spec, MH, VH, bin_v, &
-        dlnr)
+  subroutine resort_aero_state(bin_grid, aero_state)
     
     ! Takes a VH array where the particle volumes might no longer be
     ! correct for the bins they are in and resorts it so that every
@@ -419,44 +360,42 @@ contains
     use mod_aero_data
     use mod_bin
     
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(inout) :: MH(n_bin) ! number of particles per bin
-    type(bin_p_t), intent(inout) :: VH(n_bin) ! particle volumes (m^3)
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
-    integer bin, j, new_bin, k
-    real*8 pv
+    integer :: bin, j, new_bin, k
+    real*8 :: pv
     
-    ! FIXME: the approach here is inefficient because we might
-    ! reprocess particles. For example, if we are doing bin 1 and we
-    ! shift a particle up to bin 2, when we do bin 2 we will reprocess
-    ! it. It seems to be more trouble than it's worth to worry about
-    ! this yet, however.
+    ! The approach here is inefficient because we might reprocess
+    ! particles. For example, if we are doing bin 1 and we shift a
+    ! particle up to bin 2, when we do bin 2 we will reprocess it. It
+    ! seems to be more trouble than it's worth to worry about this
+    ! yet, however.
     
-    do bin = 1,n_bin
+    do bin = 1,bin_grid%n_bin
        j = 1
-       do while (j .le. MH(bin))
+       do while (j .le. aero_state%n(bin))
           ! find the new volume and new bin
-          pv = particle_volume(VH(bin)%p(j,:))
-          call particle_in_bin(pv, n_bin, bin_v, new_bin)
+          pv = particle_volume(aero_state%v(bin)%p(j,:))
+          call particle_in_bin(pv, bin_grid, new_bin)
           
           ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
              ! move the particle to the new bin, leaving a hole
-             MH(new_bin) = MH(new_bin) + 1
-             call enlarge_bin_to(VH(new_bin), MH(new_bin))
-             VH(new_bin)%p(MH(new_bin),:) = VH(bin)%p(j,:)
+             aero_state%n(new_bin) = aero_state%n(new_bin) + 1
+             call enlarge_bin_to(aero_state%v(new_bin), aero_state%n(new_bin))
+             aero_state%v(new_bin)%p(aero_state%n(new_bin),:) &
+                  = aero_state%v(bin)%p(j,:)
              
              ! copy the last particle in the current bin into the hole
              ! if the hole isn't in fact the last particle
-             if (j .lt. MH(bin)) then
-                VH(bin)%p(j,:) = VH(bin)%p(MH(bin),:)
+             if (j .lt. aero_state%n(bin)) then
+                aero_state%v(bin)%p(j,:) &
+                     = aero_state%v(bin)%p(aero_state%n(bin),:)
              end if
-             MH(bin) = MH(bin) - 1
-             if (MH(bin) .lt. 0) then
-                write(0,*) 'ERROR: invalid MH in bin ', bin
+             aero_state%n(bin) = aero_state%n(bin) - 1
+             if (aero_state%n(bin) .lt. 0) then
+                write(0,*) 'ERROR: invalid aero_state%n in bin ', bin
                 call exit(2)
              end if
              
@@ -471,112 +410,93 @@ contains
     end do
 
     ! now shrink the bin storage if necessary
-    do bin = 1,n_bin
-       call shrink_bin(MH(bin), VH(bin))
+    do bin = 1,bin_grid%n_bin
+       call shrink_bin(aero_state%n(bin), aero_state%v(bin))
     end do
     
-  end subroutine resort_array
+  end subroutine resort_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine check_array(M, n_bin, n_spec, MH, VH, bin_v, &
-        bin_g, bin_gs, bin_n, dlnr)
+  subroutine check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
     
-    ! Check that VH has all particles in the correct bins and that the
+    ! Check that all particles are in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
 
-    use mod_aero_data
     use mod_util
     use mod_bin
+    use mod_aero_data
     
-    integer, intent(in) :: M            ! number of particles
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    integer, intent(in) :: MH(n_bin)    ! number of particles per bin
-    type(bin_p_t), intent(in) :: VH(n_bin) ! particle volumes
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    type(bin_dist_t), intent(out) :: bin_dist ! binned distributions
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: bin_g(n_bin) ! volume in bins  
-    real*8, intent(out) :: bin_gs(n_bin,n_spec) ! species volume in bins             
-    integer, intent(out) :: bin_n(n_bin) ! number in bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    
-    real*8 pv, check_bin_g, check_bin_gs(n_spec), vol_tol
-    integer i, k, k_check, M_check, s
+    real*8 pv, check_bin_v, check_bin_vs(aero_data%n_spec), vol_tol
+    integer i, k, k_check, s
     logical error
     
     error = .false.
     
     ! check that all particles are in the correct bins
-    do k = 1,n_bin
-       do i = 1,MH(k)
-          pv = particle_volume(VH(k)%p(i,:))
-          call particle_in_bin(pv, n_bin, bin_v, k_check)
+    do k = 1,bin_grid%n_bin
+       do i = 1,aero_state%n(k)
+          pv = particle_volume(aero_state%v(k)%p(i,:))
+          call particle_in_bin(pv, bin_grid, k_check)
           if (k .ne. k_check) then
-             write(0,'(a10,a10,a12,a10)') 'k', 'i', 'VH(k, i)', &
+             write(0,'(a10,a10,a20,a10)') 'k', 'i', 'aero_state%v(k, i)', &
                   'k_check'
-             write(0,'(i10,i10,e12.5,i10)') k, i, pv, k_check
+             write(0,'(i10,i10,e20.8,i10)') k, i, pv, k_check
              error = .true.
           end if
        end do
     end do
     
-    ! check that the total number of particles is correct
-    M_check = 0
-    do k = 1,n_bin
-       M_check = M_check + MH(k)
-    end do
-    if (M .ne. M_check) then
-       write(0,'(a10,a10)') 'M', 'M_check'
-       write(0,'(i10,i10)') M, M_check
-       error = .true.
-    end if
-    
-    ! check the bin_n array
-    do k = 1,n_bin
-       if (MH(k) .ne. bin_n(k)) then
-          write(0,'(a10,a10,a10)') 'k', 'MH(k)', 'bin_n(k)'
-          write(0,'(i10,i10,i10)') k, MH(k), bin_n(k)
+    ! check the bin_dist%n array
+    do k = 1,bin_grid%n_bin
+       if (aero_state%n(k) .ne. bin_dist%n(k)) then
+          write(0,'(a10,a10,a10)') 'k', 'aero_state%n(k)', 'bin_dist%n(k)'
+          write(0,'(i10,i10,i10)') k, aero_state%n(k), bin_dist%n(k)
        end if
     end do
     
-    ! check the bin_g array
-    do k = 1,n_bin
-       check_bin_g = 0d0
-       do i = 1,MH(k)
-          pv = particle_volume(VH(k)%p(i,:))
-          check_bin_g = check_bin_g + pv
+    ! check the bin_dist%v array
+    do k = 1,bin_grid%n_bin
+       check_bin_v = 0d0
+       do i = 1,aero_state%n(k)
+          pv = particle_volume(aero_state%v(k)%p(i,:))
+          check_bin_v = check_bin_v + pv
        end do
-       vol_tol = bin_v(k) / 1d6 ! abs tolerance 1e6 less than single particle
-       if (.not. almost_equal_abs(check_bin_g, bin_g(k), vol_tol)) then
-          write(0,'(a10,a15,a15)') 'k', 'check_bin_g', 'bin_g(k)'
-          write(0,'(i10,e15.5,e15.5)') k, check_bin_g, bin_g(k)
+       vol_tol = bin_grid%v(k) / 1d6 ! tolerance 1e6 less than single particle
+       if (.not. almost_equal_abs(check_bin_v, bin_dist%v(k), vol_tol)) then
+          write(0,'(a10,a15,a15)') 'k', 'check_bin_v', 'bin_dist%v(k)'
+          write(0,'(i10,e15.5,e15.5)') k, check_bin_v, bin_dist%v(k)
           error = .true.
        end if
     end do
     
-    ! check the bin_gs array
-    do k = 1,n_bin
-       check_bin_gs = sum(VH(k)%p(1:MH(k),:), 1)
-       vol_tol = bin_v(k) / 1d3 ! abs tolerance 1e3 less than single particle
-       do s = 1,n_spec
-          if (.not. almost_equal_abs(check_bin_gs(s), bin_gs(k,s), &
+    ! check the bin_dist%vs array
+    do k = 1,bin_grid%n_bin
+       check_bin_vs = sum(aero_state%v(k)%p(1:aero_state%n(k),:), 1)
+       vol_tol = bin_grid%v(k) / 1d3 ! tolerance 1e3 less than single particle
+       do s = 1,aero_data%n_spec
+          if (.not. almost_equal_abs(check_bin_vs(s), bin_dist%vs(k,s), &
                                      vol_tol)) then
-             write(0,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_gs(s)', &
-                  'bin_gs(k,s)'
-             write(0,'(i10,i10,e20.5,e15.5)') k, s, check_bin_gs(s), &
-                  bin_gs(k,s)
+             write(0,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_vs(s)', &
+                  'bin_dist%vs(k,s)'
+             write(0,'(i10,i10,e20.5,e15.5)') k, s, check_bin_vs(s), &
+                  bin_dist%vs(k,s)
              error = .true.
           end if
        end do
     end do
     
     if (error) then
-       write(0,*) 'ERROR: check_array() failed'
+       write(0,*) 'ERROR: check_aero_state() failed'
        call exit(2)
     end if
     
-  end subroutine check_array
+  end subroutine check_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

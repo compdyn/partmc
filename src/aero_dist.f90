@@ -141,7 +141,7 @@ contains
     integer k
 
     n_den = 0d0
-    call particle_in_bin(vol, bin_grid%n_bin, bin_grid%v, k)
+    call particle_in_bin(vol, bin_grid, k)
     n_den(k) = 1d0 / bin_grid%dlnr
     
   end subroutine init_mono

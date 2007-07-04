@@ -98,9 +98,7 @@ contains
        ! write data into output file so that it will look correct
        pre_time = 0d0
        last_output_time = pre_time
-       call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-            aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
-            bin_dist%n, bin_grid%dlnr)
+       call moments(bin_grid, bin_dist, aero_data, aero_state)
        do pre_i_time = 0,(i_time - 1)
           call update_environ(env, pre_time)
           if (mc_opt%t_output > 0d0) then
@@ -115,11 +113,9 @@ contains
        end do
     end if
 
-    call moments(bin_grid%n_bin, aero_data%n_spec, aero_state%n, &
-         aero_state%v, bin_grid%v, bin_dist%v, bin_dist%vs, &
-         bin_dist%n, bin_grid%dlnr)
+    call moments(bin_grid, bin_dist, aero_data, aero_state)
     
-    call est_k_max_binned(bin_grid%n_bin, bin_grid%v, kernel, env, k_max)
+    call est_k_max_binned(bin_grid, kernel, env, k_max)
 
     if (mc_opt%t_output > 0d0) then
        call output_summary(mc_opt%output_unit, time, bin_grid%n_bin, &
@@ -152,17 +148,12 @@ contains
        end if
 
        if (mc_opt%do_mosaic) then
-          call singlestep_mosaic(aero_data%n_spec, bin_grid%n_bin, &
-               aero_state%n, aero_state%v, bin_grid%v, bin_dist%v, &
-               bin_dist%vs, bin_dist%n, bin_grid%dlnr, time, mc_opt%del_t, &
-               env, aero_data, gas_data, gas_state, aero_state%comp_vol)
+          call singlestep_mosaic(bin_grid, bin_dist, env, aero_data, &
+               aero_state, gas_data, gas_state, time, mc_opt%del_t)
        end if
        
        ! DEBUG: enable to check array handling
-       ! M = total_particles(aero_state)
-       ! call check_array(M, bin_grid%n_bin, aero_data%n_spec, &
-       !      aero_state%n, aero_state%v, bin_grid%v, bin_dist%v, &
-       !      bin_dist%vs, bin_dist%n, bin_grid%dlnr)
+       call check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
        ! DEBUG: end
        
        i_time = i_time + 1
@@ -265,11 +256,9 @@ contains
                   .or. ((i == j) .and. (aero_state%n(i) < 2))) then
                 exit
              end if
-             call maybe_coag_pair(M, bin_grid%n_bin, aero_state%n, &
-                  aero_state%v, aero_data%n_spec, bin_grid%v, &
-                  bin_dist%v, bin_dist%vs, bin_dist%n, bin_grid%dlnr, &
-                  i, j, mc_opt%del_t, k_max(i,j), kernel, env, did_coag, &
-                  bin_change)
+             call maybe_coag_pair(bin_grid, bin_dist, env, aero_data, &
+                  aero_state, i, j, mc_opt%del_t, k_max(i,j), kernel, &
+                  did_coag, bin_change)
              if (did_coag) n_coag = n_coag + 1
           enddo
        enddo

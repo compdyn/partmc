@@ -224,4 +224,178 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine spec_read_vol_frac(file, aero_data, vol_frac)
+
+    ! Read volume fractions from a data file.
+
+    use mod_inout
+    use mod_aero_data
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    real*8, intent(out) :: vol_frac(:)  ! aerosol species volume fractions
+
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
+
+    ! read the aerosol data from the specified file
+    call inout_read_string(file, 'vol_frac', read_name)
+    call inout_open_read(read_name, read_file)
+    call inout_read_real_named_array(read_file, 0, species_name, species_data)
+    call inout_close(read_file)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    n_species = species_data_shape(1)
+    if (n_species < 1) then
+       write(0,*) 'ERROR: file ', trim(read_name), &
+            ' must contain at least one line of data'
+       call exit(1)
+    end if
+    if (species_data_shape(2) /= 1) then
+       write(0,*) 'ERROR: each line in ', trim(read_name), &
+            ' should contain exactly one data value'
+       call exit(1)
+    end if
+
+    ! copy over the data
+    vol_frac = 0d0
+    do i = 1,n_species
+       species = aero_data_spec_by_name(aero_data, species_name(i))
+       if (species == 0) then
+          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
+               ' in file ', trim(read_name)
+          call exit(1)
+       end if
+       vol_frac(species) = species_data(i,1)
+    end do
+
+  end subroutine spec_read_vol_frac
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_mode_shape(file, aero_data, bin_grid, n_den)
+
+    ! Read the shape (number density) of one mode of an aerosol
+    ! distribution.
+
+    use mod_inout
+    use mod_bin
+    use mod_aero_data
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data ! aero_data data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8 :: n_den(bin_grid%n_bin)     ! mode density
+
+    real*8 :: num_conc
+    character(len=MAX_CHAR_LEN) :: mode_type
+    real*8 :: mean_vol, std_dev, vol, small_vol, big_vol, big_num
+
+    call inout_read_real(file, 'num_conc', num_conc)
+    call inout_read_string(file, 'mode_type', mode_type)
+    if (trim(mode_type) == 'log_normal') then
+       call inout_read_real(file, 'dist_mean_diam', mean_vol)
+       call inout_read_real(file, 'dist_std_dev', std_dev)
+       call init_log_normal(mean_vol, std_dev, bin_grid, n_den)
+    elseif (trim(mode_type) == 'exp') then
+       call inout_read_real(file, 'mean_vol', mean_vol)
+       call init_exp(mean_vol, bin_grid, n_den)
+    elseif (trim(mode_type) == 'mono') then
+       call inout_read_real(file, 'vol', vol)
+       call init_mono(vol, bin_grid, n_den)
+    else
+       write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
+            trim(mode_type), ' in file ', trim(file%name), &
+            ' at line ', file%line_num
+       call exit(1)
+    end if
+
+    n_den = n_den * num_conc
+
+  end subroutine spec_read_aero_mode_shape
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_mode(file, aero_data, bin_grid, aero_mode)
+
+    ! Read one mode of an aerosol distribution (number density and
+    ! volume fractions).
+
+    use mod_inout
+    use mod_bin
+    use mod_aero_data
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode,
+                                                  ! will be allocated
+
+    allocate(aero_mode%n_den(bin_grid%n_bin))
+    allocate(aero_mode%vol_frac(aero_data%n_spec))
+    call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
+    call spec_read_aero_mode_shape(file, aero_data, bin_grid, aero_mode%n_den)
+
+  end subroutine spec_read_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_dist(file, aero_data, bin_grid, aero_dist)
+
+    ! Read continuous aerosol distribution composed of several modes.
+
+    use mod_inout
+    use mod_bin
+    use mod_aero_data
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol dist,
+                                                  ! will be allocated
+
+    integer :: i
+
+    call inout_read_integer(file, 'n_modes', aero_dist%n_modes)
+    allocate(aero_dist%modes(aero_dist%n_modes))
+    do i = 1,aero_dist%n_modes
+       call spec_read_aero_mode(file, aero_data, bin_grid, aero_dist%modes(i))
+    end do
+
+  end subroutine spec_read_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, name, dist)
+
+    ! Read aerosol distribution from filename on line in file.
+
+    use mod_inout
+    use mod_bin
+    use mod_aero_data
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    character(len=*), intent(in) :: name ! name of data line for filename
+    type(aero_dist_t), intent(inout) :: dist ! aerosol distribution
+
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+
+    ! read the aerosol data from the specified file
+    call inout_read_string(file, name, read_name)
+    call inout_open_read(read_name, read_file)
+    call spec_read_aero_dist(read_file, aero_data, bin_grid, dist)
+    call inout_close(read_file)
+
+  end subroutine spec_read_aero_dist_filename
+    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_aero_dist

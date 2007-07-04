@@ -232,5 +232,63 @@ contains
   end subroutine inout_read_env
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_environ(file, env)
+
+    ! Read environment specification from a inout file.
+
+    use mod_inout
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(environ), intent(out) :: env   ! environment data
+
+    integer :: n_temps
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+    character(len=MAX_CHAR_LEN), pointer :: times_name(:), temps_name(:)
+    real*8, pointer :: times_data(:,:), temps_data(:,:)
+    integer :: times_data_shape(2), temps_data_shape(2)
+
+    ! read the tempurature data from the specified file
+    call inout_read_string(file, 'temp_profile', read_name)
+    call inout_open_read(read_name, read_file)
+    call inout_read_real_named_array(read_file, 1, times_name, times_data)
+    call inout_check_name(read_file, "time", times_name(1))
+    ! FIXME: add a min_lines arg to inout_read_real_named_array to ensure that
+    ! really got one line here
+    call inout_read_real_named_array(read_file, 1, temps_name, temps_data)
+    call inout_check_name(read_file, "temp", temps_name(1))
+    call inout_close(read_file)
+
+    ! check the data size
+    times_data_shape = shape(times_data)
+    temps_data_shape = shape(temps_data)
+    n_temps = temps_data_shape(2)
+    if (n_temps < 1) then
+       write(0,*) 'ERROR: file ', trim(read_name), &
+            ' must contain at least one line of data'
+       call exit(1)
+    end if
+    if (times_data_shape(2) /= temps_data_shape(2)) then
+       write(0,*) 'ERROR: file ', trim(read_name), &
+            ' should contain exactly two lines with equal numbers of values'
+       call exit(1)
+    end if
+
+    call allocate_environ_temps(env, n_temps)
+    env%temp_times = times_data(1,:)
+    env%temps = temps_data(1,:)
+    call inout_read_real(file, 'RH', env%RH)
+    call inout_read_real(file, 'pressure', env%p)
+    call inout_read_real(file, 'rho_a', env%rho_a)
+    call inout_read_real(file, 'latitude', env%latitude)
+    call inout_read_real(file, 'longitude', env%longitude)
+    call inout_read_real(file, 'altitude', env%altitude)
+    call inout_read_real(file, 'start_time', env%start_time)
+    call inout_read_integer(file, 'start_day', env%start_day)
+
+  end subroutine spec_read_environ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_environ

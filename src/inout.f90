@@ -832,6 +832,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_read_real_named_array(file, max_lines, names, vals)
+
+    ! Read an array of named lines with real data. All lines must have
+    ! the same number of data elements.
+
+    type(inout_file_t), intent(inout) :: file ! spec file
+    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
+    character(len=MAX_CHAR_LEN), pointer :: names(:) ! names of lines
+    real*8, pointer :: vals(:,:)          ! data values
+
+    type(inout_line_t), pointer :: line_array(:)
+    integer :: num_lines, line_length, i, j
+
+    call inout_read_line_array(file, max_lines, line_array)
+    num_lines = size(line_array)
+    if (num_lines > 0) then
+       line_length = size(line_array(1)%data)
+       allocate(names(num_lines))
+       allocate(vals(num_lines, line_length))
+       do i = 1,num_lines
+          names(i) = line_array(i)%name
+          do j = 1,line_length
+             vals(i,j) = inout_string_to_real(file, line_array(i)%data(j))
+          end do
+       end do
+    else
+       allocate(names(0))
+       allocate(vals(0,0))
+    end if
+
+  end subroutine inout_read_real_named_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_write_integer(file, name, var)
 
     ! Write an integer to an inout file.

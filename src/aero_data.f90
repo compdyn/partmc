@@ -276,4 +276,70 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine spec_read_aero_data(file, aero_data)
+
+    ! Read aero_data specification from a inout file.
+
+    use mod_inout
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
+
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
+
+    call inout_read_real_named_array(file, 0, species_name, species_data)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    n_species = species_data_shape(1)
+    if (.not. ((species_data_shape(2) == 4) .or. (n_species == 0))) then
+       write(0,*) 'ERROR: each line in ', trim(file%name), &
+            ' should contain exactly 4 values'
+       call exit(1)
+    end if
+
+    ! allocate and copy over the data
+    call allocate_aero_data(aero_data, n_species)
+    do i = 1,n_species
+       aero_data%name(i) = species_name(i)
+       if (species_name(i) == "H2O") then
+          aero_data%i_water = i
+       end if
+       aero_data%rho(i) = species_data(i,1)
+       aero_data%nu(i) = nint(species_data(i,2))
+       aero_data%eps(i) = species_data(i,3)
+       aero_data%M_w(i) = species_data(i,4)
+    end do
+    call set_aero_data_water_index(aero_data)
+    call set_aero_data_mosaic_map(aero_data)
+
+  end subroutine spec_read_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_data_filename(file, aero_data)
+
+    ! Read aero_data specification from a inout file.
+
+    use mod_inout
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
+
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+
+    ! read the aerosol data from the specified file
+    call inout_read_string(file, 'aerosol_data', read_name)
+    call inout_open_read(read_name, read_file)
+    call spec_read_aero_data(read_file, aero_data)
+    call inout_close(read_file)
+
+  end subroutine spec_read_aero_data_filename
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_aero_data

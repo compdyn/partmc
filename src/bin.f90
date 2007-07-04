@@ -198,5 +198,27 @@ contains
   end subroutine inout_read_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_bin_grid(file, bin_grid)
+
+    ! Read the specification for a bin_grid from a inout file and
+    ! generate it.
+
+    use mod_inout
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(bin_grid_t), intent(out) :: bin_grid ! bin grid
+
+    integer :: n_bin, scal
+    real*8 :: v_min
+
+    call inout_read_integer(file, 'n_bin', n_bin)
+    call inout_read_real(file, 'v_min', v_min)
+    call inout_read_integer(file, 'scal', scal)
+    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+
+  end subroutine spec_read_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_bin

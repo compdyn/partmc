@@ -153,7 +153,7 @@ contains
        end if
        
        ! DEBUG: enable to check array handling
-       call check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
+       ! call check_aero_state(bin_grid, bin_dist, aero_data, aero_state)
        ! DEBUG: end
        
        i_time = i_time + 1

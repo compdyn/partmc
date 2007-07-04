@@ -9,12 +9,21 @@
 ! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
 
 module mod_run_sect
+
+  type run_sect_opt_t
+    real*8 :: t_max         ! final time (s)
+    real*8 :: del_t         ! timestep for coagulation (s)
+    real*8 :: t_output      ! output interval (0 disables) (s)
+    real*8 :: t_progress    ! progress interval (0 disables) (s)
+    integer :: output_unit  ! unit number to output to
+  end type run_sect_opt_t
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine run_sect(n_bin, bin_v, dlnr, n_den, kernel, &
-       t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
+  subroutine run_sect(bin_grid, aero_data, aero_dist, env, kernel, &
+       sect_opt)
 
     ! Run a sectional simulation.
   
@@ -28,27 +37,21 @@ contains
     use mod_kernel
     use mod_output_summary
 
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    real*8, intent(in) :: n_den(n_bin)  ! initial number density (#/m^3)
-    
-    real*8, intent(in) :: t_max         ! final time (seconds)
-    real*8, intent(in) :: del_t         ! timestep for coagulation
-    real*8, intent(in) :: t_output      ! output interval (0 disables) (s)
-    real*8, intent(in) :: t_progress    ! progress interval (0 disables) (s)
-    integer, intent(in) :: output_unit  ! unit number to output to
-
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
     type(environ), intent(inout) :: env ! environment state
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    type(run_sect_opt_t), intent(in) :: sect_opt ! options
     
-    real*8 c(n_bin,n_bin)
-    integer ima(n_bin,n_bin)
-    real*8 g(n_bin), r(n_bin), e(n_bin)
-    real*8 k_bin(n_bin,n_bin), ck(n_bin,n_bin), ec(n_bin,n_bin)
-    real*8 taug(n_bin), taup(n_bin), taul(n_bin), tauu(n_bin)
-    real*8 prod(n_bin), ploss(n_bin)
-    real*8 bin_g_den(n_bin), bin_n_den(n_bin)
+    real*8 c(bin_grid%n_bin,bin_grid%n_bin)
+    integer ima(bin_grid%n_bin,bin_grid%n_bin)
+    real*8 g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
+    real*8 k_bin(bin_grid%n_bin,bin_grid%n_bin)
+    real*8 ck(bin_grid%n_bin,bin_grid%n_bin), ec(bin_grid%n_bin,bin_grid%n_bin)
+    real*8 taug(bin_grid%n_bin), taup(bin_grid%n_bin)
+    real*8 taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
+    real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
+    real*8 bin_g_den(bin_grid%n_bin), bin_n_den(bin_grid%n_bin)
     real*8 time, last_output_time, last_progress_time
     
     integer i, j, i_time, num_t
@@ -70,32 +73,36 @@ contains
     ! dlnr: constant grid distance of logarithmic grid 
     
     ! mass and radius grid
-    do i = 1,n_bin
-       r(i) = vol2rad(bin_v(i)) * 1d6       ! radius in m to um
-       e(i) = bin_v(i) * aero_data%rho(1) * 1d6   ! volume in m^3 to mass in mg
+    do i = 1,bin_grid%n_bin
+       r(i) = vol2rad(bin_grid%v(i)) * 1d6           ! radius in m to um
+       e(i) = bin_grid%v(i) * aero_data%rho(1) * 1d6 ! vol in m^3 to mass in mg
     end do
     
     ! initial mass distribution
-    do i = 1,n_bin
-       g(i) = n_den(i) * bin_v(i) * aero_data%rho(1)
+    if (aero_dist%n_modes /= 1) then
+       write(0,*) 'ERROR: run_sect can only handle one mode at present'
+       call exit(1)
+    end if
+    do i = 1,bin_grid%n_bin
+       g(i) = aero_dist%modes(1)%n_den(i) * bin_grid%v(i) * aero_data%rho(1)
        if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
     end do
     
-    call courant(n_bin, dlnr, e, ima, c)
+    call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(n_bin, bin_v, kernel_sedi, env, k_bin)
-    call smooth_bin_kernel(n_bin, k_bin, ck)
-    do i = 1,n_bin
-       do j = 1,n_bin
+    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel_sedi, env, k_bin)
+    call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
+    do i = 1,bin_grid%n_bin
+       do j = 1,bin_grid%n_bin
           ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
        end do
     end do
     
     ! multiply kernel with constant timestep and logarithmic grid distance
-    do i = 1,n_bin
-       do j = 1,n_bin
-          ck(i,j) = ck(i,j) * del_t * dlnr
+    do i = 1,bin_grid%n_bin
+       do j = 1,bin_grid%n_bin
+          ck(i,j) = ck(i,j) * sect_opt%del_t * bin_grid%dlnr
        end do
     end do
     
@@ -105,40 +112,43 @@ contains
     call init_environ(env, time)
     
     ! initial output
-    call check_event(time, del_t, t_output, last_output_time, do_output)
+    call check_event(time, sect_opt%del_t, sect_opt%t_output, &
+         last_output_time, do_output)
     if (do_output) then
-       do i = 1,n_bin
+       do i = 1,bin_grid%n_bin
           bin_g_den(i) = g(i) / aero_data%rho(1)
-          bin_n_den(i) = bin_g_den(i) / bin_v(i)
+          bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
        end do
-       call output_summary_density(output_unit, 0d0, n_bin, 1, bin_v, bin_g_den, &
-            bin_g_den, bin_n_den, env, aero_data, 1)
+       call output_summary_density(sect_opt%output_unit, 0d0, &
+            bin_grid%n_bin, 1, bin_grid%v, bin_g_den, bin_g_den, &
+            bin_n_den, env, aero_data, 1)
     end if
     
     ! main time-stepping loop
-    num_t = nint(t_max / del_t)
+    num_t = nint(sect_opt%t_max / sect_opt%del_t)
     do i_time = 1, num_t
-       time = t_max * dble(i_time) / dble(num_t)
+       time = sect_opt%t_max * dble(i_time) / dble(num_t)
        call update_environ(env, time)
        
-       call coad(n_bin, del_t, taug, taup, taul, tauu, prod, ploss, &
-            c, ima, g, r, e, ck, ec)
+       call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
+            tauu, prod, ploss, c, ima, g, r, e, ck, ec)
        
        ! print output
-       call check_event(time, del_t, t_output, last_output_time, &
-            do_output)
+       call check_event(time, sect_opt%del_t, sect_opt%t_output, &
+            last_output_time, do_output)
        if (do_output) then
-          do i = 1,n_bin
+          do i = 1,bin_grid%n_bin
              bin_g_den(i) = g(i) / aero_data%rho(1)
-             bin_n_den(i) = bin_g_den(i) / bin_v(i)
+             bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
           end do
-          call output_summary_density(output_unit, 0d0, n_bin, 1, bin_v, &
-               bin_g_den, bin_g_den, bin_n_den, env, aero_data, 1)
+          call output_summary_density(sect_opt%output_unit, 0d0, &
+               bin_grid%n_bin, 1, bin_grid%v, bin_g_den, bin_g_den, &
+               bin_n_den, env, aero_data, 1)
        end if
        
        ! print progress to stdout
-       call check_event(time, del_t, t_progress, last_progress_time, &
-            do_progress)
+       call check_event(time, sect_opt%del_t, sect_opt%t_progress, &
+            last_progress_time, do_progress)
        if (do_progress) then
           write(6,'(a6,a8)') 'step', 'time'
           write(6,'(i6,f8.1)') i_time, time

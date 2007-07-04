@@ -1,6 +1,5 @@
 run_type sect                   # sectional code
 output_file out/sedi_exp_sect_summary.d # name of output file
-num_conc 1d9                    # particle concentration (#/m^3)
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)

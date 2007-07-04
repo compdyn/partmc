@@ -6,7 +6,7 @@
 
 module mod_run_mc
 
-  type mc_opt_t
+  type run_mc_opt_t
     integer :: n_part_max               ! maximum number of particles
     real*8 :: t_max                     ! final time (s)
     real*8 :: t_output                  ! output interval (0 disables) (s)
@@ -25,7 +25,7 @@ module mod_run_mc
     integer :: i_loop                   ! loop number of run
     integer :: n_loop                   ! total number of loops
     real*8 :: t_wall_start              ! cpu_time() of start
-  end type mc_opt_t
+ end type run_mc_opt_t
   
 contains
   
@@ -57,7 +57,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
-    type(mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
+    type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
 
     ! FIXME: can we shift this to a module? mod_kernel presumably
     interface
@@ -218,7 +218,7 @@ contains
     type(environ), intent(inout) :: env ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
+    type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
     real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! maximum kernel
     integer, intent(out) :: tot_n_samp  ! total number of samples tested
     integer, intent(out) :: n_coag      ! number of coagulation events

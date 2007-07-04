@@ -86,7 +86,7 @@ contains
     type(environ) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(bin_dist_t) :: bin_dist        ! binned distributions
-    type(mc_opt_t) :: mc_opt            ! Monte Carlo options
+    type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
 
     integer :: i_loop, rand_init
     
@@ -288,6 +288,7 @@ contains
 
   subroutine partmc_sect(file)
 
+    use mod_util
     use mod_aero_data
     use mod_environ
     use mod_run_sect
@@ -302,85 +303,51 @@ contains
     use mod_gas_state
     use mod_output_summary
 
-    type(inout_file_t), intent(out) :: file     ! spec file
-
-    integer, parameter :: max_dist_args = 10
-    integer, parameter :: output_unit = 32
-
-    character(len=300) :: out_file_name
-    integer, allocatable :: bin_n(:)
-    real*8, allocatable :: bin_v(:), n_den(:), bin_g(:), bin_gs(:,:)
-    real*8 :: dlnr
-    
+    type(inout_file_t), intent(out) :: file ! spec file
     character(len=300) :: output_file   ! name of output files
-    real*8 :: num_conc                  ! particle concentration (#/m^3)
     character(len=100) :: kernel_name   ! coagulation kernel name
-    
-    real*8 :: t_max                     ! total simulation time (s)
-    real*8 :: del_t                     ! timestep (s)
-    real*8 :: t_output                  ! output interval (0 disables) (s)
-    real*8 :: t_progress                ! progress interval (0 disables) (s)
-    
+    type(run_sect_opt_t) :: sect_opt    ! sectional code options
     type(aero_data_t) :: aero_data               ! aero_data data
     type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
     type(aero_state_t) :: aero_init          ! aerosol initial condition
     type(environ) :: env                ! environment data
-    
-    character(len=100) :: dist_type     ! initial distribution
-    real*8 :: dist_args(max_dist_args)  ! distribution arguments
-    
-    integer :: n_bin                    ! number of bins
-    real*8 :: v_min                     ! volume of smallest bin (m^3)
-    integer :: scal                     ! scale factor (integer)
     type(bin_grid_t) :: bin_grid        ! bin grid
 
     call inout_read_string(file, 'output_file', output_file)
-    call inout_read_real(file, 'num_conc', num_conc)
-
     call inout_read_string(file, 'kernel', kernel_name)
 
-    call inout_read_real(file, 't_max', t_max)
-    call inout_read_real(file, 'del_t', del_t)
-    call inout_read_real(file, 't_output', t_output)
-    call inout_read_real(file, 't_progress', t_progress)
+    call inout_read_real(file, 't_max', sect_opt%t_max)
+    call inout_read_real(file, 'del_t', sect_opt%del_t)
+    call inout_read_real(file, 't_output', sect_opt%t_output)
+    call inout_read_real(file, 't_progress', sect_opt%t_progress)
 
-    call inout_read_integer(file, 'n_bin', n_bin)
-    call inout_read_real(file, 'v_min', v_min)
-    call inout_read_integer(file, 'scal', scal)
-    allocate(bin_v(n_bin), n_den(n_bin))
-    call make_bin_grid(n_bin, scal, v_min, bin_grid)
-    ! FIXME: eventually delete following
-    bin_v = bin_grid%v
-    dlnr = bin_grid%dlnr
-    
+    call spec_read_bin_grid(file, bin_grid)
     call spec_read_environ(file, env)
-    call spec_read_aero_data(file, aero_data)
-
-    allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
-
+    call spec_read_aero_data_filename(file, aero_data)
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
-    call dist_total_n_den(bin_grid, aero_data, aero_init_dist, n_den)
     
     call inout_close(file)
 
     ! finished reading .spec data, now do the run
 
-    call output_summary_open(output_unit, output_file, 1, n_bin, &
-         aero_data%n_spec, nint(t_max / t_output) + 1)
+    sect_opt%output_unit = get_unit()
+    call output_summary_open(sect_opt%output_unit, output_file, 1, &
+         bin_grid%n_bin, aero_data%n_spec, &
+         nint(sect_opt%t_max / sect_opt%t_output) + 1)
     
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_sedi, &
-            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
+       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+            kernel_sedi, sect_opt)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_golovin, &
-            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
+       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+            kernel_golovin, sect_opt)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_constant, &
-            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
+       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+            kernel_constant, sect_opt)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(n_bin, bin_v, dlnr, n_den, kernel_brown, &
-            t_max, del_t, t_output, t_progress, output_unit, aero_data, env)
+       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+            kernel_brown, sect_opt)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

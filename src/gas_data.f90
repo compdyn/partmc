@@ -140,4 +140,47 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine spec_read_gas_data(file, gas_data)
+
+    ! Read gas data from a .spec file.
+
+    use mod_inout
+
+    type(inout_file_t), intent(inout) :: file ! spec file
+    type(gas_data_t), intent(out) :: gas_data ! gas data
+
+    integer :: n_species, species, i
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    real*8, pointer :: species_data(:,:)
+    integer :: species_data_shape(2)
+
+    ! read the gas data from the specified file
+    call inout_read_string(file, 'gas_data', read_name)
+    call inout_open_read(read_name, read_file)
+    call inout_read_real_named_array(read_file, 0, species_name, species_data)
+    call inout_close(read_file)
+
+    ! check the data size
+    species_data_shape = shape(species_data)
+    if (species_data_shape(2) /= 1) then
+       write(0,*) 'ERROR: each line in ', trim(read_name), &
+            ' should only contain one value'
+       call exit(1)
+    end if
+
+    ! allocate and copy over the data
+    n_species = species_data_shape(1)
+    call allocate_gas_data(n_species, gas_data)
+    do i = 1,n_species
+       gas_data%name(i) = species_name(i)
+       gas_data%M_w(i) = species_data(i,1)
+    end do
+    call set_gas_mosaic_map(gas_data)
+
+  end subroutine spec_read_gas_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module mod_gas_data

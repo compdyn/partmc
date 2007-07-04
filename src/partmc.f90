@@ -9,9 +9,9 @@
 
 program partmc
 
-  use mod_read_spec
+  use mod_inout
 
-  type(spec_file) :: spec
+  type(inout_file_t) :: file
   character(len=300) :: in_name
   character(len=100) :: run_type
   integer :: i
@@ -30,16 +30,16 @@ program partmc
      call exit(2)
   end if
 
-  call open_spec(spec, in_name)
+  call inout_open_read(in_name, file)
 
-  call read_string(spec, 'run_type', run_type)
+  call inout_read_string(file, 'run_type', run_type)
 
   if (trim(run_type) == 'mc') then
-     call partmc_mc(spec)
+     call partmc_mc(file)
   elseif (trim(run_type) == 'exact') then
-     call partmc_exact(spec)
+     call partmc_exact(file)
   elseif (trim(run_type) == 'sect') then
-     call partmc_sect(spec)
+     call partmc_sect(file)
   else
      write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
      call exit(1)
@@ -49,7 +49,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partmc_mc(spec)
+  subroutine partmc_mc(file)
 
     use mod_bin
     use mod_aero_state
@@ -62,13 +62,13 @@ contains
     use mod_aero_data
     use mod_environ
     use mod_run_mc
-    use mod_read_spec
+    use mod_inout
     use mod_gas_data
     use mod_gas_state
     use mod_output_summary
     use mod_util
 
-    type(spec_file), intent(out) :: spec ! spec file
+    type(inout_file_t), intent(out) :: file ! spec file
 
     character(len=300) :: output_file   ! name of output files
     character(len=300) :: state_prefix  ! prefix for state files
@@ -90,50 +90,51 @@ contains
 
     integer :: i_loop, rand_init
     
-    call read_string(spec, 'output_file', output_file)
-    call read_string(spec, 'state_prefix', mc_opt%state_prefix)
-    call read_integer(spec, 'n_loop', mc_opt%n_loop)
-    call read_integer(spec, 'n_part', mc_opt%n_part_max)
-    call read_string(spec, 'kernel', kernel_name)
+    call inout_read_string(file, 'output_file', output_file)
+    call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
+    call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
+    call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
+    call inout_read_string(file, 'kernel', kernel_name)
     
-    call read_real(spec, 't_max', mc_opt%t_max)
-    call read_real(spec, 'del_t', mc_opt%del_t)
-    call read_real(spec, 't_output', mc_opt%t_output)
-    call read_real(spec, 't_state', mc_opt%t_state)
-    call read_real(spec, 't_progress', mc_opt%t_progress)
+    call inout_read_real(file, 't_max', mc_opt%t_max)
+    call inout_read_real(file, 'del_t', mc_opt%del_t)
+    call inout_read_real(file, 't_output', mc_opt%t_output)
+    call inout_read_real(file, 't_state', mc_opt%t_state)
+    call inout_read_real(file, 't_progress', mc_opt%t_progress)
 
-    call read_environ(spec, env)
+    call spec_read_environ(file, env)
 
-    call read_bin_grid(spec, bin_grid)
+    call spec_read_bin_grid(file, bin_grid)
     
-    call read_gas_data(spec, gas_data)
-    call read_gas_state(spec, gas_data, 'gas_init', gas_init)
-    call read_gas_state(spec, gas_data, 'gas_emissions', env%gas_emissions)
-    call read_real(spec, 'gas_emission_rate', env%gas_emission_rate)
-    call read_gas_state(spec, gas_data, 'gas_background', env%gas_background)
-    call read_real(spec, 'gas_dilution_rate', env%gas_dilution_rate)
+    call spec_read_gas_data(file, gas_data)
+    call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
+    call spec_read_gas_state(file, gas_data, 'gas_emissions', env%gas_emissions)
+    call inout_read_real(file, 'gas_emission_rate', env%gas_emission_rate)
+    call spec_read_gas_state(file, gas_data, 'gas_background', &
+         env%gas_background)
+    call inout_read_real(file, 'gas_dilution_rate', env%gas_dilution_rate)
 
-    call read_aero_data(spec, aero_data)
-    call read_aero_dist_filename(spec, aero_data, bin_grid, &
+    call spec_read_aero_data_filename(file, aero_data)
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
     call aero_dist_to_part(bin_grid, aero_data, aero_init_dist, &
          mc_opt%n_part_max, aero_init)
-    call read_aero_dist_filename(spec, aero_data, bin_grid, &
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_emissions', env%aero_emissions)
-    call read_real(spec, 'aerosol_emission_rate', env%aero_emission_rate)
-    call read_aero_dist_filename(spec, aero_data, bin_grid, &
+    call inout_read_real(file, 'aerosol_emission_rate', env%aero_emission_rate)
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_background', env%aero_background)
-    call read_real(spec, 'aerosol_dilution_rate', env%aero_dilution_rate)
+    call inout_read_real(file, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
-    call read_integer(spec, 'rand_init', rand_init)
-    call read_logical(spec, 'do_coagulation', mc_opt%do_coagulation)
-    call read_logical(spec, 'allow_double', mc_opt%allow_double)
-    call read_logical(spec, 'do_condensation', mc_opt%do_condensation)
-    call read_logical(spec, 'do_mosaic', mc_opt%do_mosaic)
-    call read_logical(spec, 'do_restart', mc_opt%do_restart)
-    call read_string(spec, 'restart_name', mc_opt%restart_name)
+    call inout_read_integer(file, 'rand_init', rand_init)
+    call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
+    call inout_read_logical(file, 'allow_double', mc_opt%allow_double)
+    call inout_read_logical(file, 'do_condensation', mc_opt%do_condensation)
+    call inout_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
+    call inout_read_logical(file, 'do_restart', mc_opt%do_restart)
+    call inout_read_string(file, 'restart_name', mc_opt%restart_name)
     
-    call close_spec(spec)
+    call inout_close(file)
 
     ! finished reading .spec data, now do the run
     
@@ -188,7 +189,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partmc_exact(spec)
+  subroutine partmc_exact(file)
 
     use mod_bin
     use mod_aero_state
@@ -199,12 +200,12 @@ contains
     use mod_aero_data
     use mod_environ
     use mod_run_exact
-    use mod_read_spec
+    use mod_inout
     use mod_gas_data
     use mod_gas_state
     use mod_output_summary
 
-    type(spec_file), intent(out) :: spec     ! spec file
+    type(inout_file_t), intent(out) :: file     ! spec file
 
     integer, parameter :: output_unit = 32
 
@@ -229,31 +230,31 @@ contains
     integer :: scal                     ! scale factor (integer)
     type(bin_grid_t) :: bin_grid        ! bin grid
     
-    call read_string(spec, 'output_file', output_file)
-    call read_real(spec, 'num_conc', num_conc)
+    call inout_read_string(file, 'output_file', output_file)
+    call inout_read_real(file, 'num_conc', num_conc)
 
-    call read_string(spec, 'soln', soln_name)
+    call inout_read_string(file, 'soln', soln_name)
 
     if (trim(soln_name) == 'golovin_exp') then
-       call read_real(spec, 'mean_vol', mean_vol)
+       call inout_read_real(file, 'mean_vol', mean_vol)
     elseif (trim(soln_name) == 'constant_exp_cond') then
-       call read_real(spec, 'mean_vol', mean_vol)
+       call inout_read_real(file, 'mean_vol', mean_vol)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
     end if
     
-    call read_real(spec, 't_max', t_max)
-    call read_real(spec, 't_output', t_output)
+    call inout_read_real(file, 't_max', t_max)
+    call inout_read_real(file, 't_output', t_output)
     
-    call read_environ(spec, env)
-    call read_aero_data(spec, aero_data)
+    call spec_read_environ(file, env)
+    call spec_read_aero_data(file, aero_data)
 
-    call read_integer(spec, 'n_bin', n_bin)
-    call read_real(spec, 'v_min', v_min)
-    call read_integer(spec, 'scal', scal)
+    call inout_read_integer(file, 'n_bin', n_bin)
+    call inout_read_real(file, 'v_min', v_min)
+    call inout_read_integer(file, 'scal', scal)
 
-    call close_spec(spec)
+    call inout_close(file)
 
     ! finished reading .spec data, now do the run
     
@@ -285,7 +286,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine partmc_sect(spec)
+  subroutine partmc_sect(file)
 
     use mod_aero_data
     use mod_environ
@@ -301,7 +302,7 @@ contains
     use mod_gas_state
     use mod_output_summary
 
-    type(spec_file), intent(out) :: spec     ! spec file
+    type(inout_file_t), intent(out) :: file     ! spec file
 
     integer, parameter :: max_dist_args = 10
     integer, parameter :: output_unit = 32
@@ -333,35 +334,35 @@ contains
     integer :: scal                     ! scale factor (integer)
     type(bin_grid_t) :: bin_grid        ! bin grid
 
-    call read_string(spec, 'output_file', output_file)
-    call read_real(spec, 'num_conc', num_conc)
+    call inout_read_string(file, 'output_file', output_file)
+    call inout_read_real(file, 'num_conc', num_conc)
 
-    call read_string(spec, 'kernel', kernel_name)
+    call inout_read_string(file, 'kernel', kernel_name)
 
-    call read_real(spec, 't_max', t_max)
-    call read_real(spec, 'del_t', del_t)
-    call read_real(spec, 't_output', t_output)
-    call read_real(spec, 't_progress', t_progress)
+    call inout_read_real(file, 't_max', t_max)
+    call inout_read_real(file, 'del_t', del_t)
+    call inout_read_real(file, 't_output', t_output)
+    call inout_read_real(file, 't_progress', t_progress)
 
-    call read_integer(spec, 'n_bin', n_bin)
-    call read_real(spec, 'v_min', v_min)
-    call read_integer(spec, 'scal', scal)
+    call inout_read_integer(file, 'n_bin', n_bin)
+    call inout_read_real(file, 'v_min', v_min)
+    call inout_read_integer(file, 'scal', scal)
     allocate(bin_v(n_bin), n_den(n_bin))
     call make_bin_grid(n_bin, scal, v_min, bin_grid)
     ! FIXME: eventually delete following
     bin_v = bin_grid%v
     dlnr = bin_grid%dlnr
     
-    call read_environ(spec, env)
-    call read_aero_data(spec, aero_data)
+    call spec_read_environ(file, env)
+    call spec_read_aero_data(file, aero_data)
 
     allocate(bin_g(n_bin), bin_gs(n_bin,aero_data%n_spec), bin_n(n_bin))
 
-    call read_aero_dist_filename(spec, aero_data, bin_grid, &
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
     call dist_total_n_den(bin_grid, aero_data, aero_init_dist, n_den)
     
-    call close_spec(spec)
+    call inout_close(file)
 
     ! finished reading .spec data, now do the run
 

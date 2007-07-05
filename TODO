@@ -54,3 +54,5 @@ add separate del_t for mosaic, coag, and cond.
 change run_sect and run_exact to generate aero_dists
 
 fix up output_summary to use aero_state, etc, and also inout_file_t
+
+add error checking to inout_write_*()

@@ -5,17 +5,19 @@
 !
 ! Sectional code based on coad1d.f by Andreas Bott
 ! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
+! Released under the GPL to Nicole Riemer (personal communication)
 ! A. Bott, A flux method for the numerical solution of the stochastic
 ! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
 
 module mod_run_sect
 
+  use mod_inout
+
   type run_sect_opt_t
-    real*8 :: t_max         ! final time (s)
-    real*8 :: del_t         ! timestep for coagulation (s)
-    real*8 :: t_output      ! output interval (0 disables) (s)
-    real*8 :: t_progress    ! progress interval (0 disables) (s)
-    integer :: output_unit  ! unit number to output to
+    real*8 :: t_max                     ! final time (s)
+    real*8 :: del_t                     ! timestep for coagulation (s)
+    real*8 :: t_output                  ! output interval (0 disables) (s)
+    real*8 :: t_progress                ! progress interval (0 disables) (s)
   end type run_sect_opt_t
 
 contains
@@ -23,12 +25,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(bin_grid, aero_data, aero_dist, env, kernel, &
-       sect_opt)
+       sect_opt, summary_file)
 
     ! Run a sectional simulation.
   
     use mod_bin
-    use mod_aero_state
+    use mod_aero_binned
     use mod_kernel_sedi
     use mod_util
     use mod_aero_dist
@@ -42,6 +44,7 @@ contains
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
     type(environ), intent(inout) :: env ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
+    type(inout_file_t), intent(inout) :: summary_file ! summary output file
     
     real*8 c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
@@ -51,8 +54,8 @@ contains
     real*8 taug(bin_grid%n_bin), taup(bin_grid%n_bin)
     real*8 taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
     real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
-    real*8 bin_g_den(bin_grid%n_bin), bin_n_den(bin_grid%n_bin)
     real*8 time, last_output_time, last_progress_time
+    type(aero_binned_t) :: aero_binned
     
     integer i, j, i_time, num_t
     logical do_output, do_progress
@@ -71,6 +74,10 @@ contains
     ! e   : droplet mass grid (mg)
     ! r   : droplet radius grid (um)
     ! dlnr: constant grid distance of logarithmic grid 
+
+    ! output data structure
+    call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    aero_binned%vol_den = 0d0
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
@@ -116,12 +123,11 @@ contains
          last_output_time, do_output)
     if (do_output) then
        do i = 1,bin_grid%n_bin
-          bin_g_den(i) = g(i) / aero_data%rho(1)
-          bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
+          aero_binned%vol_den(i,1) = g(i) / aero_data%rho(1)
+          aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
        end do
-       call output_summary_density(sect_opt%output_unit, 0d0, &
-            bin_grid, aero_data, bin_g_den, bin_g_den, &
-            bin_n_den, env, 1)
+       call output_summary(summary_file, 0d0, &
+            bin_grid, aero_data, aero_binned, env, 1)
     end if
     
     ! main time-stepping loop
@@ -138,12 +144,11 @@ contains
             last_output_time, do_output)
        if (do_output) then
           do i = 1,bin_grid%n_bin
-             bin_g_den(i) = g(i) / aero_data%rho(1)
-             bin_n_den(i) = bin_g_den(i) / bin_grid%v(i)
+             aero_binned%vol_den(i,1) = g(i) / aero_data%rho(1)
+             aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
           end do
-          call output_summary_density(sect_opt%output_unit, 0d0, &
-               bin_grid, aero_data, bin_g_den, bin_g_den, &
-               bin_n_den, env, 1)
+          call output_summary(summary_file, time, &
+               bin_grid, aero_data, aero_binned, env, 1)
        end if
        
        ! print progress to stdout

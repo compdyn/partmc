@@ -6,6 +6,8 @@
 
 module mod_run_mc
 
+  use mod_inout
+
   type run_mc_opt_t
     integer :: n_part_max               ! maximum number of particles
     real*8 :: t_max                     ! final time (s)
@@ -13,8 +15,6 @@ module mod_run_mc
     real*8 :: t_state                   ! state output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     real*8 :: del_t                     ! timestep for coagulation
-    integer :: output_unit              ! unit number to output to
-    integer :: state_unit               ! unit number for state files
     character(len=300) :: state_prefix  ! prefix for state files
     logical :: do_coagulation           ! whether to do coagulation
     logical :: allow_double             ! allow doubling if needed
@@ -32,7 +32,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine run_mc(kernel, bin_grid, aero_binned, env, aero_data, &
-    aero_state, gas_data, gas_state, mc_opt)
+    aero_state, gas_data, gas_state, mc_opt, summary_file)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -59,6 +59,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
+    type(inout_file_t), intent(inout) :: summary_file ! summary output file
 
     ! FIXME: can we shift this to a module? mod_kernel presumably
     interface
@@ -79,6 +80,9 @@ contains
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer i_time, pre_i_time
     character*100 filename
+    type(bin_grid_t) :: restart_bin_grid
+    type(aero_data_t) :: restart_aero_data
+    type(gas_data_t) :: restart_gas_data
 
     i_time = 0
     time = 0d0
@@ -88,12 +92,14 @@ contains
     tot_n_coag = 0
     
     if (mc_opt%do_restart) then
-       call read_state(mc_opt%state_unit, mc_opt%restart_name, &
-            bin_grid, aero_data, aero_state, env, time)
+       call inout_read_state(mc_opt%restart_name, restart_bin_grid, &
+            restart_aero_data, aero_state, restart_gas_data, gas_state, &
+            env, time)
+       ! FIXME: should we check whether bin_grid == restart_bin_grid, etc?
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then
           do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-             call double(bin_grid, aero_binned, aero_data, aero_state)
+             call double(aero_state)
           end do
        end if
        ! write data into output file so that it will look correct
@@ -105,9 +111,9 @@ contains
           if (mc_opt%t_output > 0d0) then
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
-             if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
-                  bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
-                  env, mc_opt%i_loop, aero_state%comp_vol)
+             if (do_output) call output_summary(summary_file, &
+                  pre_time, bin_grid, aero_data, aero_binned, env, &
+                  mc_opt%i_loop)
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
@@ -118,9 +124,8 @@ contains
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 
     if (mc_opt%t_output > 0d0) then
-       call output_summary(mc_opt%output_unit, pre_time, &
-            bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
-            env, mc_opt%i_loop, aero_state%comp_vol)
+       call output_summary(summary_file, time, &
+            bin_grid, aero_data, aero_binned, env, mc_opt%i_loop)
     end if
 
     if (mc_opt%t_state > 0d0) then
@@ -163,9 +168,8 @@ contains
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
-          if (do_output) call output_summary(mc_opt%output_unit, pre_time, &
-               bin_grid, aero_data, aero_binned%v, aero_binned%vs, aero_binned%n, &
-               env, mc_opt%i_loop, aero_state%comp_vol)
+          if (do_output) call output_summary(summary_file, time, &
+               bin_grid, aero_data, aero_binned, env, mc_opt%i_loop)
        end if
 
        if (mc_opt%t_state > 0d0) then
@@ -267,7 +271,7 @@ contains
     ! then double until we fill up the array
     if (mc_opt%allow_double) then
        do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-          call double(bin_grid, aero_binned, aero_data, aero_state)
+          call double(aero_state)
        end do
     end if
     

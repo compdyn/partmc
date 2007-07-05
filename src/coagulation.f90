@@ -149,24 +149,19 @@ contains
                                         ! or a filled bin became empty
     
     integer bn, i, j
-    real*8 new_v(aero_data%n_spec), pv1, pv2, new_v_tot
+    real*8 new_v(aero_data%n_spec), new_v_tot
 
     bin_change = .false.
     
-    pv1 = particle_volume(aero_state%v(b1)%p(s1,:))
-    pv2 = particle_volume(aero_state%v(b2)%p(s2,:))
-
     ! remove s1 and s2 from bins
-    aero_binned%n(b1) = aero_binned%n(b1) - 1
-    aero_binned%n(b2) = aero_binned%n(b2) - 1
-    aero_binned%v(b1) = aero_binned%v(b1) - pv1
-    aero_binned%v(b2) = aero_binned%v(b2) - pv2
-    aero_binned%vs(b1,:) = aero_binned%vs(b1,:) - aero_state%v(b1)%p(s1,:)
-    aero_binned%vs(b2,:) = aero_binned%vs(b2,:) - aero_state%v(b2)%p(s2,:)
-     if ((aero_binned%n(b1) .lt. 0) .or. (aero_binned%n(b2) .lt. 0)) then
-       write(0,*)'ERROR: invalid aero_binned%n'
-       call exit(2)
-    end if
+    aero_binned%num_den(b1) = aero_binned%num_den(b1) &
+         - 1d0 / aero_state%comp_vol
+    aero_binned%num_den(b2) = aero_binned%num_den(b2) &
+         - 1d0 / aero_state%comp_vol
+    aero_binned%vol_den(b1,:) = aero_binned%vol_den(b1,:) &
+         - aero_state%v(b1)%p(s1,:) / aero_state%comp_vol
+    aero_binned%vol_den(b2,:) = aero_binned%vol_den(b2,:) &
+         - aero_state%v(b2)%p(s2,:) / aero_state%comp_vol
 
     ! do coagulation in aero_state%n, aero_state%v arrays
     ! add particle volumes
@@ -195,17 +190,16 @@ contains
     aero_state%v(bn)%p(aero_state%n(bn),:) = new_v ! add new particle at end
     
     ! add new particle to bins
-    aero_binned%n(bn) = aero_binned%n(bn) + 1
-    aero_binned%v(bn) = aero_binned%v(bn) &
-         + sum(aero_state%v(bn)%p(aero_state%n(bn),:))
-    aero_binned%vs(bn,:) = aero_binned%vs(bn,:) &
-         + aero_state%v(bn)%p(aero_state%n(bn),:)
+    aero_binned%num_den(bn) = aero_binned%num_den(bn) &
+         + 1d0 / aero_state%comp_vol
+    aero_binned%vol_den(bn,:) = aero_binned%vol_den(bn,:) &
+         + aero_state%v(bn)%p(aero_state%n(bn),:) / aero_state%comp_vol
 
     ! did we empty a bin?
-    if ((aero_binned%n(b1) .eq. 0) .or. (aero_binned%n(b2) .eq. 0)) &
+    if ((aero_state%n(b1) .eq. 0) .or. (aero_state%n(b2) .eq. 0)) &
          bin_change = .true.
     ! did we start a new bin?
-    if ((aero_binned%n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
+    if ((aero_state%n(bn) .eq. 1) .and. (bn .ne. b1) .and. (bn .ne. b2)) &
          bin_change = .true.
 
     ! possibly repack memory
@@ -214,41 +208,6 @@ contains
 
   end subroutine coagulate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine double(bin_grid, aero_binned, aero_data, aero_state)
-    
-    ! Doubles number of particles.
-
-    use mod_bin
-    use mod_aero_data
-    use mod_aero_state
-    use mod_environ
-    use mod_aero_binned
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    
-    integer k, n
-    
-    ! double aero_state and associated structures
-    do k = 1,bin_grid%n_bin
-       n = aero_state%n(k)
-       call enlarge_bin_to(aero_state%v(k), 2 * n)
-       aero_state%v(k)%p((n+1):(2*n), :) = aero_state%v(k)%p(1:n, :)
-       aero_state%n(k) = 2 * aero_state%n(k)
-    end do
-    aero_state%comp_vol = 2d0 * aero_state%comp_vol
-    
-    ! double bin structures
-    aero_binned%v = aero_binned%v * 2d0
-    aero_binned%n = aero_binned%n * 2
-    aero_binned%vs = aero_binned%vs * 2d0
-    
-  end subroutine double
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_coagulation

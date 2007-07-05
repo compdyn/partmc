@@ -33,7 +33,8 @@ contains
     integer bin, j, new_bin, k
     real*8 pv, pre_water_vol, post_water_vol
 
-    pre_water_vol = sum(aero_binned%vs(:,aero_data%i_water))
+    pre_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
+         * aero_state%comp_vol
 
     do bin = 1,bin_grid%n_bin
        do j = 1,aero_state%n(bin)
@@ -51,7 +52,8 @@ contains
     call aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(aero_binned%vs(:,aero_data%i_water))
+    post_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
+         * aero_state%comp_vol
     call change_water_volume(env, aero_data, &
          (post_water_vol - pre_water_vol) / aero_state%comp_vol)
 

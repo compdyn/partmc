@@ -28,8 +28,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_golovin_exp(bin_grid, bin_g_den, bin_n_den, &
-       time, num_conc, mean_vol, rho_p, env)
+  subroutine soln_golovin_exp(bin_grid, time, num_conc, mean_vol, &
+       rho_p, env, aero_binned)
 
     ! Exact solution with the Golovin coagulation kernel and
     ! exponential initial condition.
@@ -38,16 +38,15 @@ contains
     use mod_environ
     use mod_util
     use mod_constants
+    use mod_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: bin_g_den(bin_grid%n_bin) ! volume density in bins
-    real*8, intent(out) :: bin_n_den(bin_grid%n_bin) ! number density in bins
-    
     real*8, intent(in) :: time          ! current time
     real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
     real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(environ), intent(in) :: env    ! environment state
+    type(aero_binned_t), intent(out) :: aero_binned ! output state
     
     real*8 beta_1, tau, T, rat_v, nn, b, x
     integer k
@@ -56,8 +55,9 @@ contains
     
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
-          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_grid%v(k)))**3 &
-               * num_conc / mean_vol * exp(-(bin_grid%v(k)/mean_vol))
+          aero_binned%num_den(k) = const%pi/2d0 &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
+               * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
        tau = num_conc * mean_vol * beta_1 * time
@@ -72,13 +72,15 @@ contains
           end if
           nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
-          bin_n_den(k) = const%pi/2d0 * (2d0*vol2rad(bin_grid%v(k)))**3 * nn
+          aero_binned%num_den(k) = const%pi/2d0 &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * nn
        end do
     end if
 
+    aero_binned%vol_den = 0d0
     do k = 1,bin_grid%n_bin
-       bin_g_den(k) = const%pi/6d0 * (2d0*vol2rad(bin_grid%v(k)))**3 &
-            * bin_n_den(k)
+       aero_binned%vol_den(k,1) = const%pi/6d0 &
+            * (2d0*vol2rad(bin_grid%v(k)))**3 * aero_binned%num_den(k)
     end do
     
   end subroutine soln_golovin_exp

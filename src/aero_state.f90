@@ -13,10 +13,6 @@
 ! of the i_spec-th species in the i_part-th particle in the i_bin-th
 ! bin.
 !
-! FIXME: aero_state%n and aero_binned%n are pretty much
-! identical. Probably best to ignore it for now, because this will all
-! change with the superparticle code.
-!
 ! Typically most of the bins have only a few particles, while a small
 ! number of bins have many particles. To avoid having too much storage
 ! allocated for the bins with only a few particles, we do dynamic
@@ -337,18 +333,38 @@ contains
     
     integer b, j, s
     
-    aero_binned%v = 0d0
-    aero_binned%vs = 0d0
+    aero_binned%num_den = 0d0
+    aero_binned%vol_den = 0d0
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%n(b)
-          aero_binned%v(b) = aero_binned%v(b) &
-               + particle_volume(aero_state%v(b)%p(j,:))
-          aero_binned%vs(b,:) = aero_binned%vs(b,:) + aero_state%v(b)%p(j,:)
+          aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
+               + aero_state%v(b)%p(j,:) / aero_state%comp_vol
        end do
     end do
-    aero_binned%n = aero_state%n
+    aero_binned%num_den = dble(aero_state%n) / aero_state%comp_vol
    
   end subroutine aero_state_to_binned
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine double(aero_state)
+    
+    ! Doubles number of particles.
+
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    
+    integer :: n_bin, k, n
+    
+    n_bin = size(aero_state%n)
+    do k = 1,n_bin
+       n = aero_state%n(k)
+       call enlarge_bin_to(aero_state%v(k), 2 * n)
+       aero_state%v(k)%p((n+1):(2*n), :) = aero_state%v(k)%p(1:n, :)
+       aero_state%n(k) = 2 * aero_state%n(k)
+    end do
+    aero_state%comp_vol = 2d0 * aero_state%comp_vol
+    
+  end subroutine double
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -434,7 +450,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
-    real*8 pv, check_bin_v, check_bin_vs(aero_data%n_spec), vol_tol
+    real*8 pv, check_bin_v, check_vol_den(aero_data%n_spec), vol_tol
+    real*8 num_tol, state_num_den
     integer i, k, k_check, s
     logical error
     
@@ -454,40 +471,32 @@ contains
        end do
     end do
     
-    ! check the aero_binned%n array
+    ! check the aero_binned%num_den array
     do k = 1,bin_grid%n_bin
-       if (aero_state%n(k) .ne. aero_binned%n(k)) then
-          write(0,'(a10,a10,a10)') 'k', 'aero_state%n(k)', 'aero_binned%n(k)'
-          write(0,'(i10,i10,i10)') k, aero_state%n(k), aero_binned%n(k)
-       end if
-    end do
-    
-    ! check the aero_binned%v array
-    do k = 1,bin_grid%n_bin
-       check_bin_v = 0d0
-       do i = 1,aero_state%n(k)
-          pv = particle_volume(aero_state%v(k)%p(i,:))
-          check_bin_v = check_bin_v + pv
-       end do
-       vol_tol = bin_grid%v(k) / 1d6 ! tolerance 1e6 less than single particle
-       if (.not. almost_equal_abs(check_bin_v, aero_binned%v(k), vol_tol)) then
-          write(0,'(a10,a15,a15)') 'k', 'check_bin_v', 'aero_binned%v(k)'
-          write(0,'(i10,e15.5,e15.5)') k, check_bin_v, aero_binned%v(k)
+       num_tol = 0.01d0 / aero_state%comp_vol
+       state_num_den = dble(aero_state%n(k)) / aero_state%comp_vol
+       if (.not. almost_equal_abs(state_num_den, &
+            aero_binned%num_den(k), num_tol)) then
+          write(0,'(a10,a20,a20,a20,a20)') 'k', 'aero_state%n(k)', &
+               'state_num_den', 'a_binned%num_den(k)', 'comp_vol'
+          write(0,'(i10,i20,e20.10,e20.10,e20.10)') k, aero_state%n(k), &
+               state_num_den, aero_binned%num_den(k), aero_state%comp_vol
           error = .true.
        end if
     end do
     
-    ! check the aero_binned%vs array
+    ! check the aero_binned%vol_den array
     do k = 1,bin_grid%n_bin
-       check_bin_vs = sum(aero_state%v(k)%p(1:aero_state%n(k),:), 1)
+       check_vol_den = sum(aero_state%v(k)%p(1:aero_state%n(k),:), 1) &
+            / aero_state%comp_vol
        vol_tol = bin_grid%v(k) / 1d3 ! tolerance 1e3 less than single particle
        do s = 1,aero_data%n_spec
-          if (.not. almost_equal_abs(check_bin_vs(s), aero_binned%vs(k,s), &
-                                     vol_tol)) then
-             write(0,'(a10,a10,a20,a15)') 'k', 's', 'check_bin_vs(s)', &
-                  'aero_binned%vs(k,s)'
-             write(0,'(i10,i10,e20.5,e15.5)') k, s, check_bin_vs(s), &
-                  aero_binned%vs(k,s)
+          if (.not. almost_equal_abs(check_vol_den(s), &
+               aero_binned%vol_den(k,s), vol_tol)) then
+             write(0,'(a10,a10,a25,a25)') 'k', 's', 'check_vol_den(s)', &
+                  'vol_den(k,s)'
+             write(0,'(i10,i10,e25.10,e25.10)') k, s, check_vol_den(s), &
+                  aero_binned%vol_den(k,s)
              error = .true.
           end if
        end do

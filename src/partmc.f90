@@ -133,7 +133,7 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call inout_open_read(summary_name, summary_file)
+    call inout_open_write(summary_name, summary_file)
     call output_summary_header(summary_file, bin_grid, &
          aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
     
@@ -235,7 +235,7 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call inout_open_read(summary_name, summary_file)
+    call inout_open_write(summary_name, summary_file)
     call output_summary_header(summary_file, bin_grid, &
          aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 
@@ -303,7 +303,7 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call inout_open_read(summary_name, summary_file)
+    call inout_open_write(summary_name, summary_file)
     call output_summary_header(summary_file, bin_grid, &
          aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
 

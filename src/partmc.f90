@@ -144,7 +144,7 @@ contains
     end if
 
     call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
-    call allocate_gas_state(gas_data, gas_state)
+    call allocate_gas_state(gas_data%n_spec, gas_state)
     call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
@@ -210,6 +210,8 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     
+    call alloc_env(env)
+
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_real(file, 'num_conc', exact_opt%num_conc)
 
@@ -284,6 +286,8 @@ contains
     type(environ) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
+
+    call alloc_env(env)
 
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'kernel', kernel_name)

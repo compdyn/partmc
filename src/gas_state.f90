@@ -14,16 +14,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_gas_state(gas_data, gas_state)
+  subroutine allocate_gas_state(n_spec, gas_state)
 
     ! Allocate storage for gas species.
 
-    use mod_gas_data
-
-    type(gas_data_t), intent(in) :: gas_data ! gas data
+    integer, intent(in) :: n_spec       ! number of species
     type(gas_state_t), intent(out) :: gas_state ! gas state to be allocated
 
-    allocate(gas_state%conc(gas_data%n_spec))
+    allocate(gas_state%conc(n_spec))
 
   end subroutine allocate_gas_state
 
@@ -112,7 +110,7 @@ contains
     end if
 
     ! copy over the data
-    call allocate_gas_state(gas_data, gas_state)
+    call allocate_gas_state(gas_data%n_spec, gas_state)
     gas_state%conc = 0d0
     do i = 1,n_species
        species = gas_spec_by_name(gas_data, species_name(i))

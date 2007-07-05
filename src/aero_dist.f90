@@ -16,7 +16,7 @@ module mod_aero_dist
 
   type aero_mode_t
      real*8, pointer :: n_den(:)        ! len n_bin, number density (#/m^3)
-     real*8, pointer :: vol_frac(:)     ! len aero_data%n_spec, species fractions (1)
+     real*8, pointer :: vol_frac(:)     ! len n_spec, species fractions (1)
   end type aero_mode_t
 
   type aero_dist_t
@@ -25,6 +25,42 @@ module mod_aero_dist
   end type aero_dist_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine alloc_aero_mode(n_bin, n_spec, aero_mode)
+
+    ! Allocates an aero_mode.
+
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    type(aero_mode_t), intent(out) :: aero_mode ! aerosol mode
+
+    allocate(aero_mode%n_den(n_bin))
+    allocate(aero_mode%vol_frac(n_spec))
+
+  end subroutine alloc_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine alloc_aero_dist(n_modes, n_bin, n_spec, aero_dist)
+
+    ! Allocates an aero_dist.
+
+    integer, intent(in) :: n_modes      ! number of modes
+    integer, intent(in) :: n_bin        ! number of bins
+    integer, intent(in) :: n_spec       ! number of species
+    type(aero_dist_t), intent(out) :: aero_dist ! aerosol distribution
+
+    integer :: i
+
+    aero_dist%n_modes = n_modes
+    allocate(aero_dist%modes(n_modes))
+    do i = 1,n_modes
+       call alloc_aero_mode(n_bin, n_spec, aero_dist%modes(i))
+    end do
+
+  end subroutine alloc_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

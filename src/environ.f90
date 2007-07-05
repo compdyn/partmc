@@ -43,6 +43,36 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine alloc_env(env)
+
+    ! Allocate an empty environment.
+
+    type(environ), intent(out) :: env ! environment
+
+    env%T = 0d0
+    env%RH = 0d0
+    env%p = 0d0
+    env%rho_a = 0d0
+    env%longitude = 0d0
+    env%latitude = 0d0
+    env%altitude = 0d0
+    env%start_time = 0d0
+    env%start_day = 0
+
+    call allocate_environ_temps(env, 0)
+    call allocate_gas_state(0, env%gas_emissions)
+    call allocate_gas_state(0, env%gas_background)
+    env%gas_emission_rate = 0d0
+    env%gas_dilution_rate = 0d0
+    call alloc_aero_dist(0, 0, 0, env%aero_emissions)
+    call alloc_aero_dist(0, 0, 0, env%aero_background)
+    env%aero_emission_rate = 0d0
+    env%aero_dilution_rate = 0d0
+
+  end subroutine alloc_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine allocate_environ_temps(env, n_temps)
 
     ! Allocate storage for a given number of temperature set points.

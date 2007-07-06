@@ -15,7 +15,7 @@ contains
     use mod_constants
     use mod_util
     use mod_aero_state
-    use mod_bin 
+    use mod_bin_grid 
     use mod_condensation
     use mod_environ
     use mod_aero_data

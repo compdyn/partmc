@@ -8,7 +8,7 @@
 ! quite heavily incorporated into the code. At some point in the
 ! future it would be nice to relax this assumption.
 
-module mod_bin
+module mod_bin_grid
 
   type bin_grid_t
      integer :: n_bin
@@ -191,4 +191,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_bin
+end module mod_bin_grid

@@ -385,9 +385,9 @@ contains
     character(len=*), intent(in) :: name ! expected line name
 
     if (line%name /= name) then
-       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', file%line_num, &
+       write(0,'(a,i3,a,a,a,a,a,a)') 'ERROR: line ', file%line_num, &
             ' of input file ', trim(file%name), &
-            ' must begin with: ', trim(name)
+            ' must begin with: ', trim(name), ', not: ', trim(line%name)
        call exit(1)
     end if
 
@@ -406,9 +406,9 @@ contains
     integer name_len, read_name_len
 
     if (name /= read_name) then
-       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', file%line_num, &
+       write(0,'(a,i3,a,a,a,a,a,a)') 'ERROR: line ', file%line_num, &
             ' of input file ', trim(file%name), &
-            ' must begin with: ', trim(name)
+            ' must begin with: ', trim(name), ', not: ', trim(read_name)
        call exit(1)
     end if
     

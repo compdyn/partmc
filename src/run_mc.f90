@@ -38,7 +38,7 @@ contains
     
     use mod_util
     use mod_aero_state
-    use mod_bin 
+    use mod_bin_grid 
     use mod_aero_binned
     use mod_condensation
     use mod_environ
@@ -112,8 +112,8 @@ contains
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
              if (do_output) call output_summary(summary_file, &
-                  pre_time, bin_grid, aero_data, aero_binned, env, &
-                  mc_opt%i_loop)
+                  pre_time, bin_grid, aero_data, aero_binned, &
+                  gas_data, gas_state, env, mc_opt%i_loop)
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
@@ -124,8 +124,9 @@ contains
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 
     if (mc_opt%t_output > 0d0) then
-       call output_summary(summary_file, time, &
-            bin_grid, aero_data, aero_binned, env, mc_opt%i_loop)
+       call output_summary(summary_file, &
+            time, bin_grid, aero_data, aero_binned, &
+            gas_data, gas_state, env, mc_opt%i_loop)
     end if
 
     if (mc_opt%t_state > 0d0) then
@@ -168,8 +169,9 @@ contains
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
-          if (do_output) call output_summary(summary_file, time, &
-               bin_grid, aero_data, aero_binned, env, mc_opt%i_loop)
+          if (do_output) call output_summary(summary_file, &
+               time, bin_grid, aero_data, aero_binned, &
+               gas_data, gas_state, env, mc_opt%i_loop)
        end if
 
        if (mc_opt%t_state > 0d0) then
@@ -210,7 +212,7 @@ contains
 
     use mod_util
     use mod_aero_state
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_binned
     use mod_environ
     use mod_aero_data

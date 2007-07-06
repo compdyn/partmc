@@ -29,7 +29,7 @@ contains
 
     ! Run a sectional simulation.
   
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_binned
     use mod_kernel_sedi
     use mod_util
@@ -38,6 +38,8 @@ contains
     use mod_aero_data
     use mod_kernel
     use mod_output_summary
+    use mod_gas_data
+    use mod_gas_state
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -56,6 +58,8 @@ contains
     real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
     real*8 time, last_output_time, last_progress_time
     type(aero_binned_t) :: aero_binned
+    type(gas_data_t) :: gas_data
+    type(gas_state_t) :: gas_state
     
     integer i, j, i_time, num_t
     logical do_output, do_progress
@@ -78,6 +82,8 @@ contains
     ! output data structure
     call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     aero_binned%vol_den = 0d0
+    call alloc_gas_data(0, gas_data)
+    call alloc_gas_state(0, gas_state)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
@@ -127,7 +133,7 @@ contains
           aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
        end do
        call output_summary(summary_file, 0d0, &
-            bin_grid, aero_data, aero_binned, env, 1)
+            bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
     end if
     
     ! main time-stepping loop
@@ -148,7 +154,7 @@ contains
              aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
           end do
           call output_summary(summary_file, time, &
-               bin_grid, aero_data, aero_binned, env, 1)
+               bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
        end if
        
        ! print progress to stdout

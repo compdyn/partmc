@@ -99,8 +99,8 @@ contains
     integer, parameter :: n_mosaic_species = 19
     character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
          "SO4_a", "NO3_a", "Cl_a", "NH4_a", "CO3_a", "MSA_a", "Na_a", "Ca_a", &
-         "OC_a", "BC_a", "OIN_a", "ARO1_a", "ARO2_a", "ALK1_a", "OLE1_a", "API1_a", &
-         "API2_a", "LIM1_a", "LIM2_a"]
+         "OC_a", "BC_a", "OIN_a", "ARO1_a", "ARO2_a", "ALK1_a", "OLE1_a", &
+         "API1_a", "API2_a", "LIM1_a", "LIM2_a"]
 
     integer spec, mosaic_spec, i
 

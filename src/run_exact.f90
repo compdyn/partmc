@@ -30,12 +30,14 @@ contains
     ! "Run" an exact solution, output data in the same format as
     ! particle-resolved or sectional simulations.
     
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_state
     use mod_environ
     use mod_aero_data
     use mod_output_summary
     use mod_aero_binned
+    use mod_gas_data
+    use mod_gas_state
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(environ), intent(inout) :: env ! environment state
@@ -46,12 +48,14 @@ contains
     integer :: i_time, n_time
     type(aero_binned_t) :: aero_binned
     real*8 :: time
+    type(gas_data_t) :: gas_data
+    type(gas_state_t) :: gas_state
     
     interface
        subroutine soln(bin_grid, time, num_conc, mean_vol, &
             rho_p, env, aero_binned)
 
-         use mod_bin
+         use mod_bin_grid
          use mod_environ
          use mod_aero_binned
 
@@ -66,6 +70,8 @@ contains
     end interface
 
     call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call alloc_gas_data(0, gas_data)
+    call alloc_gas_state(0, gas_state)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     call init_environ(env, 0d0)
@@ -76,7 +82,7 @@ contains
             exact_opt%mean_vol, exact_opt%rho_p, env, aero_binned)
 
        call output_summary(summary_file, time, bin_grid, aero_data, &
-            aero_binned, env, 1)
+            aero_binned, gas_data, gas_state, env, 1)
     end do
     
   end subroutine run_exact

@@ -9,41 +9,28 @@
 program process_summary
 
   use mod_util
+  use mod_inout
+  use mod_bin_grid
+  use mod_aero_binned
+  use mod_gas_state
+  use mod_gas_data
+  use mod_aero_data
+  use mod_environ
   
-  integer, parameter :: f_in = 20       ! input
-  integer, parameter :: f_out_num = 21  ! output number
-  integer, parameter :: f_out_vol = 22  ! output vol
-  integer, parameter :: f_out_temp = 23 ! output temperature
-  integer, parameter :: f_out_rh = 24   ! output relative humidity
-  integer, parameter :: f_out_time = 25 ! output time
-  integer, parameter :: f_out_num_avg = 26 ! output number average
-  integer, parameter :: f_out_vol_avg = 27 ! output vol average
-  integer, parameter :: f_out_temp_avg = 28 ! output temperature average
-  integer, parameter :: f_out_rh_avg = 29 ! output relative humidity average
-  integer, parameter :: f_out_time_avg = 30 ! output time average
-  
-  integer :: n_bin, n_loop, n_time, n_spec
-  character(len=1000) :: name_in
-  character(len=1000) :: name_out_time, name_out_time_avg
-  character(len=1000) :: name_out_num, name_out_vol
-  character(len=1000) :: name_out_temp, name_out_rh
-  character(len=1000) :: name_out_num_avg, name_out_vol_avg
-  character(len=1000) :: name_out_temp_avg, name_out_rh_avg
-  character(len=1000) :: dum, n_loop_str, n_time_str
+  type(inout_file_t) :: in_file
+  integer :: f_out_env, f_out_gas, f_out_aero
+  integer :: n_loop, n_time, i, i_loop, i_time, i_bin, i_loop_check
+  character(len=1000) :: name_in, name_out_env, name_out_gas, name_out_aero
+  character(len=30) :: num_str
+  type(bin_grid_t) :: bin_grid
+  type(aero_data_t) :: aero_data
+  type(gas_data_t) :: gas_data
  
   real*8, allocatable :: time(:,:), time_avg(:)
-  real*8, allocatable :: bin_r(:)
-  real*8, allocatable :: bin_g(:,:,:)
-  real*8, allocatable :: bin_gs(:,:,:,:)
-  real*8, allocatable :: n(:,:,:)
-  real*8, allocatable :: g_avg(:,:)
-  real*8, allocatable :: gs_avg(:,:,:)
-  real*8, allocatable :: n_avg(:,:)
-  real*8, allocatable :: temp(:,:), temp_avg(:)
-  real*8, allocatable :: rh(:,:), rh_avg(:)
+  type(environ), allocatable :: env(:,:), env_avg(:)
+  type(aero_binned_t), allocatable :: aero_binned(:,:), aero_binned_avg(:)
+  type(gas_state_t), allocatable :: gas_state(:,:), gas_state_avg(:)
  
-  integer :: i, i_loop, i_time, i_bin, i_spec, dum_int
-  
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
      write(6,*) 'Usage: process_summary <filename.d>'
@@ -64,223 +51,107 @@ program process_summary
   endif
   
   ! compute names of output files
-  name_out_num = name_in
-  name_out_vol = name_in
-  name_out_temp = name_in
-  name_out_rh = name_in
-  name_out_time = name_in
-  name_out_num_avg = name_in
-  name_out_vol_avg = name_in
-  name_out_temp_avg = name_in
-  name_out_rh_avg = name_in
-  name_out_time_avg = name_in
-  name_out_num((i-1):) = '_num.d'
-  name_out_vol((i-1):) = '_vol.d'
-  name_out_temp((i-1):) = '_temp.d'
-  name_out_rh((i-1):) = '_rh.d'
-  name_out_time((i-1):) = '_time.d'
-  name_out_num_avg((i-1):) = '_num_avg.d'
-  name_out_vol_avg((i-1):) = '_vol_avg.d'
-  name_out_temp_avg((i-1):) = '_temp_avg.d'
-  name_out_rh_avg((i-1):) = '_rh_avg.d'
-  name_out_time_avg((i-1):) = '_time_avg.d'
+  name_out_env = name_in
+  name_out_gas = name_in
+  name_out_aero = name_in
+  name_out_env((i-1):) = '_env.d'
+  name_out_gas((i-1):) = '_gas.d'
+  name_out_aero((i-1):) = '_aero.d'
   
   write(6,*) 'name_in = ', trim(name_in)
-  write(6,*) 'name_out_num = ', trim(name_out_num)
-  write(6,*) 'name_out_vol = ', trim(name_out_vol)
-  write(6,*) 'name_out_temp = ', trim(name_out_temp)
-  write(6,*) 'name_out_rh = ', trim(name_out_rh)
-  write(6,*) 'name_out_time = ', trim(name_out_time)
-  write(6,*) 'name_out_num_avg = ', trim(name_out_num_avg)
-  write(6,*) 'name_out_vol_avg = ', trim(name_out_vol_avg)
-  write(6,*) 'name_out_temp_avg = ', trim(name_out_temp_avg)
-  write(6,*) 'name_out_rh_avg = ', trim(name_out_rh_avg)
-  write(6,*) 'name_out_time_avg = ', trim(name_out_time_avg)
+  write(6,*) 'name_out_env = ', trim(name_out_env)
+  write(6,*) 'name_out_gas = ', trim(name_out_gas)
+  write(6,*) 'name_out_aero = ', trim(name_out_aero)
   
-  ! open files
-  call open_existing(f_in, name_in)
-  open(f_out_num, file=name_out_num)
-  open(f_out_vol, file=name_out_vol)
-  open(f_out_temp, file=name_out_temp)
-  open(f_out_rh, file=name_out_rh)
-  open(f_out_time, file=name_out_time)
-  open(f_out_num_avg, file=name_out_num_avg)
-  open(f_out_vol_avg, file=name_out_vol_avg)
-  open(f_out_temp_avg, file=name_out_temp_avg)
-  open(f_out_rh_avg, file=name_out_rh_avg)
-  open(f_out_time_avg, file=name_out_time_avg)
-  
-  ! read and check dimensions
-  read(f_in, '(a10,i10)') dum, n_loop
-  read(f_in, '(a10,i10)') dum, n_bin
-  read(f_in, '(a10,i10)') dum, n_time
-  read(f_in, '(a10,i10)') dum, n_spec
-  
-  allocate(time(n_loop, n_time))
-  allocate(time_avg(n_time))
-  allocate(bin_r(n_bin))
-  allocate(bin_g(n_loop, n_time, n_bin))
-  allocate(bin_gs(n_loop, n_time, n_bin, n_spec))
-  allocate(n(n_loop, n_time, n_bin))
-  allocate(g_avg(n_time, n_bin))
-  allocate(gs_avg(n_time,n_bin,n_spec))
-  allocate(n_avg(n_time, n_bin))
-  allocate(temp(n_loop, n_time))
-  allocate(temp_avg(n_time))
-  allocate(rh(n_loop, n_time))
-  allocate(rh_avg(n_time))
+  ! allocate unit numbers
+  f_out_env = get_unit()
+  f_out_gas = get_unit()
+  f_out_aero = get_unit()
 
-  write(6,*) 'n_loop = ', n_loop
-  write(6,*) 'n_bin =  ', n_bin
-  write(6,*) 'n_time = ', n_time
-  write(6,*) 'n_spec = ', n_spec
+  ! open files
+  call inout_open_read(name_in, in_file)
+  open(f_out_env, file=name_out_env)
+  open(f_out_gas, file=name_out_gas)
+  open(f_out_aero, file=name_out_aero)
   
-  write(n_loop_str, '(i10)') n_loop
-  write(n_time_str, '(i10)') n_time
+  ! read header
+  call inout_read_integer(in_file, 'n_loop', n_loop)
+  call inout_read_integer(in_file, 'n_time', n_time)
+  call inout_read_bin_grid(in_file, bin_grid)
+  call inout_read_gas_data(in_file, gas_data)
+  call inout_read_aero_data(in_file, aero_data)
+
+  allocate(time(n_loop,n_time), time_avg(n_time))
+  allocate(env(n_loop,n_time), env_avg(n_time))
+  allocate(aero_binned(n_loop,n_time), aero_binned_avg(n_time))
+  allocate(gas_state(n_loop,n_time), gas_state_avg(n_time))
+
+  write(*,*) 'n_loop = ', n_loop
+  write(*,*) 'n_time = ', n_time
   
   ! read all data
   do i_loop = 1,n_loop
      do i_time = 1,n_time
-        read(f_in, '(a10,i20)') dum, dum_int
-        read(f_in, '(a10,e20.10)') dum, time(i_loop, i_time)
-        read(f_in, '(a10,e20.10)') dum, temp(i_loop, i_time)
-        read(f_in, '(a10,e20.10)') dum, rh(i_loop, i_time)
-        read(f_in, '(a)') dum
-        do i_bin = 1,n_bin
-           read(f_in, '(i10,50e20.10)') i, bin_r(i_bin), &
-                n(i_loop, i_time, i_bin), &
-                bin_g(i_loop, i_time, i_bin), &
-                (bin_gs(i_loop,i_time, i_bin, i_spec), &
-                i_spec=1,n_spec)
-        enddo
+        call inout_read_integer(in_file, 'loop_num', i_loop_check)
+        call inout_check_index(in_file, i_loop, i_loop_check)
+        call inout_read_real(in_file, 'time(s)', time(i_loop,i_time))
+        call inout_read_env(in_file, env(i_loop,i_time))
+        call inout_read_aero_binned(in_file, aero_binned(i_loop,i_time))
+        call inout_read_gas_state(in_file, gas_state(i_loop,i_time))
      enddo
   enddo
   
   ! compute simple loop averages
   do i_time = 1,n_time
-     temp_avg(i_time) = 0d0
-     rh_avg(i_time) = 0d0
-     time_avg(i_time) = 0d0
-     do i_loop = 1,n_loop
-        temp_avg(i_time) = temp_avg(i_time) + temp(i_loop, i_time)
-        rh_avg(i_time) = rh_avg(i_time) + rh(i_loop, i_time)
-        time_avg(i_time) = time_avg(i_time) + time(i_loop, i_time)
-     enddo
-     temp_avg(i_time) = temp_avg(i_time) / dble(n_loop)
-     rh_avg(i_time) = rh_avg(i_time) / dble(n_loop)
-     time_avg(i_time) = time_avg(i_time) / dble(n_loop)
+     call average_real(time(:,i_time), time_avg(i_time))
+     call average_env(env(:,i_time), env_avg(i_time))
+     call average_aero_binned(aero_binned(:,i_time), aero_binned_avg(i_time))
+     call average_gas_state(gas_state(:,i_time), gas_state_avg(i_time))
   enddo
-  
-  ! compute binned loop averages
+
+  ! output environment
+  write(f_out_env, '(a1,5a20)') '#', 'time(s)', &
+       'temp(K)', 'rel_hum(1)', 'press(Pa)', &
+       'dens(kg/m^3)'
   do i_time = 1,n_time
-     do i_bin = 1,n_bin
-        g_avg(i_time, i_bin) = 0d0
-        n_avg(i_time, i_bin) = 0d0
-        do i_spec = 1,n_spec
-           gs_avg(i_time,i_bin, i_spec) = 0d0
-        enddo
-        do i_loop = 1,n_loop
-           g_avg(i_time, i_bin) = g_avg(i_time, i_bin) &
-                + bin_g(i_loop, i_time, i_bin)
-           n_avg(i_time, i_bin) = n_avg(i_time, i_bin) &
-                + n(i_loop, i_time, i_bin)
-           do i_spec = 1,n_spec
-              gs_avg(i_time, i_bin, i_spec) =  &
-                   gs_avg(i_time, i_bin, i_spec) &
-                   +bin_gs(i_loop,i_time,i_bin,i_spec)
-           enddo
-        enddo
-        g_avg(i_time, i_bin) = g_avg(i_time, i_bin) / dble(n_loop)
-        n_avg(i_time, i_bin) = n_avg(i_time, i_bin) / dble(n_loop)
-        do i_spec=1,n_spec
-           gs_avg(i_time,i_bin,i_spec) =  &
-                gs_avg(i_time,i_bin,i_spec) / dble(n_loop)
-        enddo
-     enddo
-  enddo
+     write(f_out_env,'(a1,5e20.10)') ' ', time_avg(i_time), &
+          env_avg(i_time)%T, env_avg(i_time)%RH, env_avg(i_time)%p, &
+          env_avg(i_time)%rho_a
+  end do
   
-  ! output raw number and vol data
+  ! output gas
+  if (gas_data%n_spec > 0) then
+     write(num_str, '(i10)') gas_data%n_spec
+     write(f_out_gas, '(a1,a20,'//num_str//'a20)') '#', &
+          'time(s)', gas_data%name
+     ! FIXME: can we add (ppb) to the end of each name?
+     do i_time = 1,n_time
+        write(f_out_gas, '(a1,e20.10,'//num_str//'e20.10)') ' ', &
+             time_avg(i_time), gas_state_avg(i_time)%conc
+     end do
+  end if
+
+  ! output aerosol
+  write(num_str, '(i10)') aero_data%n_spec
   do i_time = 1,n_time
-     write(f_out_num, '(//,a10,i10)') 'time', i_time - 1
-     write(f_out_vol, '(//,a10,i10)') 'time', i_time - 1
-     write(f_out_num, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-          'num den per loop (#/m^3)'
-     write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-          'vol den per loop (m^3/m^3)'
-     do i_bin = 1,n_bin
-        write(f_out_num, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-             i_bin, bin_r(i_bin), &
-             (n(i_loop, i_time, i_bin), i_loop = 1,n_loop)
-        write(f_out_vol, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-             i_bin, bin_r(i_bin), &
-             (bin_g(i_loop, i_time, i_bin), i_loop = 1,n_loop)
-     enddo
-     do i_spec = 1,n_spec
-        write(f_out_vol,*)
-        write(f_out_vol,*)
-        write(f_out_vol, '(a1,a19)') '#', 'time', i_time - 1
-        write(f_out_vol, '(a1,a19)') '#', 'species num', i_spec
-        write(f_out_vol, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-             'vol den per loop (m^3/m^3)'
-        do i_bin=1,n_bin
-           write(f_out_vol, '(i10,e20.10,'//n_loop_str//'e20.10)') &
-                i_bin, bin_r(i_bin), &
-                (bin_gs(i_loop, i_time, i_bin,i_spec) &
-                ,i_loop =1,n_loop)
-        enddo
-     enddo
-  enddo
-  
-  ! output averaged number and vol data
-  write(f_out_num_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-       'num den at each time (#/m^3)'
-  write(f_out_vol_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-       'vol den at each time (m^3/m^3)'
-  do i_bin = 1,n_bin
-     write(f_out_num_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-          i_bin, bin_r(i_bin), &
-          (n_avg(i_time, i_bin), i_time = 1,n_time)
-     write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-          i_bin, bin_r(i_bin), &
-          (g_avg(i_time, i_bin), i_time = 1,n_time)
-  enddo
-  do i_spec = 1,n_spec
-     write(f_out_vol_avg,*)
-     write(f_out_vol_avg,*)
-     write(f_out_vol_avg, '(a1,a19,i20)') '#', 'species num =', i_spec
-     write(f_out_vol_avg, '(a1,a9,a20,a40)') '#', 'bin_num', 'radius(m)', &
-          'species vol den at each time (m^3/m^3)'
-     do i_bin=1,n_bin
-        write(f_out_vol_avg, '(i10,e20.10,'//n_time_str//'e20.10)') &
-             i_bin, bin_r(i_bin), &
-             (gs_avg(i_time, i_bin,i_spec),i_time = 1,n_time)
-     enddo
-  enddo
-  
-  ! output time, temperature and relative humidity data
-  write(f_out_temp, '(a1,a19,a35)') '#', 'time(s)', 'temp(K) at each loop'
-  write(f_out_rh, '(a1,a19,a35)') '#', 'time(s)', 'RH(1) at each loop'
-  write(f_out_time, '(a1,a9,a35)') '#', 'time_num', 'time(s) at each loop'
-  write(f_out_temp_avg, '(a1,a19,a20)') '#', 'time(s)', 'temp(K)'
-  write(f_out_rh_avg, '(a1,a19,a20)') '#', 'time(s)', 'RH(1)'
-  write(f_out_time_avg, '(a1,a9,a20)') '#', 'time_num', 'time(s)'
-  do i_time = 1,n_time
-     write(f_out_temp, '(e20.10,'//n_loop_str//'e20.10)') &
-          time_avg(i_time), &
-          (temp(i_loop, i_time), i_loop = 1,n_loop)
-     write(f_out_rh, '(e20.10,'//n_loop_str//'e20.10)') &
-          time_avg(i_time), &
-          (rh(i_loop, i_time), i_loop = 1,n_loop)
-     write(f_out_time, '(i10,'//n_loop_str//'e20.10)') &
-          i_time, &
-          (time(i_loop, i_time), i_loop = 1,n_loop)
-     write(f_out_temp_avg, '(e20.10,e20.10)') &
-          time_avg(i_time), temp_avg(i_time)
-     write(f_out_rh_avg, '(e20.10,e20.10)') &
-          time_avg(i_time), rh_avg(i_time)
-     write(f_out_time_avg, '(i10,e20.10)') &
-          i_time, time_avg(i_time)
-  enddo
+     write(f_out_aero, '(a2,a10,e20.10)') '# ', 'time(s) = ', time_avg(i_time)
+     write(f_out_aero, '(a2,a)') '# ', 'species are volume density (m^3/m^3)'
+     write(f_out_aero, '(a1,a20,a20,'//num_str//'a20)') '#', &
+          'radius(m)', 'num_dens(#/m^3)', aero_data%name
+     do i_bin = 1,bin_grid%n_bin
+        write(f_out_aero, '(a1,e20.10,e20.10,'//num_str//'e20.10)') ' ', &
+             vol2rad(bin_grid%v(i_bin)), &
+             aero_binned_avg(i_time)%num_den(i_bin), &
+             aero_binned_avg(i_time)%vol_den(i_bin,:)
+     end do
+     write(f_out_aero, '(a)') ''
+     write(f_out_aero, '(a)') ''
+  end do
+
+  call inout_close(in_file)
+  close(f_out_env)
+  close(f_out_aero)
+  close(f_out_gas)
   
 end program process_summary
 

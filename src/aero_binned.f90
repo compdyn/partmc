@@ -52,9 +52,9 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned to write
 
-    call inout_write_real_array(file, "num_density(#/m^3)", &
+    call inout_write_real_array(file, "num_dens(num/m^3)", &
          aero_binned%num_den)
-    call inout_write_real_array_2d(file, "vol_density(#/m^3)", &
+    call inout_write_real_array_2d(file, "vol_dens(num/m^3)", &
          aero_binned%vol_den)
     
   end subroutine inout_write_aero_binned
@@ -70,13 +70,42 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_binned_t), intent(out) :: aero_binned ! aero_binned to read
 
-    call inout_read_real_array(file, "num_density(#/m^3)", &
+    call inout_read_real_array(file, "num_dens(num/m^3)", &
          aero_binned%num_den)
-    call inout_read_real_array_2d(file, "vol_density(#/m^3)", &
+    call inout_read_real_array_2d(file, "vol_dens(num/m^3)", &
          aero_binned%vol_den)
     
   end subroutine inout_read_aero_binned
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine average_aero_binned(aero_binned_vec, aero_binned_avg)
+    
+    ! Computes the average of an array of aero_binned.
+
+    use mod_util
+
+    type(aero_binned_t), intent(in) :: aero_binned_vec(:) ! array of aero_binned
+    type(aero_binned_t), intent(out) :: aero_binned_avg   ! average of vec
+
+    integer :: n_bin, n_spec, i_bin, i_spec, n, i
+
+    n_bin = size(aero_binned_vec(1)%vol_den, 1)
+    n_spec = size(aero_binned_vec(1)%vol_den, 2)
+    call alloc_aero_binned(n_bin, n_spec, aero_binned_avg)
+    n = size(aero_binned_vec)
+    do i_bin = 1,n_bin
+       call average_real((/(aero_binned_vec(i)%num_den(i_bin),i=1,n)/), &
+            aero_binned_avg%num_den(i_bin))
+       do i_spec = 1,n_spec
+          call average_real((/(aero_binned_vec(i)%vol_den(i_bin,i_spec),&
+               i=1,n)/), &
+               aero_binned_avg%vol_den(i_bin,i_spec))
+       end do
+    end do
+    
+  end subroutine average_aero_binned
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_aero_binned

@@ -69,7 +69,7 @@ contains
     ! Compute the total number density of an aerosol distribution.
     
     use mod_aero_data
-    use mod_bin
+    use mod_bin_grid
     use mod_util
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -92,7 +92,7 @@ contains
 
     ! Returns the total number concentration in #/m^3 of a distribution.
 
-    use mod_bin
+    use mod_bin_grid
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(in) :: dist ! aerosol distribution
@@ -113,7 +113,7 @@ contains
 
     ! Compute a log-normal distribution.
     
-    use mod_bin
+    use mod_bin_grid
     use mod_util
     use mod_constants
     
@@ -144,7 +144,7 @@ contains
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
     
-    use mod_bin
+    use mod_bin_grid
     use mod_util
     
     real*8, intent(in) :: mean_vol      ! mean volume of init dist (m^3)
@@ -167,7 +167,7 @@ contains
     
     ! Mono-disperse distribution at mean_vol
     
-    use mod_bin
+    use mod_bin_grid
     use mod_util
     
     real*8, intent(in) :: vol           ! volume of each particle (m^3)
@@ -193,7 +193,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
 
-    call inout_write_real_array(file, "num_density(#/m^3)", aero_mode%n_den)
+    call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%n_den)
     call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
 
   end subroutine inout_write_aero_mode
@@ -230,7 +230,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
 
-    call inout_read_real_array(file, "num_density(#/m^3)", aero_mode%n_den)
+    call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%n_den)
     call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
 
   end subroutine inout_read_aero_mode
@@ -320,7 +320,7 @@ contains
     ! distribution.
 
     use mod_inout
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
@@ -363,7 +363,7 @@ contains
     ! volume fractions).
 
     use mod_inout
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
@@ -386,7 +386,7 @@ contains
     ! Read continuous aerosol distribution composed of several modes.
 
     use mod_inout
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
@@ -412,7 +412,7 @@ contains
     ! Read aerosol distribution from filename on line in file.
 
     use mod_inout
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
@@ -432,6 +432,55 @@ contains
 
   end subroutine spec_read_aero_dist_filename
     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine average_aero_mode(aero_mode_vec, aero_mode_avg)
+    
+    ! Computes the average of an array of aero_mode.
+
+    use mod_util
+
+    type(aero_mode_t), intent(in) :: aero_mode_vec(:) ! array of aero_mode
+    type(aero_mode_t), intent(out) :: aero_mode_avg   ! average of aero_mode_vec
+
+    integer :: n_bin, n_spec, i_bin, i_spec, i, n
+
+    n_bin = size(aero_mode_vec(1)%n_den)
+    n_spec = size(aero_mode_vec(1)%vol_frac)
+    call alloc_aero_mode(n_bin, n_spec, aero_mode_avg)
+    n = size(aero_mode_vec)
+    do i_bin = 1,n_bin
+       call average_real((/(aero_mode_vec(i)%n_den(i_bin),i=1,n)/), &
+            aero_mode_avg%n_den(i_bin))
+    end do
+    do i_spec = 1,n_spec
+       call average_real((/(aero_mode_vec(i)%vol_frac(i_spec),i=1,n)/), &
+            aero_mode_avg%vol_frac(i_spec))
+    end do
+    
+  end subroutine average_aero_mode
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine average_aero_dist(aero_dist_vec, aero_dist_avg)
+    
+    ! Computes the average of an array of aero_dist.
+
+    type(aero_dist_t), intent(in) :: aero_dist_vec(:) ! array of aero_dist
+    type(aero_dist_t), intent(out) :: aero_dist_avg   ! average of aero_dist_vec
+
+    integer :: n_modes, i_mode, i, n
+
+    n_modes = aero_dist_vec(1)%n_modes
+    call alloc_aero_dist(n_modes, 0, 0, aero_dist_avg)
+    n = size(aero_dist_vec)
+    do i_mode = 1,n_modes
+       call average_aero_mode((/(aero_dist_vec(i)%modes(i_mode),i=1,n)/), &
+            aero_dist_avg%modes(i_mode))
+    end do
+    
+  end subroutine average_aero_dist
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module mod_aero_dist

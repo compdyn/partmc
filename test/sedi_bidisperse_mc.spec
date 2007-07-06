@@ -7,7 +7,7 @@ kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
-t_output 60                     # output interval (0 disables) (s)
+t_output 0                      # output interval (0 disables) (s)
 t_state 10                      # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 

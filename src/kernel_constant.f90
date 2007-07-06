@@ -34,7 +34,7 @@ contains
     ! Exact solution with a constant coagulation kernel and an
     ! exponential initial condition.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_environ
     use mod_util
     use mod_constants

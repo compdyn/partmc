@@ -50,7 +50,7 @@ contains
     ! in bin b1 and v2 in bin b2, it is approximately true that
     ! kernel(v1,v2) <= k_max(b1,b2).
 
-    use mod_bin
+    use mod_bin_grid
     use mod_environ
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
@@ -85,7 +85,7 @@ contains
     ! kernel between particles from the two bins.
    
     use mod_environ
-    use mod_bin
+    use mod_bin_grid
  
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin

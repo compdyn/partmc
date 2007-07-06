@@ -17,7 +17,7 @@ contains
     ! vapor.
 
     use mod_aero_state
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_binned
     use mod_environ
     use mod_aero_data
@@ -34,7 +34,7 @@ contains
     real*8 pv, pre_water_vol, post_water_vol
 
     pre_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
-         * aero_state%comp_vol
+         * aero_state%comp_vol * bin_grid%dlnr
 
     do bin = 1,bin_grid%n_bin
        do j = 1,aero_state%n(bin)
@@ -53,7 +53,7 @@ contains
 
     ! update the environment due to condensation of water
     post_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
-         * aero_state%comp_vol
+         * aero_state%comp_vol * bin_grid%dlnr
     call change_water_volume(env, aero_data, &
          (post_water_vol - pre_water_vol) / aero_state%comp_vol)
 
@@ -560,7 +560,7 @@ contains
     
     ! call equilibriate_particle() on each particle in the aerosol
 
-    use mod_bin
+    use mod_bin_grid
     use mod_environ
     use mod_aero_data
     use mod_aero_state

@@ -49,7 +49,7 @@ contains
 
   subroutine partmc_mc(file)
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_state
     use mod_aero_dist
     use mod_aero_binned
@@ -134,7 +134,7 @@ contains
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call output_summary_header(summary_file, bin_grid, &
+    call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
     
     if (rand_init /= 0) then
@@ -144,7 +144,7 @@ contains
     end if
 
     call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
-    call allocate_gas_state(gas_data%n_spec, gas_state)
+    call alloc_gas_state(gas_data%n_spec, gas_state)
     call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
@@ -186,7 +186,7 @@ contains
   subroutine partmc_exact(file)
 
     use mod_util
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_state
     use mod_aero_dist
     use mod_condensation
@@ -209,6 +209,7 @@ contains
     type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
+    type(gas_data_t) :: gas_data        ! dummy gas data
     
     call alloc_env(env)
 
@@ -238,7 +239,8 @@ contains
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call output_summary_header(summary_file, bin_grid, &
+    call alloc_gas_data(0, gas_data)
+    call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 
     if (trim(soln_name) == 'golovin_exp') then
@@ -268,7 +270,7 @@ contains
     use mod_kernel_golovin
     use mod_kernel_constant
     use mod_kernel_brown
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_state
     use mod_aero_dist
     use mod_gas_data
@@ -286,6 +288,7 @@ contains
     type(environ) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
+    type(gas_data_t) :: gas_data        ! dummy gas data
 
     call alloc_env(env)
 
@@ -308,7 +311,8 @@ contains
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call output_summary_header(summary_file, bin_grid, &
+    call alloc_gas_data(0, gas_data)
+    call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
 
     if (trim(kernel_name) == 'sedi') then

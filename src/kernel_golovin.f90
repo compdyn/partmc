@@ -34,7 +34,7 @@ contains
     ! Exact solution with the Golovin coagulation kernel and
     ! exponential initial condition.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_environ
     use mod_util
     use mod_constants

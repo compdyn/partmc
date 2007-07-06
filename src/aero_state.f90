@@ -238,7 +238,7 @@ contains
     ! Makes particles from the given number distribution and appends
     ! them to the aero_state%v array.
     
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -276,7 +276,7 @@ contains
     ! Convert a continuous distribution into particles.
     
     use mod_aero_data
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_dist
     use mod_util
 
@@ -322,7 +322,7 @@ contains
     
     ! Create the bin number and mass arrays from aero_state%v.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_binned
     
@@ -338,10 +338,11 @@ contains
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%n(b)
           aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
-               + aero_state%v(b)%p(j,:) / aero_state%comp_vol
+               + aero_state%v(b)%p(j,:) / aero_state%comp_vol / bin_grid%dlnr
        end do
     end do
-    aero_binned%num_den = dble(aero_state%n) / aero_state%comp_vol
+    aero_binned%num_den = dble(aero_state%n) / aero_state%comp_vol &
+         / bin_grid%dlnr
    
   end subroutine aero_state_to_binned
   
@@ -375,7 +376,7 @@ contains
     ! particle is in the correct bin.
 
     use mod_aero_data
-    use mod_bin
+    use mod_bin_grid
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -441,7 +442,7 @@ contains
     ! bin numbers and masses are correct. This is for debugging only.
 
     use mod_util
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_binned
     
@@ -473,8 +474,9 @@ contains
     
     ! check the aero_binned%num_den array
     do k = 1,bin_grid%n_bin
-       num_tol = 0.01d0 / aero_state%comp_vol
-       state_num_den = dble(aero_state%n(k)) / aero_state%comp_vol
+       num_tol = 0.01d0 / aero_state%comp_vol / bin_grid%dlnr
+       state_num_den = dble(aero_state%n(k)) / aero_state%comp_vol &
+            / bin_grid%dlnr
        if (.not. almost_equal_abs(state_num_den, &
             aero_binned%num_den(k), num_tol)) then
           write(0,'(a10,a20,a20,a20,a20)') 'k', 'aero_state%n(k)', &
@@ -488,8 +490,8 @@ contains
     ! check the aero_binned%vol_den array
     do k = 1,bin_grid%n_bin
        check_vol_den = sum(aero_state%v(k)%p(1:aero_state%n(k),:), 1) &
-            / aero_state%comp_vol
-       vol_tol = bin_grid%v(k) / 1d3 ! tolerance 1e3 less than single particle
+            / aero_state%comp_vol / bin_grid%dlnr
+       vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
        do s = 1,aero_data%n_spec
           if (.not. almost_equal_abs(check_vol_den(s), &
                aero_binned%vol_den(k,s), vol_tol)) then

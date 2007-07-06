@@ -94,7 +94,7 @@ contains
     ! Open and read the entire state file (including the header) and
     ! then close it.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
     use mod_environ
@@ -169,7 +169,7 @@ contains
 
     ! Write the current state.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
     use mod_environ
@@ -229,7 +229,7 @@ contains
 
     ! Write the current state.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
     use mod_environ
@@ -276,7 +276,7 @@ contains
 
     ! Read the current state.
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
     use mod_environ

@@ -18,7 +18,7 @@ contains
     ! update all structures. The probability of a coagulation will be
     ! taken as (kernel / k_max).
 
-    use mod_bin
+    use mod_bin_grid
     use mod_aero_data
     use mod_util
     use mod_environ
@@ -131,7 +131,7 @@ contains
     ! empty bin filled or a filled bin became empty).
 
     use mod_aero_data
-    use mod_bin
+    use mod_bin_grid
     use mod_environ
     use mod_aero_state
     use mod_aero_binned
@@ -155,13 +155,13 @@ contains
     
     ! remove s1 and s2 from bins
     aero_binned%num_den(b1) = aero_binned%num_den(b1) &
-         - 1d0 / aero_state%comp_vol
+         - 1d0 / aero_state%comp_vol / bin_grid%dlnr
     aero_binned%num_den(b2) = aero_binned%num_den(b2) &
-         - 1d0 / aero_state%comp_vol
+         - 1d0 / aero_state%comp_vol / bin_grid%dlnr
     aero_binned%vol_den(b1,:) = aero_binned%vol_den(b1,:) &
-         - aero_state%v(b1)%p(s1,:) / aero_state%comp_vol
+         - aero_state%v(b1)%p(s1,:) / aero_state%comp_vol / bin_grid%dlnr
     aero_binned%vol_den(b2,:) = aero_binned%vol_den(b2,:) &
-         - aero_state%v(b2)%p(s2,:) / aero_state%comp_vol
+         - aero_state%v(b2)%p(s2,:) / aero_state%comp_vol / bin_grid%dlnr
 
     ! do coagulation in aero_state%n, aero_state%v arrays
     ! add particle volumes
@@ -191,9 +191,10 @@ contains
     
     ! add new particle to bins
     aero_binned%num_den(bn) = aero_binned%num_den(bn) &
-         + 1d0 / aero_state%comp_vol
+         + 1d0 / aero_state%comp_vol / bin_grid%dlnr
     aero_binned%vol_den(bn,:) = aero_binned%vol_den(bn,:) &
-         + aero_state%v(bn)%p(aero_state%n(bn),:) / aero_state%comp_vol
+         + aero_state%v(bn)%p(aero_state%n(bn),:) / aero_state%comp_vol &
+          / bin_grid%dlnr
 
     ! did we empty a bin?
     if ((aero_state%n(b1) .eq. 0) .or. (aero_state%n(b2) .eq. 0)) &

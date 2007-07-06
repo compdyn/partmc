@@ -36,12 +36,12 @@ set logscale
 set xlabel "radius (m)"
 set ylabel "number density (#/m^3)
 set title "Golovin kernel, exponential initial condition"
-plot [1e-7:1e-3] [1e4:1e10] "out/golovin_mc_summary_num_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/golovin_mc_summary_num_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/golovin_mc_summary_num_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/golovin_exact_summary_num_avg.d" using 2:3 w l title "Analytical (0 mins)"
-replot "out/golovin_exact_summary_num_avg.d" using 2:8 w l title "Analytical (5 mins)"
-replot "out/golovin_exact_summary_num_avg.d" using 2:13 w l title "Analytical (10 mins)"
+plot [1e-7:1e-3] [1e4:1e10] "out/golovin_mc_summary_aero.d" index 0 using 1:2 title "Monte Carlo (0 mins)"
+replot "out/golovin_mc_summary_aero.d" index 5 using 1:2 title "Monte Carlo (5 mins)"
+replot "out/golovin_mc_summary_aero.d" index 10 using 1:2 title "Monte Carlo (10 mins)"
+replot "out/golovin_exact_summary_aero.d" index 0 using 1:2 w l title "Analytical (0 mins)"
+replot "out/golovin_exact_summary_aero.d" index 5 using 1:2 w l title "Analytical (5 mins)"
+replot "out/golovin_exact_summary_aero.d" index 10 using 1:2 w l title "Analytical (10 mins)"
 set terminal postscript eps
 set output "out/golovin_plot_num.eps"
 replot
@@ -55,12 +55,12 @@ set xlabel "radius (m)"
 set ylabel "volume density (m^3/m^3)"
 set title "Golovin kernel, exponential initial condition"
 set key left top
-plot [1e-7:1e-3] [1e-14:1e-4] "out/golovin_mc_summary_vol_avg.d" using 2:3 title "Monte Carlo (0 mins)"
-replot "out/golovin_mc_summary_vol_avg.d" using 2:8 title "Monte Carlo (5 mins)"
-replot "out/golovin_mc_summary_vol_avg.d" using 2:13 title "Monte Carlo (10 mins)"
-replot "out/golovin_exact_summary_vol_avg.d" using 2:3 w l title "Analytical (0 mins)"
-replot "out/golovin_exact_summary_vol_avg.d" using 2:8 w l title "Analytical (5 mins)"
-replot "out/golovin_exact_summary_vol_avg.d" using 2:13 w l title "Analytical (10 mins)"
+plot [1e-7:1e-3] [1e-14:1e-4] "out/golovin_mc_summary_aero.d" index 0 using 1:3 title "Monte Carlo (0 mins)"
+replot "out/golovin_mc_summary_aero.d" index 5 using 1:3 title "Monte Carlo (5 mins)"
+replot "out/golovin_mc_summary_aero.d" index 10 using 1:3 title "Monte Carlo (10 mins)"
+replot "out/golovin_exact_summary_aero.d" index 0 using 1:3 w l title "Analytical (0 mins)"
+replot "out/golovin_exact_summary_aero.d" index 5 using 1:3 w l title "Analytical (5 mins)"
+replot "out/golovin_exact_summary_aero.d" index 10 using 1:3 w l title "Analytical (10 mins)"
 set terminal postscript eps
 set output "out/golovin_plot_vol.eps"
 replot

@@ -60,8 +60,8 @@ contains
     env%start_day = 0
 
     call allocate_environ_temps(env, 0)
-    call allocate_gas_state(0, env%gas_emissions)
-    call allocate_gas_state(0, env%gas_background)
+    call alloc_gas_state(0, env%gas_emissions)
+    call alloc_gas_state(0, env%gas_background)
     env%gas_emission_rate = 0d0
     env%gas_dilution_rate = 0d0
     call alloc_aero_dist(0, 0, 0, env%aero_emissions)
@@ -319,6 +319,51 @@ contains
 
   end subroutine spec_read_environ
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine average_env(env_vec, env_avg)
+    
+    ! Computes the average of an array of env.
+
+    use mod_util
+    use mod_gas_state
+    use mod_aero_dist
+    
+    type(environ), intent(in) :: env_vec(:) ! array of env
+    type(environ), intent(out) :: env_avg   ! average of env_vec
+
+    integer :: i_temp, n_temps, i, n
+
+    call average_real(env_vec%T, env_avg%T)
+    call average_real(env_vec%RH, env_avg%RH)
+    call average_real(env_vec%p, env_avg%p)
+    call average_real(env_vec%rho_a, env_avg%rho_a)
+    call average_real(env_vec%longitude, env_avg%longitude)
+    call average_real(env_vec%latitude, env_avg%latitude)
+    call average_real(env_vec%altitude, env_avg%altitude)
+    call average_real(env_vec%start_time, env_avg%start_time)
+    call average_integer(env_vec%start_day, env_avg%start_day)
+    call average_integer(env_vec%n_temps, env_avg%n_temps)
+    n_temps = env_avg%n_temps
+    call allocate_environ_temps(env_avg, n_temps)
+    n = size(env_vec)
+    do i_temp = 1,n_temps
+       call average_real((/(env_vec(i)%temp_times(i_temp),i=1,n)/), &
+            env_avg%temp_times(i_temp))
+       call average_real((/(env_vec(i)%temps(i_temp),i=1,n)/), &
+            env_avg%temps(i_temp))
+    end do
+    call average_gas_state(env_vec%gas_emissions, env_avg%gas_emissions)
+    call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
+    call average_gas_state(env_vec%gas_background, env_avg%gas_background)
+    call average_real(env_vec%gas_dilution_rate, env_avg%gas_dilution_rate)
+    call average_aero_dist(env_vec%aero_emissions, env_avg%aero_emissions)
+    call average_real(env_vec%aero_emission_rate, env_avg%aero_emission_rate)
+    call average_aero_dist(env_vec%aero_background, env_avg%aero_background)
+    call average_real(env_vec%aero_dilution_rate, env_avg%aero_dilution_rate)
+    
+  end subroutine average_env
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_environ

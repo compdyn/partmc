@@ -7,7 +7,7 @@
 
 program test_sedi_bidisperse_state_to_count
 
-  use mod_bin
+  use mod_bin_grid
   use mod_environ
   use mod_aero_data
   use mod_output_state

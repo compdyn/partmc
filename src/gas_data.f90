@@ -19,7 +19,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_gas_data(n_spec, gas_data)
+  subroutine alloc_gas_data(n_spec, gas_data)
 
     ! Allocate storage for gas species.
 
@@ -31,7 +31,7 @@ contains
     allocate(gas_data%name(n_spec))
     allocate(gas_data%mosaic_index(n_spec))
 
-  end subroutine allocate_gas_data
+  end subroutine alloc_gas_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -172,7 +172,7 @@ contains
 
     ! allocate and copy over the data
     n_species = species_data_shape(1)
-    call allocate_gas_data(n_species, gas_data)
+    call alloc_gas_data(n_species, gas_data)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)
        gas_data%M_w(i) = species_data(i,1)

@@ -80,10 +80,10 @@ contains
     ! dlnr: constant grid distance of logarithmic grid 
 
     ! output data structure
-    call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     aero_binned%vol_den = 0d0
     call alloc_gas_data(0, gas_data)
-    call alloc_gas_state(0, gas_state)
+    call gas_state_alloc(0, gas_state)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
@@ -139,11 +139,13 @@ contains
     ! main time-stepping loop
     num_t = nint(sect_opt%t_max / sect_opt%del_t)
     do i_time = 1, num_t
-       time = sect_opt%t_max * dble(i_time) / dble(num_t)
-       call update_environ(env, time)
        
        call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
             tauu, prod, ploss, c, ima, g, r, e, ck, ec)
+
+       time = sect_opt%t_max * dble(i_time) / dble(num_t)
+
+       call update_environ(env, time)
        
        ! print output
        call check_event(time, sect_opt%del_t, sect_opt%t_output, &

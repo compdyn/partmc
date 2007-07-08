@@ -14,7 +14,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_gas_state(n_spec, gas_state)
+  subroutine gas_state_alloc(n_spec, gas_state)
 
     ! Allocate storage for gas species.
 
@@ -23,11 +23,23 @@ contains
 
     allocate(gas_state%conc(n_spec))
 
-  end subroutine alloc_gas_state
+  end subroutine gas_state_alloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine copy_gas_state(from_state, to_state)
+  subroutine gas_state_free(gas_state)
+
+    ! Free all storage.
+
+    type(gas_state_t), intent(inout) :: gas_state ! gas state to be freed
+
+    deallocate(gas_state%conc)
+
+  end subroutine gas_state_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_state_copy(from_state, to_state)
 
     ! Copy to an already allocated to_state.
 
@@ -41,7 +53,46 @@ contains
     allocate(to_state%conc(n_spec))
     to_state%conc = from_state%conc
 
-  end subroutine copy_gas_state
+  end subroutine gas_state_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_state_scale(gas_state, alpha)
+
+    ! Scale a gas state.
+
+    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
+    real*8, intent(in) :: alpha         ! scale factor
+
+    gas_state%conc = gas_state%conc * alpha
+
+  end subroutine gas_state_scale
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_state_add(gas_state, gas_state_delta)
+
+    ! Adds the given gas_state_delta.
+
+    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
+    type(gas_state_t), intent(in) :: gas_state_delta ! incremental state
+
+    gas_state%conc = gas_state%conc + gas_state_delta%conc
+
+  end subroutine gas_state_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_state_sub(gas_state, gas_state_delta)
+
+    ! Subtracts the given gas_state_delta.
+
+    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
+    type(gas_state_t), intent(in) :: gas_state_delta ! incremental state
+
+    gas_state%conc = gas_state%conc - gas_state_delta%conc
+
+  end subroutine gas_state_sub
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -110,7 +161,7 @@ contains
     end if
 
     ! copy over the data
-    call alloc_gas_state(gas_data%n_spec, gas_state)
+    call gas_state_alloc(gas_data%n_spec, gas_state)
     gas_state%conc = 0d0
     do i = 1,n_species
        species = gas_spec_by_name(gas_data, species_name(i))
@@ -138,7 +189,7 @@ contains
     integer :: n_spec, i_spec, i, n
 
     n_spec = size(gas_state_vec(1)%conc)
-    call alloc_gas_state(n_spec, gas_state_avg)
+    call gas_state_alloc(n_spec, gas_state_avg)
     n = size(gas_state_vec)
     do i_spec = 1,n_spec
        call average_real((/(gas_state_vec(i)%conc(i_spec),i=1,n)/), &

@@ -143,15 +143,15 @@ contains
        call srand(time())
     end if
 
-    call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned)
-    call alloc_gas_state(gas_data%n_spec, gas_state)
+    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call gas_state_alloc(gas_data%n_spec, gas_state)
     call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
-       call copy_gas_state(gas_init, gas_state)
+       call gas_state_copy(gas_init, gas_state)
        call copy_aero_state(aero_init, aero_state)
 
        if (mc_opt%do_condensation) then

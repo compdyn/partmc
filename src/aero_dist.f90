@@ -272,6 +272,7 @@ contains
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
     integer :: species_data_shape(2)
+    real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
     call inout_read_string(file, 'vol_frac', read_name)
@@ -304,6 +305,15 @@ contains
        end if
        vol_frac(species) = species_data(i,1)
     end do
+    
+    ! normalize
+    tot_vol_frac = sum(vol_frac)
+    if ((minval(vol_frac) < 0d0) .or. (tot_vol_frac <= 0d0)) then
+       write(0,*) 'ERROR: vol_frac in ', trim(read_name), &
+            ' is not positive'
+       call exit(1)
+    end if
+    vol_frac = vol_frac / tot_vol_frac
 
   end subroutine spec_read_vol_frac
 

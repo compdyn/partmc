@@ -248,10 +248,9 @@ contains
     type(aero_state_t), intent(inout) :: aero ! aerosol, must be
                                               ! allocated already
     
-    real*8 total_vol_frac, v_low, v_high, pv
+    real*8 v_low, v_high, pv
     integer k, i
 
-    total_vol_frac = sum(vol_frac)
     do k = 1,bin_grid%n_bin
        call bin_edge(bin_grid, k, v_low)
        call bin_edge(bin_grid, k + 1, v_high)
@@ -262,7 +261,7 @@ contains
           pv = bin_grid%v(k)
           aero%n(k) = aero%n(k) + 1
           call enlarge_bin_to(aero%v(k), aero%n(k))
-          aero%v(k)%p(aero%n(k),:) = vol_frac / total_vol_frac * pv
+          aero%v(k)%p(aero%n(k),:) = vol_frac * pv
        end do
     end do
 
@@ -373,6 +372,7 @@ contains
          * dble(total_particles(aero_state_from)))
     n_bin = size(aero_state_from%n)
     do i_transfer = 1,n_transfer
+       if (total_particles(aero_state_from) <= 0) exit
        i_bin = sample_disc_pdf(n_bin, aero_state_from%n)
        i_part = util_rand_disc(aero_state_from%n(i_bin))
        call aero_state_add_particle_to_bin(aero_state_to, &

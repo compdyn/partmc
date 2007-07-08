@@ -107,5 +107,33 @@ contains
   end subroutine average_aero_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_add(aero_binned, aero_binned_delta)
+
+    ! Adds aero_binned_delta to aero_binned.
+
+    type(aero_binned_t), intent(inout) :: aero_binned ! base aero_binned
+    type(aero_binned_t), intent(in) :: aero_binned_delta ! aero_binned to add
+
+    aero_binned%num_den = aero_binned%num_den + aero_binned_delta%num_den
+    aero_binned%vol_den = aero_binned%vol_den + aero_binned_delta%vol_den
+
+  end subroutine aero_binned_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_sub(aero_binned, aero_binned_delta)
+
+    ! Subtracts aero_binned_delta from aero_binned.
+
+    type(aero_binned_t), intent(inout) :: aero_binned ! base aero_binned
+    type(aero_binned_t), intent(in) :: aero_binned_delta ! aero_binned to sub
+
+    aero_binned%num_den = aero_binned%num_den - aero_binned_delta%num_den
+    aero_binned%vol_den = aero_binned%vol_den - aero_binned_delta%vol_den
+
+  end subroutine aero_binned_sub
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_aero_binned

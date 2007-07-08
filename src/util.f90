@@ -68,6 +68,18 @@ contains
   end function util_rand
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function util_rand_disc(n)
+
+    ! Returns a random integer between 1 and n.
+
+    integer, intent(in) :: n            ! maximum random number to generate
+
+    util_rand_disc = mod(int(util_rand() * dble(n)), n) + 1
+
+  end function util_rand_disc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   real*8 function vol2rad(v)            ! radius (m)
 
@@ -386,7 +398,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function sample_pdf(n, pdf)
+  integer function sample_cts_pdf(n, pdf)
 
     ! Sample the given probability density function. That is,
     ! return a number k = 1,...,n such that prob(k) = pdf(k) / sum(pdf).
@@ -395,31 +407,87 @@ contains
     real*8, intent(in) :: pdf(n)        ! probability density function
                                         ! (not normalized)
 
-    real*8 :: pdf_tot
+    real*8 :: pdf_max
     integer :: k
     logical :: found
 
     ! use accept-reject
-    found = .false.
-    pdf_tot = sum(pdf)
+    pdf_max = maxval(pdf)
     if (minval(pdf) < 0d0) then
        write(0,*) 'ERROR: pdf contains negative values'
        call exit(1)
     end if
-    if (pdf_tot <= 0d0) then
+    if (pdf_max <= 0d0) then
        write(*,*) 'ERROR: pdf is not positive'
        call exit(1)
     end if
+    found = .false.
     do while (.not. found)
-       k = mod(int(util_rand() * dble(n)), n) + 1
-       if (util_rand() < pdf(k) / pdf_tot) then
+       k = util_rand_disc(n)
+       if (util_rand() < pdf(k) / pdf_max) then
           found = .true.
        end if
     end do
-    sample_pdf = k
+    sample_cts_pdf = k
 
-  end function sample_pdf
+  end function sample_cts_pdf
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function sample_disc_pdf(n, pdf)
+
+    ! Sample the given probability density function. That is,
+    ! return a number k = 1,...,n such that prob(k) = pdf(k) / sum(pdf).
+
+    integer, intent(in) :: n            ! number of entries
+    integer, intent(in) :: pdf(n)       ! probability density function
+
+    integer :: pdf_max, k
+    logical :: found
+
+    ! use accept-reject
+    pdf_max = maxval(pdf)
+    if (minval(pdf) < 0) then
+       write(0,*) 'ERROR: pdf contains negative values'
+       call exit(1)
+    end if
+    if (pdf_max <= 0) then
+       write(*,*) 'ERROR: pdf is not positive'
+       call exit(1)
+    end if
+    found = .false.
+    do while (.not. found)
+       k = util_rand_disc(n)
+       if (util_rand() < dble(pdf(k)) / dble(pdf_max)) then
+          found = .true.
+       end if
+    end do
+    sample_disc_pdf = k
+
+  end function sample_disc_pdf
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine sample_vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
+    
+    ! Convert a continuous vector into a discrete vector with n_samp
+    ! samples. Each discrete entry is sampled with a PDF given by
+    ! vec_cts. This is very slow for large n_samp or large n.
+    
+    integer, intent(in) :: n          ! number of entries in vector
+    real*8, intent(in) :: vec_cts(n)  ! continuous vector
+    integer, intent(in) :: n_samp     ! number of discrete samples to use
+    integer, intent(out) :: vec_disc(n) ! discretized vector
+
+    integer :: i_samp, k
+
+    do i_samp = 1,n_samp
+       k = sample_cts_pdf(n, vec_cts)
+       vec_disc(k) = vec_disc(k) + 1
+    end do
+    
+  end subroutine sample_vec_cts_to_disc
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)

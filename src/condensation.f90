@@ -49,7 +49,7 @@ contains
     call resort_aero_state(bin_grid, aero_state)
 
     ! update the bin arrays
-    call aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
     ! update the environment due to condensation of water
     post_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &

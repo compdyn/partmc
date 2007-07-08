@@ -195,6 +195,65 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine aero_update_from_environ(env, delta_t, bin_grid, &
+       aero_data, aero_state, aero_binned)
+
+    ! Do emissions and background dilution from the environment.
+
+    use mod_bin_grid
+    use mod_aero_data
+    use mod_aero_state
+    use mod_aero_binned
+
+    type(environ), intent(in) :: env    ! current environment
+    real*8, intent(in) :: delta_t       ! time increment to update over
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aero data values
+    type(aero_state_t), intent(inout) :: aero_state ! aero state to update
+    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
+
+    integer :: i
+    real*8 :: sample_vol, sample_prop
+    type(aero_state_t) :: aero_state_delta
+    type(aero_binned_t) :: aero_binned_delta
+
+    call alloc_aero_binned(bin_grid%n_bin, aero_data%n_spec, aero_binned_delta)
+
+    ! emissions
+    sample_vol = delta_t * env%aero_emission_rate * aero_state%comp_vol
+    call aero_dist_sample(bin_grid, aero_data, env%aero_emissions, &
+         sample_vol, aero_state_delta)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
+         aero_binned_delta)
+    call aero_state_add(aero_state, aero_state_delta)
+    call aero_binned_add(aero_binned, aero_binned_delta)
+    call free_aero_state(aero_state_delta)
+
+    ! addition from background
+    sample_vol = delta_t * env%aero_dilution_rate * aero_state%comp_vol
+    call aero_dist_sample(bin_grid, aero_data, env%aero_background, &
+         sample_vol, aero_state_delta)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
+         aero_binned_delta)
+    call aero_state_add(aero_state, aero_state_delta)
+    call aero_binned_add(aero_binned, aero_binned_delta)
+    call free_aero_state(aero_state_delta)
+    
+    ! loss to background
+    sample_prop = delta_t * env%aero_dilution_rate
+    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
+    call aero_state_sample(aero_state, aero_state_delta, sample_prop)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
+         aero_binned_delta)
+    call aero_binned_sub(aero_binned, aero_binned_delta)
+    call free_aero_state(aero_state_delta)
+
+    call free_aero_binned(aero_binned_delta)
+
+  end subroutine aero_update_from_environ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_write_env(file, env)
     
     ! Write full state.

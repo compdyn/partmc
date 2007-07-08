@@ -105,7 +105,7 @@ contains
        ! write data into output file so that it will look correct
        pre_time = 0d0
        last_output_time = pre_time
-       call aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
+       call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
        do pre_i_time = 0,(i_time - 1)
           call update_environ(env, pre_time)
           if (mc_opt%t_output > 0d0) then
@@ -119,7 +119,7 @@ contains
        end do
     end if
 
-    call aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 

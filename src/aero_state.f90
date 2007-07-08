@@ -270,7 +270,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_to_part(bin_grid, aero_data, aero_dist, &
+  subroutine aero_dist_to_state(bin_grid, aero_data, aero_dist, &
        n_part, aero_state)
 
     ! Convert a continuous distribution into particles.
@@ -312,24 +312,171 @@ contains
             num_per_bin, aero_state)
     end do
 
-    aero_state%comp_vol = dble(n_part) / dist_num_conc(bin_grid, aero_dist)
+    aero_state%comp_vol = dble(n_part) &
+         / aero_dist_total_num_den(bin_grid, aero_dist)
 
-  end subroutine aero_dist_to_part
+  end subroutine aero_dist_to_state
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_sample(bin_grid, aero_data, aero_dist, &
+       sample_vol, aero_state)
+
+    ! Generates a Poisson sample of an aero_dist, adding to aero_state.
+
+    use mod_bin_grid
+    use mod_aero_data
+    use mod_aero_dist
+    use mod_rand_poisson
+    use mod_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aero data values
+    type(aero_dist_t), intent(in) :: aero_dist ! distribution to sample
+    real*8, intent(in) :: sample_vol    ! volume to sample
+    type(aero_state_t), intent(inout) :: aero_state ! aero state to add to
+
+    real*8 :: n_samp_avg
+    integer :: n_samp, i_mode
+    integer :: num_per_bin(bin_grid%n_bin)
+
+    do i_mode = 1,aero_dist%n_modes
+       n_samp_avg = sample_vol * sum(aero_dist%modes(i_mode)%n_den)
+       n_samp = rand_poisson(n_samp_avg)
+       call sample_vec_cts_to_disc(bin_grid%n_bin, &
+            aero_dist%modes(i_mode)%n_den, n_samp, num_per_bin)
+       call add_particles(bin_grid, aero_data, &
+            aero_dist%modes(i_mode)%vol_frac, num_per_bin, aero_state)
+    end do
+
+  end subroutine aero_dist_sample
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_sample(aero_state_from, aero_state_to, &
+       sample_prop)
+    
+    ! Generates a Poisson sample by removing particles from
+    ! aero_state_from and adding them to aero_state_to, which must
+    ! be already allocated.
+
+    use mod_util
+    use mod_rand_poisson
+    
+    type(aero_state_t), intent(inout) :: aero_state_from ! original state
+    type(aero_state_t), intent(inout) :: aero_state_to ! destination state
+    real*8, intent(in) :: sample_prop   ! proportion to sample
+    
+    integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
+
+    n_transfer = rand_poisson(sample_prop &
+         * dble(total_particles(aero_state_from)))
+    n_bin = size(aero_state_from%n)
+    do i_transfer = 1,n_transfer
+       i_bin = sample_disc_pdf(n_bin, aero_state_from%n)
+       i_part = util_rand_disc(aero_state_from%n(i_bin))
+       call aero_state_add_particle_to_bin(aero_state_to, &
+            aero_state_from%v(i_bin)%p(i_part,:), i_bin)
+       call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+    end do
+    
+  end subroutine aero_state_sample
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine aero_state_to_binned(bin_grid, aero_binned, aero_data, aero_state)
+  subroutine aero_state_add_particle_to_bin(aero_state, particle, bin)
+    
+    ! Adds a given particle to aero_state in the given bin.
+    
+    type(aero_state_t), intent(inout) :: aero_state ! base state
+    real*8, intent(in) :: particle(:) ! particle to add
+    integer, intent(in) :: bin        ! bin number of particle
+    
+    aero_state%n(bin) = aero_state%n(bin) + 1 ! increase the length of array
+    call enlarge_bin_to(aero_state%v(bin), aero_state%n(bin))
+    aero_state%v(bin)%p(aero_state%n(bin),:) = particle ! add particle at end
+    
+  end subroutine aero_state_add_particle_to_bin
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine aero_state_add_particle(bin_grid, aero_state, particle)
+    
+    ! Adds a given particle to aero_state. If the bin of the
+    ! particle is already known then
+    ! aero_state_add_particle_to_bin() is much faster.
+
+    use mod_bin_grid
+    use mod_aero_data
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_state_t), intent(inout) :: aero_state ! base state
+    real*8, intent(in) :: particle(:) ! particle to add
+    
+    integer :: bin
+    
+    call particle_in_bin(particle_volume(particle), bin_grid, bin)
+    call aero_state_add_particle_to_bin(aero_state, particle, bin)
+    
+  end subroutine aero_state_add_particle
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine aero_state_remove_particle(aero_state, i_bin, i_part)
+    
+    ! Removes the given particle from aero_state.
+    
+    type(aero_state_t), intent(inout) :: aero_state ! base state
+    integer, intent(in) :: i_bin        ! bin index of particle to remove
+    integer, intent(in) :: i_part       ! particle index of particle to remove
+
+    integer :: n
+
+    n = aero_state%n(i_bin)
+    if (i_bin < n) then
+       ! shift last particle into new empty slot
+       aero_state%v(i_bin)%p(i_part,:) = aero_state%v(i_bin)%p(n,:)
+    end if
+    aero_state%n(i_bin) = aero_state%n(i_bin) - 1 ! decrease length of array
+    
+  end subroutine aero_state_remove_particle
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine aero_state_add(aero_state, aero_state_delta)
+    
+    ! Adds aero_state_delta to aero_state.
+    
+    type(aero_state_t), intent(inout) :: aero_state ! base state
+    type(aero_state_t), intent(in) :: aero_state_delta ! state to add
+    
+    integer :: n_bin, i_bin, i_part
+    
+    n_bin = size(aero_state%n)
+    do i_bin = 1,n_bin
+       do i_part = 1,aero_state%n(i_bin)
+          call aero_state_add_particle_to_bin(aero_state, &
+               aero_state_delta%v(i_bin)%p(i_part,:), i_bin)
+       end do
+    end do
+    
+  end subroutine aero_state_add
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
+       aero_binned)
     
     ! Create the bin number and mass arrays from aero_state%v.
-
+    
     use mod_bin_grid
     use mod_aero_data
     use mod_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(aero_state_t), intent(in) :: aero_state ! aerosol state
+    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     
     integer b, j, s
     
@@ -343,7 +490,7 @@ contains
     end do
     aero_binned%num_den = dble(aero_state%n) / aero_state%comp_vol &
          / bin_grid%dlnr
-   
+    
   end subroutine aero_state_to_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -351,7 +498,7 @@ contains
   subroutine double(aero_state)
     
     ! Doubles number of particles.
-
+    
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
     integer :: n_bin, k, n
@@ -374,7 +521,7 @@ contains
     ! Takes a VH array where the particle volumes might no longer be
     ! correct for the bins they are in and resorts it so that every
     ! particle is in the correct bin.
-
+    
     use mod_aero_data
     use mod_bin_grid
     
@@ -426,7 +573,7 @@ contains
           end if
        end do
     end do
-
+    
     ! now shrink the bin storage if necessary
     do bin = 1,bin_grid%n_bin
        call shrink_bin(aero_state%n(bin), aero_state%v(bin))
@@ -440,7 +587,7 @@ contains
     
     ! Check that all particles are in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
-
+    
     use mod_util
     use mod_bin_grid
     use mod_aero_data
@@ -512,7 +659,7 @@ contains
   end subroutine check_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_write_bin_p(file, bin_p)
     
     ! Write full state.
@@ -521,13 +668,13 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_p_t), intent(in) :: bin_p ! bin_p to write
-
+    
     call inout_write_real_array_2d(file, 'bin_p', bin_p%p)
     
   end subroutine inout_write_bin_p
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_write_bin_p_array(file, bin_ps)
     
     ! Write full state.
@@ -536,9 +683,9 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_p_t), intent(in) :: bin_ps(:) ! bin_p array to write
-
+    
     integer :: length, i
-
+    
     length = size(bin_ps)
     call inout_write_integer(file, 'bin_p_array_len', length)
     do i = 1,length
@@ -547,9 +694,9 @@ contains
     end do
     
   end subroutine inout_write_bin_p_array
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_write_aero_state(file, aero_state)
     
     ! Write full state.
@@ -558,15 +705,15 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(in) :: aero_state ! aero_state to write
-
+    
     call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_write_integer_array(file, "number_per_bin", aero_state%n)
     call inout_write_bin_p_array(file, aero_state%v)
     
   end subroutine inout_write_aero_state
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_read_bin_p(file, bin_p)
     
     ! Read full state.
@@ -575,13 +722,13 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_p_t), intent(out) :: bin_p ! bin_p to read
-
+    
     call inout_read_real_array_2d(file, 'bin_p', bin_p%p)
     
   end subroutine inout_read_bin_p
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_read_bin_p_array(file, bin_ps)
     
     ! Read full state.
@@ -590,9 +737,9 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_p_t), pointer :: bin_ps(:) ! bin_p array to read
-
+    
     integer :: length, i, check_i
-
+    
     call inout_read_integer(file, 'bin_p_array_len', length)
     allocate(bin_ps(length))
     do i = 1,length
@@ -602,9 +749,9 @@ contains
     end do
     
   end subroutine inout_read_bin_p_array
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  
   subroutine inout_read_aero_state(file, aero_state)
     
     ! Read full state.
@@ -613,13 +760,13 @@ contains
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(out) :: aero_state ! aero_state to read
-
+    
     call inout_read_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_read_integer_array(file, "number_per_bin", aero_state%n)
     call inout_read_bin_p_array(file, aero_state%v)
     
   end subroutine inout_read_aero_state
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module mod_aero_state

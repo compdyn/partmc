@@ -64,48 +64,43 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine dist_total_n_den(bin_grid, aero_data, dist, n_den)
+  subroutine aero_dist_total_n_den(aero_dist, n_den)
       
     ! Compute the total number density of an aerosol distribution.
     
-    use mod_aero_data
-    use mod_bin_grid
-    use mod_util
-    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    type(aero_dist_t), intent(in) :: dist ! aerosol distribution
-    real*8, intent(out) :: n_den(bin_grid%n_bin) ! total number density (#/m^3)
+    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
+    real*8, intent(out) :: n_den(:)     ! total number density (#/m^3)
 
     integer :: i
 
     n_den = 0d0
-    do i = 1,dist%n_modes
-       n_den = n_den + dist%modes(i)%n_den
+    do i = 1,aero_dist%n_modes
+       n_den = n_den + aero_dist%modes(i)%n_den
     end do
 
-  end subroutine dist_total_n_den
+  end subroutine aero_dist_total_n_den
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function dist_num_conc(bin_grid, dist) ! #/m^3
+  real*8 function aero_dist_total_num_den(bin_grid, aero_dist) ! #/m^3
 
     ! Returns the total number concentration in #/m^3 of a distribution.
 
     use mod_bin_grid
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_dist_t), intent(in) :: dist ! aerosol distribution
+    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
 
     integer :: i
     
-    dist_num_conc = 0d0
-    do i = 1,dist%n_modes
-       dist_num_conc = dist_num_conc + sum(dist%modes(i)%n_den)
+    aero_dist_total_num_den = 0d0
+    do i = 1,aero_dist%n_modes
+       aero_dist_total_num_den = aero_dist_total_num_den &
+            + sum(aero_dist%modes(i)%n_den)
     end do
-    dist_num_conc = dist_num_conc * bin_grid%dlnr
+    aero_dist_total_num_den = aero_dist_total_num_den * bin_grid%dlnr
 
-  end function dist_num_conc
+  end function aero_dist_total_num_den
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

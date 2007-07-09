@@ -18,14 +18,15 @@ module mod_run_sect
     real*8 :: del_t                     ! timestep for coagulation (s)
     real*8 :: t_output                  ! output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
+    logical :: do_coagulation           ! whether to do coagulation
   end type run_sect_opt_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine run_sect(bin_grid, aero_data, aero_dist, env, kernel, &
-       sect_opt, summary_file)
+  subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, env, &
+       kernel, sect_opt, summary_file)
 
     ! Run a sectional simulation.
   
@@ -42,6 +43,7 @@ contains
     use mod_gas_state
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(gas_data_t), intent(in) :: gas_data ! gas data
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
     type(environ), intent(inout) :: env ! environment state
@@ -58,7 +60,6 @@ contains
     real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
     real*8 time, last_output_time, last_progress_time
     type(aero_binned_t) :: aero_binned
-    type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
     
     integer i, j, i_time, num_t
@@ -79,11 +80,15 @@ contains
     ! r   : droplet radius grid (um)
     ! dlnr: constant grid distance of logarithmic grid 
 
+    if (aero_data%n_spec /= 1) then
+       write(0,*) 'ERROR: run_sect() can only handle one aerosol species at present'
+       call exit(1)
+    end if
+
     ! output data structure
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     aero_binned%vol_den = 0d0
-    call alloc_gas_data(0, gas_data)
-    call gas_state_alloc(0, gas_state)
+    call gas_state_alloc(gas_data%n_spec, gas_state)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
@@ -92,14 +97,10 @@ contains
     end do
     
     ! initial mass distribution
-    if (aero_dist%n_modes /= 1) then
-       write(0,*) 'ERROR: run_sect can only handle one mode at present'
-       call exit(1)
-    end if
-    do i = 1,bin_grid%n_bin
-       g(i) = aero_dist%modes(1)%n_den(i) * bin_grid%v(i) * aero_data%rho(1)
-       if (g(i) .le. 1d-80) g(i) = 0d0    ! avoid problem with gnuplot
-    end do
+    call aero_dist_to_binned(bin_grid, aero_dist, aero_binned)
+    ! avoid problem with gnuplot
+    where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
+    where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0
     
     call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
@@ -128,10 +129,6 @@ contains
     call check_event(time, sect_opt%del_t, sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
-       do i = 1,bin_grid%n_bin
-          aero_binned%vol_den(i,1) = g(i) / aero_data%rho(1)
-          aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
-       end do
        call output_summary(summary_file, 0d0, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
     end if
@@ -139,22 +136,29 @@ contains
     ! main time-stepping loop
     num_t = nint(sect_opt%t_max / sect_opt%del_t)
     do i_time = 1, num_t
-       
-       call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
-            tauu, prod, ploss, c, ima, g, r, e, ck, ec)
+
+       if (sect_opt%do_coagulation) then
+          g = aero_binned%vol_den(:,1) * aero_data%rho(1)
+          call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
+               tauu, prod, ploss, c, ima, g, r, e, ck, ec)
+          aero_binned%vol_den(:,1) = g / aero_data%rho(1)
+          aero_binned%num_den = aero_binned%vol_den(:,1) / bin_grid%v
+          ! avoid problem with gnuplot
+          where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
+          where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0
+       end if
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)
 
        call update_environ(env, time)
+       call environ_update_gas_state(env, sect_opt%del_t, gas_data, gas_state)
+       call environ_update_aero_binned(env, sect_opt%del_t, bin_grid, &
+            aero_data, aero_binned)
        
        ! print output
        call check_event(time, sect_opt%del_t, sect_opt%t_output, &
             last_output_time, do_output)
        if (do_output) then
-          do i = 1,bin_grid%n_bin
-             aero_binned%vol_den(i,1) = g(i) / aero_data%rho(1)
-             aero_binned%num_den(i) = aero_binned%vol_den(i,1) / bin_grid%v(i)
-          end do
           call output_summary(summary_file, time, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
        end if

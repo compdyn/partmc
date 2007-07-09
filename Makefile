@@ -40,7 +40,7 @@ endif
 
 PROGS := src/process_summary src/process_average src/partmc		\
 	test/sedi_bidisperse_ode test/sedi_bidisperse_state_to_count	\
-	equilib/equilib
+	equilib/equilib test/emission_summary_to_history
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/environ src/aero_dist src/kernel_golovin	\
@@ -86,6 +86,11 @@ equilib_OBJS := equilib/equilib.o src/aero_data.o src/environ.o		\
 	src/condensation.o src/util.o src/aero_state.o src/constants.o	\
 	src/gas_data.o src/gas_state.o src/bin_grid.o src/aero_dist.o	\
 	src/inout.o src/aero_binned.o src/rand_poisson.o
+emission_summary_to_history_OBJS := test/emission_summary_to_history.o	\
+	src/util.o src/constants.o src/aero_binned.o src/aero_data.o	\
+	src/inout.o src/environ.o src/gas_data.o src/gas_state.o	\
+	src/bin_grid.o src/aero_dist.o src/aero_state.o			\
+	src/rand_poisson.o
 
 ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(ALL_FILES:%=%.f90)
@@ -142,6 +147,8 @@ test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
+test/emission_summary_to_history: $(emission_summary_to_history_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(emission_summary_to_history_OBJS)
 
 .PHONY: clean
 clean:
@@ -153,7 +160,7 @@ cleanall: clean
 
 .PHONY: distclean
 distclean: cleanall
-	rm -f test/out/* test/gmon.out test/gprof_*
+	rm -f test/gmon.out test/gprof_*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

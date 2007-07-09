@@ -5,7 +5,7 @@
 ! Process output files to produce number of small particles and volume
 ! of big particle.
 
-program test_sedi_bidisperse_state_to_count
+program sedi_bidisperse_state_to_count
 
   use mod_bin_grid
   use mod_environ
@@ -76,4 +76,4 @@ program test_sedi_bidisperse_state_to_count
 
   close(out_unit)
 
-end program test_sedi_bidisperse_state_to_count
+end program sedi_bidisperse_state_to_count

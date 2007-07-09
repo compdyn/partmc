@@ -443,7 +443,7 @@ contains
     character(len=*), intent(in) :: type ! type being read during error
 
     if (ios /= 0) then
-       write(0,'(a,a,a,a,a,i3,a,i4)') 'ERROR: reading ', trim(type), &
+       write(0,'(a,a,a,a,a,i8,a,i4)') 'ERROR: reading ', trim(type), &
             ' from file ', trim(file%name), ' at line ', file%line_num, &
             ': IOSTAT = ', ios
        call exit(1)

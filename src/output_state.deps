@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/output_state.o: src/mod_environ.mod src/mod_aero_state.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_aero_data.mod src/mod_inout.mod
-src/mod_output_state.mod: src/mod_environ.mod src/mod_aero_state.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_aero_data.mod src/mod_inout.mod
+src/output_state.o: src/mod_environ.mod src/mod_aero_state.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_aero_data.mod src/mod_inout.mod src/mod_gas_data.mod
+src/mod_output_state.mod: src/mod_environ.mod src/mod_aero_state.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_aero_data.mod src/mod_inout.mod src/mod_gas_data.mod

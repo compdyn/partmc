@@ -98,28 +98,18 @@ contains
     call inout_read_real(file, 't_state', mc_opt%t_state)
     call inout_read_real(file, 't_progress', mc_opt%t_progress)
 
-    call spec_read_environ(file, env)
     call spec_read_bin_grid(file, bin_grid)
     
     call spec_read_gas_data(file, gas_data)
     call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
-    call spec_read_gas_state(file, gas_data, 'gas_emissions', env%gas_emissions)
-    call inout_read_real(file, 'gas_emission_rate', env%gas_emission_rate)
-    call spec_read_gas_state(file, gas_data, 'gas_background', &
-         env%gas_background)
-    call inout_read_real(file, 'gas_dilution_rate', env%gas_dilution_rate)
 
     call spec_read_aero_data_filename(file, aero_data)
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
     call aero_dist_to_state(bin_grid, aero_data, aero_init_dist, &
          mc_opt%n_part_max, aero_init)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_emissions', env%aero_emissions)
-    call inout_read_real(file, 'aerosol_emission_rate', env%aero_emission_rate)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_background', env%aero_background)
-    call inout_read_real(file, 'aerosol_dilution_rate', env%aero_dilution_rate)
+
+    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 
     call inout_read_integer(file, 'rand_init', rand_init)
     call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
@@ -145,14 +135,14 @@ contains
 
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     call gas_state_alloc(gas_data%n_spec, gas_state)
-    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
-       call copy_aero_state(aero_init, aero_state)
+       call aero_state_copy(aero_init, aero_state)
 
        if (mc_opt%do_condensation) then
           call equilibriate_aero(bin_grid, env, aero_data, aero_state)
@@ -229,10 +219,11 @@ contains
     
     call inout_read_real(file, 't_max', exact_opt%t_max)
     call inout_read_real(file, 't_output', exact_opt%t_output)
-    
-    call spec_read_environ(file, env)
-    call spec_read_aero_data_filename(file, aero_data)
+
     call spec_read_bin_grid(file, bin_grid)
+    call spec_read_gas_data(file, gas_data)
+    call spec_read_aero_data_filename(file, aero_data)
+    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 
     call inout_close(file)
 
@@ -301,31 +292,36 @@ contains
     call inout_read_real(file, 't_progress', sect_opt%t_progress)
 
     call spec_read_bin_grid(file, bin_grid)
-    call spec_read_environ(file, env)
+
+    call spec_read_gas_data(file, gas_data)
+
     call spec_read_aero_data_filename(file, aero_data)
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_init_dist)
+
+    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
+
+    call inout_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
     
     call inout_close(file)
 
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call alloc_gas_data(0, gas_data)
     call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
 
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
             kernel_sedi, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
             kernel_golovin, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
             kernel_constant, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(bin_grid, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
             kernel_brown, sect_opt, summary_file)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

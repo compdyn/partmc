@@ -165,6 +165,9 @@ contains
        time = time + mc_opt%del_t
 
        call update_environ(env, time)
+       call environ_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
+       call environ_update_aero_state(env, mc_opt%del_t, bin_grid, &
+            aero_data, aero_state, aero_binned)
 
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &

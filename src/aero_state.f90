@@ -52,11 +52,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_aero_state(n_bin, n_spec, aero)
+  subroutine aero_state_alloc(n_bin, n_spec, aero)
 
     ! Initializes aerosol arrays to have zero particles in each
     ! bin. Do not call this more than once on a given aerosol, use
-    ! zero_aero_state() instead to reset to zero.
+    ! aero_state_zero() instead to reset to zero.
 
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
@@ -72,11 +72,11 @@ contains
        allocate(aero%v(i)%p(0, n_spec))
     end do
 
-  end subroutine alloc_aero_state
+  end subroutine aero_state_alloc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine free_aero_state(aero)
+  subroutine aero_state_free(aero)
 
     ! Deallocates a previously allocated aerosol.
 
@@ -91,39 +91,36 @@ contains
     end do
     deallocate(aero%v)
 
-  end subroutine free_aero_state
+  end subroutine aero_state_free
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine copy_aero_state(from_aero, to_aero)
+  subroutine aero_state_copy(from_aero, to_aero)
 
     ! Copies aerosol to a destination that has already had
-    ! alloc_aero_state() called on it.
+    ! aero_state_alloc() called on it.
 
     type(aero_state_t), intent(in) :: from_aero ! reference aerosol
     type(aero_state_t), intent(inout) :: to_aero ! must already be allocated
     
     integer :: n_bin, n_spec, n_part, i
-    integer :: arr_shape(2)
 
     n_bin = size(from_aero%n)
-    arr_shape = shape(from_aero%v(1)%p)
-    n_spec = arr_shape(2)
+    n_spec = size(from_aero%v(1)%p, 2)
 
-    call free_aero_state(to_aero)
-    call alloc_aero_state(n_bin, n_spec, to_aero)
+    call aero_state_free(to_aero)
+    call aero_state_alloc(n_bin, n_spec, to_aero)
 
     to_aero%n = from_aero%n
     do i = 1,n_bin
-       arr_shape = shape(from_aero%v(i)%p)
-       n_part = arr_shape(1)
+       n_part = size(from_aero%v(i)%p, 1)
        call enlarge_bin_to(to_aero%v(i), n_part)
        to_aero%v(i)%p = from_aero%v(i)%p(1:n_part,:)
     end do
 
     to_aero%comp_vol = from_aero%comp_vol
 
-  end subroutine copy_aero_state
+  end subroutine aero_state_copy
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -139,26 +136,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine zero_aero_state(aero_state)
+  subroutine aero_state_zero(aero_state)
 
     ! Resets an aero_state to have zero particles per bin. This must
-    ! already have had alloc_aero_state() called on it. This
+    ! already have had aero_state_alloc() called on it. This
     ! function can be called more than once on the same state.
 
     type(aero_state_t), intent(inout) :: aero_state ! state to zero
     
-    integer :: i, n_bin, n_spec, p_shape(2)
+    integer :: i, n_bin, n_spec
 
     n_bin = size(aero_state%v)
-    p_shape = shape(aero_state%v(1)%p)
-    n_spec = p_shape(2)
+    n_spec = size(aero_state%v(1)%p, 2)
     do i = 1,n_bin
        deallocate(aero_state%v(i)%p)
        allocate(aero_state%v(i)%p(0, n_spec))
     end do
     aero_state%n = 0
 
-  end subroutine zero_aero_state
+  end subroutine aero_state_zero
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -167,12 +163,11 @@ contains
     ! Enlarges the given bin (which must be allocated) by at least one
     ! element (currently doubles the length).
 
-    type(bin_p_t), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
 
-    ! FIXME: should use SHAPE instead of SIZE here?
     n_part = size(bin%p, 1)
     n_spec = size(bin%p, 2)
     new_n_part = max(n_part * 2, n_part + 1)
@@ -189,7 +184,7 @@ contains
 
     ! Enlarges the given bin so that it is at least of size n.
 
-    type(bin_p_t), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin ! bin data
     integer, intent(in) :: n            ! minimum new size of bin
 
     do while (size(bin%p,1) < n)
@@ -206,12 +201,11 @@ contains
     ! is at least of length n_used.
 
     integer, intent(in) :: n_used       ! number of used entries in bin
-    type(bin_p_t), intent(inout) :: bin   ! bin data
+    type(bin_p_t), intent(inout) :: bin ! bin data
 
     integer :: n_part, n_spec, new_n_part
     real*8, dimension(:,:), pointer :: new_p
 
-    ! FIXME: should use SHAPE instead of SIZE here?
     n_part = size(bin%p, 1)
     n_spec = size(bin%p, 2)
     new_n_part = n_part / 2
@@ -242,7 +236,7 @@ contains
     use mod_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
+    type(aero_data_t), intent(in) :: aero_data ! aero_data data
     real*8, intent(in) :: vol_frac(aero_data%n_spec) ! composition of particles
     integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins
     type(aero_state_t), intent(inout) :: aero ! aerosol, must be
@@ -303,7 +297,7 @@ contains
     call vec_cts_to_disc(aero_dist%n_modes, mode_n_dens, n_part, mode_n_parts)
 
     ! allocate particles within each mode in proportion to mode shape
-    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     do i = 1,aero_dist%n_modes
        call vec_cts_to_disc(bin_grid%n_bin, aero_dist%modes(i)%n_den, &
             mode_n_parts(i), num_per_bin)
@@ -340,7 +334,8 @@ contains
     integer :: num_per_bin(bin_grid%n_bin)
 
     do i_mode = 1,aero_dist%n_modes
-       n_samp_avg = sample_vol * sum(aero_dist%modes(i_mode)%n_den)
+       n_samp_avg = sample_vol * sum(aero_dist%modes(i_mode)%n_den) &
+            * bin_grid%dlnr
        n_samp = rand_poisson(n_samp_avg)
        call sample_vec_cts_to_disc(bin_grid%n_bin, &
             aero_dist%modes(i_mode)%n_den, n_samp, num_per_bin)
@@ -454,7 +449,7 @@ contains
     
     n_bin = size(aero_state%n)
     do i_bin = 1,n_bin
-       do i_part = 1,aero_state%n(i_bin)
+       do i_part = 1,aero_state_delta%n(i_bin)
           call aero_state_add_particle_to_bin(aero_state, &
                aero_state_delta%v(i_bin)%p(i_part,:), i_bin)
        end do

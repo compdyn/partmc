@@ -138,7 +138,7 @@ contains
        read(state_unit,'(i20,e30.20)') dum_int_1, dum_real
     end do
     
-    call zero_aero_state(aero_state)
+    call aero_state_zero(aero_state)
 
     read(state_unit,'(a)') dum
     do i = 1,bin_grid%n_bin
@@ -235,6 +235,7 @@ contains
     use mod_environ
     use mod_util
     use mod_inout
+    use mod_gas_data
     
     character(len=*), intent(in) :: state_prefix ! prefix of state file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -282,6 +283,7 @@ contains
     use mod_environ
     use mod_util
     use mod_inout
+    use mod_gas_data
     
     character(len=*), intent(in) :: state_name ! name of state file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid

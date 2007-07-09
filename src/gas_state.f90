@@ -134,7 +134,7 @@ contains
     use mod_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
-    type(gas_data_t), intent(out) :: gas_data ! gas data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
     character(len=*), intent(in) :: name ! name of data line for filename
     type(gas_state_t), intent(out) :: gas_state ! gas data
 

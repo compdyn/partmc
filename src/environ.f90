@@ -11,8 +11,6 @@
 
 module mod_environ
 
-  use mod_aero_state
-  use mod_gas_data
   use mod_gas_state
   use mod_aero_dist
   
@@ -227,37 +225,39 @@ contains
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned_delta)
+    aero_state_delta%comp_vol = aero_state%comp_vol
 
     ! loss to background
     sample_prop = delta_t * env%aero_dilution_rate
-    call alloc_aero_state(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
+    call aero_state_zero(aero_state_delta)
     call aero_state_sample(aero_state, aero_state_delta, sample_prop)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_binned_sub(aero_binned, aero_binned_delta)
-    call free_aero_state(aero_state_delta)
 
     ! addition from background
     sample_vol = delta_t * env%aero_dilution_rate * aero_state%comp_vol
+    call aero_state_zero(aero_state_delta)
     call aero_dist_sample(bin_grid, aero_data, env%aero_background, &
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
-    call free_aero_state(aero_state_delta)
     
     ! emissions
     sample_vol = delta_t * env%aero_emission_rate * aero_state%comp_vol
+    call aero_state_zero(aero_state_delta)
     call aero_dist_sample(bin_grid, aero_data, env%aero_emissions, &
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
-    call free_aero_state(aero_state_delta)
 
+    call aero_state_free(aero_state_delta)
     call aero_binned_free(aero_binned_delta)
 
   end subroutine environ_update_aero_state
@@ -372,13 +372,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_read_environ(file, env)
+  subroutine spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 
     ! Read environment specification from a inout file.
 
+    use mod_bin_grid
     use mod_inout
+    use mod_aero_data
+    use mod_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(gas_data_t), intent(in) :: gas_data ! gas data values
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(environ), intent(out) :: env   ! environment data
 
     integer :: n_temps
@@ -425,6 +431,18 @@ contains
     call inout_read_real(file, 'altitude', env%altitude)
     call inout_read_real(file, 'start_time', env%start_time)
     call inout_read_integer(file, 'start_day', env%start_day)
+
+    call spec_read_gas_state(file, gas_data, 'gas_emissions', env%gas_emissions)
+    call inout_read_real(file, 'gas_emission_rate', env%gas_emission_rate)
+    call spec_read_gas_state(file, gas_data, 'gas_background', &
+         env%gas_background)
+    call inout_read_real(file, 'gas_dilution_rate', env%gas_dilution_rate)
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+         'aerosol_emissions', env%aero_emissions)
+    call inout_read_real(file, 'aerosol_emission_rate', env%aero_emission_rate)
+    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+         'aerosol_background', env%aero_background)
+    call inout_read_real(file, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
   end subroutine spec_read_environ
 

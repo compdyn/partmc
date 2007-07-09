@@ -481,6 +481,7 @@ contains
 
     integer :: i_samp, k
 
+    vec_disc = 0
     do i_samp = 1,n_samp
        k = sample_cts_pdf(n, vec_cts)
        vec_disc(k) = vec_disc(k) + 1

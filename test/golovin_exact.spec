@@ -7,6 +7,13 @@ mean_vol 4.1886d-15             # mean volume (m^3)
 t_max 600                       # total simulation time (s)
 t_output 60                     # output interval (0 disables) (s)
 
+n_bin 160                       # number of bins
+v_min 1d-24                     # volume of smallest bin (m^3)
+scal 3                          # scale factor (integer)
+
+gas_data gas_data_simple.dat    # file containing gas data
+aerosol_data aerosol_data_water.dat # file containing aerosol data
+
 temp_profile temp_constant_15C.dat # temperature profile file
 RH 0.999                        # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
@@ -17,8 +24,12 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-aerosol_data aerosol_data_water.dat # file containing aerosol data
+gas_emissions gas_none.dat      # gas emissions file
+gas_emission_rate 0             # gas emission rate (s^{-1})
+gas_background gas_none.dat     # background gas concentrations file
+gas_dilution_rate 0             # gas dilution rate with background (s^{-1})
 
-n_bin 160                       # number of bins
-v_min 1d-24                     # volume of smallest bin (m^3)
-scal 3                          # scale factor (integer)
+aerosol_emissions aerosol_none.dat # aerosol emissions file
+aerosol_emission_rate 0         # aerosol emission rate (s^{-1})
+aerosol_background aerosol_none.dat # aerosol background file
+aerosol_dilution_rate 0         # aerosol dilution rate with background (s^{-1})

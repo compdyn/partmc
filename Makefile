@@ -45,10 +45,10 @@ PROGS := src/process_summary src/process_average src/partmc		\
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/environ src/aero_dist src/kernel_golovin	\
 	src/kernel_sedi src/kernel_constant src/kernel_brown		\
-	src/aero_data src/run_exact src/run_mc src/util src/run_sect	\
-	src/output_state src/mosaic src/gas_data src/gas_state		\
-	src/coagulation src/kernel src/output_summary src/inout		\
-	src/rand_poisson
+	src/kernel_zero src/aero_data src/run_exact src/run_mc		\
+	src/util src/run_sect src/output_state src/mosaic src/gas_data	\
+	src/gas_state src/coagulation src/kernel src/output_summary	\
+	src/inout src/rand_poisson
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -58,9 +58,9 @@ EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
 	src/kernel_golovin.o src/kernel_constant.o src/kernel_brown.o	\
-	src/aero_data.o src/environ.o src/run_mc.o src/gas_data.o	\
-	src/gas_state.o src/run_exact.o src/run_sect.o src/util.o	\
-	src/constants.o src/output_state.o src/mosaic.o			\
+	src/kernel_zero.o src/aero_data.o src/environ.o src/run_mc.o	\
+	src/gas_data.o src/gas_state.o src/run_exact.o src/run_sect.o	\
+	src/util.o src/constants.o src/output_state.o src/mosaic.o	\
 	src/coagulation.o src/kernel.o src/output_summary.o		\
 	src/inout.o src/aero_binned.o src/rand_poisson.o
 process_summary_OBJS := src/process_summary.o src/util.o		\

@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo run
-output_file out/mosaic_summary.d    # name of output file
+output_file out/mosaic_summary.d # name of output file
 state_prefix out/mosaic_state   # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 n_part 3                        # total number of particles
@@ -11,6 +11,16 @@ t_output 60                     # output interval (0 disables) (s)
 t_state 60                      # state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
+n_bin 160                       # number of bins
+v_min 1d-24                     # volume of smallest bin (m^3)
+scal 3                          # scale factor (integer)
+
+gas_data mosaic_gas_data.dat    # file containing gas data
+gas_init mosaic_gas_init.dat    # initial gas concentrations
+
+aerosol_data mosaic_aerosol_data.dat # file containing aerosol data
+aerosol_init mosaic_aerosol_init.dat # aerosol initial condition file
+
 temp_profile temp_constant_15C.dat # temperature profile file
 RH 0.85                         # initial relative humidity (1)
 pressure 1d5                    # initial pressure (Pa)
@@ -21,23 +31,15 @@ altitude 0                      # altitude (m)
 start_time 43200                # start time (s since 00:00 UTC)
 start_day 10                    # start day of year (UTC)
 
-n_bin 160                       # number of bins
-v_min 1d-24                     # volume of smallest bin (m^3)
-scal 3                          # scale factor (integer)
-
-gas_data mosaic_gas_data.dat    # file containing gas data
-gas_init mosaic_gas_init.dat    # initial gas concentrations
 gas_emissions mosaic_gas_emissions.dat # gas emissions file
-gas_emission_rate 1e-3          # gas emission rate (s^{-1})
+gas_emission_rate 0             # gas emission rate (s^{-1})
 gas_background mosaic_gas_background.dat # background gas concentrations file
-gas_dilution_rate 1e-3          # gas dilution rate with background (s^{-1})
+gas_dilution_rate 0             # gas dilution rate with background (s^{-1})
 
-aerosol_data mosaic_aerosol_data.dat # file containing aerosol data
-aerosol_init mosaic_aerosol_init.dat # aerosol initial condition file
 aerosol_emissions mosaic_aerosol_emissions.dat # aerosol emissions file
-aerosol_emission_rate 1e-3      # aerosol emission rate (s^{-1})
+aerosol_emission_rate 0         # aerosol emission rate (s^{-1})
 aerosol_background mosaic_aerosol_background.dat # aerosol background file
-aerosol_dilution_rate 1e-3      # aerosol dilution rate with background (s^{-1})
+aerosol_dilution_rate 0         # aerosol dilution rate with background (s^{-1})
 
 rand_init 17                    # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)

@@ -286,11 +286,11 @@ contains
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, dilution)
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
-    call aero_dist_to_binned(bin_grid, env%aero_emissions, emission)
+    call aero_dist_add_to_binned(bin_grid, env%aero_emissions, emission)
     call aero_binned_scale(emission, delta_t * env%aero_emission_rate)
 
     ! dilution = delta_t * gas_dilution_rate * (gas_background - aero_binned)
-    call aero_dist_to_binned(bin_grid, env%aero_background, dilution)
+    call aero_dist_add_to_binned(bin_grid, env%aero_background, dilution)
     call aero_binned_sub(dilution, aero_binned)
     call aero_binned_scale(dilution, delta_t * env%aero_dilution_rate)
 

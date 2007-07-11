@@ -7,13 +7,16 @@
 module mod_run_exact
 
   use mod_inout
+  use mod_aero_dist
 
   type run_exact_opt_t
-    real*8 :: num_conc                  ! particle number concentration (#/m^3)
-    real*8 :: mean_vol                  ! mean init volume (m^3)
-    real*8 :: rho_p                     ! particle density (kg/m^3)
-    real*8 :: t_max                     ! total simulation time
-    real*8 :: t_output                  ! interval to output info (s)
+     ! FIXME: following few items depend on kernel/soln choice
+     real*8 :: num_conc                 ! particle number concentration (#/m^3)
+     real*8 :: mean_vol                 ! mean init volume (m^3)
+     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
+     real*8 :: rho_p                    ! particle density (kg/m^3)
+     real*8 :: t_max                    ! total simulation time
+     real*8 :: t_output                 ! interval to output info (s)
   end type run_exact_opt_t
 
 contains
@@ -52,18 +55,20 @@ contains
     type(gas_state_t) :: gas_state
     
     interface
-       subroutine soln(bin_grid, time, num_conc, mean_vol, &
-            rho_p, env, aero_binned)
+       subroutine soln(bin_grid, aero_data, time, num_conc, mean_vol, &
+            rho_p, aero_dist_init, env, aero_binned)
 
          use mod_bin_grid
          use mod_environ
          use mod_aero_binned
 
          type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+         type(aero_data_t), intent(in) :: aero_data ! aerosol data
          real*8, intent(in) :: time              ! current time
          real*8, intent(in) :: num_conc          ! particle number conc (#/m^3)
          real*8, intent(in) :: mean_vol          ! mean init volume (m^3)
          real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
+         type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
          type(environ), intent(in) :: env        ! environment state
          type(aero_binned_t), intent(out) :: aero_binned ! output state
        end subroutine soln
@@ -78,8 +83,9 @@ contains
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
        call update_environ(env, time)
-       call soln(bin_grid, time, exact_opt%num_conc, &
-            exact_opt%mean_vol, exact_opt%rho_p, env, aero_binned)
+       call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
+            exact_opt%mean_vol, exact_opt%rho_p, &
+            exact_opt%aero_dist_init, env, aero_binned)
 
        call output_summary(summary_file, time, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env, 1)

@@ -3,7 +3,7 @@ output_file out/emission_sect_summary.d # name of output file
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
-del_t 1                         # timestep (s)
+del_t 5                         # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
@@ -13,7 +13,7 @@ scal 3                          # scale factor (integer)
 
 gas_data gas_data_simple.dat    # file containing gas data
 aerosol_data aerosol_data_water.dat # file containing aerosol data
-aerosol_init emission_init.dat # aerosol initial condition file
+aerosol_init emission_init.dat  # aerosol initial condition file
 
 temp_profile temp_constant_15C.dat # temperature profile file
 RH 0.999                        # initial relative humidity (1)

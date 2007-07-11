@@ -97,7 +97,7 @@ contains
     end do
     
     ! initial mass distribution
-    call aero_dist_to_binned(bin_grid, aero_dist, aero_binned)
+    call aero_dist_add_to_binned(bin_grid, aero_dist, aero_binned)
     ! avoid problem with gnuplot
     where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
     where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0

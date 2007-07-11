@@ -43,7 +43,8 @@ add separate del_t for mosaic, coag, and cond.
 
 add error checking to inout_write_*()
 
-make time a field in env
+Make time a field in env and set it in environ_init() and
+environ_update().
 
 rename env%{T,RH,p,rho_a} to temp, rel_hum, press, dens or something
 
@@ -64,3 +65,6 @@ Make a type(particle_t) with a pointer to the data.
 Add a field to particle_t to track number of coagulation events.
 
 Fix process_state.
+
+Rename golovin to additive.
+

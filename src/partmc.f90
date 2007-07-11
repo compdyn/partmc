@@ -58,6 +58,7 @@ contains
     use mod_kernel_golovin
     use mod_kernel_constant
     use mod_kernel_brown
+    use mod_kernel_zero
     use mod_aero_data
     use mod_environ
     use mod_run_mc
@@ -75,7 +76,7 @@ contains
     type(gas_state_t) :: gas_init       ! gas initial condition
     type(gas_state_t) :: gas_state      ! gas current state for run
     type(aero_data_t) :: aero_data      ! aero_data data
-    type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
+    type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
     type(aero_state_t) :: aero_state    ! aerosol current state for run
     type(environ) :: env                ! environment data
@@ -105,8 +106,8 @@ contains
 
     call spec_read_aero_data_filename(file, aero_data)
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_init', aero_init_dist)
-    call aero_dist_to_state(bin_grid, aero_data, aero_init_dist, &
+         'aerosol_init', aero_dist_init)
+    call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
          mc_opt%n_part_max, aero_init)
 
     call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
@@ -160,6 +161,9 @@ contains
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(kernel_brown, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt, summary_file)
+       elseif (trim(kernel_name) == 'zero') then
+          call run_mc(kernel_zero, bin_grid, aero_binned, env, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, summary_file)
        else
           write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
           call exit(1)
@@ -182,6 +186,7 @@ contains
     use mod_condensation
     use mod_kernel_golovin
     use mod_kernel_constant
+    use mod_kernel_zero
     use mod_aero_data
     use mod_environ
     use mod_run_exact
@@ -189,6 +194,7 @@ contains
     use mod_gas_data
     use mod_gas_state
     use mod_output_summary
+    use mod_kernel_zero
 
     type(inout_file_t), intent(out) :: file ! spec file
 
@@ -206,17 +212,6 @@ contains
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_real(file, 'num_conc', exact_opt%num_conc)
 
-    call inout_read_string(file, 'soln', soln_name)
-
-    if (trim(soln_name) == 'golovin_exp') then
-       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
-    elseif (trim(soln_name) == 'constant_exp_cond') then
-       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
-    else
-       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
-       call exit(1)
-    end if
-    
     call inout_read_real(file, 't_max', exact_opt%t_max)
     call inout_read_real(file, 't_output', exact_opt%t_output)
 
@@ -225,6 +220,20 @@ contains
     call spec_read_aero_data_filename(file, aero_data)
     call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 
+    call inout_read_string(file, 'soln', soln_name)
+
+    if (trim(soln_name) == 'golovin_exp') then
+       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
+    elseif (trim(soln_name) == 'constant_exp_cond') then
+       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
+    elseif (trim(soln_name) == 'zero') then
+       call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+            'aerosol_init', exact_opt%aero_dist_init)
+    else
+       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
+       call exit(1)
+    end if
+    
     call inout_close(file)
 
     ! finished reading .spec data, now do the run
@@ -240,6 +249,9 @@ contains
     elseif (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env, aero_data, exact_opt, &
             soln_constant_exp_cond, summary_file)
+    elseif (trim(soln_name) == 'zero') then
+       call run_exact(bin_grid, env, aero_data, exact_opt, &
+            soln_zero, summary_file)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -261,6 +273,7 @@ contains
     use mod_kernel_golovin
     use mod_kernel_constant
     use mod_kernel_brown
+    use mod_kernel_zero
     use mod_bin_grid
     use mod_aero_state
     use mod_aero_dist
@@ -274,7 +287,7 @@ contains
     character(len=100) :: kernel_name   ! coagulation kernel name
     type(run_sect_opt_t) :: sect_opt    ! sectional code options
     type(aero_data_t) :: aero_data      ! aero_data data
-    type(aero_dist_t) :: aero_init_dist ! aerosol initial distribution
+    type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
     type(environ) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
@@ -297,7 +310,7 @@ contains
 
     call spec_read_aero_data_filename(file, aero_data)
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_init', aero_init_dist)
+         'aerosol_init', aero_dist_init)
 
     call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 
@@ -312,17 +325,20 @@ contains
          aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
 
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
             kernel_sedi, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
             kernel_golovin, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
             kernel_constant, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_init_dist, env, &
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
             kernel_brown, sect_opt, summary_file)
+    elseif (trim(kernel_name) == 'zero') then
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
+            kernel_zero, sect_opt, summary_file)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

@@ -28,8 +28,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_golovin_exp(bin_grid, time, num_conc, mean_vol, &
-       rho_p, env, aero_binned)
+  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
+       mean_vol, rho_p, aero_dist_init, env, aero_binned)
 
     ! Exact solution with the Golovin coagulation kernel and
     ! exponential initial condition.
@@ -39,12 +39,16 @@ contains
     use mod_util
     use mod_constants
     use mod_aero_binned
+    use mod_aero_data
+    use mod_aero_dist
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time
     real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
     real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
+    type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
     type(environ), intent(in) :: env    ! environment state
     type(aero_binned_t), intent(out) :: aero_binned ! output state
     

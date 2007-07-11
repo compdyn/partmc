@@ -25,6 +25,9 @@ contains
 
     allocate(aero_binned%num_den(n_bin))
     allocate(aero_binned%vol_den(n_bin, n_spec))
+    call aero_binned_zero(aero_binned)
+    aero_binned%num_den = 0d0
+    aero_binned%vol_den = 0d0
 
   end subroutine aero_binned_alloc
 
@@ -40,6 +43,19 @@ contains
     deallocate(aero_binned%vol_den)
 
   end subroutine aero_binned_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_zero(aero_binned)
+
+    ! Zeros an aero_binned.
+
+    type(aero_binned_t), intent(inout) :: aero_binned ! bin distribution
+
+    aero_binned%num_den = 0d0
+    aero_binned%vol_den = 0d0
+
+  end subroutine aero_binned_zero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -170,7 +186,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_to_binned(bin_grid, aero_dist, aero_binned)
+  subroutine aero_dist_add_to_binned(bin_grid, aero_dist, aero_binned)
 
     ! Converts an aero_dist to an aero_binned.
 
@@ -183,8 +199,6 @@ contains
 
     integer :: i_mode, i_bin
 
-    aero_binned%num_den = 0d0
-    aero_binned%vol_den = 0d0
     do i_mode = 1,aero_dist%n_modes
        do i_bin = 1,bin_grid%n_bin
           aero_binned%num_den(i_bin) = aero_binned%num_den(i_bin) &
@@ -195,7 +209,7 @@ contains
        end do
     end do
 
-  end subroutine aero_dist_to_binned
+  end subroutine aero_dist_add_to_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

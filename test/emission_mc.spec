@@ -6,7 +6,7 @@ n_part 1000                     # total number of particles
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
-del_t 0.5                       # timestep (s)
+del_t 5                         # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
@@ -19,7 +19,7 @@ gas_data gas_data_simple.dat    # file containing gas data
 gas_init gas_init_simple.dat    # initial gas concentrations
 
 aerosol_data aerosol_data_water.dat # file containing aerosol data
-aerosol_init emission_init.dat # aerosol initial condition file
+aerosol_init emission_init.dat  # aerosol initial condition file
 
 temp_profile temp_constant_15C.dat # temperature profile file
 RH 0.999                        # initial relative humidity (1)

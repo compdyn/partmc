@@ -40,7 +40,8 @@ endif
 
 PROGS := src/process_summary src/process_average src/partmc		\
 	test/sedi_bidisperse_ode test/sedi_bidisperse_state_to_count	\
-	equilib/equilib test/emission_summary_to_history
+	equilib/equilib test/emission_summary_to_history		\
+	test/poisson_sample
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/environ src/aero_dist src/kernel_golovin	\
@@ -91,6 +92,8 @@ emission_summary_to_history_OBJS := test/emission_summary_to_history.o	\
 	src/inout.o src/environ.o src/gas_data.o src/gas_state.o	\
 	src/bin_grid.o src/aero_dist.o src/aero_state.o			\
 	src/rand_poisson.o
+poisson_sample_OBJS := test/poisson_sample.o src/util.o	\
+	src/rand_poisson.o src/constants.o
 
 ALL_FILES = $(PROGS) $(OTHER)
 ALL_SOURCE = $(ALL_FILES:%=%.f90)
@@ -141,14 +144,16 @@ src/process_state: $(process_state_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS)
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
+equilib/equilib: $(equilib_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
 test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
-equilib/equilib: $(equilib_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/emission_summary_to_history: $(emission_summary_to_history_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(emission_summary_to_history_OBJS)
+test/poisson_sample: $(poisson_sample_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(poisson_sample_OBJS)
 
 .PHONY: clean
 clean:
@@ -156,7 +161,7 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ src/*.mod
+	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ src/*.mod test/.gdb_history
 
 .PHONY: distclean
 distclean: cleanall

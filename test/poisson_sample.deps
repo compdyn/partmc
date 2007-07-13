@@ -1,0 +1,2 @@
+# DO NOT EDIT --- auto-generated file
+test/poisson_sample.o: src/mod_rand_poisson.mod src/mod_util.mod

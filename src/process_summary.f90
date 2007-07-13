@@ -18,9 +18,10 @@ program process_summary
   use mod_environ
   
   type(inout_file_t) :: in_file
-  integer :: f_out_env, f_out_gas, f_out_aero
+  integer :: f_out_env, f_out_gas, f_out_aero_binned, f_out_aero_total
   integer :: n_loop, n_time, i, i_loop, i_time, i_bin, i_loop_check
-  character(len=1000) :: name_in, name_out_env, name_out_gas, name_out_aero
+  character(len=1000) :: name_in, name_out_env, name_out_gas
+  character(len=1000) :: name_out_aero_binned, name_out_aero_total
   character(len=30) :: num_str
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
@@ -30,6 +31,7 @@ program process_summary
   type(environ), allocatable :: env(:,:), env_avg(:)
   type(aero_binned_t), allocatable :: aero_binned(:,:), aero_binned_avg(:)
   type(gas_state_t), allocatable :: gas_state(:,:), gas_state_avg(:)
+  real*8, allocatable :: tot_num_den(:), tot_vol_den(:,:)
  
   ! check there is exactly one commandline argument
   if (iargc() .ne. 1) then
@@ -53,26 +55,31 @@ program process_summary
   ! compute names of output files
   name_out_env = name_in
   name_out_gas = name_in
-  name_out_aero = name_in
+  name_out_aero_binned = name_in
+  name_out_aero_total = name_in
   name_out_env((i-1):) = '_env.d'
   name_out_gas((i-1):) = '_gas.d'
-  name_out_aero((i-1):) = '_aero.d'
+  name_out_aero_binned((i-1):) = '_aero_binned.d'
+  name_out_aero_total((i-1):) = '_aero_total.d'
   
   write(6,*) 'name_in = ', trim(name_in)
   write(6,*) 'name_out_env = ', trim(name_out_env)
   write(6,*) 'name_out_gas = ', trim(name_out_gas)
-  write(6,*) 'name_out_aero = ', trim(name_out_aero)
+  write(6,*) 'name_out_aero_binned = ', trim(name_out_aero_binned)
+  write(6,*) 'name_out_aero_total = ', trim(name_out_aero_total)
   
   ! allocate unit numbers
   f_out_env = get_unit()
   f_out_gas = get_unit()
-  f_out_aero = get_unit()
+  f_out_aero_binned = get_unit()
+  f_out_aero_total = get_unit()
 
   ! open files
   call inout_open_read(name_in, in_file)
   open(f_out_env, file=name_out_env)
   open(f_out_gas, file=name_out_gas)
-  open(f_out_aero, file=name_out_aero)
+  open(f_out_aero_binned, file=name_out_aero_binned)
+  open(f_out_aero_total, file=name_out_aero_total)
   
   ! read header
   call inout_read_integer(in_file, 'n_loop', n_loop)
@@ -85,6 +92,7 @@ program process_summary
   allocate(env(n_loop,n_time), env_avg(n_time))
   allocate(aero_binned(n_loop,n_time), aero_binned_avg(n_time))
   allocate(gas_state(n_loop,n_time), gas_state_avg(n_time))
+  allocate(tot_num_den(n_time), tot_vol_den(n_time,aero_data%n_spec))
 
   write(*,*) 'n_loop = ', n_loop
   write(*,*) 'n_time = ', n_time
@@ -101,12 +109,14 @@ program process_summary
      enddo
   enddo
   
-  ! compute simple loop averages
+  ! compute loop averages
   do i_time = 1,n_time
      call average_real(time(:,i_time), time_avg(i_time))
      call average_env(env(:,i_time), env_avg(i_time))
      call average_aero_binned(aero_binned(:,i_time), aero_binned_avg(i_time))
      call average_gas_state(gas_state(:,i_time), gas_state_avg(i_time))
+     tot_num_den(i_time) = sum(aero_binned_avg(i_time)%num_den)
+     tot_vol_den(i_time,:) = sum(aero_binned_avg(i_time)%vol_den, 1)
   enddo
 
   ! output environment
@@ -131,27 +141,40 @@ program process_summary
      end do
   end if
 
-  ! output aerosol
+  ! output aerosol binned
   write(num_str, '(i10)') aero_data%n_spec
   do i_time = 1,n_time
-     write(f_out_aero, '(a2,a10,e20.10)') '# ', 'time(s) = ', time_avg(i_time)
-     write(f_out_aero, '(a2,a)') '# ', 'species are volume density (m^3/m^3)'
-     write(f_out_aero, '(a1,a20,a20,'//num_str//'a20)') '#', &
+     write(f_out_aero_binned, '(a2,a10,e20.10)') '# ', 'time(s) = ', &
+          time_avg(i_time)
+     write(f_out_aero_binned, '(a2,a)') '# ', &
+          'species are volume density (m^3/m^3)'
+     write(f_out_aero_binned, '(a1,a20,a20,'//num_str//'a20)') '#', &
           'radius(m)', 'num_dens(#/m^3)', aero_data%name
      do i_bin = 1,bin_grid%n_bin
-        write(f_out_aero, '(a1,e20.10,e20.10,'//num_str//'e20.10)') ' ', &
-             vol2rad(bin_grid%v(i_bin)), &
+        write(f_out_aero_binned, '(a1,e20.10,e20.10,'//num_str//'e20.10)') &
+             ' ', vol2rad(bin_grid%v(i_bin)), &
              aero_binned_avg(i_time)%num_den(i_bin), &
              aero_binned_avg(i_time)%vol_den(i_bin,:)
      end do
-     write(f_out_aero, '(a)') ''
-     write(f_out_aero, '(a)') ''
+     write(f_out_aero_binned, '(a)') ''
+     write(f_out_aero_binned, '(a)') ''
+  end do
+
+  ! output aerosol totals
+  write(num_str, '(i10)') aero_data%n_spec
+  write(f_out_aero_total, '(a1,a20,a20,'//num_str//'a20)') '#', &
+       'time(s)', 'num_dens(#/m^3)', aero_data%name
+  ! FIXME: can we add (m^3/m^3) to the end of each name?
+  do i_time = 1,n_time
+     write(f_out_aero_total, '(a1,e20.10,e20.10,'//num_str//'e20.10)') ' ', &
+          time_avg(i_time), tot_num_den(i_time), tot_vol_den(i_time,:)
   end do
 
   call inout_close(in_file)
   close(f_out_env)
-  close(f_out_aero)
   close(f_out_gas)
+  close(f_out_aero_binned)
+  close(f_out_aero_total)
   
 end program process_summary
 

@@ -78,7 +78,7 @@ contains
     integer n_coag, tot_n_samp, tot_n_coag
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
-    integer i_time, pre_i_time
+    integer n_time, i_time, i_time_start, pre_i_time
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
@@ -139,7 +139,10 @@ contains
     last_progress_time = time
     last_state_time = time
     last_output_time = time
-    do while (time < mc_opt%t_max)
+    n_time = nint(mc_opt%t_max / mc_opt%del_t) + 1
+    i_time_start = nint(time / mc_opt%del_t)
+    do i_time = i_time_start,n_time
+
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env, aero_data, &
                aero_state, mc_opt, k_max, tot_n_samp, n_coag)
@@ -161,8 +164,7 @@ contains
        ! call check_aero_state(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
        
-       i_time = i_time + 1
-       time = time + mc_opt%del_t
+       time = dble(i_time) * mc_opt%del_t
 
        call update_environ(env, time)
        call environ_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)

@@ -655,28 +655,30 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine inout_write_bin_p(file, bin_p)
+  subroutine inout_write_bin_p(file, bin_n, bin_p)
     
     ! Write full state.
     
     use mod_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
-    type(bin_p_t), intent(in) :: bin_p ! bin_p to write
+    integer, intent(in) :: bin_n        ! number of entries to write
+    type(bin_p_t), intent(in) :: bin_p  ! bin_p to write
     
-    call inout_write_real_array_2d(file, 'bin_p', bin_p%p)
+    call inout_write_real_array_2d(file, 'bin_p', bin_p%p(1:bin_n,:))
     
   end subroutine inout_write_bin_p
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine inout_write_bin_p_array(file, bin_ps)
+  subroutine inout_write_bin_p_array(file, bin_ns, bin_ps)
     
     ! Write full state.
     
     use mod_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
+    integer, intent(in) :: bin_ns(:)    ! number to write for each bin_p
     type(bin_p_t), intent(in) :: bin_ps(:) ! bin_p array to write
     
     integer :: length, i
@@ -685,7 +687,7 @@ contains
     call inout_write_integer(file, 'bin_p_array_len', length)
     do i = 1,length
        call inout_write_integer(file, 'bin_p_array_entry', i)
-       call inout_write_bin_p(file, bin_ps(i))
+       call inout_write_bin_p(file, bin_ns(i), bin_ps(i))
     end do
     
   end subroutine inout_write_bin_p_array
@@ -703,7 +705,7 @@ contains
     
     call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_write_integer_array(file, "number_per_bin", aero_state%n)
-    call inout_write_bin_p_array(file, aero_state%v)
+    call inout_write_bin_p_array(file, aero_state%n, aero_state%v)
     
   end subroutine inout_write_aero_state
   

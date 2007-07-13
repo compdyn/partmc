@@ -140,7 +140,7 @@ contains
     last_state_time = time
     last_output_time = time
     n_time = nint(mc_opt%t_max / mc_opt%del_t) + 1
-    i_time_start = nint(time / mc_opt%del_t)
+    i_time_start = nint(time / mc_opt%del_t) + 1
     do i_time = i_time_start,n_time
 
        if (mc_opt%do_coagulation) then
@@ -187,14 +187,6 @@ contains
             time, mc_opt%i_loop)
        end if
 
-       write(*,*) mc_opt%i_loop
-       write(*,*) time
-       write(*,*) total_particles(aero_state)
-       write(*,*) tot_n_samp
-       write(*,*) n_coag
-       write(*,*) tot_n_coag
-       write(*,*) t_wall_est
-       
        if (mc_opt%t_progress > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_progress, &
                last_progress_time, do_progress)

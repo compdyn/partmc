@@ -139,7 +139,7 @@ contains
     last_progress_time = time
     last_state_time = time
     last_output_time = time
-    n_time = nint(mc_opt%t_max / mc_opt%del_t) + 1
+    n_time = nint(mc_opt%t_max / mc_opt%del_t)
     i_time_start = nint(time / mc_opt%del_t) + 1
     do i_time = i_time_start,n_time
 

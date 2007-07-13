@@ -1,0 +1,7 @@
+n_modes 1                       # number of initial aerosol modes
+
+# mode 1
+vol_frac comp_water.dat         # composition proportions of species
+num_conc 1d9                    # particle concentration (#/m^3)
+mode_type exp                   # type of mode
+mean_vol 4.1886d-15             # mean volume (m^3)

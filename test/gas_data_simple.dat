@@ -1,0 +1,8 @@
+# species    molecular weight (kg/mole)
+H2SO4           1d-3
+HNO3            1d-3
+HCl             1d-3
+NH3             1d-3
+NO              1d-3
+NO2             1d-3
+# FIXME: this data is totally bogus

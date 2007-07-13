@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/gas_data.o: src/mod_inout.mod
+src/mod_gas_data.mod: src/mod_inout.mod

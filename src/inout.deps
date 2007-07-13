@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/inout.o: src/mod_util.mod
+src/mod_inout.mod: src/mod_util.mod

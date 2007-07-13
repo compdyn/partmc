@@ -61,6 +61,7 @@ contains
          use mod_bin_grid
          use mod_environ
          use mod_aero_binned
+         use mod_aero_data
 
          type(bin_grid_t), intent(in) :: bin_grid ! bin grid
          type(aero_data_t), intent(in) :: aero_data ! aerosol data

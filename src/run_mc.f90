@@ -186,6 +186,14 @@ contains
             aero_data, aero_state, gas_data, gas_state, env, i_time, &
             time, mc_opt%i_loop)
        end if
+
+       write(*,*) mc_opt%i_loop
+       write(*,*) time
+       write(*,*) total_particles(aero_state)
+       write(*,*) tot_n_samp
+       write(*,*) n_coag
+       write(*,*) tot_n_coag
+       write(*,*) t_wall_est
        
        if (mc_opt%t_progress > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_progress, &

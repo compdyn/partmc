@@ -5,11 +5,11 @@ n_loop 1                        # number of Monte Carlo loops
 n_part 3                        # total number of particles
 kernel golovin                  # coagulation kernel
 
-t_max 600                       # total simulation time (s)
-del_t 1                         # timestep (s)
-t_output 0.1                    # output interval (0 disables) (s)
-t_state 1                       # state output interval (0 disables) (s)
-t_progress 0.1                  # progress printing interval (0 disables) (s)
+t_max 259200                    # total simulation time (s)
+del_t 10                         # timestep (s)
+t_output 600                      # output interval (0 disables) (s)
+t_state 0                        # state output interval (0 disables) (s)
+t_progress 600                    # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 v_min 1d-24                     # volume of smallest bin (m^3)
@@ -29,12 +29,12 @@ latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
 start_time 43200                # start time (s since 00:00 UTC)
-start_day 10                    # start day of year (UTC)
+start_day 200                   # start day of year (UTC)
 
 gas_emissions mosaic_gas_emissions.dat # gas emissions file
-gas_emission_rate 1d-1          # gas emission rate (s^{-1})
+gas_emission_rate 1d1           # gas emission rate (s^{-1})
 gas_background mosaic_gas_background.dat # background gas concentrations file
-gas_dilution_rate 1d-1          # gas dilution rate with background (s^{-1})
+gas_dilution_rate 0             # gas dilution rate with background (s^{-1})
 
 aerosol_emissions mosaic_aerosol_emissions.dat # aerosol emissions file
 aerosol_emission_rate 0         # aerosol emission rate (s^{-1})

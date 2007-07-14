@@ -1,9 +1,10 @@
 # species    initial concentration (ppb)
-H2SO4		1.0
-HNO3		10.0
-HCl		1.0
-NH3		5.0
-NO		2.0
-NO2		2.0
 O3		50.0
-CO		10.0
+NO2             0.5
+NO              0.2
+HNO3            0.1
+CO		200.0
+CH4             1700
+H2O2            2.0
+HCHO            1.0
+

@@ -5,8 +5,8 @@ n_loop 1                        # number of Monte Carlo loops
 n_part 3                        # total number of particles
 kernel golovin                  # coagulation kernel
 
-t_max 5                         # total simulation time (s)
-del_t 0.1                       # timestep (s)
+t_max 600                       # total simulation time (s)
+del_t 1                         # timestep (s)
 t_output 0.1                    # output interval (0 disables) (s)
 t_state 1                       # state output interval (0 disables) (s)
 t_progress 0.1                  # progress printing interval (0 disables) (s)
@@ -45,6 +45,6 @@ rand_init 17                    # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic no                   # whether to do MOSAIC (yes/no)
+do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
 restart_name XXXX.d             # filename to restart from

@@ -74,7 +74,7 @@ contains
 
       ! parameters
       mmode = 1               ! 1 = time integration, 2 = parametric analysis
-      mgas = 0                ! 1 = gas chem on, 0 = gas chem off
+      mgas = 1                ! 1 = gas chem on, 0 = gas chem off
       maer = 1                ! 1 = aer chem on, 0 = aer chem off
       mcld = 0                ! 1 = cld chem on, 0 = cld chem off
       maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off

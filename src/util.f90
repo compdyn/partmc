@@ -14,6 +14,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine assert(condition_ok)
+
+    ! Errors unless condition_ok is true.
+
+    logical, intent(in) :: condition_ok ! whether the assertion is ok
+
+    if (.not. condition_ok) then
+       write(0,*) 'ERROR: assertion failed'
+       call exit(3)
+    end if
+
+  end subroutine assert
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function get_unit()
     
     ! Returns an available unit number. This should be freed by free_unit().
@@ -69,15 +84,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function util_rand_disc(n)
+  integer function util_rand_int(n)
 
     ! Returns a random integer between 1 and n.
 
     integer, intent(in) :: n            ! maximum random number to generate
 
-    util_rand_disc = mod(int(util_rand() * dble(n)), n) + 1
+    util_rand_int = mod(int(util_rand() * dble(n)), n) + 1
+    call assert(util_rand_int >= 1)
+    call assert(util_rand_int <= n)
 
-  end function util_rand_disc
+  end function util_rand_int
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -423,7 +440,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_disc(n)
+       k = util_rand_int(n)
        if (util_rand() < pdf(k) / pdf_max) then
           found = .true.
        end if
@@ -457,7 +474,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_disc(n)
+       k = util_rand_int(n)
        if (util_rand() < dble(pdf(k)) / dble(pdf_max)) then
           found = .true.
        end if

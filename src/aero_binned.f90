@@ -59,6 +59,58 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine aero_binned_add_particle(aero_binned, bin_grid, &
+       comp_vol, aero_particle)
+
+    ! Updates binned data structures for the addition of the given
+    ! particle.
+
+    use mod_bin_grid
+    use mod_aero_particle
+
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
+    type(aero_particle_t), intent(in) :: aero_particle ! particle to add
+
+    integer :: b
+    
+    call aero_particle_in_bin(aero_particle, bin_grid, b)
+    aero_binned%num_den(b) = aero_binned%num_den(b) &
+         + 1d0 / comp_vol / bin_grid%dlnr
+    aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
+         + aero_particle%vols / comp_vol / bin_grid%dlnr
+
+  end subroutine aero_binned_add_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_remove_particle(aero_binned, bin_grid, &
+       comp_vol, aero_particle)
+
+    ! Updates binned data structures for the removal of the given
+    ! particle.
+
+    use mod_bin_grid
+    use mod_aero_particle
+
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
+    type(aero_particle_t), intent(in) :: aero_particle ! particle to remove
+
+    integer :: b
+    
+    call aero_particle_in_bin(aero_particle, bin_grid, b)
+    aero_binned%num_den(b) = aero_binned%num_den(b) &
+         - 1d0 / comp_vol / bin_grid%dlnr
+    aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
+         - aero_particle%vols / comp_vol / bin_grid%dlnr
+
+  end subroutine aero_binned_remove_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_write_aero_binned(file, aero_binned)
     
     ! Write full state.

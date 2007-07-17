@@ -13,24 +13,22 @@ program equilib
   use mod_environ
   use mod_util
   use mod_condensation
+  use mod_aero_particle
 
   character(len=*), parameter :: aero_filename = "aerosol.dat"
 
   type(inout_file_t) :: file
   type(environ) :: env
   type(aero_data_t) :: aero_data
-  real*8, allocatable :: V(:)
+  type(aero_particle_t) :: aero_particle
   character(len=300) :: tmp_str
   integer :: i
-
-  open(unit=40, file="temp.dat")
-  write(40, *) "Realling running!"
-  close(40)
 
   ! read aerosol data
   call inout_open_read(aero_filename, file)
   call inout_read_aero_data(file, aero_data)
   call inout_close(file)
+  call assert(aero_data%i_water > 0)
 
   ! check command line arguments
   if (iargc() .ne. (1 + aero_data%n_spec)) then
@@ -46,26 +44,32 @@ program equilib
   call getarg(2, tmp_str)
   env%RH = string_to_real(tmp_str)
 
-  allocate(V(aero_data%n_spec))
-  V = 0d0
+  call aero_particle_alloc(aero_data%n_spec, aero_particle)
   do i = 2,aero_data%n_spec
      call getarg(i + 1, tmp_str)
-     V(i) = string_to_real(tmp_str)
+     aero_particle%vols(i) = string_to_real(tmp_str)
   end do
 
-  call equilibriate_particle(aero_data%n_spec, V, env, aero_data)
+  ! do equilibriation
+  call equilibriate_particle(env, aero_data, aero_particle)
 
+  ! write results to stdout
   write(*,*) 'temp = ', env%T, ' K'
   write(*,*) 'RH = ', env%RH
   write(*,*) ''
-
   do i = 1,aero_data%n_spec
-     write(*,*) aero_data%name(i), V(i), ' m^{-3}'
+     write(*,*) aero_data%name(i), aero_particle%vols(i), ' m^{-3}'
   end do
 
   write(*,*) ''
-  write(*,*) 'Equilibrium water volume: ', V(aero_data%i_water), ' m^{-3}'
-  write(*,*) 'Dry volume: ', sum(V) - V(aero_data%i_water), ' m^{-3}'
-  write(*,*) 'Wet volume: ', sum(V), ' m^{-3}'
+  write(*,*) 'Equilibrium water volume: ', &
+       aero_particle%vols(aero_data%i_water), ' m^{-3}'
+  write(*,*) 'Dry volume: ', aero_particle_volume(aero_particle) - &
+       aero_particle%vols(aero_data%i_water), ' m^{-3}'
+  write(*,*) 'Wet volume: ', aero_particle_volume(aero_particle), ' m^{-3}'
+
+  call aero_particle_free(aero_particle)
+  call aero_data_free(aero_data)
+  call env_free(env)
 
 end program equilib

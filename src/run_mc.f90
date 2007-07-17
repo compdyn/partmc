@@ -99,7 +99,7 @@ contains
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then
           do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-             call double(aero_state)
+             call aero_state_double(aero_state)
           end do
        end if
        ! write data into output file so that it will look correct
@@ -134,7 +134,7 @@ contains
             aero_data, aero_state, gas_data, gas_state, env, i_time, &
             time, mc_opt%i_loop)
     end if
-    
+
     t_start = time
     last_progress_time = time
     last_state_time = time
@@ -161,7 +161,7 @@ contains
        end if
        
        ! DEBUG: enable to check array handling
-       ! call check_aero_state(bin_grid, aero_binned, aero_data, aero_state)
+       ! call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
        
        time = dble(i_time) * mc_opt%del_t
@@ -243,7 +243,7 @@ contains
        end subroutine kernel
     end interface
     
-    logical did_coag, bin_change
+    logical did_coag
     integer i, j, n_samp, i_samp, M
     real*8 n_samp_real
 
@@ -251,8 +251,9 @@ contains
     n_coag = 0
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call compute_n_samp(aero_state%n(i), aero_state%n(j), i == j, &
-               k_max(i,j), aero_state%comp_vol, mc_opt%del_t, n_samp_real)
+          call compute_n_samp(aero_state%bins(i)%n_part, &
+               aero_state%bins(j)%n_part, i == j, k_max(i,j), &
+               aero_state%comp_vol, mc_opt%del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = int(n_samp_real)
           if (util_rand() .lt. mod(n_samp_real, 1d0)) then
@@ -262,13 +263,14 @@ contains
           do i_samp = 1,n_samp
              M = total_particles(aero_state)
              ! check we still have enough particles to coagulate
-             if ((aero_state%n(i) < 1) .or. (aero_state%n(j) < 1) &
-                  .or. ((i == j) .and. (aero_state%n(i) < 2))) then
+             if ((aero_state%bins(i)%n_part < 1) &
+                  .or. (aero_state%bins(j)%n_part < 1) &
+                  .or. ((i == j) .and. (aero_state%bins(i)%n_part < 2))) then
                 exit
              end if
              call maybe_coag_pair(bin_grid, aero_binned, env, aero_data, &
                   aero_state, i, j, mc_opt%del_t, k_max(i,j), kernel, &
-                  did_coag, bin_change)
+                  did_coag)
              if (did_coag) n_coag = n_coag + 1
           enddo
        enddo
@@ -278,7 +280,7 @@ contains
     ! then double until we fill up the array
     if (mc_opt%allow_double) then
        do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
-          call double(aero_state)
+          call aero_state_double(aero_state)
        end do
     end if
     

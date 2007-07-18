@@ -4,14 +4,14 @@
 !
 ! Functions that deal with the bin grid.
 !
-! The grid of bins is logarithmically spaced, an assumption that is
-! quite heavily incorporated into the code. At some point in the
-! future it would be nice to relax this assumption.
+! The grid of bins is logarithmically spaced in volume, an assumption
+! that is quite heavily incorporated into the code. At some point in
+! the future it would be nice to relax this assumption.
 
 module mod_bin_grid
 
   type bin_grid_t
-     integer :: n_bin
+     integer :: n_bin                   ! number of bins
      real*8, pointer :: v(:)            ! len n_bin, bin center volumes (m^3)
      real*8 :: dlnr                     ! bin scale factor (1)
   end type bin_grid_t
@@ -62,30 +62,25 @@ contains
   end subroutine vol_to_lnr
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine make_bin_grid(n_bin, scal, v_min, bin_grid)
 
-    ! Generates the bin grid, given the minimum volume, number of grid
-    ! points, and the scale factor.
+  subroutine bin_grid_make(n_bin, v_min, v_max, bin_grid)
+
+    ! Generates the bin grid given the range and number of bins.
     
+    use mod_util
+
     integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: scal         ! scale factor
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
+    real*8, intent(in) :: v_max         ! minimum volume (m^3)
     type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
-    
-    integer :: i
-    real*8 :: ax
 
     call alloc_bin_grid(n_bin, bin_grid)
-    bin_grid%dlnr = dlog(2d0) / (3d0 * dble(scal)) ! ln(r(i) / r(i-1))
+    call logspace(v_min, v_max, n_bin, bin_grid%v)
+    ! dlnr = ln(r(i) / r(i-1))
+    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / dble(n_bin - 1)
 
-    ax = 2d0**(1d0 / dble(scal)) ! ratio bin_v(i)/bin_v(i-1)
-    do i = 1,n_bin
-       bin_grid%v(i) = v_min * 0.5d0 * (ax + 1d0) * ax**(i - 1)  ! (m^3)
-    end do
-    
-  end subroutine make_bin_grid
-  
+  end subroutine bin_grid_make
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bin_edge(bin_grid, i, v_edge)
@@ -175,17 +170,18 @@ contains
     ! generate it.
 
     use mod_inout
+    use mod_util
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
 
-    integer :: n_bin, scal
-    real*8 :: v_min
+    integer :: n_bin
+    real*8 :: r_min, r_max
 
     call inout_read_integer(file, 'n_bin', n_bin)
-    call inout_read_real(file, 'v_min', v_min)
-    call inout_read_integer(file, 'scal', scal)
-    call make_bin_grid(n_bin, scal, v_min, bin_grid)
+    call inout_read_real(file, 'r_min', r_min)
+    call inout_read_real(file, 'r_max', r_max)
+    call bin_grid_make(n_bin, rad2vol(r_min), rad2vol(r_max), bin_grid)
 
   end subroutine spec_read_bin_grid
 

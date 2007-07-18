@@ -1,2 +1,2 @@
 # DO NOT EDIT --- auto-generated file
-test/sedi_bidisperse_ode.o: src/mod_kernel_sedi.mod src/mod_environ.mod
+test/sedi_bidisperse_ode.o: src/mod_kernel_sedi.mod src/mod_environ.mod src/mod_util.mod src/mod_bin_grid.mod

@@ -281,6 +281,57 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine linspace(min, max, n, x)
+
+    ! Makes a linearly spaced array of length n from min to max.
+
+    real*8, intent(in) :: min           ! minimum array value
+    real*8, intent(in) :: max           ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(out) :: x(n)         ! array
+
+    integer :: i
+    real*8 :: a
+
+    do i = 2, (n - 1)
+       a = dble(i - 1) / dble(n - 1)
+       x(i) = (1d0 - a) * min + a * max
+    end do
+    if (n > 0) then
+       ! make sure these values are exact
+       x(1) = min
+       x(n) = max
+    end if
+    
+  end subroutine linspace
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine logspace(min, max, n, x)
+
+    ! Makes a logarithmically spaced array of length n from min to max.
+
+    real*8, intent(in) :: min           ! minimum array value
+    real*8, intent(in) :: max           ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(out) :: x(n)         ! array
+
+    real*8 :: log_x(n)
+
+    call assert(min > 0d0)
+    call assert(max > 0d0)
+    call linspace(log(min), log(max), n, log_x)
+    x = exp(log_x)
+    if (n > 0) then
+       ! make sure these values are exact
+       x(1) = min
+       x(n) = max
+    end if
+    
+  end subroutine logspace
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function find_1d(n, x_vals, x) ! position of x
 
     ! Takes an array of x_vals, and a single x value, and returns the

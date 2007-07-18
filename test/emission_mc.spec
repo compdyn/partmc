@@ -12,8 +12,8 @@ t_state 0                       # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
-v_min 1d-24                     # volume of smallest bin (m^3)
-scal 3                          # scale factor (integer)
+r_min 1e-8                      # minimum radius (m)
+r_max 1e-3                      # maximum radius (m)
 
 gas_data gas_data_simple.dat    # file containing gas data
 gas_init gas_init_simple.dat    # initial gas concentrations

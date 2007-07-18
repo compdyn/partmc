@@ -66,3 +66,7 @@ rename aero_binned_*() to pmc_ab_*(), etc
 all functions like type_*() should take a type as first argument.
 
 update comments at top of files
+
+change all 1d0 in .spec and data files to 1e0
+
+change all volumes in spec files (mean_vol for dists, etc) to radii

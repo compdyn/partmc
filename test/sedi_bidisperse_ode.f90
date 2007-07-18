@@ -4,6 +4,9 @@
 !
 ! Compute the evolution of a bidisperse distribution with the
 ! sedimentation kernel.
+!
+! This is a complete hack and is not supposed to be general or
+! re-usable.
 ! 
 ! The initial distribution consists of n_small small particles of
 ! size v_small, and one big particle of size v_big. The
@@ -18,25 +21,34 @@ program sedi_bidisperse_ode
   
   use mod_kernel_sedi
   use mod_environ
+  use mod_util
+  use mod_bin_grid
   
-  real*8, parameter :: v_small = 0.38519425489598699022d-14 ! volume of one small particle
-  real*8, parameter :: v_big_init = 0.39443891701349132422d-11 ! init volume of big particle
+  ! volume of one small particle
+  real*8, parameter :: v_small = 0.38542868295629027618d-14
+  ! initial volume of big particle
+  real*8, parameter :: v_big_init = 0.37488307899239913337d-11
   real*8, parameter :: n_small_init = 10000d0 ! init number of small particles
   real*8, parameter :: t_max = 600d0    ! total simulation time
   real*8, parameter :: del_t = 0.001d0  ! timestep
   real*8, parameter :: t_progress = 10d0 ! how often to print progress
-  real*8, parameter :: num_conc_small = 1d9   ! particle number concentration (#/m^3)
+  real*8, parameter :: num_conc_small = 1d9 ! particle number conc (#/m^3)
+  integer, parameter :: n_bin = 250     ! number of bins
+  real*8, parameter :: bin_r_min = 1d-8 ! minimum bin radius (m)
+  real*8, parameter :: bin_r_max = 1d0  ! minimum bin radius (m)
   integer, parameter :: scal = 3        ! scale factor for bins
   integer, parameter :: out_unit = 33   ! output unit number
   character(len=*), parameter :: out_name = "out/sedi_bidisperse_ode_counts.d"
   
   type(environ) :: env
   integer :: i_step, n_step
-  real*8 :: comp_vol, n_small, time, v_big, dlnr, num_conc
+  real*8 :: comp_vol, n_small, time, dlnr, v_big, num_conc
+  type(bin_grid_t) :: bin_grid
 
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
-  dlnr = dlog(2d0) / (3d0 * dble(scal))
+  call bin_grid_make(n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max), bin_grid)
+  dlnr = bin_grid%dlnr
 
   open(unit=out_unit, file=out_name)
   time = 0d0

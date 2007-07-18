@@ -128,11 +128,7 @@ contains
     call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
     
-    if (rand_init /= 0) then
-       call srand(rand_init)
-    else
-       call srand(time())
-    end if
+    call util_srand(rand_init)
 
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     call gas_state_alloc(gas_data%n_spec, gas_state)
@@ -146,7 +142,7 @@ contains
        call aero_state_copy(aero_init, aero_state)
 
        if (mc_opt%do_condensation) then
-          call equilibriate_aero(bin_grid, env, aero_data, aero_state)
+          call aero_state_equilibriate(bin_grid, env, aero_data, aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then
@@ -207,8 +203,6 @@ contains
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
     
-    call alloc_env(env)
-
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_real(file, 'num_conc', exact_opt%num_conc)
 
@@ -293,8 +287,6 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
-
-    call alloc_env(env)
 
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'kernel', kernel_name)

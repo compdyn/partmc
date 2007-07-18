@@ -143,7 +143,6 @@ contains
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
 
     ! read the filename then read the data from that file
     call inout_read_string(file, name, read_name)
@@ -152,9 +151,8 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    n_species = species_data_shape(1)
-    if (.not. ((species_data_shape(2) == 1) .or. (n_species == 0))) then
+    n_species = size(species_data, 1)
+    if (.not. ((size(species_data, 2) == 1) .or. (n_species == 0))) then
        write(0,*) 'ERROR: each line in ', trim(read_name), &
             ' should contain exactly one data value'
        call exit(1)

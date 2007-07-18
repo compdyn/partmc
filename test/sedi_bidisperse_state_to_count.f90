@@ -50,8 +50,8 @@ program sedi_bidisperse_state_to_count
         j = 1
      else
         do j = 1,bin_grid%n_bin
-           if (aero_state%n(j) > 0) then
-              n_small = aero_state%n(j)
+           if (aero_state%bins(j)%n_part > 0) then
+              n_small = aero_state%bins(j)%n_part
               exit
            end if
         end do
@@ -59,8 +59,8 @@ program sedi_bidisperse_state_to_count
 
      v_big = 0d0
      do j = (j + 1),bin_grid%n_bin
-        do k = 1,aero_state%n(j)
-           v_big = v_big + particle_volume(aero_state%v(j)%p(k,:))
+        do k = 1,aero_state%bins(j)%n_part
+           v_big = v_big + aero_particle_volume(aero_state%bins(j)%particles(k))
         end do
      end do
 

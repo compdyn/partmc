@@ -23,7 +23,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_aero_data(aero_data, n_spec)
+  subroutine aero_data_alloc(aero_data, n_spec)
 
     ! Allocate storage for aero_data parameters given the number of
     ! species.
@@ -40,7 +40,24 @@ contains
     allocate(aero_data%M_w(n_spec))
     aero_data%i_water = 0
 
-  end subroutine allocate_aero_data
+  end subroutine aero_data_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_data_free(aero_data)
+
+    ! Frees all storage.
+
+    type(aero_data_t), intent(inout) :: aero_data ! aerosol data
+
+    deallocate(aero_data%name)
+    deallocate(aero_data%mosaic_index)
+    deallocate(aero_data%rho)
+    deallocate(aero_data%nu)
+    deallocate(aero_data%eps)
+    deallocate(aero_data%M_w)
+
+  end subroutine aero_data_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -72,7 +89,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_aero_data_water_index(aero_data)
+  subroutine set_aero_particle_water_index(aero_data)
 
     ! Fills in aero_data%i_water.
 
@@ -86,7 +103,7 @@ contains
        end if
     end do
 
-  end subroutine set_aero_data_water_index
+  end subroutine set_aero_particle_water_index
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -118,115 +135,6 @@ contains
     end do
 
   end subroutine set_aero_data_mosaic_map
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function particle_mass(V, aero_data) ! kg
-
-    ! Total mass of the particle.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    
-    real*8 pm
-    integer i
-
-    pm = 0d0
-    do i = 1,aero_data%n_spec
-       pm = pm + V(i) * aero_data%rho(i)
-    end do
-    particle_mass = pm
-
-  end function particle_mass
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function particle_volume(V) ! m^3
-
-    ! Total volume of the particle.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    
-    real*8 pv
-    integer i, n_spec
-
-    n_spec = size(V)
-    pv = 0d0
-    do i = 1,n_spec
-       pv = pv + V(i)
-    end do
-    particle_volume = pv
-
-  end function particle_volume
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function average_solute_quantity(V, aero_data, quantity)
-
-    ! Returns the volume-average of the non-water elements of quantity.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to average
-
-    real*8 :: ones(aero_data%n_spec)
-
-    ones = 1d0
-    average_solute_quantity = total_solute_quantity(V, aero_data, quantity) &
-         / total_solute_quantity(V, aero_data, ones)
-
-  end function average_solute_quantity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function total_solute_quantity(V, aero_data, quantity)
-
-    ! Returns the volume-total of the non-water elements of quantity.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to total
-
-    real*8 total
-    integer i
-
-    total = 0d0
-    do i = 1,aero_data%n_spec
-       if (i .ne. aero_data%i_water) then
-          total = total + V(i) * quantity(i)
-       end if
-    end do
-    total_solute_quantity = total
-
-  end function total_solute_quantity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function average_water_quantity(V, aero_data, quantity)
-
-    ! Returns the water element of quantity.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to average
-
-    average_water_quantity = quantity(aero_data%i_water)
-
-  end function average_water_quantity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function total_water_quantity(V, aero_data, quantity)
-
-    ! Returns the volume-total of the water element of quantity.
-
-    real*8, intent(in) :: V(:)          ! species volumes (m^3)
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to total
-
-    total_water_quantity = V(aero_data%i_water) * quantity(aero_data%i_water)
-
-  end function total_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -288,21 +196,19 @@ contains
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
 
     call inout_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    n_species = species_data_shape(1)
-    if (.not. ((species_data_shape(2) == 4) .or. (n_species == 0))) then
+    n_species = size(species_data, 1)
+    if (.not. ((size(species_data, 2) == 4) .or. (n_species == 0))) then
        write(0,*) 'ERROR: each line in ', trim(file%name), &
             ' should contain exactly 4 values'
        call exit(1)
     end if
 
     ! allocate and copy over the data
-    call allocate_aero_data(aero_data, n_species)
+    call aero_data_alloc(aero_data, n_species)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)
        if (species_name(i) == "H2O") then
@@ -313,7 +219,7 @@ contains
        aero_data%eps(i) = species_data(i,3)
        aero_data%M_w(i) = species_data(i,4)
     end do
-    call set_aero_data_water_index(aero_data)
+    call set_aero_particle_water_index(aero_data)
     call set_aero_data_mosaic_map(aero_data)
 
   end subroutine spec_read_aero_data

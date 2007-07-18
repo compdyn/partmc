@@ -12,8 +12,8 @@ t_state 0                       # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
-v_min 1d-24                     # volume of smallest bin (m^3)
-scal 3                          # scale factor (integer)
+r_min 1e-8                      # minimum radius (m)
+r_max 1e-3                      # maximum radius (m)
 
 gas_data gas_data_simple.dat    # file containing gas data
 gas_init gas_init_simple.dat    # initial gas concentrations
@@ -41,7 +41,7 @@ aerosol_emission_rate 0.5e-2    # aerosol emission rate (s^{-1})
 aerosol_background emission_background.dat # aerosol background file
 aerosol_dilution_rate 1e-2      # aerosol dilution rate with background (s^{-1})
 
-rand_init 22                    # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double no                 # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

@@ -14,6 +14,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine assert(condition_ok)
+
+    ! Errors unless condition_ok is true.
+
+    logical, intent(in) :: condition_ok ! whether the assertion is ok
+
+    if (.not. condition_ok) then
+       write(0,*) 'ERROR: assertion failed'
+       call exit(3)
+    end if
+
+  end subroutine assert
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function get_unit()
     
     ! Returns an available unit number. This should be freed by free_unit().
@@ -51,6 +66,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine util_srand(seed)
+
+    ! Initializes the random number generator to the state defined by
+    ! the given seed. If the seed is 0 then a seed is auto-generated
+    ! from the current time.
+
+    integer, intent(in) :: seed         ! random number generator seed
+
+!#ifdef USE_F95_RAND
+    integer :: i, n, clock
+    integer, allocatable :: seed_vec(:)
+
+    call random_seed(size = n)
+    allocate(seed_vec(n))
+    if (seed == 0) then
+       call system_clock(count = clock)
+    else
+       clock = seed
+    end if
+    seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
+    call random_seed(put = seed_vec)
+    deallocate(seed_vec)
+!#else
+!    if (seed == 0) then
+!       call srand(time())
+!    else
+!       call srand(seed)
+!    end if
+!#endif
+
+  end subroutine util_srand
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   real*8 function util_rand()
 
     ! Returns a random number between 0 and 1. Call this function
@@ -59,6 +108,7 @@ contains
 
 !#ifdef USE_F95_RAND
     real*8 rnd
+
     call random_number(rnd)
     util_rand = rnd
 !#else
@@ -69,15 +119,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function util_rand_disc(n)
+  integer function util_rand_int(n)
 
     ! Returns a random integer between 1 and n.
 
     integer, intent(in) :: n            ! maximum random number to generate
 
-    util_rand_disc = mod(int(util_rand() * dble(n)), n) + 1
+    util_rand_int = mod(int(util_rand() * dble(n)), n) + 1
+    call assert(util_rand_int >= 1)
+    call assert(util_rand_int <= n)
 
-  end function util_rand_disc
+  end function util_rand_int
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -264,6 +316,57 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine linspace(min, max, n, x)
+
+    ! Makes a linearly spaced array of length n from min to max.
+
+    real*8, intent(in) :: min           ! minimum array value
+    real*8, intent(in) :: max           ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(out) :: x(n)         ! array
+
+    integer :: i
+    real*8 :: a
+
+    do i = 2, (n - 1)
+       a = dble(i - 1) / dble(n - 1)
+       x(i) = (1d0 - a) * min + a * max
+    end do
+    if (n > 0) then
+       ! make sure these values are exact
+       x(1) = min
+       x(n) = max
+    end if
+    
+  end subroutine linspace
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine logspace(min, max, n, x)
+
+    ! Makes a logarithmically spaced array of length n from min to max.
+
+    real*8, intent(in) :: min           ! minimum array value
+    real*8, intent(in) :: max           ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(out) :: x(n)         ! array
+
+    real*8 :: log_x(n)
+
+    call assert(min > 0d0)
+    call assert(max > 0d0)
+    call linspace(log(min), log(max), n, log_x)
+    x = exp(log_x)
+    if (n > 0) then
+       ! make sure these values are exact
+       x(1) = min
+       x(n) = max
+    end if
+    
+  end subroutine logspace
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function find_1d(n, x_vals, x) ! position of x
 
     ! Takes an array of x_vals, and a single x value, and returns the
@@ -423,7 +526,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_disc(n)
+       k = util_rand_int(n)
        if (util_rand() < pdf(k) / pdf_max) then
           found = .true.
        end if
@@ -457,7 +560,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_disc(n)
+       k = util_rand_int(n)
        if (util_rand() < dble(pdf(k)) / dble(pdf_max)) then
           found = .true.
        end if

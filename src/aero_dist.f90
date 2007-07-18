@@ -28,7 +28,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_aero_mode(n_bin, n_spec, aero_mode)
+  subroutine aero_mode_alloc(n_bin, n_spec, aero_mode)
 
     ! Allocates an aero_mode.
 
@@ -39,11 +39,24 @@ contains
     allocate(aero_mode%n_den(n_bin))
     allocate(aero_mode%vol_frac(n_spec))
 
-  end subroutine alloc_aero_mode
+  end subroutine aero_mode_alloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_aero_dist(n_modes, n_bin, n_spec, aero_dist)
+  subroutine aero_mode_free(aero_mode)
+
+    ! Free all storage.
+
+    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
+
+    deallocate(aero_mode%n_den)
+    deallocate(aero_mode%vol_frac)
+
+  end subroutine aero_mode_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_alloc(n_modes, n_bin, n_spec, aero_dist)
 
     ! Allocates an aero_dist.
 
@@ -57,10 +70,27 @@ contains
     aero_dist%n_modes = n_modes
     allocate(aero_dist%modes(n_modes))
     do i = 1,n_modes
-       call alloc_aero_mode(n_bin, n_spec, aero_dist%modes(i))
+       call aero_mode_alloc(n_bin, n_spec, aero_dist%modes(i))
     end do
 
-  end subroutine alloc_aero_dist
+  end subroutine aero_dist_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_free(aero_dist)
+
+    ! Free all storage.
+
+    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
+
+    integer :: i
+
+    do i = 1,aero_dist%n_modes
+       call aero_mode_free(aero_dist%modes(i))
+    end do
+    deallocate(aero_dist%modes)
+
+  end subroutine aero_dist_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -271,7 +301,6 @@ contains
     type(inout_file_t) :: read_file
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
     real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
@@ -281,14 +310,13 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    n_species = species_data_shape(1)
+    n_species = size(species_data, 1)
     if (n_species < 1) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' must contain at least one line of data'
        call exit(1)
     end if
-    if (species_data_shape(2) /= 1) then
+    if (size(species_data, 2) /= 1) then
        write(0,*) 'ERROR: each line in ', trim(read_name), &
             ' should contain exactly one data value'
        call exit(1)
@@ -452,7 +480,7 @@ contains
 
     n_bin = size(aero_mode_vec(1)%n_den)
     n_spec = size(aero_mode_vec(1)%vol_frac)
-    call alloc_aero_mode(n_bin, n_spec, aero_mode_avg)
+    call aero_mode_alloc(n_bin, n_spec, aero_mode_avg)
     n = size(aero_mode_vec)
     do i_bin = 1,n_bin
        call average_real((/(aero_mode_vec(i)%n_den(i_bin),i=1,n)/), &
@@ -477,7 +505,7 @@ contains
     integer :: n_modes, i_mode, i, n
 
     n_modes = aero_dist_vec(1)%n_modes
-    call alloc_aero_dist(n_modes, 0, 0, aero_dist_avg)
+    call aero_dist_alloc(n_modes, 0, 0, aero_dist_avg)
     n = size(aero_dist_vec)
     do i_mode = 1,n_modes
        call average_aero_mode((/(aero_dist_vec(i)%modes(i_mode),i=1,n)/), &

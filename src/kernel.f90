@@ -5,7 +5,6 @@
 ! Generic kernel functions.
 
 module mod_kernel
-
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

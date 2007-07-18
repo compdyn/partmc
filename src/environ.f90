@@ -41,7 +41,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_env(env)
+  subroutine env_alloc(env)
 
     ! Allocate an empty environment.
 
@@ -57,21 +57,37 @@ contains
     env%start_time = 0d0
     env%start_day = 0
 
-    call allocate_environ_temps(env, 0)
+    call environ_temps_alloc(env, 0)
     call gas_state_alloc(0, env%gas_emissions)
     call gas_state_alloc(0, env%gas_background)
     env%gas_emission_rate = 0d0
     env%gas_dilution_rate = 0d0
-    call alloc_aero_dist(0, 0, 0, env%aero_emissions)
-    call alloc_aero_dist(0, 0, 0, env%aero_background)
+    call aero_dist_alloc(0, 0, 0, env%aero_emissions)
+    call aero_dist_alloc(0, 0, 0, env%aero_background)
     env%aero_emission_rate = 0d0
     env%aero_dilution_rate = 0d0
 
-  end subroutine alloc_env
+  end subroutine env_alloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine allocate_environ_temps(env, n_temps)
+  subroutine env_free(env)
+
+    ! Free all storage.
+
+    type(environ), intent(out) :: env ! environment
+
+    call environ_temps_free(env)
+    call gas_state_free(env%gas_emissions)
+    call gas_state_free(env%gas_background)
+    call aero_dist_free(env%aero_emissions)
+    call aero_dist_free(env%aero_background)
+
+  end subroutine env_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine environ_temps_alloc(env, n_temps)
 
     ! Allocate storage for a given number of temperature set points.
 
@@ -82,7 +98,20 @@ contains
     allocate(env%temp_times(n_temps))
     allocate(env%temps(n_temps))
 
-  end subroutine allocate_environ_temps
+  end subroutine environ_temps_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine environ_temps_free(env)
+
+    ! Free all storage.
+
+    type(environ), intent(inout) :: env ! environment
+
+    deallocate(env%temp_times)
+    deallocate(env%temps)
+    
+  end subroutine environ_temps_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -392,7 +421,6 @@ contains
     type(inout_file_t) :: read_file
     character(len=MAX_CHAR_LEN), pointer :: times_name(:), temps_name(:)
     real*8, pointer :: times_data(:,:), temps_data(:,:)
-    integer :: times_data_shape(2), temps_data_shape(2)
 
     ! read the tempurature data from the specified file
     call inout_read_string(file, 'temp_profile', read_name)
@@ -406,21 +434,19 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    times_data_shape = shape(times_data)
-    temps_data_shape = shape(temps_data)
-    n_temps = temps_data_shape(2)
+    n_temps = size(temps_data, 2)
     if (n_temps < 1) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' must contain at least one line of data'
        call exit(1)
     end if
-    if (times_data_shape(2) /= temps_data_shape(2)) then
+    if (size(times_data, 2) /= size(temps_data, 2)) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' should contain exactly two lines with equal numbers of values'
        call exit(1)
     end if
 
-    call allocate_environ_temps(env, n_temps)
+    call environ_temps_alloc(env, n_temps)
     env%temp_times = times_data(1,:)
     env%temps = temps_data(1,:)
     call inout_read_real(file, 'RH', env%RH)
@@ -472,7 +498,7 @@ contains
     call average_integer(env_vec%start_day, env_avg%start_day)
     call average_integer(env_vec%n_temps, env_avg%n_temps)
     n_temps = env_avg%n_temps
-    call allocate_environ_temps(env_avg, n_temps)
+    call environ_temps_alloc(env_avg, n_temps)
     n = size(env_vec)
     do i_temp = 1,n_temps
        call average_real((/(env_vec(i)%temp_times(i_temp),i=1,n)/), &

@@ -86,7 +86,9 @@ contains
   subroutine bin_edge(bin_grid, i, v_edge)
 
     ! Given a bin_grid (which stores the center points of the bins),
-    ! find the given edge volume.
+    ! find the given edge volume. With n_bin bin centers there are
+    ! (n_bin + 1) bin edges, so bin center bin_grid%v(i) is between
+    ! bin edges i and (i + 1).
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
@@ -105,6 +107,35 @@ contains
   end subroutine bin_edge
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine particle_in_bin_fast(v, bin_grid, k)
+    
+    ! Find the bin number that contains a given particle. This assumes
+    ! logarithmically spaced bins.
+
+    use mod_util
+    
+    real*8, intent(in) :: v             ! volume of particle
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    integer, intent(out) :: k           ! bin number containing particle
+
+    real*8 :: log_v_min, log_v_max, log_edge_min, log_edge_max
+    real*8 :: half_log_delta
+
+    call assert(bin_grid%n_bin > 2)
+    log_v_min = log(bin_grid%v(1))
+    log_v_max = log(bin_grid%v(bin_grid%n_bin))
+    half_log_delta = (log_v_max - log_v_min) / dble(2 * (bin_grid%n_bin - 1))
+    log_edge_min = log_v_min + half_log_delta
+    log_edge_max = log_v_max - half_log_delta
+    k = ceiling((log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
+         * dble(bin_grid%n_bin - 2)) + 1
+    k = max(k, 1)
+    k = min(k, bin_grid%n_bin)
+    
+  end subroutine particle_in_bin_fast
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine particle_in_bin(v, bin_grid, k)
     
@@ -114,14 +145,13 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(out) :: k           ! bin number containing particle
     
-    ! FIXME: for log-spaced bins we can do this without search, but we
-    ! plan to switch to arbitrary bins at some point, so maybe just
-    ! leave it like it is for now.
+    real*8 :: edge
 
     k = 0
 300 k = k + 1
     if (k .lt. bin_grid%n_bin) then
-       if (v .gt. (bin_grid%v(k) + bin_grid%v(k+1)) / 2d0) then
+       call bin_edge(bin_grid, k + 1, edge)
+       if (v .gt. edge) then
           goto 300
        end if
     end if

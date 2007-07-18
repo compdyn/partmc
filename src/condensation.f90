@@ -330,6 +330,7 @@ contains
        subroutine func(env, aero_data, init, x, f, df, aero_particle)
          use mod_environ
          use mod_aero_data
+         use mod_aero_particle
          type(environ), intent(in) :: env  ! environment state
          type(aero_data_t), intent(in) :: aero_data ! aerosol data
          logical, intent(in) :: init       ! true if first Newton loop

@@ -128,11 +128,7 @@ contains
     call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
     
-    if (rand_init /= 0) then
-       call srand(rand_init)
-    else
-       call srand(time())
-    end if
+    call util_srand(rand_init)
 
     call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
     call gas_state_alloc(gas_data%n_spec, gas_state)

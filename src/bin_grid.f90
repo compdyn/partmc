@@ -110,7 +110,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine particle_in_bin_fast(v, bin_grid, k)
+  subroutine particle_in_bin(v, bin_grid, k)
     
     ! Find the bin number that contains a given particle. This assumes
     ! logarithmically spaced bins.
@@ -135,13 +135,14 @@ contains
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)
     
-  end subroutine particle_in_bin_fast
+  end subroutine particle_in_bin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine particle_in_bin(v, bin_grid, k)
+  subroutine particle_in_bin_search(v, bin_grid, k)
     
-    ! Find the bin number that contains a given particle.
+    ! Find the bin number that contains a given particle using a
+    ! simple search that does not assume a log-spaced bin grid.
     
     real*8, intent(in) :: v             ! volume of particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
@@ -158,7 +159,7 @@ contains
        end if
     end if
     
-  end subroutine particle_in_bin
+  end subroutine particle_in_bin_search
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

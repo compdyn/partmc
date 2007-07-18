@@ -70,3 +70,5 @@ update comments at top of files
 change all 1d0 in .spec and data files to 1e0
 
 change all volumes in spec files (mean_vol for dists, etc) to radii
+
+what's happending with util_rand() and USE_F95_RAND?

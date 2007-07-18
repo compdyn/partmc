@@ -41,7 +41,7 @@ aerosol_emission_rate 0.5e-2    # aerosol emission rate (s^{-1})
 aerosol_background emission_background.dat # aerosol background file
 aerosol_dilution_rate 1e-2      # aerosol dilution rate with background (s^{-1})
 
-rand_init 22                    # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double no                 # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

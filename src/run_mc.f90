@@ -161,7 +161,7 @@ contains
        end if
        
        ! DEBUG: enable to check array handling
-       call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
+       ! call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
        
        time = dble(i_time) * mc_opt%del_t

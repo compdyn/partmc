@@ -66,6 +66,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine util_srand(seed)
+
+    ! Initializes the random number generator to the state defined by
+    ! the given seed. If the seed is 0 then a seed is auto-generated
+    ! from the current time.
+
+    integer, intent(in) :: seed         ! random number generator seed
+
+!#ifdef USE_F95_RAND
+    integer :: i, n, clock
+    integer, allocatable :: seed_vec(:)
+
+    call random_seed(size = n)
+    allocate(seed_vec(n))
+    if (seed == 0) then
+       call system_clock(count = clock)
+    else
+       clock = seed
+    end if
+    seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
+    call random_seed(put = seed_vec)
+    deallocate(seed_vec)
+!#else
+!    if (seed == 0) then
+!       call srand(time())
+!    else
+!       call srand(seed)
+!    end if
+!#endif
+
+  end subroutine util_srand
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   real*8 function util_rand()
 
     ! Returns a random number between 0 and 1. Call this function
@@ -74,6 +108,7 @@ contains
 
 !#ifdef USE_F95_RAND
     real*8 rnd
+
     call random_number(rnd)
     util_rand = rnd
 !#else

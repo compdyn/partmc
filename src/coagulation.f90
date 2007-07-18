@@ -161,13 +161,13 @@ contains
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
-       call aero_particle_array_remove_particle(aero_state%bins(b2), s2)
-       call aero_particle_array_remove_particle(aero_state%bins(b1), s1)
+       call aero_state_remove_particle(aero_state, b2, s2)
+       call aero_state_remove_particle(aero_state, b1, s1)
     else
-       call aero_particle_array_remove_particle(aero_state%bins(b1), s1)
-       call aero_particle_array_remove_particle(aero_state%bins(b2), s2)
+       call aero_state_remove_particle(aero_state, b1, s1)
+       call aero_state_remove_particle(aero_state, b2, s2)
     end if
-    call aero_particle_array_add_particle(aero_state%bins(bn), new_particle)
+    call aero_state_add_particle(aero_state, bn, new_particle)
 
     call aero_particle_free(new_particle)
     

@@ -8,6 +8,7 @@ module mod_aero_particle
 
   type aero_particle_t
      real*8, pointer :: vols(:)          ! constituent species volumes
+     integer :: n_orig_part              ! number of original particles
   end type aero_particle_t
 
 contains
@@ -58,6 +59,7 @@ contains
     end if
     call assert(size(aero_particle_from%vols) == size(aero_particle_to%vols))
     aero_particle_to%vols = aero_particle_from%vols
+    aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
 
   end subroutine aero_particle_copy
   
@@ -73,7 +75,8 @@ contains
 
     aero_particle_to%vols => aero_particle_from%vols
     nullify(aero_particle_from%vols)
-
+    aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
+    
   end subroutine aero_particle_shift
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -85,6 +88,7 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle ! particle to zero
     
     aero_particle%vols = 0d0
+    aero_particle%n_orig_part = 1
 
   end subroutine aero_particle_zero
   
@@ -377,6 +381,8 @@ contains
     call assert(size(aero_particle_1%vols) == size(aero_particle_new%vols))
     call assert(size(aero_particle_2%vols) == size(aero_particle_new%vols))
     aero_particle_new%vols = aero_particle_1%vols + aero_particle_2%vols
+    aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
+         + aero_particle_2%n_orig_part
 
   end subroutine aero_particle_coagulate
 
@@ -391,6 +397,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(in) :: aero_particle ! aero_particle to write
     
+    call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vols)
     
   end subroutine inout_write_aero_particle
@@ -406,6 +413,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(out) :: aero_particle ! aero_particle to read
 
+    call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vols)
     
   end subroutine inout_read_aero_particle

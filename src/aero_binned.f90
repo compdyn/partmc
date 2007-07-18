@@ -26,8 +26,6 @@ contains
     allocate(aero_binned%num_den(n_bin))
     allocate(aero_binned%vol_den(n_bin, n_spec))
     call aero_binned_zero(aero_binned)
-    aero_binned%num_den = 0d0
-    aero_binned%vol_den = 0d0
 
   end subroutine aero_binned_alloc
 

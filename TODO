@@ -1,14 +1,6 @@
 
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
-The initialization routines in init_dist.f are assuming
-logarithmically spaced bins, irrespective of what bin_r and bin_v
-actually contain. dlnr is the width of a bin in the logarithmic scale,
-and we just multiply this by the density to get the number per bin. We
-should instead multiply the density by ln(bin_right_edge) -
-ln(bin_left_edge) or similar. In general, we should stop passing dlnr
-around, as it should be recalculable from bin_r for each bin.
-
 Use HDF or CDF or something to store state. (and output?)
 
 Get a better bessel function so that we can compute the exact golovin
@@ -52,8 +44,6 @@ and should call them.
 pass full particle data to the kernel_*() functions so that we can do
 proper density-dependent brownian kernels. Requires a separate
 max_kernel_*() function for each one.
-
-Add a field to particle_t to track number of coagulation events.
 
 Fix process_state.
 

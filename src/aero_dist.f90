@@ -301,7 +301,6 @@ contains
     type(inout_file_t) :: read_file
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
     real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
@@ -311,14 +310,13 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    n_species = species_data_shape(1)
+    n_species = size(species_data, 1)
     if (n_species < 1) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' must contain at least one line of data'
        call exit(1)
     end if
-    if (species_data_shape(2) /= 1) then
+    if (size(species_data, 2) /= 1) then
        write(0,*) 'ERROR: each line in ', trim(read_name), &
             ' should contain exactly one data value'
        call exit(1)

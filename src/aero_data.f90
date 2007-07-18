@@ -196,14 +196,12 @@ contains
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
 
     call inout_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    n_species = species_data_shape(1)
-    if (.not. ((species_data_shape(2) == 4) .or. (n_species == 0))) then
+    n_species = size(species_data, 1)
+    if (.not. ((size(species_data, 2) == 4) .or. (n_species == 0))) then
        write(0,*) 'ERROR: each line in ', trim(file%name), &
             ' should contain exactly 4 values'
        call exit(1)

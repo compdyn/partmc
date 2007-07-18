@@ -154,7 +154,6 @@ contains
     type(inout_file_t) :: read_file
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
-    integer :: species_data_shape(2)
 
     ! read the gas data from the specified file
     call inout_read_string(file, 'gas_data', read_name)
@@ -163,15 +162,14 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    species_data_shape = shape(species_data)
-    if (species_data_shape(2) /= 1) then
+    if (size(species_data, 2) /= 1) then
        write(0,*) 'ERROR: each line in ', trim(read_name), &
             ' should only contain one value'
        call exit(1)
     end if
 
     ! allocate and copy over the data
-    n_species = species_data_shape(1)
+    n_species = size(species_data, 1)
     call alloc_gas_data(n_species, gas_data)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)

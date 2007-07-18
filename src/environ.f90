@@ -421,7 +421,6 @@ contains
     type(inout_file_t) :: read_file
     character(len=MAX_CHAR_LEN), pointer :: times_name(:), temps_name(:)
     real*8, pointer :: times_data(:,:), temps_data(:,:)
-    integer :: times_data_shape(2), temps_data_shape(2)
 
     ! read the tempurature data from the specified file
     call inout_read_string(file, 'temp_profile', read_name)
@@ -435,15 +434,13 @@ contains
     call inout_close(read_file)
 
     ! check the data size
-    times_data_shape = shape(times_data)
-    temps_data_shape = shape(temps_data)
-    n_temps = temps_data_shape(2)
+    n_temps = size(temps_data, 2)
     if (n_temps < 1) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' must contain at least one line of data'
        call exit(1)
     end if
-    if (times_data_shape(2) /= temps_data_shape(2)) then
+    if (size(times_data, 2) /= size(temps_data, 2)) then
        write(0,*) 'ERROR: file ', trim(read_name), &
             ' should contain exactly two lines with equal numbers of values'
        call exit(1)

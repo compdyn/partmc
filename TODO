@@ -21,16 +21,12 @@ and then using a slow sampling to pick samples one-by-one.
 Add bin edges to bin_grid. Use a 1D_search to locate particle in
 bin. Compute the bin_centers and bin_edges using something like
 logspace(1e-24,1e-4,160), rather than always assuming logarithmically
-spaced bins.
-
-make_bin_grid should take r_min, r_max and n_bin
+spaced bins. Add a bin_width() array to use instead of dlnr.
 
 rename environ to env_t
 
 check that each top-level data_type is in the file data_type.f90 with
 a module mod_data_type.
-
-use size(array,dim) rather than shape()
 
 convert all num_conc and similar to num_den or similar
 
@@ -53,14 +49,9 @@ aero_binned is really storing #/dln(m)/m^3 or something?
 memory leaks: all types should have alloc_*() and free_*() functions
 and should call them.
 
-rewrite coagulation and aero_state() functions to use
-aero_state_add_particle(), aero_state_remove_particle(), etc.
-
 pass full particle data to the kernel_*() functions so that we can do
 proper density-dependent brownian kernels. Requires a separate
 max_kernel_*() function for each one.
-
-Make a type(particle_t) with a pointer to the data.
 
 Add a field to particle_t to track number of coagulation events.
 
@@ -68,11 +59,10 @@ Fix process_state.
 
 Rename golovin to additive.
 
-Units for num_den and vol_den in aero_binned are not really #/m^3 and
-m^3/m^3, are they? There should be some /m or something?
-
 make all array variables either plural or singular (vols vs vol).
 
 rename aero_binned_*() to pmc_ab_*(), etc
 
 all functions like type_*() should take a type as first argument.
+
+update comments at top of files

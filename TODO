@@ -70,3 +70,6 @@ Rename golovin to additive.
 
 Units for num_den and vol_den in aero_binned are not really #/m^3 and
 m^3/m^3, are they? There should be some /m or something?
+
+check on input that t_output, etc are multiples of del_t so that the
+n_time header information is actually correct.

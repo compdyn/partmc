@@ -2,12 +2,12 @@ n_modes 2                       # number of initial aerosol modes
 
 # mode 1
 vol_frac comp_water.dat         # composition proportions of species
-num_conc 1d9                    # particle concentration (#/m^3)
+num_conc 1e9                    # particle concentration (#/m^3)
 mode_type mono                  # type of mode
 vol 4d-15                       # particle volume (m^3)
 
 # mode 2
 vol_frac comp_water.dat         # composition proportions of species
-num_conc 1d5                    # particle concentration (#/m^3)
+num_conc 1e5                    # particle concentration (#/m^3)
 mode_type mono                  # type of mode
 vol 4d-12                       # particle volume (m^3)

@@ -47,8 +47,6 @@ max_kernel_*() function for each one.
 
 Fix process_state.
 
-Rename golovin to additive.
-
 Units for num_den and vol_den in aero_binned are not really #/m^3 and
 m^3/m^3, are they? There should be some /m or something?
 
@@ -62,8 +60,6 @@ rename aero_binned_*() to pmc_ab_*(), etc
 all functions like type_*() should take a type as first argument.
 
 update comments at top of files
-
-change all 1d0 in .spec and data files to 1e0
 
 change all volumes in spec files (mean_vol for dists, etc) to radii
 

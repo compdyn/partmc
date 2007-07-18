@@ -139,31 +139,35 @@ contains
     integer, intent(in) :: s2           ! second particle (number in bin)
     
     type(aero_particle_t) :: new_particle
+    integer :: bn
 
     call aero_particle_alloc(aero_data%n_spec, new_particle)
 
     ! coagulate particles
     call aero_particle_coagulate(aero_state%bins(b1)%particles(s1), &
          aero_state%bins(b2)%particles(s2), new_particle)
+    call aero_particle_in_bin(new_particle, bin_grid, bn)
 
     ! update binned data
-    call aero_binned_remove_particle(aero_binned, bin_grid, &
-         aero_state%comp_vol, aero_state%bins(b1)%particles(s1))
-    call aero_binned_remove_particle(aero_binned, bin_grid, &
-         aero_state%comp_vol, aero_state%bins(b2)%particles(s2))
-    call aero_binned_add_particle(aero_binned, bin_grid, &
-         aero_state%comp_vol, new_particle)
+    call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
+         b1, aero_state%comp_vol, aero_state%bins(b1)%particles(s1))
+    call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
+         b2, aero_state%comp_vol, aero_state%bins(b2)%particles(s2))
+    call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
+         bn, aero_state%comp_vol, new_particle)
 
     ! remove old particles and add new one
     if ((b1 == b2) .and. (s2 > s1)) then
-       ! handle a tricky corner case
-       call aero_state_remove_particle(aero_state, b2, s2)
-       call aero_state_remove_particle(aero_state, b1, s1)
+       ! handle a tricky corner case where we have to watch for s2 or
+       ! s1 being the last entry in the array and being repacked when
+       ! the other one is removed
+       call aero_particle_array_remove_particle(aero_state%bins(b2), s2)
+       call aero_particle_array_remove_particle(aero_state%bins(b1), s1)
     else
-       call aero_state_remove_particle(aero_state, b1, s1)
-       call aero_state_remove_particle(aero_state, b2, s2)
+       call aero_particle_array_remove_particle(aero_state%bins(b1), s1)
+       call aero_particle_array_remove_particle(aero_state%bins(b2), s2)
     end if
-    call aero_state_add_particle(aero_state, bin_grid, new_particle)
+    call aero_particle_array_add_particle(aero_state%bins(bn), new_particle)
 
     call aero_particle_free(new_particle)
     

@@ -88,21 +88,23 @@ contains
     ! Given a bin_grid (which stores the center points of the bins),
     ! find the given edge volume. With n_bin bin centers there are
     ! (n_bin + 1) bin edges, so bin center bin_grid%v(i) is between
-    ! bin edges i and (i + 1).
+    ! bin edges i and (i + 1). This code currently assumes a
+    ! logarithmically spaced bin grid and returns logarithmically
+    ! spaced edges.
     
+    use mod_util
+
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
     real*8, intent(out) :: v_edge       ! volume at edge
-    
-    if (i .eq. 1) then
-       v_edge = bin_grid%v(1) - (bin_grid%v(2) - bin_grid%v(1)) / 2d0
-    elseif (i .eq. (bin_grid%n_bin + 1)) then
-       v_edge = bin_grid%v(bin_grid%n_bin) &
-            + (bin_grid%v(bin_grid%n_bin) &
-            - bin_grid%v(bin_grid%n_bin - 1)) / 2d0
-    else
-       v_edge = (bin_grid%v(i - 1) + bin_grid%v(i)) / 2d0
-    end if
+
+    real*8 :: log_v_min, log_v_max, log_delta
+
+    call assert(bin_grid%n_bin > 1)
+    log_v_min = log(bin_grid%v(1))
+    log_v_max = log(bin_grid%v(bin_grid%n_bin))
+    log_delta = (log_v_max - log_v_min) / dble(bin_grid%n_bin - 1)
+    v_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
     
   end subroutine bin_edge
   

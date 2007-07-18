@@ -41,7 +41,7 @@ contains
     use mod_bin_grid 
     use mod_aero_binned
     use mod_condensation
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_gas_data
     use mod_gas_state
@@ -53,7 +53,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -64,10 +64,10 @@ contains
     ! FIXME: can we shift this to a module? mod_kernel presumably
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_environ
+         use mod_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(environ), intent(in) :: env 
+         type(env_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -219,13 +219,13 @@ contains
     use mod_aero_state
     use mod_bin_grid
     use mod_aero_binned
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_coagulation
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
@@ -235,10 +235,10 @@ contains
 
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_environ
+         use mod_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(environ), intent(in) :: env 
+         type(env_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -293,7 +293,7 @@ contains
   
     ! Compute the number of samples required for the pair of bins.
 
-    use mod_environ
+    use mod_env
 
     integer, intent(in) :: ni           ! number particles in first bin 
     integer, intent(in) :: nj           ! number particles in second bin

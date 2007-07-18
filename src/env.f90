@@ -9,12 +9,12 @@
 ! interpolation is used between the times, with constant interpolation
 ! outside of the range of times.
 
-module mod_environ
+module mod_env
 
   use mod_gas_state
   use mod_aero_dist
   
-  type environ
+  type env_t
      real*8 :: T                        ! temperature (K)
      real*8 :: RH                       ! relative humidity (1)
      real*8 :: p                        ! ambient pressure (Pa)
@@ -35,7 +35,7 @@ module mod_environ
      real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
      type(aero_dist_t) :: aero_background ! aerosol background
      real*8 :: aero_dilution_rate       ! aero-background dilution rate (s^{-1})
-  end type environ
+  end type env_t
   
 contains
   
@@ -45,7 +45,7 @@ contains
 
     ! Allocate an empty environment.
 
-    type(environ), intent(out) :: env ! environment
+    type(env_t), intent(out) :: env   ! environment
 
     env%T = 0d0
     env%RH = 0d0
@@ -75,7 +75,7 @@ contains
 
     ! Free all storage.
 
-    type(environ), intent(out) :: env ! environment
+    type(env_t), intent(out) :: env   ! environment
 
     call environ_temps_free(env)
     call gas_state_free(env%gas_emissions)
@@ -91,7 +91,7 @@ contains
 
     ! Allocate storage for a given number of temperature set points.
 
-    type(environ), intent(inout) :: env ! environment
+    type(env_t), intent(inout) :: env   ! environment
     integer, intent(in) :: n_temps      ! number of temperature set-points
 
     env%n_temps = n_temps
@@ -106,7 +106,7 @@ contains
 
     ! Free all storage.
 
-    type(environ), intent(inout) :: env ! environment
+    type(env_t), intent(inout) :: env   ! environment
 
     deallocate(env%temp_times)
     deallocate(env%temps)
@@ -123,7 +123,7 @@ contains
     use mod_constants
     use mod_aero_data
     
-    type(environ), intent(inout) :: env ! environment state to update
+    type(env_t), intent(inout) :: env   ! environment state to update
     type(aero_data_t), intent(in)   :: aero_data ! aero_data constants
     real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
     
@@ -150,7 +150,7 @@ contains
 
     use mod_util
 
-    type(environ), intent(inout) :: env ! environment state to update
+    type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
 
     env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
@@ -166,7 +166,7 @@ contains
 
     use mod_util
 
-    type(environ), intent(inout) :: env ! environment state to update
+    type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 pmv      ! ambient water vapor pressure (Pa)
@@ -186,7 +186,7 @@ contains
     
     use mod_constants
     
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     
     sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%T - const%T0) &
          / (env%T - 38d0)) ! Pa
@@ -202,7 +202,7 @@ contains
     use mod_gas_data
     use mod_gas_state
 
-    type(environ), intent(in) :: env    ! current environment
+    type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     type(gas_data_t), intent(in) :: gas_data ! gas data values
     type(gas_state_t), intent(inout) :: gas_state ! gas state to update
@@ -242,7 +242,7 @@ contains
     use mod_aero_state
     use mod_aero_binned
 
-    type(environ), intent(in) :: env    ! current environment
+    type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
@@ -303,7 +303,7 @@ contains
     use mod_aero_data
     use mod_aero_binned
 
-    type(environ), intent(in) :: env    ! current environment
+    type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
@@ -340,7 +340,7 @@ contains
     use mod_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
-    type(environ), intent(in) :: env    ! environment to write
+    type(env_t), intent(in) :: env      ! environment to write
     
     call inout_write_real(file, "temp(K)", env%T)
     call inout_write_real(file, "rel_humidity(1)", env%RH)
@@ -374,7 +374,7 @@ contains
     use mod_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
-    type(environ), intent(out) :: env    ! environment to read
+    type(env_t), intent(out) :: env      ! environment to read
     
     call inout_read_real(file, "temp(K)", env%T)
     call inout_read_real(file, "rel_humidity(1)", env%RH)
@@ -414,7 +414,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(gas_data_t), intent(in) :: gas_data ! gas data values
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(environ), intent(out) :: env   ! environment data
+    type(env_t), intent(out) :: env     ! environment data
 
     integer :: n_temps
     character(len=MAX_CHAR_LEN) :: read_name
@@ -482,8 +482,8 @@ contains
     use mod_gas_state
     use mod_aero_dist
     
-    type(environ), intent(in) :: env_vec(:) ! array of env
-    type(environ), intent(out) :: env_avg   ! average of env_vec
+    type(env_t), intent(in) :: env_vec(:) ! array of env
+    type(env_t), intent(out) :: env_avg   ! average of env_vec
 
     integer :: i_temp, n_temps, i, n
 
@@ -519,4 +519,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_environ
+end module mod_env

@@ -10,7 +10,7 @@ program equilib
 
   use mod_inout
   use mod_aero_data
-  use mod_environ
+  use mod_env
   use mod_util
   use mod_condensation
   use mod_aero_particle
@@ -18,7 +18,7 @@ program equilib
   character(len=*), parameter :: aero_filename = "aerosol.dat"
 
   type(inout_file_t) :: file
-  type(environ) :: env
+  type(env_t) :: env
   type(aero_data_t) :: aero_data
   type(aero_particle_t) :: aero_particle
   character(len=300) :: tmp_str

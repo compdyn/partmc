@@ -15,8 +15,6 @@ bin. Compute the bin_centers and bin_edges using something like
 logspace(1e-24,1e-4,160), rather than always assuming logarithmically
 spaced bins. Add a bin_width() array to use instead of dlnr.
 
-rename environ to env_t
-
 check that each top-level data_type is in the file data_type.f90 with
 a module mod_data_type.
 

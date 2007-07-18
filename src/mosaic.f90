@@ -17,7 +17,7 @@ contains
     use mod_aero_state
     use mod_bin_grid 
     use mod_condensation
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_output_state
     use mod_gas_data
@@ -34,7 +34,7 @@ contains
          mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data

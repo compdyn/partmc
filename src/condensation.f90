@@ -19,12 +19,12 @@ contains
     use mod_aero_state
     use mod_bin_grid
     use mod_aero_binned
-    use mod_environ
+    use mod_env
     use mod_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     real*8, intent(in) :: del_t         ! total time to integrate
@@ -69,12 +69,12 @@ contains
     ! del_t for a single particle.
 
     use mod_util
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(in) :: del_t         ! total time to integrate
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -104,14 +104,14 @@ contains
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true. This uses the explicit (forward) Euler integrator.
     
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -146,14 +146,14 @@ contains
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true. This uses the explicit 4th-order Runge-Kutta integrator.
     
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -176,12 +176,12 @@ contains
 
     ! Does one fixed timestep of Runge-Kutta-4.
 
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(out) :: dt           ! timestep
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -234,12 +234,12 @@ contains
     ! Just returns a constant timestep.
 
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(out) :: dt           ! timestep to use
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -255,12 +255,12 @@ contains
     ! Computes a timestep proportional to V / (dV/dt).
 
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(out) :: dt           ! timestep to use
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -280,12 +280,12 @@ contains
     
     ! Find the water volume growth rate due to condensation.
 
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(out) :: dvdt         ! dv/dt (m^3 s^{-1})
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -314,12 +314,12 @@ contains
     ! Scalar Newton's method for solving the implicit condensation
     ! functions.
 
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_particle
 
     real*8, intent(inout) :: x          ! variable (set to inital value on call)
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: x_tol         ! x convergence tolerance
     real*8, intent(in) :: f_tol         ! f convergence tolerance
@@ -328,10 +328,10 @@ contains
 
     interface
        subroutine func(env, aero_data, init, x, f, df, aero_particle)
-         use mod_environ
+         use mod_env
          use mod_aero_data
          use mod_aero_particle
-         type(environ), intent(in) :: env  ! environment state
+         type(env_t), intent(in) :: env    ! environment state
          type(aero_data_t), intent(in) :: aero_data ! aerosol data
          logical, intent(in) :: init       ! true if first Newton loop
          real*8, intent(in) :: x           ! independent variable to solve for
@@ -385,12 +385,12 @@ contains
 
     use mod_aero_state
     use mod_util
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_constants
     use mod_aero_particle
 
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dmdt          ! mass growth rate dm/dt (kg s^{-1})
@@ -484,12 +484,12 @@ contains
 
     use mod_util
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_constants
     use mod_aero_particle
 
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -525,12 +525,12 @@ contains
 
     use mod_util
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_constants
     use mod_aero_particle
 
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dw            ! wet diameter (m)
@@ -586,13 +586,13 @@ contains
     ! call equilibriate_particle() on each particle in the aerosol
 
     use mod_bin_grid
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_aero_state
     use mod_aero_particle
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
 

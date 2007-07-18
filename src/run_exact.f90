@@ -35,7 +35,7 @@ contains
     
     use mod_bin_grid
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_output_summary
     use mod_aero_binned
@@ -43,7 +43,7 @@ contains
     use mod_gas_state
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(run_exact_opt_t), intent(in) :: exact_opt ! options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
@@ -59,7 +59,7 @@ contains
             rho_p, aero_dist_init, env, aero_binned)
 
          use mod_bin_grid
-         use mod_environ
+         use mod_env
          use mod_aero_binned
          use mod_aero_data
 
@@ -70,7 +70,7 @@ contains
          real*8, intent(in) :: mean_vol          ! mean init volume (m^3)
          real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
          type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-         type(environ), intent(in) :: env        ! environment state
+         type(env_t), intent(in) :: env          ! environment state
          type(aero_binned_t), intent(out) :: aero_binned ! output state
        end subroutine soln
     end interface

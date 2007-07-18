@@ -8,7 +8,7 @@
 program sedi_bidisperse_state_to_count
 
   use mod_bin_grid
-  use mod_environ
+  use mod_env
   use mod_aero_data
   use mod_output_state
   use mod_aero_state
@@ -30,7 +30,7 @@ program sedi_bidisperse_state_to_count
   type(aero_state_t) :: aero_state      ! aerosol state
   type(gas_data_t) :: gas_data          ! gas data
   type(gas_state_t) :: gas_state        ! gas state
-  type(environ) :: env                  ! environment state
+  type(env_t) :: env                    ! environment state
   real*8 :: time                        ! current time (s)
 
   integer i, j, k, n_small

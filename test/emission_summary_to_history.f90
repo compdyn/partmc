@@ -13,7 +13,7 @@ program emission_summary_to_history
   use mod_gas_state
   use mod_gas_data
   use mod_aero_data
-  use mod_environ
+  use mod_env
   
   type(inout_file_t) :: in_file
   integer :: f_out, bin_1, bin_2, bin_3
@@ -25,7 +25,7 @@ program emission_summary_to_history
   type(gas_data_t) :: gas_data
  
   real*8, allocatable :: time(:,:), time_avg(:)
-  type(environ), allocatable :: env(:,:), env_avg(:)
+  type(env_t), allocatable :: env(:,:), env_avg(:)
   type(aero_binned_t), allocatable :: aero_binned(:,:), aero_binned_avg(:)
   type(gas_state_t), allocatable :: gas_state(:,:), gas_state_avg(:)
  

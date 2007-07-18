@@ -17,12 +17,12 @@ contains
 
     ! Compute the Brownian coagulation kernel.
 
-    use mod_environ
+    use mod_env
     use mod_constants
 
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
 
     ! real*8 c_1, a_third, b_third

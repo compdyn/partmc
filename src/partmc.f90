@@ -60,7 +60,7 @@ contains
     use mod_kernel_brown
     use mod_kernel_zero
     use mod_aero_data
-    use mod_environ
+    use mod_env
     use mod_run_mc
     use mod_inout
     use mod_gas_data
@@ -79,7 +79,7 @@ contains
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
     type(aero_state_t) :: aero_state    ! aerosol current state for run
-    type(environ) :: env                ! environment data
+    type(env_t) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
@@ -184,7 +184,7 @@ contains
     use mod_kernel_constant
     use mod_kernel_zero
     use mod_aero_data
-    use mod_environ
+    use mod_env
     use mod_run_exact
     use mod_inout
     use mod_gas_data
@@ -197,7 +197,7 @@ contains
     character(len=300) :: summary_name  ! name of output files
     character(len=100) :: soln_name     ! exact solution name
     type(aero_data_t) :: aero_data      ! aero_data data
-    type(environ) :: env                ! environment data
+    type(env_t) :: env                ! environment data
     type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
@@ -261,7 +261,7 @@ contains
 
     use mod_util
     use mod_aero_data
-    use mod_environ
+    use mod_env
     use mod_run_sect
     use mod_kernel_sedi
     use mod_kernel_golovin
@@ -283,7 +283,7 @@ contains
     type(aero_data_t) :: aero_data      ! aero_data data
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
-    type(environ) :: env                ! environment data
+    type(env_t) :: env                ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data

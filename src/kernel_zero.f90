@@ -15,11 +15,11 @@ contains
 
     ! Zero coagulation kernel.
 
-    use mod_environ
+    use mod_env
     
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     real*8, intent(out) :: k            ! coagulation kernel
     
     k = 0d0
@@ -35,7 +35,7 @@ contains
     ! testing emissions and background dilution.
 
     use mod_bin_grid
-    use mod_environ
+    use mod_env
     use mod_util
     use mod_constants
     use mod_aero_binned
@@ -49,7 +49,7 @@ contains
     real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_binned_t), intent(out) :: aero_binned ! output state
 
     type(aero_binned_t) :: aero_binned_limit

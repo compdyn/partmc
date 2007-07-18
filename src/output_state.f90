@@ -23,7 +23,7 @@ contains
     use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_util
     use mod_inout
     use mod_gas_data
@@ -34,7 +34,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: i_loop       ! current loop number
@@ -71,7 +71,7 @@ contains
     use mod_bin_grid
     use mod_aero_data
     use mod_aero_state
-    use mod_environ
+    use mod_env
     use mod_util
     use mod_inout
     use mod_gas_data
@@ -82,7 +82,7 @@ contains
     type(aero_state_t), intent(out) :: aero_state ! aerosol state
     type(gas_data_t), intent(out) :: gas_data ! gas data
     type(gas_state_t), intent(out) :: gas_state ! gas state
-    type(environ), intent(out) :: env   ! environment state
+    type(env_t), intent(out) :: env     ! environment state
     real*8, intent(out) :: time         ! current time (s)
     
     type(inout_file_t) :: file

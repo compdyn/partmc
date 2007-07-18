@@ -44,7 +44,7 @@ contains
     use mod_bin_grid
     use mod_aero_data
     use mod_aero_binned
-    use mod_environ
+    use mod_env
     use mod_inout
     use mod_gas_data
     use mod_gas_state
@@ -56,7 +56,7 @@ contains
     type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     integer, intent(in) :: i_loop       ! current loop number
 
     call inout_write_integer(file, 'loop_num', i_loop)

@@ -15,7 +15,7 @@ program process_summary
   use mod_gas_state
   use mod_gas_data
   use mod_aero_data
-  use mod_environ
+  use mod_env
   
   type(inout_file_t) :: in_file
   integer :: f_out_env, f_out_gas, f_out_aero_binned, f_out_aero_total
@@ -28,7 +28,7 @@ program process_summary
   type(gas_data_t) :: gas_data
  
   real*8, allocatable :: time(:,:), time_avg(:)
-  type(environ), allocatable :: env(:,:), env_avg(:)
+  type(env_t), allocatable :: env(:,:), env_avg(:)
   type(aero_binned_t), allocatable :: aero_binned(:,:), aero_binned_avg(:)
   type(gas_state_t), allocatable :: gas_state(:,:), gas_state_avg(:)
   real*8, allocatable :: tot_num_den(:), tot_vol_den(:,:)

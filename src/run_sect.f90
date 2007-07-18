@@ -35,7 +35,7 @@ contains
     use mod_kernel_sedi
     use mod_util
     use mod_aero_dist
-    use mod_environ
+    use mod_env
     use mod_aero_data
     use mod_kernel
     use mod_output_summary
@@ -46,7 +46,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
-    type(environ), intent(inout) :: env ! environment state
+    type(env_t), intent(inout) :: env   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
     
@@ -67,10 +67,10 @@ contains
   
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_environ
+         use mod_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(environ), intent(in) :: env 
+         type(env_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface

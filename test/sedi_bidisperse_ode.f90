@@ -20,7 +20,7 @@
 program sedi_bidisperse_ode
   
   use mod_kernel_sedi
-  use mod_environ
+  use mod_env
   use mod_util
   use mod_bin_grid
   
@@ -40,7 +40,7 @@ program sedi_bidisperse_ode
   integer, parameter :: out_unit = 33   ! output unit number
   character(len=*), parameter :: out_name = "out/sedi_bidisperse_ode_counts.d"
   
-  type(environ) :: env
+  type(env_t) :: env
   integer :: i_step, n_step
   real*8 :: comp_vol, n_small, time, dlnr, v_big, num_conc
   type(bin_grid_t) :: bin_grid
@@ -86,13 +86,13 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, env, comp_vol, n_small_dot)
     
-    use mod_environ
+    use mod_env
 
     real*8, intent(in) :: n_small       ! current number of small particles
     real*8, intent(in) :: v_small       ! volume of one small particle
     real*8, intent(in) :: v_big_init    ! initial volume of the big particle
     real*8, intent(in) :: n_small_init  ! initial number of small particles
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
     real*8, intent(out) :: n_small_dot  ! derivative of n_small
     
@@ -109,12 +109,12 @@ contains
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        env, comp_vol, del_t, n_small)
     
-    use mod_environ
+    use mod_env
 
     real*8, intent(in) :: v_small       ! volume of one small particle
     real*8, intent(in) :: v_big_init    ! initial volume of the big particle
     real*8, intent(in) :: n_small_init  ! initial number of small particles
-    type(environ), intent(in) :: env    ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
     real*8, intent(in) :: del_t         ! timestep
     real*8, intent(inout) :: n_small    ! current number of small particles

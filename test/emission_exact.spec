@@ -13,9 +13,9 @@ gas_data gas_data_simple.dat    # file containing gas data
 aerosol_data aerosol_data_water.dat # file containing aerosol data
 
 temp_profile temp_constant_15C.dat # temperature profile file
-RH 0.999                        # initial relative humidity (1)
+rel_humidity 0.999              # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
-rho_a 1.25                      # initial air density (kg/m^3)
+air_density 1.25                # initial air density (kg/m^3)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)

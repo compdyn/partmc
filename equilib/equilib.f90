@@ -39,10 +39,10 @@ program equilib
   
   ! get and check commandline arguments
   call getarg(1, tmp_str)
-  env%T = string_to_real(tmp_str)
+  env%temp = string_to_real(tmp_str)
 
   call getarg(2, tmp_str)
-  env%RH = string_to_real(tmp_str)
+  env%rel_humid = string_to_real(tmp_str)
 
   call aero_particle_alloc(aero_data%n_spec, aero_particle)
   do i = 2,aero_data%n_spec
@@ -54,8 +54,8 @@ program equilib
   call equilibriate_particle(env, aero_data, aero_particle)
 
   ! write results to stdout
-  write(*,*) 'temp = ', env%T, ' K'
-  write(*,*) 'RH = ', env%RH
+  write(*,*) 'temp = ', env%temp, ' K'
+  write(*,*) 'RH = ', env%rel_humid
   write(*,*) ''
   do i = 1,aero_data%n_spec
      write(*,*) aero_data%name(i), aero_particle%vols(i), ' m^{-3}'

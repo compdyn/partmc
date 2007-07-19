@@ -15,10 +15,10 @@ module mod_env
   use mod_aero_dist
   
   type env_t
-     real*8 :: T                        ! temperature (K)
-     real*8 :: RH                       ! relative humidity (1)
-     real*8 :: p                        ! ambient pressure (Pa)
-     real*8 :: rho_a                    ! air density (kg m^{-3})
+     real*8 :: temp                     ! temperature (K)
+     real*8 :: rel_humid                ! relative humidity (1)
+     real*8 :: pressure                 ! ambient pressure (Pa)
+     real*8 :: air_den                  ! air density (kg m^{-3})
      real*8 :: longitude                ! longitude (degrees)
      real*8 :: latitude                 ! latitude (degrees)
      real*8 :: altitude                 ! altitude (m)
@@ -47,10 +47,10 @@ contains
 
     type(env_t), intent(out) :: env   ! environment
 
-    env%T = 0d0
-    env%RH = 0d0
-    env%p = 0d0
-    env%rho_a = 0d0
+    env%temp = 0d0
+    env%rel_humid = 0d0
+    env%pressure = 0d0
+    env%air_den = 0d0
     env%longitude = 0d0
     env%latitude = 0d0
     env%altitude = 0d0
@@ -133,10 +133,10 @@ contains
     real*8 dmv     ! change of water density (kg m^{-3})
     
     dmv = dv * aero_data%rho(aero_data%i_water)
-    pmv = sat_vapor_pressure(env) * env%RH
-    mv = aero_data%M_w(aero_data%i_water)/(const%R*env%T) * pmv
+    pmv = sat_vapor_pressure(env) * env%rel_humid
+    mv = aero_data%M_w(aero_data%i_water)/(const%R*env%temp) * pmv
     mv = mv - dmv    
-    env%RH = const%R * env%T / aero_data%M_w(aero_data%i_water) * mv &
+    env%rel_humid = const%R * env%temp / aero_data%M_w(aero_data%i_water) * mv &
          / sat_vapor_pressure(env)
     
   end subroutine change_water_volume
@@ -153,7 +153,7 @@ contains
     type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
 
-    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
+    env%temp = interp_1d(env%n_temps, env%temp_times, env%temps, time)
     
   end subroutine init_environ
   
@@ -172,9 +172,9 @@ contains
     real*8 pmv      ! ambient water vapor pressure (Pa)
 
     ! update temperature and relative humidity
-    pmv = sat_vapor_pressure(env) * env%RH
-    env%T = interp_1d(env%n_temps, env%temp_times, env%temps, time)
-    env%RH = pmv / sat_vapor_pressure(env)
+    pmv = sat_vapor_pressure(env) * env%rel_humid
+    env%temp = interp_1d(env%n_temps, env%temp_times, env%temps, time)
+    env%rel_humid = pmv / sat_vapor_pressure(env)
     
   end subroutine update_environ
   
@@ -188,8 +188,8 @@ contains
     
     type(env_t), intent(in) :: env      ! environment state
     
-    sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%T - const%T0) &
-         / (env%T - 38d0)) ! Pa
+    sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%temp - const%T0) &
+         / (env%temp - 38d0)) ! Pa
     
   end function sat_vapor_pressure
   
@@ -342,10 +342,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(env_t), intent(in) :: env      ! environment to write
     
-    call inout_write_real(file, "temp(K)", env%T)
-    call inout_write_real(file, "rel_humidity(1)", env%RH)
-    call inout_write_real(file, "pressure(Pa)", env%p)
-    call inout_write_real(file, "air_density(kg/m^3)", env%rho_a)
+    call inout_write_real(file, "temp(K)", env%temp)
+    call inout_write_real(file, "rel_humidity(1)", env%rel_humid)
+    call inout_write_real(file, "pressure(Pa)", env%pressure)
+    call inout_write_real(file, "air_density(kg/m^3)", env%air_den)
     call inout_write_real(file, "longitude(deg)", env%longitude)
     call inout_write_real(file, "latitude(deg)", env%latitude)
     call inout_write_real(file, "altitude(m)", env%altitude)
@@ -376,10 +376,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(env_t), intent(out) :: env      ! environment to read
     
-    call inout_read_real(file, "temp(K)", env%T)
-    call inout_read_real(file, "rel_humidity(1)", env%RH)
-    call inout_read_real(file, "pressure(Pa)", env%p)
-    call inout_read_real(file, "air_density(kg/m^3)", env%rho_a)
+    call inout_read_real(file, "temp(K)", env%temp)
+    call inout_read_real(file, "rel_humidity(1)", env%rel_humid)
+    call inout_read_real(file, "pressure(Pa)", env%pressure)
+    call inout_read_real(file, "air_density(kg/m^3)", env%air_den)
     call inout_read_real(file, "longitude(deg)", env%longitude)
     call inout_read_real(file, "latitude(deg)", env%latitude)
     call inout_read_real(file, "altitude(m)", env%altitude)
@@ -449,9 +449,9 @@ contains
     call environ_temps_alloc(env, n_temps)
     env%temp_times = times_data(1,:)
     env%temps = temps_data(1,:)
-    call inout_read_real(file, 'RH', env%RH)
-    call inout_read_real(file, 'pressure', env%p)
-    call inout_read_real(file, 'rho_a', env%rho_a)
+    call inout_read_real(file, 'rel_humidity', env%rel_humid)
+    call inout_read_real(file, 'pressure', env%pressure)
+    call inout_read_real(file, 'air_density', env%air_den)
     call inout_read_real(file, 'latitude', env%latitude)
     call inout_read_real(file, 'longitude', env%longitude)
     call inout_read_real(file, 'altitude', env%altitude)
@@ -487,10 +487,10 @@ contains
 
     integer :: i_temp, n_temps, i, n
 
-    call average_real(env_vec%T, env_avg%T)
-    call average_real(env_vec%RH, env_avg%RH)
-    call average_real(env_vec%p, env_avg%p)
-    call average_real(env_vec%rho_a, env_avg%rho_a)
+    call average_real(env_vec%temp, env_avg%temp)
+    call average_real(env_vec%rel_humid, env_avg%rel_humid)
+    call average_real(env_vec%pressure, env_avg%pressure)
+    call average_real(env_vec%air_den, env_avg%air_den)
     call average_real(env_vec%longitude, env_avg%longitude)
     call average_real(env_vec%latitude, env_avg%latitude)
     call average_real(env_vec%altitude, env_avg%altitude)

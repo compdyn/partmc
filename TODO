@@ -32,8 +32,6 @@ add error checking to inout_write_*()
 Make time a field in env and set it in environ_init() and
 environ_update().
 
-rename env%{T,RH,p,rho_a} to temp, rel_hum, press, dens or something
-
 aero_binned is really storing #/dln(m)/m^3 or something?
 
 memory leaks: all types should have alloc_*() and free_*() functions

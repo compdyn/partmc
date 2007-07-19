@@ -422,11 +422,11 @@ contains
        d_p = vol2diam(pv) ! m
        
        ! molecular diffusion coefficient uncorrected
-       D_v = 0.211d-4 / (env%p / const%atm) &
-            * (env%T / 273d0)**1.94d0 ! m^2 s^{-1}
+       D_v = 0.211d-4 / (env%pressure / const%atm) &
+            * (env%temp / 273d0)**1.94d0 ! m^2 s^{-1}
        ! molecular diffusion coefficient corrected for non-continuum effects
        D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-            * (2d0 * const%pi * M_water / (const%R * env%T))**0.5d0
+            * (2d0 * const%pi * M_water / (const%R * env%temp))**0.5d0
        D_vp = D_v / D_v_div
        
        ! TEST: use the basic expression for D_vp
@@ -434,16 +434,16 @@ contains
        ! FIXME: check whether we can reinstate the correction
        
        ! thermal conductivity uncorrected
-       k_a = 1d-3 * (4.39d0 + 0.071d0 * env%T) ! J m^{-1} s^{-1} K^{-1}
+       k_a = 1d-3 * (4.39d0 + 0.071d0 * env%temp) ! J m^{-1} s^{-1} K^{-1}
        k_ap_div = 1d0 + 2d0 &
-            * k_a / (const%alpha * d_p * env%rho_a * const%cp) &
-            * (2d0 * const%pi * const%M_a / (const%R * env%T))**0.5d0 ! dim-less
+            * k_a / (const%alpha * d_p * env%air_den * const%cp) &
+            * (2d0 * const%pi * const%M_a / (const%R * env%temp))**0.5d0 ! dim-less
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
 
-       rat = sat_vapor_pressure(env) / (const%R * env%T)
-       fact1 = const%L_v * M_water / (const%R * env%T)
-       fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%T)
+       rat = sat_vapor_pressure(env) / (const%R * env%temp)
+       fact1 = const%L_v * M_water / (const%R * env%temp)
+       fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%temp)
 
        c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
        c2 = 4d0 * M_water &
@@ -459,12 +459,12 @@ contains
                 (g_water + (rho_water / rho_solute) * eps * g_solute)
     end if
 
-    T_a = env%T + c4 * dmdt ! K
+    T_a = env%temp + c4 * dmdt ! K
     
-    f = dmdt - c1 * (env%RH - exp(c2 / T_a - c5)) &
+    f = dmdt - c1 * (env%rel_humid - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
     
-    df = 1d0 + c1 * env%RH * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
+    df = 1d0 + c1 * env%rel_humid * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
          exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 + c1 * &
          (exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 * (1d0 + c3 &
          * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) * &
@@ -558,18 +558,18 @@ contains
 
        pv = aero_particle_volume(aero_particle)
 
-       A = 4d0 * M_water * const%sig / (const%R * env%T * rho_water)
+       A = 4d0 * M_water * const%sig / (const%R * env%temp * rho_water)
        
        B = nu * eps * M_water * rho_solute &
             * vol2rad(pv)**3.d0 / (M_solute * rho_water)
        
-       c4 = log(env%RH) / 8d0
+       c4 = log(env%rel_humid) / 8d0
        c3 = A / 8d0
        
-       dc3 = log(env%RH) / 2d0
+       dc3 = log(env%rel_humid) / 2d0
        dc2 = 3d0 * A / 8d0
        
-       c1 = B - log(env%RH) * vol2rad(pv)**3d0
+       c1 = B - log(env%rel_humid) * vol2rad(pv)**3d0
        c0 = A * vol2rad(pv)**3d0
        dc0 = c1
     end if

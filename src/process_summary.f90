@@ -125,8 +125,8 @@ program process_summary
        'dens(kg/m^3)'
   do i_time = 1,n_time
      write(f_out_env,'(a1,5e20.10)') ' ', time_avg(i_time), &
-          env_avg(i_time)%T, env_avg(i_time)%RH, env_avg(i_time)%p, &
-          env_avg(i_time)%rho_a
+          env_avg(i_time)%temp, env_avg(i_time)%rel_humid, &
+          env_avg(i_time)%pressure, env_avg(i_time)%air_den
   end do
   
   ! output gas

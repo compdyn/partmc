@@ -29,7 +29,7 @@ contains
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
     integer lundiag1, lundiag2
 
-    ! c_1 = 2d0 * const%k_b * env%T / (3.d0 * const%mu)
+    ! c_1 = 2d0 * const%k_b * env%temp / (3.d0 * const%mu)
     ! a_third = v1**(1.d0/3.d0)
     ! b_third = v2**(1.d0/3.d0)
     
@@ -39,7 +39,7 @@ contains
     dens2 = 1.8d3
     lundiag1 = -91
     lundiag2 = -92
-    call brownian_kernel(v1, v2, dens1, dens2, env%t, env%p, &
+    call brownian_kernel(v1, v2, dens1, dens2, env%temp, env%pressure, &
          lundiag1, lundiag2, k)
 
   end subroutine kernel_brown

@@ -170,6 +170,8 @@ contains
        end if
        gas_state%conc(species) = species_data(i,1)
     end do
+    deallocate(species_name)
+    deallocate(species_data)
 
   end subroutine spec_read_gas_state
 

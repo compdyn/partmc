@@ -109,6 +109,7 @@ contains
          'aerosol_init', aero_dist_init)
     call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
          mc_opt%n_part_max, aero_init)
+    call aero_dist_free(aero_dist_init)
 
     call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
 

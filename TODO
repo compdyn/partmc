@@ -1,7 +1,7 @@
 
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
-Use HDF or CDF or something to store state. (and output?)
+Use HDF5 for a binary version of inout_*().
 
 Get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.
@@ -10,27 +10,14 @@ Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
 and then using a slow sampling to pick samples one-by-one.
 
-Add bin edges to bin_grid. Use a 1D_search to locate particle in
-bin. Compute the bin_centers and bin_edges using something like
-logspace(1e-24,1e-4,160), rather than always assuming logarithmically
-spaced bins. Add a bin_width() array to use instead of dlnr.
-
 check that each top-level data_type is in the file data_type.f90 with
 a module mod_data_type.
 
 convert all num_conc and similar to num_den or similar
 
-stop passing bin_grid and aero_data around just to get n_bin and
-n_spec. Instead derive on the spot from array sizes.
-
-split singlestep_mosaic() to an _init() and the real _step() thing.
-
-add separate del_t for mosaic, coag, and cond.
-
-add error checking to inout_write_*()
-
-Make time a field in env and set it in environ_init() and
-environ_update().
+add separate del_t for mosaic, coag, and cond. check on input that
+t_output, etc are multiples of del_t so that the n_time header
+information is actually correct.
 
 aero_binned is really storing #/dln(m)/m^3 or something?
 
@@ -43,12 +30,6 @@ max_kernel_*() function for each one.
 
 Fix process_state.
 
-Units for num_den and vol_den in aero_binned are not really #/m^3 and
-m^3/m^3, are they? There should be some /m or something?
-
-check on input that t_output, etc are multiples of del_t so that the
-n_time header information is actually correct.
-
 make all array variables either plural or singular (vols vs vol).
 
 rename aero_binned_*() to pmc_ab_*(), etc
@@ -59,4 +40,4 @@ update comments at top of files
 
 change all volumes in spec files (mean_vol for dists, etc) to radii
 
-what's happending with util_rand() and USE_F95_RAND?
+what's happening with util_rand() and USE_F95_RAND?

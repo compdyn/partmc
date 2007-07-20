@@ -123,6 +123,10 @@ contains
     
     call est_k_max_binned(bin_grid, kernel, env, k_max)
 
+    if (mc_opt%do_mosaic) then
+       call mosaic_init(bin_grid, env, mc_opt%del_t)
+    end if
+
     if (mc_opt%t_output > 0d0) then
        call output_summary(summary_file, &
             time, bin_grid, aero_data, aero_binned, &
@@ -156,7 +160,7 @@ contains
        end if
 
        if (mc_opt%do_mosaic) then
-          call singlestep_mosaic(bin_grid, env, aero_data, &
+          call mosaic_timestep(bin_grid, env, aero_data, &
                aero_state, gas_data, gas_state, time, mc_opt%del_t)
        end if
        

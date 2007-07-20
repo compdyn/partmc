@@ -354,7 +354,8 @@ contains
 
     type(inout_file_t), intent(inout) :: file ! inout file
     integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
-    type(inout_line_t), pointer :: line_array(:) ! array of inout_lines
+    type(inout_line_t), pointer :: line_array(:) ! array of inout_lines,
+                                                 ! will be allocated
 
     integer i, line_length
 
@@ -861,6 +862,7 @@ contains
        allocate(names(0))
        allocate(vals(0,0))
     end if
+    deallocate(line_array)
 
   end subroutine inout_read_real_named_array
 

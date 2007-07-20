@@ -9,7 +9,82 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine singlestep_mosaic(bin_grid, env, aero_data, &
+  subroutine mosaic_init(bin_grid, env, del_t)
+    
+    use mod_constants
+    use mod_util
+    use mod_bin_grid 
+    use mod_env
+    
+    use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
+         ptol_mol_ASTEM, mGAS_AER_XFER, mDYNAMIC_SOLVER
+    
+    use module_data_mosaic_main, only: tbeg_sec, dt_sec, rlon, rlat, &
+         zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
+         deg2rad, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
+         msolar, mphoto
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(env_t), intent(inout) :: env   ! environment state
+    real*8, intent(in) :: del_t         ! timestep for coagulation
+
+    ! MOSAIC function interfaces
+    interface
+       subroutine LoadPeroxyParameters()
+       end subroutine LoadPeroxyParameters
+       subroutine init_data_modules()
+       end subroutine init_data_modules
+    end interface
+    
+    ! local variables
+    real*8 :: time_UTC ! 24-hr UTC clock time (hr)
+    real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
+
+    ! parameters
+    mmode = 1               ! 1 = time integration, 2 = parametric analysis
+    mgas = 0                ! 1 = gas chem on, 0 = gas chem off
+    maer = 1                ! 1 = aer chem on, 0 = aer chem off
+    mcld = 0                ! 1 = cld chem on, 0 = cld chem off
+    maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off
+    mshellcore = 1          ! 0 = no shellcore, 1 = core is BC only
+                            ! 2 = core is BC and DUST
+    msolar = 1              ! 1 = diurnally varying phot, 2 = fixed phot
+    mphoto = 2              ! 1 = Rick's param, 2 = Yang's param
+    mGAS_AER_XFER = 1       ! 1 = gas-aerosol partitioning, 0 = no partition
+    mDYNAMIC_SOLVER = 1     ! 1 = astem, 2 = lsodes
+    alpha_ASTEM = 0.5d0     ! solver parameter. range: 0.01 - 1.0
+    rtol_eqb_ASTEM = 0.01d0 ! relative eqb tolerance. range: 0.01 - 0.03
+    ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
+    
+    ! time variables
+    dt_sec = del_t                           ! time-step (s)
+    tmar21_sec = dble((79*24 + 12)*3600)     ! noon, mar 21, UTC
+    tbeg_sec = env%start_day*24*3600 + &     ! time since the beg of
+         nint(env%start_time)                ! year 00:00, UTC (s)
+    time_UTC = env%start_time/3600d0         ! 24-hr UTC clock time (hr)
+    
+    ! geographic location
+    rlon = env%longitude * deg2rad           ! longitude
+    rlat = env%latitude * deg2rad            ! latitude
+    zalt_m = env%altitude                    ! altitude (m)
+    
+    ! environmental parameters: map PartMC -> MOSAIC
+    RH = env%rel_humid * 100.d0                     ! relative humidity (%)
+    te = env%temp                               ! temperature (K)
+    pr_atm = env%pressure / const%atm               ! pressure (atm)
+    
+    call init_data_modules                   ! initialize indices and vars
+    call LoadPeroxyParameters                ! Aperox and Bperox only once
+    
+    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    ppb = 1d9
+    
+  end subroutine mosaic_init
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine mosaic_timestep(bin_grid, env, aero_data, &
        aero_state, gas_data, gas_state, t, del_t)
     
     use mod_constants
@@ -24,14 +99,11 @@ contains
     use mod_gas_state
     
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         alpha_ASTEM, rtol_eqb_ASTEM, ptol_mol_ASTEM, &
-         jtotal, water_a, &
-         mGAS_AER_XFER, mDYNAMIC_SOLVER
+         jtotal, water_a
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
-         dt_sec, dt_min, dt_aeroptic_min, rlon, rlat, zalt_m, RH, te, &
-         pr_atm, cnn, cair_mlc, cair_molm3, h2o, o2, h2, ppb, avogad, deg2rad, &
-         mmode, mgas, maer, mcld, maeroptic, mshellcore, msolar, mphoto
+         dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
+         ppb, msolar
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state
@@ -46,15 +118,8 @@ contains
     interface
        subroutine SolarZenithAngle()
        end subroutine SolarZenithAngle
-       subroutine LoadPeroxyParameters()
-       end subroutine LoadPeroxyParameters
-       subroutine init_data_modules()
-       end subroutine init_data_modules
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
-       ! real*8 function WaterVapor(RH, cair_mlc, te, pr_atm)
-       ! real*8 :: RH, cair_mlc, te, pr_atm
-       ! end function WaterVapor
     end interface
     
     ! local variables
@@ -64,64 +129,14 @@ contains
     integer :: i_bin, i_num, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
 
-    logical, save :: first = .true.
-    
-    !---------------------------------------------------------
-    ! set MOSAIC data once at the beginning of the simulation
-    if (first) then
-       first = .false.
-       
-       ! parameters
-       mmode = 1               ! 1 = time integration, 2 = parametric analysis
-       mgas = 0                ! 1 = gas chem on, 0 = gas chem off
-       maer = 1                ! 1 = aer chem on, 0 = aer chem off
-       mcld = 0                ! 1 = cld chem on, 0 = cld chem off
-       maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off
-       mshellcore = 1          ! 0 = no shellcore, 1 = core is BC only
-                               ! 2 = core is BC and DUST
-       msolar = 1              ! 1 = diurnally varying phot, 2 = fixed phot
-       mphoto = 2              ! 1 = Rick's param, 2 = Yang's param
-       mGAS_AER_XFER = 1       ! 1 = gas-aerosol partitioning, 0 = no partition
-       mDYNAMIC_SOLVER = 1     ! 1 = astem, 2 = lsodes
-       alpha_ASTEM = 0.5d0     ! solver parameter. range: 0.01 - 1.0
-       rtol_eqb_ASTEM = 0.01d0 ! relative eqb tolerance. range: 0.01 - 0.03
-       ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
-       
-       ! time variables
-       dt_sec = del_t                           ! time-step (s)
-       tmar21_sec = dble((79*24 + 12)*3600)     ! noon, mar 21, UTC
-       tbeg_sec = env%start_day*24*3600 + &     ! time since the beg of
-            nint(env%start_time)                ! year 00:00, UTC (s)
-       time_UTC = env%start_time/3600d0         ! 24-hr UTC clock time (hr)
-       
-       ! geographic location
-       rlon = env%longitude * deg2rad           ! longitude
-       rlat = env%latitude * deg2rad            ! latitude
-       zalt_m = env%altitude                    ! altitude (m)
-       
-       ! environmental parameters: map PartMC -> MOSAIC
-       RH = env%rel_humid * 100.d0                     ! relative humidity (%)
-       te = env%temp                               ! temperature (K)
-       pr_atm = env%pressure / const%atm               ! pressure (atm)
-       
-       call init_data_modules                   ! initialize indices and vars
-       call LoadPeroxyParameters                ! Aperox and Bperox only once
-       
-       cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
-       cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
-       ppb = 1d9
-       
-    endif
-    !----------------------------------------------------------
-
     ! update time variables
     tcur_sec = dble(tbeg_sec) + t               ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
     time_UTC = time_UTC + dt_sec/3600d0
 
-    if(time_UTC .ge. 24d0)then
-      time_UTC = time_UTC - 24d0
-    endif
+    do while (time_UTC >= 24d0)
+       time_UTC = time_UTC - 24d0
+    end do
 
     tmid_sec = tcur_sec + 0.5d0*dt_sec
     if(tmid_sec .ge. tmar21_sec)then
@@ -179,7 +194,7 @@ contains
        end if
     end do
 
-    if(msolar.eq.1)then
+    if (msolar == 1) then
       call SolarZenithAngle
     end if
 
@@ -221,6 +236,6 @@ contains
        end if
     end do
 
-  end subroutine singlestep_mosaic
+  end subroutine mosaic_timestep
 
 end module mod_mosaic

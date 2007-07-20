@@ -46,7 +46,12 @@ contains
     ! Deallocates.
 
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
+
+    integer :: i
     
+    do i = 1,aero_particle_array%n_part
+       call aero_particle_free(aero_particle_array%particles(i))
+    end do
     deallocate(aero_particle_array%particles)
 
   end subroutine aero_particle_array_free
@@ -82,12 +87,7 @@ contains
 
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
-    integer :: i
-    
-    do i = 1,aero_particle_array%n_part
-       call aero_particle_free(aero_particle_array%particles(i))
-    end do
-    deallocate(aero_particle_array%particles)
+    call aero_particle_array_free(aero_particle_array)
     allocate(aero_particle_array%particles(0))
     aero_particle_array%n_part = 0
 

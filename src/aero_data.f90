@@ -219,6 +219,8 @@ contains
        aero_data%eps(i) = species_data(i,3)
        aero_data%M_w(i) = species_data(i,4)
     end do
+    deallocate(species_name)
+    deallocate(species_data)
     call set_aero_particle_water_index(aero_data)
     call set_aero_data_mosaic_map(aero_data)
 

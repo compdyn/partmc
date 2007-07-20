@@ -91,6 +91,9 @@ contains
        call output_summary(summary_file, time, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env, 1)
     end do
+
+    call gas_data_free(gas_data)
+    call gas_state_free(gas_state)
     
   end subroutine run_exact
   

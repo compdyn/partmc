@@ -268,6 +268,7 @@ contains
     call env_free(env)
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
+    call aero_dist_free(exact_opt%aero_dist_init)
     
   end subroutine partmc_exact
 

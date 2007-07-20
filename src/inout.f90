@@ -568,6 +568,7 @@ contains
     call inout_check_line_name(file, line, name)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_integer(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_integer
   
@@ -588,6 +589,7 @@ contains
     call inout_check_line_name(file, line, name)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_real(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_real
 
@@ -607,6 +609,7 @@ contains
     call inout_check_line_name(file, line, name)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_logical(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_logical
 
@@ -626,6 +629,7 @@ contains
     call inout_check_line_name(file, line, name)
     call inout_check_line_length(file, line, 1)
     var = line%data(1)
+    call inout_line_free(line)
 
   end subroutine inout_read_string
 

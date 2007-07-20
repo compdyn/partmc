@@ -333,6 +333,8 @@ contains
        end if
        vol_frac(species) = species_data(i,1)
     end do
+    deallocate(species_name)
+    deallocate(species_data)
     
     ! normalize
     tot_vol_frac = sum(vol_frac)

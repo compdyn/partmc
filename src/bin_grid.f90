@@ -20,7 +20,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine alloc_bin_grid(n_bin, bin_grid)
+  subroutine bin_grid_alloc(n_bin, bin_grid)
 
     ! Allocates a bin_grid.
 
@@ -30,11 +30,11 @@ contains
     bin_grid%n_bin = n_bin
     allocate(bin_grid%v(n_bin))
 
-  end subroutine alloc_bin_grid
+  end subroutine bin_grid_alloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine free_bin_grid(bin_grid)
+  subroutine bin_grid_free(bin_grid)
 
     ! Frees all memory.
 
@@ -42,7 +42,7 @@ contains
 
     deallocate(bin_grid%v)
 
-  end subroutine free_bin_grid
+  end subroutine bin_grid_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -74,7 +74,7 @@ contains
     real*8, intent(in) :: v_max         ! minimum volume (m^3)
     type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
 
-    call alloc_bin_grid(n_bin, bin_grid)
+    call bin_grid_alloc(n_bin, bin_grid)
     call logspace(v_min, v_max, n_bin, bin_grid%v)
     ! dlnr = ln(r(i) / r(i-1))
     bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / dble(n_bin - 1)

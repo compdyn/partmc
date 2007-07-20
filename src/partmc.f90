@@ -174,6 +174,8 @@ contains
     call aero_state_free(aero_init)
     call aero_state_free(aero_state)
     call env_free(env)
+    call bin_grid_free(bin_grid)
+    call aero_binned_free(aero_binned)
 
   end subroutine partmc_mc
 

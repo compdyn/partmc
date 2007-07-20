@@ -8,9 +8,8 @@
 
 module mod_inout
 
-  logical, parameter :: DEBUG_OUTPUT = .false. ! .true. for verbose output
   integer, parameter :: MAX_CHAR_LEN = 300 ! max size of line or variable
-  integer, parameter :: MAX_LINES = 500 ! max lines in an array
+  integer, parameter :: MAX_LIST_LINES = 500 ! max lines in an array
 
   type inout_file_t
      character(len=MAX_CHAR_LEN) :: name ! filename
@@ -91,19 +90,47 @@ contains
   end subroutine inout_close
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_line_alloc(n_data, inout_line)
+
+    ! Allocates memory for an inout_line.
+
+    integer, intent(in) :: n_data       ! number of data items
+    type(inout_line_t), intent(inout) :: inout_line ! struct to alloc
+
+    allocate(inout_line%data(n_data))
+
+  end subroutine inout_line_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_line_free(inout_line)
+
+    ! Frees all storage.
+
+    type(inout_line_t), intent(inout) :: inout_line ! struct to free
+
+    deallocate(inout_line%data)
+
+  end subroutine inout_line_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine inout_copy_line(from_line, to_line)
+  subroutine inout_line_copy(from_line, to_line)
 
     ! Copies a inout_line.
 
     type(inout_line_t), intent(in) :: from_line ! original line
-    type(inout_line_t), intent(out) :: to_line ! new line
+    type(inout_line_t), intent(out) :: to_line ! destination, already alloced
 
     to_line%name = from_line%name
+    if (size(to_line%data) /= size(from_line%data)) then
+       deallocate(to_line%data)
+    end if
     allocate(to_line%data(size(from_line%data)))
     to_line%data = from_line%data
 
-  end subroutine inout_copy_line
+  end subroutine inout_line_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -317,7 +344,7 @@ contains
 
     logical :: eof
     integer :: i, num_lines
-    type(inout_line_t) :: temp_line_list(500) ! FIXME: use MAX_LINES instead
+    type(inout_line_t) :: temp_line_list(MAX_LIST_LINES)
 
     ! read file, working out how many lines we have
     num_lines = 0
@@ -325,6 +352,11 @@ contains
     call inout_read_line(file, temp_line_list(num_lines + 1), eof)
     do while (.not. eof)
        num_lines = num_lines + 1
+       if (num_lines > MAX_LIST_LINES) then
+          write(0,*) 'ERROR: maximum number of lines exceeded in file ', &
+               trim(file%name), ' at line ', file%line_num
+          call exit(1)
+       end if
        if (max_lines > 0) then
           if (num_lines >= max_lines) then
              eof = .true.
@@ -335,12 +367,11 @@ contains
        end if
     end do
 
-    ! allocate actual list
-    allocate(line_list(num_lines))
-
     ! copy data to actual list
+    allocate(line_list(num_lines))
     do i = 1,num_lines
-       call inout_copy_line(temp_line_list(i), line_list(i))
+       call inout_line_alloc(0, line_list(i))
+       call inout_line_copy(temp_line_list(i), line_list(i))
     end do
 
   end subroutine inout_read_line_list
@@ -862,6 +893,9 @@ contains
        allocate(names(0))
        allocate(vals(0,0))
     end if
+    do i = 1,num_lines
+       call inout_line_free(line_array(i))
+    end do
     deallocate(line_array)
 
   end subroutine inout_read_real_named_array

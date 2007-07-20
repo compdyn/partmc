@@ -173,6 +173,7 @@ contains
     call gas_state_free(gas_state)
     call aero_state_free(aero_init)
     call aero_state_free(aero_state)
+    call env_free(env)
 
   end subroutine partmc_mc
 

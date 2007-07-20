@@ -168,6 +168,10 @@ contains
     end do
 
     call inout_close(summary_file)
+    call gas_state_free(gas_init)
+    call gas_state_free(gas_state)
+    call aero_state_free(aero_init)
+    call aero_state_free(aero_state)
 
   end subroutine partmc_mc
 

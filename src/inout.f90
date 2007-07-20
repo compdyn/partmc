@@ -372,6 +372,7 @@ contains
     do i = 1,num_lines
        call inout_line_alloc(0, line_list(i))
        call inout_line_copy(temp_line_list(i), line_list(i))
+       call inout_line_free(temp_line_list(i))
     end do
 
   end subroutine inout_read_line_list

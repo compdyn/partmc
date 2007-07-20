@@ -169,8 +169,10 @@ contains
     end do
 
     call inout_close(summary_file)
+    call gas_data_free(gas_data)
     call gas_state_free(gas_init)
     call gas_state_free(gas_state)
+    call aero_data_free(aero_data)
     call aero_state_free(aero_init)
     call aero_state_free(aero_state)
     call env_free(env)
@@ -241,7 +243,7 @@ contains
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call alloc_gas_data(0, gas_data)
+    call gas_data_alloc(0, gas_data)
     call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 

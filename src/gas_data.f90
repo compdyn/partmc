@@ -189,6 +189,9 @@ contains
        gas_data%name(i) = species_name(i)
        gas_data%M_w(i) = species_data(i,1)
     end do
+    deallocate(species_name)
+    deallocate(species_data)
+    
     call set_gas_mosaic_map(gas_data)
 
   end subroutine spec_read_gas_data

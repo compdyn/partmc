@@ -169,6 +169,7 @@ contains
     end do
 
     call inout_close(summary_file)
+
     call gas_data_free(gas_data)
     call gas_state_free(gas_init)
     call gas_state_free(gas_state)
@@ -262,6 +263,11 @@ contains
     end if
 
     call inout_close(summary_file)
+
+    call aero_data_free(aero_data)
+    call env_free(env)
+    call bin_grid_free(bin_grid)
+    call gas_data_free(gas_data)
     
   end subroutine partmc_exact
 
@@ -347,6 +353,12 @@ contains
     end if
 
     call inout_close(summary_file)
+
+    call aero_data_free(aero_data)
+    call aero_dist_free(aero_dist_init)
+    call env_free(env)
+    call bin_grid_free(bin_grid)
+    call gas_data_free(gas_data)
     
   end subroutine partmc_sect
 

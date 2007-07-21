@@ -13,10 +13,10 @@ module mod_aero_data
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                         ! mosaic index of species i, or 0 if
                                         ! there is no match
-     real*8, pointer ::  rho(:)         ! len n_spec, densities (kg m^{-3})
-     integer, pointer :: nu(:)          ! len n_spec, num ions in solute
-     real*8, pointer :: eps(:)          ! len n_spec, solubilities (1)
-     real*8, pointer :: M_w(:)          ! len n_spec, molec wghts (kg mole^{-1})
+     real*8, pointer ::  density(:)     ! len n_spec, densities (kg m^{-3})
+     integer, pointer :: num_ions(:)    ! len n_spec, num ions in solute
+     real*8, pointer :: solubility(:)   ! len n_spec, solubilities (1)
+     real*8, pointer :: molec_weight(:) ! len n_spec, molec wghts (kg mole^{-1})
   end type aero_data_t
 
 contains
@@ -34,10 +34,10 @@ contains
     aero_data%n_spec = n_spec
     allocate(aero_data%name(n_spec))
     allocate(aero_data%mosaic_index(n_spec))
-    allocate(aero_data%rho(n_spec))
-    allocate(aero_data%nu(n_spec))
-    allocate(aero_data%eps(n_spec))
-    allocate(aero_data%M_w(n_spec))
+    allocate(aero_data%density(n_spec))
+    allocate(aero_data%num_ions(n_spec))
+    allocate(aero_data%solubility(n_spec))
+    allocate(aero_data%molec_weight(n_spec))
     aero_data%i_water = 0
 
   end subroutine aero_data_alloc
@@ -52,10 +52,10 @@ contains
 
     deallocate(aero_data%name)
     deallocate(aero_data%mosaic_index)
-    deallocate(aero_data%rho)
-    deallocate(aero_data%nu)
-    deallocate(aero_data%eps)
-    deallocate(aero_data%M_w)
+    deallocate(aero_data%density)
+    deallocate(aero_data%num_ions)
+    deallocate(aero_data%solubility)
+    deallocate(aero_data%molec_weight)
 
   end subroutine aero_data_free
 
@@ -152,10 +152,10 @@ contains
     call inout_write_string_array(file, "species_names", aero_data%name)
     call inout_write_integer_array(file, "mosaic_indices", &
          aero_data%mosaic_index)
-    call inout_write_real_array(file, "rho(kg/m^3)", aero_data%rho)
-    call inout_write_integer_array(file, "nu", aero_data%nu)
-    call inout_write_real_array(file, "eps(1)", aero_data%eps)
-    call inout_write_real_array(file, "M_w(kg/mole)", aero_data%M_w)
+    call inout_write_real_array(file, "rho(kg/m^3)", aero_data%density)
+    call inout_write_integer_array(file, "nu", aero_data%num_ions)
+    call inout_write_real_array(file, "eps(1)", aero_data%solubility)
+    call inout_write_real_array(file, "M_w(kg/mole)", aero_data%molec_weight)
     
   end subroutine inout_write_aero_data
 
@@ -175,10 +175,10 @@ contains
     call inout_read_string_array(file, "species_names", aero_data%name)
     call inout_read_integer_array(file, "mosaic_indices", &
          aero_data%mosaic_index)
-    call inout_read_real_array(file, "rho(kg/m^3)", aero_data%rho)
-    call inout_read_integer_array(file, "nu", aero_data%nu)
-    call inout_read_real_array(file, "eps(1)", aero_data%eps)
-    call inout_read_real_array(file, "M_w(kg/mole)", aero_data%M_w)
+    call inout_read_real_array(file, "rho(kg/m^3)", aero_data%density)
+    call inout_read_integer_array(file, "nu", aero_data%num_ions)
+    call inout_read_real_array(file, "eps(1)", aero_data%solubility)
+    call inout_read_real_array(file, "M_w(kg/mole)", aero_data%molec_weight)
     
   end subroutine inout_read_aero_data
 
@@ -214,10 +214,10 @@ contains
        if (species_name(i) == "H2O") then
           aero_data%i_water = i
        end if
-       aero_data%rho(i) = species_data(i,1)
-       aero_data%nu(i) = nint(species_data(i,2))
-       aero_data%eps(i) = species_data(i,3)
-       aero_data%M_w(i) = species_data(i,4)
+       aero_data%density(i) = species_data(i,1)
+       aero_data%num_ions(i) = nint(species_data(i,2))
+       aero_data%solubility(i) = species_data(i,3)
+       aero_data%molec_weight(i) = species_data(i,4)
     end do
     deallocate(species_name)
     deallocate(species_data)

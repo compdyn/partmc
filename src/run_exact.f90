@@ -75,7 +75,7 @@ contains
        end subroutine soln
     end interface
 
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_data_alloc(0, gas_data)
     call gas_state_alloc(0, gas_state)
 

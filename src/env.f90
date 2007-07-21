@@ -132,11 +132,11 @@ contains
                    ! pmv and mv are related by the factor M_w/(R*T)
     real*8 dmv     ! change of water density (kg m^{-3})
     
-    dmv = dv * aero_data%rho(aero_data%i_water)
+    dmv = dv * aero_data%density(aero_data%i_water)
     pmv = sat_vapor_pressure(env) * env%rel_humid
-    mv = aero_data%M_w(aero_data%i_water)/(const%R*env%temp) * pmv
+    mv = aero_data%molec_weight(aero_data%i_water)/(const%R*env%temp) * pmv
     mv = mv - dmv    
-    env%rel_humid = const%R * env%temp / aero_data%M_w(aero_data%i_water) * mv &
+    env%rel_humid = const%R * env%temp / aero_data%molec_weight(aero_data%i_water) * mv &
          / sat_vapor_pressure(env)
     
   end subroutine change_water_volume
@@ -255,7 +255,7 @@ contains
     type(aero_binned_t) :: aero_binned_delta
 
     call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned_delta)
+    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
     aero_state_delta%comp_vol = aero_state%comp_vol
 
     ! loss to background
@@ -311,15 +311,15 @@ contains
 
     type(aero_binned_t) :: emission, dilution
 
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, emission)
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, dilution)
+    call aero_binned_alloc(emission, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_alloc(dilution, bin_grid%n_bin, aero_data%n_spec)
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
-    call aero_dist_add_to_binned(bin_grid, env%aero_emissions, emission)
+    call aero_binned_add_aero_dist(emission, bin_grid, env%aero_emissions)
     call aero_binned_scale(emission, delta_t * env%aero_emission_rate)
 
     ! dilution = delta_t * gas_dilution_rate * (gas_background - aero_binned)
-    call aero_dist_add_to_binned(bin_grid, env%aero_background, dilution)
+    call aero_binned_add_aero_dist(dilution, bin_grid, env%aero_background)
     call aero_binned_sub(dilution, aero_binned)
     call aero_binned_scale(dilution, delta_t * env%aero_dilution_rate)
 

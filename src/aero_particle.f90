@@ -116,7 +116,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
-    aero_particle_mass = sum(aero_particle%vols * aero_data%rho)
+    aero_particle_mass = sum(aero_particle%vols * aero_data%density)
 
   end function aero_particle_mass
 
@@ -247,7 +247,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
     call assert(aero_data%i_water > 0)
-    aero_particle_water_M_w = aero_data%M_w(aero_data%i_water)
+    aero_particle_water_M_w = aero_data%molec_weight(aero_data%i_water)
 
   end function aero_particle_water_M_w
 
@@ -263,7 +263,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
     aero_particle_solute_M_w = average_solute_quantity(aero_particle, &
-         aero_data, aero_data%M_w)
+         aero_data, aero_data%molec_weight)
 
   end function aero_particle_solute_M_w
 
@@ -279,7 +279,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
     aero_particle_solute_nu = average_solute_quantity(aero_particle, &
-         aero_data, dble(aero_data%nu))
+         aero_data, dble(aero_data%num_ions))
 
   end function aero_particle_solute_nu
 
@@ -295,7 +295,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
     aero_particle_solute_eps = average_solute_quantity(aero_particle, &
-         aero_data, aero_data%eps)
+         aero_data, aero_data%solubility)
 
   end function aero_particle_solute_eps
 
@@ -311,7 +311,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
     call assert(aero_data%i_water > 0)
-    aero_particle_water_rho = aero_data%rho(aero_data%i_water)
+    aero_particle_water_rho = aero_data%density(aero_data%i_water)
 
   end function aero_particle_water_rho
 
@@ -327,7 +327,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
     aero_particle_solute_rho = average_solute_quantity(aero_particle, &
-         aero_data, aero_data%rho)
+         aero_data, aero_data%density)
 
   end function aero_particle_solute_rho
 
@@ -345,7 +345,7 @@ contains
 
     call assert(aero_data%i_water > 0)
     aero_particle_water_mass = aero_particle%vols(aero_data%i_water) &
-         * aero_data%rho(aero_data%i_water)
+         * aero_data%density(aero_data%i_water)
 
   end function aero_particle_water_mass
 
@@ -361,7 +361,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
     aero_particle_solute_mass = total_solute_quantity(aero_particle, &
-         aero_data, aero_data%rho)
+         aero_data, aero_data%density)
 
   end function aero_particle_solute_mass
 

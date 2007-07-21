@@ -240,27 +240,27 @@ contains
 
     integer :: i
     real*8 :: total_n_den
-    real*8 :: mode_n_dens(aero_dist%n_modes)
-    integer :: mode_n_parts(aero_dist%n_modes)
+    real*8 :: mode_n_dens(aero_dist%n_mode)
+    integer :: mode_n_parts(aero_dist%n_mode)
     integer :: num_per_bin(bin_grid%n_bin)
 
     ! find the total number density of each mode
     total_n_den = 0d0
-    do i = 1,aero_dist%n_modes
-       mode_n_dens(i) = sum(aero_dist%modes(i)%n_den)
+    do i = 1,aero_dist%n_mode
+       mode_n_dens(i) = sum(aero_dist%mode(i)%num_den)
     end do
     total_n_den = sum(mode_n_dens)
 
     ! allocate particles to modes proportional to their number densities
-    call vec_cts_to_disc(aero_dist%n_modes, mode_n_dens, n_part, mode_n_parts)
+    call vec_cts_to_disc(aero_dist%n_mode, mode_n_dens, n_part, mode_n_parts)
 
     ! allocate particles within each mode in proportion to mode shape
     call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
-    do i = 1,aero_dist%n_modes
-       call vec_cts_to_disc(bin_grid%n_bin, aero_dist%modes(i)%n_den, &
+    do i = 1,aero_dist%n_mode
+       call vec_cts_to_disc(bin_grid%n_bin, aero_dist%mode(i)%num_den, &
             mode_n_parts(i), num_per_bin)
        call aero_state_add_disc_mode(bin_grid, aero_data, &
-            aero_dist%modes(i)%vol_frac, num_per_bin, aero_state)
+            aero_dist%mode(i)%vol_frac, num_per_bin, aero_state)
     end do
 
     aero_state%comp_vol = dble(n_part) &
@@ -291,14 +291,14 @@ contains
     integer :: n_samp, i_mode
     integer :: num_per_bin(bin_grid%n_bin)
 
-    do i_mode = 1,aero_dist%n_modes
-       n_samp_avg = sample_vol * sum(aero_dist%modes(i_mode)%n_den) &
+    do i_mode = 1,aero_dist%n_mode
+       n_samp_avg = sample_vol * sum(aero_dist%mode(i_mode)%num_den) &
             * bin_grid%dlnr
        n_samp = rand_poisson(n_samp_avg)
        call sample_vec_cts_to_disc(bin_grid%n_bin, &
-            aero_dist%modes(i_mode)%n_den, n_samp, num_per_bin)
+            aero_dist%mode(i_mode)%num_den, n_samp, num_per_bin)
        call aero_state_add_disc_mode(bin_grid, aero_data, &
-            aero_dist%modes(i_mode)%vol_frac, num_per_bin, aero_state)
+            aero_dist%mode(i_mode)%vol_frac, num_per_bin, aero_state)
     end do
 
   end subroutine aero_dist_sample

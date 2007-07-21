@@ -15,13 +15,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_binned_alloc(n_bin, n_spec, aero_binned)
+  subroutine aero_binned_alloc(aero_binned, n_bin, n_spec)
 
     ! Allocates an aero_binned.
 
+    type(aero_binned_t), intent(out) :: aero_binned ! bin distribution
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
-    type(aero_binned_t), intent(out) :: aero_binned ! bin distribution
 
     allocate(aero_binned%num_den(n_bin))
     allocate(aero_binned%vol_den(n_bin, n_spec))
@@ -189,7 +189,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine average_aero_binned(aero_binned_vec, aero_binned_avg)
+  subroutine aero_binned_average(aero_binned_vec, aero_binned_avg)
     
     ! Computes the average of an array of aero_binned.
 
@@ -202,7 +202,7 @@ contains
 
     n_bin = size(aero_binned_vec(1)%vol_den, 1)
     n_spec = size(aero_binned_vec(1)%vol_den, 2)
-    call aero_binned_alloc(n_bin, n_spec, aero_binned_avg)
+    call aero_binned_alloc(aero_binned_avg, n_bin, n_spec)
     n = size(aero_binned_vec)
     do i_bin = 1,n_bin
        call average_real((/(aero_binned_vec(i)%num_den(i_bin),i=1,n)/), &
@@ -214,7 +214,7 @@ contains
        end do
     end do
     
-  end subroutine average_aero_binned
+  end subroutine aero_binned_average
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -272,7 +272,7 @@ contains
     call aero_binned_free(aero_binned_to)
     n_bin = size(aero_binned_from%vol_den, 1)
     n_spec = size(aero_binned_from%vol_den, 2)
-    call aero_binned_alloc(n_bin, n_spec, aero_binned_to)
+    call aero_binned_alloc(aero_binned_to, n_bin, n_spec)
     aero_binned_to%num_den = aero_binned_from%num_den
     aero_binned_to%vol_den = aero_binned_from%vol_den
 
@@ -280,30 +280,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_add_to_binned(bin_grid, aero_dist, aero_binned)
+  subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
 
     ! Converts an aero_dist to an aero_binned.
 
     use mod_bin_grid
     use mod_aero_dist
 
+    type(aero_binned_t), intent(out) :: aero_binned ! must be alloced
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(in) :: aero_dist ! source aero_dist
-    type(aero_binned_t), intent(out) :: aero_binned ! must be alloced
 
     integer :: i_mode, i_bin
 
-    do i_mode = 1,aero_dist%n_modes
+    do i_mode = 1,aero_dist%n_mode
        do i_bin = 1,bin_grid%n_bin
           aero_binned%num_den(i_bin) = aero_binned%num_den(i_bin) &
-               + aero_dist%modes(i_mode)%n_den(i_bin)
+               + aero_dist%mode(i_mode)%num_den(i_bin)
           aero_binned%vol_den(i_bin,:) = aero_binned%vol_den(i_bin,:) &
-               + bin_grid%v(i_bin) * aero_dist%modes(i_mode)%n_den(i_bin) &
-               * aero_dist%modes(i_mode)%vol_frac
+               + bin_grid%v(i_bin) * aero_dist%mode(i_mode)%num_den(i_bin) &
+               * aero_dist%mode(i_mode)%vol_frac
        end do
     end do
 
-  end subroutine aero_dist_add_to_binned
+  end subroutine aero_binned_add_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

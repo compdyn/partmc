@@ -131,7 +131,7 @@ contains
     
     call util_srand(rand_init)
 
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_alloc(gas_data%n_spec, gas_state)
     call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)

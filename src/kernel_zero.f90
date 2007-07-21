@@ -75,22 +75,22 @@ contains
 
     if (env%aero_dilution_rate == 0d0) then
        call aero_binned_zero(aero_binned)
-       call aero_dist_add_to_binned(bin_grid, env%aero_emissions, aero_binned)
+       call aero_binned_add_aero_dist(aero_binned, bin_grid, env%aero_emissions)
        call aero_binned_scale(aero_binned, env%aero_emission_rate * time)
     else
        ! calculate the limit steady state distribution
-       call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, &
-            aero_binned_limit)
-       call aero_dist_add_to_binned(bin_grid, env%aero_emissions, &
-            aero_binned_limit)
+       call aero_binned_alloc(aero_binned_limit, bin_grid%n_bin, &
+            aero_data%n_spec)
+       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+            env%aero_emissions)
        call aero_binned_scale(aero_binned_limit, &
             env%aero_emission_rate / env%aero_dilution_rate)
-       call aero_dist_add_to_binned(bin_grid, env%aero_background, &
-            aero_binned_limit)
+       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+            env%aero_background)
 
        ! calculate the current state
        call aero_binned_zero(aero_binned)
-       call aero_dist_add_to_binned(bin_grid, aero_dist_init, aero_binned)
+       call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist_init)
        call aero_binned_sub(aero_binned, aero_binned_limit)
        call aero_binned_scale(aero_binned, exp(-env%aero_dilution_rate * time))
        call aero_binned_add(aero_binned, aero_binned_limit)

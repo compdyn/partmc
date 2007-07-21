@@ -156,8 +156,8 @@ contains
 
     do i_spec = 1,aero_data%n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
-       conv_fac(i_spec) = 1.D9 * aero_data%rho(i_spec) &
-            / (aero_data%M_w(i_spec) * aero_state%comp_vol)
+       conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
+            / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
     enddo
 
     nbin_a = total_particles(aero_state)
@@ -178,7 +178,7 @@ contains
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
           water_a(i_mosaic) = particle%vols(aero_data%i_water) &
-               * aero_data%rho(aero_data%i_water) / aero_state%comp_vol
+               * aero_data%density(aero_data%i_water) / aero_state%comp_vol
           num_a(i_mosaic) = 1d0 / aero_state%comp_vol ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
@@ -223,7 +223,7 @@ contains
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
           particle%vols(aero_data%i_water) = water_a(i_mosaic) &
-               / aero_data%rho(aero_data%i_water) * aero_state%comp_vol
+               / aero_data%density(aero_data%i_water) * aero_state%comp_vol
        end do
     end do
 

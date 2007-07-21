@@ -302,7 +302,7 @@ contains
     call cond_newt(dmdt, env, aero_data, cond_growth_rate_func, &
          dmdt_tol, f_tol, iter_max, aero_particle)
     
-    dvdt = dmdt / aero_data%rho(aero_data%i_water)
+    dvdt = dmdt / aero_data%density(aero_data%i_water)
 
   end subroutine cond_growth_rate
 

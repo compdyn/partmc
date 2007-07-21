@@ -113,7 +113,7 @@ program process_summary
   do i_time = 1,n_time
      call average_real(time(:,i_time), time_avg(i_time))
      call average_env(env(:,i_time), env_avg(i_time))
-     call average_aero_binned(aero_binned(:,i_time), aero_binned_avg(i_time))
+     call aero_binned_average(aero_binned(:,i_time), aero_binned_avg(i_time))
      call average_gas_state(gas_state(:,i_time), gas_state_avg(i_time))
      tot_num_den(i_time) = sum(aero_binned_avg(i_time)%num_den)
      tot_vol_den(i_time,:) = sum(aero_binned_avg(i_time)%vol_den, 1)

@@ -1,17 +1,14 @@
 
+Get a better bessel function so that we can compute the exact golovin
+solution for larger arguments.
+
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
 Use HDF5 for a binary version of inout_*().
 
-Get a better bessel function so that we can compute the exact golovin
-solution for larger arguments.
-
 Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
 and then using a slow sampling to pick samples one-by-one.
-
-check that each top-level data_type is in the file data_type.f90 with
-a module mod_data_type.
 
 convert all num_conc and similar to num_den or similar
 
@@ -30,9 +27,9 @@ max_kernel_*() function for each one.
 
 Fix process_state.
 
-make all array variables either plural or singular (vols vs vol).
+make all array variables either singular (%vol vs %vols).
 
-rename aero_binned_*() to pmc_ab_*(), etc
+rename mod_name to pmc_mod_name
 
 all functions like type_*() should take a type as first argument.
 

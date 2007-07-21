@@ -86,18 +86,18 @@ contains
     end if
 
     ! output data structure
-    call aero_binned_alloc(bin_grid%n_bin, aero_data%n_spec, aero_binned)
+    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     aero_binned%vol_den = 0d0
     call gas_state_alloc(gas_data%n_spec, gas_state)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
        r(i) = vol2rad(bin_grid%v(i)) * 1d6           ! radius in m to um
-       e(i) = bin_grid%v(i) * aero_data%rho(1) * 1d6 ! vol in m^3 to mass in mg
+       e(i) = bin_grid%v(i) * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
     end do
     
     ! initial mass distribution
-    call aero_dist_add_to_binned(bin_grid, aero_dist, aero_binned)
+    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
     ! avoid problem with gnuplot
     where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
     where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0
@@ -138,10 +138,10 @@ contains
     do i_time = 1, num_t
 
        if (sect_opt%do_coagulation) then
-          g = aero_binned%vol_den(:,1) * aero_data%rho(1)
+          g = aero_binned%vol_den(:,1) * aero_data%density(1)
           call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
-          aero_binned%vol_den(:,1) = g / aero_data%rho(1)
+          aero_binned%vol_den(:,1) = g / aero_data%density(1)
           aero_binned%num_den = aero_binned%vol_den(:,1) / bin_grid%v
           ! avoid problem with gnuplot
           where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0

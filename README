@@ -48,9 +48,9 @@ their Fortran 77 heritage.
 
 Extensive use is made of Fortran 90 derived types and pointers for
 dynamic memory allocation of arrays inside derived types. Derived
-types are named like my_type_t and are defined in modules named like
-pmc_mod_my_type within files like my_type.f90. Each derived type has
-allocation and deallocation functions my_type_alloc() and
+types are named like my_type_t and are generally defined in modules
+named like pmc_mod_my_type within files like my_type.f90. Each derived
+type has allocation and deallocation functions my_type_alloc() and
 my_type_free(), respectively.
 
 The auto-generation of module dependencies relies on a particular

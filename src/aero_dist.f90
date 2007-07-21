@@ -15,20 +15,20 @@
 module mod_aero_dist
 
   type aero_mode_t
-     real*8, pointer :: n_den(:)        ! len n_bin, number density (#/m^3)
+     real*8, pointer :: num_den(:)      ! len n_bin, number density (#/m^3)
      real*8, pointer :: vol_frac(:)     ! len n_spec, species fractions (1)
   end type aero_mode_t
 
   type aero_dist_t
-     integer :: n_modes
-     type(aero_mode_t), pointer :: modes(:) ! len n_mode, internally mixed modes
+     integer :: n_mode
+     type(aero_mode_t), pointer :: mode(:) ! len n_mode, internally mixed modes
   end type aero_dist_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_mode_alloc(n_bin, n_spec, aero_mode)
+  subroutine aero_mode_alloc(aero_mode, n_bin, n_spec)
 
     ! Allocates an aero_mode.
 
@@ -36,7 +36,7 @@ contains
     integer, intent(in) :: n_spec       ! number of species
     type(aero_mode_t), intent(out) :: aero_mode ! aerosol mode
 
-    allocate(aero_mode%n_den(n_bin))
+    allocate(aero_mode%num_den(n_bin))
     allocate(aero_mode%vol_frac(n_spec))
 
   end subroutine aero_mode_alloc
@@ -49,14 +49,14 @@ contains
 
     type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
 
-    deallocate(aero_mode%n_den)
+    deallocate(aero_mode%num_den)
     deallocate(aero_mode%vol_frac)
 
   end subroutine aero_mode_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_alloc(n_modes, n_bin, n_spec, aero_dist)
+  subroutine aero_dist_alloc(aero_dist, n_modes, n_bin, n_spec)
 
     ! Allocates an aero_dist.
 
@@ -67,10 +67,10 @@ contains
 
     integer :: i
 
-    aero_dist%n_modes = n_modes
-    allocate(aero_dist%modes(n_modes))
+    aero_dist%n_mode = n_modes
+    allocate(aero_dist%mode(n_modes))
     do i = 1,n_modes
-       call aero_mode_alloc(n_bin, n_spec, aero_dist%modes(i))
+       call aero_mode_alloc(aero_dist%mode(i, n_bin, n_spec))
     end do
 
   end subroutine aero_dist_alloc
@@ -85,30 +85,30 @@ contains
 
     integer :: i
 
-    do i = 1,aero_dist%n_modes
-       call aero_mode_free(aero_dist%modes(i))
+    do i = 1,aero_dist%n_mode
+       call aero_mode_free(aero_dist%mode(i))
     end do
-    deallocate(aero_dist%modes)
+    deallocate(aero_dist%mode)
 
   end subroutine aero_dist_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_total_n_den(aero_dist, n_den)
+  subroutine aero_dist_total_num_den(aero_dist, total_num_den)
       
     ! Compute the total number density of an aerosol distribution.
     
     type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
-    real*8, intent(out) :: n_den(:)     ! total number density (#/m^3)
+    real*8, intent(out) :: total_num_den(:) ! total number density (#/m^3)
 
     integer :: i
 
-    n_den = 0d0
-    do i = 1,aero_dist%n_modes
-       n_den = n_den + aero_dist%modes(i)%n_den
+    total_num_den = 0d0
+    do i = 1,aero_dist%n_mode
+       total_num_den = total_num_den + aero_dist%mode(i)%num_den
     end do
 
-  end subroutine aero_dist_total_n_den
+  end subroutine aero_dist_total_num_den
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -124,9 +124,9 @@ contains
     integer :: i
     
     aero_dist_total_num_den = 0d0
-    do i = 1,aero_dist%n_modes
+    do i = 1,aero_dist%n_mode
        aero_dist_total_num_den = aero_dist_total_num_den &
-            + sum(aero_dist%modes(i)%n_den)
+            + sum(aero_dist%mode(i)%num_den)
     end do
     aero_dist_total_num_den = aero_dist_total_num_den * bin_grid%dlnr
 
@@ -218,7 +218,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
 
-    call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%n_den)
+    call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
     call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
 
   end subroutine inout_write_aero_mode
@@ -236,10 +236,10 @@ contains
 
     integer :: i
     
-    call inout_write_integer(file, "n_modes", aero_dist%n_modes)
-    do i = 1,aero_dist%n_modes
+    call inout_write_integer(file, "n_modes", aero_dist%n_mode)
+    do i = 1,aero_dist%n_mode
        call inout_write_integer(file, "mode_number", i)
-       call inout_write_aero_mode(file, aero_dist%modes(i))
+       call inout_write_aero_mode(file, aero_dist%mode(i))
     end do
 
   end subroutine inout_write_aero_dist
@@ -255,7 +255,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
 
-    call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%n_den)
+    call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
     call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
 
   end subroutine inout_read_aero_mode
@@ -273,12 +273,12 @@ contains
 
     integer :: i, check_i
     
-    call inout_read_integer(file, "n_modes", aero_dist%n_modes)
-    allocate(aero_dist%modes(aero_dist%n_modes))
-    do i = 1,aero_dist%n_modes
+    call inout_read_integer(file, "n_modes", aero_dist%n_mode)
+    allocate(aero_dist%mode(aero_dist%n_mode))
+    do i = 1,aero_dist%n_mode
        call inout_read_integer(file, "mode_number", check_i)
        call inout_check_index(file, i, check_i)
-       call inout_read_aero_mode(file, aero_dist%modes(i))
+       call inout_read_aero_mode(file, aero_dist%mode(i))
     end do
 
   end subroutine inout_read_aero_dist
@@ -407,10 +407,10 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode,
                                                   ! will be allocated
 
-    allocate(aero_mode%n_den(bin_grid%n_bin))
+    allocate(aero_mode%num_den(bin_grid%n_bin))
     allocate(aero_mode%vol_frac(aero_data%n_spec))
     call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
-    call spec_read_aero_mode_shape(file, aero_data, bin_grid, aero_mode%n_den)
+    call spec_read_aero_mode_shape(file, aero_data, bin_grid, aero_mode%num_den)
 
   end subroutine spec_read_aero_mode
 
@@ -432,10 +432,10 @@ contains
 
     integer :: i
 
-    call inout_read_integer(file, 'n_modes', aero_dist%n_modes)
-    allocate(aero_dist%modes(aero_dist%n_modes))
-    do i = 1,aero_dist%n_modes
-       call spec_read_aero_mode(file, aero_data, bin_grid, aero_dist%modes(i))
+    call inout_read_integer(file, 'n_modes', aero_dist%n_mode)
+    allocate(aero_dist%mode(aero_dist%n_mode))
+    do i = 1,aero_dist%n_mode
+       call spec_read_aero_mode(file, aero_data, bin_grid, aero_dist%mode(i))
     end do
 
   end subroutine spec_read_aero_dist
@@ -480,13 +480,13 @@ contains
 
     integer :: n_bin, n_spec, i_bin, i_spec, i, n
 
-    n_bin = size(aero_mode_vec(1)%n_den)
+    n_bin = size(aero_mode_vec(1)%num_den)
     n_spec = size(aero_mode_vec(1)%vol_frac)
-    call aero_mode_alloc(n_bin, n_spec, aero_mode_avg)
+    call aero_mode_alloc(aero_mode_avg, n_bin, n_spec)
     n = size(aero_mode_vec)
     do i_bin = 1,n_bin
-       call average_real((/(aero_mode_vec(i)%n_den(i_bin),i=1,n)/), &
-            aero_mode_avg%n_den(i_bin))
+       call average_real((/(aero_mode_vec(i)%num_den(i_bin),i=1,n)/), &
+            aero_mode_avg%num_den(i_bin))
     end do
     do i_spec = 1,n_spec
        call average_real((/(aero_mode_vec(i)%vol_frac(i_spec),i=1,n)/), &
@@ -506,12 +506,12 @@ contains
 
     integer :: n_modes, i_mode, i, n
 
-    n_modes = aero_dist_vec(1)%n_modes
-    call aero_dist_alloc(n_modes, 0, 0, aero_dist_avg)
+    n_modes = aero_dist_vec(1)%n_mode
+    call aero_dist_alloc(aero_dist_avg, n_modes, 0, 0)
     n = size(aero_dist_vec)
     do i_mode = 1,n_modes
-       call average_aero_mode((/(aero_dist_vec(i)%modes(i_mode),i=1,n)/), &
-            aero_dist_avg%modes(i_mode))
+       call average_aero_mode((/(aero_dist_vec(i)%mode(i_mode),i=1,n)/), &
+            aero_dist_avg%mode(i_mode))
     end do
     
   end subroutine average_aero_dist

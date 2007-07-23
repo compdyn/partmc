@@ -63,7 +63,7 @@ contains
 
     allocate(aero_state%bins(n_bin))
     do i = 1,n_bin
-       call aero_particle_array_alloc(0, n_spec, aero_state%bins(i))
+       call aero_particle_array_alloc(aero_state%bins(i), 0, n_spec)
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
@@ -331,7 +331,7 @@ contains
        i_bin = sample_disc_pdf(n_bin, disc_pdf)
        i_part = util_rand_int(aero_state_from%bins(i_bin)%n_part)
        call aero_state_add_particle(aero_state_to, i_bin, &
-            aero_state_from%bins(i_bin)%particles(i_part))
+            aero_state_from%bins(i_bin)%particle(i_part))
        call aero_state_remove_particle(aero_state_from, i_bin, i_part)
     end do
     
@@ -352,7 +352,7 @@ contains
     do i_bin = 1,n_bin
        do i_part = 1,aero_state_delta%bins(i_bin)%n_part
           call aero_state_add_particle(aero_state, i_bin, &
-               aero_state_delta%bins(i_bin)%particles(i_part))
+               aero_state_delta%bins(i_bin)%particle(i_part))
        end do
     end do
     
@@ -381,7 +381,7 @@ contains
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%bins(b)%n_part
           aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
-               + aero_state%bins(b)%particles(j)%vol / aero_state%comp_vol &
+               + aero_state%bins(b)%particle(j)%vol / aero_state%comp_vol &
                / bin_grid%dlnr
        end do
        aero_binned%num_den(b) = dble(aero_state%bins(b)%n_part) &
@@ -435,13 +435,13 @@ contains
        j = 1
        do while (j .le. aero_state%bins(bin)%n_part)
           ! find the new bin
-          new_bin = aero_particle_in_bin(aero_state%bins(bin)%particles(j), &
+          new_bin = aero_particle_in_bin(aero_state%bins(bin)%particle(j), &
                bin_grid)
           
           ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
              call aero_state_add_particle(aero_state, new_bin, &
-                  aero_state%bins(bin)%particles(j))
+                  aero_state%bins(bin)%particle(j))
              call aero_state_remove_particle(aero_state, bin, j)
 
              ! in this case, don't advance j, so that we will still
@@ -496,7 +496,7 @@ contains
     ! check that all particles are in the correct bins
     do k = 1,bin_grid%n_bin
        do i = 1,aero_state%bins(k)%n_part
-          k_check = aero_particle_in_bin(aero_state%bins(k)%particles(i), &
+          k_check = aero_particle_in_bin(aero_state%bins(k)%particle(i), &
                bin_grid)
           if (k .ne. k_check) then
              write(0,'(a10,a10,a10)') 'i', 'k', 'k_check'
@@ -526,7 +526,7 @@ contains
     do k = 1,bin_grid%n_bin
        vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
        do s = 1,aero_data%n_spec
-          check_vol_den = sum((/(aero_state%bins(k)%particles(i)%vol(s), &
+          check_vol_den = sum((/(aero_state%bins(k)%particle(i)%vol(s), &
                i = 1,aero_state%bins(k)%n_part)/)) &
                / aero_state%comp_vol / bin_grid%dlnr
           if (.not. almost_equal_abs(check_vol_den, &

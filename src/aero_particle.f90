@@ -19,8 +19,8 @@ contains
 
     ! Allocates and initializes.
 
-    integer, intent(in) :: n_spec       ! number of species
     type(aero_particle_t), intent(inout) :: aero_particle ! particle to init
+    integer, intent(in) :: n_spec       ! number of species
 
     allocate(aero_particle%vol(n_spec))
     call aero_particle_zero(aero_particle)

@@ -165,7 +165,7 @@ contains
     aer = 0d0    ! initialize to zero
     do i_bin = 1,bin_grid%n_bin
        do i_num = 1,aero_state%bins(i_bin)%n_part
-          particle => aero_state%bins(i_bin)%particles(i_num)
+          particle => aero_state%bins(i_bin)%particle(i_num)
           i_mosaic = i_mosaic + 1
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -210,7 +210,7 @@ contains
     do i_bin = 1,bin_grid%n_bin
        do i_num = 1,aero_state%bins(i_bin)%n_part
           i_mosaic = i_mosaic + 1
-          particle => aero_state%bins(i_bin)%particles(i_num)
+          particle => aero_state%bins(i_bin)%particle(i_num)
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then

@@ -41,7 +41,7 @@ contains
     do bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bins(bin)%n_part
           call condense_particle(del_t, env, aero_data, &
-               aero_state%bins(bin)%particles(j))
+               aero_state%bins(bin)%particle(j))
        end do
     end do
 
@@ -606,7 +606,7 @@ contains
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bins(i_bin)%n_part
           call equilibriate_particle(env, aero_data, &
-               aero_state%bins(i_bin)%particles(i))
+               aero_state%bins(i_bin)%particle(i))
        end do
     end do
 

@@ -11,30 +11,30 @@ module mod_aero_particle_array
   type aero_particle_array_t
      integer :: n_part                  ! number of particles
      integer :: n_spec                  ! number of species
-     type(aero_particle_t), pointer :: particles(:) ! particles
-     ! NOTE: typically size(particles) > num as we allocate more meory
-     ! than needed. num is the number of entries used in particles.
+     type(aero_particle_t), pointer :: particle(:) ! particle array
+     ! NOTE: typically size(particle) > num as we allocate more memory
+     ! than needed. num is the number of entries used in particle.
   end type aero_particle_array_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_particle_array_alloc(n_part, n_spec, aero_particle_array)
+  subroutine aero_particle_array_alloc(aero_particle_array, n_part, n_spec)
 
     ! Allocates and initializes.
 
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array ! result
     integer, intent(in) :: n_part       ! number of particles
     integer, intent(in) :: n_spec       ! number of species
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array ! result
 
     integer :: i
 
     aero_particle_array%n_part = n_part
     aero_particle_array%n_spec = n_spec
-    allocate(aero_particle_array%particles(n_part))
+    allocate(aero_particle_array%particle(n_part))
     do i = 1,n_part
-       call aero_particle_alloc(aero_particle_array%particles(i), n_spec)
+       call aero_particle_alloc(aero_particle_array%particle(i), n_spec)
     end do
 
   end subroutine aero_particle_array_alloc
@@ -50,9 +50,9 @@ contains
     integer :: i
     
     do i = 1,aero_particle_array%n_part
-       call aero_particle_free(aero_particle_array%particles(i))
+       call aero_particle_free(aero_particle_array%particle(i))
     end do
-    deallocate(aero_particle_array%particles)
+    deallocate(aero_particle_array%particle)
 
   end subroutine aero_particle_array_free
   
@@ -70,11 +70,11 @@ contains
     integer :: i
     
     call aero_particle_array_free(aero_particle_array_to)
-    call aero_particle_array_alloc(aero_particle_array_from%n_part, &
-         aero_particle_array_from%n_spec, aero_particle_array_to)
+    call aero_particle_array_alloc(aero_particle_array_to, &
+         aero_particle_array_from%n_part, aero_particle_array_from%n_spec)
     do i = 1,aero_particle_array_from%n_part
-       call aero_particle_copy(aero_particle_array_from%particles(i), &
-            aero_particle_array_to%particles(i))
+       call aero_particle_copy(aero_particle_array_from%particle(i), &
+            aero_particle_array_to%particle(i))
     end do
 
   end subroutine aero_particle_array_copy
@@ -88,7 +88,7 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     call aero_particle_array_free(aero_particle_array)
-    allocate(aero_particle_array%particles(0))
+    allocate(aero_particle_array%particle(0))
     aero_particle_array%n_part = 0
 
   end subroutine aero_particle_array_zero
@@ -115,11 +115,11 @@ contains
     call assert(new_length >= n_part)
     allocate(new_particles(new_length))
     do i = 1,aero_particle_array%n_part
-       call aero_particle_shift(aero_particle_array%particles(i), &
+       call aero_particle_shift(aero_particle_array%particle(i), &
             new_particles(i))
     end do
-    deallocate(aero_particle_array%particles)
-    aero_particle_array%particles => new_particles
+    deallocate(aero_particle_array%particle)
+    aero_particle_array%particle => new_particles
     
   end subroutine aero_particle_array_realloc
 
@@ -134,7 +134,7 @@ contains
 
     integer :: length, new_length
 
-    length = size(aero_particle_array%particles)
+    length = size(aero_particle_array%particle)
     new_length = max(length * 2, length + 1)
     call aero_particle_array_realloc(aero_particle_array, new_length)
     
@@ -149,7 +149,7 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: n            ! minimum new size of array
 
-    do while (size(aero_particle_array%particles) < n)
+    do while (size(aero_particle_array%particle) < n)
        call aero_particle_array_enlarge(aero_particle_array)
     end do
 
@@ -168,11 +168,11 @@ contains
 
     n_part = aero_particle_array%n_part
     n_spec = aero_particle_array%n_spec
-    length = size(aero_particle_array%particles)
+    length = size(aero_particle_array%particle)
     new_length = length / 2
     do while ((n_part <= new_length) .and. (length > 0))
        call aero_particle_array_realloc(aero_particle_array, new_length)
-       length = size(aero_particle_array%particles)
+       length = size(aero_particle_array%particle)
        new_length = length / 2
     end do
 
@@ -192,8 +192,8 @@ contains
 
     n = aero_particle_array%n_part + 1
     call aero_particle_array_enlarge_to(aero_particle_array, n)
-    call aero_particle_alloc(aero_particle_array%particles(n), 0)
-    call aero_particle_copy(aero_particle, aero_particle_array%particles(n))
+    call aero_particle_alloc(aero_particle_array%particle(n), 0)
+    call aero_particle_copy(aero_particle, aero_particle_array%particle(n))
     aero_particle_array%n_part = aero_particle_array%n_part + 1
 
   end subroutine aero_particle_array_add_particle
@@ -212,12 +212,12 @@ contains
 
     call assert(index >= 1)
     call assert(index <= aero_particle_array%n_part)
-    call aero_particle_free(aero_particle_array%particles(index))
+    call aero_particle_free(aero_particle_array%particle(index))
     if (index < aero_particle_array%n_part) then
        ! shift last particle into empty slot to preserve dense packing
        call aero_particle_shift( &
-            aero_particle_array%particles(aero_particle_array%n_part), &
-            aero_particle_array%particles(index))
+            aero_particle_array%particle(aero_particle_array%n_part), &
+            aero_particle_array%particle(index))
     end if
     aero_particle_array%n_part = aero_particle_array%n_part - 1
     call aero_particle_array_shrink(aero_particle_array)
@@ -238,10 +238,10 @@ contains
     n = aero_particle_array%n_part
     call aero_particle_array_enlarge_to(aero_particle_array, 2 * n)
     do i = 1,n
-       call aero_particle_alloc(aero_particle_array%particles(i + n), &
+       call aero_particle_alloc(aero_particle_array%particle(i + n), &
             aero_particle_array%n_spec)
-       call aero_particle_copy(aero_particle_array%particles(i), &
-            aero_particle_array%particles(i + n))
+       call aero_particle_copy(aero_particle_array%particle(i), &
+            aero_particle_array%particle(i + n))
     end do
     aero_particle_array%n_part = 2 * n
 
@@ -264,7 +264,7 @@ contains
     call inout_write_integer(file, "n_spec", aero_particle_array%n_spec)
     do i = 1,aero_particle_array%n_part
        call inout_write_integer(file, "particle_number", i)
-       call inout_write_aero_particle(file, aero_particle_array%particles(i))
+       call inout_write_aero_particle(file, aero_particle_array%particle(i))
     end do
     
   end subroutine inout_write_aero_particle_array
@@ -284,11 +284,11 @@ contains
 
     call inout_read_integer(file, "n_part", aero_particle_array%n_part)
     call inout_read_integer(file, "n_spec", aero_particle_array%n_spec)
-    allocate(aero_particle_array%particles(aero_particle_array%n_part))
+    allocate(aero_particle_array%particle(aero_particle_array%n_part))
     do i = 1,aero_particle_array%n_part
        call inout_read_integer(file, "particle_number", check_i)
        call inout_check_index(file, i, check_i)
-       call inout_read_aero_particle(file, aero_particle_array%particles(i))
+       call inout_read_aero_particle(file, aero_particle_array%particle(i))
     end do
     
   end subroutine inout_read_aero_particle_array

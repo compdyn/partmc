@@ -57,8 +57,8 @@ contains
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    pv1 = aero_particle_volume(aero_state%bins(b1)%particles(s1))
-    pv2 = aero_particle_volume(aero_state%bins(b2)%particles(s2))
+    pv1 = aero_particle_volume(aero_state%bins(b1)%particle(s1))
+    pv2 = aero_particle_volume(aero_state%bins(b2)%particle(s2))
     call kernel(pv1, pv2, env, k)
     p = k / k_max
     
@@ -144,15 +144,15 @@ contains
     call aero_particle_alloc(new_particle, aero_data%n_spec)
 
     ! coagulate particles
-    call aero_particle_coagulate(aero_state%bins(b1)%particles(s1), &
-         aero_state%bins(b2)%particles(s2), new_particle)
+    call aero_particle_coagulate(aero_state%bins(b1)%particle(s1), &
+         aero_state%bins(b2)%particle(s2), new_particle)
     bn = aero_particle_in_bin(new_particle, bin_grid)
 
     ! update binned data
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b1, aero_state%comp_vol, aero_state%bins(b1)%particles(s1))
+         b1, aero_state%comp_vol, aero_state%bins(b1)%particle(s1))
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b2, aero_state%comp_vol, aero_state%bins(b2)%particles(s2))
+         b2, aero_state%comp_vol, aero_state%bins(b2)%particle(s2))
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
          bn, aero_state%comp_vol, new_particle)
 

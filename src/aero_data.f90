@@ -107,7 +107,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_aero_data_mosaic_map(aero_data)
+  subroutine aero_data_set_mosaic_map(aero_data)
 
     ! Fills in aero_data%mosaic_index.
 
@@ -134,7 +134,7 @@ contains
        end if
     end do
 
-  end subroutine set_aero_data_mosaic_map
+  end subroutine aero_data_set_mosaic_map
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -222,7 +222,7 @@ contains
     deallocate(species_name)
     deallocate(species_data)
     call set_aero_particle_water_index(aero_data)
-    call set_aero_data_mosaic_map(aero_data)
+    call aero_data_set_mosaic_map(aero_data)
 
   end subroutine spec_read_aero_data
 

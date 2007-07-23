@@ -202,7 +202,7 @@ contains
     integer k, i
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_alloc(aero_data%n_spec, aero_particle)
+    call aero_particle_alloc(aero_particle, aero_data%n_spec)
     do k = 1,bin_grid%n_bin
        call bin_edge(bin_grid, k, v_low)
        call bin_edge(bin_grid, k + 1, v_high)
@@ -381,7 +381,7 @@ contains
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%bins(b)%n_part
           aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
-               + aero_state%bins(b)%particles(j)%vols / aero_state%comp_vol &
+               + aero_state%bins(b)%particles(j)%vol / aero_state%comp_vol &
                / bin_grid%dlnr
        end do
        aero_binned%num_den(b) = dble(aero_state%bins(b)%n_part) &
@@ -435,8 +435,8 @@ contains
        j = 1
        do while (j .le. aero_state%bins(bin)%n_part)
           ! find the new bin
-          call aero_particle_in_bin(aero_state%bins(bin)%particles(j), &
-               bin_grid, new_bin)
+          new_bin = aero_particle_in_bin(aero_state%bins(bin)%particles(j), &
+               bin_grid)
           
           ! if the bin number has changed, move the particle
           if (bin .ne. new_bin) then
@@ -478,10 +478,10 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     
-    real*8 pv, check_bin_v, check_vol_den, vol_tol
-    real*8 num_tol, state_num_den
-    integer i, k, k_check, s, n_part_check
-    logical error
+    real*8 :: check_bin_v, check_vol_den, vol_tol
+    real*8 :: num_tol, state_num_den
+    integer :: i, k, k_check, s, n_part_check
+    logical :: error
     
     error = .false.
 
@@ -496,11 +496,11 @@ contains
     ! check that all particles are in the correct bins
     do k = 1,bin_grid%n_bin
        do i = 1,aero_state%bins(k)%n_part
-          pv = aero_particle_volume(aero_state%bins(k)%particles(i))
-          call particle_in_bin(pv, bin_grid, k_check)
+          k_check = aero_particle_in_bin(aero_state%bins(k)%particles(i), &
+               bin_grid)
           if (k .ne. k_check) then
-             write(0,'(a10,a10,a20,a10)') 'k', 'i', 'pv', 'k_check'
-             write(0,'(i10,i10,e20.8,i10)') k, i, pv, k_check
+             write(0,'(a10,a10,a10)') 'i', 'k', 'k_check'
+             write(0,'(i10,i10,i10)') i, k, k_check
              error = .true.
           end if
        end do
@@ -526,7 +526,7 @@ contains
     do k = 1,bin_grid%n_bin
        vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
        do s = 1,aero_data%n_spec
-          check_vol_den = sum((/(aero_state%bins(k)%particles(i)%vols(s), &
+          check_vol_den = sum((/(aero_state%bins(k)%particles(i)%vol(s), &
                i = 1,aero_state%bins(k)%n_part)/)) &
                / aero_state%comp_vol / bin_grid%dlnr
           if (.not. almost_equal_abs(check_vol_den, &

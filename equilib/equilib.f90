@@ -44,10 +44,10 @@ program equilib
   call getarg(2, tmp_str)
   env%rel_humid = string_to_real(tmp_str)
 
-  call aero_particle_alloc(aero_data%n_spec, aero_particle)
+  call aero_particle_alloc(aero_particle, aero_data%n_spec)
   do i = 2,aero_data%n_spec
      call getarg(i + 1, tmp_str)
-     aero_particle%vols(i) = string_to_real(tmp_str)
+     aero_particle%vol(i) = string_to_real(tmp_str)
   end do
 
   ! do equilibriation
@@ -58,14 +58,14 @@ program equilib
   write(*,*) 'RH = ', env%rel_humid
   write(*,*) ''
   do i = 1,aero_data%n_spec
-     write(*,*) aero_data%name(i), aero_particle%vols(i), ' m^{-3}'
+     write(*,*) aero_data%name(i), aero_particle%vol(i), ' m^{-3}'
   end do
 
   write(*,*) ''
   write(*,*) 'Equilibrium water volume: ', &
-       aero_particle%vols(aero_data%i_water), ' m^{-3}'
+       aero_particle%vol(aero_data%i_water), ' m^{-3}'
   write(*,*) 'Dry volume: ', aero_particle_volume(aero_particle) - &
-       aero_particle%vols(aero_data%i_water), ' m^{-3}'
+       aero_particle%vol(aero_data%i_water), ' m^{-3}'
   write(*,*) 'Wet volume: ', aero_particle_volume(aero_particle), ' m^{-3}'
 
   call aero_particle_free(aero_particle)

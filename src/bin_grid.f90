@@ -110,7 +110,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine particle_in_bin(v, bin_grid, k)
+  integer function particle_in_bin(v, bin_grid)
     
     ! Find the bin number that contains a given particle. This assumes
     ! logarithmically spaced bins.
@@ -119,10 +119,10 @@ contains
     
     real*8, intent(in) :: v             ! volume of particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    integer, intent(out) :: k           ! bin number containing particle
 
     real*8 :: log_v_min, log_v_max, log_edge_min, log_edge_max
     real*8 :: half_log_delta
+    integer :: k
 
     call assert(bin_grid%n_bin > 2)
     log_v_min = log(bin_grid%v(1))
@@ -134,8 +134,9 @@ contains
          * dble(bin_grid%n_bin - 2)) + 1
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)
+    particle_in_bin = k
     
-  end subroutine particle_in_bin
+  end function particle_in_bin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

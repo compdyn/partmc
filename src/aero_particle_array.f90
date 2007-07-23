@@ -34,7 +34,7 @@ contains
     aero_particle_array%n_spec = n_spec
     allocate(aero_particle_array%particles(n_part))
     do i = 1,n_part
-       call aero_particle_alloc(n_spec, aero_particle_array%particles(i))
+       call aero_particle_alloc(aero_particle_array%particles(i), n_spec)
     end do
 
   end subroutine aero_particle_array_alloc
@@ -192,7 +192,7 @@ contains
 
     n = aero_particle_array%n_part + 1
     call aero_particle_array_enlarge_to(aero_particle_array, n)
-    call aero_particle_alloc(0, aero_particle_array%particles(n))
+    call aero_particle_alloc(aero_particle_array%particles(n), 0)
     call aero_particle_copy(aero_particle, aero_particle_array%particles(n))
     aero_particle_array%n_part = aero_particle_array%n_part + 1
 
@@ -238,8 +238,8 @@ contains
     n = aero_particle_array%n_part
     call aero_particle_array_enlarge_to(aero_particle_array, 2 * n)
     do i = 1,n
-       call aero_particle_alloc(aero_particle_array%n_spec, &
-            aero_particle_array%particles(i + n))
+       call aero_particle_alloc(aero_particle_array%particles(i + n), &
+            aero_particle_array%n_spec)
        call aero_particle_copy(aero_particle_array%particles(i), &
             aero_particle_array%particles(i + n))
     end do

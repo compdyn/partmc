@@ -62,8 +62,8 @@ contains
     call gas_state_alloc(0, env%gas_background)
     env%gas_emission_rate = 0d0
     env%gas_dilution_rate = 0d0
-    call aero_dist_alloc(0, 0, 0, env%aero_emissions)
-    call aero_dist_alloc(0, 0, 0, env%aero_background)
+    call aero_dist_alloc(env%aero_emissions, 0, 0, 0)
+    call aero_dist_alloc(env%aero_background, 0, 0, 0)
     env%aero_emission_rate = 0d0
     env%aero_dilution_rate = 0d0
 

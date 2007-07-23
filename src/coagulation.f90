@@ -141,12 +141,12 @@ contains
     type(aero_particle_t) :: new_particle
     integer :: bn
 
-    call aero_particle_alloc(aero_data%n_spec, new_particle)
+    call aero_particle_alloc(new_particle, aero_data%n_spec)
 
     ! coagulate particles
     call aero_particle_coagulate(aero_state%bins(b1)%particles(s1), &
          aero_state%bins(b2)%particles(s2), new_particle)
-    call aero_particle_in_bin(new_particle, bin_grid, bn)
+    bn = aero_particle_in_bin(new_particle, bin_grid)
 
     ! update binned data
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &

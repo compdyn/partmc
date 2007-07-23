@@ -127,12 +127,12 @@ contains
 
     ! do condensation
     call cond_growth_rate(dvdt, env, aero_data, aero_particle)
-    aero_particle%vols(aero_data%i_water) = &
-         aero_particle%vols(aero_data%i_water) + dt * dvdt
+    aero_particle%vol(aero_data%i_water) = &
+         aero_particle%vol(aero_data%i_water) + dt * dvdt
 
     ! ensure volumes stay positive
-    aero_particle%vols(aero_data%i_water) = max(0d0, &
-         aero_particle%vols(aero_data%i_water))
+    aero_particle%vol(aero_data%i_water) = max(0d0, &
+         aero_particle%vol(aero_data%i_water))
    
   end subroutine condense_step_euler
 
@@ -189,38 +189,38 @@ contains
     real*8 k1, k2, k3, k4
     type(aero_particle_t) :: aero_particle_tmp
 
-    call aero_particle_alloc(aero_data%n_spec, aero_particle_tmp)
+    call aero_particle_alloc(aero_particle_tmp, aero_data%n_spec)
     call aero_particle_copy(aero_particle, aero_particle_tmp)
 
     ! step 1
     call cond_growth_rate(k1, env, aero_data, aero_particle_tmp)
 
     ! step 2
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         aero_particle%vols(aero_data%i_water) + dt * k1 / 2d0
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         max(0d0, aero_particle_tmp%vols(aero_data%i_water))
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         aero_particle%vol(aero_data%i_water) + dt * k1 / 2d0
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         max(0d0, aero_particle_tmp%vol(aero_data%i_water))
     call cond_growth_rate(k2, env, aero_data, aero_particle_tmp)
 
     ! step 3
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         aero_particle%vols(aero_data%i_water) + dt * k2 / 2d0
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         max(0d0, aero_particle_tmp%vols(aero_data%i_water))
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         aero_particle%vol(aero_data%i_water) + dt * k2 / 2d0
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         max(0d0, aero_particle_tmp%vol(aero_data%i_water))
     call cond_growth_rate(k3, env, aero_data, aero_particle_tmp)
 
     ! step 4
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         aero_particle%vols(aero_data%i_water) + dt * k3
-    aero_particle_tmp%vols(aero_data%i_water) = &
-         max(0d0, aero_particle_tmp%vols(aero_data%i_water))
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         aero_particle%vol(aero_data%i_water) + dt * k3
+    aero_particle_tmp%vol(aero_data%i_water) = &
+         max(0d0, aero_particle_tmp%vol(aero_data%i_water))
     call cond_growth_rate(k4, env, aero_data, aero_particle_tmp)
 
-    aero_particle%vols(aero_data%i_water) = &
-         aero_particle%vols(aero_data%i_water) &
+    aero_particle%vol(aero_data%i_water) = &
+         aero_particle%vol(aero_data%i_water) &
          + dt * (k1 / 6d0 + k2 / 3d0 + k3 / 3d0 + k4 / 6d0)
-    aero_particle%vols(aero_data%i_water) = &
-         max(0d0, aero_particle%vols(aero_data%i_water))
+    aero_particle%vol(aero_data%i_water) = &
+         max(0d0, aero_particle%vol(aero_data%i_water))
 
     call aero_particle_free(aero_particle_tmp)
    
@@ -361,7 +361,7 @@ contains
           write(0,*) 'ERROR: Newton iteration failed to terminate'
           write(0,*) 'iter_max = ', iter_max
           write(0,*) 'x = ', x
-          write(0,*) 'aero_particle%vols = ', aero_particle%vols
+          write(0,*) 'aero_particle%vol = ', aero_particle%vol
           call exit(1)
        end if
        
@@ -409,37 +409,39 @@ contains
     if (init) then
        ! Start of new Newton loop, compute all constants
 
-       M_water = aero_particle_water_M_w(aero_data)                  ! (kg/mole)
-       M_solute = aero_particle_solute_M_w(aero_data, aero_particle) ! (kg/mole)
-       nu = aero_particle_solute_nu(aero_data, aero_particle)        ! (1)
-       eps = aero_particle_solute_eps(aero_data, aero_particle)      ! (1)
-       rho_water = aero_particle_water_rho(aero_data)                ! (kg/m^3)
-       rho_solute = aero_particle_solute_rho(aero_data, aero_particle)! (kg/m^3)
-       g_water = aero_particle_water_mass(aero_data, aero_particle)  ! (kg)
+       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
+       M_solute = aero_particle_solute_molec_weight(aero_data, aero_particle)
+       ! (kg/mole)
+       nu = aero_particle_solute_num_ions(aero_data, aero_particle) ! (1)
+       eps = aero_particle_solute_solubility(aero_data, aero_particle) ! (1)
+       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
+       rho_solute = aero_particle_solute_density(aero_data, aero_particle)
+       ! (kg/m^3)
+       g_water = aero_particle_water_mass(aero_data, aero_particle) ! (kg)
        g_solute = aero_particle_solute_mass(aero_data, aero_particle) ! (kg)
 
-       pv = aero_particle_volume(aero_particle) ! m^3
-       d_p = vol2diam(pv) ! m
+       pv = aero_particle_volume(aero_particle) ! (m^3)
+       d_p = vol2diam(pv) ! (m)
        
        ! molecular diffusion coefficient uncorrected
        D_v = 0.211d-4 / (env%pressure / const%atm) &
-            * (env%temp / 273d0)**1.94d0 ! m^2 s^{-1}
+            * (env%temp / 273d0)**1.94d0 ! (m^2 s^{-1})
        ! molecular diffusion coefficient corrected for non-continuum effects
        D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
             * (2d0 * const%pi * M_water / (const%R * env%temp))**0.5d0
        D_vp = D_v / D_v_div
        
        ! TEST: use the basic expression for D_vp
-       ! D_vp = D_v                ! m^2 s^{-1}
+       ! D_vp = D_v                ! (m^2 s^{-1})
        ! FIXME: check whether we can reinstate the correction
        
        ! thermal conductivity uncorrected
-       k_a = 1d-3 * (4.39d0 + 0.071d0 * env%temp) ! J m^{-1} s^{-1} K^{-1}
-       k_ap_div = 1d0 + 2d0 &
+       k_a = 1d-3 * (4.39d0 + 0.071d0 * env%temp) ! (J m^{-1} s^{-1} K^{-1})
+       k_ap_div = 1d0 + 2d0 &  ! dimensionless
             * k_a / (const%alpha * d_p * env%air_den * const%cp) &
-            * (2d0 * const%pi * const%M_a / (const%R * env%temp))**0.5d0 ! dim-less
+            * (2d0 * const%pi * const%M_a / (const%R * env%temp))**0.5d0
        ! thermal conductivity corrected
-       k_ap = k_a / k_ap_div     ! J m^{-1} s^{-1} K^{-1}
+       k_ap = k_a / k_ap_div     ! (J m^{-1} s^{-1} K^{-1})
 
        rat = sat_vapor_pressure(env) / (const%R * env%temp)
        fact1 = const%L_v * M_water / (const%R * env%temp)
@@ -459,12 +461,13 @@ contains
                 (g_water + (rho_water / rho_solute) * eps * g_solute)
     end if
 
-    T_a = env%temp + c4 * dmdt ! K
+    T_a = env%temp + c4 * dmdt ! (K)
     
     f = dmdt - c1 * (env%rel_humid - exp(c2 / T_a - c5)) &
          / (1d0 + c3 * exp(c2 / T_a - c5))
     
-    df = 1d0 + c1 * env%rel_humid * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
+    df = 1d0 + c1 * env%rel_humid &
+         * (1d0 + c3 * exp(c2 / T_a -c5))**(-2d0) * c3 * &
          exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 + c1 * &
          (exp(c2 / T_a - c5) * (-1d0) * c2 * c4 / T_a**2d0 * (1d0 + c3 &
          * exp(c2 / T_a -c5))**(-1d0) + exp(c2 / T_a - c5) * (-1d0) * &
@@ -510,7 +513,7 @@ contains
     call cond_newt(dw, env, aero_data, equilibriate_func, &
          dw_tol, f_tol, iter_max, aero_particle)
 
-    aero_particle%vols(aero_data%i_water) = diam2vol(dw) - pv
+    aero_particle%vol(aero_data%i_water) = diam2vol(dw) - pv
 
   end subroutine equilibriate_particle
 
@@ -547,16 +550,18 @@ contains
     if (init) then
        ! Start of new Newton loop, compute all constants
 
-       M_water = aero_particle_water_M_w(aero_data)                  ! (kg/mole)
-       M_solute = aero_particle_solute_M_w(aero_data, aero_particle) ! (kg/mole)
-       nu = aero_particle_solute_nu(aero_data, aero_particle)        ! (1)
-       eps = aero_particle_solute_eps(aero_data, aero_particle)      ! (1)
-       rho_water = aero_particle_water_rho(aero_data)                ! (kg/m^3)
-       rho_solute = aero_particle_solute_rho(aero_data, aero_particle)! (kg/m^3)
-       g_water = aero_particle_water_mass(aero_data, aero_particle)  ! (kg)
+       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
+       M_solute = aero_particle_solute_molec_weight(aero_data, aero_particle)
+       ! (kg/mole)
+       nu = aero_particle_solute_num_ions(aero_data, aero_particle) ! (1)
+       eps = aero_particle_solute_solubility(aero_data, aero_particle) ! (1)
+       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
+       rho_solute = aero_particle_solute_density(aero_data, aero_particle)
+       ! (kg/m^3)
+       g_water = aero_particle_water_mass(aero_data, aero_particle) ! (kg)
        g_solute = aero_particle_solute_mass(aero_data, aero_particle) ! (kg)
 
-       pv = aero_particle_volume(aero_particle)
+       pv = aero_particle_volume(aero_particle) ! (m^3)
 
        A = 4d0 * M_water * const%sig / (const%R * env%temp * rho_water)
        

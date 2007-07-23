@@ -70,7 +70,7 @@ contains
     aero_dist%n_mode = n_modes
     allocate(aero_dist%mode(n_modes))
     do i = 1,n_modes
-       call aero_mode_alloc(aero_dist%mode(i, n_bin, n_spec))
+       call aero_mode_alloc(aero_dist%mode(i), n_bin, n_spec)
     end do
 
   end subroutine aero_dist_alloc
@@ -94,25 +94,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_total_num_den(aero_dist, total_num_den)
-      
-    ! Compute the total number density of an aerosol distribution.
-    
-    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
-    real*8, intent(out) :: total_num_den(:) ! total number density (#/m^3)
-
-    integer :: i
-
-    total_num_den = 0d0
-    do i = 1,aero_dist%n_mode
-       total_num_den = total_num_den + aero_dist%mode(i)%num_den
-    end do
-
-  end subroutine aero_dist_total_num_den
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  real*8 function aero_dist_total_num_den(bin_grid, aero_dist) ! #/m^3
+  real*8 function aero_dist_total_num_den(bin_grid, aero_dist) ! (#/m^3)
 
     ! Returns the total number concentration in #/m^3 of a distribution.
 
@@ -134,7 +116,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_log_normal(d_mean, log_sigma, bin_grid, n_den)
+  subroutine num_den_log_normal(d_mean, log_sigma, bin_grid, num_den)
 
     ! Compute a log-normal distribution.
     
@@ -142,16 +124,16 @@ contains
     use mod_util
     use mod_constants
     
-    real*8, intent(in) :: d_mean        ! geometric mean diameter of initial number dist (m)
-    real*8, intent(in) :: log_sigma     ! log_10(geom. std dev(init dist)) (1)
+    real*8, intent(in) :: d_mean        ! geometric mean diameter (m)
+    real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8,  intent(out) :: n_den(bin_grid%n_bin) ! init number den (#(ln(r))d(ln(r)))
-                                         ! (normalized)
+    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
+                                        ! (normalized)
     
     integer k
     
     do k = 1,bin_grid%n_bin
-       n_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
+       num_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
             dexp(-(dlog10(vol2rad(bin_grid%v(k))) - dlog10(d_mean/2d0))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
     end do
@@ -160,11 +142,11 @@ contains
     ! log_10(r), while we are using log_e(r). The division by dlog(10)
     ! at the end corrects for this.
     
-  end subroutine init_log_normal
+  end subroutine num_den_log_normal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_exp(mean_vol, bin_grid, n_den)
+  subroutine num_den_exp(mean_vol, bin_grid, num_den)
     
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
@@ -172,40 +154,40 @@ contains
     use mod_bin_grid
     use mod_util
     
-    real*8, intent(in) :: mean_vol      ! mean volume of init dist (m^3)
+    real*8, intent(in) :: mean_vol      ! mean volume (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: n_den(bin_grid%n_bin) ! init number density (#(ln(r))d(ln(r)))
+    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
     
     integer k
-    real*8 n_den_vol
+    real*8 num_den_vol
     
     do k = 1,bin_grid%n_bin
-       n_den_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
-       call vol_to_lnr(vol2rad(bin_grid%v(k)), n_den_vol, n_den(k))
+       num_den_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
+       call vol_to_lnr(vol2rad(bin_grid%v(k)), num_den_vol, num_den(k))
     end do
     
-  end subroutine init_exp
+  end subroutine num_den_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine init_mono(vol, bin_grid, n_den)
+  subroutine num_den_mono(radius, bin_grid, num_den)
     
-    ! Mono-disperse distribution at mean_vol
+    ! Mono-disperse distribution.
     
     use mod_bin_grid
     use mod_util
     
-    real*8, intent(in) :: vol           ! volume of each particle (m^3)
+    real*8, intent(in) :: radius         ! radius of each particle (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: n_den(bin_grid%n_bin) ! init number density (#(ln(r))d(ln(r)))
+    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
     
-    integer k
+    integer :: k
 
-    n_den = 0d0
-    call particle_in_bin(vol, bin_grid, k)
-    n_den(k) = 1d0 / bin_grid%dlnr
+    num_den = 0d0
+    k = particle_in_bin(rad2vol(radius), bin_grid)
+    num_den(k) = 1d0 / bin_grid%dlnr
     
-  end subroutine init_mono
+  end subroutine num_den_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -349,7 +331,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_read_aero_mode_shape(file, aero_data, bin_grid, n_den)
+  subroutine spec_read_aero_mode_shape(file, aero_data, bin_grid, num_den)
 
     ! Read the shape (number density) of one mode of an aerosol
     ! distribution.
@@ -361,7 +343,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8 :: n_den(bin_grid%n_bin)     ! mode density
+    real*8 :: num_den(bin_grid%n_bin)   ! mode density
 
     real*8 :: num_conc
     character(len=MAX_CHAR_LEN) :: mode_type
@@ -372,13 +354,13 @@ contains
     if (trim(mode_type) == 'log_normal') then
        call inout_read_real(file, 'dist_mean_diam', mean_vol)
        call inout_read_real(file, 'dist_std_dev', std_dev)
-       call init_log_normal(mean_vol, std_dev, bin_grid, n_den)
+       call num_den_log_normal(mean_vol, std_dev, bin_grid, num_den)
     elseif (trim(mode_type) == 'exp') then
        call inout_read_real(file, 'mean_vol', mean_vol)
-       call init_exp(mean_vol, bin_grid, n_den)
+       call num_den_exp(mean_vol, bin_grid, num_den)
     elseif (trim(mode_type) == 'mono') then
        call inout_read_real(file, 'vol', vol)
-       call init_mono(vol, bin_grid, n_den)
+       call num_den_mono(vol, bin_grid, num_den)
     else
        write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
             trim(mode_type), ' in file ', trim(file%name), &
@@ -386,7 +368,7 @@ contains
        call exit(1)
     end if
 
-    n_den = n_den * num_conc
+    num_den = num_den * num_conc
 
   end subroutine spec_read_aero_mode_shape
 

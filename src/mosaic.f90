@@ -172,12 +172,12 @@ contains
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, jtotal, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vols(i_spec) * conv_fac(i_spec_mosaic)
+                     = particle%vol(i_spec) * conv_fac(i_spec_mosaic)
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = particle%vols(aero_data%i_water) &
+          water_a(i_mosaic) = particle%vol(aero_data%i_water) &
                * aero_data%density(aero_data%i_water) / aero_state%comp_vol
           num_a(i_mosaic) = 1d0 / aero_state%comp_vol ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
@@ -214,7 +214,7 @@ contains
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
-                particle%vols(i_spec) = &
+                particle%vol(i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
                      aer(i_spec_mosaic, jtotal, i_mosaic) &
                      / conv_fac(i_spec_mosaic)
@@ -222,7 +222,7 @@ contains
           end do
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
-          particle%vols(aero_data%i_water) = water_a(i_mosaic) &
+          particle%vol(aero_data%i_water) = water_a(i_mosaic) &
                / aero_data%density(aero_data%i_water) * aero_state%comp_vol
        end do
     end do

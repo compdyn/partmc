@@ -75,7 +75,7 @@ contains
     aero_binned%num_den(bin) = aero_binned%num_den(bin) &
          + 1d0 / comp_vol / bin_grid%dlnr
     aero_binned%vol_den(bin,:) = aero_binned%vol_den(bin,:) &
-         + aero_particle%vols / comp_vol / bin_grid%dlnr
+         + aero_particle%vol / comp_vol / bin_grid%dlnr
 
   end subroutine aero_binned_add_particle_in_bin
 
@@ -95,11 +95,8 @@ contains
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
     type(aero_particle_t), intent(in) :: aero_particle ! particle to add
 
-    integer :: bin
-    
-    call aero_particle_in_bin(aero_particle, bin_grid, bin)
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
-         bin, comp_vol, aero_particle)
+         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
 
   end subroutine aero_binned_add_particle
 
@@ -123,7 +120,7 @@ contains
     aero_binned%num_den(bin) = aero_binned%num_den(bin) &
          - 1d0 / comp_vol / bin_grid%dlnr
     aero_binned%vol_den(bin,:) = aero_binned%vol_den(bin,:) &
-         - aero_particle%vols / comp_vol / bin_grid%dlnr
+         - aero_particle%vol / comp_vol / bin_grid%dlnr
 
   end subroutine aero_binned_remove_particle_in_bin
 
@@ -143,11 +140,8 @@ contains
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
     type(aero_particle_t), intent(in) :: aero_particle ! particle to remove
 
-    integer :: bin
-    
-    call aero_particle_in_bin(aero_particle, bin_grid, bin)
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         bin, comp_vol, aero_particle)
+         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
 
   end subroutine aero_binned_remove_particle
 

@@ -9,10 +9,10 @@
 ! interpolation is used between the times, with constant interpolation
 ! outside of the range of times.
 
-module mod_env
+module pmc_env
 
-  use mod_gas_state
-  use mod_aero_dist
+  use pmc_gas_state
+  use pmc_aero_dist
   
   type env_t
      real*8 :: temp                     ! temperature (K)
@@ -120,8 +120,8 @@ contains
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
     
-    use mod_constants
-    use mod_aero_data
+    use pmc_constants
+    use pmc_aero_data
     
     type(env_t), intent(inout) :: env   ! environment state to update
     type(aero_data_t), intent(in)   :: aero_data ! aero_data constants
@@ -148,7 +148,7 @@ contains
     ! Initialize the time-dependent contents of the
     ! environment. Thereafter update_environ() should be used.
 
-    use mod_util
+    use pmc_util
 
     type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
@@ -164,7 +164,7 @@ contains
     ! Update time-dependent contents of the environment. init_environ()
     ! should have been called at the start.
 
-    use mod_util
+    use pmc_util
 
     type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
@@ -184,7 +184,7 @@ contains
 
     ! Computes the current saturation vapor pressure.
     
-    use mod_constants
+    use pmc_constants
     
     type(env_t), intent(in) :: env      ! environment state
     
@@ -199,8 +199,8 @@ contains
 
     ! Do emissions and background dilution from the environment.
 
-    use mod_gas_data
-    use mod_gas_state
+    use pmc_gas_data
+    use pmc_gas_state
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
@@ -237,10 +237,10 @@ contains
     ! Do emissions and background dilution from the environment for a
     ! particle aerosol distribution.
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_state
-    use mod_aero_binned
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_aero_binned
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
@@ -299,9 +299,9 @@ contains
     ! Do emissions and background dilution from the environment for a
     ! binned aerosol distribution.
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_binned
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_binned
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
@@ -337,7 +337,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(env_t), intent(in) :: env      ! environment to write
@@ -371,7 +371,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(env_t), intent(out) :: env      ! environment to read
@@ -405,10 +405,10 @@ contains
 
     ! Read environment specification from a inout file.
 
-    use mod_bin_grid
-    use mod_inout
-    use mod_aero_data
-    use mod_gas_data
+    use pmc_bin_grid
+    use pmc_inout
+    use pmc_aero_data
+    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -482,9 +482,9 @@ contains
     
     ! Computes the average of an array of env.
 
-    use mod_util
-    use mod_gas_state
-    use mod_aero_dist
+    use pmc_util
+    use pmc_gas_state
+    use pmc_aero_dist
     
     type(env_t), intent(in) :: env_vec(:) ! array of env
     type(env_t), intent(out) :: env_avg   ! average of env_vec
@@ -523,4 +523,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_env
+end module pmc_env

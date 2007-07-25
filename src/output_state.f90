@@ -10,7 +10,7 @@
 ! the best way to gain complete access to all statistics of the
 ! simulation.
 
-module mod_output_state
+module pmc_output_state
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,13 +20,13 @@ contains
 
     ! Write the current state.
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_state
-    use mod_env
-    use mod_util
-    use mod_inout
-    use mod_gas_data
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+    use pmc_util
+    use pmc_inout
+    use pmc_gas_data
     
     character(len=*), intent(in) :: state_prefix ! prefix of state file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -68,13 +68,13 @@ contains
 
     ! Read the current state.
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_state
-    use mod_env
-    use mod_util
-    use mod_inout
-    use mod_gas_data
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+    use pmc_util
+    use pmc_inout
+    use pmc_gas_data
     
     character(len=*), intent(in) :: state_name ! name of state file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
@@ -107,4 +107,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_output_state
+end module pmc_output_state

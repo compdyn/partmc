@@ -12,7 +12,7 @@
 !
 ! Initial distributions should be normalized so that sum(n_den) = 1/dlnr.
 
-module mod_aero_dist
+module pmc_aero_dist
 
   type aero_mode_t
      real*8, pointer :: num_den(:)      ! len n_bin, number density (#/m^3)
@@ -98,7 +98,7 @@ contains
 
     ! Returns the total number concentration in #/m^3 of a distribution.
 
-    use mod_bin_grid
+    use pmc_bin_grid
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
@@ -120,9 +120,9 @@ contains
 
     ! Compute a log-normal distribution.
     
-    use mod_bin_grid
-    use mod_util
-    use mod_constants
+    use pmc_bin_grid
+    use pmc_util
+    use pmc_constants
     
     real*8, intent(in) :: d_mean        ! geometric mean diameter (m)
     real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
@@ -151,8 +151,8 @@ contains
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
     
-    use mod_bin_grid
-    use mod_util
+    use pmc_bin_grid
+    use pmc_util
     
     real*8, intent(in) :: mean_vol      ! mean volume (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -174,8 +174,8 @@ contains
     
     ! Mono-disperse distribution.
     
-    use mod_bin_grid
-    use mod_util
+    use pmc_bin_grid
+    use pmc_util
     
     real*8, intent(in) :: radius         ! radius of each particle (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -195,7 +195,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
@@ -211,7 +211,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_dist_t), intent(in) :: aero_dist ! aero_dist to write
@@ -232,7 +232,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
@@ -248,7 +248,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_dist_t), intent(out) :: aero_dist ! aero_dist to read
@@ -271,8 +271,8 @@ contains
 
     ! Read volume fractions from a data file.
 
-    use mod_inout
-    use mod_aero_data
+    use pmc_inout
+    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -336,9 +336,9 @@ contains
     ! Read the shape (number density) of one mode of an aerosol
     ! distribution.
 
-    use mod_inout
-    use mod_bin_grid
-    use mod_aero_data
+    use pmc_inout
+    use pmc_bin_grid
+    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
@@ -379,9 +379,9 @@ contains
     ! Read one mode of an aerosol distribution (number density and
     ! volume fractions).
 
-    use mod_inout
-    use mod_bin_grid
-    use mod_aero_data
+    use pmc_inout
+    use pmc_bin_grid
+    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -402,9 +402,9 @@ contains
 
     ! Read continuous aerosol distribution composed of several modes.
 
-    use mod_inout
-    use mod_bin_grid
-    use mod_aero_data
+    use pmc_inout
+    use pmc_bin_grid
+    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -428,9 +428,9 @@ contains
 
     ! Read aerosol distribution from filename on line in file.
 
-    use mod_inout
-    use mod_bin_grid
-    use mod_aero_data
+    use pmc_inout
+    use pmc_bin_grid
+    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -455,7 +455,7 @@ contains
     
     ! Computes the average of an array of aero_mode.
 
-    use mod_util
+    use pmc_util
 
     type(aero_mode_t), intent(in) :: aero_mode_vec(:) ! array of aero_mode
     type(aero_mode_t), intent(out) :: aero_mode_avg   ! average of aero_mode_vec
@@ -500,4 +500,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_aero_dist
+end module pmc_aero_dist

@@ -4,7 +4,7 @@
 !
 ! Aerosol data 
 
-module mod_aero_data
+module pmc_aero_data
 
   type aero_data_t
      integer :: n_spec                  ! number of species
@@ -142,7 +142,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_data_t), intent(in) :: aero_data ! aero_data to write
@@ -165,7 +165,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_data_t), intent(out) :: aero_data ! aero_data to read
@@ -188,7 +188,7 @@ contains
 
     ! Read aero_data specification from a inout file.
 
-    use mod_inout
+    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(out) :: aero_data  ! aero_data data
@@ -232,7 +232,7 @@ contains
 
     ! Read aero_data specification from a inout file.
 
-    use mod_inout
+    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(out) :: aero_data  ! aero_data data
@@ -250,4 +250,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_aero_data
+end module pmc_aero_data

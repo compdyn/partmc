@@ -4,17 +4,17 @@
 !
 ! Interface to MOSAIC
 
-module mod_mosaic
+module pmc_mosaic
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_init(bin_grid, env, del_t)
     
-    use mod_constants
-    use mod_util
-    use mod_bin_grid 
-    use mod_env
+    use pmc_constants
+    use pmc_util
+    use pmc_bin_grid 
+    use pmc_env
     
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
          ptol_mol_ASTEM, mGAS_AER_XFER, mDYNAMIC_SOLVER
@@ -87,16 +87,16 @@ contains
   subroutine mosaic_timestep(bin_grid, env, aero_data, &
        aero_state, gas_data, gas_state, t, del_t)
     
-    use mod_constants
-    use mod_util
-    use mod_aero_state
-    use mod_bin_grid 
-    use mod_condensation
-    use mod_env
-    use mod_aero_data
-    use mod_output_state
-    use mod_gas_data
-    use mod_gas_state
+    use pmc_constants
+    use pmc_util
+    use pmc_aero_state
+    use pmc_bin_grid 
+    use pmc_condensation
+    use pmc_env
+    use pmc_aero_data
+    use pmc_output_state
+    use pmc_gas_data
+    use pmc_gas_state
     
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
@@ -238,4 +238,4 @@ contains
 
   end subroutine mosaic_timestep
 
-end module mod_mosaic
+end module pmc_mosaic

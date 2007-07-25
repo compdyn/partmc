@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/mosaic.o: src/mod_constants.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_env.mod src/mod_aero_state.mod src/mod_condensation.mod src/mod_aero_data.mod src/mod_output_state.mod src/mod_gas_data.mod src/mod_gas_state.mod
-src/mod_mosaic.mod: src/mod_constants.mod src/mod_util.mod src/mod_bin_grid.mod src/mod_env.mod src/mod_aero_state.mod src/mod_condensation.mod src/mod_aero_data.mod src/mod_output_state.mod src/mod_gas_data.mod src/mod_gas_state.mod
+src/mosaic.o: src/pmc_constants.mod src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_env.mod src/pmc_aero_state.mod src/pmc_condensation.mod src/pmc_aero_data.mod src/pmc_output_state.mod src/pmc_gas_data.mod src/pmc_gas_state.mod
+src/pmc_mosaic.mod: src/pmc_constants.mod src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_env.mod src/pmc_aero_state.mod src/pmc_condensation.mod src/pmc_aero_data.mod src/pmc_output_state.mod src/pmc_gas_data.mod src/pmc_gas_state.mod

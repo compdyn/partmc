@@ -8,7 +8,7 @@
 ! that is quite heavily incorporated into the code. At some point in
 ! the future it would be nice to relax this assumption.
 
-module mod_bin_grid
+module pmc_bin_grid
 
   type bin_grid_t
      integer :: n_bin                   ! number of bins
@@ -51,7 +51,7 @@ contains
     ! Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
     ! where vol = 4/3 pi r^3.
     
-    use mod_constants
+    use pmc_constants
     
     real*8, intent(in) :: r             ! radius (m)
     real*8, intent(in) :: f_vol         ! density as a function of volume
@@ -67,7 +67,7 @@ contains
 
     ! Generates the bin grid given the range and number of bins.
     
-    use mod_util
+    use pmc_util
 
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
@@ -92,7 +92,7 @@ contains
     ! logarithmically spaced bin grid and returns logarithmically
     ! spaced edges.
     
-    use mod_util
+    use pmc_util
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
@@ -115,7 +115,7 @@ contains
     ! Find the bin number that contains a given particle. This assumes
     ! logarithmically spaced bins.
 
-    use mod_util
+    use pmc_util
     
     real*8, intent(in) :: v             ! volume of particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
@@ -168,7 +168,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid to write
@@ -185,7 +185,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(bin_grid_t), intent(out) :: bin_grid ! bin_grid to read
@@ -203,8 +203,8 @@ contains
     ! Read the specification for a bin_grid from a inout file and
     ! generate it.
 
-    use mod_inout
-    use mod_util
+    use pmc_inout
+    use pmc_util
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
@@ -221,4 +221,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_bin_grid
+end module pmc_bin_grid

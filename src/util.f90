@@ -4,7 +4,7 @@
 !
 ! Common utility functions.
 
-module mod_util
+module pmc_util
 
   integer, parameter :: max_units = 200
   integer, parameter :: unit_offset = 10
@@ -137,7 +137,7 @@ contains
 
     ! Convert volume to radius.
 
-    use mod_constants
+    use pmc_constants
     
     real*8, intent(in) :: v             ! volume (m^3)
     
@@ -151,7 +151,7 @@ contains
     
     ! Convert volume to diameter.
 
-    use mod_constants
+    use pmc_constants
     
     real*8, intent(in) :: v             ! volume (m^3)
     
@@ -165,7 +165,7 @@ contains
     
     ! Convert radius to volume.
 
-    use mod_constants
+    use pmc_constants
     
     real*8, intent(in) :: r             ! radius (m)
     
@@ -179,7 +179,7 @@ contains
     
     ! Convert diameter to volume.
 
-    use mod_constants
+    use pmc_constants
     
     real*8, intent(in) :: d             ! diameter (m)
     
@@ -663,4 +663,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_util
+end module pmc_util

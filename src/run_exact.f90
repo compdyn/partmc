@@ -4,10 +4,10 @@
 !
 ! Exact solution output.
 
-module mod_run_exact
+module pmc_run_exact
 
-  use mod_inout
-  use mod_aero_dist
+  use pmc_inout
+  use pmc_aero_dist
 
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
@@ -33,14 +33,14 @@ contains
     ! "Run" an exact solution, output data in the same format as
     ! particle-resolved or sectional simulations.
     
-    use mod_bin_grid
-    use mod_aero_state
-    use mod_env
-    use mod_aero_data
-    use mod_output_summary
-    use mod_aero_binned
-    use mod_gas_data
-    use mod_gas_state
+    use pmc_bin_grid
+    use pmc_aero_state
+    use pmc_env
+    use pmc_aero_data
+    use pmc_output_summary
+    use pmc_aero_binned
+    use pmc_gas_data
+    use pmc_gas_state
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state
@@ -58,10 +58,10 @@ contains
        subroutine soln(bin_grid, aero_data, time, num_conc, mean_vol, &
             rho_p, aero_dist_init, env, aero_binned)
 
-         use mod_bin_grid
-         use mod_env
-         use mod_aero_binned
-         use mod_aero_data
+         use pmc_bin_grid
+         use pmc_env
+         use pmc_aero_binned
+         use pmc_aero_data
 
          type(bin_grid_t), intent(in) :: bin_grid ! bin grid
          type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -99,4 +99,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_run_exact
+end module pmc_run_exact

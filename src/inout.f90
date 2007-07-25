@@ -6,7 +6,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-module mod_inout
+module pmc_inout
 
   integer, parameter :: MAX_CHAR_LEN = 300 ! max size of line or variable
   integer, parameter :: MAX_LIST_LINES = 500 ! max lines in an array
@@ -30,7 +30,7 @@ contains
 
     ! Open an inout file for reading.
 
-    use mod_util
+    use pmc_util
 
     character(len=*), intent(in) :: filename ! name of file to open
     type(inout_file_t), intent(out) :: file  ! inout file
@@ -55,7 +55,7 @@ contains
 
     ! Open an inout file for writing.
 
-    use mod_util
+    use pmc_util
 
     character(len=*), intent(in) :: filename ! name of file to open
     type(inout_file_t), intent(out) :: file  ! inout file
@@ -80,7 +80,7 @@ contains
 
     ! Close an inout file.
 
-    use mod_util
+    use pmc_util
 
     type(inout_file_t), intent(in) :: file ! inout file
 
@@ -1070,4 +1070,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_inout
+end module pmc_inout

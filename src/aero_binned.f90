@@ -4,7 +4,7 @@
 !
 ! Functions that deal with the binned aerosol distributions.
 
-module mod_aero_binned
+module pmc_aero_binned
 
   type aero_binned_t
      real*8, pointer :: num_den(:)    ! len n_bin, number density (#/m^3)
@@ -63,8 +63,8 @@ contains
     ! Updates binned data structures for the addition of the given
     ! particle that must be in the given bin.
 
-    use mod_bin_grid
-    use mod_aero_particle
+    use pmc_bin_grid
+    use pmc_aero_particle
 
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -87,8 +87,8 @@ contains
     ! Updates binned data structures for the addition of the given
     ! particle.
 
-    use mod_bin_grid
-    use mod_aero_particle
+    use pmc_bin_grid
+    use pmc_aero_particle
 
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -108,8 +108,8 @@ contains
     ! Updates binned data structures for the removal of the given
     ! particle that must be in the given bin.
 
-    use mod_bin_grid
-    use mod_aero_particle
+    use pmc_bin_grid
+    use pmc_aero_particle
 
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -132,8 +132,8 @@ contains
     ! Updates binned data structures for the removal of the given
     ! particle.
 
-    use mod_bin_grid
-    use mod_aero_particle
+    use pmc_bin_grid
+    use pmc_aero_particle
 
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -151,7 +151,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned to write
@@ -169,7 +169,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_binned_t), intent(out) :: aero_binned ! aero_binned to read
@@ -187,7 +187,7 @@ contains
     
     ! Computes the average of an array of aero_binned.
 
-    use mod_util
+    use pmc_util
 
     type(aero_binned_t), intent(in) :: aero_binned_vec(:) ! array of aero_binned
     type(aero_binned_t), intent(out) :: aero_binned_avg   ! average of vec
@@ -278,8 +278,8 @@ contains
 
     ! Converts an aero_dist to an aero_binned.
 
-    use mod_bin_grid
-    use mod_aero_dist
+    use pmc_bin_grid
+    use pmc_aero_dist
 
     type(aero_binned_t), intent(out) :: aero_binned ! must be alloced
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -301,4 +301,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_aero_binned
+end module pmc_aero_binned

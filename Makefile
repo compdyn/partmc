@@ -123,9 +123,9 @@ endif
 
 -include $(ALL_FILES:%=%.deps)
 %.deps: %.f90 f90_mod_deps.py
-	./f90_mod_deps.py -o $@ -d "(mod_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
+	./f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
-src/%.o src/mod_%.mod: src/%.f90 src/%.deps
+src/%.o src/pmc_%.mod: src/%.f90 src/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 test/%.o: test/%.f90 test/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
@@ -153,11 +153,11 @@ test/poisson_sample: $(poisson_sample_OBJS)
 
 .PHONY: clean
 clean:
-	rm -f TAGS $(PROGS) $(ALL_OBJS)
+	rm -f TAGS $(PROGS) $(ALL_OBJS) src/*.mod
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ src/*.mod test/.gdb_history
+	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history
 
 .PHONY: distclean
 distclean: cleanall

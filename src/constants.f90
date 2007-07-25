@@ -6,13 +6,13 @@
 ! and environment parameters that in principle could change should go
 ! in environ.f.
 !
-! To access a constant in a subroutine you should "use mod_constants"
+! To access a constant in a subroutine you should "use pmc_constants"
 ! and then the constant value is accessed with const%pi or
 ! similar. Note that the type is called consts (with a trailing s) but
 ! the single saved variable to access them is called const (without a
 ! trailing s).
 
-module mod_constants
+module pmc_constants
 
   type const_t
      real*8 :: pi = 3.14159265358979323846d0
@@ -32,4 +32,4 @@ module mod_constants
 
   type(const_t), save :: const
 
-end module mod_constants
+end module pmc_constants

@@ -19,10 +19,10 @@
 
 program sedi_bidisperse_ode
   
-  use mod_kernel_sedi
-  use mod_env
-  use mod_util
-  use mod_bin_grid
+  use pmc_kernel_sedi
+  use pmc_env
+  use pmc_util
+  use pmc_bin_grid
   
   ! volume of one small particle
   real*8, parameter :: v_small = 0.38542868295629027618d-14
@@ -86,7 +86,7 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, env, comp_vol, n_small_dot)
     
-    use mod_env
+    use pmc_env
 
     real*8, intent(in) :: n_small       ! current number of small particles
     real*8, intent(in) :: v_small       ! volume of one small particle
@@ -109,7 +109,7 @@ contains
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        env, comp_vol, del_t, n_small)
     
-    use mod_env
+    use pmc_env
 
     real*8, intent(in) :: v_small       ! volume of one small particle
     real*8, intent(in) :: v_big_init    ! initial volume of the big particle

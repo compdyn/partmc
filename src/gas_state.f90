@@ -4,7 +4,7 @@
 !
 ! Gas state.
 
-module mod_gas_state
+module pmc_gas_state
 
   type gas_state_t
      real*8, pointer :: conc(:)          ! length n_spec, concentration (ppb)
@@ -100,7 +100,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(gas_state_t), intent(in) :: gas_state ! gas_state to write
@@ -115,7 +115,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(gas_state_t), intent(out) :: gas_state ! gas_state to read
@@ -130,8 +130,8 @@ contains
 
     ! Read gas state from the file named on the line read from file.
 
-    use mod_inout
-    use mod_gas_data
+    use pmc_inout
+    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -181,7 +181,7 @@ contains
     
     ! Computes the average of an array of gas_state.
 
-    use mod_util
+    use pmc_util
 
     type(gas_state_t), intent(in) :: gas_state_vec(:) ! array of gas_state
     type(gas_state_t), intent(out) :: gas_state_avg   ! average of gas_state_vec
@@ -200,4 +200,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_gas_state
+end module pmc_gas_state

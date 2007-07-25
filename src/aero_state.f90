@@ -35,9 +35,9 @@
 ! aero_state%v(i_bin) is not stored explicitly, but can be obtained
 ! with the Fortran 90 SIZE() intrinsic function.
 
-module mod_aero_state
+module pmc_aero_state
 
-  use mod_aero_particle_array
+  use pmc_aero_particle_array
   
   type aero_state_t
      type(aero_particle_array_t), pointer :: bins(:) ! bin arrays
@@ -186,10 +186,10 @@ contains
     ! Makes particles from the given number distribution and appends
     ! them to the aero_state%v array.
     
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_particle
-    use mod_aero_particle_array
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_particle
+    use pmc_aero_particle_array
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
@@ -226,10 +226,10 @@ contains
 
     ! Convert a continuous distribution into particles.
     
-    use mod_aero_data
-    use mod_bin_grid
-    use mod_aero_dist
-    use mod_util
+    use pmc_aero_data
+    use pmc_bin_grid
+    use pmc_aero_dist
+    use pmc_util
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
@@ -275,11 +275,11 @@ contains
 
     ! Generates a Poisson sample of an aero_dist, adding to aero_state.
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_dist
-    use mod_rand_poisson
-    use mod_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_dist
+    use pmc_rand_poisson
+    use pmc_util
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
@@ -312,8 +312,8 @@ contains
     ! aero_state_from and adding them to aero_state_to, which must
     ! be already allocated.
 
-    use mod_util
-    use mod_rand_poisson
+    use pmc_util
+    use pmc_rand_poisson
     
     type(aero_state_t), intent(inout) :: aero_state_from ! original state
     type(aero_state_t), intent(inout) :: aero_state_to ! destination state
@@ -365,9 +365,9 @@ contains
     
     ! Create the bin number and mass arrays from aero_state%v.
     
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_binned
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -417,8 +417,8 @@ contains
     ! correct for the bins they are in and resorts it so that every
     ! particle is in the correct bin.
     
-    use mod_aero_data
-    use mod_bin_grid
+    use pmc_aero_data
+    use pmc_bin_grid
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -468,10 +468,10 @@ contains
     ! Check that all particles are in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
     
-    use mod_util
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_binned
+    use pmc_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -553,7 +553,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(in) :: aero_state ! aero_state to write
@@ -577,7 +577,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(out) :: aero_state ! aero_state to read
@@ -598,4 +598,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_aero_state
+end module pmc_aero_state

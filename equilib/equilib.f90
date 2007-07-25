@@ -8,12 +8,12 @@
 
 program equilib
 
-  use mod_inout
-  use mod_aero_data
-  use mod_env
-  use mod_util
-  use mod_condensation
-  use mod_aero_particle
+  use pmc_inout
+  use pmc_aero_data
+  use pmc_env
+  use pmc_util
+  use pmc_condensation
+  use pmc_aero_particle
 
   character(len=*), parameter :: aero_filename = "aerosol.dat"
 

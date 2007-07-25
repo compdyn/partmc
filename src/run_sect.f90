@@ -9,9 +9,9 @@
 ! A. Bott, A flux method for the numerical solution of the stochastic
 ! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
 
-module mod_run_sect
+module pmc_run_sect
 
-  use mod_inout
+  use pmc_inout
 
   type run_sect_opt_t
     real*8 :: t_max                     ! final time (s)
@@ -30,17 +30,17 @@ contains
 
     ! Run a sectional simulation.
   
-    use mod_bin_grid
-    use mod_aero_binned
-    use mod_kernel_sedi
-    use mod_util
-    use mod_aero_dist
-    use mod_env
-    use mod_aero_data
-    use mod_kernel
-    use mod_output_summary
-    use mod_gas_data
-    use mod_gas_state
+    use pmc_bin_grid
+    use pmc_aero_binned
+    use pmc_kernel_sedi
+    use pmc_util
+    use pmc_aero_dist
+    use pmc_env
+    use pmc_aero_data
+    use pmc_kernel
+    use pmc_output_summary
+    use pmc_gas_data
+    use pmc_gas_state
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -67,7 +67,7 @@ contains
   
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env   
@@ -262,7 +262,7 @@ contains
 
     ! Determines the Courant number for each bin pair.
 
-    use mod_util
+    use pmc_util
     
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: dlnr          ! bin scale factor
@@ -330,4 +330,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_run_sect
+end module pmc_run_sect

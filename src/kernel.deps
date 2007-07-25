@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/kernel.o: src/mod_env.mod src/mod_bin_grid.mod
-src/mod_kernel.mod: src/mod_env.mod src/mod_bin_grid.mod
+src/kernel.o: src/pmc_env.mod src/pmc_bin_grid.mod
+src/pmc_kernel.mod: src/pmc_env.mod src/pmc_bin_grid.mod

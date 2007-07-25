@@ -4,9 +4,9 @@
 !
 ! Basic particle structure.
 
-module mod_aero_particle_array
+module pmc_aero_particle_array
 
-  use mod_aero_particle
+  use pmc_aero_particle
 
   type aero_particle_array_t
      integer :: n_part                  ! number of particles
@@ -102,7 +102,7 @@ contains
     ! called directly, but rather use aero_particle_array_enlarge(),
     ! aero_particle_array_enlarge_to() or aero_particle_array_shrink().
 
-    use mod_util
+    use pmc_util
 
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: new_length   ! new length of the array
@@ -205,7 +205,7 @@ contains
 
     ! Removes the particle at the given index.
 
-    use mod_util
+    use pmc_util
 
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: index        ! index of particle to remove
@@ -253,7 +253,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_array_t), intent(in) :: aero_particle_array
@@ -275,7 +275,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_array_t), intent(out) :: aero_particle_array
@@ -295,4 +295,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_aero_particle_array
+end module pmc_aero_particle_array

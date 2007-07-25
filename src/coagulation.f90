@@ -4,7 +4,7 @@
 !
 ! Coagulation subroutines.
 
-module mod_coagulation
+module pmc_coagulation
 
 contains
 
@@ -18,12 +18,12 @@ contains
     ! update all structures. The probability of a coagulation will be
     ! taken as (kernel / k_max).
 
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_util
-    use mod_env
-    use mod_aero_state
-    use mod_aero_binned
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_util
+    use pmc_env
+    use pmc_aero_state
+    use pmc_aero_binned
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -38,7 +38,7 @@ contains
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env   
@@ -78,8 +78,8 @@ contains
     ! and (b2, s2) that are not the same particle particle as each
     ! other.
     
-    use mod_util
-    use mod_aero_state
+    use pmc_util
+    use pmc_aero_state
 
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     integer, intent(in) :: b1           ! bin number of first particle
@@ -123,11 +123,11 @@ contains
     ! Join together particles (b1, s1) and (b2, s2), updating all
     ! particle and bin structures to reflect the change.
 
-    use mod_aero_data
-    use mod_bin_grid
-    use mod_env
-    use mod_aero_state
-    use mod_aero_binned
+    use pmc_aero_data
+    use pmc_bin_grid
+    use pmc_env
+    use pmc_aero_state
+    use pmc_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
@@ -175,4 +175,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_coagulation
+end module pmc_coagulation

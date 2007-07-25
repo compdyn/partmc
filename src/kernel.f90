@@ -4,14 +4,14 @@
 !
 ! Generic kernel functions.
 
-module mod_kernel
+module pmc_kernel
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bin_kernel(n_bin, bin_v, kernel, env, k)
    
-    use mod_env
+    use pmc_env
     
     ! Computes an array of kernel values for each bin pair. k(i,j) is
     ! the kernel value at the midpoint of bins i and j.
@@ -23,7 +23,7 @@ contains
 
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env  
@@ -49,8 +49,8 @@ contains
     ! in bin b1 and v2 in bin b2, it is approximately true that
     ! kernel(v1,v2) <= k_max(b1,b2).
 
-    use mod_bin_grid
-    use mod_env
+    use pmc_bin_grid
+    use pmc_env
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(env_t), intent(in) :: env    ! environment state
@@ -58,7 +58,7 @@ contains
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env  
@@ -83,8 +83,8 @@ contains
     ! Samples within bins b1 and b2 to find the maximum value of the
     ! kernel between particles from the two bins.
    
-    use mod_env
-    use mod_bin_grid
+    use pmc_env
+    use pmc_bin_grid
  
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin
@@ -94,7 +94,7 @@ contains
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env  
@@ -131,4 +131,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_kernel
+end module pmc_kernel

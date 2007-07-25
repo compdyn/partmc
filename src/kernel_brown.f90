@@ -8,7 +8,7 @@
 ! page 394 (equation 10.18)
 ! This expression is based on the assumption that the continuum regime applies.
     
-module mod_kernel_brown
+module pmc_kernel_brown
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -17,8 +17,8 @@ contains
 
     ! Compute the Brownian coagulation kernel.
 
-    use mod_env
-    use mod_constants
+    use pmc_env
+    use pmc_constants
 
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
@@ -54,8 +54,8 @@ contains
     !    jacobson,  m. z. (1999) fundamentals of atmospheric modeling.
     !       cambridge university press, new york, 656 pp.
 
-    use mod_util
-    use mod_constants
+    use pmc_util
+    use pmc_constants
     
     real*8,  intent(in) :: vol_i_inp, vol_j_inp ! wet (ambient) particle
                                                 ! volumes (m^3)
@@ -216,4 +216,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_kernel_brown
+end module pmc_kernel_brown

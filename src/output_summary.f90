@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
-module mod_output_summary
+module pmc_output_summary
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -12,10 +12,10 @@ contains
 
     ! Print summary header.
 
-    use mod_bin_grid
-    use mod_inout
-    use mod_aero_data
-    use mod_gas_data
+    use pmc_bin_grid
+    use pmc_inout
+    use pmc_aero_data
+    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! file to output to
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -41,13 +41,13 @@ contains
     ! of the function takes absolute number and absolute volume
     ! per-bin (as produced by a particle-resolved code, for example).
     
-    use mod_bin_grid
-    use mod_aero_data
-    use mod_aero_binned
-    use mod_env
-    use mod_inout
-    use mod_gas_data
-    use mod_gas_state
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_binned
+    use pmc_env
+    use pmc_inout
+    use pmc_gas_data
+    use pmc_gas_state
 
     type(inout_file_t), intent(inout) :: file ! file to output to
     real*8, intent(in) :: time          ! simulation time
@@ -69,4 +69,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_output_summary
+end module pmc_output_summary

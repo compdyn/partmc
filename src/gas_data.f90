@@ -4,7 +4,7 @@
 !
 ! Gas parameters.
 
-module mod_gas_data
+module pmc_gas_data
 
   type gas_data_t
      integer :: n_spec                   ! number of species
@@ -120,7 +120,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(gas_data_t), intent(in) :: gas_data ! gas_data to write
@@ -139,7 +139,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(gas_data_t), intent(out) :: gas_data ! gas_data to read
@@ -158,7 +158,7 @@ contains
 
     ! Read gas data from a .spec file.
 
-    use mod_inout
+    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! spec file
     type(gas_data_t), intent(out) :: gas_data ! gas data
@@ -198,4 +198,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_gas_data
+end module pmc_gas_data

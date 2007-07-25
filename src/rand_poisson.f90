@@ -16,7 +16,7 @@
 ! Unfortunately this code is under the non-free license:
 !     http://www.acm.org/pubs/copyright_policy/softwareCRnotice.html
 
-module mod_rand_poisson
+module pmc_rand_poisson
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -27,7 +27,7 @@ contains
     ! mean. See http://en.wikipedia.org/wiki/Poisson_distribution for
     ! information on the method.
 
-    use mod_util
+    use pmc_util
 
     real*8, intent(in) :: mean          ! mean of the distribution
 
@@ -60,8 +60,8 @@ contains
     ! Generates a normally distributed random number with the given
     ! mean and standard deviation.
 
-    use mod_util
-    use mod_constants
+    use pmc_util
+    use pmc_constants
 
     real*8, intent(in) :: mean          ! mean of the distribution
     real*8, intent(in) :: stddev        ! standard deviation of the distribution
@@ -85,4 +85,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module mod_rand_poisson
+end module pmc_rand_poisson

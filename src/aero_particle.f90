@@ -4,7 +4,7 @@
 !
 ! Basic particle structure.
 
-module mod_aero_particle
+module pmc_aero_particle
 
   type aero_particle_t
      real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
@@ -45,7 +45,7 @@ contains
 
     ! Copies a particle.
 
-    use mod_util
+    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle_from ! reference particle
     type(aero_particle_t), intent(inout) :: aero_particle_to ! already allocated
@@ -111,7 +111,7 @@ contains
 
     ! Total mass of the particle.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -138,7 +138,7 @@ contains
     
     ! Find the bin number that contains a given particle.
 
-    use mod_bin_grid
+    use pmc_bin_grid
     
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
@@ -155,7 +155,7 @@ contains
 
     ! Returns the volume-average of the non-water elements of quantity.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -177,7 +177,7 @@ contains
 
     ! Returns the volume-total of the non-water elements of quantity.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -203,8 +203,8 @@ contains
 
     ! Returns the water element of quantity.
 
-    use mod_util
-    use mod_aero_data
+    use pmc_util
+    use pmc_aero_data
     
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -222,8 +222,8 @@ contains
 
     ! Returns the volume-total of the water element of quantity.
 
-    use mod_util
-    use mod_aero_data
+    use pmc_util
+    use pmc_aero_data
     
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -241,8 +241,8 @@ contains
 
     ! Returns the water molecular weight.
 
-    use mod_util
-    use mod_aero_data
+    use pmc_util
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
@@ -258,7 +258,7 @@ contains
 
     ! Returns the average of the solute molecular weight.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -274,7 +274,7 @@ contains
 
     ! Returns the average of the solute ion number.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -291,7 +291,7 @@ contains
 
     ! Returns the average of the solute solubilities.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -307,8 +307,8 @@ contains
 
     ! Returns the water density.
 
-    use mod_util
-    use mod_aero_data
+    use pmc_util
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
@@ -324,7 +324,7 @@ contains
 
     ! Returns the average of the solute densities.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -340,8 +340,8 @@ contains
 
     ! Returns the water mass.
 
-    use mod_util
-    use mod_aero_data
+    use pmc_util
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -358,7 +358,7 @@ contains
 
     ! Returns the total solute mass.
 
-    use mod_aero_data
+    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -375,7 +375,7 @@ contains
 
     ! Coagulate two particles together to make a new one.
 
-    use mod_util
+    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle_1 ! first particle
     type(aero_particle_t), intent(in) :: aero_particle_2 ! second particle
@@ -395,7 +395,7 @@ contains
     
     ! Write full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(in) :: aero_particle ! aero_particle to write
@@ -411,7 +411,7 @@ contains
     
     ! Read full state.
     
-    use mod_inout
+    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(out) :: aero_particle ! aero_particle to read
@@ -423,4 +423,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_aero_particle
+end module pmc_aero_particle

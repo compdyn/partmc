@@ -7,14 +7,14 @@
 
 program sedi_bidisperse_state_to_count
 
-  use mod_bin_grid
-  use mod_env
-  use mod_aero_data
-  use mod_output_state
-  use mod_aero_state
-  use mod_gas_data
-  use mod_gas_state
-  use mod_aero_dist
+  use pmc_bin_grid
+  use pmc_env
+  use pmc_aero_data
+  use pmc_output_state
+  use pmc_aero_state
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_aero_dist
 
   integer, parameter :: out_unit = 33   ! output unit number
   integer, parameter :: state_unit = 34 ! state file unit number

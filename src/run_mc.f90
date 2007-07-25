@@ -4,9 +4,9 @@
 !
 ! Monte Carlo with fixed timestep and particles stored per-bin.
 
-module mod_run_mc
+module pmc_run_mc
 
-  use mod_inout
+  use pmc_inout
 
   type run_mc_opt_t
     integer :: n_part_max               ! maximum number of particles
@@ -36,20 +36,20 @@ contains
 
     ! Do a particle-resolved Monte Carlo simulation.
     
-    use mod_util
-    use mod_aero_state
-    use mod_bin_grid 
-    use mod_aero_binned
-    use mod_condensation
-    use mod_env
-    use mod_aero_data
-    use mod_gas_data
-    use mod_gas_state
-    use mod_output_state
-    use mod_mosaic
-    use mod_coagulation
-    use mod_kernel
-    use mod_output_summary
+    use pmc_util
+    use pmc_aero_state
+    use pmc_bin_grid 
+    use pmc_aero_binned
+    use pmc_condensation
+    use pmc_env
+    use pmc_aero_data
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_output_state
+    use pmc_mosaic
+    use pmc_coagulation
+    use pmc_kernel
+    use pmc_output_summary
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -61,10 +61,10 @@ contains
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
 
-    ! FIXME: can we shift this to a module? mod_kernel presumably
+    ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env   
@@ -219,13 +219,13 @@ contains
 
     ! Do coagulation for time del_t.
 
-    use mod_util
-    use mod_aero_state
-    use mod_bin_grid
-    use mod_aero_binned
-    use mod_env
-    use mod_aero_data
-    use mod_coagulation
+    use pmc_util
+    use pmc_aero_state
+    use pmc_bin_grid
+    use pmc_aero_binned
+    use pmc_env
+    use pmc_aero_data
+    use pmc_coagulation
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -239,7 +239,7 @@ contains
 
     interface
        subroutine kernel(v1, v2, env, k)
-         use mod_env
+         use pmc_env
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
          type(env_t), intent(in) :: env   
@@ -297,7 +297,7 @@ contains
   
     ! Compute the number of samples required for the pair of bins.
 
-    use mod_env
+    use pmc_env
 
     integer, intent(in) :: ni           ! number particles in first bin 
     integer, intent(in) :: nj           ! number particles in second bin
@@ -324,4 +324,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module mod_run_mc
+end module pmc_run_mc

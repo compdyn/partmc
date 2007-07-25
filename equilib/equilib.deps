@@ -1,2 +1,2 @@
 # DO NOT EDIT --- auto-generated file
-equilib/equilib.o: src/mod_inout.mod src/mod_aero_data.mod src/mod_env.mod src/mod_util.mod src/mod_condensation.mod src/mod_aero_particle.mod
+equilib/equilib.o: src/pmc_inout.mod src/pmc_aero_data.mod src/pmc_env.mod src/pmc_util.mod src/pmc_condensation.mod src/pmc_aero_particle.mod

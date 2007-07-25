@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Interface to MOSAIC
+! Interface to MOSAIC aerosol and gas phase chemistry code.
 
 module pmc_mosaic
 contains

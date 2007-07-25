@@ -114,10 +114,6 @@ ifeq ($(DEV_BUILD),yes)
 # developers should rebuild Makefile.deps and TAGS
 all: TAGS $(PROGS)
 
-# centralized dependencies
-#Makefile.deps: make_mod_deps.py $(ALL_SOURCE)
-#	./make_mod_deps.py -o $@ $(ALL_SOURCE)
-
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
 else
@@ -125,23 +121,15 @@ else
 all: $(PROGS)
 endif
 
-# centralized dependencies
-# also need to remove the %.deps dependency for each source file
-# if we use a centralized dependency file. We can make each source file
-# depend on Makefile.deps, but then we are forced to do a complete rebuild
-# if an file changes.
-#-include Makefile.deps
-
-# we can also do per-sourcefile deps, instead of a single Makefile.deps
 -include $(ALL_FILES:%=%.deps)
-%.deps: %.f90 make_mod_deps.py
-	./make_mod_deps.py -o $@ $<
+%.deps: %.f90 f90_mod_deps.py
+	./f90_mod_deps.py -o $@ -d "(mod_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
 src/%.o src/mod_%.mod: src/%.f90 src/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-test/%.o test/mod_%.mod: test/%.f90 test/%.deps
+test/%.o: test/%.f90 test/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-equilib/%.o equilib/mod_%.mod: equilib/%.f90 equilib/%.deps
+equilib/%.o: equilib/%.f90 equilib/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/partmc: $(partmc_OBJS)

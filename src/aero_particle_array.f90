@@ -2,7 +2,24 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Basic particle structure.
+! 1-D arrays of particles, used by aero_state to build a ragged
+! array. One aero_particle_array is generally a list of particles in a
+! single size bin, but the basic type can be used for any list of
+! particles.
+!
+! To give a reasonable tradeoff between frequent re-allocs and memory
+! usage, the length of an aero_particle_array is generally a bit
+! longer than the number of particles stored in it. When the array is
+! full then a larger array is allocated with new extra space. As a
+! balance between memory usage and frequency of re-allocs the length
+! of the array is currently doubled when necessary and halved when
+! possible.
+!
+! The true allocated length of the aero_particle_array can be obtained
+! by size(aero_particle_array%particle), while the number of used
+! particle slots in it is given by aero_particle_array%n_part. It must
+! be that aero_particle_array%n_part is less than or equal to
+! size(aero_particle_array%particle).
 
 module pmc_aero_particle_array
 

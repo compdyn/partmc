@@ -47,7 +47,7 @@ program sedi_bidisperse_ode
 
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
-  call bin_grid_make(n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max), bin_grid)
+  call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
   dlnr = bin_grid%dlnr
 
   open(unit=out_unit, file=out_name)

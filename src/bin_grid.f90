@@ -20,12 +20,12 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine bin_grid_alloc(n_bin, bin_grid)
+  subroutine bin_grid_alloc(bin_grid, n_bin)
 
     ! Allocates a bin_grid.
 
-    integer, intent(in) :: n_bin        ! number of bins
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
+    integer, intent(in) :: n_bin        ! number of bins
 
     bin_grid%n_bin = n_bin
     allocate(bin_grid%v(n_bin))
@@ -63,18 +63,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine bin_grid_make(n_bin, v_min, v_max, bin_grid)
+  subroutine bin_grid_make(bin_grid, n_bin, v_min, v_max)
 
     ! Generates the bin grid given the range and number of bins.
     
     use pmc_util
 
+    type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
     real*8, intent(in) :: v_max         ! minimum volume (m^3)
-    type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
 
-    call bin_grid_alloc(n_bin, bin_grid)
+    call bin_grid_alloc(bin_grid, n_bin)
     call logspace(v_min, v_max, n_bin, bin_grid%v)
     ! dlnr = ln(r(i) / r(i-1))
     bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / dble(n_bin - 1)
@@ -110,15 +110,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function particle_in_bin(v, bin_grid)
+  integer function bin_grid_particle_in_bin(bin_grid, v)
     
     ! Find the bin number that contains a given particle. This assumes
     ! logarithmically spaced bins.
 
     use pmc_util
     
-    real*8, intent(in) :: v             ! volume of particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    real*8, intent(in) :: v             ! volume of particle
 
     real*8 :: log_v_min, log_v_max, log_edge_min, log_edge_max
     real*8 :: half_log_delta
@@ -134,33 +134,9 @@ contains
          * dble(bin_grid%n_bin - 2)) + 1
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)
-    particle_in_bin = k
+    bin_grid_particle_in_bin = k
     
-  end function particle_in_bin
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine particle_in_bin_search(v, bin_grid, k)
-    
-    ! Find the bin number that contains a given particle using a
-    ! simple search that does not assume a log-spaced bin grid.
-    
-    real*8, intent(in) :: v             ! volume of particle
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    integer, intent(out) :: k           ! bin number containing particle
-    
-    real*8 :: edge
-
-    k = 0
-300 k = k + 1
-    if (k .lt. bin_grid%n_bin) then
-       call bin_edge(bin_grid, k + 1, edge)
-       if (v .gt. edge) then
-          goto 300
-       end if
-    end if
-    
-  end subroutine particle_in_bin_search
+  end function bin_grid_particle_in_bin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -215,7 +191,7 @@ contains
     call inout_read_integer(file, 'n_bin', n_bin)
     call inout_read_real(file, 'r_min', r_min)
     call inout_read_real(file, 'r_max', r_max)
-    call bin_grid_make(n_bin, rad2vol(r_min), rad2vol(r_max), bin_grid)
+    call bin_grid_make(bin_grid, n_bin, rad2vol(r_min), rad2vol(r_max))
 
   end subroutine spec_read_bin_grid
 

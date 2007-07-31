@@ -184,7 +184,7 @@ contains
     integer :: k
 
     num_den = 0d0
-    k = particle_in_bin(rad2vol(radius), bin_grid)
+    k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
     num_den(k) = 1d0 / bin_grid%dlnr
     
   end subroutine num_den_mono

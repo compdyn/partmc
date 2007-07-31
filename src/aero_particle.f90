@@ -143,8 +143,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     
-    aero_particle_in_bin = &
-         particle_in_bin(aero_particle_volume(aero_particle), bin_grid)
+    aero_particle_in_bin = bin_grid_particle_in_bin(bin_grid, &
+         aero_particle_volume(aero_particle))
     
   end function aero_particle_in_bin
   

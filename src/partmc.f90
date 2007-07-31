@@ -227,11 +227,13 @@ contains
 
     call inout_read_string(file, 'soln', soln_name)
 
+    call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0, 0)
     if (trim(soln_name) == 'golovin_exp') then
        call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
     elseif (trim(soln_name) == 'constant_exp_cond') then
        call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
     elseif (trim(soln_name) == 'zero') then
+       call aero_dist_free(exact_opt%aero_dist_init)
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', exact_opt%aero_dist_init)
     else

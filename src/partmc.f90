@@ -13,26 +13,32 @@ program partmc
   type(inout_file_t) :: file
   character(len=300) :: in_name
   character(len=100) :: run_type
-  integer :: i
-  
-  ! check there is exactly one commandline argument
-  if (iargc() .ne. 1) then
-     write(6,*) 'Usage: partmc <filename.d>'
-     call exit(2)
+  integer :: i, rank
+
+  call pmc_mpi_init()
+  rank = pmc_mpi_rank()
+  if (rank == 0) then
+
+     ! check there is exactly one commandline argument
+     if (iargc() .ne. 1) then
+        write(6,*) 'Usage: partmc <filename.d>'
+        call exit(2)
+     end if
+     
+     ! get and check first commandline argument (must be "filename.spec")
+     call getarg(1, in_name)
+     i = len_trim(in_name)
+     if (in_name((i-4):i) /= '.spec') then
+        write(6,*) 'ERROR: input filename must end in .spec'
+        call exit(2)
+     end if
+     
+     call inout_open_read(in_name, file)
+     
+     call inout_read_string(file, 'run_type', run_type)
   end if
   
-  ! get and check first commandline argument (must be "filename.spec")
-  call getarg(1, in_name)
-  i = len_trim(in_name)
-  if (in_name((i-4):i) /= '.spec') then
-     write(6,*) 'ERROR: input filename must end in .spec'
-     call exit(2)
-  end if
-
-  call inout_open_read(in_name, file)
-
-  call inout_read_string(file, 'run_type', run_type)
-
+  call pmc_mpi_broadcast_string(run_type)
   if (trim(run_type) == 'mc') then
      call partmc_mc(file)
   elseif (trim(run_type) == 'exact') then
@@ -40,9 +46,13 @@ program partmc
   elseif (trim(run_type) == 'sect') then
      call partmc_sect(file)
   else
-     write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
-     call exit(1)
+     if (pmc_mpi_rank() == 0) then
+        write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
+     end if
+     call pmc_mpi_abort(1)
   end if
+
+  call pmc_mpi_finalize()
 
 contains
 
@@ -87,6 +97,11 @@ contains
     type(inout_file_t) :: summary_file  ! summary output file
 
     integer :: i_loop, rand_init
+    
+    ! only serial code here
+    if (pmc_mpi_rank() /= 0) then
+       return
+    end if
     
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
@@ -214,6 +229,11 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
+
+    ! only serial code here
+    if (pmc_mpi_rank() /= 0) then
+       return
+    end if
     
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_real(file, 'num_conc', exact_opt%num_conc)
@@ -308,6 +328,11 @@ contains
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
 
+    ! only serial code here
+    if (pmc_mpi_rank() /= 0) then
+       return
+    end if
+    
     call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'kernel', kernel_name)
 

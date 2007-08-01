@@ -8,6 +8,11 @@
 ! (normally nothing).
 
 module pmc_mpi
+
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,7 +25,7 @@ contains
 
 #ifdef PMC_USE_MPI
     if (ierr /= MPI_SUCCESS) then
-       mpi_abort(MPI_COMM_WORLD, 1)
+       call pmc_mpi_abort(1)
     end if
 #endif
 
@@ -50,7 +55,9 @@ contains
     integer, intent(in) :: status       ! Status flag to abort with
 
 #ifdef PMC_USE_MPI
-    call mpi_abort(MPI_COMM_WORLD, status)
+    integer :: ierr
+
+    call mpi_abort(MPI_COMM_WORLD, status, ierr)
 #else
     call exit(status)
 #endif
@@ -64,7 +71,10 @@ contains
     ! Shut down MPI.
 
 #ifdef PMC_USE_MPI
-    call mpi_finalize()
+    integer :: ierr
+
+    call mpi_finalize(ierr)
+    call pmc_mpi_check_ierr(ierr)
 #endif
 
   end subroutine pmc_mpi_finalize
@@ -108,6 +118,25 @@ contains
 #endif
 
   end function pmc_mpi_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_broadcast_string(string)
+
+    ! Broadcast the give string from process 0 to all other processes.
+
+    character(len=*), intent(inout) :: string ! string to broadcast
+
+#ifdef PMC_USE_MPI
+    integer :: root, ierr
+
+    root = 0 ! source of data to broadcast
+    call mpi_bcast(string, len(string), MPI_CHARACTER, root, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#endif
+
+  end subroutine pmc_mpi_broadcast_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

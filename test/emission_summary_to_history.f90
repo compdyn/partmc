@@ -97,9 +97,6 @@ program emission_summary_to_history
      call average_gas_state(gas_state(:,i_time), gas_state_avg(i_time))
   enddo
 
-!DEBUG
-  write(*,*) aero_binned_avg(2)%num_den
-!DEBUG
   ! find three non-empty bins
   bin_1 = 1
   do while (aero_binned_avg(2)%num_den(bin_1) == 0d0)

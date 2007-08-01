@@ -6,10 +6,12 @@
 
 module pmc_gas_data
 
+  integer, parameter :: GAS_NAME_LEN = 15
+
   type gas_data_t
      integer :: n_spec                   ! number of species
      real*8, pointer :: M_w(:)           ! molecular weight (kg mole^{-1})
-     character(len=10), pointer :: name(:) ! length n_spec, name of species
+     character(len=GAS_NAME_LEN), pointer :: name(:) ! len n_spec, species name
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                          ! mosaic index of species i, or 0 if
                                          ! there is no match
@@ -55,7 +57,7 @@ contains
     ! returns 0 if there is no such species.
 
     type(gas_data_t), intent(in) :: gas_data ! gas data
-    character*10, intent(in) :: name      ! name of species to find
+    character(len=GAS_NAME_LEN), intent(in) :: name ! name of species to find
 
     integer i
     logical found
@@ -84,7 +86,8 @@ contains
     type(gas_data_t), intent(inout) :: gas_data ! gas data
 
     integer, parameter :: n_mosaic_species = 77
-    character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
+    character(len=GAS_NAME_LEN), parameter, dimension(n_mosaic_species) &
+         :: mosaic_species = [ &
          "H2SO4", "HNO3", "HCl", "NH3", "NO", "NO2", "NO3", "N2O5", &
          "HONO", "HNO4", "O3", "O1D", "O3P", "OH", "HO2", "H2O2", &
          "CO", "SO2", "CH4", "C2H6", "CH3O2", "ETHP", "HCHO", "CH3OH", &
@@ -186,7 +189,7 @@ contains
     n_species = size(species_data, 1)
     call gas_data_alloc(n_species, gas_data)
     do i = 1,n_species
-       gas_data%name(i) = species_name(i)
+       gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
        gas_data%M_w(i) = species_data(i,1)
     end do
     deallocate(species_name)

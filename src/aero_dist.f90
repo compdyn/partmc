@@ -347,7 +347,7 @@ contains
 
     real*8 :: num_conc
     character(len=MAX_CHAR_LEN) :: mode_type
-    real*8 :: mean_vol, std_dev, vol, small_vol, big_vol, big_num
+    real*8 :: mean_vol, std_dev, radius, small_vol, big_vol, big_num
 
     call inout_read_real(file, 'num_conc', num_conc)
     call inout_read_string(file, 'mode_type', mode_type)
@@ -359,8 +359,8 @@ contains
        call inout_read_real(file, 'mean_vol', mean_vol)
        call num_den_exp(mean_vol, bin_grid, num_den)
     elseif (trim(mode_type) == 'mono') then
-       call inout_read_real(file, 'vol', vol)
-       call num_den_mono(vol, bin_grid, num_den)
+       call inout_read_real(file, 'radius', radius)
+       call num_den_mono(radius, bin_grid, num_den)
     else
        write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
             trim(mode_type), ' in file ', trim(file%name), &

@@ -6,10 +6,12 @@
 
 module pmc_aero_data
 
+  integer, parameter :: AERO_NAME_LEN = 15
+
   type aero_data_t
      integer :: n_spec                  ! number of species
      integer :: i_water                 ! water species number
-     character(len=10), pointer :: name(:) ! len n_spec, name of species
+     character(len=AERO_NAME_LEN), pointer :: name(:) ! len n_spec, species name
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                         ! mosaic index of species i, or 0 if
                                         ! there is no match
@@ -67,7 +69,7 @@ contains
     ! returns 0 if there is no such species.
 
     type(aero_data_t), intent(in) :: aero_data     ! aero_data data
-    character*10, intent(in) :: name      ! name of species to find
+    character(len=AERO_NAME_LEN), intent(in) :: name ! name of species to find
 
     integer i
     logical found
@@ -114,7 +116,8 @@ contains
     type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
 
     integer, parameter :: n_mosaic_species = 19
-    character*10, parameter, dimension(n_mosaic_species) :: mosaic_species = [ &
+    character(AERO_NAME_LEN), parameter, dimension(n_mosaic_species) &
+         :: mosaic_species = [ &
          "SO4_a", "NO3_a", "Cl_a", "NH4_a", "CO3_a", "MSA_a", "Na_a", "Ca_a", &
          "OC_a", "BC_a", "OIN_a", "ARO1_a", "ARO2_a", "ALK1_a", "OLE1_a", &
          "API1_a", "API2_a", "LIM1_a", "LIM2_a"]
@@ -210,7 +213,7 @@ contains
     ! allocate and copy over the data
     call aero_data_alloc(aero_data, n_species)
     do i = 1,n_species
-       aero_data%name(i) = species_name(i)
+       aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        if (species_name(i) == "H2O") then
           aero_data%i_water = i
        end if

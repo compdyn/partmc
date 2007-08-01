@@ -4,5 +4,5 @@ n_modes 1                       # number of initial distributions
 vol_frac comp_water.dat         # composition proportions of species
 num_conc 1e9                    # number concentration (#/m^3)
 mode_type mono                  # type of distribution
-vol 8d-15                       # volume (m^3)
+radius 1.5d-5                     # radius (m)
 

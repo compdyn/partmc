@@ -162,7 +162,7 @@ contains
     call gas_state_alloc(gas_data%n_spec, gas_state)
     gas_state%conc = 0d0
     do i = 1,n_species
-       species = gas_spec_by_name(gas_data, species_name(i))
+       species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
           write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
                ' in file ', trim(read_name)

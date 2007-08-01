@@ -129,7 +129,7 @@ contains
     
     real*8 pmv     ! ambient water vapor pressure (Pa)
     real*8 mv      ! ambient water vapor density (kg m^{-3})
-                   ! pmv and mv are related by the factor M_w/(R*T)
+                   ! pmv and mv are related by the factor molec_weight/(R*T)
     real*8 dmv     ! change of water density (kg m^{-3})
     
     dmv = dv * aero_data%density(aero_data%i_water)

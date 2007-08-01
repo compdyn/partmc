@@ -246,7 +246,7 @@ contains
     ! finished reading .spec data, now do the run
 
     call inout_open_write(summary_name, summary_file)
-    call gas_data_alloc(0, gas_data)
+    call gas_data_alloc(gas_data, 0)
     call output_summary_header(summary_file, bin_grid, gas_data, &
          aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 

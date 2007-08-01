@@ -91,7 +91,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_aero_particle_water_index(aero_data)
+  subroutine aero_data_set_water_index(aero_data)
 
     ! Fills in aero_data%i_water.
 
@@ -105,7 +105,7 @@ contains
        end if
     end do
 
-  end subroutine set_aero_particle_water_index
+  end subroutine aero_data_set_water_index
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -158,7 +158,8 @@ contains
     call inout_write_real_array(file, "rho(kg/m^3)", aero_data%density)
     call inout_write_integer_array(file, "nu", aero_data%num_ions)
     call inout_write_real_array(file, "eps(1)", aero_data%solubility)
-    call inout_write_real_array(file, "M_w(kg/mole)", aero_data%molec_weight)
+    call inout_write_real_array(file, "molec_wght(kg/mole)", &
+         aero_data%molec_weight)
     
   end subroutine inout_write_aero_data
 
@@ -181,7 +182,8 @@ contains
     call inout_read_real_array(file, "rho(kg/m^3)", aero_data%density)
     call inout_read_integer_array(file, "nu", aero_data%num_ions)
     call inout_read_real_array(file, "eps(1)", aero_data%solubility)
-    call inout_read_real_array(file, "M_w(kg/mole)", aero_data%molec_weight)
+    call inout_read_real_array(file, "molec_wght(kg/mole)", &
+         aero_data%molec_weight)
     
   end subroutine inout_read_aero_data
 
@@ -224,7 +226,7 @@ contains
     end do
     deallocate(species_name)
     deallocate(species_data)
-    call set_aero_particle_water_index(aero_data)
+    call aero_data_set_water_index(aero_data)
     call aero_data_set_mosaic_map(aero_data)
 
   end subroutine spec_read_aero_data

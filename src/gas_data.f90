@@ -10,7 +10,7 @@ module pmc_gas_data
 
   type gas_data_t
      integer :: n_spec                   ! number of species
-     real*8, pointer :: M_w(:)           ! molecular weight (kg mole^{-1})
+     real*8, pointer :: molec_weight(:)  ! molecular weight (kg mole^{-1})
      character(len=GAS_NAME_LEN), pointer :: name(:) ! len n_spec, species name
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                          ! mosaic index of species i, or 0 if
@@ -21,15 +21,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine gas_data_alloc(n_spec, gas_data)
+  subroutine gas_data_alloc(gas_data, n_spec)
 
     ! Allocate storage for gas species.
 
-    integer, intent(in) :: n_spec         ! number of species
     type(gas_data_t), intent(out) :: gas_data ! gas data
+    integer, intent(in) :: n_spec         ! number of species
 
     gas_data%n_spec = n_spec
-    allocate(gas_data%M_w(n_spec))
+    allocate(gas_data%molec_weight(n_spec))
     allocate(gas_data%name(n_spec))
     allocate(gas_data%mosaic_index(n_spec))
 
@@ -43,7 +43,7 @@ contains
 
     type(gas_data_t), intent(out) :: gas_data ! gas data
 
-    deallocate(gas_data%M_w)
+    deallocate(gas_data%molec_weight)
     deallocate(gas_data%name)
     deallocate(gas_data%mosaic_index)
 
@@ -51,7 +51,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function gas_spec_by_name(gas_data, name)
+  integer function gas_data_spec_by_name(gas_data, name)
 
     ! Returns the number of the species in gas with the given name, or
     ! returns 0 if there is no such species.
@@ -70,16 +70,16 @@ contains
        end if
     end do
     if (found) then
-       gas_spec_by_name = i
+       gas_data_spec_by_name = i
     else
-       gas_spec_by_name = 0
+       gas_data_spec_by_name = 0
     end if
 
-  end function gas_spec_by_name
+  end function gas_data_spec_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_gas_mosaic_map(gas_data)
+  subroutine gas_data_set_mosaic_map(gas_data)
 
     ! Fills in gas_data%mosaic_index.
 
@@ -115,7 +115,7 @@ contains
        end if
     end do
 
-  end subroutine set_gas_mosaic_map
+  end subroutine gas_data_set_mosaic_map
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -129,7 +129,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas_data to write
 
     call inout_write_integer(file, "n_spec", gas_data%n_spec)
-    call inout_write_real_array(file, "M_w(kg/mole)", gas_data%M_w)
+    call inout_write_real_array(file, "molec_wght(kg/mole)", &
+         gas_data%molec_weight)
     call inout_write_string_array(file, "species_names", gas_data%name)
     call inout_write_integer_array(file, "mosaic_indices", &
          gas_data%mosaic_index)
@@ -148,7 +149,8 @@ contains
     type(gas_data_t), intent(out) :: gas_data ! gas_data to read
 
     call inout_read_integer(file, "n_spec", gas_data%n_spec)
-    call inout_read_real_array(file, "M_w(kg/mole)", gas_data%M_w)
+    call inout_read_real_array(file, "molec_wght(kg/mole)", &
+         gas_data%molec_weight)
     call inout_read_string_array(file, "species_names", gas_data%name)
     call inout_read_integer_array(file, "mosaic_indices", &
          gas_data%mosaic_index)
@@ -187,15 +189,15 @@ contains
 
     ! allocate and copy over the data
     n_species = size(species_data, 1)
-    call gas_data_alloc(n_species, gas_data)
+    call gas_data_alloc(gas_data, n_species)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
-       gas_data%M_w(i) = species_data(i,1)
+       gas_data%molec_weight(i) = species_data(i,1)
     end do
     deallocate(species_name)
     deallocate(species_data)
     
-    call set_gas_mosaic_map(gas_data)
+    call gas_data_set_mosaic_map(gas_data)
 
   end subroutine spec_read_gas_data
 

@@ -8,6 +8,7 @@
 program partmc
 
   use pmc_inout
+  use pmc_mpi
 
   type(inout_file_t) :: file
   character(len=300) :: in_name

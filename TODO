@@ -27,10 +27,6 @@ max_kernel_*() function for each one.
 
 Fix process_state.
 
-make all array variables either singular (%vol vs %vols).
-
-all functions like type_*() should take a type as first argument.
-
 update comments at top of files
 
 change all volumes in spec files (mean_vol for dists, etc) to radii

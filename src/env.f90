@@ -58,8 +58,8 @@ contains
     env%start_day = 0
 
     call env_temp_alloc(env, 0)
-    call gas_state_alloc(0, env%gas_emissions)
-    call gas_state_alloc(0, env%gas_background)
+    call gas_state_alloc(env%gas_emissions, 0)
+    call gas_state_alloc(env%gas_background, 0)
     env%gas_emission_rate = 0d0
     env%gas_dilution_rate = 0d0
     call aero_dist_alloc(env%aero_emissions, 0, 0, 0)
@@ -209,8 +209,8 @@ contains
 
     type(gas_state_t) :: emission, dilution
 
-    call gas_state_alloc(gas_data%n_spec, emission)
-    call gas_state_alloc(gas_data%n_spec, dilution)
+    call gas_state_alloc(emission, gas_data%n_spec)
+    call gas_state_alloc(dilution, gas_data%n_spec)
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
     call gas_state_copy(env%gas_emissions, emission)
@@ -510,13 +510,13 @@ contains
        call average_real((/(env_vec(i)%temp_set(i_temp),i=1,n)/), &
             env_avg%temp_set(i_temp))
     end do
-    call average_gas_state(env_vec%gas_emissions, env_avg%gas_emissions)
+    call gas_state_average(env_vec%gas_emissions, env_avg%gas_emissions)
     call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
-    call average_gas_state(env_vec%gas_background, env_avg%gas_background)
+    call gas_state_average(env_vec%gas_background, env_avg%gas_background)
     call average_real(env_vec%gas_dilution_rate, env_avg%gas_dilution_rate)
-    call average_aero_dist(env_vec%aero_emissions, env_avg%aero_emissions)
+    call aero_dist_average(env_vec%aero_emissions, env_avg%aero_emissions)
     call average_real(env_vec%aero_emission_rate, env_avg%aero_emission_rate)
-    call average_aero_dist(env_vec%aero_background, env_avg%aero_background)
+    call aero_dist_average(env_vec%aero_background, env_avg%aero_background)
     call average_real(env_vec%aero_dilution_rate, env_avg%aero_dilution_rate)
     
   end subroutine env_average

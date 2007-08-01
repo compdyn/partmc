@@ -77,7 +77,7 @@ contains
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_data_alloc(gas_data, 0)
-    call gas_state_alloc(0, gas_state)
+    call gas_state_alloc(gas_state, 0)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     call env_init(env, 0d0)

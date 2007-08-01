@@ -16,7 +16,7 @@ particles, which would result in large-large coagulations and so the
 ODE would no longer be valid. While this means that the simulation is
 not all that interesting physically, it is an interesting test-case
 that sectional codes cannot do well. The lack of resolution towards
-the end of the Monte Carlo simulation is entirely expected.
+the end of the Monte Carlo simulation is expected.
 
 Because the plots made for this test-case are not number or volume
 distributions, but rather numbers and volumes in specific bins, we

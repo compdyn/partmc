@@ -451,7 +451,7 @@ contains
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine average_aero_mode(aero_mode_vec, aero_mode_avg)
+  subroutine aero_mode_average(aero_mode_vec, aero_mode_avg)
     
     ! Computes the average of an array of aero_mode.
 
@@ -475,11 +475,11 @@ contains
             aero_mode_avg%vol_frac(i_spec))
     end do
     
-  end subroutine average_aero_mode
+  end subroutine aero_mode_average
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine average_aero_dist(aero_dist_vec, aero_dist_avg)
+  subroutine aero_dist_average(aero_dist_vec, aero_dist_avg)
     
     ! Computes the average of an array of aero_dist.
 
@@ -492,11 +492,11 @@ contains
     call aero_dist_alloc(aero_dist_avg, n_modes, 0, 0)
     n = size(aero_dist_vec)
     do i_mode = 1,n_modes
-       call average_aero_mode((/(aero_dist_vec(i)%mode(i_mode),i=1,n)/), &
+       call aero_mode_average((/(aero_dist_vec(i)%mode(i_mode),i=1,n)/), &
             aero_dist_avg%mode(i_mode))
     end do
     
-  end subroutine average_aero_dist
+  end subroutine aero_dist_average
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -14,12 +14,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine gas_state_alloc(n_spec, gas_state)
+  subroutine gas_state_alloc(gas_state, n_spec)
 
     ! Allocate storage for gas species.
 
-    integer, intent(in) :: n_spec       ! number of species
     type(gas_state_t), intent(out) :: gas_state ! gas state to be allocated
+    integer, intent(in) :: n_spec       ! number of species
 
     allocate(gas_state%conc(n_spec))
 
@@ -159,7 +159,7 @@ contains
     end if
 
     ! copy over the data
-    call gas_state_alloc(gas_data%n_spec, gas_state)
+    call gas_state_alloc(gas_state, gas_data%n_spec)
     gas_state%conc = 0d0
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
@@ -177,7 +177,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine average_gas_state(gas_state_vec, gas_state_avg)
+  subroutine gas_state_average(gas_state_vec, gas_state_avg)
     
     ! Computes the average of an array of gas_state.
 
@@ -189,14 +189,14 @@ contains
     integer :: n_spec, i_spec, i, n
 
     n_spec = size(gas_state_vec(1)%conc)
-    call gas_state_alloc(n_spec, gas_state_avg)
+    call gas_state_alloc(gas_state_avg, n_spec)
     n = size(gas_state_vec)
     do i_spec = 1,n_spec
        call average_real((/(gas_state_vec(i)%conc(i_spec),i=1,n)/), &
             gas_state_avg%conc(i_spec))
     end do
     
-  end subroutine average_gas_state
+  end subroutine gas_state_average
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

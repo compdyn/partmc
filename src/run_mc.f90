@@ -86,7 +86,7 @@ contains
 
     i_time = 0
     time = 0d0
-    call init_environ(env, time)
+    call env_init(env, time)
     n_coag = 0
     tot_n_samp = 0
     tot_n_coag = 0
@@ -107,7 +107,7 @@ contains
        last_output_time = pre_time
        call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
        do pre_i_time = 0,(i_time - 1)
-          call update_environ(env, pre_time)
+          call env_update(env, pre_time)
           if (mc_opt%t_output > 0d0) then
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
@@ -170,9 +170,9 @@ contains
        
        time = dble(i_time) * mc_opt%del_t
 
-       call update_environ(env, time)
-       call environ_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
-       call environ_update_aero_state(env, mc_opt%del_t, bin_grid, &
+       call env_update(env, time)
+       call env_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
+       call env_update_aero_state(env, mc_opt%del_t, bin_grid, &
             aero_data, aero_state, aero_binned)
 
        if (mc_opt%t_output > 0d0) then

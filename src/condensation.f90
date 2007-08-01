@@ -56,7 +56,7 @@ contains
     ! update the environment due to condensation of water
     post_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
          * aero_state%comp_vol * bin_grid%dlnr
-    call change_water_volume(env, aero_data, &
+    call env_change_water_volume(env, aero_data, &
          (post_water_vol - pre_water_vol) / aero_state%comp_vol)
 
   end subroutine condense_particles
@@ -443,7 +443,7 @@ contains
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! (J m^{-1} s^{-1} K^{-1})
 
-       rat = sat_vapor_pressure(env) / (const%R * env%temp)
+       rat = env_sat_vapor_pressure(env) / (const%R * env%temp)
        fact1 = const%L_v * M_water / (const%R * env%temp)
        fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%temp)
 

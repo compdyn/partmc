@@ -80,10 +80,10 @@ contains
     call gas_state_alloc(0, gas_state)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
-    call init_environ(env, 0d0)
+    call env_init(env, 0d0)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
-       call update_environ(env, time)
+       call env_update(env, time)
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_vol, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env, aero_binned)

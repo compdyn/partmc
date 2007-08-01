@@ -123,7 +123,7 @@ contains
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
-    call init_environ(env, time)
+    call env_init(env, time)
     
     ! initial output
     call check_event(time, sect_opt%del_t, sect_opt%t_output, &
@@ -150,9 +150,9 @@ contains
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)
 
-       call update_environ(env, time)
-       call environ_update_gas_state(env, sect_opt%del_t, gas_data, gas_state)
-       call environ_update_aero_binned(env, sect_opt%del_t, bin_grid, &
+       call env_update(env, time)
+       call env_update_gas_state(env, sect_opt%del_t, gas_data, gas_state)
+       call env_update_aero_binned(env, sect_opt%del_t, bin_grid, &
             aero_data, aero_binned)
        
        ! print output

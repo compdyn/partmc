@@ -111,7 +111,7 @@ contains
          mc_opt%n_part_max, aero_init)
     call aero_dist_free(aero_dist_init)
 
-    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
+    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
 
     call inout_read_integer(file, 'rand_init', rand_init)
     call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
@@ -223,7 +223,7 @@ contains
     call spec_read_bin_grid(file, bin_grid)
     call spec_read_gas_data(file, gas_data)
     call spec_read_aero_data_filename(file, aero_data)
-    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
+    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
 
     call inout_read_string(file, 'soln', soln_name)
 
@@ -323,7 +323,7 @@ contains
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_dist_init)
 
-    call spec_read_environ(file, bin_grid, gas_data, aero_data, env)
+    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
 
     call inout_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
     

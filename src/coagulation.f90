@@ -5,7 +5,6 @@
 ! Coagulation subroutines.
 
 module pmc_coagulation
-
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

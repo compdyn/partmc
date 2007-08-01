@@ -4,7 +4,9 @@
 !
 ! Routine to generate random numbers from a Poisson distribution.
 !
-! The method used at present is rather inefficient and inaccurate.
+! The method used at present is rather inefficient and inaccurate
+! (brute force for below 10 and normal approximation above that
+! point).
 !
 ! The best known method appears to be due to Ahrens and Dieter (ACM
 ! Trans. Math. Software, 8(2), 163-179, 1982) and is available (in

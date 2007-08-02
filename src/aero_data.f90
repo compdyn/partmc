@@ -255,4 +255,92 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  integer function pmc_mpi_pack_aero_data_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_data_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_aero_data_size = &
+         pmc_mpi_pack_integer_size(val%n_spec) &
+         + pmc_mpi_pack_integer_size(val%i_water) &
+         + pmc_mpi_pack_string_array_size(val%name) &
+         + pmc_mpi_pack_integer_array_size(val%mosaic_index) &
+         + pmc_mpi_pack_real_array_size(val%density) &
+         + pmc_mpi_pack_integer_array_size(val%num_ions) &
+         + pmc_mpi_pack_real_array_size(val%solubility) &
+         + pmc_mpi_pack_real_array_size(val%molec_weight)
+
+  end function pmc_mpi_pack_aero_data_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_data(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_data_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_integer(buffer, position, val%n_spec)
+    call pmc_mpi_pack_integer(buffer, position, val%i_water)
+    call pmc_mpi_pack_string_array(buffer, position, val%name)
+    call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
+    call pmc_mpi_pack_real_array(buffer, position, val%density)
+    call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
+    call pmc_mpi_pack_real_array(buffer, position, val%solubility)
+    call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
+    call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_data(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_data_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
+    call pmc_mpi_unpack_integer(buffer, position, val%i_water)
+    call pmc_mpi_unpack_string_array(buffer, position, val%name)
+    call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
+    call pmc_mpi_unpack_real_array(buffer, position, val%density)
+    call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
+    call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
+    call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
+    call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_aero_data

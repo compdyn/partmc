@@ -300,5 +300,92 @@ contains
   end subroutine aero_binned_add_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_aero_binned_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_binned_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_aero_binned_size = &
+         pmc_mpi_pack_real_array_size(val%num_den) &
+         + pmc_mpi_pack_real_array_2d_size(val%vol_den)
+
+  end function pmc_mpi_pack_aero_binned_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_binned(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_binned_t), intent(in) :: val          ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_den)
+    call assert(position - prev_position == pmc_mpi_pack_aero_binned_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_binned
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_binned(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_binned_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_den)
+    call assert(position - prev_position == pmc_mpi_pack_aero_binned_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_binned
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_reduce_average_aero_binned(val, val_avg)
+
+    ! Computes the average of val across all processes, storing the
+    ! result in val_avg on the root process.
+
+    use pmc_mpi
+
+    type(aero_binned_t), intent(in) :: val ! value to average
+    type(aero_binned_t), intent(out) :: val_avg ! result
+
+    call pmc_mpi_reduce_average_real_array(val%num_den, val_avg%num_den)
+    call pmc_mpi_reduce_average_real_array_2d(val%vol_den, val_avg%vol_den)
+
+  end subroutine pmc_mpi_reduce_average_aero_binned
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_binned

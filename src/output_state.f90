@@ -27,6 +27,7 @@ contains
     use pmc_util
     use pmc_inout
     use pmc_gas_data
+    use pmc_mpi
     
     character(len=*), intent(in) :: state_prefix ! prefix of state file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -41,23 +42,27 @@ contains
     
     character*300 :: filename
     type(inout_file_t) :: file
-    
-    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
-         '_', i_loop, '_', index, '.d'
-    call inout_open_write(filename, file)
-    
-    call inout_write_real(file, 'time(s)', time)
-    call inout_write_integer(file, 'loop', i_loop)
-    call inout_write_integer(file, 'index', index)
 
-    call inout_write_env(file, env)
-    call inout_write_bin_grid(file, bin_grid)
-    call inout_write_gas_data(file, gas_data)
-    call inout_write_gas_state(file, gas_state)
-    call inout_write_aero_data(file, aero_data)
-    call inout_write_aero_state(file, aero_state)
+    if (pmc_mpi_rank() == 0) then
+       ! FIXME: for now only the root process writes state
 
-    call inout_close(file)
+       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
+            '_', i_loop, '_', index, '.d'
+       call inout_open_write(filename, file)
+       
+       call inout_write_real(file, 'time(s)', time)
+       call inout_write_integer(file, 'loop', i_loop)
+       call inout_write_integer(file, 'index', index)
+       
+       call inout_write_env(file, env)
+       call inout_write_bin_grid(file, bin_grid)
+       call inout_write_gas_data(file, gas_data)
+       call inout_write_gas_state(file, gas_state)
+       call inout_write_aero_data(file, aero_data)
+       call inout_write_aero_state(file, aero_state)
+       
+       call inout_close(file)
+    end if
     
   end subroutine inout_write_state
 
@@ -75,6 +80,7 @@ contains
     use pmc_util
     use pmc_inout
     use pmc_gas_data
+    use pmc_mpi
     
     character(len=*), intent(in) :: state_name ! name of state file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
@@ -87,7 +93,11 @@ contains
     
     type(inout_file_t) :: file
     integer :: dummy_integer
-    
+
+    if (pmc_mpi_rank() /= 0) then
+       call pmc_mpi_abort(52115)
+    end if
+
     call inout_open_read(state_name, file)
     
     call inout_read_real(file, 'time(s)', time)

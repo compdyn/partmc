@@ -422,5 +422,75 @@ contains
   end subroutine inout_read_aero_particle
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_aero_particle_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_particle_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_aero_particle_size = &
+         pmc_mpi_pack_real_array_size(val%vol) &
+         + pmc_mpi_pack_integer_size(val%n_orig_part)
+
+  end function pmc_mpi_pack_aero_particle_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_particle(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_particle_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_real_array(buffer, position, val%vol)
+    call pmc_mpi_pack_integer(buffer, position, val%n_orig_part)
+    call assert(position - prev_position == pmc_mpi_pack_aero_particle_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_particle(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_particle_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real_array(buffer, position, val%vol)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_orig_part)
+    call assert(position - prev_position == pmc_mpi_pack_aero_particle_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_particle

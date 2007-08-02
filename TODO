@@ -34,3 +34,8 @@ change all volumes in spec files (mean_vol for dists, etc) to radii
 what's happening with util_rand() and USE_F95_RAND?
 
 change units from (m^3) to [m^3]
+
+update function names/arg orders in aero_state.f90
+
+Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
+also functions called MPI_Sizeof1DR8 for a 1D array of real*8, etc.

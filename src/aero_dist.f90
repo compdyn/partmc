@@ -500,4 +500,153 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  integer function pmc_mpi_pack_aero_mode_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_mode_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_aero_mode_size = &
+         pmc_mpi_pack_real_array_size(val%num_den) &
+         + pmc_mpi_pack_real_array_size(val%vol_frac)
+
+  end function pmc_mpi_pack_aero_mode_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_aero_dist_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_dist_t), intent(in) :: val ! value to pack
+
+    integer :: i, total_size
+
+    total_size = pmc_mpi_pack_integer_size(val%n_mode)
+    do i = 1,size(val%mode)
+       total_size = total_size + pmc_mpi_pack_aero_mode_size(val%mode(i))
+    end do
+    pmc_mpi_pack_aero_dist_size = total_size
+
+  end function pmc_mpi_pack_aero_dist_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_mode(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_mode_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
+    call assert(position - prev_position == pmc_mpi_pack_aero_mode_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_dist(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_dist_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_pack_integer(buffer, position, val%n_mode)
+    do i = 1,size(val%mode)
+       call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
+    end do
+    call assert(position - prev_position == pmc_mpi_pack_aero_dist_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_mode(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_mode_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
+    call assert(position - prev_position == pmc_mpi_pack_aero_mode_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_mode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_dist(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_dist_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, val%n_mode)
+    allocate(val%mode(val%n_mode))
+    do i = 1,size(val%mode)
+       call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
+    end do
+    call assert(position - prev_position == pmc_mpi_pack_aero_dist_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_aero_dist

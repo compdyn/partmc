@@ -200,4 +200,87 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  integer function pmc_mpi_pack_gas_state_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(gas_state_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_gas_state_size = &
+         + pmc_mpi_pack_real_array_size(val%conc)
+
+  end function pmc_mpi_pack_gas_state_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_gas_state(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(gas_state_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_real_array(buffer, position, val%conc)
+    call assert(position - prev_position == pmc_mpi_pack_gas_state_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_gas_state(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(gas_state_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real_array(buffer, position, val%conc)
+    call assert(position - prev_position == pmc_mpi_pack_gas_state_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_reduce_average_gas_state(val, val_avg)
+
+    ! Computes the average of val across all processes, storing the
+    ! result in val_avg on the root process.
+
+    use pmc_mpi
+
+    type(gas_state_t), intent(in) :: val ! value to average
+    type(gas_state_t), intent(out) :: val_avg ! result
+
+    call pmc_mpi_reduce_average_real_array(val%conc, val_avg%conc)
+
+  end subroutine pmc_mpi_reduce_average_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_gas_state

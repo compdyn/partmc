@@ -196,5 +196,78 @@ contains
   end subroutine spec_read_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_bin_grid_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(bin_grid_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_bin_grid_size = &
+         pmc_mpi_pack_integer_size(val%n_bin) &
+         + pmc_mpi_pack_real_array_size(val%v) &
+         + pmc_mpi_pack_real_size(val%dlnr)
+
+  end function pmc_mpi_pack_bin_grid_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_bin_grid(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(bin_grid_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_integer(buffer, position, val%n_bin)
+    call pmc_mpi_pack_real_array(buffer, position, val%v)
+    call pmc_mpi_pack_real(buffer, position, val%dlnr)
+    call assert(position - prev_position == pmc_mpi_pack_bin_grid_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_bin_grid(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(bin_grid_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
+    call pmc_mpi_unpack_real_array(buffer, position, val%v)
+    call pmc_mpi_unpack_real(buffer, position, val%dlnr)
+    call assert(position - prev_position == pmc_mpi_pack_bin_grid_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_bin_grid

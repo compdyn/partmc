@@ -311,5 +311,91 @@ contains
   end subroutine inout_read_aero_particle_array
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_aero_particle_array_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(aero_particle_array_t), intent(in) :: val ! value to pack
+
+    integer :: i, total_size
+
+    total_size = 0
+    total_size = total_size + pmc_mpi_pack_integer_size(val%n_part)
+    total_size = total_size + pmc_mpi_pack_integer_size(val%n_spec)
+    do i = 1,val%n_part
+       total_size = total_size &
+            + pmc_mpi_pack_aero_particle_size(val%particle(i))
+    end do
+    pmc_mpi_pack_aero_particle_array_size = total_size
+
+  end function pmc_mpi_pack_aero_particle_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_aero_particle_array(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_particle_array_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_pack_integer(buffer, position, val%n_part)
+    call pmc_mpi_pack_integer(buffer, position, val%n_spec)
+    do i = 1,val%n_part
+       call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
+    end do
+    call assert(position - prev_position &
+         == pmc_mpi_pack_aero_particle_array_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_aero_particle_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_aero_particle_array(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(aero_particle_array_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, val%n_part)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
+    allocate(val%particle(val%n_part))
+    do i = 1,val%n_part
+       call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
+    end do
+    call assert(position - prev_position &
+         == pmc_mpi_pack_aero_particle_array_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_aero_particle_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_particle_array

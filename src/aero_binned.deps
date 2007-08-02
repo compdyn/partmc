@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/aero_binned.o: src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_inout.mod src/pmc_util.mod src/pmc_aero_dist.mod
-src/pmc_aero_binned.mod: src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_inout.mod src/pmc_util.mod src/pmc_aero_dist.mod
+src/aero_binned.o: src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_inout.mod src/pmc_util.mod src/pmc_aero_dist.mod src/pmc_mpi.mod
+src/pmc_aero_binned.mod: src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_inout.mod src/pmc_util.mod src/pmc_aero_dist.mod src/pmc_mpi.mod

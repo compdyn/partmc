@@ -50,6 +50,7 @@ contains
     use pmc_coagulation
     use pmc_kernel
     use pmc_output_summary
+    use pmc_mpi
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -75,7 +76,7 @@ contains
     real*8 time, pre_time
     real*8 last_output_time, last_state_time, last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag
+    integer n_coag, tot_n_samp, tot_n_coag, rank
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     integer n_time, i_time, i_time_start, pre_i_time
@@ -83,6 +84,8 @@ contains
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
     type(gas_data_t) :: restart_gas_data
+
+    rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
     time = 0d0
@@ -92,6 +95,12 @@ contains
     tot_n_coag = 0
     
     if (mc_opt%do_restart) then
+#ifdef PMC_USE_MPI
+       if (rank == 0) then
+          write(0,*) 'ERROR: restarting not currently supported with MPI'
+          call pmc_mpi_abort(1)
+       end if
+#endif
        call inout_read_state(mc_opt%restart_name, restart_bin_grid, &
             restart_aero_data, aero_state, restart_gas_data, gas_state, &
             env, time)
@@ -192,19 +201,22 @@ contains
        end if
 
        if (mc_opt%t_progress > 0d0) then
-          call check_event(time, mc_opt%del_t, mc_opt%t_progress, &
-               last_progress_time, do_progress)
-          if (do_progress) then
-             call cpu_time(t_wall_now)
-             prop_done = (dble(mc_opt%i_loop - 1) + (time - t_start) &
-                  / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
-             t_wall_est = (1d0 - prop_done) / prop_done &
-                  * (t_wall_now - mc_opt%t_wall_start)
-             write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', &
-                  'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-             write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
-                  total_particles(aero_state), tot_n_samp, n_coag, &
-                  tot_n_coag, t_wall_est
+          if (rank == 0) then
+             ! progress only printed from root process
+             call check_event(time, mc_opt%del_t, mc_opt%t_progress, &
+                  last_progress_time, do_progress)
+             if (do_progress) then
+                call cpu_time(t_wall_now)
+                prop_done = (dble(mc_opt%i_loop - 1) + (time - t_start) &
+                     / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
+                t_wall_est = (1d0 - prop_done) / prop_done &
+                     * (t_wall_now - mc_opt%t_wall_start)
+                write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', &
+                     'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
+                write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
+                     total_particles(aero_state), tot_n_samp, n_coag, &
+                     tot_n_coag, t_wall_est
+             end if
           end if
        end if
        
@@ -322,6 +334,118 @@ contains
     
   end subroutine compute_n_samp
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_mc_opt_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(run_mc_opt_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_mc_opt_size = &
+         pmc_mpi_pack_integer_size(val%n_part_max) &
+         + pmc_mpi_pack_real_size(val%t_max) &
+         + pmc_mpi_pack_real_size(val%t_output) &
+         + pmc_mpi_pack_real_size(val%t_state) &
+         + pmc_mpi_pack_real_size(val%t_progress) &
+         + pmc_mpi_pack_real_size(val%del_t) &
+         + pmc_mpi_pack_string_size(val%state_prefix) &
+         + pmc_mpi_pack_logical_size(val%do_coagulation) &
+         + pmc_mpi_pack_logical_size(val%allow_double) &
+         + pmc_mpi_pack_logical_size(val%do_condensation) &
+         + pmc_mpi_pack_logical_size(val%do_mosaic) &
+         + pmc_mpi_pack_logical_size(val%do_restart) &
+         + pmc_mpi_pack_string_size(val%restart_name) &
+         + pmc_mpi_pack_integer_size(val%i_loop) &
+         + pmc_mpi_pack_integer_size(val%n_loop) &
+         + pmc_mpi_pack_real_size(val%t_wall_start)
+
+  end function pmc_mpi_pack_mc_opt_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_mc_opt(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(run_mc_opt_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_integer(buffer, position, val%n_part_max)
+    call pmc_mpi_pack_real(buffer, position, val%t_max)
+    call pmc_mpi_pack_real(buffer, position, val%t_output)
+    call pmc_mpi_pack_real(buffer, position, val%t_state)
+    call pmc_mpi_pack_real(buffer, position, val%t_progress)
+    call pmc_mpi_pack_real(buffer, position, val%del_t)
+    call pmc_mpi_pack_string(buffer, position, val%state_prefix)
+    call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
+    call pmc_mpi_pack_logical(buffer, position, val%allow_double)
+    call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_pack_logical(buffer, position, val%do_restart)
+    call pmc_mpi_pack_string(buffer, position, val%restart_name)
+    call pmc_mpi_pack_integer(buffer, position, val%i_loop)
+    call pmc_mpi_pack_integer(buffer, position, val%n_loop)
+    call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
+    call assert(position - prev_position == pmc_mpi_pack_mc_opt_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_mc_opt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_mc_opt(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(run_mc_opt_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, val%n_part_max)
+    call pmc_mpi_unpack_real(buffer, position, val%t_max)
+    call pmc_mpi_unpack_real(buffer, position, val%t_output)
+    call pmc_mpi_unpack_real(buffer, position, val%t_state)
+    call pmc_mpi_unpack_real(buffer, position, val%t_progress)
+    call pmc_mpi_unpack_real(buffer, position, val%del_t)
+    call pmc_mpi_unpack_string(buffer, position, val%state_prefix)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
+    call pmc_mpi_unpack_logical(buffer, position, val%allow_double)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_restart)
+    call pmc_mpi_unpack_string(buffer, position, val%restart_name)
+    call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
+    call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
+    call assert(position - prev_position == pmc_mpi_pack_mc_opt_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_mc_opt
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_run_mc

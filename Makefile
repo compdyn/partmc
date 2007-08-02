@@ -70,7 +70,7 @@ process_summary_OBJS := src/process_summary.o src/util.o		\
 	src/constants.o src/aero_binned.o src/aero_data.o src/inout.o	\
 	src/env.o src/gas_data.o src/gas_state.o src/bin_grid.o		\
 	src/aero_dist.o src/aero_state.o src/rand_poisson.o		\
-	src/aero_particle.o src/aero_particle_array.o
+	src/aero_particle.o src/aero_particle_array.o src/mpi.o
 process_state_OBJS := src/process_state.o src/bin_grid.o src/env.o	\
 	src/aero_data.o src/aero_state.o src/output_state.o src/util.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/inout.o	\
@@ -81,25 +81,25 @@ sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/util.o src/gas_data.o src/gas_state.o src/aero_state.o	\
 	src/bin_grid.o src/inout.o src/aero_dist.o src/aero_binned.o	\
 	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o
+	src/aero_particle_array.o src/mpi.o
 sedi_bidisperse_state_to_count_OBJS :=					\
 	test/sedi_bidisperse_state_to_count.o src/env.o			\
 	src/aero_data.o src/output_state.o src/aero_state.o		\
 	src/constants.o src/util.o src/bin_grid.o src/gas_data.o	\
 	src/gas_state.o src/inout.o src/aero_dist.o src/aero_binned.o	\
 	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o
+	src/aero_particle_array.o src/mpi.o
 equilib_OBJS := equilib/equilib.o src/aero_data.o src/env.o		\
 	src/condensation.o src/util.o src/aero_state.o src/constants.o	\
 	src/gas_data.o src/gas_state.o src/bin_grid.o src/aero_dist.o	\
 	src/inout.o src/aero_binned.o src/rand_poisson.o		\
-	src/aero_particle.o src/aero_particle_array.o
+	src/aero_particle.o src/aero_particle_array.o src/mpi.o
 emission_summary_to_history_OBJS := test/emission_summary_to_history.o	\
 	src/util.o src/constants.o src/aero_binned.o src/aero_data.o	\
 	src/inout.o src/env.o src/gas_data.o src/gas_state.o		\
 	src/bin_grid.o src/aero_dist.o src/aero_state.o			\
 	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o
+	src/aero_particle_array.o src/mpi.o
 poisson_sample_OBJS := test/poisson_sample.o src/util.o	\
 	src/rand_poisson.o src/constants.o
 

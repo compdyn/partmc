@@ -522,5 +522,148 @@ contains
   end subroutine env_average
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_env_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(env_t), intent(in) :: val ! value to pack
+
+    pmc_mpi_pack_env_size = &
+         pmc_mpi_pack_real_size(val%temp) &
+         + pmc_mpi_pack_real_size(val%rel_humid) &
+         + pmc_mpi_pack_real_size(val%pressure) &
+         + pmc_mpi_pack_real_size(val%air_den) &
+         + pmc_mpi_pack_real_size(val%longitude) &
+         + pmc_mpi_pack_real_size(val%latitude) &
+         + pmc_mpi_pack_real_size(val%altitude) &
+         + pmc_mpi_pack_real_size(val%start_time) &
+         + pmc_mpi_pack_integer_size(val%start_day) &
+         + pmc_mpi_pack_integer_size(val%n_temp) &
+         + pmc_mpi_pack_real_array_size(val%temp_time) &
+         + pmc_mpi_pack_real_array_size(val%temp_set) &
+         + pmc_mpi_pack_gas_state_size(val%gas_emissions) &
+         + pmc_mpi_pack_real_size(val%gas_emission_rate) &
+         + pmc_mpi_pack_gas_state_size(val%gas_background) &
+         + pmc_mpi_pack_real_size(val%gas_dilution_rate) &
+         + pmc_mpi_pack_aero_dist_size(val%aero_emissions) &
+         + pmc_mpi_pack_real_size(val%aero_emission_rate) &
+         + pmc_mpi_pack_aero_dist_size(val%aero_background) &
+         + pmc_mpi_pack_real_size(val%aero_dilution_rate)
+
+  end function pmc_mpi_pack_env_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_env(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(env_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_pack_real(buffer, position, val%temp)
+    call pmc_mpi_pack_real(buffer, position, val%rel_humid)
+    call pmc_mpi_pack_real(buffer, position, val%pressure)
+    call pmc_mpi_pack_real(buffer, position, val%air_den)
+    call pmc_mpi_pack_real(buffer, position, val%longitude)
+    call pmc_mpi_pack_real(buffer, position, val%latitude)
+    call pmc_mpi_pack_real(buffer, position, val%altitude)
+    call pmc_mpi_pack_real(buffer, position, val%start_time)
+    call pmc_mpi_pack_integer(buffer, position, val%start_day)
+    call pmc_mpi_pack_integer(buffer, position, val%n_temp)
+    call pmc_mpi_pack_real_array(buffer, position, val%temp_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%temp_set)
+    call pmc_mpi_pack_gas_state(buffer, position, val%gas_emissions)
+    call pmc_mpi_pack_real(buffer, position, val%gas_emission_rate)
+    call pmc_mpi_pack_gas_state(buffer, position, val%gas_background)
+    call pmc_mpi_pack_real(buffer, position, val%gas_dilution_rate)
+    call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emissions)
+    call pmc_mpi_pack_real(buffer, position, val%aero_emission_rate)
+    call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background)
+    call pmc_mpi_pack_real(buffer, position, val%aero_dilution_rate)
+    call assert(position - prev_position == pmc_mpi_pack_env_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_env(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(env_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real(buffer, position, val%temp)
+    call pmc_mpi_unpack_real(buffer, position, val%rel_humid)
+    call pmc_mpi_unpack_real(buffer, position, val%pressure)
+    call pmc_mpi_unpack_real(buffer, position, val%air_den)
+    call pmc_mpi_unpack_real(buffer, position, val%longitude)
+    call pmc_mpi_unpack_real(buffer, position, val%latitude)
+    call pmc_mpi_unpack_real(buffer, position, val%altitude)
+    call pmc_mpi_unpack_real(buffer, position, val%start_time)
+    call pmc_mpi_unpack_integer(buffer, position, val%start_day)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_temp)
+    call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%temp_set)
+    call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emissions)
+    call pmc_mpi_unpack_real(buffer, position, val%gas_emission_rate)
+    call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background)
+    call pmc_mpi_unpack_real(buffer, position, val%gas_dilution_rate)
+    call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emissions)
+    call pmc_mpi_unpack_real(buffer, position, val%aero_emission_rate)
+    call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background)
+    call pmc_mpi_unpack_real(buffer, position, val%aero_dilution_rate)
+    call assert(position - prev_position == pmc_mpi_pack_env_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_reduce_average_env(val, val_avg)
+
+    ! Computes the average of val across all processes, storing the
+    ! result in val_avg on the root process.
+
+    use pmc_mpi
+
+    type(env_t), intent(in) :: val ! value to average
+    type(env_t), intent(out) :: val_avg ! result
+
+    call pmc_mpi_reduce_average_real(val%temp, val_avg%temp)
+    call pmc_mpi_reduce_average_real(val%rel_humid, val_avg%rel_humid)
+    call pmc_mpi_reduce_average_real(val%pressure, val_avg%pressure)
+    call pmc_mpi_reduce_average_real(val%air_den, val_avg%air_den)
+
+  end subroutine pmc_mpi_reduce_average_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_env

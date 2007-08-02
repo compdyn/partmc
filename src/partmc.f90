@@ -13,15 +13,15 @@ program partmc
   type(inout_file_t) :: file
   character(len=300) :: in_name
   character(len=100) :: run_type
-  integer :: i, rank
+  integer :: i
 
   call pmc_mpi_init()
-  rank = pmc_mpi_rank()
-  if (rank == 0) then
+  if (pmc_mpi_rank() == 0) then
+     ! only the root process does I/O
 
      ! check there is exactly one commandline argument
      if (iargc() .ne. 1) then
-        write(6,*) 'Usage: partmc <filename.d>'
+        write(6,*) 'Usage: partmc <spec-file>'
         call exit(2)
      end if
      
@@ -88,75 +88,135 @@ contains
     type(gas_state_t) :: gas_state      ! gas current state for run
     type(aero_data_t) :: aero_data      ! aero_data data
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
-    type(aero_state_t) :: aero_init     ! aerosol initial condition
     type(aero_state_t) :: aero_state    ! aerosol current state for run
-    type(env_t) :: env                ! environment data
+    type(env_t) :: env                  ! environment data
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
     type(inout_file_t) :: summary_file  ! summary output file
-
-    integer :: i_loop, rand_init
+    integer :: i_loop                   ! current loop number
+    integer :: rand_init                ! random number generator init
+    character, allocatable :: buffer(:) ! buffer for MPI
+    integer :: buffer_size              ! length of buffer
+    integer :: position                 ! current position in buffer
     
-    ! only serial code here
+    if (pmc_mpi_rank() == 0) then
+       ! only the root process does I/O
+
+       call inout_read_string(file, 'output_file', summary_name)
+       call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
+       call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
+       call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
+       call inout_read_string(file, 'kernel', kernel_name)
+       
+       call inout_read_real(file, 't_max', mc_opt%t_max)
+       call inout_read_real(file, 'del_t', mc_opt%del_t)
+       call inout_read_real(file, 't_output', mc_opt%t_output)
+       call inout_read_real(file, 't_state', mc_opt%t_state)
+       call inout_read_real(file, 't_progress', mc_opt%t_progress)
+       
+       call spec_read_bin_grid(file, bin_grid)
+       
+       call spec_read_gas_data(file, gas_data)
+       call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
+       
+       call spec_read_aero_data_filename(file, aero_data)
+       call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+            'aerosol_init', aero_dist_init)
+       
+       call spec_read_env(file, bin_grid, gas_data, aero_data, env)
+       
+       call inout_read_integer(file, 'rand_init', rand_init)
+       call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
+       call inout_read_logical(file, 'allow_double', mc_opt%allow_double)
+       call inout_read_logical(file, 'do_condensation', mc_opt%do_condensation)
+       call inout_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
+       call inout_read_logical(file, 'do_restart', mc_opt%do_restart)
+       call inout_read_string(file, 'restart_name', mc_opt%restart_name)
+       
+       call inout_close(file)
+    end if
+
+    ! finished reading .spec data, now broadcast data
+
+#ifdef PMC_USE_MPI
+    if (pmc_mpi_rank() == 0) then
+       ! root process determines size
+       buffer_size = 0
+       buffer_size = buffer_size + pmc_mpi_pack_mc_opt_size(mc_opt)
+       buffer_size = buffer_size + pmc_mpi_pack_string_size(kernel_name)
+       buffer_size = buffer_size + pmc_mpi_pack_bin_grid_size(bin_grid)
+       buffer_size = buffer_size + pmc_mpi_pack_gas_data_size(gas_data)
+       buffer_size = buffer_size + pmc_mpi_pack_gas_state_size(gas_init)
+       buffer_size = buffer_size + pmc_mpi_pack_aero_data_size(aero_data)
+       buffer_size = buffer_size &
+            + pmc_mpi_pack_aero_dist_size(aero_dist_init)
+       buffer_size = buffer_size + pmc_mpi_pack_env_size(env)
+       buffer_size = buffer_size + pmc_mpi_pack_integer_size(rand_init)
+    end if
+
+    ! tell everyone the size and allocate buffer space
+    call pmc_mpi_broadcast_integer(buffer_size)
+    allocate(buffer(buffer_size))
+
+    if (pmc_mpi_rank() == 0) then
+       ! root process packs data
+       position = 0
+       call pmc_mpi_pack_mc_opt(buffer, position, mc_opt)
+       call pmc_mpi_pack_string(buffer, position, kernel_name)
+       call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
+       call pmc_mpi_pack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_pack_gas_state(buffer, position, gas_init)
+       call pmc_mpi_pack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_pack_env(buffer, position, env)
+       call pmc_mpi_pack_integer(buffer, position, rand_init)
+    end if
+
+    ! broadcast data to everyone
+    call pmc_mpi_broadcast_char_array(buffer)
+
     if (pmc_mpi_rank() /= 0) then
-       return
+       ! non-root processes unpack data
+       position = 0
+       call pmc_mpi_unpack_mc_opt(buffer, position, mc_opt)
+       call pmc_mpi_unpack_string(buffer, position, kernel_name)
+       call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
+       call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_unpack_gas_state(buffer, position, gas_init)
+       call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_unpack_env(buffer, position, env)
+       call pmc_mpi_unpack_integer(buffer, position, rand_init)
+    end if
+
+    ! free the buffer
+    deallocate(buffer)
+#endif
+
+    ! open output files
+    if (pmc_mpi_rank() == 0) then
+       ! only the root process does I/O
+       call inout_open_write(summary_name, summary_file)
+       call output_summary_header(summary_file, bin_grid, gas_data, &
+            aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
     end if
     
-    call inout_read_string(file, 'output_file', summary_name)
-    call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
-    call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
-    call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
-    call inout_read_string(file, 'kernel', kernel_name)
-    
-    call inout_read_real(file, 't_max', mc_opt%t_max)
-    call inout_read_real(file, 'del_t', mc_opt%del_t)
-    call inout_read_real(file, 't_output', mc_opt%t_output)
-    call inout_read_real(file, 't_state', mc_opt%t_state)
-    call inout_read_real(file, 't_progress', mc_opt%t_progress)
-
-    call spec_read_bin_grid(file, bin_grid)
-    
-    call spec_read_gas_data(file, gas_data)
-    call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
-
-    call spec_read_aero_data_filename(file, aero_data)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_init', aero_dist_init)
-    call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
-         mc_opt%n_part_max, aero_init)
-    call aero_dist_free(aero_dist_init)
-
-    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
-
-    call inout_read_integer(file, 'rand_init', rand_init)
-    call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
-    call inout_read_logical(file, 'allow_double', mc_opt%allow_double)
-    call inout_read_logical(file, 'do_condensation', mc_opt%do_condensation)
-    call inout_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
-    call inout_read_logical(file, 'do_restart', mc_opt%do_restart)
-    call inout_read_string(file, 'restart_name', mc_opt%restart_name)
-    
-    call inout_close(file)
-
-    ! finished reading .spec data, now do the run
-
-    call inout_open_write(summary_name, summary_file)
-    call output_summary_header(summary_file, bin_grid, gas_data, &
-         aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
-    
-    call util_srand(rand_init)
+    call util_srand(rand_init + pmc_mpi_rank())
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_alloc(gas_state, gas_data%n_spec)
     call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
+    call aero_state_alloc(0, 0, aero_state)
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
-       call aero_state_copy(aero_init, aero_state)
+       call aero_state_free(aero_state)
+       call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
+            mc_opt%n_part_max, aero_state)
 
        if (mc_opt%do_condensation) then
           call aero_state_equilibriate(bin_grid, env, aero_data, aero_state)
@@ -178,19 +238,24 @@ contains
           call run_mc(kernel_zero, bin_grid, aero_binned, env, aero_data, &
                aero_state, gas_data, gas_state, mc_opt, summary_file)
        else
-          write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
-          call exit(1)
+          if (pmc_mpi_rank() == 0) then
+             write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
+          end if
+          call pmc_mpi_abort(1)
        end if
-       
+
     end do
 
-    call inout_close(summary_file)
+    if (pmc_mpi_rank() == 0) then
+       ! only the root process does I/O
+       call inout_close(summary_file)
+    end if
 
     call gas_data_free(gas_data)
     call gas_state_free(gas_init)
     call gas_state_free(gas_state)
     call aero_data_free(aero_data)
-    call aero_state_free(aero_init)
+    call aero_dist_free(aero_dist_init)
     call aero_state_free(aero_state)
     call env_free(env)
     call bin_grid_free(bin_grid)

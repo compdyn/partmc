@@ -4,4 +4,4 @@ n_modes 1                       # number of initial aerosol distributions
 vol_frac mosaic_aerosol_init_comp.dat # composition proportions of species
 num_conc 1e8                    # number concentration (#/m^3)
 mode_type mono                  # type of distribution
-vol 4.1886d-21                  # mean volume (m^3)
+radius 1e-7                     # radius (m)

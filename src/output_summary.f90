@@ -73,9 +73,9 @@ contains
     call gas_state_alloc(gas_state_avg, gas_data%n_spec)
     call env_alloc(env_avg)
 
-    call pmc_mpi_reduce_average_aero_binned(aero_binned, aero_binned_avg)
-    call pmc_mpi_reduce_average_gas_state(gas_state, gas_state_avg)
-    call pmc_mpi_reduce_average_env(env, env_avg)
+    call pmc_mpi_reduce_avg_aero_binned(aero_binned, aero_binned_avg)
+    call pmc_mpi_reduce_avg_gas_state(gas_state, gas_state_avg)
+    call pmc_mpi_reduce_avg_env(env, env_avg)
 #endif
 
     if (pmc_mpi_rank() == 0) then

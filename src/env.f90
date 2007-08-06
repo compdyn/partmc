@@ -647,7 +647,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_env(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_env(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -657,12 +657,12 @@ contains
     type(env_t), intent(in) :: val ! value to average
     type(env_t), intent(out) :: val_avg ! result
 
-    call pmc_mpi_reduce_average_real(val%temp, val_avg%temp)
-    call pmc_mpi_reduce_average_real(val%rel_humid, val_avg%rel_humid)
-    call pmc_mpi_reduce_average_real(val%pressure, val_avg%pressure)
-    call pmc_mpi_reduce_average_real(val%air_den, val_avg%air_den)
+    call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
+    call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
+    call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)
+    call pmc_mpi_reduce_avg_real(val%air_den, val_avg%air_den)
 
-  end subroutine pmc_mpi_reduce_average_env
+  end subroutine pmc_mpi_reduce_avg_env
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

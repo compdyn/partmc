@@ -267,7 +267,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_gas_state(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_gas_state(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -277,9 +277,9 @@ contains
     type(gas_state_t), intent(in) :: val ! value to average
     type(gas_state_t), intent(out) :: val_avg ! result
 
-    call pmc_mpi_reduce_average_real_array(val%conc, val_avg%conc)
+    call pmc_mpi_reduce_avg_real_array(val%conc, val_avg%conc)
 
-  end subroutine pmc_mpi_reduce_average_gas_state
+  end subroutine pmc_mpi_reduce_avg_gas_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

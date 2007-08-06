@@ -714,7 +714,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_real(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_real(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -735,11 +735,11 @@ contains
     val_avg = val
 #endif
 
-  end subroutine pmc_mpi_reduce_average_real
+  end subroutine pmc_mpi_reduce_avg_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_real_array(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_real_array(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -763,11 +763,11 @@ contains
     val_avg = val
 #endif
 
-  end subroutine pmc_mpi_reduce_average_real_array
+  end subroutine pmc_mpi_reduce_avg_real_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_real_array_2d(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_real_array_2d(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -792,7 +792,7 @@ contains
     val_avg = val
 #endif
 
-  end subroutine pmc_mpi_reduce_average_real_array_2d
+  end subroutine pmc_mpi_reduce_avg_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

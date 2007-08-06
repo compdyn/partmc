@@ -371,7 +371,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_reduce_average_aero_binned(val, val_avg)
+  subroutine pmc_mpi_reduce_avg_aero_binned(val, val_avg)
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
@@ -381,10 +381,10 @@ contains
     type(aero_binned_t), intent(in) :: val ! value to average
     type(aero_binned_t), intent(out) :: val_avg ! result
 
-    call pmc_mpi_reduce_average_real_array(val%num_den, val_avg%num_den)
-    call pmc_mpi_reduce_average_real_array_2d(val%vol_den, val_avg%vol_den)
+    call pmc_mpi_reduce_avg_real_array(val%num_den, val_avg%num_den)
+    call pmc_mpi_reduce_avg_real_array_2d(val%vol_den, val_avg%vol_den)
 
-  end subroutine pmc_mpi_reduce_average_aero_binned
+  end subroutine pmc_mpi_reduce_avg_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

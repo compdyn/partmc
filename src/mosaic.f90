@@ -177,7 +177,7 @@ contains
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vols(i_spec) * conv_fac(i_spec)
+                     = particle%vol(i_spec) * conv_fac(i_spec)
              end if
           end do
           ! handle water specially

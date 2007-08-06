@@ -614,7 +614,7 @@ contains
     total_size = total_size + pmc_mpi_pack_integer_size(size(val%bins))
     do i = 1,size(val%bins)
        total_size = total_size &
-            + pmc_mpi_pack_aero_particle_array_size(val%bins(i))
+            + pmc_mpi_pack_apa_size(val%bins(i))
     end do
     pmc_mpi_pack_aero_state_size = total_size
 

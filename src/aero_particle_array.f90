@@ -312,7 +312,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_aero_particle_array_size(val)
+  integer function pmc_mpi_pack_apa_size(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -329,9 +329,9 @@ contains
        total_size = total_size &
             + pmc_mpi_pack_aero_particle_size(val%particle(i))
     end do
-    pmc_mpi_pack_aero_particle_array_size = total_size
+    pmc_mpi_pack_apa_size = total_size
 
-  end function pmc_mpi_pack_aero_particle_array_size
+  end function pmc_mpi_pack_apa_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -359,7 +359,7 @@ contains
        call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(position - prev_position &
-         == pmc_mpi_pack_aero_particle_array_size(val))
+         == pmc_mpi_pack_apa_size(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle_array
@@ -391,7 +391,7 @@ contains
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(position - prev_position &
-         == pmc_mpi_pack_aero_particle_array_size(val))
+         == pmc_mpi_pack_apa_size(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle_array

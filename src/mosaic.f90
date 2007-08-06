@@ -85,7 +85,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_timestep(bin_grid, env, aero_data, &
-       aero_state, gas_data, gas_state, t, del_t)
+       aero_state, aero_binned, gas_data, gas_state, t, del_t)
     
     use pmc_constants
     use pmc_util
@@ -97,6 +97,7 @@ contains
     use pmc_output_state
     use pmc_gas_data
     use pmc_gas_state
+    use pmc_aero_binned
     
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
@@ -109,6 +110,7 @@ contains
     type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     real*8, intent(in) :: t             ! current time (s)
@@ -231,6 +233,7 @@ contains
                / aero_data%density(aero_data%i_water) * aero_state%comp_vol
        end do
     end do
+    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec

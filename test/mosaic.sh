@@ -11,9 +11,9 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc mosaic.spec
-#../src/partmc mosaic.spec
+../src/partmc mosaic.spec
 echo ../src/process_summary out/mosaic_summary.d
-#../src/process_summary out/mosaic_summary.d
+../src/process_summary out/mosaic_summary.d
 
 echo Plotting time history of gas and aerosol
 gnuplot -persist <<ENDHISTORY

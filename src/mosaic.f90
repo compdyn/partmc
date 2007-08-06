@@ -42,7 +42,7 @@ contains
 
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
-    mgas = 0                ! 1 = gas chem on, 0 = gas chem off
+    mgas = 1                ! 1 = gas chem on, 0 = gas chem off
     maer = 1                ! 1 = aer chem on, 0 = aer chem off
     mcld = 0                ! 1 = cld chem on, 0 = cld chem off
     maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off
@@ -160,6 +160,11 @@ contains
             / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
     enddo
 
+
+    dum_var = aero_state%comp_vol
+!    dum_var = particle%vols(1)
+
+
     nbin_a = total_particles(aero_state)
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
@@ -171,15 +176,15 @@ contains
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
-                aer(i_spec_mosaic, jtotal, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vol(i_spec) * conv_fac(i_spec_mosaic)
+                aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
+                     = particle%vols(i_spec) * conv_fac(i_spec)
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
           water_a(i_mosaic) = particle%vol(aero_data%i_water) &
                * aero_data%density(aero_data%i_water) / aero_state%comp_vol
-          num_a(i_mosaic) = 1d0 / aero_state%comp_vol ! number conc. (#/cc(air))
+          num_a(i_mosaic) = 1d-6 / aero_state%comp_vol ! number conc. (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do
@@ -216,8 +221,8 @@ contains
              if (i_spec_mosaic > 0) then
                 particle%vol(i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
-                     aer(i_spec_mosaic, jtotal, i_mosaic) &
-                     / conv_fac(i_spec_mosaic)
+                     aer(i_spec_mosaic, 3, i_mosaic) &
+                     / conv_fac(i_spec)
              end if
           end do
           ! handle water specially

@@ -6,7 +6,7 @@ n_part 3                        # total number of particles
 kernel golovin                  # coagulation kernel
 
 t_max 259200                    # total simulation time (s)
-del_t 10                        # timestep (s)
+del_t 300                        # timestep (s)
 t_output 600                    # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)

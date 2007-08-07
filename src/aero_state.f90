@@ -325,9 +325,9 @@ contains
     n_transfer = rand_poisson(sample_prop &
          * dble(total_particles(aero_state_from)))
     n_bin = size(aero_state_from%bins)
-    disc_pdf = (/(aero_state_from%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
     do i_transfer = 1,n_transfer
        if (total_particles(aero_state_from) <= 0) exit
+       disc_pdf = (/(aero_state_from%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
        i_bin = sample_disc_pdf(n_bin, disc_pdf)
        i_part = util_rand_int(aero_state_from%bins(i_bin)%n_part)
        call aero_state_add_particle(aero_state_to, i_bin, &

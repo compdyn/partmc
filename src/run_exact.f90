@@ -23,8 +23,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_exact(bin_grid, env, aero_data, exact_opt, soln, &
-       summary_file)
+  subroutine run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
+       soln, summary_file)
 
     ! FIXME: num_conc and mean_vol are really parameters for the
     ! initial value of the particle distribution. They should be
@@ -35,6 +35,7 @@ contains
     
     use pmc_bin_grid
     use pmc_aero_state
+    use pmc_env_data
     use pmc_env
     use pmc_aero_data
     use pmc_output_summary
@@ -43,6 +44,7 @@ contains
     use pmc_gas_state
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(env_data_t), intent(in) :: env_data ! environment data
     type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(run_exact_opt_t), intent(in) :: exact_opt ! options
@@ -80,10 +82,10 @@ contains
     call gas_state_alloc(gas_state, 0)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
-    call env_init(env, 0d0)
+    call env_data_init_state(env_data, env, 0d0)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
-       call env_update(env, time)
+       call env_data_update_state(env_data, env, time)
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_vol, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env, aero_binned)

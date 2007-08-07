@@ -1,4 +1,8 @@
-# species    initial concentration (ppb)
+# time (s)
+# rate (s^{-1})
+# concentrations (ppb)
+time            0
+rate            0
 NO		0.0
 NO2		8.0
 O3		20.0

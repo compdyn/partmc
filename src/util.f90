@@ -398,20 +398,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function interp_1d(n, x_vals, y_vals, x) ! y value at x
+  real*8 function interp_1d(x_vals, y_vals, x) ! y value at x
 
     ! Takes an array of x and y, and a single x value, and returns the
     ! corresponding y using linear interpolation. x_vals must be
     ! sorted.
 
-    integer, intent(in) :: n            ! number of values
-    real*8, intent(in) :: x_vals(n)     ! x value array, must be sorted
-    real*8, intent(in) :: y_vals(n)     ! y value array
+    real*8, intent(in) :: x_vals(:)     ! x value array, must be sorted
+    real*8, intent(in) :: y_vals(size(x_vals)) ! y value array
     real*8, intent(in) :: x             ! value to interpolate at
 
-    integer p
-    real*8 y, alpha
+    integer :: n, p
+    real*8 :: y, alpha
 
+    n = size(x_vals)
     p = find_1d(n, x_vals, x)
     if (p == 0) then
        y = y_vals(1)

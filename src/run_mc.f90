@@ -31,8 +31,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_mc(kernel, bin_grid, aero_binned, env, aero_data, &
-    aero_state, gas_data, gas_state, mc_opt, summary_file)
+  subroutine run_mc(kernel, bin_grid, aero_binned, env_data, env, &
+       aero_data, aero_state, gas_data, gas_state, mc_opt, summary_file)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -41,6 +41,7 @@ contains
     use pmc_bin_grid 
     use pmc_aero_binned
     use pmc_condensation
+    use pmc_env_data
     use pmc_env
     use pmc_aero_data
     use pmc_gas_data
@@ -54,6 +55,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
+    type(env_data_t), intent(in) :: env_data ! environment state
     type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -89,7 +91,7 @@ contains
 
     i_time = 0
     time = 0d0
-    call env_init(env, time)
+    call env_data_init_state(env_data, env, time)
     n_coag = 0
     tot_n_samp = 0
     tot_n_coag = 0
@@ -116,7 +118,7 @@ contains
        last_output_time = pre_time
        call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
        do pre_i_time = 0,(i_time - 1)
-          call env_update(env, pre_time)
+          call env_data_update_state(env_data, env, pre_time)
           if (mc_opt%t_output > 0d0) then
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
@@ -156,11 +158,17 @@ contains
     i_time_start = nint(time / mc_opt%del_t) + 1
     do i_time = i_time_start,n_time
 
+       time = dble(i_time) * mc_opt%del_t
+
+       call env_data_update_state(env_data, env, time)
+       call env_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
+       call env_update_aero_state(env, mc_opt%del_t, bin_grid, &
+            aero_data, aero_state, aero_binned)
+
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env, aero_data, &
                aero_state, mc_opt, k_max, tot_n_samp, n_coag)
        end if
-
        tot_n_coag = tot_n_coag + n_coag
 
        if (mc_opt%do_condensation) then
@@ -178,13 +186,6 @@ contains
        ! call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
        
-       time = dble(i_time) * mc_opt%del_t
-
-       call env_update(env, time)
-       call env_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
-       call env_update_aero_state(env, mc_opt%del_t, bin_grid, &
-            aero_data, aero_state, aero_binned)
-
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)

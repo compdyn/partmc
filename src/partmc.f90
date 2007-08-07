@@ -71,6 +71,7 @@ contains
     use pmc_kernel_brown
     use pmc_kernel_zero
     use pmc_aero_data
+    use pmc_env_data
     use pmc_env
     use pmc_run_mc
     use pmc_inout
@@ -89,7 +90,8 @@ contains
     type(aero_data_t) :: aero_data      ! aero_data data
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_state    ! aerosol current state for run
-    type(env_t) :: env                  ! environment data
+    type(env_data_t) :: env_data        ! environment data
+    type(env_t) :: env                  ! environment state
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
@@ -124,7 +126,8 @@ contains
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', aero_dist_init)
        
-       call spec_read_env(file, bin_grid, gas_data, aero_data, env)
+       call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+       call spec_read_env(file, env)
        
        call inout_read_integer(file, 'rand_init', rand_init)
        call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
@@ -151,6 +154,7 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_aero_data_size(aero_data)
        buffer_size = buffer_size &
             + pmc_mpi_pack_aero_dist_size(aero_dist_init)
+       buffer_size = buffer_size + pmc_mpi_pack_env_data_size(env_data)
        buffer_size = buffer_size + pmc_mpi_pack_env_size(env)
        buffer_size = buffer_size + pmc_mpi_pack_integer_size(rand_init)
     end if
@@ -169,6 +173,7 @@ contains
        call pmc_mpi_pack_gas_state(buffer, position, gas_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
        call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_pack_env_data(buffer, position, env_data)
        call pmc_mpi_pack_env(buffer, position, env)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
     end if
@@ -186,6 +191,7 @@ contains
        call pmc_mpi_unpack_gas_state(buffer, position, gas_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
        call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_unpack_env_data(buffer, position, env_data)
        call pmc_mpi_unpack_env(buffer, position, env)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
     end if
@@ -217,26 +223,32 @@ contains
        call aero_state_free(aero_state)
        call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
             mc_opt%n_part_max, aero_state)
+       call env_data_init_state(env_data, env, 0d0)
 
        if (mc_opt%do_condensation) then
           call aero_state_equilibriate(bin_grid, env, aero_data, aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(kernel_sedi, bin_grid, aero_binned, env, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, summary_file)
+          call run_mc(kernel_sedi, bin_grid, aero_binned, env_data, &
+               env, aero_data, aero_state, gas_data, gas_state, &
+               mc_opt, summary_file)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(kernel_golovin, bin_grid, aero_binned, env, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, summary_file)
+          call run_mc(kernel_golovin, bin_grid, aero_binned, env_data, &
+               env, aero_data, aero_state, gas_data, gas_state, &
+               mc_opt, summary_file)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(kernel_constant, bin_grid, aero_binned, env, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, summary_file)
+          call run_mc(kernel_constant, bin_grid, aero_binned, env_data, &
+               env, aero_data, aero_state, gas_data, gas_state, &
+               mc_opt, summary_file)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(kernel_brown, bin_grid, aero_binned, env, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, summary_file)
+          call run_mc(kernel_brown, bin_grid, aero_binned, env_data, &
+               env, aero_data, aero_state, gas_data, gas_state, &
+               mc_opt, summary_file)
        elseif (trim(kernel_name) == 'zero') then
-          call run_mc(kernel_zero, bin_grid, aero_binned, env, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, summary_file)
+          call run_mc(kernel_zero, bin_grid, aero_binned, env_data, &
+               env, aero_data, aero_state, gas_data, gas_state, &
+               mc_opt, summary_file)
        else
           if (pmc_mpi_rank() == 0) then
              write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
@@ -257,6 +269,7 @@ contains
     call aero_data_free(aero_data)
     call aero_dist_free(aero_dist_init)
     call aero_state_free(aero_state)
+    call env_data_free(env_data)
     call env_free(env)
     call bin_grid_free(bin_grid)
     call aero_binned_free(aero_binned)
@@ -276,6 +289,7 @@ contains
     use pmc_kernel_constant
     use pmc_kernel_zero
     use pmc_aero_data
+    use pmc_env_data
     use pmc_env
     use pmc_run_exact
     use pmc_inout
@@ -289,7 +303,8 @@ contains
     character(len=300) :: summary_name  ! name of output files
     character(len=100) :: soln_name     ! exact solution name
     type(aero_data_t) :: aero_data      ! aero_data data
-    type(env_t) :: env                ! environment data
+    type(env_data_t) :: env_data        ! environment data
+    type(env_t) :: env                  ! environment state
     type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
@@ -309,7 +324,8 @@ contains
     call spec_read_bin_grid(file, bin_grid)
     call spec_read_gas_data(file, gas_data)
     call spec_read_aero_data_filename(file, aero_data)
-    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
+    call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_read_env(file, env)
 
     call inout_read_string(file, 'soln', soln_name)
 
@@ -337,13 +353,13 @@ contains
          aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 
     if (trim(soln_name) == 'golovin_exp') then
-       call run_exact(bin_grid, env, aero_data, exact_opt, &
+       call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
             soln_golovin_exp, summary_file)
     elseif (trim(soln_name) == 'golovin_exp') then
-       call run_exact(bin_grid, env, aero_data, exact_opt, &
+       call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
             soln_constant_exp_cond, summary_file)
     elseif (trim(soln_name) == 'zero') then
-       call run_exact(bin_grid, env, aero_data, exact_opt, &
+       call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
             soln_zero, summary_file)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
@@ -353,6 +369,7 @@ contains
     call inout_close(summary_file)
 
     call aero_data_free(aero_data)
+    call env_data_free(env_data)
     call env_free(env)
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
@@ -366,6 +383,7 @@ contains
 
     use pmc_util
     use pmc_aero_data
+    use pmc_env_data
     use pmc_env
     use pmc_run_sect
     use pmc_kernel_sedi
@@ -388,7 +406,8 @@ contains
     type(aero_data_t) :: aero_data      ! aero_data data
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
-    type(env_t) :: env                ! environment data
+    type(env_data_t) :: env_data        ! environment data
+    type(env_t) :: env                  ! environment state
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
@@ -414,7 +433,8 @@ contains
     call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_dist_init)
 
-    call spec_read_env(file, bin_grid, gas_data, aero_data, env)
+    call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_read_env(file, env)
 
     call inout_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
     
@@ -427,20 +447,20 @@ contains
          aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
 
     if (trim(kernel_name) == 'sedi') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
-            kernel_sedi, sect_opt, summary_file)
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
+            env_data, env, kernel_sedi, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
-            kernel_golovin, sect_opt, summary_file)
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
+            env_data, env, kernel_golovin, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'constant') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
-            kernel_constant, sect_opt, summary_file)
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
+            env_data, env, kernel_constant, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'brown') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
-            kernel_brown, sect_opt, summary_file)
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
+            env_data, env, kernel_brown, sect_opt, summary_file)
     elseif (trim(kernel_name) == 'zero') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env, &
-            kernel_zero, sect_opt, summary_file)
+       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
+            env_data, env, kernel_zero, sect_opt, summary_file)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

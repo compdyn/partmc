@@ -16,7 +16,7 @@ program emission_summary_to_history
   use pmc_env
   
   type(inout_file_t) :: in_file
-  integer :: f_out, bin_1, bin_2, bin_3
+  integer :: f_out, nz_bin(3), num_nonzero, min_nonzero, max_nonzero
   integer :: n_loop, n_time, i, i_loop, i_time, i_bin, i_loop_check
   character(len=1000) :: name_in, name_out
   character(len=30) :: num_str
@@ -98,18 +98,25 @@ program emission_summary_to_history
   enddo
 
   ! find three non-empty bins
-  bin_1 = 1
-  do while (aero_binned_avg(2)%num_den(bin_1) == 0d0)
-     bin_1 = bin_1 + 1
+  max_nonzero = 3
+  min_nonzero = 3
+  nz_bin = 0
+  num_nonzero = 0
+  do i = 1,bin_grid%n_bin
+     if (aero_binned_avg(2)%num_den(i) /= 0d0) then
+        num_nonzero = num_nonzero + 1
+        if (num_nonzero > max_nonzero) then
+           write(0,*) 'ERROR: too many nonzero bins found'
+           call exit(1)
+        end if
+        nz_bin(num_nonzero) = i
+        write(*,*) 'found non-empty bin: ', i
+     end if
   end do
-  bin_2 = bin_1 + 1
-  do while (aero_binned_avg(2)%num_den(bin_2) == 0d0)
-     bin_2 = bin_2 + 1
-  end do
-  bin_3 = bin_2 + 1
-  do while (aero_binned_avg(2)%num_den(bin_3) == 0d0)
-     bin_3 = bin_3 + 1
-  end do
+  if (num_nonzero < min_nonzero) then
+     write(0,*) 'ERROR: too few nonzero bins found: ', num_nonzero
+     call exit(1)
+  end if
 
   ! output bin histories
   write(f_out, '(a1,7a20)') '#', 'time(s)', 'num_den_1(#/m^3)', &
@@ -117,12 +124,12 @@ program emission_summary_to_history
        'vol_den_1(m^3/m^3)', 'vol_den_2(m^3/m^3)', 'vol_den_3(m^3/m^3)'
   do i_time = 1,n_time
      write(f_out, '(a1,7e20.10)') ' ', time_avg(i_time), &
-          aero_binned_avg(i_time)%num_den(bin_1), &
-          aero_binned_avg(i_time)%num_den(bin_2), &
-          aero_binned_avg(i_time)%num_den(bin_3), &
-          aero_binned_avg(i_time)%vol_den(bin_1,1), &
-          aero_binned_avg(i_time)%vol_den(bin_2,1), &
-          aero_binned_avg(i_time)%vol_den(bin_3,1)
+          aero_binned_avg(i_time)%num_den(nz_bin(1)), &
+          aero_binned_avg(i_time)%num_den(nz_bin(2)), &
+          aero_binned_avg(i_time)%num_den(nz_bin(3)), &
+          aero_binned_avg(i_time)%vol_den(nz_bin(1),1), &
+          aero_binned_avg(i_time)%vol_den(nz_bin(2),1), &
+          aero_binned_avg(i_time)%vol_den(nz_bin(3),1)
   end do
 
   call inout_close(in_file)

@@ -25,8 +25,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, env, &
-       kernel, sect_opt, summary_file)
+  subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
+       env_data, env, kernel, sect_opt, summary_file)
 
     ! Run a sectional simulation.
   
@@ -35,6 +35,7 @@ contains
     use pmc_kernel_sedi
     use pmc_util
     use pmc_aero_dist
+    use pmc_env_data
     use pmc_env
     use pmc_aero_data
     use pmc_kernel
@@ -46,6 +47,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
+    type(env_data_t), intent(inout) :: env_data ! environment data
     type(env_t), intent(inout) :: env   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
@@ -81,7 +83,7 @@ contains
     ! dlnr: constant grid distance of logarithmic grid 
 
     if (aero_data%n_spec /= 1) then
-       write(0,*) 'ERROR: run_sect() can only handle one aerosol species at present'
+       write(0,*) 'ERROR: run_sect() can currently only use one aerosol species'
        call exit(1)
     end if
 
@@ -104,6 +106,11 @@ contains
     
     call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
+    ! initialize time
+    last_progress_time = 0d0
+    time = 0d0
+    call env_data_init_state(env_data, env, time)
+    
     ! precompute kernel values for all pairs of bins
     call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel_sedi, env, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
@@ -119,11 +126,6 @@ contains
           ck(i,j) = ck(i,j) * sect_opt%del_t * bin_grid%dlnr
        end do
     end do
-    
-    ! initialize time
-    last_progress_time = 0d0
-    time = 0d0
-    call env_init(env, time)
     
     ! initial output
     call check_event(time, sect_opt%del_t, sect_opt%t_output, &
@@ -150,7 +152,7 @@ contains
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)
 
-       call env_update(env, time)
+       call env_data_update_state(env_data, env, time)
        call env_update_gas_state(env, sect_opt%del_t, gas_data, gas_state)
        call env_update_aero_binned(env, sect_opt%del_t, bin_grid, &
             aero_data, aero_binned)

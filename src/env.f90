@@ -24,9 +24,6 @@ module pmc_env
      real*8 :: altitude                 ! altitude (m)
      real*8 :: start_time               ! start time (s since 00:00 UTC)
      integer :: start_day               ! start day of year (UTC)
-     integer :: n_temp                  ! number of temperature set-points
-     real*8, pointer :: temp_time(:)    ! times at temp set-points (s)
-     real*8, pointer :: temp_set(:)     ! temps at temp set-points (K)
      type(gas_state_t) :: gas_emissions ! gas emissions
      real*8 :: gas_emission_rate        ! gas emisssion rate (s^{-1})
      type(gas_state_t) :: gas_background ! background gas concentrations
@@ -57,7 +54,6 @@ contains
     env%start_time = 0d0
     env%start_day = 0
 
-    call env_temp_alloc(env, 0)
     call gas_state_alloc(env%gas_emissions, 0)
     call gas_state_alloc(env%gas_background, 0)
     env%gas_emission_rate = 0d0
@@ -77,41 +73,12 @@ contains
 
     type(env_t), intent(out) :: env   ! environment
 
-    call env_temp_free(env)
     call gas_state_free(env%gas_emissions)
     call gas_state_free(env%gas_background)
     call aero_dist_free(env%aero_emissions)
     call aero_dist_free(env%aero_background)
 
   end subroutine env_free
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine env_temp_alloc(env, n_temp)
-
-    ! Allocate storage for a given number of temperature set points.
-
-    type(env_t), intent(inout) :: env   ! environment
-    integer, intent(in) :: n_temp      ! number of temperature set-points
-
-    env%n_temp = n_temp
-    allocate(env%temp_time(n_temp))
-    allocate(env%temp_set(n_temp))
-
-  end subroutine env_temp_alloc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine env_temp_free(env)
-
-    ! Free all storage.
-
-    type(env_t), intent(inout) :: env   ! environment
-
-    deallocate(env%temp_time)
-    deallocate(env%temp_set)
-    
-  end subroutine env_temp_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -136,47 +103,11 @@ contains
     pmv = env_sat_vapor_pressure(env) * env%rel_humid
     mv = aero_data%molec_weight(aero_data%i_water)/(const%R*env%temp) * pmv
     mv = mv - dmv    
-    env%rel_humid = const%R * env%temp / aero_data%molec_weight(aero_data%i_water) * mv &
+    env%rel_humid = const%R * env%temp &
+         / aero_data%molec_weight(aero_data%i_water) * mv &
          / env_sat_vapor_pressure(env)
     
   end subroutine env_change_water_volume
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine env_init(env, time)
-    
-    ! Initialize the time-dependent contents of the
-    ! environment. Thereafter env_update() should be used.
-
-    use pmc_util
-
-    type(env_t), intent(inout) :: env   ! environment state to update
-    real*8, intent(in) :: time          ! current time (s)
-
-    env%temp = interp_1d(env%n_temp, env%temp_time, env%temp_set, time)
-    
-  end subroutine env_init
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine env_update(env, time)
-    
-    ! Update time-dependent contents of the environment. env_init()
-    ! should have been called at the start.
-
-    use pmc_util
-
-    type(env_t), intent(inout) :: env   ! environment state to update
-    real*8, intent(in) :: time          ! current time (s)
-    
-    real*8 pmv      ! ambient water vapor pressure (Pa)
-
-    ! update temperature and relative humidity
-    pmv = env_sat_vapor_pressure(env) * env%rel_humid
-    env%temp = interp_1d(env%n_temp, env%temp_time, env%temp_set, time)
-    env%rel_humid = pmv / env_sat_vapor_pressure(env)
-    
-  end subroutine env_update
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -351,9 +282,6 @@ contains
     call inout_write_real(file, "altitude(m)", env%altitude)
     call inout_write_real(file, "start_time(s)", env%start_time)
     call inout_write_integer(file, "start_day(days)", env%start_day)
-    call inout_write_integer(file, "num_temp", env%n_temp)
-    call inout_write_real_array(file, "temp_time(s)", env%temp_time)
-    call inout_write_real_array(file, "temp(K)", env%temp_set)
     call inout_write_gas_state(file, env%gas_emissions)
     call inout_write_real(file, "gas_emit_rate(1/s)", env%gas_emission_rate)
     call inout_write_gas_state(file, env%gas_background)
@@ -385,9 +313,6 @@ contains
     call inout_read_real(file, "altitude(m)", env%altitude)
     call inout_read_real(file, "start_time(s)", env%start_time)
     call inout_read_integer(file, "start_day(days)", env%start_day)
-    call inout_read_integer(file, "num_temp", env%n_temp)
-    call inout_read_real_array(file, "temp_time(s)", env%temp_time)
-    call inout_read_real_array(file, "temp(K)", env%temp_set)
     call inout_read_gas_state(file, env%gas_emissions)
     call inout_read_real(file, "gas_emit_rate(1/s)", env%gas_emission_rate)
     call inout_read_gas_state(file, env%gas_background)
@@ -401,58 +326,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_read_env(file, bin_grid, gas_data, aero_data, env)
+  subroutine spec_read_env(file, env)
 
     ! Read environment specification from a inout file.
 
-    use pmc_bin_grid
     use pmc_inout
-    use pmc_aero_data
-    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(gas_data_t), intent(in) :: gas_data ! gas data values
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(env_t), intent(out) :: env     ! environment data
 
-    integer :: n_temp
-    character(len=MAX_CHAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
-    character(len=MAX_CHAR_LEN), pointer :: times_name(:), temp_name(:)
-    real*8, pointer :: times_data(:,:), temp_data(:,:)
-
-    ! read the tempurature data from the specified file
-    call inout_read_string(file, 'temp_profile', read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 1, times_name, times_data)
-    call inout_check_name(read_file, "time", times_name(1))
-    ! FIXME: add a min_lines arg to inout_read_real_named_array to ensure that
-    ! really got one line here
-    call inout_read_real_named_array(read_file, 1, temp_name, temp_data)
-    call inout_check_name(read_file, "temp", temp_name(1))
-    call inout_close(read_file)
-
-    ! check the data size
-    n_temp = size(temp_data, 2)
-    if (n_temp < 1) then
-       write(0,*) 'ERROR: file ', trim(read_name), &
-            ' must contain at least one line of data'
-       call exit(1)
-    end if
-    if (size(times_data, 2) /= size(temp_data, 2)) then
-       write(0,*) 'ERROR: file ', trim(read_name), &
-            ' should contain exactly two lines with equal numbers of values'
-       call exit(1)
-    end if
-
-    call env_temp_alloc(env, n_temp)
-    env%temp_time = times_data(1,:)
-    env%temp_set = temp_data(1,:)
-    deallocate(times_name)
-    deallocate(times_data)
-    deallocate(temp_name)
-    deallocate(temp_data)
+    call env_alloc(env)
     call inout_read_real(file, 'rel_humidity', env%rel_humid)
     call inout_read_real(file, 'pressure', env%pressure)
     call inout_read_real(file, 'air_density', env%air_den)
@@ -461,18 +344,6 @@ contains
     call inout_read_real(file, 'altitude', env%altitude)
     call inout_read_real(file, 'start_time', env%start_time)
     call inout_read_integer(file, 'start_day', env%start_day)
-
-    call spec_read_gas_state(file, gas_data, 'gas_emissions', env%gas_emissions)
-    call inout_read_real(file, 'gas_emission_rate', env%gas_emission_rate)
-    call spec_read_gas_state(file, gas_data, 'gas_background', &
-         env%gas_background)
-    call inout_read_real(file, 'gas_dilution_rate', env%gas_dilution_rate)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_emissions', env%aero_emissions)
-    call inout_read_real(file, 'aerosol_emission_rate', env%aero_emission_rate)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_background', env%aero_background)
-    call inout_read_real(file, 'aerosol_dilution_rate', env%aero_dilution_rate)
 
   end subroutine spec_read_env
 
@@ -489,8 +360,6 @@ contains
     type(env_t), intent(in) :: env_vec(:) ! array of env
     type(env_t), intent(out) :: env_avg   ! average of env_vec
 
-    integer :: i_temp, n_temp, i, n
-
     call average_real(env_vec%temp, env_avg%temp)
     call average_real(env_vec%rel_humid, env_avg%rel_humid)
     call average_real(env_vec%pressure, env_avg%pressure)
@@ -500,16 +369,6 @@ contains
     call average_real(env_vec%altitude, env_avg%altitude)
     call average_real(env_vec%start_time, env_avg%start_time)
     call average_integer(env_vec%start_day, env_avg%start_day)
-    call average_integer(env_vec%n_temp, env_avg%n_temp)
-    n_temp = env_avg%n_temp
-    call env_temp_alloc(env_avg, n_temp)
-    n = size(env_vec)
-    do i_temp = 1,n_temp
-       call average_real((/(env_vec(i)%temp_time(i_temp),i=1,n)/), &
-            env_avg%temp_time(i_temp))
-       call average_real((/(env_vec(i)%temp_set(i_temp),i=1,n)/), &
-            env_avg%temp_set(i_temp))
-    end do
     call gas_state_average(env_vec%gas_emissions, env_avg%gas_emissions)
     call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
     call gas_state_average(env_vec%gas_background, env_avg%gas_background)
@@ -541,9 +400,6 @@ contains
          + pmc_mpi_pack_real_size(val%altitude) &
          + pmc_mpi_pack_real_size(val%start_time) &
          + pmc_mpi_pack_integer_size(val%start_day) &
-         + pmc_mpi_pack_integer_size(val%n_temp) &
-         + pmc_mpi_pack_real_array_size(val%temp_time) &
-         + pmc_mpi_pack_real_array_size(val%temp_set) &
          + pmc_mpi_pack_gas_state_size(val%gas_emissions) &
          + pmc_mpi_pack_real_size(val%gas_emission_rate) &
          + pmc_mpi_pack_gas_state_size(val%gas_background) &
@@ -584,9 +440,6 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%altitude)
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
-    call pmc_mpi_pack_integer(buffer, position, val%n_temp)
-    call pmc_mpi_pack_real_array(buffer, position, val%temp_time)
-    call pmc_mpi_pack_real_array(buffer, position, val%temp_set)
     call pmc_mpi_pack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_pack_real(buffer, position, val%gas_emission_rate)
     call pmc_mpi_pack_gas_state(buffer, position, val%gas_background)
@@ -629,9 +482,6 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%altitude)
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_temp)
-    call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
-    call pmc_mpi_unpack_real_array(buffer, position, val%temp_set)
     call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_unpack_real(buffer, position, val%gas_emission_rate)
     call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background)

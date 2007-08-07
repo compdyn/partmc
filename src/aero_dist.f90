@@ -56,20 +56,47 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_dist_alloc(aero_dist, n_modes, n_bin, n_spec)
+  subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
+
+    ! Copy an aero_mode.
+
+    type(aero_mode_t), intent(in) :: aero_mode_from ! aerosol mode original
+    type(aero_mode_t), intent(inout) :: aero_mode_to ! aerosol mode copy
+
+    aero_mode_to%num_den = aero_mode_from%num_den
+    aero_mode_to%vol_frac = aero_mode_from%vol_frac
+
+  end subroutine aero_mode_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_mode_scale(aero_mode, alpha)
+
+    ! Scale an aero_mode.
+
+    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
+    real*8, intent(in) :: alpha         ! scale factor
+
+    aero_mode%num_den = aero_mode%num_den * alpha
+
+  end subroutine aero_mode_scale
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_alloc(aero_dist, n_mode, n_bin, n_spec)
 
     ! Allocates an aero_dist.
 
-    integer, intent(in) :: n_modes      ! number of modes
+    integer, intent(in) :: n_mode       ! number of modes
     integer, intent(in) :: n_bin        ! number of bins
     integer, intent(in) :: n_spec       ! number of species
     type(aero_dist_t), intent(out) :: aero_dist ! aerosol distribution
 
     integer :: i
 
-    aero_dist%n_mode = n_modes
-    allocate(aero_dist%mode(n_modes))
-    do i = 1,n_modes
+    aero_dist%n_mode = n_mode
+    allocate(aero_dist%mode(n_mode))
+    do i = 1,n_mode
        call aero_mode_alloc(aero_dist%mode(i), n_bin, n_spec)
     end do
 
@@ -91,6 +118,32 @@ contains
     deallocate(aero_dist%mode)
 
   end subroutine aero_dist_free
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_copy(aero_dist_from, aero_dist_to)
+
+    ! Copy an aero_dist.
+
+    type(aero_dist_t), intent(in) :: aero_dist_from ! aero_dist original
+    type(aero_dist_t), intent(inout) :: aero_dist_to ! aero_dist copy
+
+    integer :: n_bin, n_spec, i
+
+    if (aero_dist_from%n_mode > 0) then
+       n_bin = size(aero_dist_from%mode(1)%num_den)
+       n_spec = size(aero_dist_from%mode(1)%vol_frac)
+    else
+       n_bin = 0
+       n_spec = 0
+    end if
+    call aero_dist_free(aero_dist_to)
+    call aero_dist_alloc(aero_dist_to, aero_dist_from%n_mode, n_bin, n_spec)
+    do i = 1,aero_dist_from%n_mode
+       call aero_mode_copy(aero_dist_from%mode(i), aero_dist_to%mode(i))
+    end do
+
+  end subroutine aero_dist_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -189,6 +242,44 @@ contains
     
   end subroutine num_den_mono
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_interp_1d(aero_dist_list, time_list, &
+         rate_list, time, aero_dist, rate)
+
+    ! Determine the current aero_dist and rate by interpolating at the
+    ! current time with the lists of aero_dists and rates.
+
+    use pmc_util
+
+    type(aero_dist_t), intent(in) :: aero_dist_list(:) ! gas states
+    real*8, intent(in) :: time_list(size(aero_dist_list)) ! times (s)
+    real*8, intent(in) :: rate_list(size(aero_dist_list)) ! rates (s^{-1})
+    real*8, intent(in) :: time          ! current time (s)
+    type(aero_dist_t), intent(inout) :: aero_dist ! current gas state
+    real*8, intent(out) :: rate         ! current rate (s^{-1})
+
+    integer :: n, p, n_bin, n_spec, i, i_new
+    real*8 :: y, alpha
+
+    n = size(aero_dist_list)
+    p = find_1d(n, time_list, time)
+    if (p == 0) then
+       ! before the start, just use the first state and rate
+       call aero_dist_copy(aero_dist_list(1), aero_dist)
+       rate = rate_list(1)
+    elseif (p == n) then
+       ! after the end, just use the last state and rate
+       call aero_dist_copy(aero_dist_list(n), aero_dist)
+       rate = rate_list(n)
+    else
+       ! in the middle, use the previous dist
+       call aero_dist_copy(aero_dist_list(p), aero_dist)
+       rate = rate_list(p)
+    end if
+
+  end subroutine aero_dist_interp_1d
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_write_aero_mode(file, aero_mode)
@@ -449,6 +540,77 @@ contains
 
   end subroutine spec_read_aero_dist_filename
     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_read_aero_dists_times_rates(file, aero_data, &
+       bin_grid, name, times, rates, aero_dists)
+
+    ! Read an array of aero_dists with associated times and rates from
+    ! the given file.
+
+    use pmc_inout
+    use pmc_aero_data
+    use pmc_bin_grid
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    type(aero_data_t), intent(in) :: aero_data ! aero data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    character(len=*), intent(in) :: name ! name of data line for filename
+    real*8, pointer :: times(:)         ! times (s)
+    real*8, pointer :: rates(:)         ! rates (s^{-1})
+    type(aero_dist_t), pointer :: aero_dists(:) ! aero dists
+
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+    type(inout_line_t) :: aero_dist_line
+    integer :: n_time, i_time
+    character(len=MAX_CHAR_LEN), pointer :: names(:)
+    real*8, pointer :: data(:,:)
+
+    ! read the filename then read the data from that file
+    call inout_read_string(file, name, read_name)
+    call inout_open_read(read_name, read_file)
+    call inout_read_real_named_array(read_file, 2, names, data)
+    call inout_read_line_no_eof(read_file, aero_dist_line)
+    call inout_check_line_name(read_file, aero_dist_line, "dist")
+    call inout_check_line_length(read_file, aero_dist_line, size(data, 2))
+    call inout_close(read_file)
+
+    ! check the data size
+    if (trim(names(1)) /= 'time') then
+       write(0,*) 'ERROR: row 1 in ', trim(read_name), &
+            ' must start with: time'
+       call exit(1)
+    end if
+    if (trim(names(2)) /= 'rate') then
+       write(0,*) 'ERROR: row 2 in ', trim(read_name), &
+            ' must start with: rate'
+       call exit(1)
+    end if
+    n_time = size(data, 2)
+    if (n_time < 1) then
+       write(0,*) 'ERROR: each line in ', trim(read_name), &
+            ' must contain at least one data value'
+       call exit(1)
+    end if
+
+    ! copy over the data
+    allocate(aero_dists(n_time))
+    allocate(times(n_time))
+    allocate(rates(n_time))
+    do i_time = 1,n_time
+       call inout_open_read(aero_dist_line%data(i_time), read_file)
+       call spec_read_aero_dist(read_file, aero_data, bin_grid, &
+            aero_dists(i_time))
+       call inout_close(read_file)
+       times(i_time) = data(1,i_time)
+       rates(i_time) = data(2,i_time)
+    end do
+    deallocate(names)
+    deallocate(data)
+
+  end subroutine spec_read_aero_dists_times_rates
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine aero_mode_average(aero_mode_vec, aero_mode_avg)

@@ -1,4 +1,3 @@
 #        proportion
-H2O               0
-SO4_a             1
-NH4_a             0
+SO4_a            0.5
+OC_a             0.5

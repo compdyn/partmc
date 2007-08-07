@@ -1,19 +1,22 @@
 # time (s)
-# rate (s^{-1})
-# emissions (ppb)
-time            0
+# rate = scaling parameter
+# emissions (mol m^{-2} s^{-1})
+time            0             21600       
 rate            1
-H2SO4           8.63772E-05
-SO2             8.63772E-05 
-NO		4.31886E-04
-NH3             4.31886E-04
-ALD2		6.03306E-06
-HCHO		2.31693E-05
-ALK1		6.70699E-04
-ETH		4.01602E-05
-CO		9.42297E-04
-OLE1		7.6128E-05
-OLET		3.77441E-05
-OLEI		3.0054E-05
-TOL		1.09839E-04
-XYL		8.65676E-05
+SO2             2.70833E-10   0
+NO2             1.08696E-09   0 
+NO		3.87963E-09   0
+NH3             3.79085E-09   0
+CO              1.8254E-08    0
+ALD2		9.72222E-11   0
+HCHO		2.08333E-10   0
+RCOOH           9.76852E-13   0
+C2H6            4.55556E-11   0
+ETH             3.52183E-10   0
+OLEI            1.80556E-10   0
+OLET            5.2381E-11    0
+TOL             1.95954E-10   0
+XYL             1.64046E-10   0
+AONE            1.11111E-10   0
+CSL             1.94187E-11   0
+PAR             3.4861E-09    0

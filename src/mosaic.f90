@@ -153,20 +153,14 @@ contains
     ! aerosol optics timestep (min)
     dt_aeroptic_min = 0d0
 
-    !----------------------------------------------------------
-    ! aerosol data: map PartMC -> MOSAIC
-
+    ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
             / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
     enddo
 
-
-    dum_var = aero_state%comp_vol
-!    dum_var = particle%vols(1)
-
-
+    ! aerosol data: map PartMC -> MOSAIC
     nbin_a = total_particles(aero_state)
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
@@ -186,7 +180,7 @@ contains
           ! convert m^3(water) to kg(water)/m^3(air)
           water_a(i_mosaic) = particle%vol(aero_data%i_water) &
                * aero_data%density(aero_data%i_water) / aero_state%comp_vol
-          num_a(i_mosaic) = 1d-6 / aero_state%comp_vol ! number conc. (#/cc(air))
+          num_a(i_mosaic) = 1d-6 / aero_state%comp_vol ! num conc (#/cc(air))
           jhyst_leg(i_mosaic) = 1
        end do
     end do

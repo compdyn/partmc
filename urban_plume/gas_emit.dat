@@ -1,0 +1,19 @@
+# time (s)
+# rate (s^{-1})
+# emissions (ppb)
+time            0
+rate            1
+H2SO4           8.63772E-05
+SO2             8.63772E-05 
+NO		4.31886E-04
+NH3             4.31886E-04
+ALD2		6.03306E-06
+HCHO		2.31693E-05
+ALK1		6.70699E-04
+ETH		4.01602E-05
+CO		9.42297E-04
+OLE1		7.6128E-05
+OLET		3.77441E-05
+OLEI		3.0054E-05
+TOL		1.09839E-04
+XYL		8.65676E-05

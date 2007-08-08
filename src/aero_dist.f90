@@ -169,7 +169,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine num_den_log_normal(d_mean, log_sigma, bin_grid, num_den)
+  subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
 
     ! Compute a log-normal distribution.
     
@@ -177,7 +177,7 @@ contains
     use pmc_util
     use pmc_constants
     
-    real*8, intent(in) :: d_mean        ! geometric mean diameter (m)
+    real*8, intent(in) :: mean_radius   ! geometric mean radius (m)
     real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
@@ -187,7 +187,8 @@ contains
     
     do k = 1,bin_grid%n_bin
        num_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
-            dexp(-(dlog10(vol2rad(bin_grid%v(k))) - dlog10(d_mean/2d0))**2d0 &
+            dexp(-(dlog10(vol2rad(bin_grid%v(k))) &
+            - dlog10(mean_radius))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
     end do
     
@@ -199,7 +200,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine num_den_exp(mean_vol, bin_grid, num_den)
+  subroutine num_den_exp(mean_radius, bin_grid, num_den)
     
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
@@ -207,13 +208,14 @@ contains
     use pmc_bin_grid
     use pmc_util
     
-    real*8, intent(in) :: mean_vol      ! mean volume (m^3)
+    real*8, intent(in) :: mean_radius   ! mean radius (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
     
-    integer k
-    real*8 num_den_vol
+    integer :: k
+    real*8 :: mean_vol, num_den_vol
     
+    mean_vol = rad2vol(mean_radius)
     do k = 1,bin_grid%n_bin
        num_den_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
        call vol_to_lnr(vol2rad(bin_grid%v(k)), num_den_vol, num_den(k))
@@ -438,17 +440,17 @@ contains
 
     real*8 :: num_conc
     character(len=MAX_CHAR_LEN) :: mode_type
-    real*8 :: mean_vol, std_dev, radius, small_vol, big_vol, big_num
+    real*8 :: mean_radius, std_dev, radius
 
     call inout_read_real(file, 'num_conc', num_conc)
     call inout_read_string(file, 'mode_type', mode_type)
     if (trim(mode_type) == 'log_normal') then
-       call inout_read_real(file, 'dist_mean_diam', mean_vol)
-       call inout_read_real(file, 'dist_std_dev', std_dev)
-       call num_den_log_normal(mean_vol, std_dev, bin_grid, num_den)
+       call inout_read_real(file, 'mean_radius', mean_radius)
+       call inout_read_real(file, 'std_dev', std_dev)
+       call num_den_log_normal(mean_radius, std_dev, bin_grid, num_den)
     elseif (trim(mode_type) == 'exp') then
-       call inout_read_real(file, 'mean_vol', mean_vol)
-       call num_den_exp(mean_vol, bin_grid, num_den)
+       call inout_read_real(file, 'mean_radius', mean_radius)
+       call num_den_exp(mean_radius, bin_grid, num_den)
     elseif (trim(mode_type) == 'mono') then
        call inout_read_real(file, 'radius', radius)
        call num_den_mono(radius, bin_grid, num_den)

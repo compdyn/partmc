@@ -22,6 +22,7 @@ aerosol_data aerosol_data_water.dat # file containing aerosol data
 aerosol_init sedi_exp_init.dat # aerosol initial condition file
 
 temp_profile temp_constant_15C.dat # temperature profile file
+height_profile height_constant_1km.dat # height profile file
 gas_emissions gas_none_timed.dat # gas emissions file
 gas_background gas_none_timed.dat # background gas concentrations file
 aero_emissions aerosol_none_timed.dat # aerosol emissions file

@@ -20,6 +20,9 @@ module pmc_env_data
      real*8, pointer :: temp_time(:)    ! times at temp set-points (s)
      real*8, pointer :: temp(:)         ! temps at set-points (K)
 
+     real*8, pointer :: height_time(:)  ! times at height set-points (s)
+     real*8, pointer :: height(:)       ! heights at set-points (m)
+
      real*8, pointer :: gas_emission_time(:) ! gas emissions times (s)
      real*8, pointer :: gas_emission_rate(:) ! gas emisssion rates (s^{-1})
      type(gas_state_t), pointer :: gas_emission(:) ! gas emissions
@@ -49,6 +52,9 @@ contains
 
     allocate(env_data%temp_time(0))
     allocate(env_data%temp(0))
+
+    allocate(env_data%height_time(0))
+    allocate(env_data%height(0))
 
     allocate(env_data%gas_emission_time(0))
     allocate(env_data%gas_emission_rate(0))
@@ -80,6 +86,9 @@ contains
 
     deallocate(env_data%temp_time)
     deallocate(env_data%temp)
+
+    deallocate(env_data%height_time)
+    deallocate(env_data%height)
 
     do i = 1,size(env_data%gas_emission)
        call gas_state_free(env_data%gas_emission(i))
@@ -128,6 +137,9 @@ contains
     ! init temperature
     env%temp = interp_1d(env_data%temp_time, env_data%temp, time)
 
+    ! init height
+    env%height = interp_1d(env_data%height_time, env_data%height, time)
+
     ! init gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &
          env_data%gas_emission_time, env_data%gas_emission_rate, &
@@ -165,6 +177,9 @@ contains
     env%temp = interp_1d(env_data%temp_time, env_data%temp, time)
     env%rel_humid = pmv / env_sat_vapor_pressure(env)
 
+    ! update height
+    env%height = interp_1d(env_data%height_time, env_data%height, time)
+
     ! update gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &
          env_data%gas_emission_time, env_data%gas_emission_rate, &
@@ -196,6 +211,9 @@ contains
     
     call inout_write_real_array(file, "temp_time(s)", env_data%temp_time)
     call inout_write_real_array(file, "temp(K)", env_data%temp)
+    
+    call inout_write_real_array(file, "height_time(s)", env_data%height_time)
+    call inout_write_real_array(file, "height(m)", env_data%height)
     
     call inout_write_integer(file, 'n_gas_emit', &
          size(env_data%gas_emission_time))
@@ -258,6 +276,9 @@ contains
 
     call inout_read_real_array(file, "temp_time(s)", env_data%temp_time)
     call inout_read_real_array(file, "temp(K)", env_data%temp)
+    
+    call inout_read_real_array(file, "height_time(s)", env_data%height_time)
+    call inout_read_real_array(file, "height(m)", env_data%height)
     
     call inout_read_integer(file, 'n_gas_emit', n)
     allocate(env_data%gas_emission_time(n))
@@ -331,45 +352,10 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(env_data_t), intent(out) :: env_data ! environment data
 
-    integer :: n_temp
-    character(len=MAX_CHAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
-    character(len=MAX_CHAR_LEN), pointer :: times_name(:), temp_name(:)
-    real*8, pointer :: times_data(:,:), temp_data(:,:)
-
-    ! read the tempurature data from the specified file
-    call inout_read_string(file, 'temp_profile', read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 1, times_name, times_data)
-    call inout_check_name(read_file, "time", times_name(1))
-    ! FIXME: add a min_lines arg to inout_read_real_named_array to ensure that
-    ! really got one line here
-    call inout_read_real_named_array(read_file, 1, temp_name, temp_data)
-    call inout_check_name(read_file, "temp", temp_name(1))
-    call inout_close(read_file)
-
-    ! check the data size
-    n_temp = size(temp_data, 2)
-    if (n_temp < 1) then
-       write(0,*) 'ERROR: file ', trim(read_name), &
-            ' must contain at least one line of data'
-       call exit(1)
-    end if
-    if (size(times_data, 2) /= size(temp_data, 2)) then
-       write(0,*) 'ERROR: file ', trim(read_name), &
-            ' should contain exactly two lines with equal numbers of values'
-       call exit(1)
-    end if
-
-    allocate(env_data%temp_time(n_temp))
-    allocate(env_data%temp(n_temp))
-    env_data%temp_time = times_data(1,:)
-    env_data%temp = temp_data(1,:)
-    deallocate(times_name)
-    deallocate(times_data)
-    deallocate(temp_name)
-    deallocate(temp_data)
-
+    call inout_read_timed_real_array(file, "temp_profile", "temp", &
+         env_data%temp_time, env_data%temp)
+    call inout_read_timed_real_array(file, "height_profile", "height", &
+         env_data%height_time, env_data%height)
     call spec_read_gas_states_times_rates(file, gas_data, &
          'gas_emissions', env_data%gas_emission_time, &
          env_data%gas_emission_rate, env_data%gas_emission)

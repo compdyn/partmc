@@ -13,6 +13,7 @@ gas_data gas_data_simple.dat    # file containing gas data
 aerosol_data aerosol_data_water.dat # file containing aerosol data
 
 temp_profile temp_constant_15C.dat # temperature profile file
+height_profile height_constant_1km.dat # height profile file
 gas_emissions gas_none_timed.dat # gas emissions file
 gas_background gas_none_timed.dat # background gas concentrations file
 aero_emissions aerosol_none_timed.dat # aerosol emissions file
@@ -28,4 +29,4 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 soln golovin_exp                # solution type
-mean_vol 4.1886d-15             # mean volume (m^3)
+mean_radius 1e-5                # mean radius (m)

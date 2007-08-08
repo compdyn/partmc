@@ -907,6 +907,61 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_read_timed_real_array(file, line_name, name, times, vals)
+
+    ! Read an a time-indexed array of real data.
+
+    type(inout_file_t), intent(inout) :: file ! spec file
+    character(len=*), intent(in) :: line_name ! name of line for filename
+    character(len=*), intent(in) :: name  ! variable name
+    real*8, pointer :: times(:)         ! names of lines
+    real*8, pointer :: vals(:)          ! data values
+    
+    integer :: n_lines, n_times
+    character(len=MAX_CHAR_LEN) :: read_name
+    type(inout_file_t) :: read_file
+    character(len=MAX_CHAR_LEN), pointer :: read_names(:)
+    real*8, pointer :: read_data(:,:)
+
+    call inout_read_string(file, line_name, read_name)
+    call inout_open_read(read_name, read_file)
+    call inout_read_real_named_array(read_file, 0, read_names, read_data)
+    call inout_close(read_file)
+
+    n_lines = size(read_names)
+    if (n_lines /= 2) then
+       write(0,*) 'ERROR: must have exact two data lines in file ', &
+            trim(read_name)
+       call exit(1)
+    end if
+    n_times = size(read_data,2)
+    if (n_times < 1) then
+       write(0,*) 'ERROR: must have at least one data point in file ', &
+            trim(read_name)
+       call exit(1)
+    end if
+    if (trim(read_names(1)) /= "time") then
+       write(0,*) 'ERROR: first data line in ', trim(read_name), &
+            ' must start with: time'
+       call exit(1)
+    end if
+    if (trim(read_names(2)) /= name) then
+       write(0,*) 'ERROR: second data line in ', trim(read_name), &
+            ' must start with: ', trim(name), ', not: ', trim(read_names(2))
+       call exit(1)
+    end if
+    
+    allocate(times(n_times))
+    allocate(vals(n_times))
+    times = read_data(1,:)
+    vals = read_data(2,:)
+    deallocate(read_names)
+    deallocate(read_data)
+
+  end subroutine inout_read_timed_real_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_write_integer(file, name, var)
 
     ! Write an integer to an inout file.

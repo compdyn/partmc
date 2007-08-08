@@ -22,6 +22,7 @@ aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init.dat      # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
+height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file

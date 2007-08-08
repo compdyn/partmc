@@ -12,7 +12,7 @@ module pmc_run_exact
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
      real*8 :: num_conc                 ! particle number concentration (#/m^3)
-     real*8 :: mean_vol                 ! mean init volume (m^3)
+     real*8 :: mean_radius              ! mean init radius (m)
      type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
      real*8 :: rho_p                    ! particle density (kg/m^3)
      real*8 :: t_max                    ! total simulation time
@@ -26,7 +26,7 @@ contains
   subroutine run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
        soln, summary_file)
 
-    ! FIXME: num_conc and mean_vol are really parameters for the
+    ! FIXME: num_conc and mean_radius are really parameters for the
     ! initial value of the particle distribution. They should be
     ! replaced by a n_param, params() pair.
 
@@ -57,7 +57,7 @@ contains
     type(gas_state_t) :: gas_state
     
     interface
-       subroutine soln(bin_grid, aero_data, time, num_conc, mean_vol, &
+       subroutine soln(bin_grid, aero_data, time, num_conc, mean_radius, &
             rho_p, aero_dist_init, env, aero_binned)
 
          use pmc_bin_grid
@@ -69,7 +69,7 @@ contains
          type(aero_data_t), intent(in) :: aero_data ! aerosol data
          real*8, intent(in) :: time              ! current time
          real*8, intent(in) :: num_conc          ! particle number conc (#/m^3)
-         real*8, intent(in) :: mean_vol          ! mean init volume (m^3)
+         real*8, intent(in) :: mean_radius       ! mean init radius (m)
          real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
          type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
          type(env_t), intent(in) :: env          ! environment state
@@ -87,7 +87,7 @@ contains
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
        call env_data_update_state(env_data, env, time)
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
-            exact_opt%mean_vol, exact_opt%rho_p, &
+            exact_opt%mean_radius, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env, aero_binned)
 
        call output_summary(summary_file, time, bin_grid, aero_data, &

@@ -331,9 +331,9 @@ contains
 
     call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0, 0)
     if (trim(soln_name) == 'golovin_exp') then
-       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
+       call inout_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then
-       call inout_read_real(file, 'mean_vol', exact_opt%mean_vol)
+       call inout_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'zero') then
        call aero_dist_free(exact_opt%aero_dist_init)
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &

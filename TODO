@@ -29,8 +29,6 @@ Fix process_state.
 
 update comments at top of files
 
-change all volumes in spec files (mean_vol for dists, etc) to radii
-
 what's happening with util_rand() and USE_F95_RAND?
 
 change units from (m^3) to [m^3]

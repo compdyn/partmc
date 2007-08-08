@@ -120,13 +120,14 @@ program process_summary
   enddo
 
   ! output environment
-  write(f_out_env, '(a1,5a20)') '#', 'time(s)', &
+  write(f_out_env, '(a1,6a20)') '#', 'time(s)', &
        'temp(K)', 'rel_hum(1)', 'press(Pa)', &
-       'dens(kg/m^3)'
+       'dens(kg/m^3)', 'height(m)'
   do i_time = 1,n_time
-     write(f_out_env,'(a1,5e20.10)') ' ', time_avg(i_time), &
+     write(f_out_env,'(a1,6e20.10)') ' ', time_avg(i_time), &
           env_avg(i_time)%temp, env_avg(i_time)%rel_humid, &
-          env_avg(i_time)%pressure, env_avg(i_time)%air_den
+          env_avg(i_time)%pressure, env_avg(i_time)%air_den, &
+          env_avg(i_time)%height
   end do
   
   ! output gas

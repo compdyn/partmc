@@ -22,6 +22,7 @@ aerosol_data mosaic_aerosol_data.dat # file containing aerosol data
 aerosol_init mosaic_aerosol_init.dat # aerosol initial condition file
 
 temp_profile temp_constant_15C.dat # temperature profile file
+height_profile height_constant_1km.dat # height profile file
 gas_emissions mosaic_gas_emissions.dat # gas emissions file
 gas_background mosaic_gas_background.dat # background gas concentrations file
 aero_emissions mosaic_aerosol_emissions.dat # aerosol emissions file

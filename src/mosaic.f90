@@ -176,6 +176,10 @@ contains
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
                      = particle%vol(i_spec) * conv_fac(i_spec)
+
+    dum_var = particle%vol(i_spec)
+
+
              end if
           end do
           ! handle water specially
@@ -186,6 +190,8 @@ contains
           jhyst_leg(i_mosaic) = 1
        end do
     end do
+
+
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0

@@ -145,24 +145,7 @@ contains
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     call open_output(basename, "_aero_binned.d", f_out)
-    write(f_out, '(a1)', advance='no') '#'
-    write(f_out, '(a19)', advance='no') 'radius(m)'
-    write(f_out, '(a20)', advance='no') 'num_dens(#/m^3)'
-    do i_spec = 1,aero_data%n_spec
-       write(f_out, '(i4,a1,a15)', advance='no') (i_spec + 2), '/', &
-            aero_data%name(i_spec)
-    end do
-    write(f_out, *) ''
-    do i_bin = 1,bin_grid%n_bin
-       write(f_out, '(e20.10,e20.10)', advance='no') &
-            vol2rad(bin_grid%v(i_bin)), &
-            aero_binned%num_den(i_bin)
-       do i_spec = 1,aero_data%n_spec
-          write(f_out, '(e20.10)', advance='no') &
-               aero_binned%vol_den(i_bin, i_spec)
-       end do
-       write(f_out, *) ''
-    end do
+    call aero_binned_write_summary(aero_binned, aero_data, bin_grid, f_out)
     close(unit=f_out)
     call aero_binned_free(aero_binned)
 

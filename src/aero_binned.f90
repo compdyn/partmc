@@ -387,5 +387,71 @@ contains
   end subroutine pmc_mpi_reduce_avg_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_write_summary(aero_binned, aero_data, &
+       bin_grid, out_unit)
+
+    use pmc_aero_data
+    use pmc_util
+    use pmc_bin_grid
+    
+    type(aero_binned_t), intent(in) :: aero_binned ! aero_binned
+    type(aero_data_t), intent(in) :: aero_data ! aero_data
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    integer, intent(in) :: out_unit     ! unit number to write to
+    
+    integer :: col_num, i_bin, i_spec
+    
+    write(out_unit, '(a)') &
+         '# VL species are volume density (m^3/m^3)'
+    write(out_unit, '(a)') &
+         '# MS species are mass density (kg/m^3)'
+    write(out_unit, '(a)') &
+         '# ML species are mole density (mole/m^3)'
+    write(out_unit, '(a1)', advance='no') '#'
+    write(out_unit, '(a24)', advance='no') 'radius(m)'
+    write(out_unit, '(a25)', advance='no') 'num_dens(#/m^3)'
+    col_num = 2
+    do i_spec = 1,aero_data%n_spec
+       col_num = col_num + 1
+       write(out_unit, '(i6,a4,a15)', advance='no') &
+            col_num, '-VL/', aero_data%name(i_spec)
+    end do
+    do i_spec = 1,aero_data%n_spec
+       col_num = col_num + 1
+       write(out_unit, '(i6,a4,a15)', advance='no') &
+            col_num, '-MS/', aero_data%name(i_spec)
+    end do
+    do i_spec = 1,aero_data%n_spec
+       col_num = col_num + 1
+       write(out_unit, '(i6,a4,a15)', advance='no') &
+            col_num, '-ML/', aero_data%name(i_spec)
+    end do
+    write(out_unit, *) ''
+    do i_bin = 1,bin_grid%n_bin
+       write(out_unit, '(e25.15,e25.15)', advance='no') &
+            vol2rad(bin_grid%v(i_bin)), &
+            aero_binned%num_den(i_bin)
+       do i_spec = 1,aero_data%n_spec
+          write(out_unit, '(e25.15)', advance='no') &
+               aero_binned%vol_den(i_bin, i_spec)
+       end do
+       do i_spec = 1,aero_data%n_spec
+          write(out_unit, '(e25.15)', advance='no') &
+               aero_binned%vol_den(i_bin, i_spec) &
+               * aero_data%density(i_spec)
+       end do
+       do i_spec = 1,aero_data%n_spec
+          write(out_unit, '(e25.15)', advance='no') &
+               aero_binned%vol_den(i_bin, i_spec) &
+               * aero_data%density(i_spec) &
+               / aero_data%molec_weight(i_spec)
+       end do
+       write(out_unit, *) ''
+    end do
+
+  end subroutine aero_binned_write_summary
+    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_binned

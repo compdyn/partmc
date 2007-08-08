@@ -128,7 +128,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine env_update_gas_state(env, delta_t, gas_data, gas_state)
+  subroutine env_update_gas_state(env, delta_t, old_height, &
+       gas_data, gas_state)
 
     ! Do emissions and background dilution from the environment.
 
@@ -137,13 +138,19 @@ contains
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
+    real*8, intent(in) :: old_height    ! previous height (m)
     type(gas_data_t), intent(in) :: gas_data ! gas data values
     type(gas_state_t), intent(inout) :: gas_state ! gas state to update
 
+    real*8 :: effective_dilution_rate
     type(gas_state_t) :: emission, dilution
 
     call gas_state_alloc(emission, gas_data%n_spec)
     call gas_state_alloc(dilution, gas_data%n_spec)
+
+    ! account for height changes
+    effective_dilution_rate = env%gas_dilution_rate &
+         + (env%height - old_height) / delta_t / old_height
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
     call gas_state_copy(env%gas_emissions, emission)
@@ -152,7 +159,7 @@ contains
     ! dilution = delta_t * gas_dilution_rate * (gas_background - gas_state)
     call gas_state_copy(env%gas_background, dilution)
     call gas_state_sub(dilution, gas_state)
-    call gas_state_scale(dilution, delta_t * env%gas_dilution_rate)
+    call gas_state_scale(dilution, delta_t * effective_dilution_rate)
 
     call gas_state_add(gas_state, emission)
     call gas_state_add(gas_state, dilution)
@@ -164,7 +171,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine env_update_aero_state(env, delta_t, bin_grid, &
+  subroutine env_update_aero_state(env, delta_t, old_height, bin_grid, &
        aero_data, aero_state, aero_binned)
 
     ! Do emissions and background dilution from the environment for a
@@ -177,13 +184,14 @@ contains
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
+    real*8, intent(in) :: old_height    ! previous height (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
     type(aero_state_t), intent(inout) :: aero_state ! aero state to update
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
 
     integer :: i
-    real*8 :: sample_vol, sample_prop
+    real*8 :: sample_vol, sample_prop, effective_dilution_rate
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
@@ -191,8 +199,12 @@ contains
     call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
     aero_state_delta%comp_vol = aero_state%comp_vol
 
+    ! account for height changes
+    effective_dilution_rate = env%aero_dilution_rate &
+         + (env%height - old_height) / delta_t / old_height
+
     ! loss to background
-    sample_prop = delta_t * env%aero_dilution_rate
+    sample_prop = delta_t * effective_dilution_rate
     call aero_state_zero(aero_state_delta)
     call aero_state_sample(aero_state, aero_state_delta, sample_prop)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
@@ -200,7 +212,7 @@ contains
     call aero_binned_sub(aero_binned, aero_binned_delta)
 
     ! addition from background
-    sample_vol = delta_t * env%aero_dilution_rate * aero_state%comp_vol
+    sample_vol = delta_t * effective_dilution_rate * aero_state%comp_vol
     call aero_state_zero(aero_state_delta)
     call aero_dist_sample(bin_grid, aero_data, env%aero_background, &
          sample_vol, aero_state_delta)
@@ -226,7 +238,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine env_update_aero_binned(env, delta_t, bin_grid, &
+  subroutine env_update_aero_binned(env, delta_t, old_height, bin_grid, &
        aero_data, aero_binned)
 
     ! Do emissions and background dilution from the environment for a
@@ -238,23 +250,29 @@ contains
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
+    real*8, intent(in) :: old_height    ! previous height (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
 
     type(aero_binned_t) :: emission, dilution
+    real*8 :: effective_dilution_rate
 
     call aero_binned_alloc(emission, bin_grid%n_bin, aero_data%n_spec)
     call aero_binned_alloc(dilution, bin_grid%n_bin, aero_data%n_spec)
 
-    ! emission = delta_t * gas_emission_rate * gas_emissions
+    ! account for height changes
+    effective_dilution_rate = env%aero_dilution_rate &
+         + (env%height - old_height) / delta_t / old_height
+
+    ! emission = delta_t * aero_emission_rate * aero_emissions
     call aero_binned_add_aero_dist(emission, bin_grid, env%aero_emissions)
     call aero_binned_scale(emission, delta_t * env%aero_emission_rate)
 
-    ! dilution = delta_t * gas_dilution_rate * (gas_background - aero_binned)
+    ! dilution = delta_t * aero_dilution_rate * (aero_background - aero_binned)
     call aero_binned_add_aero_dist(dilution, bin_grid, env%aero_background)
     call aero_binned_sub(dilution, aero_binned)
-    call aero_binned_scale(dilution, delta_t * env%aero_dilution_rate)
+    call aero_binned_scale(dilution, delta_t * effective_dilution_rate)
 
     call aero_binned_add(aero_binned, emission)
     call aero_binned_add(aero_binned, dilution)

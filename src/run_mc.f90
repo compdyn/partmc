@@ -80,7 +80,7 @@ contains
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer n_coag, tot_n_samp, tot_n_coag, rank
     logical do_output, do_state, do_progress, did_coag
-    real*8 t_start, t_wall_now, t_wall_est, prop_done
+    real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
     integer n_time, i_time, i_time_start, pre_i_time
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
@@ -160,9 +160,11 @@ contains
 
        time = dble(i_time) * mc_opt%del_t
 
+       old_height = env%height
        call env_data_update_state(env_data, env, time)
-       call env_update_gas_state(env, mc_opt%del_t, gas_data, gas_state)
-       call env_update_aero_state(env, mc_opt%del_t, bin_grid, &
+       call env_update_gas_state(env, mc_opt%del_t, old_height, gas_data, &
+            gas_state)
+       call env_update_aero_state(env, mc_opt%del_t, old_height, bin_grid, &
             aero_data, aero_state, aero_binned)
 
        if (mc_opt%do_coagulation) then

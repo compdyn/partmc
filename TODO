@@ -39,3 +39,7 @@ Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
 also functions called MPI_Sizeof1DR8 for a 1D array of real*8, etc.
 
 we call env_data_init_state() twice, once from partmc and once from run_mc
+
+make mosaic compilation optional with a -DPMC_USE_MOSAIC
+
+rename env to env_state

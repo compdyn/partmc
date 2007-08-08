@@ -60,7 +60,7 @@ contains
     real*8 taug(bin_grid%n_bin), taup(bin_grid%n_bin)
     real*8 taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
     real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
-    real*8 time, last_output_time, last_progress_time
+    real*8 time, last_output_time, last_progress_time, old_height
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
     
@@ -152,10 +152,12 @@ contains
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)
 
+       old_height = env%height
        call env_data_update_state(env_data, env, time)
-       call env_update_gas_state(env, sect_opt%del_t, gas_data, gas_state)
-       call env_update_aero_binned(env, sect_opt%del_t, bin_grid, &
-            aero_data, aero_binned)
+       call env_update_gas_state(env, sect_opt%del_t, old_height, &
+            gas_data, gas_state)
+       call env_update_aero_binned(env, sect_opt%del_t, old_height, &
+            bin_grid, aero_data, aero_binned)
        
        ! print output
        call check_event(time, sect_opt%del_t, sect_opt%t_output, &

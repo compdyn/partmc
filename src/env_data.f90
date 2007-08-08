@@ -171,6 +171,7 @@ contains
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 :: pmv ! ambient water vapor pressure (Pa)
+    real*8 :: old_height
 
     ! update temperature and relative humidity
     pmv = env_sat_vapor_pressure(env) * env%rel_humid
@@ -193,7 +194,7 @@ contains
     call aero_dist_interp_1d(env_data%aero_background, &
          env_data%aero_dilution_time, env_data%aero_dilution_rate, &
          time, env%aero_background, env%aero_dilution_rate)
-    
+
   end subroutine env_data_update_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

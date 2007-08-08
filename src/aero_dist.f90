@@ -183,7 +183,7 @@ contains
     real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
                                         ! (normalized)
     
-    integer k
+    integer :: k
     
     do k = 1,bin_grid%n_bin
        num_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &

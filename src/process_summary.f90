@@ -20,6 +20,7 @@ program process_summary
   type(inout_file_t) :: in_file
   integer :: f_out_env, f_out_gas, f_out_aero_binned, f_out_aero_total
   integer :: n_loop, n_time, i, i_loop, i_time, i_bin, i_loop_check
+  integer :: col_num, i_spec
   character(len=1000) :: name_in, name_out_env, name_out_gas
   character(len=1000) :: name_out_aero_binned, name_out_aero_total
   character(len=30) :: num_str
@@ -145,30 +146,105 @@ program process_summary
   ! output aerosol binned
   write(num_str, '(i10)') aero_data%n_spec
   do i_time = 1,n_time
-     write(f_out_aero_binned, '(a2,a10,e20.10)') '# ', 'time(s) = ', &
+     write(f_out_aero_binned, '(a,e20.10)') '# time(s) = ', &
           time_avg(i_time)
-     write(f_out_aero_binned, '(a2,a)') '# ', &
-          'species are volume density (m^3/m^3)'
-     write(f_out_aero_binned, '(a1,a20,a20,'//num_str//'a20)') '#', &
-          'radius(m)', 'num_dens(#/m^3)', aero_data%name
+     write(f_out_aero_binned, '(a)') &
+          '# VL species are volume density (m^3/m^3)'
+     write(f_out_aero_binned, '(a)') &
+          '# MS species are mass density (kg/m^3)'
+     write(f_out_aero_binned, '(a)') &
+          '# ML species are mole density (mole/m^3)'
+     write(f_out_aero_binned, '(a1)', advance='no') '#'
+     write(f_out_aero_binned, '(a24)', advance='no') 'radius(m)'
+     write(f_out_aero_binned, '(a25)', advance='no') 'num_dens(#/m^3)'
+     col_num = 2
+     do i_spec = 1,aero_data%n_spec
+        col_num = col_num + 1
+        write(f_out_aero_binned, '(i6,a4,a15)', advance='no') &
+             col_num, '-VL/', aero_data%name(i_spec)
+     end do
+     do i_spec = 1,aero_data%n_spec
+        col_num = col_num + 1
+        write(f_out_aero_binned, '(i6,a4,a15)', advance='no') &
+             col_num, '-MS/', aero_data%name(i_spec)
+     end do
+     do i_spec = 1,aero_data%n_spec
+        col_num = col_num + 1
+        write(f_out_aero_binned, '(i6,a4,a15)', advance='no') &
+             col_num, '-ML/', aero_data%name(i_spec)
+     end do
+     write(f_out_aero_binned, *) ''
      do i_bin = 1,bin_grid%n_bin
-        write(f_out_aero_binned, '(a1,e20.10,e20.10,'//num_str//'e20.10)') &
-             ' ', vol2rad(bin_grid%v(i_bin)), &
-             aero_binned_avg(i_time)%num_den(i_bin), &
-             aero_binned_avg(i_time)%vol_den(i_bin,:)
+        write(f_out_aero_binned, '(e25.15,e25.15)', advance='no') &
+             vol2rad(bin_grid%v(i_bin)), &
+             aero_binned_avg(i_time)%num_den(i_bin)
+        do i_spec = 1,aero_data%n_spec
+           write(f_out_aero_binned, '(e25.15)', advance='no') &
+                aero_binned_avg(i_time)%vol_den(i_bin, i_spec)
+        end do
+        do i_spec = 1,aero_data%n_spec
+           write(f_out_aero_binned, '(e25.15)', advance='no') &
+                aero_binned_avg(i_time)%vol_den(i_bin, i_spec) &
+                * aero_data%density(i_spec)
+        end do
+        do i_spec = 1,aero_data%n_spec
+           write(f_out_aero_binned, '(e25.15)', advance='no') &
+                aero_binned_avg(i_time)%vol_den(i_bin, i_spec) &
+                * aero_data%density(i_spec) &
+                / aero_data%molec_weight(i_spec)
+        end do
+        write(f_out_aero_binned, *) ''
      end do
      write(f_out_aero_binned, '(a)') ''
      write(f_out_aero_binned, '(a)') ''
   end do
 
   ! output aerosol totals
-  write(num_str, '(i10)') aero_data%n_spec
-  write(f_out_aero_total, '(a1,a20,a20,'//num_str//'a20)') '#', &
-       'time(s)', 'num_dens(#/m^3)', aero_data%name
-  ! FIXME: can we add (m^3/m^3) to the end of each name?
+  write(f_out_aero_total, '(a)') &
+       '# VL species are volume density (m^3/m^3)'
+  write(f_out_aero_total, '(a)') &
+       '# MS species are mass density (kg/m^3)'
+  write(f_out_aero_total, '(a)') &
+       '# ML species are mole density (mole/m^3)'
+  write(f_out_aero_total, '(a1)', advance='no') '#'
+  write(f_out_aero_total, '(a24)', advance='no') 'time(s)'
+  write(f_out_aero_total, '(a25)', advance='no') 'num_dens(#/m^3)'
+  col_num = 2
+  do i_spec = 1,aero_data%n_spec
+     col_num = col_num + 1
+     write(f_out_aero_total, '(i6,a4,a15)', advance='no') &
+          col_num, '-VL/', aero_data%name(i_spec)
+  end do
+  do i_spec = 1,aero_data%n_spec
+     col_num = col_num + 1
+     write(f_out_aero_total, '(i6,a4,a15)', advance='no') &
+          col_num, '-MS/', aero_data%name(i_spec)
+  end do
+  do i_spec = 1,aero_data%n_spec
+     col_num = col_num + 1
+     write(f_out_aero_total, '(i6,a4,a15)', advance='no') &
+          col_num, '-ML/', aero_data%name(i_spec)
+  end do
+  write(f_out_aero_total, *) ''
   do i_time = 1,n_time
-     write(f_out_aero_total, '(a1,e20.10,e20.10,'//num_str//'e20.10)') ' ', &
-          time_avg(i_time), tot_num_den(i_time), tot_vol_den(i_time,:)
+     write(f_out_aero_total, '(e25.15,e25.15)', advance='no') &
+          time_avg(i_time), tot_num_den(i_time)
+     do i_spec = 1,aero_data%n_spec
+        write(f_out_aero_total, '(e25.15)', advance='no') &
+             tot_vol_den(i_time, i_spec)
+     end do
+     do i_spec = 1,aero_data%n_spec
+        write(f_out_aero_total, '(e25.15)', advance='no') &
+             tot_vol_den(i_time, i_spec) &
+             * aero_data%density(i_spec)
+     end do
+     do i_spec = 1,aero_data%n_spec
+        write(f_out_aero_total, '(e25.15)', advance='no') &
+             tot_vol_den(i_time, i_spec) &
+             * aero_data%density(i_spec) &
+             / aero_data%molec_weight(i_spec)
+     end do
+     write(f_out_aero_total, *) ''
   end do
 
   call inout_close(in_file)

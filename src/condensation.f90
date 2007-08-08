@@ -438,7 +438,7 @@ contains
        ! thermal conductivity uncorrected
        k_a = 1d-3 * (4.39d0 + 0.071d0 * env%temp) ! (J m^{-1} s^{-1} K^{-1})
        k_ap_div = 1d0 + 2d0 &  ! dimensionless
-            * k_a / (const%alpha * d_p * env%air_den * const%cp) &
+            * k_a / (const%alpha * d_p * env_air_den(env) * const%cp) &
             * (2d0 * const%pi * const%M_a / (const%R * env%temp))**0.5d0
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! (J m^{-1} s^{-1} K^{-1})

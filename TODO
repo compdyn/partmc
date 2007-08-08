@@ -50,3 +50,11 @@ add env%day_of_year (days since jan 1) and env%time_of_day (secs since
 midnight) and shift info on start day, start time, etc to
 env_data. Change mosaic_timestep() to just read time/day info out of
 env directly. Update this info in env_data_update_state().
+
+in aero_data and process_summary use AERO_NAME_LEN instead of
+hard-coding 15, or at least assert that it is 15
+
+rename constants to have more descriptive names (M_a ->
+air_molec_weight, etc).
+
+change gas conc from ppb to mole proportion

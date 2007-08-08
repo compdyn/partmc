@@ -104,7 +104,6 @@ contains
     write(*,'(a,e20.10)') 'temp (K) = ', env%temp
     write(*,'(a,e20.10)') 'rel_humid (1) = ', env%rel_humid
     write(*,'(a,e20.10)') 'pressure (Pa) = ', env%pressure
-    write(*,'(a,e20.10)') 'air_den (kg/m^3) = ', env%air_den
     write(*,'(a,e20.10)') 'height (m) = ', env%height
 
   end subroutine process_env

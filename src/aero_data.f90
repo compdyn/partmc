@@ -115,25 +115,25 @@ contains
 
     type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
 
-    integer, parameter :: n_mosaic_species = 19
-    character(AERO_NAME_LEN), parameter, dimension(n_mosaic_species) &
-         :: mosaic_species = [ &
-         "SO4_a", "NO3_a", "Cl_a", "NH4_a", "MSA_a", "ARO1_a", "ARO2_a", "ALK1_a",  &
-         "OLE1_a", "API1_a", "API2_a", "LIM1_a", "LIM2_a", "CO3_a", "Na_a", "Ca_a", &
-         "OIN_a", "OC_a", "BC_a" ]
+    integer, parameter :: n_mosaic_spec = 19
+    character(AERO_NAME_LEN), parameter, dimension(n_mosaic_spec) :: &
+         mosaic_spec_name = [ &
+         "SO4_a", "NO3_a", "Cl_a", "NH4_a", "MSA_a", "ARO1_a", &
+         "ARO2_a", "ALK1_a", "OLE1_a", "API1_a", "API2_a", "LIM1_a", &
+         "LIM2_a", "CO3_a", "Na_a", "Ca_a", "OIN_a", "OC_a", "BC_a" ]
 
-    integer spec, mosaic_spec, i
+    integer :: i_spec, i_mosaic_spec, i
 
     aero_data%mosaic_index = 0
-    do spec = 1,aero_data%n_spec
-       mosaic_spec = 0
-       do i = 1,n_mosaic_species
-          if (aero_data%name(spec) == mosaic_species(i)) then
-             mosaic_spec = i
+    do i_spec = 1,aero_data%n_spec
+       i_mosaic_spec = 0
+       do i = 1,n_mosaic_spec
+          if (aero_data%name(i_spec) == mosaic_spec_name(i)) then
+             i_mosaic_spec = i
           end if
        end do
-       if (mosaic_spec > 0) then
-          aero_data%mosaic_index(spec) = mosaic_spec
+       if (i_mosaic_spec > 0) then
+          aero_data%mosaic_index(i_spec) = i_mosaic_spec
        end if
     end do
 

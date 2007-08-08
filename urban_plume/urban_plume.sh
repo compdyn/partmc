@@ -12,9 +12,9 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc urban_plume.spec
-pgdbg ../src/partmc urban_plume.spec
+../src/partmc urban_plume.spec
 echo ../src/process_summary out/urban_plume_summary.d
-#../src/process_summary out/urban_plume_summary.d
+../src/process_summary out/urban_plume_summary.d
 
 echo Plotting time history of gas and aerosol
 gnuplot -persist <<ENDHISTORY

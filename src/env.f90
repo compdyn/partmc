@@ -18,7 +18,6 @@ module pmc_env
      real*8 :: temp                     ! temperature (K)
      real*8 :: rel_humid                ! relative humidity (1)
      real*8 :: pressure                 ! ambient pressure (Pa)
-     real*8 :: air_den                  ! air density (kg m^{-3})
      real*8 :: longitude                ! longitude (degrees)
      real*8 :: latitude                 ! latitude (degrees)
      real*8 :: altitude                 ! altitude (m)
@@ -48,7 +47,6 @@ contains
     env%temp = 0d0
     env%rel_humid = 0d0
     env%pressure = 0d0
-    env%air_den = 0d0
     env%longitude = 0d0
     env%latitude = 0d0
     env%altitude = 0d0
@@ -113,7 +111,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  real*8 function env_sat_vapor_pressure(env) ! Pa
+  real*8 function env_sat_vapor_pressure(env) ! (Pa)
 
     ! Computes the current saturation vapor pressure.
     
@@ -126,6 +124,45 @@ contains
     
   end function env_sat_vapor_pressure
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function env_air_den(env) ! (kg m^{-3})
+
+    use pmc_constants
+
+    type(env_t), intent(in) :: env      ! environment state
+
+    env_air_den = const%M_a * env_air_molar_den(env)
+
+  end function env_air_den
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function env_air_molar_den(env) ! (mole m^{-3})
+
+    use pmc_constants
+
+    type(env_t), intent(in) :: env      ! environment state
+
+    env_air_molar_den = env%pressure / (const%R * env%temp)
+
+  end function env_air_molar_den
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine gas_state_mole_dens_to_ppb(gas_state, env)
+    
+    ! Convert (mole m^{-3}) to (ppb).
+
+    use pmc_gas_state
+    
+    type(gas_state_t), intent(inout) :: gas_state ! gas state
+    type(env_t), intent(in) :: env      ! environment state
+    
+    gas_state%conc = gas_state%conc / env_air_molar_den(env) * 1d9
+    
+  end subroutine gas_state_mole_dens_to_ppb
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine env_update_gas_state(env, delta_t, old_height, &
@@ -153,7 +190,10 @@ contains
          + (env%height - old_height) / delta_t / old_height
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
+    ! but emissions are in (mole m^{-2} s^{-1})
     call gas_state_copy(env%gas_emissions, emission)
+    call gas_state_scale(emission, 1d0 / env%height)
+    call gas_state_mole_dens_to_ppb(emission, env)
     call gas_state_scale(emission, delta_t * env%gas_emission_rate)
 
     ! dilution = delta_t * gas_dilution_rate * (gas_background - gas_state)
@@ -222,7 +262,8 @@ contains
     call aero_binned_add(aero_binned, aero_binned_delta)
     
     ! emissions
-    sample_vol = delta_t * env%aero_emission_rate * aero_state%comp_vol
+    sample_vol = delta_t * env%aero_emission_rate &
+         * aero_state%comp_vol / env%height
     call aero_state_zero(aero_state_delta)
     call aero_dist_sample(bin_grid, aero_data, env%aero_emissions, &
          sample_vol, aero_state_delta)
@@ -266,8 +307,10 @@ contains
          + (env%height - old_height) / delta_t / old_height
 
     ! emission = delta_t * aero_emission_rate * aero_emissions
+    ! but emissions are #/m^2 so we need to divide by height
     call aero_binned_add_aero_dist(emission, bin_grid, env%aero_emissions)
-    call aero_binned_scale(emission, delta_t * env%aero_emission_rate)
+    call aero_binned_scale(emission, &
+         delta_t * env%aero_emission_rate / env%height)
 
     ! dilution = delta_t * aero_dilution_rate * (aero_background - aero_binned)
     call aero_binned_add_aero_dist(dilution, bin_grid, env%aero_background)
@@ -296,7 +339,6 @@ contains
     call inout_write_real(file, "temp(K)", env%temp)
     call inout_write_real(file, "rel_humidity(1)", env%rel_humid)
     call inout_write_real(file, "pressure(Pa)", env%pressure)
-    call inout_write_real(file, "air_density(kg/m^3)", env%air_den)
     call inout_write_real(file, "longitude(deg)", env%longitude)
     call inout_write_real(file, "latitude(deg)", env%latitude)
     call inout_write_real(file, "altitude(m)", env%altitude)
@@ -328,7 +370,6 @@ contains
     call inout_read_real(file, "temp(K)", env%temp)
     call inout_read_real(file, "rel_humidity(1)", env%rel_humid)
     call inout_read_real(file, "pressure(Pa)", env%pressure)
-    call inout_read_real(file, "air_density(kg/m^3)", env%air_den)
     call inout_read_real(file, "longitude(deg)", env%longitude)
     call inout_read_real(file, "latitude(deg)", env%latitude)
     call inout_read_real(file, "altitude(m)", env%altitude)
@@ -360,7 +401,6 @@ contains
     call env_alloc(env)
     call inout_read_real(file, 'rel_humidity', env%rel_humid)
     call inout_read_real(file, 'pressure', env%pressure)
-    call inout_read_real(file, 'air_density', env%air_den)
     call inout_read_real(file, 'latitude', env%latitude)
     call inout_read_real(file, 'longitude', env%longitude)
     call inout_read_real(file, 'altitude', env%altitude)
@@ -385,7 +425,6 @@ contains
     call average_real(env_vec%temp, env_avg%temp)
     call average_real(env_vec%rel_humid, env_avg%rel_humid)
     call average_real(env_vec%pressure, env_avg%pressure)
-    call average_real(env_vec%air_den, env_avg%air_den)
     call average_real(env_vec%longitude, env_avg%longitude)
     call average_real(env_vec%latitude, env_avg%latitude)
     call average_real(env_vec%altitude, env_avg%altitude)
@@ -417,7 +456,6 @@ contains
          pmc_mpi_pack_real_size(val%temp) &
          + pmc_mpi_pack_real_size(val%rel_humid) &
          + pmc_mpi_pack_real_size(val%pressure) &
-         + pmc_mpi_pack_real_size(val%air_den) &
          + pmc_mpi_pack_real_size(val%longitude) &
          + pmc_mpi_pack_real_size(val%latitude) &
          + pmc_mpi_pack_real_size(val%altitude) &
@@ -458,7 +496,6 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%temp)
     call pmc_mpi_pack_real(buffer, position, val%rel_humid)
     call pmc_mpi_pack_real(buffer, position, val%pressure)
-    call pmc_mpi_pack_real(buffer, position, val%air_den)
     call pmc_mpi_pack_real(buffer, position, val%longitude)
     call pmc_mpi_pack_real(buffer, position, val%latitude)
     call pmc_mpi_pack_real(buffer, position, val%altitude)
@@ -501,7 +538,6 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%temp)
     call pmc_mpi_unpack_real(buffer, position, val%rel_humid)
     call pmc_mpi_unpack_real(buffer, position, val%pressure)
-    call pmc_mpi_unpack_real(buffer, position, val%air_den)
     call pmc_mpi_unpack_real(buffer, position, val%longitude)
     call pmc_mpi_unpack_real(buffer, position, val%latitude)
     call pmc_mpi_unpack_real(buffer, position, val%altitude)
@@ -536,7 +572,6 @@ contains
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)
-    call pmc_mpi_reduce_avg_real(val%air_den, val_avg%air_den)
 
   end subroutine pmc_mpi_reduce_avg_env
 

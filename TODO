@@ -36,7 +36,9 @@ change units from (m^3) to [m^3]
 update function names/arg orders in aero_state.f90
 
 Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
-also functions called MPI_Sizeof1DR8 for a 1D array of real*8, etc.
+also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
+etc. What about 2D arrays, is it correct to treat them as 1D as we do
+at present with mpi_pack?
 
 we call env_data_init_state() twice, once from partmc and once from run_mc
 

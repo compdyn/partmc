@@ -77,6 +77,9 @@ contains
 !#ifdef USE_F95_RAND
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
+    ! HACK
+    real*8 :: r
+    ! end HACK
 
     call random_seed(size = n)
     allocate(seed_vec(n))
@@ -88,6 +91,11 @@ contains
     seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)
+    ! HACK for bad rng behavior from pgf90
+    do i = 1,1000
+       r = util_rand()
+    end do
+    ! end HACK
 !#else
 !    if (seed == 0) then
 !       call srand(time())

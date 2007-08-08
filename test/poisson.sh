@@ -36,15 +36,15 @@ set xlabel "n"
 set ylabel "Prob(n)"
 set title "Sampled and exact Poisson PDFs"
 plot "out/poisson_1.d" using 1:3 title "rate 1 (sampled)"
-replot "out/poisson_1.d" using 1:2 with lines title "rate 1 (exact)"
+replot "out/poisson_1.d" using 1:2 title "rate 1 (exact)" with lines
 replot "out/poisson_4.d" using 1:3 title "rate 4 (sampled)"
-replot "out/poisson_4.d" using 1:2 with lines title "rate 4 (exact)"
+replot "out/poisson_4.d" using 1:2 title "rate 4 (exact)" with lines
 replot "out/poisson_10.d" using 1:3 title "rate 10 (sampled)"
-replot "out/poisson_10.d" using 1:2 with lines title "rate 10 (exact)"
+replot "out/poisson_10.d" using 1:2 title "rate 10 (exact)" with lines
 replot "out/poisson_20.d" using 1:3 title "rate 20 (sampled)"
-replot "out/poisson_20.d" using 1:2 with lines title "rate 20 (exact)"
+replot "out/poisson_20.d" using 1:2 title "rate 20 (exact)" with lines
 replot "out/poisson_30.d" using 1:3 title "rate 30 (sampled)"
-replot "out/poisson_30.d" using 1:2 with lines title "rate 30 (exact)"
+replot "out/poisson_30.d" using 1:2 title "rate 30 (exact)" with lines
 set terminal postscript eps
 set output "out/poisson_plot.eps"
 replot

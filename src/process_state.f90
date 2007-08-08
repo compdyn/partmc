@@ -30,6 +30,10 @@ program process_state
   call inout_read_state(filename, bin_grid, aero_data, aero_state, &
        gas_data, gas_state, env, time)
 
+  write(*,'(a,e20.10)') 'time (s) = ', time
+  call process_env(env)
+  call process_info(bin_grid, aero_data, aero_state)
+  call process_moments(basename, bin_grid, aero_data, aero_state)
   call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
 
 contains
@@ -68,6 +72,102 @@ contains
     
   end subroutine get_filename
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine open_output(basename, suffix, out_unit)
+    
+    ! Allocate a new unit and open it with a filename given by
+    ! basename + suffix.
+
+    use pmc_util
+
+    character(len=*), intent(in) :: basename ! basename of the output file
+    character(len=*), intent(in) :: suffix ! suffix of the output file
+    integer, intent(out) :: out_unit    ! unit for the file
+
+    character(len=len(basename)+len(suffix)) :: filename
+    
+    filename = basename
+    filename((len_trim(filename)+1):) = suffix
+    out_unit = get_unit()
+    open(out_unit, file=filename)
+    write(*,'(a,a)') 'Writing ', trim(filename)
+    
+  end subroutine open_output
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine process_env(env)
+
+    type(env_t), intent(in) :: env      ! environment state
+
+    write(*,'(a,e20.10)') 'temp (K) = ', env%temp
+    write(*,'(a,e20.10)') 'rel_humid (1) = ', env%rel_humid
+    write(*,'(a,e20.10)') 'pressure (Pa) = ', env%pressure
+    write(*,'(a,e20.10)') 'air_den (kg/m^3) = ', env%air_den
+    write(*,'(a,e20.10)') 'height (m) = ', env%height
+
+  end subroutine process_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine process_info(bin_grid, aero_data, aero_state)
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+
+    integer :: n_part
+
+    n_part = total_particles(aero_state)
+    write(*,'(a,i20)') 'total particles = ', n_part
+    write(*,'(a,e20.10)') 'comp_vol (m^3) = ', aero_state%comp_vol
+    write(*,'(a,e20.10)') 'num_dens (#/m^3) = ', &
+         dble(n_part) / aero_state%comp_vol
+
+  end subroutine process_info
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine process_moments(basename, bin_grid, aero_data, aero_state)
+
+    use pmc_util
+    use pmc_aero_binned
+
+    character(len=*), intent(in) :: basename ! basename of the input filename
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+
+    type(aero_binned_t) :: aero_binned
+    integer :: f_out, i_bin, i_spec
+
+    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
+    call open_output(basename, "_aero_binned.d", f_out)
+    write(f_out, '(a1)', advance='no') '#'
+    write(f_out, '(a19)', advance='no') 'radius(m)'
+    write(f_out, '(a20)', advance='no') 'num_dens(#/m^3)'
+    do i_spec = 1,aero_data%n_spec
+       write(f_out, '(i4,a1,a15)', advance='no') (i_spec + 2), '/', &
+            aero_data%name(i_spec)
+    end do
+    write(f_out, *) ''
+    do i_bin = 1,bin_grid%n_bin
+       write(f_out, '(e20.10,e20.10)', advance='no') &
+            vol2rad(bin_grid%v(i_bin)), &
+            aero_binned%num_den(i_bin)
+       do i_spec = 1,aero_data%n_spec
+          write(f_out, '(e20.10)', advance='no') &
+               aero_binned%vol_den(i_bin, i_spec)
+       end do
+       write(f_out, *) ''
+    end do
+    close(unit=f_out)
+    call aero_binned_free(aero_binned)
+
+  end subroutine process_moments
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine process_n_orig_part(basename, bin_grid, aero_data, aero_state)
@@ -109,10 +209,7 @@ contains
     end do
 
     ! write output
-    filename = basename
-    filename((len_trim(filename)+1):) = '_n_orig_part.d'
-    f_out = get_unit()
-    open(f_out, file=filename)
+    call open_output(basename, "_n_orig_part.d", f_out)
     do i_bin = 1,bin_grid%n_bin
        do n = 1,n_orig_part_max
           write(f_out, '(i20)', advance='no') n_orig_part(i_bin, n)

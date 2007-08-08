@@ -2,7 +2,7 @@
 # rate = scaling parameter
 # emissions (mol m^{-2} s^{-1})
 time            0             21600       
-rate            1             0
+rate            10000         0
 SO2             2.70833E-10   0
 NO2             1.08696E-09   0 
 NO		3.87963E-09   0

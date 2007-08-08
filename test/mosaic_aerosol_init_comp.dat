@@ -1,7 +1,5 @@
 #        proportion
 H2O               0
-SO4_a             1
-NH4_a             0
-#
-# FIXME: fill in the composition of the initial particles
+SO4_a             0.5
+OC_a              0.5
 #

@@ -3,4 +3,4 @@
 # aerosol distribution filename
 time    0                      21600
 rate    1                      0
-dist    aerosol_emit_dist.dat  aerosol_emit_dist.dat
+dist    aero_emit_dist.dat     aero_emit_dist.dat

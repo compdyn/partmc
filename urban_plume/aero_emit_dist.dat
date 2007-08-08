@@ -2,6 +2,7 @@ n_modes 1                       # number of initial aerosol distributions
 
 # first mode
 vol_frac aero_emit_comp.dat     # composition proportions of species
-num_conc 66070                  # number concentration (#/m^3)
-mode_type mono                  # type of distribution
-radius 4e-8                     # radius (m)
+num_conc 6607                   # number concentration (#/m^3)
+mode_type log_normal            # type of distribution
+mean_radius 4e-8                # mean radius (m)
+std_dev 0.08                    # geometric standard deviation

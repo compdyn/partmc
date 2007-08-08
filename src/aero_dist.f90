@@ -440,14 +440,14 @@ contains
 
     real*8 :: num_conc
     character(len=MAX_CHAR_LEN) :: mode_type
-    real*8 :: mean_radius, std_dev, radius
+    real*8 :: mean_radius, log_std_dev, radius
 
     call inout_read_real(file, 'num_conc', num_conc)
     call inout_read_string(file, 'mode_type', mode_type)
     if (trim(mode_type) == 'log_normal') then
        call inout_read_real(file, 'mean_radius', mean_radius)
-       call inout_read_real(file, 'std_dev', std_dev)
-       call num_den_log_normal(mean_radius, std_dev, bin_grid, num_den)
+       call inout_read_real(file, 'log_std_dev', log_std_dev)
+       call num_den_log_normal(mean_radius, log_std_dev, bin_grid, num_den)
     elseif (trim(mode_type) == 'exp') then
        call inout_read_real(file, 'mean_radius', mean_radius)
        call num_den_exp(mean_radius, bin_grid, num_den)

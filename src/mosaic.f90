@@ -132,8 +132,10 @@ contains
     type(aero_particle_t), pointer :: particle
 
     ! update time variables
+    tmar21_sec = dble((79*24 + 12)*3600)	! noon, mar 21, UTC
     tcur_sec = dble(tbeg_sec) + t               ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
+
     time_UTC = time_UTC + dt_sec/3600d0
 
     do while (time_UTC >= 24d0)
@@ -228,6 +230,10 @@ contains
        end do
     end do
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
+
+
+     dum_var = particle%vol(2)
+    
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec

@@ -132,7 +132,7 @@ contains
     type(aero_particle_t), pointer :: particle
 
     ! update time variables
-    tmar21_sec = dble((79*24 + 12)*3600)	! noon, mar 21, UTC
+    tmar21_sec = dble((79*24 + 12)*3600)        ! noon, mar 21, UTC
     tcur_sec = dble(tbeg_sec) + t               ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
 

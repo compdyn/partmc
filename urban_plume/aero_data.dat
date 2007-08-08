@@ -1,4 +1,5 @@
 #     dens (kg/m^3)   ions in soln (1)    solubty (1)   molec wght (kg/mole)
+H2O            1000                0              0                  18d-3
 SO4_a          1800                0              0                  96d-3
 NO3_a          1800                0              0                  62d-3
 Cl_a           2200                0              0                  35.5d-3
@@ -18,4 +19,4 @@ Ca_a           2600                0              0                  40d-3
 OIN_a          2600                0              0                  1d-3
 OC_a           1000                0              0                  1d-3
 BC_a           1800                0              0                  1d-3
-H2O            1000                0              0                  18d-3
+

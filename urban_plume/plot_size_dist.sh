@@ -2,6 +2,7 @@
 
 echo Plotting size distribution
 gnuplot -persist <<ENDPLOT
+set logscale
 set xlabel "radius (m)"
 set ylabel "aerosol volume density (#/m^3)"
 set title "URBAN_PLUME test case"

@@ -7,8 +7,8 @@ set ylabel "gas concentration (ppb)"
 set y2label "aerosol volume density (#/m^3)"
 set y2tics
 set title "URBAN_PLUME test case"
-#plot "out/urban_plume_summary_aero_total.d" using (\$1/3600):2 axes x1y1 title "number dens." with lines
-plot [0:8] "out/urban_plume_summary_aero_total.d" using (\$1/3600):3 axes x1y1 title "aerosol SO4 " with lines
+plot "out/urban_plume_summary_aero_total.d" using (\$1/3600):2 axes x1y1 title "number dens." with lines
+#plot [0:8] "out/urban_plume_summary_aero_total.d" using (\$1/3600):3 axes x1y1 title "aerosol SO4 " with lines
 #replot "out/urban_plume_summary_gas.d" using (\$1/3600):5 axes x1y1 title "gas NH3" with lines
 #replot "out/urban_plume_summary_gas.d" using (\$1/3600):2 axes x1y1 title "gas H2SO4" with lines
 #plot "out/urban_plume_summary_gas.d" using (\$1/3600):34 axes x1y1 title "gas ARO1" with lines

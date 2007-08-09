@@ -37,7 +37,7 @@ start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to use time)
-do_coagulation no               # whether to do coagulation (yes/no)
+do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)

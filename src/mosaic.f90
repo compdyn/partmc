@@ -181,10 +181,6 @@ contains
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
                      = particle%vol(i_spec) * conv_fac(i_spec)
-
-    dum_var = particle%vol(i_spec)
-
-
              end if
           end do
           ! handle water specially
@@ -240,11 +236,8 @@ contains
                / aero_data%density(aero_data%i_water) * aero_state%comp_vol
        end do
     end do
+    call aero_state_resort(bin_grid, aero_state)
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
-
-
-     dum_var = particle%vol(2)
-    
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec

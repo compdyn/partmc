@@ -2,8 +2,8 @@ run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-n_part 100                      # total number of particles
-kernel golovin                  # coagulation kernel
+n_part 1000                     # total number of particles
+kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 300                       # timestep (s)
@@ -37,7 +37,7 @@ start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to use time)
-do_coagulation no               # whether to do coagulation (yes/no)
+do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)

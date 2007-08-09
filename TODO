@@ -60,3 +60,5 @@ rename constants to have more descriptive names (M_a ->
 air_molec_weight, etc).
 
 change gas conc from ppb to mole proportion
+
+fix test/* for gnuplot, shifting "with lines" to end

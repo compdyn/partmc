@@ -7,7 +7,7 @@ kernel golovin                  # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 300                       # timestep (s)
-t_output 2400                   # output interval (0 disables) (s)
+t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
@@ -36,7 +36,7 @@ altitude 0                      # altitude (m)
 start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
-rand_init 17                    # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to use time)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

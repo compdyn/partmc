@@ -116,8 +116,10 @@ program process_summary
      call env_average(env(:,i_time), env_avg(i_time))
      call aero_binned_average(aero_binned(:,i_time), aero_binned_avg(i_time))
      call gas_state_average(gas_state(:,i_time), gas_state_avg(i_time))
-     tot_num_den(i_time) = sum(aero_binned_avg(i_time)%num_den)
-     tot_vol_den(i_time,:) = sum(aero_binned_avg(i_time)%vol_den, 1)
+     tot_num_den(i_time) = sum(aero_binned_avg(i_time)%num_den) &
+          * bin_grid%dlnr
+     tot_vol_den(i_time,:) = sum(aero_binned_avg(i_time)%vol_den, 1) &
+          * bin_grid%dlnr
   enddo
 
   ! output environment

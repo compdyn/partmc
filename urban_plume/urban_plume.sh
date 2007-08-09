@@ -12,15 +12,15 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc urban_plume.spec
-#../src/partmc urban_plume.spec
+../src/partmc urban_plume.spec
 echo ../src/process_summary out/urban_plume_summary.d
-#../src/process_summary out/urban_plume_summary.d
+../src/process_summary out/urban_plume_summary.d
 
 echo Plotting time history of gas and aerosol
 gnuplot -persist <<ENDHISTORY
 set xlabel "time (hr)"
-set ylabel "gas concentration (ppb)
-set y2label "aerosol volume density (#/m^3)
+set ylabel "gas concentration (ppb)"
+set y2label "aerosol volume density (#/m^3)"
 set y2tics
 set title "URBAN_PLUME test case"
 #plot "out/urban_plume_summary_aero_total.d" using (\$1/3600):2 with lines axes x1y1 title "number dens."

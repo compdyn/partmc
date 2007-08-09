@@ -146,8 +146,8 @@ program process_summary
 
   ! output aerosol binned
   do i_time = 1,n_time
-     write(f_out_aero_binned, '(a,e20.10)') '# time(s) = ', &
-          time_avg(i_time)
+     write(f_out_aero_binned, '(a,e20.10)') '# time(s) = ', time_avg(i_time)
+     write(f_out_aero_binned, '(a,i10)') '# index = ', i_time - 1
      call aero_binned_write_summary(aero_binned_avg(i_time), aero_data, &
           bin_grid, f_out_aero_binned)
      write(f_out_aero_binned, '(a)') ''

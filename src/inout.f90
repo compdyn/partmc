@@ -670,6 +670,7 @@ contains
     call inout_check_index(file, index, check_index)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_integer(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_indexed_integer
   
@@ -691,6 +692,7 @@ contains
     call inout_check_index(file, index, check_index)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_real(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_indexed_real
 
@@ -712,6 +714,7 @@ contains
     call inout_check_index(file, index, check_index)
     call inout_check_line_length(file, line, 1)
     var = inout_string_to_logical(file, line%data(1))
+    call inout_line_free(line)
 
   end subroutine inout_read_indexed_logical
 
@@ -733,6 +736,7 @@ contains
     call inout_check_index(file, index, check_index)
     call inout_check_line_length(file, line, 1)
     var = line%data(1)
+    call inout_line_free(line)
 
   end subroutine inout_read_indexed_string
 
@@ -757,6 +761,7 @@ contains
     call inout_check_index(file, index1, check_index1)
     call inout_check_index(file, index2, check_index2)
     var = inout_string_to_real(file, line%data(2))
+    call inout_line_free(line)
 
   end subroutine inout_read_indexed_2d_real
 
@@ -858,6 +863,7 @@ contains
     call inout_check_line_length(file, line, 2)
     size1 = inout_string_to_integer(file, line%data(1))
     size2 = inout_string_to_integer(file, line%data(2))
+    call inout_line_free(line)
     allocate(vals(size1,size2))
     do i = 1,size1
        do j = 1,size2

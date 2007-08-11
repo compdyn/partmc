@@ -238,6 +238,9 @@ program process_summary
   close(f_out_aero_binned)
   close(f_out_aero_total)
 
+  call bin_grid_free(bin_grid)
+  call gas_data_free(gas_data)
+  call aero_data_free(aero_data)
   do i_time = 1,n_time
      call env_free(env_avg(i_time))
      call aero_binned_free(aero_binned_avg(i_time))

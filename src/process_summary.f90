@@ -163,6 +163,7 @@ program process_summary
   end do
   
   ! output gas
+  write(f_out_gas, '(a)') "# gas species are concentrations (ppb)"
   if (gas_data%n_spec > 0) then
      write(num_str, '(i10)') gas_data%n_spec
      write(f_out_gas, '(a1,a20,'//num_str//'a20)') '#', &

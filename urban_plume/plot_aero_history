@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# Copyright (C) 2007 Matthew West
+# Licensed under the GNU General Public License version 2 or (at your
+# option) any later version. See the file COPYING for details.
+
+import os, sys, re
+
+def print_usage():
+    print """plot_aero_history <datafile_aero_total.d> <unit> <species...>
+
+Plots the time history of the given species.
+
+<unit> must be one of:
+  num - number density
+  vol - volume density
+  mass - mass density
+  mole - molar density
+
+<sepecies> is of list of species numbers or names (not needed
+for number density).
+"""
+
+def process_args():
+    if len(sys.argv) < 3:
+	print_usage()
+	sys.exit(1)
+    data_filename = sys.argv[1]
+    unit = sys.argv[2].lower()
+    if unit not in ['num', 'vol', 'mass', 'mole']:
+	print "ERROR: unknown unit: %s" % unit
+	print
+	print_usage()
+	sys.exit(1)
+    if unit == "num":
+	if len(sys.argv) > 3:
+	    print "ERROR: for number density no species should be specified"
+	    print
+	    print_usage()
+	    sys.exit(1)
+    else:
+	if len(sys.argv) < 4:
+	    print_usage()
+	    sys.exit(1)
+    species = sys.argv[3:]
+    return (data_filename, unit, species)
+
+def get_species_names(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open %s" % data_filename
+	sys.exit(1)
+    f.readline()
+    f.readline()
+    f.readline()
+    header = f.readline()
+    f.close()
+    if header[0] != '#':
+	print "ERROR: header does not start with #: %s" % header
+	sys.exit(1)
+    cols = header[1:].split()
+    species = []
+    spec_re = re.compile("^\d+-VL/(.+)$")
+    for col in cols:
+	match = spec_re.search(col)
+	if match:
+	    species.append(match.group(1))
+    print "Available species: " + " ".join([(str(i+1) + "/" + s)
+					    for (i,s) in enumerate(species)])
+    return species
+
+def normalize_species(species, species_names):
+    species_nums = []
+    error = False
+    for s in species:
+	try:
+	    n = int(s)
+	    if (n < 1) or (n > len(species_names)):
+		error = True
+		print "ERROR: species number out of range: %d" % n
+	except ValueError:
+	    found = False
+	    for i in range(len(species_names)):
+		if s.lower() == species_names[i].lower():
+		    found = True
+		    n = i + 1
+		    break
+	    if not found:
+		error = True
+		print "ERROR: unknown species: %s" % s
+	species_nums.append(n)
+    if error:
+	sys.exit(1)
+    species_nums.sort()
+    return species_nums
+
+def plot_commands(f, data_filename, unit, species_nums, species_names):
+    f.write('set xlabel "time (hr)"\n')
+    if unit == "num":
+	f.write('set ylabel "aerosol number density (#/m^3)\n')
+    elif unit == "vol":
+	f.write('set ylabel "aerosol volume density (m^3/m^3)\n')
+	offset = 2
+    elif unit == "mass":
+	f.write('set ylabel "aerosol mass density (kg/m^3)\n')
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	f.write('set ylabel "aerosol molar density (mole/m^3)\n')
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    f.write('set title "aerosol time history"\n')
+    if unit == "num":
+	f.write('plot "%s" using ($1/3600):2 with lines\n' % data_filename)
+    else:
+	first_time = True
+	for i in species_nums:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    f.write(plot + ' "%s" using ($1/3600):%d title "%s" with lines\n'
+		    % (data_filename, i + offset, species_names[i - 1]))
+
+def main():
+    (data_filename, unit, species) = process_args()
+    species_names = get_species_names(data_filename)
+    species_nums = normalize_species(species, species_names)
+    if unit == "num":
+	print "Selected unit: number density"
+    elif unit == "vol":
+	print "Selected unit: volume density"
+    elif unit == "mass":
+	print "Selected unit: mass density"
+    elif unit == "mole":
+	print "Selected unit: molar density"
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    print "Selected species: " + " ".join([(str(i) + "/" + species_names[i-1])
+					   for i in species_nums])
+    f = os.popen('gnuplot -persist', 'w')
+    plot_commands(f, data_filename, unit, species_nums,
+		  species_names)
+    f.flush()
+    
+if __name__ == "__main__":
+    main()

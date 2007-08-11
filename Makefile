@@ -32,7 +32,7 @@ ifeq ($(FC),pgf95)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf90)
-  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -I$(MOSAIC_MODDIR)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 

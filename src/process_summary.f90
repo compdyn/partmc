@@ -27,11 +27,15 @@ program process_summary
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
   type(gas_data_t) :: gas_data
- 
-  real*8, allocatable :: time(:), time_avg(:)
-  type(env_t), allocatable :: env(:), env_avg(:)
-  type(aero_binned_t), allocatable :: aero_binned(:), aero_binned_avg(:)
-  type(gas_state_t), allocatable :: gas_state(:), gas_state_avg(:)
+
+  real*8 :: time
+  real*8, allocatable :: time_avg(:)
+  type(env_t) :: env
+  type(env_t), allocatable :: env_avg(:)
+  type(aero_binned_t) :: aero_binned
+  type(aero_binned_t), allocatable :: aero_binned_avg(:)
+  type(gas_state_t) :: gas_state
+  type(gas_state_t), allocatable :: gas_state_avg(:)
   real*8, allocatable :: tot_num_den(:), tot_vol_den(:,:)
  
   ! check there is exactly one commandline argument
@@ -89,10 +93,10 @@ program process_summary
   call inout_read_gas_data(in_file, gas_data)
   call inout_read_aero_data(in_file, aero_data)
 
-  allocate(time(n_time), time_avg(n_time))
-  allocate(env(n_time), env_avg(n_time))
-  allocate(aero_binned(n_time), aero_binned_avg(n_time))
-  allocate(gas_state(n_time), gas_state_avg(n_time))
+  allocate(time_avg(n_time))
+  allocate(env_avg(n_time))
+  allocate(aero_binned_avg(n_time))
+  allocate(gas_state_avg(n_time))
   allocate(tot_num_den(n_time), tot_vol_den(n_time,aero_data%n_spec))
 
   write(*,*) 'n_loop = ', n_loop
@@ -100,13 +104,9 @@ program process_summary
   
   do i_time = 1,n_time
      time_avg(i_time) = 0d0
-     call env_alloc(env(i_time))
      call env_alloc(env_avg(i_time))
-     call aero_binned_alloc(aero_binned(i_time), &
-          bin_grid%n_bin, aero_data%n_spec)
      call aero_binned_alloc(aero_binned_avg(i_time), &
           bin_grid%n_bin, aero_data%n_spec)
-     call gas_state_alloc(gas_state(i_time), gas_data%n_spec)
      call gas_state_alloc(gas_state_avg(i_time), gas_data%n_spec)
   end do
 
@@ -117,22 +117,26 @@ program process_summary
         call inout_read_integer(in_file, 'loop_num', i_loop_check)
         call inout_check_index(in_file, i_loop, i_loop_check)
 
-        call inout_read_real(in_file, 'time(s)', time(i_time))
-        call inout_read_env(in_file, env(i_time))
-        call inout_read_aero_binned(in_file, aero_binned(i_time))
-        call inout_read_gas_state(in_file, gas_state(i_time))
+        call inout_read_real(in_file, 'time(s)', time)
+        call inout_read_env(in_file, env)
+        call inout_read_aero_binned(in_file, aero_binned)
+        call inout_read_gas_state(in_file, gas_state)
 
         if (i_loop == 1) then
-           time_avg(i_time) = time(i_time)
-           call env_copy(env(i_time), env_avg(i_time))
-           call aero_binned_copy(aero_binned(i_time), aero_binned_avg(i_time))
-           call gas_state_copy(gas_state(i_time), gas_state_avg(i_time))
+           time_avg(i_time) = time
+           call env_copy(env, env_avg(i_time))
+           call aero_binned_copy(aero_binned, aero_binned_avg(i_time))
+           call gas_state_copy(gas_state, gas_state_avg(i_time))
         else           
-           time_avg(i_time) = time_avg(i_time) + time(i_time)
-           call env_add(env_avg(i_time), env(i_time))
-           call aero_binned_add(aero_binned_avg(i_time), aero_binned(i_time))
-           call gas_state_add(gas_state_avg(i_time), gas_state(i_time))
+           time_avg(i_time) = time_avg(i_time) + time
+           call env_add(env_avg(i_time), env)
+           call aero_binned_add(aero_binned_avg(i_time), aero_binned)
+           call gas_state_add(gas_state_avg(i_time), gas_state)
         end if
+
+        call env_free(env)
+        call aero_binned_free(aero_binned)
+        call gas_state_free(gas_state)
      end do
   end do
   

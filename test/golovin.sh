@@ -19,7 +19,7 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc golovin_mc.spec
-../src/partmc golovin_mc.spec
+#../src/partmc golovin_mc.spec
 echo ../src/process_summary out/golovin_mc_summary.d
 ../src/process_summary out/golovin_mc_summary.d
 

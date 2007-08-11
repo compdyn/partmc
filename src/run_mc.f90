@@ -302,6 +302,7 @@ contains
        do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
           call aero_state_double(aero_state)
        end do
+       call aero_state_downsample(aero_state, mc_opt%n_part_max)
     end if
     
   end subroutine mc_coag

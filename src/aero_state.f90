@@ -305,6 +305,28 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine aero_state_rand_particle(aero_state, i_bin, i_part)
+
+    ! Choose a random particle from the aero_state.
+
+    use pmc_util
+
+    type(aero_state_t), intent(in) :: aero_state ! original state
+    integer, intent(out) :: i_bin       ! bin number of particle
+    integer, intent(out) :: i_part      ! particle number within bin
+
+    integer :: n_bin, disc_pdf(size(aero_state%bins))
+
+    call assert(aero_state%n_part > 0)
+    n_bin = size(aero_state%bins)
+    disc_pdf = (/(aero_state%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
+    i_bin = sample_disc_pdf(n_bin, disc_pdf)
+    i_part = util_rand_int(aero_state%bins(i_bin)%n_part)
+
+  end subroutine aero_state_rand_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine aero_state_sample(aero_state_from, aero_state_to, &
        sample_prop)
     
@@ -320,16 +342,14 @@ contains
     real*8, intent(in) :: sample_prop   ! proportion to sample
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
-    integer :: disc_pdf(1:size(aero_state_from%bins))
 
+    call assert((sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
          * dble(total_particles(aero_state_from)))
     n_bin = size(aero_state_from%bins)
     do i_transfer = 1,n_transfer
        if (total_particles(aero_state_from) <= 0) exit
-       disc_pdf = (/(aero_state_from%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
-       i_bin = sample_disc_pdf(n_bin, disc_pdf)
-       i_part = util_rand_int(aero_state_from%bins(i_bin)%n_part)
+       call aero_state_rand_particle(aero_state_from, i_bin, i_part)
        call aero_state_add_particle(aero_state_to, i_bin, &
             aero_state_from%bins(i_bin)%particle(i_part))
        call aero_state_remove_particle(aero_state_from, i_bin, i_part)
@@ -408,6 +428,28 @@ contains
     aero_state%n_part = 2 * aero_state%n_part
 
   end subroutine aero_state_double
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine aero_state_downsample(aero_state, n_part_max)
+    
+    ! Remove particles at random until we have have exactly n_part_max
+    ! particles.
+    
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    integer, intent(in) :: n_part_max   ! desired number of particles
+    
+    integer :: i_bin, i_part, n_part_orig
+
+    n_part_orig = aero_state%n_part
+    do while (aero_state%n_part > n_part_max)
+       call aero_state_rand_particle(aero_state, i_bin, i_part)
+       call aero_state_remove_particle(aero_state, i_bin, i_part)
+    end do
+    aero_state%comp_vol = aero_state%comp_vol &
+         * dble(aero_state%n_part) / dble(n_part_orig)
+
+  end subroutine aero_state_downsample
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

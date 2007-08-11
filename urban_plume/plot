@@ -6,19 +6,25 @@
 import os, sys, re
 
 def print_usage():
-    print """plot <datafile_aero_total.d> <unit> <species...>
+    print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
+plot <datafile_aero_total.d> <unit> <species...>
 plot <datafile_gas.d> <species...>
 
 Plots the time history of the given species.
 
 <unit> must be one of:
-  num - number density
-  vol - volume density
+  num  - number density
+  vol  - volume density
   mass - mass density
   mole - molar density
 
-<sepecies> is of list of species numbers or names (not needed
-for number density).
+<sepecies> is of list of species numbers or names (not needed for
+number density).
+
+<indices> is a list of time indices starting from 0.
+
+For binned distributions <species> must be just one species. If it is
+"total" then the total density is plotted.
 """
 
 def process_args():
@@ -27,7 +33,26 @@ def process_args():
 	sys.exit(1)
     data_filename = sys.argv[1]
     unit = ""
-    if re.compile("_aero_total").search(data_filename):
+    times = []
+    if re.compile("_aero_binned").search(data_filename):
+	type = "aero_binned"
+	if len(sys.argv) < 5:
+	    print_usage()
+	    sys.exit(1)
+	unit = sys.argv[2].lower()
+	if unit not in ['num', 'vol', 'mass', 'mole']:
+	    print "ERROR: unknown unit: %s" % unit
+	    print
+	    print_usage()
+	    sys.exit(1)
+	species = [sys.argv[3]]
+	if species[0].lower() == "total":
+	    species = []
+	if (unit == "num") and (species != []):
+	    print "ERROR: can only plot total for number density"
+	    sys.exit(1)
+	times = sys.argv[4:]
+    elif re.compile("_aero_total").search(data_filename):
 	type = "aero_history"
 	if len(sys.argv) < 3:
 	    print_usage()
@@ -54,19 +79,23 @@ def process_args():
 	if len(sys.argv) < 3:
 	    print_usage()
 	    sys.exit(1)
-	data_filename = sys.argv[1]
 	species = sys.argv[2:]
     else:
 	print "ERROR: unknown data type: %s" % data_filename
 	sys.exit(1)
-    return (type, data_filename, unit, species)
+    return (type, data_filename, unit, species, times)
 
 def get_species_names(data_filename, type):
     f = open(data_filename)
     if not f:
 	print "ERROR: unable to open %s" % data_filename
 	sys.exit(1)
-    if (type == "aero_history"):
+    if type == "aero_binned":
+	f.readline()
+	f.readline()
+	f.readline()
+	f.readline()
+    if type == "aero_history":
 	f.readline()
 	f.readline()
     f.readline()
@@ -76,14 +105,14 @@ def get_species_names(data_filename, type):
 	print "ERROR: header does not start with #: %s" % header
 	sys.exit(1)
     cols = header[1:].split()
-    if (type == "aero_history"):
+    if (type == "aero_history") or (type == "aero_binned"):
 	species = []
 	spec_re = re.compile("^\d+-VL/(.+)$")
 	for col in cols:
 	    match = spec_re.search(col)
 	    if match:
 		species.append(match.group(1))
-    elif (type == "gas_history"):
+    elif type == "gas_history":
 	species = cols[1:]
     else:
 	print "ERROR: unknown type: %s" % type
@@ -116,6 +145,25 @@ def normalize_species(species, species_names):
     species_nums.sort()
     return species_nums
 
+def normalize_times(times):
+    times_nums = []
+    error = False
+    n = 0
+    for i in times:
+	try:
+	    n = int(i)
+	    if (n < 0):
+		error = True
+		print "ERROR: index number out of range: %d" % n
+	except ValueError:
+	    errot = True
+	    print "ERROR: unknown index: %s" % i
+	times_nums.append(n)
+    if error:
+	sys.exit(1)
+    times_nums.sort()
+    return times_nums
+
 def print_species_table(species_nums, species_names):
     col = 0
     for i in species_nums:
@@ -127,8 +175,56 @@ def print_species_table(species_nums, species_names):
     if col != 0:
 	print
 
-def plot_aero_history(f, data_filename, unit, species_nums,
-			       species_names):
+def plot_aero_binned(f, data_filename, unit, species_nums, species_names,
+		     times):
+    f.write('set logscale\n')
+    f.write('set xlabel "radius (m)"\n')
+    if unit == "num":
+	f.write('set ylabel "aerosol number density (#/m^3)\n')
+    elif unit == "vol":
+	f.write('set ylabel "aerosol volume density (m^3/m^3)\n')
+	offset = 2
+    elif unit == "mass":
+	f.write('set ylabel "aerosol mass density (kg/m^3)\n')
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	f.write('set ylabel "aerosol molar density (mole/m^3)\n')
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    f.write('set title "aerosol size distributions"\n')
+    if species_nums == []:
+	first_time = True
+	for i in times:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    if unit == "num":
+		yval = "2"
+	    else:
+		yval = "(" + "+".join([("$%d" % (n+offset+1))
+				      for n in range(len(species_names))]) \
+				      + ")"
+	    f.write((plot + ' "%s" index %d using ($1/3600):%s'
+		     + ' title "total (index %d)" with lines\n')
+		    % (data_filename, i, yval, i))
+    else:
+	first_time = True
+	for i in times:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    f.write((plot + ' "%s" index %d using ($1/3600):%d'
+		     + ' title "%s (index %d)" with lines\n')
+		    % (data_filename, i, species_nums[0] + offset,
+		       species_names[species_nums[0] - 1], i))
+
+def plot_aero_history(f, data_filename, unit, species_nums, species_names):
     f.write('set xlabel "time (hr)"\n')
     if unit == "num":
 	f.write('set ylabel "aerosol number density (#/m^3)\n')
@@ -146,7 +242,8 @@ def plot_aero_history(f, data_filename, unit, species_nums,
 	sys.exit(1)
     f.write('set title "aerosol time history"\n')
     if unit == "num":
-	f.write('plot "%s" using ($1/3600):2 with lines\n' % data_filename)
+	f.write('plot "%s" using ($1/3600):2 title "total" with lines\n'
+		% data_filename)
     else:
 	first_time = True
 	for i in species_nums:
@@ -173,13 +270,14 @@ def plot_gas_history(f, data_filename, species_nums, species_names):
 		% (data_filename, i + 1, species_names[i - 1]))
 
 def main():
-    (type, data_filename, unit, species) = process_args()
+    (type, data_filename, unit, species, times) = process_args()
     species_names = get_species_names(data_filename, type)
     print "Available species:"
     print_species_table([i+1 for i in range(len(species_names))],
 			species_names)
     species_nums = normalize_species(species, species_names)
-    if (type == "aero_history"):
+    times = normalize_times(times)
+    if (type == "aero_binned") or (type == "aero_history"):
 	if unit == "num":
 	    print "Selected unit: number density"
 	elif unit == "vol":
@@ -194,7 +292,10 @@ def main():
     print "Selected species:"
     print_species_table(species_nums, species_names)
     f = os.popen('gnuplot -persist', 'w')
-    if (type == "aero_history"):
+    if (type == "aero_binned"):
+	plot_aero_binned(f, data_filename, unit, species_nums, species_names,
+			 times)
+    elif (type == "aero_history"):
 	plot_aero_history(f, data_filename, unit, species_nums, species_names)
     elif (type == "gas_history"):
 	plot_gas_history(f, data_filename, species_nums, species_names)

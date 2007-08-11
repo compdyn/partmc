@@ -28,7 +28,7 @@ endif
 ifeq ($(FC),pgf95)
     # -Mbounds      array bounds checking
     # -Mdclchk      check for undeclared variables
-  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -I$(MOSAIC_MODDIR)
+  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -I$(MOSAIC_MODDIR)
   LDFLAGS = -L$(MOSAIC_LIBDIR)
 endif
 ifeq ($(FC),pgf90)

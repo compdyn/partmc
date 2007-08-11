@@ -34,8 +34,6 @@ def get_species_names(data_filename):
 	sys.exit(1)
     cols = header[1:].split()
     species = cols[1:]
-    print "Available species: " + " ".join([(str(i+1) + "/" + s)
-					    for (i,s) in enumerate(species)])
     return species
 
 def normalize_species(species, species_names):
@@ -67,7 +65,7 @@ def normalize_species(species, species_names):
 def print_species_table(species_nums, species_names):
     col = 0
     for i in species_nums:
-	print ("%5d/%-15s" % (i, species_names[i-1])),
+	print ("%5d %-15s" % (i, species_names[i-1])),
 	col += 1
 	if col == 3:
 	    print

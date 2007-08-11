@@ -64,13 +64,12 @@ def get_species_names(data_filename):
 	match = spec_re.search(col)
 	if match:
 	    species.append(match.group(1))
-    print "Available species: " + " ".join([(str(i+1) + "/" + s)
-					    for (i,s) in enumerate(species)])
     return species
 
 def normalize_species(species, species_names):
     species_nums = []
     error = False
+    n = 0
     for s in species:
 	try:
 	    n = int(s)
@@ -92,6 +91,17 @@ def normalize_species(species, species_names):
 	sys.exit(1)
     species_nums.sort()
     return species_nums
+
+def print_species_table(species_nums, species_names):
+    col = 0
+    for i in species_nums:
+	print ("%5d %-15s" % (i, species_names[i-1])),
+	col += 1
+	if col == 3:
+	    print
+	    col = 0
+    if col != 0:
+	print
 
 def plot_commands(f, data_filename, unit, species_nums, species_names):
     f.write('set xlabel "time (hr)"\n')
@@ -126,6 +136,8 @@ def plot_commands(f, data_filename, unit, species_nums, species_names):
 def main():
     (data_filename, unit, species) = process_args()
     species_names = get_species_names(data_filename)
+    print "Available species:"
+    print_species_table([i+1 for i in range(len(species_names))], species_names)
     species_nums = normalize_species(species, species_names)
     if unit == "num":
 	print "Selected unit: number density"
@@ -138,8 +150,8 @@ def main():
     else:
 	print "ERROR: unknown unit: %s" % unit
 	sys.exit(1)
-    print "Selected species: " + " ".join([(str(i) + "/" + species_names[i-1])
-					   for i in species_nums])
+    print "Selected species:"
+    print_species_table(species_nums, species_names)
     f = os.popen('gnuplot -persist', 'w')
     plot_commands(f, data_filename, unit, species_nums,
 		  species_names)

@@ -81,6 +81,104 @@ contains
   end subroutine env_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine env_add(env, env_delta)
+    
+    ! env += env_delta
+
+    use pmc_gas_state
+    use pmc_aero_dist
+    
+    type(env_t), intent(inout) :: env   ! environment
+    type(env_t), intent(in) :: env_delta ! increment
+
+    env%temp = env%temp + env_delta%temp
+    env%rel_humid = env%rel_humid + env_delta%rel_humid
+    env%pressure = env%pressure + env_delta%pressure
+    env%longitude = env%longitude + env_delta%longitude
+    env%latitude = env%latitude + env_delta%latitude
+    env%altitude = env%altitude + env_delta%altitude
+    env%start_time = env%start_time + env_delta%start_time
+    env%start_day = env%start_day + env_delta%start_day
+    env%height = env%height + env_delta%height
+    call gas_state_add(env%gas_emissions, env_delta%gas_emissions)
+    env%gas_emission_rate = env%gas_emission_rate + env_delta%gas_emission_rate
+    call gas_state_add(env%gas_background, env_delta%gas_background)
+    env%gas_dilution_rate = env%gas_dilution_rate + env_delta%gas_dilution_rate
+    call aero_dist_add(env%aero_emissions, env_delta%aero_emissions)
+    env%aero_emission_rate = env%aero_emission_rate &
+         + env_delta%aero_emission_rate
+    call aero_dist_add(env%aero_background, env_delta%aero_background)
+    env%aero_dilution_rate = env%aero_dilution_rate &
+         + env_delta%aero_dilution_rate
+    
+  end subroutine env_add
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine env_scale(env, alpha)
+    
+    ! env *= alpha
+
+    use pmc_gas_state
+    use pmc_aero_dist
+    
+    type(env_t), intent(inout) :: env   ! environment
+    real*8, intent(in) :: alpha         ! scale factor
+
+    env%temp = env%temp * alpha
+    env%rel_humid = env%rel_humid * alpha
+    env%pressure = env%pressure * alpha
+    env%longitude = env%longitude * alpha
+    env%latitude = env%latitude * alpha
+    env%altitude = env%altitude * alpha
+    env%start_time = env%start_time * alpha
+    env%start_day = nint(dble(env%start_day) * alpha)
+    env%height = env%height * alpha
+    call gas_state_scale(env%gas_emissions, alpha)
+    env%gas_emission_rate = env%gas_emission_rate * alpha
+    call gas_state_scale(env%gas_background, alpha)
+    env%gas_dilution_rate = env%gas_dilution_rate * alpha
+    call aero_dist_scale(env%aero_emissions, alpha)
+    env%aero_emission_rate = env%aero_emission_rate * alpha
+    call aero_dist_scale(env%aero_background, alpha)
+    env%aero_dilution_rate = env%aero_dilution_rate * alpha
+    
+  end subroutine env_scale
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine env_copy(env_from, env_to)
+    
+    ! env_to = env_from
+
+    use pmc_gas_state
+    use pmc_aero_dist
+    
+    type(env_t), intent(in) :: env_from ! original
+    type(env_t), intent(inout) :: env_to ! destination
+
+    env_to%temp = env_from%temp
+    env_to%rel_humid = env_from%rel_humid
+    env_to%pressure = env_from%pressure
+    env_to%longitude = env_from%longitude
+    env_to%latitude = env_from%latitude
+    env_to%altitude = env_from%altitude
+    env_to%start_time = env_from%start_time
+    env_to%start_day = env_from%start_day
+    env_to%height = env_from%height
+    call gas_state_copy(env_from%gas_emissions, env_to%gas_emissions)
+    env_to%gas_emission_rate = env_from%gas_emission_rate
+    call gas_state_copy(env_from%gas_background, env_to%gas_background)
+    env_to%gas_dilution_rate = env_from%gas_dilution_rate
+    call aero_dist_copy(env_from%aero_emissions, env_to%aero_emissions)
+    env_to%aero_emission_rate = env_from%aero_emission_rate
+    call aero_dist_copy(env_from%aero_background, env_to%aero_background)
+    env_to%aero_dilution_rate = env_from%aero_dilution_rate
+    
+  end subroutine env_copy
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine env_change_water_volume(env, aero_data, dv)
     

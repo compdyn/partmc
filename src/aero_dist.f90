@@ -70,6 +70,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine aero_mode_add(aero_mode, aero_mode_delta)
+
+    ! aero_mode += aero_mode_delta
+
+    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
+    type(aero_mode_t), intent(in) :: aero_mode_delta ! increment
+
+    aero_mode%num_den = aero_mode%num_den + aero_mode_delta%num_den
+    aero_mode%vol_frac = aero_mode%vol_frac + aero_mode_delta%vol_frac
+
+  end subroutine aero_mode_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine aero_mode_scale(aero_mode, alpha)
 
     ! Scale an aero_mode.
@@ -78,6 +92,7 @@ contains
     real*8, intent(in) :: alpha         ! scale factor
 
     aero_mode%num_den = aero_mode%num_den * alpha
+    aero_mode%vol_frac = aero_mode%vol_frac * alpha
 
   end subroutine aero_mode_scale
 
@@ -144,6 +159,40 @@ contains
     end do
 
   end subroutine aero_dist_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_add(aero_dist, aero_dist_delta)
+
+    ! aero_dist += aero_dist_delta
+
+    type(aero_dist_t), intent(inout) :: aero_dist ! aero_dist
+    type(aero_dist_t), intent(in) :: aero_dist_delta ! increment
+
+    integer :: i
+
+    do i = 1,aero_dist%n_mode
+       call aero_mode_add(aero_dist%mode(i), aero_dist_delta%mode(i))
+    end do
+
+  end subroutine aero_dist_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_dist_scale(aero_dist, alpha)
+
+    ! aero_dist *= alpha
+
+    type(aero_dist_t), intent(inout) :: aero_dist ! aero_dist
+    real*8, intent(in) :: alpha         ! scale factor
+
+    integer :: i
+
+    do i = 1,aero_dist%n_mode
+       call aero_mode_scale(aero_dist%mode(i), alpha)
+    end do
+
+  end subroutine aero_dist_scale
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -28,10 +28,10 @@ program process_summary
   type(aero_data_t) :: aero_data
   type(gas_data_t) :: gas_data
  
-  real*8, allocatable :: time(:,:), time_avg(:)
-  type(env_t), allocatable :: env(:,:), env_avg(:)
-  type(aero_binned_t), allocatable :: aero_binned(:,:), aero_binned_avg(:)
-  type(gas_state_t), allocatable :: gas_state(:,:), gas_state_avg(:)
+  real*8, allocatable :: time(:), time_avg(:)
+  type(env_t), allocatable :: env(:), env_avg(:)
+  type(aero_binned_t), allocatable :: aero_binned(:), aero_binned_avg(:)
+  type(gas_state_t), allocatable :: gas_state(:), gas_state_avg(:)
   real*8, allocatable :: tot_num_den(:), tot_vol_den(:,:)
  
   ! check there is exactly one commandline argument
@@ -89,38 +89,64 @@ program process_summary
   call inout_read_gas_data(in_file, gas_data)
   call inout_read_aero_data(in_file, aero_data)
 
-  allocate(time(n_loop,n_time), time_avg(n_time))
-  allocate(env(n_loop,n_time), env_avg(n_time))
-  allocate(aero_binned(n_loop,n_time), aero_binned_avg(n_time))
-  allocate(gas_state(n_loop,n_time), gas_state_avg(n_time))
+  allocate(time(n_time), time_avg(n_time))
+  allocate(env(n_time), env_avg(n_time))
+  allocate(aero_binned(n_time), aero_binned_avg(n_time))
+  allocate(gas_state(n_time), gas_state_avg(n_time))
   allocate(tot_num_den(n_time), tot_vol_den(n_time,aero_data%n_spec))
 
   write(*,*) 'n_loop = ', n_loop
   write(*,*) 'n_time = ', n_time
   
+  do i_time = 1,n_time
+     time_avg(i_time) = 0d0
+     call env_alloc(env(i_time))
+     call env_alloc(env_avg(i_time))
+     call aero_binned_alloc(aero_binned(i_time), &
+          bin_grid%n_bin, aero_data%n_spec)
+     call aero_binned_alloc(aero_binned_avg(i_time), &
+          bin_grid%n_bin, aero_data%n_spec)
+     call gas_state_alloc(gas_state(i_time), gas_data%n_spec)
+     call gas_state_alloc(gas_state_avg(i_time), gas_data%n_spec)
+  end do
+
   ! read all data
   do i_loop = 1,n_loop
+     write(*,'(a,i6)') 'processing loop: ', i_loop
      do i_time = 1,n_time
         call inout_read_integer(in_file, 'loop_num', i_loop_check)
         call inout_check_index(in_file, i_loop, i_loop_check)
-        call inout_read_real(in_file, 'time(s)', time(i_loop,i_time))
-        call inout_read_env(in_file, env(i_loop,i_time))
-        call inout_read_aero_binned(in_file, aero_binned(i_loop,i_time))
-        call inout_read_gas_state(in_file, gas_state(i_loop,i_time))
-     enddo
-  enddo
+
+        call inout_read_real(in_file, 'time(s)', time(i_time))
+        call inout_read_env(in_file, env(i_time))
+        call inout_read_aero_binned(in_file, aero_binned(i_time))
+        call inout_read_gas_state(in_file, gas_state(i_time))
+
+        if (i_loop == 1) then
+           time_avg(i_time) = time(i_time)
+           call env_copy(env(i_time), env_avg(i_time))
+           call aero_binned_copy(aero_binned(i_time), aero_binned_avg(i_time))
+           call gas_state_copy(gas_state(i_time), gas_state_avg(i_time))
+        else           
+           time_avg(i_time) = time_avg(i_time) + time(i_time)
+           call env_add(env_avg(i_time), env(i_time))
+           call aero_binned_add(aero_binned_avg(i_time), aero_binned(i_time))
+           call gas_state_add(gas_state_avg(i_time), gas_state(i_time))
+        end if
+     end do
+  end do
   
-  ! compute loop averages
+  ! compute averages
   do i_time = 1,n_time
-     call average_real(time(:,i_time), time_avg(i_time))
-     call env_average(env(:,i_time), env_avg(i_time))
-     call aero_binned_average(aero_binned(:,i_time), aero_binned_avg(i_time))
-     call gas_state_average(gas_state(:,i_time), gas_state_avg(i_time))
+     time_avg(i_time) = time_avg(i_time) / dble(n_loop)
+     call env_scale(env_avg(i_time), 1d0 / dble(n_loop))
+     call aero_binned_scale(aero_binned_avg(i_time), 1d0 / dble(n_loop))
+     call gas_state_scale(gas_state_avg(i_time), 1d0 / dble(n_loop))
      tot_num_den(i_time) = sum(aero_binned_avg(i_time)%num_den) &
           * bin_grid%dlnr
      tot_vol_den(i_time,:) = sum(aero_binned_avg(i_time)%vol_den, 1) &
           * bin_grid%dlnr
-  enddo
+  end do
 
   ! output environment
   write(f_out_env, '(a1,6a20)') '#', 'time(s)', &

@@ -24,7 +24,6 @@ aero_background emission_aerosol_background.dat # aerosol background file
 
 rel_humidity 0.999              # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
-air_density 1.25                # initial air density (kg/m^3)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)

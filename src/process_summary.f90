@@ -237,6 +237,18 @@ program process_summary
   close(f_out_gas)
   close(f_out_aero_binned)
   close(f_out_aero_total)
+
+  do i_time = 1,n_time
+     call env_free(env_avg(i_time))
+     call aero_binned_free(aero_binned_avg(i_time))
+     call gas_state_free(gas_state_avg(i_time))
+  end do
+  deallocate(time_avg)
+  deallocate(env_avg)
+  deallocate(aero_binned_avg)
+  deallocate(gas_state_avg)
+  deallocate(tot_num_den)
+  deallocate(tot_vol_den)
   
 end program process_summary
 

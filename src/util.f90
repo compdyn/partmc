@@ -140,6 +140,23 @@ contains
   end function util_rand_int
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function prob_round(val)
+
+    ! Round val to floor(val) or ceil(val) with probability
+    ! proportional to the relative distance from val. That is,
+    ! Prob(prob_round(val) == floor(val)) = ceil(val) - val.
+
+    real*8, intent(in) :: val           ! value to round
+    
+    prob_round = int(val)
+    if (util_rand() .lt. mod(val, 1d0)) then
+       prob_round = prob_round + 1
+    endif
+
+  end function prob_round
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   real*8 function vol2rad(v)            ! radius (m)
 

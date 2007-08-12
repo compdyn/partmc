@@ -303,8 +303,7 @@ contains
           call aero_state_double(aero_state)
        end do
        do while (total_particles(aero_state) > mc_opt%n_part_max * 2)
-          call aero_state_downsample(aero_state, mc_opt%n_part_max, &
-               aero_binned, bin_grid)
+          call aero_state_halve(aero_state, aero_binned, bin_grid, aero_data)
        end do
     end if
     

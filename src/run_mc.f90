@@ -299,10 +299,13 @@ contains
     ! if we have less than half the maximum number of particles
     ! then double until we fill up the array
     if (mc_opt%allow_double) then
-       do while (total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
+       do while (total_particles(aero_state) < mc_opt%n_part_max / 2)
           call aero_state_double(aero_state)
        end do
-       call aero_state_downsample(aero_state, mc_opt%n_part_max)
+       do while (total_particles(aero_state) > mc_opt%n_part_max * 2)
+          call aero_state_downsample(aero_state, mc_opt%n_part_max, &
+               aero_binned, bin_grid)
+       end do
     end if
     
   end subroutine mc_coag

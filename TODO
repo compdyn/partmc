@@ -25,11 +25,10 @@ pass full particle data to the kernel_*() functions so that we can do
 proper density-dependent brownian kernels. Requires a separate
 max_kernel_*() function for each one.
 
-Fix process_state.
-
 update comments at top of files
 
-what's happening with util_rand() and USE_F95_RAND?
+what's happening with util_rand() and USE_F95_RAND? I think it can be
+removed.
 
 change units from (m^3) to [m^3]
 
@@ -56,9 +55,13 @@ env directly. Update this info in env_data_update_state().
 in aero_data and process_summary use AERO_NAME_LEN instead of
 hard-coding 15, or at least assert that it is 15
 
-rename constants to have more descriptive names (M_a ->
+rename constants_t contents to have more descriptive names (M_a ->
 air_molec_weight, etc).
 
 change gas conc from ppb to mole proportion
 
 fix test/* for gnuplot, shifting "with lines" to end
+
+allow times to be input as 1d, 34m, etc. No unit implies seconds.
+
+number state files consectutively

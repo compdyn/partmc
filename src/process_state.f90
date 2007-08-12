@@ -25,18 +25,37 @@ program process_state
   type(env_t) :: env                    ! env structure
   real*8 :: time                        ! current time
 
+  if (iargc() < 1) then
+     call print_usage()
+     call exit(1)
+  end if
+  
   call get_filename(filename, basename)
 
   call inout_read_state(filename, bin_grid, aero_data, aero_state, &
        gas_data, gas_state, env, time)
 
   write(*,'(a,e20.10)') 'time (s) = ', time
-  call process_env(env)
-  call process_info(bin_grid, aero_data, aero_state)
-  call process_moments(basename, bin_grid, aero_data, aero_state)
-  call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
+  if (iargc() == 1) then
+     call process_env(env)
+     call process_info(bin_grid, aero_data, aero_state)
+     call process_moments(basename, bin_grid, aero_data, aero_state)
+     call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
+  else
+     call process_comp(basename, bin_grid, aero_data, aero_state)
+  end if
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine print_usage()
+
+    write(0,*) 'Usage: process_state <filename.d>'
+    write(0,*) '       process_state <filename.d> <comp_suffix>' &
+         // ' <n_steps> -a <A species> -b <B species>'
+    
+  end subroutine print_usage
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -46,12 +65,6 @@ contains
     character(len=*), intent(out) :: basename ! basename of the input filename
 
     integer :: i
-    
-    ! check there is exactly one commandline argument
-    if (iargc() .ne. 1) then
-       write(0,*) 'Usage: process_state <filename.d>'
-       call exit(1)
-    end if
     
     ! get and check first commandline argument (must be "filename.d")
     call getarg(1, filename)
@@ -166,7 +179,6 @@ contains
 
     integer, allocatable :: n_orig_part(:,:)
     integer :: i_bin, i_part, n, n_orig_part_max, f_out
-    character(len=len(basename)+50) :: filename
 
     ! determine the max number of coag events
     n_orig_part_max = 0
@@ -203,6 +215,157 @@ contains
     deallocate(n_orig_part)
     
   end subroutine process_n_orig_part
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine process_comp(basename, bin_grid, aero_data, aero_state)
+
+    ! Compute a histogram of the composition of the particles.
+
+    use pmc_util
+
+    character(len=*), intent(in) :: basename ! basename of the input filename
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+
+    character(len=100) :: comp_suffix, total_comp_suffix, tmp_str
+    integer, allocatable :: comp(:,:), total_comp(:)
+    integer :: n_steps, n_a, n_b, i, n_zero_vol, i_bin, i_step, i_part
+    integer :: f_out
+    integer, allocatable :: a_species(:), b_species(:)
+    logical :: error
+    real*8, allocatable :: props(:)
+    type(aero_particle_t), pointer :: particle
+    real*8 :: a_vol, b_vol, prop
+
+    ! process commandline
+    call getarg(2, tmp_str)
+    comp_suffix(1:1) = "_"
+    comp_suffix(2:) = tmp_str
+    comp_suffix((len_trim(comp_suffix)+1):) = '.d'
+    total_comp_suffix(1:1) = "_"
+    total_comp_suffix(2:) = tmp_str
+    total_comp_suffix((len_trim(total_comp_suffix)+1):) = '_total.d'
+    call getarg(3, tmp_str)
+    n_steps = string_to_integer(tmp_str)
+    call getarg(4, tmp_str)
+    if (tmp_str /= "-a") then
+       write(0,*) 'ERROR: argument 4 must be "-a"'
+       call exit(1)
+    end if
+    ! figure out how many A and B species we have
+    n_a = 0
+    n_b = 0
+    do i = 5,iargc()
+       call getarg(i, tmp_str)
+       if (tmp_str == "-b") then
+          n_a = i - 5
+          n_b = iargc() - i
+          exit
+       end if
+    end do
+    if (n_b == 0) then
+       write(0,*) 'ERROR: no B species specified'
+       call exit(1)
+    end if
+    if (n_a == 0) then
+       write(0,*) 'ERROR: no A species specified'
+       call exit(1)
+    end if
+    ! read the A and B species
+    allocate(a_species(n_a))
+    allocate(b_species(n_b))
+    error = .false.
+    do i = 1,n_a
+       call getarg(4 + i, tmp_str)
+       a_species(i) = aero_data_spec_by_name(aero_data, tmp_str)
+       if (a_species(i) == 0) then
+          write(0,'(a,a)') 'ERROR: unknown species: ', trim(tmp_str)
+          error = .true.
+       end if
+    end do
+    do i = 1,n_b
+       call getarg(5 + n_a + i, tmp_str)
+       b_species(i) = aero_data_spec_by_name(aero_data, tmp_str)
+       if (b_species(i) == 0) then
+          write(0,'(a,a)') 'ERROR: unknown species: ', trim(tmp_str)
+          error = .true.
+       end if
+    end do
+    if (error) then
+       call exit(1)
+    end if
+    
+    ! compute compositions
+    allocate(props(n_steps), comp(bin_grid%n_bin, n_steps), total_comp(n_steps))
+    do i_step = 1,n_steps
+       props(i_step) = dble(i_step - 1) / dble(n_steps)
+    end do
+    comp = 0
+    total_comp = 0
+    n_zero_vol = 0
+    do i_bin = 1,bin_grid%n_bin
+       do i_part = 1,aero_state%bins(i_bin)%n_part
+          particle => aero_state%bins(i_bin)%particle(i_part)
+          a_vol = 0d0
+          do i = 1,n_a
+             a_vol = a_vol + particle%vol(a_species(i))
+          end do
+          b_vol = 0d0
+          do i = 1,n_b
+             b_vol = b_vol + particle%vol(b_species(i))
+          end do
+          call assert(a_vol >= 0d0)
+          call assert(b_vol >= 0d0)
+          if ((a_vol == 0d0) .and. (b_vol == 0d0)) then
+             n_zero_vol = n_zero_vol + 1
+          else
+             prop = b_vol / (a_vol + b_vol)
+             i_step = floor(dble(n_steps) * prop)
+             if (i_step == n_steps) then
+                i_step = n_steps - 1
+             end if
+             comp(i_bin, i_step) = comp(i_bin, i_step) + 1
+             total_comp(i_step) = total_comp(i_step) + 1
+          end if
+       end do
+    end do
+    if (n_zero_vol > 0) then
+       write(0,*) 'WARNING: number of particles without any A or B volume: ', &
+            n_zero_vol
+    end if
+
+    ! write comp output
+    call open_output(basename, comp_suffix, f_out)
+    write(f_out, '(a)') '# rows are bins'
+    write(f_out, '(a)') '# columns are proportions'
+    write(f_out, '(a)') '# entries are particle counts'
+    write(f_out, '(a1,a24)', advance='no') '#', 'radius(m)'
+    do i_step = 1,n_steps
+       write(f_out, '(f19.1,a1)', advance='no') (props(i_step) * 100d0), '%'
+    end do
+    write(f_out, *) ''
+    do i_bin = 1,bin_grid%n_bin
+       write(f_out, '(e25.15)', advance='no') vol2rad(bin_grid%v(i_bin))
+       do i_step = 1,n_steps
+          write(f_out, '(i20)', advance='no') comp(i_bin, i_step)
+       end do
+       write(f_out, *) ''
+    end do
+    close(unit=f_out)
+    
+    ! write total_comp output
+    call open_output(basename, total_comp_suffix, f_out)
+    write(f_out, '(a1,a19,a20)') '#', 'prop', 'count'
+    do i_step = 1,n_steps
+       write(f_out, '(e20.10,i20)') props(i_step), total_comp(i_step)
+    end do
+    close(unit=f_out)
+    
+    deallocate(comp, total_comp, a_species, b_species, props)
+    
+  end subroutine process_comp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

@@ -463,8 +463,8 @@ contains
 
     read(string, '(i20)', iostat=ios) val
     if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', string, &
-            'to integer: IOSTAT = ', ios
+       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
+            ' to integer: IOSTAT = ', ios
        call exit(1)
     end if
     string_to_integer = val
@@ -484,8 +484,8 @@ contains
 
     read(string, '(f20.0)', iostat=ios) val
     if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', string, &
-            'to real: IOSTAT = ', ios
+       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
+            ' to real: IOSTAT = ', ios
        call exit(1)
     end if
     string_to_real = val
@@ -517,7 +517,7 @@ contains
          .or. (trim(string) == '0')) then
        val = .false.
     else
-       write(0,'(a,a,a)') 'Error converting ', string, 'to logical'
+       write(0,'(a,a,a)') 'Error converting ', trim(string), ' to logical'
        call exit(1)
     end if
     string_to_logical = val

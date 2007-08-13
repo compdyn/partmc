@@ -463,37 +463,6 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine aero_state_downsample(aero_state, n_part_max, &
-       aero_binned, bin_grid)
-    
-    ! Remove particles at random until we have have exactly n_part_max
-    ! particles.
-    
-    use pmc_aero_binned
-    use pmc_bin_grid
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    integer, intent(in) :: n_part_max   ! desired number of particles
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    
-    integer :: i_bin, i_part, n_part_orig
-
-    n_part_orig = aero_state%n_part
-    do while (aero_state%n_part > n_part_max)
-       call aero_state_rand_particle(aero_state, i_bin, i_part)
-       call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-            i_bin, aero_state%comp_vol, &
-            aero_state%bins(i_bin)%particle(i_part))
-       call aero_state_remove_particle(aero_state, i_bin, i_part)
-    end do
-    aero_state%comp_vol = aero_state%comp_vol &
-         * dble(aero_state%n_part) / dble(n_part_orig)
-
-  end subroutine aero_state_downsample
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
   subroutine aero_state_resort(bin_grid, aero_state)
     
     ! Takes a VH array where the particle volumes might no longer be

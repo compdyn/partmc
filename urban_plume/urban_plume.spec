@@ -2,13 +2,13 @@ run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-n_part 100                      # total number of particles
+n_part 200                       # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_state 3600                    # state output interval (0 disables) (s)
+t_state 0                       # state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -33,7 +33,7 @@ pressure 1e5                    # initial pressure (Pa)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 21600                # start time (s since 00:00 UTC)
+start_time 14400                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to use time)

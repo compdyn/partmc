@@ -1,8 +1,8 @@
 run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
-n_loop 1                        # number of Monte Carlo loops
-n_part 200                       # total number of particles
+n_loop 10                        # number of Monte Carlo loops
+n_part 4000                       # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
@@ -22,10 +22,10 @@ aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
-height_profile height.dat       # height profile file
-gas_emissions gas_emit.dat      # gas emissions file
+height_profile height_profile.dat       # height profile file
+gas_emissions gas_emit_profile.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
-aero_emissions aero_emit.dat    # aerosol emissions file
+aero_emissions aero_emit_profile.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.85               # initial relative humidity (1)

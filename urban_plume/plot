@@ -219,7 +219,7 @@ def plot_aero_binned(f, data_filename, unit, species_nums, species_names,
 		first_time = False
 	    else:
 		plot = "replot"
-	    f.write((plot + ' "%s" index %d using ($1/3600):%d'
+	    f.write((plot + ' "%s" index %d using 1:%d'
 		     + ' title "%s (index %d)" with lines\n')
 		    % (data_filename, i, species_nums[0] + offset,
 		       species_names[species_nums[0] - 1], i))

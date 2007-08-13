@@ -208,7 +208,7 @@ def plot_aero_binned(f, data_filename, unit, species_nums, species_names,
 		yval = "(" + "+".join([("$%d" % (n+offset+1))
 				      for n in range(len(species_names))]) \
 				      + ")"
-	    f.write((plot + ' "%s" index %d using ($1/3600):%s'
+	    f.write((plot + ' "%s" index %d using 1:%s'
 		     + ' title "total (index %d)" with lines\n')
 		    % (data_filename, i, yval, i))
     else:

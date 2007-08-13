@@ -300,7 +300,7 @@ contains
     ! compute compositions
     allocate(props(n_steps), comp(bin_grid%n_bin, n_steps), total_comp(n_steps))
     do i_step = 1,n_steps
-       props(i_step) = dble(i_step - 1) / dble(n_steps)
+       props(i_step) = (dble(i_step) - 0.5d0) / dble(n_steps)
     end do
     comp = 0
     total_comp = 0

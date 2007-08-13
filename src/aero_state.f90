@@ -431,39 +431,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine aero_state_halve(aero_state, aero_binned, bin_grid, &
-!DEBUG
-       aero_data)
-!DEBUG
+  subroutine aero_state_halve(aero_state, aero_binned, bin_grid)
     
     ! Remove approximately half of the particles in each bin.
     
     use pmc_aero_binned
     use pmc_bin_grid
     use pmc_util
-!DEBUG
-    use pmc_aero_data
-!DEBUG
 
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-!DEBUG
-    type(aero_data_t), intent(in) :: aero_data ! aero data
-!DEBUG
     
     integer :: i_bin, i_part, n_part_orig, i_remove, n_remove
 
-!DEBUG
-    type(aero_binned_t) :: aero_binned_before, aero_binned_after
-
-    call aero_binned_alloc(aero_binned_before, bin_grid%n_bin, &
-         aero_data%n_spec)
-    call aero_binned_alloc(aero_binned_after, bin_grid%n_bin, &
-         aero_data%n_spec)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, &
-         aero_binned_before)
-!DEBUG
     n_part_orig = aero_state%n_part
     do i_bin = 1,bin_grid%n_bin
        n_remove = prob_round(dble(aero_state%bins(i_bin)%n_part) / 2d0)
@@ -477,26 +458,6 @@ contains
     end do
     aero_state%comp_vol = aero_state%comp_vol &
          * dble(aero_state%n_part) / dble(n_part_orig)
-!DEBUG
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, &
-         aero_binned_after)
-    write(*,'(a3,a9,a9,a9,a9,a9,a9,a9,a9)') 'bin', &
-         'b-num', 'a-num', 'b-so4', 'a-so4', 'b-no3', 'a-no3', 'b-nh4', 'a-nh4'
-    do i_bin = 1,bin_grid%n_bin
-       write(*,'(i3,e9.2,e9.2,e9.2,e9.2,e9.2,e9.2,e9.2,e9.2)') &
-            i_bin, &
-            aero_binned_before%num_den(i_bin), &
-            aero_binned_after%num_den(i_bin), &
-            aero_binned_before%vol_den(i_bin,1), &
-            aero_binned_after%vol_den(i_bin,1), &
-            aero_binned_before%vol_den(i_bin,2), &
-            aero_binned_after%vol_den(i_bin,4), &
-            aero_binned_before%vol_den(i_bin,4), &
-            aero_binned_after%vol_den(i_bin,4)
-    end do
-    call aero_binned_free(aero_binned_before)
-    call aero_binned_free(aero_binned_after)
-!DEBUG
 
   end subroutine aero_state_halve
   

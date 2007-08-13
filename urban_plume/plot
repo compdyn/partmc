@@ -291,7 +291,8 @@ def main():
 	    sys.exit(1)
     print "Selected species:"
     print_species_table(species_nums, species_names)
-    f = os.popen('gnuplot -persist', 'w')
+    #f = os.popen('gnuplot -persist', 'w')
+    f = open('plot.gp', 'w')
     if (type == "aero_binned"):
 	plot_aero_binned(f, data_filename, unit, species_nums, species_names,
 			 times)
@@ -302,7 +303,13 @@ def main():
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)
+    f.write('set terminal postscript eps color\n')
+    f.write('set output "plot.eps"\n')
+    f.write('replot\n')
     f.flush()
+    f.close()
+    os.system('gnuplot -persist plot.gp')
+    os.system('epstopdf plot.eps')
     
 if __name__ == "__main__":
     main()

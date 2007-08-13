@@ -162,7 +162,7 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/*
+	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp
 
 .PHONY: distclean
 distclean: cleanall

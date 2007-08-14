@@ -9,6 +9,9 @@ def print_usage():
     print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
 plot <datafile_aero_total.d> <unit> <species...>
 plot <datafile_gas.d> <species...>
+plot <datafile_comp_gnuplot.d>
+plot <datafile_comp_total.d>
+plot <datafile_env.d> <fields...>
 
 Plots the time history of the given species.
 
@@ -25,6 +28,13 @@ number density).
 
 For binned distributions <species> must be just one species. If it is
 "total" then the total density is plotted.
+
+<fields> for environment data must be one of:
+  t  - temperature
+  rh - relative humidity
+  p  - pressure
+  h  - height
+At most two <fields> are allowed.
 """
 
 def process_args():
@@ -34,6 +44,8 @@ def process_args():
     data_filename = sys.argv[1]
     unit = ""
     times = []
+    species = []
+    env = []
     if re.compile("_aero_binned").search(data_filename):
 	type = "aero_binned"
 	if len(sys.argv) < 5:
@@ -80,10 +92,36 @@ def process_args():
 	    print_usage()
 	    sys.exit(1)
 	species = sys.argv[2:]
+    elif re.compile("_comp_gnuplot").search(data_filename):
+	type = "comp"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_comp_total").search(data_filename):
+	type = "comp_total"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_env").search(data_filename):
+	type = "env"
+	if (len(sys.argv) < 3) or (len(sys.argv) > 4):
+	    print_usage()
+	    sys.exit(1)
+	env.append(sys.argv[2])
+	if env[0].lower() not in ["t", "rh", "p", "h"]:
+	    print "ERROR: unknown environment field: %s" % env[0]
+	    sys.exit(1)
+	env[0] = env[0].lower()
+	if (len(sys.argv) == 4):
+	    env.append(sys.argv[3])
+	    if env[1].lower() not in ["t", "rh", "p", "h"]:
+		print "ERROR: unknown environment field: %s" % env[1]
+		sys.exit(1)
+	    env[1] = env[1].lower()
     else:
 	print "ERROR: unknown data type: %s" % data_filename
 	sys.exit(1)
-    return (type, data_filename, unit, species, times)
+    return (type, data_filename, unit, species, times, env)
 
 def get_species_names(data_filename, type):
     f = open(data_filename)
@@ -269,15 +307,53 @@ def plot_gas_history(f, data_filename, species_nums, species_names):
 	f.write(plot + ' "%s" using ($1/3600):%d title "%s" with lines\n'
 		% (data_filename, i + 1, species_names[i - 1]))
 
+def plot_comp(f, data_filename):
+    f.write('set xlabel "radius (m)"\n')
+    f.write('set ylabel "proportion"\n')
+    f.write('set cblabel "number density (#/m^3)"\n')
+    f.write('set title "composition"\n')
+    f.write('set key off\n')
+    f.write('set logscale x\n')
+    f.write('set pm3d map corners2color c1\n')
+    f.write('set palette defined ( 0 0 0 1, 1 1 0 0 )\n')
+    f.write('splot "%s"\n' % data_filename)
+
+def plot_comp_total(f, data_filename):
+    f.write('set xlabel "proportion"\n')
+    f.write('set ylabel "number density (#/m^3)"\n')
+    f.write('set title "composition"\n')
+    f.write('set key off\n')
+    f.write('plot "%s" with histeps\n' % data_filename)
+
+def plot_env(f, data_filename, env):
+    env_fields = {'t': ['temperature', '(K)', "2"],
+		       'rh': ['relative humidity', '(1)', "3"],
+		       'p': ['pressure', '(kPa)', "($4/1e3)"],
+		       'h': ['height', '(m)', "5"]}
+    f.write('set xlabel "time (hr)"\n')
+    f.write('set ylabel "%s %s"\n' % (env_fields[env[0]][0],
+				      env_fields[env[0]][1]))
+    if len(env) > 1:
+	f.write('set y2label "%s %s"\n' % (env_fields[env[1]][0],
+					   env_fields[env[1]][1]))
+	f.write('set y2tics\n')
+    f.write('set title "environment parameters"\n')
+    f.write('plot "%s" using 1:%s axes x1y1 title "%s" with lines\n'
+	    % (data_filename, env_fields[env[0]][2], env_fields[env[0]][0]))
+    if len(env) > 1:
+	f.write('replot "%s" using 1:%s axes x1y1 title "%s" with lines\n'
+		% (data_filename, env_fields[env[1]][2], env_fields[env[1]][0]))
+
 def main():
-    (type, data_filename, unit, species, times) = process_args()
-    species_names = get_species_names(data_filename, type)
-    print "Available species:"
-    print_species_table([i+1 for i in range(len(species_names))],
-			species_names)
-    species_nums = normalize_species(species, species_names)
+    (type, data_filename, unit, species, times, env) = process_args()
+    if type in ["aero_binned", "aero_history", "gas_history"]:
+	species_names = get_species_names(data_filename, type)
+	print "Available species:"
+	print_species_table([i+1 for i in range(len(species_names))],
+			    species_names)
+	species_nums = normalize_species(species, species_names)
     times = normalize_times(times)
-    if (type == "aero_binned") or (type == "aero_history"):
+    if type in ["aero_binned", "aero_history"]:
 	if unit == "num":
 	    print "Selected unit: number density"
 	elif unit == "vol":
@@ -289,8 +365,18 @@ def main():
 	else:
 	    print "ERROR: unknown unit: %s" % unit
 	    sys.exit(1)
-    print "Selected species:"
-    print_species_table(species_nums, species_names)
+    if type in ["aero_binned", "aero_history", "gas_history"]:
+	print "Selected species:"
+	print_species_table(species_nums, species_names)
+    if type == "env":
+	env_field_names = {'t': 'temperature',
+			   'rh': 'relative humidity',
+			   'p': 'pressure',
+			   'h': 'height'}
+	print "Selected first environment field: %s" % env_field_names[env[0]]
+	if len(env) > 1:
+	    print "Selected second environment field: %s" \
+		% env_field_names[env[1]]
     #f = os.popen('gnuplot -persist', 'w')
     f = open('plot.gp', 'w')
     if (type == "aero_binned"):
@@ -300,6 +386,12 @@ def main():
 	plot_aero_history(f, data_filename, unit, species_nums, species_names)
     elif (type == "gas_history"):
 	plot_gas_history(f, data_filename, species_nums, species_names)
+    elif (type == "comp"):
+	plot_comp(f, data_filename)
+    elif (type == "comp_total"):
+	plot_comp_total(f, data_filename)
+    elif (type == "env"):
+	plot_env(f, data_filename, env)
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)

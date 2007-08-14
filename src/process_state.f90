@@ -237,7 +237,7 @@ contains
     integer :: f_out
     integer, allocatable :: a_species(:), b_species(:)
     logical :: error
-    real*8, allocatable :: props(:)
+    real*8, allocatable :: props(:), left_props(:)
     type(aero_particle_t), pointer :: particle
     real*8 :: a_vol, b_vol, prop, bin_width
 
@@ -251,7 +251,7 @@ contains
     total_comp_suffix((len_trim(total_comp_suffix)+1):) = '_total.d'
     gnuplot_comp_suffix(1:1) = "_"
     gnuplot_comp_suffix(2:) = tmp_str
-    gnuplot_comp_suffix((len_trim(total_comp_suffix)+1):) = '_gnuplot.d'
+    gnuplot_comp_suffix((len_trim(gnuplot_comp_suffix)+1):) = '_gnuplot.d'
     call getarg(3, tmp_str)
     n_steps = string_to_integer(tmp_str)
     call getarg(4, tmp_str)
@@ -303,11 +303,12 @@ contains
     end if
     
     ! compute compositions
-    allocate(props(n_steps))
+    allocate(props(n_steps),left_props(n_steps))
     allocate(comp(bin_grid%n_bin, n_steps), total_comp(n_steps))
     allocate(comp_dens(bin_grid%n_bin, n_steps), total_comp_dens(n_steps))
     do i_step = 1,n_steps
        props(i_step) = (dble(i_step) - 0.5d0) / dble(n_steps)
+       left_props(i_step) = dble(i_step - 1) / dble(n_steps)
     end do
     comp = 0
     total_comp = 0
@@ -372,18 +373,23 @@ contains
     close(unit=f_out)
 
     ! write comp output in gnuplot pm3d format
-    call open_output(basename, comp_suffix, f_out)
+    call open_output(basename, gnuplot_comp_suffix, f_out)
     write(f_out, '(a)') '# number densities are scaled for bin widths in' &
          // ' both bins and proportions'
     write(f_out, '(a1,a24,a25,a25)') '#', 'radius(m)', 'proportion(0-1)', &
          'num_dens(#/m^3)'
     do i_bin = 1,bin_grid%n_bin
-       write(f_out, '(e25.15,e25.15,e25.15)') vol2rad(bin_grid%v(i_bin))
        do i_step = 1,n_steps
-          write(f_out, '(e25.15)', advance='no') comp_dens(i_bin, i_step)
+          write(f_out, '(e25.15,e25.15,e25.15)') vol2rad(bin_grid%v(i_bin)), &
+               left_props(i_step), comp_dens(i_bin, i_step)
        end do
+       ! extra dummy value at 1 to terminate the plot
+       write(f_out, '(e25.15,e25.15,e25.15)') vol2rad(bin_grid%v(i_bin)), &
+            1d0, 0d0
        write(f_out, *) ''
     end do
+    ! FIXME: the resulting plot will discard the largest bin, which
+    ! could be fixed by using bin edges rather than centers
     close(unit=f_out)
     
     ! write total_comp output
@@ -395,7 +401,7 @@ contains
     close(unit=f_out)
     
     deallocate(comp, total_comp, comp_dens, total_comp_dens)
-    deallocate(a_species, b_species, props)
+    deallocate(a_species, b_species, props, left_props)
     
   end subroutine process_comp
   

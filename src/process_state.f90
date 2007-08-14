@@ -230,14 +230,16 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
 
     character(len=100) :: comp_suffix, total_comp_suffix, tmp_str
+    character(len=100) :: gnuplot_comp_suffix
     integer, allocatable :: comp(:,:), total_comp(:)
+    real*8, allocatable :: comp_dens(:,:), total_comp_dens(:)
     integer :: n_steps, n_a, n_b, i, n_zero_vol, i_bin, i_step, i_part
     integer :: f_out
     integer, allocatable :: a_species(:), b_species(:)
     logical :: error
     real*8, allocatable :: props(:)
     type(aero_particle_t), pointer :: particle
-    real*8 :: a_vol, b_vol, prop
+    real*8 :: a_vol, b_vol, prop, bin_width
 
     ! process commandline
     call getarg(2, tmp_str)
@@ -247,6 +249,9 @@ contains
     total_comp_suffix(1:1) = "_"
     total_comp_suffix(2:) = tmp_str
     total_comp_suffix((len_trim(total_comp_suffix)+1):) = '_total.d'
+    gnuplot_comp_suffix(1:1) = "_"
+    gnuplot_comp_suffix(2:) = tmp_str
+    gnuplot_comp_suffix((len_trim(total_comp_suffix)+1):) = '_gnuplot.d'
     call getarg(3, tmp_str)
     n_steps = string_to_integer(tmp_str)
     call getarg(4, tmp_str)
@@ -298,7 +303,9 @@ contains
     end if
     
     ! compute compositions
-    allocate(props(n_steps), comp(bin_grid%n_bin, n_steps), total_comp(n_steps))
+    allocate(props(n_steps))
+    allocate(comp(bin_grid%n_bin, n_steps), total_comp(n_steps))
+    allocate(comp_dens(bin_grid%n_bin, n_steps), total_comp_dens(n_steps))
     do i_step = 1,n_steps
        props(i_step) = (dble(i_step) - 0.5d0) / dble(n_steps)
     end do
@@ -335,21 +342,45 @@ contains
        write(0,*) 'WARNING: number of particles without any A or B volume: ', &
             n_zero_vol
     end if
+    bin_width = 1d0 / dble(n_steps)
+    do i_step = 1,n_steps
+       total_comp_dens(i_step) = dble(total_comp(i_step)) &
+            / aero_state%comp_vol / bin_width
+       do i_bin = 1,bin_grid%n_bin
+          comp_dens(i_bin, i_step) = dble(comp(i_bin, i_step)) &
+               / aero_state%comp_vol / bin_grid%dlnr / bin_width
+       end do
+    end do
 
     ! write comp output
     call open_output(basename, comp_suffix, f_out)
     write(f_out, '(a)') '# rows are bins'
     write(f_out, '(a)') '# columns are proportions'
-    write(f_out, '(a)') '# entries are particle counts'
+    write(f_out, '(a)') '# entries are number densities'
     write(f_out, '(a1,a24)', advance='no') '#', 'radius(m)'
     do i_step = 1,n_steps
-       write(f_out, '(f19.1,a1)', advance='no') (props(i_step) * 100d0), '%'
+       write(f_out, '(f24.1,a1)', advance='no') (props(i_step) * 100d0), '%'
     end do
     write(f_out, *) ''
     do i_bin = 1,bin_grid%n_bin
        write(f_out, '(e25.15)', advance='no') vol2rad(bin_grid%v(i_bin))
        do i_step = 1,n_steps
-          write(f_out, '(i20)', advance='no') comp(i_bin, i_step)
+          write(f_out, '(e25.15)', advance='no') comp_dens(i_bin, i_step)
+       end do
+       write(f_out, *) ''
+    end do
+    close(unit=f_out)
+
+    ! write comp output in gnuplot pm3d format
+    call open_output(basename, comp_suffix, f_out)
+    write(f_out, '(a)') '# number densities are scaled for bin widths in' &
+         // ' both bins and proportions'
+    write(f_out, '(a1,a24,a25,a25)') '#', 'radius(m)', 'proportion(0-1)', &
+         'num_dens(#/m^3)'
+    do i_bin = 1,bin_grid%n_bin
+       write(f_out, '(e25.15,e25.15,e25.15)') vol2rad(bin_grid%v(i_bin))
+       do i_step = 1,n_steps
+          write(f_out, '(e25.15)', advance='no') comp_dens(i_bin, i_step)
        end do
        write(f_out, *) ''
     end do
@@ -357,13 +388,14 @@ contains
     
     ! write total_comp output
     call open_output(basename, total_comp_suffix, f_out)
-    write(f_out, '(a1,a19,a20)') '#', 'prop', 'count'
+    write(f_out, '(a1,a24,a25)') '#', 'prop', 'num_dens'
     do i_step = 1,n_steps
-       write(f_out, '(e20.10,i20)') props(i_step), total_comp(i_step)
+       write(f_out, '(e25.15,e25.15)') props(i_step), total_comp_dens(i_step)
     end do
     close(unit=f_out)
     
-    deallocate(comp, total_comp, a_species, b_species, props)
+    deallocate(comp, total_comp, comp_dens, total_comp_dens)
+    deallocate(a_species, b_species, props)
     
   end subroutine process_comp
   

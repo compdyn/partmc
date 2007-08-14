@@ -284,8 +284,11 @@ contains
     call gas_state_alloc(dilution, gas_data%n_spec)
 
     ! account for height changes
-    effective_dilution_rate = env%gas_dilution_rate &
-         + (env%height - old_height) / delta_t / old_height
+    effective_dilution_rate = env%gas_dilution_rate
+    if (env%height > old_height) then
+       effective_dilution_rate = effective_dilution_rate &
+            + (env%height - old_height) / delta_t / old_height
+    end if
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
     ! but emissions are in (mole m^{-2} s^{-1})
@@ -338,11 +341,18 @@ contains
     aero_state_delta%comp_vol = aero_state%comp_vol
 
     ! account for height changes
-    effective_dilution_rate = env%aero_dilution_rate &
-         + (env%height - old_height) / delta_t / old_height
+    effective_dilution_rate = env%aero_dilution_rate
+    if (env%height > old_height) then
+       effective_dilution_rate = effective_dilution_rate &
+            + (env%height - old_height) / delta_t / old_height
+    end if
 
     ! loss to background
     sample_prop = delta_t * effective_dilution_rate
+    if (sample_prop > 1d0) then
+       write(0,*) 'ERROR: effective dilution rate is too high for this timestep'
+       call exit(1)
+    end if
     call aero_state_zero(aero_state_delta)
     call aero_state_sample(aero_state, aero_state_delta, sample_prop)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
@@ -401,8 +411,11 @@ contains
     call aero_binned_alloc(dilution, bin_grid%n_bin, aero_data%n_spec)
 
     ! account for height changes
-    effective_dilution_rate = env%aero_dilution_rate &
-         + (env%height - old_height) / delta_t / old_height
+    effective_dilution_rate = env%aero_dilution_rate
+    if (env%height > old_height) then
+       effective_dilution_rate = effective_dilution_rate &
+            + (env%height - old_height) / delta_t / old_height
+    end if
 
     ! emission = delta_t * aero_emission_rate * aero_emissions
     ! but emissions are #/m^2 so we need to divide by height

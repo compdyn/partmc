@@ -184,6 +184,17 @@ contains
                time, mc_opt%del_t)
        end if
        
+       ! if we have less than half the maximum number of particles then
+       ! double until we fill up the array, and the same for halving
+       if (mc_opt%allow_double) then
+          do while (total_particles(aero_state) < mc_opt%n_part_max / 2)
+             call aero_state_double(aero_state)
+          end do
+          do while (total_particles(aero_state) > mc_opt%n_part_max * 2)
+             call aero_state_halve(aero_state, aero_binned, bin_grid)
+          end do
+       end if
+    
        ! DEBUG: enable to check array handling
        ! call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
        ! DEBUG: end
@@ -296,17 +307,6 @@ contains
        enddo
     enddo
 
-    ! if we have less than half the maximum number of particles
-    ! then double until we fill up the array
-    if (mc_opt%allow_double) then
-       do while (total_particles(aero_state) < mc_opt%n_part_max / 2)
-          call aero_state_double(aero_state)
-       end do
-       do while (total_particles(aero_state) > mc_opt%n_part_max * 2)
-          call aero_state_halve(aero_state, aero_binned, bin_grid)
-       end do
-    end if
-    
   end subroutine mc_coag
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

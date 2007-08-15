@@ -28,4 +28,4 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 soln zero                       # solution type
-aerosol_init emission_init.dat  # aerosol initial condition file
+aerosol_init emission_aerosol_init.dat # aerosol initial condition file

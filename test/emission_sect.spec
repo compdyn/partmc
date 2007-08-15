@@ -13,7 +13,7 @@ r_max 1e-3                      # maximum radius (m)
 
 gas_data gas_data_simple.dat    # file containing gas data
 aerosol_data aerosol_data_water.dat # file containing aerosol data
-aerosol_init emission_init.dat  # aerosol initial condition file
+aerosol_init emission_aerosol_init.dat # aerosol initial condition file
 
 temp_profile temp_constant_15C.dat # temperature profile file
 height_profile height_constant_1km.dat # height profile file

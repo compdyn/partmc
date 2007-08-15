@@ -338,7 +338,6 @@ contains
 
     call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
     call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
-    aero_state_delta%comp_vol = aero_state%comp_vol
 
     ! account for height changes
     effective_dilution_rate = env%aero_dilution_rate
@@ -354,6 +353,7 @@ contains
        call exit(1)
     end if
     call aero_state_zero(aero_state_delta)
+    aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_sample(aero_state, aero_state_delta, sample_prop)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
@@ -362,6 +362,7 @@ contains
     ! addition from background
     sample_vol = delta_t * effective_dilution_rate * aero_state%comp_vol
     call aero_state_zero(aero_state_delta)
+    aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env%aero_background, &
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
@@ -373,6 +374,7 @@ contains
     sample_vol = delta_t * env%aero_emission_rate &
          * aero_state%comp_vol / env%height
     call aero_state_zero(aero_state_delta)
+    aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env%aero_emissions, &
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &

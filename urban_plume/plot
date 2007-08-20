@@ -315,7 +315,7 @@ def plot_comp(f, data_filename):
     f.write('set key off\n')
     f.write('set logscale x\n')
     f.write('set pm3d map corners2color c1\n')
-    f.write('set palette defined ( 0 0 0 1, 1 1 0 0 )\n')
+    f.write('set palette defined ( 0 0 0 1, 0.25 0 1 1, 0.5 0 1 0, 0.75 1 1 0, 1 1 0 0 )\n')
     f.write('splot "%s"\n' % data_filename)
 
 def plot_comp_total(f, data_filename):

@@ -14,6 +14,7 @@ program process_state
   use pmc_gas_state
   use pmc_env
   use pmc_output_state
+  use pmc_process_state_hist
 
   character(len=100) :: filename        ! input filename
   character(len=100) :: basename        ! basename of the input filename
@@ -24,6 +25,7 @@ program process_state
   type(gas_state_t) :: gas_state        ! gas_state structure
   type(env_t) :: env                    ! env structure
   real*8 :: time                        ! current time
+  character(len=100) :: command         ! process command
 
   if (iargc() < 1) then
      call print_usage()
@@ -34,15 +36,29 @@ program process_state
 
   call inout_read_state(filename, bin_grid, aero_data, aero_state, &
        gas_data, gas_state, env, time)
-
   write(*,'(a,e20.10)') 'time (s) = ', time
+
   if (iargc() == 1) then
      call process_env(env)
      call process_info(bin_grid, aero_data, aero_state)
-     call process_moments(basename, bin_grid, aero_data, aero_state)
-     call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
+     call process_moments(basename, bin_grid, aero_data, aero_state, time)
+!     call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
+     call process_hist(basename, "_n_orig_part", bin_grid, aero_data, &
+          aero_state, orig_part_step_comp_grid, orig_part_step_comp)
   else
-     call process_comp(basename, bin_grid, aero_data, aero_state)
+     call getarg(2, command)
+     if (command == "comp") then
+        call process_hist(basename, "_comp", bin_grid, aero_data, &
+             aero_state, comp_step_comp_grid, comp_step_comp)
+!        call process_comp(basename, bin_grid, aero_data, aero_state)
+     elseif (command == "kappa") then
+        call process_hist(basename, "_kappa", bin_grid, aero_data, &
+             aero_state, kappa_step_comp_grid, kappa_step_comp)
+!        call process_kappa(basename, bin_grid, aero_data, aero_state)
+     else
+        write(0,*) 'ERROR: unknown command'
+        call exit(1)
+     end if
   end if
 
 contains
@@ -52,8 +68,9 @@ contains
   subroutine print_usage()
 
     write(0,*) 'Usage: process_state <filename.d>'
-    write(0,*) '       process_state <filename.d> <comp_suffix>' &
+    write(0,*) '       process_state <filename.d> comp' &
          // ' <n_steps> -a <A species> -b <B species>'
+    write(0,*) '       process_state <filename.d> kappa <n_steps>'
     
   end subroutine print_usage
 
@@ -85,29 +102,6 @@ contains
     
   end subroutine get_filename
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine open_output(basename, suffix, out_unit)
-    
-    ! Allocate a new unit and open it with a filename given by
-    ! basename + suffix.
-
-    use pmc_util
-
-    character(len=*), intent(in) :: basename ! basename of the output file
-    character(len=*), intent(in) :: suffix ! suffix of the output file
-    integer, intent(out) :: out_unit    ! unit for the file
-
-    character(len=len(basename)+len(suffix)) :: filename
-    
-    filename = basename
-    filename((len_trim(filename)+1):) = suffix
-    out_unit = get_unit()
-    open(out_unit, file=filename)
-    write(*,'(a,a)') 'Writing ', trim(filename)
-    
-  end subroutine open_output
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine process_env(env)
@@ -141,7 +135,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_moments(basename, bin_grid, aero_data, aero_state)
+  subroutine process_moments(basename, bin_grid, aero_data, aero_state, &
+       time)
 
     use pmc_util
     use pmc_aero_binned
@@ -150,6 +145,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    real*8, intent(in) :: time          ! current time (s)
 
     type(aero_binned_t) :: aero_binned
     integer :: f_out, i_bin, i_spec
@@ -157,7 +153,8 @@ contains
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     call open_output(basename, "_aero_binned.d", f_out)
-    call aero_binned_write_summary(aero_binned, aero_data, bin_grid, f_out)
+    call aero_binned_write_summary(aero_binned, aero_data, bin_grid, &
+         time, 0, f_out)
     close(unit=f_out)
     call aero_binned_free(aero_binned)
 
@@ -204,14 +201,38 @@ contains
 
     ! write output
     call open_output(basename, "_n_orig_part.d", f_out)
+    write(f_out, '(a1,a24)', advance='no') '#', 'radius(m)'
+    do n = 1,n_orig_part_max
+       write(f_out, '(i20)', advance='no') n
+    end do
+    write(f_out, *) ''
     do i_bin = 1,bin_grid%n_bin
+       write(f_out, '(e25.15)', advance='no') vol2rad(bin_grid%v(i_bin))
        do n = 1,n_orig_part_max
           write(f_out, '(i20)', advance='no') n_orig_part(i_bin, n)
        end do
        write(f_out, *) ''
     end do
     close(unit=f_out)
-    
+
+    ! write output in gnuplot pm3d format
+    call open_output(basename, "_n_orig_part_gnuplot.d", f_out)
+    write(f_out, '(a1,a24,a20,a20)') '#', 'radius(m)', 'n_orig_part', &
+         'number'
+    do i_bin = 1,bin_grid%n_bin
+       do n = 1,n_orig_part_max
+          write(f_out, '(e25.15,i20,i20)') vol2rad(bin_grid%v(i_bin)), &
+               n, n_orig_part(i_bin, n)
+       end do
+       ! extra dummy value at end to terminate the plot
+       write(f_out, '(e25.15,i20,i20)') vol2rad(bin_grid%v(i_bin)), &
+            n_orig_part_max, 0
+       write(f_out, *) ''
+    end do
+    ! FIXME: the resulting plot will discard the largest bin, which
+    ! could be fixed by using bin edges rather than centers
+    close(unit=f_out)
+
     deallocate(n_orig_part)
     
   end subroutine process_n_orig_part
@@ -229,8 +250,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
 
-    character(len=100) :: comp_suffix, total_comp_suffix, tmp_str
-    character(len=100) :: gnuplot_comp_suffix
     integer, allocatable :: comp(:,:), total_comp(:)
     real*8, allocatable :: comp_dens(:,:), total_comp_dens(:)
     integer :: n_steps, n_a, n_b, i, n_zero_vol, i_bin, i_step, i_part
@@ -240,18 +259,9 @@ contains
     real*8, allocatable :: props(:), left_props(:)
     type(aero_particle_t), pointer :: particle
     real*8 :: a_vol, b_vol, prop, bin_width
+    character(len=100) :: tmp_str
 
     ! process commandline
-    call getarg(2, tmp_str)
-    comp_suffix(1:1) = "_"
-    comp_suffix(2:) = tmp_str
-    comp_suffix((len_trim(comp_suffix)+1):) = '.d'
-    total_comp_suffix(1:1) = "_"
-    total_comp_suffix(2:) = tmp_str
-    total_comp_suffix((len_trim(total_comp_suffix)+1):) = '_total.d'
-    gnuplot_comp_suffix(1:1) = "_"
-    gnuplot_comp_suffix(2:) = tmp_str
-    gnuplot_comp_suffix((len_trim(gnuplot_comp_suffix)+1):) = '_gnuplot.d'
     call getarg(3, tmp_str)
     n_steps = string_to_integer(tmp_str)
     call getarg(4, tmp_str)
@@ -354,7 +364,7 @@ contains
     end do
 
     ! write comp output
-    call open_output(basename, comp_suffix, f_out)
+    call open_output(basename, "_comp.d", f_out)
     write(f_out, '(a)') '# rows are bins'
     write(f_out, '(a)') '# columns are proportions'
     write(f_out, '(a)') '# entries are number densities'
@@ -373,7 +383,7 @@ contains
     close(unit=f_out)
 
     ! write comp output in gnuplot pm3d format
-    call open_output(basename, gnuplot_comp_suffix, f_out)
+    call open_output(basename, "_comp_gnuplot.d", f_out)
     write(f_out, '(a)') '# number densities are scaled for bin widths in' &
          // ' both bins and proportions'
     write(f_out, '(a1,a24,a25,a25)') '#', 'radius(m)', 'proportion(0-1)', &
@@ -393,7 +403,7 @@ contains
     close(unit=f_out)
     
     ! write total_comp output
-    call open_output(basename, total_comp_suffix, f_out)
+    call open_output(basename, "_comp_total.d", f_out)
     write(f_out, '(a1,a24,a25)') '#', 'prop', 'num_dens'
     do i_step = 1,n_steps
        write(f_out, '(e25.15,e25.15)') props(i_step), total_comp_dens(i_step)

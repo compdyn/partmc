@@ -83,7 +83,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine bin_edge(bin_grid, i, v_edge)
+  real*8 function bin_edge(bin_grid, i) ! (m^3)
 
     ! Given a bin_grid (which stores the center points of the bins),
     ! find the given edge volume. With n_bin bin centers there are
@@ -96,7 +96,6 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
-    real*8, intent(out) :: v_edge       ! volume at edge
 
     real*8 :: log_v_min, log_v_max, log_delta
 
@@ -104,9 +103,9 @@ contains
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
     log_delta = (log_v_max - log_v_min) / dble(bin_grid%n_bin - 1)
-    v_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
+    bin_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
     
-  end subroutine bin_edge
+  end function bin_edge
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

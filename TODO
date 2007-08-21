@@ -65,3 +65,8 @@ fix test/* for gnuplot, shifting "with lines" to end
 allow times to be input as 1d, 34m, etc. No unit implies seconds.
 
 number state files consectutively
+
+change aero_particle_solute_density() etc to have aero_particle as the
+first argument.
+
+delete the unused bits of process_state() for the old histograms

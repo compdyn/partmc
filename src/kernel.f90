@@ -108,12 +108,12 @@ contains
     integer, parameter :: n_sample = 10  ! number of sample points per bin
     
     ! v1_low < bin_v(b1) < v1_high
-    call bin_edge(bin_grid, b1, v1_low)
-    call bin_edge(bin_grid, b1 + 1, v1_high)
+    v1_low = bin_edge(bin_grid, b1)
+    v1_high = bin_edge(bin_grid, b1 + 1)
     
     ! v2_low < bin_v(b2) < v2_high
-    call bin_edge(bin_grid, b2, v2_low)
-    call bin_edge(bin_grid, b2 + 1, v2_high)
+    v2_low = bin_edge(bin_grid, b2)
+    v2_high = bin_edge(bin_grid, b2 + 1)
     
     k_max = 0d0
     do i = 1,n_sample

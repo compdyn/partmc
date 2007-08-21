@@ -19,6 +19,7 @@ module pmc_aero_data
      integer, pointer :: num_ions(:)    ! len n_spec, num ions in solute
      real*8, pointer :: solubility(:)   ! len n_spec, solubilities (1)
      real*8, pointer :: molec_weight(:) ! len n_spec, molec wghts (kg mole^{-1})
+     real*8, pointer :: kappa(:)        ! len n_spec, kappas (1)
   end type aero_data_t
 
 contains
@@ -40,6 +41,7 @@ contains
     allocate(aero_data%num_ions(n_spec))
     allocate(aero_data%solubility(n_spec))
     allocate(aero_data%molec_weight(n_spec))
+    allocate(aero_data%kappa(n_spec))
     aero_data%i_water = 0
 
   end subroutine aero_data_alloc
@@ -58,6 +60,7 @@ contains
     deallocate(aero_data%num_ions)
     deallocate(aero_data%solubility)
     deallocate(aero_data%molec_weight)
+    deallocate(aero_data%kappa)
 
   end subroutine aero_data_free
 
@@ -160,6 +163,7 @@ contains
     call inout_write_real_array(file, "eps(1)", aero_data%solubility)
     call inout_write_real_array(file, "molec_wght(kg/mole)", &
          aero_data%molec_weight)
+    call inout_write_real_array(file, "kappa(1)", aero_data%kappa)
     
   end subroutine inout_write_aero_data
 
@@ -184,6 +188,7 @@ contains
     call inout_read_real_array(file, "eps(1)", aero_data%solubility)
     call inout_read_real_array(file, "molec_wght(kg/mole)", &
          aero_data%molec_weight)
+    call inout_read_real_array(file, "kappa(1)", aero_data%kappa)
     
   end subroutine inout_read_aero_data
 
@@ -206,9 +211,9 @@ contains
 
     ! check the data size
     n_species = size(species_data, 1)
-    if (.not. ((size(species_data, 2) == 4) .or. (n_species == 0))) then
+    if (.not. ((size(species_data, 2) == 5) .or. (n_species == 0))) then
        write(0,*) 'ERROR: each line in ', trim(file%name), &
-            ' should contain exactly 4 values'
+            ' should contain exactly 5 values'
        call exit(1)
     end if
 
@@ -223,6 +228,7 @@ contains
        aero_data%num_ions(i) = nint(species_data(i,2))
        aero_data%solubility(i) = species_data(i,3)
        aero_data%molec_weight(i) = species_data(i,4)
+       aero_data%kappa(i) = species_data(i,5)
     end do
     deallocate(species_name)
     deallocate(species_data)
@@ -271,7 +277,8 @@ contains
          + pmc_mpi_pack_real_array_size(val%density) &
          + pmc_mpi_pack_integer_array_size(val%num_ions) &
          + pmc_mpi_pack_real_array_size(val%solubility) &
-         + pmc_mpi_pack_real_array_size(val%molec_weight)
+         + pmc_mpi_pack_real_array_size(val%molec_weight) &
+         + pmc_mpi_pack_real_array_size(val%kappa)
 
   end function pmc_mpi_pack_aero_data_size
 
@@ -303,6 +310,7 @@ contains
     call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_pack_real_array(buffer, position, val%solubility)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
+    call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
 #endif
 
@@ -336,6 +344,7 @@ contains
     call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
+    call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
 #endif
 

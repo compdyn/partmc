@@ -204,8 +204,8 @@ contains
 
     call aero_particle_alloc(aero_particle, aero_data%n_spec)
     do k = 1,bin_grid%n_bin
-       call bin_edge(bin_grid, k, v_low)
-       call bin_edge(bin_grid, k + 1, v_high)
+       v_low = bin_edge(bin_grid, k)
+       v_high = bin_edge(bin_grid, k + 1)
        do i = 1,bin_n(k)
           ! we used to do:
           ! pv = dble(i) / dble(bin_n(k) + 1) * (v_high - v_low) + v_low

@@ -107,7 +107,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_mass(aero_particle, aero_data) ! kg
+  real*8 function aero_particle_mass(aero_particle, aero_data) ! (kg)
 
     ! Total mass of the particle.
 
@@ -119,6 +119,22 @@ contains
     aero_particle_mass = sum(aero_particle%vol * aero_data%density)
 
   end function aero_particle_mass
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function aero_particle_moles(aero_particle, aero_data) ! (1)
+
+    ! Total moles in the particle.
+
+    use pmc_aero_data
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    
+    aero_particle_moles = sum(aero_particle%vol * aero_data%density &
+         / aero_data%molec_weight)
+
+  end function aero_particle_moles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -367,6 +383,44 @@ contains
          aero_data, aero_data%density)
 
   end function aero_particle_solute_mass
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function aero_particle_solute_kappa(aero_data, aero_particle) ! (1)
+
+    ! Returns the average of the solute kappas.
+
+    use pmc_aero_data
+
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+
+    aero_particle_solute_kappa = average_solute_quantity(aero_particle, &
+         aero_data, aero_data%kappa)
+
+  end function aero_particle_solute_kappa
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function aero_particle_kappa_rh(aero_data, aero_particle) ! (1)
+
+    ! Returns the critical relative humidity from the kappa value.
+
+    use pmc_aero_data
+    use pmc_util
+
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+
+    real*8 :: kappa, diam
+    
+    real*8, parameter :: C = 3.702d-15 ! (FIXME: units???)
+
+    kappa = aero_particle_solute_kappa(aero_data, aero_particle)
+    diam = vol2diam(aero_particle_volume(aero_particle))
+    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
+
+  end function aero_particle_kappa_rh
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

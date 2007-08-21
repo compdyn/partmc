@@ -65,6 +65,27 @@ contains
   end subroutine free_unit
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine open_output(basename, suffix, out_unit)
+    
+    ! Allocate a new unit and open it with a filename given by
+    ! basename + suffix.
+
+    character(len=*), intent(in) :: basename ! basename of the output file
+    character(len=*), intent(in) :: suffix ! suffix of the output file
+    integer, intent(out) :: out_unit    ! unit for the file
+
+    character(len=len(basename)+len(suffix)) :: filename
+    
+    filename = basename
+    filename((len_trim(filename)+1):) = suffix
+    out_unit = get_unit()
+    open(out_unit, file=filename)
+    write(*,'(a,a)') 'Writing ', trim(filename)
+    
+  end subroutine open_output
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine util_srand(seed)
 

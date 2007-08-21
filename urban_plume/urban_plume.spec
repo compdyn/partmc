@@ -1,14 +1,14 @@
 run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
-n_loop 10                        # number of Monte Carlo loops
-n_part 4000                       # total number of particles
+n_loop 10                       # number of Monte Carlo loops
+n_part 100                      # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_state 0                       # state output interval (0 disables) (s)
+t_state 3600                    # state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

@@ -389,7 +389,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine aero_binned_write_summary(aero_binned, aero_data, &
-       bin_grid, out_unit)
+       bin_grid, time, index, out_unit)
 
     use pmc_aero_data
     use pmc_util
@@ -398,10 +398,14 @@ contains
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned
     type(aero_data_t), intent(in) :: aero_data ! aero_data
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+    real*8, intent(in) :: time          ! current time (s)
+    integer, intent(in) :: index        ! current index
     integer, intent(in) :: out_unit     ! unit number to write to
     
     integer :: col_num, i_bin, i_spec
     
+    write(out_unit, '(a,e20.10)') '# time(s) = ', time
+    write(out_unit, '(a,i10)') '# index = ', index
     write(out_unit, '(a)') &
          '# VL species are volume density (m^3/m^3)'
     write(out_unit, '(a)') &

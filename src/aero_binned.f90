@@ -156,10 +156,12 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned to write
 
+    call inout_write_comment(file, "begin aero_binned")
     call inout_write_real_array(file, "num_dens(num/m^3)", &
          aero_binned%num_den)
     call inout_write_real_array_2d(file, "vol_dens(num/m^3)", &
          aero_binned%vol_den)
+    call inout_write_comment(file, "end aero_binned")
     
   end subroutine inout_write_aero_binned
 
@@ -174,10 +176,12 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_binned_t), intent(out) :: aero_binned ! aero_binned to read
 
+    call inout_check_comment(file, "begin aero_binned")
     call inout_read_real_array(file, "num_dens(num/m^3)", &
          aero_binned%num_den)
     call inout_read_real_array_2d(file, "vol_dens(num/m^3)", &
          aero_binned%vol_den)
+    call inout_check_comment(file, "end aero_binned")
     
   end subroutine inout_read_aero_binned
 

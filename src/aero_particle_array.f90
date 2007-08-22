@@ -277,12 +277,14 @@ contains
 
     integer :: i
 
+    call inout_write_comment(file, "begin aero_particle_array")
     call inout_write_integer(file, "n_part", aero_particle_array%n_part)
     call inout_write_integer(file, "n_spec", aero_particle_array%n_spec)
     do i = 1,aero_particle_array%n_part
        call inout_write_integer(file, "particle_number", i)
        call inout_write_aero_particle(file, aero_particle_array%particle(i))
     end do
+    call inout_write_comment(file, "end aero_particle_array")
     
   end subroutine inout_write_aero_particle_array
   
@@ -299,6 +301,7 @@ contains
 
     integer :: i, check_i
 
+    call inout_check_comment(file, "begin aero_particle_array")
     call inout_read_integer(file, "n_part", aero_particle_array%n_part)
     call inout_read_integer(file, "n_spec", aero_particle_array%n_spec)
     allocate(aero_particle_array%particle(aero_particle_array%n_part))
@@ -307,6 +310,7 @@ contains
        call inout_check_index(file, i, check_i)
        call inout_read_aero_particle(file, aero_particle_array%particle(i))
     end do
+    call inout_check_comment(file, "end aero_particle_array")
     
   end subroutine inout_read_aero_particle_array
   

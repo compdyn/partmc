@@ -210,6 +210,8 @@ contains
 
     integer :: i
     
+    call inout_write_comment(file, "begin env_data")
+
     call inout_write_real_array(file, "temp_time(s)", env_data%temp_time)
     call inout_write_real_array(file, "temp(K)", env_data%temp)
     
@@ -260,6 +262,8 @@ contains
        call inout_write_aero_dist(file, env_data%aero_background(i))
     end do
 
+    call inout_write_comment(file, "end env_data")
+
   end subroutine inout_write_env_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -274,6 +278,8 @@ contains
     type(env_data_t), intent(out) :: env_data ! environment data to read
     
     integer :: i, n
+
+    call inout_check_comment(file, "begin env_data")
 
     call inout_read_real_array(file, "temp_time(s)", env_data%temp_time)
     call inout_read_real_array(file, "temp(K)", env_data%temp)
@@ -332,6 +338,8 @@ contains
             env_data%aero_dilution_rate(i))
        call inout_read_aero_dist(file, env_data%aero_background(i))
     end do
+
+    call inout_check_comment(file, "end env_data")
 
   end subroutine inout_read_env_data
 

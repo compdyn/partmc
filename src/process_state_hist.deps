@@ -1,3 +1,3 @@
 # DO NOT EDIT --- auto-generated file
-src/process_state_hist.o: src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_aero_data.mod src/pmc_aero_state.mod src/pmc_aero_particle.mod
-src/pmc_process_state_hist.mod: src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_aero_data.mod src/pmc_aero_state.mod src/pmc_aero_particle.mod
+src/process_state_hist.o: src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_aero_data.mod src/pmc_aero_state.mod src/pmc_env.mod src/pmc_aero_particle.mod
+src/pmc_process_state_hist.mod: src/pmc_util.mod src/pmc_bin_grid.mod src/pmc_aero_data.mod src/pmc_aero_state.mod src/pmc_env.mod src/pmc_aero_particle.mod

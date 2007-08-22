@@ -342,8 +342,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
 
+    call inout_write_comment(file, "begin aero_mode")
     call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
     call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
+    call inout_write_comment(file, "end aero_mode")
 
   end subroutine inout_write_aero_mode
 
@@ -360,11 +362,13 @@ contains
 
     integer :: i
     
+    call inout_write_comment(file, "begin aero_dist")
     call inout_write_integer(file, "n_modes", aero_dist%n_mode)
     do i = 1,aero_dist%n_mode
        call inout_write_integer(file, "mode_number", i)
        call inout_write_aero_mode(file, aero_dist%mode(i))
     end do
+    call inout_write_comment(file, "end aero_dist")
 
   end subroutine inout_write_aero_dist
 
@@ -379,8 +383,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
 
+    call inout_check_comment(file, "begin aero_mode")
     call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
     call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
+    call inout_check_comment(file, "end aero_mode")
 
   end subroutine inout_read_aero_mode
 
@@ -397,6 +403,7 @@ contains
 
     integer :: i, check_i
     
+    call inout_check_comment(file, "begin aero_dist")
     call inout_read_integer(file, "n_modes", aero_dist%n_mode)
     allocate(aero_dist%mode(aero_dist%n_mode))
     do i = 1,aero_dist%n_mode
@@ -404,6 +411,7 @@ contains
        call inout_check_index(file, i, check_i)
        call inout_read_aero_mode(file, aero_dist%mode(i))
     end do
+    call inout_check_comment(file, "end aero_dist")
 
   end subroutine inout_read_aero_dist
 

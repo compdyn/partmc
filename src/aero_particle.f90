@@ -402,28 +402,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_kappa_rh(aero_data, aero_particle) ! (1)
-
-    ! Returns the critical relative humidity from the kappa value.
-
-    use pmc_aero_data
-    use pmc_util
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-
-    real*8 :: kappa, diam
-    
-    real*8, parameter :: C = 3.702d-15 ! (FIXME: units???)
-
-    kappa = aero_particle_solute_kappa(aero_data, aero_particle)
-    diam = vol2diam(aero_particle_volume(aero_particle))
-    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
-
-  end function aero_particle_kappa_rh
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   subroutine aero_particle_coagulate(aero_particle_1, &
        aero_particle_2, aero_particle_new)
 
@@ -454,8 +432,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(in) :: aero_particle ! aero_particle to write
     
+    call inout_write_comment(file, "begin aero_particle")
     call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vol)
+    call inout_write_comment(file, "end aero_particle")
     
   end subroutine inout_write_aero_particle
   
@@ -470,8 +450,10 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(out) :: aero_particle ! aero_particle to read
 
+    call inout_check_comment(file, "begin aero_particle")
     call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
+    call inout_check_comment(file, "end aero_particle")
     
   end subroutine inout_read_aero_particle
   

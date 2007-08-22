@@ -9,7 +9,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine process_hist(basename, suffix, bin_grid, aero_data, &
+  subroutine process_hist(basename, type, bin_grid, env, aero_data, &
        aero_state, step_comp_grid, step_comp)
 
     ! Compute a histogram by calling the step_comp() function on each
@@ -19,31 +19,38 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_state
+    use pmc_env
     
     character(len=*), intent(in) :: basename ! basename of the input filename
-    character(len=*), intent(in) :: suffix ! suffix of the input filename
+    character(len=*), intent(in) :: type ! type of the input filename
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
 
     interface
-       subroutine step_comp_grid(bin_grid, aero_data, aero_state, &
+       subroutine step_comp_grid(bin_grid, env, aero_data, aero_state, &
             n_step, step_grid)
          use pmc_bin_grid
          use pmc_aero_data
          use pmc_aero_state
+         use pmc_env
          type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+         type(env_t), intent(in) :: env ! environment state
          type(aero_data_t), intent(in) :: aero_data ! aero_data structure
          type(aero_state_t), intent(in) :: aero_state ! aero_state structure
          integer, intent(out) :: n_step  ! number of histogram steps
          real*8, pointer :: step_grid(:) ! len n_step+1, step grid edges
        end subroutine step_comp_grid
 
-       integer function step_comp(bin_grid, aero_data, n_step, aero_particle)
+       integer function step_comp(bin_grid, env, aero_data, n_step, &
+            aero_particle)
          use pmc_bin_grid
          use pmc_aero_data
          use pmc_aero_particle
+         use pmc_env
          type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+         type(env_t), intent(in) :: env ! environment state
          type(aero_data_t), intent(in) :: aero_data ! aero_data structure
          integer, intent(in) :: n_step  ! number of histogram steps
          type(aero_particle_t), intent(in) :: aero_particle ! particle
@@ -59,6 +66,12 @@ contains
     real*8 :: scale, scale_bin, num, vol, mass, mole
     real*8, pointer :: step_grid(:) ! length n_step + 1
 
+    call step_comp_grid(bin_grid, env, aero_data, aero_state, n_step, step_grid)
+    allocate(num_den(bin_grid%n_bin, n_step), num_den_tot(n_step))
+    allocate(vol_den(bin_grid%n_bin, n_step), vol_den_tot(n_step))
+    allocate(mass_den(bin_grid%n_bin, n_step), mass_den_tot(n_step))
+    allocate(mole_den(bin_grid%n_bin, n_step), mole_den_tot(n_step))
+
     num_den = 0d0
     num_den_tot = 0d0
     vol_den = 0d0
@@ -68,19 +81,13 @@ contains
     mole_den = 0d0
     mole_den_tot = 0d0
 
-    call step_comp_grid(bin_grid, aero_data, aero_state, n_step, step_grid)
-    allocate(num_den(bin_grid%n_bin, n_step), num_den_tot(n_step))
-    allocate(vol_den(bin_grid%n_bin, n_step), vol_den_tot(n_step))
-    allocate(mass_den(bin_grid%n_bin, n_step), mass_den_tot(n_step))
-    allocate(mole_den(bin_grid%n_bin, n_step), mole_den_tot(n_step))
-
     scale = 1d0 / bin_grid%dlnr / dble(n_step)
     scale_bin = 1d0 / bin_grid%dlnr
     n_invalid = 0
     do i_bin = 1,bin_grid%n_bin
        do i_part = 1,aero_state%bins(i_bin)%n_part
           particle => aero_state%bins(i_bin)%particle(i_part)
-          i_step = step_comp(bin_grid, aero_data, n_step, particle)
+          i_step = step_comp(bin_grid, env, aero_data, n_step, particle)
           if (i_step == 0) then
              n_invalid = n_invalid + 1
              continue
@@ -103,13 +110,13 @@ contains
        write(0,*) 'WARNING: number of particles without bin: ', n_invalid
     end if
 
-    call write_hist_matrix(basename, suffix, "_num", "number density", &
+    call write_hist_matrix(basename, type, "_num", "number density", &
          n_step, bin_grid, step_grid, num_den, num_den_tot)
-    call write_hist_matrix(basename, suffix, "_vol", "volume density", &
+    call write_hist_matrix(basename, type, "_vol", "volume density", &
          n_step, bin_grid, step_grid, vol_den, vol_den_tot)
-    call write_hist_matrix(basename, suffix, "_mass", "mass density", &
+    call write_hist_matrix(basename, type, "_mass", "mass density", &
          n_step, bin_grid, step_grid, mass_den, mass_den_tot)
-    call write_hist_matrix(basename, suffix, "_mole", "molar density", &
+    call write_hist_matrix(basename, type, "_mole", "molar density", &
          n_step, bin_grid, step_grid, mole_den, mole_den_tot)
 
     deallocate(step_grid)
@@ -122,7 +129,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine write_hist_matrix(basename, suffix, unit, unit_descript, &
+  subroutine write_hist_matrix(basename, type, unit, unit_descript, &
        n_step, bin_grid, step_grid, den, den_tot)
 
     ! Helper function for process_hist() to write out the histograms.
@@ -131,7 +138,7 @@ contains
     use pmc_bin_grid
 
     character(len=*), intent(in) :: basename ! basename of the filename
-    character(len=*), intent(in) :: suffix ! suffix of the filename
+    character(len=*), intent(in) :: type ! type of the filename
     character(len=*), intent(in) :: unit ! unit of the data
     character(len=*), intent(in) :: unit_descript ! description of the unit
     integer, intent(in) :: n_step       ! number of histogram steps
@@ -145,13 +152,14 @@ contains
     real*8 :: d
 
     outname = basename
-    outname(len_trim(outname):) = suffix
-    outname(len_trim(outname):) = unit
+    outname((len_trim(outname)+1):) = type
+    outname((len_trim(outname)+1):) = unit
 
     ! write full output as a matrix
     call open_output(outname, "_matrix.d", f_out)
+    write(f_out, '(a)') '# histogram matrix'
     write(f_out, '(a)') '# rows are size bins'
-    write(f_out, '(a)') '# columns are other bins'
+    write(f_out, '(a,a,a)') '# columns are ', type, ' bins'
     write(f_out, '(a,a)') '# entries are ', unit_descript
     write(f_out, '(a)') '# first row (from 2nd column) is step edges'
     write(f_out, '(a)') '# last row (from 2nd column) is junk'
@@ -196,7 +204,9 @@ contains
     
     ! write totaled output
     call open_output(outname, "_total.d", f_out)
-    write(f_out, '(a,a)') '# quantity is ', unit_descript
+    write(f_out, '(a)') '# histogram totals'
+    write(f_out, '(a,a)') '# quantities are ', unit_descript
+    write(f_out, '(a,a,a)') '# steps are ', type
     write(f_out, '(a)') '# last row quantity is junk'
     write(f_out, '(a1,a24,a25)') '#', 'step', 'quantity'
     do i_step = 1,n_step
@@ -209,7 +219,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine orig_part_step_comp_grid(bin_grid, aero_data, aero_state, &
+  subroutine orig_part_step_comp_grid(bin_grid, env, aero_data, aero_state, &
        n_step, step_grid)
 
     ! Histogram helper for n_orig_part.
@@ -217,8 +227,10 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_state
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
@@ -237,9 +249,9 @@ contains
        end do
     end do
     
-    n_step = n_orig_part_max - 1
+    n_step = n_orig_part_max
     allocate(step_grid(n_step + 1))
-    do n = 1,(n_orig_part_max + 1)
+    do n = 1,(n_step + 1)
        step_grid(n) = dble(n - 1)
     end do
 
@@ -247,7 +259,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  integer function orig_part_step_comp(bin_grid, aero_data, n_step, &
+  integer function orig_part_step_comp(bin_grid, env, aero_data, n_step, &
        aero_particle)
 
     ! Histogram helper for n_orig_part.
@@ -255,8 +267,10 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_particle
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     integer, intent(in) :: n_step       ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
@@ -267,7 +281,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine comp_step_comp_grid(bin_grid, aero_data, aero_state, &
+  subroutine comp_step_comp_grid(bin_grid, env, aero_data, aero_state, &
        n_step, step_grid)
 
     ! Histogram helper for composition.
@@ -276,8 +290,10 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_state
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
@@ -353,7 +369,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  integer function comp_step_comp(bin_grid, aero_data, n_step, &
+  integer function comp_step_comp(bin_grid, env, aero_data, n_step, &
        aero_particle)
 
     ! Histogram helper for composition.
@@ -362,8 +378,10 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_particle
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     integer, intent(in) :: n_step       ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
@@ -390,8 +408,8 @@ contains
        comp_step_comp = 0
     else
        prop = b_vol / (a_vol + b_vol)
-       i_step = floor(dble(n_step + 1) * prop)
-       if (i_step == n_step + 1) then
+       i_step = floor(dble(n_step) * prop) + 1
+       if (i_step > n_step) then
           i_step = n_step
        end if
        comp_step_comp = i_step
@@ -401,7 +419,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine kappa_step_comp_grid(bin_grid, aero_data, aero_state, &
+  subroutine kappa_step_comp_grid(bin_grid, env, aero_data, aero_state, &
        n_step, step_grid)
 
     ! Histogram helper for kappa.
@@ -410,8 +428,10 @@ contains
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_state
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
@@ -427,18 +447,13 @@ contains
     ! process commandline
     call getarg(3, tmp_str)
     n_step = string_to_integer(tmp_str)
-    call getarg(4, tmp_str)
-    if (tmp_str /= "-a") then
-       write(0,*) 'ERROR: argument 4 must be "-a"'
-       call exit(1)
-    end if
 
     ! find max and min kappas
     first_time = .true.
     do i_bin = 1,bin_grid%n_bin
        do i_part = 1,aero_state%bins(i_bin)%n_part
-          rh = aero_particle_kappa_rh(aero_data, &
-               aero_state%bins(i_bin)%particle(i_part))
+          rh = aero_particle_kappa_rh(aero_state%bins(i_bin)%particle(i_part), &
+               aero_data, env)
           if (first_time) then
              min_rh = rh
              max_rh = rh
@@ -446,6 +461,7 @@ contains
              if (rh < min_rh) min_rh = rh
              if (rh > max_rh) max_rh = rh
           end if
+          first_time = .false.
        end do
     end do
 
@@ -457,15 +473,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function kappa_step_comp(bin_grid, aero_data, n_step, aero_particle)
+  integer function kappa_step_comp(bin_grid, env, aero_data, n_step, &
+       aero_particle)
 
     ! Histogram helper for kappa.
 
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_particle
+    use pmc_env
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     integer, intent(in) :: n_step  ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
@@ -474,11 +493,11 @@ contains
 
     common/kappa_step_comp/ min_rh, max_rh
 
-    rh = aero_particle_kappa_rh(aero_data, aero_particle)
+    rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
     kappa_step_comp = floor((rh - min_rh) / (max_rh - min_rh) &
-         * dble(n_step + 1)) + 1
-    if (kappa_step_comp > n_step + 1) then
-       kappa_step_comp = n_step + 1
+         * dble(n_step)) + 1
+    if (kappa_step_comp > n_step) then
+       kappa_step_comp = n_step
     end if
 
   end function kappa_step_comp

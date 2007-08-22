@@ -70,3 +70,12 @@ change aero_particle_solute_density() etc to have aero_particle as the
 first argument.
 
 delete the unused bits of process_state() for the old histograms
+
+test speed of code with test_sedi_exp() and many particles where we
+explicitly recalc aero_binned for output, rather than keeping it
+updated on the fly. If the penalty isn't too great, we should just
+switch to computing it on output.
+
+add H2O as a gas species and just track it as a regular gas, getting
+rid of relative humidity in env. add a relative_humidity(env,
+gas_data, gas_state) function.

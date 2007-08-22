@@ -1,7 +1,7 @@
 run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
-n_loop 10                       # number of Monte Carlo loops
+n_loop 1                        # number of Monte Carlo loops
 n_part 100                      # total number of particles
 kernel brown                    # coagulation kernel
 

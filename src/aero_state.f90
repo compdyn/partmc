@@ -613,6 +613,7 @@ contains
     integer :: n_bin, i
     
     n_bin = size(aero_state%bins)
+    call inout_write_comment(file, "begin aero_state")
     call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_write_integer(file, "n_part", aero_state%n_part)
     call inout_write_integer(file, "n_bin", n_bin)
@@ -620,6 +621,7 @@ contains
        call inout_write_integer(file, "bin_number", i)
        call inout_write_aero_particle_array(file, aero_state%bins(i))
     end do
+    call inout_write_comment(file, "end aero_state")
     
   end subroutine inout_write_aero_state
   
@@ -636,6 +638,7 @@ contains
     
     integer :: n_bin, i, check_i
     
+    call inout_check_comment(file, "begin aero_state")
     call inout_read_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_read_integer(file, "n_part", aero_state%n_part)
     call inout_read_integer(file, "n_bin", n_bin)
@@ -645,6 +648,7 @@ contains
        call inout_check_index(file, i, check_i)
        call inout_read_aero_particle_array(file, aero_state%bins(i))
     end do
+    call inout_check_comment(file, "end aero_state")
     
   end subroutine inout_read_aero_state
   

@@ -148,9 +148,11 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid to write
 
+    call inout_write_comment(file, "begin bin_grid")
     call inout_write_integer(file, "n_bin", bin_grid%n_bin)
     call inout_write_real_array(file, "center_volumes(m^3)", bin_grid%v)
     call inout_write_real(file, "dlnr", bin_grid%dlnr)
+    call inout_write_comment(file, "end bin_grid")
     
   end subroutine inout_write_bin_grid
 
@@ -165,9 +167,11 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(bin_grid_t), intent(out) :: bin_grid ! bin_grid to read
 
+    call inout_check_comment(file, "begin bin_grid")
     call inout_read_integer(file, "n_bin", bin_grid%n_bin)
     call inout_read_real_array(file, "center_volumes(m^3)", bin_grid%v)
     call inout_read_real(file, "dlnr", bin_grid%dlnr)
+    call inout_check_comment(file, "end bin_grid")
     
   end subroutine inout_read_bin_grid
 

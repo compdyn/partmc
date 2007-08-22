@@ -128,12 +128,14 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(gas_data_t), intent(in) :: gas_data ! gas_data to write
 
+    call inout_write_comment(file, "begin gas_data")
     call inout_write_integer(file, "n_spec", gas_data%n_spec)
     call inout_write_real_array(file, "molec_wght(kg/mole)", &
          gas_data%molec_weight)
     call inout_write_string_array(file, "species_names", gas_data%name)
     call inout_write_integer_array(file, "mosaic_indices", &
          gas_data%mosaic_index)
+    call inout_write_comment(file, "end gas_data")
     
   end subroutine inout_write_gas_data
 
@@ -148,12 +150,14 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(gas_data_t), intent(out) :: gas_data ! gas_data to read
 
+    call inout_check_comment(file, "begin gas_data")
     call inout_read_integer(file, "n_spec", gas_data%n_spec)
     call inout_read_real_array(file, "molec_wght(kg/mole)", &
          gas_data%molec_weight)
     call inout_read_string_array(file, "species_names", gas_data%name)
     call inout_read_integer_array(file, "mosaic_indices", &
          gas_data%mosaic_index)
+    call inout_check_comment(file, "end gas_data")
     
   end subroutine inout_read_gas_data
 

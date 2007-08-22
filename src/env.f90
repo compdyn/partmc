@@ -224,6 +224,32 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  real*8 function aero_particle_kappa_rh(aero_particle, aero_data, env) ! (1)
+
+    ! Returns the critical relative humidity from the kappa value.
+
+    use pmc_aero_particle
+    use pmc_constants
+    use pmc_aero_data
+    use pmc_util
+
+    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(env_t), intent(in) :: env      ! environment state
+
+    real*8 :: kappa, diam, C, A
+    
+    kappa = aero_particle_solute_kappa(aero_data, aero_particle)
+    A = 4d0 * const%sig * const%water_molec_weight &
+         / (const%R * env%temp * const%water_density)
+    C = sqrt(4d0 * A**3 / 27d0)
+    diam = vol2diam(aero_particle_volume(aero_particle))
+    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
+
+  end function aero_particle_kappa_rh
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   real*8 function env_air_den(env) ! (kg m^{-3})
 
     use pmc_constants
@@ -449,6 +475,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(env_t), intent(in) :: env      ! environment to write
     
+    call inout_write_comment(file, "begin env")
     call inout_write_real(file, "temp(K)", env%temp)
     call inout_write_real(file, "rel_humidity(1)", env%rel_humid)
     call inout_write_real(file, "pressure(Pa)", env%pressure)
@@ -466,6 +493,7 @@ contains
     call inout_write_real(file, "aero_emit_rate(1/s)", env%aero_emission_rate)
     call inout_write_aero_dist(file, env%aero_background)
     call inout_write_real(file, "aero_dilute_rat(1/s)", env%aero_dilution_rate)
+    call inout_write_comment(file, "end env")
 
   end subroutine inout_write_env
 
@@ -480,6 +508,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(env_t), intent(out) :: env      ! environment to read
     
+    call inout_check_comment(file, "begin env")
     call inout_read_real(file, "temp(K)", env%temp)
     call inout_read_real(file, "rel_humidity(1)", env%rel_humid)
     call inout_read_real(file, "pressure(Pa)", env%pressure)
@@ -497,6 +526,7 @@ contains
     call inout_read_real(file, "aero_emit_rate(1/s)", env%aero_emission_rate)
     call inout_read_aero_dist(file, env%aero_background)
     call inout_read_real(file, "aero_dilute_rat(1/s)", env%aero_dilution_rate)
+    call inout_check_comment(file, "end env")
 
   end subroutine inout_read_env
 

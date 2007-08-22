@@ -968,6 +968,46 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_write_comment(file, comment)
+
+    ! Write a comment string to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: comment ! comment string
+
+    write(file%unit, '(a,a)') '# ', trim(comment)
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_comment
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_check_comment(file, comment)
+
+    ! Write a comment string to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: comment ! comment string
+
+    character(len=MAX_CHAR_LEN) :: line
+    logical :: eof
+
+    call inout_read_line_raw(file, line, eof)
+    if (eof) then
+       write(0,*) "ERROR: EOF encountered at line ", file%line_num, &
+            " of file ", trim(file%name), &
+            " but expected comment: ", trim(comment)
+    end if
+    if ((line(1:2) /= "# ") .or. (line(3:) /= comment)) then
+       write(0,*) "ERROR: at line ", file%line_num, &
+            " of file ", trim(file%name), &
+            " expected comment: ", trim(comment)
+    end if
+
+  end subroutine inout_check_comment
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_write_integer(file, name, var)
 
     ! Write an integer to an inout file.

@@ -28,6 +28,8 @@ module pmc_constants
      real*8 :: k_b = 1.3806505d-23      ! Boltzmann constant in J K^{-1}
      real*8 :: mu = 1.78d-5             ! dynamic visc. air (kg m^{-1} s^{-1})
      real*8 :: N_A = 6.02214179d23      ! Avogadro's number (mole^{-1})
+     real*8 :: water_molec_weight = 18d-3 ! (kg mole^{-1})
+     real*8 :: water_density = 1d3      ! (kg m^{-3})
   end type const_t
 
   type(const_t), save :: const

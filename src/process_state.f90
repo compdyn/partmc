@@ -42,19 +42,16 @@ program process_state
      call process_env(env)
      call process_info(bin_grid, aero_data, aero_state)
      call process_moments(basename, bin_grid, aero_data, aero_state, time)
-!     call process_n_orig_part(basename, bin_grid, aero_data, aero_state)
-     call process_hist(basename, "_n_orig_part", bin_grid, aero_data, &
+     call process_hist(basename, "_n_orig_part", bin_grid, env, aero_data, &
           aero_state, orig_part_step_comp_grid, orig_part_step_comp)
   else
      call getarg(2, command)
      if (command == "comp") then
-        call process_hist(basename, "_comp", bin_grid, aero_data, &
+        call process_hist(basename, "_comp", bin_grid, env, aero_data, &
              aero_state, comp_step_comp_grid, comp_step_comp)
-!        call process_comp(basename, bin_grid, aero_data, aero_state)
      elseif (command == "kappa") then
-        call process_hist(basename, "_kappa", bin_grid, aero_data, &
+        call process_hist(basename, "_kappa", bin_grid, env, aero_data, &
              aero_state, kappa_step_comp_grid, kappa_step_comp)
-!        call process_kappa(basename, bin_grid, aero_data, aero_state)
      else
         write(0,*) 'ERROR: unknown command'
         call exit(1)

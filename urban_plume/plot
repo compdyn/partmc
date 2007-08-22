@@ -83,6 +83,12 @@ gas_species_titles = {
     "CH3SO2CH2OO": "CH$_3$SO$_2$CH$_2$OO",
     }
 
+col_type_names = {
+    "_n_orig_part": ["number of component particles", ""],
+    "_comp": ["mixing state", "\\%"],
+    "_kappa": ["critical supersaturation", "\\%"],
+    }
+
 def print_usage():
     print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
 plot <datafile_aero_total.d> <unit> <species...>
@@ -142,7 +148,7 @@ def process_args():
 	    print "ERROR: can only plot total for number density"
 	    sys.exit(1)
 	times = sys.argv[4:]
-    elif re.compile("_aero_total").search(data_filename):
+    elif re.compile("_aero_total.d").search(data_filename):
 	type = "aero_history"
 	if len(sys.argv) < 3:
 	    print_usage()
@@ -175,12 +181,12 @@ def process_args():
 	if len(sys.argv) > 2:
 	    print_usage()
 	    sys.exit(1)
-    elif re.compile("_comp_total").search(data_filename):
+    elif re.compile("_comp_total.d").search(data_filename):
 	type = "comp_total"
 	if len(sys.argv) > 2:
 	    print_usage()
 	    sys.exit(1)
-    elif re.compile("_comp").search(data_filename):
+    elif re.compile("_comp.d").search(data_filename):
 	type = "comp"
 	if len(sys.argv) > 2:
 	    print_usage()
@@ -197,14 +203,16 @@ def process_args():
 	if len(sys.argv) > 2:
 	    print_usage()
 	    sys.exit(1)
-    elif re.compile("_n_orig_part").search(data_filename):
+    elif re.compile("_n_orig_part.d").search(data_filename):
 	type = "n_orig_part"
 	if len(sys.argv) > 2:
 	    print_usage()
 	    sys.exit(1)
     else:
-	print "ERROR: unknown data type: %s" % data_filename
-	sys.exit(1)
+	type = "hist"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
     return (type, data_filename, unit, species, times, env)
 
 def get_species_names(data_filename, type):
@@ -806,6 +814,185 @@ def pyx_plot_n_orig_part(data_filename):
     g.writeEPSfile("plot_pyx")
     g.writePDFfile("plot_pyx")
 
+def pyx_plot_hist(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    line = f.readline()
+    f.close()
+    if line == "# histogram matrix\n":
+	pyx_plot_hist_matrix(data_filename)
+    elif line == "# histogram totals\n":
+	pyx_plot_hist_total(data_filename)
+    else:
+	print "ERROR: unknown data type in file %s" % data_filename
+
+def pyx_plot_hist_matrix(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+    f.readline()
+
+    line = f.readline()
+    match = re.compile("^# columns are (.+) bins$").search(line)
+    if not match:
+	print "ERROR: unable to determine column type"
+	sys.exit(1)
+    col_type = match.group(1)
+    if col_type not in col_type_names.keys():
+	print "ERROR: unknown column type: %s" % col_type
+	sys.exit(1)
+    col_type_name = col_type_names[col_type][0]
+    col_type_suffix = col_type_names[col_type][1]
+    
+    line = f.readline()
+    match = re.compile("^# entries are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine entry type"
+	sys.exit(1)
+    unit = match.group(1)
+    
+    f.readline()
+    f.readline()
+    f.readline()
+    f.readline()
+    line = f.readline()
+    elements = line.split()
+    c = [float(i) for i in elements[1:]]
+    if col_type == "_comp":
+	c = [x * 100 for x in c]
+    if col_type == "_kappa":
+	c = [(rh - 1) * 100 for rh in c]
+    
+    d = []
+    first_line = True
+    max_val = 0
+    for line in f:
+	elements = line.split()
+	r = float(elements[0])
+	if not first_line:
+	    for i, v in enumerate(data):
+		if v > max_val:
+		    max_val = v
+		d.append([last_r, r, c[i], c[i+1], v])
+	data = [float(i) for i in elements[1:-1]]
+	n = len(data)
+	if first_line:
+	    first_line = False
+	    min_r = r
+	max_r = r
+	last_r = r
+    f.close()
+    scaled_d = []
+    ep = 1e-4 * (c[-1] - c[0])
+    for [x1, x2, y1, y2, v] in d:
+	if v > 0:
+	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
+			     y1 * (1 - ep), y2 * (1 + ep),
+			     float(v) / float(max_val)])
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.log(min = min_r, max = max_r,
+					 title = 'radius (m)'),
+		      y = graph.axis.linear(min = c[0], max = c[-1],
+					    title = col_type_name,
+					    texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    pal = listpalette([[0, color.rgb(0, 0, 1)],
+		       [0.3, color.rgb(0, 1, 1)],
+		       [0.5, color.rgb(0, 1, 0)],
+		       [0.7, color.rgb(1, 1, 0)],
+		       [1, color.rgb(1, 0, 0)]])
+    g.plot(graph.data.list(scaled_d, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	   [graph.style.rect(pal)])
+    colorbar_steps = 1000
+    color_d = []
+    for i in range(colorbar_steps):
+	color_d.append([0, 1, float(i) / float(colorbar_steps) * float(max_val),
+			float(i + 1) / float(colorbar_steps) * float(max_val),
+			(float(i) + 0.5) / float(colorbar_steps)])
+    g2 = g.insert(graph.graphxy(width = 0.5, height = 4,
+				xpos = g.width + 1, ypos = 1,
+				x = graph.axis.linear(min = 0, max = 1,
+						      parter = None),
+				y2 = graph.axis.linear(min = 0,
+						       max = max_val,
+						       title = unit)))
+    g2.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
+			    ymin = 3, ymax = 4, color = 5),
+	    [graph.style.rect(pal)])
+    g2.dolayout()
+    g2.dobackground()
+    g2.dodata()
+    g2.doaxes()
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def pyx_plot_hist_total(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+
+    line = f.readline()
+    match = re.compile("^# quantities are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine entry type"
+	sys.exit(1)
+    unit = match.group(1)
+    
+    line = f.readline()
+    match = re.compile("^# steps are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine step type"
+	sys.exit(1)
+    col_type = match.group(1)
+    if col_type not in col_type_names.keys():
+	print "ERROR: unknown column type: %s" % col_type
+	sys.exit(1)
+    col_type_name = col_type_names[col_type][0]
+    col_type_suffix = col_type_names[col_type][1]
+    
+    f.readline()
+    f.readline()
+    
+    q = []
+    c = []
+    first_line = True
+    for line in f:
+	elements = line.split()
+	c.append(float(elements[0]))
+	if not first_line:
+	    q.append(last_v)
+	last_v = float(elements[1])
+	first_line = False
+    f.close()
+    if col_type == "_comp":
+	c = [x * 100 for x in c]
+    if col_type == "_kappa":
+	c = [(rh - 1) * 100 for rh in c]
+    d = [[q[i], c[i]] for i in range(len(q))]
+
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = unit,
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.linear(title = col_type_name,
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])]),
+					    texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    g.plot(graph.data.list(d, x = 1, y = 2, title = None),
+	   [graph.style.histogram(autohistogramaxisindex = 1,
+				  autohistogrampointpos = 0,
+				  fillable = True,
+				  steps = True,
+				  lineattrs=[color.palette.Rainbow,
+					     deco.stroked([color.rgb.blue]),
+					     deco.filled([color.rgb.blue])])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
 def main():
     (type, data_filename, unit, species, times, env) = process_args()
     if type in ["aero_binned", "aero_history", "gas_history"]:
@@ -867,10 +1054,12 @@ def main():
 	plot_n_orig_part(f, data_filename)
     elif type == "n_orig_part":
 	pyx_plot_n_orig_part(data_filename)
+    elif type == "hist":
+	pyx_plot_hist(data_filename)
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)
-    if type not in ["comp", "n_orig_part"]:
+    if type not in ["comp", "n_orig_part", "hist"]:
 	f.write('set terminal postscript eps color\n')
 	f.write('set output "plot.eps"\n')
 	f.write('replot\n')

@@ -153,6 +153,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_data_t), intent(in) :: aero_data ! aero_data to write
 
+    call inout_write_comment(file, "begin aero_data")
     call inout_write_integer(file, "n_spec", aero_data%n_spec)
     call inout_write_integer(file, "i_water", aero_data%i_water)
     call inout_write_string_array(file, "species_names", aero_data%name)
@@ -164,6 +165,7 @@ contains
     call inout_write_real_array(file, "molec_wght(kg/mole)", &
          aero_data%molec_weight)
     call inout_write_real_array(file, "kappa(1)", aero_data%kappa)
+    call inout_write_comment(file, "end aero_data")
     
   end subroutine inout_write_aero_data
 
@@ -178,6 +180,7 @@ contains
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_data_t), intent(out) :: aero_data ! aero_data to read
 
+    call inout_check_comment(file, "begin aero_data")
     call inout_read_integer(file, "n_spec", aero_data%n_spec)
     call inout_read_integer(file, "i_water", aero_data%i_water)
     call inout_read_string_array(file, "species_names", aero_data%name)
@@ -189,6 +192,7 @@ contains
     call inout_read_real_array(file, "molec_wght(kg/mole)", &
          aero_data%molec_weight)
     call inout_read_real_array(file, "kappa(1)", aero_data%kappa)
+    call inout_check_comment(file, "end aero_data")
     
   end subroutine inout_read_aero_data
 

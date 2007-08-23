@@ -304,7 +304,7 @@ contains
     logical :: error
     character(len=100) :: tmp_str
 
-    common/comp_step_comp/ n_a, n_b, a_species, b_species
+    common/comp_step_comp_c/ n_a, n_b, a_species, b_species
 
     ! process commandline
     call getarg(3, tmp_str)
@@ -392,7 +392,7 @@ contains
     integer :: i, i_step
     real*8 :: a_vol, b_vol, prop
 
-    common/comp_step_comp/ n_a, n_b, a_species, b_species
+    common/comp_step_comp_c/ n_a, n_b, a_species, b_species
 
     a_vol = 0d0
     do i = 1,n_a
@@ -442,7 +442,7 @@ contains
     real*8 :: rh, min_rh, max_rh
     logical :: first_time
 
-    common/kappa_step_comp/ min_rh, max_rh
+    common/kappa_step_comp_c/ min_rh, max_rh
 
     ! process commandline
     call getarg(3, tmp_str)
@@ -491,7 +491,7 @@ contains
 
     real*8 :: rh, min_rh, max_rh
 
-    common/kappa_step_comp/ min_rh, max_rh
+    common/kappa_step_comp_c/ min_rh, max_rh
 
     rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
     kappa_step_comp = floor((rh - min_rh) / (max_rh - min_rh) &

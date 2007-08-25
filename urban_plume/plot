@@ -895,12 +895,20 @@ def pyx_plot_hist_matrix(data_filename):
 	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
 			     y1 * (1 - ep), y2 * (1 + ep),
 			     float(v) / float(max_val)])
-    g = graph.graphxy(width = 10,
-		      x = graph.axis.log(min = min_r, max = max_r,
-					 title = 'radius (m)'),
-		      y = graph.axis.linear(min = c[0], max = c[-1],
-					    title = col_type_name,
-					    texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    if col_type == "_kappa":
+        g = graph.graphxy(width = 10,
+                          x = graph.axis.log(min = min_r, max = max_r,
+                                             title = 'radius (m)'),
+                          y = graph.axis.log(min = c[0], max = c[-1],
+                                             title = col_type_name,
+                                             texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    else:
+        g = graph.graphxy(width = 10,
+                          x = graph.axis.log(min = min_r, max = max_r,
+                                             title = 'radius (m)'),
+                          y = graph.axis.linear(min = c[0], max = c[-1],
+                                                title = col_type_name,
+                                                texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
     pal = listpalette([[0, color.rgb(0, 0, 1)],
 		       [0.3, color.rgb(0, 1, 1)],
 		       [0.5, color.rgb(0, 1, 0)],

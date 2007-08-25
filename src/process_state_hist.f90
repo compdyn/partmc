@@ -361,9 +361,7 @@ contains
 
     ! allocate the step grid
     allocate(step_grid(n_step + 1))
-    do i = 1,(n_step + 1)
-       step_grid(i) = dble(i - 1) / dble(n_step)
-    end do
+    call linspace(0d0, 1d0, n_step + 1, step_grid)
 
   end subroutine comp_step_comp_grid
 
@@ -386,10 +384,9 @@ contains
     integer, intent(in) :: n_step       ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
-    integer :: n_a, n_b
+    integer :: n_a, n_b, i
     integer, pointer :: a_species(:), b_species(:)
     logical :: error
-    integer :: i, i_step
     real*8 :: a_vol, b_vol, prop
 
     common/comp_step_comp_c/ n_a, n_b, a_species, b_species
@@ -408,11 +405,7 @@ contains
        comp_step_comp = 0
     else
        prop = b_vol / (a_vol + b_vol)
-       i_step = floor(dble(n_step) * prop) + 1
-       if (i_step > n_step) then
-          i_step = n_step
-       end if
-       comp_step_comp = i_step
+       comp_step_comp = linspace_find(0d0, 1d0, n_step + 1, prop)
     end if
     
   end function comp_step_comp
@@ -467,7 +460,7 @@ contains
 
     ! make step grid
     allocate(step_grid(n_step + 1))
-    call linspace(min_rh, max_rh, n_step + 1, step_grid)
+    call logspace(min_rh, max_rh, n_step + 1, step_grid)
 
   end subroutine kappa_step_comp_grid
   
@@ -482,6 +475,7 @@ contains
     use pmc_aero_data
     use pmc_aero_particle
     use pmc_env
+    use pmc_util
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
     type(env_t), intent(in) :: env      ! environment state
@@ -494,11 +488,7 @@ contains
     common/kappa_step_comp_c/ min_rh, max_rh
 
     rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
-    kappa_step_comp = floor((rh - min_rh) / (max_rh - min_rh) &
-         * dble(n_step)) + 1
-    if (kappa_step_comp > n_step) then
-       kappa_step_comp = n_step
-    end if
+    kappa_step_comp = logspace_find(min_rh, max_rh, n_step + 1, rh)
 
   end function kappa_step_comp
 

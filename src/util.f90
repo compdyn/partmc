@@ -362,12 +362,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine linspace(min, max, n, x)
+  subroutine linspace(min_x, max_x, n, x)
 
     ! Makes a linearly spaced array of length n from min to max.
 
-    real*8, intent(in) :: min           ! minimum array value
-    real*8, intent(in) :: max           ! maximum array value
+    real*8, intent(in) :: min_x         ! minimum array value
+    real*8, intent(in) :: max_x         ! maximum array value
     integer, intent(in) :: n            ! number of entries
     real*8, intent(out) :: x(n)         ! array
 
@@ -376,40 +376,78 @@ contains
 
     do i = 2, (n - 1)
        a = dble(i - 1) / dble(n - 1)
-       x(i) = (1d0 - a) * min + a * max
+       x(i) = (1d0 - a) * min_x + a * max_x
     end do
     if (n > 0) then
        ! make sure these values are exact
-       x(1) = min
-       x(n) = max
+       x(1) = min_x
+       x(n) = max_x
     end if
     
   end subroutine linspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine logspace(min, max, n, x)
+  subroutine logspace(min_x, max_x, n, x)
 
     ! Makes a logarithmically spaced array of length n from min to max.
 
-    real*8, intent(in) :: min           ! minimum array value
-    real*8, intent(in) :: max           ! maximum array value
+    real*8, intent(in) :: min_x         ! minimum array value
+    real*8, intent(in) :: max_x         ! maximum array value
     integer, intent(in) :: n            ! number of entries
     real*8, intent(out) :: x(n)         ! array
 
     real*8 :: log_x(n)
 
-    call assert(min > 0d0)
-    call assert(max > 0d0)
-    call linspace(log(min), log(max), n, log_x)
+    call assert(min_x > 0d0)
+    call assert(max_x > 0d0)
+    call linspace(log(min_x), log(max_x), n, log_x)
     x = exp(log_x)
     if (n > 0) then
        ! make sure these values are exact
-       x(1) = min
-       x(n) = max
+       x(1) = min_x
+       x(n) = max_x
     end if
     
   end subroutine logspace
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function linspace_find(min_x, max_x, n, x)
+
+    ! If xa is the array allocated by linspace(min_x, max_x, n, xa) then
+    ! i = linspace_find(min_x, max_x, n, x) returns the index i satisfying
+    ! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
+    ! If x < min_x then i = 1. Thus 1 <= i <= n.
+
+    real*8, intent(in) :: min_x         ! minimum array value
+    real*8, intent(in) :: max_x         ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(in) :: x             ! value
+
+    linspace_find = floor((x - min_x) / (max_x - min_x) * dble(n)) + 1
+    linspace_find = min(linspace_find, n)
+    linspace_find = max(linspace_find, 1)
+    
+  end function linspace_find
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function logspace_find(min_x, max_x, n, x)
+
+    ! If xa is the array allocated by logspace(min_x, max_x, n, xa) then
+    ! i = logspace_find(min_x, max_x, n, x) returns the index i satisfying
+    ! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
+    ! If x < min_x then i = 1. Thus 1 <= i <= n.
+
+    real*8, intent(in) :: min_x         ! minimum array value
+    real*8, intent(in) :: max_x         ! maximum array value
+    integer, intent(in) :: n            ! number of entries
+    real*8, intent(in) :: x             ! value
+
+    logspace_find = linspace_find(log(min_x), log(max_x), n, log(x))
+    
+  end function logspace_find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

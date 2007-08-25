@@ -9,6 +9,12 @@ module pmc_aero_particle
   type aero_particle_t
      real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
      integer :: n_orig_part              ! number of original particles
+     real*8 :: absorb_cross_sect         ! absorbion cross-section (m^2)
+     real*8 :: extinct_cross_sect        ! extinction cross-section (m^2)
+     real*8 :: asymmetry                 ! asymmetry parameter (1)
+     complex*16 :: refract_shell         ! refractive index of the shell (1)
+     complex*16 :: refract_core          ! refractive index of the core (1)
+     real*8 :: core_vol                  ! volume of the core (m^3)
   end type aero_particle_t
 
 contains
@@ -60,6 +66,12 @@ contains
     call assert(size(aero_particle_from%vol) == size(aero_particle_to%vol))
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
+    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
+    aero_particle_to%extinct_cross_sect = aero_particle_from%extinct_cross_sect
+    aero_particle_to%asymmetry = aero_particle_from%asymmetry
+    aero_particle_to%refract_shell = aero_particle_from%refract_shell
+    aero_particle_to%refract_core = aero_particle_from%refract_core
+    aero_particle_to%core_vol = aero_particle_from%core_vol
 
   end subroutine aero_particle_copy
   
@@ -76,6 +88,12 @@ contains
     aero_particle_to%vol => aero_particle_from%vol
     nullify(aero_particle_from%vol)
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
+    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
+    aero_particle_to%extinct_cross_sect = aero_particle_from%extinct_cross_sect
+    aero_particle_to%asymmetry = aero_particle_from%asymmetry
+    aero_particle_to%refract_shell = aero_particle_from%refract_shell
+    aero_particle_to%refract_core = aero_particle_from%refract_core
+    aero_particle_to%core_vol = aero_particle_from%core_vol
     
   end subroutine aero_particle_shift
 
@@ -89,6 +107,12 @@ contains
     
     aero_particle%vol = 0d0
     aero_particle%n_orig_part = 1
+    aero_particle%absorb_cross_sect = 0d0
+    aero_particle%extinct_cross_sect = 0d0
+    aero_particle%asymmetry = 0d0
+    aero_particle%refract_shell = (0d0, 0d0)
+    aero_particle%refract_core = (0d0, 0d0)
+    aero_particle%core_vol = 0d0
 
   end subroutine aero_particle_zero
   
@@ -418,6 +442,12 @@ contains
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
+    aero_particle_new%absorb_cross_sect = 0d0
+    aero_particle_new%extinct_cross_sect = 0d0
+    aero_particle_new%asymmetry = 0d0
+    aero_particle_new%refract_shell = (0d0, 0d0)
+    aero_particle_new%refract_core = (0d0, 0d0)
+    aero_particle_new%core_vol = 0d0
 
   end subroutine aero_particle_coagulate
 
@@ -434,6 +464,15 @@ contains
     
     call inout_write_comment(file, "begin aero_particle")
     call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
+    call inout_write_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
+    call inout_write_real(file, "extinct(m^2)", &
+         aero_particle%extinct_cross_sect)
+    call inout_write_real(file, "asymmetry(1)", aero_particle%asymmetry)
+    call inout_write_complex(file, "refract_shell(1)", &
+         aero_particle%refract_shell)
+    call inout_write_complex(file, "refract_core(1)", &
+         aero_particle%refract_core)
+    call inout_write_real(file, "core_vol(m^3)", aero_particle%core_vol)
     call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_write_comment(file, "end aero_particle")
     
@@ -452,6 +491,14 @@ contains
 
     call inout_check_comment(file, "begin aero_particle")
     call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
+    call inout_read_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
+    call inout_read_real(file, "extinct(m^2)", &
+         aero_particle%extinct_cross_sect)
+    call inout_read_real(file, "asymmetry(1)", aero_particle%asymmetry)
+    call inout_read_complex(file, "refract_shell(1)", &
+         aero_particle%refract_shell)
+    call inout_read_complex(file, "refract_core(1)", aero_particle%refract_core)
+    call inout_read_real(file, "core_vol(m^3)", aero_particle%core_vol)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_check_comment(file, "end aero_particle")
     
@@ -469,7 +516,13 @@ contains
 
     pmc_mpi_pack_aero_particle_size = &
          pmc_mpi_pack_real_array_size(val%vol) &
-         + pmc_mpi_pack_integer_size(val%n_orig_part)
+         + pmc_mpi_pack_integer_size(val%n_orig_part) &
+         + pmc_mpi_pack_real_size(val%absorb_cross_sect) &
+         + pmc_mpi_pack_real_size(val%extinct_cross_sect) &
+         + pmc_mpi_pack_real_size(val%asymmetry) &
+         + pmc_mpi_pack_complex_size(val%refract_shell) &
+         + pmc_mpi_pack_complex_size(val%refract_core) &
+         + pmc_mpi_pack_real_size(val%core_vol)
 
   end function pmc_mpi_pack_aero_particle_size
 
@@ -495,7 +548,14 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
     call pmc_mpi_pack_integer(buffer, position, val%n_orig_part)
-    call assert(position - prev_position == pmc_mpi_pack_aero_particle_size(val))
+    call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_pack_real(buffer, position, val%extinct_cross_sect)
+    call pmc_mpi_pack_real(buffer, position, val%asymmetry)
+    call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
+    call pmc_mpi_pack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_pack_real(buffer, position, val%core_vol)
+    call assert(position - prev_position &
+         == pmc_mpi_pack_aero_particle_size(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle
@@ -522,7 +582,14 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
     call pmc_mpi_unpack_integer(buffer, position, val%n_orig_part)
-    call assert(position - prev_position == pmc_mpi_pack_aero_particle_size(val))
+    call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_unpack_real(buffer, position, val%extinct_cross_sect)
+    call pmc_mpi_unpack_real(buffer, position, val%asymmetry)
+    call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
+    call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_unpack_real(buffer, position, val%core_vol)
+    call assert(position - prev_position &
+         == pmc_mpi_pack_aero_particle_size(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle

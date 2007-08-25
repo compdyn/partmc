@@ -243,6 +243,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  integer function pmc_mpi_pack_complex_size(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    complex*16, intent(in) :: val       ! value to pack
+
+    pmc_mpi_pack_complex_size = 16
+
+  end function pmc_mpi_pack_complex_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function pmc_mpi_pack_integer_array_size(val)
 
     ! Determines the number of bytes required to pack the given value.
@@ -395,6 +407,30 @@ contains
 #endif
 
   end subroutine pmc_mpi_pack_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_complex(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+    use pmc_util
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    complex*16, intent(in) :: val       ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr
+
+    prev_position = position
+    call mpi_pack(val, 1, MPI_COMPLEX16, buffer, size(buffer), &
+         position, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+#endif
+
+  end subroutine pmc_mpi_pack_complex
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -604,6 +640,30 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_complex(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+    use pmc_util
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    complex*16, intent(out) :: val      ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr
+
+    prev_position = position
+    call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_COMPLEX16, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_complex
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

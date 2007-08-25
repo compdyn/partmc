@@ -635,6 +635,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_read_complex(file, name, var)
+
+    ! Read a complex number from a inout file that must have the given
+    ! name.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name  ! name
+    complex*16, intent(out) :: var        ! variable to store data
+
+    type(inout_line_t) :: line
+
+    call inout_read_line_no_eof(file, line)
+    call inout_check_line_name(file, line, name)
+    call inout_check_line_length(file, line, 2)
+    var = cmplx(inout_string_to_real(file, line%data(1)), &
+         inout_string_to_real(file, line%data(2)), 8)
+    call inout_line_free(line)
+
+  end subroutine inout_read_complex
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine inout_check_index(file, index, check_index)
 
     ! Check that indices are equal as expected.
@@ -1065,6 +1087,21 @@ contains
     file%line_num = file%line_num + 1
 
   end subroutine inout_write_string
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_complex(file, name, var)
+
+    ! Write a complex to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    complex*16, intent(in) :: var       ! variable to write
+
+    write(file%unit, '(a20,e30.20,e30.20)') trim(name), var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_complex
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

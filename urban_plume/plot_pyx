@@ -1,0 +1,1082 @@
+#!/usr/bin/env python
+# Copyright (C) 2007 Matthew West
+# Licensed under the GNU General Public License version 2 or (at your
+# option) any later version. See the file COPYING for details.
+
+import os, sys, re
+sys.path.insert(0, os.path.expanduser("~/.python"))
+from pyx import *
+
+class listpalette(color.palette):
+
+    def __init__(self, colorlist):
+        color.palette.__init__(self)
+        self.colorclass = colorlist[0][1].__class__
+        self.colorlist = colorlist
+
+    def getcolor(self, param):
+	for i in range(len(self.colorlist)):
+	    if self.colorlist[i][0] >= param:
+		break
+	else:
+	    raise ValueError
+	if i == 0:
+	    i = 1
+	# list[i-1] < param < list[i]
+	alpha = (param - self.colorlist[i-1][0]) \
+	    / (self.colorlist[i][0] - self.colorlist[i-1][0])
+        colordict = {}
+        for key in self.colorlist[0][1].color.keys():
+            colordict[key] = alpha * self.colorlist[i][1].color[key] \
+		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
+        return self.colorclass(**colordict)
+
+aerosol_species_titles = {
+    "SO4_a": "SO$_4$",
+    "NO3_a": "NO$_3$",
+    "Cl_a": "Cl",
+    "NH4_a": "NH$_4$",
+    "MSA_a": "MSA",
+    "ARO1_a": "ARO1",
+    "ARO2_a": "ARO2",
+    "ALK1_a": "ALK1",
+    "OLE1_a": "OLE1",
+    "API1_a": "API1",
+    "API2_a": "API2",
+    "LIM1_a": "LIM1",
+    "LIM2_a": "LIM2",
+    "CO3_a": "CO$_3$",
+    "Na_a": "Na",
+    "Ca_a": "Ca",
+    "OIN_a": "OIN",
+    "OC_a": "Organic carbon",
+    "BC_a": "Black carbon",
+    "H2O": "H$_2$O",
+    }
+
+gas_species_titles = {
+    "H2SO4": "H$_2$SO$_4$",
+    "HNO3": "HNO$_3$",
+    "HCl": "HC$\ell$",
+    "NH3": "NH$_3$",
+    "NO2": "NO$_2$",
+    "NO3": "NO$_3$",
+    "N2O5": "N$_2$O$_5$",
+    "HNO4": "HNO$_4$",
+    "O3": "O$_3$",
+    "O1D": "O$_1$D",
+    "O3P": "O$_3$P",
+    "HO2": "HO$_2$",
+    "H2O2": "H$_2$O$_2$",
+    "SO2": "SO$_2$",
+    "CH4": "CH$_4$",
+    "C2H6": "C$_2$H$_6$",
+    "CH3O2": "CH$_3$O$_2$",
+    "CH3OH": "CH$_3$OH",
+    "CH3OOH": "CH$_3$OOH",
+    "C2O3": "C$_2$O$_3$",
+    "CH3SO2H": "CH$_3$SO$_2$H",
+    "CH3SCH2OO": "CH$_3$SCH$_2$OO",
+    "CH3SO2": "CH$_3$SO$_2$",
+    "CH3SO3": "CH$_3$SO$_3$",
+    "CH3SO2OO": "CH$_3$SO$_2$OO",
+    "CH3SO2CH2OO": "CH$_3$SO$_2$CH$_2$OO",
+    }
+
+col_type_names = {
+    "_n_orig_part": ["number of component particles", ""],
+    "_comp": ["mixing state", "\\%"],
+    "_kappa": ["critical supersaturation", "\\%"],
+    }
+
+def print_usage():
+    print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
+plot <datafile_aero_total.d> <unit> <species...>
+plot <datafile_gas.d> <species...>
+plot <datafile_comp_gnuplot.d>
+plot <datafile_comp_total.d>
+plot <datafile_env.d> <fields...>
+
+Plots the time history of the given species.
+
+<unit> must be one of:
+  num  - number density
+  vol  - volume density
+  mass - mass density
+  mole - molar density
+
+<sepecies> is of list of species numbers or names (not needed for
+number density).
+
+<indices> is a list of time indices starting from 0.
+
+For binned distributions <species> must be just one species. If it is
+"total" then the total density is plotted.
+
+<fields> for environment data must be one of:
+  t  - temperature
+  rh - relative humidity
+  p  - pressure
+  h  - height
+At most two <fields> are allowed.
+"""
+
+def process_args():
+    if len(sys.argv) < 2:
+	print_usage()
+	sys.exit(1)
+    data_filename = sys.argv[1]
+    unit = ""
+    times = []
+    species = []
+    env = []
+    if re.compile("_aero_binned").search(data_filename):
+	type = "aero_binned"
+	if len(sys.argv) < 5:
+	    print_usage()
+	    sys.exit(1)
+	unit = sys.argv[2].lower()
+	if unit not in ['num', 'vol', 'mass', 'mole']:
+	    print "ERROR: unknown unit: %s" % unit
+	    print
+	    print_usage()
+	    sys.exit(1)
+	species = [sys.argv[3]]
+	if species[0].lower() == "total":
+	    species = []
+	if (unit == "num") and (species != []):
+	    print "ERROR: can only plot total for number density"
+	    sys.exit(1)
+	times = sys.argv[4:]
+    elif re.compile("_aero_total.d").search(data_filename):
+	type = "aero_history"
+	if len(sys.argv) < 3:
+	    print_usage()
+	    sys.exit(1)
+	unit = sys.argv[2].lower()
+	if unit not in ['num', 'vol', 'mass', 'mole']:
+	    print "ERROR: unknown unit: %s" % unit
+	    print
+	    print_usage()
+	    sys.exit(1)
+	if unit == "num":
+	    if len(sys.argv) > 3:
+		print "ERROR: for number density no species should be specified"
+		print
+		print_usage()
+		sys.exit(1)
+	else:
+	    if len(sys.argv) < 4:
+		print_usage()
+		sys.exit(1)
+	species = sys.argv[3:]
+    elif re.compile("_gas").search(data_filename):
+	type = "gas_history"
+	if len(sys.argv) < 3:
+	    print_usage()
+	    sys.exit(1)
+	species = sys.argv[2:]
+    elif re.compile("_comp_gnuplot").search(data_filename):
+	type = "comp_gnuplot"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_comp_total.d").search(data_filename):
+	type = "comp_total"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_comp.d").search(data_filename):
+	type = "comp"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_env").search(data_filename):
+	type = "env"
+	if (len(sys.argv) < 3):
+	    print_usage()
+	    sys.exit(1)
+	for e in sys.argv[2:]:
+	    env.append(e)
+    elif re.compile("_n_orig_part_gnuplot").search(data_filename):
+	type = "n_orig_part_gnuplot"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    elif re.compile("_n_orig_part.d").search(data_filename):
+	type = "n_orig_part"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    else:
+	type = "hist"
+	if len(sys.argv) > 2:
+	    print_usage()
+	    sys.exit(1)
+    return (type, data_filename, unit, species, times, env)
+
+def get_species_names(data_filename, type):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open %s" % data_filename
+	sys.exit(1)
+    if type == "aero_binned":
+	f.readline()
+	f.readline()
+	f.readline()
+	f.readline()
+    if type == "aero_history":
+	f.readline()
+	f.readline()
+    f.readline()
+    header = f.readline()
+    f.close()
+    if header[0] != '#':
+	print "ERROR: header does not start with #: %s" % header
+	sys.exit(1)
+    cols = header[1:].split()
+    if (type == "aero_history") or (type == "aero_binned"):
+	species = []
+	spec_re = re.compile("^\d+-VL/(.+)$")
+	for col in cols:
+	    match = spec_re.search(col)
+	    if match:
+		species.append(match.group(1))
+    elif type == "gas_history":
+	species = cols[1:]
+    else:
+	print "ERROR: unknown type: %s" % type
+	sys.exit(1)
+    return species
+
+def normalize_species(species, species_names):
+    species_nums = []
+    error = False
+    n = 0
+    for s in species:
+	try:
+	    n = int(s)
+	    if (n < 1) or (n > len(species_names)):
+		error = True
+		print "ERROR: species number out of range: %d" % n
+	except ValueError:
+	    found = False
+	    for i in range(len(species_names)):
+		if s.lower() == species_names[i].lower():
+		    found = True
+		    n = i + 1
+		    break
+	    if not found:
+		error = True
+		print "ERROR: unknown species: %s" % s
+	species_nums.append(n)
+    if error:
+	sys.exit(1)
+    species_nums.sort()
+    return species_nums
+
+def normalize_times(times):
+    times_nums = []
+    error = False
+    n = 0
+    for i in times:
+	try:
+	    n = int(i)
+	    if (n < 0):
+		error = True
+		print "ERROR: index number out of range: %d" % n
+	except ValueError:
+	    error = True
+	    print "ERROR: unknown index: %s" % i
+	times_nums.append(n)
+    if error:
+	sys.exit(1)
+    times_nums.sort()
+    return times_nums
+
+def normalize_env(env):
+    norm_env = []
+    error = False
+    for e in env:
+	if e.lower() not in ["t", "rh", "p", "h"]:
+	    error = True
+	    print "ERROR: unknown environment field: %s" % env[0]
+	norm_env.append(e.lower())
+    if error:
+	sys.exit(1)
+    return norm_env
+
+def print_species_table(species_nums, species_names):
+    col = 0
+    for i in species_nums:
+	print ("%5d %-15s" % (i, species_names[i-1])),
+	col += 1
+	if col == 3:
+	    print
+	    col = 0
+    if col != 0:
+	print
+
+def plot_aero_binned(f, data_filename, unit, species_nums, species_names,
+		     times):
+    f.write('set logscale\n')
+    f.write('set xlabel "radius (m)"\n')
+    if unit == "num":
+	f.write('set ylabel "aerosol number density (#/m^3)\n')
+    elif unit == "vol":
+	f.write('set ylabel "aerosol volume density (m^3/m^3)\n')
+	offset = 2
+    elif unit == "mass":
+	f.write('set ylabel "aerosol mass density (kg/m^3)\n')
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	f.write('set ylabel "aerosol molar density (mole/m^3)\n')
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    f.write('set title "aerosol size distributions"\n')
+    if species_nums == []:
+	first_time = True
+	for i in times:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    if unit == "num":
+		yval = "2"
+	    else:
+		yval = "(" + "+".join([("$%d" % (n+offset+1))
+				      for n in range(len(species_names))]) \
+				      + ")"
+	    f.write((plot + ' "%s" index %d using 1:%s'
+		     + ' title "total (index %d)" with lines\n')
+		    % (data_filename, i, yval, i))
+    else:
+	first_time = True
+	for i in times:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    f.write((plot + ' "%s" index %d using 1:%d'
+		     + ' title "%s (index %d)" with lines\n')
+		    % (data_filename, i, species_nums[0] + offset,
+		       species_names[species_nums[0] - 1], i))
+
+def pyx_plot_aero_binned(data_filename, unit, species_nums, species_names,
+			 times):
+    # read data
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    if unit == "num":
+	ytitle = 'number density (\#/m$^3$)'
+    elif unit == "vol":
+	ytitle = 'volume density (m$^3$/m$^3$)'
+	offset = 2
+    elif unit == "mass":
+	ytitle = 'mass density (kg/m$^3$)'
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	ytitle = 'molar density (moles/m^3)'
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    comment_re = re.compile("^#")
+    blank_re = re.compile("^\s*$")
+    data_list = []
+    line = f.readline()
+    while line:
+	while comment_re.search(line):
+	    line = f.readline()
+	data = []
+	last_v = 0
+	last_r = 0
+	last_last_v = 0
+	while not blank_re.search(line):
+	    els = line.split()
+	    r = float(els[0])
+	    if species_nums == []:
+		if unit == "num":
+		    v = float(els[1])
+		else:
+		    v = sum([float(els[i + offset - 1])
+			     for i in range(len(species_names))])
+	    else:
+		v = float(els[species_nums[0] + offset - 1])
+	    if v > 0:
+		data.append([r, v])
+	    else:
+		if (last_v != 0) and (last_last_v == 0):
+		    data.append([last_r, last_v * 0.5])
+		data.append([r, None])
+	    line = f.readline()
+	    last_last_v = last_v
+	    last_v = v
+	    last_r = r
+	if (last_v != 0) and (last_last_v == 0):
+	    data.append([last_r, last_v * 0.5])
+	data_list.append(data)
+	line = f.readline()
+	line = f.readline()
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.log(title = "radius (m)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.log(title = ytitle,
+					 painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      key = graph.key.key(pos = "tr"))
+    if species_nums == []:
+	spec_title = "total"
+    else:
+	spec = species_names[species_nums[0] - 1]
+	if spec in aerosol_species_titles.keys():
+	    spec_title = aerosol_species_titles[spec]
+	else:
+	    spec_title = spec
+    plots = []
+    for i in times:
+	plots.append(graph.data.list(data_list[i], x = 1, y = 2,
+				     title = "%s aerosol (index %d)"
+				     % (spec_title, i)))
+    g.plot(plots,
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_aero_history(f, data_filename, unit, species_nums, species_names):
+    f.write('set xlabel "time (hr)"\n')
+    if unit == "num":
+	f.write('set ylabel "aerosol number density (#/m^3)\n')
+    elif unit == "vol":
+	f.write('set ylabel "aerosol volume density (m^3/m^3)\n')
+	offset = 2
+    elif unit == "mass":
+	f.write('set ylabel "aerosol mass density (kg/m^3)\n')
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	f.write('set ylabel "aerosol molar density (mole/m^3)\n')
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    f.write('set title "aerosol time history"\n')
+    if unit == "num":
+	f.write('plot "%s" using ($1/3600):2 title "total" with lines\n'
+		% data_filename)
+    else:
+	first_time = True
+	for i in species_nums:
+	    if first_time:
+		plot = "plot"
+		first_time = False
+	    else:
+		plot = "replot"
+	    f.write(plot + ' "%s" using ($1/3600):%d title "%s" with lines\n'
+		    % (data_filename, i + offset, species_names[i - 1]))
+
+def pyx_plot_aero_history(data_filename, unit, species_nums, species_names):
+    if unit == "num":
+	ytitle = 'number density (\#/m$^3$)'
+    elif unit == "vol":
+	ytitle = 'volume density (m$^3$/m$^3$)'
+	offset = 2
+    elif unit == "mass":
+	ytitle = 'mass density (kg/m$^3$)'
+	offset = len(species_names) + 2
+    elif unit == "mole":
+	ytitle = 'molar density (moles/m^3)'
+	offset = 2 * len(species_names) + 2
+    else:
+	print "ERROR: unknown unit: %s" % unit
+	sys.exit(1)
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = "time (hours)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.linear(title = ytitle,
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      key = graph.key.key(pos = "tr"))
+    plots = []
+    if unit == "num":
+	plots.append(graph.data.file(data_filename, x = "$1/3600", y = 2,
+				     title = "total"))
+    else:
+	for i in species_nums:
+	    spec = species_names[i - 1]
+	    if spec in aerosol_species_titles.keys():
+		title = aerosol_species_titles[spec]
+	    else:
+		title = spec
+	    plots.append(graph.data.file(data_filename,
+					 x = "$1/3600", y = i + offset,
+					 title = "%s (aerosol)" % title))
+    g.plot(plots,
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_gas_history(f, data_filename, species_nums, species_names):
+    f.write('set xlabel "time (hr)"\n')
+    f.write('set ylabel "gas concentration (ppb)\n')
+    f.write('set title "gas time history"\n')
+    first_time = True
+    for i in species_nums:
+	if first_time:
+	    plot = "plot"
+	    first_time = False
+	else:
+	    plot = "replot"
+	f.write(plot + ' "%s" using ($1/3600):%d title "%s" with lines\n'
+		% (data_filename, i + 1, species_names[i - 1]))
+
+def pyx_plot_gas_history(data_filename, species_nums, species_names):
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = "time (hours)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.linear(title = "concentration (ppb)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      key = graph.key.key(pos = "tr"))
+    plots = []
+    for i in species_nums:
+	spec = species_names[i - 1]
+	if spec in gas_species_titles.keys():
+	    title = gas_species_titles[spec]
+	else:
+	    title = spec
+	plots.append(graph.data.file(data_filename, x = "$1/3600", y = i + 1,
+				     title = "%s (gas)" % title))
+    g.plot(plots,
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_comp(f, data_filename):
+    f.write('set xlabel "radius (m)"\n')
+    f.write('set ylabel "proportion"\n')
+    f.write('set cblabel "number density (#/m^3)"\n')
+    f.write('set title "composition"\n')
+    f.write('set key off\n')
+    f.write('set logscale x\n')
+    f.write('set pm3d map corners2color c1\n')
+    f.write('set palette defined ( 0 0 0 1, 0.25 0 1 1, 0.5 0 1 0, 0.75 1 1 0, 1 1 0 0 )\n')
+    f.write('splot "%s"\n' % data_filename)
+
+def pyx_plot_comp(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+    f.readline()
+    f.readline()
+    f.readline()
+    d = []
+    first_line = True
+    max_val = 0
+    for line in f:
+	elements = line.split()
+	r = float(elements[0])
+	elements = elements[1:]
+	n = len(elements)
+	if first_line:
+	    first_line = False
+	    min_r = r
+	    last_r = r
+	    continue
+	max_r = r
+	for i, e in enumerate(elements):
+	    val = float(e)
+	    if val > max_val:
+		max_val = val
+	    d.append([last_r, r,
+		      float(i) / float(n), float(i+1) / float(n),
+		      val])
+	last_r = r
+    f.close()
+    sd = []
+    ep = 1e-2
+    for [x1, x2, y1, y2, c] in d:
+	if c > 0:
+	    sd.append([x1 * (1 - ep), x2 * (1 + ep),
+		       y1 * (1 - ep) * 100, y2 * (1 + ep) * 100,
+		       float(c) / float(max_val)])
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.log(min = min_r, max = max_r,
+					 title='radius (m)'),
+		      y = graph.axis.linear(min = 0, max = 100,
+					    title='mixing state',
+					    texter = graph.axis.texter.decimal(suffix="\\%")))
+    pal = listpalette([[0, color.rgb(0, 0, 1)],
+		       [0.3, color.rgb(0, 1, 1)],
+		       [0.5, color.rgb(0, 1, 0)],
+		       [0.7, color.rgb(1, 1, 0)],
+		       [1, color.rgb(1, 0, 0)]])
+    g.plot(graph.data.list(sd, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	   [graph.style.rect(pal)])
+    colorbar_steps = 1000
+    cd = []
+    for i in range(colorbar_steps):
+	cd.append([0, 1, float(i) / float(colorbar_steps) * float(max_val),
+		   float(i + 1) / float(colorbar_steps) * float(max_val),
+		   (float(i) + 0.5) / float(colorbar_steps)])
+    g2 = g.insert(graph.graphxy(width = 0.5, height = 4,
+				xpos = g.width + 1, ypos = 1,
+				x = graph.axis.linear(min = 0, max = 1,
+						      parter = None),
+				y2 = graph.axis.linear(min = 0,
+						       max = max_val,
+						       title = "number density (\#/m$^3$)")))
+    g2.plot(graph.data.list(cd, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	    [graph.style.rect(pal)])
+    g2.dolayout()
+    g2.dobackground()
+    g2.dodata()
+    g2.doaxes()
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_comp_total(f, data_filename):
+    f.write('set xlabel "proportion"\n')
+    f.write('set ylabel "number density (#/m^3)"\n')
+    f.write('set title "composition"\n')
+    f.write('set key off\n')
+    f.write('plot "%s" with histeps\n' % data_filename)
+
+def pyx_plot_comp_total(data_filename):
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = "mixing state",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.linear(title = "number density (\#/m$^3$)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      key = graph.key.key(pos = "tr"))
+    g.plot(graph.data.file(data_filename, x = 1, y = 2,
+			   title = None),
+	   [graph.style.histogram(fillable = True,
+				  steps = True,
+				  lineattrs=[color.palette.Rainbow,
+					     deco.stroked([color.rgb.blue]),
+					     deco.filled([color.rgb.blue])])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_env(f, data_filename, env):
+    env_fields = {'t': ['temperature', '(K)', "2"],
+		       'rh': ['relative humidity', '(1)', "3"],
+		       'p': ['pressure', '(kPa)', "($4/1e3)"],
+		       'h': ['height', '(m)', "5"]}
+    f.write('set xlabel "time (hr)"\n')
+    f.write('set ylabel "%s %s"\n' % (env_fields[env[0]][0],
+				      env_fields[env[0]][1]))
+    if len(env) > 1:
+	f.write('set y2label "%s %s"\n' % (env_fields[env[1]][0],
+					   env_fields[env[1]][1]))
+	f.write('set y2tics\n')
+    f.write('set title "environment parameters"\n')
+    f.write('plot "%s" using 1:%s axes x1y1 title "%s" with lines\n'
+	    % (data_filename, env_fields[env[0]][2], env_fields[env[0]][0]))
+    if len(env) > 1:
+	f.write('replot "%s" using 1:%s axes x1y1 title "%s" with lines\n'
+		% (data_filename, env_fields[env[1]][2], env_fields[env[1]][0]))
+
+def pyx_plot_env(data_filename, env):
+    env_fields = {'t': ['temperature', '(K)', 2],
+		       'rh': ['relative humidity', "", "($3*100)"],
+		       'p': ['pressure', '(kPa)', "($4/1e3)"],
+		       'h': ['height', '(m)', 5]}
+    yargs = {}
+    for i, e in enumerate(env):
+	if e not in env_fields.keys():
+	    print "ERROR: unknown environment field: %s" % e
+	    sys.exit(1)
+	if i > 0:
+	    yname = "y%d" % (i + 1)
+	else:
+	    yname = "y"
+	if e == 'rh':
+	    texter = graph.axis.texter.decimal(suffix="\\%")
+	else:
+	    texter = graph.axis.texter.decimal()
+	yargs[yname] = graph.axis.linear(title = "%s %s" % (env_fields[e][0],
+							    env_fields[e][1]),
+					 texter = texter)
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = "time (hours)",
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      key = graph.key.key(pos = "tr"),
+		      **yargs)
+    plots = []
+    for i, e in enumerate(env):
+	if i > 0:
+	    yname = "y%d" % (i + 1)
+	else:
+	    yname = "y"
+	yargs = {yname: env_fields[e][2]}
+	plots.append(graph.data.file(data_filename,
+				     x = "$1/3600",
+				     title = env_fields[e][0],
+				     **yargs))
+    g.plot(plots,
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def plot_n_orig_part(f, data_filename):
+    f.write('set xlabel "radius (m)"\n')
+    f.write('set ylabel "number of original particles"\n')
+    f.write('set cblabel "number"\n')
+    f.write('set title "original particle number"\n')
+    f.write('set key off\n')
+    f.write('set logscale x\n')
+    f.write('set pm3d map corners2color c1\n')
+    f.write('set palette defined ( 0 1 1 1, 0.00001 0 0 1, 1 1 0 0 )\n')
+    f.write('splot "%s"\n' % data_filename)
+
+def pyx_plot_n_orig_part(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+    d = []
+    first_line = True
+    max_val = 0
+    for line in f:
+	elements = line.split()
+	r = float(elements[0])
+	elements = elements[1:]
+	n_orig_part_max = len(elements)
+	n = len(elements)
+	if first_line:
+	    first_line = False
+	    min_r = r
+	    last_r = r
+	    continue
+	max_r = r
+	for i, e in enumerate(elements):
+	    val = float(e)
+	    if val > max_val:
+		max_val = val
+	    d.append([last_r, r,
+		      float(i), float(i+1),
+		      val])
+	last_r = r
+    f.close()
+    sd = []
+    ep = 1e-2
+    for [x1, x2, y1, y2, c] in d:
+	if c > 0:
+	    sd.append([x1 * (1 - ep), x2 * (1 + ep),
+		       y1 * (1 - ep), y2 * (1 + ep),
+		       float(c) / float(max_val)])
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.log(min = min_r, max = max_r,
+					 title='radius (m)'),
+		      y = graph.axis.linear(min = 0, max = n_orig_part_max,
+					    title='number of original particles'))
+    pal = listpalette([[0, color.rgb(0, 0, 1)],
+		       [0.3, color.rgb(0, 1, 1)],
+		       [0.5, color.rgb(0, 1, 0)],
+		       [0.7, color.rgb(1, 1, 0)],
+		       [1, color.rgb(1, 0, 0)]])
+    g.plot(graph.data.list(sd, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	   [graph.style.rect(pal)])
+    colorbar_steps = 1000
+    cd = []
+    for i in range(colorbar_steps):
+	cd.append([0, 1, float(i) / float(colorbar_steps) * float(max_val),
+		   float(i + 1) / float(colorbar_steps) * float(max_val),
+		   (float(i) + 0.5) / float(colorbar_steps)])
+    g2 = g.insert(graph.graphxy(width = 0.5, height = 4,
+				xpos = g.width + 1, ypos = 1,
+				x = graph.axis.linear(min = 0, max = 1,
+						      parter = None),
+				y2 = graph.axis.linear(min = 0,
+						       max = max_val,
+						       title = "number")))
+    g2.plot(graph.data.list(cd, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	    [graph.style.rect(pal)])
+    g2.dolayout()
+    g2.dobackground()
+    g2.dodata()
+    g2.doaxes()
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def pyx_plot_hist(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    line = f.readline()
+    f.close()
+    if line == "# histogram matrix\n":
+	pyx_plot_hist_matrix(data_filename)
+    elif line == "# histogram totals\n":
+	pyx_plot_hist_total(data_filename)
+    else:
+	print "ERROR: unknown data type in file %s" % data_filename
+
+def pyx_plot_hist_matrix(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+    f.readline()
+
+    line = f.readline()
+    match = re.compile("^# columns are (.+) bins$").search(line)
+    if not match:
+	print "ERROR: unable to determine column type"
+	sys.exit(1)
+    col_type = match.group(1)
+    if col_type not in col_type_names.keys():
+	print "ERROR: unknown column type: %s" % col_type
+	sys.exit(1)
+    col_type_name = col_type_names[col_type][0]
+    col_type_suffix = col_type_names[col_type][1]
+    
+    line = f.readline()
+    match = re.compile("^# entries are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine entry type"
+	sys.exit(1)
+    unit = match.group(1)
+    
+    f.readline()
+    f.readline()
+    f.readline()
+    f.readline()
+    line = f.readline()
+    elements = line.split()
+    c = [float(i) for i in elements[1:]]
+    if col_type == "_comp":
+	c = [x * 100 for x in c]
+    if col_type == "_kappa":
+	c = [(rh - 1) * 100 for rh in c]
+    
+    d = []
+    first_line = True
+    max_val = 0
+    for line in f:
+	if line == "\n":
+	    continue
+	elements = line.split()
+	r = float(elements[0])
+	if not first_line:
+	    for i, v in enumerate(data):
+		if v > max_val:
+		    max_val = v
+		d.append([last_r, r, c[i], c[i+1], v])
+	data = [float(i) for i in elements[1:-1]]
+	n = len(data)
+	if first_line:
+	    first_line = False
+	    min_r = r
+	max_r = r
+	last_r = r
+    f.close()
+    scaled_d = []
+    ep = 1e-4 * (c[-1] - c[0])
+    for [x1, x2, y1, y2, v] in d:
+	if v > 0:
+	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
+			     y1 * (1 - ep), y2 * (1 + ep),
+			     float(v) / float(max_val)])
+    if col_type == "_kappa":
+	g = graph.graphxy(width = 10,
+			  x = graph.axis.log(min = min_r, max = max_r,
+					     title = 'radius (m)'),
+			  y = graph.axis.log(min = c[0], max = c[-1],
+					     title = col_type_name,
+					     texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    else:
+	g = graph.graphxy(width = 10,
+			  x = graph.axis.log(min = min_r, max = max_r,
+					     title = 'radius (m)'),
+			  y = graph.axis.linear(min = c[0], max = c[-1],
+						title = col_type_name,
+						texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    pal = listpalette([[0, color.rgb(0, 0, 1)],
+		       [0.3, color.rgb(0, 1, 1)],
+		       [0.5, color.rgb(0, 1, 0)],
+		       [0.7, color.rgb(1, 1, 0)],
+		       [1, color.rgb(1, 0, 0)]])
+    g.plot(graph.data.list(scaled_d, xmin = 1, xmax = 2,
+			   ymin = 3, ymax = 4, color = 5),
+	   [graph.style.rect(pal)])
+    colorbar_steps = 1000
+    color_d = []
+    for i in range(colorbar_steps):
+	color_d.append([0, 1, float(i) / float(colorbar_steps) * float(max_val),
+			float(i + 1) / float(colorbar_steps) * float(max_val),
+			(float(i) + 0.5) / float(colorbar_steps)])
+    g2 = g.insert(graph.graphxy(width = 0.5, height = 4,
+				xpos = g.width + 1, ypos = 1,
+				x = graph.axis.linear(min = 0, max = 1,
+						      parter = None),
+				y2 = graph.axis.linear(min = 0,
+						       max = max_val,
+						       title = unit)))
+    g2.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
+			    ymin = 3, ymax = 4, color = 5),
+	    [graph.style.rect(pal)])
+    g2.dolayout()
+    g2.dobackground()
+    g2.dodata()
+    g2.doaxes()
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def pyx_plot_hist_total(data_filename):
+    f = open(data_filename)
+    if not f:
+	print "ERROR: unable to open file: %s" % data_filename
+	sys.exit(1)
+    f.readline()
+
+    line = f.readline()
+    match = re.compile("^# quantities are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine entry type"
+	sys.exit(1)
+    unit = match.group(1)
+    
+    line = f.readline()
+    match = re.compile("^# steps are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine step type"
+	sys.exit(1)
+    col_type = match.group(1)
+    if col_type not in col_type_names.keys():
+	print "ERROR: unknown column type: %s" % col_type
+	sys.exit(1)
+    col_type_name = col_type_names[col_type][0]
+    col_type_suffix = col_type_names[col_type][1]
+    
+    f.readline()
+    f.readline()
+    
+    q = []
+    c = []
+    first_line = True
+    for line in f:
+	elements = line.split()
+	c.append(float(elements[0]))
+	if not first_line:
+	    q.append(last_v)
+	last_v = float(elements[1])
+	first_line = False
+    f.close()
+    if col_type == "_comp":
+	c = [x * 100 for x in c]
+    if col_type == "_kappa":
+	c = [(rh - 1) * 100 for rh in c]
+    d = [[q[i], c[i]] for i in range(len(q))]
+
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.linear(title = unit,
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
+		      y = graph.axis.linear(title = col_type_name,
+					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])]),
+					    texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+    g.plot(graph.data.list(d, x = 1, y = 2, title = None),
+	   [graph.style.histogram(autohistogramaxisindex = 1,
+				  autohistogrampointpos = 0,
+				  fillable = True,
+				  steps = True,
+				  lineattrs=[color.palette.Rainbow,
+					     deco.stroked([color.rgb.blue]),
+					     deco.filled([color.rgb.blue])])])
+    g.writeEPSfile("plot_pyx")
+    g.writePDFfile("plot_pyx")
+
+def main():
+    (type, data_filename, unit, species, times, env) = process_args()
+    if type in ["aero_binned", "aero_history", "gas_history"]:
+	species_names = get_species_names(data_filename, type)
+	print "Available species:"
+	print_species_table([i+1 for i in range(len(species_names))],
+			    species_names)
+	species_nums = normalize_species(species, species_names)
+    times = normalize_times(times)
+    env = normalize_env(env)
+    if type in ["aero_binned", "aero_history"]:
+	if unit == "num":
+	    print "Selected unit: number density"
+	elif unit == "vol":
+	    print "Selected unit: volume density"
+	elif unit == "mass":
+	    print "Selected unit: mass density"
+	elif unit == "mole":
+	    print "Selected unit: molar density"
+	else:
+	    print "ERROR: unknown unit: %s" % unit
+	    sys.exit(1)
+    if type in ["aero_binned", "aero_history", "gas_history"]:
+	print "Selected species:"
+	print_species_table(species_nums, species_names)
+    if type == "env":
+	env_field_names = {'t': 'temperature',
+			   'rh': 'relative humidity',
+			   'p': 'pressure',
+			   'h': 'height'}
+	print "Selected environment fields:"
+	for e in env:
+	    print "           %s" % env_field_names[e]
+    #f = os.popen('gnuplot -persist', 'w')
+    if type != "comp":
+	f = open('plot.gp', 'w')
+    if type == "aero_binned":
+	plot_aero_binned(f, data_filename, unit, species_nums, species_names,
+			 times)
+	pyx_plot_aero_binned(data_filename, unit, species_nums, species_names,
+			     times)
+    elif type == "aero_history":
+	plot_aero_history(f, data_filename, unit, species_nums, species_names)
+	pyx_plot_aero_history(data_filename, unit, species_nums, species_names)
+    elif type == "gas_history":
+	plot_gas_history(f, data_filename, species_nums, species_names)
+	pyx_plot_gas_history(data_filename, species_nums, species_names)
+    elif type == "comp_gnuplot":
+	plot_comp(f, data_filename)
+    elif type == "comp":
+	pyx_plot_comp(data_filename)
+    elif type == "comp_total":
+	plot_comp_total(f, data_filename)
+	pyx_plot_comp_total(data_filename)
+    elif type == "env":
+	plot_env(f, data_filename, env)
+	pyx_plot_env(data_filename, env)
+    elif type == "n_orig_part_gnuplot":
+	plot_n_orig_part(f, data_filename)
+    elif type == "n_orig_part":
+	pyx_plot_n_orig_part(data_filename)
+    elif type == "hist":
+	pyx_plot_hist(data_filename)
+    else:
+	print "ERROR: unknown type: %s" % type
+	sys.exit(1)
+    if type not in ["comp", "n_orig_part", "hist"]:
+	f.write('set terminal postscript eps color\n')
+	f.write('set output "plot.eps"\n')
+	f.write('replot\n')
+	f.flush()
+	f.close()
+	os.system('gnuplot -persist plot.gp')
+	os.system('epstopdf plot.eps')
+    
+if __name__ == "__main__":
+    main()

@@ -93,9 +93,9 @@ def print_usage():
     print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
 plot <datafile_aero_total.d> <unit> <species...>
 plot <datafile_gas.d> <species...>
-plot <datafile_comp_gnuplot.d>
-plot <datafile_comp_total.d>
 plot <datafile_env.d> <fields...>
+plot <datafile_matrix.d>
+plot <datafile_total.d>
 
 Plots the time history of the given species.
 
@@ -554,7 +554,7 @@ def plot_hist_matrix(data_filename):
     line = f.readline()
     elements = line.split()
     c = [float(i) for i in elements[1:]]
-    if col_type == "_comp":
+    if col_type in ["_comp", "_kappa"]:
 	c = [x * 100 for x in c]
     
     d = []
@@ -670,19 +670,23 @@ def plot_hist_total(data_filename):
 	last_v = float(elements[1])
 	first_line = False
     f.close()
-    if col_type == "_comp":
+    if col_type in ["_comp", "_kappa"]:
 	c = [x * 100 for x in c]
-    if col_type == "_kappa":
-	c = [(rh - 1) * 100 for rh in c]
-    d = [[q[i], c[i]] for i in range(len(q))]
+    d = [[q[i], c[i], c[i+1]] for i in range(len(q))]
 
+    if col_type == "_kappa":
+	yaxis = graph.axis.log(title = col_type_name,
+			       painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])]),
+			       texter = graph.axis.texter.decimal(suffix = col_type_suffix))
+    else:
+	yaxis = graph.axis.linear(title = col_type_name,
+				  painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])]),
+				  texter = graph.axis.texter.decimal(suffix = col_type_suffix))
     g = graph.graphxy(width = 10,
 		      x = graph.axis.linear(title = unit,
 					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])])),
-		      y = graph.axis.linear(title = col_type_name,
-					    painter = graph.axis.painter.regular(gridattrs=[attr.changelist([style.linestyle.dotted, None])]),
-					    texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
-    g.plot(graph.data.list(d, x = 1, y = 2, title = None),
+		      y = yaxis)
+    g.plot(graph.data.list(d, x = 1, ymin = 2, ymax = 3, title = None),
 	   [graph.style.histogram(autohistogramaxisindex = 1,
 				  autohistogrampointpos = 0,
 				  fillable = True,

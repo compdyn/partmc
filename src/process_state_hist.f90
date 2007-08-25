@@ -447,7 +447,7 @@ contains
        do i_part = 1,aero_state%bins(i_bin)%n_part
           rh = aero_particle_kappa_rh(aero_state%bins(i_bin)%particle(i_part), &
                aero_data, env)
-          supersat = (rh - 1d0) * 100d0
+          supersat = rh - 1d0
           if (first_time) then
              min_supersat = supersat
              max_supersat = supersat
@@ -489,7 +489,7 @@ contains
     common/kappa_step_comp_c/ min_supersat, max_supersat
 
     rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
-    supersat = (rh - 1d0) * 100d0
+    supersat = rh - 1d0
     kappa_step_comp = logspace_find(min_supersat, max_supersat, &
          n_step + 1, supersat)
 

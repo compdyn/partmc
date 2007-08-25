@@ -432,10 +432,10 @@ contains
 
     character(len=100) :: tmp_str
     integer :: i_step, i_bin, i_part
-    real*8 :: rh, min_rh, max_rh
+    real*8 :: rh, supersat, min_supersat, max_supersat
     logical :: first_time
 
-    common/kappa_step_comp_c/ min_rh, max_rh
+    common/kappa_step_comp_c/ min_supersat, max_supersat
 
     ! process commandline
     call getarg(3, tmp_str)
@@ -447,12 +447,13 @@ contains
        do i_part = 1,aero_state%bins(i_bin)%n_part
           rh = aero_particle_kappa_rh(aero_state%bins(i_bin)%particle(i_part), &
                aero_data, env)
+          supersat = (rh - 1d0) * 100d0
           if (first_time) then
-             min_rh = rh
-             max_rh = rh
+             min_supersat = supersat
+             max_supersat = supersat
           else
-             if (rh < min_rh) min_rh = rh
-             if (rh > max_rh) max_rh = rh
+             if (supersat < min_supersat) min_supersat = supersat
+             if (supersat > max_supersat) max_supersat = supersat
           end if
           first_time = .false.
        end do
@@ -460,7 +461,7 @@ contains
 
     ! make step grid
     allocate(step_grid(n_step + 1))
-    call logspace(min_rh, max_rh, n_step + 1, step_grid)
+    call logspace(min_supersat, max_supersat, n_step + 1, step_grid)
 
   end subroutine kappa_step_comp_grid
   
@@ -483,12 +484,14 @@ contains
     integer, intent(in) :: n_step  ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
-    real*8 :: rh, min_rh, max_rh
+    real*8 :: rh, supersat, min_supersat, max_supersat
 
-    common/kappa_step_comp_c/ min_rh, max_rh
+    common/kappa_step_comp_c/ min_supersat, max_supersat
 
     rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
-    kappa_step_comp = logspace_find(min_rh, max_rh, n_step + 1, rh)
+    supersat = (rh - 1d0) * 100d0
+    kappa_step_comp = logspace_find(min_supersat, max_supersat, &
+         n_step + 1, supersat)
 
   end function kappa_step_comp
 

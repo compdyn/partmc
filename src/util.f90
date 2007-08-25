@@ -415,18 +415,19 @@ contains
 
   integer function linspace_find(min_x, max_x, n, x)
 
-    ! If xa is the array allocated by linspace(min_x, max_x, n, xa) then
-    ! i = linspace_find(min_x, max_x, n, x) returns the index i satisfying
-    ! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
-    ! If x < min_x then i = 1. Thus 1 <= i <= n.
+    ! If xa is the array allocated by linspace(min_x, max_x, n, xa)
+    ! then i = linspace_find(min_x, max_x, n, x) returns the index i
+    ! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If
+    ! x >= max_x then i = n - 1.  If x < min_x then i = 1. Thus
+    ! 1 <= i <= n - 1.
 
     real*8, intent(in) :: min_x         ! minimum array value
     real*8, intent(in) :: max_x         ! maximum array value
     integer, intent(in) :: n            ! number of entries
     real*8, intent(in) :: x             ! value
 
-    linspace_find = floor((x - min_x) / (max_x - min_x) * dble(n)) + 1
-    linspace_find = min(linspace_find, n)
+    linspace_find = floor((x - min_x) / (max_x - min_x) * dble(n - 1)) + 1
+    linspace_find = min(linspace_find, n - 1)
     linspace_find = max(linspace_find, 1)
     
   end function linspace_find

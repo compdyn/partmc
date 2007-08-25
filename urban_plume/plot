@@ -871,6 +871,8 @@ def pyx_plot_hist_matrix(data_filename):
     first_line = True
     max_val = 0
     for line in f:
+        if line == "\n":
+            break
 	elements = line.split()
 	r = float(elements[0])
 	if not first_line:

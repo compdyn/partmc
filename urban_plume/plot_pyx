@@ -263,7 +263,7 @@ def print_species_table(species_nums, species_names):
 	print
 
 def plot_aero_binned(data_filename, out_filename, unit,
-		     species_nums, species_names, indices):
+		     species_nums, species_names, indices, parser):
     # read data
     f = open(data_filename)
     if unit == "num":
@@ -347,7 +347,7 @@ def plot_aero_binned(data_filename, out_filename, unit,
     g.writePDFfile(out_filename)
 
 def plot_aero_history(data_filename, out_filename, unit,
-		      species_nums, species_names):
+		      species_nums, species_names, parser):
     if unit == "num":
 	ytitle = 'number density (\#/m$^3$)'
     elif unit == "vol":
@@ -365,10 +365,14 @@ def plot_aero_history(data_filename, out_filename, unit,
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.linear(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
 	    title = "time (hours)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
 	y = graph.axis.linear(
+	    min = parser.values.ymin,
+	    max = parser.values.ymax,
 	    title = ytitle,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
@@ -395,14 +399,19 @@ def plot_aero_history(data_filename, out_filename, unit,
 						   color.palette.Rainbow])])
     g.writePDFfile(out_filename)
 
-def plot_gas_history(data_filename, out_filename, species_nums, species_names):
+def plot_gas_history(data_filename, out_filename, species_nums,
+		     species_names, parser):
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.linear(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
 	    title = "time (hours)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
 	y = graph.axis.linear(
+	    min = parser.values.ymin,
+	    max = parser.values.ymax,
 	    title = "concentration (ppb)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
@@ -424,7 +433,7 @@ def plot_gas_history(data_filename, out_filename, species_nums, species_names):
 						   color.palette.Rainbow])])
     g.writePDFfile(out_filename)
 
-def plot_env(data_filename, out_filename, env_fields):
+def plot_env(data_filename, out_filename, env_fields, parser):
     yargs = {}
     for i, e in enumerate(env_fields):
 	if e not in env_field_names.keys():
@@ -445,6 +454,8 @@ def plot_env(data_filename, out_filename, env_fields):
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.linear(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
 	    title = "time (hours)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
@@ -466,7 +477,7 @@ def plot_env(data_filename, out_filename, env_fields):
 						   color.palette.Rainbow])])
     g.writePDFfile(out_filename)
 
-def plot_hist_matrix(data_filename, out_filename):
+def plot_hist_matrix(data_filename, out_filename, parser):
     f = open(data_filename)
     f.readline()
     f.readline()
@@ -528,6 +539,16 @@ def plot_hist_matrix(data_filename, out_filename):
 	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
 			     y1 * (1 - ep), y2 * (1 + ep),
 			     float(v) / float(max_val)])
+    if parser.values.xmin:
+	min_r = parser.values.xmin
+    if parser.values.xmax:
+	max_r = parser.values.xmax
+    cmin = c[0]
+    cmax = c[-1]
+    if parser.values.ymin:
+	cmin = parser.values.ymin
+    if parser.values.ymax:
+	cmax = parser.values.ymax
     if col_type == "_kappa":
 	g = graph.graphxy(
 	    width = 10,
@@ -535,7 +556,7 @@ def plot_hist_matrix(data_filename, out_filename):
 		min = min_r, max = max_r,
 		title = 'radius (m)'),
 	    y = graph.axis.log(
-		min = c[0], max = c[-1],
+		min = cmin, max = cmax,
 		title = col_type_name,
 		texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
     else:
@@ -545,7 +566,7 @@ def plot_hist_matrix(data_filename, out_filename):
 		min = min_r, max = max_r,
 		title = 'radius (m)'),
 	    y = graph.axis.linear(
-		min = c[0], max = c[-1],
+		min = cmin, max = cmax,
 		title = col_type_name,
 		texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
     pal = listpalette([[0, color.rgb(0, 0, 1)],
@@ -578,7 +599,7 @@ def plot_hist_matrix(data_filename, out_filename):
     g2.doaxes()
     g.writePDFfile(out_filename)
 
-def plot_hist_total(data_filename, out_filename):
+def plot_hist_total(data_filename, out_filename, parser):
     f = open(data_filename)
     f.readline()
 
@@ -621,12 +642,16 @@ def plot_hist_total(data_filename, out_filename):
 
     if col_type == "_kappa":
 	yaxis = graph.axis.log(
+	    min = parser.values.ymin,
+	    max = parser.values.ymax,
 	    title = col_type_name,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])]),
 	    texter = graph.axis.texter.decimal(suffix = col_type_suffix))
     else:
 	yaxis = graph.axis.linear(
+	    min = parser.values.ymin,
+	    max = parser.values.ymax,
 	    title = col_type_name,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])]),
@@ -634,6 +659,8 @@ def plot_hist_total(data_filename, out_filename):
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.linear(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
 	    title = unit,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
@@ -684,19 +711,19 @@ def plot_file(data_filename, out_filename, parser):
 	    print "           %s" % env_field_names[e][0]
     if type == "aero_binned":
 	plot_aero_binned(data_filename, out_filename, unit,
-			 species_nums, species_names, indices)
+			 species_nums, species_names, indices, parser)
     elif type == "aero_history":
 	plot_aero_history(data_filename, out_filename, unit,
-			  species_nums, species_names)
+			  species_nums, species_names, parser)
     elif type == "gas_history":
 	plot_gas_history(data_filename, out_filename, species_nums,
-			 species_names)
+			 species_names, parser)
     elif type == "env_history":
-	plot_env(data_filename, out_filename, env_fields)
+	plot_env(data_filename, out_filename, env_fields, parser)
     elif type == "hist_matrix":
-	plot_hist_matrix(data_filename, out_filename)
+	plot_hist_matrix(data_filename, out_filename, parser)
     elif type == "hist_total":
-	plot_hist_total(data_filename, out_filename)
+	plot_hist_total(data_filename, out_filename, parser)
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)

@@ -153,6 +153,7 @@ program process_summary
   end do
 
   ! output environment
+  write(f_out_env, '(a)') "# environment time history"
   write(f_out_env, '(a1,6a20)') '#', 'time(s)', &
        'temp(K)', 'rel_hum(1)', 'press(Pa)', &
        'height(m)'
@@ -163,6 +164,7 @@ program process_summary
   end do
   
   ! output gas
+  write(f_out_gas, '(a)') "# gas time history"
   write(f_out_gas, '(a)') "# gas species are concentrations (ppb)"
   if (gas_data%n_spec > 0) then
      write(num_str, '(i10)') gas_data%n_spec
@@ -176,6 +178,7 @@ program process_summary
   end if
 
   ! output aerosol binned
+  write(f_out_aero_binned, '(a)') "# aerosol binned"
   do i_time = 1,n_time
      call aero_binned_write_summary(aero_binned_avg(i_time), aero_data, &
           bin_grid, time, i_time - 1, f_out_aero_binned)
@@ -184,6 +187,7 @@ program process_summary
   end do
 
   ! output aerosol totals
+  write(f_out_aero_total, '(a)') "# aerosol time history"
   write(f_out_aero_total, '(a)') &
        '# VL species are volume density (m^3/m^3)'
   write(f_out_aero_total, '(a)') &

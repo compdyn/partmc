@@ -536,14 +536,16 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     ep = 1e-4 * (c[-1] - c[0])
     if parser.values.zmax:
 	max_val = parser.values.zmax
+    min_val = 0
     if parser.values.zmin:
-	print "ERROR: zmin not implemented"
-	sys.exit(1)
+	min_val = parser.values.zmin
+    min_val = float(min_val)
+    max_val = float(max_val)
     for [x1, x2, y1, y2, v] in d:
 	if v > 0:
-	    scaled_v = float(v) / float(max_val)
-	    if scaled_v > 1:
-		scaled_v = 1
+	    scaled_v = (float(v) - min_val) / (max_val - min_val)
+	    scaled_v = min(scaled_v, 1)
+	    scaled_v = max(scaled_v, 0)
 	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
 			     y1 * (1 - ep), y2 * (1 + ep),
 			     scaled_v])
@@ -588,14 +590,17 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
-	color_d.append([0, 1, float(i) / float(colorbar_steps) * float(max_val),
-			float(i + 1) / float(colorbar_steps) * float(max_val),
-			(float(i) + 0.5) / float(colorbar_steps)])
+	x0 = float(i) / float(colorbar_steps)
+	xh = (float(i) + 0.5) / float(colorbar_steps)
+	x1 = float(i + 1) / float(colorbar_steps)
+	v0 = x0 * (max_val - min_val) + min_val
+	v1 = x1 * (max_val - min_val) + min_val
+	color_d.append([0, 1, v0, v1, xh])
     g2 = g.insert(graph.graphxy(width = 0.5, height = 4,
 				xpos = g.width + 1, ypos = 1,
 				x = graph.axis.linear(min = 0, max = 1,
 						      parter = None),
-				y2 = graph.axis.linear(min = 0,
+				y2 = graph.axis.linear(min = min_val,
 						       max = max_val,
 						       title = unit)))
     g2.plot(graph.data.list(color_d, xmin = 1, xmax = 2,

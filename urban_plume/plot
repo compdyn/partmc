@@ -534,11 +534,19 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     f.close()
     scaled_d = []
     ep = 1e-4 * (c[-1] - c[0])
+    if parser.values.zmax:
+	max_val = parser.values.zmax
+    if parser.values.zmin:
+	print "ERROR: zmin not implemented"
+	sys.exit(1)
     for [x1, x2, y1, y2, v] in d:
 	if v > 0:
+	    scaled_v = float(v) / float(max_val)
+	    if scaled_v > 1:
+		scaled_v = 1
 	    scaled_d.append([x1 * (1 - ep), x2 * (1 + ep),
 			     y1 * (1 - ep), y2 * (1 + ep),
-			     float(v) / float(max_val)])
+			     scaled_v])
     if parser.values.xmin:
 	min_r = parser.values.xmin
     if parser.values.xmax:

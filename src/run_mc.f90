@@ -180,8 +180,7 @@ contains
 
        if (mc_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env, aero_data, &
-               aero_state, aero_binned, gas_data, gas_state, &
-               time, mc_opt%del_t)
+               aero_state, aero_binned, gas_data, gas_state, time)
        end if
        
        ! if we have less than half the maximum number of particles then

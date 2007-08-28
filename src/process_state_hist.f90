@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Process the saved state files to obtain summary data.
+! Process data with a histogram over bins and a second scalar quantity.
 
 module pmc_process_state_hist
 contains
@@ -10,7 +10,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine process_hist(basename, type, bin_grid, env, aero_data, &
-       aero_state, step_comp_grid, step_comp)
+       aero_state, step_comp_grid, step_comp, particle_func, do_sum)
 
     ! Compute a histogram by calling the step_comp() function on each
     ! particle and write out various representations of it.
@@ -27,6 +27,7 @@ contains
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    logical, intent(in) :: do_sum       ! if quantity can be summed
 
     interface
        subroutine step_comp_grid(bin_grid, env, aero_data, aero_state, &
@@ -55,15 +56,25 @@ contains
          integer, intent(in) :: n_step  ! number of histogram steps
          type(aero_particle_t), intent(in) :: aero_particle ! particle
        end function step_comp
+
+       real*8 function particle_func(aero_particle, aero_data, env)
+         use pmc_aero_particle
+         use pmc_aero_data
+         use pmc_env
+         type(aero_particle_t), intent(in) :: aero_particle ! particle
+         type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+         type(env_t), intent(in) :: env ! environment state
+       end function particle_func
     end interface
 
     real*8, allocatable :: num_den(:,:), num_den_tot(:)
     real*8, allocatable :: vol_den(:,:), vol_den_tot(:)
     real*8, allocatable :: mass_den(:,:), mass_den_tot(:)
     real*8, allocatable :: mole_den(:,:), mole_den_tot(:)
+    real*8, allocatable :: sum_den(:)
     integer :: n_step, i_step, i_bin, i_part, n_invalid
     type(aero_particle_t), pointer :: particle
-    real*8 :: scale, scale_bin, num, vol, mass, mole
+    real*8 :: scale, scale_bin, num, vol, mass, mole, val
     real*8, pointer :: step_grid(:) ! length n_step + 1
 
     call step_comp_grid(bin_grid, env, aero_data, aero_state, n_step, step_grid)
@@ -71,6 +82,7 @@ contains
     allocate(vol_den(bin_grid%n_bin, n_step), vol_den_tot(n_step))
     allocate(mass_den(bin_grid%n_bin, n_step), mass_den_tot(n_step))
     allocate(mole_den(bin_grid%n_bin, n_step), mole_den_tot(n_step))
+    allocate(sum_den(bin_grid%n_bin))
 
     num_den = 0d0
     num_den_tot = 0d0
@@ -80,6 +92,7 @@ contains
     mass_den_tot = 0d0
     mole_den = 0d0
     mole_den_tot = 0d0
+    sum_den = 0d0
 
     scale = 1d0 / bin_grid%dlnr / dble(n_step)
     scale_bin = 1d0 / bin_grid%dlnr
@@ -104,6 +117,10 @@ contains
           mass_den_tot(i_step) = mass_den_tot(i_step) + mass * scale_bin
           mole_den(i_bin, i_step) = mole_den(i_bin, i_step) + mole * scale
           mole_den_tot(i_step) = mole_den_tot(i_step) + mole * scale_bin
+          if (do_sum) then
+             val = particle_func(particle, aero_data, env)
+             sum_den(i_bin) = sum_den(i_bin) + val * scale_bin
+          end if
        end do
     end do
     if (n_invalid > 0) then
@@ -111,26 +128,31 @@ contains
     end if
 
     call write_hist_matrix(basename, type, "_num", "number density", &
-         n_step, bin_grid, step_grid, num_den, num_den_tot)
+         n_step, bin_grid, step_grid, num_den, num_den_tot, &
+         sum_den, do_sum)
     call write_hist_matrix(basename, type, "_vol", "volume density", &
-         n_step, bin_grid, step_grid, vol_den, vol_den_tot)
+         n_step, bin_grid, step_grid, vol_den, vol_den_tot, &
+         sum_den, do_sum)
     call write_hist_matrix(basename, type, "_mass", "mass density", &
-         n_step, bin_grid, step_grid, mass_den, mass_den_tot)
+         n_step, bin_grid, step_grid, mass_den, mass_den_tot, &
+         sum_den, do_sum)
     call write_hist_matrix(basename, type, "_mole", "molar density", &
-         n_step, bin_grid, step_grid, mole_den, mole_den_tot)
+         n_step, bin_grid, step_grid, mole_den, mole_den_tot, &
+         sum_den, do_sum)
 
     deallocate(step_grid)
     deallocate(num_den, num_den_tot)
     deallocate(vol_den, vol_den_tot)
     deallocate(mass_den, mass_den_tot)
     deallocate(mole_den, mole_den_tot)
+    deallocate(sum_den)
 
   end subroutine process_hist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine write_hist_matrix(basename, type, unit, unit_descript, &
-       n_step, bin_grid, step_grid, den, den_tot)
+       n_step, bin_grid, step_grid, den, den_tot, sum_den, do_sum)
 
     ! Helper function for process_hist() to write out the histograms.
 
@@ -146,6 +168,8 @@ contains
     real*8, intent(in) :: step_grid(n_step + 1) ! step grid edges
     real*8, intent(in) :: den(bin_grid%n_bin,n_step) ! density per bin per step
     real*8, intent(in) :: den_tot(n_step) ! density per step
+    real*8, intent(in) :: sum_den(bin_grid%n_bin) ! summed density
+    logical, intent(in) :: do_sum       ! whether to write sum_den
 
     character(len=200) :: outname
     integer :: f_out, i_bin, i_step
@@ -215,7 +239,112 @@ contains
     write(f_out, '(e25.15,e25.15)') step_grid(n_step + 1), 0d0
     close(unit=f_out)
 
+    ! write summed output
+    if (do_sum) then
+       call open_output(outname, "_sum.d", f_out)
+       write(f_out, '(a)') '# histogram sum'
+       write(f_out, '(a,a)') '# quantities are ', type
+       write(f_out, '(a)') '# last row quantity is junk'
+       write(f_out, '(a1,a24,a25)') '#', 'bin', 'quantity'
+       do i_bin = 1,bin_grid%n_bin
+          write(f_out, '(e25.15,e25.15)') bin_grid%v(i_bin), sum_den(i_bin)
+       end do
+       close(unit=f_out)
+    end if
+
   end subroutine write_hist_matrix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine per_particle_step_comp_grid(bin_grid, env, aero_data, &
+       aero_state, n_step, step_grid, particle_func, min_val, max_val, &
+       logscale)
+
+    ! Generic histogram helper for per-particle scalar quantity
+    ! determined by particle_func.
+
+    use pmc_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    integer, intent(out) :: n_step      ! number of histogram steps
+    real*8, pointer :: step_grid(:)     ! step grid edges
+    real*8, intent(out) :: min_val      ! minimum value of per-particle quantity
+    real*8, intent(out) :: max_val      ! maximum value of per-particle quantity
+    logical, intent(in) :: logscale     ! whether to use a log scale
+    
+    interface
+       real*8 function particle_func(aero_particle, aero_data, env)
+         use pmc_aero_particle
+         use pmc_aero_data
+         use pmc_env
+         type(aero_particle_t), intent(in) :: aero_particle ! particle
+         type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+         type(env_t), intent(in) :: env ! environment state
+       end function particle_func
+    end interface
+
+    character(len=100) :: tmp_str
+    integer :: i_step, i_bin, i_part
+    real*8 :: rh, val
+    logical :: first_time
+
+    ! process commandline
+    call getarg(3, tmp_str)
+    n_step = string_to_integer(tmp_str)
+
+    ! find max and min
+    first_time = .true.
+    do i_bin = 1,bin_grid%n_bin
+       do i_part = 1,aero_state%bins(i_bin)%n_part
+          val = particle_func(aero_state%bins(i_bin)%particle(i_part), &
+               aero_data, env)
+          if (first_time) then
+             min_val = val
+             max_val = val
+          else
+             if (val < min_val) min_val = val
+             if (val > max_val) max_val = val
+          end if
+          first_time = .false.
+       end do
+    end do
+
+    ! make step grid
+    allocate(step_grid(n_step + 1))
+    if (max_val <= min_val) then
+       write(0,*) 'ERROR: min_val is not greater than max_val'
+       call exit(1)
+    end if
+    if (logscale) then
+       call logspace(min_val, max_val, n_step + 1, step_grid)
+    else
+       call linspace(min_val, max_val, n_step + 1, step_grid)
+    end if
+
+  end subroutine per_particle_step_comp_grid
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function orig_part_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    orig_part_particle_func = dble(aero_particle%n_orig_part)
+
+  end function orig_part_particle_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -279,6 +408,43 @@ contains
 
   end function orig_part_step_comp
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function comp_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+    use pmc_util
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    integer :: n_a, n_b, i
+    integer, pointer :: a_species(:), b_species(:)
+    real*8 :: a_vol, b_vol
+
+    common/comp_step_comp_c/ n_a, n_b, a_species, b_species
+
+    a_vol = 0d0
+    do i = 1,n_a
+       a_vol = a_vol + aero_particle%vol(a_species(i))
+    end do
+    b_vol = 0d0
+    do i = 1,n_b
+       b_vol = b_vol + aero_particle%vol(b_species(i))
+    end do
+    call assert(a_vol >= 0d0)
+    call assert(b_vol >= 0d0)
+    if ((a_vol == 0d0) .and. (b_vol == 0d0)) then
+       comp_particle_func = 0d0
+    else
+       comp_particle_func = b_vol / (a_vol + b_vol)
+    end if
+
+  end function comp_particle_func
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine comp_step_comp_grid(bin_grid, env, aero_data, aero_state, &
@@ -384,32 +550,31 @@ contains
     integer, intent(in) :: n_step       ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
-    integer :: n_a, n_b, i
-    integer, pointer :: a_species(:), b_species(:)
-    logical :: error
-    real*8 :: a_vol, b_vol, prop
-
-    common/comp_step_comp_c/ n_a, n_b, a_species, b_species
-
-    a_vol = 0d0
-    do i = 1,n_a
-       a_vol = a_vol + aero_particle%vol(a_species(i))
-    end do
-    b_vol = 0d0
-    do i = 1,n_b
-       b_vol = b_vol + aero_particle%vol(b_species(i))
-    end do
-    call assert(a_vol >= 0d0)
-    call assert(b_vol >= 0d0)
-    if ((a_vol == 0d0) .and. (b_vol == 0d0)) then
-       comp_step_comp = 0
-    else
-       prop = b_vol / (a_vol + b_vol)
-       comp_step_comp = linspace_find(0d0, 1d0, n_step + 1, prop)
-    end if
+    comp_step_comp = linspace_find(0d0, 1d0, n_step + 1, &
+         comp_particle_func(aero_particle, aero_data, env))
     
   end function comp_step_comp
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function kappa_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    real*8 :: rh, supersat
+
+    rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
+    supersat = rh - 1d0
+    kappa_particle_func = supersat
+
+  end function kappa_particle_func
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine kappa_step_comp_grid(bin_grid, env, aero_data, aero_state, &
@@ -430,38 +595,14 @@ contains
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
 
-    character(len=100) :: tmp_str
-    integer :: i_step, i_bin, i_part
-    real*8 :: rh, supersat, min_supersat, max_supersat
-    logical :: first_time
+    logical :: logscale
+    real*8 :: min_val, max_val
 
-    common/kappa_step_comp_c/ min_supersat, max_supersat
+    common/kappa_step_comp_c/ min_val, max_val
 
-    ! process commandline
-    call getarg(3, tmp_str)
-    n_step = string_to_integer(tmp_str)
-
-    ! find max and min kappas
-    first_time = .true.
-    do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bins(i_bin)%n_part
-          rh = aero_particle_kappa_rh(aero_state%bins(i_bin)%particle(i_part), &
-               aero_data, env)
-          supersat = rh - 1d0
-          if (first_time) then
-             min_supersat = supersat
-             max_supersat = supersat
-          else
-             if (supersat < min_supersat) min_supersat = supersat
-             if (supersat > max_supersat) max_supersat = supersat
-          end if
-          first_time = .false.
-       end do
-    end do
-
-    ! make step grid
-    allocate(step_grid(n_step + 1))
-    call logspace(min_supersat, max_supersat, n_step + 1, step_grid)
+    logscale = .true.
+    call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+         n_step, step_grid, kappa_particle_func, min_val, max_val, logscale)
 
   end subroutine kappa_step_comp_grid
   
@@ -484,16 +625,246 @@ contains
     integer, intent(in) :: n_step  ! number of histogram steps
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
-    real*8 :: rh, supersat, min_supersat, max_supersat
+    real*8 :: min_val, max_val
 
-    common/kappa_step_comp_c/ min_supersat, max_supersat
+    common/kappa_step_comp_c/ min_val, max_val
 
-    rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
-    supersat = rh - 1d0
-    kappa_step_comp = logspace_find(min_supersat, max_supersat, &
-         n_step + 1, supersat)
+    kappa_step_comp = logspace_find(min_val, max_val, n_step + 1, &
+         kappa_particle_func(aero_particle, aero_data, env))
 
   end function kappa_step_comp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function absorb_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    real*8 :: rh, supersat
+
+    absorb_particle_func = aero_particle%absorb_cross_sect
+
+  end function absorb_particle_func
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine absorb_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+       n_step, step_grid)
+
+    ! Histogram helper for absorb.
+
+    use pmc_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    integer, intent(out) :: n_step  ! number of histogram steps
+    real*8, pointer :: step_grid(:) ! step grid edges
+
+    logical :: logscale
+    real*8 :: min_val, max_val
+
+    common/absorb_step_comp_c/ min_val, max_val
+
+    logscale = .false.
+    call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+         n_step, step_grid, absorb_particle_func, min_val, max_val, logscale)
+
+  end subroutine absorb_step_comp_grid
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function absorb_step_comp(bin_grid, env, aero_data, n_step, &
+       aero_particle)
+
+    ! Histogram helper for absorb.
+
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_particle
+    use pmc_env
+    use pmc_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    integer, intent(in) :: n_step  ! number of histogram steps
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+
+    real*8 :: min_val, max_val
+
+    common/absorb_step_comp_c/ min_val, max_val
+
+    absorb_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+         absorb_particle_func(aero_particle, aero_data, env))
+
+  end function absorb_step_comp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function scatter_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    real*8 :: rh, supersat
+
+    scatter_particle_func = aero_particle%extinct_cross_sect &
+         - aero_particle%absorb_cross_sect
+
+  end function scatter_particle_func
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine scatter_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+       n_step, step_grid)
+
+    ! Histogram helper for scatter.
+
+    use pmc_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    integer, intent(out) :: n_step  ! number of histogram steps
+    real*8, pointer :: step_grid(:) ! step grid edges
+
+    logical :: logscale
+    real*8 :: min_val, max_val
+
+    common/scatter_step_comp_c/ min_val, max_val
+
+    logscale = .false.
+    call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+         n_step, step_grid, scatter_particle_func, min_val, max_val, logscale)
+
+  end subroutine scatter_step_comp_grid
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function scatter_step_comp(bin_grid, env, aero_data, n_step, &
+       aero_particle)
+
+    ! Histogram helper for scatter.
+
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_particle
+    use pmc_env
+    use pmc_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    integer, intent(in) :: n_step  ! number of histogram steps
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+
+    real*8 :: min_val, max_val
+
+    common/scatter_step_comp_c/ min_val, max_val
+
+    scatter_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+         scatter_particle_func(aero_particle, aero_data, env))
+
+  end function scatter_step_comp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real*8 function extinct_particle_func(aero_particle, aero_data, env)
+
+    use pmc_aero_particle
+    use pmc_aero_data
+    use pmc_env
+
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(env_t), intent(in) :: env      ! environment state
+
+    real*8 :: rh, supersat
+
+    extinct_particle_func = aero_particle%extinct_cross_sect
+
+  end function extinct_particle_func
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine extinct_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+       n_step, step_grid)
+
+    ! Histogram helper for extinct.
+
+    use pmc_util
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    integer, intent(out) :: n_step  ! number of histogram steps
+    real*8, pointer :: step_grid(:) ! step grid edges
+
+    logical :: logscale
+    real*8 :: min_val, max_val
+
+    common/extinct_step_comp_c/ min_val, max_val
+
+    logscale = .false.
+    call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
+         n_step, step_grid, extinct_particle_func, min_val, max_val, logscale)
+
+  end subroutine extinct_step_comp_grid
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function extinct_step_comp(bin_grid, env, aero_data, n_step, &
+       aero_particle)
+
+    ! Histogram helper for extinct.
+
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_particle
+    use pmc_env
+    use pmc_util
+
+    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
+    integer, intent(in) :: n_step  ! number of histogram steps
+    type(aero_particle_t), intent(in) :: aero_particle ! particle
+
+    real*8 :: min_val, max_val
+
+    common/extinct_step_comp_c/ min_val, max_val
+
+    extinct_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+         extinct_particle_func(aero_particle, aero_data, env))
+
+  end function extinct_step_comp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -9,7 +9,7 @@ module pmc_aero_particle
   type aero_particle_t
      real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
      integer :: n_orig_part              ! number of original particles
-     real*8 :: absorb_cross_sect         ! absorbion cross-section (m^2)
+     real*8 :: absorb_cross_sect         ! absorption cross-section (m^2)
      real*8 :: extinct_cross_sect        ! extinction cross-section (m^2)
      real*8 :: asymmetry                 ! asymmetry parameter (1)
      complex*16 :: refract_shell         ! refractive index of the shell (1)

@@ -11,6 +11,7 @@ from pyx import *
 file_magic = {
     "# histogram matrix\n": "hist_matrix",
     "# histogram totals\n": "hist_total",
+    "# histogram sum\n": "hist_sum",
     "# aerosol binned\n": "aero_binned",
     "# aerosol time history\n": "aero_history",
     "# gas time history\n": "gas_history",
@@ -21,6 +22,9 @@ hist_col_type_names = {
     "_n_orig_part": ["number of component particles", ""],
     "_comp": ["mixing state", "\\%"],
     "_kappa": ["critical supersaturation", "\\%"],
+    "_absorb": ["absorption cross-section (m$^2$)", ""],
+    "_scatter": ["scattering cross-section (m$^2$)", ""],
+    "_extinct": ["extinction cross-section (m$^2$)", ""],
     }
 
 env_field_names = {
@@ -560,25 +564,29 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     if parser.values.ymax:
 	cmax = parser.values.ymax
     if col_type == "_kappa":
-	g = graph.graphxy(
-	    width = 10,
-	    x = graph.axis.log(
-		min = min_r, max = max_r,
-		title = 'radius (m)'),
-	    y = graph.axis.log(
+	if col_type_suffix:
+	    yaxis = graph.axis.log(
 		min = cmin, max = cmax,
 		title = col_type_name,
-		texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+		texter = graph.axis.texter.decimal(suffix = col_type_suffix))
+	else:
+	    yaxis = graph.axis.log(
+		min = cmin, max = cmax,
+		title = col_type_name)
     else:
-	g = graph.graphxy(
-	    width = 10,
-	    x = graph.axis.log(
-		min = min_r, max = max_r,
-		title = 'radius (m)'),
-	    y = graph.axis.linear(
+	if col_type_suffix:
+	    yaxis = graph.axis.linear(
 		min = cmin, max = cmax,
 		title = col_type_name,
-		texter = graph.axis.texter.decimal(suffix = col_type_suffix)))
+		texter = graph.axis.texter.decimal(suffix = col_type_suffix))
+	else:
+	    yaxis = graph.axis.linear(
+		min = cmin, max = cmax,
+		title = col_type_name)
+    g = graph.graphxy(width = 10,
+		      x = graph.axis.log(min = min_r, max = max_r,
+					 title = 'radius (m)'),
+		      y = yaxis)
     pal = listpalette([[0, color.rgb(0, 0, 1)],
 		       [0.3, color.rgb(0, 1, 1)],
 		       [0.5, color.rgb(0, 1, 0)],
@@ -688,12 +696,51 @@ def plot_hist_total(data_filename, out_filename, parser):
 					     deco.filled([color.rgb.blue])])])
     g.writePDFfile(out_filename)
 
+def plot_hist_sum(data_filename, out_filename, parser):
+    f = open(data_filename)
+    f.readline()
+
+    line = f.readline()
+    match = re.compile("^# quantities are (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine step type"
+	sys.exit(1)
+    col_type = match.group(1)
+    if col_type not in hist_col_type_names.keys():
+	print "ERROR: unknown column type: %s" % col_type
+	sys.exit(1)
+    col_type_name = hist_col_type_names[col_type][0]
+    col_type_suffix = hist_col_type_names[col_type][1]
+
+    f.close()
+
+    g = graph.graphxy(
+	width = 10,
+	x = graph.axis.log(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
+	    title = "radius (m)",
+	    painter = graph.axis.painter.regular(
+		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+	y = graph.axis.linear(
+	    min = parser.values.ymin,
+	    max = parser.values.ymax,
+	    title = col_type_name,
+	    painter = graph.axis.painter.regular(
+		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+	key = graph.key.key(pos = "tr"))
+    g.plot(graph.data.file(data_filename, x = 1, y = 2,
+			   title = None),
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writePDFfile(out_filename)
+
 def get_type(data_filename):
     f = open(data_filename)
     line = f.readline()
     f.close()
     if line not in file_magic.keys():
-	print "ERROR: file type not plottable: %s" % data_filename
+	print "ERROR: file type not plottable: %s" % line.strip()
 	sys.exit(1)
     return file_magic[line]
 
@@ -737,6 +784,8 @@ def plot_file(data_filename, out_filename, parser):
 	plot_hist_matrix(data_filename, out_filename, parser)
     elif type == "hist_total":
 	plot_hist_total(data_filename, out_filename, parser)
+    elif type == "hist_sum":
+	plot_hist_sum(data_filename, out_filename, parser)
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)

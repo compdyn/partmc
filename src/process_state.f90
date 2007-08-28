@@ -15,6 +15,7 @@ program process_state
   use pmc_env
   use pmc_output_state
   use pmc_process_state_hist
+  use pmc_mosaic
 
   character(len=100) :: filename        ! input filename
   character(len=100) :: basename        ! basename of the input filename
@@ -43,15 +44,45 @@ program process_state
      call process_info(bin_grid, aero_data, aero_state)
      call process_moments(basename, bin_grid, aero_data, aero_state, time)
      call process_hist(basename, "_n_orig_part", bin_grid, env, aero_data, &
-          aero_state, orig_part_step_comp_grid, orig_part_step_comp)
+          aero_state, orig_part_step_comp_grid, orig_part_step_comp, &
+          orig_part_particle_func, .false.)
   else
      call getarg(2, command)
+
      if (command == "comp") then
         call process_hist(basename, "_comp", bin_grid, env, aero_data, &
-             aero_state, comp_step_comp_grid, comp_step_comp)
+             aero_state, comp_step_comp_grid, comp_step_comp, &
+             comp_particle_func, .false.)
+
      elseif (command == "kappa") then
         call process_hist(basename, "_kappa", bin_grid, env, aero_data, &
-             aero_state, kappa_step_comp_grid, kappa_step_comp)
+             aero_state, kappa_step_comp_grid, kappa_step_comp, &
+             kappa_particle_func, .false.)
+
+     elseif (command == "absorb") then
+        call mosaic_init(bin_grid, env, 0d0)
+        call mosaic_aero_optical(bin_grid, env, aero_data, &
+             aero_state, gas_data, gas_state, time)
+        call process_hist(basename, "_absorb", bin_grid, env, aero_data, &
+             aero_state, absorb_step_comp_grid, absorb_step_comp, &
+             absorb_particle_func, .true.)
+
+     elseif (command == "scatter") then
+        call mosaic_init(bin_grid, env, 0d0)
+        call mosaic_aero_optical(bin_grid, env, aero_data, &
+             aero_state, gas_data, gas_state, time)
+        call process_hist(basename, "_scatter", bin_grid, env, aero_data, &
+             aero_state, scatter_step_comp_grid, scatter_step_comp, &
+             scatter_particle_func, .true.)
+
+     elseif (command == "extinct") then
+        call mosaic_init(bin_grid, env, 0d0)
+        call mosaic_aero_optical(bin_grid, env, aero_data, &
+             aero_state, gas_data, gas_state, time)
+        call process_hist(basename, "_extinct", bin_grid, env, aero_data, &
+             aero_state, extinct_step_comp_grid, extinct_step_comp, &
+             extinct_particle_func, .true.)
+
      else
         write(0,*) 'ERROR: unknown command'
         call exit(1)

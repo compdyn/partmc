@@ -10,6 +10,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_init(bin_grid, env, del_t)
+
+    ! Initialize all MOSAIC data-structures.
     
     use pmc_constants
     use pmc_util
@@ -84,8 +86,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_timestep(bin_grid, env, aero_data, &
-       aero_state, aero_binned, gas_data, gas_state, t, del_t)
+  subroutine mosaic_from_partmc(bin_grid, env, aero_data, &
+       aero_state, gas_data, gas_state, time)
+
+    ! Map all data PartMC -> MOSAIC.
     
     use pmc_constants
     use pmc_util
@@ -97,7 +101,6 @@ contains
     use pmc_output_state
     use pmc_gas_data
     use pmc_gas_state
-    use pmc_aero_binned
     
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
@@ -107,33 +110,23 @@ contains
          ppb, msolar
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
+    type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
-    real*8, intent(in) :: t             ! current time (s)
-    real*8, intent(in) :: del_t         ! timestep for coagulation
+    type(gas_state_t), intent(in) :: gas_state ! gas state
+    real*8, intent(in) :: time          ! current time (s)
 
-    ! MOSAIC function interfaces
-    interface
-       subroutine SolarZenithAngle()
-       end subroutine SolarZenithAngle
-       subroutine IntegrateChemistry()
-       end subroutine IntegrateChemistry
-    end interface
-    
     ! local variables
     real*8 :: time_UTC ! 24-hr UTC clock time (hr)
     real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
     real*8 :: conv_fac(aero_data%n_spec), dum_var
-    integer :: i_bin, i_num, i_spec, i_mosaic, i_spec_mosaic
+    integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
 
     ! update time variables
     tmar21_sec = dble((79*24 + 12)*3600)        ! noon, mar 21, UTC
-    tcur_sec = dble(tbeg_sec) + t               ! current (old) time since
+    tcur_sec = dble(tbeg_sec) + time            ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
 
     time_UTC = time_UTC + dt_sec/3600d0
@@ -172,8 +165,8 @@ contains
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
     do i_bin = 1,bin_grid%n_bin
-       do i_num = 1,aero_state%bins(i_bin)%n_part
-          particle => aero_state%bins(i_bin)%particle(i_num)
+       do i_part = 1,aero_state%bins(i_bin)%n_part
+          particle => aero_state%bins(i_bin)%particle(i_part)
           i_mosaic = i_mosaic + 1
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -192,8 +185,6 @@ contains
        end do
     end do
 
-
-
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0
     do i_spec = 1,gas_data%n_spec
@@ -204,11 +195,51 @@ contains
        end if
     end do
 
-    if (msolar == 1) then
-      call SolarZenithAngle
-    end if
+  end subroutine mosaic_from_partmc
 
-    call IntegrateChemistry
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine mosaic_to_partmc(bin_grid, env, aero_data, &
+       aero_state, aero_binned, gas_data, gas_state)
+    
+    use pmc_constants
+    use pmc_util
+    use pmc_aero_state
+    use pmc_bin_grid 
+    use pmc_condensation
+    use pmc_env
+    use pmc_aero_data
+    use pmc_output_state
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_aero_binned
+    
+    use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
+         jtotal, water_a
+    
+    use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
+         dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
+         ppb, msolar
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(env_t), intent(inout) :: env   ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(inout) :: gas_state ! gas state
+
+    ! local variables
+    real*8 :: conv_fac(aero_data%n_spec), dum_var
+    integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
+    type(aero_particle_t), pointer :: particle
+
+    ! compute aerosol conversion factors
+    do i_spec = 1,aero_data%n_spec
+       ! converts m^3(species) to nmol(species)/m^3(air)
+       conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
+            / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
+    enddo
 
     ! environmental parameters: map MOSAIC -> PartMC
     env%rel_humid = RH / 100d0
@@ -218,9 +249,9 @@ contains
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_num = 1,aero_state%bins(i_bin)%n_part
+       do i_part = 1,aero_state%bins(i_bin)%n_part
           i_mosaic = i_mosaic + 1
-          particle => aero_state%bins(i_bin)%particle(i_num)
+          particle => aero_state%bins(i_bin)%particle(i_part)
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
@@ -248,6 +279,121 @@ contains
        end if
     end do
 
+  end subroutine mosaic_to_partmc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine mosaic_timestep(bin_grid, env, aero_data, &
+       aero_state, aero_binned, gas_data, gas_state, time)
+
+    ! Do one timestep with MOSAIC.
+    
+    use pmc_aero_state
+    use pmc_bin_grid 
+    use pmc_env
+    use pmc_aero_data
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_aero_binned
+    
+    use module_data_mosaic_main, only: msolar
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(env_t), intent(inout) :: env   ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(inout) :: gas_state ! gas state
+    real*8, intent(in) :: time          ! current time (s)
+
+    ! MOSAIC function interfaces
+    interface
+       subroutine SolarZenithAngle()
+       end subroutine SolarZenithAngle
+       subroutine IntegrateChemistry()
+       end subroutine IntegrateChemistry
+    end interface
+    
+    ! map PartMC -> MOSAIC
+    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
+         gas_data, gas_state, time)
+
+    if (msolar == 1) then
+      call SolarZenithAngle
+    end if
+
+    call IntegrateChemistry
+
+    ! map MOSAIC -> PartMC
+    call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &
+         aero_binned, gas_data, gas_state)
+
   end subroutine mosaic_timestep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine mosaic_aero_optical(bin_grid, env, aero_data, &
+       aero_state, gas_data, gas_state, time)
+
+    ! Compute the optical properties of each aerosol particle.
+    
+    use pmc_aero_state
+    use pmc_bin_grid 
+    use pmc_env
+    use pmc_aero_data
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_util
+    
+    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a
+    
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(env_t), intent(in) :: env      ! environment state
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(in) :: gas_state ! gas state
+    real*8, intent(in) :: time          ! current time (s)
+
+    ! MOSAIC function interfaces
+    interface
+       subroutine aerosol_optical()
+       end subroutine aerosol_optical
+    end interface
+
+    integer :: i_bin, i_part, i_mosaic
+    type(aero_particle_t), pointer :: particle
+    
+    ! map PartMC -> MOSAIC
+    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
+         gas_data, gas_state, time)
+
+    call aerosol_optical
+
+    ! map MOSAIC -> PartMC
+    i_mosaic = 0 ! MOSAIC bin number
+    do i_bin = 1,bin_grid%n_bin
+       do i_part = 1,aero_state%bins(i_bin)%n_part
+          i_mosaic = i_mosaic + 1
+          particle => aero_state%bins(i_bin)%particle(i_part)
+          particle%absorb_cross_sect = 0d0                    ! (m^2)
+          particle%extinct_cross_sect = 0d0                   ! (m^2)
+          particle%asymmetry = 0d0                            ! (1)
+          particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind = 8) ! (1)
+          particle%refract_core = cmplx(ri_core_a(i_mosaic), kind = 8)   ! (1)
+          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))  ! (m^3)
+
+          ! temporary debugging code follows
+          particle%absorb_cross_sect = vol2rad(aero_particle_volume(particle))
+          particle%extinct_cross_sect = 1.5d0 &
+               * vol2rad(aero_particle_volume(particle))
+          particle%core_vol = 0d0                             ! (m^3)
+       end do
+    end do
+
+  end subroutine mosaic_aero_optical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_mosaic

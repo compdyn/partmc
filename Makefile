@@ -79,7 +79,8 @@ process_state_OBJS := src/process_state.o src/bin_grid.o		\
 	src/output_state.o src/util.o src/constants.o src/gas_data.o	\
 	src/gas_state.o src/inout.o src/aero_particle.o			\
 	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
-	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o
+	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
+	src/mosaic.o
 process_average_OBJS := src/process_average.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
@@ -143,7 +144,7 @@ src/partmc: $(partmc_OBJS)
 src/process_summary: $(process_summary_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
 src/process_state: $(process_state_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) -lmosaic
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
 equilib/equilib: $(equilib_OBJS)

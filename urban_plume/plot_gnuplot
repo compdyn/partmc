@@ -9,8 +9,6 @@ def print_usage():
     print """plot <datafile_aero_binned.d> <unit> <species> <indices...>
 plot <datafile_aero_total.d> <unit> <species...>
 plot <datafile_gas.d> <species...>
-plot <datafile_comp_gnuplot.d>
-plot <datafile_comp_total.d>
 plot <datafile_env.d> <fields...>
 
 Plots the time history of the given species.
@@ -142,6 +140,7 @@ def get_species_names(data_filename, type):
     if type == "aero_history":
 	f.readline()
 	f.readline()
+    f.readline()
     f.readline()
     header = f.readline()
     f.close()

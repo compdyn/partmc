@@ -38,7 +38,7 @@ program partmc
      call inout_read_string(file, 'run_type', run_type)
   end if
   
-  call pmc_mpi_broadcast_string(run_type)
+  call pmc_mpi_bcast_string(run_type)
   if (trim(run_type) == 'mc') then
      call partmc_mc(file)
   elseif (trim(run_type) == 'exact') then
@@ -130,6 +130,7 @@ contains
        call spec_read_env(file, env)
        
        call inout_read_integer(file, 'rand_init', rand_init)
+       call inout_read_real(file, 'mix_rate', mc_opt%mix_rate)
        call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
        call inout_read_logical(file, 'allow_double', mc_opt%allow_double)
        call inout_read_logical(file, 'do_condensation', mc_opt%do_condensation)
@@ -146,21 +147,21 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! root process determines size
        buffer_size = 0
-       buffer_size = buffer_size + pmc_mpi_pack_mc_opt_size(mc_opt)
-       buffer_size = buffer_size + pmc_mpi_pack_string_size(kernel_name)
-       buffer_size = buffer_size + pmc_mpi_pack_bin_grid_size(bin_grid)
-       buffer_size = buffer_size + pmc_mpi_pack_gas_data_size(gas_data)
-       buffer_size = buffer_size + pmc_mpi_pack_gas_state_size(gas_init)
-       buffer_size = buffer_size + pmc_mpi_pack_aero_data_size(aero_data)
+       buffer_size = buffer_size + pmc_mpi_pack_size_mc_opt(mc_opt)
+       buffer_size = buffer_size + pmc_mpi_pack_size_string(kernel_name)
+       buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
+       buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
+       buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_init)
+       buffer_size = buffer_size + pmc_mpi_pack_size_aero_data(aero_data)
        buffer_size = buffer_size &
-            + pmc_mpi_pack_aero_dist_size(aero_dist_init)
-       buffer_size = buffer_size + pmc_mpi_pack_env_data_size(env_data)
-       buffer_size = buffer_size + pmc_mpi_pack_env_size(env)
-       buffer_size = buffer_size + pmc_mpi_pack_integer_size(rand_init)
+            + pmc_mpi_pack_size_aero_dist(aero_dist_init)
+       buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
+       buffer_size = buffer_size + pmc_mpi_pack_size_env(env)
+       buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
     end if
 
     ! tell everyone the size and allocate buffer space
-    call pmc_mpi_broadcast_integer(buffer_size)
+    call pmc_mpi_bcast_integer(buffer_size)
     allocate(buffer(buffer_size))
 
     if (pmc_mpi_rank() == 0) then
@@ -179,7 +180,7 @@ contains
     end if
 
     ! broadcast data to everyone
-    call pmc_mpi_broadcast_char_array(buffer)
+    call pmc_mpi_bcast_packed(buffer)
 
     if (pmc_mpi_rank() /= 0) then
        ! non-root processes unpack data

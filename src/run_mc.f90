@@ -25,6 +25,7 @@ module pmc_run_mc
     integer :: i_loop                   ! loop number of run
     integer :: n_loop                   ! total number of loops
     real*8 :: t_wall_start              ! cpu_time() of start
+    real*8 :: mix_rate                  ! mix rate for parallel states (0 to 1)
  end type run_mc_opt_t
   
 contains
@@ -81,7 +82,7 @@ contains
     integer n_coag, tot_n_samp, tot_n_coag, rank
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
-    integer n_time, i_time, i_time_start, pre_i_time
+    integer n_time, i_time, i_time_start, pre_i_time, i_state
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
@@ -90,6 +91,7 @@ contains
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
+    i_state = 0
     time = 0d0
     call env_data_init_state(env_data, env, time)
     n_coag = 0
@@ -146,7 +148,7 @@ contains
 
     if (mc_opt%t_state > 0d0) then
        call inout_write_state(mc_opt%state_prefix, bin_grid, &
-            aero_data, aero_state, gas_data, gas_state, env, i_time, &
+            aero_data, aero_state, gas_data, gas_state, env, i_state, &
             time, mc_opt%i_loop)
     end if
 
@@ -182,6 +184,9 @@ contains
           call mosaic_timestep(bin_grid, env, aero_data, &
                aero_state, aero_binned, gas_data, gas_state, time)
        end if
+
+       call mc_mix(aero_data, aero_state, gas_data, gas_state, &
+            aero_binned, env, bin_grid, mc_opt%mix_rate)
        
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array, and the same for halving
@@ -209,9 +214,12 @@ contains
        if (mc_opt%t_state > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_state, &
                last_state_time, do_state)
-          if (do_state) call inout_write_state(mc_opt%state_prefix, bin_grid, &
-            aero_data, aero_state, gas_data, gas_state, env, i_time, &
-            time, mc_opt%i_loop)
+          if (do_state) then
+             i_state = i_state + 1
+             call inout_write_state(mc_opt%state_prefix, bin_grid, &
+                  aero_data, aero_state, gas_data, gas_state, env, i_state, &
+                  time, mc_opt%i_loop)
+          end if
        end if
 
        if (mc_opt%t_progress > 0d0) then
@@ -285,10 +293,7 @@ contains
                aero_state%bins(j)%n_part, i == j, k_max(i,j), &
                aero_state%comp_vol, mc_opt%del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
-          n_samp = int(n_samp_real)
-          if (util_rand() .lt. mod(n_samp_real, 1d0)) then
-             n_samp = n_samp + 1
-          endif
+          n_samp = prob_round(n_samp_real)
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
              M = total_particles(aero_state)
@@ -341,8 +346,43 @@ contains
   end subroutine compute_n_samp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine mc_mix(aero_data, aero_state, gas_data, gas_state, &
+       aero_binned, env, bin_grid, mix_rate)
 
-  integer function pmc_mpi_pack_mc_opt_size(val)
+    ! Mix data between processes.
+
+    use pmc_util
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_aero_binned
+    use pmc_bin_grid
+    use pmc_env
+
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(inout) :: gas_state ! gas state
+    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
+    type(env_t), intent(inout) :: env   ! environment
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    real*8, intent(in) :: mix_rate      ! amount to mix (0 to 1)
+
+    call assert((mix_rate >= 0d0) .and. (mix_rate <= 1d0))
+    if (mix_rate == 0d0) return
+
+    call aero_state_mix(aero_state, mix_rate, &
+         aero_binned, aero_data, bin_grid)
+    call gas_state_mix(gas_state)
+    call env_mix(env)
+    
+  end subroutine mc_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_size_mc_opt(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -350,25 +390,25 @@ contains
 
     type(run_mc_opt_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_mc_opt_size = &
-         pmc_mpi_pack_integer_size(val%n_part_max) &
-         + pmc_mpi_pack_real_size(val%t_max) &
-         + pmc_mpi_pack_real_size(val%t_output) &
-         + pmc_mpi_pack_real_size(val%t_state) &
-         + pmc_mpi_pack_real_size(val%t_progress) &
-         + pmc_mpi_pack_real_size(val%del_t) &
-         + pmc_mpi_pack_string_size(val%state_prefix) &
-         + pmc_mpi_pack_logical_size(val%do_coagulation) &
-         + pmc_mpi_pack_logical_size(val%allow_double) &
-         + pmc_mpi_pack_logical_size(val%do_condensation) &
-         + pmc_mpi_pack_logical_size(val%do_mosaic) &
-         + pmc_mpi_pack_logical_size(val%do_restart) &
-         + pmc_mpi_pack_string_size(val%restart_name) &
-         + pmc_mpi_pack_integer_size(val%i_loop) &
-         + pmc_mpi_pack_integer_size(val%n_loop) &
-         + pmc_mpi_pack_real_size(val%t_wall_start)
+    pmc_mpi_pack_size_mc_opt = &
+         pmc_mpi_pack_size_integer(val%n_part_max) &
+         + pmc_mpi_pack_size_real(val%t_max) &
+         + pmc_mpi_pack_size_real(val%t_output) &
+         + pmc_mpi_pack_size_real(val%t_state) &
+         + pmc_mpi_pack_size_real(val%t_progress) &
+         + pmc_mpi_pack_size_real(val%del_t) &
+         + pmc_mpi_pack_size_string(val%state_prefix) &
+         + pmc_mpi_pack_size_logical(val%do_coagulation) &
+         + pmc_mpi_pack_size_logical(val%allow_double) &
+         + pmc_mpi_pack_size_logical(val%do_condensation) &
+         + pmc_mpi_pack_size_logical(val%do_mosaic) &
+         + pmc_mpi_pack_size_logical(val%do_restart) &
+         + pmc_mpi_pack_size_string(val%restart_name) &
+         + pmc_mpi_pack_size_integer(val%i_loop) &
+         + pmc_mpi_pack_size_integer(val%n_loop) &
+         + pmc_mpi_pack_size_real(val%t_wall_start)
 
-  end function pmc_mpi_pack_mc_opt_size
+  end function pmc_mpi_pack_size_mc_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -406,7 +446,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
-    call assert(position - prev_position == pmc_mpi_pack_mc_opt_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_pack_mc_opt
@@ -447,7 +487,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
-    call assert(position - prev_position == pmc_mpi_pack_mc_opt_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_mc_opt

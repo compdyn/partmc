@@ -587,7 +587,34 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_env_size(val)
+  subroutine env_mix(val)
+
+    ! Average val over all processes.
+
+    use pmc_mpi
+    
+    type(env_t), intent(inout) :: val ! value to average
+
+#ifdef PMC_USE_MPI
+    type(env_t) :: val_avg
+
+    call env_alloc(val_avg)
+    call pmc_mpi_allreduce_average_real(val%temp, val_avg%temp)
+    call pmc_mpi_allreduce_average_real(val%rel_humid, val_avg%rel_humid)
+    call pmc_mpi_allreduce_average_real(val%pressure, val_avg%pressure)
+    call pmc_mpi_allreduce_average_real(val%air_den, val_avg%air_den)
+    val%temp = val_avg%temp
+    val%rel_humid = val_avg%rel_humid
+    val%pressure = val_avg%pressure
+    val%air_den = val_avg%air_den
+    call env_free(val_avg)
+#endif
+
+  end subroutine env_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_size_env(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -595,26 +622,26 @@ contains
 
     type(env_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_env_size = &
-         pmc_mpi_pack_real_size(val%temp) &
-         + pmc_mpi_pack_real_size(val%rel_humid) &
-         + pmc_mpi_pack_real_size(val%pressure) &
-         + pmc_mpi_pack_real_size(val%longitude) &
-         + pmc_mpi_pack_real_size(val%latitude) &
-         + pmc_mpi_pack_real_size(val%altitude) &
-         + pmc_mpi_pack_real_size(val%start_time) &
-         + pmc_mpi_pack_integer_size(val%start_day) &
-         + pmc_mpi_pack_real_size(val%height) &
-         + pmc_mpi_pack_gas_state_size(val%gas_emissions) &
-         + pmc_mpi_pack_real_size(val%gas_emission_rate) &
-         + pmc_mpi_pack_gas_state_size(val%gas_background) &
-         + pmc_mpi_pack_real_size(val%gas_dilution_rate) &
-         + pmc_mpi_pack_aero_dist_size(val%aero_emissions) &
-         + pmc_mpi_pack_real_size(val%aero_emission_rate) &
-         + pmc_mpi_pack_aero_dist_size(val%aero_background) &
-         + pmc_mpi_pack_real_size(val%aero_dilution_rate)
+    pmc_mpi_pack_size_env = &
+         pmc_mpi_pack_size_real(val%temp) &
+         + pmc_mpi_pack_size_real(val%rel_humid) &
+         + pmc_mpi_pack_size_real(val%pressure) &
+         + pmc_mpi_pack_size_real(val%longitude) &
+         + pmc_mpi_pack_size_real(val%latitude) &
+         + pmc_mpi_pack_size_real(val%altitude) &
+         + pmc_mpi_pack_size_real(val%start_time) &
+         + pmc_mpi_pack_size_integer(val%start_day) &
+         + pmc_mpi_pack_size_real(val%height) &
+         + pmc_mpi_pack_size_gas_state(val%gas_emissions) &
+         + pmc_mpi_pack_size_real(val%gas_emission_rate) &
+         + pmc_mpi_pack_size_gas_state(val%gas_background) &
+         + pmc_mpi_pack_size_real(val%gas_dilution_rate) &
+         + pmc_mpi_pack_size_aero_dist(val%aero_emissions) &
+         + pmc_mpi_pack_size_real(val%aero_emission_rate) &
+         + pmc_mpi_pack_size_aero_dist(val%aero_background) &
+         + pmc_mpi_pack_size_real(val%aero_dilution_rate)
 
-  end function pmc_mpi_pack_env_size
+  end function pmc_mpi_pack_size_env
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -653,7 +680,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%aero_emission_rate)
     call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_pack_real(buffer, position, val%aero_dilution_rate)
-    call assert(position - prev_position == pmc_mpi_pack_env_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_env(val))
 #endif
 
   end subroutine pmc_mpi_pack_env
@@ -695,7 +722,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%aero_emission_rate)
     call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_unpack_real(buffer, position, val%aero_dilution_rate)
-    call assert(position - prev_position == pmc_mpi_pack_env_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_env(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env

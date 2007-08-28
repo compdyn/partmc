@@ -37,6 +37,7 @@ start_time 43200                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 17                    # random initialization (0 to auto-generate)
+mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

@@ -81,6 +81,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine pmc_mpi_barrier()
+
+    ! Synchronize all processors.
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_barrier(MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#endif
+
+  end subroutine pmc_mpi_barrier
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function pmc_mpi_rank()
 
     ! Returns the rank of the current process.
@@ -121,7 +136,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_broadcast_integer(val)
+  subroutine pmc_mpi_bcast_integer(val)
 
     ! Broadcast the given value from process 0 to all other processes.
 
@@ -136,11 +151,11 @@ contains
     call pmc_mpi_check_ierr(ierr)
 #endif
 
-  end subroutine pmc_mpi_broadcast_integer
+  end subroutine pmc_mpi_bcast_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_broadcast_string(val)
+  subroutine pmc_mpi_bcast_string(val)
 
     ! Broadcast the given value from process 0 to all other processes.
 
@@ -155,11 +170,11 @@ contains
     call pmc_mpi_check_ierr(ierr)
 #endif
 
-  end subroutine pmc_mpi_broadcast_string
+  end subroutine pmc_mpi_bcast_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine pmc_mpi_broadcast_char_array(val)
+  subroutine pmc_mpi_bcast_packed(val)
 
     ! Broadcast the given value from process 0 to all other processes.
 
@@ -174,114 +189,149 @@ contains
     call pmc_mpi_check_ierr(ierr)
 #endif
 
-  end subroutine pmc_mpi_broadcast_char_array
+  end subroutine pmc_mpi_bcast_packed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_integer_size(val)
+  integer function pmc_mpi_pack_size_integer(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     integer, intent(in) :: val          ! value to pack
 
-    pmc_mpi_pack_integer_size = 4
+    integer :: ierr
 
-  end function pmc_mpi_pack_integer_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_integer, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    pmc_mpi_pack_size_integer = 0
+#endif
+
+  end function pmc_mpi_pack_size_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_real_size(val)
+  integer function pmc_mpi_pack_size_real(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     real*8, intent(in) :: val           ! value to pack
 
-    pmc_mpi_pack_real_size = 8
+    integer :: ierr
 
-  end function pmc_mpi_pack_real_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(1, MPI_REAL8, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_real, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    pmc_mpi_pack_size_real = 0
+#endif
+
+  end function pmc_mpi_pack_size_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_string_size(val)
+  integer function pmc_mpi_pack_size_string(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     character(len=*), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_string_size = len_trim(val) + pmc_mpi_pack_integer_size(1)
+    integer :: ierr
 
-  end function pmc_mpi_pack_string_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(len_trim(val), MPI_CHARACTER, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_string, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    pmc_mpi_pack_size_string = pmc_mpi_pack_size_string &
+         + pmc_mpi_pack_size_integer(len_trim(val))
+#else
+    pmc_mpi_pack_size_string = 0
+#endif
+
+  end function pmc_mpi_pack_size_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_logical_size(val)
+  integer function pmc_mpi_pack_size_logical(val)
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_util
-
     logical, intent(in) :: val          ! value to pack
 
-    integer, save :: saved_size = 0
-    character :: buffer(20)
-
-#ifdef PMC_USE_MPI
     integer :: ierr
 
-    if (saved_size == 0) then
-       ! first time through, compute the size
-       call mpi_pack(val, 1, MPI_LOGICAL, buffer, size(buffer), &
-            saved_size, MPI_COMM_WORLD, ierr)
-       call pmc_mpi_check_ierr(ierr)
-       call assert(saved_size < size(buffer))
-    end if
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(1, MPI_LOGICAL, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_logical, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    pmc_mpi_pack_size_logical = 0
 #endif
 
-    pmc_mpi_pack_logical_size = saved_size
-
-  end function pmc_mpi_pack_logical_size
+  end function pmc_mpi_pack_size_logical
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_complex_size(val)
+  integer function pmc_mpi_pack_size_complex(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     complex*16, intent(in) :: val       ! value to pack
 
-    pmc_mpi_pack_complex_size = 16
+    pmc_mpi_pack_size_complex = 16
 
-  end function pmc_mpi_pack_complex_size
+  end function pmc_mpi_pack_size_complex
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_integer_array_size(val)
+  integer function pmc_mpi_pack_size_integer_array(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     integer, intent(in) :: val(:)       ! value to pack
 
-    pmc_mpi_pack_integer_array_size = pmc_mpi_pack_integer_size(1) &
-         + size(val) * pmc_mpi_pack_integer_size(1)
+    integer :: ierr
 
-  end function pmc_mpi_pack_integer_array_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(size(val), MPI_INTEGER, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_integer_array, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer_array &
+         + pmc_mpi_pack_size_integer(size(val))
+#else
+    pmc_mpi_pack_size_integer_array = 0
+#endif
+
+  end function pmc_mpi_pack_size_integer_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_real_array_size(val)
+  integer function pmc_mpi_pack_size_real_array(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     real*8, intent(in) :: val(:)        ! value to pack
 
-    pmc_mpi_pack_real_array_size = pmc_mpi_pack_integer_size(1) &
-         + size(val) * pmc_mpi_pack_real_size(1d0)
+    integer :: ierr
 
-  end function pmc_mpi_pack_real_array_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(size(val), MPI_REAL8, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_real_array, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
+         + pmc_mpi_pack_size_integer(size(val))
+#else
+    pmc_mpi_pack_size_real_array = 0
+#endif
+
+  end function pmc_mpi_pack_size_real_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_string_array_size(val)
+  integer function pmc_mpi_pack_size_string_array(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -289,26 +339,36 @@ contains
 
     integer :: i, total_size
 
-    total_size = pmc_mpi_pack_integer_size(1)
+    total_size = pmc_mpi_pack_size_integer(size(val))
     do i = 1,size(val)
-       total_size = total_size + pmc_mpi_pack_string_size(val(i))
+       total_size = total_size + pmc_mpi_pack_size_string(val(i))
     end do
-    pmc_mpi_pack_string_array_size = total_size
+    pmc_mpi_pack_size_string_array = total_size
 
-  end function pmc_mpi_pack_string_array_size
+  end function pmc_mpi_pack_size_string_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_real_array_2d_size(val)
+  integer function pmc_mpi_pack_size_real_array_2d(val)
 
     ! Determines the number of bytes required to pack the given value.
 
     real*8, intent(in) :: val(:,:)      ! value to pack
 
-    pmc_mpi_pack_real_array_2d_size = 2 * pmc_mpi_pack_integer_size(1) &
-         + size(val) * pmc_mpi_pack_real_size(1d0)
+    integer :: ierr
 
-  end function pmc_mpi_pack_real_array_2d_size
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(size(val), MPI_REAL8, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_real_array_2d, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
+         + pmc_mpi_pack_size_integer(size(val,1)) &
+         + pmc_mpi_pack_size_integer(size(val,2))
+#else
+    pmc_mpi_pack_size_real_array_2d = 0
+#endif
+
+  end function pmc_mpi_pack_size_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -329,7 +389,7 @@ contains
     call mpi_pack(val, 1, MPI_INTEGER, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_integer_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_integer(val))
 #endif
 
   end subroutine pmc_mpi_pack_integer
@@ -353,7 +413,7 @@ contains
     call mpi_pack(val, 1, MPI_REAL8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_real(val))
 #endif
 
   end subroutine pmc_mpi_pack_real
@@ -379,7 +439,7 @@ contains
     call mpi_pack(val, length, MPI_CHARACTER, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_string_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_string(val))
 #endif
 
   end subroutine pmc_mpi_pack_string
@@ -403,7 +463,7 @@ contains
     call mpi_pack(val, 1, MPI_LOGICAL, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_logical_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_logical(val))
 #endif
 
   end subroutine pmc_mpi_pack_logical
@@ -454,7 +514,7 @@ contains
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(position - prev_position &
-         == pmc_mpi_pack_integer_array_size(val))
+         == pmc_mpi_pack_size_integer_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_integer_array
@@ -480,7 +540,7 @@ contains
     call mpi_pack(val, n, MPI_REAL8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_array_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_real_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_real_array
@@ -506,7 +566,7 @@ contains
     do i = 1,n
        call pmc_mpi_pack_string(buffer, position, val(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_string_array_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_string_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_string_array
@@ -535,7 +595,7 @@ contains
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(position - prev_position &
-         == pmc_mpi_pack_real_array_2d_size(val))
+         == pmc_mpi_pack_size_real_array_2d(val))
 #endif
 
   end subroutine pmc_mpi_pack_real_array_2d
@@ -559,7 +619,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_INTEGER, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_integer_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_integer(val))
 #endif
 
   end subroutine pmc_mpi_unpack_integer
@@ -583,7 +643,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_real(val))
 #endif
 
   end subroutine pmc_mpi_unpack_real
@@ -612,7 +672,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, length, &
          MPI_CHARACTER, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_string_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_string(val))
 #endif
 
   end subroutine pmc_mpi_unpack_string
@@ -636,7 +696,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_LOGICAL, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_logical_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_logical(val))
 #endif
 
   end subroutine pmc_mpi_unpack_logical
@@ -687,7 +747,7 @@ contains
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(position - prev_position &
-         == pmc_mpi_pack_integer_array_size(val))
+         == pmc_mpi_pack_size_integer_array(val))
 #endif
 
   end subroutine pmc_mpi_unpack_integer_array
@@ -713,7 +773,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_array_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_real_array(val))
 #endif
 
   end subroutine pmc_mpi_unpack_real_array
@@ -739,7 +799,7 @@ contains
     do i = 1,n
        call pmc_mpi_unpack_string(buffer, position, val(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_string_array_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_string_array(val))
 #endif
 
   end subroutine pmc_mpi_unpack_string_array
@@ -767,7 +827,7 @@ contains
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(position - prev_position &
-         == pmc_mpi_pack_real_array_2d_size(val))
+         == pmc_mpi_pack_size_real_array_2d(val))
 #endif
 
   end subroutine pmc_mpi_unpack_real_array_2d
@@ -853,6 +913,55 @@ contains
 #endif
 
   end subroutine pmc_mpi_reduce_avg_real_array_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_allreduce_average_real(val, val_avg)
+
+    ! Computes the average of val across all processes, storing the
+    ! result in val_avg on the root process.
+
+    real*8, intent(in) :: val           ! value to average
+    real*8, intent(out) :: val_avg      ! result
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_avg, 1, MPI_REAL8, MPI_SUM, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    val_avg = val_avg / dble(pmc_mpi_size())
+#else
+    val_avg = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_average_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_allreduce_average_real_array(val, val_avg)
+
+    ! Computes the average of val across all processes, storing the
+    ! result in val_avg on the root process.
+
+    use pmc_util
+
+    real*8, intent(in) :: val(:)        ! value to average
+    real*8, intent(out) :: val_avg(:)   ! result
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call assert(size(val) == size(val_avg))
+    call mpi_allreduce(val, val_avg, size(val), MPI_REAL8, MPI_SUM, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    val_avg = val_avg / dble(pmc_mpi_size())
+#else
+    val_avg = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_average_real_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -506,7 +506,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_aero_particle_size(val)
+  integer function pmc_mpi_pack_size_aero_particle(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -514,17 +514,17 @@ contains
 
     type(aero_particle_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_aero_particle_size = &
-         pmc_mpi_pack_real_array_size(val%vol) &
-         + pmc_mpi_pack_integer_size(val%n_orig_part) &
-         + pmc_mpi_pack_real_size(val%absorb_cross_sect) &
-         + pmc_mpi_pack_real_size(val%extinct_cross_sect) &
-         + pmc_mpi_pack_real_size(val%asymmetry) &
-         + pmc_mpi_pack_complex_size(val%refract_shell) &
-         + pmc_mpi_pack_complex_size(val%refract_core) &
-         + pmc_mpi_pack_real_size(val%core_vol)
-
-  end function pmc_mpi_pack_aero_particle_size
+    pmc_mpi_pack_size_aero_particle = &
+         pmc_mpi_pack_size_real_array(val%vol) &
+         + pmc_mpi_pack_size_integer(val%n_orig_part) &
+         + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
+         + pmc_mpi_pack_size_real(val%extinct_cross_sect) &
+         + pmc_mpi_pack_size_real(val%asymmetry) &
+         + pmc_mpi_pack_size_complex(val%refract_shell) &
+         + pmc_mpi_pack_size_complex(val%refract_core) &
+         + pmc_mpi_pack_size_real(val%core_vol)
+    
+  end function pmc_mpi_pack_size_aero_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -555,7 +555,7 @@ contains
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call assert(position - prev_position &
-         == pmc_mpi_pack_aero_particle_size(val))
+         == pmc_mpi_pack_size_aero_particle(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle
@@ -589,7 +589,7 @@ contains
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call assert(position - prev_position &
-         == pmc_mpi_pack_aero_particle_size(val))
+         == pmc_mpi_pack_size_aero_particle(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle

@@ -331,7 +331,7 @@ contains
     use pmc_util
 
     type(gas_state_t), intent(in) :: gas_state_vec(:) ! array of gas_state
-    type(gas_state_t), intent(out) :: gas_state_avg   ! average of gas_state_vec
+    type(gas_state_t), intent(out) :: gas_state_avg ! average of gas_state_vec
 
     integer :: n_spec, i_spec, i, n
 
@@ -347,7 +347,28 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_gas_state_size(val)
+  subroutine gas_state_mix(val)
+
+    ! Average val over all processes.
+
+    use pmc_mpi
+    
+    type(gas_state_t), intent(inout) :: val ! value to average
+
+#ifdef PMC_USE_MPI
+    type(gas_state_t) :: val_avg
+
+    call gas_state_alloc(val_avg, size(val%conc))
+    call pmc_mpi_allreduce_average_real_array(val%conc, val_avg%conc)
+    val%conc = val_avg%conc
+    call gas_state_free(val_avg)
+#endif
+
+  end subroutine gas_state_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_size_gas_state(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -355,10 +376,10 @@ contains
 
     type(gas_state_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_gas_state_size = &
-         + pmc_mpi_pack_real_array_size(val%conc)
+    pmc_mpi_pack_size_gas_state = &
+         + pmc_mpi_pack_size_real_array(val%conc)
 
-  end function pmc_mpi_pack_gas_state_size
+  end function pmc_mpi_pack_size_gas_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -381,7 +402,7 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%conc)
-    call assert(position - prev_position == pmc_mpi_pack_gas_state_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_gas_state
@@ -407,7 +428,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%conc)
-    call assert(position - prev_position == pmc_mpi_pack_gas_state_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_gas_state

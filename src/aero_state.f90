@@ -275,6 +275,9 @@ contains
 
     ! Generates a Poisson sample of an aero_dist, adding to aero_state.
 
+    ! FIXME: we should not take sample_vol, but rather sample_amount
+    ! that we then multiply by aero_state%comp_vol
+
     use pmc_bin_grid
     use pmc_aero_data
     use pmc_aero_dist
@@ -332,7 +335,7 @@ contains
     
     ! Generates a Poisson sample by removing particles from
     ! aero_state_from and adding them to aero_state_to, which must
-    ! be already allocated.
+    ! be already allocated (and should have its comp_vol set).
 
     use pmc_util
     use pmc_rand_poisson
@@ -342,37 +345,139 @@ contains
     real*8, intent(in) :: sample_prop   ! proportion to sample
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
+    logical :: do_add, do_remove
+    real*8 :: vol_ratio
 
     call assert((sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
          * dble(total_particles(aero_state_from)))
     n_bin = size(aero_state_from%bins)
-    do i_transfer = 1,n_transfer
+    vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
+    i_transfer = 0
+    do while (i_transfer < n_transfer)
        if (total_particles(aero_state_from) <= 0) exit
        call aero_state_rand_particle(aero_state_from, i_bin, i_part)
-       call aero_state_add_particle(aero_state_to, i_bin, &
-            aero_state_from%bins(i_bin)%particle(i_part))
-       call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+       if (vol_ratio == 1d0) then
+          ! to_comp_vol == from_comp_vol so just move the particle
+          do_add = .true.
+          do_remove = .true.
+       elseif (vol_ratio > 1d0) then
+          ! to_comp_vol is bigger than from_comp_vol, so only maybe
+          ! remove the particle but always add it
+          do_add = .true.
+          do_remove = .false.
+          if (util_rand() < 1d0 / vol_ratio) then
+             do_remove = .true.
+          end if
+       else ! vol_ratio < 1d0
+          ! to_comp_vol is smaller than from_comp_vol, so always
+          ! remove the particle but only maybe add it
+          do_add = .false.
+          if (util_rand() < vol_ratio) then
+             do_add = .true.
+          end if
+          do_remove = .true.
+       end if
+       if (do_add) then
+          call aero_state_add_particle(aero_state_to, i_bin, &
+               aero_state_from%bins(i_bin)%particle(i_part))
+       end if
+       if (do_remove) then
+          call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+          i_transfer = i_transfer + 1
+       end if
     end do
     
   end subroutine aero_state_sample
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_sample_rough(aero_state_from, aero_state_to, &
+       sample_prop)
+    
+    ! Generates a rough bin-wise sample by removing particles from
+    ! aero_state_from and adding them to aero_state_to, which must
+    ! be already allocated (and should have its comp_vol set).
+
+    use pmc_util
+    
+    type(aero_state_t), intent(inout) :: aero_state_from ! original state
+    type(aero_state_t), intent(inout) :: aero_state_to ! destination state
+    real*8, intent(in) :: sample_prop   ! proportion to sample
+    
+    integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
+    logical :: do_add, do_remove
+    real*8 :: vol_ratio
+
+    n_bin = size(aero_state_from%bins)
+    vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
+    do i_bin = 1,n_bin
+       n_transfer = prob_round(sample_prop &
+            * dble(aero_state_from%bins(i_bin)%n_part))
+       i_transfer = 0
+       do while (i_transfer < n_transfer)
+          if (aero_state_from%bins(i_bin)%n_part <= 0) exit
+          i_part = util_rand_int(aero_state_from%bins(i_bin)%n_part)
+          if (vol_ratio == 1d0) then
+             ! to_comp_vol == from_comp_vol so just move the particle
+             do_add = .true.
+             do_remove = .true.
+          elseif (vol_ratio > 1d0) then
+             ! to_comp_vol is bigger than from_comp_vol, so only maybe
+             ! remove the particle but always add it
+             do_add = .true.
+             do_remove = .false.
+             if (util_rand() < 1d0 / vol_ratio) then
+                do_remove = .true.
+             end if
+          else ! vol_ratio < 1d0
+             ! to_comp_vol is smaller than from_comp_vol, so always
+             ! remove the particle but only maybe add it
+             do_add = .false.
+             if (util_rand() < vol_ratio) then
+                do_add = .true.
+             end if
+             do_remove = .true.
+          end if
+          if (do_add) then
+             call aero_state_add_particle(aero_state_to, i_bin, &
+                  aero_state_from%bins(i_bin)%particle(i_part))
+          end if
+          if (do_remove) then
+             call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+             i_transfer = i_transfer + 1
+          end if
+       end do
+    end do
+    
+  end subroutine aero_state_sample_rough
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine aero_state_add(aero_state, aero_state_delta)
     
-    ! Adds aero_state_delta to aero_state.
+    ! Adds aero_state_delta to aero_state. The number of particles
+    ! added depends on the computational volume ratio, so either more
+    ! or less particles might be added than are actually in
+    ! aero_state_delta.
+
+    use pmc_util
     
     type(aero_state_t), intent(inout) :: aero_state ! base state
     type(aero_state_t), intent(in) :: aero_state_delta ! state to add
     
-    integer :: n_bin, i_bin, i_part
+    integer :: n_bin, i_bin, i_part, n_new_part, i_new_part
+    real*8 :: vol_ratio
     
     n_bin = size(aero_state%bins)
+    vol_ratio = aero_state%comp_vol / aero_state_delta%comp_vol
     do i_bin = 1,n_bin
        do i_part = 1,aero_state_delta%bins(i_bin)%n_part
-          call aero_state_add_particle(aero_state, i_bin, &
-               aero_state_delta%bins(i_bin)%particle(i_part))
+          n_new_part = prob_round(vol_ratio)
+          do i_new_part = 1,n_new_part
+             call aero_state_add_particle(aero_state, i_bin, &
+                  aero_state_delta%bins(i_bin)%particle(i_part))
+          end do
        end do
     end do
     
@@ -514,6 +619,147 @@ contains
   end subroutine aero_state_resort
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_mix_to(aero_state, mix_rate, dest, &
+       aero_binned, aero_data, bin_grid)
+
+    ! Send a sample to the given process, and receive exactly one
+    ! sample from an unspecified source.
+
+#ifdef PMC_USE_MPI
+    use mpi
+#endif
+    use pmc_mpi
+    use pmc_util
+    use pmc_aero_binned
+    use pmc_aero_data
+    use pmc_bin_grid
+
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
+    integer, intent(in) :: dest         ! process to send to
+    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
+    type(aero_data_t), intent(in) :: aero_data ! aero data values
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+
+#ifdef PMC_USE_MPI
+    integer :: ierr, status(MPI_STATUS_SIZE)
+    type(aero_state_t) :: aero_state_send, aero_state_recv
+    character, allocatable :: buffer_send(:), buffer_recv(:)
+    integer :: buffer_size_send, buffer_size_recv, position
+    type(aero_binned_t) :: aero_binned_delta
+
+!DEBUG
+    integer :: i
+    do i = 0,(pmc_mpi_size() - 1)
+       call pmc_mpi_barrier()
+       if (i == pmc_mpi_rank()) then
+          write(*,*) 'send from/to: ', pmc_mpi_rank(), dest
+       end if
+    end do
+!DEBUG
+    ! allocate memory
+    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
+
+    ! extract particles to send
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_send)
+    aero_state_send%comp_vol = aero_state%comp_vol
+    ! FIXME: would probably be slightly better for sampling purposes
+    ! to use the destination comp_vol here
+    call aero_state_sample_rough(aero_state, aero_state_send, mix_rate)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state_send, &
+         aero_binned_delta)
+    call aero_binned_sub(aero_binned, aero_binned_delta)
+
+    ! pack up data to send
+    buffer_size_send = pmc_mpi_pack_size_aero_state(aero_state_send)
+    allocate(buffer_send(buffer_size_send))
+    position = 0
+    call pmc_mpi_pack_aero_state(buffer_send, position, aero_state_send)
+    call assert(position == buffer_size_send)
+
+    ! transfer buffer size info and allocate receive buffers
+    call mpi_sendrecv(buffer_size_send, 1, MPI_INTEGER, dest, 0, &
+         buffer_size_recv, 1, MPI_INTEGER, MPI_ANY_SOURCE, &
+         MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    allocate(buffer_recv(buffer_size_recv))
+
+    ! do data transfer
+    call mpi_sendrecv(buffer_send, buffer_size_send, MPI_PACKED, dest, 0, &
+         buffer_recv, buffer_size_recv, MPI_PACKED, MPI_ANY_SOURCE, &
+         MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+
+    ! unpack received data and process it
+    position = 0
+    call pmc_mpi_unpack_aero_state(buffer_recv, position, aero_state_recv)
+    call assert(position == buffer_size_recv)
+    call aero_state_add(aero_state, aero_state_recv)
+    call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
+         aero_binned_delta)
+    call aero_binned_add(aero_binned, aero_binned_delta)
+
+    ! cleanup
+    call aero_binned_free(aero_binned_delta)
+    call aero_state_free(aero_state_send)
+    call aero_state_free(aero_state_recv)
+    deallocate(buffer_send)
+    deallocate(buffer_recv)
+#endif
+
+  end subroutine aero_state_mix_to
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_mix(aero_state, mix_rate, &
+       aero_binned, aero_data, bin_grid)
+
+    ! Mix the aero_states between all processes. Currently uses a
+    ! simple periodic-1D diffusion.
+
+    use pmc_mpi
+    use pmc_aero_binned
+    use pmc_aero_data
+    use pmc_bin_grid
+
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
+    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
+    type(aero_data_t), intent(in) :: aero_data ! aero data values
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+
+    integer :: rank, n_proc, dest
+
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+!DEBUG
+!    call pmc_mpi_barrier()
+!    if (rank == 0) then
+!       write(*,*) 'mix -------------------------------------------------------'
+!    end if
+!    call pmc_mpi_barrier()
+!DEBUG
+    
+    ! mix up
+    dest = rank + 1
+    if (dest == n_proc) then
+       dest = 0
+    end if
+    call aero_state_mix_to(aero_state, mix_rate, dest, &
+       aero_binned, aero_data, bin_grid)
+
+    ! mix down
+    dest = rank - 1
+    if (dest == -1) then
+       dest = n_proc - 1
+    end if
+    call aero_state_mix_to(aero_state, mix_rate, dest, &
+       aero_binned, aero_data, bin_grid)
+
+  end subroutine aero_state_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
     
@@ -654,7 +900,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_aero_state_size(val)
+  integer function pmc_mpi_pack_size_aero_state(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -665,16 +911,15 @@ contains
     integer :: i, total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_real_size(val%comp_vol)
-    total_size = total_size + pmc_mpi_pack_integer_size(val%n_part)
-    total_size = total_size + pmc_mpi_pack_integer_size(size(val%bins))
+    total_size = total_size + pmc_mpi_pack_size_real(val%comp_vol)
+    total_size = total_size + pmc_mpi_pack_size_integer(val%n_part)
+    total_size = total_size + pmc_mpi_pack_size_integer(size(val%bins))
     do i = 1,size(val%bins)
-       total_size = total_size &
-            + pmc_mpi_pack_apa_size(val%bins(i))
+       total_size = total_size + pmc_mpi_pack_size_apa(val%bins(i))
     end do
-    pmc_mpi_pack_aero_state_size = total_size
+    pmc_mpi_pack_size_aero_state = total_size
 
-  end function pmc_mpi_pack_aero_state_size
+  end function pmc_mpi_pack_size_aero_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -702,7 +947,7 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_aero_state_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_state
@@ -734,7 +979,7 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_aero_state_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_state

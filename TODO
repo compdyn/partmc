@@ -39,6 +39,17 @@ also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
 etc. What about 2D arrays, is it correct to treat them as 1D as we do
 at present with mpi_pack?
 
+fix the handling of comp_vol in aero_dist_sample() and
+aero_state_sample()
+
+rename util_rand() to pmc_rand()?
+
+change gas mixing to be by diffusion, rather than allreduce, also env
+
+put all the use statements at the top for each module, rather than
+per-function. This will make the dependency graph clearer and the code
+shorter. Also put them all on one line, rather than one line per mod.
+
 we call env_data_init_state() twice, once from partmc and once from run_mc
 
 make mosaic compilation optional with a -DPMC_USE_MOSAIC
@@ -79,3 +90,4 @@ switch to computing it on output.
 add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
+

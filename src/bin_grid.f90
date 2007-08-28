@@ -200,7 +200,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_bin_grid_size(val)
+  integer function pmc_mpi_pack_size_bin_grid(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -208,12 +208,12 @@ contains
 
     type(bin_grid_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_bin_grid_size = &
-         pmc_mpi_pack_integer_size(val%n_bin) &
-         + pmc_mpi_pack_real_array_size(val%v) &
-         + pmc_mpi_pack_real_size(val%dlnr)
+    pmc_mpi_pack_size_bin_grid = &
+         pmc_mpi_pack_size_integer(val%n_bin) &
+         + pmc_mpi_pack_size_real_array(val%v) &
+         + pmc_mpi_pack_size_real(val%dlnr)
 
-  end function pmc_mpi_pack_bin_grid_size
+  end function pmc_mpi_pack_size_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -238,7 +238,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_bin)
     call pmc_mpi_pack_real_array(buffer, position, val%v)
     call pmc_mpi_pack_real(buffer, position, val%dlnr)
-    call assert(position - prev_position == pmc_mpi_pack_bin_grid_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_pack_bin_grid
@@ -266,7 +266,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
     call pmc_mpi_unpack_real_array(buffer, position, val%v)
     call pmc_mpi_unpack_real(buffer, position, val%dlnr)
-    call assert(position - prev_position == pmc_mpi_pack_bin_grid_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid

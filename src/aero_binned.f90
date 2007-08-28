@@ -305,7 +305,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_aero_binned_size(val)
+  integer function pmc_mpi_pack_size_aero_binned(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -313,11 +313,11 @@ contains
 
     type(aero_binned_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_aero_binned_size = &
-         pmc_mpi_pack_real_array_size(val%num_den) &
-         + pmc_mpi_pack_real_array_2d_size(val%vol_den)
+    pmc_mpi_pack_size_aero_binned = &
+         pmc_mpi_pack_size_real_array(val%num_den) &
+         + pmc_mpi_pack_size_real_array_2d(val%vol_den)
 
-  end function pmc_mpi_pack_aero_binned_size
+  end function pmc_mpi_pack_size_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -341,7 +341,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_den)
-    call assert(position - prev_position == pmc_mpi_pack_aero_binned_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_binned
@@ -368,7 +368,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_den)
-    call assert(position - prev_position == pmc_mpi_pack_aero_binned_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_binned

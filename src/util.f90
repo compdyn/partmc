@@ -18,11 +18,21 @@ contains
 
     ! Errors unless condition_ok is true.
 
+#ifdef PMC_USE_MPI
+    use mpi
+#endif
+
     logical, intent(in) :: condition_ok ! whether the assertion is ok
+
+    integer :: ierr
 
     if (.not. condition_ok) then
        write(0,*) 'ERROR: assertion failed'
+#ifdef PMC_USE_MPI
+       call mpi_abort(MPI_COMM_WORLD, 8927, ierr)
+#else
        call exit(3)
+#endif
     end if
 
   end subroutine assert

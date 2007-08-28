@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo
 output_file out/sedi_exp_mc_summary.d # name of output file
 state_prefix out/sedi_exp_mc_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-n_part 10000000                 # total number of particles
+n_part 1000000                  # total number of particles
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
@@ -37,6 +37,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 rand_init 22                    # random initialization (0 to auto-generate)
+mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

@@ -265,7 +265,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function pmc_mpi_pack_aero_data_size(val)
+  integer function pmc_mpi_pack_size_aero_data(val)
 
     ! Determines the number of bytes required to pack the given value.
 
@@ -273,18 +273,18 @@ contains
 
     type(aero_data_t), intent(in) :: val ! value to pack
 
-    pmc_mpi_pack_aero_data_size = &
-         pmc_mpi_pack_integer_size(val%n_spec) &
-         + pmc_mpi_pack_integer_size(val%i_water) &
-         + pmc_mpi_pack_string_array_size(val%name) &
-         + pmc_mpi_pack_integer_array_size(val%mosaic_index) &
-         + pmc_mpi_pack_real_array_size(val%density) &
-         + pmc_mpi_pack_integer_array_size(val%num_ions) &
-         + pmc_mpi_pack_real_array_size(val%solubility) &
-         + pmc_mpi_pack_real_array_size(val%molec_weight) &
-         + pmc_mpi_pack_real_array_size(val%kappa)
+    pmc_mpi_pack_size_aero_data = &
+         pmc_mpi_pack_size_integer(val%n_spec) &
+         + pmc_mpi_pack_size_integer(val%i_water) &
+         + pmc_mpi_pack_size_string_array(val%name) &
+         + pmc_mpi_pack_size_integer_array(val%mosaic_index) &
+         + pmc_mpi_pack_size_real_array(val%density) &
+         + pmc_mpi_pack_size_integer_array(val%num_ions) &
+         + pmc_mpi_pack_size_real_array(val%solubility) &
+         + pmc_mpi_pack_size_real_array(val%molec_weight) &
+         + pmc_mpi_pack_size_real_array(val%kappa)
 
-  end function pmc_mpi_pack_aero_data_size
+  end function pmc_mpi_pack_size_aero_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -315,7 +315,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%solubility)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
-    call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_data
@@ -349,7 +349,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
-    call assert(position - prev_position == pmc_mpi_pack_aero_data_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_data

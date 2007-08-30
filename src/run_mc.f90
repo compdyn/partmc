@@ -406,7 +406,8 @@ contains
          + pmc_mpi_pack_size_string(val%restart_name) &
          + pmc_mpi_pack_size_integer(val%i_loop) &
          + pmc_mpi_pack_size_integer(val%n_loop) &
-         + pmc_mpi_pack_size_real(val%t_wall_start)
+         + pmc_mpi_pack_size_real(val%t_wall_start) &
+         + pmc_mpi_pack_size_real(val%mix_rate)
 
   end function pmc_mpi_pack_size_mc_opt
 
@@ -446,6 +447,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
+    call pmc_mpi_pack_real(buffer, position, val%mix_rate)
     call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
@@ -487,6 +489,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
+    call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
     call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 

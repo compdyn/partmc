@@ -8,35 +8,21 @@ DATE := $(shell date +"%Y-%m-%d")
 # set to "yes" if building as a developer, otherwise "no"
 DEV_BUILD = yes
 
-# run "make FC=pgf95" or "make FC=pgf90" o use the Portland Grou
-#  compiler instead
 FC = gfortran
+# -O              optimize
+# -g              debugging
+# -pg             profiling (must also be used on LDFLAGS)
+# -fbounds-check  check array accesses
+# -Wno-unused     disable reporting of unused variables
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+LDFLAGS = -L$(MOSAIC_LIBDIR)
 
 MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
 MOSAIC_LIBDIR = $(MOSAIC_DIR)
 MOSAIC_MODDIR = $(MOSAIC_DIR)
 
-ifeq ($(FC),gfortran)
-    # -O              optimize
-    # -g              debugging
-    # -pg             profiling (must also be used on LDFLAGS)
-    # -fbounds-check  check array accesses
-    # -Wno-unused     disable reporting of unused variables
-  FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
-  LDFLAGS = -L$(MOSAIC_LIBDIR)
-endif
-ifeq ($(FC),pgf95)
-    # -Mbounds      array bounds checking
-    # -Mdclchk      check for undeclared variables
-  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -I$(MOSAIC_MODDIR)
-  LDFLAGS = -L$(MOSAIC_LIBDIR)
-endif
-ifeq ($(FC),pgf90)
-  FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -I$(MOSAIC_MODDIR)
-  LDFLAGS = -L$(MOSAIC_LIBDIR)
-endif
-
 -include Makefile.local
+-include Makefile.mosaic_dirs
 
 PROGS := src/process_summary src/process_average src/partmc		\
 	test/sedi_bidisperse_ode test/sedi_bidisperse_state_to_count	\

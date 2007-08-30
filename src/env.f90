@@ -602,11 +602,9 @@ contains
     call pmc_mpi_allreduce_average_real(val%temp, val_avg%temp)
     call pmc_mpi_allreduce_average_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_allreduce_average_real(val%pressure, val_avg%pressure)
-    call pmc_mpi_allreduce_average_real(val%air_den, val_avg%air_den)
     val%temp = val_avg%temp
     val%rel_humid = val_avg%rel_humid
     val%pressure = val_avg%pressure
-    val%air_den = val_avg%air_den
     call env_free(val_avg)
 #endif
 
@@ -739,6 +737,8 @@ contains
     type(env_t), intent(in) :: val ! value to average
     type(env_t), intent(out) :: val_avg ! result
 
+    call env_alloc(val_avg)
+    call env_copy(val, val_avg)
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)

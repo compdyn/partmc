@@ -8,6 +8,20 @@ module pmc_mosaic
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  logical function mosaic_support()
+
+    ! Whether MOSAIC support is compiled in.
+
+#ifdef PMC_USE_MOSAIC
+    mosaic_support = .true.
+#else
+    mosaic_support = .false.
+#endif
+
+  end function mosaic_support
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_init(bin_grid, env, del_t)
 

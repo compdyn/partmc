@@ -91,3 +91,9 @@ add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
 
+Memory allocation policy should be that all functions must be called
+with an already allocated structure. That is, always call type_alloc()
+before calling anything else. The functions will call type_free() if
+they need to before writing new data, or will take care of
+(de)allocation internally. Currently at least the spec_read functions
+don't free before setting new values and should be fixed.

@@ -65,32 +65,35 @@ contains
     integer, intent(in) :: i_loop       ! current loop number
 
 #ifdef PMC_USE_MPI
+    type(env_t) :: env_avg
     type(aero_binned_t) :: aero_binned_avg
     type(gas_state_t) :: gas_state_avg
 
     call aero_binned_alloc(aero_binned_avg, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_alloc(gas_state_avg, gas_data%n_spec)
 
+    call pmc_mpi_reduce_avg_env(env, env_avg)
     call pmc_mpi_reduce_avg_aero_binned(aero_binned, aero_binned_avg)
     call pmc_mpi_reduce_avg_gas_state(gas_state, gas_state_avg)
-    call pmc_mpi_reduce_avg_env(env, env_avg)
 #endif
 
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
        call inout_write_integer(file, 'loop_num', i_loop)
        call inout_write_real(file, 'time(s)', time)
-       call inout_write_env(file, env)
 #ifdef PMC_USE_MPI
+       call inout_write_env(file, env_avg)
        call inout_write_aero_binned(file, aero_binned_avg)
        call inout_write_gas_state(file, gas_state_avg)
 #else
+       call inout_write_env(file, env)
        call inout_write_aero_binned(file, aero_binned)
        call inout_write_gas_state(file, gas_state)
 #endif
     end if
 
 #ifdef PMC_USE_MPI
+    call env_free(env_avg)
     call aero_binned_free(aero_binned_avg)
     call gas_state_free(gas_state_avg)
 #endif

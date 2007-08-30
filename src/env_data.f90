@@ -381,5 +381,153 @@ contains
   end subroutine spec_read_env_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  integer function pmc_mpi_pack_size_env_data(val)
+
+    ! Determines the number of bytes required to pack the given value.
+
+    use pmc_mpi
+
+    type(env_data_t), intent(in) :: val ! value to pack
+
+    integer :: total_size, i, n
+
+    total_size = &
+         pmc_mpi_pack_size_real_array(val%temp_time) &
+         + pmc_mpi_pack_size_real_array(val%temp) &
+         + pmc_mpi_pack_size_real_array(val%height_time) &
+         + pmc_mpi_pack_size_real_array(val%height) &
+         + pmc_mpi_pack_size_real_array(val%gas_emission_time) &
+         + pmc_mpi_pack_size_real_array(val%gas_emission_rate) &
+         + pmc_mpi_pack_size_real_array(val%gas_dilution_time) &
+         + pmc_mpi_pack_size_real_array(val%gas_dilution_rate) &
+         + pmc_mpi_pack_size_real_array(val%aero_emission_time) &
+         + pmc_mpi_pack_size_real_array(val%aero_emission_rate) &
+         + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
+         + pmc_mpi_pack_size_real_array(val%aero_dilution_rate)
+    do i = 1,size(val%gas_emission)
+       total_size = total_size &
+            + pmc_mpi_pack_size_gas_state(val%gas_emission(i))
+    end do
+    do i = 1,size(val%gas_background)
+       total_size = total_size &
+            + pmc_mpi_pack_size_gas_state(val%gas_background(i))
+    end do
+    do i = 1,size(val%aero_emission)
+       total_size = total_size &
+            + pmc_mpi_pack_size_aero_dist(val%aero_emission(i))
+    end do
+    do i = 1,size(val%aero_background)
+       total_size = total_size &
+            + pmc_mpi_pack_size_aero_dist(val%aero_background(i))
+    end do
+
+    pmc_mpi_pack_size_env_data = total_size
+
+  end function pmc_mpi_pack_size_env_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_pack_env_data(buffer, position, val)
+
+    ! Packs the given value into the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(env_data_t), intent(in) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_pack_real_array(buffer, position, val%temp_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%temp)
+    call pmc_mpi_pack_real_array(buffer, position, val%height_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%height)
+    call pmc_mpi_pack_real_array(buffer, position, val%gas_emission_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%gas_emission_rate)
+    call pmc_mpi_pack_real_array(buffer, position, val%gas_dilution_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%gas_dilution_rate)
+    call pmc_mpi_pack_real_array(buffer, position, val%aero_emission_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%aero_emission_rate)
+    call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
+    do i = 1,size(val%gas_emission)
+       call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
+    end do
+    do i = 1,size(val%gas_background)
+       call pmc_mpi_pack_gas_state(buffer, position, val%gas_background(i))
+    end do
+    do i = 1,size(val%aero_emission)
+       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emission(i))
+    end do
+    do i = 1,size(val%aero_background)
+       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
+    end do
+    call assert(position - prev_position == pmc_mpi_pack_size_env_data(val))
+#endif
+
+  end subroutine pmc_mpi_pack_env_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine pmc_mpi_unpack_env_data(buffer, position, val)
+
+    ! Unpacks the given value from the buffer, advancing position.
+
+#ifdef PMC_USE_MPI
+    use mpi
+    use pmc_mpi
+    use pmc_util
+#endif
+
+    character, intent(inout) :: buffer(:) ! memory buffer
+    integer, intent(inout) :: position  ! current buffer position
+    type(env_data_t), intent(out) :: val ! value to pack
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, i
+
+    prev_position = position
+    call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%temp)
+    call pmc_mpi_unpack_real_array(buffer, position, val%height_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%height)
+    call pmc_mpi_unpack_real_array(buffer, position, val%gas_emission_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%gas_emission_rate)
+    call pmc_mpi_unpack_real_array(buffer, position, val%gas_dilution_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%gas_dilution_rate)
+    call pmc_mpi_unpack_real_array(buffer, position, val%aero_emission_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%aero_emission_rate)
+    call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
+    allocate(val%gas_emission(size(val%gas_emission_time)))
+    allocate(val%gas_background(size(val%gas_dilution_time)))
+    allocate(val%aero_emission(size(val%aero_emission_time)))
+    allocate(val%aero_background(size(val%aero_dilution_time)))
+    do i = 1,size(val%gas_emission)
+       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
+    end do
+    do i = 1,size(val%gas_background)
+       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
+    end do
+    do i = 1,size(val%aero_emission)
+       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
+    end do
+    do i = 1,size(val%aero_background)
+       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
+    end do
+    call assert(position - prev_position == pmc_mpi_pack_size_env_data(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_env_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_env_data

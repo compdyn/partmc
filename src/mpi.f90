@@ -17,6 +17,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  logical function pmc_mpi_support()
+
+    ! Whether MPI support is compiled in.
+
+#ifdef PMC_USE_MPI
+    pmc_mpi_support = .true.
+#else
+    pmc_mpi_support = .false.
+#endif
+
+  end function pmc_mpi_support
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine pmc_mpi_check_ierr(ierr)
 
     ! Dies if ierr is not ok.
@@ -487,7 +501,7 @@ contains
     call mpi_pack(val, 1, MPI_COMPLEX16, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_complex(val))
 #endif
 
   end subroutine pmc_mpi_pack_complex
@@ -720,7 +734,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_COMPLEX16, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(position - prev_position == pmc_mpi_pack_real_size(val))
+    call assert(position - prev_position == pmc_mpi_pack_size_complex(val))
 #endif
 
   end subroutine pmc_mpi_unpack_complex

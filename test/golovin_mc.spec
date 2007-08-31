@@ -1,7 +1,7 @@
 run_type mc                     # Monte Carlo run
 output_file out/golovin_mc_summary.d # name of output file
 state_prefix out/golovin_mc_state # prefix of state files
-n_loop 1                       # number of Monte Carlo loops
+n_loop 10                       # number of Monte Carlo loops
 n_part 10000                    # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel
 
@@ -37,7 +37,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 rand_init 17                    # random initialization (0 to auto-generate)
-mix_rate 0.01                   # mixing rate between processes (0 to 1)
+mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)

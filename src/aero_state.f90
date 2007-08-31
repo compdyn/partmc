@@ -649,15 +649,6 @@ contains
     integer :: buffer_size_send, buffer_size_recv, position
     type(aero_binned_t) :: aero_binned_delta
 
-!DEBUG
-!    integer :: i
-!    do i = 0,(pmc_mpi_size() - 1)
-!       call pmc_mpi_barrier()
-!       if (i == pmc_mpi_rank()) then
-!          write(*,*) 'send from/to: ', pmc_mpi_rank(), dest
-!       end if
-!    end do
-!DEBUG
     if (pmc_mpi_rank() == dest) then
        return
     end if
@@ -674,14 +665,6 @@ contains
     call aero_state_to_binned(bin_grid, aero_data, aero_state_send, &
          aero_binned_delta)
     call aero_binned_sub(aero_binned, aero_binned_delta)
-!DEBUG
-!    do i = 0,(pmc_mpi_size() - 1)
-!       call pmc_mpi_barrier()
-!       if (i == pmc_mpi_rank()) then
-!          write(*,*) 'node/sending/from: ', pmc_mpi_rank(), total_particles(aero_state_send), total_particles(aero_state)
-!       end if
-!    end do
-!DEBUG
 
     ! pack up data to send
     buffer_size_send = pmc_mpi_pack_size_aero_state(aero_state_send)
@@ -711,14 +694,6 @@ contains
     call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
          aero_binned_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
-!DEBUG
-!    do i = 0,(pmc_mpi_size() - 1)
-!       call pmc_mpi_barrier()
-!       if (i == pmc_mpi_rank()) then
-!          write(*,*) 'node/received/to: ', pmc_mpi_rank(), total_particles(aero_state_recv), total_particles(aero_state)
-!       end if
-!    end do
-!DEBUG
 
     ! cleanup
     call aero_binned_free(aero_binned_delta)
@@ -753,13 +728,6 @@ contains
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
-!DEBUG
-!    call pmc_mpi_barrier()
-!    if (rank == 0) then
-!       write(*,*) 'mix -------------------------------------------------------'
-!    end if
-!    call pmc_mpi_barrier()
-!DEBUG
     
     ! mix up
     dest = rank + 1

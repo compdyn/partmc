@@ -19,18 +19,14 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc golovin_mc.spec
-#../src/partmc golovin_mc.spec
-om-mpiexec -n 10 ../src/partmc golovin_mc.spec
+../src/partmc golovin_mc.spec
 echo ../src/process_summary out/golovin_mc_summary.d
-#../src/process_summary out/golovin_mc_summary.d
-om-mpiexec -n 1 ../src/process_summary out/golovin_mc_summary.d
+../src/process_summary out/golovin_mc_summary.d
 
 echo ../src/partmc golovin_exact.spec
-#../src/partmc golovin_exact.spec
-om-mpiexec -n 1 ../src/partmc golovin_exact.spec
+../src/partmc golovin_exact.spec
 echo ../src/process_summary out/golovin_exact_summary.d
-#../src/process_summary out/golovin_exact_summary.d
-om-mpiexec -n 1 ../src/process_summary out/golovin_exact_summary.d
+../src/process_summary out/golovin_exact_summary.d
 
 echo Plotting number density
 gnuplot -persist <<ENDNUM

@@ -32,6 +32,7 @@ contains
     use pmc_bin_grid 
     use pmc_env
     
+#ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
          ptol_mol_ASTEM, mGAS_AER_XFER, mDYNAMIC_SOLVER
     
@@ -39,11 +40,13 @@ contains
          zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
          deg2rad, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
          msolar, mphoto
+#endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state
     real*8, intent(in) :: del_t         ! timestep for coagulation
 
+#ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
        subroutine LoadPeroxyParameters()
@@ -95,6 +98,7 @@ contains
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
+#endif
     
   end subroutine mosaic_init
 
@@ -116,12 +120,14 @@ contains
     use pmc_gas_data
     use pmc_gas_state
     
+#ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
          ppb, msolar
+#endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(in) :: env      ! environment state
@@ -131,6 +137,7 @@ contains
     type(gas_state_t), intent(in) :: gas_state ! gas state
     real*8, intent(in) :: time          ! current time (s)
 
+#ifdef PMC_USE_MOSAIC
     ! local variables
     real*8 :: time_UTC ! 24-hr UTC clock time (hr)
     real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
@@ -208,6 +215,7 @@ contains
           cnn(i_spec_mosaic) = gas_state%conc(i_spec) * cair_mlc / ppb
        end if
     end do
+#endif
 
   end subroutine mosaic_from_partmc
 
@@ -228,12 +236,14 @@ contains
     use pmc_gas_state
     use pmc_aero_binned
     
+#ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
          ppb, msolar
+#endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state
@@ -243,6 +253,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
 
+#ifdef PMC_USE_MOSAIC
     ! local variables
     real*8 :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
@@ -292,6 +303,7 @@ contains
           gas_state%conc(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
        end if
     end do
+#endif
 
   end subroutine mosaic_to_partmc
 
@@ -310,7 +322,9 @@ contains
     use pmc_gas_state
     use pmc_aero_binned
     
+#ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
+#endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state
@@ -321,6 +335,7 @@ contains
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     real*8, intent(in) :: time          ! current time (s)
 
+#ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
        subroutine SolarZenithAngle()
@@ -342,6 +357,7 @@ contains
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &
          aero_binned, gas_data, gas_state)
+#endif
 
   end subroutine mosaic_timestep
 
@@ -360,7 +376,9 @@ contains
     use pmc_gas_state
     use pmc_util
     
+#ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a
+#endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(in) :: env      ! environment state
@@ -370,6 +388,7 @@ contains
     type(gas_state_t), intent(in) :: gas_state ! gas state
     real*8, intent(in) :: time          ! current time (s)
 
+#ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
        subroutine aerosol_optical()
@@ -405,6 +424,7 @@ contains
           particle%core_vol = 0d0                             ! (m^3)
        end do
     end do
+#endif
 
   end subroutine mosaic_aero_optical
 

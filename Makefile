@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .f90 .o .deps .mod
 
-VERSION = 1.0.0
+VERSION = 1.1.0
 DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
@@ -14,12 +14,13 @@ FC = gfortran
 # -pg             profiling (must also be used on LDFLAGS)
 # -fbounds-check  check array accesses
 # -Wno-unused     disable reporting of unused variables
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC
 LDFLAGS = -L$(MOSAIC_LIBDIR)
 
 MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
 MOSAIC_LIBDIR = $(MOSAIC_DIR)
 MOSAIC_MODDIR = $(MOSAIC_DIR)
+MOSAIC_LIB = -lmosaic
 
 -include Makefile.local
 -include Makefile.mosaic_dirs
@@ -126,11 +127,11 @@ equilib/%.o: equilib/%.f90 equilib/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/partmc: $(partmc_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) -lmosaic
+	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB)
 src/process_summary: $(process_summary_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
 src/process_state: $(process_state_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) -lmosaic
+	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB)
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
 equilib/equilib: $(equilib_OBJS)

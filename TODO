@@ -56,7 +56,7 @@ make mosaic compilation optional with a -DPMC_USE_MOSAIC
 
 rename env to env_state
 
-add halve() just like double() to downsample
+add allow_halve to control that separately
 
 add env%day_of_year (days since jan 1) and env%time_of_day (secs since
 midnight) and shift info on start day, start time, etc to
@@ -71,16 +71,10 @@ air_molec_weight, etc).
 
 change gas conc from ppb to mole proportion
 
-fix test/* for gnuplot, shifting "with lines" to end
-
 allow times to be input as 1d, 34m, etc. No unit implies seconds.
-
-number state files consectutively
 
 change aero_particle_solute_density() etc to have aero_particle as the
 first argument.
-
-delete the unused bits of process_state() for the old histograms
 
 test speed of code with test_sedi_exp() and many particles where we
 explicitly recalc aero_binned for output, rather than keeping it

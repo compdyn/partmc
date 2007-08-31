@@ -70,6 +70,9 @@ then run the debugger with:
 gdb ../src/partmc <pid>
 and use "bt" to get a backtrace.
 
+To turn on MPI debugging info add the -d parameter to
+mpiexec/mpirun. To restrict the transport to only TCP use "--mca btl
+tcp".
 
 CHANGELOG
 ---------

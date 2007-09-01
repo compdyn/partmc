@@ -179,6 +179,27 @@ contains
   end subroutine aero_state_remove_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_add(aero_state, aero_state_delta)
+
+    ! aero_state += aero_state_delta
+
+    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    type(aero_state_t), intent(in) :: aero_state_delta ! increment
+
+    integer :: i_bin, i_part
+
+    do i_bin = 1,size(aero_state_delta%bins)
+       do i_part = 1,aero_state_delta%bins(i_bin)%n_part
+          call aero_state_add_particle(aero_state, i_bin, &
+               aero_state_delta%bins(i_bin)%particle(i_part))
+       end do
+    end do
+    aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
+
+  end subroutine aero_state_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine aero_state_add_disc_mode(bin_grid, aero_data, vol_frac, &
        bin_n, aero_state)
@@ -454,12 +475,12 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine aero_state_add(aero_state, aero_state_delta)
+  subroutine aero_state_add_particles(aero_state, aero_state_delta)
     
-    ! Adds aero_state_delta to aero_state. The number of particles
-    ! added depends on the computational volume ratio, so either more
-    ! or less particles might be added than are actually in
-    ! aero_state_delta.
+    ! Adds aero_state_delta particles to aero_state. The number of
+    ! particles added depends on the computational volume ratio, so
+    ! either more or less particles might be added than are actually
+    ! in aero_state_delta.
 
     use pmc_util
     
@@ -481,7 +502,7 @@ contains
        end do
     end do
     
-  end subroutine aero_state_add
+  end subroutine aero_state_add_particles
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -690,7 +711,7 @@ contains
     position = 0
     call pmc_mpi_unpack_aero_state(buffer_recv, position, aero_state_recv)
     call assert(position == buffer_size_recv)
-    call aero_state_add(aero_state, aero_state_recv)
+    call aero_state_add_particles(aero_state, aero_state_recv)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
          aero_binned_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)

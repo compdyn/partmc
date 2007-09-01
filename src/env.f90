@@ -393,7 +393,7 @@ contains
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
-    call aero_state_add(aero_state, aero_state_delta)
+    call aero_state_add_particles(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
     
     ! emissions
@@ -405,7 +405,7 @@ contains
          sample_vol, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
-    call aero_state_add(aero_state, aero_state_delta)
+    call aero_state_add_particles(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
 
     call aero_state_free(aero_state_delta)

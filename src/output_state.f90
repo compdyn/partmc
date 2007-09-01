@@ -42,10 +42,14 @@ contains
     
     character*300 :: filename
     type(inout_file_t) :: file
+    type(env_t) :: env_write
+    type(gas_state_t) :: gas_state_write
+    type(aero_state_t) :: aero_state_write
+    integer :: ierr, status, buffer_size, i_proc, position
+    character, allocatable :: buffer(:)
 
+    ! write all the common data
     if (pmc_mpi_rank() == 0) then
-       ! FIXME: for now only the root process writes state
-
        write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
             '_', i_loop, '_', index, '.d'
        call inout_open_write(filename, file)
@@ -53,14 +57,79 @@ contains
        call inout_write_real(file, 'time(s)', time)
        call inout_write_integer(file, 'loop', i_loop)
        call inout_write_integer(file, 'index', index)
-       
-       call inout_write_env(file, env)
+
        call inout_write_bin_grid(file, bin_grid)
        call inout_write_gas_data(file, gas_data)
-       call inout_write_gas_state(file, gas_state)
        call inout_write_aero_data(file, aero_data)
-       call inout_write_aero_state(file, aero_state)
+    end if
+
+    ! write root node's state
+    call inout_write_integer(file, 'n_processor', pmc_mpi_size())
+    call inout_write_integer(file, 'processor', 0)
+    call inout_write_env(file, env)
+    call inout_write_gas_state(file, gas_state)
+    call inout_write_aero_state(file, aero_state)
+
+#ifdef PMC_USE_MPI
+    ! write everyone else's state
+    do i_proc = 1,(pmc_mpi_size() - 1)
+       call pmc_mpi_barrier()
+       ! compute and send buffer_size from remote node
+       if (pmc_mpi_rank() == i_proc) then
+          buffer_size = 0
+          buffer_size = buffer_size + pmc_mpi_pack_size_env(env)
+          buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
+          buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
+          call mpi_send(buffer_size, 1, MPI_INTEGER, 0, 57, &
+               MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       end if
+       ! get buffer_size at root node
+       if (pmc_mpi_rank() == 0) then
+          call mpi_recv(buffer_size, 1, MPI_INTEGER, i_proc, 57, &
+               MPI_COMM_WORLD, status, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       end if
+       ! send buffer from remote node
+       if (pmc_mpi_rank() == i_proc) then
+          allocate(buffer(buffer_size))
+          position = 0
+          call pmc_mpi_pack_env(buffer, position, env)
+          call pmc_mpi_pack_gas_state(buffer, position, gas_state)
+          call pmc_mpi_pack_aero_state(buffer, position, aero_state)
+          call assert(position == buffer_size)
+          call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, 58, &
+               MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+          deallocate(buffer)
+       end if
+       ! get buffer at root node
+       if (pmc_mpi_rank() == 0) then
+          allocate(buffer(buffer_size))
+          call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, 58, &
+               MPI_COMM_WORLD, status, ierr)
+          position = 0
+          call pmc_mpi_unpack_env(buffer, position, env_write)
+          call pmc_mpi_unpack_gas_state(buffer, position, gas_state_write)
+          call pmc_mpi_unpack_aero_state(buffer, position, aero_state_write)
+          call assert(position == buffer_size)
+          deallocate(buffer)
+       end if
+       ! process state at root node
+       if (pmc_mpi_rank() == 0) then
+          call inout_write_integer(file, 'processor', i_proc)
+          call inout_write_env(file, env_write)
+          call inout_write_gas_state(file, gas_state_write)
+          call inout_write_aero_state(file, aero_state_write)
+          
+          call env_free(env_write)
+          call gas_state_free(gas_state_write)
+          call aero_state_free(aero_state_write)
+       end if
+    end do
+#endif
        
+    if (pmc_mpi_rank() == 0) then
        call inout_close(file)
     end if
     
@@ -92,7 +161,10 @@ contains
     real*8, intent(out) :: time         ! current time (s)
     
     type(inout_file_t) :: file
-    integer :: dummy_integer
+    integer :: dummy_integer, n_proc, i_proc, check_i_proc
+    type(env_t) :: env_read
+    type(gas_state_t) :: gas_state_read
+    type(aero_state_t) :: aero_state_read
 
     if (pmc_mpi_rank() /= 0) then
        call pmc_mpi_abort(52115)
@@ -104,13 +176,39 @@ contains
     call inout_read_integer(file, 'loop', dummy_integer)
     call inout_read_integer(file, 'index', dummy_integer)
 
-    call inout_read_env(file, env)
     call inout_read_bin_grid(file, bin_grid)
     call inout_read_gas_data(file, gas_data)
-    call inout_read_gas_state(file, gas_state)
     call inout_read_aero_data(file, aero_data)
+
+    ! read root node's state
+    call inout_read_integer(file, 'n_processor', n_proc)
+    call inout_read_integer(file, 'processor', check_i_proc)
+    call inout_check_index(file, 0, check_i_proc)
+    call inout_read_env(file, env)
+    call inout_read_gas_state(file, gas_state)
     call inout_read_aero_state(file, aero_state)
 
+    ! read other nodes' states
+    do i_proc = 1,(n_proc - 1)
+       call inout_read_integer(file, 'processor', check_i_proc)
+       call inout_check_index(file, i_proc, check_i_proc)
+       call inout_read_env(file, env_read)
+       call inout_read_gas_state(file, gas_state_read)
+       call inout_read_aero_state(file, aero_state_read)
+
+       call env_add(env, env_read)
+       call gas_state_add(gas_state, gas_state_read)
+       call aero_state_add(aero_state, aero_state_read)
+       
+       call env_free(env_read)
+       call gas_state_free(gas_state_read)
+       call aero_state_free(aero_state_read)
+    end do
+
+    ! average data
+    call env_scale(env, dble(n_proc))
+    call gas_state_scale(gas_state, dble(n_proc))
+    
     call inout_close(file)
     
   end subroutine inout_read_state

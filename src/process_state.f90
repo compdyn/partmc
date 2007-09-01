@@ -16,6 +16,7 @@ program process_state
   use pmc_output_state
   use pmc_process_state_hist
   use pmc_mosaic
+  use pmc_mpi
 
   character(len=100) :: filename        ! input filename
   character(len=100) :: basename        ! basename of the input filename
@@ -27,6 +28,8 @@ program process_state
   type(env_t) :: env                    ! env structure
   real*8 :: time                        ! current time
   character(len=100) :: command         ! process command
+
+  call pmc_mpi_init()
 
   if (iargc() < 1) then
      call print_usage()
@@ -88,6 +91,8 @@ program process_state
         call exit(1)
      end if
   end if
+
+  call pmc_mpi_finalize()
 
 contains
 

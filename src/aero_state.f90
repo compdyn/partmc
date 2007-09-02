@@ -341,7 +341,7 @@ contains
 
     integer :: n_bin, disc_pdf(size(aero_state%bins))
 
-    call assert(aero_state%n_part > 0)
+    call assert(950725003, aero_state%n_part > 0)
     n_bin = size(aero_state%bins)
     disc_pdf = (/(aero_state%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
     i_bin = sample_disc_pdf(n_bin, disc_pdf)
@@ -369,7 +369,7 @@ contains
     logical :: do_add, do_remove
     real*8 :: vol_ratio
 
-    call assert((sample_prop >= 0d0) .and. (sample_prop <= 1d0))
+    call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
          * dble(total_particles(aero_state_from)))
     n_bin = size(aero_state_from%bins)
@@ -692,7 +692,7 @@ contains
     allocate(buffer_send(buffer_size_send))
     position = 0
     call pmc_mpi_pack_aero_state(buffer_send, position, aero_state_send)
-    call assert(position == buffer_size_send)
+    call assert(420102502, position == buffer_size_send)
 
     ! transfer buffer size info and allocate receive buffers
     call mpi_sendrecv(buffer_size_send, 1, MPI_INTEGER, dest, 0, &
@@ -710,7 +710,7 @@ contains
     ! unpack received data and process it
     position = 0
     call pmc_mpi_unpack_aero_state(buffer_recv, position, aero_state_recv)
-    call assert(position == buffer_size_recv)
+    call assert(593694264, position == buffer_size_recv)
     call aero_state_add_particles(aero_state, aero_state_recv)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
          aero_binned_delta)
@@ -959,7 +959,7 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_state(val))
+    call assert(850997402, position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_state
@@ -991,7 +991,7 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_state(val))
+    call assert(132104747, position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_state

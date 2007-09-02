@@ -97,7 +97,7 @@ contains
           call pmc_mpi_pack_env(buffer, position, env)
           call pmc_mpi_pack_gas_state(buffer, position, gas_state)
           call pmc_mpi_pack_aero_state(buffer, position, aero_state)
-          call assert(position == buffer_size)
+          call assert(542772170, position == buffer_size)
           call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, 58, &
                MPI_COMM_WORLD, ierr)
           call pmc_mpi_check_ierr(ierr)
@@ -112,7 +112,7 @@ contains
           call pmc_mpi_unpack_env(buffer, position, env_write)
           call pmc_mpi_unpack_gas_state(buffer, position, gas_state_write)
           call pmc_mpi_unpack_aero_state(buffer, position, aero_state_write)
-          call assert(position == buffer_size)
+          call assert(518174881, position == buffer_size)
           deallocate(buffer)
        end if
        ! process state at root node

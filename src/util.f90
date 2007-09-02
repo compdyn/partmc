@@ -14,7 +14,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine assert(condition_ok)
+  subroutine assert(code, condition_ok)
 
     ! Errors unless condition_ok is true.
 
@@ -22,14 +22,15 @@ contains
     use mpi
 #endif
 
+    integer, intent(in) :: code         ! status code to use if assertion fails
     logical, intent(in) :: condition_ok ! whether the assertion is ok
 
     integer :: ierr
 
     if (.not. condition_ok) then
-       write(0,*) 'ERROR: assertion failed'
+       write(0,*) 'ERROR: assertion failed: ', code
 #ifdef PMC_USE_MPI
-       call mpi_abort(MPI_COMM_WORLD, 8927, ierr)
+       call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else
        call exit(3)
 #endif
@@ -165,8 +166,8 @@ contains
     integer, intent(in) :: n            ! maximum random number to generate
 
     util_rand_int = mod(int(util_rand() * dble(n)), n) + 1
-    call assert(util_rand_int >= 1)
-    call assert(util_rand_int <= n)
+    call assert(515838689, util_rand_int >= 1)
+    call assert(802560153, util_rand_int <= n)
 
   end function util_rand_int
 
@@ -409,8 +410,8 @@ contains
 
     real*8 :: log_x(n)
 
-    call assert(min_x > 0d0)
-    call assert(max_x > 0d0)
+    call assert(548290438, min_x > 0d0)
+    call assert(805259035, max_x > 0d0)
     call linspace(log(min_x), log(max_x), n, log_x)
     x = exp(log_x)
     if (n > 0) then

@@ -402,7 +402,7 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%conc)
-    call assert(position - prev_position == pmc_mpi_pack_size_gas_state(val))
+    call assert(655827004, position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_gas_state
@@ -428,7 +428,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%conc)
-    call assert(position - prev_position == pmc_mpi_pack_size_gas_state(val))
+    call assert(520815247, position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_gas_state

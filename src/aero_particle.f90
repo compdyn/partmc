@@ -63,7 +63,7 @@ contains
        call aero_particle_free(aero_particle_to)
        call aero_particle_alloc(aero_particle_to, n_spec)
     end if
-    call assert(size(aero_particle_from%vol) == size(aero_particle_to%vol))
+    call assert(651178226, size(aero_particle_from%vol) == size(aero_particle_to%vol))
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
@@ -250,7 +250,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to average
 
-    call assert(aero_data%i_water > 0)
+    call assert(420016623, aero_data%i_water > 0)
     average_water_quantity = quantity(aero_data%i_water)
 
   end function average_water_quantity
@@ -269,7 +269,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to total
 
-    call assert(aero_data%i_water > 0)
+    call assert(223343210, aero_data%i_water > 0)
     total_water_quantity = aero_particle%vol(aero_data%i_water) &
          * quantity(aero_data%i_water)
 
@@ -286,7 +286,7 @@ contains
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
-    call assert(aero_data%i_water > 0)
+    call assert(772012490, aero_data%i_water > 0)
     aero_particle_water_molec_weight = aero_data%molec_weight(aero_data%i_water)
 
   end function aero_particle_water_molec_weight
@@ -352,7 +352,7 @@ contains
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
-    call assert(aero_data%i_water > 0)
+    call assert(235482108, aero_data%i_water > 0)
     aero_particle_water_density = aero_data%density(aero_data%i_water)
 
   end function aero_particle_water_density
@@ -386,7 +386,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    call assert(aero_data%i_water > 0)
+    call assert(888636139, aero_data%i_water > 0)
     aero_particle_water_mass = aero_particle%vol(aero_data%i_water) &
          * aero_data%density(aero_data%i_water)
 
@@ -437,8 +437,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_2 ! second particle
     type(aero_particle_t), intent(inout) :: aero_particle_new ! result particle
 
-    call assert(size(aero_particle_1%vol) == size(aero_particle_new%vol))
-    call assert(size(aero_particle_2%vol) == size(aero_particle_new%vol))
+    call assert(203741686, size(aero_particle_1%vol) == size(aero_particle_new%vol))
+    call assert(586181003, size(aero_particle_2%vol) == size(aero_particle_new%vol))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
@@ -554,7 +554,7 @@ contains
     call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
-    call assert(position - prev_position &
+    call assert(810223998, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif
 
@@ -588,7 +588,7 @@ contains
     call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
-    call assert(position - prev_position &
+    call assert(287447241, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif
 

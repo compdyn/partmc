@@ -247,7 +247,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
-    call assert(position - prev_position == pmc_mpi_pack_size_gas_data(val))
+    call assert(449872094, position - prev_position == pmc_mpi_pack_size_gas_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_gas_data
@@ -276,7 +276,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
-    call assert(position - prev_position == pmc_mpi_pack_size_gas_data(val))
+    call assert(137879163, position - prev_position == pmc_mpi_pack_size_gas_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_gas_data

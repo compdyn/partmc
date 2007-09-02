@@ -315,7 +315,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%solubility)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_data(val))
+    call assert(183834856, position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_data
@@ -349,7 +349,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_data(val))
+    call assert(188522823, position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_data

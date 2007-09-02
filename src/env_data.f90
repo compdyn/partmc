@@ -470,7 +470,7 @@ contains
     do i = 1,size(val%aero_background)
        call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_env_data(val))
+    call assert(639466930, position - prev_position == pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_env_data
@@ -523,7 +523,7 @@ contains
     do i = 1,size(val%aero_background)
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_env_data(val))
+    call assert(611542570, position - prev_position == pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env_data

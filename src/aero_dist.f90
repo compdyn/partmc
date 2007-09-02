@@ -777,7 +777,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+    call assert(579699255, position - prev_position == pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_mode
@@ -806,7 +806,7 @@ contains
     do i = 1,size(val%mode)
        call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+    call assert(440557910, position - prev_position == pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_dist
@@ -833,7 +833,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+    call assert(874467577, position - prev_position == pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_mode
@@ -863,7 +863,7 @@ contains
     do i = 1,size(val%mode)
        call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+    call assert(742535268, position - prev_position == pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_dist

@@ -435,8 +435,8 @@ contains
     do i = 1,n_b
        b_vol = b_vol + aero_particle%vol(b_species(i))
     end do
-    call assert(a_vol >= 0d0)
-    call assert(b_vol >= 0d0)
+    call assert(880038232, a_vol >= 0d0)
+    call assert(715496111, b_vol >= 0d0)
     if ((a_vol == 0d0) .and. (b_vol == 0d0)) then
        comp_particle_func = 0d0
     else

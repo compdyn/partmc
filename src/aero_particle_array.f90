@@ -129,7 +129,7 @@ contains
 
     n_part = aero_particle_array%n_part
     n_spec = aero_particle_array%n_spec
-    call assert(new_length >= n_part)
+    call assert(867444847, new_length >= n_part)
     allocate(new_particles(new_length))
     do i = 1,aero_particle_array%n_part
        call aero_particle_shift(aero_particle_array%particle(i), &
@@ -227,8 +227,8 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: index        ! index of particle to remove
 
-    call assert(index >= 1)
-    call assert(index <= aero_particle_array%n_part)
+    call assert(992946227, index >= 1)
+    call assert(711246139, index <= aero_particle_array%n_part)
     call aero_particle_free(aero_particle_array%particle(index))
     if (index < aero_particle_array%n_part) then
        ! shift last particle into empty slot to preserve dense packing
@@ -362,7 +362,7 @@ contains
     do i = 1,val%n_part
        call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_apa(val))
+    call assert(803856329, position - prev_position == pmc_mpi_pack_size_apa(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle_array
@@ -393,7 +393,7 @@ contains
     do i = 1,val%n_part
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
-    call assert(position - prev_position == pmc_mpi_pack_size_apa(val))
+    call assert(138783294, position - prev_position == pmc_mpi_pack_size_apa(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle_array

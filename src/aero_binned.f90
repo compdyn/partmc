@@ -341,7 +341,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_den)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+    call assert(348207873, position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_binned
@@ -368,7 +368,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_den)
-    call assert(position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+    call assert(878267066, position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_binned

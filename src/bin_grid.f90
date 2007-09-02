@@ -99,7 +99,7 @@ contains
 
     real*8 :: log_v_min, log_v_max, log_delta
 
-    call assert(bin_grid%n_bin > 1)
+    call assert(440393735, bin_grid%n_bin > 1)
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
     log_delta = (log_v_max - log_v_min) / dble(bin_grid%n_bin - 1)
@@ -123,7 +123,7 @@ contains
     real*8 :: half_log_delta
     integer :: k
 
-    call assert(bin_grid%n_bin > 2)
+    call assert(448215689, bin_grid%n_bin > 2)
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
     half_log_delta = (log_v_max - log_v_min) / dble(2 * (bin_grid%n_bin - 1))
@@ -238,7 +238,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_bin)
     call pmc_mpi_pack_real_array(buffer, position, val%v)
     call pmc_mpi_pack_real(buffer, position, val%dlnr)
-    call assert(position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+    call assert(385455586, position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_pack_bin_grid
@@ -266,7 +266,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
     call pmc_mpi_unpack_real_array(buffer, position, val%v)
     call pmc_mpi_unpack_real(buffer, position, val%dlnr)
-    call assert(position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+    call assert(741838730, position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid

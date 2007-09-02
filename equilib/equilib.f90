@@ -28,7 +28,7 @@ program equilib
   call inout_open_read(aero_filename, file)
   call inout_read_aero_data(file, aero_data)
   call inout_close(file)
-  call assert(aero_data%i_water > 0)
+  call assert(624223346, aero_data%i_water > 0)
 
   ! check command line arguments
   if (iargc() .ne. (1 + aero_data%n_spec)) then

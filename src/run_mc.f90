@@ -370,7 +370,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(in) :: mix_rate      ! amount to mix (0 to 1)
 
-    call assert((mix_rate >= 0d0) .and. (mix_rate <= 1d0))
+    call assert(173605827, (mix_rate >= 0d0) .and. (mix_rate <= 1d0))
     if (mix_rate == 0d0) return
 
     call aero_state_mix(aero_state, mix_rate, &
@@ -448,7 +448,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_pack_real(buffer, position, val%mix_rate)
-    call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+    call assert(946070052, position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_pack_mc_opt
@@ -490,7 +490,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
-    call assert(position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+    call assert(480118362, position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_mc_opt

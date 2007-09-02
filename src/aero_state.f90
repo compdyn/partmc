@@ -648,7 +648,9 @@ contains
     ! sample from an unspecified source.
 
 #ifdef PMC_USE_MPI
+#ifndef PMC_EVEREST
     use mpi
+#endif
 #endif
     use pmc_mpi
     use pmc_util

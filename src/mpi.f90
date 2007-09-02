@@ -10,7 +10,11 @@
 module pmc_mpi
 
 #ifdef PMC_USE_MPI
+#ifdef PMC_EVEREST
+  include 'mpif.h'
+#else
   use mpi
+#endif
 #endif
 
 contains

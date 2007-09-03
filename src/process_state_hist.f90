@@ -67,97 +67,157 @@ contains
        end function particle_func
     end interface
 
-    real*8, allocatable :: num_den(:,:), num_den_tot(:)
-    real*8, allocatable :: vol_den(:,:), vol_den_tot(:)
-    real*8, allocatable :: mass_den(:,:), mass_den_tot(:)
-    real*8, allocatable :: mole_den(:,:), mole_den_tot(:)
+    real*8, allocatable :: num_den(:,:), num_den_tot(:), num_den_spec(:,:)
+    real*8, allocatable :: vol_den(:,:), vol_den_tot(:), vol_den_spec(:,:)
+    real*8, allocatable :: mass_den(:,:), mass_den_tot(:), mass_den_spec(:,:)
+    real*8, allocatable :: mole_den(:,:), mole_den_tot(:), mole_den_spec(:,:)
     real*8, allocatable :: sum_den(:)
+    real*8, allocatable :: num_cumm_tot(:), num_cumm_spec(:,:)
+    real*8, allocatable :: vol_cumm_tot(:), vol_cumm_spec(:,:)
+    real*8, allocatable :: mass_cumm_tot(:), mass_cumm_spec(:,:)
+    real*8, allocatable :: mole_cumm_tot(:), mole_cumm_spec(:,:)
     integer :: n_step, i_step, i_bin, i_part, n_invalid
-    type(aero_particle_t), pointer :: particle
-    real*8 :: scale, scale_bin, num, vol, mass, mole, val
+    type(aero_particle_t), pointer :: aero_particle
+    real*8 :: scale, scale_bin, scale_step, num, vol, mass, mole, val
     real*8, pointer :: step_grid(:) ! length n_step + 1
 
-    call step_comp_grid(bin_grid, env, aero_data, aero_state, n_step, step_grid)
+    call step_comp_grid(bin_grid, env, aero_data, aero_state, &
+         n_step, step_grid)
     allocate(num_den(bin_grid%n_bin, n_step), num_den_tot(n_step))
+    allocate(num_den_spec(n_step, aero_data%n_spec))
     allocate(vol_den(bin_grid%n_bin, n_step), vol_den_tot(n_step))
+    allocate(vol_den_spec(n_step, aero_data%n_spec))
     allocate(mass_den(bin_grid%n_bin, n_step), mass_den_tot(n_step))
+    allocate(mass_den_spec(n_step, aero_data%n_spec))
     allocate(mole_den(bin_grid%n_bin, n_step), mole_den_tot(n_step))
+    allocate(mole_den_spec(n_step, aero_data%n_spec))
     allocate(sum_den(bin_grid%n_bin))
+    allocate(num_cumm_tot(n_step), num_cumm_spec(n_step,aero_data%n_spec))
+    allocate(vol_cumm_tot(n_step), vol_cumm_spec(n_step,aero_data%n_spec))
+    allocate(mass_cumm_tot(n_step), mass_cumm_spec(n_step,aero_data%n_spec))
+    allocate(mole_cumm_tot(n_step), mole_cumm_spec(n_step,aero_data%n_spec))
 
     num_den = 0d0
     num_den_tot = 0d0
+    num_den_spec = 0d00
     vol_den = 0d0
     vol_den_tot = 0d0
+    vol_den_spec = 0d0
     mass_den = 0d0
     mass_den_tot = 0d0
+    mass_den_spec = 0d0
     mole_den = 0d0
     mole_den_tot = 0d0
+    mole_den_spec = 0d0
     sum_den = 0d0
 
-    scale = 1d0 / bin_grid%dlnr / dble(n_step)
     scale_bin = 1d0 / bin_grid%dlnr
+    scale_step = 1d0 / dble(n_step)
+    scale = scale_bin * scale_step
+
     n_invalid = 0
     do i_bin = 1,bin_grid%n_bin
        do i_part = 1,aero_state%bins(i_bin)%n_part
-          particle => aero_state%bins(i_bin)%particle(i_part)
-          i_step = step_comp(bin_grid, env, aero_data, n_step, particle)
+          aero_particle => aero_state%bins(i_bin)%particle(i_part)
+          i_step = step_comp(bin_grid, env, aero_data, n_step, aero_particle)
           if (i_step == 0) then
              n_invalid = n_invalid + 1
              continue
           end if
           num = 1d0
-          vol = aero_particle_volume(particle)
-          mass = aero_particle_mass(particle, aero_data)
-          mole = aero_particle_moles(particle, aero_data)
+          vol = aero_particle_volume(aero_particle)
+          mass = aero_particle_mass(aero_particle, aero_data)
+          mole = aero_particle_moles(aero_particle, aero_data)
           num_den(i_bin, i_step) = num_den(i_bin, i_step) + num * scale
-          num_den_tot(i_step) = num_den_tot(i_step) + num * scale_bin
+          num_den_tot(i_step) = num_den_tot(i_step) + num * scale_step
           vol_den(i_bin, i_step) = vol_den(i_bin, i_step) + vol * scale
-          vol_den_tot(i_step) = vol_den_tot(i_step) + vol * scale_bin
+          vol_den_tot(i_step) = vol_den_tot(i_step) + vol * scale_step
+          vol_den_spec(i_step, :) = vol_den_spec(i_step, :) &
+               + aero_particle%vol * scale_step
           mass_den(i_bin, i_step) = mass_den(i_bin, i_step) + mass * scale
-          mass_den_tot(i_step) = mass_den_tot(i_step) + mass * scale_bin
+          mass_den_tot(i_step) = mass_den_tot(i_step) + mass * scale_step
+          mass_den_spec(i_step, :) = mass_den_spec(i_step, :) &
+               + aero_particle%vol * aero_data%density * scale_step
           mole_den(i_bin, i_step) = mole_den(i_bin, i_step) + mole * scale
-          mole_den_tot(i_step) = mole_den_tot(i_step) + mole * scale_bin
+          mole_den_tot(i_step) = mole_den_tot(i_step) + mole * scale_step
+          mole_den_spec(i_step, :) = mole_den_spec(i_step, :) &
+               + aero_particle%vol * aero_data%density &
+               / aero_data%molec_weight * scale_step
           if (do_sum) then
-             val = particle_func(particle, aero_data, env)
+             val = particle_func(aero_particle, aero_data, env)
              sum_den(i_bin) = sum_den(i_bin) + val * scale_bin
           end if
        end do
     end do
+
+    num_cumm_tot(1) = num_den_tot(1)
+    num_cumm_spec(1,:) = num_den_spec(1,:)
+    vol_cumm_tot(1) = vol_den_tot(1)
+    vol_cumm_spec(1,:) = vol_den_spec(1,:)
+    mass_cumm_tot(1) = mass_den_tot(1)
+    mass_cumm_spec(1,:) = mass_den_spec(1,:)
+    mole_cumm_tot(1) = mole_den_tot(1)
+    mole_cumm_spec(1,:) = mole_den_spec(1,:)
+    do i_step = 2,n_step
+        num_cumm_tot(i_step) = num_cumm_tot(i_step-1) + num_den_tot(i_step)
+        num_cumm_spec(i_step,:) = num_cumm_spec(i_step-1,:) &
+             + num_den_spec(i_step,:)
+        vol_cumm_tot(i_step) = vol_cumm_tot(i_step-1) + vol_den_tot(i_step)
+        vol_cumm_spec(i_step,:) = vol_cumm_spec(i_step-1,:) & 
+             + vol_den_spec(i_step,:)
+        mass_cumm_tot(i_step) = mass_cumm_tot(i_step-1) + mass_den_tot(i_step)
+        mass_cumm_spec(i_step,:) = mass_cumm_spec(i_step-1,:) & 
+             + mass_den_spec(i_step,:)
+        mole_cumm_tot(i_step) = mole_cumm_tot(i_step-1) + mole_den_tot(i_step)
+        mole_cumm_spec(i_step,:) = mole_cumm_spec(i_step-1,:) & 
+             + mole_den_spec(i_step,:)
+    enddo
+
     if (n_invalid > 0) then
        write(0,*) 'WARNING: number of particles without bin: ', n_invalid
     end if
 
     call write_hist_matrix(basename, type, "_num", "number density", &
-         n_step, bin_grid, step_grid, num_den, num_den_tot, &
-         sum_den, do_sum)
+         n_step, bin_grid, aero_data, step_grid, num_den, num_den_tot, &
+         num_den_spec, sum_den, do_sum, num_cumm_tot, num_cumm_spec)
     call write_hist_matrix(basename, type, "_vol", "volume density", &
-         n_step, bin_grid, step_grid, vol_den, vol_den_tot, &
-         sum_den, do_sum)
+         n_step, bin_grid, aero_data, step_grid, vol_den, vol_den_tot, &
+         vol_den_spec, sum_den, do_sum, vol_cumm_tot, vol_cumm_spec)
     call write_hist_matrix(basename, type, "_mass", "mass density", &
-         n_step, bin_grid, step_grid, mass_den, mass_den_tot, &
-         sum_den, do_sum)
+         n_step, bin_grid, aero_data, step_grid, mass_den, mass_den_tot, &
+         mass_den_spec, sum_den, do_sum, mass_cumm_tot, mass_cumm_spec)
     call write_hist_matrix(basename, type, "_mole", "molar density", &
-         n_step, bin_grid, step_grid, mole_den, mole_den_tot, &
-         sum_den, do_sum)
+         n_step, bin_grid, aero_data, step_grid, mole_den, mole_den_tot, &
+         mole_den_spec, sum_den, do_sum, mole_cumm_tot, mole_cumm_spec)
 
     deallocate(step_grid)
     deallocate(num_den, num_den_tot)
+    deallocate(num_den_spec)
     deallocate(vol_den, vol_den_tot)
+    deallocate(vol_den_spec)
     deallocate(mass_den, mass_den_tot)
+    deallocate(mass_den_spec)
     deallocate(mole_den, mole_den_tot)
+    deallocate(mole_den_spec)
     deallocate(sum_den)
+    deallocate(num_cumm_tot, num_cumm_spec)
+    deallocate(vol_cumm_tot, vol_cumm_spec)
+    deallocate(mass_cumm_tot, mass_cumm_spec)
+    deallocate(mole_cumm_tot, mole_cumm_spec)
 
   end subroutine process_hist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine write_hist_matrix(basename, type, unit, unit_descript, &
-       n_step, bin_grid, step_grid, den, den_tot, sum_den, do_sum)
+       n_step, bin_grid, aero_data, step_grid, den, den_tot, den_spec, &
+       sum_den, do_sum, cumm_tot, cumm_spec)
 
     ! Helper function for process_hist() to write out the histograms.
 
     use pmc_util
     use pmc_bin_grid
+    use pmc_aero_data
 
     character(len=*), intent(in) :: basename ! basename of the filename
     character(len=*), intent(in) :: type ! type of the filename
@@ -165,14 +225,21 @@ contains
     character(len=*), intent(in) :: unit_descript ! description of the unit
     integer, intent(in) :: n_step       ! number of histogram steps
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
+    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     real*8, intent(in) :: step_grid(n_step + 1) ! step grid edges
     real*8, intent(in) :: den(bin_grid%n_bin,n_step) ! density per bin per step
     real*8, intent(in) :: den_tot(n_step) ! density per step
+    real*8, intent(in) :: den_spec(n_step,aero_data%n_spec) ! species density
+                                                            ! per step
     real*8, intent(in) :: sum_den(bin_grid%n_bin) ! summed density
     logical, intent(in) :: do_sum       ! whether to write sum_den
+    real*8, intent(in) :: cumm_tot(n_step) ! cummulative density per step
+    real*8, intent(in) :: cumm_spec(n_step,aero_data%n_spec) ! cummul. 
+                                                            ! species density
+                                                            ! per step
 
     character(len=200) :: outname
-    integer :: f_out, i_bin, i_step
+    integer :: f_out, i_bin, i_step, i_spec
     real*8 :: d
 
     outname = basename
@@ -195,7 +262,8 @@ contains
     end do
     write(f_out, *) ''
     do i_bin = 1,(bin_grid%n_bin + 1)
-       write(f_out, '(e25.15)', advance='no') vol2rad(bin_edge(bin_grid, i_bin))
+       write(f_out, '(e25.15)', advance='no') &
+            vol2rad(bin_edge(bin_grid, i_bin))
        do i_step = 1,(n_step + 1)
           if ((i_bin <= bin_grid%n_bin) .and. (i_step <= n_step)) then
              d = den(i_bin, i_step)
@@ -239,6 +307,33 @@ contains
     write(f_out, '(e25.15,e25.15)') step_grid(n_step + 1), 0d0
     close(unit=f_out)
 
+    ! write histogram species output
+    call open_output(outname, "_spec.d", f_out)
+    write(f_out, '(a)') '# histogram species'
+    write(f_out, '(a,a)') '# quantities are ', unit_descript
+    write(f_out, '(a,a,a)') '# steps are ', type
+    write(f_out, '(a)') '# last row quantity is junk'
+    write(f_out, '(a1,a25)', advance='no') '#',' step'
+    do i_spec = 1,aero_data%n_spec
+       write(f_out, '(i9,a1,a15)', advance='no') &
+            i_spec+1, '/', aero_data%name(i_spec)
+    end do
+    write(f_out, *) ''
+    do i_step = 1,n_step
+       write(f_out, '(e25.15)', advance='no') step_grid(i_step)
+       do i_spec = 1,aero_data%n_spec
+          write(f_out, '(e25.15)', advance='no') &
+               den_spec(i_step,i_spec)
+       end do
+       write(f_out, *) ''
+    end do
+    write(f_out, '(e25.15)') step_grid(n_step + 1)
+    do i_spec = 1,aero_data%n_spec
+          write(f_out, '(e25.15)', advance='no') 0d0
+    end do
+    write(f_out, *) ''
+    close(unit=f_out)
+
     ! write summed output
     if (do_sum) then
        call open_output(outname, "_sum.d", f_out)
@@ -251,6 +346,46 @@ contains
        end do
        close(unit=f_out)
     end if
+
+    ! write cummulative total output
+    call open_output(outname, "_cumm_total.d", f_out)
+    write(f_out, '(a)') '# cummulative totals'
+    write(f_out, '(a,a)') '# quantities are ', unit_descript
+    write(f_out, '(a,a,a)') '# steps are ', type
+    write(f_out, '(a)') '# last row quantity is junk'
+    write(f_out, '(a1,a24,a25)') '#', 'step', 'quantity'
+    do i_step = 1,n_step
+       write(f_out, '(e25.15,e25.15)') step_grid(i_step), cumm_tot(i_step)
+    end do
+    write(f_out, '(e25.15,e25.15)') step_grid(n_step + 1), 0d0
+    close(unit=f_out)
+
+    ! write cummulative species output
+    call open_output(outname, "_cumm_spec.d", f_out)
+    write(f_out, '(a)') '# cummulative species'
+    write(f_out, '(a,a)') '# quantities are ', unit_descript
+    write(f_out, '(a,a,a)') '# steps are ', type
+    write(f_out, '(a)') '# last row quantity is junk'
+    write(f_out, '(a1,a25)', advance='no') '#','step'
+    do i_spec = 1,aero_data%n_spec
+       write(f_out, '(i9,a1,a15)', advance='no') &
+            i_spec+1, '/', aero_data%name(i_spec)
+    end do
+    write(f_out, *) ''
+    do i_step = 1,n_step
+       write(f_out, '(e25.15)', advance='no') step_grid(i_step)
+       do i_spec = 1,aero_data%n_spec
+          write(f_out, '(e25.15)', advance='no') &
+               cumm_spec(i_step,i_spec)
+       end do
+       write(f_out, *) ''
+    end do
+    write(f_out, '(e25.15)') step_grid(n_step + 1)
+    do i_spec = 1,aero_data%n_spec
+          write(f_out, '(e25.15)', advance='no') 0d0
+    end do
+    write(f_out, *) ''
+    close(unit=f_out)
 
   end subroutine write_hist_matrix
 

@@ -138,7 +138,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_read_state(state_name, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env, time)
+       aero_state, gas_data, gas_state, env, time, index)
 
     ! Read the current state.
 
@@ -159,6 +159,7 @@ contains
     type(gas_state_t), intent(out) :: gas_state ! gas state
     type(env_t), intent(out) :: env     ! environment state
     real*8, intent(out) :: time         ! current time (s)
+    integer, intent(out) :: index       ! current index
     
     type(inout_file_t) :: file
     integer :: dummy_integer, n_proc, i_proc, check_i_proc
@@ -174,7 +175,7 @@ contains
     
     call inout_read_real(file, 'time(s)', time)
     call inout_read_integer(file, 'loop', dummy_integer)
-    call inout_read_integer(file, 'index', dummy_integer)
+    call inout_read_integer(file, 'index', index)
 
     call inout_read_bin_grid(file, bin_grid)
     call inout_read_gas_data(file, gas_data)

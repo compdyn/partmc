@@ -79,7 +79,7 @@ contains
     real*8 time, pre_time
     real*8 last_output_time, last_state_time, last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag, rank
+    integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
     integer n_time, i_time, i_time_start, pre_i_time, i_state
@@ -107,7 +107,7 @@ contains
 #endif
        call inout_read_state(mc_opt%restart_name, restart_bin_grid, &
             restart_aero_data, aero_state, restart_gas_data, gas_state, &
-            env, time)
+            env, time, pre_index)
        ! FIXME: should we check whether bin_grid == restart_bin_grid, etc?
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then

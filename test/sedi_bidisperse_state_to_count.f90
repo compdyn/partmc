@@ -33,15 +33,15 @@ program sedi_bidisperse_state_to_count
   type(env_t) :: env                    ! environment state
   real*8 :: time                        ! current time (s)
 
-  integer i, j, k, n_small
-  real*8 v_big
+  integer :: i, j, k, n_small, index
+  real*8 :: v_big
 
   open(unit=out_unit, file=out_name)
 
   do i = 0,n_time,time_inc
      write(state_name, "(a,i8.8,a)") state_prefix, i, ".d"
      call inout_read_state(state_name, bin_grid, aero_data, &
-          aero_state, gas_data, gas_state, env, time)
+          aero_state, gas_data, gas_state, env, time, index)
 
      ! if there is only one particle, assume it is big
      n_small = 0

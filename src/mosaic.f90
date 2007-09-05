@@ -121,7 +121,6 @@ contains
     use pmc_util
     use pmc_aero_state
     use pmc_bin_grid 
-    use pmc_condensation
     use pmc_env
     use pmc_aero_data
     use pmc_output_state
@@ -236,7 +235,6 @@ contains
     use pmc_util
     use pmc_aero_state
     use pmc_bin_grid 
-    use pmc_condensation
     use pmc_env
     use pmc_aero_data
     use pmc_output_state

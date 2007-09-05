@@ -12,6 +12,7 @@ file_magic = {
     "# histogram matrix\n": "hist_matrix",
     "# histogram totals\n": "hist_total",
     "# histogram sum\n": "hist_sum",
+    "# cumulative totals\n": "cum_total",
     "# aerosol binned\n": "aero_binned",
     "# aerosol time history\n": "aero_history",
     "# gas time history\n": "gas_history",
@@ -140,6 +141,26 @@ def process_args():
     parser.add_option("-t", "--time-unit", default = "hour",
 		      help = "Time unit to plot with. Must be 'day', " \
 		      + "'hour', 'min' or 'sec'. [default: %default]")
+    parser.add_option("--time-seq", action = "store_true",
+		      default = False,
+		      help = "Interpret file list as time-sequential " \
+		      + "list of state files.")
+    parser.add_option("--ratio", action = "store_true",
+		      default = False,
+		      help = "Plot time-sequential quantities as " \
+		      + "ratios of the maximum value.")
+    parser.add_option("--n-orig-part", type = "int", action = "append",
+		      default = [], help = "Number of original particles" \
+		      + " to plot. Only useable with " \
+		      + "--time-seq. [default: %default]")
+    parser.add_option("--mix-state", type = "float", action = "append",
+		      default = [], help = "Mixing states" \
+		      + " to plot, as percentages. Only useable with " \
+		      + "--time-seq. [default: %default]")
+    parser.add_option("--critical-ss", type = "float", action = "append",
+		      default = [], help = "Critical super-saturations" \
+		      + " to plot, as percentages. Only useable with " \
+		      + "--time-seq. [default: %default]")
     parser.add_option("-o", "--output", metavar = "FILE",
 		      help = "Filename to write output to. [default: " \
 		      + "<datafile>.pdf]")
@@ -149,6 +170,9 @@ def process_args():
     parser.add_option("--ymax", type = "float", help = "Maximum y axis value.")
     parser.add_option("--zmin", type = "float", help = "Minimum z axis value.")
     parser.add_option("--zmax", type = "float", help = "Maximum z axis value.")
+    parser.add_option("--keypos", default = "tr",
+		      help = "Position of the key. Must be one of 'tr', " \
+		      + "'tl', 'br', 'bl'. [default: %default]")
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -255,6 +279,25 @@ def normalize_unit(unit):
 	sys.exit(1)
     return norm_unit
 
+def yname(i):
+    if i > 0:
+	return "y%d" % (i + 1)
+    else:
+	return "y"
+
+def find_nearest(val, array):
+    if len(array) < 1:
+	print "ERROR; find_nearest() requires a non-empty array"
+	sys.exit(1)
+    min_dist = abs(val - array[0])
+    min_ind = 0
+    for i in range(1,len(array)):
+	dist = abs(val - array[i])
+	if dist < min_dist:
+	    min_dist = dist
+	    min_ind = i
+    return min_ind
+
 def print_species_table(species_nums, species_names):
     col = 0
     for i in species_nums:
@@ -338,7 +381,7 @@ def plot_aero_binned(data_filename, out_filename, unit,
 	    title = ytitle,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-	key = graph.key.key(pos = "tr"))
+	key = graph.key.key(pos = parser.values.keypos))
     spec = species_names[species_nums[0]]
     if spec in aerosol_species_titles.keys():
 	spec_title = aerosol_species_titles[spec]
@@ -384,7 +427,7 @@ def plot_aero_history(data_filename, out_filename, unit,
 	    title = ytitle,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-	key = graph.key.key(pos = "tr"))
+	key = graph.key.key(pos = parser.values.keypos))
     plots = []
     if unit == "num":
 	if species_nums != [0]:
@@ -423,7 +466,7 @@ def plot_gas_history(data_filename, out_filename, species_nums,
 	    title = "concentration (ppb)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-	key = graph.key.key(pos = "tr"))
+	key = graph.key.key(pos = parser.values.keypos))
     plots = []
     for i in species_nums:
 	if i == 0:
@@ -447,18 +490,14 @@ def plot_env(data_filename, out_filename, env_fields, parser):
 	if e not in env_field_names.keys():
 	    print "ERROR: unknown environment field: %s" % e
 	    sys.exit(1)
-	if i > 0:
-	    yname = "y%d" % (i + 1)
-	else:
-	    yname = "y"
 	if e == 'rh':
 	    texter = graph.axis.texter.decimal(suffix="\\%")
 	else:
 	    texter = graph.axis.texter.decimal()
-	yargs[yname] = graph.axis.linear(title = "%s %s"
-					 % (env_field_names[e][0],
-					    env_field_names[e][1]),
-					 texter = texter)
+	yargs[yname(i)] = graph.axis.linear(title = "%s %s"
+					    % (env_field_names[e][0],
+					       env_field_names[e][1]),
+					    texter = texter)
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.linear(
@@ -467,15 +506,11 @@ def plot_env(data_filename, out_filename, env_fields, parser):
 	    title = "time (hours)",
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-	key = graph.key.key(pos = "tr"),
+	key = graph.key.key(pos = parser.values.keypos),
 	**yargs)
     plots = []
     for i, e in enumerate(env_fields):
-	if i > 0:
-	    yname = "y%d" % (i + 1)
-	else:
-	    yname = "y"
-	yargs = {yname: env_field_names[e][2]}
+	yargs = {yname(i): env_field_names[e][2]}
 	plots.append(graph.data.file(data_filename,
 				     x = "$1/3600",
 				     title = env_field_names[e][0],
@@ -487,6 +522,8 @@ def plot_env(data_filename, out_filename, env_fields, parser):
 
 def plot_hist_matrix(data_filename, out_filename, parser):
     f = open(data_filename)
+    f.readline()
+    f.readline()
     f.readline()
     f.readline()
 
@@ -624,10 +661,24 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     g2.doaxes()
     g.writePDFfile(out_filename)
 
-def plot_hist_total(data_filename, out_filename, parser):
+def read_hist_total(data_filename):
     f = open(data_filename)
     f.readline()
 
+    line = f.readline()
+    match = re.compile("^# time is (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine time"
+	sys.exit(1)
+    time = float(match.group(1))
+    
+    line = f.readline()
+    match = re.compile("^# index is (.+)$").search(line)
+    if not match:
+	print "ERROR: unable to determine index"
+	sys.exit(1)
+    index = int(match.group(1))
+    
     line = f.readline()
     match = re.compile("^# quantities are (.+)$").search(line)
     if not match:
@@ -644,8 +695,6 @@ def plot_hist_total(data_filename, out_filename, parser):
     if col_type not in hist_col_type_names.keys():
 	print "ERROR: unknown column type: %s" % col_type
 	sys.exit(1)
-    col_type_name = hist_col_type_names[col_type][0]
-    col_type_suffix = hist_col_type_names[col_type][1]
     
     f.readline()
     f.readline()
@@ -664,6 +713,13 @@ def plot_hist_total(data_filename, out_filename, parser):
     if col_type in ["_comp", "_kappa"]:
 	c = [x * 100 for x in c]
     d = [[q[i], c[i], c[i+1]] for i in range(len(q))]
+    return (time, index, unit, col_type, q, c, d)
+
+def plot_hist_total(data_filename, out_filename, parser):
+    (time, index, unit, col_type, q, c, d) = read_hist_total(data_filename)
+
+    col_type_name = hist_col_type_names[col_type][0]
+    col_type_suffix = hist_col_type_names[col_type][1]
 
     if col_type == "_kappa":
 	yaxis = graph.axis.log(
@@ -732,7 +788,7 @@ def plot_hist_sum(data_filename, out_filename, parser):
 	    title = col_type_name,
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-	key = graph.key.key(pos = "tr"))
+	key = graph.key.key(pos = parser.values.keypos))
     g.plot(graph.data.file(data_filename, x = 1, y = 2,
 			   title = None),
 	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
@@ -794,19 +850,149 @@ def plot_file(data_filename, out_filename, parser):
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)
 
+def plot_seq(data_filenames, parser):
+    n_orig_part_vals = []
+    comp_vals = []
+    kappa_vals = []
+    for data_filename in data_filenames:
+	type = get_type(data_filename)
+	if type == "cum_total":
+	    (time, index, unit, col_type, q, c, d) \
+		= read_hist_total(data_filename)
+	    time = time / 3600
+	    if col_type == "_n_orig_part":
+		n_orig_part_unit = unit
+		inds = [max(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.n_orig_part]
+		if parser.values.ratio:
+		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		else:
+		    qs = [q[i] for i in inds]
+		n_orig_part_vals.append([time, qs])
+	    if col_type == "_comp":
+		comp_unit = unit
+		inds = [min(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.mix_state]
+		if parser.values.ratio:
+		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		else:
+		    qs = [q[i] for i in inds]
+		comp_vals.append([time, qs])
+	    if col_type == "_kappa":
+		kappa_unit = unit
+		inds = [min(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.critical_ss]
+		if parser.values.ratio:
+		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		else:
+		    qs = [q[i] for i in inds]
+		kappa_vals.append([time, qs])
+	elif type == "cum_spec":
+	    pass
+	else:
+	    print "ERROR: invalid file type: %s" % data_filename
+	    sys.exit(1)
+    if parser.values.n_orig_part and not n_orig_part_vals:
+	print "ERROR: n_orig_part values provided but no data found"
+	sys.exit(1)
+    if parser.values.mix_state and not comp_vals:
+	print "ERROR: mix-state values provided but no data found"
+	sys.exit(1)
+    if parser.values.critical_ss and not kappa_vals:
+	print "ERROR: critical-ss values provided but no data found"
+	sys.exit(1)
+    n_orig_part_vals.sort(lambda x, y: cmp(x[0], y[0]))
+    comp_vals.sort(lambda x, y: cmp(x[0], y[0]))
+    kappa_vals.sort(lambda x, y: cmp(x[0], y[0]))
+    ynum = 0
+    yargs = {}
+    extra_args = {}
+    if parser.values.ratio:
+	suffix = " ratio"
+	extra_args["texter"] = graph.axis.texter.decimal(suffix="\\%")
+    else:
+	suffix = ""
+    if n_orig_part_vals:
+	n_orig_part_yname = yname(ynum)
+	yargs[n_orig_part_yname] \
+	    = graph.axis.linear(min = parser.values.ymin,
+				max = parser.values.ymax,
+				title = "%s%s" % (n_orig_part_unit, suffix),
+				**extra_args)
+	ynum += 1
+    if comp_vals:
+	comp_yname = yname(ynum)
+	yargs[comp_yname] \
+	    = graph.axis.linear(min = parser.values.ymin,
+				max = parser.values.ymax,
+				title = "%s%s" % (comp_unit, suffix),
+				**extra_args)
+	ynum += 1
+    if kappa_vals:
+	kappa_yname = yname(ynum)
+	yargs[kappa_yname] \
+	    = graph.axis.linear(min = parser.values.ymin,
+				max = parser.values.ymax,
+				title = "%s%s" % (kappa_unit, suffix),
+				**extra_args)
+	ynum += 1
+    g = graph.graphxy(
+	width = 10,
+	x = graph.axis.linear(
+	    min = parser.values.xmin,
+	    max = parser.values.xmax,
+	    title = "time (hours)",
+	    painter = graph.axis.painter.regular(
+		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+	key = graph.key.key(pos = parser.values.keypos),
+	**yargs)
+    plots = []
+    for i, v in enumerate(parser.values.n_orig_part):
+	data = [[x[0], x[1][i]] for x in n_orig_part_vals]
+	yargs = {n_orig_part_yname: 2}
+	plots.append(graph.data.list(data,
+				     x = 1,
+				     title = "original particles $<$ %d" % v,
+				     **yargs))
+    for i, v in enumerate(parser.values.mix_state):
+	data = [[x[0], x[1][i]] for x in comp_vals]
+	yargs = {comp_yname: 2}
+	plots.append(graph.data.list(data,
+				     x = 1,
+				     title = "mix state $<$ %g\\%%" % v,
+				     **yargs))
+    for i, v in enumerate(parser.values.critical_ss):
+	data = [[x[0], x[1][i]] for x in kappa_vals]
+	yargs = {kappa_yname: 2}
+	plots.append(graph.data.list(data,
+				     x = 1,
+				     title = "critical supersat $<$ %g\\%%" % v,
+				     **yargs))
+    g.plot(plots,
+	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,
+						   color.palette.Rainbow])])
+    g.writePDFfile(parser.values.output)
+
 def main():
     (data_filenames, parser) = process_args()
-    if parser.values.output and len(data_filenames) > 1:
+    if parser.values.time_seq:
+	if not parser.values.output:
+	    print "ERROR: must specify output filename if using sequential" \
+		+ " data files"
+	    sys.exit(1)
+	plot_seq(data_filenames, parser)
+    else:
+	if parser.values.output and len(data_filenames) > 1:
 	    print "ERROR: cannot specify output filename with multiple " \
 		+ "data filenames"
 	    sys.exit(1)
-    for data_filename in data_filenames:
-	if parser.values.output:
-	    out_filename = parser.values.output
-	else:
-	    out_filename = data_filename
-	(out_filename, ext) = os.path.splitext(out_filename)
-	plot_file(data_filename, out_filename, parser)
+	for data_filename in data_filenames:
+	    if parser.values.output:
+		out_filename = parser.values.output
+	    else:
+		out_filename = data_filename
+	    (out_filename, ext) = os.path.splitext(out_filename)
+	    plot_file(data_filename, out_filename, parser)
     
 if __name__ == "__main__":
     main()

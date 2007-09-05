@@ -383,7 +383,8 @@ contains
     use pmc_util
     
 #ifdef PMC_USE_MOSAIC
-    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a
+    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
+         ext_cross, scat_cross, asym_particle
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -416,17 +417,14 @@ contains
        do i_part = 1,aero_state%bins(i_bin)%n_part
           i_mosaic = i_mosaic + 1
           particle => aero_state%bins(i_bin)%particle(i_part)
-          particle%absorb_cross_sect = 0d0                    ! (m^2)
-          particle%extinct_cross_sect = 0d0                   ! (m^2)
-          particle%asymmetry = 0d0                            ! (1)
+          particle%absorb_cross_sect = ext_cross(i_mosaic) &
+               - scat_cross(i_mosaic)                         ! (m^2)
+          particle%scatter_cross_sect = scat_cross(i_mosaic)  ! (m^2)
+          particle%asymmetry = asym_particle(i_mosaic)        ! (1)
           particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind = 8) ! (1)
           particle%refract_core = cmplx(ri_core_a(i_mosaic), kind = 8)   ! (1)
-          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))  ! (m^3)
-
           ! temporary debugging code follows
-          particle%absorb_cross_sect = vol2rad(aero_particle_volume(particle))
-          particle%extinct_cross_sect = 1.5d0 &
-               * vol2rad(aero_particle_volume(particle))
+          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))  ! (m^3)
           particle%core_vol = 0d0                             ! (m^3)
        end do
     end do

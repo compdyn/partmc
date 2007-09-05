@@ -10,7 +10,7 @@ module pmc_aero_particle
      real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
      integer :: n_orig_part              ! number of original particles
      real*8 :: absorb_cross_sect         ! absorption cross-section (m^2)
-     real*8 :: extinct_cross_sect        ! extinction cross-section (m^2)
+     real*8 :: scatter_cross_sect        ! scattering cross-section (m^2)
      real*8 :: asymmetry                 ! asymmetry parameter (1)
      complex*16 :: refract_shell         ! refractive index of the shell (1)
      complex*16 :: refract_core          ! refractive index of the core (1)
@@ -67,7 +67,7 @@ contains
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%extinct_cross_sect = aero_particle_from%extinct_cross_sect
+    aero_particle_to%scatter_cross_sect = aero_particle_from%scatter_cross_sect
     aero_particle_to%asymmetry = aero_particle_from%asymmetry
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
@@ -89,7 +89,7 @@ contains
     nullify(aero_particle_from%vol)
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%extinct_cross_sect = aero_particle_from%extinct_cross_sect
+    aero_particle_to%scatter_cross_sect = aero_particle_from%scatter_cross_sect
     aero_particle_to%asymmetry = aero_particle_from%asymmetry
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
@@ -108,7 +108,7 @@ contains
     aero_particle%vol = 0d0
     aero_particle%n_orig_part = 1
     aero_particle%absorb_cross_sect = 0d0
-    aero_particle%extinct_cross_sect = 0d0
+    aero_particle%scatter_cross_sect = 0d0
     aero_particle%asymmetry = 0d0
     aero_particle%refract_shell = (0d0, 0d0)
     aero_particle%refract_core = (0d0, 0d0)
@@ -443,7 +443,7 @@ contains
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
     aero_particle_new%absorb_cross_sect = 0d0
-    aero_particle_new%extinct_cross_sect = 0d0
+    aero_particle_new%scatter_cross_sect = 0d0
     aero_particle_new%asymmetry = 0d0
     aero_particle_new%refract_shell = (0d0, 0d0)
     aero_particle_new%refract_core = (0d0, 0d0)
@@ -465,8 +465,8 @@ contains
     call inout_write_comment(file, "begin aero_particle")
     call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_write_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
-    call inout_write_real(file, "extinct(m^2)", &
-         aero_particle%extinct_cross_sect)
+    call inout_write_real(file, "scatter(m^2)", &
+         aero_particle%scatter_cross_sect)
     call inout_write_real(file, "asymmetry(1)", aero_particle%asymmetry)
     call inout_write_complex(file, "refract_shell(1)", &
          aero_particle%refract_shell)
@@ -492,8 +492,8 @@ contains
     call inout_check_comment(file, "begin aero_particle")
     call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_read_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
-    call inout_read_real(file, "extinct(m^2)", &
-         aero_particle%extinct_cross_sect)
+    call inout_read_real(file, "scatter(m^2)", &
+         aero_particle%scatter_cross_sect)
     call inout_read_real(file, "asymmetry(1)", aero_particle%asymmetry)
     call inout_read_complex(file, "refract_shell(1)", &
          aero_particle%refract_shell)
@@ -518,7 +518,7 @@ contains
          pmc_mpi_pack_size_real_array(val%vol) &
          + pmc_mpi_pack_size_integer(val%n_orig_part) &
          + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
-         + pmc_mpi_pack_size_real(val%extinct_cross_sect) &
+         + pmc_mpi_pack_size_real(val%scatter_cross_sect) &
          + pmc_mpi_pack_size_real(val%asymmetry) &
          + pmc_mpi_pack_size_complex(val%refract_shell) &
          + pmc_mpi_pack_size_complex(val%refract_core) &
@@ -549,7 +549,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
     call pmc_mpi_pack_integer(buffer, position, val%n_orig_part)
     call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_pack_real(buffer, position, val%extinct_cross_sect)
+    call pmc_mpi_pack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_pack_real(buffer, position, val%asymmetry)
     call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
@@ -583,7 +583,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
     call pmc_mpi_unpack_integer(buffer, position, val%n_orig_part)
     call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_unpack_real(buffer, position, val%extinct_cross_sect)
+    call pmc_mpi_unpack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_unpack_real(buffer, position, val%asymmetry)
     call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)

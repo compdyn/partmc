@@ -883,8 +883,7 @@ contains
 
     real*8 :: rh, supersat
 
-    scatter_particle_func = aero_particle%extinct_cross_sect &
-         - aero_particle%absorb_cross_sect
+    scatter_particle_func = aero_particle%scatter_cross_sect
 
   end function scatter_particle_func
 
@@ -961,7 +960,8 @@ contains
 
     real*8 :: rh, supersat
 
-    extinct_particle_func = aero_particle%extinct_cross_sect
+    extinct_particle_func = aero_particle%absorb_cross_sect &
+         + aero_particle%scatter_cross_sect
 
   end function extinct_particle_func
 

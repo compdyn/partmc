@@ -39,7 +39,8 @@ contains
     use module_data_mosaic_main, only: tbeg_sec, dt_sec, rlon, rlat, &
          zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
          deg2rad, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
-         msolar, mphoto
+         msolar, mphoto, &
+         lun_aeroptic
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -98,6 +99,13 @@ contains
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
+
+! matt -- this is for the separate aerosol optical output 
+!         that jim wants.  i needed to get something
+!         working for him initially. -- dick
+    ! get unit for aerosol optical output
+    if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()
+
 #endif
     
   end subroutine mosaic_init

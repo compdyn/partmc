@@ -348,6 +348,10 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
+!DEBUG
+       subroutine aerosol_optical()
+       end subroutine aerosol_optical
+!DEBUG
     end interface
     
     ! map PartMC -> MOSAIC
@@ -359,6 +363,7 @@ contains
     end if
 
     call IntegrateChemistry
+    call aerosol_optical
 
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &
@@ -406,10 +411,10 @@ contains
     type(aero_particle_t), pointer :: particle
     
     ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
-         gas_data, gas_state, time)
+!    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
+!         gas_data, gas_state, time)
 
-    call aerosol_optical
+!    call aerosol_optical
 
     ! map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number

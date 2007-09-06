@@ -64,25 +64,25 @@ program process_state
              kappa_particle_func, .false., time, index)
 
      elseif (command == "absorb") then
-        call mosaic_init(bin_grid, env, 0d0)
-        call mosaic_aero_optical(bin_grid, env, aero_data, &
-             aero_state, gas_data, gas_state, time)
+!        call mosaic_init(bin_grid, env, 0d0)
+!        call mosaic_aero_optical(bin_grid, env, aero_data, &
+!             aero_state, gas_data, gas_state, time)
         call process_hist(basename, "_absorb", bin_grid, env, aero_data, &
              aero_state, absorb_step_comp_grid, absorb_step_comp, &
              absorb_particle_func, .true., time, index)
 
      elseif (command == "scatter") then
-        call mosaic_init(bin_grid, env, 0d0)
-        call mosaic_aero_optical(bin_grid, env, aero_data, &
-             aero_state, gas_data, gas_state, time)
+!        call mosaic_init(bin_grid, env, 0d0)
+!        call mosaic_aero_optical(bin_grid, env, aero_data, &
+!             aero_state, gas_data, gas_state, time)
         call process_hist(basename, "_scatter", bin_grid, env, aero_data, &
              aero_state, scatter_step_comp_grid, scatter_step_comp, &
              scatter_particle_func, .true., time, index)
 
      elseif (command == "extinct") then
-        call mosaic_init(bin_grid, env, 0d0)
-        call mosaic_aero_optical(bin_grid, env, aero_data, &
-             aero_state, gas_data, gas_state, time)
+!        call mosaic_init(bin_grid, env, 0d0)
+!        call mosaic_aero_optical(bin_grid, env, aero_data, &
+!             aero_state, gas_data, gas_state, time)
         call process_hist(basename, "_extinct", bin_grid, env, aero_data, &
              aero_state, extinct_step_comp_grid, extinct_step_comp, &
              extinct_particle_func, .true., time, index)

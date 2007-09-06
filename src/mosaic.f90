@@ -368,6 +368,9 @@ contains
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &
          aero_binned, gas_data, gas_state)
+
+    call mosaic_aero_optical(bin_grid, env, aero_data, &
+         aero_state, gas_data, gas_state, time)
 #endif
 
   end subroutine mosaic_timestep
@@ -422,15 +425,15 @@ contains
        do i_part = 1,aero_state%bins(i_bin)%n_part
           i_mosaic = i_mosaic + 1
           particle => aero_state%bins(i_bin)%particle(i_part)
-          particle%absorb_cross_sect = ext_cross(i_mosaic) &
-               - scat_cross(i_mosaic)                         ! (m^2)
-          particle%scatter_cross_sect = scat_cross(i_mosaic)  ! (m^2)
-          particle%asymmetry = asym_particle(i_mosaic)        ! (1)
+          particle%absorb_cross_sect = (ext_cross(i_mosaic) &
+               - scat_cross(i_mosaic)) / 1d4                       ! (m^2)
+          particle%scatter_cross_sect = scat_cross(i_mosaic) / 1d4 ! (m^2)
+          particle%asymmetry = asym_particle(i_mosaic)             ! (1)
           particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind = 8) ! (1)
           particle%refract_core = cmplx(ri_core_a(i_mosaic), kind = 8)   ! (1)
           ! temporary debugging code follows
-          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))  ! (m^3)
-          particle%core_vol = 0d0                             ! (m^3)
+          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))       ! (m^3)
+          particle%core_vol = 0d0                                  ! (m^3)
        end do
     end do
 #endif

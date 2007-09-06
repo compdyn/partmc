@@ -94,3 +94,6 @@ don't free before setting new values and should be fixed.
 
 fix local variable sections to always be all integers, then all reals,
 etc, with only one "integer ::" and then & for the rest of the lines.
+
+change the hardcoded list of mosaic aerosol species to not have _a on
+them, so we can stop having _a in all the partmc data.

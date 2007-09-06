@@ -13,6 +13,7 @@ file_magic = {
     "# histogram totals\n": "hist_total",
     "# histogram sum\n": "hist_sum",
     "# cumulative totals\n": "cum_total",
+    "# cumulative species\n": "cum_spec",
     "# aerosol binned\n": "aero_binned",
     "# aerosol time history\n": "aero_history",
     "# gas time history\n": "gas_history",
@@ -119,8 +120,7 @@ class listpalette(color.palette):
         return self.colorclass(**colordict)
 
 def process_args():
-    usage = "usage: %prog [options] <datafile>"
-    parser = OptionParser(usage = usage)
+    parser = OptionParser(usage = "usage: %prog [options] <datafiles>")
     parser.add_option("-u", "--unit", default = "num",
 		      help = "Unit to plot with. Must be 'num', 'vol', " \
 		      + "'mass' or 'mole'. [default: %default]")
@@ -176,7 +176,9 @@ def process_args():
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
-	parser.error("must give at least one datafile argument")
+	parser.print_help()
+	print "ERROR: must give at least one datafile argument"
+	sys.exit(1)
     data_filenames = args
     return (data_filenames, parser)
 
@@ -193,6 +195,11 @@ def get_species_names(data_filename, type):
     if type == "aero_history":
 	f.readline()
 	f.readline()
+    if type in ["hist_spec", "cum_spec"]:
+	f.readline()
+	f.readline()
+	f.readline()
+	f.readline()
     f.readline()
     f.readline()
     header = f.readline()
@@ -201,7 +208,7 @@ def get_species_names(data_filename, type):
 	print "ERROR: header does not start with #: %s" % header
 	sys.exit(1)
     cols = header[1:].split()
-    if (type == "aero_history") or (type == "aero_binned"):
+    if type in ["aero_history", "aero_binned"]:
 	species = ["total"]
 	spec_re = re.compile("^\d+-VL/(.+)$")
 	for col in cols:
@@ -210,6 +217,13 @@ def get_species_names(data_filename, type):
 		species.append(match.group(1))
     elif type == "gas_history":
 	species = ["total"] + cols[1:]
+    elif type in ["hist_spec", "cum_spec"]:
+	species = []
+	spec_re = re.compile("^\d+/(.+)$")
+	for col in cols:
+	    match = spec_re.search(col)
+	    if match:
+		species.append(match.group(1))
     else:
 	print "ERROR: unknown type: %s" % type
 	sys.exit(1)
@@ -661,7 +675,7 @@ def plot_hist_matrix(data_filename, out_filename, parser):
     g2.doaxes()
     g.writePDFfile(out_filename)
 
-def read_hist_total(data_filename):
+def read_hist(data_filename):
     f = open(data_filename)
     f.readline()
 
@@ -707,7 +721,7 @@ def read_hist_total(data_filename):
 	c.append(float(elements[0]))
 	if not first_line:
 	    q.append(last_v)
-	last_v = float(elements[1])
+	last_v = [float(vx) for vx in elements[1:]]
 	first_line = False
     f.close()
     if col_type in ["_comp", "_kappa"]:
@@ -716,7 +730,7 @@ def read_hist_total(data_filename):
     return (time, index, unit, col_type, q, c, d)
 
 def plot_hist_total(data_filename, out_filename, parser):
-    (time, index, unit, col_type, q, c, d) = read_hist_total(data_filename)
+    (time, index, unit, col_type, q, c, d) = read_hist(data_filename)
 
     col_type_name = hist_col_type_names[col_type][0]
     col_type_suffix = hist_col_type_names[col_type][1]
@@ -854,11 +868,15 @@ def plot_seq(data_filenames, parser):
     n_orig_part_vals = []
     comp_vals = []
     kappa_vals = []
+    processed_species = False
+    species = parser.values.species
+    if len(species) > 1:
+	species = species[1:]
     for data_filename in data_filenames:
 	type = get_type(data_filename)
 	if type == "cum_total":
 	    (time, index, unit, col_type, q, c, d) \
-		= read_hist_total(data_filename)
+		= read_hist(data_filename)
 	    time = time / 3600
 	    if col_type == "_n_orig_part":
 		n_orig_part_unit = unit
@@ -888,7 +906,60 @@ def plot_seq(data_filenames, parser):
 		    qs = [q[i] for i in inds]
 		kappa_vals.append([time, qs])
 	elif type == "cum_spec":
-	    pass
+	    if not processed_species:
+		processed_species = True
+		if len(species) != 1:
+		    print "ERROR: must specify exactly one species"
+		    sys.exit(1)
+		species_names = get_species_names(data_filename, type)
+		print "Available species:"
+		print_species_table(range(len(species_names)), species_names)
+		species_nums = normalize_species(species, species_names)
+		print "Selected species:"
+		print_species_table(species_nums, species_names)
+		qcol = species_nums[0]
+		spec = species_names[qcol]
+		if spec in aerosol_species_titles.keys():
+		    spec_title = aerosol_species_titles[spec]
+		else:
+		    spec_title = spec
+	    (time, index, unit, col_type, q, c, d) \
+		= read_hist(data_filename)
+	    time = time / 3600
+	    spec_unit = "%s %s" % (spec_title, unit)
+	    if col_type == "_n_orig_part":
+		n_orig_part_unit = spec_unit
+		inds = [min(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.critical_ss]
+		if parser.values.ratio:
+		    if q[-1][qcol] > 0:
+			qs = [q[i][qcol] / q[-1][qcol] * 100.0 for i in inds]
+			n_orig_part_vals.append([time, qs])
+		else:
+		    qs = [q[i][qcol] for i in inds]
+		    n_orig_part_vals.append([time, qs])
+	    if col_type == "_comp":
+		comp_unit = spec_unit
+		inds = [min(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.critical_ss]
+		if parser.values.ratio:
+		    if q[-1][qcol] > 0:
+			qs = [q[i][qcol] / q[-1][qcol] * 100.0 for i in inds]
+			comp_vals.append([time, qs])
+		else:
+		    qs = [q[i][qcol] for i in inds]
+		    comp_vals.append([time, qs])
+	    if col_type == "_kappa":
+		kappa_unit = spec_unit
+		inds = [min(find_nearest(x, c), len(q) - 1)
+			for x in parser.values.critical_ss]
+		if parser.values.ratio:
+		    if q[-1][qcol] > 0:
+			qs = [q[i][qcol] / q[-1][qcol] * 100.0 for i in inds]
+			kappa_vals.append([time, qs])
+		else:
+		    qs = [q[i][qcol] for i in inds]
+		    kappa_vals.append([time, qs])
 	else:
 	    print "ERROR: invalid file type: %s" % data_filename
 	    sys.exit(1)
@@ -966,7 +1037,7 @@ def plot_seq(data_filenames, parser):
 	yargs = {kappa_yname: 2}
 	plots.append(graph.data.list(data,
 				     x = 1,
-				     title = "critical supersat $<$ %g\\%%" % v,
+				     title = "activate at supersat $=$ %g\\%%" % v,
 				     **yargs))
     g.plot(plots,
 	   styles = [graph.style.line(lineattrs = [style.linestyle.solid,

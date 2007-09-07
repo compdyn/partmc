@@ -931,7 +931,7 @@ def plot_seq(data_filenames, parser):
 	    if col_type == "_n_orig_part":
 		n_orig_part_unit = spec_unit
 		inds = [min(find_nearest(x, c), len(q) - 1)
-			for x in parser.values.critical_ss]
+			for x in parser.values.n_orig_part]
 		if parser.values.ratio:
 		    if q[-1][qcol] > 0:
 			qs = [q[i][qcol] / q[-1][qcol] * 100.0 for i in inds]
@@ -942,7 +942,7 @@ def plot_seq(data_filenames, parser):
 	    if col_type == "_comp":
 		comp_unit = spec_unit
 		inds = [min(find_nearest(x, c), len(q) - 1)
-			for x in parser.values.critical_ss]
+			for x in parser.values.mix_state]
 		if parser.values.ratio:
 		    if q[-1][qcol] > 0:
 			qs = [q[i][qcol] / q[-1][qcol] * 100.0 for i in inds]

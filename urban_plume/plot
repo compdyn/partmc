@@ -760,7 +760,8 @@ def plot_hist_total(data_filename, out_filename, parser):
 	    painter = graph.axis.painter.regular(
 		gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
 	y = yaxis)
-    g.plot(graph.data.list(d, x = 1, ymin = 2, ymax = 3, title = None),
+    scalar_d = [[xv[0], ymin, ymax] for [xv, ymin, ymax] in d]
+    g.plot(graph.data.list(scalar_d, x = 1, ymin = 2, ymax = 3, title = None),
 	   [graph.style.histogram(autohistogramaxisindex = 1,
 				  autohistogrampointpos = 0,
 				  fillable = True,
@@ -883,27 +884,27 @@ def plot_seq(data_filenames, parser):
 		inds = [max(find_nearest(x, c), len(q) - 1)
 			for x in parser.values.n_orig_part]
 		if parser.values.ratio:
-		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		    qs = [q[i][0] / q[-1][0] * 100.0 for i in inds]
 		else:
-		    qs = [q[i] for i in inds]
+		    qs = [q[i][0] for i in inds]
 		n_orig_part_vals.append([time, qs])
 	    if col_type == "_comp":
 		comp_unit = unit
 		inds = [min(find_nearest(x, c), len(q) - 1)
 			for x in parser.values.mix_state]
 		if parser.values.ratio:
-		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		    qs = [q[i][0] / q[-1][0] * 100.0 for i in inds]
 		else:
-		    qs = [q[i] for i in inds]
+		    qs = [q[i][0] for i in inds]
 		comp_vals.append([time, qs])
 	    if col_type == "_kappa":
 		kappa_unit = unit
 		inds = [min(find_nearest(x, c), len(q) - 1)
 			for x in parser.values.critical_ss]
 		if parser.values.ratio:
-		    qs = [q[i] / q[-1] * 100.0 for i in inds]
+		    qs = [q[i][0] / q[-1][0] * 100.0 for i in inds]
 		else:
-		    qs = [q[i] for i in inds]
+		    qs = [q[i][0] for i in inds]
 		kappa_vals.append([time, qs])
 	elif type == "cum_spec":
 	    if not processed_species:

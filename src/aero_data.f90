@@ -265,6 +265,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine inout_read_species_list(file, name, aero_data, species_list)
+
+    ! Read a list of species from the given file with the given name.
+
+    use pmc_inout
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name of line
+    type(aero_data_t), intent(in) :: aero_data  ! aero_data data
+    integer, pointer :: species_list(:) ! list of species numbers
+
+    type(inout_line_t) :: line
+    integer :: i, spec
+
+    call inout_read_line_no_eof(file, line)
+    call inout_check_line_name(file, line, name)
+    allocate(species_list(size(line%data)))
+    do i = 1,size(line%data)
+       spec = aero_data_spec_by_name(aero_data, line%data(i))
+       if (spec == 0) then
+          write(0,*) 'ERROR: unknown species ', trim(line%data(i)), &
+               ' on line ', file%line_num, ' of file ', trim(file%name)
+          call exit(1)
+       end if
+       species_list(i) = spec
+    end do
+    call inout_line_free(line)
+
+  end subroutine inout_read_species_list
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function pmc_mpi_pack_size_aero_data(val)
 
     ! Determines the number of bytes required to pack the given value.

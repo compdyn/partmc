@@ -902,7 +902,7 @@ contains
     ! Read an array of named lines with real data. All lines must have
     ! the same number of data elements.
 
-    type(inout_file_t), intent(inout) :: file ! spec file
+    type(inout_file_t), intent(inout) :: file ! inout file
     integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
     character(len=MAX_CHAR_LEN), pointer :: names(:) ! names of lines
     real*8, pointer :: vals(:,:)          ! data values
@@ -939,7 +939,7 @@ contains
 
     ! Read an a time-indexed array of real data.
 
-    type(inout_file_t), intent(inout) :: file ! spec file
+    type(inout_file_t), intent(inout) :: file ! inout file
     character(len=*), intent(in) :: line_name ! name of line for filename
     character(len=*), intent(in) :: name  ! variable name
     real*8, pointer :: times(:)         ! names of lines
@@ -1102,6 +1102,100 @@ contains
     file%line_num = file%line_num + 1
 
   end subroutine inout_write_complex
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_indexed_integer(file, name, index, var)
+
+    ! Write an integer to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    integer, intent(in) :: index        ! index to write
+    integer, intent(in) :: var          ! variable to write
+
+    write(file%unit, '(a20,i20,i20)') trim(name), index, var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_indexed_integer
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_indexed_real(file, name, index, var)
+
+    ! Write a real to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    integer, intent(in) :: index        ! index to write
+    real*8, intent(in) :: var          ! variable to write
+
+    write(file%unit, '(a20,i20,e30.20)') trim(name), index, var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_indexed_real
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_indexed_logical(file, name, index, var)
+
+    ! Write a logical to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    integer, intent(in) :: index        ! index to write
+    logical, intent(in) :: var          ! variable to write
+
+    write(file%unit, '(a20,i20,l20)') trim(name), index, var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_indexed_logical
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_indexed_string(file, name, index, var)
+
+    ! Write a string to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    integer, intent(in) :: index        ! index to write
+    character(len=*), intent(in) :: var ! variable to write
+
+    write(file%unit, '(a20,i20,a20)') trim(name), index, var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_indexed_string
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_indexed_complex(file, name, index, var)
+
+    ! Write a complex to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    character(len=*), intent(in) :: name ! name
+    integer, intent(in) :: index        ! index to write
+    complex*16, intent(in) :: var       ! variable to write
+
+    write(file%unit, '(a20,i20,e30.20,e30.20)') trim(name), index, var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_indexed_complex
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine inout_write_unnamed_real(file, var)
+
+    ! Write a real to an inout file.
+
+    type(inout_file_t), intent(inout) :: file ! inout file
+    real*8, intent(in) :: var          ! variable to write
+
+    write(file%unit, '(e30.20)') var
+    file%line_num = file%line_num + 1
+
+  end subroutine inout_write_unnamed_real
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

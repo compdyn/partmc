@@ -40,6 +40,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine die(code)
+
+    ! Error immediately.
+
+    integer, intent(in) :: code         ! status code to use if assertion fails
+
+    call assert(code, .false.)
+
+  end subroutine die
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   integer function get_unit()
     
     ! Returns an available unit number. This should be freed by free_unit().
@@ -757,6 +769,26 @@ contains
     
   end subroutine average_real
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine get_basename(filename, basename)
+
+    ! Strip the extension to find the basename.
+
+    character(len=*), intent(in) :: filename ! full filename
+    character(len=*), intent(out) :: basename ! basename
+
+    integer :: i
+
+    basename = filename
+    i = len_trim(basename)
+    do while ((basename(i:i) /= ".") .and. (i > 0))
+       i = i - 1
+    end do
+    basename(i:) = ""
+
+  end subroutine get_basename
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_util

@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/process_spec.o: src/pmc_inout.mod src/pmc_aero_data.mod
+src/pmc_process_spec.mod: src/pmc_inout.mod src/pmc_aero_data.mod

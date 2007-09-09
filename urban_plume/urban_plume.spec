@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo run
 output_file out/urban_plume_summary.d # name of output file
 state_prefix out/urban_plume_state # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
-n_part 100                      # total number of particles
+n_part 100000                    # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
@@ -22,10 +22,10 @@ aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
-height_profile height_profile.dat       # height profile file
-gas_emissions gas_emit_profile.dat      # gas emissions file
+height_profile height_constant.dat       # height profile file
+gas_emissions gas_emit_constant.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
-aero_emissions aero_emit_profile.dat    # aerosol emissions file
+aero_emissions aero_emit_constant.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.85               # initial relative humidity (1)
@@ -33,12 +33,12 @@ pressure 1e5                    # initial pressure (Pa)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 14400                # start time (s since 00:00 UTC)
+start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to use time)
 mix_rate 0                      # mixing rate between processes (0 to 1)
-do_coagulation yes              # whether to do coagulation (yes/no)
+do_coagulation yes               # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)

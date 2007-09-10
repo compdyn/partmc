@@ -116,7 +116,7 @@ contains
 
     scale_bin = 1d0 / bin_grid%dlnr / aero_state%comp_vol
     scale_step = 1d0 / dble(n_step) / aero_state%comp_vol
-    scale = scale_bin * scale_step
+    scale = 1d0 / bin_grid%dlnr / dble(n_step) / aero_state%comp_vol
 
     n_invalid = 0
     do i_bin = 1,bin_grid%n_bin

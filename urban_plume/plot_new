@@ -42,6 +42,12 @@ def load_data_file(filename):
 	read_integer(f, 'dim', check_dim)
 	check_index(check_dim, i_dim + 1)
 	dim = data_dim()
+	read_string(f, 'name', dim.name)
+	read_string(f, 'grid_type', dim.grid_type)
+	read_string(f, 'data_type', dim.data_type)
+	read_string(f, 'unit', dim.unit)
+	read_integer(f, 'length', length)
+	
 
 hist_col_type_names = {
     "_n_orig_part": ["number of component particles", ""],

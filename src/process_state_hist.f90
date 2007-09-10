@@ -114,8 +114,8 @@ contains
     mole_den_spec = 0d0
     sum_den = 0d0
 
-    scale_bin = 1d0 / bin_grid%dlnr
-    scale_step = 1d0 / dble(n_step)
+    scale_bin = 1d0 / bin_grid%dlnr / aero_state%comp_vol
+    scale_step = 1d0 / dble(n_step) / aero_state%comp_vol
     scale = scale_bin * scale_step
 
     n_invalid = 0

@@ -300,7 +300,7 @@ contains
     end do
 
     ! dim 3: unit
-    call inout_write_integer(file, 'dim', 2)
+    call inout_write_integer(file, 'dim', 3)
     call inout_write_string(file, 'name', 'unit')
     call inout_write_string(file, 'grid_type', 'center')
     call inout_write_string(file, 'data_type', 'string')

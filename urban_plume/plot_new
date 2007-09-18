@@ -4,13 +4,9 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, re
-from optparse import OptionParser
-sys.path.insert(0, os.path.expanduser("~/.python"))
-from pyx import *
 from numpy import *
 
 class data_dim():
-    
     def __init__(self):
 	self.name = None         # axis name
 	self.grid_type = None    # "center" or "edge"
@@ -18,155 +14,143 @@ class data_dim():
 	self.unit = None         # unit of grid_values
 	self.grid_values = []    # grid points on axis
 	self.grid_widths = []    # widths of grid cells
-	self.grid_unit = None    # units of data values or None
+	self.grid_units = None   # units of data values or None
 
 class data_file():
-
     def __init__(self):
-	self.name = None
-	self.time = None
-	self.index = None
-	self.dims = []
-	self.data = None
+	self.name = None         # name of the data-set
+	self.time = None         # time (s) of the data-set
+	self.index = None        # index of the data-set
+	self.dims = []           # list of data_dim() objects
+	self.data = None         # n-D array of data
+
+def read_named(f, name):
+    line = f.readline()
+    data = line.split()
+    if len(data) != 2:
+	print "ERROR: expected 2 items on line: %s" % line
+	sys.exit(1)
+    if name != data[0]:
+	print "ERROR: expected name %s on line: %s" % (name, line)
+	sys.exit(1)
+    return data[1]
+
+def read_indexed_named(f, index, name):
+    line = f.readline()
+    data = line.split()
+    if len(data) != 3:
+	print "ERROR: expected 3 items on line: %s" % line
+	sys.exit(1)
+    if name != data[0]:
+	print "ERROR: expected name %s on line: %s" % (name, line)
+	sys.exit(1)
+    try:
+	check_index = int(data[1])
+    except:
+	print "ERROR: unable to convert index to integer: %s" % data[1]
+    if index != check_index:
+	print "ERROR: expected index %d but got: %d" (index, check_index)
+	sys.exit(1)
+    return data[2]
+
+def read_integer(f, name):
+    data = read_named(f, name)
+    try:
+	return int(data)
+    except:
+	print "ERROR: unable to convert to integer: %s" % data
+	sys.exit(1)
+
+def read_real(f, name):
+    data = read_named(f, name)
+    try:
+	return float(data)
+    except:
+	print "ERROR: unable to convert to real: %s" % data
+	sys.exit(1)
+
+def read_string(f, name):
+    return read_named(f, name)
+
+def read_indexed_integer(f, index, name):
+    data = read_indexed_named(f, indexed, name)
+    try:
+	return int(data)
+    except:
+	print "ERROR: unable to convert to integer: %s" % data
+	sys.exit(1)
+
+def read_indexed_real(f, index, name):
+    data = read_indexed_named(f, indexed, name)
+    try:
+	return float(data)
+    except:
+	print "ERROR: unable to convert to float: %s" % data
+	sys.exit(1)
+
+def read_indexed_string(f, index, name):
+    return read_indexed_named(f, indexed, name)
+
+def read_comment(f, comment):
+    line = f.readline()
+    if line != ("%# %s\n" % comment):
+	print "ERROR: expected comment %s but got %s: " (comment, line)
+	sys.exit(1)
+
+def read_unnamed_real(f):
+    line = f.readline()
+    try:
+	return float(line)
+    except:
+	print "ERROR: unable to convert to float: %s" % line
+	sys.exit(1)
 
 def load_data_file(filename):
-    data = data_file()
     f = open(filename)
-    f.readline()
-    read_string(f, 'name', data.name)
-    read_real(f, 'time', data.time)
-    read_integer(f, 'index', data.index)
-    read_integer(f, 'n_dim', n_dim)
-    read_integer(f, 'unit_dim', unit_dim)
+    data = data_file()
+    data.name = read_string(f, 'name')
+    data.time = read_real(f, 'time')
+    data.index = read_integer(f, 'index')
+    n_dim = read_integer(f, 'n_dim')
+    unit_dim = read_integer(f, 'unit_dim')
     for i_dim in range(n_dim):
-	read_integer(f, 'dim', check_dim)
+	check_dim = read_integer(f, 'dim')
 	check_index(check_dim, i_dim + 1)
 	dim = data_dim()
-	read_string(f, 'name', dim.name)
-	read_string(f, 'grid_type', dim.grid_type)
-	read_string(f, 'data_type', dim.data_type)
-	read_string(f, 'unit', dim.unit)
-	read_integer(f, 'length', length)
-	
-
-hist_col_type_names = {
-    "_n_orig_part": ["number of component particles", ""],
-    "_comp": ["mixing state", "\\%"],
-    "_kappa": ["critical supersaturation", "\\%"],
-    "_absorb": ["absorption cross-section (m$^2$)", ""],
-    "_scatter": ["scattering cross-section (m$^2$)", ""],
-    "_extinct": ["extinction cross-section (m$^2$)", ""],
-    }
-
-env_field_names = {
-    'temp': ['temperature', '(K)', 2],
-    'rh': ['relative humidity', "", "($3*100)"],
-    'press': ['pressure', '(kPa)', "($4/1e3)"],
-    'height': ['height', '(m)', 5],
-    }
-
-time_unit_names = {
-    'day': '$1/86400',
-    'hour': '$1/3600',
-    'min': '$1/60',
-    'sec': '1',
-    }
-
-aerosol_species_titles = {
-    "SO4_a": "SO$_4$",
-    "NO3_a": "NO$_3$",
-    "Cl_a": "Cl",
-    "NH4_a": "NH$_4$",
-    "MSA_a": "MSA",
-    "ARO1_a": "ARO1",
-    "ARO2_a": "ARO2",
-    "ALK1_a": "ALK1",
-    "OLE1_a": "OLE1",
-    "API1_a": "API1",
-    "API2_a": "API2",
-    "LIM1_a": "LIM1",
-    "LIM2_a": "LIM2",
-    "CO3_a": "CO$_3$",
-    "Na_a": "Na",
-    "Ca_a": "Ca",
-    "OIN_a": "OIN",
-    "OC_a": "Organic carbon",
-    "BC_a": "Black carbon",
-    "H2O": "H$_2$O",
-    }
-
-gas_species_titles = {
-    "H2SO4": "H$_2$SO$_4$",
-    "HNO3": "HNO$_3$",
-    "HCl": "HC$\ell$",
-    "NH3": "NH$_3$",
-    "NO2": "NO$_2$",
-    "NO3": "NO$_3$",
-    "N2O5": "N$_2$O$_5$",
-    "HNO4": "HNO$_4$",
-    "O3": "O$_3$",
-    "O1D": "O$_1$D",
-    "O3P": "O$_3$P",
-    "HO2": "HO$_2$",
-    "H2O2": "H$_2$O$_2$",
-    "SO2": "SO$_2$",
-    "CH4": "CH$_4$",
-    "C2H6": "C$_2$H$_6$",
-    "CH3O2": "CH$_3$O$_2$",
-    "CH3OH": "CH$_3$OH",
-    "CH3OOH": "CH$_3$OOH",
-    "C2O3": "C$_2$O$_3$",
-    "CH3SO2H": "CH$_3$SO$_2$H",
-    "CH3SCH2OO": "CH$_3$SCH$_2$OO",
-    "CH3SO2": "CH$_3$SO$_2$",
-    "CH3SO3": "CH$_3$SO$_3$",
-    "CH3SO2OO": "CH$_3$SO$_2$OO",
-    "CH3SO2CH2OO": "CH$_3$SO$_2$CH$_2$OO",
-    }
-
-class listpalette(color.palette):
-
-    def __init__(self, colorlist):
-        color.palette.__init__(self)
-        self.colorclass = colorlist[0][1].__class__
-        self.colorlist = colorlist
-
-    def getcolor(self, param):
-	for i in range(len(self.colorlist)):
-	    if self.colorlist[i][0] >= param:
-		break
+	dim.name = read_string(f, 'name')
+	dim.grid_type = read_string(f, 'grid_type')
+	dim.data_type = read_string(f, 'data_type')
+	dim.unit = read_string(f, 'unit')
+	length = read_integer(f, 'length')
+	if dim.grid_type == "center":
+	    n_grid = length
+	elif dim.grid_type == "edge":
+	    n_grid = length + 1
 	else:
-	    raise ValueError
-	if i == 0:
-	    i = 1
-	# list[i-1] < param < list[i]
-	alpha = (param - self.colorlist[i-1][0]) \
-	    / (self.colorlist[i][0] - self.colorlist[i-1][0])
-        colordict = {}
-        for key in self.colorlist[0][1].color.keys():
-            colordict[key] = alpha * self.colorlist[i][1].color[key] \
-		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
-        return self.colorclass(**colordict)
-
-def process_args():
-    parser = OptionParser(usage = "usage: %prog [options] <datafiles>")
-    parser.add_option("-u", "--unit", default = "num",
-		      help = "Unit to plot with. Must be 'num', 'vol', " \
-		      + "'mass' or 'mole'. [default: %default]")
-    parser.add_option("-o", "--output", metavar = "FILE",
-		      help = "Filename to write output to. [default: " \
-		      + "<datafile>.pdf]")
-
-    (options, args) = parser.parse_args()
-    if len(args) < 1:
-	parser.print_help()
-	print "ERROR: must give at least one datafile argument"
-	sys.exit(1)
-    data_filenames = args
-    return (data_filenames, parser)
-
-def main():
-    pass
-    
-if __name__ == "__main__":
-    main()
+	    print "ERROR: unknown grid_type: %s" % dim.grid_type
+	    sys.exit(1)
+	if i_dim == unit_dim - 1:
+	    dim.grid_unit = []
+	for i_grid in range(length):
+	    if dim.data_type == "real":
+		grid_value = read_indexed_real(f, i_grid + 1, 'grid')
+	    elif dim.data_type == "string":
+		grid_value = read_indexed_string(f, i_grid + 1, 'grid')
+	    elif dim.data_type == "integer":
+		grid_value = read_indexed_integer(f, i_grid + 1, 'grid')
+	    else:
+		print "ERROR: unknown data_type: %s" % dim.data_type
+		sys.exit(1)
+	    dim.grid_values.append(grid_value)
+	    dim.grid_widths.append(read_indexed_real(f, i_grid + 1,
+						     'grid_width'))
+	    if i_dim == unit_dim - 1:
+		dim.grid_units.append(read_indexed_string(f, i_grid + 1,
+							  'unit'))
+	data.dims.append(dim)
+    read_comment(f, 'data values follow, row major order')
+    data_shape = [dim.length for dim in data.dims]
+    data.data = zeros(data_shape)
+    for index in ndindex(data_shape):
+	data.data(shape) = read_unnamed_real(f)
+    return data

@@ -34,7 +34,7 @@ contains
 
     interface
        subroutine step_comp_grid(bin_grid, env, aero_data, aero_state, &
-            n_step, step_grid)
+            n_step, step_grid, step_width)
          use pmc_bin_grid
          use pmc_aero_data
          use pmc_aero_state
@@ -45,6 +45,7 @@ contains
          type(aero_state_t), intent(in) :: aero_state ! aero_state structure
          integer, intent(out) :: n_step  ! number of histogram steps
          real*8, pointer :: step_grid(:) ! len n_step+1, step grid edges
+         real*8, intent(out) :: step_width ! step width
        end subroutine step_comp_grid
 
        integer function step_comp(bin_grid, env, aero_data, n_step, &
@@ -83,9 +84,10 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     real*8 :: scale, scale_bin, scale_step, num, vol, mass, mole, val
     real*8, pointer :: step_grid(:) ! length n_step + 1
+    real*8 :: step_width
 
     call step_comp_grid(bin_grid, env, aero_data, aero_state, &
-         n_step, step_grid)
+         n_step, step_grid, step_width)
     allocate(num_den(bin_grid%n_bin, n_step), num_den_tot(n_step))
     allocate(num_den_spec(n_step, aero_data%n_spec))
     allocate(vol_den(bin_grid%n_bin, n_step), vol_den_tot(n_step))
@@ -115,8 +117,8 @@ contains
     sum_den = 0d0
 
     scale_bin = 1d0 / bin_grid%dlnr / aero_state%comp_vol
-    scale_step = 1d0 * dble(n_step) / aero_state%comp_vol
-    scale = 1d0 / bin_grid%dlnr * dble(n_step) / aero_state%comp_vol
+    scale_step = 1d0 / step_width / aero_state%comp_vol
+    scale = 1d0 / bin_grid%dlnr / step_width / aero_state%comp_vol
 
     n_invalid = 0
     do i_bin = 1,bin_grid%n_bin
@@ -415,8 +417,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine per_particle_step_comp_grid(bin_grid, env, aero_data, &
-       aero_state, n_step, step_grid, particle_func, min_val, max_val, &
-       logscale)
+       aero_state, n_step, step_grid, step_width, particle_func, &
+       min_val, max_val, logscale)
 
     ! Generic histogram helper for per-particle scalar quantity
     ! determined by particle_func.
@@ -433,6 +435,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step      ! number of histogram steps
     real*8, pointer :: step_grid(:)     ! step grid edges
+    real*8, intent(out) :: step_width   ! step width
     real*8, intent(out) :: min_val      ! minimum value of per-particle quantity
     real*8, intent(out) :: max_val      ! maximum value of per-particle quantity
     logical, intent(in) :: logscale     ! whether to use a log scale
@@ -482,8 +485,10 @@ contains
     end if
     if (logscale) then
        call logspace(min_val, max_val, n_step + 1, step_grid)
+       step_width = (log10(max_val) - log10(min_val)) / dble(n_step)
     else
        call linspace(min_val, max_val, n_step + 1, step_grid)
+       step_width = (max_val - min_val) / dble(n_step)
     end if
 
   end subroutine per_particle_step_comp_grid
@@ -507,7 +512,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine orig_part_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for n_orig_part.
 
@@ -522,6 +527,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     integer :: i_bin, i_part, n, n_orig_part_max
 
@@ -541,6 +547,8 @@ contains
     do n = 1,(n_step + 1)
        step_grid(n) = dble(n - 1)
     end do
+
+    step_width = 1d0
 
   end subroutine orig_part_step_comp_grid
 
@@ -606,7 +614,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine comp_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for composition.
 
@@ -622,6 +630,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     integer :: n_a, n_b, i
     integer, pointer :: a_species(:), b_species(:)
@@ -687,6 +696,8 @@ contains
     allocate(step_grid(n_step + 1))
     call linspace(0d0, 1d0, n_step + 1, step_grid)
 
+    step_width = 1d0 / dble(n_step)
+
   end subroutine comp_step_comp_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -736,7 +747,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine kappa_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for kappa.
 
@@ -752,6 +763,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     logical :: logscale
     real*8 :: min_val, max_val
@@ -760,7 +772,8 @@ contains
 
     logscale = .true.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-         n_step, step_grid, kappa_particle_func, min_val, max_val, logscale)
+         n_step, step_grid, step_width, kappa_particle_func, &
+         min_val, max_val, logscale)
 
   end subroutine kappa_step_comp_grid
   
@@ -813,7 +826,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine absorb_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for absorb.
 
@@ -829,6 +842,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     logical :: logscale
     real*8 :: min_val, max_val
@@ -837,7 +851,8 @@ contains
 
     logscale = .false.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-         n_step, step_grid, absorb_particle_func, min_val, max_val, logscale)
+         n_step, step_grid, step_width, absorb_particle_func, &
+         min_val, max_val, logscale)
 
   end subroutine absorb_step_comp_grid
   
@@ -890,7 +905,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine scatter_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for scatter.
 
@@ -906,6 +921,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     logical :: logscale
     real*8 :: min_val, max_val
@@ -914,7 +930,8 @@ contains
 
     logscale = .false.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-         n_step, step_grid, scatter_particle_func, min_val, max_val, logscale)
+         n_step, step_grid, step_width, scatter_particle_func, &
+         min_val, max_val, logscale)
 
   end subroutine scatter_step_comp_grid
   
@@ -968,7 +985,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine extinct_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-       n_step, step_grid)
+       n_step, step_grid, step_width)
 
     ! Histogram helper for extinct.
 
@@ -984,6 +1001,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aero_state structure
     integer, intent(out) :: n_step  ! number of histogram steps
     real*8, pointer :: step_grid(:) ! step grid edges
+    real*8, intent(out) :: step_width ! step width
 
     logical :: logscale
     real*8 :: min_val, max_val
@@ -992,7 +1010,8 @@ contains
 
     logscale = .false.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
-         n_step, step_grid, extinct_particle_func, min_val, max_val, logscale)
+         n_step, step_grid, step_width, extinct_particle_func, &
+         min_val, max_val, logscale)
 
   end subroutine extinct_step_comp_grid
   

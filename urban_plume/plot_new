@@ -3,54 +3,323 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys, re
+import os, sys, re, textwrap
+import copy as module_copy
 from numpy import *
 
-class data_dim():
+class reducer:
+    def __init__(self):
+	pass
+
+    def reduce(self, d):
+	raise Exception("not implemented")
+
+class select(reducer):
+    def __init__(self, dim_name, value):
+	self.dim_name = dim_name # dimension name to reduce
+	self.value = value       # value to select
+
+    def reduce(self, d):
+	i_dim = d.find_dim_by_name(self.dim_name)
+	i_val = d.dims[i_dim].find_grid_by_value(self.value)
+	reduce_slice = [slice(None, None, None) for i in range(len(d.dims))]
+	reduce_slice[i_dim] = i_val
+	reduce_slice = tuple(reduce_slice)
+	del d.dims[i_dim]
+	d.data = d.data[reduce_slice]
+
+class sum(reducer):
+    def __init__(self, dim_name):
+	self.dim_name = dim_name # dimension name to reduce
+
+    def reduce(self, d):
+	i_dim = d.find_dim_by_name(self.dim_name)
+	new_data_shape = list(shape(d.data))
+	del new_data_shape[i_dim]
+	new_data = zeros(new_data_shape, dtype = float64)
+	for i_val in range(len(d.dims[i_dim].grid_widths)):
+	    reduce_slice = [slice(None, None, None) for i in range(len(d.dims))]
+	    reduce_slice[i_dim] = i_val
+	    reduce_slice = tuple(reduce_slice)
+	    new_data += d.data[reduce_slice] * d.dims[i_dim].grid_widths[i_val]
+	del d.dims[i_dim]
+	d.data = new_data
+
+class data_dim:
     def __init__(self):
 	self.name = None         # axis name
 	self.grid_type = None    # "center" or "edge"
-	self.data_type = None    # "string", "int", or "float"
+	self.data_type = None    # "string", "integer", or "real"
 	self.unit = None         # unit of grid_values
 	self.grid_values = []    # grid points on axis
 	self.grid_widths = []    # widths of grid cells
 	self.grid_units = None   # units of data values or None
 
-class data_file():
+    def __cmp__(self, other):
+	val = cmp(self.name, other.name)
+	if val != 0:
+	    return val
+	val = cmp(self.grid_type, other.grid_type)
+	if val != 0:
+	    return val
+	val = cmp(self.data_type, other.data_type)
+	if val != 0:
+	    return val
+	val = cmp(self.unit, other.unit)
+	if val != 0:
+	    return val
+	val = cmp(self.grid_values, other.grid_values)
+	if val != 0:
+	    return val
+	val = cmp(self.grid_widths, other.grid_widths)
+	if val != 0:
+	    return val
+	val = cmp(self.grid_units, other.grid_units)
+	if val != 0:
+	    return val
+	return 0
+
+    def read(self, f):
+	self.name = read_string(f, 'name')
+	self.grid_type = read_string(f, 'grid_type')
+	self.data_type = read_string(f, 'data_type')
+	self.unit = read_string(f, 'unit')
+	have_grid_units = read_string(f, 'have_grid_units')
+	if have_grid_units not in ["yes", "no"]:
+	    raise Exception("unknown value for have_grid_units: %s"
+			    % have_grid_units)
+	have_grid_units = (have_grid_units == "yes")
+	length = read_integer(f, 'length')
+	if self.grid_type == "center":
+	    n_grid_values = length
+	elif self.grid_type == "edge":
+	    n_grid_values = length + 1
+	else:
+	    raise Exception("unknown grid_type: %s" % self.grid_type)
+	if have_grid_units:
+	    self.grid_units = []
+	for i_grid in range(n_grid_values):
+	    if self.data_type == "real":
+		grid_value = read_indexed_real(f, i_grid + 1, 'grid_value')
+	    elif self.data_type == "string":
+		grid_value = read_indexed_string(f, i_grid + 1, 'grid_value')
+	    elif self.data_type == "integer":
+		grid_value = read_indexed_integer(f, i_grid + 1, 'grid_value')
+	    else:
+		raise Exception("unknown data_type: %s" % self.data_type)
+	    self.grid_values.append(grid_value)
+	for i_grid in range(length):
+	    self.grid_widths.append(read_indexed_real(f, i_grid + 1,
+						     'grid_width'))
+	if have_grid_units:
+	    for i_grid in range(length):
+		self.grid_units.append(read_indexed_string(f, i_grid + 1,
+							  'grid_unit'))
+
+    def write_summary(self, f):
+	output = []
+	output.append("dim: %s, %s grid of type %s"
+		% (self.name, self.grid_type, self.data_type))
+	if self.unit:
+	    output.append(" with unit %s" % self.unit)
+	else:
+	    output.append(" with no unit")
+	if self.grid_type == "center":
+	    if len(self.grid_values) != len(self.grid_widths):
+		raise Exception("grid data length mismatch for center")
+	    if len(self.grid_values) < 1:
+		raise Exception("grid_values empty")
+	elif self.grid_type == "edge":
+	    if len(self.grid_values) != len(self.grid_widths) + 1:
+		raise Exception("grid data length mismatch for edge")
+	    if len(self.grid_values) < 2:
+		raise Exception("grid_values too short")
+	else:
+	    raise Exception("unknown grid_type: %s" % self.grid_type)
+	if self.grid_units:
+	    if len(self.grid_widths) != len(self.grid_units):
+		raise Exception("grid unit length mismatch")
+	all_grid_widths_same = True
+	for i in range(1,len(self.grid_widths)):
+	    if self.grid_widths[i] != self.grid_widths[0]:
+		all_grid_widths_same = False
+	output.append(", ")
+	if self.data_type == "integer":
+	    if self.grid_units:
+		raise Exception("grid_units not allowed for data_type int")
+	    if all_grid_widths_same:
+		output.append("%d grid cells from %d to %d "
+			      "(all with width %g)\n"
+			      % (len(self.grid_widths), self.grid_values[0],
+				 self.grid_values[-1], self.grid_widths[-1]))
+	    else:
+		output.append("%d grid cells from %d "
+			      "(width %g) to %d (width %g)\n"
+			      % (len(self.grid_widths),
+				 self.grid_values[0], self.grid_widths[0],
+				 self.grid_values[-1], self.grid_widths[-1]))
+	elif self.data_type == "real":
+	    if self.grid_units:
+		raise Exception("grid_units not allowed for data_type float")
+	    if all_grid_widths_same:
+		output.append("%d grid cells from %g to %g "
+			      "(all with width %g)\n"
+			      % (len(self.grid_widths), self.grid_values[0],
+				 self.grid_values[-1], self.grid_widths[-1]))
+	    else:
+		output.append("%d grid cells from %g (width %g) "
+			      "to %g (width %g)\n"
+			      % (len(self.grid_widths),
+				 self.grid_values[0], self.grid_widths[0],
+				 self.grid_values[-1], self.grid_widths[-1]))
+	elif self.data_type == "string":
+	    if self.grid_type != "center":
+		raise Exception("only center grid allowed for data_type string")
+	    output.append("%d grid values: " % len(self.grid_values))
+	    if self.grid_units and all_grid_widths_same:
+		output.append(", ".join(["%s (unit %s)"
+				   % (self.grid_values[i],
+				      self.grid_units[i])
+				   for i in range(len(self.grid_values))]))
+	    elif self.grid_units and not all_grid_widths_same:
+		output.append(", ".join(["%s (width %g, unit %s)"
+				   % (self.grid_values[i],
+				      self.grid_widths[i],
+				      self.grid_units[i])
+				   for i in range(len(self.grid_values))]))
+	    elif not self.grid_units and all_grid_widths_same:
+		output.append(", ".join(["%s" % (self.grid_values[i])
+				   for i in range(len(self.grid_values))]))
+	    elif not self.grid_units and not all_grid_widths_same:
+		output.append(", ".join(["%s (width %g)"
+				   % (self.grid_values[i],
+				      self.grid_widths[i])
+				   for i in range(len(self.grid_values))]))
+	    else:
+		raise Exception("internal error")
+	    if all_grid_widths_same:
+		output.append(" (all with width %g)" % self.grid_widths[0])
+	else:
+	    raise Exception("unknown data_type: %s" % self.data_type)
+	wrap = textwrap.TextWrapper(subsequent_indent = "     ")
+	f.write(wrap.fill("".join(output)))
+	f.write("\n")
+
+    def find_grid_by_value(self, value):
+	if self.data_type in ["integer", "real"]:
+	    if self.grid_type == "edge":
+		if value < self.grid_values[0] or value > self.grid_values[-1]:
+		    raise Exception("value %g out of range [%g,%g]"
+				    % value, self.grid_values[0],
+				    self.grid_values[-1])
+		i_val = 0
+		while i_val < len(self.grid_values) - 2:
+		    if value < self.grid_values[i_val + 1]:
+			break
+		    i_val += 1
+	    elif self.grid_type == "center":
+		i_val = 0
+		while i_val < len(self.grid_values) - 1:
+		    if abs(self.grid_values[i_val + 1] - value) \
+			    > abs(self.grid_values[i_val] - value):
+			break
+		    i_val += 1
+	elif self.data_type == "string":
+	    i_val = 0
+	    for val in self.grid_values:
+		if value == val:
+		    break
+		i_val += 1
+	    else:
+		raise Exception("value not found: %s" % str(self.value))
+	else:
+	    raise Exception("unknown data_type: %s" % self.data_type)
+	return i_val
+
+class data_set:
     def __init__(self):
 	self.name = None         # name of the data-set
-	self.time = None         # time (s) of the data-set
-	self.index = None        # index of the data-set
 	self.dims = []           # list of data_dim() objects
 	self.data = None         # n-D array of data
+
+    def read(self, f):
+	self.name = read_string(f, 'name')
+	n_dim = read_integer(f, 'n_dim')
+	self.dims = []
+	for i_dim in range(n_dim):
+	    check_dim = read_integer(f, 'dim')
+	    if check_dim != i_dim + 1:
+		raise Exception("ERROR: expected dim %d but got dim: %d" \
+				% (i_dim + 1, check_dim))
+	    dim = data_dim()
+	    dim.read(f)
+	    self.dims.append(dim)
+	read_comment(f, 'data values follow, row major order')
+	data_shape = [len(dim.grid_widths) for dim in self.dims]
+	self.data = zeros(data_shape, dtype = float64)
+	for index in ndindex(*data_shape):
+	    self.data[index] = read_unnamed_real(f)
+
+    def write_summary(self, f):
+	f.write("name: %s (%d dims)\n" % (self.name, len(self.dims)))
+	for dim in self.dims:
+	    dim.write_summary(f)
+	f.write("data: %d data elements in %s array\n"
+		% (size(self.data), shape(self.data)))
+
+    def reduce(self, reducers):
+	for r in reducers:
+	    r.reduce(self)
+
+    def find_dim_by_name(self, dim_name):
+	i_dim = 0
+	for dim in self.dims:
+	    if dim_name == dim.name:
+		break
+	    i_dim += 1
+	else:
+	    raise Exception("dimension not found: %s" % dim_name)
+	return i_dim
+
+class timed_data_set(data_set):
+    def __init__(self):
+	self.time = None         # time (s) of the data-set
+	self.index = None        # index of the data-set
+	data_set.__init__(self)
+
+    def read(self, f):
+	self.time = read_real(f, 'time')
+	self.index = read_integer(f, 'index')
+	data_set.read(self, f)
+
+    def write_summary(self, f):
+	f.write("time: %g (index %d)\n" % (self.time, self.index))
+	data_set.write_summary(self, f)
 
 def read_named(f, name):
     line = f.readline()
     data = line.split()
     if len(data) != 2:
-	print "ERROR: expected 2 items on line: %s" % line
-	sys.exit(1)
+	raise Exception("expected 2 items on line: %s" % line)
     if name != data[0]:
-	print "ERROR: expected name %s on line: %s" % (name, line)
-	sys.exit(1)
+	raise Exception("expected name %s on line: %s" % (name, line))
     return data[1]
 
 def read_indexed_named(f, index, name):
     line = f.readline()
     data = line.split()
     if len(data) != 3:
-	print "ERROR: expected 3 items on line: %s" % line
-	sys.exit(1)
+	raise Exception("expected 3 items on line: %s" % line)
     if name != data[0]:
-	print "ERROR: expected name %s on line: %s" % (name, line)
-	sys.exit(1)
+	raise Exception("expected name %s on line: %s" % (name, line))
     try:
 	check_index = int(data[1])
     except:
-	print "ERROR: unable to convert index to integer: %s" % data[1]
+	raise Exception("ERROR: unable to convert index to integer: %s"
+			% data[1])
     if index != check_index:
-	print "ERROR: expected index %d but got: %d" (index, check_index)
-	sys.exit(1)
+	raise Exception("ERROR: expected index %d but got: %d" %
+			(index, check_index))
     return data[2]
 
 def read_integer(f, name):
@@ -58,99 +327,91 @@ def read_integer(f, name):
     try:
 	return int(data)
     except:
-	print "ERROR: unable to convert to integer: %s" % data
-	sys.exit(1)
+	raise Exception("unable to convert to integer: %s" % data)
 
 def read_real(f, name):
     data = read_named(f, name)
     try:
 	return float(data)
     except:
-	print "ERROR: unable to convert to real: %s" % data
-	sys.exit(1)
+	raise Exception("unable to convert to real: %s" % data)
 
 def read_string(f, name):
     return read_named(f, name)
 
 def read_indexed_integer(f, index, name):
-    data = read_indexed_named(f, indexed, name)
+    data = read_indexed_named(f, index, name)
     try:
 	return int(data)
     except:
-	print "ERROR: unable to convert to integer: %s" % data
-	sys.exit(1)
+	raise Exception("unable to convert to integer: %s" % data)
 
 def read_indexed_real(f, index, name):
-    data = read_indexed_named(f, indexed, name)
+    data = read_indexed_named(f, index, name)
     try:
 	return float(data)
     except:
-	print "ERROR: unable to convert to float: %s" % data
-	sys.exit(1)
+	raise Exception("unable to convert to float: %s" % data)
 
 def read_indexed_string(f, index, name):
-    return read_indexed_named(f, indexed, name)
+    return read_indexed_named(f, index, name)
 
 def read_comment(f, comment):
     line = f.readline()
-    if line != ("%# %s\n" % comment):
-	print "ERROR: expected comment %s but got %s: " (comment, line)
-	sys.exit(1)
+    if line != ("# %s\n" % comment):
+	raise Exception("expected comment %s but got %s: " (comment, line))
 
 def read_unnamed_real(f):
     line = f.readline()
     try:
 	return float(line)
     except:
-	print "ERROR: unable to convert to float: %s" % line
-	sys.exit(1)
+	raise Exception("unable to convert to float: %s" % line)
 
-def load_data_file(filename):
-    f = open(filename)
-    data = data_file()
-    data.name = read_string(f, 'name')
-    data.time = read_real(f, 'time')
-    data.index = read_integer(f, 'index')
-    n_dim = read_integer(f, 'n_dim')
-    unit_dim = read_integer(f, 'unit_dim')
-    for i_dim in range(n_dim):
-	check_dim = read_integer(f, 'dim')
-	check_index(check_dim, i_dim + 1)
-	dim = data_dim()
-	dim.name = read_string(f, 'name')
-	dim.grid_type = read_string(f, 'grid_type')
-	dim.data_type = read_string(f, 'data_type')
-	dim.unit = read_string(f, 'unit')
-	length = read_integer(f, 'length')
-	if dim.grid_type == "center":
-	    n_grid = length
-	elif dim.grid_type == "edge":
-	    n_grid = length + 1
-	else:
-	    print "ERROR: unknown grid_type: %s" % dim.grid_type
-	    sys.exit(1)
-	if i_dim == unit_dim - 1:
-	    dim.grid_unit = []
-	for i_grid in range(length):
-	    if dim.data_type == "real":
-		grid_value = read_indexed_real(f, i_grid + 1, 'grid')
-	    elif dim.data_type == "string":
-		grid_value = read_indexed_string(f, i_grid + 1, 'grid')
-	    elif dim.data_type == "integer":
-		grid_value = read_indexed_integer(f, i_grid + 1, 'grid')
-	    else:
-		print "ERROR: unknown data_type: %s" % dim.data_type
-		sys.exit(1)
-	    dim.grid_values.append(grid_value)
-	    dim.grid_widths.append(read_indexed_real(f, i_grid + 1,
-						     'grid_width'))
-	    if i_dim == unit_dim - 1:
-		dim.grid_units.append(read_indexed_string(f, i_grid + 1,
-							  'unit'))
-	data.dims.append(dim)
-    read_comment(f, 'data values follow, row major order')
-    data_shape = [dim.length for dim in data.dims]
-    data.data = zeros(data_shape)
-    for index in ndindex(data_shape):
-	data.data(shape) = read_unnamed_real(f)
-    return data
+def read_data_set(files, reducers):
+    if not files:
+	raise Exception("need some files")
+    data = []
+    for file in files:
+	f = open(file)
+	d = timed_data_set()
+	d.read(f)
+	f.close()
+	if d.index in [prev_d.index for prev_d in data]:
+	    raise Exception("index %d read twice" % d.index)
+	d.reduce(reducers)
+	data.append(d)
+    for i in range(1,len(data)):
+	if data[i].name != data[0].name:
+	    raise Exception("name mismatch btween indices %d and %d"
+			    % (data[i].index, data[0].index))
+	if data[i].dims != data[0].dims:
+	    raise Exception("dimension mismatch between indices %d and %d"
+			    % (data[i].index, data[0].index))
+    data.sort(lambda a, b: cmp(a.time, b.time))
+    total_data = data_set()
+    total_data.name = data[0].name
+    total_data.dims = module_copy.deepcopy(data[0].dims)
+    time_dim = data_dim()
+    time_dim.name = "time"
+    time_dim.grid_type = "center"
+    time_dim.data_type = "real"
+    time_dim.unit = "s"
+    time_dim.grid_values = [d.time for d in data]
+    time_dim.grid_widths = [1.0 for d in data]
+    time_dim.grid_units = None
+    total_data.dims.insert(0, time_dim)
+    data_shape = [len(data)] + list(shape(data[0].data))
+    total_data.data = zeros(data_shape, dtype = float64)
+    for i, d in enumerate(data):
+	total_data.data[i,...] = d.data
+    return total_data
+
+d = read_data_set(["out/urban_plume_state_0001_000000%02d_aero.dat" % i
+		   for i in range(25)],
+		  [select("unit", "mass_den"),
+		   select("species", "SO4_a"),
+		   sum("radius"),
+		   ])
+d.write_summary(sys.stdout)
+print d.data

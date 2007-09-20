@@ -163,34 +163,31 @@ contains
     type(inout_file_t) :: file
 
     call process_state_open_output(file, basename, suffix)
-    call inout_write_string(file, 'name', 'env')
     call inout_write_real(file, 'time', time)
     call inout_write_integer(file, 'index', index)
+    call inout_write_string(file, 'name', 'env')
     call inout_write_integer(file, 'n_dim', 1)
-    call inout_write_integer(file, 'unit_dim', 1)
 
     call inout_write_integer(file, 'dim', 1)
     call inout_write_string(file, 'name', 'env_quantity')
     call inout_write_string(file, 'grid_type', 'center')
     call inout_write_string(file, 'data_type', 'string')
     call inout_write_string(file, 'unit', 'none')
+    call inout_write_string(file, 'have_grid_units', 'yes')
     call inout_write_integer(file, 'length', 4)
 
-    call inout_write_indexed_string(file, 'grid', 1, 'temp')
+    call inout_write_indexed_string(file, 'grid_value', 1, 'temp')
+    call inout_write_indexed_string(file, 'grid_value', 2, 'rel_humid')
+    call inout_write_indexed_string(file, 'grid_value', 3, 'pressure')
+    call inout_write_indexed_string(file, 'grid_value', 4, 'height')
     call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-    call inout_write_indexed_string(file, 'unit', 1, 'K')
-
-    call inout_write_indexed_string(file, 'grid', 2, 'rel_humid')
     call inout_write_indexed_real(file, 'grid_width', 2, 1d0)
-    call inout_write_indexed_string(file, 'unit', 2, '1')
-
-    call inout_write_indexed_string(file, 'grid', 3, 'pressure')
     call inout_write_indexed_real(file, 'grid_width', 3, 1d0)
-    call inout_write_indexed_string(file, 'unit', 3, 'Pa')
-
-    call inout_write_indexed_string(file, 'grid', 4, 'height')
     call inout_write_indexed_real(file, 'grid_width', 4, 1d0)
-    call inout_write_indexed_string(file, 'unit', 4, 'm')
+    call inout_write_indexed_string(file, 'grid_unit', 1, 'K')
+    call inout_write_indexed_string(file, 'grid_unit', 2, '1')
+    call inout_write_indexed_string(file, 'grid_unit', 3, 'Pa')
+    call inout_write_indexed_string(file, 'grid_unit', 4, 'm')
 
     call inout_write_comment(file, 'data values follow, row major order')
     call inout_write_unnamed_real(file, env%temp)
@@ -216,24 +213,28 @@ contains
     integer :: i_spec
 
     call process_state_open_output(file, basename, suffix)
-    call inout_write_string(file, 'name', 'gas')
     call inout_write_real(file, 'time', time)
     call inout_write_integer(file, 'index', index)
+    call inout_write_string(file, 'name', 'gas')
     call inout_write_integer(file, 'n_dim', 1)
-    call inout_write_integer(file, 'unit_dim', 1)
 
     call inout_write_integer(file, 'dim', 1)
     call inout_write_string(file, 'name', 'species')
     call inout_write_string(file, 'grid_type', 'center')
     call inout_write_string(file, 'data_type', 'string')
     call inout_write_string(file, 'unit', 'none')
+    call inout_write_string(file, 'have_grid_units', 'yes')
     call inout_write_integer(file, 'length', gas_data%n_spec)
 
     do i_spec = 1,gas_data%n_spec
-       call inout_write_indexed_string(file, 'grid', i_spec, &
+       call inout_write_indexed_string(file, 'grid_value', i_spec, &
             gas_data%name(i_spec))
-       call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-       call inout_write_indexed_string(file, 'unit', 1, 'ppb')
+    end do
+    do i_spec = 1,gas_data%n_spec
+       call inout_write_indexed_real(file, 'grid_width', i_spec, 1d0)
+    end do
+    do i_spec = 1,gas_data%n_spec
+       call inout_write_indexed_string(file, 'grid_unit', i_spec, 'ppb')
     end do
 
     call inout_write_comment(file, 'data values follow, row major order')
@@ -267,22 +268,24 @@ contains
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
     call process_state_open_output(file, basename, suffix)
-    call inout_write_string(file, 'name', 'aero')
     call inout_write_real(file, 'time', time)
     call inout_write_integer(file, 'index', index)
+    call inout_write_string(file, 'name', 'aero')
     call inout_write_integer(file, 'n_dim', 3)
-    call inout_write_integer(file, 'unit_dim', 3)
 
     ! dim 1: bin
     call inout_write_integer(file, 'dim', 1)
-    call inout_write_string(file, 'name', 'bin')
+    call inout_write_string(file, 'name', 'radius')
     call inout_write_string(file, 'grid_type', 'edge')
     call inout_write_string(file, 'data_type', 'real')
     call inout_write_string(file, 'unit', 'm')
+    call inout_write_string(file, 'have_grid_units', 'no')
     call inout_write_integer(file, 'length', bin_grid%n_bin)
     do i_bin = 1,(bin_grid%n_bin + 1)
-       call inout_write_indexed_real(file, 'grid', i_bin, &
-            bin_edge(bin_grid, i_bin))
+       call inout_write_indexed_real(file, 'grid_value', i_bin, &
+            vol2rad(bin_edge(bin_grid, i_bin)))
+    end do
+    do i_bin = 1,bin_grid%n_bin
        call inout_write_indexed_real(file, 'grid_width', i_bin, bin_grid%dlnr)
     end do
 
@@ -292,10 +295,13 @@ contains
     call inout_write_string(file, 'grid_type', 'center')
     call inout_write_string(file, 'data_type', 'string')
     call inout_write_string(file, 'unit', 'none')
+    call inout_write_string(file, 'have_grid_units', 'no')
     call inout_write_integer(file, 'length', aero_data%n_spec)
     do i_spec = 1,aero_data%n_spec
-       call inout_write_indexed_string(file, 'grid', i_spec, &
+       call inout_write_indexed_string(file, 'grid_value', i_spec, &
             aero_data%name(i_spec))
+    end do
+    do i_spec = 1,aero_data%n_spec
        call inout_write_indexed_real(file, 'grid_width', i_spec, 1d0)
     end do
 
@@ -305,19 +311,20 @@ contains
     call inout_write_string(file, 'grid_type', 'center')
     call inout_write_string(file, 'data_type', 'string')
     call inout_write_string(file, 'unit', 'none')
+    call inout_write_string(file, 'have_grid_units', 'yes')
     call inout_write_integer(file, 'length', 4)
-    call inout_write_indexed_string(file, 'grid', 1, 'num_den')
+    call inout_write_indexed_string(file, 'grid_value', 1, 'num_den')
+    call inout_write_indexed_string(file, 'grid_value', 2, 'vol_den')
+    call inout_write_indexed_string(file, 'grid_value', 3, 'mass_den')
+    call inout_write_indexed_string(file, 'grid_value', 4, 'mole_den')
     call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-    call inout_write_indexed_string(file, 'unit', 1, '#/m^3')
-    call inout_write_indexed_string(file, 'grid', 2, 'vol_den')
     call inout_write_indexed_real(file, 'grid_width', 2, 1d0)
-    call inout_write_indexed_string(file, 'unit', 2, 'm^3/m^3')
-    call inout_write_indexed_string(file, 'grid', 3, 'mass_den')
     call inout_write_indexed_real(file, 'grid_width', 3, 1d0)
-    call inout_write_indexed_string(file, 'unit', 3, 'kg/m^3')
-    call inout_write_indexed_string(file, 'grid', 4, 'mole_den')
     call inout_write_indexed_real(file, 'grid_width', 4, 1d0)
-    call inout_write_indexed_string(file, 'unit', 4, 'moles/m^3')
+    call inout_write_indexed_string(file, 'grid_unit', 1, '#/m^3')
+    call inout_write_indexed_string(file, 'grid_unit', 2, 'm^3/m^3')
+    call inout_write_indexed_string(file, 'grid_unit', 3, 'kg/m^3')
+    call inout_write_indexed_string(file, 'grid_unit', 4, 'moles/m^3')
 
     call inout_write_comment(file, 'data values follow, row major order')
     do i_bin = 1,bin_grid%n_bin

@@ -849,7 +849,7 @@ contains
 
     common/absorb_step_comp_c/ min_val, max_val
 
-    logscale = .false.
+    logscale = .true.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
          n_step, step_grid, step_width, absorb_particle_func, &
          min_val, max_val, logscale)
@@ -879,7 +879,7 @@ contains
 
     common/absorb_step_comp_c/ min_val, max_val
 
-    absorb_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+    absorb_step_comp = logspace_find(min_val, max_val, n_step + 1, &
          absorb_particle_func(aero_particle, aero_data, env))
 
   end function absorb_step_comp
@@ -928,7 +928,7 @@ contains
 
     common/scatter_step_comp_c/ min_val, max_val
 
-    logscale = .false.
+    logscale = .true.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
          n_step, step_grid, step_width, scatter_particle_func, &
          min_val, max_val, logscale)
@@ -958,7 +958,7 @@ contains
 
     common/scatter_step_comp_c/ min_val, max_val
 
-    scatter_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+    scatter_step_comp = logspace_find(min_val, max_val, n_step + 1, &
          scatter_particle_func(aero_particle, aero_data, env))
 
   end function scatter_step_comp
@@ -1008,7 +1008,7 @@ contains
 
     common/extinct_step_comp_c/ min_val, max_val
 
-    logscale = .false.
+    logscale = .true.
     call per_particle_step_comp_grid(bin_grid, env, aero_data, aero_state, &
          n_step, step_grid, step_width, extinct_particle_func, &
          min_val, max_val, logscale)
@@ -1038,7 +1038,7 @@ contains
 
     common/extinct_step_comp_c/ min_val, max_val
 
-    extinct_step_comp = linspace_find(min_val, max_val, n_step + 1, &
+    extinct_step_comp = logspace_find(min_val, max_val, n_step + 1, &
          extinct_particle_func(aero_particle, aero_data, env))
 
   end function extinct_step_comp

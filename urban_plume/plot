@@ -618,7 +618,7 @@ def plot_hist_matrix(data_filename, out_filename, parser):
 	cmin = parser.values.ymin
     if parser.values.ymax:
 	cmax = parser.values.ymax
-    if col_type == "_kappa":
+    if col_type in ["_kappa", "_extinct", "_absorb", "_scatter"]:
 	if col_type_suffix:
 	    yaxis = graph.axis.log(
 		min = cmin, max = cmax,
@@ -735,7 +735,7 @@ def plot_hist_total(data_filename, out_filename, parser):
     col_type_name = hist_col_type_names[col_type][0]
     col_type_suffix = hist_col_type_names[col_type][1]
 
-    if col_type == "_kappa":
+    if col_type in ["_kappa", "_extinct", "_absorb", "_scatter"]:
 	yaxis = graph.axis.log(
 	    min = parser.values.ymin,
 	    max = parser.values.ymax,

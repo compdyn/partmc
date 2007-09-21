@@ -363,7 +363,7 @@ contains
     end if
 
     call IntegrateChemistry
-!    call aerosol_optical
+    call aerosol_optical
 
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &

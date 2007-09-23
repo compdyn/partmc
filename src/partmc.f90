@@ -9,6 +9,7 @@ program partmc
 
   use pmc_inout
   use pmc_mpi
+  use pmc_process_spec
 
   type(inout_file_t) :: file
   character(len=300) :: in_name
@@ -96,6 +97,7 @@ contains
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
     type(inout_file_t) :: summary_file  ! summary output file
+    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
     integer :: i_loop                   ! current loop number
     integer :: rand_init                ! random number generator init
     character, allocatable :: buffer(:) ! buffer for MPI
@@ -107,6 +109,8 @@ contains
 
        call inout_read_string(file, 'output_file', summary_name)
        call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
+       call spec_read_process_spec_list_filename(file, 'process_spec', &
+            process_spec_list)
        call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
        call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
        call inout_read_string(file, 'kernel', kernel_name)
@@ -158,6 +162,8 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
        buffer_size = buffer_size + pmc_mpi_pack_size_env(env)
        buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
+       buffer_size = buffer_size &
+            + pmc_mpi_pack_size_process_spec_list(process_spec_list)
     end if
 
     ! tell everyone the size and allocate buffer space
@@ -177,6 +183,7 @@ contains
        call pmc_mpi_pack_env_data(buffer, position, env_data)
        call pmc_mpi_pack_env(buffer, position, env)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
+       call pmc_mpi_pack_process_spec_list(buffer, position, process_spec_list)
     end if
 
     ! broadcast data to everyone
@@ -195,6 +202,8 @@ contains
        call pmc_mpi_unpack_env_data(buffer, position, env_data)
        call pmc_mpi_unpack_env(buffer, position, env)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
+       call pmc_mpi_unpack_process_spec_list(buffer, position, &
+            process_spec_list)
     end if
 
     ! free the buffer
@@ -233,23 +242,23 @@ contains
        if (trim(kernel_name) == 'sedi') then
           call run_mc(kernel_sedi, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file)
+               mc_opt, summary_file, process_spec_list)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(kernel_golovin, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file)
+               mc_opt, summary_file, process_spec_list)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(kernel_constant, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file)
+               mc_opt, summary_file, process_spec_list)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(kernel_brown, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file)
+               mc_opt, summary_file, process_spec_list)
        elseif (trim(kernel_name) == 'zero') then
           call run_mc(kernel_zero, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file)
+               mc_opt, summary_file, process_spec_list)
        else
           if (pmc_mpi_rank() == 0) then
              write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
@@ -274,6 +283,7 @@ contains
     call env_free(env)
     call bin_grid_free(bin_grid)
     call aero_binned_free(aero_binned)
+    call process_spec_list_free(process_spec_list)
 
   end subroutine partmc_mc
 
@@ -310,6 +320,7 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
+    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -317,6 +328,9 @@ contains
     end if
     
     call inout_read_string(file, 'output_file', summary_name)
+    call inout_read_string(file, 'output_prefix', exact_opt%prefix)
+    call spec_read_process_spec_list_filename(file, 'process_spec', &
+         process_spec_list)
     call inout_read_real(file, 'num_conc', exact_opt%num_conc)
 
     call inout_read_real(file, 't_max', exact_opt%t_max)
@@ -355,13 +369,13 @@ contains
 
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_golovin_exp, summary_file)
+            soln_golovin_exp, summary_file, process_spec_list)
     elseif (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_constant_exp_cond, summary_file)
+            soln_constant_exp_cond, summary_file, process_spec_list)
     elseif (trim(soln_name) == 'zero') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_zero, summary_file)
+            soln_zero, summary_file, process_spec_list)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -375,6 +389,7 @@ contains
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
     call aero_dist_free(exact_opt%aero_dist_init)
+    call process_spec_list_free(process_spec_list)
     
   end subroutine partmc_exact
 

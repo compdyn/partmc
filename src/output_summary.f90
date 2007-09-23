@@ -102,4 +102,83 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine output_processed(prefix, process_spec_list, bin_grid, &
+       aero_data, aero_state, gas_data, gas_state, env, index, time, i_loop)
+
+    ! Write the current processed state.
+
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+    use pmc_util
+    use pmc_inout
+    use pmc_gas_data
+    use pmc_mpi
+    use pmc_process_spec
+    
+    character(len=*), intent(in) :: prefix ! prefix of files to write
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_state_t), intent(in) :: aero_state ! aerosol state
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(in) :: gas_state ! gas state
+    type(env_t), intent(in) :: env      ! environment state
+    integer, intent(in) :: index        ! filename index
+    real*8, intent(in) :: time          ! current time (s)
+    integer, intent(in) :: i_loop       ! current loop number
+
+    character(len=len(prefix)+20) :: basename
+
+    write(basename, '(a,a,i4.4,a,i8.8)') trim(prefix), '_', i_loop, '_', index
+    call process_state_spec_list(basename, process_spec_list, &
+         bin_grid, aero_data, aero_state, gas_data, gas_state, &
+         env, time, index)
+
+  end subroutine output_processed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine output_binned(prefix, process_spec_list, bin_grid, &
+       aero_data, aero_binned, gas_data, gas_state, env, index, time)
+
+    ! Write the current binned data.
+    
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_binned
+    use pmc_env
+    use pmc_inout
+    use pmc_gas_data
+    use pmc_gas_state
+    use pmc_mpi
+    use pmc_process_spec
+
+    character(len=*), intent(in) :: prefix ! prefix of files to write
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(in) :: gas_state ! gas state
+    type(env_t), intent(in) :: env      ! environment state
+    integer, intent(in) :: index        ! filename index
+    real*8, intent(in) :: time          ! current time (s)
+
+    character(len=(len(prefix)+30)) :: basename
+    integer :: i
+
+    write(basename, '(a,a,i8.8)') trim(prefix), '_', index
+    do i = 1,size(process_spec_list)
+       if (process_spec_list(i)%type == "aero") then
+          call output_aero(basename, process_spec_list(i)%suffix, &
+               time, index, bin_grid, aero_data, aero_binned)
+       end if
+    end do
+
+  end subroutine output_binned
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_output_summary

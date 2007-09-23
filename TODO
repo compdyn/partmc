@@ -99,3 +99,11 @@ change the hardcoded list of mosaic aerosol species to not have _a on
 them, so we can stop having _a in all the partmc data.
 
 change strings to either all be "" or all ''
+
+change spec_read_aero_data to spec_read_aero_data_filename and pass in
+the name, and similar spec_read_*.
+
+in python code catch all exceptions while reading data to add line
+number and file name.
+
+remove HACK/FIXME in pmc_data.py where some floats are being ignored.

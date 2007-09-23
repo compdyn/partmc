@@ -7,6 +7,7 @@
 module pmc_run_mc
 
   use pmc_inout
+  use pmc_process_spec
 
   type run_mc_opt_t
     integer :: n_part_max               ! maximum number of particles
@@ -33,7 +34,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine run_mc(kernel, bin_grid, aero_binned, env_data, env, &
-       aero_data, aero_state, gas_data, gas_state, mc_opt, summary_file)
+       aero_data, aero_state, gas_data, gas_state, mc_opt, summary_file, &
+       process_spec_list)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -64,6 +66,7 @@ contains
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
@@ -82,7 +85,7 @@ contains
     integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
-    integer n_time, i_time, i_time_start, pre_i_time, i_state
+    integer n_time, i_time, i_time_start, pre_i_time, i_state, i_summary
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
@@ -91,6 +94,7 @@ contains
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
+    i_summary = 0
     i_state = 0
     time = 0d0
     call env_data_init_state(env_data, env, time)
@@ -144,6 +148,9 @@ contains
        call output_summary(summary_file, &
             time, bin_grid, aero_data, aero_binned, &
             gas_data, gas_state, env, mc_opt%i_loop)
+       call output_processed(mc_opt%state_prefix, process_spec_list, &
+            bin_grid, aero_data, aero_state, gas_data, gas_state, &
+            env, i_summary, time, mc_opt%i_loop)
     end if
 
     if (mc_opt%t_state > 0d0) then
@@ -206,9 +213,15 @@ contains
        if (mc_opt%t_output > 0d0) then
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
-          if (do_output) call output_summary(summary_file, &
-               time, bin_grid, aero_data, aero_binned, &
-               gas_data, gas_state, env, mc_opt%i_loop)
+          if (do_output) then
+             i_summary = i_summary + 1
+             call output_summary(summary_file, &
+                  time, bin_grid, aero_data, aero_binned, &
+                  gas_data, gas_state, env, mc_opt%i_loop)
+             call output_processed(mc_opt%state_prefix, process_spec_list, &
+                  bin_grid, aero_data, aero_state, gas_data, gas_state, &
+                  env, i_summary, time, mc_opt%i_loop)
+          end if
        end if
 
        if (mc_opt%t_state > 0d0) then

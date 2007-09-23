@@ -20,47 +20,9 @@ sleep 1
 
 echo ../src/partmc golovin_mc.spec
 ../src/partmc golovin_mc.spec
-echo ../src/process_summary out/golovin_mc_summary.d
-../src/process_summary out/golovin_mc_summary.d
-
 echo ../src/partmc golovin_exact.spec
 ../src/partmc golovin_exact.spec
-echo ../src/process_summary out/golovin_exact_summary.d
-../src/process_summary out/golovin_exact_summary.d
 
-echo Plotting number density
-gnuplot -persist <<ENDNUM
-set logscale
-set xlabel "radius (m)"
-set ylabel "number density (#/m^3)
-set title "Golovin kernel, exponential initial condition"
-plot [1e-7:1e-3] [1e4:1e10] "out/golovin_mc_summary_aero_binned.d" index 0 using 1:2 title "Monte Carlo (0 mins)"
-replot "out/golovin_mc_summary_aero_binned.d" index 5 using 1:2 title "Monte Carlo (5 mins)"
-replot "out/golovin_mc_summary_aero_binned.d" index 10 using 1:2 title "Monte Carlo (10 mins)"
-replot "out/golovin_exact_summary_aero_binned.d" index 0 using 1:2 title "Analytical (0 mins)" with lines
-replot "out/golovin_exact_summary_aero_binned.d" index 5 using 1:2 title "Analytical (5 mins)" with lines
-replot "out/golovin_exact_summary_aero_binned.d" index 10 using 1:2 title "Analytical (10 mins)" with lines
-set terminal postscript eps
-set output "out/golovin_plot_num.eps"
-replot
-ENDNUM
-epstopdf out/golovin_plot_num.eps
-
-echo Plotting volume density
-gnuplot -persist <<ENDVOL
-set logscale
-set xlabel "radius (m)"
-set ylabel "volume density (m^3/m^3)"
-set title "Golovin kernel, exponential initial condition"
-set key left top
-plot [1e-7:1e-3] [1e-14:1e-4] "out/golovin_mc_summary_aero_binned.d" index 0 using 1:3 title "Monte Carlo (0 mins)"
-replot "out/golovin_mc_summary_aero_binned.d" index 5 using 1:3 title "Monte Carlo (5 mins)"
-replot "out/golovin_mc_summary_aero_binned.d" index 10 using 1:3 title "Monte Carlo (10 mins)"
-replot "out/golovin_exact_summary_aero_binned.d" index 0 using 1:3 title "Analytical (0 mins)" with lines
-replot "out/golovin_exact_summary_aero_binned.d" index 5 using 1:3 title "Analytical (5 mins)" with lines
-replot "out/golovin_exact_summary_aero_binned.d" index 10 using 1:3 title "Analytical (10 mins)" with lines
-set terminal postscript eps
-set output "out/golovin_plot_vol.eps"
-replot
-ENDVOL
-epstopdf out/golovin_plot_vol.eps
+echo ./golovin_plot.py
+./golovin_plot.py
+echo Now view out/golovin_num.pdf and out/golovin_vol.pdf

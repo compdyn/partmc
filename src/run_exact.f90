@@ -8,6 +8,7 @@ module pmc_run_exact
 
   use pmc_inout
   use pmc_aero_dist
+  use pmc_process_spec
 
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
@@ -17,6 +18,7 @@ module pmc_run_exact
      real*8 :: rho_p                    ! particle density (kg/m^3)
      real*8 :: t_max                    ! total simulation time
      real*8 :: t_output                 ! interval to output info (s)
+     character(len=300) :: prefix       ! output prefix
   end type run_exact_opt_t
 
 contains
@@ -24,7 +26,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-       soln, summary_file)
+       soln, summary_file, process_spec_list)
 
     ! FIXME: num_conc and mean_radius are really parameters for the
     ! initial value of the particle distribution. They should be
@@ -49,6 +51,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(run_exact_opt_t), intent(in) :: exact_opt ! options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
     integer :: i_time, n_time
     type(aero_binned_t) :: aero_binned
@@ -92,6 +95,9 @@ contains
 
        call output_summary(summary_file, time, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env, 1)
+       call output_binned(exact_opt%prefix, process_spec_list, &
+            bin_grid, aero_data, aero_binned, gas_data, gas_state, &
+            env, i_time, time)
     end do
 
     call gas_data_free(gas_data)

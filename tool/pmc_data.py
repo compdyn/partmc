@@ -48,10 +48,11 @@ class sum(reducer):
 class data_dim:
     def __init__(self):
 	self.name = None         # axis name
-	self.grid_type = None    # "center" or "edge"
+	self.grid_type = None    # "center", "edge", or "center_edge"
 	self.data_type = None    # "string", "integer", or "real"
-	self.unit = None         # unit of grid_values
-	self.grid_values = []    # grid points on axis
+	self.unit = None         # unit of data in grid cells
+	self.grid_centers = None # grid cell centers on axis
+	self.grid_edges = None   # grid cell edges on axis
 	self.grid_widths = []    # widths of grid cells
 	self.grid_units = None   # units of data values or None
 
@@ -68,7 +69,10 @@ class data_dim:
 	val = cmp(self.unit, other.unit)
 	if val != 0:
 	    return val
-	val = cmp(self.grid_values, other.grid_values)
+	val = cmp(self.grid_centers, other.grid_centers)
+	if val != 0:
+	    return val
+	val = cmp(self.grid_edges, other.grid_edges)
 	if val != 0:
 	    return val
 	val = cmp(self.grid_widths, other.grid_widths)
@@ -82,36 +86,50 @@ class data_dim:
     def read(self, f):
 	self.name = read_string(f, 'name')
 	self.grid_type = read_string(f, 'grid_type')
+	if self.grid_type not in ["center", "edge", "center_edge"]:
+	    raise Exception("unknown grid_type: %s" % self.grid_type)
 	self.data_type = read_string(f, 'data_type')
 	self.unit = read_string(f, 'unit')
 	have_grid_units = read_string(f, 'have_grid_units')
 	if have_grid_units not in ["yes", "no"]:
 	    raise Exception("unknown value for have_grid_units: %s"
 			    % have_grid_units)
-	have_grid_units = (have_grid_units == "yes")
 	length = read_integer(f, 'length')
-	if self.grid_type == "center":
-	    n_grid_values = length
-	elif self.grid_type == "edge":
-	    n_grid_values = length + 1
-	else:
-	    raise Exception("unknown grid_type: %s" % self.grid_type)
-	if have_grid_units:
-	    self.grid_units = []
-	for i_grid in range(n_grid_values):
-	    if self.data_type == "real":
-		grid_value = read_indexed_real(f, i_grid + 1, 'grid_value')
-	    elif self.data_type == "string":
-		grid_value = read_indexed_string(f, i_grid + 1, 'grid_value')
-	    elif self.data_type == "integer":
-		grid_value = read_indexed_integer(f, i_grid + 1, 'grid_value')
-	    else:
-		raise Exception("unknown data_type: %s" % self.data_type)
-	    self.grid_values.append(grid_value)
+	if self.grid_type in ["center", "center_edge"]:
+	    self.grid_centers = []
+	    for i_grid in range(length):
+		if self.data_type == "real":
+		    grid_center = read_indexed_real(f, i_grid + 1,
+						    'grid_center')
+		elif self.data_type == "string":
+		    grid_center = read_indexed_string(f, i_grid + 1,
+						      'grid_center')
+		elif self.data_type == "integer":
+		    grid_center = read_indexed_integer(f, i_grid + 1,
+						       'grid_center')
+		else:
+		    raise Exception("unknown data_type: %s" % self.data_type)
+		self.grid_centers.append(grid_center)
+	if self.grid_type in ["edge", "center_edge"]:
+	    self.grid_edges = []
+	    for i_grid in range(length + 1):
+		if self.data_type == "real":
+		    grid_edge = read_indexed_real(f, i_grid + 1,
+						  'grid_edge')
+		elif self.data_type == "string":
+		    grid_edge = read_indexed_string(f, i_grid + 1,
+						    'grid_edge')
+		elif self.data_type == "integer":
+		    grid_edge = read_indexed_integer(f, i_grid + 1,
+						     'grid_edge')
+		else:
+		    raise Exception("unknown data_type: %s" % self.data_type)
+		self.grid_edges.append(grid_edge)
 	for i_grid in range(length):
 	    self.grid_widths.append(read_indexed_real(f, i_grid + 1,
 						     'grid_width'))
-	if have_grid_units:
+	if have_grid_units == "yes":
+	    self.grid_units = []
 	    for i_grid in range(length):
 		self.grid_units.append(read_indexed_string(f, i_grid + 1,
 							  'grid_unit'))
@@ -124,18 +142,18 @@ class data_dim:
 	    output.append(" with unit %s" % self.unit)
 	else:
 	    output.append(" with no unit")
-	if self.grid_type == "center":
-	    if len(self.grid_values) != len(self.grid_widths):
-		raise Exception("grid data length mismatch for center")
-	    if len(self.grid_values) < 1:
-		raise Exception("grid_values empty")
-	elif self.grid_type == "edge":
-	    if len(self.grid_values) != len(self.grid_widths) + 1:
-		raise Exception("grid data length mismatch for edge")
-	    if len(self.grid_values) < 2:
-		raise Exception("grid_values too short")
-	else:
+	if self.grid_type not in ["center", "edge", "center_edge"]:
 	    raise Exception("unknown grid_type: %s" % self.grid_type)
+	if self.grid_type in ["center", "center_edge"]:
+	    if len(self.grid_centers) != len(self.grid_widths):
+		raise Exception("grid data length mismatch for center")
+	    if len(self.grid_centers) < 1:
+		raise Exception("grid_centers empty")
+	if self.grid_type in ["edge", "center_edge"]:
+	    if len(self.grid_edges) != len(self.grid_widths) + 1:
+		raise Exception("grid data length mismatch for edge")
+	    if len(self.grid_edges) < 2:
+		raise Exception("grid_edges too short")
 	if self.grid_units:
 	    if len(self.grid_widths) != len(self.grid_units):
 		raise Exception("grid unit length mismatch")
@@ -147,54 +165,70 @@ class data_dim:
 	if self.data_type == "integer":
 	    if self.grid_units:
 		raise Exception("grid_units not allowed for data_type int")
+	    if self.grid_type == "center":
+		min_grid = self.grid_centers[0]
+		max_grid = self.grid_centers[-1]
+	    elif self.grid_type in ["edge", "center_edge"]:
+		min_grid = self.grid_edges[0]
+		max_grid = self.grid_edges[-1]
+	    else:
+		raise Exception("unknown grid_type: %s" % self.grid_type)
 	    if all_grid_widths_same:
 		output.append("%d grid cells from %d to %d "
 			      "(all with width %g)\n"
-			      % (len(self.grid_widths), self.grid_values[0],
-				 self.grid_values[-1], self.grid_widths[-1]))
+			      % (len(self.grid_widths), min_grid,
+				 max_grid, self.grid_widths[-1]))
 	    else:
 		output.append("%d grid cells from %d "
 			      "(width %g) to %d (width %g)\n"
 			      % (len(self.grid_widths),
-				 self.grid_values[0], self.grid_widths[0],
-				 self.grid_values[-1], self.grid_widths[-1]))
+				 min_grid, self.grid_widths[0],
+				 max_grid, self.grid_widths[-1]))
 	elif self.data_type == "real":
 	    if self.grid_units:
 		raise Exception("grid_units not allowed for data_type float")
+	    if self.grid_type == "center":
+		min_grid = self.grid_centers[0]
+		max_grid = self.grid_centers[-1]
+	    elif self.grid_type in ["edge", "center_edge"]:
+		min_grid = self.grid_edges[0]
+		max_grid = self.grid_edges[-1]
+	    else:
+		raise Exception("unknown grid_type: %s" % self.grid_type)
 	    if all_grid_widths_same:
 		output.append("%d grid cells from %g to %g "
 			      "(all with width %g)\n"
-			      % (len(self.grid_widths), self.grid_values[0],
-				 self.grid_values[-1], self.grid_widths[-1]))
+			      % (len(self.grid_widths), min_grid,
+				 max_grid, self.grid_widths[-1]))
 	    else:
 		output.append("%d grid cells from %g (width %g) "
 			      "to %g (width %g)\n"
 			      % (len(self.grid_widths),
-				 self.grid_values[0], self.grid_widths[0],
-				 self.grid_values[-1], self.grid_widths[-1]))
+				 min_grid, self.grid_widths[0],
+				 max_grid, self.grid_widths[-1]))
 	elif self.data_type == "string":
 	    if self.grid_type != "center":
 		raise Exception("only center grid allowed for data_type string")
-	    output.append("%d grid values: " % len(self.grid_values))
+	    output.append("%d grid values: " % len(self.grid_widths))
 	    if self.grid_units and all_grid_widths_same:
 		output.append(", ".join(["%s (unit %s)"
-				   % (self.grid_values[i],
+				   % (self.grid_centers[i],
 				      self.grid_units[i])
-				   for i in range(len(self.grid_values))]))
+				   for i in range(len(self.grid_centers))]))
 	    elif self.grid_units and not all_grid_widths_same:
 		output.append(", ".join(["%s (width %g, unit %s)"
-				   % (self.grid_values[i],
+				   % (self.grid_centers[i],
 				      self.grid_widths[i],
 				      self.grid_units[i])
-				   for i in range(len(self.grid_values))]))
+				   for i in range(len(self.grid_centers))]))
 	    elif not self.grid_units and all_grid_widths_same:
-		output.append(", ".join(["%s" % (self.grid_values[i])
-				   for i in range(len(self.grid_values))]))
+		output.append(", ".join(["%s" % (self.grid_centers[i])
+				   for i in range(len(self.grid_centers))]))
 	    elif not self.grid_units and not all_grid_widths_same:
 		output.append(", ".join(["%s (width %g)"
-				   % (self.grid_values[i],
+				   % (self.grid_centers[i],
 				      self.grid_widths[i])
-				   for i in range(len(self.grid_values))]))
+				   for i in range(len(self.grid_centers))]))
 	    else:
 		raise Exception("internal error")
 	    if all_grid_widths_same:
@@ -207,26 +241,28 @@ class data_dim:
 
     def find_grid_by_value(self, value):
 	if self.data_type in ["integer", "real"]:
-	    if self.grid_type == "edge":
-		if value < self.grid_values[0] or value > self.grid_values[-1]:
+	    if self.grid_type in ["edge", "center_edge"]:
+		if value < self.grid_edges[0] or value > self.grid_edges[-1]:
 		    raise Exception("value %g out of range [%g,%g]"
-				    % value, self.grid_values[0],
-				    self.grid_values[-1])
+				    % value, self.grid_edges[0],
+				    self.grid_edges[-1])
 		i_val = 0
-		while i_val < len(self.grid_values) - 2:
-		    if value < self.grid_values[i_val + 1]:
+		while i_val < len(self.grid_edges) - 2:
+		    if value < self.grid_edges[i_val + 1]:
 			break
 		    i_val += 1
 	    elif self.grid_type == "center":
 		i_val = 0
-		while i_val < len(self.grid_values) - 1:
-		    if abs(self.grid_values[i_val + 1] - value) \
-			    > abs(self.grid_values[i_val] - value):
+		while i_val < len(self.grid_centers) - 1:
+		    if abs(self.grid_centers[i_val + 1] - value) \
+			    > abs(self.grid_centers[i_val] - value):
 			break
 		    i_val += 1
+	    else:
+		raise Exception("unknown grid_type: %s" % self.grid_type)
 	elif self.data_type == "string":
 	    i_val = 0
-	    for val in self.grid_values:
+	    for val in self.grid_centers:
 		if value == val:
 		    break
 		i_val += 1
@@ -264,8 +300,9 @@ class data_set:
 	f.write("name: %s (%d dims)\n" % (self.name, len(self.dims)))
 	for dim in self.dims:
 	    dim.write_summary(f)
-	f.write("data: %d data elements in %s array\n"
-		% (size(self.data), shape(self.data)))
+	f.write("data: %d elements in %s array\n"
+		% (size(self.data),
+		   " x ".join([str(i) for i in shape(self.data)])))
 
     def reduce(self, reducers):
 	for r in reducers:
@@ -280,6 +317,35 @@ class data_set:
 	else:
 	    raise Exception("dimension not found: %s" % dim_name)
 	return i_dim
+
+    def data_center_list(self, strip_zero = False):
+	if len(self.dims) != 1:
+	    raise Exception("can only generate list with exactly one dim")
+	if self.dims[0].grid_type not in ["center", "center_edge"]:
+	    raise Exception("can only generate data_center_list for center "
+			    "or center_edge data")
+	data = []
+	for i in range(size(self.data)):
+	    d = self.data[i]
+	    if strip_zero and d <= 0.0:
+		d = None
+	    data.append([self.dims[0].grid_centers[i], d])
+	return data
+
+    def data_edge_list(self, strip_zero = False):
+	if len(self.dims) != 1:
+	    raise Exception("can only generate list with exactly one dim")
+	if self.dims[0].grid_type not in ["edge", "center_edge"]:
+	    raise Exception("can only generate data_center_list for edge "
+			    "or center_edge data")
+	data = []
+	for i in range(size(self.data)):
+	    d = self.data[i]
+	    if strip_zero and d <= 0.0:
+		d = None
+	    data.append([self.dims[0].grid_edges[i],
+			 self.dims[0].grid_edges[i+1], d])
+	return data
 
 class timed_data_set(data_set):
     def __init__(self):
@@ -366,6 +432,9 @@ def read_unnamed_real(f):
     try:
 	return float(line)
     except:
+# HACK/FIXME: dies of numbers like 0.2341398-101 due to lack of E, so return 0
+	return 0
+# end HACK/FIXME
 	raise Exception("unable to convert to float: %s" % line)
 
 def read_data_set(files, reducers):
@@ -397,7 +466,7 @@ def read_data_set(files, reducers):
     time_dim.grid_type = "center"
     time_dim.data_type = "real"
     time_dim.unit = "s"
-    time_dim.grid_values = [d.time for d in data]
+    time_dim.grid_centers = [d.time for d in data]
     time_dim.grid_widths = [1.0 for d in data]
     time_dim.grid_units = None
     total_data.dims.insert(0, time_dim)
@@ -406,12 +475,3 @@ def read_data_set(files, reducers):
     for i, d in enumerate(data):
 	total_data.data[i,...] = d.data
     return total_data
-
-d = read_data_set(["out/urban_plume_state_0001_000000%02d_aero.dat" % i
-		   for i in range(25)],
-		  [select("unit", "mass_den"),
-		   select("species", "SO4_a"),
-		   sum("radius"),
-		   ])
-d.write_summary(sys.stdout)
-print d.data

@@ -54,7 +54,8 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/mosaic.o src/coagulation.o src/kernel.o			\
 	src/output_summary.o src/inout.o src/aero_binned.o		\
 	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o src/mpi.o
+	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
+	src/process_state_hist.o
 process_summary_OBJS := src/process_summary.o src/util.o		\
 	src/constants.o src/aero_binned.o src/aero_data.o src/inout.o	\
 	src/env_data.o src/env.o src/gas_data.o src/gas_state.o		\

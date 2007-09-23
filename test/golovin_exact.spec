@@ -1,5 +1,7 @@
 run_type exact                  # exact solution
 output_file out/golovin_exact_summary.d # name of output file
+output_prefix out/golovin_exact # prefix of output files
+process_spec golovin_process.spec # processing specification
 num_conc 1e9                    # particle concentration (#/m^3)
 
 t_max 600                       # total simulation time (s)

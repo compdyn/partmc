@@ -427,6 +427,7 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
+    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -434,6 +435,9 @@ contains
     end if
     
     call inout_read_string(file, 'output_file', summary_name)
+    call inout_read_string(file, 'output_prefix', sect_opt%prefix)
+    call spec_read_process_spec_list_filename(file, 'process_spec', &
+         process_spec_list)
     call inout_read_string(file, 'kernel', kernel_name)
 
     call inout_read_real(file, 't_max', sect_opt%t_max)
@@ -464,19 +468,24 @@ contains
 
     if (trim(kernel_name) == 'sedi') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_sedi, sect_opt, summary_file)
+            env_data, env, kernel_sedi, sect_opt, summary_file, &
+            process_spec_list)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_golovin, sect_opt, summary_file)
+            env_data, env, kernel_golovin, sect_opt, summary_file, &
+            process_spec_list)
     elseif (trim(kernel_name) == 'constant') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_constant, sect_opt, summary_file)
+            env_data, env, kernel_constant, sect_opt, summary_file, &
+            process_spec_list)
     elseif (trim(kernel_name) == 'brown') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_brown, sect_opt, summary_file)
+            env_data, env, kernel_brown, sect_opt, summary_file, &
+            process_spec_list)
     elseif (trim(kernel_name) == 'zero') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_zero, sect_opt, summary_file)
+            env_data, env, kernel_zero, sect_opt, summary_file, &
+            process_spec_list)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)

@@ -1,6 +1,7 @@
 run_type mc                     # Monte Carlo
 output_file out/sedi_exp_mc_summary.d # name of output file
 state_prefix out/sedi_exp_mc_state # prefix of state files
+process_spec sedi_exp_process.spec # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 1000000                  # total number of particles
 kernel sedi                     # coagulation kernel

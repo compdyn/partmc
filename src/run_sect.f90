@@ -19,6 +19,7 @@ module pmc_run_sect
     real*8 :: t_output                  ! output interval (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     logical :: do_coagulation           ! whether to do coagulation
+     character(len=300) :: prefix       ! output prefix
   end type run_sect_opt_t
 
 contains
@@ -26,7 +27,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env, kernel, sect_opt, summary_file)
+       env_data, env, kernel, sect_opt, summary_file, process_spec_list)
 
     ! Run a sectional simulation.
   
@@ -42,6 +43,7 @@ contains
     use pmc_output_summary
     use pmc_gas_data
     use pmc_gas_state
+    use pmc_process_spec
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -51,6 +53,7 @@ contains
     type(env_t), intent(inout) :: env   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
     real*8 c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
@@ -64,7 +67,7 @@ contains
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
     
-    integer i, j, i_time, num_t
+    integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
     interface
@@ -109,6 +112,7 @@ contains
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
+    i_summary = 0
     call env_data_init_state(env_data, env, time)
     
     ! precompute kernel values for all pairs of bins
@@ -133,6 +137,9 @@ contains
     if (do_output) then
        call output_summary(summary_file, 0d0, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
+       call output_binned(sect_opt%prefix, process_spec_list, &
+            bin_grid, aero_data, aero_binned, gas_data, gas_state, &
+            env, i_summary, time)
     end if
     
     ! main time-stepping loop
@@ -163,8 +170,12 @@ contains
        call check_event(time, sect_opt%del_t, sect_opt%t_output, &
             last_output_time, do_output)
        if (do_output) then
+          i_summary = i_summary + 1
           call output_summary(summary_file, time, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
+          call output_binned(sect_opt%prefix, process_spec_list, &
+               bin_grid, aero_data, aero_binned, gas_data, gas_state, &
+               env, i_summary, time)
        end if
        
        ! print progress to stdout

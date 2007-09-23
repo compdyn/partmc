@@ -1,5 +1,7 @@
 run_type sect                   # sectional code
 output_file out/sedi_exp_sect_summary.d # name of output file
+output_prefix out/sedi_exp_sect # prefix of output files
+process_spec sedi_exp_process.spec # processing specification
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)

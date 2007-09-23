@@ -107,3 +107,5 @@ in python code catch all exceptions while reading data to add line
 number and file name.
 
 remove HACK/FIXME in pmc_data.py where some floats are being ignored.
+
+rename all input files *.spec and all output files *.dat

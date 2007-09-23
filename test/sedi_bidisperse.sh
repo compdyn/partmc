@@ -31,47 +31,9 @@ echo ../src/partmc sedi_bidisperse_mc.spec
 ../src/partmc sedi_bidisperse_mc.spec
 echo ./sedi_bidisperse_state_to_count
 ./sedi_bidisperse_state_to_count
-
 echo ./sedi_bidisperse_ode
 ./sedi_bidisperse_ode
 
-echo "Plotting number density of small particles"
-gnuplot -persist <<ENDNUM
-set xlabel "time (s)"
-set ylabel "number density of small particles (#/m^3)"
-set title "Sedimentation kernel, bidisperse initial condition"
-plot "out/sedi_bidisperse_mc_counts.d" using 1:2 title "Monte Carlo"
-replot "out/sedi_bidisperse_ode_counts.d" using 1:2 w l title "ODE"
-set terminal postscript eps
-set output "out/sedi_bidisperse_plot_num_small.eps"
-replot
-ENDNUM
-epstopdf out/sedi_bidisperse_plot_num_small.eps
-
-echo "Plotting number density of small particles (logarithmic)"
-gnuplot -persist <<ENDNUM
-set logscale y
-set xlabel "time (s)"
-set ylabel "number density of small particles (#/m^3)"
-set title "Sedimentation kernel, bidisperse initial condition"
-plot "out/sedi_bidisperse_mc_counts.d" using 1:2 title "Monte Carlo"
-replot "out/sedi_bidisperse_ode_counts.d" using 1:2 w l title "ODE"
-set terminal postscript eps
-set output "out/sedi_bidisperse_plot_num_small_log.eps"
-replot
-ENDNUM
-epstopdf out/sedi_bidisperse_plot_num_small_log.eps
-
-echo "Plotting volume density of big particles"
-gnuplot -persist <<ENDVOL
-set xlabel "time (s)"
-set ylabel "volume density of big particles (m^3/m^3)"
-set title "Sedimentation kernel, bidisperse initial condition"
-set key right bottom
-plot "out/sedi_bidisperse_mc_counts.d" using 1:3 title "Monte Carlo"
-replot "out/sedi_bidisperse_ode_counts.d" using 1:3 w l title "ODE"
-set terminal postscript eps
-set output "out/sedi_bidisperse_plot_vol_big.eps"
-replot
-ENDVOL
-epstopdf out/sedi_bidisperse_plot_vol_big.eps
+echo ./sedi_bidisperse_plot.py
+./sedi_bidisperse_plot.py
+echo "Now view out/sedi_bidisperse_*.pdf"

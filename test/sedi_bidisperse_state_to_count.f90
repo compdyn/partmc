@@ -21,8 +21,8 @@ program sedi_bidisperse_state_to_count
   character(len=*), parameter :: out_name = "out/sedi_bidisperse_mc_counts.d"
   character(len=*), parameter :: state_prefix &
        = "out/sedi_bidisperse_mc_state_0001_"
-  integer, parameter :: n_time = 600    ! number of state files
-  integer, parameter :: time_inc = 10   ! increment for state files
+  integer, parameter :: n_time = 60     ! number of state files
+  integer, parameter :: time_inc = 1    ! increment for state files
   
   character(len=1000) :: state_name     ! name of state file to read
   type(bin_grid_t) :: bin_grid          ! bin_grid

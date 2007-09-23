@@ -1,6 +1,7 @@
 run_type mc                     # Monte Carlo
 output_file out/sedi_bidisperse_mc_summary.d #  output filename
 state_prefix out/sedi_bidisperse_mc_state # prefix of state files
+process_spec sedi_bidisperse_process.spec # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 10001                    # number of Monte Carlo particles
 kernel sedi                     # coagulation kernel

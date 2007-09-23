@@ -1,2 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-test/emission_summary_to_history.o: src/pmc_util.mod src/pmc_inout.mod src/pmc_bin_grid.mod src/pmc_aero_binned.mod src/pmc_gas_state.mod src/pmc_gas_data.mod src/pmc_aero_data.mod src/pmc_env.mod

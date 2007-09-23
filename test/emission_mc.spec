@@ -1,6 +1,7 @@
 run_type mc                     # Monte Carlo
 output_file out/emission_mc_summary.d # name of output file
 state_prefix out/emission_mc_state # prefix of state files
+process_spec emission_process.spec # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 1000                     # total number of particles
 kernel sedi                     # coagulation kernel

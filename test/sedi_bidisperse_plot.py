@@ -11,8 +11,6 @@ from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 
-grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
-
 ######################################################################
 
 g = graph.graphxy(width = 10,

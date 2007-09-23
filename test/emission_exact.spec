@@ -1,5 +1,7 @@
 run_type exact                  # Monte Carlo
 output_file out/emission_exact_summary.d # name of output file
+output_prefix out/emission_exact # prefix of output files
+process_spec emission_process.spec # processing specification
 num_conc 1e9                    # particle concentration (#/m^3)
 
 t_max 600                       # total simulation time (s)

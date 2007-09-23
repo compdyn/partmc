@@ -20,3 +20,5 @@ color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(9/12.0, 1, 1),
 	      color.hsb(11/12.0, 1, 1),
 	      ]
+
+grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])

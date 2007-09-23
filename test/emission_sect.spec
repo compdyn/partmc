@@ -1,5 +1,7 @@
 run_type sect                   # sectional code
 output_file out/emission_sect_summary.d # name of output file
+output_prefix out/emission_sect # prefix of output files
+process_spec emission_process.spec # processing specification
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)

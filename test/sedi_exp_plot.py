@@ -17,11 +17,10 @@ times_sec = [t * 60 for t in times_min]
 mc_data = read_data_set(["out/sedi_exp_mc_state_0001_000000%02d_aero.dat" % i
 			 for i in range(11)],
 			[sum("species")])
-exact_data = read_data_set(["out/sedi_exp_sect_000000%02d_aero.dat" % i
-			    for i in range(11)],
-			   [sum("species")])
+sect_data = read_data_set(["out/sedi_exp_sect_000000%02d_aero.dat" % i
+			   for i in range(11)],
+			  [sum("species")])
 
-grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 g_num_lin = graph.graphxy(
     width = 10,
     x = graph.axis.log(min = 1e-7,
@@ -104,32 +103,32 @@ for i in range(len(times_sec)):
 				     size = 0.05,
 				     symbolattrs = [color_list[i]])])
 
-    data_slice = module_copy.deepcopy(exact_data)
+    data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
     g_num_lin.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
-			title = "%g mins exact" % times_min[i]),
+			title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     g_num_log.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
-			title = "%g mins exact" % times_min[i]),
+			title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     
-    data_slice = module_copy.deepcopy(exact_data)
+    data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "vol_den"),
 		       select("time", times_sec[i])])
     g_vol_lin.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
-			title = "%g mins exact" % times_min[i]),
+			title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     g_vol_log.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
-			title = "%g mins exact" % times_min[i]),
+			title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     
 g_num_lin.writePDFfile("out/sedi_exp_num_lin.pdf")

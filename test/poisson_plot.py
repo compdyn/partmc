@@ -13,8 +13,6 @@ from pyx import *
 
 n_list = [1, 4, 10, 20, 30]
 
-grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
-
 g = graph.graphxy(width = 10,
 		  x = graph.axis.linear(title = "n",
 					painter = grid_painter),

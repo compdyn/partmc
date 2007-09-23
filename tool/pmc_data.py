@@ -271,6 +271,12 @@ class data_dim:
 	else:
 	    raise Exception("unknown data_type: %s" % self.data_type)
 	return i_val
+    
+    def scale(self, factor):
+	if self.grid_centers:
+	    self.grid_centers = [x * factor for x in self.grid_centers]
+	if self.grid_edges:
+	    self.grid_edges = [x * factor for x in self.grid_edges]
 
 class data_set:
     def __init__(self):
@@ -346,6 +352,10 @@ class data_set:
 	    data.append([self.dims[0].grid_edges[i],
 			 self.dims[0].grid_edges[i+1], d])
 	return data
+
+    def scale_dim(self, dim_name, factor):
+	i_dim = self.find_dim_by_name(dim_name)
+	self.dims[i_dim].scale(factor)
 
 class timed_data_set(data_set):
     def __init__(self):

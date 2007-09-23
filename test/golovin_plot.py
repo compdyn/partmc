@@ -21,7 +21,6 @@ exact_data = read_data_set(["out/golovin_exact_000000%02d_aero.dat" % i
 			    for i in range(11)],
 			   [sum("species")])
 
-grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 g_num = graph.graphxy(width = 10,
 		      x = graph.axis.log(min = 1e-7,
 					 max = 1e-3,

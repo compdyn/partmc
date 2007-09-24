@@ -17,6 +17,7 @@ program process_state_new
   use pmc_process_state_hist
   use pmc_mosaic
   use pmc_mpi
+  use pmc_process
   use pmc_process_spec
   use pmc_util
 

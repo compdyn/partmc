@@ -38,7 +38,7 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/gas_data src/gas_state src/coagulation src/kernel		\
 	src/output_summary src/inout src/rand_poisson			\
 	src/aero_particle src/aero_particle_array src/mpi		\
-	src/process_state_hist src/process_spec
+	src/process_state_hist src/process_spec src/process
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -55,7 +55,7 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/output_summary.o src/inout.o src/aero_binned.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
-	src/process_state_hist.o
+	src/process_state_hist.o src/process.o
 process_summary_OBJS := src/process_summary.o src/util.o		\
 	src/constants.o src/aero_binned.o src/aero_data.o src/inout.o	\
 	src/env_data.o src/env.o src/gas_data.o src/gas_state.o		\
@@ -75,7 +75,7 @@ process_state_new_OBJS := src/process_state_new.o src/bin_grid.o	\
 	src/gas_state.o src/inout.o src/aero_particle.o			\
 	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
 	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
-	src/mosaic.o src/process_spec.o
+	src/mosaic.o src/process_spec.o src/process.o
 process_average_OBJS := src/process_average.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\

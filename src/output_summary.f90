@@ -3,6 +3,9 @@
 ! option) any later version. See the file COPYING for details.
 
 module pmc_output_summary
+
+  use pmc_process
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

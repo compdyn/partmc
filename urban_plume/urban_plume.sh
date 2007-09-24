@@ -13,6 +13,8 @@ sleep 1
 
 echo ../src/partmc urban_plume.spec
 ../src/partmc urban_plume.spec
-echo ../src/process_summary out/urban_plume_summary.d
-../src/process_summary out/urban_plume_summary.d
-echo 'Run finished, use plot_*.sh to generate plots'
+
+echo ./plot_aero_dist.py
+echo ./plot_aero_hist.py
+echo ./plot_gas.py
+echo 'View out/*.pdf'

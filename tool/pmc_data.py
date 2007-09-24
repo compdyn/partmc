@@ -7,6 +7,16 @@ import os, sys, re, textwrap
 import copy as module_copy
 from numpy import *
 
+def file_list(prefix, suffix):
+    (dir, file_prefix) = os.path.split(prefix)
+    file_re = re.compile("^" + re.escape(file_prefix)
+			 + ".*" + re.escape(suffix) + "$")
+    files = []
+    for file in os.listdir(dir):
+	if file_re.search(file):
+	    files.append(os.path.join(dir, file))
+    return files
+
 class reducer:
     def __init__(self):
 	pass

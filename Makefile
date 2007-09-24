@@ -118,8 +118,8 @@ all: $(PROGS)
 endif
 
 -include $(ALL_FILES:%=%.deps)
-%.deps: %.f90 f90_mod_deps.py
-	./f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
+%.deps: %.f90 tool/f90_mod_deps.py
+	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
 src/%.o src/pmc_%.mod: src/%.f90 src/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
@@ -153,7 +153,7 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp
+	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp tool/*.pyc
 
 .PHONY: distclean
 distclean: cleanall

@@ -21,12 +21,10 @@ module pmc_process_spec
   type process_spec_t
      character(len=PROCESS_SPEC_TYPE_LEN) :: type ! processing type
      character(len=PROCESS_SPEC_FILE_LEN) :: suffix ! output file suffix
-     integer :: n_step                  ! number of steps for histograms
-     real*8 :: min_real                 ! minimum histogram value (real)
-     real*8 :: max_real                 ! maximum histogram value (real)
-     integer :: min_int                 ! minimum histogram value (int)
-     integer :: max_int                 ! maximum histogram value (int)
-     logical :: log_scale               ! use a log-scale?
+     integer :: n_step                  ! number of steps for histogram
+     real*8 :: min_val                  ! minimum histogram value
+     real*8 :: max_val                  ! maximum histogram value
+     logical :: log_scale               ! use a log-scale for histogram?
      character(len=AERO_NAME_LEN), pointer :: a_species(:) ! comp A species
      character(len=AERO_NAME_LEN), pointer :: b_species(:) ! comp B species
   end type process_spec_t
@@ -44,10 +42,8 @@ contains
     process_spec%type = "none"
     process_spec%suffix = "none"
     process_spec%n_step = 0
-    process_spec%min_real = 0d0
-    process_spec%max_real = 0d0
-    process_spec%min_int = 0
-    process_spec%max_int = 0
+    process_spec%min_val = 0d0
+    process_spec%max_val = 0d0
     process_spec%log_scale = .false.
     allocate(process_spec%a_species(0))
     allocate(process_spec%b_species(0))
@@ -96,10 +92,8 @@ contains
     process_spec_to%type = process_spec_from%type
     process_spec_to%suffix = process_spec_from%suffix
     process_spec_to%n_step = process_spec_from%n_step
-    process_spec_to%min_real = process_spec_from%min_real
-    process_spec_to%max_real = process_spec_from%max_real
-    process_spec_to%min_int = process_spec_from%min_int
-    process_spec_to%max_int = process_spec_from%max_int
+    process_spec_to%min_val = process_spec_from%min_val
+    process_spec_to%max_val = process_spec_from%max_val
     process_spec_to%log_scale = process_spec_from%log_scale
     allocate(process_spec_to%a_species(size(process_spec_from%a_species)))
     allocate(process_spec_to%b_species(size(process_spec_from%b_species)))
@@ -217,8 +211,9 @@ contains
     type(process_spec_t), intent(out) :: process_spec ! data to read
 
     call inout_read_integer(file, "n_step", process_spec%n_step)
-    call inout_read_real(file, "min", process_spec%min_real)
-    call inout_read_real(file, "max", process_spec%max_real)
+    call inout_read_real(file, "min", process_spec%min_val)
+    call inout_read_real(file, "max", process_spec%max_val)
+    process_spec%log_scale = .true.
 
   end subroutine inout_read_process_spec_kappa
 
@@ -235,8 +230,8 @@ contains
     integer :: i
 
     call inout_read_integer(file, "n_step", process_spec%n_step)
-    call inout_read_real(file, "min", process_spec%min_real)
-    call inout_read_real(file, "max", process_spec%max_real)
+    call inout_read_real(file, "min", process_spec%min_val)
+    call inout_read_real(file, "max", process_spec%max_val)
 
     call inout_read_line_no_eof(file, line)
     call inout_check_line_name(file, line, "a_species")
@@ -265,8 +260,9 @@ contains
     type(inout_file_t), intent(inout) :: file ! inout file
     type(process_spec_t), intent(out) :: process_spec ! data to read
 
-    call inout_read_integer(file, "min", process_spec%min_int)
-    call inout_read_integer(file, "max", process_spec%max_int)
+    call inout_read_real(file, "min", process_spec%min_val)
+    call inout_read_real(file, "max", process_spec%max_val)
+    process_spec%n_step = nint(process_spec%max_val - process_spec%min_val)
 
   end subroutine inout_read_process_spec_n_orig_part
 
@@ -280,8 +276,8 @@ contains
     type(process_spec_t), intent(out) :: process_spec ! data to read
 
     call inout_read_integer(file, "n_step", process_spec%n_step)
-    call inout_read_real(file, "min", process_spec%min_real)
-    call inout_read_real(file, "max", process_spec%max_real)
+    call inout_read_real(file, "min", process_spec%min_val)
+    call inout_read_real(file, "max", process_spec%max_val)
 
   end subroutine inout_read_process_spec_optic
 

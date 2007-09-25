@@ -109,3 +109,5 @@ number and file name.
 remove HACK/FIXME in pmc_data.py where some floats are being ignored.
 
 rename all input files *.spec and all output files *.dat
+
+add parameter to composition processing for type: vol, mass or mole

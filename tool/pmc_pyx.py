@@ -21,6 +21,36 @@ color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(11/12.0, 1, 1),
 	      ]
 
+class listpalette(color.palette):
+
+    def __init__(self, colorlist):
+        color.palette.__init__(self)
+        self.colorclass = colorlist[0][1].__class__
+        self.colorlist = colorlist
+
+    def getcolor(self, param):
+	for i in range(len(self.colorlist)):
+	    if self.colorlist[i][0] >= param:
+		break
+	else:
+	    raise ValueError
+	if i == 0:
+	    i = 1
+	# list[i-1] < param < list[i]
+	alpha = (param - self.colorlist[i-1][0]) \
+	    / (self.colorlist[i][0] - self.colorlist[i-1][0])
+        colordict = {}
+        for key in self.colorlist[0][1].color.keys():
+            colordict[key] = alpha * self.colorlist[i][1].color[key] \
+		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
+        return self.colorclass(**colordict)
+
+rainbow_palette = listpalette([[0, color.rgb(0, 0, 1)],
+			       [0.3, color.rgb(0, 1, 1)],
+			       [0.5, color.rgb(0, 1, 0)],
+			       [0.7, color.rgb(1, 1, 0)],
+			       [1, color.rgb(1, 0, 0)]])
+
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 
 aerosol_species_tex = {

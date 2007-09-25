@@ -14,7 +14,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine assert(code, condition_ok)
+  subroutine assert_msg(code, condition_ok, error_msg)
 
     ! Errors unless condition_ok is true.
 
@@ -24,17 +24,31 @@ contains
 
     integer, intent(in) :: code         ! status code to use if assertion fails
     logical, intent(in) :: condition_ok ! whether the assertion is ok
+    character(len=*), intent(in) :: error_msg ! msg if assertion fails
 
     integer :: ierr
 
     if (.not. condition_ok) then
-       write(0,*) 'ERROR: assertion failed: ', code
+       write(0,*) 'ERROR: ', trim(error_msg), ': ', code
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else
        call exit(3)
 #endif
     end if
+
+  end subroutine assert_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine assert(code, condition_ok)
+
+    ! Errors unless condition_ok is true.
+
+    integer, intent(in) :: code         ! status code to use if assertion fails
+    logical, intent(in) :: condition_ok ! whether the assertion is ok
+
+    call assert_msg(code, condition_ok, 'assertion failed')
 
   end subroutine assert
 
@@ -49,6 +63,19 @@ contains
     call assert(code, .false.)
 
   end subroutine die
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine die_msg(code, error_msg)
+
+    ! Error immediately.
+
+    integer, intent(in) :: code         ! status code to use if assertion fails
+    character(len=*), intent(in) :: error_msg ! msg if assertion fails
+
+    call assert_msg(code, .false., error_msg)
+
+  end subroutine die_msg
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

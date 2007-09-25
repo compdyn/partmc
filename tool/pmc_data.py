@@ -95,11 +95,11 @@ class data_dim:
 
     def read(self, f):
 	self.name = read_string(f, 'name')
+	self.unit = read_string(f, 'unit')
 	self.grid_type = read_string(f, 'grid_type')
 	if self.grid_type not in ["center", "edge", "center_edge"]:
 	    raise Exception("unknown grid_type: %s" % self.grid_type)
 	self.data_type = read_string(f, 'data_type')
-	self.unit = read_string(f, 'unit')
 	have_grid_units = read_string(f, 'have_grid_units')
 	if have_grid_units not in ["yes", "no"]:
 	    raise Exception("unknown value for have_grid_units: %s"
@@ -294,7 +294,7 @@ class data_set:
 	self.dims = []           # list of data_dim() objects
 	self.data = None         # n-D array of data
 
-    def read(self, f):
+    def read(self, f, filename):
 	self.name = read_string(f, 'name')
 	n_dim = read_integer(f, 'n_dim')
 	self.dims = []
@@ -306,11 +306,21 @@ class data_set:
 	    dim = data_dim()
 	    dim.read(f)
 	    self.dims.append(dim)
-	read_comment(f, 'data values follow, row major order')
-	data_shape = [len(dim.grid_widths) for dim in self.dims]
-	self.data = zeros(data_shape, dtype = float64)
-	for index in ndindex(*data_shape):
-	    self.data[index] = read_unnamed_real(f)
+	external_data = read_string(f, "external_data")
+	data_shape = tuple([len(dim.grid_widths) for dim in self.dims])
+	if external_data == "yes":
+	    (bin_filename, ext) = os.path.splitext(filename)
+	    bin_filename = bin_filename + ".bin"
+	    self.data = memmap(bin_filename, dtype = float64,
+			       shape = data_shape, mode = 'r',
+			       order = 'F', offset = 4)
+	elif external_data == "no":
+	    read_comment(f, 'data values follow, row major order')
+	    self.data = zeros(data_shape, dtype = float64)
+	    for index in ndindex(*data_shape):
+		self.data[index] = read_unnamed_real(f)
+	else:
+	    raise Exception("unknown external_data: %s" % external_data)
 
     def write_summary(self, f):
 	f.write("name: %s (%d dims)\n" % (self.name, len(self.dims)))
@@ -363,6 +373,31 @@ class data_set:
 			 self.dims[0].grid_edges[i+1], d])
 	return data
 
+    def data_2d_list(self, strip_zero = False, flip_axes = False):
+	if len(self.dims) != 2:
+	    raise Exception("can only generate 2d_list with exactly two dims")
+	if self.dims[0].grid_type not in ["edge", "center_edge"]:
+	    raise Exception("can only generate data_2d_list for edge "
+			    "or center_edge data")
+	data = []
+	max_val = self.data.max()
+	for i in range(size(self.data, 0)):
+	    for j in range(size(self.data, 1)):
+		if (not strip_zero) or (self.data[i,j] > 0):
+		    if flip_axes:
+			data.append([self.dims[1].grid_edges[j],
+				     self.dims[1].grid_edges[j+1],
+				     self.dims[0].grid_edges[i],
+				     self.dims[0].grid_edges[i+1],
+				     self.data[i,j] / max_val])
+		    else:
+			data.append([self.dims[0].grid_edges[i],
+				     self.dims[0].grid_edges[i+1],
+				     self.dims[1].grid_edges[j],
+				     self.dims[1].grid_edges[j+1],
+				     self.data[i,j] / max_val])
+	return data
+
     def scale_dim(self, dim_name, factor):
 	i_dim = self.find_dim_by_name(dim_name)
 	self.dims[i_dim].scale(factor)
@@ -373,10 +408,10 @@ class timed_data_set(data_set):
 	self.index = None        # index of the data-set
 	data_set.__init__(self)
 
-    def read(self, f):
+    def read(self, f, filename):
 	self.time = read_real(f, 'time')
 	self.index = read_integer(f, 'index')
-	data_set.read(self, f)
+	data_set.read(self, f, filename)
 
     def write_summary(self, f):
 	f.write("time: %g (index %d)\n" % (self.time, self.index))
@@ -464,7 +499,7 @@ def read_data_set(files, reducers):
     for file in files:
 	f = open(file)
 	d = timed_data_set()
-	d.read(f)
+	d.read(f, file)
 	f.close()
 	if d.index in [prev_d.index for prev_d in data]:
 	    raise Exception("index %d read twice" % d.index)

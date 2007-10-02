@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-times_hour = [0, 5, 24]
+times_hour = [0, 6, 24]
 times_sec = [t * 3600 for t in times_hour]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
@@ -21,11 +21,16 @@ data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 		sum("aero_species")])
 data.write_summary(sys.stdout)
 
+data.scale(1e6)
+data.scale_dim("radius", 1e6)
+
 g = graph.graphxy(
     width = 10,
-    x = graph.axis.log(title = "radius (m)",
+    x = graph.axis.log(min = 0.01,
+		       max = 1,
+		       title = "radius ($\mu$m)",
 		       painter = grid_painter),
-    y = graph.axis.log(title = "mass density (kg/m$^3$)",
+    y = graph.axis.log(title = "mass density ($\mu$g/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 

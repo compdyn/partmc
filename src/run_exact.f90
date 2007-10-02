@@ -26,7 +26,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-       soln, summary_file, process_spec_list)
+       soln, process_spec_list)
 
     ! FIXME: num_conc and mean_radius are really parameters for the
     ! initial value of the particle distribution. They should be
@@ -40,7 +40,7 @@ contains
     use pmc_env_data
     use pmc_env
     use pmc_aero_data
-    use pmc_output_summary
+    use pmc_output_processed
     use pmc_aero_binned
     use pmc_gas_data
     use pmc_gas_state
@@ -50,7 +50,6 @@ contains
     type(env_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(run_exact_opt_t), intent(in) :: exact_opt ! options
-    type(inout_file_t), intent(inout) :: summary_file ! summary output file
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
     integer :: i_time, n_time, ncid
@@ -94,10 +93,7 @@ contains
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_radius, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env, aero_binned)
-
-       call output_summary(summary_file, time, bin_grid, aero_data, &
-            aero_binned, gas_data, gas_state, env, 1)
-       call output_binned(ncid, exact_opt%prefix, process_spec_list, &
+       call output_processed_binned(ncid, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
             env, i_time + 1, time, exact_opt%t_output)
     end do

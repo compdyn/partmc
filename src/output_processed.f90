@@ -4,12 +4,12 @@
 !
 ! Data processing.
 
-module pmc_process
+module pmc_output_processed
 
-  use pmc_inout
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_aero_state
+  use pmc_aero_binned
   use pmc_gas_data
   use pmc_gas_state
   use pmc_env
@@ -22,34 +22,75 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_state_spec_list(ncid, basename, process_spec_list, &
-       bin_grid, aero_data, aero_state, gas_data, gas_state, env, &
-       time, index, del_t)
+  subroutine output_processed_open(prefix, i_loop, ncid)
+
+    ! Open the processed state output file.
+
+    character(len=*), intent(in) :: prefix ! prefix of files to write
+    integer, intent(in) :: i_loop       ! current loop number
+    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+
+    character(len=len(prefix)+20) :: filename
+    character(len=500) :: history
+
+    write(filename, '(a,a,i4.4,a)') trim(prefix), '_', i_loop, '.nc'
+    call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
+
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+         "PartMC output file"))
+    call iso8601_date_and_time(history)
+    history((len_trim(history)+1):) = " created by PartMC"
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+  end subroutine output_processed_open
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine output_processed_close(ncid)
+
+    ! Close the processed state output file.
+
+    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+
+    call pmc_nc_check(nf90_close(ncid))
+
+  end subroutine output_processed_close
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine output_processed(ncid, process_spec_list, bin_grid, &
+       aero_data, aero_state, gas_data, gas_state, env, index, time, &
+       del_t, i_loop)
+
+    ! Write the current processed state.
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename  ! basename of the output
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! process specs
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
     type(env_t), intent(in) :: env      ! environment state
+    integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    real*8, intent(in) :: del_t         ! output timestep of current time
+    real*8, intent(in) :: del_t         ! current output time-step (s)
+    integer, intent(in) :: i_loop       ! current loop number
 
     integer :: i
 
+    call process_time(ncid, time, index, del_t)
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
-          call process_env(ncid, basename, process_spec_list(i)%suffix, &
+          call process_env(ncid, process_spec_list(i)%suffix, &
                time, index, env)
        elseif (process_spec_list(i)%type == "gas") then
-          call process_gas(ncid, basename, process_spec_list(i)%suffix, &
+          call process_gas(ncid, process_spec_list(i)%suffix, &
                time, index, gas_data, gas_state)
        elseif (process_spec_list(i)%type == "aero") then
-          call process_aero(ncid, basename, process_spec_list(i)%suffix, &
+          call process_aero(ncid, process_spec_list(i)%suffix, &
                time, index, bin_grid, aero_data, aero_state)
        elseif ((process_spec_list(i)%type == "kappa") &
           .or. (process_spec_list(i)%type == "comp") &
@@ -57,58 +98,53 @@ contains
           .or. (process_spec_list(i)%type == "optic_absorb") &
           .or. (process_spec_list(i)%type == "optic_scatter") &
           .or. (process_spec_list(i)%type == "optic_extinct")) then
-          call process_hist_new(ncid, basename, time, index, bin_grid, &
+          call process_hist_new(ncid, time, index, bin_grid, &
                env, aero_data, aero_state, process_spec_list(i))
        else
           call die(450985234)
        end if
     end do
 
-  end subroutine process_state_spec_list
+  end subroutine output_processed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine output_processed_binned(ncid, process_spec_list, &
+       bin_grid, aero_data, aero_binned, gas_data, gas_state, env, &
+       index, time, del_t)
 
-  subroutine process_state_open_output(file, basename, suffix)
-
-    ! Open the file basename + suffix + ".dat" for writing.
-
-    type(inout_file_t), intent(out) :: file ! file to open
-    character(len=*), intent(in) :: basename ! basename of the file
-    character(len=*), intent(in) :: suffix ! suffix of the file
+    ! Write the current binned data.
     
-    character(len=(len(basename)+len(suffix)+10)) :: filename
+    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
+    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
+    type(gas_data_t), intent(in) :: gas_data ! gas data
+    type(gas_state_t), intent(in) :: gas_state ! gas state
+    type(env_t), intent(in) :: env      ! environment state
+    integer, intent(in) :: index        ! filename index
+    real*8, intent(in) :: time          ! current time (s)
+    real*8, intent(in) :: del_t         ! current output time-step (s)
 
-    filename = ""
-    filename = basename
-    filename((len_trim(filename)+1):) = "_"
-    filename((len_trim(filename)+1):) = suffix
-    filename((len_trim(filename)+1):) = ".dat"
-    call inout_open_write(filename, file)
-    
-  end subroutine process_state_open_output
+    integer :: i
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    call process_time(ncid, time, index, del_t)
+    do i = 1,size(process_spec_list)
+       if (process_spec_list(i)%type == "env") then
+          call process_env(ncid, process_spec_list(i)%suffix, &
+               time, index, env)
+       elseif (process_spec_list(i)%type == "gas") then
+          call process_gas(ncid, process_spec_list(i)%suffix, &
+               time, index, gas_data, gas_state)
+       elseif (process_spec_list(i)%type == "aero") then
+          call output_aero(ncid, process_spec_list(i)%suffix, &
+               time, index, bin_grid, aero_data, aero_binned)
+       end if
+    end do
 
-  subroutine process_state_open_bin(file, basename, suffix)
-
-    ! Open the file basename + suffix + ".bin" as unformatted for writing.
-
-    integer, intent(out) :: file        ! unit number
-    character(len=*), intent(in) :: basename ! basename of the file
-    character(len=*), intent(in) :: suffix ! suffix of the file
-    
-    character(len=(len(basename)+len(suffix)+10)) :: filename
-
-    filename = ""
-    filename = basename
-    filename((len_trim(filename)+1):) = "_"
-    filename((len_trim(filename)+1):) = suffix
-    filename((len_trim(filename)+1):) = ".bin"
-    file = get_unit()
-    open(unit=file, file=filename, form='unformatted', access='sequential')
-    
-  end subroutine process_state_open_bin
-
+  end subroutine output_processed_binned
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine ensure_nc_dim_time(ncid, dimid_time)
@@ -540,9 +576,6 @@ contains
 
   subroutine ensure_nc_var_aero(ncid, bin_grid, aero_data, varid_aero)
 
-    use pmc_util
-    use pmc_aero_binned
-
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
@@ -576,10 +609,6 @@ contains
 
   subroutine ensure_nc_var_hist(ncid, process_spec, bin_grid, &
        aero_data, varid_hist)
-
-    use pmc_util
-    use pmc_aero_binned
-    use netcdf
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
     type(process_spec_t), intent(in) :: process_spec ! process spec
@@ -637,16 +666,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_env(ncid, basename, suffix, time, index, env)
+  subroutine process_env(ncid, suffix, time, index, env)
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename ! basename of the file
     character(len=*), intent(in) :: suffix ! suffix of the file
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(env_t), intent(in) :: env      ! environment state
-
-    type(inout_file_t) :: file
 
     integer :: varid_env_state
     integer :: start(2), count(2)
@@ -664,60 +690,18 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid_env_state, data, &
          start = start, count = count))
 
-!!!!!!!!!!!!!!!!!!!!!!!
-
-    call process_state_open_output(file, basename, suffix)
-    call inout_write_real(file, 'time', time)
-    call inout_write_integer(file, 'index', index)
-    call inout_write_string(file, 'name', 'env')
-    call inout_write_integer(file, 'n_dim', 1)
-
-    call inout_write_integer(file, 'dim', 1)
-    call inout_write_string(file, 'name', 'env_quantity')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'yes')
-    call inout_write_integer(file, 'length', 4)
-
-    call inout_write_indexed_string(file, 'grid_center', 1, 'temp')
-    call inout_write_indexed_string(file, 'grid_center', 2, 'rel_humid')
-    call inout_write_indexed_string(file, 'grid_center', 3, 'pressure')
-    call inout_write_indexed_string(file, 'grid_center', 4, 'height')
-    call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 2, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 3, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 4, 1d0)
-    call inout_write_indexed_string(file, 'grid_unit', 1, 'K')
-    call inout_write_indexed_string(file, 'grid_unit', 2, '1')
-    call inout_write_indexed_string(file, 'grid_unit', 3, 'Pa')
-    call inout_write_indexed_string(file, 'grid_unit', 4, 'm')
-
-    call inout_write_comment(file, 'data values follow, row major order')
-    call inout_write_unnamed_real(file, env%temp)
-    call inout_write_unnamed_real(file, env%rel_humid)
-    call inout_write_unnamed_real(file, env%pressure)
-    call inout_write_unnamed_real(file, env%height)
-
-    call inout_close(file)
-
   end subroutine process_env
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_gas(ncid, basename, suffix, time, index, &
-       gas_data, gas_state)
+  subroutine process_gas(ncid, suffix, time, index, gas_data, gas_state)
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename ! basename of the file
     character(len=*), intent(in) :: suffix ! suffix of the file
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-
-    type(inout_file_t) :: file
-    integer :: i_spec
 
     integer :: varid_gas
     integer :: start(2), count(2)
@@ -729,52 +713,14 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid_gas, gas_state%conc, &
          start = start, count = count))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    call process_state_open_output(file, basename, suffix)
-    call inout_write_real(file, 'time', time)
-    call inout_write_integer(file, 'index', index)
-    call inout_write_string(file, 'name', 'gas')
-    call inout_write_integer(file, 'n_dim', 1)
-
-    call inout_write_integer(file, 'dim', 1)
-    call inout_write_string(file, 'name', 'species')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'yes')
-    call inout_write_integer(file, 'length', gas_data%n_spec)
-
-    do i_spec = 1,gas_data%n_spec
-       call inout_write_indexed_string(file, 'grid_center', i_spec, &
-            gas_data%name(i_spec))
-    end do
-    do i_spec = 1,gas_data%n_spec
-       call inout_write_indexed_real(file, 'grid_width', i_spec, 1d0)
-    end do
-    do i_spec = 1,gas_data%n_spec
-       call inout_write_indexed_string(file, 'grid_unit', i_spec, 'ppb')
-    end do
-
-    call inout_write_comment(file, 'data values follow, row major order')
-    do i_spec = 1,gas_data%n_spec
-       call inout_write_unnamed_real(file, gas_state%conc(i_spec))
-    end do
-
-    call inout_close(file)
-
   end subroutine process_gas
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_aero(ncid, basename, suffix, time, index, bin_grid, &
+  subroutine output_aero(ncid, suffix, time, index, bin_grid, &
        aero_data, aero_binned)
 
-    use pmc_util
-    use pmc_aero_binned
-
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename ! basename of the output filename
     character(len=*), intent(in) :: suffix ! suffix for the output filename
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
@@ -782,11 +728,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aero_data structure
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned structure
 
-    type(inout_file_t) :: file
-    integer :: i_bin, i_spec
-
     real*8 :: aero(bin_grid%n_bin, aero_data%n_spec, 4)
-    integer :: varid_aero
+    integer :: i_bin, i_spec, varid_aero
     integer :: start(4), count(4)
 
     call ensure_nc_var_aero(ncid, bin_grid, aero_data, varid_aero)
@@ -812,214 +755,14 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid_aero, aero, &
          start = start, count = count))
 
-!    integer :: ncid
-!    integer :: radius_dimid, radius_varid
-!    integer :: radius_edges_dimid, radius_edges_varid
-!    integer :: species_dimid, species_varid
-!    integer :: unit_dimid, unit_varid
-!    integer :: data_varid, dimids(3)
-!    character(len=(len(basename)+len(suffix)+10)) :: filename
-!    real*8 :: radius_centers(bin_grid%n_bin), radius_edges(bin_grid%n_bin + 1)
-!    integer :: species_centers(aero_data%n_spec), unit_centers(4)
-!    real*8 :: data(bin_grid%n_bin, aero_data%n_spec, 4)
-!    character(len=(AERO_NAME_LEN * aero_data%n_spec)) :: species_names
-!    character(len=(4*30)) :: unit_names, unit_units
-!    character(len=500) :: date_str, time_str, zone_str, history
-!
-!    filename = ""
-!    filename = basename
-!    filename((len_trim(filename)+1):) = "_"
-!    filename((len_trim(filename)+1):) = suffix
-!    filename((len_trim(filename)+1):) = ".nc"
-!    call pmc_nc_check(nf90_create(filename, nf90_clobber, ncid))
-!
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
-!         "PartMC output file"))
-!    call date_and_time(date_str, time_str, zone_str)
-!    write(history, '(15a)') date_str(1:4), "-", date_str(5:6), "-", &
-!         date_str(7:8), "T", time_str(1:2), ":", time_str(3:4), ":", &
-!         time_str(5:10), zone_str(1:3), ":", zone_str(4:5), " created by PartMC"
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "time", time))
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "index", index))
-!
-!    call pmc_nc_check(nf90_def_dim(ncid, "radius", &
-!         bin_grid%n_bin, radius_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "radius_edges", &
-!         bin_grid%n_bin + 1, radius_edges_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "species", &
-!         aero_data%n_spec, species_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "unit", &
-!         4, unit_dimid))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "radius", NF90_DOUBLE, &
-!         radius_dimid, radius_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, radius_varid, "unit", "m"))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "radius_edges", NF90_DOUBLE, &
-!         radius_edges_dimid, radius_edges_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, radius_edges_varid, "unit", "m"))
-!
-!    species_names = ""
-!    do i_spec = 1,aero_data%n_spec
-!       species_names((len_trim(species_names) + 1):) &
-!            = trim(aero_data%name(i_spec))
-!       if (i_spec < aero_data%n_spec) then
-!          species_names((len_trim(species_names) + 1):) = ","
-!       end if
-!    end do
-!    call pmc_nc_check(nf90_def_var(ncid, "species", NF90_INT, &
-!         species_dimid, species_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, species_varid, "unit", "1"))
-!    call pmc_nc_check(nf90_put_att(ncid, species_varid, "names", species_names))
-!
-!    unit_names = "num_den,vol_den,mass_den,mole_den"
-!    unit_units = "#/m^3,m^3/m^3,kg/m^3,mole/m^3"
-!    call pmc_nc_check(nf90_def_var(ncid, "unit", NF90_INT, &
-!         unit_dimid, unit_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "unit", "1"))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "names", unit_names))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "data_units", unit_units))
-!
-!    dimids = (/ radius_dimid, species_dimid, unit_dimid /)
-!    call pmc_nc_check(nf90_def_var(ncid, suffix, NF90_DOUBLE, &
-!         dimids, data_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, data_varid, "unit", "1"))
-!
-!    call pmc_nc_check(nf90_enddef(ncid))
-!
-!    do i_bin = 1,bin_grid%n_bin
-!       radius_centers(i_bin) = vol2rad(bin_grid%v(i_bin))
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, radius_varid, radius_centers))
-!    do i_bin = 1,(bin_grid%n_bin + 1)
-!       radius_edges(i_bin) = vol2rad(bin_edge(bin_grid, i_bin))
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, radius_edges_varid, radius_edges))
-!
-!    do i_spec = 1,aero_data%n_spec
-!       species_centers(i_spec) = i_spec
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, species_varid, species_centers))
-!
-!    unit_centers = (/ 1, 2, 3, 4 /)
-!    call pmc_nc_check(nf90_put_var(ncid, unit_varid, unit_centers))
-!
-!    do i_bin = 1,bin_grid%n_bin
-!       do i_spec = 1,aero_data%n_spec
-!          data(i_bin, i_spec, 1) = &
-!               aero_binned%num_den(i_bin) / dble(aero_data%n_spec)
-!          data(i_bin, i_spec, 2) = &
-!               aero_binned%vol_den(i_bin, i_spec)
-!          data(i_bin, i_spec, 3) = &
-!               aero_binned%vol_den(i_bin, i_spec) &
-!               * aero_data%density(i_spec)
-!          data(i_bin, i_spec, 4) = &
-!               aero_binned%vol_den(i_bin, i_spec) &
-!               * aero_data%density(i_spec) &
-!               / aero_data%molec_weight(i_spec)
-!       end do
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, data_varid, data))
-!
-!    call pmc_nc_check(nf90_close(ncid))
-
-!!!!!!!!!!!!!!!!
-
-    call process_state_open_output(file, basename, suffix)
-    call inout_write_real(file, 'time', time)
-    call inout_write_integer(file, 'index', index)
-    call inout_write_string(file, 'name', 'aero')
-    call inout_write_integer(file, 'n_dim', 3)
-
-    ! dim 1: bin
-    call inout_write_integer(file, 'dim', 1)
-    call inout_write_string(file, 'name', 'radius')
-    call inout_write_string(file, 'unit', 'm')
-    call inout_write_string(file, 'grid_type', 'center_edge')
-    call inout_write_string(file, 'data_type', 'real')
-    call inout_write_string(file, 'have_grid_units', 'no')
-    call inout_write_integer(file, 'length', bin_grid%n_bin)
-    do i_bin = 1,bin_grid%n_bin
-       call inout_write_indexed_real(file, 'grid_center', i_bin, &
-            vol2rad(bin_grid%v(i_bin)))
-    end do
-    do i_bin = 1,(bin_grid%n_bin + 1)
-       call inout_write_indexed_real(file, 'grid_edge', i_bin, &
-            vol2rad(bin_edge(bin_grid, i_bin)))
-    end do
-    do i_bin = 1,bin_grid%n_bin
-       call inout_write_indexed_real(file, 'grid_width', i_bin, bin_grid%dlnr)
-    end do
-
-    ! dim 2: species
-    call inout_write_integer(file, 'dim', 2)
-    call inout_write_string(file, 'name', 'species')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'no')
-    call inout_write_integer(file, 'length', aero_data%n_spec)
-    do i_spec = 1,aero_data%n_spec
-       call inout_write_indexed_string(file, 'grid_center', i_spec, &
-            aero_data%name(i_spec))
-    end do
-    do i_spec = 1,aero_data%n_spec
-       call inout_write_indexed_real(file, 'grid_width', i_spec, 1d0)
-    end do
-
-    ! dim 3: unit
-    call inout_write_integer(file, 'dim', 3)
-    call inout_write_string(file, 'name', 'unit')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'yes')
-    call inout_write_integer(file, 'length', 4)
-    call inout_write_indexed_string(file, 'grid_center', 1, 'num_den')
-    call inout_write_indexed_string(file, 'grid_center', 2, 'vol_den')
-    call inout_write_indexed_string(file, 'grid_center', 3, 'mass_den')
-    call inout_write_indexed_string(file, 'grid_center', 4, 'mole_den')
-    call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 2, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 3, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 4, 1d0)
-    call inout_write_indexed_string(file, 'grid_unit', 1, '#/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 2, 'm^3/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 3, 'kg/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 4, 'moles/m^3')
-
-    call inout_write_comment(file, 'data values follow, row major order')
-    do i_bin = 1,bin_grid%n_bin
-       do i_spec = 1,aero_data%n_spec
-          call inout_write_unnamed_real(file, &
-               aero_binned%num_den(i_bin) / dble(aero_data%n_spec))
-          call inout_write_unnamed_real(file, &
-               aero_binned%vol_den(i_bin, i_spec))
-          call inout_write_unnamed_real(file, &
-               aero_binned%vol_den(i_bin, i_spec) &
-               * aero_data%density(i_spec))
-          call inout_write_unnamed_real(file, &
-               aero_binned%vol_den(i_bin, i_spec) &
-               * aero_data%density(i_spec) &
-               / aero_data%molec_weight(i_spec))
-       end do
-    end do
-
-    call inout_close(file)
-
   end subroutine output_aero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_aero(ncid, basename, suffix, time, index, bin_grid, &
+  subroutine process_aero(ncid, suffix, time, index, bin_grid, &
        aero_data, aero_state)
 
-    use pmc_util
-    use pmc_aero_binned
-
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename ! basename of the output filename
     character(len=*), intent(in) :: suffix ! suffix for the output filename
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
@@ -1032,7 +775,7 @@ contains
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
-    call output_aero(ncid, basename, suffix, time, index, bin_grid, &
+    call output_aero(ncid, suffix, time, index, bin_grid, &
          aero_data, aero_binned)
 
     call aero_binned_free(aero_binned)
@@ -1041,15 +784,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_hist(ncid, basename, time, index, bin_grid, &
-       aero_data, process_spec, hist, step_width)
-
-    use pmc_util
-    use pmc_aero_binned
-    use netcdf
+  subroutine output_hist(ncid, time, index, bin_grid, aero_data, &
+       process_spec, hist)
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename ! basename of the output filename
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
@@ -1057,12 +795,6 @@ contains
     type(process_spec_t), intent(in) :: process_spec ! process spec
     real*8, intent(in) :: hist(process_spec%n_step, bin_grid%n_bin, &
          aero_data%n_spec, 4)           ! histogram data
-    real*8, intent(in) :: step_width    ! width of histogram steps
-
-    type(inout_file_t) :: file
-    integer :: i_step, i_bin, i_spec, i_unit, bin_file
-    real*8 :: step_edges(process_spec%n_step + 1)
-    character(len=50) :: num_str, fmt_str
 
     integer :: varid_hist
     integer :: start(5), count(5)
@@ -1075,252 +807,17 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid_hist, hist, &
          start = start, count = count))
 
-!    integer :: ncid
-!    integer :: step_dimid, step_varid
-!    integer :: step_edges_dimid, step_edges_varid
-!    integer :: radius_dimid, radius_varid
-!    integer :: radius_edges_dimid, radius_edges_varid
-!    integer :: species_dimid, species_varid
-!    integer :: unit_dimid, unit_varid
-!    integer :: data_varid, dimids(4)
-!    character(len=(len(basename)+len(process_spec%suffix)+10)) :: filename
-!    real*8 :: radius_centers(bin_grid%n_bin), radius_edges(bin_grid%n_bin + 1)
-!    real*8 :: step_centers(process_spec%n_step)
-!    integer :: species_centers(aero_data%n_spec), unit_centers(4)
-!    character(len=(AERO_NAME_LEN * aero_data%n_spec)) :: species_names
-!    character(len=(4*30)) :: unit_names, unit_units
-!    character(len=500) :: date_str, time_str, zone_str, history
-
-    if (process_spec%log_scale) then
-       call logspace(process_spec%min_val, process_spec%max_val, &
-            process_spec%n_step + 1, step_edges)
-    else
-       call linspace(process_spec%min_val, process_spec%max_val, &
-            process_spec%n_step + 1, step_edges)
-    end if
-
-!    filename = ""
-!    filename = basename
-!    filename((len_trim(filename)+1):) = "_"
-!    filename((len_trim(filename)+1):) = process_spec%suffix
-!    filename((len_trim(filename)+1):) = ".nc"
-!    call pmc_nc_check(nf90_create(filename, nf90_clobber, ncid))
-!
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
-!         "PartMC output file"))
-!    call date_and_time(date_str, time_str, zone_str)
-!    write(history, '(a,a,a,a,a,a,a,a,a,a,a,a,a)') date_str(1:4), "-", &
-!         date_str(5:6), "-", date_str(7:8), "T", time_str(1:2), ":", &
-!         time_str(3:4), ":", time_str(5:10), zone_str, " created by PartMC"
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "time", time))
-!    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "index", index))
-!
-!    call pmc_nc_check(nf90_def_dim(ncid, "step", &
-!         process_spec%n_step, step_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "step_edges", &
-!         process_spec%n_step + 1, step_edges_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "radius", &
-!         bin_grid%n_bin, radius_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "radius_edges", &
-!         bin_grid%n_bin + 1, radius_edges_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "species", &
-!         aero_data%n_spec, species_dimid))
-!    call pmc_nc_check(nf90_def_dim(ncid, "unit", &
-!         4, unit_dimid))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "step", NF90_DOUBLE, &
-!         step_dimid, step_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, step_varid, "unit", "1"))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "step_edges", NF90_DOUBLE, &
-!         step_edges_dimid, step_edges_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, step_edges_varid, "unit", "1"))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "radius", NF90_DOUBLE, &
-!         radius_dimid, radius_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, radius_varid, "unit", "m"))
-!
-!    call pmc_nc_check(nf90_def_var(ncid, "radius_edges", NF90_DOUBLE, &
-!         radius_edges_dimid, radius_edges_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, radius_edges_varid, "unit", "m"))
-!
-!    species_names = ""
-!    do i_spec = 1,aero_data%n_spec
-!       species_names((len_trim(species_names) + 1):) &
-!            = trim(aero_data%name(i_spec))
-!       if (i_spec < aero_data%n_spec) then
-!          species_names((len_trim(species_names) + 1):) = ","
-!       end if
-!    end do
-!    call pmc_nc_check(nf90_def_var(ncid, "species", NF90_INT, &
-!         species_dimid, species_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, species_varid, "unit", "1"))
-!    call pmc_nc_check(nf90_put_att(ncid, species_varid, "names", species_names))
-!
-!    unit_names = "num_den,vol_den,mass_den,mole_den"
-!    unit_units = "#/m^3,m^3/m^3,kg/m^3,mole/m^3"
-!    call pmc_nc_check(nf90_def_var(ncid, "unit", NF90_INT, &
-!         unit_dimid, unit_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "unit", "1"))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "names", unit_names))
-!    call pmc_nc_check(nf90_put_att(ncid, unit_varid, "data_units", unit_units))
-!
-!    dimids = (/ step_dimid, radius_dimid, species_dimid, unit_dimid /)
-!    call pmc_nc_check(nf90_def_var(ncid, process_spec%suffix, NF90_DOUBLE, &
-!         dimids, data_varid))
-!    call pmc_nc_check(nf90_put_att(ncid, data_varid, "unit", "1"))
-!
-!    call pmc_nc_check(nf90_enddef(ncid))
-!
-!    do i_step = 1,process_spec%n_step
-!       step_centers(i_step) = (step_edges(i_step) &
-!            + step_edges(i_step + 1)) / 2d0
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, step_varid, step_centers))
-!    call pmc_nc_check(nf90_put_var(ncid, step_edges_varid, step_edges))
-!
-!    do i_bin = 1,bin_grid%n_bin
-!       radius_centers(i_bin) = vol2rad(bin_grid%v(i_bin))
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, radius_varid, radius_centers))
-!    do i_bin = 1,(bin_grid%n_bin + 1)
-!       radius_edges(i_bin) = vol2rad(bin_edge(bin_grid, i_bin))
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, radius_edges_varid, radius_edges))
-!
-!    do i_spec = 1,aero_data%n_spec
-!       species_centers(i_spec) = i_spec
-!    end do
-!    call pmc_nc_check(nf90_put_var(ncid, species_varid, species_centers))
-!
-!    unit_centers = (/ 1, 2, 3, 4 /)
-!    call pmc_nc_check(nf90_put_var(ncid, unit_varid, unit_centers))
-!
-!    call pmc_nc_check(nf90_put_var(ncid, data_varid, hist))
-!
-!    call pmc_nc_check(nf90_close(ncid))
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    call process_state_open_output(file, basename, process_spec%suffix)
-    call inout_write_real(file, 'time', time)
-    call inout_write_integer(file, 'index', index)
-    call inout_write_string(file, 'name', trim(process_spec%suffix))
-    call inout_write_integer(file, 'n_dim', 4)
-
-    ! dim 1: step
-    call inout_write_integer(file, 'dim', 1)
-    if (process_spec%type == "kappa") then
-       call inout_write_string(file, 'name', 'critical_supersat')
-       call inout_write_string(file, 'unit', '1')
-    elseif (process_spec%type == "comp") then
-       call inout_write_string(file, 'name', 'composition')
-       call inout_write_string(file, 'unit', '1')
-    elseif (process_spec%type == "n_orig_part") then
-       call inout_write_string(file, 'name', 'n_orig_part')
-       call inout_write_string(file, 'unit', '1')
-    elseif (process_spec%type == "optic_absorb") then
-       call inout_write_string(file, 'name', 'absorb_cross_section_area')
-       call inout_write_string(file, 'unit', 'm^2')
-    elseif (process_spec%type == "optic_scatter") then
-       call inout_write_string(file, 'name', 'scatter_cross_section_area')
-       call inout_write_string(file, 'unit', 'm^2')
-    elseif (process_spec%type == "optic_extinct") then
-       call inout_write_string(file, 'name', 'extinct_cross_section_area')
-       call inout_write_string(file, 'unit', 'm^2')
-    else
-       call die(829823063)
-    end if
-    call inout_write_string(file, 'grid_type', 'edge')
-    call inout_write_string(file, 'data_type', 'real')
-    call inout_write_string(file, 'have_grid_units', 'no')
-    call inout_write_integer(file, 'length', process_spec%n_step)
-    do i_step = 1,(process_spec%n_step + 1)
-       call inout_write_indexed_real(file, 'grid_edge', i_step, &
-            step_edges(i_step))
-    end do
-    do i_step = 1,process_spec%n_step
-       call inout_write_indexed_real(file, 'grid_width', i_step, step_width)
-    end do
-
-    ! dim 2: bin
-    call inout_write_integer(file, 'dim', 2)
-    call inout_write_string(file, 'name', 'radius')
-    call inout_write_string(file, 'unit', 'm')
-    call inout_write_string(file, 'grid_type', 'center_edge')
-    call inout_write_string(file, 'data_type', 'real')
-    call inout_write_string(file, 'have_grid_units', 'no')
-    call inout_write_integer(file, 'length', bin_grid%n_bin)
-    do i_bin = 1,bin_grid%n_bin
-       call inout_write_indexed_real(file, 'grid_center', i_bin, &
-            vol2rad(bin_grid%v(i_bin)))
-    end do
-    do i_bin = 1,(bin_grid%n_bin + 1)
-       call inout_write_indexed_real(file, 'grid_edge', i_bin, &
-            vol2rad(bin_edge(bin_grid, i_bin)))
-    end do
-    do i_bin = 1,bin_grid%n_bin
-       call inout_write_indexed_real(file, 'grid_width', i_bin, bin_grid%dlnr)
-    end do
-
-    ! dim 3: species
-    call inout_write_integer(file, 'dim', 3)
-    call inout_write_string(file, 'name', 'species')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'no')
-    call inout_write_integer(file, 'length', aero_data%n_spec)
-    do i_spec = 1,aero_data%n_spec
-       call inout_write_indexed_string(file, 'grid_center', i_spec, &
-            aero_data%name(i_spec))
-    end do
-    do i_spec = 1,aero_data%n_spec
-       call inout_write_indexed_real(file, 'grid_width', i_spec, 1d0)
-    end do
-
-    ! dim 4: unit
-    call inout_write_integer(file, 'dim', 4)
-    call inout_write_string(file, 'name', 'unit')
-    call inout_write_string(file, 'unit', 'none')
-    call inout_write_string(file, 'grid_type', 'center')
-    call inout_write_string(file, 'data_type', 'string')
-    call inout_write_string(file, 'have_grid_units', 'yes')
-    call inout_write_integer(file, 'length', 4)
-    call inout_write_indexed_string(file, 'grid_center', 1, 'num_den')
-    call inout_write_indexed_string(file, 'grid_center', 2, 'vol_den')
-    call inout_write_indexed_string(file, 'grid_center', 3, 'mass_den')
-    call inout_write_indexed_string(file, 'grid_center', 4, 'mole_den')
-    call inout_write_indexed_real(file, 'grid_width', 1, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 2, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 3, 1d0)
-    call inout_write_indexed_real(file, 'grid_width', 4, 1d0)
-    call inout_write_indexed_string(file, 'grid_unit', 1, '#/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 2, 'm^3/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 3, 'kg/m^3')
-    call inout_write_indexed_string(file, 'grid_unit', 4, 'moles/m^3')
-
-    call inout_write_string(file, 'external_data', 'yes')
-
-    call inout_close(file)
-
-    call process_state_open_bin(bin_file, basename, process_spec%suffix)
-!    write(bin_file) hist
-    close(bin_file)
-
   end subroutine output_hist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_hist_new(ncid, basename, time, index, bin_grid, &
+  subroutine process_hist_new(ncid, time, index, bin_grid, &
        env, aero_data, aero_state, process_spec)
 
     ! Compute histogram by calling the step_comp() function on each
     ! particle.
     
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: basename  ! basename of the output
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -1418,17 +915,14 @@ contains
        deallocate(a_species, b_species)
     end if
 
-    call output_hist(ncid, basename, time, index, bin_grid, aero_data, &
-         process_spec, hist, step_width)
+    call output_hist(ncid, time, index, bin_grid, aero_data, &
+         process_spec, hist)
 
   end subroutine process_hist_new
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   real*8 function aero_particle_comp(aero_particle, a_species, b_species)
-
-    use pmc_aero_particle
-    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     integer, intent(in) :: a_species(:) ! first list of species
@@ -1458,4 +952,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_process
+end module pmc_output_processed

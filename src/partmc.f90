@@ -78,7 +78,6 @@ contains
     use pmc_inout
     use pmc_gas_data
     use pmc_gas_state
-    use pmc_output_summary
     use pmc_util
 
     type(inout_file_t), intent(out) :: file ! spec file
@@ -96,7 +95,6 @@ contains
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
-    type(inout_file_t) :: summary_file  ! summary output file
     type(process_spec_t), pointer :: process_spec_list(:) ! process specs
     integer :: i_loop                   ! current loop number
     integer :: rand_init                ! random number generator init
@@ -210,14 +208,6 @@ contains
     deallocate(buffer)
 #endif
 
-    ! open output files
-    if (pmc_mpi_rank() == 0) then
-       ! only the root process does I/O
-       call inout_open_write(summary_name, summary_file)
-       call output_summary_header(summary_file, bin_grid, gas_data, &
-            aero_data, mc_opt%n_loop, nint(mc_opt%t_max / mc_opt%t_output) + 1)
-    end if
-    
     call util_srand(rand_init + pmc_mpi_rank())
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
@@ -242,23 +232,23 @@ contains
        if (trim(kernel_name) == 'sedi') then
           call run_mc(kernel_sedi, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file, process_spec_list)
+               mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(kernel_golovin, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file, process_spec_list)
+               mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(kernel_constant, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file, process_spec_list)
+               mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(kernel_brown, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file, process_spec_list)
+               mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'zero') then
           call run_mc(kernel_zero, bin_grid, aero_binned, env_data, &
                env, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, summary_file, process_spec_list)
+               mc_opt, process_spec_list)
        else
           if (pmc_mpi_rank() == 0) then
              write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
@@ -267,11 +257,6 @@ contains
        end if
 
     end do
-
-    if (pmc_mpi_rank() == 0) then
-       ! only the root process does I/O
-       call inout_close(summary_file)
-    end if
 
     call gas_data_free(gas_data)
     call gas_state_free(gas_init)
@@ -306,7 +291,6 @@ contains
     use pmc_inout
     use pmc_gas_data
     use pmc_gas_state
-    use pmc_output_summary
     use pmc_kernel_zero
 
     type(inout_file_t), intent(out) :: file ! spec file
@@ -318,7 +302,6 @@ contains
     type(env_t) :: env                  ! environment state
     type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
-    type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
     type(process_spec_t), pointer :: process_spec_list(:) ! process specs
 
@@ -362,26 +345,21 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call inout_open_write(summary_name, summary_file)
     call gas_data_alloc(gas_data, 0)
-    call output_summary_header(summary_file, bin_grid, gas_data, &
-         aero_data, 1, nint(exact_opt%t_max / exact_opt%t_output) + 1)
 
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_golovin_exp, summary_file, process_spec_list)
+            soln_golovin_exp, process_spec_list)
     elseif (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_constant_exp_cond, summary_file, process_spec_list)
+            soln_constant_exp_cond, process_spec_list)
     elseif (trim(soln_name) == 'zero') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
-            soln_zero, summary_file, process_spec_list)
+            soln_zero, process_spec_list)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
     end if
-
-    call inout_close(summary_file)
 
     call aero_data_free(aero_data)
     call env_data_free(env_data)
@@ -412,7 +390,6 @@ contains
     use pmc_aero_dist
     use pmc_gas_data
     use pmc_gas_state
-    use pmc_output_summary
 
     type(inout_file_t), intent(out) :: file ! spec file
 
@@ -425,7 +402,6 @@ contains
     type(env_data_t) :: env_data        ! environment data
     type(env_t) :: env                  ! environment state
     type(bin_grid_t) :: bin_grid        ! bin grid
-    type(inout_file_t) :: summary_file  ! summary output file
     type(gas_data_t) :: gas_data        ! dummy gas data
     type(process_spec_t), pointer :: process_spec_list(:) ! process specs
 
@@ -462,36 +438,25 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call inout_open_write(summary_name, summary_file)
-    call output_summary_header(summary_file, bin_grid, gas_data, &
-         aero_data, 1, nint(sect_opt%t_max / sect_opt%t_output) + 1)
-
     if (trim(kernel_name) == 'sedi') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_sedi, sect_opt, summary_file, &
-            process_spec_list)
+            env_data, env, kernel_sedi, sect_opt, process_spec_list)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_golovin, sect_opt, summary_file, &
-            process_spec_list)
+            env_data, env, kernel_golovin, sect_opt, process_spec_list)
     elseif (trim(kernel_name) == 'constant') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_constant, sect_opt, summary_file, &
-            process_spec_list)
+            env_data, env, kernel_constant, sect_opt, process_spec_list)
     elseif (trim(kernel_name) == 'brown') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_brown, sect_opt, summary_file, &
-            process_spec_list)
+            env_data, env, kernel_brown, sect_opt, process_spec_list)
     elseif (trim(kernel_name) == 'zero') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env, kernel_zero, sect_opt, summary_file, &
-            process_spec_list)
+            env_data, env, kernel_zero, sect_opt, process_spec_list)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)
     end if
-
-    call inout_close(summary_file)
 
     call aero_data_free(aero_data)
     call aero_dist_free(aero_dist_init)

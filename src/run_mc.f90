@@ -34,8 +34,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine run_mc(kernel, bin_grid, aero_binned, env_data, env, &
-       aero_data, aero_state, gas_data, gas_state, mc_opt, summary_file, &
-       process_spec_list)
+       aero_data, aero_state, gas_data, gas_state, mc_opt, process_spec_list)
 
     ! Do a particle-resolved Monte Carlo simulation.
     
@@ -53,7 +52,7 @@ contains
     use pmc_mosaic
     use pmc_coagulation
     use pmc_kernel
-    use pmc_output_summary
+    use pmc_output_processed
     use pmc_mpi
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -65,7 +64,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
-    type(inout_file_t), intent(inout) :: summary_file ! summary output file
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
@@ -128,9 +126,9 @@ contains
           if (mc_opt%t_output > 0d0) then
              call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
                   last_output_time, do_output)
-             if (do_output) call output_summary(summary_file, &
-                  pre_time, bin_grid, aero_data, aero_binned, &
-                  gas_data, gas_state, env, mc_opt%i_loop)
+             if (do_output) then
+                call die_msg(139423908, "not implemented")
+             end if
           end if
           pre_time = pre_time + mc_opt%del_t
        end do
@@ -145,11 +143,8 @@ contains
     end if
 
     if (mc_opt%t_output > 0d0) then
-       call output_summary(summary_file, &
-            time, bin_grid, aero_data, aero_binned, &
-            gas_data, gas_state, env, mc_opt%i_loop)
        call output_processed_open(mc_opt%state_prefix, mc_opt%i_loop, ncid)
-       call output_processed(ncid, mc_opt%state_prefix, process_spec_list, &
+       call output_processed(ncid, process_spec_list, &
             bin_grid, aero_data, aero_state, gas_data, gas_state, &
             env, i_summary, time, mc_opt%t_output, mc_opt%i_loop)
     end if
@@ -216,13 +211,9 @@ contains
                last_output_time, do_output)
           if (do_output) then
              i_summary = i_summary + 1
-             call output_summary(summary_file, &
-                  time, bin_grid, aero_data, aero_binned, &
-                  gas_data, gas_state, env, mc_opt%i_loop)
-             call output_processed(ncid, mc_opt%state_prefix, &
-                  process_spec_list, bin_grid, aero_data, aero_state, &
-                  gas_data, gas_state, env, i_summary, time, &
-                  mc_opt%t_output, mc_opt%i_loop)
+             call output_processed(ncid, process_spec_list, bin_grid, &
+                  aero_data, aero_state, gas_data, gas_state, env, &
+                  i_summary, time, mc_opt%t_output, mc_opt%i_loop)
           end if
        end if
 

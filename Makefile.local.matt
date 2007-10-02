@@ -1,0 +1,3 @@
+NETCDF_MODDIR = -I$(HOME)/t/netcdf-3.6.2/f90
+NETCDF_LIBDIR = -L$(HOME)/t/netcdf-3.6.2/libsrc/.libs -L$(HOME)/t/netcdf-3.6.2/f90/.libs/
+NETCDF_LIB = -lnetcdff90 -lnetcdf

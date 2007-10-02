@@ -27,7 +27,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env, kernel, sect_opt, summary_file, process_spec_list)
+       env_data, env, kernel, sect_opt, process_spec_list)
 
     ! Run a sectional simulation.
   
@@ -40,7 +40,7 @@ contains
     use pmc_env
     use pmc_aero_data
     use pmc_kernel
-    use pmc_output_summary
+    use pmc_output_processed
     use pmc_gas_data
     use pmc_gas_state
     use pmc_process_spec
@@ -52,7 +52,6 @@ contains
     type(env_data_t), intent(inout) :: env_data ! environment data
     type(env_t), intent(inout) :: env   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
-    type(inout_file_t), intent(inout) :: summary_file ! summary output file
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
     real*8 c(bin_grid%n_bin,bin_grid%n_bin)
@@ -135,10 +134,8 @@ contains
     call check_event(time, sect_opt%del_t, sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
-       call output_summary(summary_file, 0d0, &
-            bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
        call output_processed_open(sect_opt%prefix, 1, ncid)
-       call output_binned(ncid, sect_opt%prefix, process_spec_list, &
+       call output_processed_binned(ncid, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
             env, i_summary, time, sect_opt%t_output)
     end if
@@ -172,9 +169,7 @@ contains
             last_output_time, do_output)
        if (do_output) then
           i_summary = i_summary + 1
-          call output_summary(summary_file, time, &
-               bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
-          call output_binned(ncid, sect_opt%prefix, process_spec_list, &
+          call output_processed_binned(ncid, process_spec_list, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, &
                env, i_summary, time, sect_opt%t_output)
        end if

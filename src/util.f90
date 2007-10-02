@@ -818,4 +818,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  subroutine iso8601_date_and_time(date_time)
+
+    ! Write the current date and time into the date_time string,
+    ! formatted according to ISO 8601.
+
+    character(len=*), intent(out) :: date_time ! result string
+
+    character(len=10) :: date, time, zone
+
+    call assert_msg(893219839, len(date_time) >= 29, &
+         "date_time string must have length at least 29")
+    call date_and_time(date, time, zone)
+    date_time = ""
+    write(date_time, '(14a)') date(1:4), "-", date(5:6), "-", &
+         date(7:8), "T", time(1:2), ":", time(3:4), ":", &
+         time(5:10), zone(1:3), ":", zone(4:5)
+    
+  end subroutine iso8601_date_and_time
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
 end module pmc_util

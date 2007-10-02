@@ -14,21 +14,24 @@ FC = gfortran
 # -pg             profiling (must also be used on LDFLAGS)
 # -fbounds-check  check array accesses
 # -Wno-unused     disable reporting of unused variables
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC -I/usr/include/netcdf-3
-LDFLAGS = -L$(MOSAIC_LIBDIR) -L/usr/include/netcdf-3 -L/usr/lib
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC $(NETCDF_MODDIR)
+LDFLAGS = -L$(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
 MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
 MOSAIC_LIBDIR = $(MOSAIC_DIR)
 MOSAIC_MODDIR = $(MOSAIC_DIR)
 MOSAIC_LIB = -lmosaic
 
+NETCDF_MODDIR = -I/usr/include/netcdf-3
+NETCDF_LIBDIR = -L/usr/lib
+NETCDF_LIB = -lnetcdff -lnetcdf
+
 -include Makefile.local
 -include Makefile.mosaic_dirs
 
-PROGS := src/process_summary src/process_average src/partmc		\
-	test/sedi_bidisperse_ode test/sedi_bidisperse_state_to_count	\
-	equilib/equilib test/poisson_sample src/process_state		\
-	src/process_state_new
+PROGS := src/partmc test/sedi_bidisperse_ode			\
+	test/sedi_bidisperse_state_to_count equilib/equilib	\
+	test/poisson_sample
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/env_data src/env src/aero_dist		\
@@ -36,9 +39,9 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/kernel_brown src/kernel_zero src/aero_data src/run_exact	\
 	src/run_mc src/util src/run_sect src/output_state src/mosaic	\
 	src/gas_data src/gas_state src/coagulation src/kernel		\
-	src/output_summary src/inout src/rand_poisson			\
+	src/output_processed src/inout src/rand_poisson			\
 	src/aero_particle src/aero_particle_array src/mpi		\
-	src/process_state_hist src/process_spec src/process src/netcdf
+	src/process_spec src/netcdf
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -52,16 +55,10 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/run_mc.o src/gas_data.o src/gas_state.o src/run_exact.o	\
 	src/run_sect.o src/util.o src/constants.o src/output_state.o	\
 	src/mosaic.o src/coagulation.o src/kernel.o			\
-	src/output_summary.o src/inout.o src/aero_binned.o		\
+	src/output_processed.o src/inout.o src/aero_binned.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
-	src/process_state_hist.o src/process.o src/netcdf.o
-process_summary_OBJS := src/process_summary.o src/util.o		\
-	src/constants.o src/aero_binned.o src/aero_data.o src/inout.o	\
-	src/env_data.o src/env.o src/gas_data.o src/gas_state.o		\
-	src/bin_grid.o src/aero_dist.o src/aero_state.o			\
-	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o src/mpi.o
+	src/netcdf.o
 process_state_OBJS := src/process_state.o src/bin_grid.o		\
 	src/env_data.o src/env.o src/aero_data.o src/aero_state.o	\
 	src/output_state.o src/util.o src/constants.o src/gas_data.o	\
@@ -76,7 +73,6 @@ process_state_new_OBJS := src/process_state_new.o src/bin_grid.o	\
 	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
 	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
 	src/mosaic.o src/process_spec.o src/process.o src/netcdf.o
-process_average_OBJS := src/process_average.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
@@ -129,15 +125,11 @@ equilib/%.o: equilib/%.f90 equilib/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/partmc: $(partmc_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) -lnetcdff -lnetcdf
-src/process_summary: $(process_summary_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 src/process_state: $(process_state_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB)
 src/process_state_new: $(process_state_new_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB) -lnetcdff -lnetcdf
-src/process_average: $(process_average_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)

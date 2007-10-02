@@ -82,7 +82,7 @@ contains
     real*8 time, pre_time
     real*8 last_output_time, last_state_time, last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index
+    integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index, ncid
     logical do_output, do_state, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
     integer n_time, i_time, i_time_start, pre_i_time, i_state, i_summary
@@ -94,7 +94,7 @@ contains
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
-    i_summary = 0
+    i_summary = 1
     i_state = 0
     time = 0d0
     call env_data_init_state(env_data, env, time)
@@ -148,9 +148,10 @@ contains
        call output_summary(summary_file, &
             time, bin_grid, aero_data, aero_binned, &
             gas_data, gas_state, env, mc_opt%i_loop)
-       call output_processed(mc_opt%state_prefix, process_spec_list, &
+       call output_processed_open(mc_opt%state_prefix, mc_opt%i_loop, ncid)
+       call output_processed(ncid, mc_opt%state_prefix, process_spec_list, &
             bin_grid, aero_data, aero_state, gas_data, gas_state, &
-            env, i_summary, time, mc_opt%i_loop)
+            env, i_summary, time, mc_opt%t_output, mc_opt%i_loop)
     end if
 
     if (mc_opt%t_state > 0d0) then
@@ -218,9 +219,10 @@ contains
              call output_summary(summary_file, &
                   time, bin_grid, aero_data, aero_binned, &
                   gas_data, gas_state, env, mc_opt%i_loop)
-             call output_processed(mc_opt%state_prefix, process_spec_list, &
-                  bin_grid, aero_data, aero_state, gas_data, gas_state, &
-                  env, i_summary, time, mc_opt%i_loop)
+             call output_processed(ncid, mc_opt%state_prefix, &
+                  process_spec_list, bin_grid, aero_data, aero_state, &
+                  gas_data, gas_state, env, i_summary, time, &
+                  mc_opt%t_output, mc_opt%i_loop)
           end if
        end if
 
@@ -256,7 +258,11 @@ contains
        end if
        
     enddo
-    
+
+    if (mc_opt%t_output > 0d0) then
+       call output_processed_close(ncid)
+    end if
+
   end subroutine run_mc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,0 +1,3 @@
+# DO NOT EDIT --- auto-generated file
+src/netcdf.o: src/pmc_util.mod
+src/pmc_netcdf.mod: src/pmc_util.mod

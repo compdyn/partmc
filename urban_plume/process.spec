@@ -19,7 +19,7 @@ suffix comp_bc                  # filename suffix for output
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-a_species SO4_a NO3_a NH4_a     # first species list
+a_species SO4_a NO3_a Cl_a NH4_a MSA_a ARO1_a ARO2_a ALK1_a OLE1_a API1_a API2_a LIM1_a LIM2_a CO3_a Na_a Ca_a OIN_a OC_a # first species list
 b_species BC_a                  # second species list
 
 #process comp                    # scalar composition

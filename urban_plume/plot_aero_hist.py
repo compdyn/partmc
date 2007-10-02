@@ -6,15 +6,19 @@
 import os, sys
 import copy as module_copy
 sys.path.append("../tool")
-from pmc_data import *
+from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
+from Scientific.IO.NetCDF import *
 
 aero_species = ["SO4_a", "NO3_a", "NH4_a"]
 
-data_set = read_data_set(file_list("out/urban_plume_state", "aero.dat"),
-			 [sum("radius")])
+data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
+	       "aero",
+	       [sum("radius"),
+		select("unit", "mass_den")])
+data.write_summary(sys.stdout)
 
 g = graph.graphxy(
     width = 10,
@@ -25,9 +29,8 @@ g = graph.graphxy(
     key = graph.key.key(pos = "tr"))
 
 for i in range(len(aero_species)):
-    data_slice = module_copy.deepcopy(data_set)
-    data_slice.reduce([select("unit", "mass_den"),
-		       select("species", aero_species[i])])
+    data_slice = module_copy.deepcopy(data)
+    data_slice.reduce([select("aero_species", aero_species[i])])
     data_slice.scale_dim("time", 1.0/3600)
     g.plot(graph.data.list(data_slice.data_center_list(),
 			   x = 1, y = 2,

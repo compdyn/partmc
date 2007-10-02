@@ -14,8 +14,8 @@ FC = gfortran
 # -pg             profiling (must also be used on LDFLAGS)
 # -fbounds-check  check array accesses
 # -Wno-unused     disable reporting of unused variables
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC
-LDFLAGS = -L$(MOSAIC_LIBDIR)
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC -I$(HOME)/t/netcdf-3.6.2/f90
+LDFLAGS = -L$(MOSAIC_LIBDIR) -L$(HOME)/t/netcdf-3.6.2/f90/.libs -L$(HOME)/t/netcdf-3.6.2/libsrc/.libs
 
 MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
 MOSAIC_LIBDIR = $(MOSAIC_DIR)
@@ -38,7 +38,7 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/gas_data src/gas_state src/coagulation src/kernel		\
 	src/output_summary src/inout src/rand_poisson			\
 	src/aero_particle src/aero_particle_array src/mpi		\
-	src/process_state_hist src/process_spec src/process
+	src/process_state_hist src/process_spec src/process src/netcdf
 
 EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 	golovin.sh golovin_exact.spec golovin_mc.spec			\
@@ -55,7 +55,7 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/output_summary.o src/inout.o src/aero_binned.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
-	src/process_state_hist.o src/process.o
+	src/process_state_hist.o src/process.o src/netcdf.o
 process_summary_OBJS := src/process_summary.o src/util.o		\
 	src/constants.o src/aero_binned.o src/aero_data.o src/inout.o	\
 	src/env_data.o src/env.o src/gas_data.o src/gas_state.o		\
@@ -75,7 +75,7 @@ process_state_new_OBJS := src/process_state_new.o src/bin_grid.o	\
 	src/gas_state.o src/inout.o src/aero_particle.o			\
 	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
 	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
-	src/mosaic.o src/process_spec.o src/process.o
+	src/mosaic.o src/process_spec.o src/process.o src/netcdf.o
 process_average_OBJS := src/process_average.o
 sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
@@ -129,13 +129,13 @@ equilib/%.o: equilib/%.f90 equilib/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/partmc: $(partmc_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB)
+	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) -lnetcdff90 -lnetcdf
 src/process_summary: $(process_summary_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_summary_OBJS)
 src/process_state: $(process_state_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB)
 src/process_state_new: $(process_state_new_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB)
+	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB) -lnetcdff90 -lnetcdf
 src/process_average: $(process_average_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_average_OBJS)
 equilib/equilib: $(equilib_OBJS)

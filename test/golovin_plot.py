@@ -6,20 +6,21 @@
 import os, sys
 import copy as module_copy
 sys.path.append("../tool")
-from pmc_data import *
+from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
+from Scientific.IO.NetCDF import *
 
 times_min = [0, 5, 10]
 times_sec = [t * 60 for t in times_min]
 
-mc_data = read_data_set(["out/golovin_mc_state_0001_000000%02d_aero.dat" % i
-			 for i in range(11)],
-			[sum("species")])
-exact_data = read_data_set(["out/golovin_exact_000000%02d_aero.dat" % i
-			    for i in range(11)],
-			   [sum("species")])
+mc_data = pmc_var(NetCDFFile("out/golovin_mc_state_0001.nc"),
+		  "aero",
+		  [sum("aero_species")])
+exact_data = pmc_var(NetCDFFile("out/golovin_exact_0001.nc"),
+		     "aero",
+		     [sum("aero_species")])
 
 g_num = graph.graphxy(width = 10,
 		      x = graph.axis.log(min = 1e-7,

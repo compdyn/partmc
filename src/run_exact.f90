@@ -53,7 +53,7 @@ contains
     type(inout_file_t), intent(inout) :: summary_file ! summary output file
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
-    integer :: i_time, n_time
+    integer :: i_time, n_time, ncid
     type(aero_binned_t) :: aero_binned
     real*8 :: time
     type(gas_data_t) :: gas_data
@@ -83,9 +83,11 @@ contains
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_data_alloc(gas_data, 0)
     call gas_state_alloc(gas_state, 0)
+    call env_data_init_state(env_data, env, 0d0)
+
+    call output_processed_open(exact_opt%prefix, 1, ncid)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
-    call env_data_init_state(env_data, env, 0d0)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
        call env_data_update_state(env_data, env, time)
@@ -95,10 +97,12 @@ contains
 
        call output_summary(summary_file, time, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env, 1)
-       call output_binned(exact_opt%prefix, process_spec_list, &
+       call output_binned(ncid, exact_opt%prefix, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-            env, i_time, time)
+            env, i_time + 1, time, exact_opt%t_output)
     end do
+
+    call output_processed_close(ncid)
 
     call gas_data_free(gas_data)
     call gas_state_free(gas_state)

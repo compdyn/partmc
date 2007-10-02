@@ -111,3 +111,10 @@ remove HACK/FIXME in pmc_data.py where some floats are being ignored.
 rename all input files *.spec and all output files *.dat
 
 add parameter to composition processing for type: vol, mass or mole
+
+use switch/case rather than elseif chains
+
+remove sys.path.append(~/python), use PYTHONPATH env variable instead on mac
+
+get rid of sedi_bidisperse_state_to_count and compute everything from
+the binned aero data. We'll still need the ode code, of course.

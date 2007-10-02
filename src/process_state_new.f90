@@ -83,9 +83,10 @@ contains
          gas_data, gas_state, env, time, index)
     write(*,'(a,e20.10)') 'time (s) = ', time
 
-    call process_state_spec_list(basename, process_spec_list, &
-         bin_grid, aero_data, aero_state, gas_data, gas_state, &
-         env, time, index)
+    ! FIXME: re-enable with NetCDF support
+!    call process_state_spec_list(basename, process_spec_list, &
+!         bin_grid, aero_data, aero_state, gas_data, gas_state, &
+!         env, time, index)
 
   end subroutine process_state_file
 

@@ -105,8 +105,61 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_processed(prefix, process_spec_list, bin_grid, &
-       aero_data, aero_state, gas_data, gas_state, env, index, time, i_loop)
+  subroutine output_processed_open(prefix, i_loop, ncid)
+
+    ! Open the processed state output file.
+
+    use pmc_bin_grid
+    use pmc_aero_data
+    use pmc_aero_state
+    use pmc_env
+    use pmc_util
+    use pmc_inout
+    use pmc_gas_data
+    use pmc_mpi
+    use pmc_process_spec
+    
+    character(len=*), intent(in) :: prefix ! prefix of files to write
+    integer, intent(in) :: i_loop       ! current loop number
+    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+
+    character(len=len(prefix)+20) :: filename
+    character(len=20) :: date_str, time_str, zone_str
+    character(len=500) :: history
+
+    write(filename, '(a,a,i4.4,a)') trim(prefix), '_', i_loop, '.nc'
+    call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
+
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+         "PartMC output file"))
+    call date_and_time(date_str, time_str, zone_str)
+    write(history, '(15a)') date_str(1:4), "-", date_str(5:6), "-", &
+         date_str(7:8), "T", time_str(1:2), ":", time_str(3:4), ":", &
+         time_str(5:10), zone_str(1:3), ":", zone_str(4:5), &
+         " created by PartMC"
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+  end subroutine output_processed_open
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine output_processed_close(ncid)
+
+    ! Close the processed state output file.
+
+    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+
+    call pmc_nc_check(nf90_close(ncid))
+
+  end subroutine output_processed_close
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine output_processed(ncid, prefix, process_spec_list, bin_grid, &
+       aero_data, aero_state, gas_data, gas_state, env, index, time, &
+       del_t, i_loop)
 
     ! Write the current processed state.
 
@@ -120,6 +173,7 @@ contains
     use pmc_mpi
     use pmc_process_spec
     
+    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
     character(len=*), intent(in) :: prefix ! prefix of files to write
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -130,21 +184,23 @@ contains
     type(env_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
+    real*8, intent(in) :: del_t         ! current output time-step (s)
     integer, intent(in) :: i_loop       ! current loop number
 
     character(len=len(prefix)+20) :: basename
 
     write(basename, '(a,a,i4.4,a,i8.8)') trim(prefix), '_', i_loop, '_', index
-    call process_state_spec_list(basename, process_spec_list, &
+    call process_time(ncid, time, index, del_t)
+    call process_state_spec_list(ncid, basename, process_spec_list, &
          bin_grid, aero_data, aero_state, gas_data, gas_state, &
-         env, time, index)
+         env, time, index, del_t)
 
   end subroutine output_processed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine output_binned(prefix, process_spec_list, bin_grid, &
-       aero_data, aero_binned, gas_data, gas_state, env, index, time)
+  subroutine output_binned(ncid, prefix, process_spec_list, bin_grid, &
+       aero_data, aero_binned, gas_data, gas_state, env, index, time, del_t)
 
     ! Write the current binned data.
     
@@ -158,6 +214,7 @@ contains
     use pmc_mpi
     use pmc_process_spec
 
+    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
     character(len=*), intent(in) :: prefix ! prefix of files to write
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -168,14 +225,17 @@ contains
     type(env_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
+    real*8, intent(in) :: del_t         ! current output time-step (s)
 
     character(len=(len(prefix)+30)) :: basename
     integer :: i
 
+    call process_time(ncid, time, index, del_t)
+
     write(basename, '(a,a,i8.8)') trim(prefix), '_', index
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "aero") then
-          call output_aero(basename, process_spec_list(i)%suffix, &
+          call output_aero(ncid, basename, process_spec_list(i)%suffix, &
                time, index, bin_grid, aero_data, aero_binned)
        end if
     end do

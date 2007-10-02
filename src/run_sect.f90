@@ -67,7 +67,7 @@ contains
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
     
-    integer i, j, i_time, num_t, i_summary
+    integer i, j, i_time, num_t, i_summary, ncid
     logical do_output, do_progress
   
     interface
@@ -112,7 +112,7 @@ contains
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
-    i_summary = 0
+    i_summary = 1
     call env_data_init_state(env_data, env, time)
     
     ! precompute kernel values for all pairs of bins
@@ -137,9 +137,10 @@ contains
     if (do_output) then
        call output_summary(summary_file, 0d0, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
-       call output_binned(sect_opt%prefix, process_spec_list, &
+       call output_processed_open(sect_opt%prefix, 1, ncid)
+       call output_binned(ncid, sect_opt%prefix, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-            env, i_summary, time)
+            env, i_summary, time, sect_opt%t_output)
     end if
     
     ! main time-stepping loop
@@ -173,9 +174,9 @@ contains
           i_summary = i_summary + 1
           call output_summary(summary_file, time, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, env, 1)
-          call output_binned(sect_opt%prefix, process_spec_list, &
+          call output_binned(ncid, sect_opt%prefix, process_spec_list, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-               env, i_summary, time)
+               env, i_summary, time, sect_opt%t_output)
        end if
        
        ! print progress to stdout
@@ -186,6 +187,8 @@ contains
           write(6,'(i6,f8.1)') i_time, time
        end if
     end do
+
+    call output_processed_close(ncid)
 
   end subroutine run_sect
   

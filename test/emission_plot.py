@@ -6,20 +6,21 @@
 import os, sys
 import copy as module_copy
 sys.path.append("../tool")
-from pmc_data import *
+from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
+from Scientific.IO.NetCDF import *
 
-mc_data = read_data_set(["out/emission_mc_state_0001_000000%02d_aero.dat" % i
-			 for i in range(61)],
-			[sum("species")])
-exact_data = read_data_set(["out/emission_exact_000000%02d_aero.dat" % i
-			    for i in range(61)],
-			   [sum("species")])
-sect_data = read_data_set(["out/emission_exact_000000%02d_aero.dat" % i
-			   for i in range(61)],
-			  [sum("species")])
+mc_data = pmc_var(NetCDFFile("out/emission_mc_state_0001.nc"),
+		  "aero",
+		  [sum("aero_species")])
+exact_data = pmc_var(NetCDFFile("out/emission_exact_0001.nc"),
+		     "aero",
+		     [sum("aero_species")])
+sect_data = pmc_var(NetCDFFile("out/emission_sect_0001.nc"),
+		    "aero",
+		    [sum("aero_species")])
 
 ######################################################################
 

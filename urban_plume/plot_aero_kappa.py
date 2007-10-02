@@ -6,22 +6,24 @@
 import os, sys, glob
 import copy as module_copy
 sys.path.append("../tool")
-from pmc_data import *
+from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
+from Scientific.IO.NetCDF import *
 
-times_hour = [0, 6, 24]
+times_hour = [1, 6, 24]
 
-data_set = read_data_set(glob.glob("out/urban_plume_state*kappa_crit_ss.dat"),
-			 [])
-data_set.write_summary(sys.stdout)
+data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
+	       "kappa_crit_ss",
+	       [])
+data.write_summary(sys.stdout)
 
-data_set.reduce([select("unit", "num_den"),
-		 sum("species")])
-data_set.scale_dim("critical_supersat", 100)
-data_set.scale_dim("radius", 1e6)
-data_set.scale_dim("time", 1.0/3600)
+data.reduce([select("unit", "num_den"),
+		 sum("aero_species")])
+data.scale_dim("critical_supersat", 100)
+data.scale_dim("radius", 1e6)
+data.scale_dim("time", 1.0/3600)
 
 for i in range(len(times_hour)):
     g = graph.graphxy(
@@ -31,7 +33,7 @@ for i in range(len(times_hour)):
 	y = graph.axis.log(title = 'critical supersaturation',
 			   texter = graph.axis.texter.decimal(suffix = r"\%"),
 			   painter = grid_painter))
-    data_slice = module_copy.deepcopy(data_set)
+    data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
 						   flip_axes = True),

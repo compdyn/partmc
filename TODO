@@ -118,3 +118,5 @@ remove sys.path.append(~/python), use PYTHONPATH env variable instead on mac
 
 get rid of sedi_bidisperse_state_to_count and compute everything from
 the binned aero data. We'll still need the ode code, of course.
+
+kill aeroptical.dat output from MOSAIC

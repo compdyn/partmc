@@ -307,3 +307,6 @@ class pmc_var:
     def scale_dim(self, dim_name, factor):
 	i_dim = self.find_dim_by_name(dim_name)
 	self.dims[i_dim].scale(factor)
+
+    def scale(self, factor):
+	self.data = self.data * factor

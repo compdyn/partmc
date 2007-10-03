@@ -1,1 +1,1 @@
-MOSAIC_DIR = $(HOME)/subversion/mosaic/trunk/compile/
+MOSAIC_DIR = $(HOME)/subversion/mosaic/trunk

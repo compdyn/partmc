@@ -17,9 +17,9 @@ FC = gfortran
 FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC $(NETCDF_MODDIR)
 LDFLAGS = -L$(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
-MOSAIC_DIR = $(HOME)/proj/mosaic/trunk/compile/
+MOSAIC_DIR = $(HOME)/proj/mosaic/trunk
 MOSAIC_LIBDIR = $(MOSAIC_DIR)
-MOSAIC_MODDIR = $(MOSAIC_DIR)
+MOSAIC_MODDIR = $(MOSAIC_DIR)/datamodules
 MOSAIC_LIB = -lmosaic
 
 NETCDF_MODDIR = -I/usr/include/netcdf-3
@@ -145,7 +145,7 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp tool/*.pyc
+	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp tool/*.pyc tool/*~
 
 .PHONY: distclean
 distclean: cleanall

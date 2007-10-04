@@ -4,8 +4,6 @@ solution for larger arguments.
 
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
-Use HDF5 for a binary version of inout_*().
-
 Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
 and then using a slow sampling to pick samples one-by-one.
@@ -103,11 +101,6 @@ change strings to either all be "" or all ''
 change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
 
-in python code catch all exceptions while reading data to add line
-number and file name.
-
-remove HACK/FIXME in pmc_data.py where some floats are being ignored.
-
 rename all input files *.spec and all output files *.dat
 
 add parameter to composition processing for type: vol, mass or mole
@@ -115,8 +108,5 @@ add parameter to composition processing for type: vol, mass or mole
 use switch/case rather than elseif chains
 
 remove sys.path.append(~/python), use PYTHONPATH env variable instead on mac
-
-get rid of sedi_bidisperse_state_to_count and compute everything from
-the binned aero data. We'll still need the ode code, of course.
 
 kill aeroptical.dat output from MOSAIC

@@ -29,13 +29,75 @@ class select(reducer):
 	del d.dims[i_dim]
 	d.data = d.data[reduce_slice]
 
+def sum_range(data, widths, i_dim, i_start, i_end):
+    new_data_shape = list(shape(data))
+    del new_data_shape[i_dim]
+    new_data = zeros(new_data_shape, dtype = float64)
+    for i_val in range(i_start, i_end):
+	reduce_slice = [s_[:] for i in range(len(shape(data)))]
+	reduce_slice[i_dim] = s_[i_val]
+	reduce_slice = tuple(reduce_slice)
+	new_data += array(data[reduce_slice]) * widths[i_val]
+    return new_data
+
 class sum(reducer):
     def __init__(self, dim_name):
 	self.dim_name = dim_name # dimension name to reduce
 
     def reduce(self, d):
 	i_dim = d.find_dim_by_name(self.dim_name)
-	d.data = numpy.sum(d.data, i_dim)
+	if d.dims[i_dim].grid_widths == None:
+	    raise Exception("cannot sum dimension without widths: %s"
+			    % self.dim_name)
+	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim,
+			   0, size(d.data, i_dim))
+	del d.dims[i_dim]
+
+class sum_above(reducer):
+    def __init__(self, dim_name, value):
+	self.dim_name = dim_name # dimension name to reduce
+	self.value = value       # value to sum above
+
+    def reduce(self, d):
+	i_dim = d.find_dim_by_name(self.dim_name)
+	if d.dims[i_dim].grid_widths == None:
+	    raise Exception("cannot sum dimension without widths: %s"
+			    % self.dim_name)
+	i_val = d.dims[i_dim].find_grid_by_value(self.value)
+	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim,
+			   i_val, size(d.data, i_dim))
+	del d.dims[i_dim]
+
+class sum_below(reducer):
+    def __init__(self, dim_name, value):
+	self.dim_name = dim_name # dimension name to reduce
+	self.value = value       # value to sum below
+
+    def reduce(self, d):
+	i_dim = d.find_dim_by_name(self.dim_name)
+	if d.dims[i_dim].grid_widths == None:
+	    raise Exception("cannot sum dimension without widths: %s"
+			    % self.dim_name)
+	i_val = d.dims[i_dim].find_grid_by_value(self.value)
+	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim,
+			   0, i_val + 1)
+	del d.dims[i_dim]
+
+class sum_between(reducer):
+    def __init__(self, dim_name, value_low, value_high):
+	self.dim_name = dim_name      # dimension name to reduce
+	self.value_low = value_low    # value to sum above
+	self.value_high = value_high  # value to sum below
+
+    def reduce(self, d):
+	i_dim = d.find_dim_by_name(self.dim_name)
+	if d.dims[i_dim].grid_widths == None:
+	    raise Exception("cannot sum dimension without widths: %s"
+			    % self.dim_name)
+	i_val_low = d.dims[i_dim].find_grid_by_value(self.value_low)
+	i_val_high = d.dims[i_dim].find_grid_by_value(self.value_high)
+	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim,
+			   i_val_low, i_val_high + 1)
 	del d.dims[i_dim]
 
 class pmc_dim:

@@ -42,13 +42,12 @@ program sedi_bidisperse_ode
   
   type(env_t) :: env
   integer :: i_step, n_step
-  real*8 :: comp_vol, n_small, time, dlnr, v_big, num_conc
+  real*8 :: comp_vol, n_small, time, v_big, num_conc
   type(bin_grid_t) :: bin_grid
 
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
   call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
-  dlnr = bin_grid%dlnr
 
   open(unit=out_unit, file=out_name)
   time = 0d0
@@ -58,10 +57,10 @@ program sedi_bidisperse_ode
   write(*,'(a8,a14,a14,a9)') &
        't', 'n_small', 'v_big', 'n_coag'
   write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-       time, n_small / comp_vol / dlnr, v_big / comp_vol / dlnr, &
+       time, n_small / comp_vol, v_big / comp_vol, &
        n_small_init - n_small
   write(out_unit,'(e20.10,e20.10,e20.10)') &
-       time, n_small / comp_vol / dlnr, v_big / comp_vol / dlnr
+       time, n_small / comp_vol, v_big / comp_vol
   do i_step = 1,n_step
      time = dble(i_step - 1) * del_t
      call bidisperse_step(v_small, v_big_init, n_small_init, &
@@ -71,10 +70,10 @@ program sedi_bidisperse_ode
         write(*,'(a8,a14,a14,a9)') &
              't', 'n_small', 'v_big', 'n_coag'
         write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-             time, n_small / comp_vol / dlnr, v_big / comp_vol / dlnr, &
+             time, n_small / comp_vol, v_big / comp_vol, &
              n_small_init - n_small
         write(out_unit,'(e20.10,e20.10,e20.10)') &
-             time, n_small / comp_vol / dlnr, v_big / comp_vol / dlnr
+             time, n_small / comp_vol, v_big / comp_vol
      end if
   end do
   close(out_unit)

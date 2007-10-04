@@ -29,8 +29,7 @@ NETCDF_LIB = -lnetcdff -lnetcdf
 -include Makefile.local
 -include Makefile.mosaic_dirs
 
-PROGS := src/partmc test/sedi_bidisperse_ode			\
-	test/sedi_bidisperse_state_to_count equilib/equilib	\
+PROGS := src/partmc test/sedi_bidisperse_ode equilib/equilib	\
 	test/poisson_sample
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
@@ -78,13 +77,6 @@ sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
 	src/aero_state.o src/bin_grid.o src/inout.o src/aero_dist.o	\
 	src/aero_binned.o src/rand_poisson.o src/aero_particle.o	\
-	src/aero_particle_array.o src/mpi.o
-sedi_bidisperse_state_to_count_OBJS :=					\
-	test/sedi_bidisperse_state_to_count.o src/env_data.o src/env.o	\
-	src/aero_data.o src/output_state.o src/aero_state.o		\
-	src/constants.o src/util.o src/bin_grid.o src/gas_data.o	\
-	src/gas_state.o src/inout.o src/aero_dist.o src/aero_binned.o	\
-	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o
 equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
 	src/env.o src/condensation.o src/util.o src/aero_state.o	\
@@ -134,8 +126,6 @@ equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
-test/sedi_bidisperse_state_to_count: $(sedi_bidisperse_state_to_count_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_state_to_count_OBJS)
 test/poisson_sample: $(poisson_sample_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(poisson_sample_OBJS)
 

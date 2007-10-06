@@ -254,6 +254,10 @@ contains
        call output_processed_close(ncid)
     end if
 
+    if (mc_opt%do_mosaic) then
+       call mosaic_cleanup()
+    end if
+
   end subroutine run_mc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

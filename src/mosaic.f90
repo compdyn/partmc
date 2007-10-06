@@ -56,10 +56,6 @@ contains
        end subroutine init_data_modules
     end interface
     
-    ! local variables
-    real*8 :: time_UTC ! 24-hr UTC clock time (hr)
-    real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
-
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
@@ -78,10 +74,8 @@ contains
     
     ! time variables
     dt_sec = del_t                           ! time-step (s)
-    tmar21_sec = dble((79*24 + 12)*3600)     ! noon, mar 21, UTC
     tbeg_sec = env%start_day*24*3600 + &     ! time since the beg of
          nint(env%start_time)                ! year 00:00, UTC (s)
-    time_UTC = env%start_time/3600d0         ! 24-hr UTC clock time (hr)
     
     ! geographic location
     rlon = env%longitude * deg2rad           ! longitude
@@ -157,6 +151,7 @@ contains
     tcur_sec = dble(tbeg_sec) + time            ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
 
+    time_UTC = env%start_time/3600d0         ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0
 
     do while (time_UTC >= 24d0)

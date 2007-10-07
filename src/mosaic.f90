@@ -39,8 +39,7 @@ contains
     use module_data_mosaic_main, only: tbeg_sec, dt_sec, rlon, rlat, &
          zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
          deg2rad, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
-         msolar, mphoto, &
-         lun_aeroptic
+         msolar, mphoto, lun_aeroptic, naerbin
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -54,7 +53,13 @@ contains
        end subroutine LoadPeroxyParameters
        subroutine init_data_modules()
        end subroutine init_data_modules
+       subroutine AllocateMemory()
+       end subroutine AllocateMemory
     end interface
+
+    ! allocate one aerosol bin
+    naerbin = 1
+    call AllocateMemory()
     
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
@@ -105,6 +110,24 @@ contains
   end subroutine mosaic_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine mosaic_cleanup()
+
+    ! Clean-up after running MOSAIC, deallocating memory.
+    
+#ifdef PMC_USE_MOSAIC
+    ! MOSAIC function interfaces
+    interface
+       subroutine DeallocateMemory()
+       end subroutine DeallocateMemory
+    end interface
+
+    call DeallocateMemory()
+#endif
+    
+  end subroutine mosaic_cleanup
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_from_partmc(bin_grid, env, aero_data, &
        aero_state, gas_data, gas_state, time)
@@ -127,7 +150,7 @@ contains
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         ppb, msolar
+         ppb, msolar, naerbin
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -145,6 +168,14 @@ contains
     real*8 :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
+
+    ! MOSAIC function interfaces
+    interface
+       subroutine AllocateMemory()
+       end subroutine AllocateMemory
+       subroutine DeallocateMemory()
+       end subroutine DeallocateMemory
+    end interface
 
     ! update time variables
     tmar21_sec = dble((79*24 + 12)*3600)        ! noon, mar 21, UTC
@@ -185,6 +216,11 @@ contains
     
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = total_particles(aero_state)
+    if (nbin_a > naerbin) then
+       call DeallocateMemory()
+       naerbin = nbin_a
+       call AllocateMemory()
+    end if
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
     do i_bin = 1,bin_grid%n_bin

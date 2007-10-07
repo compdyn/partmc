@@ -110,3 +110,8 @@ use switch/case rather than elseif chains
 remove sys.path.append(~/python), use PYTHONPATH env variable instead on mac
 
 kill aeroptical.dat output from MOSAIC
+
+change Makefile to build partmc and process_state in the main
+directory (not src).
+
+Change process_state to be a mode of partmc?

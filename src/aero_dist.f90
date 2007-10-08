@@ -667,6 +667,7 @@ contains
     end do
     deallocate(names)
     deallocate(data)
+    call inout_line_free(aero_dist_line)
 
   end subroutine spec_read_aero_dists_times_rates
 

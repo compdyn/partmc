@@ -212,7 +212,6 @@ contains
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_alloc(gas_state, gas_data%n_spec)
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     call cpu_time(mc_opt%t_wall_start)
 
     call aero_state_alloc(0, 0, aero_state)

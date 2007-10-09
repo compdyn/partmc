@@ -458,6 +458,7 @@ contains
     call aero_data_free(aero_data)
     call aero_dist_free(aero_dist_init)
     call env_free(env)
+    call env_data_free(env_data)
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
     call process_spec_list_free(process_spec_list)

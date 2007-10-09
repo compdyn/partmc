@@ -76,7 +76,9 @@ program sedi_bidisperse_ode
              time, n_small / comp_vol, v_big / comp_vol
      end if
   end do
+
   close(out_unit)
+  call bin_grid_free(bin_grid)
   
 contains
   

@@ -185,6 +185,7 @@ contains
 
     call output_processed_close(ncid)
     call aero_binned_free(aero_binned)
+    call gas_state_free(gas_state)
 
   end subroutine run_sect
   

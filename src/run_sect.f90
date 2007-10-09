@@ -102,9 +102,6 @@ contains
     
     ! initial mass distribution
     call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
-    ! avoid problem with gnuplot
-    where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
-    where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0
     
     call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
@@ -150,9 +147,6 @@ contains
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_den(:,1) = g / aero_data%density(1)
           aero_binned%num_den = aero_binned%vol_den(:,1) / bin_grid%v
-          ! avoid problem with gnuplot
-          where (aero_binned%num_den .le. 1d-80) aero_binned%num_den = 0d0
-          where (aero_binned%vol_den .le. 1d-80) aero_binned%vol_den = 0d0
        end if
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)

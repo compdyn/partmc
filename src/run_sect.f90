@@ -184,6 +184,7 @@ contains
     end do
 
     call output_processed_close(ncid)
+    call aero_binned_free(aero_binned)
 
   end subroutine run_sect
   

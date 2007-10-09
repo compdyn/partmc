@@ -102,6 +102,7 @@ contains
 
     call gas_data_free(gas_data)
     call gas_state_free(gas_state)
+    call aero_binned_free(aero_binned)
     
   end subroutine run_exact
   

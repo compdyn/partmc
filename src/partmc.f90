@@ -460,6 +460,7 @@ contains
     call env_free(env)
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
+    call process_spec_list_free(process_spec_list)
     
   end subroutine partmc_sect
 

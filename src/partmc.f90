@@ -344,8 +344,6 @@ contains
 
     ! finished reading .spec data, now do the run
 
-    call gas_data_alloc(gas_data, 0)
-
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
             soln_golovin_exp, process_spec_list)

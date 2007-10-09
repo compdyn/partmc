@@ -61,7 +61,7 @@ program sedi_bidisperse_ode
        n_small_init - n_small
   write(out_unit,'(e20.10,e20.10,e20.10)') &
        time, n_small / comp_vol, v_big / comp_vol
-  do i_step = 1,n_step
+  do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call bidisperse_step(v_small, v_big_init, n_small_init, &
           env, comp_vol, del_t, n_small)

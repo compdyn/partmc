@@ -235,6 +235,7 @@ contains
 
     call inout_read_line_no_eof(file, line)
     call inout_check_line_name(file, line, "a_species")
+    deallocate(process_spec%a_species)
     allocate(process_spec%a_species(size(line%data)))
     do i = 1,size(line%data)
        process_spec%a_species(i) = line%data(i)(1:AERO_NAME_LEN)
@@ -243,6 +244,7 @@ contains
 
     call inout_read_line_no_eof(file, line)
     call inout_check_line_name(file, line, "b_species")
+    deallocate(process_spec%b_species)
     allocate(process_spec%b_species(size(line%data)))
     do i = 1,size(line%data)
        process_spec%b_species(i) = line%data(i)(1:AERO_NAME_LEN)

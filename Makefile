@@ -26,8 +26,8 @@ NETCDF_MODDIR = -I/usr/include/netcdf-3
 NETCDF_LIBDIR = -L/usr/lib
 NETCDF_LIB = -lnetcdff -lnetcdf
 
+-include Makefile.paths
 -include Makefile.local
--include Makefile.mosaic_dirs
 
 PROGS := src/partmc test/sedi_bidisperse_ode equilib/equilib	\
 	test/poisson_sample

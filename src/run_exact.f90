@@ -9,6 +9,15 @@ module pmc_run_exact
   use pmc_inout
   use pmc_aero_dist
   use pmc_process_spec
+  use pmc_bin_grid
+  use pmc_aero_state
+  use pmc_env_data
+  use pmc_env
+  use pmc_aero_data
+  use pmc_output_processed
+  use pmc_aero_binned
+  use pmc_gas_data
+  use pmc_gas_state
 
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
@@ -34,16 +43,6 @@ contains
 
     ! "Run" an exact solution, output data in the same format as
     ! particle-resolved or sectional simulations.
-    
-    use pmc_bin_grid
-    use pmc_aero_state
-    use pmc_env_data
-    use pmc_env
-    use pmc_aero_data
-    use pmc_output_processed
-    use pmc_aero_binned
-    use pmc_gas_data
-    use pmc_gas_state
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_data_t), intent(in) :: env_data ! environment data

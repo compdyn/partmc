@@ -14,6 +14,16 @@
 
 module pmc_aero_dist
 
+  use pmc_bin_grid
+  use pmc_util
+  use pmc_constants
+  use pmc_inout
+  use pmc_aero_data
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type aero_mode_t
      real*8, pointer :: num_den(:)      ! len n_bin, number density (#/m^3)
      real*8, pointer :: vol_frac(:)     ! len n_spec, species fractions (1)
@@ -200,8 +210,6 @@ contains
 
     ! Returns the total number concentration in #/m^3 of a distribution.
 
-    use pmc_bin_grid
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
 
@@ -221,10 +229,6 @@ contains
   subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
 
     ! Compute a log-normal distribution.
-    
-    use pmc_bin_grid
-    use pmc_util
-    use pmc_constants
     
     real*8, intent(in) :: mean_radius   ! geometric mean radius (m)
     real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
@@ -254,9 +258,6 @@ contains
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
     
-    use pmc_bin_grid
-    use pmc_util
-    
     real*8, intent(in) :: mean_radius   ! mean radius (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
@@ -278,9 +279,6 @@ contains
     
     ! Mono-disperse distribution.
     
-    use pmc_bin_grid
-    use pmc_util
-    
     real*8, intent(in) :: radius         ! radius of each particle (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
@@ -300,8 +298,6 @@ contains
 
     ! Determine the current aero_dist and rate by interpolating at the
     ! current time with the lists of aero_dists and rates.
-
-    use pmc_util
 
     type(aero_dist_t), intent(in) :: aero_dist_list(:) ! gas states
     real*8, intent(in) :: time_list(size(aero_dist_list)) ! times (s)
@@ -337,8 +333,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
 
@@ -354,8 +348,6 @@ contains
   subroutine inout_write_aero_dist(file, aero_dist)
     
     ! Write full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_dist_t), intent(in) :: aero_dist ! aero_dist to write
@@ -378,8 +370,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
 
@@ -395,8 +385,6 @@ contains
   subroutine inout_read_aero_dist(file, aero_dist)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_dist_t), intent(out) :: aero_dist ! aero_dist to read
@@ -420,9 +408,6 @@ contains
   subroutine spec_read_vol_frac(file, aero_data, vol_frac)
 
     ! Read volume fractions from a data file.
-
-    use pmc_inout
-    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -486,10 +471,6 @@ contains
     ! Read the shape (number density) of one mode of an aerosol
     ! distribution.
 
-    use pmc_inout
-    use pmc_bin_grid
-    use pmc_aero_data
-
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -529,10 +510,6 @@ contains
     ! Read one mode of an aerosol distribution (number density and
     ! volume fractions).
 
-    use pmc_inout
-    use pmc_bin_grid
-    use pmc_aero_data
-
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -551,10 +528,6 @@ contains
   subroutine spec_read_aero_dist(file, aero_data, bin_grid, aero_dist)
 
     ! Read continuous aerosol distribution composed of several modes.
-
-    use pmc_inout
-    use pmc_bin_grid
-    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -578,9 +551,6 @@ contains
 
     ! Read aerosol distribution from filename on line in file.
 
-    use pmc_inout
-    use pmc_bin_grid
-    use pmc_aero_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data   ! aero_data data
@@ -606,10 +576,6 @@ contains
 
     ! Read an array of aero_dists with associated times and rates from
     ! the given file.
-
-    use pmc_inout
-    use pmc_aero_data
-    use pmc_bin_grid
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(in) :: aero_data ! aero data
@@ -677,8 +643,6 @@ contains
     
     ! Computes the average of an array of aero_mode.
 
-    use pmc_util
-
     type(aero_mode_t), intent(in) :: aero_mode_vec(:) ! array of aero_mode
     type(aero_mode_t), intent(out) :: aero_mode_avg   ! average of aero_mode_vec
 
@@ -726,8 +690,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_mode_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_aero_mode = &
@@ -741,8 +703,6 @@ contains
   integer function pmc_mpi_pack_size_aero_dist(val)
 
     ! Determines the number of bytes required to pack the given value.
-
-    use pmc_mpi
 
     type(aero_dist_t), intent(in) :: val ! value to pack
 
@@ -761,12 +721,6 @@ contains
   subroutine pmc_mpi_pack_aero_mode(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -788,12 +742,6 @@ contains
   subroutine pmc_mpi_pack_aero_dist(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -818,12 +766,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     type(aero_mode_t), intent(out) :: val ! value to pack
@@ -844,12 +786,6 @@ contains
   subroutine pmc_mpi_unpack_aero_dist(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

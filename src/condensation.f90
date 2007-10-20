@@ -5,6 +5,16 @@
 ! Condensation routines for water condensing onto particles.
 
 module pmc_condensation
+
+  use pmc_aero_state
+  use pmc_bin_grid
+  use pmc_aero_binned
+  use pmc_env
+  use pmc_aero_data
+  use pmc_util
+  use pmc_aero_particle
+  use pmc_constants
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -15,12 +25,6 @@ contains
     ! Do condensation to all the particles for a given time interval,
     ! including updating the environment to account for the lost
     ! vapor.
-
-    use pmc_aero_state
-    use pmc_bin_grid
-    use pmc_aero_binned
-    use pmc_env
-    use pmc_aero_data
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
@@ -68,11 +72,6 @@ contains
     ! Integrate the condensation growth or decay ODE for total time
     ! del_t for a single particle.
 
-    use pmc_util
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
-
     real*8, intent(in) :: del_t         ! total time to integrate
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -104,10 +103,6 @@ contains
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true. This uses the explicit (forward) Euler integrator.
     
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
-
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
@@ -146,10 +141,6 @@ contains
     ! be less. If we in fact step all the way to max_dt then done will
     ! be true. This uses the explicit 4th-order Runge-Kutta integrator.
     
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
-
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
@@ -175,10 +166,6 @@ contains
   subroutine condense_step_rk(dt, env, aero_data, aero_particle)
 
     ! Does one fixed timestep of Runge-Kutta-4.
-
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
 
     real*8, intent(out) :: dt           ! timestep
     type(env_t), intent(in) :: env      ! environment state
@@ -233,11 +220,6 @@ contains
 
     ! Just returns a constant timestep.
 
-    use pmc_aero_state
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
-
     real*8, intent(out) :: dt           ! timestep to use
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -253,11 +235,6 @@ contains
        aero_particle)
 
     ! Computes a timestep proportional to V / (dV/dt).
-
-    use pmc_aero_state
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
 
     real*8, intent(out) :: dt           ! timestep to use
     type(env_t), intent(in) :: env      ! environment state
@@ -279,10 +256,6 @@ contains
   subroutine cond_growth_rate(dvdt, env, aero_data, aero_particle)
     
     ! Find the water volume growth rate due to condensation.
-
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
 
     real*8, intent(out) :: dvdt         ! dv/dt (m^3 s^{-1})
     type(env_t), intent(in) :: env      ! environment state
@@ -313,10 +286,6 @@ contains
     
     ! Scalar Newton's method for solving the implicit condensation
     ! functions.
-
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_particle
 
     real*8, intent(inout) :: x          ! variable (set to inital value on call)
     type(env_t), intent(in) :: env      ! environment state
@@ -382,13 +351,6 @@ contains
 
     ! Return the error function value and its derivative for the
     ! implicit growth rate function.
-
-    use pmc_aero_state
-    use pmc_util
-    use pmc_env
-    use pmc_aero_data
-    use pmc_constants
-    use pmc_aero_particle
 
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -485,13 +447,6 @@ contains
 
     ! Add water to the particle until it is in equilibrium.
 
-    use pmc_util
-    use pmc_aero_state
-    use pmc_env
-    use pmc_aero_data
-    use pmc_constants
-    use pmc_aero_particle
-
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
@@ -525,13 +480,6 @@ contains
     ! Return the error function value and its derivative for the
     ! implicit function that determines the equilibrium state of a
     ! particle.
-
-    use pmc_util
-    use pmc_aero_state
-    use pmc_env
-    use pmc_aero_data
-    use pmc_constants
-    use pmc_aero_particle
 
     type(env_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -589,12 +537,6 @@ contains
   subroutine aero_state_equilibriate(bin_grid, env, aero_data, aero_state)
     
     ! call equilibriate_particle() on each particle in the aerosol
-
-    use pmc_bin_grid
-    use pmc_env
-    use pmc_aero_data
-    use pmc_aero_state
-    use pmc_aero_particle
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_t), intent(inout) :: env   ! environment state

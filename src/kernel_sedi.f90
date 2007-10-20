@@ -11,6 +11,10 @@
 ! Sedimentation coagulation kernel.
 
 module pmc_kernel_sedi
+
+  use pmc_env
+  use pmc_constants
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -19,9 +23,6 @@ contains
 
     ! Sedimentation coagulation kernel.
 
-    use pmc_env
-    use pmc_constants
-    
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
     type(env_t), intent(in) :: env      ! environment state

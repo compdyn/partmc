@@ -6,6 +6,13 @@
 
 module pmc_gas_data
 
+  use pmc_inout
+  use pmc_mpi
+  use pmc_util
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   integer, parameter :: GAS_NAME_LEN = 15
 
   type gas_data_t
@@ -123,8 +130,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(gas_data_t), intent(in) :: gas_data ! gas_data to write
 
@@ -145,8 +150,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(gas_data_t), intent(out) :: gas_data ! gas_data to read
 
@@ -166,8 +169,6 @@ contains
   subroutine spec_read_gas_data(file, gas_data)
 
     ! Read gas data from a .spec file.
-
-    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! spec file
     type(gas_data_t), intent(out) :: gas_data ! gas data
@@ -211,8 +212,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(gas_data_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_gas_data = &
@@ -228,12 +227,6 @@ contains
   subroutine pmc_mpi_pack_gas_data(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -257,12 +250,6 @@ contains
   subroutine pmc_mpi_unpack_gas_data(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

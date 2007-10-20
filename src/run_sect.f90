@@ -12,7 +12,20 @@
 module pmc_run_sect
 
   use pmc_inout
-
+  use pmc_bin_grid
+  use pmc_aero_binned
+  use pmc_kernel_sedi
+  use pmc_util
+  use pmc_aero_dist
+  use pmc_env_data
+  use pmc_env
+  use pmc_aero_data
+  use pmc_kernel
+  use pmc_output_processed
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_process_spec
+  
   type run_sect_opt_t
     real*8 :: t_max                     ! final time (s)
     real*8 :: del_t                     ! timestep for coagulation (s)
@@ -31,20 +44,6 @@ contains
 
     ! Run a sectional simulation.
   
-    use pmc_bin_grid
-    use pmc_aero_binned
-    use pmc_kernel_sedi
-    use pmc_util
-    use pmc_aero_dist
-    use pmc_env_data
-    use pmc_env
-    use pmc_aero_data
-    use pmc_kernel
-    use pmc_output_processed
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_process_spec
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -271,8 +270,6 @@ contains
 
     ! Determines the Courant number for each bin pair.
 
-    use pmc_util
-    
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: dlnr          ! bin scale factor
     real*8, intent(in) :: e(n_bin)      ! droplet mass grid (mg)

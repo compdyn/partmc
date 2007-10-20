@@ -8,6 +8,8 @@
 
 module pmc_inout
 
+  use pmc_util
+    
   integer, parameter :: MAX_CHAR_LEN = 300 ! max size of line or variable
   integer, parameter :: MAX_LIST_LINES = 500 ! max lines in an array
 
@@ -29,8 +31,6 @@ contains
   subroutine inout_open_read(filename, file)
 
     ! Open an inout file for reading.
-
-    use pmc_util
 
     character(len=*), intent(in) :: filename ! name of file to open
     type(inout_file_t), intent(out) :: file  ! inout file
@@ -55,8 +55,6 @@ contains
 
     ! Open an inout file for writing.
 
-    use pmc_util
-
     character(len=*), intent(in) :: filename ! name of file to open
     type(inout_file_t), intent(out) :: file  ! inout file
 
@@ -79,8 +77,6 @@ contains
   subroutine inout_close(file)
 
     ! Close an inout file.
-
-    use pmc_util
 
     type(inout_file_t), intent(in) :: file ! inout file
 

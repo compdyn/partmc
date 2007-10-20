@@ -17,6 +17,8 @@ program process_state
   use pmc_process_state_hist
   use pmc_mosaic
   use pmc_mpi
+  use pmc_util
+  use pmc_aero_binned
 
   character(len=100) :: filename        ! input filename
   character(len=100) :: basename        ! basename of the input filename
@@ -171,9 +173,6 @@ contains
 
   subroutine process_moments(basename, bin_grid, aero_data, aero_state, &
        time)
-
-    use pmc_util
-    use pmc_aero_binned
 
     character(len=*), intent(in) :: basename ! basename of the input filename
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure

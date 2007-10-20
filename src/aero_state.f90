@@ -38,7 +38,21 @@
 module pmc_aero_state
 
   use pmc_aero_particle_array
-  
+  use pmc_bin_grid
+  use pmc_aero_data
+  use pmc_aero_particle
+  use pmc_aero_dist
+  use pmc_util
+  use pmc_rand_poisson
+  use pmc_aero_binned
+  use pmc_mpi
+  use pmc_inout
+#ifdef PMC_USE_MPI
+#ifndef PMC_EVEREST
+  use mpi
+#endif
+#endif
+
   type aero_state_t
      type(aero_particle_array_t), pointer :: bins(:) ! bin arrays
      real*8 :: comp_vol                 ! computational volume (m^3)
@@ -207,11 +221,6 @@ contains
     ! Makes particles from the given number distribution and appends
     ! them to the aero_state%v array.
     
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_particle
-    use pmc_aero_particle_array
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
     real*8, intent(in) :: vol_frac(aero_data%n_spec) ! composition of particles
@@ -247,11 +256,6 @@ contains
 
     ! Convert a continuous distribution into particles.
     
-    use pmc_aero_data
-    use pmc_bin_grid
-    use pmc_aero_dist
-    use pmc_util
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero_data data
     type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
@@ -299,12 +303,6 @@ contains
     ! FIXME: we should not take sample_vol, but rather sample_amount
     ! that we then multiply by aero_state%comp_vol
 
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_dist
-    use pmc_rand_poisson
-    use pmc_util
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
     type(aero_dist_t), intent(in) :: aero_dist ! distribution to sample
@@ -333,8 +331,6 @@ contains
 
     ! Choose a random particle from the aero_state.
 
-    use pmc_util
-
     type(aero_state_t), intent(in) :: aero_state ! original state
     integer, intent(out) :: i_bin       ! bin number of particle
     integer, intent(out) :: i_part      ! particle number within bin
@@ -358,9 +354,6 @@ contains
     ! aero_state_from and adding them to aero_state_to, which must
     ! be already allocated (and should have its comp_vol set).
 
-    use pmc_util
-    use pmc_rand_poisson
-    
     type(aero_state_t), intent(inout) :: aero_state_from ! original state
     type(aero_state_t), intent(inout) :: aero_state_to ! destination state
     real*8, intent(in) :: sample_prop   ! proportion to sample
@@ -420,8 +413,6 @@ contains
     ! aero_state_from and adding them to aero_state_to, which must
     ! be already allocated (and should have its comp_vol set).
 
-    use pmc_util
-    
     type(aero_state_t), intent(inout) :: aero_state_from ! original state
     type(aero_state_t), intent(inout) :: aero_state_to ! destination state
     real*8, intent(in) :: sample_prop   ! proportion to sample
@@ -482,8 +473,6 @@ contains
     ! either more or less particles might be added than are actually
     ! in aero_state_delta.
 
-    use pmc_util
-    
     type(aero_state_t), intent(inout) :: aero_state ! base state
     type(aero_state_t), intent(in) :: aero_state_delta ! state to add
     
@@ -510,10 +499,6 @@ contains
        aero_binned)
     
     ! Create the bin number and mass arrays from aero_state%v.
-    
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -561,10 +546,6 @@ contains
     
     ! Remove approximately half of the particles in each bin.
     
-    use pmc_aero_binned
-    use pmc_bin_grid
-    use pmc_util
-
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -594,9 +575,6 @@ contains
     ! Takes a VH array where the particle volumes might no longer be
     ! correct for the bins they are in and resorts it so that every
     ! particle is in the correct bin.
-    
-    use pmc_aero_data
-    use pmc_bin_grid
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
@@ -646,17 +624,6 @@ contains
 
     ! Send a sample to the given process, and receive exactly one
     ! sample from an unspecified source.
-
-#ifdef PMC_USE_MPI
-#ifndef PMC_EVEREST
-    use mpi
-#endif
-#endif
-    use pmc_mpi
-    use pmc_util
-    use pmc_aero_binned
-    use pmc_aero_data
-    use pmc_bin_grid
 
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
@@ -736,11 +703,6 @@ contains
     ! Mix the aero_states between all processes. Currently uses a
     ! simple periodic-1D diffusion.
 
-    use pmc_mpi
-    use pmc_aero_binned
-    use pmc_aero_data
-    use pmc_bin_grid
-
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
@@ -779,11 +741,6 @@ contains
     
     ! Check that all particles are in the correct bins and that the
     ! bin numbers and masses are correct. This is for debugging only.
-    
-    use pmc_util
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_binned
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
@@ -865,8 +822,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(in) :: aero_state ! aero_state to write
 
@@ -890,8 +845,6 @@ contains
   subroutine inout_read_aero_state(file, aero_state)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_state_t), intent(out) :: aero_state ! aero_state to read
@@ -918,8 +871,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_state_t), intent(in) :: val ! value to pack
 
     integer :: i, total_size
@@ -940,12 +891,6 @@ contains
   subroutine pmc_mpi_pack_aero_state(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -971,12 +916,6 @@ contains
   subroutine pmc_mpi_unpack_aero_state(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

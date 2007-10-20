@@ -7,9 +7,28 @@
 
 program partmc
 
-  use pmc_inout
   use pmc_mpi
   use pmc_process_spec
+  use pmc_bin_grid
+  use pmc_aero_state
+  use pmc_aero_dist
+  use pmc_aero_binned
+  use pmc_condensation
+  use pmc_kernel_sedi
+  use pmc_kernel_golovin
+  use pmc_kernel_constant
+  use pmc_kernel_brown
+  use pmc_kernel_zero
+  use pmc_aero_data
+  use pmc_env_data
+  use pmc_env
+  use pmc_run_mc
+  use pmc_run_exact
+  use pmc_run_sect
+  use pmc_inout
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_util
 
   type(inout_file_t) :: file
   character(len=300) :: in_name
@@ -60,25 +79,6 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine partmc_mc(file)
-
-    use pmc_bin_grid
-    use pmc_aero_state
-    use pmc_aero_dist
-    use pmc_aero_binned
-    use pmc_condensation
-    use pmc_kernel_sedi
-    use pmc_kernel_golovin
-    use pmc_kernel_constant
-    use pmc_kernel_brown
-    use pmc_kernel_zero
-    use pmc_aero_data
-    use pmc_env_data
-    use pmc_env
-    use pmc_run_mc
-    use pmc_inout
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_util
 
     type(inout_file_t), intent(out) :: file ! spec file
 
@@ -275,23 +275,6 @@ contains
 
   subroutine partmc_exact(file)
 
-    use pmc_util
-    use pmc_bin_grid
-    use pmc_aero_state
-    use pmc_aero_dist
-    use pmc_condensation
-    use pmc_kernel_golovin
-    use pmc_kernel_constant
-    use pmc_kernel_zero
-    use pmc_aero_data
-    use pmc_env_data
-    use pmc_env
-    use pmc_run_exact
-    use pmc_inout
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_kernel_zero
-
     type(inout_file_t), intent(out) :: file ! spec file
 
     character(len=300) :: summary_name  ! name of output files
@@ -371,22 +354,6 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine partmc_sect(file)
-
-    use pmc_util
-    use pmc_aero_data
-    use pmc_env_data
-    use pmc_env
-    use pmc_run_sect
-    use pmc_kernel_sedi
-    use pmc_kernel_golovin
-    use pmc_kernel_constant
-    use pmc_kernel_brown
-    use pmc_kernel_zero
-    use pmc_bin_grid
-    use pmc_aero_state
-    use pmc_aero_dist
-    use pmc_gas_data
-    use pmc_gas_state
 
     type(inout_file_t), intent(out) :: file ! spec file
 

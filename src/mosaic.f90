@@ -5,6 +5,18 @@
 ! Interface to MOSAIC aerosol and gas phase chemistry code.
 
 module pmc_mosaic
+  
+  use pmc_aero_binned
+  use pmc_aero_data
+  use pmc_aero_state
+  use pmc_bin_grid 
+  use pmc_constants
+  use pmc_env
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_output_state
+  use pmc_util
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -26,11 +38,6 @@ contains
   subroutine mosaic_init(bin_grid, env, del_t)
 
     ! Initialize all MOSAIC data-structures.
-    
-    use pmc_constants
-    use pmc_util
-    use pmc_bin_grid 
-    use pmc_env
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -133,16 +140,6 @@ contains
        aero_state, gas_data, gas_state, time)
 
     ! Map all data PartMC -> MOSAIC.
-    
-    use pmc_constants
-    use pmc_util
-    use pmc_aero_state
-    use pmc_bin_grid 
-    use pmc_env
-    use pmc_aero_data
-    use pmc_output_state
-    use pmc_gas_data
-    use pmc_gas_state
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -262,17 +259,6 @@ contains
   subroutine mosaic_to_partmc(bin_grid, env, aero_data, &
        aero_state, aero_binned, gas_data, gas_state)
     
-    use pmc_constants
-    use pmc_util
-    use pmc_aero_state
-    use pmc_bin_grid 
-    use pmc_env
-    use pmc_aero_data
-    use pmc_output_state
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_aero_binned
-    
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
@@ -351,14 +337,6 @@ contains
 
     ! Do one timestep with MOSAIC.
     
-    use pmc_aero_state
-    use pmc_bin_grid 
-    use pmc_env
-    use pmc_aero_data
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_aero_binned
-    
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
 #endif
@@ -412,14 +390,6 @@ contains
        aero_state, gas_data, gas_state, time)
 
     ! Compute the optical properties of each aerosol particle.
-    
-    use pmc_aero_state
-    use pmc_bin_grid 
-    use pmc_env
-    use pmc_aero_data
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_util
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &

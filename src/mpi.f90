@@ -9,6 +9,8 @@
 
 module pmc_mpi
 
+  use pmc_util
+  
 #ifdef PMC_USE_MPI
 #ifdef PMC_EVEREST
   include 'mpif.h'
@@ -119,8 +121,6 @@ contains
     ! Returns the rank of the current process.
 
 #ifdef PMC_USE_MPI
-    use mpi
-
     integer :: rank, ierr
 
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
@@ -139,8 +139,6 @@ contains
     ! Returns the total number of processes.
 
 #ifdef PMC_USE_MPI
-    use mpi
-
     integer :: size, ierr
 
     call mpi_comm_size(MPI_COMM_WORLD, size, ierr)
@@ -420,8 +418,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     integer, intent(in) :: val          ! value to pack
@@ -444,8 +440,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     real*8, intent(in) :: val           ! value to pack
@@ -467,8 +461,6 @@ contains
   subroutine pmc_mpi_pack_string(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -494,8 +486,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     logical, intent(in) :: val           ! value to pack
@@ -518,8 +508,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     complex*16, intent(in) :: val       ! value to pack
@@ -541,8 +529,6 @@ contains
   subroutine pmc_mpi_pack_integer_array(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -569,8 +555,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     real*8, intent(in) :: val(:)        ! value to pack
@@ -595,8 +579,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     character(len=*), intent(in) :: val(:) ! value to pack
@@ -620,8 +602,6 @@ contains
   subroutine pmc_mpi_pack_real_array_2d(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -650,8 +630,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     integer, intent(out) :: val         ! value to pack
@@ -674,8 +652,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     real*8, intent(out) :: val          ! value to pack
@@ -697,8 +673,6 @@ contains
   subroutine pmc_mpi_unpack_string(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -727,8 +701,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     logical, intent(out) :: val          ! value to pack
@@ -751,8 +723,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     complex*16, intent(out) :: val      ! value to pack
@@ -774,8 +744,6 @@ contains
   subroutine pmc_mpi_unpack_integer_array(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -802,8 +770,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-    use pmc_util
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     real*8, pointer :: val(:)           ! value to pack
@@ -827,8 +793,6 @@ contains
   subroutine pmc_mpi_unpack_string_array(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -858,8 +822,6 @@ contains
   subroutine pmc_mpi_unpack_real_array_2d(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-    use pmc_util
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -913,8 +875,6 @@ contains
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
 
-    use pmc_util
-
     real*8, intent(in) :: val(:)        ! value to average
     real*8, intent(out) :: val_avg(:)   ! result
 
@@ -940,8 +900,6 @@ contains
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
-
-    use pmc_util
 
     real*8, intent(in) :: val(:,:)      ! value to average
     real*8, intent(out) :: val_avg(:,:) ! result
@@ -992,8 +950,6 @@ contains
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
-
-    use pmc_util
 
     real*8, intent(in) :: val(:)        ! value to average
     real*8, intent(out) :: val_avg(:)   ! result

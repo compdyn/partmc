@@ -5,14 +5,16 @@
 ! Generic kernel functions.
 
 module pmc_kernel
+
+  use pmc_env
+  use pmc_bin_grid
+  
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bin_kernel(n_bin, bin_v, kernel, env, k)
    
-    use pmc_env
-    
     ! Computes an array of kernel values for each bin pair. k(i,j) is
     ! the kernel value at the midpoint of bins i and j.
     
@@ -49,9 +51,6 @@ contains
     ! in bin b1 and v2 in bin b2, it is approximately true that
     ! kernel(v1,v2) <= k_max(b1,b2).
 
-    use pmc_bin_grid
-    use pmc_env
-    
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     type(env_t), intent(in) :: env    ! environment state
     real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! max kern vals
@@ -83,9 +82,6 @@ contains
     ! Samples within bins b1 and b2 to find the maximum value of the
     ! kernel between particles from the two bins.
    
-    use pmc_env
-    use pmc_bin_grid
- 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin
     integer, intent(in) :: b2           ! second bin

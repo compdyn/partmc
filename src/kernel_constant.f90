@@ -5,6 +5,15 @@
 ! Constant coagulation kernel.
 
 module pmc_kernel_constant
+
+  use pmc_env
+  use pmc_bin_grid
+  use pmc_util
+  use pmc_constants
+  use pmc_aero_binned
+  use pmc_aero_data
+  use pmc_aero_dist
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -13,8 +22,6 @@ contains
 
     ! Constant coagulation kernel.
 
-    use pmc_env
-    
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
     type(env_t), intent(in) :: env      ! environment state
@@ -34,14 +41,6 @@ contains
     ! Exact solution with a constant coagulation kernel and an
     ! exponential initial condition.
 
-    use pmc_bin_grid
-    use pmc_env
-    use pmc_util
-    use pmc_constants
-    use pmc_aero_binned
-    use pmc_aero_data
-    use pmc_aero_dist
-    
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time

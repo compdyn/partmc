@@ -11,6 +11,16 @@
 ! simulation.
 
 module pmc_output_state
+
+  use pmc_bin_grid
+  use pmc_aero_data
+  use pmc_aero_state
+  use pmc_env
+  use pmc_util
+  use pmc_inout
+  use pmc_gas_data
+  use pmc_mpi
+  
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,15 +30,6 @@ contains
 
     ! Write the current state.
 
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_state
-    use pmc_env
-    use pmc_util
-    use pmc_inout
-    use pmc_gas_data
-    use pmc_mpi
-    
     character(len=*), intent(in) :: state_prefix ! prefix of state file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -142,15 +143,6 @@ contains
 
     ! Read the current state.
 
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_state
-    use pmc_env
-    use pmc_util
-    use pmc_inout
-    use pmc_gas_data
-    use pmc_mpi
-    
     character(len=*), intent(in) :: state_name ! name of state file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
     type(aero_data_t), intent(out) :: aero_data ! aerosol data

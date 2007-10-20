@@ -7,6 +7,15 @@
 ! emissions and background dilution.
 
 module pmc_kernel_zero
+
+  use pmc_bin_grid
+  use pmc_env
+  use pmc_util
+  use pmc_constants
+  use pmc_aero_binned
+  use pmc_aero_dist
+  use pmc_aero_data
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -15,8 +24,6 @@ contains
 
     ! Zero coagulation kernel.
 
-    use pmc_env
-    
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
     type(env_t), intent(in) :: env      ! environment state
@@ -34,14 +41,6 @@ contains
     ! Exact solution with the zero coagulation kernel. Only useful for
     ! testing emissions and background dilution.
 
-    use pmc_bin_grid
-    use pmc_env
-    use pmc_util
-    use pmc_constants
-    use pmc_aero_binned
-    use pmc_aero_dist
-    use pmc_aero_data
-    
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time (s)

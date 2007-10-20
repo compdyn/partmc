@@ -19,6 +19,10 @@
 !     http://www.acm.org/pubs/copyright_policy/softwareCRnotice.html
 
 module pmc_rand_poisson
+  
+  use pmc_util
+  use pmc_constants
+  
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -28,8 +32,6 @@ contains
     ! Generate a Poisson-distributed random number with the given
     ! mean. See http://en.wikipedia.org/wiki/Poisson_distribution for
     ! information on the method.
-
-    use pmc_util
 
     real*8, intent(in) :: mean          ! mean of the distribution
 
@@ -61,9 +63,6 @@ contains
 
     ! Generates a normally distributed random number with the given
     ! mean and standard deviation.
-
-    use pmc_util
-    use pmc_constants
 
     real*8, intent(in) :: mean          ! mean of the distribution
     real*8, intent(in) :: stddev        ! standard deviation of the distribution

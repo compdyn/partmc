@@ -13,6 +13,19 @@ module pmc_env
 
   use pmc_gas_state
   use pmc_aero_dist
+  use pmc_constants
+  use pmc_aero_data
+  use pmc_aero_particle
+  use pmc_util
+  use pmc_gas_data
+  use pmc_bin_grid
+  use pmc_aero_state
+  use pmc_aero_binned
+  use pmc_inout
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
   
   type env_t
      real*8 :: temp                     ! temperature (K)
@@ -86,9 +99,6 @@ contains
     
     ! env += env_delta
 
-    use pmc_gas_state
-    use pmc_aero_dist
-    
     type(env_t), intent(inout) :: env   ! environment
     type(env_t), intent(in) :: env_delta ! increment
 
@@ -120,9 +130,6 @@ contains
     
     ! env *= alpha
 
-    use pmc_gas_state
-    use pmc_aero_dist
-    
     type(env_t), intent(inout) :: env   ! environment
     real*8, intent(in) :: alpha         ! scale factor
 
@@ -152,9 +159,6 @@ contains
     
     ! env_to = env_from
 
-    use pmc_gas_state
-    use pmc_aero_dist
-    
     type(env_t), intent(in) :: env_from ! original
     type(env_t), intent(inout) :: env_to ! destination
 
@@ -185,9 +189,6 @@ contains
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
     
-    use pmc_constants
-    use pmc_aero_data
-    
     type(env_t), intent(inout) :: env   ! environment state to update
     type(aero_data_t), intent(in) :: aero_data ! aero_data constants
     real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
@@ -213,8 +214,6 @@ contains
 
     ! Computes the current saturation vapor pressure.
     
-    use pmc_constants
-    
     type(env_t), intent(in) :: env      ! environment state
     
     env_sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%temp - const%T0) &
@@ -227,11 +226,6 @@ contains
   real*8 function aero_particle_kappa_rh(aero_particle, aero_data, env) ! (1)
 
     ! Returns the critical relative humidity from the kappa value.
-
-    use pmc_aero_particle
-    use pmc_constants
-    use pmc_aero_data
-    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -252,8 +246,6 @@ contains
 
   real*8 function env_air_den(env) ! (kg m^{-3})
 
-    use pmc_constants
-
     type(env_t), intent(in) :: env      ! environment state
 
     env_air_den = const%M_a * env_air_molar_den(env)
@@ -263,8 +255,6 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   real*8 function env_air_molar_den(env) ! (mole m^{-3})
-
-    use pmc_constants
 
     type(env_t), intent(in) :: env      ! environment state
 
@@ -278,8 +268,6 @@ contains
     
     ! Convert (mole m^{-3}) to (ppb).
 
-    use pmc_gas_state
-    
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     type(env_t), intent(in) :: env      ! environment state
     
@@ -293,9 +281,6 @@ contains
        gas_data, gas_state)
 
     ! Do emissions and background dilution from the environment.
-
-    use pmc_gas_data
-    use pmc_gas_state
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
@@ -343,11 +328,6 @@ contains
 
     ! Do emissions and background dilution from the environment for a
     ! particle aerosol distribution.
-
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_state
-    use pmc_aero_binned
 
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
@@ -421,10 +401,6 @@ contains
     ! Do emissions and background dilution from the environment for a
     ! binned aerosol distribution.
 
-    use pmc_bin_grid
-    use pmc_aero_data
-    use pmc_aero_binned
-
     type(env_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     real*8, intent(in) :: old_height    ! previous height (m)
@@ -470,8 +446,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(env_t), intent(in) :: env      ! environment to write
     
@@ -502,8 +476,6 @@ contains
   subroutine inout_read_env(file, env)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(env_t), intent(out) :: env      ! environment to read
@@ -536,8 +508,6 @@ contains
 
     ! Read environment specification from a inout file.
 
-    use pmc_inout
-
     type(inout_file_t), intent(inout) :: file ! inout file
     type(env_t), intent(out) :: env     ! environment data
 
@@ -558,10 +528,6 @@ contains
     
     ! Computes the average of an array of env.
 
-    use pmc_util
-    use pmc_gas_state
-    use pmc_aero_dist
-    
     type(env_t), intent(in) :: env_vec(:) ! array of env
     type(env_t), intent(out) :: env_avg   ! average of env_vec
 
@@ -591,8 +557,6 @@ contains
 
     ! Average val over all processes.
 
-    use pmc_mpi
-    
     type(env_t), intent(inout) :: val ! value to average
 
 #ifdef PMC_USE_MPI
@@ -615,8 +579,6 @@ contains
   integer function pmc_mpi_pack_size_env(val)
 
     ! Determines the number of bytes required to pack the given value.
-
-    use pmc_mpi
 
     type(env_t), intent(in) :: val ! value to pack
 
@@ -646,12 +608,6 @@ contains
   subroutine pmc_mpi_pack_env(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -689,12 +645,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     type(env_t), intent(out) :: val ! value to pack
@@ -731,8 +681,6 @@ contains
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
-
-    use pmc_mpi
 
     type(env_t), intent(in) :: val ! value to average
     type(env_t), intent(out) :: val_avg ! result

@@ -6,6 +6,11 @@
 
 module pmc_util
 
+  use pmc_constants
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  
   integer, parameter :: max_units = 200
   integer, parameter :: unit_offset = 10
   logical, save :: unit_used(max_units) = .false.
@@ -17,10 +22,6 @@ contains
   subroutine assert_msg(code, condition_ok, error_msg)
 
     ! Errors unless condition_ok is true.
-
-#ifdef PMC_USE_MPI
-    use mpi
-#endif
 
     integer, intent(in) :: code         ! status code to use if assertion fails
     logical, intent(in) :: condition_ok ! whether the assertion is ok
@@ -233,8 +234,6 @@ contains
 
     ! Convert volume to radius.
 
-    use pmc_constants
-    
     real*8, intent(in) :: v             ! volume (m^3)
     
     vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
@@ -247,8 +246,6 @@ contains
     
     ! Convert volume to diameter.
 
-    use pmc_constants
-    
     real*8, intent(in) :: v             ! volume (m^3)
     
     vol2diam = 2d0 * (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
@@ -261,8 +258,6 @@ contains
     
     ! Convert radius to volume.
 
-    use pmc_constants
-    
     real*8, intent(in) :: r             ! radius (m)
     
     rad2vol = 4d0 / 3d0 * const%pi * r**3d0
@@ -275,8 +270,6 @@ contains
     
     ! Convert diameter to volume.
 
-    use pmc_constants
-    
     real*8, intent(in) :: d             ! diameter (m)
     
     diam2vol = 4d0 / 3d0 * const%pi * (d / 2d0)**3d0

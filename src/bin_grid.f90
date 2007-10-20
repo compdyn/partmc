@@ -10,6 +10,14 @@
 
 module pmc_bin_grid
 
+  use pmc_constants
+  use pmc_util
+  use pmc_inout
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type bin_grid_t
      integer :: n_bin                   ! number of bins
      real*8, pointer :: v(:)            ! len n_bin, bin center volumes (m^3)
@@ -51,8 +59,6 @@ contains
     ! Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
     ! where vol = 4/3 pi r^3.
     
-    use pmc_constants
-    
     real*8, intent(in) :: r             ! radius (m)
     real*8, intent(in) :: f_vol         ! density as a function of volume
     real*8, intent(out) :: f_lnr        ! density as a function of ln(r)
@@ -67,8 +73,6 @@ contains
 
     ! Generates the bin grid given the range and number of bins.
     
-    use pmc_util
-
     type(bin_grid_t), intent(out) :: bin_grid ! new bin grid, will be allocated
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: v_min         ! minimum volume (m^3)
@@ -92,8 +96,6 @@ contains
     ! logarithmically spaced bin grid and returns logarithmically
     ! spaced edges.
     
-    use pmc_util
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: i            ! edge number (1 <= i <= n_bin + 1)
 
@@ -114,8 +116,6 @@ contains
     ! Find the bin number that contains a given particle. This assumes
     ! logarithmically spaced bins.
 
-    use pmc_util
-    
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     real*8, intent(in) :: v             ! volume of particle
 
@@ -143,8 +143,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid to write
 
@@ -161,8 +159,6 @@ contains
   subroutine inout_read_bin_grid(file, bin_grid)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(bin_grid_t), intent(out) :: bin_grid ! bin_grid to read
@@ -181,9 +177,6 @@ contains
 
     ! Read the specification for a bin_grid from a inout file and
     ! generate it.
-
-    use pmc_inout
-    use pmc_util
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(bin_grid_t), intent(out) :: bin_grid ! bin grid
@@ -204,8 +197,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(bin_grid_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_bin_grid = &
@@ -220,12 +211,6 @@ contains
   subroutine pmc_mpi_pack_bin_grid(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -248,12 +233,6 @@ contains
   subroutine pmc_mpi_unpack_bin_grid(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

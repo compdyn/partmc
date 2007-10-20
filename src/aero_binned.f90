@@ -6,6 +6,18 @@
 
 module pmc_aero_binned
 
+  use pmc_bin_grid
+  use pmc_aero_particle
+  use pmc_inout
+  use pmc_util
+  use pmc_bin_grid
+  use pmc_aero_dist
+  use pmc_mpi
+  use pmc_aero_data
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type aero_binned_t
      real*8, pointer :: num_den(:)    ! len n_bin, number density (#/m^3)
      real*8, pointer :: vol_den(:,:)  ! n_bin x n_spec, volume density (m^3/m^3)
@@ -63,9 +75,6 @@ contains
     ! Updates binned data structures for the addition of the given
     ! particle that must be in the given bin.
 
-    use pmc_bin_grid
-    use pmc_aero_particle
-
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     integer, intent(in) :: bin          ! bin number
@@ -87,9 +96,6 @@ contains
     ! Updates binned data structures for the addition of the given
     ! particle.
 
-    use pmc_bin_grid
-    use pmc_aero_particle
-
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
@@ -107,9 +113,6 @@ contains
 
     ! Updates binned data structures for the removal of the given
     ! particle that must be in the given bin.
-
-    use pmc_bin_grid
-    use pmc_aero_particle
 
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -132,9 +135,6 @@ contains
     ! Updates binned data structures for the removal of the given
     ! particle.
 
-    use pmc_bin_grid
-    use pmc_aero_particle
-
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(in) :: comp_vol      ! computational volume (m^3)
@@ -150,8 +150,6 @@ contains
   subroutine inout_write_aero_binned(file, aero_binned)
     
     ! Write full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned to write
@@ -171,8 +169,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_binned_t), intent(out) :: aero_binned ! aero_binned to read
 
@@ -190,8 +186,6 @@ contains
   subroutine aero_binned_average(aero_binned_vec, aero_binned_avg)
     
     ! Computes the average of an array of aero_binned.
-
-    use pmc_util
 
     type(aero_binned_t), intent(in) :: aero_binned_vec(:) ! array of aero_binned
     type(aero_binned_t), intent(out) :: aero_binned_avg   ! average of vec
@@ -282,9 +276,6 @@ contains
 
     ! Converts an aero_dist to an aero_binned.
 
-    use pmc_bin_grid
-    use pmc_aero_dist
-
     type(aero_binned_t), intent(out) :: aero_binned ! must be alloced
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_dist_t), intent(in) :: aero_dist ! source aero_dist
@@ -309,8 +300,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_binned_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_aero_binned = &
@@ -324,12 +313,6 @@ contains
   subroutine pmc_mpi_pack_aero_binned(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -351,12 +334,6 @@ contains
   subroutine pmc_mpi_unpack_aero_binned(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -380,8 +357,6 @@ contains
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
 
-    use pmc_mpi
-
     type(aero_binned_t), intent(in) :: val ! value to average
     type(aero_binned_t), intent(out) :: val_avg ! result
 
@@ -395,10 +370,6 @@ contains
   subroutine aero_binned_write_summary(aero_binned, aero_data, &
        bin_grid, time, index, out_unit)
 
-    use pmc_aero_data
-    use pmc_util
-    use pmc_bin_grid
-    
     type(aero_binned_t), intent(in) :: aero_binned ! aero_binned
     type(aero_data_t), intent(in) :: aero_data ! aero_data
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid

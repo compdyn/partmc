@@ -15,7 +15,17 @@ module pmc_env_data
 
   use pmc_gas_state
   use pmc_aero_dist
-  
+  use pmc_util
+  use pmc_env
+  use pmc_inout
+  use pmc_bin_grid
+  use pmc_aero_data
+  use pmc_gas_data
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type env_data_t
      real*8, pointer :: temp_time(:)    ! times at temp set-points (s)
      real*8, pointer :: temp(:)         ! temps at set-points (K)
@@ -127,9 +137,6 @@ contains
     ! Initialize the time-dependent contents of the
     ! environment. Thereafter env_data_update_state() should be used.
 
-    use pmc_util
-    use pmc_env
-
     type(env_data_t), intent(in) :: env_data ! environment data
     type(env_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
@@ -162,9 +169,6 @@ contains
     
     ! Update time-dependent contents of the environment.
     ! env_data_init_state() should have been called at the start.
-
-    use pmc_util
-    use pmc_env
 
     type(env_data_t), intent(in) :: env_data ! environment data
     type(env_t), intent(inout) :: env   ! environment state to update
@@ -202,8 +206,6 @@ contains
   subroutine inout_write_env_data(file, env_data)
     
     ! Write full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(env_data_t), intent(in) :: env_data ! environment data to write
@@ -271,8 +273,6 @@ contains
   subroutine inout_read_env_data(file, env_data)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(env_data_t), intent(out) :: env_data ! environment data to read
@@ -350,11 +350,6 @@ contains
 
     ! Read environment data from an inout file.
 
-    use pmc_bin_grid
-    use pmc_inout
-    use pmc_aero_data
-    use pmc_gas_data
-
     type(inout_file_t), intent(inout) :: file ! inout file
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(gas_data_t), intent(in) :: gas_data ! gas data values
@@ -385,8 +380,6 @@ contains
   integer function pmc_mpi_pack_size_env_data(val)
 
     ! Determines the number of bytes required to pack the given value.
-
-    use pmc_mpi
 
     type(env_data_t), intent(in) :: val ! value to pack
 
@@ -432,12 +425,6 @@ contains
 
     ! Packs the given value into the buffer, advancing position.
 
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     type(env_data_t), intent(in) :: val ! value to pack
@@ -480,12 +467,6 @@ contains
   subroutine pmc_mpi_unpack_env_data(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

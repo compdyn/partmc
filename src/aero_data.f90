@@ -6,6 +6,13 @@
 
 module pmc_aero_data
 
+  use pmc_inout
+  use pmc_mpi
+  use pmc_util
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   integer, parameter :: AERO_NAME_LEN = 15
 
   type aero_data_t
@@ -148,8 +155,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_data_t), intent(in) :: aero_data ! aero_data to write
 
@@ -175,8 +180,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(aero_data_t), intent(out) :: aero_data ! aero_data to read
 
@@ -201,8 +204,6 @@ contains
   subroutine spec_read_aero_data(file, aero_data)
 
     ! Read aero_data specification from a inout file.
-
-    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(out) :: aero_data  ! aero_data data
@@ -247,8 +248,6 @@ contains
 
     ! Read aero_data specification from a inout file.
 
-    use pmc_inout
-
     type(inout_file_t), intent(inout) :: file ! inout file
     type(aero_data_t), intent(out) :: aero_data  ! aero_data data
 
@@ -268,8 +267,6 @@ contains
   subroutine inout_read_species_list(file, name, aero_data, species_list)
 
     ! Read a list of species from the given file with the given name.
-
-    use pmc_inout
 
     type(inout_file_t), intent(inout) :: file ! inout file
     character(len=*), intent(in) :: name ! name of line
@@ -301,8 +298,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_data_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_aero_data = &
@@ -323,12 +318,6 @@ contains
   subroutine pmc_mpi_pack_aero_data(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -357,12 +346,6 @@ contains
   subroutine pmc_mpi_unpack_aero_data(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

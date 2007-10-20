@@ -6,6 +6,15 @@
 
 module pmc_aero_particle
 
+  use pmc_util
+  use pmc_aero_data
+  use pmc_bin_grid
+  use pmc_inout
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type aero_particle_t
      real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
      integer :: n_orig_part              ! number of original particles
@@ -50,8 +59,6 @@ contains
   subroutine aero_particle_copy(aero_particle_from, aero_particle_to)
 
     ! Copies a particle.
-
-    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle_from ! reference particle
     type(aero_particle_t), intent(inout) :: aero_particle_to ! already allocated
@@ -135,8 +142,6 @@ contains
 
     ! Total mass of the particle.
 
-    use pmc_aero_data
-
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     
@@ -149,8 +154,6 @@ contains
   real*8 function aero_particle_moles(aero_particle, aero_data) ! (1)
 
     ! Total moles in the particle.
-
-    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -178,8 +181,6 @@ contains
     
     ! Find the bin number that contains a given particle.
 
-    use pmc_bin_grid
-    
     type(aero_particle_t), intent(in) :: aero_particle ! particle
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     
@@ -194,8 +195,6 @@ contains
        aero_data, quantity)
 
     ! Returns the volume-average of the non-water elements of quantity.
-
-    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
@@ -216,8 +215,6 @@ contains
        aero_data, quantity)
 
     ! Returns the volume-total of the non-water elements of quantity.
-
-    use pmc_aero_data
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
@@ -243,9 +240,6 @@ contains
 
     ! Returns the water element of quantity.
 
-    use pmc_util
-    use pmc_aero_data
-    
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to average
@@ -262,9 +256,6 @@ contains
 
     ! Returns the volume-total of the water element of quantity.
 
-    use pmc_util
-    use pmc_aero_data
-    
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: quantity(:)   ! quantity to total
@@ -281,9 +272,6 @@ contains
 
     ! Returns the water molecular weight.
 
-    use pmc_util
-    use pmc_aero_data
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
     call assert(772012490, aero_data%i_water > 0)
@@ -298,8 +286,6 @@ contains
 
     ! Returns the average of the solute molecular weight.
 
-    use pmc_aero_data
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
@@ -313,8 +299,6 @@ contains
   real*8 function aero_particle_solute_num_ions(aero_data, aero_particle) ! (1)
 
     ! Returns the average of the solute ion number.
-
-    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -331,8 +315,6 @@ contains
 
     ! Returns the average of the solute solubilities.
 
-    use pmc_aero_data
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
@@ -346,9 +328,6 @@ contains
   real*8 function aero_particle_water_density(aero_data) ! (kg/m^3)
 
     ! Returns the water density.
-
-    use pmc_util
-    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
@@ -364,8 +343,6 @@ contains
 
     ! Returns the average of the solute densities.
 
-    use pmc_aero_data
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
@@ -379,9 +356,6 @@ contains
   real*8 function aero_particle_water_mass(aero_data, aero_particle) ! (kg)
 
     ! Returns the water mass.
-
-    use pmc_util
-    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -398,8 +372,6 @@ contains
 
     ! Returns the total solute mass.
 
-    use pmc_aero_data
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
@@ -413,8 +385,6 @@ contains
   real*8 function aero_particle_solute_kappa(aero_data, aero_particle) ! (1)
 
     ! Returns the average of the solute kappas.
-
-    use pmc_aero_data
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
@@ -430,8 +400,6 @@ contains
        aero_particle_2, aero_particle_new)
 
     ! Coagulate two particles together to make a new one.
-
-    use pmc_util
 
     type(aero_particle_t), intent(in) :: aero_particle_1 ! first particle
     type(aero_particle_t), intent(in) :: aero_particle_2 ! second particle
@@ -456,8 +424,6 @@ contains
   subroutine inout_write_aero_particle(file, aero_particle)
     
     ! Write full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(in) :: aero_particle ! aero_particle to write
@@ -484,8 +450,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_t), intent(out) :: aero_particle ! aero_particle to read
 
@@ -510,8 +474,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_particle_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_aero_particle = &
@@ -531,12 +493,6 @@ contains
   subroutine pmc_mpi_pack_aero_particle(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -565,12 +521,6 @@ contains
   subroutine pmc_mpi_unpack_aero_particle(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

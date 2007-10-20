@@ -8,6 +8,25 @@ module pmc_run_mc
 
   use pmc_inout
   use pmc_process_spec
+  use pmc_util
+  use pmc_aero_state
+  use pmc_bin_grid 
+  use pmc_aero_binned
+  use pmc_condensation
+  use pmc_env_data
+  use pmc_env
+  use pmc_aero_data
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_output_state
+  use pmc_mosaic
+  use pmc_coagulation
+  use pmc_kernel
+  use pmc_output_processed
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
 
   type run_mc_opt_t
     integer :: n_part_max               ! maximum number of particles
@@ -38,23 +57,6 @@ contains
 
     ! Do a particle-resolved Monte Carlo simulation.
     
-    use pmc_util
-    use pmc_aero_state
-    use pmc_bin_grid 
-    use pmc_aero_binned
-    use pmc_condensation
-    use pmc_env_data
-    use pmc_env
-    use pmc_aero_data
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_output_state
-    use pmc_mosaic
-    use pmc_coagulation
-    use pmc_kernel
-    use pmc_output_processed
-    use pmc_mpi
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(env_data_t), intent(in) :: env_data ! environment state
@@ -267,14 +269,6 @@ contains
 
     ! Do coagulation for time del_t.
 
-    use pmc_util
-    use pmc_aero_state
-    use pmc_bin_grid
-    use pmc_aero_binned
-    use pmc_env
-    use pmc_aero_data
-    use pmc_coagulation
-
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(env_t), intent(inout) :: env   ! environment state
@@ -334,8 +328,6 @@ contains
   
     ! Compute the number of samples required for the pair of bins.
 
-    use pmc_env
-
     integer, intent(in) :: ni           ! number particles in first bin 
     integer, intent(in) :: nj           ! number particles in second bin
     logical, intent(in) :: same_bin     ! whether first bin is second bin
@@ -366,15 +358,6 @@ contains
 
     ! Mix data between processes.
 
-    use pmc_util
-    use pmc_aero_data
-    use pmc_aero_state
-    use pmc_gas_data
-    use pmc_gas_state
-    use pmc_aero_binned
-    use pmc_bin_grid
-    use pmc_env
-
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -399,8 +382,6 @@ contains
   integer function pmc_mpi_pack_size_mc_opt(val)
 
     ! Determines the number of bytes required to pack the given value.
-
-    use pmc_mpi
 
     type(run_mc_opt_t), intent(in) :: val ! value to pack
 
@@ -430,12 +411,6 @@ contains
   subroutine pmc_mpi_pack_mc_opt(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -472,12 +447,6 @@ contains
   subroutine pmc_mpi_unpack_mc_opt(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

@@ -24,6 +24,12 @@
 module pmc_aero_particle_array
 
   use pmc_aero_particle
+  use pmc_util
+  use pmc_inout
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
 
   type aero_particle_array_t
      integer :: n_part                  ! number of particles
@@ -118,8 +124,6 @@ contains
     ! to exactly the given new_length. This function should not be
     ! called directly, but rather use aero_particle_array_enlarge(),
     ! aero_particle_array_enlarge_to() or aero_particle_array_shrink().
-
-    use pmc_util
 
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: new_length   ! new length of the array
@@ -222,8 +226,6 @@ contains
 
     ! Removes the particle at the given index.
 
-    use pmc_util
-
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     integer, intent(in) :: index        ! index of particle to remove
 
@@ -270,8 +272,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_array_t), intent(in) :: aero_particle_array
 
@@ -293,8 +293,6 @@ contains
   subroutine inout_read_aero_particle_array(file, aero_particle_array)
     
     ! Read full state.
-    
-    use pmc_inout
     
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(aero_particle_array_t), intent(out) :: aero_particle_array
@@ -320,8 +318,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(aero_particle_array_t), intent(in) :: val ! value to pack
 
     integer :: i, total_size
@@ -342,12 +338,6 @@ contains
   subroutine pmc_mpi_pack_aero_particle_array(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -372,12 +362,6 @@ contains
   subroutine pmc_mpi_unpack_aero_particle_array(buffer, position, val)
 
     ! Unpacks the given value from the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position

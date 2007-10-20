@@ -6,6 +6,14 @@
 
 module pmc_gas_state
 
+  use pmc_util
+  use pmc_inout
+  use pmc_gas_data
+  use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
   type gas_state_t
      real*8, pointer :: conc(:)          ! length n_spec, concentration (ppb)
   end type gas_state_t
@@ -129,8 +137,6 @@ contains
     ! Determine the current gas_state and rate by interpolating at the
     ! current time with the lists of gas_states and rates.
 
-    use pmc_util
-
     type(gas_state_t), intent(in) :: gas_state_list(:) ! gas states
     real*8, intent(in) :: time_list(size(gas_state_list)) ! times (s)
     real*8, intent(in) :: rate_list(size(gas_state_list)) ! rates (s^{-1})
@@ -165,8 +171,6 @@ contains
     
     ! Write full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to write to
     type(gas_state_t), intent(in) :: gas_state ! gas_state to write
 
@@ -182,8 +186,6 @@ contains
     
     ! Read full state.
     
-    use pmc_inout
-    
     type(inout_file_t), intent(inout) :: file ! file to read from
     type(gas_state_t), intent(out) :: gas_state ! gas_state to read
 
@@ -198,9 +200,6 @@ contains
   subroutine spec_read_gas_state(file, gas_data, name, gas_state)
 
     ! Read gas state from the file named on the line read from file.
-
-    use pmc_inout
-    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -251,9 +250,6 @@ contains
 
     ! Read an array of gas states with associated times and rates from
     ! the file named on the line read from the given file.
-
-    use pmc_inout
-    use pmc_gas_data
 
     type(inout_file_t), intent(inout) :: file ! inout file
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -328,8 +324,6 @@ contains
     
     ! Computes the average of an array of gas_state.
 
-    use pmc_util
-
     type(gas_state_t), intent(in) :: gas_state_vec(:) ! array of gas_state
     type(gas_state_t), intent(out) :: gas_state_avg ! average of gas_state_vec
 
@@ -351,8 +345,6 @@ contains
 
     ! Average val over all processes.
 
-    use pmc_mpi
-    
     type(gas_state_t), intent(inout) :: val ! value to average
 
 #ifdef PMC_USE_MPI
@@ -372,8 +364,6 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    use pmc_mpi
-
     type(gas_state_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_gas_state = &
@@ -386,12 +376,6 @@ contains
   subroutine pmc_mpi_pack_gas_state(buffer, position, val)
 
     ! Packs the given value into the buffer, advancing position.
-
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
@@ -413,12 +397,6 @@ contains
 
     ! Unpacks the given value from the buffer, advancing position.
 
-#ifdef PMC_USE_MPI
-    use mpi
-    use pmc_mpi
-    use pmc_util
-#endif
-
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
     type(gas_state_t), intent(out) :: val ! value to pack
@@ -439,8 +417,6 @@ contains
 
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
-
-    use pmc_mpi
 
     type(gas_state_t), intent(in) :: val ! value to average
     type(gas_state_t), intent(out) :: val_avg ! result

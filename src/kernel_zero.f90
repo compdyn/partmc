@@ -11,7 +11,6 @@ module pmc_kernel_zero
   use pmc_bin_grid
   use pmc_env
   use pmc_util
-  use pmc_constants
   use pmc_aero_binned
   use pmc_aero_dist
   use pmc_aero_data

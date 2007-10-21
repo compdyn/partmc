@@ -386,11 +386,12 @@ contains
        d_p = vol2diam(pv) ! (m)
        
        ! molecular diffusion coefficient uncorrected
-       D_v = 0.211d-4 / (env%pressure / const%atm) &
+       D_v = 0.211d-4 / (env%pressure / const%air_std_press) &
             * (env%temp / 273d0)**1.94d0 ! (m^2 s^{-1})
        ! molecular diffusion coefficient corrected for non-continuum effects
-       D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%alpha * d_p)) &
-            * (2d0 * const%pi * M_water / (const%R * env%temp))**0.5d0
+       D_v_div = 1d0 + (2d0 * D_v * 1d-4 / (const%accom_coeff * d_p)) &
+            * (2d0 * const%pi * M_water &
+            / (const%univ_gas_const * env%temp))**0.5d0
        D_vp = D_v / D_v_div
        
        ! TEST: use the basic expression for D_vp
@@ -400,20 +401,24 @@ contains
        ! thermal conductivity uncorrected
        k_a = 1d-3 * (4.39d0 + 0.071d0 * env%temp) ! (J m^{-1} s^{-1} K^{-1})
        k_ap_div = 1d0 + 2d0 &  ! dimensionless
-            * k_a / (const%alpha * d_p * env_air_den(env) * const%cp) &
-            * (2d0 * const%pi * const%M_a / (const%R * env%temp))**0.5d0
+            * k_a / (const%accom_coeff * d_p * env_air_den(env) &
+            * const%water_spec_heat) &
+            * (2d0 * const%pi * const%air_molec_weight &
+            / (const%univ_gas_const * env%temp))**0.5d0
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! (J m^{-1} s^{-1} K^{-1})
 
-       rat = env_sat_vapor_pressure(env) / (const%R * env%temp)
-       fact1 = const%L_v * M_water / (const%R * env%temp)
-       fact2 = const%L_v / (2d0 * const%pi * d_p * k_ap * env%temp)
+       rat = env_sat_vapor_pressure(env) / (const%univ_gas_const * env%temp)
+       fact1 = const%water_latent_heat * M_water &
+            / (const%univ_gas_const * env%temp)
+       fact2 = const%water_latent_heat &
+            / (2d0 * const%pi * d_p * k_ap * env%temp)
 
        c1 = 2d0 * const%pi * d_p * D_vp * M_water * rat
        c2 = 4d0 * M_water &
-            * const%sig / (const%R * rho_water * d_p)
+            * const%water_surf_eng / (const%univ_gas_const * rho_water * d_p)
        c3 = c1 * fact1 * fact2
-       c4 = const%L_v / (2d0 * const%pi * d_p * k_ap)
+       c4 = const%water_latent_heat / (2d0 * const%pi * d_p * k_ap)
        ! incorrect expression from Majeed and Wexler:
        !     c5 = nu * eps * M_water * rho_solute * r_n**3d0 &
        !         / (M_solute * rho_water * ((d_p / 2)**3d0 - r_n**3))
@@ -511,7 +516,8 @@ contains
 
        pv = aero_particle_volume(aero_particle) ! (m^3)
 
-       A = 4d0 * M_water * const%sig / (const%R * env%temp * rho_water)
+       A = 4d0 * M_water * const%water_surf_eng &
+            / (const%univ_gas_const * env%temp * rho_water)
        
        B = nu * eps * M_water * rho_solute &
             * vol2rad(pv)**3.d0 / (M_solute * rho_water)

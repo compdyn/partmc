@@ -97,7 +97,7 @@ contains
     ! environmental parameters: map PartMC -> MOSAIC
     RH = env%rel_humid * 100.d0              ! relative humidity (%)
     te = env%temp                            ! temperature (K)
-    pr_atm = env%pressure / const%atm        ! pressure (atm)
+    pr_atm = env%pressure / const%air_std_press ! pressure (atm)
     
     call init_data_modules                   ! initialize indices and vars
     call LoadPeroxyParameters                ! Aperox and Bperox only once
@@ -209,7 +209,7 @@ contains
     ! environmental parameters: map PartMC -> MOSAIC
     RH = env%rel_humid * 100.d0              ! relative humidity (%)
     te = env%temp                            ! temperature (K)
-    pr_atm = env%pressure / const%atm        ! pressure (atm)
+    pr_atm = env%pressure / const%air_std_press ! pressure (atm)
     
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = total_particles(aero_state)
@@ -292,7 +292,7 @@ contains
     ! environmental parameters: map MOSAIC -> PartMC
     env%rel_humid = RH / 100d0
     env%temp = te
-    env%pressure = pr_atm * const%atm
+    env%pressure = pr_atm * const%air_std_press
 
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number

@@ -200,9 +200,10 @@ contains
     
     dmv = dv * aero_data%density(aero_data%i_water)
     pmv = env_sat_vapor_pressure(env) * env%rel_humid
-    mv = aero_data%molec_weight(aero_data%i_water)/(const%R*env%temp) * pmv
+    mv = aero_data%molec_weight(aero_data%i_water) &
+         / (const%univ_gas_const*env%temp) * pmv
     mv = mv - dmv    
-    env%rel_humid = const%R * env%temp &
+    env%rel_humid = const%univ_gas_const * env%temp &
          / aero_data%molec_weight(aero_data%i_water) * mv &
          / env_sat_vapor_pressure(env)
     
@@ -216,8 +217,9 @@ contains
     
     type(env_t), intent(in) :: env      ! environment state
     
-    env_sat_vapor_pressure = const%p00 * 10d0**(7.45d0 * (env%temp - const%T0) &
-         / (env%temp - 38d0)) ! Pa
+    env_sat_vapor_pressure = const%water_eq_vap_press &
+         * 10d0**(7.45d0 * (env%temp - const%water_freeze_temp) &
+         / (env%temp - 38d0))
     
   end function env_sat_vapor_pressure
   
@@ -234,8 +236,8 @@ contains
     real*8 :: kappa, diam, C, A
     
     kappa = aero_particle_solute_kappa(aero_data, aero_particle)
-    A = 4d0 * const%sig * const%water_molec_weight &
-         / (const%R * env%temp * const%water_density)
+    A = 4d0 * const%water_surf_eng * const%water_molec_weight &
+         / (const%univ_gas_const * env%temp * const%water_density)
     C = sqrt(4d0 * A**3 / 27d0)
     diam = vol2diam(aero_particle_volume(aero_particle))
     aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
@@ -248,7 +250,7 @@ contains
 
     type(env_t), intent(in) :: env      ! environment state
 
-    env_air_den = const%M_a * env_air_molar_den(env)
+    env_air_den = const%air_molec_weight * env_air_molar_den(env)
 
   end function env_air_den
 
@@ -258,7 +260,7 @@ contains
 
     type(env_t), intent(in) :: env      ! environment state
 
-    env_air_molar_den = env%pressure / (const%R * env%temp)
+    env_air_molar_den = env%pressure / (const%univ_gas_const * env%temp)
 
   end function env_air_molar_den
 

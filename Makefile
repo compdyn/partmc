@@ -14,19 +14,17 @@ FC = gfortran
 # -pg             profiling (must also be used on LDFLAGS)
 # -fbounds-check  check array accesses
 # -Wno-unused     disable reporting of unused variables
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC $(NETCDF_MODDIR)
-LDFLAGS = -L$(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC $(NETCDF_MODDIR)
+LDFLAGS = $(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
-MOSAIC_DIR = $(HOME)/proj/mosaic/trunk
-MOSAIC_LIBDIR = $(MOSAIC_DIR)
-MOSAIC_MODDIR = $(MOSAIC_DIR)/datamodules
+MOSAIC_MODDIR = -I/usr/include
+MOSAIC_LIBDIR = -L/usr/lib
 MOSAIC_LIB = -lmosaic
 
-NETCDF_MODDIR = -I/usr/include/netcdf-3
+NETCDF_MODDIR = -I/usr/include
 NETCDF_LIBDIR = -L/usr/lib
-NETCDF_LIB = -lnetcdff -lnetcdf
+NETCDF_LIB = -lnetcdf
 
--include Makefile.paths
 -include Makefile.local
 
 PROGS := src/partmc test/sedi_bidisperse_ode equilib/equilib	\

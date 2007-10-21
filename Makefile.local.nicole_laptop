@@ -1,0 +1,5 @@
+MOSAIC_MODDIR = -I$(HOME)/subversion/mosaic/trunk/datamodules
+MOSAIC_LIBDIR = -L$(HOME)/subversion/mosaic/trunk
+
+NETCDF_MODDIR = -I$(HOME)/netcdf/include
+NETCDF_LIBDIR = -L$(HOME)/netcdf/lib

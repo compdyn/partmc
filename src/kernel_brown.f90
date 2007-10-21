@@ -31,7 +31,7 @@ contains
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
     integer lundiag1, lundiag2
 
-    ! c_1 = 2d0 * const%k_b * env%temp / (3.d0 * const%mu)
+    ! c_1 = 2d0 * const%boltzmann * env%temp / (3.d0 * const%air_dyn_visc)
     ! a_third = v1**(1.d0/3.d0)
     ! b_third = v2**(1.d0/3.d0)
     
@@ -99,10 +99,10 @@ contains
     ! gasspeed    = air molecule mean thermal velocity (cm/s)
     ! gasfreepath = air molecule mean free path (cm)
 
-    boltz = const%k_b * 1d7 ! J/K to erg/K
-    avogad = const%N_A
-    mwair = const%M_a * 1d3 ! kg/mole to g/mole
-    rgas = const%R * 1d-2 ! J/mole/K to ??? (FIXME)
+    boltz = const%boltzmann * 1d7 ! J/K to erg/K
+    avogad = const%avagadro
+    mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
+    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to ??? (FIXME)
     
     rhoair = 0.001d0 * ((press/1.01325d5)*mwair/(rgas*tk))
     

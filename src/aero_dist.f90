@@ -228,7 +228,8 @@ contains
   
   subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
 
-    ! Compute a log-normal distribution.
+    ! Compute a log-normal distribution, normalized so that
+    ! sum(num_den(k) * dlnr) = 1
     
     real*8, intent(in) :: mean_radius   ! geometric mean radius (m)
     real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
@@ -246,8 +247,10 @@ contains
     end do
     
     ! The formula above was originally for a distribution in
-    ! log_10(r), while we are using log_e(r). The division by dlog(10)
-    ! at the end corrects for this.
+    ! log_10(r), while we are using log_e(r) for our bin grid. The
+    ! division by dlog(10) at the end corrects for this.
+
+    ! Remember that log_e(r) = log_10(r) * log_e(10).
     
   end subroutine num_den_log_normal
   
@@ -257,6 +260,7 @@ contains
     
     ! Exponential distribution in volume
     ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
+    ! Normalized so that sum(num_den(k) * dlnr) = 1
     
     real*8, intent(in) :: mean_radius   ! mean radius (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -278,6 +282,7 @@ contains
   subroutine num_den_mono(radius, bin_grid, num_den)
     
     ! Mono-disperse distribution.
+    ! Normalized so that sum(num_den(k) * dlnr) = 1
     
     real*8, intent(in) :: radius         ! radius of each particle (m^3)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid

@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-gas_species = ["O3", "HNO3", "NO", "NO2"]
+gas_species = ["SO2", "O3", "HNO3", "NO", "NO2"]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "gas",

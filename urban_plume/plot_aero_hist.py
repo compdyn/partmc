@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-aero_species = ["SO4_a", "NO3_a", "NH4_a"]
+aero_species = ["BC_a", "OC_a", "SO4_a", ]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "aero",
@@ -21,7 +21,7 @@ data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 data.write_summary(sys.stdout)
 
 data.scale_dim("time", 1.0/3600)
-data.scale(1e6)
+data.scale(1e9)
 
 g = graph.graphxy(
     width = 10,

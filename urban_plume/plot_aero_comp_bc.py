@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-times_hour = [1, 6, 24]
+times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "comp_bc",

@@ -12,9 +12,9 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-times_hour = [1, 6, 24]
+times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/withoutcoag/urban_plume_state_0001.nc"),
 	       "kappa_crit_ss",
 	       [])
 data.write_summary(sys.stdout)
@@ -39,4 +39,4 @@ for i in range(len(times_hour)):
 						   flip_axes = True),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
-    g.writePDFfile("out/aero_kappa_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/withoutcoag/aero_kappa_%d.pdf" % times_hour[i])

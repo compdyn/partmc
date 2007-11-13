@@ -22,12 +22,12 @@ gas_init gas_init_LA.dat           # initial gas concentrations
 aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist_LA.dat # aerosol initial condition file
 
-temp_profile temp_LA.dat           # temperature profile file
-height_profile height_LA.dat # height profile file
-gas_emissions gas_emit_LA.dat # gas emissions file
-gas_background gas_back.dat     # background gas concentrations file
-aero_emissions aero_emit_LA.dat # aerosol emissions file
-aero_background aero_back.dat   # aerosol background file
+temp_profile temp_LA.dat         # temperature profile file
+height_profile height_LA.dat     # height profile file
+gas_emissions gas_emit_LA.dat    # gas emissions file
+gas_background gas_back_LA.dat   # background gas concentrations file
+aero_emissions aero_emit_LA.dat  # aerosol emissions file
+aero_background aero_back_LA.dat # aerosol background file
 
 rel_humidity 0.85               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)

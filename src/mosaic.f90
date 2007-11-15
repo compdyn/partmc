@@ -372,6 +372,7 @@ contains
     end if
 
     call IntegrateChemistry
+    write(*,'(a)') '*** interface calling aerosol_optical'
     call aerosol_optical
 
     ! map MOSAIC -> PartMC

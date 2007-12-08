@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-aero_species = ["BC_a", "OC_a", "SO4_a", ]
+aero_species = ["BC_a", "OC_a" ]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "aero",
@@ -39,4 +39,4 @@ for i in range(len(aero_species)):
 			   title = tex_species(aero_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/aero_hist.pdf")
+g.writePDFfile("out/aero_hist_dilut.pdf")

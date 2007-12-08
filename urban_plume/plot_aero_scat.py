@@ -12,16 +12,16 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
+times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
-	       "comp_bc",
+data = pmc_var(NetCDFFile("out/high_init/withcoag/urban_plume_state_0001.nc"),
+	       "extinct",
 	       [])
 data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
-data.scale_dim("composition", 100)
+data.scale_dim("extinct_cross_section_area", 1)
 data.scale_dim("radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
@@ -30,15 +30,13 @@ for i in range(len(times_hour)):
 	width = 10,
 	x = graph.axis.log(title = r'radius ($\mu$m)',
 			   painter = grid_painter),
-	y = graph.axis.linear(min = 0,
-			      max = 100,
-			      title = 'soot volume fraction',
-			      texter = graph.axis.texter.decimal(suffix
-								 = r"\%"),
-			      painter = grid_painter))
+	y = graph.axis.log(title = 'scatter cross section',
+			   texter = graph.axis.texter.decimal(suffix = r"\%"),
+			   painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True),
+    g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
+						   flip_axes = True),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
-    g.writePDFfile("out/aero_comp_bcdilute_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/high_init/withcoag/aero_scatter_%d.pdf" % times_hour[i])

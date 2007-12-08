@@ -12,7 +12,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-gas_species = ["SO2", "O3", "HNO3", "NO", "NO2"]
+gas_species = ["N2O5", "NO3"]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "gas",
@@ -36,4 +36,4 @@ for i in range(len(gas_species)):
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/gas.pdf")
+g.writePDFfile("out/gas_dilut4.pdf")

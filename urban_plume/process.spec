@@ -35,20 +35,20 @@ b_species BC_a                  # second species list
 #min 0                           # min original particles
 #max 100                         # max original particles
 
-#process optic_absorb            # optical absorption
-#suffix optic_absorb             # filename suffix for output
-#n_step 100                      # number of steps for histogram
-#min 0                           # min absorption cross-section (m^2)
-#max 1e-5                        # max absorption cross-section (m^2)
+process optic_absorb            # optical absorption
+suffix optic_absorb             # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # min absorption cross-section (m^2)
+max 1e-5                        # max absorption cross-section (m^2)
 
-#process optic_scatter           # optical scattering
-#suffix scatter                  # filename suffix for output
-#n_step 100                      # number of steps for histogram
-#min 0                           # min scattering cross-section (m^2)
-#max 1e-5                        # max scattering cross-section (m^2)
+process optic_scatter           # optical scattering
+suffix scatter                  # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # min scattering cross-section (m^2)
+max 1e-5                        # max scattering cross-section (m^2)
 
-#process optic_extinct           # optical extinction
-#suffix extinct                  # filename suffix for output
-#n_step 100                      # number of steps for histogram
-#min 0                           # min extinction cross-section (m^2)
-#max 1e-5                        # max extinction cross-section (m^2)
+process optic_extinct           # optical extinction
+suffix extinct                  # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # min extinction cross-section (m^2)
+max 1e-5                        # max extinction cross-section (m^2)

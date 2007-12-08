@@ -12,7 +12,7 @@ ENDINFO
 sleep 1
 
 echo ../src/partmc urban_plume.spec
-pgdbg ../src/partmc urban_plume.spec
+../src/partmc urban_plume.spec
 
 echo ./plot_aero_dist.py
 ./plot_aero_dist.py

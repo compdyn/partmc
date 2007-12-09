@@ -1,13 +1,13 @@
 n_modes 2                       # number of initial aerosol modes
 
 # mode 1
-vol_frac comp_water.dat         # composition proportions of species
+vol_frac aero_init_comp.dat     # composition proportions of species
 num_conc 1e9                    # particle concentration (#/m^3)
 mode_type mono                  # type of mode
 radius 1e-5                     # particle radius (m)
 
 # mode 2
-vol_frac comp_water.dat         # composition proportions of species
+vol_frac aero_init_comp.dat     # composition proportions of species
 num_conc 1e5                    # particle concentration (#/m^3)
 mode_type mono                  # type of mode
 radius 1e-4                     # particle radius (m)

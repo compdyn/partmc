@@ -17,7 +17,7 @@
 ! a one-dimensional ODE which we treat as being defined in terms of
 ! the current number of small particles.
 
-program sedi_bidisperse_ode
+program bidisperse_ode
   
   use pmc_kernel_sedi
   use pmc_env
@@ -38,7 +38,7 @@ program sedi_bidisperse_ode
   real*8, parameter :: bin_r_max = 1d0  ! minimum bin radius (m)
   integer, parameter :: scal = 3        ! scale factor for bins
   integer, parameter :: out_unit = 33   ! output unit number
-  character(len=*), parameter :: out_name = "out/sedi_bidisperse_ode_counts.d"
+  character(len=*), parameter :: out_name = "out/bidisperse_ode_counts.d"
   
   type(env_t) :: env
   integer :: i_step, n_step
@@ -146,4 +146,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end program sedi_bidisperse_ode
+end program bidisperse_ode

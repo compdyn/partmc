@@ -5,14 +5,14 @@
 
 import os, sys
 import copy as module_copy
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-mc_data = pmc_var(NetCDFFile("out/sedi_bidisperse_mc_state_0001.nc"),
+mc_data = pmc_var(NetCDFFile("out/bidisperse_mc_state_0001.nc"),
 		  "aero",
 		  [sum("aero_species")])
 
@@ -47,7 +47,7 @@ g.plot(graph.data.list(init_mc_data.data_center_list(),
 		       title = "initial distribution"),
        styles = [graph.style.line(lineattrs = [color_list[0]])])
 
-g.writePDFfile("out/sedi_bidisperse_init_dist")
+g.writePDFfile("out/bidisperse_init_dist")
 
 ######################################################################
 
@@ -61,7 +61,7 @@ g = graph.graphxy(
 	painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 
-g.plot(graph.data.file("out/sedi_bidisperse_ode_counts.d",
+g.plot(graph.data.file("out/bidisperse_ode_counts.d",
 		       x = 1, y = 2,
 		       title = "ODE"),
        styles = [graph.style.line(lineattrs = [color_list[1]])])
@@ -73,7 +73,7 @@ g.plot(graph.data.list(small_mc_data.data_center_list(),
 				    size = 0.05,
 				    symbolattrs = [color_list[0]])])
 
-g.writePDFfile("out/sedi_bidisperse_num_small")
+g.writePDFfile("out/bidisperse_num_small")
 
 ######################################################################
 
@@ -87,7 +87,7 @@ g = graph.graphxy(
 	painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 
-g.plot(graph.data.file("out/sedi_bidisperse_ode_counts.d",
+g.plot(graph.data.file("out/bidisperse_ode_counts.d",
 		       x = 1, y = 2,
 		       title = "ODE"),
        styles = [graph.style.line(lineattrs = [color_list[1]])])
@@ -99,7 +99,7 @@ g.plot(graph.data.list(small_mc_data.data_center_list(strip_zero = True),
 				    size = 0.05,
 				    symbolattrs = [color_list[0]])])
 
-g.writePDFfile("out/sedi_bidisperse_num_small_log")
+g.writePDFfile("out/bidisperse_num_small_log")
 
 ######################################################################
 
@@ -113,7 +113,7 @@ g = graph.graphxy(
 	painter = grid_painter),
     key = graph.key.key(pos = "br"))
 
-g.plot(graph.data.file("out/sedi_bidisperse_ode_counts.d",
+g.plot(graph.data.file("out/bidisperse_ode_counts.d",
 		       x = 1, y = 3,
 		       title = "ODE"),
        styles = [graph.style.line(lineattrs = [color_list[1]])])
@@ -125,6 +125,6 @@ g.plot(graph.data.list(large_mc_data.data_center_list(),
 				    size = 0.05,
 				    symbolattrs = [color_list[0]])])
 
-g.writePDFfile("out/sedi_bidisperse_vol_big")
+g.writePDFfile("out/bidisperse_vol_big")
 
 ######################################################################

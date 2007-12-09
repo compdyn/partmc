@@ -1,2 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-test/sedi_bidisperse_ode.o: src/pmc_kernel_sedi.mod src/pmc_env.mod src/pmc_util.mod src/pmc_bin_grid.mod

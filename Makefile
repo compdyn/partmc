@@ -27,7 +27,7 @@ NETCDF_LIB = -lnetcdf
 
 -include Makefile.local
 
-PROGS := src/partmc test/sedi_bidisperse_ode equilib/equilib	\
+PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
 	test/poisson/poisson_sample
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
@@ -70,7 +70,7 @@ process_state_new_OBJS := src/process_state_new.o src/bin_grid.o	\
 	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
 	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
 	src/mosaic.o src/process_spec.o src/process.o src/netcdf.o
-sedi_bidisperse_ode_OBJS := test/sedi_bidisperse_ode.o			\
+bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
 	src/aero_state.o src/bin_grid.o src/inout.o src/aero_dist.o	\
@@ -122,8 +122,8 @@ src/process_state_new: $(process_state_new_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
-test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
+test/bidisperse/bidisperse_ode: $(bidisperse_ode_OBJS)
+	$(FC) $(LDFLAGS) -o $@ $(bidisperse_ode_OBJS)
 test/poisson/poisson_sample: $(poisson_sample_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(poisson_sample_OBJS)
 

@@ -1,8 +1,8 @@
 run_type mc                     # Monte Carlo run
 output_file out/golovin_mc_summary.d # name of output file
 state_prefix out/golovin_mc_state # prefix of state files
-process_spec golovin_process.spec # processing specification
-n_loop 1                       # number of Monte Carlo loops
+process_spec process.dat        # processing specification
+n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel
 
@@ -16,18 +16,18 @@ n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
 
-gas_data gas_data_simple.dat    # file containing gas data
-gas_init gas_init_simple.dat    # initial gas concentrations
+gas_data gas_data.dat           # file containing gas data
+gas_init gas_init.dat           # initial gas concentrations
 
-aerosol_data aerosol_data_water.dat # file containing aerosol data
-aerosol_init golovin_mc_init.dat # aerosol initial condition file
+aerosol_data aero_data.dat      # file containing aerosol data
+aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp_constant_15C.dat # temperature profile file
-height_profile height_constant_1km.dat # height profile file
-gas_emissions gas_none_timed.dat # gas emissions file
-gas_background gas_none_timed.dat # background gas concentrations file
-aero_emissions aerosol_none_timed.dat # aerosol emissions file
-aero_background aerosol_none_timed.dat # aerosol background file
+temp_profile temp.dat           # temperature profile file
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas concentrations file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.999              # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)

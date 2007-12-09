@@ -18,11 +18,11 @@ as model verification against an analytical solution.
 ENDINFO
 sleep 1
 
-echo ../src/partmc golovin_mc.spec
-../src/partmc golovin_mc.spec
-echo ../src/partmc golovin_exact.spec
-../src/partmc golovin_exact.spec
+echo ../../src/partmc run_mc.spec
+../../src/partmc run_mc.spec
+echo ../../src/partmc run_exact.spec
+../../src/partmc run_exact.spec
 
-echo ./golovin_plot.py
-./golovin_plot.py
+echo ./plot.py
+./plot.py
 echo Now view out/golovin_num.pdf and out/golovin_vol.pdf

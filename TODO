@@ -113,3 +113,14 @@ Rename env.f90 to env_state.f90
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
+
+Change aero_dists to actually store the distribution parameters,
+rather than generating the discretized version immediately. This will
+allow us to sample log-normal and others exactly.
+
+Maybe generate initial number of particles from a Poisson
+distribution, rather than just using the mean as we do now?
+
+Golovin testcase (and maybe others) need loops > 1.
+
+Change assert() to print "ERROR (########): message".

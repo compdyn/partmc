@@ -35,13 +35,13 @@ n(r,inf) = n_lim(r) = n_back(r) + ---------- n_emit(r)
 ENDINFO
 sleep 1
 
-echo ../src/partmc emission_mc.spec
-../src/partmc emission_mc.spec
-echo ../src/partmc emission_sect.spec
-../src/partmc emission_sect.spec
-echo ../src/partmc emission_exact.spec
-../src/partmc emission_exact.spec
+echo ../../src/partmc run_mc.spec
+../../src/partmc run_mc.spec
+echo ../../src/partmc run_sect.spec
+../../src/partmc run_sect.spec
+echo ../../src/partmc run_exact.spec
+../../src/partmc run_exact.spec
 
-echo ./emission_plot.py
-./emission_plot.py
+echo ./plot.py
+./plot.py
 echo Now view out/emission_dist.pdf and out/emission_history.pdf

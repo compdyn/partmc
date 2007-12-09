@@ -1,7 +1,7 @@
 run_type exact                  # exact solution
 output_file out/golovin_exact_summary.d # name of output file
 output_prefix out/golovin_exact # prefix of output files
-process_spec golovin_process.spec # processing specification
+process_spec process.dat        # processing specification
 num_conc 1e9                    # particle concentration (#/m^3)
 
 t_max 600                       # total simulation time (s)
@@ -11,15 +11,15 @@ n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
 
-gas_data gas_data_simple.dat    # file containing gas data
-aerosol_data aerosol_data_water.dat # file containing aerosol data
+gas_data gas_data.dat           # file containing gas data
+aerosol_data aero_data.dat      # file containing aerosol data
 
-temp_profile temp_constant_15C.dat # temperature profile file
-height_profile height_constant_1km.dat # height profile file
-gas_emissions gas_none_timed.dat # gas emissions file
-gas_background gas_none_timed.dat # background gas concentrations file
-aero_emissions aerosol_none_timed.dat # aerosol emissions file
-aero_background aerosol_none_timed.dat # aerosol background file
+temp_profile temp.dat           # temperature profile file
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas concentrations file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.999              # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)

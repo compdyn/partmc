@@ -28,7 +28,7 @@ NETCDF_LIB = -lnetcdf
 -include Makefile.local
 
 PROGS := src/partmc test/sedi_bidisperse_ode equilib/equilib	\
-	test/poisson_sample
+	test/poisson/poisson_sample
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/env_data src/env src/aero_dist		\
@@ -82,7 +82,7 @@ equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
 	src/aero_dist.o src/inout.o src/aero_binned.o			\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o
-poisson_sample_OBJS := test/poisson_sample.o src/util.o	\
+poisson_sample_OBJS := test/poisson/poisson_sample.o src/util.o	\
 	src/rand_poisson.o src/constants.o
 
 ALL_FILES = $(PROGS) $(OTHER)
@@ -124,7 +124,7 @@ equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/sedi_bidisperse_ode: $(sedi_bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(sedi_bidisperse_ode_OBJS)
-test/poisson_sample: $(poisson_sample_OBJS)
+test/poisson/poisson_sample: $(poisson_sample_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(poisson_sample_OBJS)
 
 .PHONY: clean

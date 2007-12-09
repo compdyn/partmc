@@ -26,6 +26,6 @@ echo ./poisson_sample 20 50 10000000
 echo ./poisson_sample 30 50 10000000
 ./poisson_sample 30 50 10000000 > out/poisson_30.d
 
-echo ./poisson_plot.py
-./poisson_plot.py
+echo ./plot.py
+./plot.py
 echo Now view out/poisson.pdf

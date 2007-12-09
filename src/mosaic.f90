@@ -372,8 +372,10 @@ contains
     end if
 
     call IntegrateChemistry
-    write(*,'(a)') '*** interface calling aerosol_optical'
+
+!DEBUG
     call aerosol_optical
+!DEBUG
 
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &

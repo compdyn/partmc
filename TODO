@@ -109,3 +109,7 @@ DEF_FFLAGS or something, and include FFLAGS without settting it. Also
 print out all settings before starting compilation.
 
 Rename env.f90 to env_state.f90
+
+Fix calling convention for aerosol_optical from mosaic.f90. Do we do
+it every timestep, or just when needed, or what? What about
+coagulation? Does this come in the right order?

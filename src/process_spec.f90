@@ -280,6 +280,7 @@ contains
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
+    process_spec%log_scale = .true.
 
   end subroutine inout_read_process_spec_optic
 

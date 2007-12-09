@@ -82,7 +82,7 @@ g = graph.graphxy(width = 10,
 					max = 1.5e10,
 					title = "number density (\#/m$^3$)",
 					painter = grid_painter),
-		  key = graph.key.key(pos = "tr"))
+		  key = graph.key.key(pos = "br"))
 
 for i in range(len(samples)):
     data_slice = module_copy.deepcopy(mc_data)

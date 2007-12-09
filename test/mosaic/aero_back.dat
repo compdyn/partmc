@@ -3,4 +3,4 @@
 # aerosol distribution filename
 time    0
 rate    0
-dist    aerosol_none.dat
+dist    aero_back_dist.dat

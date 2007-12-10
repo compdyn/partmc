@@ -16,11 +16,11 @@ comparison of sectional runs with Monte Carlo runs.
 ENDINFO
 sleep 1
 
-echo ../src/partmc sedi_exp_mc.spec
-../src/partmc sedi_exp_mc.spec
-echo ../src/partmc sedi_exp_sect.spec
-../src/partmc sedi_exp_sect.spec
+echo ../../src/partmc run_mc.spec
+../../src/partmc run_mc.spec
+echo ../../src/partmc run_sect.spec
+../../src/partmc run_sect.spec
 
-echo ./sedi_exp_plot.py
-./sedi_exp_plot.py
-echo "Now view out/sedi_exp_{num,vol}_{lin,log}.pdf"
+echo ./plot.py
+./plot.py
+echo "Now view out/sedi_{num,vol}_{lin,log}.pdf"

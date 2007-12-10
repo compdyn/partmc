@@ -5,7 +5,7 @@
 
 import os, sys
 import copy as module_copy
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 sys.path.append(os.path.expanduser("~/.python"))
@@ -15,10 +15,10 @@ from Scientific.IO.NetCDF import *
 times_min = [0, 5, 10]
 times_sec = [t * 60 for t in times_min]
 
-mc_data = pmc_var(NetCDFFile("out/sedi_exp_mc_state_0001.nc"),
+mc_data = pmc_var(NetCDFFile("out/sedi_mc_state_0001.nc"),
 		  "aero",
 		  [sum("aero_species")])
-sect_data = pmc_var(NetCDFFile("out/sedi_exp_sect_0001.nc"),
+sect_data = pmc_var(NetCDFFile("out/sedi_sect_0001.nc"),
 		    "aero",
 		    [sum("aero_species")])
 
@@ -132,7 +132,7 @@ for i in range(len(times_sec)):
 			title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     
-g_num_lin.writePDFfile("out/sedi_exp_num_lin.pdf")
-g_num_log.writePDFfile("out/sedi_exp_num_log.pdf")
-g_vol_lin.writePDFfile("out/sedi_exp_vol_lin.pdf")
-g_vol_log.writePDFfile("out/sedi_exp_vol_log.pdf")
+g_num_lin.writePDFfile("out/sedi_num_lin.pdf")
+g_num_log.writePDFfile("out/sedi_num_log.pdf")
+g_vol_lin.writePDFfile("out/sedi_vol_lin.pdf")
+g_vol_log.writePDFfile("out/sedi_vol_log.pdf")

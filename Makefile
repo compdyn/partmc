@@ -30,6 +30,9 @@ NETCDF_LIB = -lnetcdf
 PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
 	test/poisson/poisson_sample
 
+CLEAN_DIRS = test/bidisperse/out test/emission/out test/golovin/out	\
+        test/mosaic/out test/poisson/out test/sedi/out urban_plume/out
+
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/env_data src/env src/aero_dist		\
 	src/kernel_golovin src/kernel_sedi src/kernel_constant		\
@@ -133,11 +136,14 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f *~ src/*~ test/*~ test/out/* equilib/*~ test/.gdb_history urban_plume/*~ urban_plume/out/* urban_plume/plot.eps urban_plume/plot.pdf urban_plume/plot.gp tool/*.pyc tool/*~
-
-.PHONY: distclean
-distclean: cleanall
-	rm -f test/gmon.out test/gprof_*
+	find . -name *~ -exec rm {} \;
+	find . -name *.pyc -exec rm {} \;
+	find . -name .gdb_history -exec rm {} \;
+	find . -name gmon.out -exec rm {} \;
+	find . -name gprof_* -exec rm {} \;
+	rm -rf test/bidisperse/out/* test/emission/out/*		\
+               test/golovin/out/* test/mosaic/out/* test/poisson/out/*	\
+               test/sedi/out/* urban_plume/out/*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

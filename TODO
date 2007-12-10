@@ -126,5 +126,3 @@ Golovin testcase (and maybe others) need loops > 1.
 Change assert() to print "ERROR (PartMC-########): message".
 
 Make READMEs in each test/*/ dir, rather than putting info in run.sh?
-
-"make clean" should delete junk in test subdirs, including out/s and .o.

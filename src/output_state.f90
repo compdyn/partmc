@@ -49,8 +49,9 @@ contains
     integer :: ierr, status, buffer_size, i_proc, position
     character, allocatable :: buffer(:)
 
-    ! write all the common data
+    ! only root node actually writes to the file
     if (pmc_mpi_rank() == 0) then
+       ! write all the common data
        write(filename, '(a,a,i4.4,a,i8.8,a)') trim(state_prefix), &
             '_', i_loop, '_', index, '.d'
        call inout_open_write(filename, file)
@@ -62,14 +63,14 @@ contains
        call inout_write_bin_grid(file, bin_grid)
        call inout_write_gas_data(file, gas_data)
        call inout_write_aero_data(file, aero_data)
-    end if
 
-    ! write root node's state
-    call inout_write_integer(file, 'n_processor', pmc_mpi_size())
-    call inout_write_integer(file, 'processor', 0)
-    call inout_write_env(file, env)
-    call inout_write_gas_state(file, gas_state)
-    call inout_write_aero_state(file, aero_state)
+       ! write root node's state
+       call inout_write_integer(file, 'n_processor', pmc_mpi_size())
+       call inout_write_integer(file, 'processor', 0)
+       call inout_write_env(file, env)
+       call inout_write_gas_state(file, gas_state)
+       call inout_write_aero_state(file, aero_state)
+    end if
 
 #ifdef PMC_USE_MPI
     ! write everyone else's state

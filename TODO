@@ -126,3 +126,7 @@ Golovin testcase (and maybe others) need loops > 1.
 Change assert() to print "ERROR (PartMC-########): message".
 
 Make READMEs in each test/*/ dir, rather than putting info in run.sh?
+
+Fix up process_state to output netcdf.
+
+Write netcdf_average helper.

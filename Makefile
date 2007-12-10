@@ -59,14 +59,7 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
 	src/netcdf.o
-process_state_OBJS := src/process_state.o src/bin_grid.o		\
-	src/env_data.o src/env.o src/aero_data.o src/aero_state.o	\
-	src/output_state.o src/util.o src/constants.o src/gas_data.o	\
-	src/gas_state.o src/inout.o src/aero_particle.o			\
-	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
-	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
-	src/mosaic.o
-process_state_new_OBJS := src/process_state_new.o src/bin_grid.o	\
+process_state_OBJS := src/process_state.o src/bin_grid.o	\
 	src/env_data.o src/env.o src/aero_data.o src/aero_state.o	\
 	src/output_state.o src/util.o src/constants.o src/gas_data.o	\
 	src/gas_state.o src/inout.o src/aero_particle.o			\
@@ -120,9 +113,7 @@ equilib/%.o: equilib/%.f90 equilib/%.deps
 src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 src/process_state: $(process_state_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB)
-src/process_state_new: $(process_state_new_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_new_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
+	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/bidisperse/bidisperse_ode: $(bidisperse_ode_OBJS)

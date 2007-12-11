@@ -14,12 +14,13 @@ FC = gfortran
 # -pg             profiling (must also be used on LDFLAGS)
 # -fbounds-check  check array accesses
 # -Wno-unused     disable reporting of unused variables
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MOSAIC $(NETCDF_MODDIR)
+FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check $(MOSAIC_FLAG) $(NETCDF_MODDIR)
 LDFLAGS = $(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
 MOSAIC_MODDIR = -I/usr/include
 MOSAIC_LIBDIR = -L/usr/lib
 MOSAIC_LIB = -lmosaic
+MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
 
 NETCDF_MODDIR = -I/usr/include
 NETCDF_LIBDIR = -L/usr/lib
@@ -89,23 +90,25 @@ ALL_DEPS = $(ALL_FILES:%=%.deps)
 .PHONY: all
 
 ifeq ($(DEV_BUILD),yes)
-# developers should rebuild Makefile.deps and TAGS
+# developers should rebuild TAGS and .deps files
 all: TAGS $(PROGS)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
+
+%.deps: %.f90 tool/f90_mod_deps.py
+	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
+
 else
 # non-developers should only build the programs
 all: $(PROGS)
 endif
 
 -include $(ALL_FILES:%=%.deps)
-%.deps: %.f90 tool/f90_mod_deps.py
-	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
-src/%.o src/pmc_%.mod: src/%.f90 src/%.deps
+src/%.o src/pmc_%.mod: src/%.f90
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-test/%.o: test/%.f90 test/%.deps
+test/%.o: test/%.f90
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 equilib/%.o: equilib/%.f90 equilib/%.deps
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<

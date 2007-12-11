@@ -28,9 +28,12 @@ contains
     character(len=*), intent(in) :: error_msg ! msg if assertion fails
 
     integer :: ierr
+    character(len=100) :: code_str
 
+    write(code_str,*) code
+    code_str = adjustl(code_str)
     if (.not. condition_ok) then
-       write(0,*) 'ERROR: ', trim(error_msg), ': ', code
+       write(0,*) 'ERROR (PartMC-', trim(code_str), '): ', trim(error_msg)
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else

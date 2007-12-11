@@ -38,9 +38,6 @@ on OS X.
 
 Kill aeroptical.dat output from MOSAIC.
 
-Change Makefile to build partmc and process_state in the main
-directory (not src).
-
 Change process_state to be a mode of partmc with "run_type process" --
 update README.
 
@@ -53,8 +50,6 @@ print out all settings before starting compilation.
 Rename env.f90 to env_state.f90
 
 Golovin testcase (and maybe others) need loops > 1.
-
-Change assert() to print "ERROR (PartMC-########): message".
 
 Change process_state to output netcdf?
 

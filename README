@@ -91,8 +91,8 @@ therein. Either Monte Carlo runs, sectional code runs, or exact
 solutions can be generated. A run produces binned summary data in a
 NetCDF file which can be plotted with the included python
 scripts. Monte Carlo runs can also output the full internal state in
-an ASCII format that can then be processed with `process_state` to
-produce the same summary NetCDF data.
+an ASCII format that can then be processed with `partmc -p` to produce
+the same summary NetCDF data.
 
 There are a number of examples provided in the test directory that can
 be run by the run.sh scripts. These use the python scripts with

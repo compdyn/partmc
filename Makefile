@@ -84,7 +84,7 @@ ALL_DEPS = $(ALL_FILES:%=%.deps)
 
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild TAGS and .deps files
-all: TAGS $(PROGS) README.html
+all: README.html TAGS $(PROGS)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)

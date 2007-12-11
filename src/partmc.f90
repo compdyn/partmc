@@ -30,51 +30,169 @@ program partmc
   use pmc_gas_state
   use pmc_util
 
-  type(inout_file_t) :: file
-  character(len=300) :: in_name
-  character(len=100) :: run_type
-  integer :: i
-
+  character(len=300) :: spec_name, tmp, process_name, nc_name, action
+  
   call pmc_mpi_init()
   if (pmc_mpi_rank() == 0) then
-     ! only the root process does I/O
+     ! only the root process accesses the commandline
 
-     ! check there is exactly one commandline argument
-     if (iargc() .ne. 1) then
-        write(6,*) 'Usage: partmc <spec-file>'
-        call exit(2)
+     if (iargc() == 1) then
+        call getarg(1, spec_name)
+        action = 'run'
+     elseif (iargc() >= 4) then
+        call getarg(1, tmp)
+        if (trim(tmp) /= '-p') then
+           write(0,*) 'ERROR: first argument must be -p'
+           call print_usage()
+           call exit(2)
+        end if
+        call getarg(2, process_name)
+        call getarg(3, nc_name)
+        action = 'process'
+     elseif (iargc() > 1) then
+        write(0,*) 'ERROR: invalid number of arguments'
+        call print_usage()
+        action = 'die'
+     else
+        call print_usage()
+        action = 'die'
      end if
-     
-     ! get and check first commandline argument (must be "filename.spec")
-     call getarg(1, in_name)
-     i = len_trim(in_name)
-     if (in_name((i-4):i) /= '.spec') then
-        write(6,*) 'ERROR: input filename must end in .spec'
-        call exit(2)
-     end if
-     
-     call inout_open_read(in_name, file)
-     
-     call inout_read_string(file, 'run_type', run_type)
   end if
   
-  call pmc_mpi_bcast_string(run_type)
-  if (trim(run_type) == 'mc') then
-     call partmc_mc(file)
-  elseif (trim(run_type) == 'exact') then
-     call partmc_exact(file)
-  elseif (trim(run_type) == 'sect') then
-     call partmc_sect(file)
+  call pmc_mpi_bcast_string(action)
+  
+  if (trim(action) == 'run') then
+     call pmc_mpi_bcast_string(spec_name)
+     call partmc_run(spec_name)
+  elseif (trim(action) == 'process') then
+     call pmc_mpi_bcast_string(process_name)
+     call pmc_mpi_bcast_string(nc_name)
+     call partmc_process(process_name, nc_name)
+  elseif (trim(action) == 'die') then
+     call pmc_mpi_abort(2)
   else
      if (pmc_mpi_rank() == 0) then
-        write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
+        write(0,*) 'ERROR: unknown action: ', trim(action)
      end if
      call pmc_mpi_abort(1)
   end if
-
+     
   call pmc_mpi_finalize()
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine print_usage()
+
+    write(0,*) 'Usage: partmc <spec-file>'
+    write(0,*) 'or:    partmc -p <process.dat> <nc-file> <state-files...>'
+
+  end subroutine print_usage
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine partmc_process(process_name, nc_name)
+
+    character(len=*), intent(in) :: process_name ! process.dat filename
+    character(len=*), intent(in) :: nc_name ! output NetCDF filename
+
+    type(inout_file_t) :: file
+    type(process_spec_t), pointer :: process_spec_list(:)
+    integer :: i
+    character(len=300) :: state_name
+    integer :: ncid
+
+    if (pmc_mpi_rank() /= 0) then
+       return
+    end if
+
+    call inout_open_read(process_name, file)
+    call inout_read_process_spec_list(file, process_spec_list)
+    call inout_close(file)
+    
+    call output_processed_open(nc_name, -1, ncid)
+    do i = 4,iargc()
+       call getarg(i, state_name)
+       call partmc_process_state_file(ncid, state_name, process_spec_list)
+    end do
+    call output_processed_close(ncid)
+    
+    call process_spec_list_free(process_spec_list)
+
+  end subroutine partmc_process
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine partmc_process_state_file(ncid, state_name, process_spec_list)
+
+    integer, intent(in) :: ncid         ! NetCDF file ID, must be open
+    character(len=*), intent(in) :: state_name ! state filename
+    type(process_spec_t), pointer :: process_spec_list(:) ! process spec
+
+    type(bin_grid_t) :: bin_grid
+    type(aero_data_t) :: aero_data
+    type(aero_state_t) :: aero_state
+    type(gas_data_t) :: gas_data
+    type(gas_state_t) :: gas_state
+    type(env_t) :: env
+    real*8 :: time, del_t
+    integer :: index, i_loop
+    
+    call inout_read_state(state_name, bin_grid, aero_data, aero_state, &
+         gas_data, gas_state, env, time, index, del_t, i_loop)
+    
+    call output_processed(ncid, process_spec_list, &
+         bin_grid, aero_data, aero_state, gas_data, gas_state, &
+         env, index, time, del_t, i_loop)
+
+    call bin_grid_free(bin_grid)
+    call aero_data_free(aero_data)
+    call aero_state_free(aero_state)
+    call gas_data_free(gas_data)
+    call gas_state_free(gas_state)
+    call env_free(env)
+    
+  end subroutine partmc_process_state_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine partmc_run(spec_name)
+    
+    character(len=*), intent(in) :: spec_name ! spec filename
+
+    type(inout_file_t) :: file
+    character(len=100) :: run_type
+    integer :: i
+
+    ! check filename (must be "filename.spec")
+    i = len_trim(spec_name)
+    if (spec_name((i-4):i) /= '.spec') then
+       write(6,*) 'ERROR: input filename must end in .spec'
+       call pmc_mpi_abort(3)
+    end if
+    
+    if (pmc_mpi_rank() == 0) then
+       ! only the root process does I/O
+       call inout_open_read(spec_name, file)
+       call inout_read_string(file, 'run_type', run_type)
+    end if
+    
+    call pmc_mpi_bcast_string(run_type)
+    if (trim(run_type) == 'mc') then
+       call partmc_mc(file)
+    elseif (trim(run_type) == 'exact') then
+       call partmc_exact(file)
+    elseif (trim(run_type) == 'sect') then
+       call partmc_sect(file)
+    else
+       if (pmc_mpi_rank() == 0) then
+          write(0,*) 'ERROR: unknown run_type: ', trim(run_type)
+       end if
+       call pmc_mpi_abort(1)
+    end if
+
+  end subroutine partmc_run
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

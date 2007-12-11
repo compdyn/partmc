@@ -1,42 +1,61 @@
 
+PartMC
+======
+
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 1.1.0
+Version 1.1.0  
 Released ????-??-??
 
-http://tableau.stanford.edu/~mwest/group/PartMC
-http://carrot.msrc.sunysb.edu/~nicole/research/montecarlo/
+<http://tableau.stanford.edu/~mwest/group/PartMC/>  
+<http://carrot.msrc.sunysb.edu/~nicole/research/montecarlo/>
 
-Copyright (C) 2005-2007 Nicole Riemer, Matthew West
-Portions copyright (C) Andreas Bott
+Copyright (C) 2005-2007 Nicole Riemer and Matthew West  
+Portions copyright (C) Andreas Bott  
 Distributed under the GPL (see the file COPYING)
 
 
-INSTALLATION
-------------
+Dependencies
+============
 
 Required dependencies:
-    GNU make
-    Fortran 90 compiler
-    NetCDF - http://www.unidata.ucar.edu/software/netcdf/
+
+   * GNU make
+   * Fortran 90 compiler
+   * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
+
 Optional dependencies to rebuild .deps files:
-    Python - http://www.python.org/
+
+   * Python - <http://www.python.org/>
+
 Optional dependencies for chemistry:
-    MOSAIC - ????
+
+   * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
+
 Optional dependencies for parallel code:
-    MPI - http://www.open-mpi.org/
+
+   * MPI - <http://www.open-mpi.org/>
+
 Optional dependencies for plotting NetCDF data:
-    Python - http://www.python.org/
-    ScientificPython - http://dirac.cnrs-orleans.fr/plone/software/scientificpython/
-    PyX - http://pyx.sourceforge.net/
+
+   * Python - <http://www.python.org/>
+   * ScientificPython - <http://dirac.cnrs-orleans.fr/plone/software/scientificpython/>
+   * PyX - <http://pyx.sourceforge.net/>
 
 PartMC can be compiled out-of-the-box on Fedora 7 with all
 dependencies except MOSAIC if the following packages are installed:
-    gcc-gfortran-4.1.2-27.fc7
-    netcdf-3.6.2-1.fc7
-    openmpi-1.1-8.fc7
-    ScientificPython-2.6-8.fc7
-    PyX-0.9-4.fc7
+
+   * gcc-gfortran-4.1.2-27.fc7
+   * netcdf-3.6.2-1.fc7
+   * openmpi-1.1-8.fc7
+   * ScientificPython-2.6-8.fc7
+   * PyX-0.9-4.fc7
+
+Installation
+============
+
+The various helper scripts and testcases assume a unix environment
+(tested on Fedora Linux 7 and OS X 10.4).
 
 The Makefile requires GNU make (tested with version 3.81 on Linux and
 3.80 on OS X).
@@ -45,34 +64,34 @@ The default compiler is gfortran (tested with gcc 4.1.2 on Linux and
 gcc 4.2.1 on OS X).
 
 The Makefile will include Makefile.local if present to override
-compiler variables. Copying Makefile.local.pgf90 to Makefile.local
+compiler variables. Copying `Makefile.local.pgf90` to `Makefile.local`
 will enable the Portland group compilers (tested with pgf95 6.0-8 on
 x86-64 Linux).
 
-To rebuild TAGS or the .deps dependency files set "DEV_BUILD = yes" in
+To rebuild TAGS or the .deps dependency files set `DEV_BUILD = yes` in
 the Makefile. The .deps dependency files are rebuilt using
-tool/f90_mod_deps.py that requires python (tested with version 2.5 on
-Linux and 2.4.2 on OS X).
+`tool/f90_mod_deps.py`, which requires python (tested with version 2.5
+on Linux and 2.4.2 on OS X).
 
 The NetCDF libraries are required to compile PartMC (tested with
-version 3.6.2 on Linux and OS X). The netcdf.mod Fortran 90 module
+version 3.6.2 on Linux and OS X). The `netcdf.mod` Fortran 90 module
 file is required, and it must be produced by the same compiler being
 used to compile PartMC.
 
-To use the MOSAIC code, enable the MOSAIC_LIB and MOSAIC_FLAG
-variables in the Makefile and set MOSAIC_MODDIR and MOSAIC_LIBDIR to
-the appropriate directories.
+To use the MOSAIC code, enable the `MOSAIC_LIB` and `MOSAIC_FLAG`
+variables in the Makefile and set `MOSAIC_MODDIR` and `MOSAIC_LIBDIR`
+to the appropriate directories.
 
 
-USAGE
------
+Usage
+=====
 
 The main partmc command reads .spec files and does the run specified
 therein. Either Monte Carlo runs, sectional code runs, or exact
 solutions can be generated. A run produces binned summary data in a
 NetCDF file which can be plotted with the included python
 scripts. Monte Carlo runs can also output the full internal state in
-an ASCII format that can then be processed with process_state to
+an ASCII format that can then be processed with `process_state` to
 produce the same summary NetCDF data.
 
 There are a number of examples provided in the test directory that can
@@ -80,43 +99,47 @@ be run by the run.sh scripts. These use the python scripts with
 ScientificPython and Pyx to plot the results.
 
 
-CODING CONVENTIONS
-------------------
+Coding Conventions
+==================
 
 The code is mainly Fortran 90, with a few parts still clearly showing
 their Fortran 77 heritage.
 
 Extensive use is made of Fortran 90 derived types and pointers for
 dynamic memory allocation of arrays inside derived types. Derived
-types are named like my_type_t and are generally defined in modules
-named like pmc_mod_my_type within files named my_type.f90. Each
-derived type has allocation and deallocation functions my_type_alloc()
-and my_type_free(), respectively.
+types are named `my_type_t` and are generally defined in modules named
+`pmc_mod_my_type` within files named `my_type.f90`. Each derived type
+has allocation and deallocation functions `my_type_alloc()` and
+`my_type_free()`, respectively.
 
 The auto-generation of module dependencies relies on a particular
 naming convention. The module names must be the same as the name of
-the containing file, but prefixed with "pmc_mod_". Thus the module
-pmc_mod_condensation is contained in the file condensation.f. The
-dependencies are autogenerated by the tool/f90_mod_deps.py Python
-program, which is called automatically by the Makefile to regenerate
-dependencies if "DEV_BUILD = yes" is set.
+the containing file, but prefixed with `pmc_mod_`. Thus the module
+`pmc_mod_condensation` is contained in the file
+`condensation.f90`. The dependencies are autogenerated by the
+`tool/f90_mod_deps.py` python script, which is called automatically by
+the Makefile to regenerate dependencies if `DEV_BUILD = yes` is set.
 
 
-DEBUGGING
----------
+Debugging
+=========
 
 To debug the parallel code run it with:
-om-mpiexec --mca mpi_abort_delay -1 -n 2 ../src/partmc golovin_mc.spec 
+
+    om-mpiexec --mca mpi_abort_delay -1 -n 2 ../src/partmc golovin_mc.spec 
+
 then run the debugger with:
-gdb ../src/partmc <pid>
-and use "bt" to get a backtrace.
 
-To turn on MPI debugging info add the -d parameter to
-mpiexec/mpirun. To restrict the transport to only TCP use "--mca btl
-tcp".
+    gdb ../src/partmc <pid>
 
-CHANGELOG
----------
+and use `bt` to get a backtrace.
+
+To turn on MPI debugging info add the `-d` parameter to
+`mpiexec/mpirun`. To restrict the transport to only TCP use the `--mca
+btl tcp` option.
+
+ChangeLog
+=========
 
 1.1.0 - ????-??-??
 
@@ -127,7 +150,7 @@ CHANGELOG
 
   * Output is in binary NetCDF format.
 
-  * Parallel implementation using mixing.
+  * Parallel implementation using 1D mixing.
 
 1.0.0 - 2007-02-26
 

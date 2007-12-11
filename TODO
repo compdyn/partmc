@@ -1,4 +1,70 @@
 
+Convert all num_conc and similar to num_den or similar
+
+Update comments at top of files.
+
+What's happening with util_rand() and USE_F95_RAND? I think it can be
+removed.
+
+Update function names/arg orders in aero_state.f90.
+
+Fix the handling of comp_vol in aero_dist_sample() and
+aero_state_sample().
+
+Rename util_rand() to pmc_rand()?
+
+We call env_data_init_state() twice, once from partmc and once from run_mc.
+
+Check that everything works ok without MOSAIC compiled in.
+
+Rename env to env_state.
+
+In aero_data and process_summary use AERO_NAME_LEN instead of
+hard-coding 15, or at least assert that it is 15.
+
+Rename constants_t contents to have more descriptive names (M_a ->
+air_molec_weight, etc).
+
+Change gas conc from ppb to mole proportion.
+
+Change aero_particle_solute_density() etc to have aero_particle as the
+first argument.
+
+Change the hardcoded list of mosaic aerosol species to not have _a on
+them, so we can stop having _a in all the partmc data.
+
+Remove sys.path.append(~/.python), use PYTHONPATH env variable instead
+on OS X.
+
+Kill aeroptical.dat output from MOSAIC.
+
+Change Makefile to build partmc and process_state in the main
+directory (not src).
+
+Change process_state to be a mode of partmc with "run_type process" --
+update README.
+
+Need an averaging thing for the netcdf data files for multiple loops.
+
+Change Makefile to not use FFLAGS as the thing to set, but rather use
+DEF_FFLAGS or something, and include FFLAGS without settting it. Also
+print out all settings before starting compilation.
+
+Rename env.f90 to env_state.f90
+
+Golovin testcase (and maybe others) need loops > 1.
+
+Change assert() to print "ERROR (PartMC-########): message".
+
+Change process_state to output netcdf?
+
+Write netcdf_average helper.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 Get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.
 
@@ -8,64 +74,31 @@ Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
 and then using a slow sampling to pick samples one-by-one.
 
-convert all num_conc and similar to num_den or similar
-
-add separate del_t for mosaic, coag, and cond. check on input that
+Add separate del_t for mosaic, coag, and cond. Check on input that
 t_output, etc are multiples of del_t so that the n_time header
 information is actually correct.
 
 aero_binned is really storing #/dln(m)/m^3 or something?
 
-pass full particle data to the kernel_*() functions so that we can do
+Pass full particle data to the kernel_*() functions so that we can do
 proper density-dependent brownian kernels. Requires a separate
 max_kernel_*() function for each one.
-
-update comments at top of files
-
-what's happening with util_rand() and USE_F95_RAND? I think it can be
-removed.
-
-update function names/arg orders in aero_state.f90
 
 Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
 also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
 etc. What about 2D arrays, is it correct to treat them as 1D as we do
 at present with mpi_pack?
 
-fix the handling of comp_vol in aero_dist_sample() and
-aero_state_sample()
+Change gas mixing to be by diffusion, rather than allreduce, also env.
 
-rename util_rand() to pmc_rand()?
-
-change gas mixing to be by diffusion, rather than allreduce, also env
-
-we call env_data_init_state() twice, once from partmc and once from run_mc
-
-make mosaic compilation optional with a -DPMC_USE_MOSAIC
-
-rename env to env_state
-
-add allow_halve to control that separately
-
-add env%day_of_year (days since jan 1) and env%time_of_day (secs since
+Add env%day_of_year (days since jan 1) and env%time_of_day (secs since
 midnight) and shift info on start day, start time, etc to
 env_data. Change mosaic_timestep() to just read time/day info out of
 env directly. Update this info in env_data_update_state().
 
-in aero_data and process_summary use AERO_NAME_LEN instead of
-hard-coding 15, or at least assert that it is 15
+Allow times to be input as 1d, 34m, etc. No unit implies seconds.
 
-rename constants_t contents to have more descriptive names (M_a ->
-air_molec_weight, etc).
-
-change gas conc from ppb to mole proportion
-
-allow times to be input as 1d, 34m, etc. No unit implies seconds.
-
-change aero_particle_solute_density() etc to have aero_particle as the
-first argument.
-
-add H2O as a gas species and just track it as a regular gas, getting
+Add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
 
@@ -76,37 +109,17 @@ they need to before writing new data, or will take care of
 (de)allocation internally. Currently at least the spec_read functions
 don't free before setting new values and should be fixed.
 
-fix local variable sections to always be all integers, then all reals,
+Fix local variable sections to always be all integers, then all reals,
 etc, with only one "integer ::" and then & for the rest of the lines.
 
-change the hardcoded list of mosaic aerosol species to not have _a on
-them, so we can stop having _a in all the partmc data.
-
-change spec_read_aero_data to spec_read_aero_data_filename and pass in
+Change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
 
-rename all input files *.spec and all output files *.dat
+Add allow_halve to control that separately.
 
-add parameter to composition processing for type: vol, mass or mole
+Add parameter to composition processing for type: vol, mass or mole.
 
-use switch/case rather than elseif chains
-
-remove sys.path.append(~/python), use PYTHONPATH env variable instead on mac
-
-kill aeroptical.dat output from MOSAIC
-
-change Makefile to build partmc and process_state in the main
-directory (not src).
-
-Change process_state to be a mode of partmc?
-
-Need an averaging thing for the netcdf data files for multiple loops.
-
-Change Makefile to not use FFLAGS as the thing to set, but rather use
-DEF_FFLAGS or something, and include FFLAGS without settting it. Also
-print out all settings before starting compilation.
-
-Rename env.f90 to env_state.f90
+Use switch/case rather than elseif chains.
 
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
@@ -119,12 +132,6 @@ allow us to sample log-normal and others exactly.
 Maybe generate initial number of particles from a Poisson
 distribution, rather than just using the mean as we do now?
 
-Golovin testcase (and maybe others) need loops > 1.
+Use doxygen to generate docs. Fortran supported as of version 1.5.4.
 
-Change assert() to print "ERROR (PartMC-########): message".
-
-Make READMEs in each test/*/ dir, rather than putting info in run.sh?
-
-Change process_state to output netcdf?
-
-Write netcdf_average helper.
+Fix MPI so it works again.

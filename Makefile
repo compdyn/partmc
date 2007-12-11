@@ -60,13 +60,6 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
 	src/netcdf.o
-process_state_OBJS := src/process_state.o src/bin_grid.o	\
-	src/env_data.o src/env.o src/aero_data.o src/aero_state.o	\
-	src/output_state.o src/util.o src/constants.o src/gas_data.o	\
-	src/gas_state.o src/inout.o src/aero_particle.o			\
-	src/aero_particle_array.o src/mpi.o src/aero_dist.o		\
-	src/aero_binned.o src/rand_poisson.o src/process_state_hist.o	\
-	src/mosaic.o src/process_spec.o src/process.o src/netcdf.o
 bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
 	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
@@ -91,13 +84,16 @@ ALL_DEPS = $(ALL_FILES:%=%.deps)
 
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild TAGS and .deps files
-all: TAGS $(PROGS)
+all: TAGS $(PROGS) README.html
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
 
 %.deps: %.f90 tool/f90_mod_deps.py
 	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
+
+README.html: README tool/markdown2.py
+	tool/markdown2.py README > README.html
 
 else
 # non-developers should only build the programs
@@ -115,8 +111,6 @@ equilib/%.o: equilib/%.f90 equilib/%.deps
 
 src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
-src/process_state: $(process_state_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(process_state_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/bidisperse/bidisperse_ode: $(bidisperse_ode_OBJS)

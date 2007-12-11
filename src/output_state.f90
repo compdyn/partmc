@@ -26,7 +26,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_write_state(state_prefix, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env, index, time, i_loop)
+       aero_state, gas_data, gas_state, env, index, time, del_t, i_loop)
 
     ! Write the current state.
 
@@ -39,6 +39,7 @@ contains
     type(env_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
+    real*8, intent(in) :: del_t         ! current timestep (s)
     integer, intent(in) :: i_loop       ! current loop number
     
     character*300 :: filename
@@ -57,6 +58,7 @@ contains
        call inout_open_write(filename, file)
        
        call inout_write_real(file, 'time(s)', time)
+       call inout_write_real(file, 'timestep(s)', del_t)
        call inout_write_integer(file, 'loop', i_loop)
        call inout_write_integer(file, 'index', index)
 
@@ -140,7 +142,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_read_state(state_name, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env, time, index)
+       aero_state, gas_data, gas_state, env, time, index, del_t, i_loop)
 
     ! Read the current state.
 
@@ -153,9 +155,11 @@ contains
     type(env_t), intent(out) :: env     ! environment state
     real*8, intent(out) :: time         ! current time (s)
     integer, intent(out) :: index       ! current index
+    real*8, intent(out) :: del_t        ! current time-step (s)
+    integer, intent(out) :: i_loop      ! current loop number
     
     type(inout_file_t) :: file
-    integer :: dummy_integer, n_proc, i_proc, check_i_proc
+    integer :: n_proc, i_proc, check_i_proc
     type(env_t) :: env_read
     type(gas_state_t) :: gas_state_read
     type(aero_state_t) :: aero_state_read
@@ -167,7 +171,8 @@ contains
     call inout_open_read(state_name, file)
     
     call inout_read_real(file, 'time(s)', time)
-    call inout_read_integer(file, 'loop', dummy_integer)
+    call inout_read_real(file, 'timestep(s)', del_t)
+    call inout_read_integer(file, 'loop', i_loop)
     call inout_read_integer(file, 'index', index)
 
     call inout_read_bin_grid(file, bin_grid)

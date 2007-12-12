@@ -9,7 +9,7 @@ module pmc_condensation
   use pmc_aero_state
   use pmc_bin_grid
   use pmc_aero_binned
-  use pmc_env
+  use pmc_env_state
   use pmc_aero_data
   use pmc_util
   use pmc_aero_particle
@@ -28,7 +28,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     real*8, intent(in) :: del_t         ! total time to integrate
@@ -73,7 +73,7 @@ contains
     ! del_t for a single particle.
 
     real*8, intent(in) :: del_t         ! total time to integrate
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -106,7 +106,7 @@ contains
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -144,7 +144,7 @@ contains
     real*8, intent(in) :: max_dt        ! maximum timestep to integrate
     real*8, intent(out) :: dt           ! actual timestep used
     logical, intent(out) :: done        ! did we reach the maximum timestep?
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -168,7 +168,7 @@ contains
     ! Does one fixed timestep of Runge-Kutta-4.
 
     real*8, intent(out) :: dt           ! timestep
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -221,7 +221,7 @@ contains
     ! Just returns a constant timestep.
 
     real*8, intent(out) :: dt           ! timestep to use
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -237,7 +237,7 @@ contains
     ! Computes a timestep proportional to V / (dV/dt).
 
     real*8, intent(out) :: dt           ! timestep to use
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -258,7 +258,7 @@ contains
     ! Find the water volume growth rate due to condensation.
 
     real*8, intent(out) :: dvdt         ! dv/dt (m^3 s^{-1})
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! particle
 
@@ -288,7 +288,7 @@ contains
     ! functions.
 
     real*8, intent(inout) :: x          ! variable (set to inital value on call)
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: x_tol         ! x convergence tolerance
     real*8, intent(in) :: f_tol         ! f convergence tolerance
@@ -297,10 +297,10 @@ contains
 
     interface
        subroutine func(env, aero_data, init, x, f, df, aero_particle)
-         use pmc_env
+         use pmc_env_state
          use pmc_aero_data
          use pmc_aero_particle
-         type(env_t), intent(in) :: env    ! environment state
+         type(env_state_t), intent(in) :: env    ! environment state
          type(aero_data_t), intent(in) :: aero_data ! aerosol data
          logical, intent(in) :: init       ! true if first Newton loop
          real*8, intent(in) :: x           ! independent variable to solve for
@@ -352,7 +352,7 @@ contains
     ! Return the error function value and its derivative for the
     ! implicit growth rate function.
 
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dmdt          ! mass growth rate dm/dt (kg s^{-1})
@@ -452,7 +452,7 @@ contains
 
     ! Add water to the particle until it is in equilibrium.
 
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle ! particle
 
@@ -486,7 +486,7 @@ contains
     ! implicit function that determines the equilibrium state of a
     ! particle.
 
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     logical, intent(in) :: init         ! true if first Newton loop
     real*8, intent(in) :: dw            ! wet diameter (m)
@@ -545,7 +545,7 @@ contains
     ! call equilibriate_particle() on each particle in the aerosol
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
 

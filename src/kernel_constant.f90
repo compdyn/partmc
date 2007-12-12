@@ -6,7 +6,7 @@
 
 module pmc_kernel_constant
 
-  use pmc_env
+  use pmc_env_state
   use pmc_bin_grid
   use pmc_util
   use pmc_constants
@@ -24,7 +24,7 @@ contains
 
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     real*8, intent(out) :: k            ! coagulation kernel
     
     real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
@@ -48,7 +48,7 @@ contains
     real*8, intent(in) :: mean_radius   ! mean init radius (m)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_binned_t), intent(out) :: aero_binned ! output state
     
     real*8 :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol

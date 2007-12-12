@@ -9,7 +9,7 @@
 ! interpolation is used between the times, with constant interpolation
 ! outside of the range of times.
 
-module pmc_env
+module pmc_env_state
 
   use pmc_gas_state
   use pmc_aero_dist
@@ -27,7 +27,7 @@ module pmc_env
   use mpi
 #endif
   
-  type env_t
+  type env_state_t
      real*8 :: temp                     ! temperature (K)
      real*8 :: rel_humid                ! relative humidity (1)
      real*8 :: pressure                 ! ambient pressure (Pa)
@@ -45,7 +45,7 @@ module pmc_env
      real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
      type(aero_dist_t) :: aero_background ! aerosol background
      real*8 :: aero_dilution_rate       ! aero-background dilution rate (s^{-1})
-  end type env_t
+  end type env_state_t
   
 contains
   
@@ -55,7 +55,7 @@ contains
 
     ! Allocate an empty environment.
 
-    type(env_t), intent(out) :: env   ! environment
+    type(env_state_t), intent(out) :: env   ! environment
 
     env%temp = 0d0
     env%rel_humid = 0d0
@@ -84,7 +84,7 @@ contains
 
     ! Free all storage.
 
-    type(env_t), intent(out) :: env   ! environment
+    type(env_state_t), intent(out) :: env   ! environment
 
     call gas_state_free(env%gas_emissions)
     call gas_state_free(env%gas_background)
@@ -99,8 +99,8 @@ contains
     
     ! env += env_delta
 
-    type(env_t), intent(inout) :: env   ! environment
-    type(env_t), intent(in) :: env_delta ! increment
+    type(env_state_t), intent(inout) :: env   ! environment
+    type(env_state_t), intent(in) :: env_delta ! increment
 
     env%temp = env%temp + env_delta%temp
     env%rel_humid = env%rel_humid + env_delta%rel_humid
@@ -130,7 +130,7 @@ contains
     
     ! env *= alpha
 
-    type(env_t), intent(inout) :: env   ! environment
+    type(env_state_t), intent(inout) :: env   ! environment
     real*8, intent(in) :: alpha         ! scale factor
 
     env%temp = env%temp * alpha
@@ -159,8 +159,8 @@ contains
     
     ! env_to = env_from
 
-    type(env_t), intent(in) :: env_from ! original
-    type(env_t), intent(inout) :: env_to ! destination
+    type(env_state_t), intent(in) :: env_from ! original
+    type(env_state_t), intent(inout) :: env_to ! destination
 
     env_to%temp = env_from%temp
     env_to%rel_humid = env_from%rel_humid
@@ -189,7 +189,7 @@ contains
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
     
-    type(env_t), intent(inout) :: env   ! environment state to update
+    type(env_state_t), intent(inout) :: env   ! environment state to update
     type(aero_data_t), intent(in) :: aero_data ! aero_data constants
     real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
     
@@ -215,7 +215,7 @@ contains
 
     ! Computes the current saturation vapor pressure.
     
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     
     env_sat_vapor_pressure = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (env%temp - const%water_freeze_temp) &
@@ -231,7 +231,7 @@ contains
 
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
 
     real*8 :: kappa, diam, C, A
     
@@ -248,7 +248,7 @@ contains
 
   real*8 function env_air_den(env) ! (kg m^{-3})
 
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
 
     env_air_den = const%air_molec_weight * env_air_molar_den(env)
 
@@ -258,7 +258,7 @@ contains
 
   real*8 function env_air_molar_den(env) ! (mole m^{-3})
 
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
 
     env_air_molar_den = env%pressure / (const%univ_gas_const * env%temp)
 
@@ -271,7 +271,7 @@ contains
     ! Convert (mole m^{-3}) to (ppb).
 
     type(gas_state_t), intent(inout) :: gas_state ! gas state
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     
     gas_state%conc = gas_state%conc / env_air_molar_den(env) * 1d9
     
@@ -284,7 +284,7 @@ contains
 
     ! Do emissions and background dilution from the environment.
 
-    type(env_t), intent(in) :: env      ! current environment
+    type(env_state_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     real*8, intent(in) :: old_height    ! previous height (m)
     type(gas_data_t), intent(in) :: gas_data ! gas data values
@@ -331,7 +331,7 @@ contains
     ! Do emissions and background dilution from the environment for a
     ! particle aerosol distribution.
 
-    type(env_t), intent(in) :: env      ! current environment
+    type(env_state_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     real*8, intent(in) :: old_height    ! previous height (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -403,7 +403,7 @@ contains
     ! Do emissions and background dilution from the environment for a
     ! binned aerosol distribution.
 
-    type(env_t), intent(in) :: env      ! current environment
+    type(env_state_t), intent(in) :: env      ! current environment
     real*8, intent(in) :: delta_t       ! time increment to update over
     real*8, intent(in) :: old_height    ! previous height (m)
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
@@ -449,7 +449,7 @@ contains
     ! Write full state.
     
     type(inout_file_t), intent(inout) :: file ! file to write to
-    type(env_t), intent(in) :: env      ! environment to write
+    type(env_state_t), intent(in) :: env      ! environment to write
     
     call inout_write_comment(file, "begin env")
     call inout_write_real(file, "temp(K)", env%temp)
@@ -480,7 +480,7 @@ contains
     ! Read full state.
     
     type(inout_file_t), intent(inout) :: file ! file to read from
-    type(env_t), intent(out) :: env      ! environment to read
+    type(env_state_t), intent(out) :: env      ! environment to read
     
     call inout_check_comment(file, "begin env")
     call inout_read_real(file, "temp(K)", env%temp)
@@ -511,7 +511,7 @@ contains
     ! Read environment specification from a inout file.
 
     type(inout_file_t), intent(inout) :: file ! inout file
-    type(env_t), intent(out) :: env     ! environment data
+    type(env_state_t), intent(out) :: env     ! environment data
 
     call env_alloc(env)
     call inout_read_real(file, 'rel_humidity', env%rel_humid)
@@ -530,8 +530,8 @@ contains
     
     ! Computes the average of an array of env.
 
-    type(env_t), intent(in) :: env_vec(:) ! array of env
-    type(env_t), intent(out) :: env_avg   ! average of env_vec
+    type(env_state_t), intent(in) :: env_vec(:) ! array of env
+    type(env_state_t), intent(out) :: env_avg   ! average of env_vec
 
     call average_real(env_vec%temp, env_avg%temp)
     call average_real(env_vec%rel_humid, env_avg%rel_humid)
@@ -559,10 +559,10 @@ contains
 
     ! Average val over all processes.
 
-    type(env_t), intent(inout) :: val ! value to average
+    type(env_state_t), intent(inout) :: val ! value to average
 
 #ifdef PMC_USE_MPI
-    type(env_t) :: val_avg
+    type(env_state_t) :: val_avg
 
     call env_alloc(val_avg)
     call pmc_mpi_allreduce_average_real(val%temp, val_avg%temp)
@@ -582,7 +582,7 @@ contains
 
     ! Determines the number of bytes required to pack the given value.
 
-    type(env_t), intent(in) :: val ! value to pack
+    type(env_state_t), intent(in) :: val ! value to pack
 
     pmc_mpi_pack_size_env = &
          pmc_mpi_pack_size_real(val%temp) &
@@ -613,7 +613,7 @@ contains
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
-    type(env_t), intent(in) :: val ! value to pack
+    type(env_state_t), intent(in) :: val ! value to pack
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -649,7 +649,7 @@ contains
 
     character, intent(inout) :: buffer(:) ! memory buffer
     integer, intent(inout) :: position  ! current buffer position
-    type(env_t), intent(out) :: val ! value to pack
+    type(env_state_t), intent(out) :: val ! value to pack
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -684,8 +684,8 @@ contains
     ! Computes the average of val across all processes, storing the
     ! result in val_avg on the root process.
 
-    type(env_t), intent(in) :: val ! value to average
-    type(env_t), intent(out) :: val_avg ! result
+    type(env_state_t), intent(in) :: val ! value to average
+    type(env_state_t), intent(out) :: val_avg ! result
 
     call env_alloc(val_avg)
     call env_copy(val, val_avg)
@@ -697,4 +697,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_env
+end module pmc_env_state

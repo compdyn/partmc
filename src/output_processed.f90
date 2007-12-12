@@ -12,7 +12,7 @@ module pmc_output_processed
   use pmc_aero_binned
   use pmc_gas_data
   use pmc_gas_state
-  use pmc_env
+  use pmc_env_state
   use pmc_util
   use pmc_process_spec
   use pmc_netcdf
@@ -73,7 +73,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current output time-step (s)
@@ -122,7 +122,7 @@ contains
     type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current output time-step (s)
@@ -672,7 +672,7 @@ contains
     character(len=*), intent(in) :: suffix ! suffix of the file
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
 
     integer :: varid_env_state
     integer :: start(2), count(2)
@@ -821,7 +821,7 @@ contains
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(process_spec_t), intent(in) :: process_spec ! process spec

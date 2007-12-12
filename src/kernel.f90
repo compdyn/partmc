@@ -6,7 +6,7 @@
 
 module pmc_kernel
 
-  use pmc_env
+  use pmc_env_state
   use pmc_bin_grid
   
 contains
@@ -21,14 +21,14 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(out) :: k(n_bin,n_bin) ! kernel values
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
 
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -52,15 +52,15 @@ contains
     ! kernel(v1,v2) <= k_max(b1,b2).
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(env_t), intent(in) :: env    ! environment state
+    type(env_state_t), intent(in) :: env    ! environment state
     real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! max kern vals
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -85,15 +85,15 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin
     integer, intent(in) :: b2           ! second bin
-    type(env_t), intent(in) :: env      ! environment state    
+    type(env_state_t), intent(in) :: env      ! environment state    
     real*8, intent(out) :: k_max        ! maximum kernel values
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface

@@ -15,7 +15,7 @@ module pmc_output_state
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_aero_state
-  use pmc_env
+  use pmc_env_state
   use pmc_util
   use pmc_inout
   use pmc_gas_data
@@ -36,7 +36,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current timestep (s)
@@ -44,7 +44,7 @@ contains
     
     character*300 :: filename
     type(inout_file_t) :: file
-    type(env_t) :: env_write
+    type(env_state_t) :: env_write
     type(gas_state_t) :: gas_state_write
     type(aero_state_t) :: aero_state_write
     integer :: ierr, status, buffer_size, i_proc, position
@@ -152,7 +152,7 @@ contains
     type(aero_state_t), intent(out) :: aero_state ! aerosol state
     type(gas_data_t), intent(out) :: gas_data ! gas data
     type(gas_state_t), intent(out) :: gas_state ! gas state
-    type(env_t), intent(out) :: env     ! environment state
+    type(env_state_t), intent(out) :: env     ! environment state
     real*8, intent(out) :: time         ! current time (s)
     integer, intent(out) :: index       ! current index
     real*8, intent(out) :: del_t        ! current time-step (s)
@@ -160,7 +160,7 @@ contains
     
     type(inout_file_t) :: file
     integer :: n_proc, i_proc, check_i_proc
-    type(env_t) :: env_read
+    type(env_state_t) :: env_read
     type(gas_state_t) :: gas_state_read
     type(aero_state_t) :: aero_state_read
 

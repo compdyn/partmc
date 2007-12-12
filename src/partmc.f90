@@ -21,7 +21,7 @@ program partmc
   use pmc_kernel_zero
   use pmc_aero_data
   use pmc_env_data
-  use pmc_env
+  use pmc_env_state
   use pmc_run_mc
   use pmc_run_exact
   use pmc_run_sect
@@ -135,7 +135,7 @@ contains
     type(aero_state_t) :: aero_state
     type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
-    type(env_t) :: env
+    type(env_state_t) :: env
     real*8 :: time, del_t
     integer :: index, i_loop
     
@@ -209,7 +209,7 @@ contains
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_state    ! aerosol current state for run
     type(env_data_t) :: env_data        ! environment data
-    type(env_t) :: env                  ! environment state
+    type(env_state_t) :: env                  ! environment state
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(aero_binned_t) :: aero_binned  ! binned distributions
     type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
@@ -399,7 +399,7 @@ contains
     character(len=100) :: soln_name     ! exact solution name
     type(aero_data_t) :: aero_data      ! aero_data data
     type(env_data_t) :: env_data        ! environment data
-    type(env_t) :: env                  ! environment state
+    type(env_state_t) :: env                  ! environment state
     type(run_exact_opt_t) :: exact_opt  ! exact solution options
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(gas_data_t) :: gas_data        ! dummy gas data
@@ -482,7 +482,7 @@ contains
     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
     type(aero_state_t) :: aero_init     ! aerosol initial condition
     type(env_data_t) :: env_data        ! environment data
-    type(env_t) :: env                  ! environment state
+    type(env_state_t) :: env                  ! environment state
     type(bin_grid_t) :: bin_grid        ! bin grid
     type(gas_data_t) :: gas_data        ! dummy gas data
     type(process_spec_t), pointer :: process_spec_list(:) ! process specs

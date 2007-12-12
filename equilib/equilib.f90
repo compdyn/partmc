@@ -10,7 +10,7 @@ program equilib
 
   use pmc_inout
   use pmc_aero_data
-  use pmc_env
+  use pmc_env_state
   use pmc_util
   use pmc_condensation
   use pmc_aero_particle
@@ -18,7 +18,7 @@ program equilib
   character(len=*), parameter :: aero_filename = "aerosol.dat"
 
   type(inout_file_t) :: file
-  type(env_t) :: env
+  type(env_state_t) :: env
   type(aero_data_t) :: aero_data
   type(aero_particle_t) :: aero_particle
   character(len=300) :: tmp_str

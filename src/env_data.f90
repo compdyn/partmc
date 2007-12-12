@@ -16,7 +16,7 @@ module pmc_env_data
   use pmc_gas_state
   use pmc_aero_dist
   use pmc_util
-  use pmc_env
+  use pmc_env_state
   use pmc_inout
   use pmc_bin_grid
   use pmc_aero_data
@@ -138,7 +138,7 @@ contains
     ! environment. Thereafter env_data_update_state() should be used.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_t), intent(inout) :: env   ! environment state to update
+    type(env_state_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
 
     ! init temperature
@@ -171,7 +171,7 @@ contains
     ! env_data_init_state() should have been called at the start.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_t), intent(inout) :: env   ! environment state to update
+    type(env_state_t), intent(inout) :: env   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 :: pmv ! ambient water vapor pressure (Pa)

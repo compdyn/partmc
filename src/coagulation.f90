@@ -9,7 +9,7 @@ module pmc_coagulation
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_util
-  use pmc_env
+  use pmc_env_state
   use pmc_aero_state
   use pmc_aero_binned
   
@@ -27,7 +27,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     integer, intent(in) :: b1           ! bin of first particle
@@ -38,10 +38,10 @@ contains
     
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface

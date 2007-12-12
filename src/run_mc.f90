@@ -14,7 +14,7 @@ module pmc_run_mc
   use pmc_aero_binned
   use pmc_condensation
   use pmc_env_data
-  use pmc_env
+  use pmc_env_state
   use pmc_aero_data
   use pmc_gas_data
   use pmc_gas_state
@@ -60,7 +60,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
     type(env_data_t), intent(in) :: env_data ! environment state
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -71,10 +71,10 @@ contains
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -271,7 +271,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
@@ -281,10 +281,10 @@ contains
 
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -363,7 +363,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(inout) :: gas_state ! gas state
     type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
-    type(env_t), intent(inout) :: env   ! environment
+    type(env_state_t), intent(inout) :: env   ! environment
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8, intent(in) :: mix_rate      ! amount to mix (0 to 1)
 

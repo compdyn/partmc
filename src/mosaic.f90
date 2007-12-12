@@ -11,7 +11,7 @@ module pmc_mosaic
   use pmc_aero_state
   use pmc_bin_grid 
   use pmc_constants
-  use pmc_env
+  use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
   use pmc_output_state
@@ -50,7 +50,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     real*8, intent(in) :: del_t         ! timestep for coagulation
 
 #ifdef PMC_USE_MOSAIC
@@ -151,7 +151,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -269,7 +269,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
@@ -342,7 +342,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
@@ -400,7 +400,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data

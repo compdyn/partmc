@@ -18,7 +18,7 @@ module pmc_run_sect
   use pmc_util
   use pmc_aero_dist
   use pmc_env_data
-  use pmc_env
+  use pmc_env_state
   use pmc_aero_data
   use pmc_kernel
   use pmc_output_processed
@@ -49,7 +49,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
     type(env_data_t), intent(inout) :: env_data ! environment data
-    type(env_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
@@ -70,10 +70,10 @@ contains
   
     interface
        subroutine kernel(v1, v2, env, k)
-         use pmc_env
+         use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface

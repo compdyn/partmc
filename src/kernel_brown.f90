@@ -10,7 +10,7 @@
     
 module pmc_kernel_brown
 
-  use pmc_env
+  use pmc_env_state
   use pmc_constants
   use pmc_util
   
@@ -24,7 +24,7 @@ contains
 
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(env_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env      ! environment state
     real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
 
     ! real*8 c_1, a_third, b_third

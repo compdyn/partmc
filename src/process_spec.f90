@@ -12,7 +12,7 @@ module pmc_process_spec
   use pmc_aero_state
   use pmc_gas_data
   use pmc_gas_state
-  use pmc_env
+  use pmc_env_state
   use pmc_util
 
   integer, parameter :: PROCESS_SPEC_TYPE_LEN = 40

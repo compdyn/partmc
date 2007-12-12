@@ -35,7 +35,7 @@ CLEAN_DIRS = test/bidisperse/out test/emission/out test/golovin/out	\
         test/mosaic/out test/poisson/out test/sedi/out urban_plume/out
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
-	src/constants src/env_data src/env src/aero_dist		\
+	src/constants src/env_data src/env_state src/aero_dist		\
 	src/kernel_golovin src/kernel_sedi src/kernel_constant		\
 	src/kernel_brown src/kernel_zero src/aero_data src/run_exact	\
 	src/run_mc src/util src/run_sect src/output_state src/mosaic	\
@@ -52,22 +52,22 @@ EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
 	src/kernel_golovin.o src/kernel_constant.o src/kernel_brown.o	\
-	src/kernel_zero.o src/aero_data.o src/env_data.o src/env.o	\
-	src/run_mc.o src/gas_data.o src/gas_state.o src/run_exact.o	\
-	src/run_sect.o src/util.o src/constants.o src/output_state.o	\
-	src/mosaic.o src/coagulation.o src/kernel.o			\
+	src/kernel_zero.o src/aero_data.o src/env_data.o		\
+	src/env_state.o src/run_mc.o src/gas_data.o src/gas_state.o	\
+	src/run_exact.o src/run_sect.o src/util.o src/constants.o	\
+	src/output_state.o src/mosaic.o src/coagulation.o src/kernel.o	\
 	src/output_processed.o src/inout.o src/aero_binned.o		\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
 	src/netcdf.o
 bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
-	src/kernel_sedi.o src/env_data.o src/env.o src/constants.o	\
-	src/aero_data.o src/util.o src/gas_data.o src/gas_state.o	\
-	src/aero_state.o src/bin_grid.o src/inout.o src/aero_dist.o	\
-	src/aero_binned.o src/rand_poisson.o src/aero_particle.o	\
-	src/aero_particle_array.o src/mpi.o
+	src/kernel_sedi.o src/env_data.o src/env_state.o		\
+	src/constants.o src/aero_data.o src/util.o src/gas_data.o	\
+	src/gas_state.o src/aero_state.o src/bin_grid.o src/inout.o	\
+	src/aero_dist.o src/aero_binned.o src/rand_poisson.o		\
+	src/aero_particle.o src/aero_particle_array.o src/mpi.o
 equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
-	src/env.o src/condensation.o src/util.o src/aero_state.o	\
+	src/env_state.o src/condensation.o src/util.o src/aero_state.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/bin_grid.o	\
 	src/aero_dist.o src/inout.o src/aero_binned.o			\
 	src/rand_poisson.o src/aero_particle.o				\

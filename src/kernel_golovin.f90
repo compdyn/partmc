@@ -35,7 +35,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
+  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_den, &
        mean_radius, rho_p, aero_dist_init, env, aero_binned)
 
     ! Exact solution with the Golovin coagulation kernel and
@@ -44,7 +44,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
+    real*8, intent(in) :: num_den       ! particle number concentration (#/m^3)
     real*8, intent(in) :: mean_radius   ! mean init radius (m)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
@@ -60,11 +60,11 @@ contains
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_den(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_den / mean_vol &
                * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
-       tau = num_conc * mean_vol * beta_1 * time
+       tau = num_den * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
        do k = 1,bin_grid%n_bin
           rat_v = bin_grid%v(k) / mean_vol
@@ -74,7 +74,7 @@ contains
           else
              b = 0d0
           end if
-          nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+          nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
                * exp(-((1d0 + T) * rat_v)) * b
           aero_binned%num_den(k) = const%pi/2d0 &
                * (2d0*vol2rad(bin_grid%v(k)))**3 * nn

@@ -5,10 +5,10 @@
 
 import os, sys
 import copy as module_copy
+from Scientific.IO.NetCDF import *
+from pyx import *
 sys.path.append("../../tool")
 from pmc_pyx import *
-sys.path.append(os.path.expanduser("~/.python"))
-from pyx import *
 
 n_list = [1, 4, 10, 20, 30]
 

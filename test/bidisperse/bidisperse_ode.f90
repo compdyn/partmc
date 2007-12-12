@@ -32,7 +32,7 @@ program bidisperse_ode
   real*8, parameter :: t_max = 600d0    ! total simulation time
   real*8, parameter :: del_t = 0.001d0  ! timestep
   real*8, parameter :: t_progress = 10d0 ! how often to print progress
-  real*8, parameter :: num_conc_small = 1d9 ! particle number conc (#/m^3)
+  real*8, parameter :: num_den_small = 1d9 ! particle number conc (#/m^3)
   integer, parameter :: n_bin = 250     ! number of bins
   real*8, parameter :: bin_r_min = 1d-8 ! minimum bin radius (m)
   real*8, parameter :: bin_r_max = 1d0  ! minimum bin radius (m)
@@ -42,11 +42,11 @@ program bidisperse_ode
   
   type(env_t) :: env
   integer :: i_step, n_step
-  real*8 :: comp_vol, n_small, time, v_big, num_conc
+  real*8 :: comp_vol, n_small, time, v_big, num_den
   type(bin_grid_t) :: bin_grid
 
-  num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
-  comp_vol = (n_small_init + 1d0) / num_conc
+  num_den = num_den_small * (n_small_init + 1d0) / n_small_init
+  comp_vol = (n_small_init + 1d0) / num_den
   call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
 
   open(unit=out_unit, file=out_name)

@@ -2,6 +2,6 @@ n_modes 1                       # number of initial distributions
 
 # first mode
 vol_frac aero_comp_water.dat    # composition proportions of species
-num_conc 1e12                   # number concentration (#/m^2)
+num_den 1e12                    # particle number density (#/m^2)
 mode_type mono                  # type of distribution
 radius 3e-5                     # radius (m)

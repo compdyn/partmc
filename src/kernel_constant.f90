@@ -35,7 +35,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_conc, &
+  subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_den, &
        mean_radius, rho_p, aero_dist_init, env, aero_binned)
 
     ! Exact solution with a constant coagulation kernel and an
@@ -44,7 +44,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
+    real*8, intent(in) :: num_den       ! particle number concentration (#/m^3)
     real*8, intent(in) :: mean_radius   ! mean init radius (m)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
@@ -62,15 +62,15 @@ contains
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_den(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_den / mean_vol &
                * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
-       tau = num_conc * beta_0 * time
+       tau = num_den * beta_0 * time
        do k = 1,bin_grid%n_bin
           rat_v = bin_grid%v(k) / mean_vol
           x = 2d0 * rat_v / (tau + 2d0)
-          nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
+          nn = 4d0 * num_den / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           aero_binned%num_den(k) = const%pi/2d0 &
                * (2d0*vol2rad(bin_grid%v(k)))**3d0 * nn

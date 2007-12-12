@@ -34,7 +34,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine soln_zero(bin_grid, aero_data, time, num_conc, mean_vol, &
+  subroutine soln_zero(bin_grid, aero_data, time, num_den, mean_vol, &
        rho_p, aero_dist_init, env, aero_binned)
 
     ! Exact solution with the zero coagulation kernel. Only useful for
@@ -43,7 +43,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     real*8, intent(in) :: time          ! current time (s)
-    real*8, intent(in) :: num_conc      ! particle number concentration (#/m^3)
+    real*8, intent(in) :: num_den       ! particle number concentration (#/m^3)
     real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution

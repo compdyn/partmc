@@ -414,7 +414,7 @@ contains
     call inout_read_string(file, 'output_prefix', exact_opt%prefix)
     call spec_read_process_spec_list_filename(file, 'process_spec', &
          process_spec_list)
-    call inout_read_real(file, 'num_conc', exact_opt%num_conc)
+    call inout_read_real(file, 'num_den', exact_opt%num_den)
 
     call inout_read_real(file, 't_max', exact_opt%t_max)
     call inout_read_real(file, 't_output', exact_opt%t_output)

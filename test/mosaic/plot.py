@@ -5,12 +5,11 @@
 
 import os, sys
 import copy as module_copy
+from Scientific.IO.NetCDF import *
+from pyx import *
 sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-sys.path.append(os.path.expanduser("~/.python"))
-from pyx import *
-from Scientific.IO.NetCDF import *
 
 aero_species = ["SO4_a", "NO3_a", "NH4_a"]
 gas_species = ["NO2", "NH3"]

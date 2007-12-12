@@ -5,12 +5,11 @@
 
 import os, sys
 import copy as module_copy
-sys.path.append("../tool")
+from Scientific.IO.NetCDF import *
+from pyx import *
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-sys.path.append(os.path.expanduser("~/.python"))
-from pyx import *
-from Scientific.IO.NetCDF import *
 
 times_hour = [0, 1, 6, 24]
 times_sec = [t * 3600 for t in times_hour]

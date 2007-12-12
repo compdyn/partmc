@@ -481,11 +481,11 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     real*8 :: num_den(bin_grid%n_bin)   ! mode density
 
-    real*8 :: num_conc
+    real*8 :: tot_num_den
     character(len=MAX_CHAR_LEN) :: mode_type
     real*8 :: mean_radius, log_std_dev, radius
 
-    call inout_read_real(file, 'num_conc', num_conc)
+    call inout_read_real(file, 'num_den', tot_num_den)
     call inout_read_string(file, 'mode_type', mode_type)
     if (trim(mode_type) == 'log_normal') then
        call inout_read_real(file, 'mean_radius', mean_radius)
@@ -504,7 +504,7 @@ contains
        call exit(1)
     end if
 
-    num_den = num_den * num_conc
+    num_den = num_den * tot_num_den
 
   end subroutine spec_read_aero_mode_shape
 

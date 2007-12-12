@@ -2,7 +2,7 @@ n_modes 1                          # number of initial aerosol distributions
 
 # first mode # this corresponds to a mass of 70 ug/m^3
 vol_frac aero_init_comp_LA.dat     # composition proportions of species
-num_conc 5e9                       # number concentration (#/m^3)
+num_den 5e9                        # particle number density (#/m^3)
 mode_type log_normal               # type of distribution
 mean_radius 5e-8                   # mean radius (m)
 log_std_dev 0.3                    # log_10 of geometric standard deviation

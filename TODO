@@ -1,29 +1,23 @@
 
-Convert all num_conc and similar to num_den or similar
+Check for memory leaks with valgrind.
+
+Test partmc -p.
 
 Update comments at top of files.
 
 What's happening with util_rand() and USE_F95_RAND? I think it can be
 removed.
 
+Rename util_rand() to pmc_rand()?
+
 Update function names/arg orders in aero_state.f90.
 
 Fix the handling of comp_vol in aero_dist_sample() and
 aero_state_sample().
 
-Rename util_rand() to pmc_rand()?
-
 We call env_data_init_state() twice, once from partmc and once from run_mc.
 
 Check that everything works ok without MOSAIC compiled in.
-
-Rename env to env_state.
-
-In aero_data and process_summary use AERO_NAME_LEN instead of
-hard-coding 15, or at least assert that it is 15.
-
-Rename constants_t contents to have more descriptive names (M_a ->
-air_molec_weight, etc).
 
 Change gas conc from ppb to mole proportion.
 
@@ -33,15 +27,7 @@ first argument.
 Change the hardcoded list of mosaic aerosol species to not have _a on
 them, so we can stop having _a in all the partmc data.
 
-Remove sys.path.append(~/.python), use PYTHONPATH env variable instead
-on OS X.
-
 Kill aeroptical.dat output from MOSAIC.
-
-Change process_state to be a mode of partmc with "run_type process" --
-update README.
-
-Need an averaging thing for the netcdf data files for multiple loops.
 
 Change Makefile to not use FFLAGS as the thing to set, but rather use
 DEF_FFLAGS or something, and include FFLAGS without settting it. Also
@@ -49,9 +35,7 @@ print out all settings before starting compilation.
 
 Rename env.f90 to env_state.f90
 
-Golovin testcase (and maybe others) need loops > 1.
-
-Change process_state to output netcdf?
+Golovin testcase (and maybe others) need loops > 1 with averaging.
 
 Write netcdf_average helper.
 
@@ -130,3 +114,5 @@ distribution, rather than just using the mean as we do now?
 Use doxygen to generate docs. Fortran supported as of version 1.5.4.
 
 Fix MPI so it works again.
+
+Change state files to be in NetCDF format.

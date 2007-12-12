@@ -3,14 +3,13 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys, glob
+import os, sys
 import copy as module_copy
-sys.path.append("../tool")
+from Scientific.IO.NetCDF import *
+from pyx import *
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-sys.path.append(os.path.expanduser("~/.python"))
-from pyx import *
-from Scientific.IO.NetCDF import *
 
 times_hour = [1, 6, 12, 18, 24]
 

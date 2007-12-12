@@ -27,13 +27,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates an aero_binned_t structure.
   subroutine aero_binned_alloc(aero_binned, n_bin, n_spec)
 
     ! Allocates an aero_binned.
 
-    type(aero_binned_t), intent(out) :: aero_binned ! bin distribution
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
+    type(aero_binned_t), intent(out) :: aero_binned !< bin distribution
+    integer, intent(in) :: n_bin        !< number of bins
+    integer, intent(in) :: n_spec       !< number of species
 
     allocate(aero_binned%num_den(n_bin))
     allocate(aero_binned%vol_den(n_bin, n_spec))

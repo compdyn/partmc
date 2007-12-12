@@ -142,6 +142,7 @@ dist: Makefile.deps TAGS
 	grep -q "Released $(DATE)" README
 	grep -q "$(VERSION) - $(DATE)" README
 	grep -q "DEV_BUILD = no" Makefile
+	grep -q "PROJECT_NUMBER         = $(VERSION)" Doxyfile
 	mkdir $(DIST_NAME)
 	cp $(DIST_FILES) $(ALL_SOURCE) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

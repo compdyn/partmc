@@ -1,9 +1,9 @@
 ! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Functions that deal with the binned aerosol distributions.
 
+!> Contains the aero_binned_t structure for binned aerosol
+!> distributions and helper functions.
 module pmc_aero_binned
 
   use pmc_bin_grid
@@ -18,23 +18,38 @@ module pmc_aero_binned
   use mpi
 #endif
 
+  !> Aerosol number and volume distributions stored per bin.
+  !!
+  !! These quantities are densities both in volume (per m^3) and in
+  !! radius (per dlnr). The total density per volume is computed as
+  !! sum(aero_binned\%num_den * bin_grid\%dlnr).
+  !!
+  !! An aero_binned_t is similar to an aero_dist_t in that they both
+  !! store binned aerosol distributions. The difference is that an
+  !! aero_dist_t has the same composition in every bin, whereas an
+  !! aero_binned_t can have aerosol composition that varies per bin.
   type aero_binned_t
-     real*8, pointer :: num_den(:)    ! len n_bin, number density (#/m^3)
-     real*8, pointer :: vol_den(:,:)  ! n_bin x n_spec, volume density (m^3/m^3)
+     !> Number density per bin (#/m^3/dlnr).
+     !! Array length is typically \c bin_grid\%n_bin.
+     real*8, pointer :: num_den(:)
+     !> Volume density per bin and per species (m^3/m^3/dlnr).
+     !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
+     real*8, pointer :: vol_den(:,:)
   end type aero_binned_t
 
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_binned_t structure.
+  !> Allocate internal memory in an aero_binned_t structure.
   subroutine aero_binned_alloc(aero_binned, n_bin, n_spec)
 
-    ! Allocates an aero_binned.
-
-    type(aero_binned_t), intent(out) :: aero_binned !< bin distribution
-    integer, intent(in) :: n_bin        !< number of bins
-    integer, intent(in) :: n_spec       !< number of species
+    !> Structure to be allocated.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !< Number of aerosol bins to allocate (typically bin_grid%n_bin).
+    integer, intent(in) :: n_bin
+    !< Number of aerosol species to allocate (typically aero_data%n_spec).
+    integer, intent(in) :: n_spec
 
     allocate(aero_binned%num_den(n_bin))
     allocate(aero_binned%vol_den(n_bin, n_spec))
@@ -44,11 +59,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free internal memory in an aero_binned_t structure.
   subroutine aero_binned_free(aero_binned)
 
-    ! Frees all memory.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero_binned to free
+    !> Structure to free.
+    type(aero_binned_t), intent(inout) :: aero_binned
 
     deallocate(aero_binned%num_den)
     deallocate(aero_binned%vol_den)
@@ -57,11 +72,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Set all internal data in an aero_binned_t structure to zero.
   subroutine aero_binned_zero(aero_binned)
 
-    ! Zeros an aero_binned.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! bin distribution
+    !> Structure to zero.
+    type(aero_binned_t), intent(inout) :: aero_binned
 
     aero_binned%num_den = 0d0
     aero_binned%vol_den = 0d0
@@ -70,17 +85,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Update aero_binned_t structure for the addition of the given
+  !> particle whose bin is also given.
+  !!
+  !! If the bin of the particle is not known the more expensive
+  !! aero_binned_add_particle() can be used.
   subroutine aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
        bin, comp_vol, aero_particle)
 
-    ! Updates binned data structures for the addition of the given
-    ! particle that must be in the given bin.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    integer, intent(in) :: bin          ! bin number
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to add
+    !> Structure to update with the new particle.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Bin number that new particle is in (must be correct).
+    integer, intent(in) :: bin
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Particle to add.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_binned%num_den(bin) = aero_binned%num_den(bin) &
          + 1d0 / comp_vol / bin_grid%dlnr
@@ -91,16 +113,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Update aero_binned_t structure for the addition of the given
+  !> particle.
+  !!
+  !! If the correct bin for the particle is already known then it is
+  !! cheaper to call aero_binned_add_particle_in_bin().
   subroutine aero_binned_add_particle(aero_binned, bin_grid, &
        comp_vol, aero_particle)
 
-    ! Updates binned data structures for the addition of the given
-    ! particle.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to add
+    !> Structure to update with the new particle.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Particle to add.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
          aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
@@ -109,17 +137,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Update aero_binned_t structure for the removal of the given
+  !> particle whose bin is also given.
+  !!
+  !! If the bin of the particle is not known the more expensive
+  !! aero_binned_remove_particle() can be used.
   subroutine aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
        bin, comp_vol, aero_particle)
 
-    ! Updates binned data structures for the removal of the given
-    ! particle that must be in the given bin.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    integer, intent(in) :: bin          ! bin number
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to remove
+    !> Structure to remove the particle from.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Bin number of the aero_particle.
+    integer, intent(in) :: bin
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Particle to remove.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_binned%num_den(bin) = aero_binned%num_den(bin) &
          - 1d0 / comp_vol / bin_grid%dlnr
@@ -130,16 +165,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Update the aero_binned_t structure for the removal of the given
+  !> particle.
+  !!
+  !! If the correct bin for the particle is already known then it is
+  !! cheaper to call aero_binned_remove_particle_in_bin().
   subroutine aero_binned_remove_particle(aero_binned, bin_grid, &
        comp_vol, aero_particle)
 
-    ! Updates binned data structures for the removal of the given
-    ! particle.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to remove
+    !> Structure to remove the particle from.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Particle to remove.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
          aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
@@ -148,12 +189,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero_binned_t to a file.
   subroutine inout_write_aero_binned(file, aero_binned)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_binned_t), intent(in) :: aero_binned ! aero_binned to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Structure to write.
+    type(aero_binned_t), intent(in) :: aero_binned
 
     call inout_write_comment(file, "begin aero_binned")
     call inout_write_real_array(file, "num_dens(num/m^3)", &
@@ -166,12 +208,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an aero_binned_t from a file.
   subroutine inout_read_aero_binned(file, aero_binned)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(aero_binned_t), intent(out) :: aero_binned ! aero_binned to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Structure to read (must not have internal memory allocated).
+    type(aero_binned_t), intent(out) :: aero_binned
 
     call inout_check_comment(file, "begin aero_binned")
     call inout_read_real_array(file, "num_dens(num/m^3)", &
@@ -184,12 +227,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the average of an array of aero_binned_t structures.
   subroutine aero_binned_average(aero_binned_vec, aero_binned_avg)
-    
-    ! Computes the average of an array of aero_binned.
 
-    type(aero_binned_t), intent(in) :: aero_binned_vec(:) ! array of aero_binned
-    type(aero_binned_t), intent(out) :: aero_binned_avg   ! average of vec
+    !> Array of structures to average.
+    type(aero_binned_t), intent(in) :: aero_binned_vec(:)
+    !> Average structure (should not be allocated on entry).
+    type(aero_binned_t), intent(out) :: aero_binned_avg
 
     integer :: n_bin, n_spec, i_bin, i_spec, n, i
 
@@ -211,12 +255,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Add two aero_binned_t structures together.
+  !!
+  !! Symbolically does aero_binned = aero_binned + aero_binned_delta.
   subroutine aero_binned_add(aero_binned, aero_binned_delta)
 
-    ! Adds aero_binned_delta to aero_binned.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! base aero_binned
-    type(aero_binned_t), intent(in) :: aero_binned_delta ! aero_binned to add
+    !> Base aero_binned_t structure that will be added to.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Structure to add to aero_binned.
+    type(aero_binned_t), intent(in) :: aero_binned_delta
 
     aero_binned%num_den = aero_binned%num_den + aero_binned_delta%num_den
     aero_binned%vol_den = aero_binned%vol_den + aero_binned_delta%vol_den
@@ -225,12 +272,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Subtract one aero_binned_t structure from another.
+  !!
+  !! Symbolically does aero_binned = aero_binned - aero_binned_delta.
   subroutine aero_binned_sub(aero_binned, aero_binned_delta)
 
-    ! Subtracts aero_binned_delta from aero_binned.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! base aero_binned
-    type(aero_binned_t), intent(in) :: aero_binned_delta ! aero_binned to sub
+    !> Base aero_binned_t structure that will be subtracted from.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Structure to subtract from aero_binned.
+    type(aero_binned_t), intent(in) :: aero_binned_delta
 
     aero_binned%num_den = aero_binned%num_den - aero_binned_delta%num_den
     aero_binned%vol_den = aero_binned%vol_den - aero_binned_delta%vol_den
@@ -239,12 +289,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scale an aero_binned_t by a real number.
+  !!
+  !! Symbolically does aero_binned = aero_binned * alpha.
   subroutine aero_binned_scale(aero_binned, alpha)
 
-    ! Scales by a real number.
-
-    type(aero_binned_t), intent(inout) :: aero_binned ! base aero_binned
-    real*8, intent(in) :: alpha         ! scale factor
+    !> Base aero_binned to scale.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Scale factor.
+    real*8, intent(in) :: alpha
 
     aero_binned%num_den = aero_binned%num_den * alpha
     aero_binned%vol_den = aero_binned%vol_den * alpha
@@ -253,12 +306,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy one aero_binned_t structure to another.
+  !!
+  !! Symbolically does aero_binned_to = aero_binned_from.
   subroutine aero_binned_copy(aero_binned_from, aero_binned_to)
 
-    ! Copies all data.
-
-    type(aero_binned_t), intent(in) :: aero_binned_from ! base aero_binned
-    type(aero_binned_t), intent(out) :: aero_binned_to ! already alloced
+    !> Base aero_binned_t structure to copy from.
+    type(aero_binned_t), intent(in) :: aero_binned_from
+    !> Structure to copy to.
+    type(aero_binned_t), intent(out) :: aero_binned_to
 
     integer :: n_bin, n_spec
 
@@ -273,13 +329,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Add an aero_dist_t to an aero_binned_t.
+  !!
+  !! Symbolically does aero_binned = aero_binned + aero_dist.
   subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
 
-    ! Converts an aero_dist to an aero_binned.
-
-    type(aero_binned_t), intent(out) :: aero_binned ! must be alloced
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_dist_t), intent(in) :: aero_dist ! source aero_dist
+    !> Base aero_binned_t structure to add to.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> The aero_dist_t structure to add.
+    type(aero_dist_t), intent(in) :: aero_dist
 
     integer :: i_mode, i_bin
 
@@ -297,11 +357,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the number of bytes required to pack the structure.
+  !! See pmc_mpi for usage details.
   integer function pmc_mpi_pack_size_aero_binned(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_binned_t), intent(in) :: val ! value to pack
+    !> Structure to pack.
+    type(aero_binned_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_binned = &
          pmc_mpi_pack_size_real_array(val%num_den) &
@@ -311,13 +372,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Pack the structure into the buffer and advance position.
+  !! See pmc_mpi for usage details.
   subroutine pmc_mpi_pack_aero_binned(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_binned_t), intent(in) :: val          ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Structure to pack.
+    type(aero_binned_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -332,13 +396,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpack the structure from the buffer and advance position.
+  !! See pmc_mpi for usage details.
   subroutine pmc_mpi_unpack_aero_binned(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_binned_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Structure to unpack into (must not be allocated).
+    type(aero_binned_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -353,85 +420,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of the structure across all processors,
+  ! storing the result on the root processor.
   subroutine pmc_mpi_reduce_avg_aero_binned(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    type(aero_binned_t), intent(in) :: val ! value to average
-    type(aero_binned_t), intent(out) :: val_avg ! result
+    !> Per-processor Value to average.
+    type(aero_binned_t), intent(in) :: val
+    !> Averaged result (only valid on root processor).
+    type(aero_binned_t), intent(out) :: val_avg
 
     call pmc_mpi_reduce_avg_real_array(val%num_den, val_avg%num_den)
     call pmc_mpi_reduce_avg_real_array_2d(val%vol_den, val_avg%vol_den)
 
   end subroutine pmc_mpi_reduce_avg_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine aero_binned_write_summary(aero_binned, aero_data, &
-       bin_grid, time, index, out_unit)
-
-    type(aero_binned_t), intent(in) :: aero_binned ! aero_binned
-    type(aero_data_t), intent(in) :: aero_data ! aero_data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    integer, intent(in) :: out_unit     ! unit number to write to
-    
-    integer :: col_num, i_bin, i_spec
-    
-    write(out_unit, '(a,e20.10)') '# time(s) = ', time
-    write(out_unit, '(a,i10)') '# index = ', index
-    write(out_unit, '(a)') &
-         '# VL species are volume density (m^3/m^3)'
-    write(out_unit, '(a)') &
-         '# MS species are mass density (kg/m^3)'
-    write(out_unit, '(a)') &
-         '# ML species are mole density (mole/m^3)'
-    write(out_unit, '(a1)', advance='no') '#'
-    write(out_unit, '(a24)', advance='no') 'radius(m)'
-    write(out_unit, '(a25)', advance='no') 'num_dens(#/m^3)'
-    col_num = 2
-    do i_spec = 1,aero_data%n_spec
-       col_num = col_num + 1
-       write(out_unit, '(i6,a4,a15)', advance='no') &
-            col_num, '-VL/', aero_data%name(i_spec)
-    end do
-    do i_spec = 1,aero_data%n_spec
-       col_num = col_num + 1
-       write(out_unit, '(i6,a4,a15)', advance='no') &
-            col_num, '-MS/', aero_data%name(i_spec)
-    end do
-    do i_spec = 1,aero_data%n_spec
-       col_num = col_num + 1
-       write(out_unit, '(i6,a4,a15)', advance='no') &
-            col_num, '-ML/', aero_data%name(i_spec)
-    end do
-    write(out_unit, *) ''
-    do i_bin = 1,bin_grid%n_bin
-       write(out_unit, '(e25.15,e25.15)', advance='no') &
-            vol2rad(bin_grid%v(i_bin)), &
-            aero_binned%num_den(i_bin)
-       do i_spec = 1,aero_data%n_spec
-          write(out_unit, '(e25.15)', advance='no') &
-               aero_binned%vol_den(i_bin, i_spec)
-       end do
-       do i_spec = 1,aero_data%n_spec
-          write(out_unit, '(e25.15)', advance='no') &
-               aero_binned%vol_den(i_bin, i_spec) &
-               * aero_data%density(i_spec)
-       end do
-       do i_spec = 1,aero_data%n_spec
-          write(out_unit, '(e25.15)', advance='no') &
-               aero_binned%vol_den(i_bin, i_spec) &
-               * aero_data%density(i_spec) &
-               / aero_data%molec_weight(i_spec)
-       end do
-       write(out_unit, *) ''
-    end do
-
-  end subroutine aero_binned_write_summary
-    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_binned

@@ -19,13 +19,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine kernel_sedi(v1, v2, env, k)
+  subroutine kernel_sedi(v1, v2, env_state, k)
 
     ! Sedimentation coagulation kernel.
 
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
     
     real*8 constant, onethird

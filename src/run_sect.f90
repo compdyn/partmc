@@ -40,7 +40,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env, kernel, sect_opt, process_spec_list)
+       env_data, env_state, kernel, sect_opt, process_spec_list)
 
     ! Run a sectional simulation.
   
@@ -49,7 +49,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
     type(env_data_t), intent(inout) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     type(run_sect_opt_t), intent(in) :: sect_opt ! options
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
     
@@ -69,11 +69,11 @@ contains
     logical do_output, do_progress
   
     interface
-       subroutine kernel(v1, v2, env, k)
+       subroutine kernel(v1, v2, env_state, k)
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env_state   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -108,10 +108,9 @@ contains
     last_progress_time = 0d0
     time = 0d0
     i_summary = 1
-    call env_data_init_state(env_data, env, time)
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel_sedi, env, k_bin)
+    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel_sedi, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
@@ -133,7 +132,7 @@ contains
        call output_processed_open(sect_opt%prefix, 1, ncid)
        call output_processed_binned(ncid, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-            env, i_summary, time, sect_opt%t_output)
+            env_state, i_summary, time, sect_opt%t_output)
     end if
     
     ! main time-stepping loop
@@ -150,11 +149,11 @@ contains
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)
 
-       old_height = env%height
-       call env_data_update_state(env_data, env, time)
-       call env_update_gas_state(env, sect_opt%del_t, old_height, &
+       old_height = env_state%height
+       call env_data_update_state(env_data, env_state, time)
+       call env_state_update_gas_state(env_state, sect_opt%del_t, old_height, &
             gas_data, gas_state)
-       call env_update_aero_binned(env, sect_opt%del_t, old_height, &
+       call env_state_update_aero_binned(env_state, sect_opt%del_t, old_height, &
             bin_grid, aero_data, aero_binned)
        
        ! print output
@@ -164,7 +163,7 @@ contains
           i_summary = i_summary + 1
           call output_processed_binned(ncid, process_spec_list, &
                bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-               env, i_summary, time, sect_opt%t_output)
+               env_state, i_summary, time, sect_opt%t_output)
        end if
        
        ! print progress to stdout

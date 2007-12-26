@@ -26,7 +26,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_write_state(state_prefix, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env, index, time, del_t, i_loop)
+       aero_state, gas_data, gas_state, env_state, index, time, del_t, i_loop)
 
     ! Write the current state.
 
@@ -36,7 +36,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current timestep (s)
@@ -69,7 +69,7 @@ contains
        ! write root node's state
        call inout_write_integer(file, 'n_processor', pmc_mpi_size())
        call inout_write_integer(file, 'processor', 0)
-       call inout_write_env(file, env)
+       call inout_write_env_state(file, env_state)
        call inout_write_gas_state(file, gas_state)
        call inout_write_aero_state(file, aero_state)
     end if
@@ -81,7 +81,7 @@ contains
        ! compute and send buffer_size from remote node
        if (pmc_mpi_rank() == i_proc) then
           buffer_size = 0
-          buffer_size = buffer_size + pmc_mpi_pack_size_env(env)
+          buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
           buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
           buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
           call mpi_send(buffer_size, 1, MPI_INTEGER, 0, 57, &
@@ -98,7 +98,7 @@ contains
        if (pmc_mpi_rank() == i_proc) then
           allocate(buffer(buffer_size))
           position = 0
-          call pmc_mpi_pack_env(buffer, position, env)
+          call pmc_mpi_pack_env_state(buffer, position, env_state)
           call pmc_mpi_pack_gas_state(buffer, position, gas_state)
           call pmc_mpi_pack_aero_state(buffer, position, aero_state)
           call assert(542772170, position == buffer_size)
@@ -113,7 +113,7 @@ contains
           call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, 58, &
                MPI_COMM_WORLD, status, ierr)
           position = 0
-          call pmc_mpi_unpack_env(buffer, position, env_write)
+          call pmc_mpi_unpack_env_state(buffer, position, env_write)
           call pmc_mpi_unpack_gas_state(buffer, position, gas_state_write)
           call pmc_mpi_unpack_aero_state(buffer, position, aero_state_write)
           call assert(518174881, position == buffer_size)
@@ -122,11 +122,11 @@ contains
        ! process state at root node
        if (pmc_mpi_rank() == 0) then
           call inout_write_integer(file, 'processor', i_proc)
-          call inout_write_env(file, env_write)
+          call inout_write_env_state(file, env_write)
           call inout_write_gas_state(file, gas_state_write)
           call inout_write_aero_state(file, aero_state_write)
           
-          call env_free(env_write)
+          call env_state_free(env_write)
           call gas_state_free(gas_state_write)
           call aero_state_free(aero_state_write)
        end if
@@ -142,7 +142,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine inout_read_state(state_name, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env, time, index, del_t, i_loop)
+       aero_state, gas_data, gas_state, env_state, time, index, del_t, i_loop)
 
     ! Read the current state.
 
@@ -152,7 +152,7 @@ contains
     type(aero_state_t), intent(out) :: aero_state ! aerosol state
     type(gas_data_t), intent(out) :: gas_data ! gas data
     type(gas_state_t), intent(out) :: gas_state ! gas state
-    type(env_state_t), intent(out) :: env     ! environment state
+    type(env_state_t), intent(out) :: env_state     ! environment state
     real*8, intent(out) :: time         ! current time (s)
     integer, intent(out) :: index       ! current index
     real*8, intent(out) :: del_t        ! current time-step (s)
@@ -183,7 +183,7 @@ contains
     call inout_read_integer(file, 'n_processor', n_proc)
     call inout_read_integer(file, 'processor', check_i_proc)
     call inout_check_index(file, 0, check_i_proc)
-    call inout_read_env(file, env)
+    call inout_read_env_state(file, env_state)
     call inout_read_gas_state(file, gas_state)
     call inout_read_aero_state(file, aero_state)
 
@@ -191,21 +191,21 @@ contains
     do i_proc = 1,(n_proc - 1)
        call inout_read_integer(file, 'processor', check_i_proc)
        call inout_check_index(file, i_proc, check_i_proc)
-       call inout_read_env(file, env_read)
+       call inout_read_env_state(file, env_read)
        call inout_read_gas_state(file, gas_state_read)
        call inout_read_aero_state(file, aero_state_read)
 
-       call env_add(env, env_read)
+       call env_state_add(env_state, env_read)
        call gas_state_add(gas_state, gas_state_read)
        call aero_state_add(aero_state, aero_state_read)
        
-       call env_free(env_read)
+       call env_state_free(env_read)
        call gas_state_free(gas_state_read)
        call aero_state_free(aero_state_read)
     end do
 
     ! average data
-    call env_scale(env, dble(n_proc))
+    call env_state_scale(env_state, dble(n_proc))
     call gas_state_scale(gas_state, dble(n_proc))
     
     call inout_close(file)

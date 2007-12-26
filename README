@@ -5,7 +5,7 @@ PartMC
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.1.0  
-Released ????-??-??
+Released 2007-12-16
 
 <http://tableau.stanford.edu/~mwest/group/PartMC/>  
 <http://carrot.msrc.sunysb.edu/~nicole/research/montecarlo/>
@@ -141,7 +141,7 @@ btl tcp` option.
 ChangeLog
 =========
 
-1.1.0 - ????-??-??
+1.1.0 - 2007-12-16
 
   * Internal reorganization to use Fortran 90 derived types for the
     data structures.

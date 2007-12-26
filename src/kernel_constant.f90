@@ -18,13 +18,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine kernel_constant(v1, v2, env, k)
+  subroutine kernel_constant(v1, v2, env_state, k)
 
     ! Constant coagulation kernel.
 
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     real*8, intent(out) :: k            ! coagulation kernel
     
     real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
@@ -36,7 +36,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_den, &
-       mean_radius, rho_p, aero_dist_init, env, aero_binned)
+       mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 
     ! Exact solution with a constant coagulation kernel and an
     ! exponential initial condition.
@@ -48,7 +48,7 @@ contains
     real*8, intent(in) :: mean_radius   ! mean init radius (m)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_binned_t), intent(out) :: aero_binned ! output state
     
     real*8 :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol
@@ -56,7 +56,7 @@ contains
     
     real*8, parameter :: lambda = 1d0   ! FIXME: what is this?
     
-    call kernel_constant(1d0, 1d0, env, beta_0)
+    call kernel_constant(1d0, 1d0, env_state, beta_0)
 
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then

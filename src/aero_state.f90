@@ -131,15 +131,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function total_particles(aero_state)
+  integer function aero_state_total_particles(aero_state)
 
     ! Returns the total number of particles in an aerosol distribution.
 
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
 
-    total_particles = aero_state%n_part
+    aero_state_total_particles = aero_state%n_part
 
-  end function total_particles
+  end function aero_state_total_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -364,12 +364,12 @@ contains
 
     call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
-         * dble(total_particles(aero_state_from)))
+         * dble(aero_state_total_particles(aero_state_from)))
     n_bin = size(aero_state_from%bins)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     i_transfer = 0
     do while (i_transfer < n_transfer)
-       if (total_particles(aero_state_from) <= 0) exit
+       if (aero_state_total_particles(aero_state_from) <= 0) exit
        call aero_state_rand_particle(aero_state_from, i_bin, i_part)
        if (vol_ratio == 1d0) then
           ! to_comp_vol == from_comp_vol so just move the particle

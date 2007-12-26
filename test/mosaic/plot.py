@@ -11,7 +11,7 @@ sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-aero_species = ["SO4_a", "NO3_a", "NH4_a"]
+aero_species = ["SO4", "NO3", "NH4"]
 gas_species = ["NO2", "NH3"]
 
 aero_data = pmc_var(NetCDFFile("out/mosaic_state_0001.nc"),

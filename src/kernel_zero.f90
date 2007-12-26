@@ -19,13 +19,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine kernel_zero(v1, v2, env, k)
+  subroutine kernel_zero(v1, v2, env_state, k)
 
     ! Zero coagulation kernel.
 
     real*8, intent(in) :: v1            ! volume of first particle
     real*8, intent(in) :: v2            ! volume of second particle
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     real*8, intent(out) :: k            ! coagulation kernel
     
     k = 0d0
@@ -35,7 +35,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine soln_zero(bin_grid, aero_data, time, num_den, mean_vol, &
-       rho_p, aero_dist_init, env, aero_binned)
+       rho_p, aero_dist_init, env_state, aero_binned)
 
     ! Exact solution with the zero coagulation kernel. Only useful for
     ! testing emissions and background dilution.
@@ -47,7 +47,7 @@ contains
     real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
     real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
     type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_binned_t), intent(out) :: aero_binned ! output state
 
     type(aero_binned_t) :: aero_binned_limit
@@ -71,27 +71,27 @@ contains
     ! n(r,inf) = n_lim(r) = n_back(r) + ---------- n_emit(r)
     !                                    k_dilute
 
-    if (env%aero_dilution_rate == 0d0) then
+    if (env_state%aero_dilution_rate == 0d0) then
        call aero_binned_zero(aero_binned)
-       call aero_binned_add_aero_dist(aero_binned, bin_grid, env%aero_emissions)
-       call aero_binned_scale(aero_binned, env%aero_emission_rate * time &
-            / env%height)
+       call aero_binned_add_aero_dist(aero_binned, bin_grid, env_state%aero_emissions)
+       call aero_binned_scale(aero_binned, env_state%aero_emission_rate * time &
+            / env_state%height)
     else
        ! calculate the limit steady state distribution
        call aero_binned_alloc(aero_binned_limit, bin_grid%n_bin, &
             aero_data%n_spec)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-            env%aero_emissions)
+            env_state%aero_emissions)
        call aero_binned_scale(aero_binned_limit, &
-            env%aero_emission_rate / env%height / env%aero_dilution_rate)
+            env_state%aero_emission_rate / env_state%height / env_state%aero_dilution_rate)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-            env%aero_background)
+            env_state%aero_background)
 
        ! calculate the current state
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist_init)
        call aero_binned_sub(aero_binned, aero_binned_limit)
-       call aero_binned_scale(aero_binned, exp(-env%aero_dilution_rate * time))
+       call aero_binned_scale(aero_binned, exp(-env_state%aero_dilution_rate * time))
        call aero_binned_add(aero_binned, aero_binned_limit)
 
        call aero_binned_free(aero_binned_limit)

@@ -35,7 +35,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_init(bin_grid, env, del_t)
+  subroutine mosaic_init(bin_grid, env_state, del_t)
 
     ! Initialize all MOSAIC data-structures.
     
@@ -50,7 +50,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     real*8, intent(in) :: del_t         ! timestep for coagulation
 
 #ifdef PMC_USE_MOSAIC
@@ -86,18 +86,18 @@ contains
     
     ! time variables
     dt_sec = del_t                           ! time-step (s)
-    tbeg_sec = env%start_day*24*3600 + &     ! time since the beg of
-         nint(env%start_time)                ! year 00:00, UTC (s)
+    tbeg_sec = env_state%start_day*24*3600 + &     ! time since the beg of
+         nint(env_state%start_time)                ! year 00:00, UTC (s)
     
     ! geographic location
-    rlon = env%longitude * deg2rad           ! longitude
-    rlat = env%latitude * deg2rad            ! latitude
-    zalt_m = env%altitude                    ! altitude (m)
+    rlon = env_state%longitude * deg2rad           ! longitude
+    rlat = env_state%latitude * deg2rad            ! latitude
+    zalt_m = env_state%altitude                    ! altitude (m)
     
     ! environmental parameters: map PartMC -> MOSAIC
-    RH = env%rel_humid * 100.d0              ! relative humidity (%)
-    te = env%temp                            ! temperature (K)
-    pr_atm = env%pressure / const%air_std_press ! pressure (atm)
+    RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
+    te = env_state%temp                            ! temperature (K)
+    pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
     
     call init_data_modules                   ! initialize indices and vars
     call LoadPeroxyParameters                ! Aperox and Bperox only once
@@ -106,9 +106,6 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
-! matt -- this is for the separate aerosol optical output 
-!         that jim wants.  i needed to get something
-!         working for him initially. -- dick
     ! get unit for aerosol optical output
     if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()
 
@@ -136,7 +133,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_from_partmc(bin_grid, env, aero_data, &
+  subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state, time)
 
     ! Map all data PartMC -> MOSAIC.
@@ -151,7 +148,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -179,7 +176,7 @@ contains
     tcur_sec = dble(tbeg_sec) + time            ! current (old) time since
                                                 ! the beg of year 00:00, UTC (s)
 
-    time_UTC = env%start_time/3600d0         ! 24-hr UTC clock time (hr)
+    time_UTC = env_state%start_time/3600d0         ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0
 
     do while (time_UTC >= 24d0)
@@ -207,12 +204,12 @@ contains
     enddo
 
     ! environmental parameters: map PartMC -> MOSAIC
-    RH = env%rel_humid * 100.d0              ! relative humidity (%)
-    te = env%temp                            ! temperature (K)
-    pr_atm = env%pressure / const%air_std_press ! pressure (atm)
+    RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
+    te = env_state%temp                            ! temperature (K)
+    pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
     
     ! aerosol data: map PartMC -> MOSAIC
-    nbin_a = total_particles(aero_state)
+    nbin_a = aero_state_total_particles(aero_state)
     if (nbin_a > naerbin) then
        call DeallocateMemory()
        naerbin = nbin_a
@@ -256,7 +253,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_to_partmc(bin_grid, env, aero_data, &
+  subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
        aero_state, aero_binned, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
@@ -269,7 +266,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
@@ -290,9 +287,9 @@ contains
     enddo
 
     ! environmental parameters: map MOSAIC -> PartMC
-    env%rel_humid = RH / 100d0
-    env%temp = te
-    env%pressure = pr_atm * const%air_std_press
+    env_state%rel_humid = RH / 100d0
+    env_state%temp = te
+    env_state%pressure = pr_atm * const%air_std_press
 
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
@@ -332,7 +329,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_timestep(bin_grid, env, aero_data, &
+  subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
        aero_state, aero_binned, gas_data, gas_state, time)
 
     ! Do one timestep with MOSAIC.
@@ -342,7 +339,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
@@ -364,7 +361,7 @@ contains
     end interface
     
     ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
+    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
          gas_data, gas_state, time)
 
     if (msolar == 1) then
@@ -378,10 +375,10 @@ contains
 !DEBUG
 
     ! map MOSAIC -> PartMC
-    call mosaic_to_partmc(bin_grid, env, aero_data, aero_state, &
+    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_state, &
          aero_binned, gas_data, gas_state)
 
-    call mosaic_aero_optical(bin_grid, env, aero_data, &
+    call mosaic_aero_optical(bin_grid, env_state, aero_data, &
          aero_state, gas_data, gas_state, time)
 #endif
 
@@ -389,7 +386,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine mosaic_aero_optical(bin_grid, env, aero_data, &
+  subroutine mosaic_aero_optical(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state, time)
 
     ! Compute the optical properties of each aerosol particle.
@@ -400,7 +397,7 @@ contains
 #endif
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
@@ -418,7 +415,7 @@ contains
     type(aero_particle_t), pointer :: particle
     
     ! map PartMC -> MOSAIC
-!    call mosaic_from_partmc(bin_grid, env, aero_data, aero_state, &
+!    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
 !         gas_data, gas_state, time)
 
 !    call aerosol_optical

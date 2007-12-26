@@ -44,10 +44,8 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/aero_particle src/aero_particle_array src/mpi		\
 	src/process_spec src/netcdf
 
-EXTRA_DIST := dust_salt.sh dust_salt_part1.spec dust_salt_part2.spec	\
-	golovin.sh golovin_exact.spec golovin_mc.spec			\
-	sedi_bidisperse.sh sedi_bidisperse_mc.spec sedi_exp.sh		\
-	sedi_exp_mc.spec sedi_exp_sect.spec
+DIST_FILES = COPYING Doxyfile Makefile README TODO doc equilib src	\
+        test tool urban_plume
 
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
@@ -137,13 +135,13 @@ gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<
 
 .PHONY: dist
-dist: Makefile.deps TAGS
+dist:
 	grep -q "Version $(VERSION)" README
 	grep -q "Released $(DATE)" README
 	grep -q "$(VERSION) - $(DATE)" README
 	grep -q "DEV_BUILD = no" Makefile
 	grep -q "PROJECT_NUMBER         = $(VERSION)" Doxyfile
 	mkdir $(DIST_NAME)
-	cp $(DIST_FILES) $(ALL_SOURCE) $(DIST_NAME)
+	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)

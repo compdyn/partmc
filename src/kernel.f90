@@ -13,7 +13,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine bin_kernel(n_bin, bin_v, kernel, env, k)
+  subroutine bin_kernel(n_bin, bin_v, kernel, env_state, k)
    
     ! Computes an array of kernel values for each bin pair. k(i,j) is
     ! the kernel value at the midpoint of bins i and j.
@@ -21,14 +21,14 @@ contains
     integer, intent(in) :: n_bin        ! number of bins
     real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
     real*8, intent(out) :: k(n_bin,n_bin) ! kernel values
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
 
     interface
-       subroutine kernel(v1, v2, env, k)
+       subroutine kernel(v1, v2, env_state, k)
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -37,7 +37,7 @@ contains
     
     do i = 1,n_bin
        do j = 1,n_bin
-          call kernel(bin_v(i), bin_v(j), env, k(i,j))
+          call kernel(bin_v(i), bin_v(j), env_state, k(i,j))
        end do
     end do
     
@@ -45,22 +45,22 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_binned(bin_grid, kernel, env, k_max)
+  subroutine est_k_max_binned(bin_grid, kernel, env_state, k_max)
 
     ! Computes an array of maximum kernel values. Given particles v1
     ! in bin b1 and v2 in bin b2, it is approximately true that
     ! kernel(v1,v2) <= k_max(b1,b2).
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(env_state_t), intent(in) :: env    ! environment state
+    type(env_state_t), intent(in) :: env_state    ! environment state
     real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! max kern vals
     
     interface
-       subroutine kernel(v1, v2, env, k)
+       subroutine kernel(v1, v2, env_state, k)
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -69,7 +69,7 @@ contains
     
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call est_k_max_for_bin(bin_grid, kernel, i, j, env, k_max(i,j))
+          call est_k_max_for_bin(bin_grid, kernel, i, j, env_state, k_max(i,j))
        end do
     end do
     
@@ -77,7 +77,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine est_k_max_for_bin(bin_grid, kernel, b1, b2, env, k_max)
+  subroutine est_k_max_for_bin(bin_grid, kernel, b1, b2, env_state, k_max)
 
     ! Samples within bins b1 and b2 to find the maximum value of the
     ! kernel between particles from the two bins.
@@ -85,15 +85,15 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
     integer, intent(in) :: b1           ! first bin
     integer, intent(in) :: b2           ! second bin
-    type(env_state_t), intent(in) :: env      ! environment state    
+    type(env_state_t), intent(in) :: env_state      ! environment state    
     real*8, intent(out) :: k_max        ! maximum kernel values
     
     interface
-       subroutine kernel(v1, v2, env, k)
+       subroutine kernel(v1, v2, env_state, k)
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env  
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -118,7 +118,7 @@ contains
                v1_low * dble(i - 1) / dble(n_sample - 1)
           v2 = v2_high * dble(n_sample - j) / dble(n_sample - 1) + &
                v2_low * dble(j - 1) / dble(n_sample - 1)
-          call kernel(v1, v2, env, k)
+          call kernel(v1, v2, env_state, k)
           if (k .gt. k_max) k_max = k
        end do
     end do

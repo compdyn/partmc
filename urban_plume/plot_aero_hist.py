@@ -11,7 +11,7 @@ sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-aero_species = ["BC_a", "OC_a" ]
+aero_species = ["BC  ", "OC  " ]
 
 data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
 	       "aero",

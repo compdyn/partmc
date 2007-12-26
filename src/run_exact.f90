@@ -34,7 +34,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine run_exact(bin_grid, env_data, env, aero_data, exact_opt, &
+  subroutine run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
        soln, process_spec_list)
 
     ! FIXME: num_den and mean_radius are really parameters for the
@@ -46,7 +46,7 @@ contains
     
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(run_exact_opt_t), intent(in) :: exact_opt ! options
     type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
@@ -59,7 +59,7 @@ contains
     
     interface
        subroutine soln(bin_grid, aero_data, time, num_den, mean_radius, &
-            rho_p, aero_dist_init, env, aero_binned)
+            rho_p, aero_dist_init, env_state, aero_binned)
 
          use pmc_bin_grid
          use pmc_env_state
@@ -73,7 +73,7 @@ contains
          real*8, intent(in) :: mean_radius       ! mean init radius (m)
          real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
          type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-         type(env_state_t), intent(in) :: env          ! environment state
+         type(env_state_t), intent(in) :: env_state          ! environment state
          type(aero_binned_t), intent(out) :: aero_binned ! output state
        end subroutine soln
     end interface
@@ -81,20 +81,19 @@ contains
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_data_alloc(gas_data, 0)
     call gas_state_alloc(gas_state, 0)
-    call env_data_init_state(env_data, env, 0d0)
 
     call output_processed_open(exact_opt%prefix, 1, ncid)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
-       call env_data_update_state(env_data, env, time)
+       call env_data_update_state(env_data, env_state, time)
        call soln(bin_grid, aero_data, time, exact_opt%num_den, &
             exact_opt%mean_radius, exact_opt%rho_p, &
-            exact_opt%aero_dist_init, env, aero_binned)
+            exact_opt%aero_dist_init, env_state, aero_binned)
        call output_processed_binned(ncid, process_spec_list, &
             bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-            env, i_time + 1, time, exact_opt%t_output)
+            env_state, i_time + 1, time, exact_opt%t_output)
     end do
 
     call output_processed_close(ncid)

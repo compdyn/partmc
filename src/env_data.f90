@@ -132,72 +132,72 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine env_data_init_state(env_data, env, time)
+  subroutine env_data_init_state(env_data, env_state, time)
     
     ! Initialize the time-dependent contents of the
     ! environment. Thereafter env_data_update_state() should be used.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env   ! environment state to update
+    type(env_state_t), intent(inout) :: env_state   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
 
     ! init temperature
-    env%temp = interp_1d(env_data%temp_time, env_data%temp, time)
+    env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
 
     ! init height
-    env%height = interp_1d(env_data%height_time, env_data%height, time)
+    env_state%height = interp_1d(env_data%height_time, env_data%height, time)
 
     ! init gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &
          env_data%gas_emission_time, env_data%gas_emission_rate, &
-         time, env%gas_emissions, env%gas_emission_rate)
+         time, env_state%gas_emissions, env_state%gas_emission_rate)
     call gas_state_interp_1d(env_data%gas_background, &
          env_data%gas_dilution_time, env_data%gas_dilution_rate, &
-         time, env%gas_background, env%gas_dilution_rate)
+         time, env_state%gas_background, env_state%gas_dilution_rate)
     call aero_dist_interp_1d(env_data%aero_emission, &
          env_data%aero_emission_time, env_data%aero_emission_rate, &
-         time, env%aero_emissions, env%aero_emission_rate)
+         time, env_state%aero_emissions, env_state%aero_emission_rate)
     call aero_dist_interp_1d(env_data%aero_background, &
          env_data%aero_dilution_time, env_data%aero_dilution_rate, &
-         time, env%aero_background, env%aero_dilution_rate)
+         time, env_state%aero_background, env_state%aero_dilution_rate)
     
   end subroutine env_data_init_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine env_data_update_state(env_data, env, time)
+  subroutine env_data_update_state(env_data, env_state, time)
     
     ! Update time-dependent contents of the environment.
     ! env_data_init_state() should have been called at the start.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env   ! environment state to update
+    type(env_state_t), intent(inout) :: env_state   ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 :: pmv ! ambient water vapor pressure (Pa)
     real*8 :: old_height
 
     ! update temperature and relative humidity
-    pmv = env_sat_vapor_pressure(env) * env%rel_humid
-    env%temp = interp_1d(env_data%temp_time, env_data%temp, time)
-    env%rel_humid = pmv / env_sat_vapor_pressure(env)
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
+    env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
 
     ! update height
-    env%height = interp_1d(env_data%height_time, env_data%height, time)
+    env_state%height = interp_1d(env_data%height_time, env_data%height, time)
 
     ! update gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &
          env_data%gas_emission_time, env_data%gas_emission_rate, &
-         time, env%gas_emissions, env%gas_emission_rate)
+         time, env_state%gas_emissions, env_state%gas_emission_rate)
     call gas_state_interp_1d(env_data%gas_background, &
          env_data%gas_dilution_time, env_data%gas_dilution_rate, &
-         time, env%gas_background, env%gas_dilution_rate)
+         time, env_state%gas_background, env_state%gas_dilution_rate)
     call aero_dist_interp_1d(env_data%aero_emission, &
          env_data%aero_emission_time, env_data%aero_emission_rate, &
-         time, env%aero_emissions, env%aero_emission_rate)
+         time, env_state%aero_emissions, env_state%aero_emission_rate)
     call aero_dist_interp_1d(env_data%aero_background, &
          env_data%aero_dilution_time, env_data%aero_dilution_rate, &
-         time, env%aero_background, env%aero_dilution_rate)
+         time, env_state%aero_background, env_state%aero_dilution_rate)
 
   end subroutine env_data_update_state
   

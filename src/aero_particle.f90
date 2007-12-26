@@ -70,7 +70,8 @@ contains
        call aero_particle_free(aero_particle_to)
        call aero_particle_alloc(aero_particle_to, n_spec)
     end if
-    call assert(651178226, size(aero_particle_from%vol) == size(aero_particle_to%vol))
+    call assert(651178226, size(aero_particle_from%vol) &
+         == size(aero_particle_to%vol))
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
@@ -191,7 +192,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function average_solute_quantity(aero_particle, &
+  real*8 function aero_particle_average_solute_quantity(aero_particle, &
        aero_data, quantity)
 
     ! Returns the volume-average of the non-water elements of quantity.
@@ -203,15 +204,16 @@ contains
     real*8 :: ones(aero_data%n_spec)
 
     ones = 1d0
-    average_solute_quantity = &
-         total_solute_quantity(aero_particle, aero_data, quantity) &
-         / total_solute_quantity(aero_particle, aero_data, ones)
+    aero_particle_average_solute_quantity = &
+         aero_particle_total_solute_quantity(aero_particle, &
+         aero_data, quantity) &
+         / aero_particle_total_solute_quantity(aero_particle, aero_data, ones)
 
-  end function average_solute_quantity
+  end function aero_particle_average_solute_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function total_solute_quantity(aero_particle, &
+  real*8 function aero_particle_total_solute_quantity(aero_particle, &
        aero_data, quantity)
 
     ! Returns the volume-total of the non-water elements of quantity.
@@ -229,9 +231,9 @@ contains
           total = total + aero_particle%vol(i) * quantity(i)
        end if
     end do
-    total_solute_quantity = total
+    aero_particle_total_solute_quantity = total
 
-  end function total_solute_quantity
+  end function aero_particle_total_solute_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -281,44 +283,44 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_molec_weight(aero_data, &
-       aero_particle) ! (kg/mole)
+  real*8 function aero_particle_solute_molec_weight(aero_particle, &
+       aero_data) ! (kg/mole)
 
     ! Returns the average of the solute molecular weight.
 
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
-    aero_particle_solute_molec_weight = average_solute_quantity(aero_particle, &
+    aero_particle_solute_molec_weight = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%molec_weight)
 
   end function aero_particle_solute_molec_weight
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_num_ions(aero_data, aero_particle) ! (1)
+  real*8 function aero_particle_solute_num_ions(aero_particle, aero_data) ! (1)
 
     ! Returns the average of the solute ion number.
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_num_ions = average_solute_quantity(aero_particle, &
+    aero_particle_solute_num_ions = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, dble(aero_data%num_ions))
 
   end function aero_particle_solute_num_ions
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_solubility(aero_data, &
-       aero_particle) ! (1)
+  real*8 function aero_particle_solute_solubility(aero_particle, &
+       aero_data) ! (1)
 
     ! Returns the average of the solute solubilities.
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_solubility = average_solute_quantity(aero_particle, &
+    aero_particle_solute_solubility = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%solubility)
 
   end function aero_particle_solute_solubility
@@ -338,22 +340,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_density(aero_data, &
-       aero_particle) ! (kg/m^3)
+  real*8 function aero_particle_solute_density(aero_particle, &
+       aero_data) ! (kg/m^3)
 
     ! Returns the average of the solute densities.
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_density = average_solute_quantity(aero_particle, &
+    aero_particle_solute_density = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%density)
 
   end function aero_particle_solute_density
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_water_mass(aero_data, aero_particle) ! (kg)
+  real*8 function aero_particle_water_mass(aero_particle, aero_data) ! (kg)
 
     ! Returns the water mass.
 
@@ -368,28 +370,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_mass(aero_data, aero_particle) ! (kg)
+  real*8 function aero_particle_solute_mass(aero_particle, aero_data) ! (kg)
 
     ! Returns the total solute mass.
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_mass = total_solute_quantity(aero_particle, &
+    aero_particle_solute_mass = aero_particle_total_solute_quantity(aero_particle, &
          aero_data, aero_data%density)
 
   end function aero_particle_solute_mass
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_kappa(aero_data, aero_particle) ! (1)
+  real*8 function aero_particle_solute_kappa(aero_particle, aero_data) ! (1)
 
     ! Returns the average of the solute kappas.
 
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_kappa = average_solute_quantity(aero_particle, &
+    aero_particle_solute_kappa = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%kappa)
 
   end function aero_particle_solute_kappa
@@ -405,8 +407,10 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_2 ! second particle
     type(aero_particle_t), intent(inout) :: aero_particle_new ! result particle
 
-    call assert(203741686, size(aero_particle_1%vol) == size(aero_particle_new%vol))
-    call assert(586181003, size(aero_particle_2%vol) == size(aero_particle_new%vol))
+    call assert(203741686, size(aero_particle_1%vol) &
+         == size(aero_particle_new%vol))
+    call assert(586181003, size(aero_particle_2%vol) &
+         == size(aero_particle_new%vol))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part

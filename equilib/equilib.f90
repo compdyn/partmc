@@ -18,7 +18,7 @@ program equilib
   character(len=*), parameter :: aero_filename = "aerosol.dat"
 
   type(inout_file_t) :: file
-  type(env_state_t) :: env
+  type(env_state_t) :: env_state
   type(aero_data_t) :: aero_data
   type(aero_particle_t) :: aero_particle
   character(len=300) :: tmp_str
@@ -39,10 +39,10 @@ program equilib
   
   ! get and check commandline arguments
   call getarg(1, tmp_str)
-  env%temp = string_to_real(tmp_str)
+  env_state%temp = string_to_real(tmp_str)
 
   call getarg(2, tmp_str)
-  env%rel_humid = string_to_real(tmp_str)
+  env_state%rel_humid = string_to_real(tmp_str)
 
   call aero_particle_alloc(aero_particle, aero_data%n_spec)
   do i = 2,aero_data%n_spec
@@ -51,11 +51,11 @@ program equilib
   end do
 
   ! do equilibriation
-  call equilibriate_particle(env, aero_data, aero_particle)
+  call equilibriate_particle(env_state, aero_data, aero_particle)
 
   ! write results to stdout
-  write(*,*) 'temp = ', env%temp, ' K'
-  write(*,*) 'RH = ', env%rel_humid
+  write(*,*) 'temp = ', env_state%temp, ' K'
+  write(*,*) 'RH = ', env_state%rel_humid
   write(*,*) ''
   do i = 1,aero_data%n_spec
      write(*,*) aero_data%name(i), aero_particle%vol(i), ' m^{-3}'
@@ -70,6 +70,6 @@ program equilib
 
   call aero_particle_free(aero_particle)
   call aero_data_free(aero_data)
-  call env_free(env)
+  call env_state_free(env_state)
 
 end program equilib

@@ -17,7 +17,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine maybe_coag_pair(bin_grid, aero_binned, env, aero_data, &
+  subroutine maybe_coag_pair(bin_grid, aero_binned, env_state, aero_data, &
        aero_state, b1, b2, del_t, k_max, kernel, did_coag)
     
     ! Choose a random pair for potential coagulation and test its
@@ -27,7 +27,7 @@ contains
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_state_t), intent(inout) :: env   ! environment state
+    type(env_state_t), intent(inout) :: env_state   ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(inout) :: aero_state ! aerosol state
     integer, intent(in) :: b1           ! bin of first particle
@@ -37,11 +37,11 @@ contains
     logical, intent(out) :: did_coag    ! whether a coagulation occured
     
     interface
-       subroutine kernel(v1, v2, env, k)
+       subroutine kernel(v1, v2, env_state, k)
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env   
+         type(env_state_t), intent(in) :: env_state   
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -59,7 +59,7 @@ contains
     call find_rand_pair(aero_state, b1, b2, s1, s2)
     pv1 = aero_particle_volume(aero_state%bins(b1)%particle(s1))
     pv2 = aero_particle_volume(aero_state%bins(b2)%particle(s2))
-    call kernel(pv1, pv2, env, k)
+    call kernel(pv1, pv2, env_state, k)
     p = k / k_max
     
     if (util_rand() .lt. p) then

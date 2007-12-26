@@ -260,7 +260,7 @@ class pmc_dim:
 		    break
 		i_val += 1
 	    else:
-		raise Exception("value not found: %s" % str(self.value))
+		raise Exception("value not found: %s" % str(value))
 	else:
 	    raise Exception("unknown data_type: %s" % self.data_type)
 	return i_val

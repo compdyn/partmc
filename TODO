@@ -1,4 +1,6 @@
 
+Wrap lines at 79 chars.
+
 Check for memory leaks with valgrind.
 
 Test partmc -p.
@@ -10,30 +12,22 @@ removed.
 
 Rename util_rand() to pmc_rand()?
 
-Update function names/arg orders in aero_state.f90.
+How should we be calling aerosol_optical? Every timestep, or only on
+processing? At least remove DEBUGs from mosaic.f90.
 
 Fix the handling of comp_vol in aero_dist_sample() and
 aero_state_sample().
 
-We call env_data_init_state() twice, once from partmc and once from run_mc.
-
-Check that everything works ok without MOSAIC compiled in.
-
 Change gas conc from ppb to mole proportion.
+
+Fix "make dist".
 
 Change aero_particle_solute_density() etc to have aero_particle as the
 first argument.
 
-Change the hardcoded list of mosaic aerosol species to not have _a on
-them, so we can stop having _a in all the partmc data.
-
-Kill aeroptical.dat output from MOSAIC.
-
 Change Makefile to not use FFLAGS as the thing to set, but rather use
 DEF_FFLAGS or something, and include FFLAGS without settting it. Also
 print out all settings before starting compilation.
-
-Rename env.f90 to env_state.f90
 
 Golovin testcase (and maybe others) need loops > 1 with averaging.
 

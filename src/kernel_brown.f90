@@ -18,20 +18,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine kernel_brown(v1, v2, env, k)
+  subroutine kernel_brown(v1, v2, env_state, k)
 
     ! Compute the Brownian coagulation kernel.
 
     real*8, intent(in) :: v1            ! volume of first particle (m^3)
     real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
 
     ! real*8 c_1, a_third, b_third
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
     integer lundiag1, lundiag2
 
-    ! c_1 = 2d0 * const%boltzmann * env%temp / (3.d0 * const%air_dyn_visc)
+    ! c_1 = 2d0 * const%boltzmann * env_state%temp / (3.d0 * const%air_dyn_visc)
     ! a_third = v1**(1.d0/3.d0)
     ! b_third = v2**(1.d0/3.d0)
     
@@ -41,7 +41,7 @@ contains
     dens2 = 1.8d3
     lundiag1 = -91
     lundiag2 = -92
-    call brownian_kernel(v1, v2, dens1, dens2, env%temp, env%pressure, &
+    call brownian_kernel(v1, v2, dens1, dens2, env_state%temp, env_state%pressure, &
          lundiag1, lundiag2, k)
 
   end subroutine kernel_brown

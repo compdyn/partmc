@@ -61,7 +61,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine output_processed(ncid, process_spec_list, bin_grid, &
-       aero_data, aero_state, gas_data, gas_state, env, index, time, &
+       aero_data, aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
     ! Write the current processed state.
@@ -73,7 +73,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current output time-step (s)
@@ -85,7 +85,7 @@ contains
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
           call process_env(ncid, process_spec_list(i)%suffix, &
-               time, index, env)
+               time, index, env_state)
        elseif (process_spec_list(i)%type == "gas") then
           call process_gas(ncid, process_spec_list(i)%suffix, &
                time, index, gas_data, gas_state)
@@ -99,7 +99,7 @@ contains
           .or. (process_spec_list(i)%type == "optic_scatter") &
           .or. (process_spec_list(i)%type == "optic_extinct")) then
           call process_hist_new(ncid, time, index, bin_grid, &
-               env, aero_data, aero_state, process_spec_list(i))
+               env_state, aero_data, aero_state, process_spec_list(i))
        else
           call die(450985234)
        end if
@@ -110,7 +110,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine output_processed_binned(ncid, process_spec_list, &
-       bin_grid, aero_data, aero_binned, gas_data, gas_state, env, &
+       bin_grid, aero_data, aero_binned, gas_data, gas_state, env_state, &
        index, time, del_t)
 
     ! Write the current binned data.
@@ -122,7 +122,7 @@ contains
     type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
     type(gas_data_t), intent(in) :: gas_data ! gas data
     type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     integer, intent(in) :: index        ! filename index
     real*8, intent(in) :: time          ! current time (s)
     real*8, intent(in) :: del_t         ! current output time-step (s)
@@ -133,7 +133,7 @@ contains
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
           call process_env(ncid, process_spec_list(i)%suffix, &
-               time, index, env)
+               time, index, env_state)
        elseif (process_spec_list(i)%type == "gas") then
           call process_gas(ncid, process_spec_list(i)%suffix, &
                time, index, gas_data, gas_state)
@@ -666,13 +666,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_env(ncid, suffix, time, index, env)
+  subroutine process_env(ncid, suffix, time, index, env_state)
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
     character(len=*), intent(in) :: suffix ! suffix of the file
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
 
     integer :: varid_env_state
     integer :: start(2), count(2)
@@ -680,10 +680,10 @@ contains
 
     call ensure_nc_var_env_state(ncid, varid_env_state)
 
-    data(1) = env%temp
-    data(2) = env%rel_humid
-    data(3) = env%pressure
-    data(4) = env%height
+    data(1) = env_state%temp
+    data(2) = env_state%rel_humid
+    data(3) = env_state%pressure
+    data(4) = env_state%height
 
     start = (/ 1, index /)
     count = (/ 4, 1 /)
@@ -812,7 +812,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine process_hist_new(ncid, time, index, bin_grid, &
-       env, aero_data, aero_state, process_spec)
+       env_state, aero_data, aero_state, process_spec)
 
     ! Compute histogram by calling the step_comp() function on each
     ! particle.
@@ -821,7 +821,7 @@ contains
     real*8, intent(in) :: time          ! current time (s)
     integer, intent(in) :: index        ! current index
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env      ! environment state
+    type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
     type(process_spec_t), intent(in) :: process_spec ! process spec
@@ -871,7 +871,7 @@ contains
           aero_particle => aero_state%bins(i_bin)%particle(i_part)
 
           if (process_spec%type == "kappa") then
-             rh = aero_particle_kappa_rh(aero_particle, aero_data, env)
+             rh = aero_particle_kappa_rh(aero_particle, aero_data, env_state)
              supersat = rh - 1d0
              val = supersat
           elseif (process_spec%type == "comp") then

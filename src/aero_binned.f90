@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -131,7 +131,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
-         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
+         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, &
+         aero_particle)
 
   end subroutine aero_binned_add_particle
 
@@ -183,7 +184,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, aero_particle)
+         aero_particle_in_bin(aero_particle, bin_grid), comp_vol, &
+         aero_particle)
 
   end subroutine aero_binned_remove_particle
 
@@ -389,7 +391,8 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_den)
-    call assert(348207873, position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+    call assert(348207873, &
+         position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_binned
@@ -413,7 +416,8 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_den)
-    call assert(878267066, position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+    call assert(878267066, &
+         position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_binned

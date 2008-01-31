@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -32,7 +32,7 @@ module pmc_run_mc
     integer :: n_part_max               ! maximum number of particles
     real*8 :: t_max                     ! final time (s)
     real*8 :: t_output                  ! output interval (0 disables) (s)
-    real*8 :: t_state                   ! state output interval (0 disables) (s)
+    real*8 :: t_state                   ! state output intvl (0 disables) (s)
     real*8 :: t_progress                ! progress interval (0 disables) (s)
     real*8 :: del_t                     ! timestep for coagulation
     character(len=300) :: state_prefix  ! prefix for state files
@@ -114,7 +114,8 @@ contains
        ! FIXME: should we check whether bin_grid == restart_bin_grid, etc?
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then
-          do while (aero_state_total_particles(aero_state) .lt. mc_opt%n_part_max / 2)
+          do while (aero_state_total_particles(aero_state) &
+               < mc_opt%n_part_max / 2)
              call aero_state_double(aero_state)
           end do
        end if
@@ -168,10 +169,10 @@ contains
 
        old_height = env_state%height
        call env_data_update_state(env_data, env_state, time)
-       call env_state_update_gas_state(env_state, mc_opt%del_t, old_height, gas_data, &
-            gas_state)
-       call env_state_update_aero_state(env_state, mc_opt%del_t, old_height, bin_grid, &
-            aero_data, aero_state, aero_binned)
+       call env_state_update_gas_state(env_state, mc_opt%del_t, &
+            old_height, gas_data, gas_state)
+       call env_state_update_aero_state(env_state, mc_opt%del_t, &
+            old_height, bin_grid, aero_data, aero_state, aero_binned)
 
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
@@ -180,8 +181,8 @@ contains
        tot_n_coag = tot_n_coag + n_coag
 
        if (mc_opt%do_condensation) then
-          call condense_particles(bin_grid, aero_binned, env_state, aero_data, &
-               aero_state, mc_opt%del_t)
+          call condense_particles(bin_grid, aero_binned, env_state, &
+               aero_data, aero_state, mc_opt%del_t)
        end if
 
        if (mc_opt%do_mosaic) then
@@ -195,10 +196,12 @@ contains
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array, and the same for halving
        if (mc_opt%allow_double) then
-          do while (aero_state_total_particles(aero_state) < mc_opt%n_part_max / 2)
+          do while (aero_state_total_particles(aero_state) &
+               < mc_opt%n_part_max / 2)
              call aero_state_double(aero_state)
           end do
-          do while (aero_state_total_particles(aero_state) > mc_opt%n_part_max * 2)
+          do while (aero_state_total_particles(aero_state) &
+               > mc_opt%n_part_max * 2)
              call aero_state_halve(aero_state, aero_binned, bin_grid)
           end do
        end if
@@ -224,8 +227,8 @@ contains
           if (do_state) then
              i_state = i_state + 1
              call inout_write_state(mc_opt%state_prefix, bin_grid, &
-                  aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
-                  time, mc_opt%del_t, mc_opt%i_loop)
+                  aero_data, aero_state, gas_data, gas_state, env_state, &
+                  i_state, time, mc_opt%del_t, mc_opt%i_loop)
           end if
        end if
 
@@ -243,8 +246,8 @@ contains
                 write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', &
                      'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
                 write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
-                     aero_state_total_particles(aero_state), tot_n_samp, n_coag, &
-                     tot_n_coag, t_wall_est
+                     aero_state_total_particles(aero_state), tot_n_samp, &
+                     n_coag, tot_n_coag, t_wall_est
              end if
           end if
        end if
@@ -310,9 +313,9 @@ contains
                   .or. ((i == j) .and. (aero_state%bins(i)%n_part < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, aero_binned, env_state, aero_data, &
-                  aero_state, i, j, mc_opt%del_t, k_max(i,j), kernel, &
-                  did_coag)
+             call maybe_coag_pair(bin_grid, aero_binned, env_state, &
+                  aero_data, aero_state, i, j, mc_opt%del_t, k_max(i,j), &
+                  kernel, did_coag)
              if (did_coag) n_coag = n_coag + 1
           enddo
        enddo
@@ -436,7 +439,8 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_pack_real(buffer, position, val%mix_rate)
-    call assert(946070052, position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+    call assert(946070052, &
+         position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_pack_mc_opt
@@ -472,7 +476,8 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
-    call assert(480118362, position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+    call assert(480118362, &
+         position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_mc_opt

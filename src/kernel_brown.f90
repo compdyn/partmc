@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -27,22 +27,22 @@ contains
     type(env_state_t), intent(in) :: env_state      ! environment state
     real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
 
-    ! real*8 c_1, a_third, b_third
+    !real*8 c_1, a_third, b_third
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
     integer lundiag1, lundiag2
 
-    ! c_1 = 2d0 * const%boltzmann * env_state%temp / (3.d0 * const%air_dyn_visc)
-    ! a_third = v1**(1.d0/3.d0)
-    ! b_third = v2**(1.d0/3.d0)
+    !c_1 = 2d0 * const%boltzmann * env_state%temp / (3.d0 * const%air_dyn_visc)
+    !a_third = v1**(1.d0/3.d0)
+    !b_third = v2**(1.d0/3.d0)
     
-    ! k = c_1 * (a_third + b_third) *(1d0/a_third + 1d0/b_third) 
+    !k = c_1 * (a_third + b_third) *(1d0/a_third + 1d0/b_third) 
 
     dens1 = 1.8d3
     dens2 = 1.8d3
     lundiag1 = -91
     lundiag2 = -92
-    call brownian_kernel(v1, v2, dens1, dens2, env_state%temp, env_state%pressure, &
-         lundiag1, lundiag2, k)
+    call brownian_kernel(v1, v2, dens1, dens2, env_state%temp, &
+         env_state%pressure, lundiag1, lundiag2, k)
 
   end subroutine kernel_brown
       

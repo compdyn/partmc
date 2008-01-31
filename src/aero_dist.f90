@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -524,7 +524,8 @@ contains
     allocate(aero_mode%num_den(bin_grid%n_bin))
     allocate(aero_mode%vol_frac(aero_data%n_spec))
     call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
-    call spec_read_aero_mode_shape(file, aero_data, bin_grid, aero_mode%num_den)
+    call spec_read_aero_mode_shape(file, aero_data, bin_grid, &
+         aero_mode%num_den)
 
   end subroutine spec_read_aero_mode
 
@@ -552,7 +553,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, name, dist)
+  subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+       name, dist)
 
     ! Read aerosol distribution from filename on line in file.
 
@@ -649,7 +651,7 @@ contains
     ! Computes the average of an array of aero_mode.
 
     type(aero_mode_t), intent(in) :: aero_mode_vec(:) ! array of aero_mode
-    type(aero_mode_t), intent(out) :: aero_mode_avg   ! average of aero_mode_vec
+    type(aero_mode_t), intent(out) :: aero_mode_avg   ! avg of aero_mode_vec
 
     integer :: n_bin, n_spec, i_bin, i_spec, i, n
 
@@ -675,7 +677,7 @@ contains
     ! Computes the average of an array of aero_dist.
 
     type(aero_dist_t), intent(in) :: aero_dist_vec(:) ! array of aero_dist
-    type(aero_dist_t), intent(out) :: aero_dist_avg   ! average of aero_dist_vec
+    type(aero_dist_t), intent(out) :: aero_dist_avg   ! avg of aero_dist_vec
 
     integer :: n_modes, i_mode, i, n
 
@@ -737,7 +739,8 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
-    call assert(579699255, position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+    call assert(579699255, &
+         position - prev_position == pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_mode
@@ -760,7 +763,8 @@ contains
     do i = 1,size(val%mode)
        call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
     end do
-    call assert(440557910, position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+    call assert(440557910, &
+         position - prev_position == pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_dist
@@ -781,7 +785,8 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
-    call assert(874467577, position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+    call assert(874467577, &
+         position - prev_position == pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_mode
@@ -805,7 +810,8 @@ contains
     do i = 1,size(val%mode)
        call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
     end do
-    call assert(742535268, position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+    call assert(742535268, &
+         position - prev_position == pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_dist

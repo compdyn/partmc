@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -147,7 +147,8 @@ contains
             new_process_spec_list(n_process_spec))
        call process_spec_free(process_spec)
        do i = 1,(n_process_spec - 1)
-          call process_spec_copy(process_spec_list(i), new_process_spec_list(i))
+          call process_spec_copy(process_spec_list(i), &
+               new_process_spec_list(i))
           call process_spec_free(process_spec_list(i))
        end do
        deallocate(process_spec_list)

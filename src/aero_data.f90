@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -18,14 +18,14 @@ module pmc_aero_data
   type aero_data_t
      integer :: n_spec                  ! number of species
      integer :: i_water                 ! water species number
-     character(len=AERO_NAME_LEN), pointer :: name(:) ! len n_spec, species name
+     character(len=AERO_NAME_LEN), pointer :: name(:) ! len n_spec, species
      integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
                                         ! mosaic index of species i, or 0 if
                                         ! there is no match
      real*8, pointer ::  density(:)     ! len n_spec, densities (kg m^{-3})
      integer, pointer :: num_ions(:)    ! len n_spec, num ions in solute
      real*8, pointer :: solubility(:)   ! len n_spec, solubilities (1)
-     real*8, pointer :: molec_weight(:) ! len n_spec, molec wghts (kg mole^{-1})
+     real*8, pointer :: molec_weight(:) ! len n_spec, molc wghts (kg mole^{-1})
      real*8, pointer :: kappa(:)        ! len n_spec, kappas (1)
   end type aero_data_t
 
@@ -336,7 +336,8 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%solubility)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
-    call assert(183834856, position - prev_position == pmc_mpi_pack_size_aero_data(val))
+    call assert(183834856, &
+         position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_data
@@ -364,7 +365,8 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
-    call assert(188522823, position - prev_position == pmc_mpi_pack_size_aero_data(val))
+    call assert(188522823, &
+         position - prev_position == pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_data

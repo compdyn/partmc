@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -67,7 +67,7 @@ contains
     ! Write the current processed state.
 
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! process specs
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_state_t), intent(in) :: aero_state ! aerosol state
@@ -116,7 +116,7 @@ contains
     ! Write the current binned data.
     
     integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! processings specs
+    type(process_spec_t), intent(in) :: process_spec_list(:) ! process specs
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
@@ -328,7 +328,8 @@ contains
          gas_species_names))
     call pmc_nc_check(nf90_def_var(ncid, "gas_species_widths", NF90_DOUBLE, &
          dimid_gas_species, varid_gas_species_widths))
-    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species_widths, "unit", "1"))
+    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species_widths, &
+         "unit", "1"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
@@ -596,7 +597,8 @@ contains
 
     call pmc_nc_check(nf90_redef(ncid))
 
-    dimids_aero = (/ dimid_radius, dimid_aero_species, dimid_unit, dimid_time /)
+    dimids_aero = (/ dimid_radius, dimid_aero_species, dimid_unit, &
+         dimid_time /)
     call pmc_nc_check(nf90_def_var(ncid, "aero", NF90_DOUBLE, &
          dimids_aero, varid_aero))
     call pmc_nc_check(nf90_put_att(ncid, varid_aero, "unit", "1"))

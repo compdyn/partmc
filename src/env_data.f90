@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -38,11 +38,11 @@ module pmc_env_data
      type(gas_state_t), pointer :: gas_emission(:) ! gas emissions
 
      real*8, pointer :: gas_dilution_time(:) ! gas-backgnd dilute times (s)
-     real*8, pointer :: gas_dilution_rate(:) ! gas-backgnd dilute rates (s^{-1})
+     real*8, pointer :: gas_dilution_rate(:) ! gas-backgnd dlte rates (s^{-1})
      type(gas_state_t), pointer :: gas_background(:) ! background gas concs
 
      real*8, pointer :: aero_emission_time(:) ! aerosol emissions times (s)
-     real*8, pointer :: aero_emission_rate(:) ! aerosol emisssion rates (s^{-1})
+     real*8, pointer :: aero_emission_rate(:) ! aerosol emit rates (s^{-1})
      type(aero_dist_t), pointer :: aero_emission(:) ! aerosol emissions
 
      real*8, pointer :: aero_dilution_time(:) ! aero-backgnd dilute times (s)
@@ -138,7 +138,7 @@ contains
     ! environment. Thereafter env_data_update_state() should be used.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state   ! environment state to update
+    type(env_state_t), intent(inout) :: env_state ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
 
     ! init temperature
@@ -171,7 +171,7 @@ contains
     ! env_data_init_state() should have been called at the start.
 
     type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state   ! environment state to update
+    type(env_state_t), intent(inout) :: env_state ! environment state to update
     real*8, intent(in) :: time          ! current time (s)
     
     real*8 :: pmv ! ambient water vapor pressure (Pa)
@@ -457,7 +457,8 @@ contains
     do i = 1,size(val%aero_background)
        call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
     end do
-    call assert(639466930, position - prev_position == pmc_mpi_pack_size_env_data(val))
+    call assert(639466930, &
+         position - prev_position == pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_env_data
@@ -504,7 +505,8 @@ contains
     do i = 1,size(val%aero_background)
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
     end do
-    call assert(611542570, position - prev_position == pmc_mpi_pack_size_env_data(val))
+    call assert(611542570, &
+         position - prev_position == pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env_data

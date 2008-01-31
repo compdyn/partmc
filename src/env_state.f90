@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -44,7 +44,7 @@ module pmc_env_state
      type(aero_dist_t) :: aero_emissions ! aerosol emissions
      real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
      type(aero_dist_t) :: aero_background ! aerosol background
-     real*8 :: aero_dilution_rate       ! aero-background dilution rate (s^{-1})
+     real*8 :: aero_dilution_rate       ! aero-background dilute rate (s^{-1})
   end type env_state_t
   
 contains
@@ -112,13 +112,18 @@ contains
     env_state%start_day = env_state%start_day + env_state_delta%start_day
     env_state%height = env_state%height + env_state_delta%height
     call gas_state_add(env_state%gas_emissions, env_state_delta%gas_emissions)
-    env_state%gas_emission_rate = env_state%gas_emission_rate + env_state_delta%gas_emission_rate
-    call gas_state_add(env_state%gas_background, env_state_delta%gas_background)
-    env_state%gas_dilution_rate = env_state%gas_dilution_rate + env_state_delta%gas_dilution_rate
-    call aero_dist_add(env_state%aero_emissions, env_state_delta%aero_emissions)
+    env_state%gas_emission_rate = env_state%gas_emission_rate &
+         + env_state_delta%gas_emission_rate
+    call gas_state_add(env_state%gas_background, &
+         env_state_delta%gas_background)
+    env_state%gas_dilution_rate = env_state%gas_dilution_rate &
+         + env_state_delta%gas_dilution_rate
+    call aero_dist_add(env_state%aero_emissions, &
+         env_state_delta%aero_emissions)
     env_state%aero_emission_rate = env_state%aero_emission_rate &
          + env_state_delta%aero_emission_rate
-    call aero_dist_add(env_state%aero_background, env_state_delta%aero_background)
+    call aero_dist_add(env_state%aero_background, &
+         env_state_delta%aero_background)
     env_state%aero_dilution_rate = env_state%aero_dilution_rate &
          + env_state_delta%aero_dilution_rate
     
@@ -189,7 +194,7 @@ contains
     ! Adds the given water volume to the water vapor and updates all
     ! environment quantities.
     
-    type(env_state_t), intent(inout) :: env_state   ! environment state to update
+    type(env_state_t), intent(inout) :: env_state ! environment state to update
     type(aero_data_t), intent(in) :: aero_data ! aero_data constants
     real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
     
@@ -328,8 +333,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine env_state_update_aero_state(env_state, delta_t, old_height, bin_grid, &
-       aero_data, aero_state, aero_binned)
+  subroutine env_state_update_aero_state(env_state, delta_t, old_height, &
+       bin_grid, aero_data, aero_state, aero_binned)
 
     ! Do emissions and background dilution from the environment for a
     ! particle aerosol distribution.
@@ -360,7 +365,7 @@ contains
     ! loss to background
     sample_prop = delta_t * effective_dilution_rate
     if (sample_prop > 1d0) then
-       write(0,*) 'ERROR: effective dilution rate is too high for this timestep'
+       write(0,*) 'ERROR: effective dilution rate too high for this timestep'
        call exit(1)
     end if
     call aero_state_zero(aero_state_delta)
@@ -400,8 +405,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine env_state_update_aero_binned(env_state, delta_t, old_height, bin_grid, &
-       aero_data, aero_binned)
+  subroutine env_state_update_aero_binned(env_state, delta_t, old_height, &
+       bin_grid, aero_data, aero_binned)
 
     ! Do emissions and background dilution from the environment for a
     ! binned aerosol distribution.
@@ -428,12 +433,14 @@ contains
 
     ! emission = delta_t * aero_emission_rate * aero_emissions
     ! but emissions are #/m^2 so we need to divide by height
-    call aero_binned_add_aero_dist(emission, bin_grid, env_state%aero_emissions)
+    call aero_binned_add_aero_dist(emission, bin_grid, &
+         env_state%aero_emissions)
     call aero_binned_scale(emission, &
          delta_t * env_state%aero_emission_rate / env_state%height)
 
     ! dilution = delta_t * aero_dilution_rate * (aero_background - aero_binned)
-    call aero_binned_add_aero_dist(dilution, bin_grid, env_state%aero_background)
+    call aero_binned_add_aero_dist(dilution, bin_grid, &
+         env_state%aero_background)
     call aero_binned_sub(dilution, aero_binned)
     call aero_binned_scale(dilution, delta_t * effective_dilution_rate)
 
@@ -465,13 +472,17 @@ contains
     call inout_write_integer(file, "start_day(days)", env_state%start_day)
     call inout_write_real(file, "height(m)", env_state%height)
     call inout_write_gas_state(file, env_state%gas_emissions)
-    call inout_write_real(file, "gas_emit_rate(1/s)", env_state%gas_emission_rate)
+    call inout_write_real(file, "gas_emit_rate(1/s)", &
+         env_state%gas_emission_rate)
     call inout_write_gas_state(file, env_state%gas_background)
-    call inout_write_real(file, "gas_dilute_rate(1/s)", env_state%gas_dilution_rate)
+    call inout_write_real(file, "gas_dilute_rate(1/s)", &
+         env_state%gas_dilution_rate)
     call inout_write_aero_dist(file, env_state%aero_emissions)
-    call inout_write_real(file, "aero_emit_rate(1/s)", env_state%aero_emission_rate)
+    call inout_write_real(file, "aero_emit_rate(1/s)", &
+         env_state%aero_emission_rate)
     call inout_write_aero_dist(file, env_state%aero_background)
-    call inout_write_real(file, "aero_dilute_rat(1/s)", env_state%aero_dilution_rate)
+    call inout_write_real(file, "aero_dilute_rat(1/s)", &
+         env_state%aero_dilution_rate)
     call inout_write_comment(file, "end env_state")
 
   end subroutine inout_write_env_state
@@ -496,13 +507,17 @@ contains
     call inout_read_integer(file, "start_day(days)", env_state%start_day)
     call inout_read_real(file, "height(m)", env_state%height)
     call inout_read_gas_state(file, env_state%gas_emissions)
-    call inout_read_real(file, "gas_emit_rate(1/s)", env_state%gas_emission_rate)
+    call inout_read_real(file, "gas_emit_rate(1/s)", &
+         env_state%gas_emission_rate)
     call inout_read_gas_state(file, env_state%gas_background)
-    call inout_read_real(file, "gas_dilute_rate(1/s)", env_state%gas_dilution_rate)
+    call inout_read_real(file, "gas_dilute_rate(1/s)", &
+         env_state%gas_dilution_rate)
     call inout_read_aero_dist(file, env_state%aero_emissions)
-    call inout_read_real(file, "aero_emit_rate(1/s)", env_state%aero_emission_rate)
+    call inout_read_real(file, "aero_emit_rate(1/s)", &
+         env_state%aero_emission_rate)
     call inout_read_aero_dist(file, env_state%aero_background)
-    call inout_read_real(file, "aero_dilute_rat(1/s)", env_state%aero_dilution_rate)
+    call inout_read_real(file, "aero_dilute_rat(1/s)", &
+         env_state%aero_dilution_rate)
     call inout_check_comment(file, "end env_state")
 
   end subroutine inout_read_env_state
@@ -639,7 +654,8 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%aero_emission_rate)
     call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_pack_real(buffer, position, val%aero_dilution_rate)
-    call assert(464101191, position - prev_position == pmc_mpi_pack_size_env_state(val))
+    call assert(464101191, &
+         position - prev_position == pmc_mpi_pack_size_env_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_env_state
@@ -675,7 +691,8 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%aero_emission_rate)
     call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_unpack_real(buffer, position, val%aero_dilution_rate)
-    call assert(205696745, position - prev_position == pmc_mpi_pack_size_env_state(val))
+    call assert(205696745, &
+         position - prev_position == pmc_mpi_pack_size_env_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env_state

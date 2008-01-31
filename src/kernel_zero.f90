@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -73,9 +73,10 @@ contains
 
     if (env_state%aero_dilution_rate == 0d0) then
        call aero_binned_zero(aero_binned)
-       call aero_binned_add_aero_dist(aero_binned, bin_grid, env_state%aero_emissions)
-       call aero_binned_scale(aero_binned, env_state%aero_emission_rate * time &
-            / env_state%height)
+       call aero_binned_add_aero_dist(aero_binned, bin_grid, &
+            env_state%aero_emissions)
+       call aero_binned_scale(aero_binned, &
+            env_state%aero_emission_rate * time / env_state%height)
     else
        ! calculate the limit steady state distribution
        call aero_binned_alloc(aero_binned_limit, bin_grid%n_bin, &
@@ -83,7 +84,8 @@ contains
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
             env_state%aero_emissions)
        call aero_binned_scale(aero_binned_limit, &
-            env_state%aero_emission_rate / env_state%height / env_state%aero_dilution_rate)
+            env_state%aero_emission_rate / env_state%height &
+            / env_state%aero_dilution_rate)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
             env_state%aero_background)
 
@@ -91,7 +93,8 @@ contains
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist_init)
        call aero_binned_sub(aero_binned, aero_binned_limit)
-       call aero_binned_scale(aero_binned, exp(-env_state%aero_dilution_rate * time))
+       call aero_binned_scale(aero_binned, &
+            exp(-env_state%aero_dilution_rate * time))
        call aero_binned_add(aero_binned, aero_binned_limit)
 
        call aero_binned_free(aero_binned_limit)

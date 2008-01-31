@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -223,7 +223,8 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_bin)
     call pmc_mpi_pack_real_array(buffer, position, val%v)
     call pmc_mpi_pack_real(buffer, position, val%dlnr)
-    call assert(385455586, position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+    call assert(385455586, &
+         position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_pack_bin_grid
@@ -245,7 +246,8 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
     call pmc_mpi_unpack_real_array(buffer, position, val%v)
     call pmc_mpi_unpack_real(buffer, position, val%dlnr)
-    call assert(741838730, position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+    call assert(741838730, &
+         position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid

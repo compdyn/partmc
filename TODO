@@ -1,6 +1,4 @@
 
-Wrap lines at 79 chars.
-
 Check for memory leaks with valgrind.
 
 Test partmc -p.

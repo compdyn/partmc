@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -84,7 +84,7 @@ contains
     ! dlnr: constant grid distance of logarithmic grid 
 
     if (aero_data%n_spec /= 1) then
-       write(0,*) 'ERROR: run_sect() can currently only use one aerosol species'
+       write(0,*) 'ERROR: run_sect() can only use one aerosol species'
        call exit(1)
     end if
 
@@ -95,8 +95,9 @@ contains
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
-       r(i) = vol2rad(bin_grid%v(i)) * 1d6           ! radius in m to um
-       e(i) = bin_grid%v(i) * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
+       r(i) = vol2rad(bin_grid%v(i)) * 1d6 ! radius in m to um
+       e(i) = bin_grid%v(i) &
+            * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
     end do
     
     ! initial mass distribution
@@ -151,10 +152,10 @@ contains
 
        old_height = env_state%height
        call env_data_update_state(env_data, env_state, time)
-       call env_state_update_gas_state(env_state, sect_opt%del_t, old_height, &
-            gas_data, gas_state)
-       call env_state_update_aero_binned(env_state, sect_opt%del_t, old_height, &
-            bin_grid, aero_data, aero_binned)
+       call env_state_update_gas_state(env_state, sect_opt%del_t, &
+            old_height, gas_data, gas_state)
+       call env_state_update_aero_binned(env_state, sect_opt%del_t, &
+            old_height, bin_grid, aero_data, aero_binned)
        
        ! print output
        call check_event(time, sect_opt%del_t, sect_opt%t_output, &

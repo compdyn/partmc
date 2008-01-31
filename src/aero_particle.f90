@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -60,8 +60,8 @@ contains
 
     ! Copies a particle.
 
-    type(aero_particle_t), intent(in) :: aero_particle_from ! reference particle
-    type(aero_particle_t), intent(inout) :: aero_particle_to ! already allocated
+    type(aero_particle_t), intent(in) :: aero_particle_from ! ref particle
+    type(aero_particle_t), intent(inout) :: aero_particle_to ! already alloc'd
     
     integer :: n_spec
 
@@ -90,7 +90,7 @@ contains
     ! Is the equivalent of aero_particle_copy(from, to) followed by
     ! aero_particle_free(from), but faster.
 
-    type(aero_particle_t), intent(in) :: aero_particle_from ! reference particle
+    type(aero_particle_t), intent(in) :: aero_particle_from ! ref particle
     type(aero_particle_t), intent(inout) :: aero_particle_to ! not allocated
 
     aero_particle_to%vol => aero_particle_from%vol
@@ -277,7 +277,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
     call assert(772012490, aero_data%i_water > 0)
-    aero_particle_water_molec_weight = aero_data%molec_weight(aero_data%i_water)
+    aero_particle_water_molec_weight &
+         = aero_data%molec_weight(aero_data%i_water)
 
   end function aero_particle_water_molec_weight
 
@@ -291,7 +292,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
 
-    aero_particle_solute_molec_weight = aero_particle_average_solute_quantity(aero_particle, &
+    aero_particle_solute_molec_weight &
+         = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%molec_weight)
 
   end function aero_particle_solute_molec_weight
@@ -305,7 +307,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_num_ions = aero_particle_average_solute_quantity(aero_particle, &
+    aero_particle_solute_num_ions &
+         = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, dble(aero_data%num_ions))
 
   end function aero_particle_solute_num_ions
@@ -320,7 +323,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_solubility = aero_particle_average_solute_quantity(aero_particle, &
+    aero_particle_solute_solubility &
+         = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%solubility)
 
   end function aero_particle_solute_solubility
@@ -348,7 +352,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_density = aero_particle_average_solute_quantity(aero_particle, &
+    aero_particle_solute_density &
+         = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%density)
 
   end function aero_particle_solute_density
@@ -377,7 +382,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_mass = aero_particle_total_solute_quantity(aero_particle, &
+    aero_particle_solute_mass &
+         = aero_particle_total_solute_quantity(aero_particle, &
          aero_data, aero_data%density)
 
   end function aero_particle_solute_mass
@@ -391,7 +397,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data ! aerosol data
     type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
 
-    aero_particle_solute_kappa = aero_particle_average_solute_quantity(aero_particle, &
+    aero_particle_solute_kappa &
+         = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, aero_data%kappa)
 
   end function aero_particle_solute_kappa
@@ -465,7 +472,8 @@ contains
     call inout_read_real(file, "asymmetry(1)", aero_particle%asymmetry)
     call inout_read_complex(file, "refract_shell(1)", &
          aero_particle%refract_shell)
-    call inout_read_complex(file, "refract_core(1)", aero_particle%refract_core)
+    call inout_read_complex(file, "refract_core(1)", &
+         aero_particle%refract_core)
     call inout_read_real(file, "core_vol(m^3)", aero_particle%core_vol)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_check_comment(file, "end aero_particle")

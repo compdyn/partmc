@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -429,7 +429,8 @@ contains
     call mpi_pack(val, 1, MPI_INTEGER, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(913495993, position - prev_position == pmc_mpi_pack_size_integer(val))
+    call assert(913495993, &
+         position - prev_position == pmc_mpi_pack_size_integer(val))
 #endif
 
   end subroutine pmc_mpi_pack_integer
@@ -451,7 +452,8 @@ contains
     call mpi_pack(val, 1, MPI_REAL8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(395354132, position - prev_position == pmc_mpi_pack_size_real(val))
+    call assert(395354132, &
+         position - prev_position == pmc_mpi_pack_size_real(val))
 #endif
 
   end subroutine pmc_mpi_pack_real
@@ -475,7 +477,8 @@ contains
     call mpi_pack(val, length, MPI_CHARACTER, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(607212018, position - prev_position == pmc_mpi_pack_size_string(val))
+    call assert(607212018, &
+         position - prev_position == pmc_mpi_pack_size_string(val))
 #endif
 
   end subroutine pmc_mpi_pack_string
@@ -497,7 +500,8 @@ contains
     call mpi_pack(val, 1, MPI_LOGICAL, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(104535200, position - prev_position == pmc_mpi_pack_size_logical(val))
+    call assert(104535200, &
+         position - prev_position == pmc_mpi_pack_size_logical(val))
 #endif
 
   end subroutine pmc_mpi_pack_logical
@@ -519,7 +523,8 @@ contains
     call mpi_pack(val, 1, MPI_COMPLEX16, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(640416372, position - prev_position == pmc_mpi_pack_size_complex(val))
+    call assert(640416372, &
+         position - prev_position == pmc_mpi_pack_size_complex(val))
 #endif
 
   end subroutine pmc_mpi_pack_complex
@@ -543,8 +548,8 @@ contains
     call mpi_pack(val, n, MPI_INTEGER, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(698601296, position - prev_position &
-         == pmc_mpi_pack_size_integer_array(val))
+    call assert(698601296, &
+         position - prev_position == pmc_mpi_pack_size_integer_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_integer_array
@@ -568,7 +573,8 @@ contains
     call mpi_pack(val, n, MPI_REAL8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(825718791, position - prev_position == pmc_mpi_pack_size_real_array(val))
+    call assert(825718791, &
+         position - prev_position == pmc_mpi_pack_size_real_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_real_array
@@ -592,7 +598,8 @@ contains
     do i = 1,n
        call pmc_mpi_pack_string(buffer, position, val(i))
     end do
-    call assert(630900704, position - prev_position == pmc_mpi_pack_size_string_array(val))
+    call assert(630900704, &
+         position - prev_position == pmc_mpi_pack_size_string_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_string_array
@@ -618,8 +625,8 @@ contains
     call mpi_pack(val, n1*n2, MPI_REAL8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(567349745, position - prev_position &
-         == pmc_mpi_pack_size_real_array_2d(val))
+    call assert(567349745, &
+         position - prev_position == pmc_mpi_pack_size_real_array_2d(val))
 #endif
 
   end subroutine pmc_mpi_pack_real_array_2d
@@ -641,7 +648,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_INTEGER, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(890243339, position - prev_position == pmc_mpi_pack_size_integer(val))
+    call assert(890243339, &
+         position - prev_position == pmc_mpi_pack_size_integer(val))
 #endif
 
   end subroutine pmc_mpi_unpack_integer
@@ -663,7 +671,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(570771632, position - prev_position == pmc_mpi_pack_size_real(val))
+    call assert(570771632, &
+         position - prev_position == pmc_mpi_pack_size_real(val))
 #endif
 
   end subroutine pmc_mpi_unpack_real
@@ -690,7 +699,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, length, &
          MPI_CHARACTER, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(503378058, position - prev_position == pmc_mpi_pack_size_string(val))
+    call assert(503378058, &
+         position - prev_position == pmc_mpi_pack_size_string(val))
 #endif
 
   end subroutine pmc_mpi_unpack_string
@@ -712,7 +722,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_LOGICAL, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(694750528, position - prev_position == pmc_mpi_pack_size_logical(val))
+    call assert(694750528, &
+         position - prev_position == pmc_mpi_pack_size_logical(val))
 #endif
 
   end subroutine pmc_mpi_unpack_logical
@@ -734,7 +745,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_COMPLEX16, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(969672634, position - prev_position == pmc_mpi_pack_size_complex(val))
+    call assert(969672634, &
+         position - prev_position == pmc_mpi_pack_size_complex(val))
 #endif
 
   end subroutine pmc_mpi_unpack_complex
@@ -758,8 +770,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_INTEGER, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(565840919, position - prev_position &
-         == pmc_mpi_pack_size_integer_array(val))
+    call assert(565840919, &
+         position - prev_position == pmc_mpi_pack_size_integer_array(val))
 #endif
 
   end subroutine pmc_mpi_unpack_integer_array
@@ -783,7 +795,8 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(782875761, position - prev_position == pmc_mpi_pack_size_real_array(val))
+    call assert(782875761, &
+         position - prev_position == pmc_mpi_pack_size_real_array(val))
 #endif
 
   end subroutine pmc_mpi_unpack_real_array
@@ -811,7 +824,8 @@ contains
     !FIXME: some weird bug makes this fail on everest with pgf90 and MPICH
     ! apparently pmc_mpi_pack_size_string_array() gets empty strings,
     ! despite the fact that they are returned correctly.
-    call assert(320065648, position - prev_position == pmc_mpi_pack_size_string_array(val))
+    call assert(320065648, &
+         position - prev_position == pmc_mpi_pack_size_string_array(val))
 #endif
 #endif
 

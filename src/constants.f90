@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -18,14 +18,14 @@ module pmc_constants
      real*8 :: pi = 3.14159265358979323846d0
      real*8 :: boltzmann = 1.3806505d-23 ! Boltzmann constant in J K^{-1}
      real*8 :: avagadro = 6.02214179d23 ! Avogadro's number (mole^{-1})
-     real*8 :: univ_gas_const = 8.314472d0 ! univ gas const (J mole^{-1} K^{-1})
+     real*8 :: univ_gas_const = 8.314472d0 ! univ gas cons (J mole^{-1} K^{-1})
      real*8 :: accom_coeff = 1d0        ! accomodation coeff (0.045 also used)
 
      real*8 :: water_eq_vap_press = 611d0 ! eq water vapor press at 273 K (Pa)
      real*8 :: water_freeze_temp = 273.15d0 ! freezing point of water (K)
      real*8 :: water_surf_eng = 0.073d0 ! surface energy of water (J m^{-2})
      real*8 :: water_latent_heat = 2.272d6 ! latent heat of water (J kg^{-1})
-     real*8 :: water_spec_heat = 1005d0 ! spec. heat of water (J kg^{-1} K^{-1})
+     real*8 :: water_spec_heat = 1005d0 ! spec heat of water (J kg^{-1} K^{-1})
      real*8 :: water_molec_weight = 18d-3 ! (kg mole^{-1})
      real*8 :: water_density = 1d3      ! (kg m^{-3})
 

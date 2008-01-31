@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -172,9 +172,9 @@ contains
     end interface
 
     ! update time variables
-    tmar21_sec = dble((79*24 + 12)*3600)        ! noon, mar 21, UTC
-    tcur_sec = dble(tbeg_sec) + time            ! current (old) time since
-                                                ! the beg of year 00:00, UTC (s)
+    tmar21_sec = dble((79*24 + 12)*3600)       ! noon, mar 21, UTC
+    tcur_sec = dble(tbeg_sec) + time           ! current (old) time since
+                                               ! the beg of year 00:00, UTC (s)
 
     time_UTC = env_state%start_time/3600d0         ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -114,7 +114,8 @@ contains
 
     ! get timestep
     done = .false.
-    call find_condense_timestep_variable(dt, env_state, aero_data, aero_particle)
+    call find_condense_timestep_variable(dt, env_state, aero_data, &
+         aero_particle)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
@@ -150,7 +151,8 @@ contains
 
     ! get timestep
     done = .false.
-    call find_condense_timestep_variable(dt, env_state, aero_data, aero_particle)
+    call find_condense_timestep_variable(dt, env_state, aero_data, &
+         aero_particle)
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
@@ -287,7 +289,7 @@ contains
     ! Scalar Newton's method for solving the implicit condensation
     ! functions.
 
-    real*8, intent(inout) :: x          ! variable (set to inital value on call)
+    real*8, intent(inout) :: x          ! variable (set to init value on call)
     type(env_state_t), intent(in) :: env_state      ! environment state
     type(aero_data_t), intent(in) :: aero_data   ! aerosol data
     real*8, intent(in) :: x_tol         ! x convergence tolerance
@@ -399,7 +401,8 @@ contains
        ! FIXME: check whether we can reinstate the correction
        
        ! thermal conductivity uncorrected
-       k_a = 1d-3 * (4.39d0 + 0.071d0 * env_state%temp) ! (J m^{-1} s^{-1} K^{-1})
+       k_a = 1d-3 * (4.39d0 + 0.071d0 &
+            * env_state%temp) ! (J m^{-1} s^{-1} K^{-1})
        k_ap_div = 1d0 + 2d0 &  ! dimensionless
             * k_a / (const%accom_coeff * d_p * env_state_air_den(env_state) &
             * const%water_spec_heat) &
@@ -408,7 +411,8 @@ contains
        ! thermal conductivity corrected
        k_ap = k_a / k_ap_div     ! (J m^{-1} s^{-1} K^{-1})
 
-       rat = env_state_sat_vapor_pressure(env_state) / (const%univ_gas_const * env_state%temp)
+       rat = env_state_sat_vapor_pressure(env_state) &
+            / (const%univ_gas_const * env_state%temp)
        fact1 = const%water_latent_heat * M_water &
             / (const%univ_gas_const * env_state%temp)
        fact2 = const%water_latent_heat &
@@ -540,7 +544,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine aero_state_equilibriate(bin_grid, env_state, aero_data, aero_state)
+  subroutine aero_state_equilibriate(bin_grid, env_state, aero_data, &
+       aero_state)
     
     ! call equilibriate_particle() on each particle in the aerosol
 

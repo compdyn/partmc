@@ -350,7 +350,8 @@ contains
        call env_data_init_state(env_data, env_state, 0d0)
 
        if (mc_opt%do_condensation) then
-          call aero_state_equilibriate(bin_grid, env_state, aero_data, aero_state)
+          call aero_state_equilibriate(bin_grid, env_state, aero_data, &
+               aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then

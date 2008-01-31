@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -73,7 +73,7 @@ contains
          real*8, intent(in) :: mean_radius       ! mean init radius (m)
          real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
          type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-         type(env_state_t), intent(in) :: env_state          ! environment state
+         type(env_state_t), intent(in) :: env_state ! environment state
          type(aero_binned_t), intent(out) :: aero_binned ! output state
        end subroutine soln
     end interface

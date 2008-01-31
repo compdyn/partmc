@@ -906,7 +906,8 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(850997402, position - prev_position == pmc_mpi_pack_size_aero_state(val))
+    call assert(850997402, &
+         position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_state
@@ -932,7 +933,8 @@ contains
     do i = 1,size(val%bins)
        call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bins(i))
     end do
-    call assert(132104747, position - prev_position == pmc_mpi_pack_size_aero_state(val))
+    call assert(132104747, &
+         position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_state

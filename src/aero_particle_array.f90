@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -352,7 +352,8 @@ contains
     do i = 1,val%n_part
        call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
     end do
-    call assert(803856329, position - prev_position == pmc_mpi_pack_size_apa(val))
+    call assert(803856329, &
+         position - prev_position == pmc_mpi_pack_size_apa(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle_array
@@ -377,7 +378,8 @@ contains
     do i = 1,val%n_part
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
-    call assert(138783294, position - prev_position == pmc_mpi_pack_size_apa(val))
+    call assert(138783294, &
+         position - prev_position == pmc_mpi_pack_size_apa(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle_array

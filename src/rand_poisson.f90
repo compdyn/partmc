@@ -64,8 +64,8 @@ contains
     ! Generates a normally distributed random number with the given
     ! mean and standard deviation.
 
-    real*8, intent(in) :: mean          ! mean of the distribution
-    real*8, intent(in) :: stddev        ! standard deviation of the distribution
+    real*8, intent(in) :: mean          ! mean of distribution
+    real*8, intent(in) :: stddev        ! standard deviation of distribution
 
     real*8 :: u1, u2, r, theta, z0, z1
 

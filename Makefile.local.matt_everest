@@ -1,7 +1,7 @@
 FC = pgf95
 # -Mbounds      array bounds checking
 # -Mdclchk      check for undeclared variables
-FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -DPMC_USE_MOSAIC $(MOSAIC_MODDIR)
+FFLAGS = -O -Mpreprocess -module src -DPMC_USE_MOSAIC $(MOSAIC_MODDIR)
 LDFLAGS = $(MOSAIC_LIBDIR)
 
 MOSAIC_MODDIR = -I$(HOME)/proj/mosaic/trunk/datamodules

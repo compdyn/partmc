@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -341,7 +341,7 @@ contains
     n_bin = size(aero_state%bins)
     disc_pdf = (/(aero_state%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
     i_bin = sample_disc_pdf(n_bin, disc_pdf)
-    i_part = util_rand_int(aero_state%bins(i_bin)%n_part)
+    i_part = pmc_rand_int(aero_state%bins(i_bin)%n_part)
 
   end subroutine aero_state_rand_particle
 
@@ -380,14 +380,14 @@ contains
           ! remove the particle but always add it
           do_add = .true.
           do_remove = .false.
-          if (util_rand() < 1d0 / vol_ratio) then
+          if (pmc_rand() < 1d0 / vol_ratio) then
              do_remove = .true.
           end if
        else ! vol_ratio < 1d0
           ! to_comp_vol is smaller than from_comp_vol, so always
           ! remove the particle but only maybe add it
           do_add = .false.
-          if (util_rand() < vol_ratio) then
+          if (pmc_rand() < vol_ratio) then
              do_add = .true.
           end if
           do_remove = .true.
@@ -429,7 +429,7 @@ contains
        i_transfer = 0
        do while (i_transfer < n_transfer)
           if (aero_state_from%bins(i_bin)%n_part <= 0) exit
-          i_part = util_rand_int(aero_state_from%bins(i_bin)%n_part)
+          i_part = pmc_rand_int(aero_state_from%bins(i_bin)%n_part)
           if (vol_ratio == 1d0) then
              ! to_comp_vol == from_comp_vol so just move the particle
              do_add = .true.
@@ -439,14 +439,14 @@ contains
              ! remove the particle but always add it
              do_add = .true.
              do_remove = .false.
-             if (util_rand() < 1d0 / vol_ratio) then
+             if (pmc_rand() < 1d0 / vol_ratio) then
                 do_remove = .true.
              end if
           else ! vol_ratio < 1d0
              ! to_comp_vol is smaller than from_comp_vol, so always
              ! remove the particle but only maybe add it
              do_add = .false.
-             if (util_rand() < vol_ratio) then
+             if (pmc_rand() < vol_ratio) then
                 do_add = .true.
              end if
              do_remove = .true.
@@ -556,7 +556,7 @@ contains
     do i_bin = 1,bin_grid%n_bin
        n_remove = prob_round(dble(aero_state%bins(i_bin)%n_part) / 2d0)
        do i_remove = 1,n_remove
-          i_part = util_rand_int(aero_state%bins(i_bin)%n_part)
+          i_part = pmc_rand_int(aero_state%bins(i_bin)%n_part)
           call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
                i_bin, aero_state%comp_vol, &
                aero_state%bins(i_bin)%particle(i_part))

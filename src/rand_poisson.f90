@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Matthew West
+! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -45,7 +45,7 @@ contains
        p = 1d0
        do
           k = k + 1
-          p = p * util_rand()
+          p = p * pmc_rand()
           if (p < L) exit
        end do
        rand_poisson = k - 1
@@ -71,8 +71,8 @@ contains
 
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
-    u1 = util_rand()
-    u2 = util_rand()
+    u1 = pmc_rand()
+    u2 = pmc_rand()
     r = sqrt(-2d0 * log(u1))
     theta = 2d0 * const%pi * u2
     z0 = r * cos(theta)

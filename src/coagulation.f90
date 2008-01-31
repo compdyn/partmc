@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -62,7 +62,7 @@ contains
     call kernel(pv1, pv2, env_state, k)
     p = k / k_max
     
-    if (util_rand() .lt. p) then
+    if (pmc_rand() .lt. p) then
        call coagulate(bin_grid, aero_binned, aero_data, aero_state, &
             b1, s1, b2, s2)
        did_coag = .true.
@@ -95,16 +95,16 @@ contains
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
 
-100 s1 = int(util_rand() * dble(aero_state%bins(b1)%n_part)) + 1
+100 s1 = int(pmc_rand() * dble(aero_state%bins(b1)%n_part)) + 1
     if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bins(b1)%n_part)) goto 100
-101 s2 = int(util_rand() * dble(aero_state%bins(b2)%n_part)) + 1
+101 s2 = int(pmc_rand() * dble(aero_state%bins(b2)%n_part)) + 1
     if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bins(b2)%n_part)) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
 ! FIXME: enable this and delete the above junk
 !    do
-!       s1 = util_rand_int(aero_state%bins(b1)%n_part)
-!       s2 = util_rand_int(aero_state%bins(b2)%n_part)
+!       s1 = pmc_rand_int(aero_state%bins(b1)%n_part)
+!       s2 = pmc_rand_int(aero_state%bins(b2)%n_part)
 !       if (.not. ((b1 .eq. b2) .and. (s1 .eq. s2))) then
 !          exit
 !       end if

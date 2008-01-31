@@ -7,27 +7,13 @@ Test partmc -p.
 
 Update comments at top of files.
 
-What's happening with util_rand() and USE_F95_RAND? I think it can be
-removed.
-
-Rename util_rand() to pmc_rand()?
-
 How should we be calling aerosol_optical? Every timestep, or only on
 processing? At least remove DEBUGs from mosaic.f90.
 
 Fix the handling of comp_vol in aero_dist_sample() and
 aero_state_sample().
 
-Change gas conc from ppb to mole proportion.
-
 Fix "make dist".
-
-Change aero_particle_solute_density() etc to have aero_particle as the
-first argument.
-
-Change Makefile to not use FFLAGS as the thing to set, but rather use
-DEF_FFLAGS or something, and include FFLAGS without settting it. Also
-print out all settings before starting compilation.
 
 Golovin testcase (and maybe others) need loops > 1 with averaging.
 
@@ -37,6 +23,12 @@ Write netcdf_average helper.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Change Makefile to not use FFLAGS as the thing to set, but rather use
+DEF_FFLAGS or something, and include FFLAGS without settting it. Also
+print out all settings before starting compilation.
+
+Change gas conc from ppb to mole proportion.
 
 Get a better bessel function so that we can compute the exact golovin
 solution for larger arguments.

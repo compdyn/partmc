@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -141,7 +141,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine util_srand(seed)
+  subroutine pmc_srand(seed)
 
     ! Initializes the random number generator to the state defined by
     ! the given seed. If the seed is 0 then a seed is auto-generated
@@ -149,12 +149,11 @@ contains
 
     integer, intent(in) :: seed         ! random number generator seed
 
-!#ifdef USE_F95_RAND
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
-    ! HACK
+    ! FIXME: HACK
     real*8 :: r
-    ! end HACK
+    ! FIXME: end HACK
 
     call random_seed(size = n)
     allocate(seed_vec(n))
@@ -166,53 +165,42 @@ contains
     seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)
-    ! HACK for bad rng behavior from pgf90
+    ! FIXME: HACK for bad rng behavior from pgf90
     do i = 1,1000
-       r = util_rand()
+       r = pmc_rand()
     end do
-    ! end HACK
-!#else
-!    if (seed == 0) then
-!       call srand(time())
-!    else
-!       call srand(seed)
-!    end if
-!#endif
+    ! FIXME: end HACK
 
-  end subroutine util_srand
+  end subroutine pmc_srand
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function util_rand()
+  real*8 function pmc_rand()
 
     ! Returns a random number between 0 and 1. Call this function
     ! rather than rand() or random_number() directly, as some
     ! compilers have trouble with one or the other.
 
-!#ifdef USE_F95_RAND
     real*8 rnd
 
     call random_number(rnd)
-    util_rand = rnd
-!#else
-!    util_rand = dble(rand())
-!#endif
+    pmc_rand = rnd
 
-  end function util_rand
+  end function pmc_rand
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function util_rand_int(n)
+  integer function pmc_rand_int(n)
 
     ! Returns a random integer between 1 and n.
 
     integer, intent(in) :: n            ! maximum random number to generate
 
-    util_rand_int = mod(int(util_rand() * dble(n)), n) + 1
-    call assert(515838689, util_rand_int >= 1)
-    call assert(802560153, util_rand_int <= n)
+    pmc_rand_int = mod(int(pmc_rand() * dble(n)), n) + 1
+    call assert(515838689, pmc_rand_int >= 1)
+    call assert(802560153, pmc_rand_int <= n)
 
-  end function util_rand_int
+  end function pmc_rand_int
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -225,7 +213,7 @@ contains
     real*8, intent(in) :: val           ! value to round
     
     prob_round = int(val)
-    if (util_rand() .lt. mod(val, 1d0)) then
+    if (pmc_rand() .lt. mod(val, 1d0)) then
        prob_round = prob_round + 1
     endif
 
@@ -657,8 +645,8 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_int(n)
-       if (util_rand() < pdf(k) / pdf_max) then
+       k = pmc_rand_int(n)
+       if (pmc_rand() < pdf(k) / pdf_max) then
           found = .true.
        end if
     end do
@@ -691,8 +679,8 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = util_rand_int(n)
-       if (util_rand() < dble(pdf(k)) / dble(pdf_max)) then
+       k = pmc_rand_int(n)
+       if (pmc_rand() < dble(pdf(k)) / dble(pdf_max)) then
           found = .true.
        end if
     end do

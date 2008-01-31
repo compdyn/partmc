@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Nicole Riemer and Matthew West
+! Copyright (C) 2007, 2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -333,7 +333,7 @@ contains
     deallocate(buffer)
 #endif
 
-    call util_srand(rand_init + pmc_mpi_rank())
+    call pmc_srand(rand_init + pmc_mpi_rank())
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_alloc(gas_state, gas_data%n_spec)

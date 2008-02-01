@@ -16,15 +16,16 @@ repeated loops of the Monte Carlo code to reduce the error, and serves
 as model verification against an analytical solution.
 
 ENDINFO
-sleep 1
+#sleep 1
 
 echo ../../src/partmc run_mc.spec
-../../src/partmc run_mc.spec
+#../../src/partmc run_mc.spec
 echo ../../src/partmc run_exact.spec
-../../src/partmc run_exact.spec
+#../../src/partmc run_exact.spec
 
 echo "../../tool/average_netcdf.py -o out/golovin_mc_state_avg.nc out/golovin_mc_state_*.py"
 ../../tool/average_netcdf.py -o out/golovin_mc_state_avg.nc out/golovin_mc_state_*.py
 echo ./plot.py
-./plot.py
+#./plot.py
 echo Now view out/golovin_num.pdf and out/golovin_vol.pdf
+echo *.dat

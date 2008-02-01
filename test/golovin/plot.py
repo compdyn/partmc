@@ -17,7 +17,7 @@ times_sec = [t * 60 for t in times_min]
 mc_data = pmc_var(NetCDFFile("out/golovin_mc_state_avg.nc"),
 		  "aero",
 		  [sum("aero_species")])
-exact_data = pmc_var(NetCDFFile("out/golovin_exact_avg.nc"),
+exact_data = pmc_var(NetCDFFile("out/golovin_exact_0001.nc"),
 		     "aero",
 		     [sum("aero_species")])
 

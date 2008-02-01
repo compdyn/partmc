@@ -1,0 +1,418 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.75 [en] (X11; U; Linux 2.2.16-3smp i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+<b><font color="#3333FF"><font size=+4>NetCDF Interface to Python</font></font></b>
+<p><font color="#3333FF">This page attempts to document the netCDF interface
+to Python.&nbsp; It is assumed that the reader knows something</font>
+<br><font color="#3333FF">about the Python language, or at least the Python
+definitions of the terms: list, tuple, and attribute.&nbsp; If not, you
+are</font>
+<br><font color="#3333FF">encouraged to take the <a href="http://www.python.org/doc/current/tut/tut.html">Python
+tutorial</a> which may be found at <a href="http://www.python.org">www.python.org.</a></font>
+<p><font color="#3333FF">The following documentation presents examples
+in the form of code snippets for each of the known interface</font>
+<br><font color="#3333FF">functions to netCDF.&nbsp; They have been tested
+in my environment, but be warned.&nbsp; The Numeric Python</font>
+<br><font color="#3333FF">(NumPy) package which includes the netCDF interface
+is not included in the standard python package.&nbsp; NumPy</font>
+<br><font color="#3333FF">must be downloaded and installed as a separate
+package before these examples will work.&nbsp;&nbsp; <a href="http://numpy.sourceforge.net/">Click
+here to get more</a></font>
+<br><font color="#3333FF"><a href="http://numpy.sourceforge.net/">information
+about Numeric Python.</a></font>
+<p><font color="#3333FF">This document is written from a netCDF perspective
+and so is intended for those who have experience in netCDF. It is organized
+similarly to the netCDF User's Guide, so that most experienced netCDF users
+will be able to better comprehend it.&nbsp; Since some of the functions
+are from the netCDF interface classes, others are from vanilla Numeric
+Python, and the rest are generic Python it will you to understand the basics
+of Python and Numeric Python before you use the Python netCDF interface.
+The collection comprises a nearly complete set of functions that nearly
+emulates the standard netCDF interface.&nbsp; Again if you are not familiar
+with Python, you are encourage to take the
+<a href="http://www.python.org/doc/current/tut/tut.html">Python
+tutorial</a>&nbsp; and/or the <a href="http://numpy.sourceforge.net/numdoc/HTML/numdoc.htm">Numeric
+Python Tutorial.</a>&nbsp; You'll be glad you did!</font>
+<p><b><u><font color="#3333FF"><font size=+2>First Things First</font></font></u></b>
+<p><font color="#3333FF">Before you begin, you must have Python and Numeric
+Python installed on your system.&nbsp; The links above will</font>
+<br><font color="#3333FF">help you find information on how to download
+these packages.&nbsp; Once you have installed these packages, you</font>
+<br><font color="#3333FF">will need to import the Python netCDF interface
+in your source with the line:</font>
+<p><font color="#330000">import Scientific.IO.NetCDF</font>
+<p><font color="#330000">from Numeric import *</font>
+<br><font color="#330000">from NetCDF import *</font>
+<p><font color="#3333FF">If you have any problems getting Python to recognize
+the NetCDF module such as:</font>
+<p><font color="#000000">Traceback (most recent call last):</font>
+<br><font color="#000000">&nbsp; File "&lt;stdin>", line 1, in ?</font>
+<br><font color="#000000">ImportError: No module named NetCDF</font>
+<p><font color="#3333FF">try this line instead...</font>
+<p><font color="#000000">from Scientific.IO import NetCDF</font>
+<p><font color="#3333FF">This should give you access to all of the netCDF
+interface functions.</font>
+<p><b><font color="#3333FF"><font size=+2>Sample Program</font></font></b><b><font color="#3333FF"><font size=+2></font></font></b>
+<p><font color="#3333FF">So that you can see how to perform the various
+netCDF operations in a Python program, here is a <a href="netCDFSample.py">sample
+program</a> that contains examples of nearly all of the function documented
+here.&nbsp; After you configure your environment for Python, you should
+get this program to run correctly first, before trying something on your
+own.</font>
+<br>&nbsp;
+<p><b><u><font color="#3333FF"><font size=+2>The netCDF Interface&nbsp;
+-&nbsp; NetCDFFile Operations</font></font></u></b>
+<p><font color="#3333FF">The following sections document how to accomplish
+the basic netCDF operations in Python.&nbsp; Each section is color coded
+as follows:</font>
+<blockquote>
+<li>
+<font color="#3333FF">Blue text describes the function.</font></li>
+
+<li>
+<font color="#CC0000">Red text defines the function and its parameters.</font></li>
+
+<li>
+Black text is a small snippet of code that shows you how the call looks
+in a Python program.</li>
+</blockquote>
+
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Create / Open a netCDF file</font></font></b>
+<p><font color="#3333FF">To create a netCDF file from python, you simply
+call the NetCDFFile constructor.&nbsp; This is also the method used to
+open an existing netCDF file.&nbsp; The object returned is of type NetCDFFile
+and all future access must be done through this object.&nbsp; There is
+no explicit need to put the file in "define mode".&nbsp; If the file is
+open for write access ('w' or 'a'), you may write any type of new data
+including new dimensions, variables and attributes.</font>
+<p><font color="#CC0000">NetCDFFile(filename, mode)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp; filename - name of the
+netCDF file as a string</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp; mode - "r" - (read_only)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"w" - (read_write)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"a" - open existing file or create new one if it does not yet exist for
+write</font>
+<p>file = NetCDFFile(filename, 'w')
+<p>
+<hr WIDTH="100%"><b><font color="#3333FF"><font size=+1>Close a netCDF
+file</font></font></b>
+<p><font color="#3333FF">Closing the netCDF file is accomplished via the
+close function defined for the NetCDFFile object.&nbsp; When close() is
+called, all modified data is written out to the disk file.</font>
+<p><font color="#330000">file.close()</font>
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Create a netCDF dimension</font></font></b>
+<p><font color="#3333FF">NetCDF defines the sizes of all variables in terms
+of dimensions, so before any variables can be created the dimensions they
+use must be created first.</font>
+<p><font color="#CC0000">NetCDFFile.createDimension(dimName, size)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; dimName&nbsp; -&nbsp; Python
+string - e.g. 'nLevels'</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; size -&nbsp; integer value</font>
+<p><font color="#330000">dimName = 'numLevels'</font>
+<br><font color="#330000">size = 12</font>
+<br><font color="#330000">file.createDimension(dimName, size)</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get all of the dimension names
+for a netCDF file</font></font></b>
+<p><font color="#3333FF">Getting all of the dimension names is accomplished
+by getting all of the entries in the dimensions Python dictionary. Note
+that this returns the names of all of the dimensions of the netCDF file
+in a Python list.&nbsp; These names are the elements of the Python dimensions
+tuple used when <a href="#CreateNetCDFVariable">creating a variable</a>.</font>
+<p><font color="#CC0000">NetCDFFile.dimensions.keys()</font>
+<p><font color="#330000">allDimNames = file.dimensions.keys()</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get the value of a netCDF dimension</font></font></b>
+<p><font color="#3333FF">Getting the value of a netCDF dimension is done
+via the dimensions dictionary.&nbsp; Note that for some reason getting
+the current value of the UNLIMITED dimension does not work with this method.&nbsp;
+The value returned in this case is "None".&nbsp; However, you can always
+get the current value of any variable dimension via the <i><a href="#GetAVariablesShape">shape</a></i>
+attribute.</font>
+<p><font color="#CC0000">dimValue = NetCDFFile.dimensions['dimName']</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; dimName - name of a netCDF
+dimension as a Python string</font>
+<p>dimValue = file.dimensions['myDim']
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><a NAME="CreateNetCDFVariable"></a><b><font color="#3333FF"><font size=+1>Create
+a netCDF variable</font></font></b>
+<p><font color="#3333FF">Virtually all data in a netCDF file is stored
+in a netCDF variable (except for global attributes).&nbsp; Here's how a
+netCDF variable is created in Python.&nbsp; Note that the NetCDFFile object
+must have been created with the 'w' or 'a' mode.&nbsp; Also note that calling
+this function returns a netCDF variable object which can be used later
+to access variable data and attributes.</font>
+<p><font color="#CC0000">NetCDFFile.createVariable(varName, datatype, dimensions)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; varName&nbsp; - name of the
+variable</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; datatype&nbsp; -&nbsp; type
+of the variable.&nbsp; Most common types are:</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'f'&nbsp; - float</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'d'&nbsp; - double precision float</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'i' or 'l' - int or long</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'c' - character</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'b' - byte</font>
+<p><font color="#330000">tempDims = ('dim1', 'dim2', )&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+# Note that this is a Python tuple</font>
+<br><font color="#330000">netCDFVar = file.createVariable('temp', 'f',
+tempDims)</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get all variable names for a
+netCDF file</font></font></b>
+<p><font color="#3333FF">Getting all of the variable names is done much
+the same way as getting all of the dimension names.&nbsp; Note that this
+function returns the names of all of the netCDF variables of the NetCDFFile
+in a Python list.</font>
+<p><font color="#3333FF">NetCDFFile.variables.keys()</font>
+<p><font color="#330000">variableNames = file.variables.keys()</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Create a netCDF global attribute</font></font></b>
+<p><font color="#3333FF">Creating a netCDF global attribute is a little
+different than creating dimensions or attributes.&nbsp; A generic python
+function is called instead of a function specific to the netCDF interface.</font>
+<p><font color="#CC0000">setattr(NetCDFFile, attributeName, attributeValue)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; NetCDFFile - NetCDFFile object
+returned from the function NetCDFFile()</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attribute name - a Python
+string&nbsp; e.g., 'myGlobalAtt'</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attributeValue - the value
+of the attribute</font>
+<p><font color="#330000">setattr(file, 'globalAtt', 'attValue')</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get all global attributes for
+a netCDF file</font></font></b>
+<p><font color="#3333FF">Retrieving the names of the every global attribute
+defined in a NetCDFFile is done with the "dir()" Python function. Note
+that this call returns a Python list containing all of the currently defined
+global attributes.&nbsp; Also be aware that because of the way Python works,
+this list will also contain the function names available for the NetCDFFile
+object which includes following entries: 'close', 'createDimension', 'createVariable',
+'flush', 'sync'.&nbsp; <b><u>WARNING:&nbsp; If you define a global attribute
+whose name matches one of the aforementioned entries, an error will occur
+when trying to call the function of the same name.&nbsp; So, never name
+your global attributes one of these entries.</u></b></font>
+<p><font color="#CC0000">dir(NetCDFFile)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; NetCDFFile is the NetCDFFile
+object created with the NetCDFFile constructor.</font>
+<p><font color="#330000">globalAttList = dir(file)</font>
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get the value of a global attribute</font></font></b><b><font color="#3333FF"><font size=+1></font></font></b>
+<p>To get the value of a global attribute, use the getattt() function.&nbsp;
+This same function works for variable attributes too.
+<p><font color="#CC0000">globalAttValue = getattr(file, globalAttName)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; file - NetCDFFile object returned
+from the function NetCDFFile()</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; globalAttName&nbsp; - name
+of the global attribute</font>
+<p>globalAttValue = getattr(file, 'globalAttName')
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Inquire whether a global attribute
+exists</font></font></b>
+<p><font color="#3333FF">To check to see whether a particular global attribute
+exists, use the Python hasattr() function. Note that this function returns
+a boolean and is generally used in an "if" statement.</font>
+<p><font color="#CC0000">NetCDFFile.hasattr(globalAttName)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; globalAttName&nbsp; - name
+of the global attribute</font>
+<p><font color="#330000">attName = 'myGlobalAttName'</font>
+<br><font color="#330000">if hasattr(file, attName):</font>
+<br><font color="#330000">&nbsp;&nbsp;&nbsp; print attName, "exists in
+this netCDF file."</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Flush all data to disk</font></font></b>
+<p><font color="#3333FF">Sometimes you will want to explicitly flush all
+netCDF file modifications to disk.&nbsp; This is done with the sync() function.</font>
+<p><font color="#CC0000">NetCDFFile.sync()</font>
+<p>file.sync()
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<hr WIDTH="100%"><b><u><font color="#3333FF"><font size=+2>NetCDF Variable
+Operations</font></font></u></b>
+<p><font color="#3333FF">This sections describes the operations that you
+can perform on NetCDFile variables including: writing data, reading data,
+getting the dimensions of a variable, as well as creating , defining and
+reading variable attributes.</font>
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get a netCDF variable object</font></font></b>
+<p><font color="#3333FF">In order to access netCDF variable data and attributes,
+you must first get the Python netCDF variable object. This is accomplished
+by accessing the NetCDFFile variable dictionary.</font>
+<p><font color="#CC0000">NetCDFFile.variables[varName']</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; varName - name of the netCDF
+variable as a Python string</font>
+<p><font color="#330000">var = file.variables['temp']&nbsp;&nbsp; # Returns
+the variable named 'temp'</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get the data type of a netCDF
+variable</font></font></b>
+<p><font color="#3333FF">Sometimes the type of a netCDF variable is needed.&nbsp;
+The typecode() function was made for this purpose. See the section on creating
+netCDF varaibles for the <a href="#CreateNetCDFVariable">translation between
+typecodes and datatypes</a>.</font>
+<p><font color="#CC0000">typecode = NetCDFVariable.typecode()</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; typecode = a character value
+that represents the type of the netCDF variable.</font>
+<p><font color="#330000">typechar = var.typecode()</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><a NAME="GetAVariablesShape"></a><b><font color="#3333FF"><font size=+1>Get
+the "shape" of a netCDF variable</font></font></b>
+<p><font color="#3333FF">Numeric Python has a concept of a "shape" of a
+Numeric array.&nbsp; This is a tuple of dimension values that define the
+size of the netCDF variable.&nbsp; Probably the easiest way to get the
+size of a netCDF variable is to get its shape, which is returned as a Python
+tuple.&nbsp; Note that "shape" is an attribute of the variable object and
+not a function call, so no parentheses are required.</font>
+<p><font color="#CC0000">varShape = NetCDFVariable.shape</font>
+<p><font color="#330000">varShape = var.shape</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Assigning values to a netCDF
+variable</font></font></b>
+<p><font color="#3333FF">Assigning the value to a netCDF variable uses
+the Numeric Python interface, which is simple, but not always intuitive.&nbsp;
+The assignment is generally done by setting the netCDFVariable object to
+another Numeric Python array of the same shape.&nbsp; <b>Note that if the
+array on the right side of the assignment does not have the same shape
+as the netCDF variable, no values will be assigned at all.&nbsp; </b>As
+it turns out there are at least two ways to assign values to netCDF variables.</font>
+<p><font color="#CC0000">NetCDFVariable[:] = data</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; data - a Numeric Python array
+of the same shape as the variable</font>
+<p><font color="#330000">data = zeros(var.shape)&nbsp;&nbsp; #&nbsp; Make
+a Numeric array of zeros with the same shape as var</font>
+<br><font color="#330000">var[:] = data&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#&nbsp; Store the array of zeros in the netCDF variable</font>
+<p><font color="#3333FF">There's another method to store values in a netCDF
+variable that uses the assignValue function. Again the value in the assignValue
+call must have the same shape as the netCDF variable.</font>
+<p><font color="#330000">data = zeros(var.shape)&nbsp;&nbsp; #&nbsp; Make
+a Numeric array of zeros with the same shape as var</font>
+<br><font color="#330000">var.assignValue(data)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#&nbsp; Store the array of zeros in the netCDF variable</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get values of a netCDF variable</font></font></b>
+<p><font color="#3333FF">Getting the values of a netCDF variable is done
+with the getValue() function.&nbsp; Note that the values are deposited
+in a Numeric Python array.&nbsp; Just like assigning values, there are
+two ways to get the values of a netCDF variable.</font>
+<p><font color="#CC0000">NumericArray = var.getValue()</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; NumericArray - a Numeric Python
+array object</font>
+<p><font color="#330000">data = var.getValue()&nbsp;&nbsp; # the entire
+contents of var is now stored and accessible in the Numeric Python array
+object: <i>data</i></font>
+<p><font color="#3333FF">The other way to get values for a netCDF variable
+is to use Numeric Python syntax.&nbsp; See the <a href="http://numpy.sourceforge.net/numdoc/HTML/numdoc.htm">Numeric
+Python documentation</a> for lots of information on Numeric Python array
+objects.</font>
+<p><font color="#CC0000">data = NetCDFVariable[:]</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; data - a Numeric Python array
+object just like the one above</font>
+<p><font color="#330000">data = var[:]</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get the dimension names of a
+netCDF variable</font></font></b>
+<p><font color="#3333FF">Getting the dimension names for a netCDF variable
+works just like getting dimension name for a NetCDF file.&nbsp; Since "dimensions"
+is an attribute, no parentheses are needed.</font>
+<p><font color="#CC0000">dimNames = NetCDFVariable.dimensions</font>
+<p><font color="#330000">dimNames = var.dimensions&nbsp;&nbsp; #&nbsp;
+Returns a Python typle of dimension names for this variable</font>
+<br>&nbsp;
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Create a netCDF variable attribute</font></font></b>
+<p><font color="#3333FF">You can create netCDF variable attributes via
+the Python setattr() function. Note that the functions "getValue", "assignValue",
+and "typecode" are treated as attributes in Python, so <b><u>NEVER make
+variable attribute names that conflict with any of these function names.</u></b></font>
+<p><font color="#CC0000">setattr(NetCDFVariable, attName, attValue)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; NetCDFVariable = a netCDFVariable
+object</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attName - the name of the
+attribute</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attValue - the value of the
+attribute</font>
+<p><font color="#330000">attName = "newAtt"</font>
+<br><font color="#330000">attValue = "newAttValue"</font>
+<br><font color="#330000">setattr(var, attName, attValue)&nbsp;&nbsp;&nbsp;
+#&nbsp; creates a new variable attribute with name = "newAtt" and value
+= "newAttValue"</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get the value of a netCDF variable
+attribute</font></font></b>
+<p><font color="#3333FF">To get the value of a netCDFVariable attribute
+use the getattr() function.</font>
+<p><font color="#CC0000">attData = getattr(NetCDFVariable, attName)</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attData - value of the attribute</font>
+<br><font color="#3333FF">&nbsp;&nbsp;&nbsp; </font><font color="#CC0000">NetCDFVariable
+= a netCDFVariable object</font>
+<br><font color="#CC0000">&nbsp;&nbsp;&nbsp; attName - the name of the
+attribute</font>
+<p><font color="#330000">attName = "newAtt"</font>
+<br><font color="#330000">attData = getattr(var,&nbsp; attName)</font>
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><b><font color="#3333FF"><font size=+1>Get a list of all netCDF variable
+attributes</font></font></b><b><font color="#3333FF"><font size=+1></font></font></b>
+<p><font color="#3333FF">Getting the entire list of attributes for a netCDF
+variable is just like getting all of the global attributes for a NetCDFFile.
+The dir function returns a list of attribute names. <b><u>WARNING:&nbsp;
+This list will always include the entries: "assignValue", "getValue", "typecode".</u></b></font>
+<p><font color="#CC0000">attList = dir(NetCDFVariable)</font>
+<p><font color="#330000">attList = dir(var)&nbsp; #&nbsp; attList contains
+all of the attributes for "var" and the entries: "assignValue", "getValue",
+"typecode".</font>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+</body>
+</html>

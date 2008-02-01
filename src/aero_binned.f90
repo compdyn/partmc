@@ -46,9 +46,9 @@ contains
 
     !> Structure to be allocated.
     type(aero_binned_t), intent(out) :: aero_binned
-    !< Number of aerosol bins to allocate (typically bin_grid%n_bin).
+    !> Number of aerosol bins to allocate (typically \c bin_grid%%n_bin).
     integer, intent(in) :: n_bin
-    !< Number of aerosol species to allocate (typically aero_data%n_spec).
+    !> Number of aerosol species to allocate (typically \c aero_data%%n_spec).
     integer, intent(in) :: n_spec
 
     allocate(aero_binned%num_den(n_bin))

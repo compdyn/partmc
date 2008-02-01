@@ -23,6 +23,8 @@ echo ../../src/partmc run_mc.spec
 echo ../../src/partmc run_exact.spec
 ../../src/partmc run_exact.spec
 
+echo "../../tool/average_netcdf.py -o out/golovin_mc_state_avg.nc out/golovin_mc_state_*.py"
+../../tool/average_netcdf.py -o out/golovin_mc_state_avg.nc out/golovin_mc_state_*.py
 echo ./plot.py
 ./plot.py
 echo Now view out/golovin_num.pdf and out/golovin_vol.pdf

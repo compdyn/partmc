@@ -1,9 +1,9 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Aerosol data 
 
+!> Contains the aero_data_t structure for constant aerosol data and
+!> helper functions.
 module pmc_aero_data
 
   use pmc_inout
@@ -15,6 +15,24 @@ module pmc_aero_data
 
   integer, parameter :: AERO_NAME_LEN = 15
 
+  !> Aerosol material properties and associated data.
+  !!
+  !! The data in this structure is constant, as it represents physical
+  !! quantities that cannot change over time.
+  !!
+  !! Each aerosol species is identified by an index <tt>i =
+  !! 1,...,n_spec</tt>. Then \c name(i) is the name of that species,
+  !! \c density(i) is its density, etc. The ordering of the species is
+  !! arbitrary and should not be relied upon (currently it is the
+  !! order in the species data file). The only exception is that it is
+  !! possible to find out which species is water from the \c i_water
+  !! variable.
+  !!
+  !! The names of the aerosol species are not important to PartMC, as
+  !! only the material properties are used. The names are used for
+  !! input and output, and also for communication with MOSAIC. For the
+  !! MOSAIC interface to work correctly the species must be named the
+  !! same, but without the \c _a suffix.
   type aero_data_t
      integer :: n_spec                  ! number of species
      integer :: i_water                 ! water species number

@@ -22,6 +22,10 @@ Write netcdf_average helper.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+We shouldn't really need both aero_binned_t and aero_dist_t. Actually
+aero_dist_t should go away, so that we can generate exact samplings
+for particle-based methods.
+
 Change Makefile to not use FFLAGS as the thing to set, but rather use
 DEF_FFLAGS or something, and include FFLAGS without settting it. Also
 print out all settings before starting compilation.

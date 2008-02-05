@@ -296,23 +296,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine aero_dist_sample(bin_grid, aero_data, aero_dist, &
-       sample_vol, aero_state)
+       sample_prop, aero_state)
 
-    ! Generates a Poisson sample of an aero_dist, adding to aero_state.
-
-    ! FIXME: we should not take sample_vol, but rather sample_amount
-    ! that we then multiply by aero_state%comp_vol
+    ! Generates a Poisson sample of an aero_dist, adding to
+    ! aero_state. The sampled amount is sample_prop *
+    ! aero_state%comp_vol.
 
     type(bin_grid_t), intent(in) :: bin_grid ! bin grid
     type(aero_data_t), intent(in) :: aero_data ! aero data values
     type(aero_dist_t), intent(in) :: aero_dist ! distribution to sample
-    real*8, intent(in) :: sample_vol    ! volume to sample
+    real*8, intent(in) :: sample_prop   ! volume fraction to sample
     type(aero_state_t), intent(inout) :: aero_state ! aero state to add to
 
-    real*8 :: n_samp_avg
+    real*8 :: n_samp_avg, sample_vol
     integer :: n_samp, i_mode
     integer :: num_per_bin(bin_grid%n_bin)
 
+    sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        n_samp_avg = sample_vol * sum(aero_dist%mode(i_mode)%num_den) &
             * bin_grid%dlnr

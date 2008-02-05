@@ -8,8 +8,7 @@ Update comments at top of files.
 How should we be calling aerosol_optical? Every timestep, or only on
 processing? At least remove DEBUGs from mosaic.f90.
 
-Fix the handling of comp_vol in aero_dist_sample() and
-aero_state_sample().
+Fix the handling of comp_vol in aero_state_sample().
 
 Fix "make dist".
 

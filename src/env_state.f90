@@ -348,7 +348,7 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
 
     integer :: i
-    real*8 :: sample_vol, sample_prop, effective_dilution_rate
+    real*8 :: sample_prop, effective_dilution_rate
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
@@ -376,23 +376,22 @@ contains
     call aero_binned_sub(aero_binned, aero_binned_delta)
 
     ! addition from background
-    sample_vol = delta_t * effective_dilution_rate * aero_state%comp_vol
+    sample_prop = delta_t * effective_dilution_rate
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env_state%aero_background, &
-         sample_vol, aero_state_delta)
+         sample_prop, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
     
     ! emissions
-    sample_vol = delta_t * env_state%aero_emission_rate &
-         * aero_state%comp_vol / env_state%height
+    sample_prop = delta_t * env_state%aero_emission_rate / env_state%height
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env_state%aero_emissions, &
-         sample_vol, aero_state_delta)
+         sample_prop, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)

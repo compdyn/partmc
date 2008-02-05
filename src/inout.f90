@@ -1,4 +1,4 @@
-! Copyright (C) 2007 Nicole Riemer and Matthew West
+! Copyright (C) 2007, 2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -9,8 +9,9 @@
 module pmc_inout
 
   use pmc_util
-    
-  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of line or variable
+  
+  integer, parameter :: MAX_LINE_LEN = 10000 ! max size of a single line
+  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of a variable
   integer, parameter :: MAX_LIST_LINES = 500 ! max lines in an array
 
   type inout_file_t
@@ -135,23 +136,31 @@ contains
     ! Read a single line from a inout file, signaling if we have hit EOF.
 
     type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(out) :: line ! complete line read
+    character(len=MAX_LINE_LEN), intent(out) :: line ! complete line read
     logical, intent(out) :: eof           ! true if at EOF
 
-    integer ios
+    integer :: ios, n_read
 
-    read(unit=file%unit, fmt='(a)', end=100, iostat=ios) line
     file%line_num = file%line_num + 1
+    eof = .false.
+    read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
+         iostat=ios) line
     if (ios /= 0) then
        write(0,*) 'ERROR: reading from ', trim(file%name), &
             ' at line ', file%line_num, ': IOSTAT = ', ios
        call exit(1)
     end if
-    eof = .false.
-    return
+    ! only reach here if we didn't hit end-of-record (end-of-line) in
+    ! the above read, meaning the line was too long
+    write(0,*) 'ERROR: reading from ', trim(file%name), &
+         ' at line ', file%line_num, ': line exceeds ', MAX_LINE_LEN, &
+         ' characters'
+    call exit(1)
 
-100 line = ""
+100 line = "" ! will only happen if the end-of-file was encountered immediately
     eof = .true.
+
+110 return ! successfully read some data
     
   end subroutine inout_read_line_raw
 
@@ -249,7 +258,7 @@ contains
     type(inout_line_t), intent(out) :: line  ! inout line
     logical, intent(out) :: eof           ! true if EOF encountered
 
-    character(len=MAX_CHAR_LEN) :: line_string, rest
+    character(len=MAX_LINE_LEN) :: line_string, rest
     integer i, n_data
     logical done
 
@@ -261,8 +270,19 @@ contains
     if (i == 0) then
        write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
             ' of input file ', trim(file%name), &
-            ' is malformed'
+            ' contains no whitespace'
        call exit(1)
+    end if
+    if (i == 1) then
+       write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
+            ' of input file ', trim(file%name), &
+            ' starts with whitespace'
+       call exit(1)
+    end if
+    if (i >= MAX_CHAR_LEN) then
+       write(0,'(a,i3,a,a,a,i6,a)') 'ERROR: line ', file%line_num, &
+            ' of input file ', trim(file%name), &
+            ' has a name longer than ', MAX_CHAR_LEN, ' characters'
     end if
     line%name = line_string(1:(i-1))
     line_string = line_string(i:)
@@ -296,6 +316,18 @@ contains
           ! strip the data element
           n_data = n_data + 1
           i = index(rest, ' ') ! first space
+          if (i <= 1) then
+             write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
+                  ' of input file ', trim(file%name), &
+                  ' internal processing error'
+             call exit(1)
+          end if
+          if (i >= MAX_CHAR_LEN) then
+             write(0,'(a,i3,a,a,a,i6,a,i6,a)') 'ERROR: line ', file%line_num, &
+                  ' of input file ', trim(file%name), &
+                  ' has data element ', n_data, &
+                  ' longer than ', MAX_CHAR_LEN, ' characters'
+          end if
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
           call inout_strip_leading_spaces(rest)
@@ -385,17 +417,18 @@ contains
     type(inout_line_t), pointer :: line_array(:) ! array of inout_lines,
                                                  ! will be allocated
 
-    integer i, line_length
+    integer :: i, line_length
 
     call inout_read_line_list(file, max_lines, line_array)
     if (size(line_array) > 0) then
        line_length = size(line_array(1)%data)
        do i = 2,size(line_array)
           if (size(line_array(i)%data) /= line_length) then
-             write(0,'(a,a,i3,a,a,a)') 'ERROR: tried to read ', &
+             write(0,'(a,a,i3,a,a,a,i3,a,a)') 'ERROR: tried to read ', &
                   'array before line ', file%line_num, &
                   ' of input file ', trim(file%name), &
-                  ' but lines contain varying numbers of elements'
+                  ' but line ', i,' contains a different number of', &
+                  ' elements to line 1'
              call exit(1)
           end if
        end do

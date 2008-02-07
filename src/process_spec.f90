@@ -1,9 +1,11 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Datatype for process_state.
 
+!> \file
+!> The pmc_process_spec module.
+
+!> The process_spec_t structure and associated subroutines.
 module pmc_process_spec
 
   use pmc_inout
@@ -15,32 +17,58 @@ module pmc_process_spec
   use pmc_env_state
   use pmc_util
 
+  !> Maximum length of process_spec%%type.
   integer, parameter :: PROCESS_SPEC_TYPE_LEN = 40
-  integer, parameter :: PROCESS_SPEC_FILE_LEN = 200
+  !> Maximum length of process_spec%%name.
+  integer, parameter :: PROCESS_SPEC_NAME_LEN = 200
 
+  !> Specification of the processing required to turn internal
+  !> particle data into output data.
+  !!
+  !! Internal per-particle data in an aero_state_t is binned into
+  !! arrays before being output. The output routines in
+  !! output_processed.f90 use the process_spec_t structure to define
+  !! how an aero_state_t is transformed into one output data array.
+  !!
+  !! There are different types of processing that can be done, as
+  !! stored in process_spec%%type. We could have had different types
+  !! of process_spec_t for each different \c type, storing only the
+  !! data appropriate to that type of processing. Instead we have only
+  !! a single process_spec_t that is the union of all the possible
+  !! necessary data fields. This means that for some types of
+  !! processing some of the entries of the process_spec_t structure
+  !! will be ignored.
   type process_spec_t
-     character(len=PROCESS_SPEC_TYPE_LEN) :: type ! processing type
-     character(len=PROCESS_SPEC_FILE_LEN) :: suffix ! output file suffix
-     integer :: n_step                  ! number of steps for histogram
-     real*8 :: min_val                  ! minimum histogram value
-     real*8 :: max_val                  ! maximum histogram value
-     logical :: log_scale               ! use a log-scale for histogram?
-     character(len=AERO_NAME_LEN), pointer :: a_species(:) ! comp A species
-     character(len=AERO_NAME_LEN), pointer :: b_species(:) ! comp B species
+     !> Processing type.
+     character(len=PROCESS_SPEC_TYPE_LEN) :: type
+     !> Output variable name.
+     character(len=PROCESS_SPEC_NAME_LEN) :: name
+     !> Number of steps for histogram.
+     integer :: n_step
+     !> Minimum histogram value.
+     real*8 :: min_val
+     !> Maximum histogram value.
+     real*8 :: max_val
+     !> Use a log-scale for histogram?.
+     logical :: log_scale
+     !> Composition A species.
+     character(len=AERO_NAME_LEN), pointer :: a_species(:)
+     !> Composition B species.
+     character(len=AERO_NAME_LEN), pointer :: b_species(:)
   end type process_spec_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate and initialize storage.
   subroutine process_spec_alloc(process_spec)
 
-    ! Allocate and initialize storage.
-
-    type(process_spec_t), intent(out) :: process_spec ! structure to alloc
+    !> Structure to alloc.
+    type(process_spec_t), intent(out) :: process_spec
 
     process_spec%type = "none"
-    process_spec%suffix = "none"
+    process_spec%name = "none"
     process_spec%n_step = 0
     process_spec%min_val = 0d0
     process_spec%max_val = 0d0
@@ -52,11 +80,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free storage.
   subroutine process_spec_free(process_spec)
 
-    ! Free storage.
-
-    type(process_spec_t), intent(inout) :: process_spec ! structure to free
+    !> Structure to free.
+    type(process_spec_t), intent(inout) :: process_spec
 
     deallocate(process_spec%a_species)
     deallocate(process_spec%b_species)
@@ -65,11 +93,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free storage.
   subroutine process_spec_list_free(process_spec_list)
 
-    ! Free storage.
-
-    type(process_spec_t), pointer :: process_spec_list(:) ! structure to free
+    !> Structure to free.
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     integer :: i
 
@@ -82,15 +110,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy all data.
   subroutine process_spec_copy(process_spec_from, process_spec_to)
 
-    ! Copy all data.
-
-    type(process_spec_t), intent(in) :: process_spec_from ! source of data
-    type(process_spec_t), intent(inout) :: process_spec_to ! dest of data
+    !> Source of data.
+    type(process_spec_t), intent(in) :: process_spec_from
+    !> Dest of data.
+    type(process_spec_t), intent(inout) :: process_spec_to
 
     process_spec_to%type = process_spec_from%type
-    process_spec_to%suffix = process_spec_from%suffix
+    process_spec_to%name = process_spec_from%name
     process_spec_to%n_step = process_spec_from%n_step
     process_spec_to%min_val = process_spec_from%min_val
     process_spec_to%max_val = process_spec_from%max_val
@@ -104,14 +133,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read process_spec_list from filename on line in file.
   subroutine spec_read_process_spec_list_filename(file, name, &
        process_spec_list)
 
-    ! Read process_spec_list from filename on line in file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name of data line for filename
-    type(process_spec_t), pointer :: process_spec_list(:) ! data to read
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name of data line for filename.
+    character(len=*), intent(in) :: name
+    !> Data to read.
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -125,12 +156,13 @@ contains
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a list of process_specs from the given file.
   subroutine inout_read_process_spec_list(file, process_spec_list)
 
-    ! Read a list of process_specs from the given file.
-
-    type(inout_file_t), intent(inout) :: file ! file to read
-    type(process_spec_t), pointer :: process_spec_list(:) ! data to read
+    !> File to read.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     type(process_spec_t), pointer :: new_process_spec_list(:)
     type(process_spec_t) :: process_spec
@@ -161,13 +193,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read from an inout_file.
   subroutine inout_read_process_spec(file, process_spec, eof)
 
-    ! Read from an inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(process_spec_t), intent(out) :: process_spec ! data to read
-    logical :: eof                      ! if eof instead of reading data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
+    !> If eof instead of reading data.
+    logical :: eof
 
     type(inout_line_t) :: line
 
@@ -177,7 +211,7 @@ contains
        call inout_check_line_length(file, line, 1)
        call process_spec_alloc(process_spec)
        process_spec%type = line%data(1)(1:PROCESS_SPEC_TYPE_LEN)
-       call inout_read_string(file, "suffix", process_spec%suffix)
+       call inout_read_string(file, "name", process_spec%name)
        if (process_spec%type == "kappa") then
           call inout_read_process_spec_kappa(file, process_spec)
        elseif (process_spec%type == "comp") then
@@ -204,12 +238,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read kappa spec from an inout_file.
   subroutine inout_read_process_spec_kappa(file, process_spec)
 
-    ! Read kappa spec from an inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(process_spec_t), intent(out) :: process_spec ! data to read
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
 
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
@@ -220,12 +255,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read comp spec from an inout_file.
   subroutine inout_read_process_spec_comp(file, process_spec)
 
-    ! Read comp spec from an inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(process_spec_t), intent(out) :: process_spec ! data to read
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
 
     type(inout_line_t) :: line
     integer :: i
@@ -256,12 +292,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read n_orig_part spec from an inout_file.
   subroutine inout_read_process_spec_n_orig_part(file, process_spec)
 
-    ! Read n_orig_part spec from an inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(process_spec_t), intent(out) :: process_spec ! data to read
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
 
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
@@ -271,12 +308,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read optic spec from an inout_file.
   subroutine inout_read_process_spec_optic(file, process_spec)
 
-    ! Read optic spec from an inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(process_spec_t), intent(out) :: process_spec ! data to read
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
 
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)

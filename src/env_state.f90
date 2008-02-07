@@ -1,14 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Environment parameters.
-!
-! The temperature profile is proscribed as a function of time by
-! giving a number of times and the corresponding temperatures. Linear
-! interpolation is used between the times, with constant interpolation
-! outside of the range of times.
 
+!> \file
+!> The pmc_env_state module.
+
+!> The env_state_t structure and associated subroutines.
 module pmc_env_state
 
   use pmc_gas_state
@@ -26,36 +23,65 @@ module pmc_env_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  
+
+  !> Current environment state.
+  !!
+  !! All quantities are instantaneous, describing the state at a
+  !! particular instant of time. Constant data and other data not
+  !! associated with the current environment state is store in
+  !! env_data_t.
+  !!
+  !! The emissions and dilution are both described by pairs of a state
+  !! and a rate. The product of these gives the actual emissions or
+  !! dilution with units quantity per time. One way to think about
+  !! this is to set the rate to 1/3600 and then regard the state as an
+  !! amount per hour, etc.
   type env_state_t
-     real*8 :: temp                     ! temperature (K)
-     real*8 :: rel_humid                ! relative humidity (1)
-     real*8 :: pressure                 ! ambient pressure (Pa)
-     real*8 :: longitude                ! longitude (degrees)
-     real*8 :: latitude                 ! latitude (degrees)
-     real*8 :: altitude                 ! altitude (m)
-     real*8 :: start_time               ! start time (s since 00:00 UTC)
-     integer :: start_day               ! start day of year (UTC)
-     real*8 :: height                   ! box height (m)
-     type(gas_state_t) :: gas_emissions ! gas emissions
-     real*8 :: gas_emission_rate        ! gas emisssion rate (s^{-1})
-     type(gas_state_t) :: gas_background ! background gas concentrations
-     real*8 :: gas_dilution_rate        ! gas-background dilution rate (s^{-1})
-     type(aero_dist_t) :: aero_emissions ! aerosol emissions
-     real*8 :: aero_emission_rate       ! aerosol emisssion rate (s^{-1})
-     type(aero_dist_t) :: aero_background ! aerosol background
-     real*8 :: aero_dilution_rate       ! aero-background dilute rate (s^{-1})
+     !> Temperature (K).
+     real*8 :: temp
+     !> Relative humidity (1).
+     real*8 :: rel_humid
+     !> Ambient pressure (Pa).
+     real*8 :: pressure
+     !> Longitude (degrees).
+     real*8 :: longitude
+     !> Latitude (degrees).
+     real*8 :: latitude
+     !> Altitude (m).
+     real*8 :: altitude
+     !> Start time (s since 00:00 UTC).
+     real*8 :: start_time
+     !> Start day of year (UTC).
+     integer :: start_day
+     !> Box height (m).
+     real*8 :: height
+     !> Gas emissions.
+     type(gas_state_t) :: gas_emissions
+     !> Gas emisssion rate (s^{-1}).
+     real*8 :: gas_emission_rate
+     !> Background gas concentrations.
+     type(gas_state_t) :: gas_background
+     !> Gas-background dilution rate (s^{-1}).
+     real*8 :: gas_dilution_rate
+     !> Aerosol emissions.
+     type(aero_dist_t) :: aero_emissions
+     !> Aerosol emisssion rate (s^{-1}).
+     real*8 :: aero_emission_rate
+     !> Aerosol background.
+     type(aero_dist_t) :: aero_background
+     !> Aero-background dilute rate (s^{-1}).
+     real*8 :: aero_dilution_rate
   end type env_state_t
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate an empty environment.
   subroutine env_state_alloc(env_state)
 
-    ! Allocate an empty environment.
-
-    type(env_state_t), intent(out) :: env_state   ! environment
+    !> Environment.
+    type(env_state_t), intent(out) :: env_state
 
     env_state%temp = 0d0
     env_state%rel_humid = 0d0
@@ -80,11 +106,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine env_state_free(env_state)
 
-    ! Free all storage.
-
-    type(env_state_t), intent(out) :: env_state   ! environment
+    !> Environment.
+    type(env_state_t), intent(out) :: env_state
 
     call gas_state_free(env_state%gas_emissions)
     call gas_state_free(env_state%gas_background)
@@ -95,12 +121,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> env_state += env_state_delta
   subroutine env_state_add(env_state, env_state_delta)
-    
-    ! env_state += env_state_delta
 
-    type(env_state_t), intent(inout) :: env_state   ! environment
-    type(env_state_t), intent(in) :: env_state_delta ! increment
+    !> Environment.
+    type(env_state_t), intent(inout) :: env_state
+    !> Increment.
+    type(env_state_t), intent(in) :: env_state_delta
 
     env_state%temp = env_state%temp + env_state_delta%temp
     env_state%rel_humid = env_state%rel_humid + env_state_delta%rel_humid
@@ -131,12 +158,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> env_state *= alpha
   subroutine env_state_scale(env_state, alpha)
-    
-    ! env_state *= alpha
 
-    type(env_state_t), intent(inout) :: env_state   ! environment
-    real*8, intent(in) :: alpha         ! scale factor
+    !> Environment.
+    type(env_state_t), intent(inout) :: env_state
+    !> Scale factor.
+    real*8, intent(in) :: alpha
 
     env_state%temp = env_state%temp * alpha
     env_state%rel_humid = env_state%rel_humid * alpha
@@ -160,12 +188,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> env_to = env_from
   subroutine env_state_copy(env_from, env_to)
-    
-    ! env_to = env_from
 
-    type(env_state_t), intent(in) :: env_from ! original
-    type(env_state_t), intent(inout) :: env_to ! destination
+    !> Original.
+    type(env_state_t), intent(in) :: env_from
+    !> Destination.
+    type(env_state_t), intent(inout) :: env_to
 
     env_to%temp = env_from%temp
     env_to%rel_humid = env_from%rel_humid
@@ -188,15 +217,17 @@ contains
   end subroutine env_state_copy
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Adds the given water volume to the water vapor and updates all
+  !> environment quantities.
   subroutine env_state_change_water_volume(env_state, aero_data, dv)
     
-    ! Adds the given water volume to the water vapor and updates all
-    ! environment quantities.
-    
-    type(env_state_t), intent(inout) :: env_state ! environment state to update
-    type(aero_data_t), intent(in) :: aero_data ! aero_data constants
-    real*8, intent(in) :: dv            ! conc of water added (m^3/m^3)
+    !> Environment state to update.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aero_data constants.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Conc of water added (m^3/m^3).
+    real*8, intent(in) :: dv
     
     real*8 pmv     ! ambient water vapor pressure (Pa)
     real*8 mv      ! ambient water vapor density (kg m^{-3})
@@ -215,12 +246,12 @@ contains
   end subroutine env_state_change_water_volume
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  real*8 function env_state_sat_vapor_pressure(env_state) ! (Pa)
 
-    ! Computes the current saturation vapor pressure.
+  !> Computes the current saturation vapor pressure (Pa).
+  real*8 function env_state_sat_vapor_pressure(env_state)
     
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     
     env_state_sat_vapor_pressure = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (env_state%temp - const%water_freeze_temp) &
@@ -230,14 +261,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the critical relative humidity from the kappa value (1).
   real*8 function aero_particle_kappa_rh(aero_particle, aero_data, &
-       env_state) ! (1)
+       env_state)
 
-    ! Returns the critical relative humidity from the kappa value.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     real*8 :: kappa, diam, C, A
     
@@ -252,9 +285,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function env_state_air_den(env_state) ! (kg m^{-3})
+  !> Air density (kg m^{-3}).
+  real*8 function env_state_air_den(env_state)
 
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     env_state_air_den = const%air_molec_weight &
          * env_state_air_molar_den(env_state)
@@ -263,9 +298,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function env_state_air_molar_den(env_state) ! (mole m^{-3})
+  !> Air molar density (mole m^{-3}).
+  real*8 function env_state_air_molar_den(env_state)
 
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     env_state_air_molar_den = env_state%pressure &
          / (const%univ_gas_const * env_state%temp)
@@ -274,12 +311,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert (mole m^{-3}) to (ppb).
   subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
-    
-    ! Convert (mole m^{-3}) to (ppb).
 
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     
     gas_state%conc = gas_state%conc / env_state_air_molar_den(env_state) * 1d9
     
@@ -287,16 +325,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do emissions and background dilution from the environment.
   subroutine env_state_update_gas_state(env_state, delta_t, old_height, &
        gas_data, gas_state)
 
-    ! Do emissions and background dilution from the environment.
-
-    type(env_state_t), intent(in) :: env_state      ! current environment
-    real*8, intent(in) :: delta_t       ! time increment to update over
-    real*8, intent(in) :: old_height    ! previous height (m)
-    type(gas_data_t), intent(in) :: gas_data ! gas data values
-    type(gas_state_t), intent(inout) :: gas_state ! gas state to update
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Time increment to update over.
+    real*8, intent(in) :: delta_t
+    !> Previous height (m).
+    real*8, intent(in) :: old_height
+    !> Gas data values.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state to update.
+    type(gas_state_t), intent(inout) :: gas_state
 
     real*8 :: effective_dilution_rate
     type(gas_state_t) :: emission, dilution
@@ -333,19 +375,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do emissions and background dilution from the environment for a
+  !> particle aerosol distribution.
   subroutine env_state_update_aero_state(env_state, delta_t, old_height, &
        bin_grid, aero_data, aero_state, aero_binned)
 
-    ! Do emissions and background dilution from the environment for a
-    ! particle aerosol distribution.
-
-    type(env_state_t), intent(in) :: env_state      ! current environment
-    real*8, intent(in) :: delta_t       ! time increment to update over
-    real*8, intent(in) :: old_height    ! previous height (m)
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aero data values
-    type(aero_state_t), intent(inout) :: aero_state ! aero state to update
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Time increment to update over.
+    real*8, intent(in) :: delta_t
+    !> Previous height (m).
+    real*8, intent(in) :: old_height
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aero state to update.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aero binned to update.
+    type(aero_binned_t), intent(inout) :: aero_binned
 
     integer :: i
     real*8 :: sample_prop, effective_dilution_rate
@@ -404,18 +452,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do emissions and background dilution from the environment for a
+  !> binned aerosol distribution.
   subroutine env_state_update_aero_binned(env_state, delta_t, old_height, &
        bin_grid, aero_data, aero_binned)
 
-    ! Do emissions and background dilution from the environment for a
-    ! binned aerosol distribution.
-
-    type(env_state_t), intent(in) :: env_state      ! current environment
-    real*8, intent(in) :: delta_t       ! time increment to update over
-    real*8, intent(in) :: old_height    ! previous height (m)
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aero data values
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Time increment to update over.
+    real*8, intent(in) :: delta_t
+    !> Previous height (m).
+    real*8, intent(in) :: old_height
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aero binned to update.
+    type(aero_binned_t), intent(inout) :: aero_binned
 
     type(aero_binned_t) :: emission, dilution
     real*8 :: effective_dilution_rate
@@ -453,12 +506,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_env_state(file, env_state)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(env_state_t), intent(in) :: env_state      ! environment to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Environment to write.
+    type(env_state_t), intent(in) :: env_state
     
     call inout_write_comment(file, "begin env_state")
     call inout_write_real(file, "temp(K)", env_state%temp)
@@ -488,12 +542,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_env_state(file, env_state)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(env_state_t), intent(out) :: env_state      ! environment to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Environment to read.
+    type(env_state_t), intent(out) :: env_state
     
     call inout_check_comment(file, "begin env_state")
     call inout_read_real(file, "temp(K)", env_state%temp)
@@ -523,12 +578,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read environment specification from a inout file.
   subroutine spec_read_env_state(file, env_state)
 
-    ! Read environment specification from a inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(env_state_t), intent(out) :: env_state     ! environment data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Environment data.
+    type(env_state_t), intent(out) :: env_state
 
     call env_state_alloc(env_state)
     call inout_read_real(file, 'rel_humidity', env_state%rel_humid)
@@ -543,12 +599,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of an array of env_state.
   subroutine env_state_average(env_vec, env_avg)
-    
-    ! Computes the average of an array of env_state.
 
-    type(env_state_t), intent(in) :: env_vec(:) ! array of env_state
-    type(env_state_t), intent(out) :: env_avg   ! average of env_vec
+    !> Array of env_state.
+    type(env_state_t), intent(in) :: env_vec(:)
+    !> Average of env_vec.
+    type(env_state_t), intent(out) :: env_avg
 
     call average_real(env_vec%temp, env_avg%temp)
     call average_real(env_vec%rel_humid, env_avg%rel_humid)
@@ -572,11 +629,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Average val over all processes.
   subroutine env_state_mix(val)
 
-    ! Average val over all processes.
-
-    type(env_state_t), intent(inout) :: val ! value to average
+    !> Value to average.
+    type(env_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     type(env_state_t) :: val_avg
@@ -595,11 +652,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_env_state(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(env_state_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(env_state_t), intent(in) :: val
 
     pmc_mpi_pack_size_env_state = &
          pmc_mpi_pack_size_real(val%temp) &
@@ -624,13 +681,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_env_state(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(env_state_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(env_state_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -661,13 +720,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_env_state(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(env_state_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(env_state_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -698,13 +759,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_env_state(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    type(env_state_t), intent(in) :: val ! value to average
-    type(env_state_t), intent(out) :: val_avg ! result
+    !> Value to average.
+    type(env_state_t), intent(in) :: val
+    !> Result.
+    type(env_state_t), intent(out) :: val_avg
 
     call env_state_alloc(val_avg)
     call env_state_copy(val, val_avg)

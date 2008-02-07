@@ -1,9 +1,11 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Golovin coagulation kernel.
 
+!> \file
+!> The pmc_kernel_golovin module.
+
+!> Golovin (additive) coagulation kernel.
 module pmc_kernel_golovin
 
   use pmc_bin_grid
@@ -17,15 +19,18 @@ module pmc_kernel_golovin
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Golovin (additive) coagulation kernel.
   subroutine kernel_golovin(v1, v2, env_state, k)
 
-    ! Golovin coagulation kernel.
-
-    real*8, intent(in) :: v1            ! volume of first particle
-    real*8, intent(in) :: v2            ! volume of second particle
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(out) :: k            ! coagulation kernel
+    !> Volume of first particle.
+    real*8, intent(in) :: v1
+    !> Volume of second particle.
+    real*8, intent(in) :: v2
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel.
+    real*8, intent(out) :: k
     
     real*8, parameter :: beta_1 = 1000d0
     
@@ -34,22 +39,30 @@ contains
   end subroutine kernel_golovin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Exact solution with the Golovin coagulation kernel and
+  !> exponential initial condition.
   subroutine soln_golovin_exp(bin_grid, aero_data, time, num_den, &
        mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 
-    ! Exact solution with the Golovin coagulation kernel and
-    ! exponential initial condition.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: num_den       ! particle number concentration (#/m^3)
-    real*8, intent(in) :: mean_radius   ! mean init radius (m)
-    real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
-    type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    type(aero_binned_t), intent(out) :: aero_binned ! output state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Current time.
+    real*8, intent(in) :: time
+    !> Particle number concentration (#/m^3).
+    real*8, intent(in) :: num_den
+    !> Mean init radius (m).
+    real*8, intent(in) :: mean_radius
+    !> Particle density (kg/m^3).
+    real*8, intent(in) :: rho_p
+    !> Initial distribution.
+    type(aero_dist_t), intent(in) :: aero_dist_init
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Output state.
+    type(aero_binned_t), intent(out) :: aero_binned
     
     real*8 :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
@@ -90,18 +103,18 @@ contains
   end subroutine soln_golovin_exp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Modified Bessel function of the first kind \f$ I_1(x) \f$.
+  !!
+  !! This looks like it was taken from Numerical Recipes.
+  !!
+  !! FIXME: Where did this come from? What license does it have?
   subroutine bessi1(x, r)
 
-    ! $I_1(x)$
-    ! Modified Bessel function of the first kind
-
-    ! Bessel function.
-    ! This looks like it was taken from Numerical Recipes.
-    ! FIXME: Where did this come from? What license does it have?
-    
-    real*8, intent(in) :: x             ! function argument
-    real*8, intent(out) :: r            ! function value
+    !> Function argument.
+    real*8, intent(in) :: x
+    !> Function value.
+    real*8, intent(out) :: r
     
     real*8 ax
     real*8 p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y

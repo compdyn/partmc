@@ -1,12 +1,15 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Wrapper functions for MPI. All of these functions can be called
-! irrespective of whether MPI support was compiled in or not. If MPI
-! support is not enabled then they do the obvious trivial thing
-! (normally nothing).
 
+!> \file
+!> The pmc_mpi module.
+
+!> Wrapper functions for MPI.
+!!
+!! All of these functions can be called irrespective of whether MPI
+!! support was compiled in or not. If MPI support is not enabled then
+!! they do the obvious trivial thing (normally nothing).
 module pmc_mpi
 
   use pmc_util
@@ -23,9 +26,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Whether MPI support is compiled in.
   logical function pmc_mpi_support()
-
-    ! Whether MPI support is compiled in.
 
 #ifdef PMC_USE_MPI
     pmc_mpi_support = .true.
@@ -37,11 +39,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Dies if \c ierr is not ok.
   subroutine pmc_mpi_check_ierr(ierr)
 
-    ! Dies if ierr is not ok.
-
-    integer, intent(in) :: ierr         ! MPI status code
+    !> MPI status code.
+    integer, intent(in) :: ierr
 
 #ifdef PMC_USE_MPI
     if (ierr /= MPI_SUCCESS) then
@@ -53,9 +55,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Initialize MPI.
   subroutine pmc_mpi_init()
-
-    ! Initialize MPI.
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -68,11 +69,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Abort the program.
   subroutine pmc_mpi_abort(status)
 
-    ! Abort the program.
-
-    integer, intent(in) :: status       ! Status flag to abort with
+    !> Status flag to abort with.
+    integer, intent(in) :: status
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -86,9 +87,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Shut down MPI.
   subroutine pmc_mpi_finalize()
-
-    ! Shut down MPI.
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -101,9 +101,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Synchronize all processors.
   subroutine pmc_mpi_barrier()
-
-    ! Synchronize all processors.
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -116,9 +115,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the rank of the current process.
   integer function pmc_mpi_rank()
-
-    ! Returns the rank of the current process.
 
 #ifdef PMC_USE_MPI
     integer :: rank, ierr
@@ -134,9 +132,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number of processes.
   integer function pmc_mpi_size()
-
-    ! Returns the total number of processes.
 
 #ifdef PMC_USE_MPI
     integer :: size, ierr
@@ -152,11 +149,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Broadcast the given value from process 0 to all other processes.
   subroutine pmc_mpi_bcast_integer(val)
 
-    ! Broadcast the given value from process 0 to all other processes.
-
-    integer, intent(inout) :: val ! value to broadcast
+    !> Value to broadcast.
+    integer, intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: root, ierr
@@ -171,11 +168,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Broadcast the given value from process 0 to all other processes.
   subroutine pmc_mpi_bcast_string(val)
 
-    ! Broadcast the given value from process 0 to all other processes.
-
-    character(len=*), intent(inout) :: val ! value to broadcast
+    !> Value to broadcast.
+    character(len=*), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: root, ierr
@@ -190,11 +187,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Broadcast the given value from process 0 to all other processes.
   subroutine pmc_mpi_bcast_packed(val)
 
-    ! Broadcast the given value from process 0 to all other processes.
-
-    character, intent(inout) :: val(:) ! value to broadcast
+    !> Value to broadcast.
+    character, intent(inout) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: root, ierr
@@ -209,11 +206,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_integer(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    integer, intent(in) :: val          ! value to pack
+    !> Value to pack.
+    integer, intent(in) :: val
 
     integer :: ierr
 
@@ -232,11 +229,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_real(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    real*8, intent(in) :: val           ! value to pack
+    !> Value to pack.
+    real*8, intent(in) :: val
 
     integer :: ierr
 
@@ -255,11 +252,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_string(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    character(len=*), intent(in) :: val ! value to pack
+    !> Value to pack.
+    character(len=*), intent(in) :: val
 
     integer :: ierr
 
@@ -281,11 +278,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_logical(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    logical, intent(in) :: val          ! value to pack
+    !> Value to pack.
+    logical, intent(in) :: val
 
     integer :: ierr
 
@@ -304,11 +301,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_complex(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    complex*16, intent(in) :: val       ! value to pack
+    !> Value to pack.
+    complex*16, intent(in) :: val
 
     pmc_mpi_pack_size_complex = 16
 
@@ -316,11 +313,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_integer_array(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    integer, intent(in) :: val(:)       ! value to pack
+    !> Value to pack.
+    integer, intent(in) :: val(:)
 
     integer :: ierr
 
@@ -342,11 +339,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_real_array(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    real*8, intent(in) :: val(:)        ! value to pack
+    !> Value to pack.
+    real*8, intent(in) :: val(:)
 
     integer :: ierr
 
@@ -368,11 +365,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_string_array(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    character(len=*), intent(in) :: val(:) ! value to pack
+    !> Value to pack.
+    character(len=*), intent(in) :: val(:)
 
     integer :: i, total_size
 
@@ -386,11 +383,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_real_array_2d(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    real*8, intent(in) :: val(:,:)      ! value to pack
+    !> Value to pack.
+    real*8, intent(in) :: val(:,:)
 
     integer :: ierr
 
@@ -414,13 +411,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_integer(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    integer, intent(in) :: val          ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer, intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -437,13 +436,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_real(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, intent(in) :: val           ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -460,13 +461,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_string(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    character(len=*), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    character(len=*), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, length, ierr
@@ -485,13 +488,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_logical(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    logical, intent(in) :: val           ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    logical, intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -508,13 +513,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_complex(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    complex*16, intent(in) :: val       ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    complex*16, intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -531,13 +538,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_integer_array(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    integer, intent(in) :: val(:)       ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer, intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -556,13 +565,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_real_array(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, intent(in) :: val(:)        ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -581,13 +592,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_string_array(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    character(len=*), intent(in) :: val(:) ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    character(len=*), intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
@@ -606,13 +619,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_real_array_2d(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, intent(in) :: val(:,:)      ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, intent(in) :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -633,13 +648,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_integer(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    integer, intent(out) :: val         ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer, intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -656,13 +673,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_real(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, intent(out) :: val          ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -679,13 +698,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_string(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    character(len=*), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    character(len=*), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, length, ierr
@@ -707,13 +728,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_logical(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    logical, intent(out) :: val          ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    logical, intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -730,13 +753,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_complex(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    complex*16, intent(out) :: val      ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    complex*16, intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -753,13 +778,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_integer_array(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    integer, pointer :: val(:)          ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer, pointer :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -778,13 +805,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_real_array(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, pointer :: val(:)           ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, pointer :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -803,13 +832,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_string_array(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    character(len=*), pointer :: val(:) ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    character(len=*), pointer :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
@@ -833,13 +864,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_real_array_2d(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    real*8, pointer :: val(:,:)         ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real*8, pointer :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -859,13 +892,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_real(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    real*8, intent(in) :: val           ! value to average
-    real*8, intent(out) :: val_avg      ! result
+    !> Value to average.
+    real*8, intent(in) :: val
+    !> Result.
+    real*8, intent(out) :: val_avg
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -884,13 +918,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_real_array(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    real*8, intent(in) :: val(:)        ! value to average
-    real*8, intent(out) :: val_avg(:)   ! result
+    !> Value to average.
+    real*8, intent(in) :: val(:)
+    !> Result.
+    real*8, intent(out) :: val_avg(:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -910,13 +945,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_real_array_2d(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    real*8, intent(in) :: val(:,:)      ! value to average
-    real*8, intent(out) :: val_avg(:,:) ! result
+    !> Value to average.
+    real*8, intent(in) :: val(:,:)
+    !> Result.
+    real*8, intent(out) :: val_avg(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -937,13 +973,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_allreduce_average_real(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    real*8, intent(in) :: val           ! value to average
-    real*8, intent(out) :: val_avg      ! result
+    !> Value to average.
+    real*8, intent(in) :: val
+    !> Result.
+    real*8, intent(out) :: val_avg
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -960,13 +997,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_allreduce_average_real_array(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    real*8, intent(in) :: val(:)        ! value to average
-    real*8, intent(out) :: val_avg(:)   ! result
+    !> Value to average.
+    real*8, intent(in) :: val(:)
+    !> Result.
+    real*8, intent(out) :: val_avg(:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr

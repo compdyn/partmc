@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Coagulation subroutines.
 
+!> \file
+!> The pmc_coagulation module.
+
+!> Aerosol particle coagulation.
 module pmc_coagulation
 
   use pmc_bin_grid
@@ -16,25 +18,36 @@ module pmc_coagulation
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Choose a random pair for potential coagulation and test its
+  !> probability of coagulation. If it happens, do the coagulation and
+  !> update all structures.
+  !!
+  !! The probability of a coagulation will be taken as <tt>(kernel /
+  !! k_max)</tt>.
   subroutine maybe_coag_pair(bin_grid, aero_binned, env_state, aero_data, &
        aero_state, b1, b2, del_t, k_max, kernel, did_coag)
-    
-    ! Choose a random pair for potential coagulation and test its
-    ! probability of coagulation. If it happens, do the coagulation and
-    ! update all structures. The probability of a coagulation will be
-    ! taken as (kernel / k_max).
 
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    integer, intent(in) :: b1           ! bin of first particle
-    integer, intent(in) :: b2           ! bin of second particle
-    real*8, intent(in) :: del_t         ! timestep
-    real*8, intent(in) :: k_max         ! k_max scale factor
-    logical, intent(out) :: did_coag    ! whether a coagulation occured
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin of first particle.
+    integer, intent(in) :: b1
+    !> Bin of second particle.
+    integer, intent(in) :: b2
+    !> Timestep.
+    real*8, intent(in) :: del_t
+    !> K_max scale factor.
+    real*8, intent(in) :: k_max
+    !> Whether a coagulation occured.
+    logical, intent(out) :: did_coag
     
     interface
        subroutine kernel(v1, v2, env_state, k)
@@ -72,17 +85,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Given bins b1 and b2, find a random pair of particles (b1, s1)
+  !> and (b2, s2) that are not the same particle particle as each
+  !> other.
   subroutine find_rand_pair(aero_state, b1, b2, s1, s2)
     
-    ! Given bins b1 and b2, find a random pair of particles (b1, s1)
-    ! and (b2, s2) that are not the same particle particle as each
-    ! other.
-    
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    integer, intent(in) :: b1           ! bin number of first particle
-    integer, intent(in) :: b2           ! bin number of second particle
-    integer, intent(out) :: s1          ! first rand particle
-    integer, intent(out) :: s2          ! second rand particle
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Bin number of first particle.
+    integer, intent(in) :: b1
+    !> Bin number of second particle.
+    integer, intent(in) :: b2
+    !> First rand particle.
+    integer, intent(out) :: s1
+    !> Second rand particle.
+    integer, intent(out) :: s2
 
     if ((aero_state%bins(b1)%n_part < 1) &
          .or. (aero_state%bins(b2)%n_part < 1) &
@@ -113,21 +130,28 @@ contains
   end subroutine find_rand_pair
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Join together particles (b1, s1) and (b2, s2), updating all
+  !> particle and bin structures to reflect the change.
   subroutine coagulate(bin_grid, aero_binned, aero_data, aero_state, &
        b1, s1, b2, s2)
 
-    ! Join together particles (b1, s1) and (b2, s2), updating all
-    ! particle and bin structures to reflect the change.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned distributions
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    integer, intent(in) :: b1           ! first particle (bin number)
-    integer, intent(in) :: s1           ! first particle (number in bin)
-    integer, intent(in) :: b2           ! second particle (bin number)
-    integer, intent(in) :: s2           ! second particle (number in bin)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned distributions.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> First particle (bin number).
+    integer, intent(in) :: b1
+    !> First particle (number in bin).
+    integer, intent(in) :: s1
+    !> Second particle (bin number).
+    integer, intent(in) :: b2
+    !> Second particle (number in bin).
+    integer, intent(in) :: s2
     
     type(aero_particle_t) :: new_particle
     integer :: bn

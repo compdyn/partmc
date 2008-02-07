@@ -1,26 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! 1-D arrays of particles, used by aero_state to build a ragged
-! array. One aero_particle_array is generally a list of particles in a
-! single size bin, but the basic type can be used for any list of
-! particles.
-!
-! To give a reasonable tradeoff between frequent re-allocs and memory
-! usage, the length of an aero_particle_array is generally a bit
-! longer than the number of particles stored in it. When the array is
-! full then a larger array is allocated with new extra space. As a
-! balance between memory usage and frequency of re-allocs the length
-! of the array is currently doubled when necessary and halved when
-! possible.
-!
-! The true allocated length of the aero_particle_array can be obtained
-! by size(aero_particle_array%particle), while the number of used
-! particle slots in it is given by aero_particle_array%n_part. It must
-! be that aero_particle_array%n_part is less than or equal to
-! size(aero_particle_array%particle).
 
+!> \file
+!> The pmc_aero_particle_array module.
+
+!> The aero_particle_array_t structure and assoicated subroutines.
 module pmc_aero_particle_array
 
   use pmc_aero_particle
@@ -31,25 +16,49 @@ module pmc_aero_particle_array
   use mpi
 #endif
 
+  !> 1-D arrays of particles, used by aero_state to build a ragged
+  !> array.
+  !!
+  !! One aero_particle_array is generally a list of particles in a
+  !! single size bin, but the basic type can be used for any list of
+  !! particles.
+  !!
+  !! To give a reasonable tradeoff between frequent re-allocs and
+  !! memory usage, the length of an aero_particle_array is generally a
+  !! bit longer than the number of particles stored in it. When the
+  !! array is full then a larger array is allocated with new extra
+  !! space. As a balance between memory usage and frequency of
+  !! re-allocs the length of the array is currently doubled when
+  !! necessary and halved when possible.
+  !!
+  !! The true allocated length of the aero_particle_array can be
+  !! obtained by size(aero_particle_array%%particle), while the number
+  !! of used particle slots in it is given by
+  !! aero_particle_array%%n_part. It must be that
+  !! aero_particle_array%%n_part is less than or equal to
+  !! size(aero_particle_array%%particle).
   type aero_particle_array_t
-     integer :: n_part                  ! number of particles
-     integer :: n_spec                  ! number of species
-     type(aero_particle_t), pointer :: particle(:) ! particle array
-     ! NOTE: typically size(particle) > num as we allocate more memory
-     ! than needed. num is the number of entries used in particle.
+     !> Number of particles.
+     integer :: n_part
+     !> Number of species.
+     integer :: n_spec
+     !> Particle array.
+     type(aero_particle_t), pointer :: particle(:)
   end type aero_particle_array_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates and initializes.
   subroutine aero_particle_array_alloc(aero_particle_array, n_part, n_spec)
 
-    ! Allocates and initializes.
-
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array ! result
-    integer, intent(in) :: n_part       ! number of particles
-    integer, intent(in) :: n_spec       ! number of species
+    !> Result.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Number of particles.
+    integer, intent(in) :: n_part
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     integer :: i
 
@@ -64,10 +73,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Deallocates.
   subroutine aero_particle_array_free(aero_particle_array)
 
-    ! Deallocates.
-
+    !> Structure to deallocate.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     integer :: i
@@ -81,13 +90,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies aero_particle_array_from to aero_particle_array_to, both
+  !> of which must already be allocated.
   subroutine aero_particle_array_copy(aero_particle_array_from, &
        aero_particle_array_to)
 
-    ! Copies aero_particle_array_from to aero_particle_array_to, both
-    ! of which must already be allocated.
-
+    !> Origin structure.
     type(aero_particle_array_t), intent(in) :: aero_particle_array_from
+    !> Destination structure.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array_to
 
     integer :: i
@@ -104,10 +114,10 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Resets an aero_particle_array to contain zero particles.
   subroutine aero_particle_array_zero(aero_particle_array)
 
-    ! Resets an aero_particle_array to contain zero particles.
-
+    !> Structure to reset.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     call aero_particle_array_free(aero_particle_array)
@@ -118,15 +128,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Changes the given aero_particle_array to exactly the given
+  !> new_length.
+  !!
+  !! This function should not be called directly, but rather use
+  !! aero_particle_array_enlarge(), aero_particle_array_enlarge_to()
+  !! or aero_particle_array_shrink().
   subroutine aero_particle_array_realloc(aero_particle_array, new_length)
 
-    ! Changes the given aero_particle_array (which must be allocated)
-    ! to exactly the given new_length. This function should not be
-    ! called directly, but rather use aero_particle_array_enlarge(),
-    ! aero_particle_array_enlarge_to() or aero_particle_array_shrink().
-
+    !> Array to reallocate (must already be allocated on entry).
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    integer, intent(in) :: new_length   ! new length of the array
+    !> New length of the array.
+    integer, intent(in) :: new_length
 
     integer :: n_part, n_spec, i
     type(aero_particle_t), pointer :: new_particles(:)
@@ -146,11 +159,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Enlarges the given aero_particle_array by at least one element
+  !!
+  !! Currently this doubles the length.
   subroutine aero_particle_array_enlarge(aero_particle_array)
 
-    ! Enlarges the given aero_particle_array (which must be allocated)
-    ! by at least one element (currently doubles the length).
-
+    !> Array to enlarge.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     integer :: length, new_length
@@ -163,12 +177,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Enlarges the given array so that it is at least of size n.
   subroutine aero_particle_array_enlarge_to(aero_particle_array, n)
 
-    ! Enlarges the given array so that it is at least of size n.
-
+    !> Array to enlarge.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    integer, intent(in) :: n            ! minimum new size of array
+    !> Minimum new size of array.
+    integer, intent(in) :: n
 
     do while (size(aero_particle_array%particle) < n)
        call aero_particle_array_enlarge(aero_particle_array)
@@ -178,11 +193,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Possibly shrinks the storage of the given array, ensuring that
+  !> it can still store the allocated particles.
   subroutine aero_particle_array_shrink(aero_particle_array)
 
-    ! Possibly shrinks the storage of the given array, ensuring that
-    ! it can still store the allocated particles.
-
+    !> Array to shrink.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     integer :: n_part, n_spec, length, new_length
@@ -201,13 +216,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Adds the given particle to the end of the array.
   subroutine aero_particle_array_add_particle(aero_particle_array, &
        aero_particle)
 
-    ! Adds the given particle to the end of the array.
-
+    !> Array to add to.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to add
+    !> Particle to add.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     integer :: n
 
@@ -221,13 +237,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Removes the particle at the given index.
   subroutine aero_particle_array_remove_particle(aero_particle_array, &
        index)
 
-    ! Removes the particle at the given index.
-
+    !> Array to remove from.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    integer, intent(in) :: index        ! index of particle to remove
+    !> Index of particle to remove.
+    integer, intent(in) :: index
 
     call assert(992946227, index >= 1)
     call assert(711246139, index <= aero_particle_array%n_part)
@@ -245,11 +262,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Doubles the number of particles by making a duplicate of each
+  !> one.
   subroutine aero_particle_array_double(aero_particle_array)
 
-    ! Doubles the number of particles by making a duplicate of each
-    ! one.
-
+    !> Array to double.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
     integer :: n, i
@@ -267,12 +284,13 @@ contains
   end subroutine aero_particle_array_double
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Write full state.
   subroutine inout_write_aero_particle_array(file, aero_particle_array)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Structure to write.
     type(aero_particle_array_t), intent(in) :: aero_particle_array
 
     integer :: i
@@ -289,12 +307,13 @@ contains
   end subroutine inout_write_aero_particle_array
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Read full state.
   subroutine inout_read_aero_particle_array(file, aero_particle_array)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Structure to read into (must not be allocated).
     type(aero_particle_array_t), intent(out) :: aero_particle_array
 
     integer :: i, check_i
@@ -314,11 +333,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_apa(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_particle_array_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_particle_array_t), intent(in) :: val
 
     integer :: i, total_size
 
@@ -335,13 +354,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_particle_array(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_particle_array_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_particle_array_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
@@ -360,13 +381,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_particle_array(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_particle_array_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_particle_array_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

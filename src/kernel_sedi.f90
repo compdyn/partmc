@@ -1,15 +1,19 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Subroutines based on coad1d.f by Andreas Bott
-! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
-! A. Bott, A flux method for the numerical solution of the stochastic
-! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
-!
-! Sedimentation coagulation kernel.
 
+!> \file
+!> The pmc_kernel_sedi module.
+
+!> Gravitational sedimentation coagulation kernel.
+!!
+!! Contains code based on \c coad1d.f by Andreas Bott
+!!     - http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
+!!     - Released under the GPL to Nicole Riemer (personal communication)
+!!     - A. Bott, A flux method for the numerical solution of the
+!!       stochastic collection equation, J. Atmos. Sci. 55, 2284-2293,
+!!       1998.
 module pmc_kernel_sedi
 
   use pmc_env_state
@@ -18,15 +22,18 @@ module pmc_kernel_sedi
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Sedimentation coagulation kernel.
   subroutine kernel_sedi(v1, v2, env_state, k)
 
-    ! Sedimentation coagulation kernel.
-
-    real*8, intent(in) :: v1            ! volume of first particle (m^3)
-    real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
+    !> Volume of first particle (m^3).
+    real*8, intent(in) :: v1
+    !> Volume of second particle (m^3).
+    real*8, intent(in) :: v2
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Kernel \c k(a,b) (m^3/s).
+    real*8, intent(out) :: k
     
     real*8 constant, onethird
     real*8 r1, r2, winf1, winf2, ec
@@ -43,13 +50,14 @@ contains
   end subroutine kernel_sedi
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine fall_g(r, w_inf)
 
-    ! Finds the terminal velocity of a particle based on its size.
+  !> Finds the terminal velocity of a particle based on its size.
+  subroutine fall_g(r, w_inf)
     
-    real*8, intent(in) :: r             ! particle radius (m)
-    real*8, intent(out) :: w_inf        ! terminal velocity (m/s)
+    !> Particle radius (m).
+    real*8, intent(in) :: r
+    !> Terminal velocity (m/s).
+    real*8, intent(out) :: w_inf
     
     ! terminal velocity of falling drops
     real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
@@ -109,16 +117,19 @@ contains
   end subroutine fall_g
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Coagulation efficiency.
+  !!
+  !! Determines the chance that two particles will actually coagulate,
+  !! given that they approach close enough to do so.
   subroutine effic(r1, r2, ec)
 
-    ! Coagulation efficiency. Determines the chance that two particles
-    ! will actually coagulate, given that they approach close enough
-    ! to do so.
-
-    real*8, intent(in) :: r1            ! radius of first particle (um)
-    real*8, intent(in) :: r2            ! radius of second particle (um)
-    real*8, intent(out) :: ec           ! collision efficiency (dimensionless)
+    !> Radius of first particle (um).
+    real*8, intent(in) :: r1
+    !> Radius of second particle (um).
+    real*8, intent(in) :: r2
+    !> Collision efficiency (dimensionless).
+    real*8, intent(out) :: ec
     
     real*8 r_small, r_big, rq, p, q, ek
     integer k, ir, kk, iq

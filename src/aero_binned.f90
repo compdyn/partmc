@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
-! option) any later version. See the file COPYING for details.
+! option) any later version. See the file COPYING for the.
 
-!> Contains the aero_binned_t structure for binned aerosol
-!> distributions and helper functions.
+!> \file
+!> The pmc_aero_binned module.
+
+!> The aero_binned_t structure and associated subroutines.
 module pmc_aero_binned
 
   use pmc_bin_grid
@@ -360,6 +362,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the number of bytes required to pack the structure.
+  !!
   !! See pmc_mpi for usage details.
   integer function pmc_mpi_pack_size_aero_binned(val)
 
@@ -375,6 +378,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the structure into the buffer and advance position.
+  !!
   !! See pmc_mpi for usage details.
   subroutine pmc_mpi_pack_aero_binned(buffer, position, val)
 
@@ -400,6 +404,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the structure from the buffer and advance position.
+  !!
   !! See pmc_mpi for usage details.
   subroutine pmc_mpi_unpack_aero_binned(buffer, position, val)
 
@@ -425,7 +430,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of the structure across all processors,
-  ! storing the result on the root processor.
+  !> storing the result on the root processor.
   subroutine pmc_mpi_reduce_avg_aero_binned(val, val_avg)
 
     !> Per-processor Value to average.

@@ -1,15 +1,18 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Save and restore the state of particle-resolved Monte Carlo
-! runs. The state file should contain enough data to restart the
-! simulation at the point it was written.
-!
-! Because it contains the full state of every particle, this is also
-! the best way to gain complete access to all statistics of the
-! simulation.
 
+!> \file
+!> The pmc_output_state module.
+
+!> Save and restore the exact internal state (a checkpoint).
+!!
+!! The state file will contain enough data to restart the simulation
+!! at the point it was written.
+!!
+!! Because it contains the full state of every particle, this is also
+!! the best way to gain complete access to all statistics of the
+!! simulation.
 module pmc_output_state
 
   use pmc_bin_grid
@@ -25,22 +28,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current state.
   subroutine inout_write_state(state_prefix, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, index, time, del_t, i_loop)
 
-    ! Write the current state.
-
-    character(len=*), intent(in) :: state_prefix ! prefix of state file
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    integer, intent(in) :: index        ! filename index
-    real*8, intent(in) :: time          ! current time (s)
-    real*8, intent(in) :: del_t         ! current timestep (s)
-    integer, intent(in) :: i_loop       ! current loop number
+    !> Prefix of state file.
+    character(len=*), intent(in) :: state_prefix
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current timestep (s).
+    real*8, intent(in) :: del_t
+    !> Current loop number.
+    integer, intent(in) :: i_loop
     
     character*300 :: filename
     type(inout_file_t) :: file
@@ -141,22 +154,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the current state.
   subroutine inout_read_state(state_name, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, time, index, del_t, i_loop)
 
-    ! Read the current state.
-
-    character(len=*), intent(in) :: state_name ! name of state file
-    type(bin_grid_t), intent(out) :: bin_grid ! bin grid
-    type(aero_data_t), intent(out) :: aero_data ! aerosol data
-    type(aero_state_t), intent(out) :: aero_state ! aerosol state
-    type(gas_data_t), intent(out) :: gas_data ! gas data
-    type(gas_state_t), intent(out) :: gas_state ! gas state
-    type(env_state_t), intent(out) :: env_state     ! environment state
-    real*8, intent(out) :: time         ! current time (s)
-    integer, intent(out) :: index       ! current index
-    real*8, intent(out) :: del_t        ! current time-step (s)
-    integer, intent(out) :: i_loop      ! current loop number
+    !> Name of state file.
+    character(len=*), intent(in) :: state_name
+    !> Bin grid.
+    type(bin_grid_t), intent(out) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(out) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(out) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(out) :: env_state
+    !> Current time (s).
+    real*8, intent(out) :: time
+    !> Current index.
+    integer, intent(out) :: index
+    !> Current time-step (s).
+    real*8, intent(out) :: del_t
+    !> Current loop number.
+    integer, intent(out) :: i_loop
     
     type(inout_file_t) :: file
     integer :: n_proc, i_proc, check_i_proc

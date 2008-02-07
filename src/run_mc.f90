@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Monte Carlo with fixed timestep and particles stored per-bin.
 
+!> \file
+!> The pmc_run_mc module.
+
+!> Monte Carlo simulation.
 module pmc_run_mc
 
   use pmc_inout
@@ -28,45 +30,72 @@ module pmc_run_mc
   use mpi
 #endif
 
+  !> Options controlling the execution of run_mc().
   type run_mc_opt_t
-    integer :: n_part_max               ! maximum number of particles
-    real*8 :: t_max                     ! final time (s)
-    real*8 :: t_output                  ! output interval (0 disables) (s)
-    real*8 :: t_state                   ! state output intvl (0 disables) (s)
-    real*8 :: t_progress                ! progress interval (0 disables) (s)
-    real*8 :: del_t                     ! timestep for coagulation
-    character(len=300) :: state_prefix  ! prefix for state files
-    logical :: do_coagulation           ! whether to do coagulation
-    logical :: allow_double             ! allow doubling if needed
-    logical :: do_condensation          ! whether to do condensation
-    logical :: do_mosaic                ! whether to do MOSAIC
-    logical :: do_restart               ! whether to restart from state
-    character(len=300) :: restart_name  ! name of state to restart from
-    integer :: i_loop                   ! loop number of run
-    integer :: n_loop                   ! total number of loops
-    real*8 :: t_wall_start              ! cpu_time() of start
-    real*8 :: mix_rate                  ! mix rate for parallel states (0 to 1)
+     !> Maximum number of particles.
+    integer :: n_part_max
+    !> Final time (s).
+    real*8 :: t_max
+    !> Output interval (0 disables) (s).
+    real*8 :: t_output
+    !> State output intvl (0 disables) (s).
+    real*8 :: t_state
+    !> Progress interval (0 disables) (s).
+    real*8 :: t_progress
+    !> Timestep for coagulation.
+    real*8 :: del_t
+    !> Prefix for state files.
+    character(len=300) :: state_prefix
+    !> Whether to do coagulation.
+    logical :: do_coagulation
+    !> Allow doubling if needed.
+    logical :: allow_double
+    !> Whether to do condensation.
+    logical :: do_condensation
+    !> Whether to do MOSAIC.
+    logical :: do_mosaic
+    !> Whether to restart from state.
+    logical :: do_restart
+    !> Name of state to restart from.
+    character(len=300) :: restart_name
+    !> Loop number of run.
+    integer :: i_loop
+    !> Total number of loops.
+    integer :: n_loop
+    !> Cpu_time() of start.
+    real*8 :: t_wall_start
+    !> Mix rate for parallel states (0 to 1).
+    real*8 :: mix_rate
  end type run_mc_opt_t
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_mc(kernel, bin_grid, aero_binned, env_data, env_state, &
        aero_data, aero_state, gas_data, gas_state, mc_opt, process_spec_list)
-
-    ! Do a particle-resolved Monte Carlo simulation.
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_data_t), intent(in) :: env_data ! environment state
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
-    type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !> Environment state.
+    type(env_data_t), intent(in) :: env_data
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Monte Carlo options.
+    type(run_mc_opt_t), intent(in) :: mc_opt
+    !> Processing spec.
+    type(process_spec_t), intent(in) :: process_spec_list(:)
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
@@ -266,20 +295,28 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do coagulation for time del_t.
   subroutine mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
        aero_state, mc_opt, k_max, tot_n_samp, n_coag)
 
-    ! Do coagulation for time del_t.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(run_mc_opt_t), intent(in) :: mc_opt ! Monte Carlo options
-    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! maximum kernel
-    integer, intent(out) :: tot_n_samp  ! total number of samples tested
-    integer, intent(out) :: n_coag      ! number of coagulation events
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Monte Carlo options.
+    type(run_mc_opt_t), intent(in) :: mc_opt
+    !> Maximum kernel.
+    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Total number of samples tested.
+    integer, intent(out) :: tot_n_samp
+    !> Number of coagulation events.
+    integer, intent(out) :: n_coag
 
     interface
        subroutine kernel(v1, v2, env_state, k)
@@ -325,18 +362,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the number of samples required for the pair of bins.
   subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
        del_t, n_samp_real)
-  
-    ! Compute the number of samples required for the pair of bins.
 
-    integer, intent(in) :: ni           ! number particles in first bin 
-    integer, intent(in) :: nj           ! number particles in second bin
-    logical, intent(in) :: same_bin     ! whether first bin is second bin
-    real*8, intent(in) :: k_max         ! maximum kernel value
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    real*8, intent(in) :: del_t         ! timestep (s)
-    real*8, intent(out) :: n_samp_real  ! number of samples per timestep
+    !> Number particles in first bin .
+    integer, intent(in) :: ni
+    !> Number particles in second bin.
+    integer, intent(in) :: nj
+    !> Whether first bin is second bin.
+    logical, intent(in) :: same_bin
+    !> Maximum kernel value.
+    real*8, intent(in) :: k_max
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Timestep (s).
+    real*8, intent(in) :: del_t
+    !> Number of samples per timestep.
+    real*8, intent(out) :: n_samp_real
     
     real*8 r_samp
     real*8 n_possible ! use real*8 to avoid integer overflow
@@ -354,20 +397,27 @@ contains
   end subroutine compute_n_samp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Mix data between processes.
   subroutine mc_mix(aero_data, aero_state, gas_data, gas_state, &
        aero_binned, env_state, bin_grid, mix_rate)
 
-    ! Mix data between processes.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
-    type(env_state_t), intent(inout) :: env_state   ! environment
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(in) :: mix_rate      ! amount to mix (0 to 1)
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Environment.
+    type(env_state_t), intent(inout) :: env_state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Amount to mix (0 to 1).
+    real*8, intent(in) :: mix_rate
 
     call assert(173605827, (mix_rate >= 0d0) .and. (mix_rate <= 1d0))
     if (mix_rate == 0d0) return
@@ -381,11 +431,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_mc_opt(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(run_mc_opt_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(run_mc_opt_t), intent(in) :: val
 
     pmc_mpi_pack_size_mc_opt = &
          pmc_mpi_pack_size_integer(val%n_part_max) &
@@ -410,13 +460,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_mc_opt(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(run_mc_opt_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(run_mc_opt_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -447,13 +499,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_mc_opt(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(run_mc_opt_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(run_mc_opt_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

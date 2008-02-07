@@ -2,12 +2,11 @@
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Brownian coagulation kernel.
-! See Seinfeld, Atmospheric chemistry and physics of air pollution,
-! page 394 (equation 10.18)
-! This expression is based on the assumption that the continuum regime applies.
     
+!> \file
+!> The pmc_kernel_brown module.
+
+!> Brownian coagulation kernel.
 module pmc_kernel_brown
 
   use pmc_env_state
@@ -18,14 +17,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the Brownian coagulation kernel.
+  !!
+  !! See Seinfeld, Atmospheric chemistry and physics of air pollution,
+  !! page 394 (equation 10.18). This was the continuum version of the
+  !! kernel, but may not be any more.
   subroutine kernel_brown(v1, v2, env_state, k)
 
-    ! Compute the Brownian coagulation kernel.
-
-    real*8, intent(in) :: v1            ! volume of first particle (m^3)
-    real*8, intent(in) :: v2            ! volume of second particle (m^3)
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(out) :: k            ! kernel k(a,b) (m^3/s)
+    !> Volume of first particle (m^3).
+    real*8, intent(in) :: v1
+    !> Volume of second particle (m^3).
+    real*8, intent(in) :: v2
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Kernel k(a,b) (m^3/s).
+    real*8, intent(out) :: k
 
     !real*8 c_1, a_third, b_third
     real*8 dens1, dens2                 ! particle densities (kg/m^3)
@@ -48,22 +54,31 @@ contains
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Calculate brownian coagulation kernel.
+  !!
+  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
+  !! Atmospheric Modeling, Cambridge University Press, 1999.
   subroutine brownian_kernel(vol_i_inp, vol_j_inp, den_i_inp, &
        den_j_inp, tk, press, lundiag1, lundiag2, bckernel)
 
-    ! this routine calculates brownian coagulation kernel
-    ! using on eqn 16.28 of
-    !    jacobson,  m. z. (1999) fundamentals of atmospheric modeling.
-    !       cambridge university press, new york, 656 pp.
-
-    real*8,  intent(in) :: vol_i_inp, vol_j_inp ! wet (ambient) particle
-                                                ! volumes (m^3)
-    real*8,  intent(in) :: den_i_inp, den_j_inp ! wet (ambient) particle
-                                                ! densities (kg/m^3)
-    real*8,  intent(in) :: tk         ! air temperature (K)
-    real*8,  intent(in) :: press      ! air pressure (Pa)
-    integer, intent(in) :: lundiag1, lundiag2 ! logical units for diag output
-    real*8,  intent(out) :: bckernel  ! brownian coag kernel (m^3/s)
+    !> First wet (ambient) particle volume (m^3).
+    real*8, intent(in) :: vol_i_inp
+    !> Second wet (ambient) particle volume (m^3).
+    real*8, intent(in) :: vol_j_inp
+    !> First wet (ambient) particle density (kg/m^3).
+    real*8, intent(in) :: den_i_inp
+    !> Second wet (ambient) particle density (kg/m^3).
+    real*8, intent(in) :: den_j_inp
+    !> Air temperature (K).
+    real*8, intent(in) :: tk
+    !> Air pressure (Pa).
+    real*8, intent(in) :: press
+    !> First logical unit for diagnostic output.
+    integer, intent(in) :: lundiag1
+    !> Second logical unit for diagnostic output.
+    integer, intent(in) :: lundiag2
+    !> Brownian coag kernel (m^3/s).
+    real*8, intent(out) :: bckernel
     
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0

@@ -1,40 +1,65 @@
 ! Copyright (C) 2007, 2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Generic input and output routines.
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> \file
+!> The pmc_inout module.
 
+!> Reading formatted text input.
 module pmc_inout
 
   use pmc_util
   
-  integer, parameter :: MAX_LINE_LEN = 10000 ! max size of a single line
-  integer, parameter :: MAX_CHAR_LEN = 300 ! max size of a variable
-  integer, parameter :: MAX_LIST_LINES = 500 ! max lines in an array
+  !> Maximum size of a single line.
+  integer, parameter :: MAX_LINE_LEN = 10000
+  !> Maximum size of a variable.
+  integer, parameter :: MAX_CHAR_LEN = 300
+  !> Maximum number of lines in an array.
+  integer, parameter :: MAX_LIST_LINES = 1000
 
+  !> An input file with extra data for printing messages.
+  !!
+  !! An inout_file_t is just a simple wrapper around a Fortran unit
+  !! number together with the filename and current line number. The
+  !! line number is updated manually by the various \c inout_*()
+  !! subroutine. To maintain its validity all file accesses must be
+  !! done via the \c inout_*() subroutines, and no data should be
+  !! accessed directly via \c inout_file%%unit.
   type inout_file_t
-     character(len=MAX_CHAR_LEN) :: name ! filename
-     integer :: unit                    ! attached unit
-     integer :: line_num                ! current line number
+     !> Filename.
+     character(len=MAX_CHAR_LEN) :: name
+     !> Attached unit.
+     integer :: unit
+     !> Current line number.
+     integer :: line_num
   end type inout_file_t
 
+  !> A single line of input data, split at whitespace.
+  !!
+  !! Input lines are assumed to be in the format
+  !! <pre>
+  !! <name> <whitespace> <data1> <whitespace> <data2> ... # optional comment
+  !! </pre>
+  !! An inout_line_t structure stores the name and data split at
+  !! whitespace.
   type inout_line_t
-     character(len=MAX_CHAR_LEN) :: name ! variable name
-     character(len=MAX_CHAR_LEN), pointer :: data(:) ! array of data as strings
+     !> Variable name.
+     character(len=MAX_CHAR_LEN) :: name
+     !> Array of data as strings.
+     character(len=MAX_CHAR_LEN), pointer :: data(:)
   end type inout_line_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Open an inout file for reading.
   subroutine inout_open_read(filename, file)
 
-    ! Open an inout file for reading.
-
-    character(len=*), intent(in) :: filename ! name of file to open
-    type(inout_file_t), intent(out) :: file  ! inout file
+    !> Name of file to open.
+    character(len=*), intent(in) :: filename
+    !> Inout file.
+    type(inout_file_t), intent(out) :: file
 
     integer :: ios, unit
 
@@ -52,12 +77,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Open an inout file for writing.
   subroutine inout_open_write(filename, file)
 
-    ! Open an inout file for writing.
-
-    character(len=*), intent(in) :: filename ! name of file to open
-    type(inout_file_t), intent(out) :: file  ! inout file
+    !> Name of file to open.
+    character(len=*), intent(in) :: filename
+    !> Inout file.
+    type(inout_file_t), intent(out) :: file
 
     integer :: ios, unit
 
@@ -75,11 +101,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Close an inout file.
   subroutine inout_close(file)
 
-    ! Close an inout file.
-
-    type(inout_file_t), intent(in) :: file ! inout file
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
 
     close(file%unit)
     call free_unit(file%unit)
@@ -88,12 +114,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates memory for an inout_line.
   subroutine inout_line_alloc(n_data, inout_line)
 
-    ! Allocates memory for an inout_line.
-
-    integer, intent(in) :: n_data       ! number of data items
-    type(inout_line_t), intent(inout) :: inout_line ! struct to alloc
+    !> Number of data items.
+    integer, intent(in) :: n_data
+    !> Struct to alloc.
+    type(inout_line_t), intent(inout) :: inout_line
 
     allocate(inout_line%data(n_data))
 
@@ -101,24 +128,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Frees all storage.
   subroutine inout_line_free(inout_line)
 
-    ! Frees all storage.
-
-    type(inout_line_t), intent(inout) :: inout_line ! struct to free
+    !> Struct to free.
+    type(inout_line_t), intent(inout) :: inout_line
 
     deallocate(inout_line%data)
 
   end subroutine inout_line_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Copies a inout_line.
   subroutine inout_line_copy(from_line, to_line)
 
-    ! Copies a inout_line.
-
-    type(inout_line_t), intent(in) :: from_line ! original line
-    type(inout_line_t), intent(out) :: to_line ! destination, already alloced
+    !> Original line.
+    type(inout_line_t), intent(in) :: from_line
+    !> Destination, already alloced.
+    type(inout_line_t), intent(out) :: to_line
 
     to_line%name = from_line%name
     if (size(to_line%data) /= size(from_line%data)) then
@@ -131,13 +159,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a single line from a inout file, signaling if we have hit EOF.
   subroutine inout_read_line_raw(file, line, eof)
 
-    ! Read a single line from a inout file, signaling if we have hit EOF.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=MAX_LINE_LEN), intent(out) :: line ! complete line read
-    logical, intent(out) :: eof           ! true if at EOF
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Complete line read.
+    character(len=MAX_LINE_LEN), intent(out) :: line
+    !> True if at EOF.
+    logical, intent(out) :: eof
 
     integer :: ios, n_read
 
@@ -166,12 +196,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Strip the comments from a line. Comments are everything after
+  !> the first # character.
   subroutine inout_strip_comment(line)
-
-    ! Strip the comments from a line. Comments are everything after
-    ! the first # character.
     
-    character(len=*), intent(inout) :: line ! complete input line
+    !> Complete input line.
+    character(len=*), intent(inout) :: line
     
     integer hash_index
     
@@ -184,12 +214,12 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Expand all tabs in a line into single spaces (one tab makes one
+  !> space).
   subroutine inout_tabs_to_spaces(line)
 
-    ! Expand all tabs in a line into single spaces (one tab makes one
-    ! space).
-
-    character(len=*), intent(inout) :: line ! complete input line
+    !> Complete input line.
+    character(len=*), intent(inout) :: line
 
     integer i
 
@@ -203,11 +233,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Strip leading spaces from a string.
   subroutine inout_strip_leading_spaces(line)
 
-    ! Strip leading spaces from a string.
-
-    character(len=*), intent(inout) :: line ! complete input line
+    !> Complete input line.
+    character(len=*), intent(inout) :: line
 
     integer i
 
@@ -220,14 +250,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the next line from the inout file that contains useful data
+  !> (stripping comments and blank lines).
   subroutine inout_read_next_data_line(file, line, eof)
 
-    ! Read the next line from the inout file that contains useful data
-    ! (stripping comments and blank lines).
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(out) :: line ! complete line read
-    logical, intent(out) :: eof           ! true if EOF encountered
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Complete line read.
+    character(len=*), intent(out) :: line
+    !> True if EOF encountered.
+    logical, intent(out) :: eof
 
     logical :: done
 
@@ -250,13 +282,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a inout_line from the inout_file.
   subroutine inout_read_line(file, line, eof)
 
-    ! Read a inout_line from the inout_file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(inout_line_t), intent(out) :: line  ! inout line
-    logical, intent(out) :: eof           ! true if EOF encountered
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Inout line.
+    type(inout_line_t), intent(out) :: line
+    !> True if EOF encountered.
+    logical, intent(out) :: eof
 
     character(len=MAX_LINE_LEN) :: line_string, rest
     integer i, n_data
@@ -338,14 +372,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a inout_line from the inout_file. This will always succeed or
+  !> error out, so should only be called if we know there should be a
+  !> valid line coming.
   subroutine inout_read_line_no_eof(file, line)
 
-    ! Read a inout_line from the inout_file. This will always succeed or
-    ! error out, so should only be called if we know there should be a
-    ! valid line coming.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(inout_line_t), intent(out) :: line  ! inout line
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Inout line.
+    type(inout_line_t), intent(out) :: line
 
     logical :: eof
 
@@ -360,14 +395,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a list of inout_lines from a file, stopping at max_lines
+  !> or EOF, whichever comes first.
   subroutine inout_read_line_list(file, max_lines, line_list)
 
-    ! Read a list of inout_lines from a file, stopping at max_lines
-    ! or EOF, whichever comes first.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
-    type(inout_line_t), pointer :: line_list(:) ! list of inout_lines,
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Max lines to read (0 = no max).
+    integer, intent(in) :: max_lines
+    !> List of inout_lines,.
+    type(inout_line_t), pointer :: line_list(:)
                                                 ! will be allocated
 
     logical :: eof
@@ -407,14 +444,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an array of inout_lines from a file, stopping at max_lines
+  !> or EOF. All lines must have the same number of elements.
   subroutine inout_read_line_array(file, max_lines, line_array)
 
-    ! Read an array of inout_lines from a file, stopping at max_lines
-    ! or EOF. All lines must have the same number of elements.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
-    type(inout_line_t), pointer :: line_array(:) ! array of inout_lines,
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Max lines to read (0 = no max).
+    integer, intent(in) :: max_lines
+    !> Array of inout_lines,.
+    type(inout_line_t), pointer :: line_array(:)
                                                  ! will be allocated
 
     integer :: i, line_length
@@ -438,13 +477,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check that the name of the line data is as given.
   subroutine inout_check_line_name(file, line, name)
 
-    ! Check that the name of the line data is as given.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    type(inout_line_t), intent(in) :: line ! inout line
-    character(len=*), intent(in) :: name ! expected line name
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> Inout line.
+    type(inout_line_t), intent(in) :: line
+    !> Expected line name.
+    character(len=*), intent(in) :: name
 
     if (line%name /= name) then
        write(0,'(a,i3,a,a,a,a,a,a)') 'ERROR: line ', file%line_num, &
@@ -456,14 +497,16 @@ contains
   end subroutine inout_check_line_name
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine inout_check_name(file, name, read_name)
 
-    ! Checks that the read_name is the same as name.
+  !> Checks that the read_name is the same as name.
+  subroutine inout_check_name(file, name, read_name)
     
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name   ! name that we should have
-    character(len=*), intent(in) :: read_name ! name that we do have
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name that we should have.
+    character(len=*), intent(in) :: name
+    !> Name that we do have.
+    character(len=*), intent(in) :: read_name
     
     integer name_len, read_name_len
 
@@ -478,13 +521,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check that the length of the line data is as given.
   subroutine inout_check_line_length(file, line, length)
 
-    ! Check that the length of the line data is as given.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    type(inout_line_t), intent(in) :: line ! inout line
-    integer, intent(in) :: length       ! expected data length
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> Inout line.
+    type(inout_line_t), intent(in) :: line
+    !> Expected data length.
+    integer, intent(in) :: length
 
     if (size(line%data) /= length) then
        write(0,*) 'ERROR: expected ', length, ' data items on line ', &
@@ -496,13 +541,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check the IOSTAT and error if it is bad.
   subroutine inout_check_read_iostat(file, ios, type)
 
-    ! Check the IOSTAT and error if it is bad.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    integer, intent(in) :: ios          ! iostat result
-    character(len=*), intent(in) :: type ! type being read during error
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> Iostat result.
+    integer, intent(in) :: ios
+    !> Type being read during error.
+    character(len=*), intent(in) :: type
 
     if (ios /= 0) then
        write(0,'(a,a,a,a,a,i8,a,i4)') 'ERROR: reading ', trim(type), &
@@ -515,12 +562,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to an integer.
   integer function inout_string_to_integer(file, string)
 
-    ! Convert a string to an integer.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    character(len=*), intent(in) :: string ! string to convert
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     integer :: val
     integer :: ios
@@ -533,12 +581,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to an real.
   real*8 function inout_string_to_real(file, string)
 
-    ! Convert a string to an real.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    character(len=*), intent(in) :: string ! string to convert
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     real*8 :: val
     integer :: ios
@@ -551,12 +600,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to an logical.
   logical function inout_string_to_logical(file, string)
 
-    ! Convert a string to an logical.
-
-    type(inout_file_t), intent(in) :: file ! inout file
-    character(len=*), intent(in) :: string ! string to convert
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     logical :: val
     integer :: ios
@@ -583,13 +633,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an integer from a inout file that must have the given name.
   subroutine inout_read_integer(file, name, var)
 
-    ! Read an integer from a inout file that must have the given name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    integer, intent(out) :: var           ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to store data.
+    integer, intent(out) :: var
 
     type(inout_line_t) :: line
 
@@ -603,14 +655,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real number from a inout file that must have the given
+  !> name.
   subroutine inout_read_real(file, name, var)
 
-    ! Read a real number from a inout file that must have the given
-    ! name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    real*8, intent(out) :: var            ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to store data.
+    real*8, intent(out) :: var
 
     type(inout_line_t) :: line
 
@@ -624,13 +678,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a logical from a inout file that must have a given name.
   subroutine inout_read_logical(file, name, var)
 
-    ! Read a logical from a inout file that must have a given name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    logical, intent(out) :: var           ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to store data.
+    logical, intent(out) :: var
 
     type(inout_line_t) :: line
 
@@ -644,13 +700,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a string from a inout file that must have a given name.
   subroutine inout_read_string(file, name, var)
 
-    ! Read a string from a inout file that must have a given name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    character(len=*), intent(out) :: var  ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to store data.
+    character(len=*), intent(out) :: var
 
     type(inout_line_t) :: line
 
@@ -664,14 +722,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a complex number from a inout file that must have the given
+  !> name.
   subroutine inout_read_complex(file, name, var)
 
-    ! Read a complex number from a inout file that must have the given
-    ! name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    complex*16, intent(out) :: var        ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to store data.
+    complex*16, intent(out) :: var
 
     type(inout_line_t) :: line
 
@@ -686,13 +746,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check that indices are equal as expected.
   subroutine inout_check_index(file, index, check_index)
 
-    ! Check that indices are equal as expected.
-
-    type(inout_file_t), intent(in) :: file ! inout file read from
-    integer, intent(in) :: index        ! index that was read
-    integer, intent(in) :: check_index  ! expected index
+    !> Inout file read from.
+    type(inout_file_t), intent(in) :: file
+    !> Index that was read.
+    integer, intent(in) :: index
+    !> Expected index.
+    integer, intent(in) :: check_index
 
     if (index /= check_index) then
        write(0,*) 'ERROR: reading from ', trim(file%name), &
@@ -705,13 +767,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an integer from a inout file that must have the given index.
   subroutine inout_read_indexed_integer(file, index, var)
 
-    ! Read an integer from a inout file that must have the given index.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: index          ! expected index
-    integer, intent(out) :: var           ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Expected index.
+    integer, intent(in) :: index
+    !> Variable to store data.
+    integer, intent(out) :: var
 
     type(inout_line_t) :: line
     integer :: check_index
@@ -727,13 +791,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real from a inout file that must have the given index.
   subroutine inout_read_indexed_real(file, index, var)
 
-    ! Read a real from a inout file that must have the given index.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: index          ! expected index
-    real*8, intent(out) :: var            ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Expected index.
+    integer, intent(in) :: index
+    !> Variable to store data.
+    real*8, intent(out) :: var
 
     type(inout_line_t) :: line
     integer :: check_index
@@ -749,13 +815,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a logical from a inout file that must have a given index.
   subroutine inout_read_indexed_logical(file, index, var)
 
-    ! Read a logical from a inout file that must have a given index.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: index          ! expected index
-    logical, intent(out) :: var           ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Expected index.
+    integer, intent(in) :: index
+    !> Variable to store data.
+    logical, intent(out) :: var
 
     type(inout_line_t) :: line
     integer :: check_index
@@ -771,13 +839,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a string from a inout file that must have a given index.
   subroutine inout_read_indexed_string(file, index, var)
 
-    ! Read a string from a inout file that must have a given index.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: index          ! expected index
-    character(len=*), intent(out) :: var  ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Expected index.
+    integer, intent(in) :: index
+    !> Variable to store data.
+    character(len=*), intent(out) :: var
 
     type(inout_line_t) :: line
     integer :: check_index
@@ -793,14 +863,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real from a inout file that must have the given indices.
   subroutine inout_read_indexed_2d_real(file, index1, index2, var)
 
-    ! Read a real from a inout file that must have the given indices.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: index1         ! expected first index
-    integer, intent(in) :: index2         ! expected second index
-    real*8, intent(out) :: var            ! variable to store data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Expected first index.
+    integer, intent(in) :: index1
+    !> Expected second index.
+    integer, intent(in) :: index2
+    !> Variable to store data.
+    real*8, intent(out) :: var
 
     type(inout_line_t) :: line
     integer :: check_index1, check_index2
@@ -818,13 +891,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an integer array.
   subroutine inout_read_integer_array(file, name, vals)
 
-    ! Read an integer array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    integer, pointer :: vals(:)            ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Data values.
+    integer, pointer :: vals(:)
 
     integer :: length, i
 
@@ -838,13 +913,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real array.
   subroutine inout_read_real_array(file, name, vals)
 
-    ! Read a real array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    real*8, pointer :: vals(:)            ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Data values.
+    real*8, pointer :: vals(:)
 
     integer :: length, i
 
@@ -858,13 +935,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a logical array.
   subroutine inout_read_logical_array(file, name, vals)
 
-    ! Read a logical array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    logical, pointer :: vals(:)            ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Data values.
+    logical, pointer :: vals(:)
 
     integer :: length, i
 
@@ -878,13 +957,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a string array.
   subroutine inout_read_string_array(file, name, vals)
 
-    ! Read a string array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    character(len=*), pointer :: vals(:) ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Data values.
+    character(len=*), pointer :: vals(:)
 
     integer :: length, i
 
@@ -898,13 +979,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real 2d array.
   subroutine inout_read_real_array_2d(file, name, vals)
 
-    ! Read a real 2d array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name  ! name
-    real*8, pointer :: vals(:,:)          ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Data values.
+    real*8, pointer :: vals(:,:)
 
     integer :: size1, size2, i, j
     type(inout_line_t) :: line
@@ -926,15 +1009,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an array of named lines with real data. All lines must have
+  !> the same number of data elements.
   subroutine inout_read_real_named_array(file, max_lines, names, vals)
 
-    ! Read an array of named lines with real data. All lines must have
-    ! the same number of data elements.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    integer, intent(in) :: max_lines      ! max lines to read (0 = no max)
-    character(len=MAX_CHAR_LEN), pointer :: names(:) ! names of lines
-    real*8, pointer :: vals(:,:)          ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Max lines to read (0 = no max).
+    integer, intent(in) :: max_lines
+    !> Names of lines.
+    character(len=MAX_CHAR_LEN), pointer :: names(:)
+    !> Data values.
+    real*8, pointer :: vals(:,:)
 
     type(inout_line_t), pointer :: line_array(:)
     integer :: num_lines, line_length, i, j
@@ -964,15 +1050,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an a time-indexed array of real data.
   subroutine inout_read_timed_real_array(file, line_name, name, times, vals)
 
-    ! Read an a time-indexed array of real data.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: line_name ! name of line for filename
-    character(len=*), intent(in) :: name  ! variable name
-    real*8, pointer :: times(:)         ! names of lines
-    real*8, pointer :: vals(:)          ! data values
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name of line for filename.
+    character(len=*), intent(in) :: line_name
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Names of lines.
+    real*8, pointer :: times(:)
+    !> Data values.
+    real*8, pointer :: vals(:)
     
     integer :: n_lines, n_times
     character(len=MAX_CHAR_LEN) :: read_name
@@ -1019,12 +1109,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a comment string to an inout file.
   subroutine inout_write_comment(file, comment)
 
-    ! Write a comment string to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: comment ! comment string
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Comment string.
+    character(len=*), intent(in) :: comment
 
     write(file%unit, '(a,a)') '# ', trim(comment)
     file%line_num = file%line_num + 1
@@ -1033,12 +1124,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a comment string to an inout file.
   subroutine inout_check_comment(file, comment)
 
-    ! Write a comment string to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: comment ! comment string
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Comment string.
+    character(len=*), intent(in) :: comment
 
     character(len=MAX_CHAR_LEN) :: line
     logical :: eof
@@ -1059,13 +1151,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write an integer to an inout file.
   subroutine inout_write_integer(file, name, var)
 
-    ! Write an integer to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to write.
+    integer, intent(in) :: var
 
     write(file%unit, '(a20,i20)') trim(name), var
     file%line_num = file%line_num + 1
@@ -1074,13 +1168,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a real to an inout file.
   subroutine inout_write_real(file, name, var)
 
-    ! Write a real to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    real*8, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to write.
+    real*8, intent(in) :: var
 
     write(file%unit, '(a20,e30.20)') trim(name), var
     file%line_num = file%line_num + 1
@@ -1089,13 +1185,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a logical to an inout file.
   subroutine inout_write_logical(file, name, var)
 
-    ! Write a logical to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    logical, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to write.
+    logical, intent(in) :: var
 
     write(file%unit, '(a20,l20)') trim(name), var
     file%line_num = file%line_num + 1
@@ -1104,13 +1202,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a string to an inout file.
   subroutine inout_write_string(file, name, var)
 
-    ! Write a string to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    character(len=*), intent(in) :: var ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to write.
+    character(len=*), intent(in) :: var
 
     write(file%unit, '(a20,a20)') trim(name), var
     file%line_num = file%line_num + 1
@@ -1119,13 +1219,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a complex to an inout file.
   subroutine inout_write_complex(file, name, var)
 
-    ! Write a complex to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    complex*16, intent(in) :: var       ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Variable to write.
+    complex*16, intent(in) :: var
 
     write(file%unit, '(a20,e30.20,e30.20)') trim(name), var
     file%line_num = file%line_num + 1
@@ -1134,14 +1236,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write an integer to an inout file.
   subroutine inout_write_indexed_integer(file, name, index, var)
 
-    ! Write an integer to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: index        ! index to write
-    integer, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Index to write.
+    integer, intent(in) :: index
+    !> Variable to write.
+    integer, intent(in) :: var
 
     write(file%unit, '(a20,i20,i20)') trim(name), index, var
     file%line_num = file%line_num + 1
@@ -1150,14 +1255,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a real to an inout file.
   subroutine inout_write_indexed_real(file, name, index, var)
 
-    ! Write a real to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: index        ! index to write
-    real*8, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Index to write.
+    integer, intent(in) :: index
+    !> Variable to write.
+    real*8, intent(in) :: var
 
     write(file%unit, '(a20,i20,e30.20)') trim(name), index, var
     file%line_num = file%line_num + 1
@@ -1166,14 +1274,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a logical to an inout file.
   subroutine inout_write_indexed_logical(file, name, index, var)
 
-    ! Write a logical to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: index        ! index to write
-    logical, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Index to write.
+    integer, intent(in) :: index
+    !> Variable to write.
+    logical, intent(in) :: var
 
     write(file%unit, '(a20,i20,l20)') trim(name), index, var
     file%line_num = file%line_num + 1
@@ -1182,14 +1293,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a string to an inout file.
   subroutine inout_write_indexed_string(file, name, index, var)
 
-    ! Write a string to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: index        ! index to write
-    character(len=*), intent(in) :: var ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Index to write.
+    integer, intent(in) :: index
+    !> Variable to write.
+    character(len=*), intent(in) :: var
 
     write(file%unit, '(a20,i20,a20)') trim(name), index, var
     file%line_num = file%line_num + 1
@@ -1198,14 +1312,17 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a complex to an inout file.
   subroutine inout_write_indexed_complex(file, name, index, var)
 
-    ! Write a complex to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name
-    integer, intent(in) :: index        ! index to write
-    complex*16, intent(in) :: var       ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name.
+    character(len=*), intent(in) :: name
+    !> Index to write.
+    integer, intent(in) :: index
+    !> Variable to write.
+    complex*16, intent(in) :: var
 
     write(file%unit, '(a20,i20,e30.20,e30.20)') trim(name), index, var
     file%line_num = file%line_num + 1
@@ -1214,12 +1331,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a real to an inout file.
   subroutine inout_write_unnamed_real(file, var)
 
-    ! Write a real to an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    real*8, intent(in) :: var          ! variable to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable to write.
+    real*8, intent(in) :: var
 
     write(file%unit, '(e30.20)') var
     file%line_num = file%line_num + 1
@@ -1228,13 +1346,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write an integer array.
   subroutine inout_write_integer_array(file, name, vals)
 
-    ! Write an integer array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! variable name
-    integer, intent(in) :: vals(:) ! values to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Values to write.
+    integer, intent(in) :: vals(:)
 
     integer :: length, i
 
@@ -1248,13 +1368,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a real array.
   subroutine inout_write_real_array(file, name, vals)
 
-    ! Write a real array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! variable name
-    real*8, intent(in) :: vals(:) ! values to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Values to write.
+    real*8, intent(in) :: vals(:)
 
     integer :: length, i
 
@@ -1268,13 +1390,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a logical array.
   subroutine inout_write_logical_array(file, name, vals)
 
-    ! Write a logical array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! variable name
-    logical, intent(in) :: vals(:) ! values to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Values to write.
+    logical, intent(in) :: vals(:)
 
     integer :: length, i
 
@@ -1288,13 +1412,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a character array.
   subroutine inout_write_string_array(file, name, vals)
 
-    ! Write a character array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! variable name
-    character(len=*), intent(in) :: vals(:) ! values to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Values to write.
+    character(len=*), intent(in) :: vals(:)
 
     integer :: length, i
 
@@ -1308,13 +1434,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a real 2d array.
   subroutine inout_write_real_array_2d(file, name, vals)
 
-    ! Write a real 2d array.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! variable name
-    real*8, intent(in) :: vals(:,:) ! values to write
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Variable name.
+    character(len=*), intent(in) :: name
+    !> Values to write.
+    real*8, intent(in) :: vals(:,:)
 
     integer :: size1, size2, i, j
 

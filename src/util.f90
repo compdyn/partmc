@@ -1,31 +1,38 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Common utility functions.
 
+!> \file
+!> The pmc_util module.
+
+!> Common utility subroutines.
 module pmc_util
 
   use pmc_constants
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  
+
+  !> Maximum number of IO units usable simultaneously.
   integer, parameter :: max_units = 200
+  !> Minimum unit number to allocate.
   integer, parameter :: unit_offset = 10
+  !> Table of unit numbers storing allocation status.
   logical, save :: unit_used(max_units) = .false.
 
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Errors unless condition_ok is true.
   subroutine assert_msg(code, condition_ok, error_msg)
 
-    ! Errors unless condition_ok is true.
-
-    integer, intent(in) :: code         ! status code to use if assertion fails
-    logical, intent(in) :: condition_ok ! whether the assertion is ok
-    character(len=*), intent(in) :: error_msg ! msg if assertion fails
+    !> Status code to use if assertion fails.
+    integer, intent(in) :: code
+    !> Whether the assertion is ok.
+    logical, intent(in) :: condition_ok
+    !> Msg if assertion fails.
+    character(len=*), intent(in) :: error_msg
 
     integer :: ierr
     character(len=100) :: code_str
@@ -45,12 +52,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Errors unless condition_ok is true.
   subroutine assert(code, condition_ok)
 
-    ! Errors unless condition_ok is true.
-
-    integer, intent(in) :: code         ! status code to use if assertion fails
-    logical, intent(in) :: condition_ok ! whether the assertion is ok
+    !> Status code to use if assertion fails.
+    integer, intent(in) :: code
+    !> Whether the assertion is ok.
+    logical, intent(in) :: condition_ok
 
     call assert_msg(code, condition_ok, 'assertion failed')
 
@@ -58,11 +66,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Error immediately.
   subroutine die(code)
 
-    ! Error immediately.
-
-    integer, intent(in) :: code         ! status code to use if assertion fails
+    !> Status code to use if assertion fails.
+    integer, intent(in) :: code
 
     call assert(code, .false.)
 
@@ -70,12 +78,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Error immediately.
   subroutine die_msg(code, error_msg)
 
-    ! Error immediately.
-
-    integer, intent(in) :: code         ! status code to use if assertion fails
-    character(len=*), intent(in) :: error_msg ! msg if assertion fails
+    !> Status code to use if assertion fails.
+    integer, intent(in) :: code
+    !> Msg if assertion fails.
+    character(len=*), intent(in) :: error_msg
 
     call assert_msg(code, .false., error_msg)
 
@@ -83,9 +92,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns an available unit number. This should be freed by free_unit().
   integer function get_unit()
-    
-    ! Returns an available unit number. This should be freed by free_unit().
 
     integer i
     logical found_unit
@@ -108,9 +116,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Frees a unit number returned by get_unit().
   subroutine free_unit(unit)
-
-    ! Frees a unit number returned by get_unit().
 
     integer, intent(in) :: unit
 
@@ -119,15 +126,17 @@ contains
   end subroutine free_unit
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine open_output(basename, suffix, out_unit)
-    
-    ! Allocate a new unit and open it with a filename given by
-    ! basename + suffix.
 
-    character(len=*), intent(in) :: basename ! basename of the output file
-    character(len=*), intent(in) :: suffix ! suffix of the output file
-    integer, intent(out) :: out_unit    ! unit for the file
+  !> Allocate a new unit and open it with a filename given by
+  !> basename + suffix.
+  subroutine open_output(basename, suffix, out_unit)
+
+    !> Basename of the output file.
+    character(len=*), intent(in) :: basename
+    !> Suffix of the output file.
+    character(len=*), intent(in) :: suffix
+    !> Unit for the file.
+    integer, intent(out) :: out_unit
 
     character(len=len(basename)+len(suffix)) :: filename
     
@@ -141,13 +150,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Initializes the random number generator to the state defined by
+  !> the given seed. If the seed is 0 then a seed is auto-generated
+  !> from the current time.
   subroutine pmc_srand(seed)
 
-    ! Initializes the random number generator to the state defined by
-    ! the given seed. If the seed is 0 then a seed is auto-generated
-    ! from the current time.
-
-    integer, intent(in) :: seed         ! random number generator seed
+    !> Random number generator seed.
+    integer, intent(in) :: seed
 
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
@@ -175,11 +184,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns a random number between 0 and 1. Call this function
+  !> rather than rand() or random_number() directly, as some
+  !> compilers have trouble with one or the other.
   real*8 function pmc_rand()
-
-    ! Returns a random number between 0 and 1. Call this function
-    ! rather than rand() or random_number() directly, as some
-    ! compilers have trouble with one or the other.
 
     real*8 rnd
 
@@ -190,11 +198,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns a random integer between 1 and n.
   integer function pmc_rand_int(n)
 
-    ! Returns a random integer between 1 and n.
-
-    integer, intent(in) :: n            ! maximum random number to generate
+    !> Maximum random number to generate.
+    integer, intent(in) :: n
 
     pmc_rand_int = mod(int(pmc_rand() * dble(n)), n) + 1
     call assert(515838689, pmc_rand_int >= 1)
@@ -204,13 +212,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Round val to floor(val) or ceil(val) with probability
+  !> proportional to the relative distance from val. That is,
+  !> Prob(prob_round(val) == floor(val)) = ceil(val) - val.
   integer function prob_round(val)
 
-    ! Round val to floor(val) or ceil(val) with probability
-    ! proportional to the relative distance from val. That is,
-    ! Prob(prob_round(val) == floor(val)) = ceil(val) - val.
-
-    real*8, intent(in) :: val           ! value to round
+    !> Value to round.
+    real*8, intent(in) :: val
     
     prob_round = int(val)
     if (pmc_rand() .lt. mod(val, 1d0)) then
@@ -220,64 +228,66 @@ contains
   end function prob_round
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  real*8 function vol2rad(v)            ! radius (m)
 
-    ! Convert volume to radius.
+  !> Convert volume (m^3) to radius (m).
+  real*8 function vol2rad(v)
 
-    real*8, intent(in) :: v             ! volume (m^3)
+    !> Volume (m^3).
+    real*8, intent(in) :: v
     
     vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
     
   end function vol2rad
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  real*8 function vol2diam(v)           ! diameter (m)
-    
-    ! Convert volume to diameter.
 
-    real*8, intent(in) :: v             ! volume (m^3)
+  !> Convert volume (m^3) to diameter (m).
+  real*8 function vol2diam(v)
+
+    !> Volume (m^3).
+    real*8, intent(in) :: v
     
     vol2diam = 2d0 * (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
     
   end function vol2diam
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  real*8 function rad2vol(r)            ! volume (m^3)
-    
-    ! Convert radius to volume.
 
-    real*8, intent(in) :: r             ! radius (m)
+  !> Convert radius (m) to volume (m^3).
+  real*8 function rad2vol(r)
+
+    !> Radius (m).
+    real*8, intent(in) :: r
     
     rad2vol = 4d0 / 3d0 * const%pi * r**3d0
     
   end function rad2vol
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  real*8 function diam2vol(d)           ! volume (m^3)
-    
-    ! Convert diameter to volume.
 
-    real*8, intent(in) :: d             ! diameter (m)
+  !> Convert diameter (m) to volume (m^3).
+  real*8 function diam2vol(d)
+
+    !> Diameter (m).
+    real*8, intent(in) :: d
     
     diam2vol = 4d0 / 3d0 * const%pi * (d / 2d0)**3d0
     
   end function diam2vol
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Tests whether two real numbers are almost equal using only a
+  !> relative tolerance.
   logical function almost_equal(d1, d2)
     
-    ! Tests whether two real numbers are almost equal using only a
-    ! relative tolerance.
+    !> First number to compare.
+    real*8, intent(in) :: d1
+    !> Second number to compare.
+    real*8, intent(in) :: d2
     
-    real*8, intent(in) :: d1            ! first number to compare
-    real*8, intent(in) :: d2            ! second number to compare
-    
-    real*8, parameter :: eps = 1d-8     ! relative tolerance
+    !> Relative tolerance.
+    real*8, parameter :: eps = 1d-8
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -293,17 +303,20 @@ contains
   end function almost_equal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Tests whether two real numbers are almost equal using an
+  !> absolute and relative tolerance.
   logical function almost_equal_abs(d1, d2, abs_tol)
     
-    ! Tests whether two real numbers are almost equal using an
-    ! absolute and relative tolerance.
+    !> First number to compare.
+    real*8, intent(in) :: d1
+    !> Second number to compare.
+    real*8, intent(in) :: d2
+    !> Tolerance for when d1 equals d2.
+    real*8, intent(in) :: abs_tol
     
-    real*8, intent(in) :: d1            ! first number to compare
-    real*8, intent(in) :: d2            ! second number to compare
-    real*8, intent(in) :: abs_tol       ! tolerance for when d1 equals d2
-    
-    real*8, parameter :: eps = 1d-8     ! relative tolerance
+    !> Relative tolerance.
+    real*8, parameter :: eps = 1d-8
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -320,24 +333,30 @@ contains
   end function almost_equal_abs
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Computes whether an event is scheduled to take place.
+  !!
+  !! The events should occur ideally at times 0, interval, 2*interval,
+  !! etc. The events are guaranteed to occur at least interval * (1 -
+  !! tolerance) apart, and if at least interval time has passed then
+  !! the next call is guaranteed to do the event. Otherwise the
+  !! timestep is used to guess whether to do the event.
   subroutine check_event(time, timestep, interval, last_time, &
        do_event)
     
-    ! Computes whether an event is scheduled to take place. The events
-    ! should occur ideally at times 0, interval, 2*interval, etc. The
-    ! events are guaranteed to occur at least interval * (1 -
-    ! tolerance) apart, and if at least interval time has passed then
-    ! the next call is guaranteed to do the event. Otherwise the
-    ! timestep is used to guess whether to do the event.
+    !> Current time.
+    real*8, intent(in) :: time
+    !> Estimate of the time to the next call.
+    real*8, intent(in) :: timestep
+    !> How often the event should be done.
+    real*8, intent(in) :: interval
+    !> When the event was last done.
+    real*8, intent(inout) :: last_time
+    !> Whether the event should be done.
+    logical, intent(out) :: do_event
     
-    real*8, intent(in) :: time          ! current time
-    real*8, intent(in) :: timestep      ! estimate of the time to the next call
-    real*8, intent(in) :: interval      ! how often the event should be done
-    real*8, intent(inout) :: last_time  ! when the event was last done
-    logical, intent(out) :: do_event    ! whether the event should be done
-    
-    real*8, parameter :: tolerance = 1d-6 ! fuzz for event occurance
+    !> Fuzz for event occurance.
+    real*8, parameter :: tolerance = 1d-6
     
     real*8 closest_interval_time
     
@@ -375,13 +394,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Opens a file for reading that must already exist, checking for
+  !> errors.
   subroutine open_existing(unit, filename)
 
-    ! Opens a file for reading that must already exist, checking for
-    ! errors.
-
-    integer, intent(in) :: unit         ! unit to open with
-    character(len=*), intent(in) :: filename ! filename of file to open
+    !> Unit to open with.
+    integer, intent(in) :: unit
+    !> Filename of file to open.
+    character(len=*), intent(in) :: filename
 
     integer ios
 
@@ -396,14 +416,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Makes a linearly spaced array of length n from min to max.
   subroutine linspace(min_x, max_x, n, x)
 
-    ! Makes a linearly spaced array of length n from min to max.
-
-    real*8, intent(in) :: min_x         ! minimum array value
-    real*8, intent(in) :: max_x         ! maximum array value
-    integer, intent(in) :: n            ! number of entries
-    real*8, intent(out) :: x(n)         ! array
+    !> Minimum array value.
+    real*8, intent(in) :: min_x
+    !> Maximum array value.
+    real*8, intent(in) :: max_x
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Array.
+    real*8, intent(out) :: x(n)
 
     integer :: i
     real*8 :: a
@@ -422,14 +445,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Makes a logarithmically spaced array of length n from min to max.
   subroutine logspace(min_x, max_x, n, x)
 
-    ! Makes a logarithmically spaced array of length n from min to max.
-
-    real*8, intent(in) :: min_x         ! minimum array value
-    real*8, intent(in) :: max_x         ! maximum array value
-    integer, intent(in) :: n            ! number of entries
-    real*8, intent(out) :: x(n)         ! array
+    !> Minimum array value.
+    real*8, intent(in) :: min_x
+    !> Maximum array value.
+    real*8, intent(in) :: max_x
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Array.
+    real*8, intent(out) :: x(n)
 
     real*8 :: log_x(n)
 
@@ -447,18 +473,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Find the position of a real number in a 1D linear array.
+  !!
+  !! If xa is the array allocated by linspace(min_x, max_x, n, xa)
+  !! then i = linspace_find(min_x, max_x, n, x) returns the index i
+  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If
+  !! x >= max_x then i = n - 1.  If x < min_x then i = 1. Thus
+  !! 1 <= i <= n - 1.
+  !!
+  !! This is equivalent to using find_1d() but much faster if the
+  !! array is linear.
   integer function linspace_find(min_x, max_x, n, x)
 
-    ! If xa is the array allocated by linspace(min_x, max_x, n, xa)
-    ! then i = linspace_find(min_x, max_x, n, x) returns the index i
-    ! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If
-    ! x >= max_x then i = n - 1.  If x < min_x then i = 1. Thus
-    ! 1 <= i <= n - 1.
-
-    real*8, intent(in) :: min_x         ! minimum array value
-    real*8, intent(in) :: max_x         ! maximum array value
-    integer, intent(in) :: n            ! number of entries
-    real*8, intent(in) :: x             ! value
+    !> Minimum array value.
+    real*8, intent(in) :: min_x
+    !> Maximum array value.
+    real*8, intent(in) :: max_x
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Value.
+    real*8, intent(in) :: x
 
     linspace_find = floor((x - min_x) / (max_x - min_x) * dble(n - 1)) + 1
     linspace_find = min(linspace_find, n - 1)
@@ -468,17 +502,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Find the position of a real number in a 1D logarithmic array.
+  !!
+  !! If xa is the array allocated by logspace(min_x, max_x, n, xa) then
+  !! i = logspace_find(min_x, max_x, n, x) returns the index i satisfying
+  !! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
+  !! If x < min_x then i = 1. Thus 1 <= i <= n.
+  !!
+  !! This is equivalent to using find_1d() but much faster if the
+  !! array is known to be logarithmic.
   integer function logspace_find(min_x, max_x, n, x)
 
-    ! If xa is the array allocated by logspace(min_x, max_x, n, xa) then
-    ! i = logspace_find(min_x, max_x, n, x) returns the index i satisfying
-    ! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
-    ! If x < min_x then i = 1. Thus 1 <= i <= n.
-
-    real*8, intent(in) :: min_x         ! minimum array value
-    real*8, intent(in) :: max_x         ! maximum array value
-    integer, intent(in) :: n            ! number of entries
-    real*8, intent(in) :: x             ! value
+    !> Minimum array value.
+    real*8, intent(in) :: min_x
+    !> Maximum array value.
+    real*8, intent(in) :: max_x
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Value.
+    real*8, intent(in) :: x
 
     logspace_find = linspace_find(log(min_x), log(max_x), n, log(x))
     
@@ -486,16 +528,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer function find_1d(n, x_vals, x) ! position of x
+  !> Find the position of a real number in an arbitrary 1D array.
+  !!
+  !! Takes an array of x_vals, and a single x value, and returns the
+  !! position p such that x_vals(p) <= x < x_vals(p+1). If p == 0 then
+  !! x < x_vals(1) and if p == n then x_vals(n) <= x. x_vals must be
+  !! sorted in increasing order.
+  !!
+  !! If the array is known to be linearly or logarithmically spaced
+  !! then linspace_find() or logspace_find() will be much faster.
+  integer function find_1d(n, x_vals, x)
 
-    ! Takes an array of x_vals, and a single x value, and returns the
-    ! position p such that x_vals(p) <= x < x_vals(p+1). If p == 0
-    ! then x < x_vals(1) and if p == n then x_vals(n) <= x. x_vals
-    ! must be sorted in increasing order.
-
-    integer, intent(in) :: n            ! number of values
-    real*8, intent(in) :: x_vals(n)     ! x value array, must be sorted
-    real*8, intent(in) :: x             ! value to interpolate at
+    !> Number of values.
+    integer, intent(in) :: n
+    !> X value array, must be sorted.
+    real*8, intent(in) :: x_vals(n)
+    !> Value to interpolate at.
+    real*8, intent(in) :: x
 
     integer p
 
@@ -517,15 +566,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function interp_1d(x_vals, y_vals, x) ! y value at x
+  !> 1D linear interpolation.
+  !!
+  !! Takes an array of x and y, and a single x value, and returns the
+  !! corresponding y using linear interpolation. x_vals must be
+  !! sorted.
+  real*8 function interp_1d(x_vals, y_vals, x)
 
-    ! Takes an array of x and y, and a single x value, and returns the
-    ! corresponding y using linear interpolation. x_vals must be
-    ! sorted.
-
-    real*8, intent(in) :: x_vals(:)     ! x value array, must be sorted
-    real*8, intent(in) :: y_vals(size(x_vals)) ! y value array
-    real*8, intent(in) :: x             ! value to interpolate at
+    !> X value array, must be sorted.
+    real*8, intent(in) :: x_vals(:)
+    !> Y value array.
+    real*8, intent(in) :: y_vals(size(x_vals))
+    !> Value to interpolate at.
+    real*8, intent(in) :: x
 
     integer :: n, p
     real*8 :: y, alpha
@@ -546,11 +599,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to an integer.
   integer function string_to_integer(string)
 
-    ! Convert a string to an integer.
-
-    character(len=*), intent(in) :: string ! string to convert
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     integer :: val
     integer :: ios
@@ -567,11 +620,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to a real.
   real*8 function string_to_real(string)
 
-    ! Convert a string to an real.
-
-    character(len=*), intent(in) :: string ! string to convert
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     real*8 :: val
     integer :: ios
@@ -588,11 +641,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a string to a logical.
   logical function string_to_logical(string)
 
-    ! Convert a string to an logical.
-
-    character(len=*), intent(in) :: string ! string to convert
+    !> String to convert.
+    character(len=*), intent(in) :: string
     
     logical :: val
     integer :: ios
@@ -620,13 +673,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Sample the given continuous probability density function.
+  !!
+  !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
+  !! sum(pdf).
   integer function sample_cts_pdf(n, pdf)
 
-    ! Sample the given probability density function. That is,
-    ! return a number k = 1,...,n such that prob(k) = pdf(k) / sum(pdf).
-
-    integer, intent(in) :: n            ! number of entries
-    real*8, intent(in) :: pdf(n)        ! probability density function
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Probability density function.
+    real*8, intent(in) :: pdf(n)
                                         ! (not normalized)
 
     real*8 :: pdf_max
@@ -656,13 +712,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Sample the given discrete probability density function.
+  !!
+  !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
+  !! sum(pdf).
   integer function sample_disc_pdf(n, pdf)
 
-    ! Sample the given probability density function. That is,
-    ! return a number k = 1,...,n such that prob(k) = pdf(k) / sum(pdf).
-
-    integer, intent(in) :: n            ! number of entries
-    integer, intent(in) :: pdf(n)       ! probability density function
+    !> Number of entries.
+    integer, intent(in) :: n
+    !> Probability density function.
+    integer, intent(in) :: pdf(n)
 
     integer :: pdf_max, k
     logical :: found
@@ -690,16 +749,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a continuous vector into a discrete vector.
+  !!
+  !! Use n_samp samples. Each discrete entry is sampled with a PDF
+  !! given by vec_cts. This is very slow for large n_samp or large n.
   subroutine sample_vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
     
-    ! Convert a continuous vector into a discrete vector with n_samp
-    ! samples. Each discrete entry is sampled with a PDF given by
-    ! vec_cts. This is very slow for large n_samp or large n.
-    
-    integer, intent(in) :: n          ! number of entries in vector
-    real*8, intent(in) :: vec_cts(n)  ! continuous vector
-    integer, intent(in) :: n_samp     ! number of discrete samples to use
-    integer, intent(out) :: vec_disc(n) ! discretized vector
+    !> Number of entries in vector.
+    integer, intent(in) :: n
+    !> Continuous vector.
+    real*8, intent(in) :: vec_cts(n)
+    !> Number of discrete samples to use.
+    integer, intent(in) :: n_samp
+    !> Discretized vector.
+    integer, intent(out) :: vec_disc(n)
 
     integer :: i_samp, k
 
@@ -713,16 +776,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a continuous vector into a discrete vector.
+  !!
+  !! Use n_samp samples. Returns discrete vector whose relative entry
+  !! sizes are \f$ \ell_1 \f$ closest to the continuous vector.
   subroutine vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
     
-    ! Convert a continuous vector into a discrete vector with n_samp
-    ! samples. Returns discrete vector whose relative entry sizes
-    ! are \ell_1 closest to the continuous vector.
-    
-    integer, intent(in) :: n          ! number of entries in vector
-    real*8, intent(in) :: vec_cts(n)  ! continuous vector
-    integer, intent(in) :: n_samp     ! number of discrete samples to use
-    integer, intent(out) :: vec_disc(n) ! discretized vector
+    !> Number of entries in vector.
+    integer, intent(in) :: n
+    !> Continuous vector.
+    real*8, intent(in) :: vec_cts(n)
+    !> Number of discrete samples to use.
+    integer, intent(in) :: n_samp
+    !> Discretized vector.
+    integer, intent(out) :: vec_disc(n)
     
     integer :: k(1)
     real*8 :: vec_tot
@@ -755,26 +822,28 @@ contains
   end subroutine vec_cts_to_disc
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Computes the average of an array of integer numbers.
   subroutine average_integer(int_vec, int_avg)
     
-    ! Computes the average of an array of integer numbers.
-    
-    integer, intent(in) :: int_vec(:)   ! array of integer numbers
-    integer, intent(out) :: int_avg     ! average of int_vec
+    !> Array of integer numbers.
+    integer, intent(in) :: int_vec(:)
+    !> Average of int_vec.
+    integer, intent(out) :: int_avg
     
     int_avg = sum(int_vec) / size(int_vec)
     
   end subroutine average_integer
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Computes the average of an array of real numbers.
   subroutine average_real(real_vec, real_avg)
     
-    ! Computes the average of an array of real numbers.
-    
-    real*8, intent(in) :: real_vec(:) ! array of real numbers
-    real*8, intent(out) :: real_avg   ! average of real_vec
+    !> Array of real numbers.
+    real*8, intent(in) :: real_vec(:)
+    !> Average of real_vec.
+    real*8, intent(out) :: real_avg
     
     real_avg = sum(real_vec) / dble(size(real_vec))
     
@@ -782,12 +851,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Strip the extension to find the basename.
   subroutine get_basename(filename, basename)
 
-    ! Strip the extension to find the basename.
-
-    character(len=*), intent(in) :: filename ! full filename
-    character(len=*), intent(out) :: basename ! basename
+    !> Full filename.
+    character(len=*), intent(in) :: filename
+    !> Basename.
+    character(len=*), intent(out) :: basename
 
     integer :: i
 
@@ -801,13 +871,12 @@ contains
   end subroutine get_basename
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Current date and time in ISO 8601 format.
   subroutine iso8601_date_and_time(date_time)
 
-    ! Write the current date and time into the date_time string,
-    ! formatted according to ISO 8601.
-
-    character(len=*), intent(out) :: date_time ! result string
+    !> Result string.
+    character(len=*), intent(out) :: date_time
 
     character(len=10) :: date, time, zone
 

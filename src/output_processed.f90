@@ -1,9 +1,11 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Data processing.
 
+!> \file
+!> The pmc_output_processed module.
+
+!> Transform data into arrays for output to a NetCDF file.
 module pmc_output_processed
 
   use pmc_bin_grid
@@ -22,13 +24,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Open the processed state output file.
   subroutine output_processed_open(prefix, i_loop, ncid)
 
-    ! Open the processed state output file.
-
-    character(len=*), intent(in) :: prefix ! prefix of files to write
-    integer, intent(in) :: i_loop       ! current loop number
-    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+    !> Prefix of files to write.
+    character(len=*), intent(in) :: prefix
+    !> Current loop number.
+    integer, intent(in) :: i_loop
+    !> New NetCDF file ID, in data mode.
+    integer, intent(out) :: ncid
 
     character(len=len(prefix)+20) :: filename
     character(len=500) :: history
@@ -48,11 +52,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Close the processed state output file.
   subroutine output_processed_close(ncid)
 
-    ! Close the processed state output file.
-
-    integer, intent(out) :: ncid        ! new NetCDF file ID, in data mode
+    !> New NetCDF file ID, in data mode.
+    integer, intent(out) :: ncid
 
     call pmc_nc_check(nf90_close(ncid))
 
@@ -60,37 +64,48 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current processed state.
   subroutine output_processed(ncid, process_spec_list, bin_grid, &
        aero_data, aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
-    ! Write the current processed state.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! process specs
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    integer, intent(in) :: index        ! filename index
-    real*8, intent(in) :: time          ! current time (s)
-    real*8, intent(in) :: del_t         ! current output time-step (s)
-    integer, intent(in) :: i_loop       ! current loop number
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Process specs.
+    type(process_spec_t), intent(in) :: process_spec_list(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current output time-step (s).
+    real*8, intent(in) :: del_t
+    !> Current loop number.
+    integer, intent(in) :: i_loop
 
     integer :: i
 
     call process_time(ncid, time, index, del_t)
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
-          call process_env(ncid, process_spec_list(i)%suffix, &
+          call process_env(ncid, process_spec_list(i)%name, &
                time, index, env_state)
        elseif (process_spec_list(i)%type == "gas") then
-          call process_gas(ncid, process_spec_list(i)%suffix, &
+          call process_gas(ncid, process_spec_list(i)%name, &
                time, index, gas_data, gas_state)
        elseif (process_spec_list(i)%type == "aero") then
-          call process_aero(ncid, process_spec_list(i)%suffix, &
+          call process_aero(ncid, process_spec_list(i)%name, &
                time, index, bin_grid, aero_data, aero_state)
        elseif ((process_spec_list(i)%type == "kappa") &
           .or. (process_spec_list(i)%type == "comp") &
@@ -108,37 +123,47 @@ contains
   end subroutine output_processed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Write the current binned data.
   subroutine output_processed_binned(ncid, process_spec_list, &
        bin_grid, aero_data, aero_binned, gas_data, gas_state, env_state, &
        index, time, del_t)
-
-    ! Write the current binned data.
     
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! process specs
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_binned_t), intent(in) :: aero_binned ! binned aerosol data
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    integer, intent(in) :: index        ! filename index
-    real*8, intent(in) :: time          ! current time (s)
-    real*8, intent(in) :: del_t         ! current output time-step (s)
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Process specs.
+    type(process_spec_t), intent(in) :: process_spec_list(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(in) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current output time-step (s).
+    real*8, intent(in) :: del_t
 
     integer :: i
 
     call process_time(ncid, time, index, del_t)
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
-          call process_env(ncid, process_spec_list(i)%suffix, &
+          call process_env(ncid, process_spec_list(i)%name, &
                time, index, env_state)
        elseif (process_spec_list(i)%type == "gas") then
-          call process_gas(ncid, process_spec_list(i)%suffix, &
+          call process_gas(ncid, process_spec_list(i)%name, &
                time, index, gas_data, gas_state)
        elseif (process_spec_list(i)%type == "aero") then
-          call output_aero(ncid, process_spec_list(i)%suffix, &
+          call output_aero(ncid, process_spec_list(i)%name, &
                time, index, bin_grid, aero_data, aero_binned)
        end if
     end do
@@ -147,13 +172,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the time dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
   subroutine ensure_nc_dim_time(ncid, dimid_time)
 
-    ! Write the time dimension to the given NetCDF file if it is not
-    ! already present and in any case return the associated dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    integer, intent(out) :: dimid_time  ! dimid of the time dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the time dimension.
+    integer, intent(out) :: dimid_time
 
     integer :: status, varid_time, varid_time_widths
 
@@ -178,14 +204,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the radius dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
   subroutine ensure_nc_dim_radius(ncid, bin_grid, dimid_radius)
 
-    ! Write the radius dimension to the given NetCDF file if it is not
-    ! already present and in any case return the associated dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    integer, intent(out) :: dimid_radius ! dimid of the radius dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Dimid of the radius dimension.
+    integer, intent(out) :: dimid_radius
 
     integer :: status, i_bin, varid_radius
     integer :: dimid_radius_edges, varid_radius_edges, varid_radius_widths
@@ -230,15 +258,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero species dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
   subroutine ensure_nc_dim_aero_species(ncid, aero_data, dimid_aero_species)
 
-    ! Write the aero species dimension to the given NetCDF file if it
-    ! is not already present and in any case return the associated
-    ! dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    integer, intent(out) :: dimid_aero_species ! dimid of the species dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_aero_species
 
     integer :: status, i_spec
     integer :: varid_aero_species, varid_aero_species_widths
@@ -288,15 +318,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the gas species dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
   subroutine ensure_nc_dim_gas_species(ncid, gas_data, dimid_gas_species)
 
-    ! Write the gas species dimension to the given NetCDF file if it
-    ! is not already present and in any case return the associated
-    ! dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(gas_data_t), intent(in) :: gas_data ! gas_data structure
-    integer, intent(out) :: dimid_gas_species ! dimid of the species dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Gas_data structure.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_gas_species
 
     integer :: status, i_spec
     integer :: varid_gas_species, varid_gas_species_widths
@@ -346,13 +378,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the unit dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
   subroutine ensure_nc_dim_unit(ncid, dimid_unit)
 
-    ! Write the unit dimension to the given NetCDF file if it is not
-    ! already present and in any case return the associated dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    integer, intent(out) :: dimid_unit  ! dimid of the unit dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the unit dimension.
+    integer, intent(out) :: dimid_unit
 
     integer :: status, varid_unit, unit_centers(4)
     character(len=(4*30)) :: unit_names, unit_units
@@ -383,13 +416,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the env dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
   subroutine ensure_nc_dim_env(ncid, dimid_env)
 
-    ! Write the env dimension to the given NetCDF file if it is not
-    ! already present and in any case return the associated dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    integer, intent(out) :: dimid_env  ! dimid of the env dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the env dimension.
+    integer, intent(out) :: dimid_env
 
     integer :: status, varid_env, env_centers(4)
     character(len=(4*30)) :: env_names, env_units
@@ -420,15 +454,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the step dimension for the given process_spec to the given
+  !> NetCDF file if it is not already present and in any case return
+  !> the associated dimid.
   subroutine ensure_nc_dim_step(ncid, process_spec, dimid_step)
 
-    ! Write the step dimension for the given process_spec to the given
-    ! NetCDF file if it is not already present and in any case return
-    ! the associated dimid.
-
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec ! process spec
-    integer, intent(out) :: dimid_step  ! dimid of the step dimension
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
+    !> Dimid of the step dimension.
+    integer, intent(out) :: dimid_step
 
     integer :: status, i_step, varid_step
     integer :: dimid_step_edges, varid_step_edges, varid_step_widths
@@ -517,8 +553,10 @@ contains
 
   subroutine ensure_nc_var_env_state(ncid, varid_env_state)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    integer, intent(out) :: varid_env_state ! varid of env_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Varid of env_state.
+    integer, intent(out) :: varid_env_state
 
     integer :: dimid_time, dimid_env, dimids_env_state(2), status
 
@@ -545,9 +583,12 @@ contains
 
   subroutine ensure_nc_var_gas(ncid, gas_data, varid_gas)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    integer, intent(out) :: varid_gas   ! varid of gas
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Varid of gas.
+    integer, intent(out) :: varid_gas
 
     type(inout_file_t) :: file
     integer :: i_spec, status
@@ -577,10 +618,14 @@ contains
 
   subroutine ensure_nc_var_aero(ncid, bin_grid, aero_data, varid_aero)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    integer, intent(out) :: varid_aero  ! varid of aero
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Varid of aero.
+    integer, intent(out) :: varid_aero
 
     integer :: dimid_time, dimid_radius, dimid_aero_species, dimid_unit
     integer :: status, dimids_aero(4)
@@ -612,16 +657,21 @@ contains
   subroutine ensure_nc_var_hist(ncid, process_spec, bin_grid, &
        aero_data, varid_hist)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    type(process_spec_t), intent(in) :: process_spec ! process spec
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    integer, intent(out) :: varid_hist  ! varid of hist
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Varid of hist.
+    integer, intent(out) :: varid_hist
 
     integer :: dimid_time, dimid_step, dimid_radius, dimid_aero_species
     integer :: dimid_unit, status, dimids_hist(5)
 
-    status = nf90_inq_varid(ncid, process_spec%suffix, varid_hist)
+    status = nf90_inq_varid(ncid, process_spec%name, varid_hist)
     if (status == NF90_NOERR) return
     if (status /= NF90_ENOTVAR) call pmc_nc_check(status)
 
@@ -636,7 +686,7 @@ contains
 
     dimids_hist = (/ dimid_step, dimid_radius, dimid_aero_species, &
          dimid_unit, dimid_time /)
-    call pmc_nc_check(nf90_def_var(ncid, process_spec%suffix, NF90_DOUBLE, &
+    call pmc_nc_check(nf90_def_var(ncid, process_spec%name, NF90_DOUBLE, &
          dimids_hist, varid_hist))
     call pmc_nc_check(nf90_put_att(ncid, varid_hist, "unit", "1"))
 
@@ -648,10 +698,14 @@ contains
 
   subroutine process_time(ncid, time, index, del_t)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    real*8, intent(in) :: del_t         ! output timestep of current time
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Output timestep of current time.
+    real*8, intent(in) :: del_t
 
     integer :: dimid_time, varid_time, varid_time_widths
 
@@ -670,11 +724,16 @@ contains
 
   subroutine process_env(ncid, suffix, time, index, env_state)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: suffix ! suffix of the file
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Suffix of the file.
+    character(len=*), intent(in) :: suffix
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     integer :: varid_env_state
     integer :: start(2), count(2)
@@ -698,12 +757,18 @@ contains
 
   subroutine process_gas(ncid, suffix, time, index, gas_data, gas_state)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: suffix ! suffix of the file
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Suffix of the file.
+    character(len=*), intent(in) :: suffix
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
 
     integer :: varid_gas
     integer :: start(2), count(2)
@@ -722,13 +787,20 @@ contains
   subroutine output_aero(ncid, suffix, time, index, bin_grid, &
        aero_data, aero_binned)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: suffix ! suffix for the output filename
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    type(aero_binned_t), intent(in) :: aero_binned ! aero_binned structure
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Suffix for the output filename.
+    character(len=*), intent(in) :: suffix
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aero_binned structure.
+    type(aero_binned_t), intent(in) :: aero_binned
 
     real*8 :: aero(bin_grid%n_bin, aero_data%n_spec, 4)
     integer :: i_bin, i_spec, varid_aero
@@ -764,13 +836,20 @@ contains
   subroutine process_aero(ncid, suffix, time, index, bin_grid, &
        aero_data, aero_state)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    character(len=*), intent(in) :: suffix ! suffix for the output filename
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    type(aero_state_t), intent(in) :: aero_state ! aero_state structure
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Suffix for the output filename.
+    character(len=*), intent(in) :: suffix
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aero_state structure.
+    type(aero_state_t), intent(in) :: aero_state
 
     type(aero_binned_t) :: aero_binned
 
@@ -789,14 +868,21 @@ contains
   subroutine output_hist(ncid, time, index, bin_grid, aero_data, &
        process_spec, hist)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid structure
-    type(aero_data_t), intent(in) :: aero_data ! aero_data structure
-    type(process_spec_t), intent(in) :: process_spec ! process spec
-    real*8, intent(in) :: hist(process_spec%n_step, bin_grid%n_bin, &
-         aero_data%n_spec, 4)           ! histogram data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
+    !> Histogram data.
+    real*8, intent(in) :: &
+         hist(process_spec%n_step, bin_grid%n_bin, aero_data%n_spec, 4)
 
     integer :: varid_hist
     integer :: start(5), count(5)
@@ -813,20 +899,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute histogram by calling the step_comp() function on each
+  !> particle.
   subroutine process_hist_new(ncid, time, index, bin_grid, &
        env_state, aero_data, aero_state, process_spec)
-
-    ! Compute histogram by calling the step_comp() function on each
-    ! particle.
     
-    integer, intent(in) :: ncid         ! NetCDF file ID, in data mode
-    real*8, intent(in) :: time          ! current time (s)
-    integer, intent(in) :: index        ! current index
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    type(process_spec_t), intent(in) :: process_spec ! process spec
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current index.
+    integer, intent(in) :: index
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
 
     real*8 :: hist(process_spec%n_step, bin_grid%n_bin, aero_data%n_spec, 4)
     integer :: i_step, i_bin, i_part, i
@@ -926,9 +1019,12 @@ contains
 
   real*8 function aero_particle_comp(aero_particle, a_species, b_species)
 
-    type(aero_particle_t), intent(in) :: aero_particle ! particle
-    integer, intent(in) :: a_species(:) ! first list of species
-    integer, intent(in) :: b_species(:) ! second list of species
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> First list of species.
+    integer, intent(in) :: a_species(:)
+    !> Second list of species.
+    integer, intent(in) :: b_species(:)
 
     integer :: i
     real*8 :: a_vol, b_vol

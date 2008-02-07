@@ -3,14 +3,15 @@ Check for memory leaks with valgrind.
 
 Test partmc -p.
 
-Update comments at top of files.
-
 How should we be calling aerosol_optical? Every timestep, or only on
 processing? At least remove DEBUGs from mosaic.f90.
 
-Fix the handling of comp_vol in aero_state_sample().
-
 Fix "make dist".
+
+Inconsistent pluralization between aero_state%bins and
+aero_particle_array%particle. What was our convention again?
+
+Get rid of PMC_EVEREST in mpi.f90.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,3 +102,6 @@ Use doxygen to generate docs. Fortran supported as of version 1.5.4.
 Fix MPI so it works again.
 
 Change state files to be in NetCDF format.
+
+Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
+just be gas_state_daxpy(), and for other structures.

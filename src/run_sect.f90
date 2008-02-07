@@ -2,13 +2,18 @@
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Sectional code based on coad1d.f by Andreas Bott
-! http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
-! Released under the GPL to Nicole Riemer (personal communication)
-! A. Bott, A flux method for the numerical solution of the stochastic
-! collection equation, J. Atmos. Sci. 55, 2284-2293, 1998.
 
+!> \file
+!> The pmc_run_sect module.
+
+!> 1D sectional simulation.
+!!
+!! Sectional code based on \c coad1d.f by Andreas Bott
+!!     - http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
+!!     - Released under the GPL to Nicole Riemer (personal communication)
+!!     - A. Bott, A flux method for the numerical solution of the
+!!       stochastic collection equation, J. Atmos. Sci. 55, 2284-2293,
+!!       1998.
 module pmc_run_sect
 
   use pmc_inout
@@ -25,33 +30,47 @@ module pmc_run_sect
   use pmc_gas_data
   use pmc_gas_state
   use pmc_process_spec
-  
+
+  !> Options to control the operation of run_sect().
   type run_sect_opt_t
-    real*8 :: t_max                     ! final time (s)
-    real*8 :: del_t                     ! timestep for coagulation (s)
-    real*8 :: t_output                  ! output interval (0 disables) (s)
-    real*8 :: t_progress                ! progress interval (0 disables) (s)
-    logical :: do_coagulation           ! whether to do coagulation
-     character(len=300) :: prefix       ! output prefix
+     !> Final time (s).
+    real*8 :: t_max
+    !> Timestep for coagulation (s).
+    real*8 :: del_t
+    !> Output interval (0 disables) (s).
+    real*8 :: t_output
+    !> Progress interval (0 disables) (s).
+    real*8 :: t_progress
+    !> Whether to do coagulation.
+    logical :: do_coagulation
+    !> Output prefix.
+     character(len=300) :: prefix
   end type run_sect_opt_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
        env_data, env_state, kernel, sect_opt, process_spec_list)
-
-    ! Run a sectional simulation.
   
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
-    type(env_data_t), intent(inout) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(run_sect_opt_t), intent(in) :: sect_opt ! options
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Environment data.
+    type(env_data_t), intent(inout) :: env_data
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Options.
+    type(run_sect_opt_t), intent(in) :: sect_opt
+    !> Processing spec.
+    type(process_spec_t), intent(in) :: process_spec_list(:)
     
     real*8 c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
@@ -183,11 +202,10 @@ contains
   end subroutine run_sect
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Collision subroutine, exponential approach.
   subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
        c, ima, g, r, e, ck, ec)
-    
-    ! Collision subroutine, exponential approach.
     
     integer n_bin
     real*8 dt
@@ -265,16 +283,20 @@ contains
   end subroutine coad
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Determines the Courant number for each bin pair.
   subroutine courant(n_bin, dlnr, e, ima, c)
 
-    ! Determines the Courant number for each bin pair.
-
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: dlnr          ! bin scale factor
-    real*8, intent(in) :: e(n_bin)      ! droplet mass grid (mg)
-    integer, intent(out) :: ima(n_bin,n_bin) ! i + j goes in bin ima(i,j)
-    real*8, intent(out) :: c(n_bin,n_bin) ! Courant number for bin pairs
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Bin scale factor.
+    real*8, intent(in) :: dlnr
+    !> Droplet mass grid (mg).
+    real*8, intent(in) :: e(n_bin)
+    !> I + j goes in bin ima(i,j).
+    integer, intent(out) :: ima(n_bin,n_bin)
+    !> Courant number for bin pairs.
+    real*8, intent(out) :: c(n_bin,n_bin)
     
     integer i, j, k, kk
     real*8 x0
@@ -306,14 +328,16 @@ contains
   end subroutine courant
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Smooths kernel values for bin pairs, and halves the self-rate.
   subroutine smooth_bin_kernel(n_bin, k, k_smooth)
     
-    ! Smooths kernel values for bin pairs, and halves the self-rate.
-    
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: k(n_bin,n_bin) ! kernel values
-    real*8, intent(out) :: k_smooth(n_bin,n_bin) ! smoothed kernel values
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Kernel values.
+    real*8, intent(in) :: k(n_bin,n_bin)
+    !> Smoothed kernel values.
+    real*8, intent(out) :: k_smooth(n_bin,n_bin)
     
     integer i, j, im, ip, jm, jp
     

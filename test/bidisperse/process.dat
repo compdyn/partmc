@@ -1,2 +1,2 @@
 process aero                    # binned aerosol state
-suffix aero                     # filename suffix for output
+name aero                       # variable name for output

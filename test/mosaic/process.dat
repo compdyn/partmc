@@ -1,9 +1,9 @@
 
 process aero                    # binned aerosol state
-suffix aero                     # filename suffix for output
+name aero                       # variable name for output
 
 process gas                     # gas state
-suffix gas                      # filename suffix for output
+name gas                        # variable name for output
 
 process env                     # environment state
-suffix env                      # filename suffix for output
+name env                        # variable name for output

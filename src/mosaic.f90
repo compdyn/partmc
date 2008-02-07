@@ -1,9 +1,11 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Interface to MOSAIC aerosol and gas phase chemistry code.
 
+!> \file
+!> The pmc_mosaic module.
+
+!> Interface to the MOSAIC aerosol and gas phase chemistry code.
 module pmc_mosaic
   
   use pmc_aero_binned
@@ -21,9 +23,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Whether MOSAIC support is compiled in.
   logical function mosaic_support()
-
-    ! Whether MOSAIC support is compiled in.
 
 #ifdef PMC_USE_MOSAIC
     mosaic_support = .true.
@@ -34,10 +35,9 @@ contains
   end function mosaic_support
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine mosaic_init(bin_grid, env_state, del_t)
 
-    ! Initialize all MOSAIC data-structures.
+  !> Initialize all MOSAIC data-structures.
+  subroutine mosaic_init(bin_grid, env_state, del_t)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -49,9 +49,12 @@ contains
          msolar, mphoto, lun_aeroptic, naerbin
 #endif
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    real*8, intent(in) :: del_t         ! timestep for coagulation
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Timestep for coagulation.
+    real*8, intent(in) :: del_t
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -115,9 +118,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Clean-up after running MOSAIC, deallocating memory.
   subroutine mosaic_cleanup()
-
-    ! Clean-up after running MOSAIC, deallocating memory.
     
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -132,11 +134,10 @@ contains
   end subroutine mosaic_cleanup
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state, time)
-
-    ! Map all data PartMC -> MOSAIC.
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -147,18 +148,27 @@ contains
          ppb, msolar, naerbin
 #endif
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
-    real*8, intent(in) :: time          ! current time (s)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Current time (s).
+    real*8, intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    real*8 :: time_UTC ! 24-hr UTC clock time (hr)
-    real*8 :: tmar21_sec ! time at noon, march 21, UTC (s)
+    !> 24-hr UTC clock time (hr).
+    real*8 :: time_UTC
+    !> Time at noon, march 21, UTC (s).
+    real*8 :: tmar21_sec
     real*8 :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
@@ -265,13 +275,20 @@ contains
          ppb, msolar
 #endif
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
@@ -328,24 +345,31 @@ contains
   end subroutine mosaic_to_partmc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Do one timestep with MOSAIC.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
        aero_state, aero_binned, gas_data, gas_state, time)
-
-    ! Do one timestep with MOSAIC.
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
 #endif
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(aero_binned_t), intent(inout) :: aero_binned ! binned aerosol data
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
-    real*8, intent(in) :: time          ! current time (s)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Current time (s).
+    real*8, intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -385,24 +409,30 @@ contains
   end subroutine mosaic_timestep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Compute the optical properties of each aerosol particle.
   subroutine mosaic_aero_optical(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state, time)
-
-    ! Compute the optical properties of each aerosol particle.
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
          ext_cross, scat_cross, asym_particle
 #endif
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    type(gas_state_t), intent(in) :: gas_state ! gas state
-    real*8, intent(in) :: time          ! current time (s)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Current time (s).
+    real*8, intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces

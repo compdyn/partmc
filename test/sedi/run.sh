@@ -23,4 +23,4 @@ echo ../../src/partmc run_sect.spec
 
 echo ./plot.py
 ./plot.py
-echo "Now view out/sedi_{num,vol}_{lin,log}.pdf"
+echo "Now view out/sedi_*.pdf"

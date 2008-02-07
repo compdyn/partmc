@@ -1,17 +1,20 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Aerosol size distributions.
-!
-! The initial size distributions are computed as number densities, so
-! they can be used for both sectional and particle-resolved
-! simulations. The routine dist_to_n() converts a number density
-! distribution to an actual number of particles ready for a
-! particle-resolved simulation.
-!
-! Initial distributions should be normalized so that sum(n_den) = 1/dlnr.
 
+!> \file
+!> The pmc_aero_dist module.
+
+!> The aero_dist_t structure and associated subroutines.
+!!
+!! The initial size distributions are computed as number densities, so
+!! they can be used for both sectional and particle-resolved
+!! simulations. The routine dist_to_n() converts a number density
+!! distribution to an actual number of particles ready for a
+!! particle-resolved simulation.
+!!
+!! Initial distributions should be normalized so that <tt>sum(n_den) =
+!! 1/dlnr</tt>.
 module pmc_aero_dist
 
   use pmc_bin_grid
@@ -24,27 +27,39 @@ module pmc_aero_dist
   use mpi
 #endif
 
+  !> An aerosol size distribution mode.
+  !!
+  !! Each mode is assumed to be fully internally mixed so that every
+  !! particle has the same composition. The \c num_den array then
+  !! stores the number density distribution.
   type aero_mode_t
-     real*8, pointer :: num_den(:)      ! len n_bin, number density (#/m^3)
-     real*8, pointer :: vol_frac(:)     ! len n_spec, species fractions (1)
+     !> Number density [length bin_grid%%n_bin] (#/m^3).
+     real*8, pointer :: num_den(:)
+     !> Species fractions [length \c aero_data%%n_spec] (1).
+     real*8, pointer :: vol_frac(:)
   end type aero_mode_t
 
+  !> A complete aerosol distribution con
   type aero_dist_t
+     !> Number of modes.
      integer :: n_mode
-     type(aero_mode_t), pointer :: mode(:) ! len n_mode, internally mixed modes
+     !> Internally mixed modes [length \c n_mode].
+     type(aero_mode_t), pointer :: mode(:)
   end type aero_dist_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates an aero_mode.
   subroutine aero_mode_alloc(aero_mode, n_bin, n_spec)
 
-    ! Allocates an aero_mode.
-
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    type(aero_mode_t), intent(out) :: aero_mode ! aerosol mode
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Number of species.
+    integer, intent(in) :: n_spec
+    !> Aerosol mode.
+    type(aero_mode_t), intent(out) :: aero_mode
 
     allocate(aero_mode%num_den(n_bin))
     allocate(aero_mode%vol_frac(n_spec))
@@ -53,11 +68,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine aero_mode_free(aero_mode)
 
-    ! Free all storage.
-
-    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
+    !> Aerosol mode.
+    type(aero_mode_t), intent(inout) :: aero_mode
 
     deallocate(aero_mode%num_den)
     deallocate(aero_mode%vol_frac)
@@ -66,12 +81,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy an aero_mode.
   subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
 
-    ! Copy an aero_mode.
-
-    type(aero_mode_t), intent(in) :: aero_mode_from ! aerosol mode original
-    type(aero_mode_t), intent(inout) :: aero_mode_to ! aerosol mode copy
+    !> Aerosol mode original.
+    type(aero_mode_t), intent(in) :: aero_mode_from
+    !> Aerosol mode copy.
+    type(aero_mode_t), intent(inout) :: aero_mode_to
 
     aero_mode_to%num_den = aero_mode_from%num_den
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
@@ -80,12 +96,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> aero_mode += aero_mode_delta
   subroutine aero_mode_add(aero_mode, aero_mode_delta)
 
-    ! aero_mode += aero_mode_delta
-
-    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
-    type(aero_mode_t), intent(in) :: aero_mode_delta ! increment
+    !> Aerosol mode.
+    type(aero_mode_t), intent(inout) :: aero_mode
+    !> Increment.
+    type(aero_mode_t), intent(in) :: aero_mode_delta
 
     aero_mode%num_den = aero_mode%num_den + aero_mode_delta%num_den
     aero_mode%vol_frac = aero_mode%vol_frac + aero_mode_delta%vol_frac
@@ -94,12 +111,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scale an aero_mode.
   subroutine aero_mode_scale(aero_mode, alpha)
 
-    ! Scale an aero_mode.
-
-    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode
-    real*8, intent(in) :: alpha         ! scale factor
+    !> Aerosol mode.
+    type(aero_mode_t), intent(inout) :: aero_mode
+    !> Scale factor.
+    real*8, intent(in) :: alpha
 
     aero_mode%num_den = aero_mode%num_den * alpha
     aero_mode%vol_frac = aero_mode%vol_frac * alpha
@@ -108,14 +126,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates an aero_dist.
   subroutine aero_dist_alloc(aero_dist, n_mode, n_bin, n_spec)
 
-    ! Allocates an aero_dist.
-
-    integer, intent(in) :: n_mode       ! number of modes
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    type(aero_dist_t), intent(out) :: aero_dist ! aerosol distribution
+    !> Number of modes.
+    integer, intent(in) :: n_mode
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Number of species.
+    integer, intent(in) :: n_spec
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(out) :: aero_dist
 
     integer :: i
 
@@ -129,11 +150,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine aero_dist_free(aero_dist)
 
-    ! Free all storage.
-
-    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol distribution
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist
 
     integer :: i
 
@@ -146,12 +167,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy an aero_dist.
   subroutine aero_dist_copy(aero_dist_from, aero_dist_to)
 
-    ! Copy an aero_dist.
-
-    type(aero_dist_t), intent(in) :: aero_dist_from ! aero_dist original
-    type(aero_dist_t), intent(inout) :: aero_dist_to ! aero_dist copy
+    !> Aero_dist original.
+    type(aero_dist_t), intent(in) :: aero_dist_from
+    !> Aero_dist copy.
+    type(aero_dist_t), intent(inout) :: aero_dist_to
 
     integer :: n_bin, n_spec, i
 
@@ -172,12 +194,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> aero_dist += aero_dist_delta
   subroutine aero_dist_add(aero_dist, aero_dist_delta)
 
-    ! aero_dist += aero_dist_delta
-
-    type(aero_dist_t), intent(inout) :: aero_dist ! aero_dist
-    type(aero_dist_t), intent(in) :: aero_dist_delta ! increment
+    !> Aero_dist.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Increment.
+    type(aero_dist_t), intent(in) :: aero_dist_delta
 
     integer :: i
 
@@ -189,12 +212,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> aero_dist *= alpha
   subroutine aero_dist_scale(aero_dist, alpha)
 
-    ! aero_dist *= alpha
-
-    type(aero_dist_t), intent(inout) :: aero_dist ! aero_dist
-    real*8, intent(in) :: alpha         ! scale factor
+    !> Aero_dist.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Scale factor.
+    real*8, intent(in) :: alpha
 
     integer :: i
 
@@ -206,12 +230,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_dist_total_num_den(bin_grid, aero_dist) ! (#/m^3)
+  !> Returns the total number concentration in #/m^3 of a distribution.
+  !> (#/m^3)
+  real*8 function aero_dist_total_num_den(bin_grid, aero_dist)
 
-    ! Returns the total number concentration in #/m^3 of a distribution.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
 
     integer :: i
     
@@ -225,17 +251,19 @@ contains
   end function aero_dist_total_num_den
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
 
-    ! Compute a log-normal distribution, normalized so that
-    ! sum(num_den(k) * dlnr) = 1
+  !> Compute a log-normal distribution, normalized so that
+  !> sum(num_den(k) * dlnr) = 1
+  subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
     
-    real*8, intent(in) :: mean_radius   ! geometric mean radius (m)
-    real*8, intent(in) :: log_sigma     ! log_10(geom. std dev) (1)
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
-                                        ! (normalized)
+    !> Geometric mean radius (m).
+    real*8, intent(in) :: mean_radius
+    !> log_10(geom. std dev) (1).
+    real*8, intent(in) :: log_sigma
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Normalized number density (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: num_den(bin_grid%n_bin)
     
     integer :: k
     
@@ -255,16 +283,18 @@ contains
   end subroutine num_den_log_normal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Exponential distribution in volume
+  !> n(v) = 1 / mean_vol * exp(- v / mean_vol)
+  !> Normalized so that sum(num_den(k) * dlnr) = 1
   subroutine num_den_exp(mean_radius, bin_grid, num_den)
     
-    ! Exponential distribution in volume
-    ! n(v) = 1 / mean_vol * exp(- v / mean_vol)
-    ! Normalized so that sum(num_den(k) * dlnr) = 1
-    
-    real*8, intent(in) :: mean_radius   ! mean radius (m)
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
+    !> Mean radius (m).
+    real*8, intent(in) :: mean_radius
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Num den (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: num_den(bin_grid%n_bin)
     
     integer :: k
     real*8 :: mean_vol, num_den_vol
@@ -278,15 +308,17 @@ contains
   end subroutine num_den_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Mono-disperse distribution.
+  !> Normalized so that sum(num_den(k) * dlnr) = 1
   subroutine num_den_mono(radius, bin_grid, num_den)
     
-    ! Mono-disperse distribution.
-    ! Normalized so that sum(num_den(k) * dlnr) = 1
-    
-    real*8, intent(in) :: radius         ! radius of each particle (m^3)
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8, intent(out) :: num_den(bin_grid%n_bin) ! num den (#(ln(r))d(ln(r)))
+    !> Radius of each particle (m^3).
+    real*8, intent(in) :: radius
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Num den (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: num_den(bin_grid%n_bin)
     
     integer :: k
 
@@ -298,18 +330,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the current aero_dist and rate by interpolating at the
+  !> current time with the lists of aero_dists and rates.
   subroutine aero_dist_interp_1d(aero_dist_list, time_list, &
          rate_list, time, aero_dist, rate)
 
-    ! Determine the current aero_dist and rate by interpolating at the
-    ! current time with the lists of aero_dists and rates.
-
-    type(aero_dist_t), intent(in) :: aero_dist_list(:) ! gas states
-    real*8, intent(in) :: time_list(size(aero_dist_list)) ! times (s)
-    real*8, intent(in) :: rate_list(size(aero_dist_list)) ! rates (s^{-1})
-    real*8, intent(in) :: time          ! current time (s)
-    type(aero_dist_t), intent(inout) :: aero_dist ! current gas state
-    real*8, intent(out) :: rate         ! current rate (s^{-1})
+    !> Gas states.
+    type(aero_dist_t), intent(in) :: aero_dist_list(:)
+    !> Times (s).
+    real*8, intent(in) :: time_list(size(aero_dist_list))
+    !> Rates (s^{-1}).
+    real*8, intent(in) :: rate_list(size(aero_dist_list))
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current gas state.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Current rate (s^{-1}).
+    real*8, intent(out) :: rate
 
     integer :: n, p, n_bin, n_spec, i, i_new
     real*8 :: y, alpha
@@ -334,12 +371,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_aero_mode(file, aero_mode)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_mode_t), intent(in) :: aero_mode ! aero_mode to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_mode to write.
+    type(aero_mode_t), intent(in) :: aero_mode
 
     call inout_write_comment(file, "begin aero_mode")
     call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
@@ -350,12 +388,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_aero_dist(file, aero_dist)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_dist_t), intent(in) :: aero_dist ! aero_dist to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_dist to write.
+    type(aero_dist_t), intent(in) :: aero_dist
 
     integer :: i
     
@@ -371,12 +410,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_aero_mode(file, aero_mode)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(aero_mode_t), intent(out) :: aero_mode ! aero_mode to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_mode to read.
+    type(aero_mode_t), intent(out) :: aero_mode
 
     call inout_check_comment(file, "begin aero_mode")
     call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
@@ -387,12 +427,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_aero_dist(file, aero_dist)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(aero_dist_t), intent(out) :: aero_dist ! aero_dist to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_dist to read.
+    type(aero_dist_t), intent(out) :: aero_dist
 
     integer :: i, check_i
     
@@ -410,13 +451,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read volume fractions from a data file.
   subroutine spec_read_vol_frac(file, aero_data, vol_frac)
 
-    ! Read volume fractions from a data file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    real*8, intent(out) :: vol_frac(:)  ! aerosol species volume fractions
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol species volume fractions.
+    real*8, intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN) :: read_name
@@ -471,15 +514,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the shape (number density) of one mode of an aerosol
+  !> distribution.
   subroutine spec_read_aero_mode_shape(file, aero_data, bin_grid, num_den)
 
-    ! Read the shape (number density) of one mode of an aerosol
-    ! distribution.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data ! aero_data data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    real*8 :: num_den(bin_grid%n_bin)   ! mode density
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Mode density.
+    real*8 :: num_den(bin_grid%n_bin)
 
     real*8 :: tot_num_den
     character(len=MAX_CHAR_LEN) :: mode_type
@@ -510,16 +556,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read one mode of an aerosol distribution (number density and
+  !> volume fractions).
   subroutine spec_read_aero_mode(file, aero_data, bin_grid, aero_mode)
 
-    ! Read one mode of an aerosol distribution (number density and
-    ! volume fractions).
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_mode_t), intent(inout) :: aero_mode ! aerosol mode,
-                                                  ! will be allocated
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol mode (will be allocated).
+    type(aero_mode_t), intent(inout) :: aero_mode
 
     allocate(aero_mode%num_den(bin_grid%n_bin))
     allocate(aero_mode%vol_frac(aero_data%n_spec))
@@ -531,14 +579,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read continuous aerosol distribution composed of several modes.
   subroutine spec_read_aero_dist(file, aero_data, bin_grid, aero_dist)
 
-    ! Read continuous aerosol distribution composed of several modes.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_dist_t), intent(inout) :: aero_dist ! aerosol dist,
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol dist,.
+    type(aero_dist_t), intent(inout) :: aero_dist
                                                   ! will be allocated
 
     integer :: i
@@ -553,17 +604,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read aerosol distribution from filename on line in file.
   subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, &
        name, dist)
 
-    ! Read aerosol distribution from filename on line in file.
 
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data   ! aero_data data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    character(len=*), intent(in) :: name ! name of data line for filename
-    type(aero_dist_t), intent(inout) :: dist ! aerosol distribution
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Name of data line for filename.
+    character(len=*), intent(in) :: name
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(inout) :: dist
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -578,19 +633,25 @@ contains
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an array of aero_dists with associated times and rates from
+  !> the given file.
   subroutine spec_read_aero_dists_times_rates(file, aero_data, &
        bin_grid, name, times, rates, aero_dists)
 
-    ! Read an array of aero_dists with associated times and rates from
-    ! the given file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(in) :: aero_data ! aero data
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    character(len=*), intent(in) :: name ! name of data line for filename
-    real*8, pointer :: times(:)         ! times (s)
-    real*8, pointer :: rates(:)         ! rates (s^{-1})
-    type(aero_dist_t), pointer :: aero_dists(:) ! aero dists
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Name of data line for filename.
+    character(len=*), intent(in) :: name
+    !> Times (s).
+    real*8, pointer :: times(:)
+    !> Rates (s^{-1}).
+    real*8, pointer :: rates(:)
+    !> Aero dists.
+    type(aero_dist_t), pointer :: aero_dists(:)
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -646,12 +707,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of an array of aero_mode.
   subroutine aero_mode_average(aero_mode_vec, aero_mode_avg)
-    
-    ! Computes the average of an array of aero_mode.
 
-    type(aero_mode_t), intent(in) :: aero_mode_vec(:) ! array of aero_mode
-    type(aero_mode_t), intent(out) :: aero_mode_avg   ! avg of aero_mode_vec
+    !> Array of aero_mode.
+    type(aero_mode_t), intent(in) :: aero_mode_vec(:)
+    !> Avg of aero_mode_vec.
+    type(aero_mode_t), intent(out) :: aero_mode_avg
 
     integer :: n_bin, n_spec, i_bin, i_spec, i, n
 
@@ -672,12 +734,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of an array of aero_dist.
   subroutine aero_dist_average(aero_dist_vec, aero_dist_avg)
-    
-    ! Computes the average of an array of aero_dist.
 
-    type(aero_dist_t), intent(in) :: aero_dist_vec(:) ! array of aero_dist
-    type(aero_dist_t), intent(out) :: aero_dist_avg   ! avg of aero_dist_vec
+    !> Array of aero_dist.
+    type(aero_dist_t), intent(in) :: aero_dist_vec(:)
+    !> Avg of aero_dist_vec.
+    type(aero_dist_t), intent(out) :: aero_dist_avg
 
     integer :: n_modes, i_mode, i, n
 
@@ -693,11 +756,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_mode(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_mode_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_mode_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_mode = &
          pmc_mpi_pack_size_real_array(val%num_den) &
@@ -707,11 +770,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_dist(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_dist_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_dist_t), intent(in) :: val
 
     integer :: i, total_size
 
@@ -725,13 +788,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_mode(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_mode_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_mode_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -747,13 +812,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_dist(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_dist_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_dist_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
@@ -771,13 +838,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_mode(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_mode_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_mode_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -793,13 +862,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_dist(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_dist_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_dist_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

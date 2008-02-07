@@ -1,10 +1,11 @@
 ! Copyright (C) 2007, 2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Top level driver that reads the .spec file and calls simulation
-! routines.
 
+!> \file
+!> The partmc program.
+
+!> Top level driver.
 program partmc
 
   use pmc_mpi
@@ -83,6 +84,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+    !> Print the usage text to stderr.
   subroutine print_usage()
 
     write(0,*) 'Usage: partmc <spec-file>'
@@ -92,10 +94,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Process a stored state file.
   subroutine partmc_process(process_name, nc_name)
 
-    character(len=*), intent(in) :: process_name ! process.dat filename
-    character(len=*), intent(in) :: nc_name ! output NetCDF filename
+    !> Process.dat filename.
+    character(len=*), intent(in) :: process_name
+    !> Output NetCDF filename.
+    character(len=*), intent(in) :: nc_name
 
     type(inout_file_t) :: file
     type(process_spec_t), pointer :: process_spec_list(:)
@@ -124,11 +129,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Process a stored state file.
   subroutine partmc_process_state_file(ncid, state_name, process_spec_list)
 
-    integer, intent(in) :: ncid         ! NetCDF file ID, must be open
-    character(len=*), intent(in) :: state_name ! state filename
-    type(process_spec_t), pointer :: process_spec_list(:) ! process spec
+    !> Netcdf file ID, must be open.
+    integer, intent(in) :: ncid
+    !> State filename.
+    character(len=*), intent(in) :: state_name
+    !> Process spec.
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     type(bin_grid_t) :: bin_grid
     type(aero_data_t) :: aero_data
@@ -157,9 +166,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Do a PartMC run.
   subroutine partmc_run(spec_name)
     
-    character(len=*), intent(in) :: spec_name ! spec filename
+    !> Spec filename.
+    character(len=*), intent(in) :: spec_name
 
     type(inout_file_t) :: file
     character(len=100) :: run_type
@@ -196,29 +207,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Run a Monte Carlo simulation.
   subroutine partmc_mc(file)
 
-    type(inout_file_t), intent(out) :: file ! spec file
+    !> Spec file.
+    type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name  ! name of output files
-    character(len=100) :: kernel_name   ! coagulation kernel name
-    type(gas_data_t) :: gas_data        ! gas data
-    type(gas_state_t) :: gas_init       ! gas initial condition
-    type(gas_state_t) :: gas_state      ! gas current state for run
-    type(aero_data_t) :: aero_data      ! aero_data data
-    type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
-    type(aero_state_t) :: aero_state    ! aerosol current state for run
-    type(env_data_t) :: env_data        ! environment data
-    type(env_state_t) :: env_state                  ! environment state
-    type(bin_grid_t) :: bin_grid        ! bin grid
-    type(aero_binned_t) :: aero_binned  ! binned distributions
-    type(run_mc_opt_t) :: mc_opt        ! Monte Carlo options
-    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
-    integer :: i_loop                   ! current loop number
-    integer :: rand_init                ! random number generator init
-    character, allocatable :: buffer(:) ! buffer for MPI
-    integer :: buffer_size              ! length of buffer
-    integer :: position                 ! current position in buffer
+    character(len=300) :: summary_name
+    character(len=100) :: kernel_name
+    type(gas_data_t) :: gas_data
+    type(gas_state_t) :: gas_init
+    type(gas_state_t) :: gas_state
+    type(aero_data_t) :: aero_data
+    type(aero_dist_t) :: aero_dist_init
+    type(aero_state_t) :: aero_state
+    type(env_data_t) :: env_data
+    type(env_state_t) :: env_state
+    type(bin_grid_t) :: bin_grid
+    type(aero_binned_t) :: aero_binned
+    type(run_mc_opt_t) :: mc_opt
+    type(process_spec_t), pointer :: process_spec_list(:)
+    integer :: i_loop
+    integer :: rand_init
+    character, allocatable :: buffer(:)
+    integer :: buffer_size
+    integer :: position
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -399,19 +412,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Run an exact solution simulation.
   subroutine partmc_exact(file)
 
-    type(inout_file_t), intent(out) :: file ! spec file
+    !> Spec file.
+    type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name  ! name of output files
-    character(len=100) :: soln_name     ! exact solution name
-    type(aero_data_t) :: aero_data      ! aero_data data
-    type(env_data_t) :: env_data        ! environment data
-    type(env_state_t) :: env_state                  ! environment state
-    type(run_exact_opt_t) :: exact_opt  ! exact solution options
-    type(bin_grid_t) :: bin_grid        ! bin grid
-    type(gas_data_t) :: gas_data        ! dummy gas data
-    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
+    character(len=300) :: summary_name
+    character(len=100) :: soln_name
+    type(aero_data_t) :: aero_data
+    type(env_data_t) :: env_data
+    type(env_state_t) :: env_state
+    type(run_exact_opt_t) :: exact_opt
+    type(bin_grid_t) :: bin_grid
+    type(gas_data_t) :: gas_data
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -479,21 +494,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! Run a sectional code simulation.
   subroutine partmc_sect(file)
 
-    type(inout_file_t), intent(out) :: file ! spec file
+    !> Spec file.
+    type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name  ! name of output files
-    character(len=100) :: kernel_name   ! coagulation kernel name
-    type(run_sect_opt_t) :: sect_opt    ! sectional code options
-    type(aero_data_t) :: aero_data      ! aero_data data
-    type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
-    type(aero_state_t) :: aero_init     ! aerosol initial condition
-    type(env_data_t) :: env_data        ! environment data
-    type(env_state_t) :: env_state                  ! environment state
-    type(bin_grid_t) :: bin_grid        ! bin grid
-    type(gas_data_t) :: gas_data        ! dummy gas data
-    type(process_spec_t), pointer :: process_spec_list(:) ! process specs
+    character(len=300) :: summary_name
+    character(len=100) :: kernel_name
+    type(run_sect_opt_t) :: sect_opt
+    type(aero_data_t) :: aero_data
+    type(aero_dist_t) :: aero_dist_init
+    type(aero_state_t) :: aero_init
+    type(env_data_t) :: env_data
+    type(env_state_t) :: env_state
+    type(bin_grid_t) :: bin_grid
+    type(gas_data_t) :: gas_data
+    type(process_spec_t), pointer :: process_spec_list(:)
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then

@@ -1,9 +1,11 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Generic kernel functions.
 
+!> \file
+!> The pmc_kernel module.
+
+!> Generic coagulation kernel.
 module pmc_kernel
 
   use pmc_env_state
@@ -12,16 +14,19 @@ module pmc_kernel
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Computes an array of kernel values for each bin pair. k(i,j) is
+  !> the kernel value at the midpoint of bins i and j.
   subroutine bin_kernel(n_bin, bin_v, kernel, env_state, k)
-   
-    ! Computes an array of kernel values for each bin pair. k(i,j) is
-    ! the kernel value at the midpoint of bins i and j.
     
-    integer, intent(in) :: n_bin        ! number of bins
-    real*8, intent(in) :: bin_v(n_bin)  ! volume of particles in bins (m^3)
-    real*8, intent(out) :: k(n_bin,n_bin) ! kernel values
-    type(env_state_t), intent(in) :: env_state      ! environment state
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Volume of particles in bins (m^3).
+    real*8, intent(in) :: bin_v(n_bin)
+    !> Kernel values.
+    real*8, intent(out) :: k(n_bin,n_bin)
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     interface
        subroutine kernel(v1, v2, env_state, k)
@@ -44,16 +49,18 @@ contains
   end subroutine bin_kernel
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Computes an array of maximum kernel values. Given particles v1
+  !> in bin b1 and v2 in bin b2, it is approximately true that
+  !> kernel(v1,v2) <= k_max(b1,b2).
   subroutine est_k_max_binned(bin_grid, kernel, env_state, k_max)
 
-    ! Computes an array of maximum kernel values. Given particles v1
-    ! in bin b1 and v2 in bin b2, it is approximately true that
-    ! kernel(v1,v2) <= k_max(b1,b2).
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(env_state_t), intent(in) :: env_state    ! environment state
-    real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin) ! max kern vals
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Max kern vals.
+    real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     
     interface
        subroutine kernel(v1, v2, env_state, k)
@@ -76,17 +83,21 @@ contains
   end subroutine est_k_max_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine est_k_max_for_bin(bin_grid, kernel, b1, b2, env_state, k_max)
 
-    ! Samples within bins b1 and b2 to find the maximum value of the
-    ! kernel between particles from the two bins.
+  !> Samples within bins b1 and b2 to find the maximum value of the
+  !> kernel between particles from the two bins.
+  subroutine est_k_max_for_bin(bin_grid, kernel, b1, b2, env_state, k_max)
    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    integer, intent(in) :: b1           ! first bin
-    integer, intent(in) :: b2           ! second bin
-    type(env_state_t), intent(in) :: env_state      ! environment state    
-    real*8, intent(out) :: k_max        ! maximum kernel values
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin.
+    integer, intent(in) :: b1
+    !> Second bin.
+    integer, intent(in) :: b2
+    !> Environment state    .
+    type(env_state_t), intent(in) :: env_state
+    !> Maximum kernel values.
+    real*8, intent(out) :: k_max
     
     interface
        subroutine kernel(v1, v2, env_state, k)
@@ -101,7 +112,8 @@ contains
     real*8 v1, v2, v1_high, v1_low, v2_high, v2_low, k
     integer i, j
     
-    integer, parameter :: n_sample = 10  ! number of sample points per bin
+    !> Number of sample points per bin.
+    integer, parameter :: n_sample = 10
     
     ! v1_low < bin_v(b1) < v1_high
     v1_low = bin_edge(bin_grid, b1)

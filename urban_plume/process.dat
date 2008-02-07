@@ -1,21 +1,21 @@
 
 process env                     # environment state
-suffix env                      # filename suffix for output
+name env                        # variable name for output
 
 process gas                     # gas state
-suffix gas                      # filename suffix for output
+name gas                        # variable name for output
 
 process aero                    # binned aerosol state
-suffix aero                     # filename suffix for output
+name aero                       # variable name for output
 
 process kappa                   # kappa-derived critical supersaturation
-suffix kappa_crit_ss            # filename suffix for output
+name kappa_crit_ss              # variable name for output
 n_step 100                      # number of steps for histogram
 min 1e-5                        # min supersaturation (1)
 max 5e-2                        # max supersaturation (1)
 
 process comp                    # scalar composition
-suffix comp_bc                  # filename suffix for output
+name comp_bc                    # variable name for output
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -42,13 +42,13 @@ b_species BC                    # second species list
 #max 1e-5                        # max absorption cross-section (m^2)
 
 process optic_scatter           # optical scattering
-suffix optic_scatter            # filename suffix for output
+name optic_scatter              # variable name for output
 n_step 100                      # number of steps for histogram
 min 1e-20                       # min scattering cross-section (m^2)
 max 1e-10                       # max scattering cross-section (m^2)
 
 process optic_extinct           # optical extinction
-suffix optic_extinct            # filename suffix for output
+name optic_extinct              # variable name for output
 n_step 100                      # number of steps for histogram
 min 1e-20                       # min extinction cross-section (m^2)
 max 1e-10                       # max extinction cross-section (m^2)

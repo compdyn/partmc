@@ -122,11 +122,11 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	find . -name *~ -exec rm {} \;
-	find . -name *.pyc -exec rm {} \;
+	find . -name "*~" -exec rm {} \;
+	find . -name "*.pyc" -exec rm {} \;
 	find . -name .gdb_history -exec rm {} \;
 	find . -name gmon.out -exec rm {} \;
-	find . -name gprof_* -exec rm {} \;
+	find . -name "gprof_*" -exec rm {} \;
 	rm -rf test/bidisperse/out/* test/emission/out/*		\
                test/golovin/out/* test/mosaic/out/* test/poisson/out/*	\
                test/sedi/out/* urban_plume/out/*

@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Gas parameters.
 
+!> \file
+!> The pmc_gas_data module.
+
+!> The gas_data_t structure and associated subroutines.
 module pmc_gas_data
 
   use pmc_inout
@@ -13,27 +15,41 @@ module pmc_gas_data
   use mpi
 #endif
 
-  integer, parameter :: GAS_NAME_LEN = 15
+  !> Maximum length of the name of a gas.
+  integer, parameter :: GAS_NAME_LEN = 100
 
+  !> Constant gas data.
+  !!
+  !! Each gas species is identified by an integer \c i between 1 and
+  !! \c n_spec. Species \c i has name \c gas_data%%name(i), molecular
+  !! weight gas_data%%molec_weight(i), etc. The variable gas data
+  !! describing the current concentrations is stored in the
+  !! gas_state_t structure, so the concentration of species \c i is
+  !! gas_state%%conc(i).
   type gas_data_t
-     integer :: n_spec                   ! number of species
-     real*8, pointer :: molec_weight(:)  ! molecular weight (kg mole^{-1})
-     character(len=GAS_NAME_LEN), pointer :: name(:) ! len n_spec, species name
-     integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
-                                         ! mosaic index of species i, or 0 if
-                                         ! there is no match
+     !> Number of species.
+     integer :: n_spec
+     !> Molecular weight (kg mole^{-1}).
+     real*8, pointer :: molec_weight(:)
+     !> Species name [length \c n_spec].
+     character(len=GAS_NAME_LEN), pointer :: name(:)
+     !> Index of the corresponding MOSAIC species [length \c
+     !> n_spec]. \c to_mosaic(i) is the mosaic index of species \c i,
+     !> or 0 if there is no match.
+     integer, pointer :: mosaic_index(:)
   end type gas_data_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate storage for gas species.
   subroutine gas_data_alloc(gas_data, n_spec)
 
-    ! Allocate storage for gas species.
-
-    type(gas_data_t), intent(out) :: gas_data ! gas data
-    integer, intent(in) :: n_spec         ! number of species
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     gas_data%n_spec = n_spec
     allocate(gas_data%molec_weight(n_spec))
@@ -44,11 +60,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine gas_data_free(gas_data)
 
-    ! Free all storage.
-
-    type(gas_data_t), intent(out) :: gas_data ! gas data
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
 
     deallocate(gas_data%molec_weight)
     deallocate(gas_data%name)
@@ -58,13 +74,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the number of the species in gas with the given name, or
+  !> returns 0 if there is no such species.
   integer function gas_data_spec_by_name(gas_data, name)
 
-    ! Returns the number of the species in gas with the given name, or
-    ! returns 0 if there is no such species.
-
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    character(len=GAS_NAME_LEN), intent(in) :: name ! name of species to find
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Name of species to find.
+    character(len=GAS_NAME_LEN), intent(in) :: name
 
     integer i
     logical found
@@ -86,11 +103,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Fills in gas_data%mosaic_index.
   subroutine gas_data_set_mosaic_map(gas_data)
 
-    ! Fills in gas_data%mosaic_index.
-
-    type(gas_data_t), intent(inout) :: gas_data ! gas data
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
 
     integer, parameter :: n_mosaic_species = 77
     character(len=GAS_NAME_LEN), parameter, dimension(n_mosaic_species) &
@@ -126,12 +143,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_gas_data(file, gas_data)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(gas_data_t), intent(in) :: gas_data ! gas_data to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas_data to write.
+    type(gas_data_t), intent(in) :: gas_data
 
     call inout_write_comment(file, "begin gas_data")
     call inout_write_integer(file, "n_spec", gas_data%n_spec)
@@ -146,12 +164,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_gas_data(file, gas_data)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(gas_data_t), intent(out) :: gas_data ! gas_data to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas_data to read.
+    type(gas_data_t), intent(out) :: gas_data
 
     call inout_check_comment(file, "begin gas_data")
     call inout_read_integer(file, "n_spec", gas_data%n_spec)
@@ -166,12 +185,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read gas data from a .spec file.
   subroutine spec_read_gas_data(file, gas_data)
 
-    ! Read gas data from a .spec file.
-
-    type(inout_file_t), intent(inout) :: file ! spec file
-    type(gas_data_t), intent(out) :: gas_data ! gas data
+    !> Spec file.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN) :: read_name
@@ -208,11 +228,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_gas_data(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(gas_data_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(gas_data_t), intent(in) :: val
 
     pmc_mpi_pack_size_gas_data = &
          pmc_mpi_pack_size_integer(val%n_spec) &
@@ -224,13 +244,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_gas_data(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(gas_data_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(gas_data_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -248,13 +270,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_gas_data(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(gas_data_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(gas_data_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

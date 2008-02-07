@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2007 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -24,20 +24,31 @@ program bidisperse_ode
   use pmc_util
   use pmc_bin_grid
   
-  ! volume of one small particle (m^3)
+  ! Volume of one small particle (m^3).
   real*8, parameter :: v_small = 0.38542868295629027618d-14
-  ! initial volume of big particle (m^3)
+  !> Initial volume of big particle (m^3).
   real*8, parameter :: v_big_init = 0.37488307899239913337d-11
-  real*8, parameter :: n_small_init = 10000d0 ! init number of small particles
-  real*8, parameter :: t_max = 600d0    ! total simulation time
-  real*8, parameter :: del_t = 0.001d0  ! timestep
-  real*8, parameter :: t_progress = 10d0 ! how often to print progress
-  real*8, parameter :: num_den_small = 1d9 ! particle number conc (#/m^3)
-  integer, parameter :: n_bin = 250     ! number of bins
-  real*8, parameter :: bin_r_min = 1d-8 ! minimum bin radius (m)
-  real*8, parameter :: bin_r_max = 1d0  ! minimum bin radius (m)
-  integer, parameter :: scal = 3        ! scale factor for bins
-  integer, parameter :: out_unit = 33   ! output unit number
+  !> Init number of small particles.
+  real*8, parameter :: n_small_init = 10000d0
+  !> Total simulation time.
+  real*8, parameter :: t_max = 600d0
+  !> Timestep.
+  real*8, parameter :: del_t = 0.001d0
+  !> How often to print progress.
+  real*8, parameter :: t_progress = 10d0
+  !> Particle number conc (#/m^3).
+  real*8, parameter :: num_den_small = 1d9
+  !> Number of bins.
+  integer, parameter :: n_bin = 250
+  !> Minimum bin radius (m).
+  real*8, parameter :: bin_r_min = 1d-8
+  !> Minimum bin radius (m).
+  real*8, parameter :: bin_r_max = 1d0
+  !> Scale factor for bins.
+  integer, parameter :: scal = 3
+  !> Output unit number.
+  integer, parameter :: out_unit = 33
+  !> Output filename.
   character(len=*), parameter :: out_name = "out/bidisperse_ode_counts.d"
   
   type(env_state_t) :: env_state
@@ -89,13 +100,20 @@ contains
     
     use pmc_env_state
 
-    real*8, intent(in) :: n_small       ! current number of small particles
-    real*8, intent(in) :: v_small       ! volume of one small particle
-    real*8, intent(in) :: v_big_init    ! initial volume of the big particle
-    real*8, intent(in) :: n_small_init  ! initial number of small particles
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    real*8, intent(out) :: n_small_dot  ! derivative of n_small
+    !> Current number of small particles.
+    real*8, intent(in) :: n_small
+    !> Volume of one small particle.
+    real*8, intent(in) :: v_small
+    !> Initial volume of the big particle.
+    real*8, intent(in) :: v_big_init
+    !> Initial number of small particles.
+    real*8, intent(in) :: n_small_init
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Derivative of n_small.
+    real*8, intent(out) :: n_small_dot
     
     real*8 v_big, k
     
@@ -112,13 +130,20 @@ contains
     
     use pmc_env_state
 
-    real*8, intent(in) :: v_small       ! volume of one small particle
-    real*8, intent(in) :: v_big_init    ! initial volume of the big particle
-    real*8, intent(in) :: n_small_init  ! initial number of small particles
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(in) :: comp_vol      ! computational volume (m^3)
-    real*8, intent(in) :: del_t         ! timestep
-    real*8, intent(inout) :: n_small    ! current number of small particles
+    !> Volume of one small particle.
+    real*8, intent(in) :: v_small
+    !> Initial volume of the big particle.
+    real*8, intent(in) :: v_big_init
+    !> Initial number of small particles.
+    real*8, intent(in) :: n_small_init
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Computational volume (m^3).
+    real*8, intent(in) :: comp_vol
+    !> Timestep.
+    real*8, intent(in) :: del_t
+    !> Current number of small particles.
+    real*8, intent(inout) :: n_small
     
     real*8 n_small_dot, k1, k2, k3, k4
     

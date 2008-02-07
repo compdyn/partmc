@@ -1,9 +1,11 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Gas state.
 
+!> \file
+!> The pmc_gas_state module.
+
+!> The gas_state_t structure and associated subroutines.
 module pmc_gas_state
 
   use pmc_util
@@ -14,20 +16,27 @@ module pmc_gas_state
   use mpi
 #endif
 
+  !> Current state of the gas concentrations in the system.
+  !!
+  !! The gas species are defined by the gas_data_t structure, so that
+  !! \c gas_state%%conc(i) is the current concentration of the gas
+  !! with name \c gas_data%%name(i), etc.
   type gas_state_t
-     real*8, pointer :: conc(:)          ! length n_spec, concentration (ppb)
+     !> Length n_spec, concentration (ppb).
+     real*8, pointer :: conc(:)
   end type gas_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate storage for gas species.
   subroutine gas_state_alloc(gas_state, n_spec)
 
-    ! Allocate storage for gas species.
-
-    type(gas_state_t), intent(out) :: gas_state ! gas state to be allocated
-    integer, intent(in) :: n_spec       ! number of species
+    !> Gas state to be allocated.
+    type(gas_state_t), intent(out) :: gas_state
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     allocate(gas_state%conc(n_spec))
     call gas_state_zero(gas_state)
@@ -36,11 +45,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine gas_state_free(gas_state)
 
-    ! Free all storage.
-
-    type(gas_state_t), intent(inout) :: gas_state ! gas state to be freed
+    !> Gas state to be freed.
+    type(gas_state_t), intent(inout) :: gas_state
 
     deallocate(gas_state%conc)
 
@@ -48,11 +57,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Zeros the state.
   subroutine gas_state_zero(gas_state)
 
-    ! Zeros the state.
-
-    type(gas_state_t), intent(inout) :: gas_state ! gas state
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
 
     gas_state%conc = 0d0
 
@@ -60,12 +69,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy to an already allocated to_state.
   subroutine gas_state_copy(from_state, to_state)
 
-    ! Copy to an already allocated to_state.
-
-    type(gas_state_t), intent(in) :: from_state ! existing gas state
-    type(gas_state_t), intent(out) :: to_state ! must be allocated already
+    !> Existing gas state.
+    type(gas_state_t), intent(in) :: from_state
+    !> Must be allocated already.
+    type(gas_state_t), intent(out) :: to_state
 
     integer :: n_spec
 
@@ -78,12 +88,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scale a gas state.
   subroutine gas_state_scale(gas_state, alpha)
 
-    ! Scale a gas state.
-
-    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
-    real*8, intent(in) :: alpha         ! scale factor
+    !> Existing gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Scale factor.
+    real*8, intent(in) :: alpha
 
     gas_state%conc = gas_state%conc * alpha
 
@@ -91,12 +102,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Adds the given gas_state_delta.
   subroutine gas_state_add(gas_state, gas_state_delta)
 
-    ! Adds the given gas_state_delta.
-
-    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
-    type(gas_state_t), intent(in) :: gas_state_delta ! incremental state
+    !> Existing gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Incremental state.
+    type(gas_state_t), intent(in) :: gas_state_delta
 
     gas_state%conc = gas_state%conc + gas_state_delta%conc
 
@@ -104,12 +116,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Subtracts the given gas_state_delta.
   subroutine gas_state_sub(gas_state, gas_state_delta)
 
-    ! Subtracts the given gas_state_delta.
-
-    type(gas_state_t), intent(inout) :: gas_state ! existing gas state
-    type(gas_state_t), intent(in) :: gas_state_delta ! incremental state
+    !> Existing gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Incremental state.
+    type(gas_state_t), intent(in) :: gas_state_delta
 
     gas_state%conc = gas_state%conc - gas_state_delta%conc
 
@@ -117,13 +130,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Sets y = a * x + y.
   subroutine gas_state_axpy(alpha, gas_state_x, gas_state_y)
 
-    ! Sets y = a * x + y.
-
-    real*8, intent(in) :: alpha         ! coefficient
-    type(gas_state_t), intent(in) :: gas_state_x ! incremental state
-    type(gas_state_t), intent(inout) :: gas_state_y ! existing gas state
+    !> Coefficient.
+    real*8, intent(in) :: alpha
+    !> Incremental state.
+    type(gas_state_t), intent(in) :: gas_state_x
+    !> Existing gas state.
+    type(gas_state_t), intent(inout) :: gas_state_y
 
     gas_state_y%conc = alpha * gas_state_x%conc + gas_state_y%conc
 
@@ -131,18 +146,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the current gas_state and rate by interpolating at the
+  !> current time with the lists of gas_states and rates.
   subroutine gas_state_interp_1d(gas_state_list, time_list, &
          rate_list, time, gas_state, rate)
 
-    ! Determine the current gas_state and rate by interpolating at the
-    ! current time with the lists of gas_states and rates.
-
-    type(gas_state_t), intent(in) :: gas_state_list(:) ! gas states
-    real*8, intent(in) :: time_list(size(gas_state_list)) ! times (s)
-    real*8, intent(in) :: rate_list(size(gas_state_list)) ! rates (s^{-1})
-    real*8, intent(in) :: time          ! current time (s)
-    type(gas_state_t), intent(inout) :: gas_state ! current gas state
-    real*8, intent(out) :: rate         ! current rate (s^{-1})
+    !> Gas states.
+    type(gas_state_t), intent(in) :: gas_state_list(:)
+    !> Times (s).
+    real*8, intent(in) :: time_list(size(gas_state_list))
+    !> Rates (s^{-1}).
+    real*8, intent(in) :: rate_list(size(gas_state_list))
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Current rate (s^{-1}).
+    real*8, intent(out) :: rate
 
     integer :: n, p
     real*8 :: y, alpha
@@ -167,12 +187,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_gas_state(file, gas_state)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(gas_state_t), intent(in) :: gas_state ! gas_state to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas_state to write.
+    type(gas_state_t), intent(in) :: gas_state
 
     call inout_write_comment(file, "begin gas_state")
     call inout_write_real_array(file, "conc(ppb)", gas_state%conc)
@@ -182,12 +203,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_gas_state(file, gas_state)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(gas_state_t), intent(out) :: gas_state ! gas_state to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas_state to read.
+    type(gas_state_t), intent(out) :: gas_state
 
     call inout_check_comment(file, "begin gas_state")
     call inout_read_real_array(file, "conc(ppb)", gas_state%conc)
@@ -197,14 +219,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read gas state from the file named on the line read from file.
   subroutine spec_read_gas_state(file, gas_data, name, gas_state)
 
-    ! Read gas state from the file named on the line read from file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    character(len=*), intent(in) :: name ! name of data line for filename
-    type(gas_state_t), intent(out) :: gas_state ! gas data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Name of data line for filename.
+    character(len=*), intent(in) :: name
+    !> Gas data.
+    type(gas_state_t), intent(out) :: gas_state
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -245,18 +270,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read an array of gas states with associated times and rates from
+  !> the file named on the line read from the given file.
   subroutine spec_read_gas_states_times_rates(file, gas_data, name, &
        times, rates, gas_states)
 
-    ! Read an array of gas states with associated times and rates from
-    ! the file named on the line read from the given file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(gas_data_t), intent(in) :: gas_data ! gas data
-    character(len=*), intent(in) :: name ! name of data line for filename
-    real*8, pointer :: times(:)         ! times (s)
-    real*8, pointer :: rates(:)         ! rates (s^{-1})
-    type(gas_state_t), pointer :: gas_states(:) ! gas states
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Name of data line for filename.
+    character(len=*), intent(in) :: name
+    !> Times (s).
+    real*8, pointer :: times(:)
+    !> Rates (s^{-1}).
+    real*8, pointer :: rates(:)
+    !> Gas states.
+    type(gas_state_t), pointer :: gas_states(:)
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -320,12 +350,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of an array of gas_state.
   subroutine gas_state_average(gas_state_vec, gas_state_avg)
-    
-    ! Computes the average of an array of gas_state.
 
-    type(gas_state_t), intent(in) :: gas_state_vec(:) ! array of gas_state
-    type(gas_state_t), intent(out) :: gas_state_avg ! average of gas_state_vec
+    !> Array of gas_state.
+    type(gas_state_t), intent(in) :: gas_state_vec(:)
+    !> Average of gas_state_vec.
+    type(gas_state_t), intent(out) :: gas_state_avg
 
     integer :: n_spec, i_spec, i, n
 
@@ -341,11 +372,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Average val over all processes.
   subroutine gas_state_mix(val)
 
-    ! Average val over all processes.
-
-    type(gas_state_t), intent(inout) :: val ! value to average
+    !> Value to average.
+    type(gas_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     type(gas_state_t) :: val_avg
@@ -360,11 +391,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_gas_state(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(gas_state_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(gas_state_t), intent(in) :: val
 
     pmc_mpi_pack_size_gas_state = &
          + pmc_mpi_pack_size_real_array(val%conc)
@@ -373,13 +404,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_gas_state(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(gas_state_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(gas_state_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -394,13 +427,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_gas_state(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(gas_state_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(gas_state_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -415,13 +450,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the average of val across all processes, storing the
+  !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_gas_state(val, val_avg)
 
-    ! Computes the average of val across all processes, storing the
-    ! result in val_avg on the root process.
-
-    type(gas_state_t), intent(in) :: val ! value to average
-    type(gas_state_t), intent(out) :: val_avg ! result
+    !> Value to average.
+    type(gas_state_t), intent(in) :: val
+    !> Result.
+    type(gas_state_t), intent(out) :: val_avg
 
     call pmc_mpi_reduce_avg_real_array(val%conc, val_avg%conc)
 

@@ -1,23 +1,11 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Routine to generate random numbers from a Poisson distribution.
-!
-! The method used at present is rather inefficient and inaccurate
-! (brute force for below 10 and normal approximation above that
-! point).
-!
-! The best known method appears to be due to Ahrens and Dieter (ACM
-! Trans. Math. Software, 8(2), 163-179, 1982) and is available (in
-! various forms) from:
-!     http://www.netlib.org/toms/599
-!     http://www.netlib.org/random/ranlib.f.tar.gz
-!     http://users.bigpond.net.au/amiller/random/random.f90
-!     http://www.netlib.org/random/random.f90
-! Unfortunately this code is under the non-free license:
-!     http://www.acm.org/pubs/copyright_policy/softwareCRnotice.html
 
+!> \file
+!> The pmc_rand_poisson module.
+
+!> Poisson random number generator.
 module pmc_rand_poisson
   
   use pmc_util
@@ -27,13 +15,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generate a Poisson-distributed random number with the given
+  !> mean.
+  !!
+  !! See http://en.wikipedia.org/wiki/Poisson_distribution for
+  !! information on the method. The method used at present is rather
+  !! inefficient and inaccurate (brute force for below 10 and normal
+  !! approximation above that point).
+  !!
+  !! The best known method appears to be due to Ahrens and Dieter (ACM
+  !! Trans. Math. Software, 8(2), 163-179, 1982) and is available (in
+  !! various forms) from:
+  !!     - http://www.netlib.org/toms/599
+  !!     - http://www.netlib.org/random/ranlib.f.tar.gz
+  !!     - http://users.bigpond.net.au/amiller/random/random.f90
+  !!     - http://www.netlib.org/random/random.f90
+  !!
+  !! Unfortunately the above code is under the non-free license:
+  !!     - http://www.acm.org/pubs/copyright_policy/softwareCRnotice.html
   integer function rand_poisson(mean)
 
-    ! Generate a Poisson-distributed random number with the given
-    ! mean. See http://en.wikipedia.org/wiki/Poisson_distribution for
-    ! information on the method.
-
-    real*8, intent(in) :: mean          ! mean of the distribution
+    !> Mean of the distribution.
+    real*8, intent(in) :: mean
 
     real*8 :: L, p
     integer :: k
@@ -59,13 +62,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generates a normally distributed random number with the given
+  !> mean and standard deviation.
   real*8 function rand_normal(mean, stddev)
 
-    ! Generates a normally distributed random number with the given
-    ! mean and standard deviation.
-
-    real*8, intent(in) :: mean          ! mean of distribution
-    real*8, intent(in) :: stddev        ! standard deviation of distribution
+    !> Mean of distribution.
+    real*8, intent(in) :: mean
+    !> Standard deviation of distribution.
+    real*8, intent(in) :: stddev
 
     real*8 :: u1, u2, r, theta, z0, z1
 

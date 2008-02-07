@@ -1,11 +1,15 @@
 ! Copyright (C) 2007, 2008 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Zero-valued kernel. This is only of interest for the exact solution
-! to the no-coagulation, no-condensation case that can be used to test
-! emissions and background dilution.
 
+!> \file
+!> The pmc_kernel_zero module.
+
+!> Constant kernel equal to zero.
+!!
+!! This is only of interest for the exact solution to the
+!! no-coagulation, no-condensation case that can be used to test
+!! emissions and background dilution.
 module pmc_kernel_zero
 
   use pmc_bin_grid
@@ -18,58 +22,74 @@ module pmc_kernel_zero
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Zero coagulation kernel.
   subroutine kernel_zero(v1, v2, env_state, k)
 
-    ! Zero coagulation kernel.
-
-    real*8, intent(in) :: v1            ! volume of first particle
-    real*8, intent(in) :: v2            ! volume of second particle
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    real*8, intent(out) :: k            ! coagulation kernel
+    !> Volume of first particle.
+    real*8, intent(in) :: v1
+    !> Volume of second particle.
+    real*8, intent(in) :: v2
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel.
+    real*8, intent(out) :: k
     
     k = 0d0
     
   end subroutine kernel_zero
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Exact solution with the zero coagulation kernel. Only useful for
+  !> testing emissions and background dilution.
+  !!
+  !! With only emissions and dilution the number distribution \f$
+  !! n(r,t) \f$ satisfies:
+  !! \f[
+  !!     \frac{d n(r,t)}{dt} = k_{\rm emit} n_{\rm emit}(r)
+  !!                           + k_{\rm dilute} (n_{\rm back}(r) - n(r,t))
+  !! \f]
+  !! together with the initial condition \f$ n(r,0) = n_0(r) \f$. Here
+  !! \f$ n_{\rm emit}(r) \f$ and \f$ n_{\rm back}(r) \f$ are emission
+  !! and background size distributions, with corresponding rates \f$
+  !! k_{\rm emit} \f$ and \f$ k_{\rm dilute} \f$.
+  !!
+  !! This is a family of ODEs parameterized by \f$ r \f$ with
+  !! solution:
+  !! \f[
+  !!     n(r,t) = n_{\infty}(r)
+  !!              + (n_0(r) - n_{\infty}(r)) \exp(-k_{\rm dilute} t)
+  !! \f]
+  !! where the steady state limit is:
+  !! \f[
+  !!     n_{\infty}(r) = n(r,\infty)
+  !!                   = n_{\rm back}(r)
+  !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(r)
+  !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, num_den, mean_vol, &
        rho_p, aero_dist_init, env_state, aero_binned)
 
-    ! Exact solution with the zero coagulation kernel. Only useful for
-    ! testing emissions and background dilution.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    real*8, intent(in) :: time          ! current time (s)
-    real*8, intent(in) :: num_den       ! particle number concentration (#/m^3)
-    real*8, intent(in) :: mean_vol      ! mean init volume (m^3)
-    real*8, intent(in) :: rho_p         ! particle density (kg/m^3)
-    type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-    type(env_state_t), intent(in) :: env_state      ! environment state
-    type(aero_binned_t), intent(out) :: aero_binned ! output state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Particle number concentration (#/m^3).
+    real*8, intent(in) :: num_den
+    !> Mean init volume (m^3).
+    real*8, intent(in) :: mean_vol
+    !> Particle density (kg/m^3).
+    real*8, intent(in) :: rho_p
+    !> Initial distribution.
+    type(aero_dist_t), intent(in) :: aero_dist_init
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Output state.
+    type(aero_binned_t), intent(out) :: aero_binned
 
     type(aero_binned_t) :: aero_binned_limit
-
-    ! With only emissions and dilution the number distribution n(r,t)
-    ! satisfies:
-    !
-    !  d n(r,t)
-    ! ---------- = k_emit * n_emit(r) + k_dilute * (n_back(r) - n(r,t))
-    !     dt
-    !
-    ! n(r,0) = n_init(r)
-    !
-    ! This is a family of ODEs parameterized by r with solution:
-    !
-    ! n(r,t) = (n_init(r) - n_lim(r)) * exp(-k_dilute * t) + n_lim(r)
-    !
-    ! where the steady state limit is:
-    !
-    !                                     k_emit
-    ! n(r,inf) = n_lim(r) = n_back(r) + ---------- n_emit(r)
-    !                                    k_dilute
 
     if (env_state%aero_dilution_rate == 0d0) then
        call aero_binned_zero(aero_binned)

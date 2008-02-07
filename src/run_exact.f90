@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Exact solution output.
 
+!> \file
+!> The pmc_run_exact module.
+
+!> Exact solution simulation.
 module pmc_run_exact
 
   use pmc_inout
@@ -19,37 +21,49 @@ module pmc_run_exact
   use pmc_gas_data
   use pmc_gas_state
 
+  !> Options controlling the execution of run_exact().
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
-     real*8 :: num_den                  ! particle number concentration (#/m^3)
-     real*8 :: mean_radius              ! mean init radius (m)
-     type(aero_dist_t) :: aero_dist_init ! aerosol initial distribution
-     real*8 :: rho_p                    ! particle density (kg/m^3)
-     real*8 :: t_max                    ! total simulation time
-     real*8 :: t_output                 ! interval to output info (s)
-     character(len=300) :: prefix       ! output prefix
+     !> Particle number concentration (#/m^3).
+     real*8 :: num_den
+     !> Mean init radius (m).
+     real*8 :: mean_radius
+     !> Aerosol initial distribution.
+     type(aero_dist_t) :: aero_dist_init
+     !> Particle density (kg/m^3).
+     real*8 :: rho_p
+     !> Total simulation time.
+     real*8 :: t_max
+     !> Interval to output info (s).
+     real*8 :: t_output
+     !> Output prefix.
+     character(len=300) :: prefix
   end type run_exact_opt_t
 
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Run an exact simulation.
+  !!
+  !! FIXME: num_den and mean_radius are really parameters for the
+  !! initial value of the particle distribution. They should be
+  !! replaced by a n_param, params() pair.
   subroutine run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
        soln, process_spec_list)
 
-    ! FIXME: num_den and mean_radius are really parameters for the
-    ! initial value of the particle distribution. They should be
-    ! replaced by a n_param, params() pair.
-
-    ! "Run" an exact solution, output data in the same format as
-    ! particle-resolved or sectional simulations.
-    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state   ! environment state
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(run_exact_opt_t), intent(in) :: exact_opt ! options
-    type(process_spec_t), intent(in) :: process_spec_list(:) ! processing spec
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment data.
+    type(env_data_t), intent(in) :: env_data
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Options.
+    type(run_exact_opt_t), intent(in) :: exact_opt
+    !> Processing spec.
+    type(process_spec_t), intent(in) :: process_spec_list(:)
     
     integer :: i_time, n_time, ncid
     type(aero_binned_t) :: aero_binned
@@ -66,15 +80,24 @@ contains
          use pmc_aero_binned
          use pmc_aero_data
 
-         type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-         type(aero_data_t), intent(in) :: aero_data ! aerosol data
-         real*8, intent(in) :: time              ! current time
-         real*8, intent(in) :: num_den           ! particle number conc (#/m^3)
-         real*8, intent(in) :: mean_radius       ! mean init radius (m)
-         real*8, intent(in) :: rho_p             ! particle density (kg/m^3)
-         type(aero_dist_t), intent(in) :: aero_dist_init ! initial distribution
-         type(env_state_t), intent(in) :: env_state ! environment state
-         type(aero_binned_t), intent(out) :: aero_binned ! output state
+         !> Bin grid.
+         type(bin_grid_t), intent(in) :: bin_grid
+         !> Aerosol data.
+         type(aero_data_t), intent(in) :: aero_data
+         !> Current time.
+         real*8, intent(in) :: time
+         !> Particle number conc (#/m^3).
+         real*8, intent(in) :: num_den
+         !> Mean init radius (m).
+         real*8, intent(in) :: mean_radius
+         !> Particle density (kg/m^3).
+         real*8, intent(in) :: rho_p
+         !> Initial distribution.
+         type(aero_dist_t), intent(in) :: aero_dist_init
+         !> Environment state.
+         type(env_state_t), intent(in) :: env_state
+         !> Output state.
+         type(aero_binned_t), intent(out) :: aero_binned
        end subroutine soln
     end interface
 

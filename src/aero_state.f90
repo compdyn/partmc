@@ -1,40 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! The array aero_state%v is the main storage of the particle sizes and
-! compositions, together with its sizing array aero_state%n. The
-! particles in aero_state%v are stored sorted per-bin, to improve
-! efficiency of sampling. If a particle has total volume pv then
-! calling particle_in_bin(pv, n_bin, v_bin, i_bin) finds the bin
-! number i_bin that that particle should go in. That particle is then
-! stored as aero_state%v(i_bin)%p(i_part,:), where i_part is the index
-! within the bin. aero_state%v(i_bin)%p(i_part,i_spec) is the volume
-! of the i_spec-th species in the i_part-th particle in the i_bin-th
-! bin.
-!
-! Typically most of the bins have only a few particles, while a small
-! number of bins have many particles. To avoid having too much storage
-! allocated for the bins with only a few particles, we do dynamic
-! allocation/deallocation of the storage per-bin.
-!
-! With Fortran 90 we can't have arrays of arrays, so we have to use an
-! array of pointers, and then allocate each pointer. We really want a
-! 3D structure, with indices (i_bin, i_part, i_spec) specifiying
-! species i_spec in particle number i_part stored in bin i_bin. This
-! is stored as an array of pointers, one per bin, pointing to 2D
-! arrays for which each row is a single particle (with the columns
-! giving the volumes of the individual species).
-!
-! To avoid doing allocation and deallocation every time we add or
-! remove a particle to a bin, we always double or halve the bin
-! storage as necessary. The actual number of particles stored in a bin
-! will generally be less than the actual memory allocated for that
-! bin, so we store the current number of particles in a bin in the
-! array aero_state%n. The allocated size of bin storage in
-! aero_state%v(i_bin) is not stored explicitly, but can be obtained
-! with the Fortran 90 SIZE() intrinsic function.
 
+!> \file
+!> The pmc_aero_state module.
+
+!> The aero_state_t structure and assocated subroutines.
 module pmc_aero_state
 
   use pmc_aero_particle_array
@@ -53,25 +24,59 @@ module pmc_aero_state
 #endif
 #endif
 
+  !> The current collection of aerosol particles.
+  !!
+  !! The particles in aero_state_t are stored sorted per-bin, to
+  !! improve efficiency of access and sampling. If a particle has
+  !! total volume \c v then calling <tt> i_bin =
+  !! bin_grid_particle_in_bin(bin_grid, v)</tt> finds the bin number
+  !! i_bin where that particle should go. That particle is then stored
+  !! as \c aero_state%%bins(i_bin)%%particle(i_part), where \c i_part
+  !! is the index within the bin. \c
+  !! aero_state%%v(i_bin)%%p(i_part)%%vol(i_spec) is thus the volume
+  !! of the \c i_spec-th species in the \c i_part-th particle in the
+  !! \c i_bin-th bin.
+  !!
+  !! Typically most of the bins have only a few particles, while a
+  !! small number of bins have many particles. To avoid having too
+  !! much storage allocated for the bins with only a few particles, we
+  !! do dynamic allocation and deallocation of the storage
+  !! per-bin. With Fortran 90 we can't have arrays of arrays, so we
+  !! have to use an array of pointers, and then allocate each pointer.
+  !!
+  !! To avoid doing allocation and deallocation every time we add or
+  !! remove a particle to a bin, we always double or halve the bin
+  !! storage as necessary. The actual number of particles stored in a
+  !! bin will generally be less than the actual memory allocated for
+  !! that bin, so we store the current number of particles in a bin in
+  !! \c aero_state%%bins(i_bin)%%n_part. The allocated size of bin
+  !! storage in \c aero_state%%bins(i_bin)%%particle is not stored
+  !! explicitly, but can be obtained with the Fortran 90 SIZE()
+  !! intrinsic function.
   type aero_state_t
-     type(aero_particle_array_t), pointer :: bins(:) ! bin arrays
-     real*8 :: comp_vol                 ! computational volume (m^3)
-     integer :: n_part                  ! total number of particles
+     !> Bin arrays.
+     type(aero_particle_array_t), pointer :: bins(:)
+     !> Computational volume (m^3).
+     real*8 :: comp_vol
+     !> Total number of particles.
+     integer :: n_part
   end type aero_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Initializes aerosol arrays to have zero particles in each
+  !> bin. Do not call this more than once on a given aerosol, use
+  !> aero_state_zero() instead to reset to zero.
   subroutine aero_state_alloc(n_bin, n_spec, aero_state)
 
-    ! Initializes aerosol arrays to have zero particles in each
-    ! bin. Do not call this more than once on a given aerosol, use
-    ! aero_state_zero() instead to reset to zero.
-
-    integer, intent(in) :: n_bin        ! number of bins
-    integer, intent(in) :: n_spec       ! number of species
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol to initialize
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Number of species.
+    integer, intent(in) :: n_spec
+    !> Aerosol to initialize.
+    type(aero_state_t), intent(inout) :: aero_state
     
     integer i
 
@@ -86,11 +91,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Deallocates a previously allocated aerosol.
   subroutine aero_state_free(aero_state)
 
-    ! Deallocates a previously allocated aerosol.
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol to initialize
+    !> Aerosol to initialize.
+    type(aero_state_t), intent(inout) :: aero_state
     
     integer :: n_bin, i
 
@@ -104,13 +109,14 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies aerosol to a destination that has already had
+  !> aero_state_alloc() called on it.
   subroutine aero_state_copy(aero_state_from, aero_state_to)
 
-    ! Copies aerosol to a destination that has already had
-    ! aero_state_alloc() called on it.
-
-    type(aero_state_t), intent(in) :: aero_state_from ! reference aerosol
-    type(aero_state_t), intent(inout) :: aero_state_to ! already allocated
+    !> Reference aerosol.
+    type(aero_state_t), intent(in) :: aero_state_from
+    !> Already allocated.
+    type(aero_state_t), intent(inout) :: aero_state_to
     
     integer :: n_bin, i
 
@@ -131,11 +137,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number of particles in an aerosol distribution.
   integer function aero_state_total_particles(aero_state)
 
-    ! Returns the total number of particles in an aerosol distribution.
-
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
 
     aero_state_total_particles = aero_state%n_part
 
@@ -143,13 +149,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Resets an aero_state to have zero particles per bin. This must
+  !> already have had aero_state_alloc() called on it. This
+  !> function can be called more than once on the same state.
   subroutine aero_state_zero(aero_state)
 
-    ! Resets an aero_state to have zero particles per bin. This must
-    ! already have had aero_state_alloc() called on it. This
-    ! function can be called more than once on the same state.
-
-    type(aero_state_t), intent(inout) :: aero_state ! state to zero
+    !> State to zero.
+    type(aero_state_t), intent(inout) :: aero_state
     
     integer :: i, n_bin
 
@@ -163,13 +169,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Add the given particle.
   subroutine aero_state_add_particle(aero_state, bin, aero_particle)
 
-    ! Add the given particle.
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    integer, intent(in) :: bin          ! bin number of particle to remove
-    type(aero_particle_t), intent(in) :: aero_particle ! particle to add
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin number of particle to remove.
+    integer, intent(in) :: bin
+    !> Particle to add.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     call aero_particle_array_add_particle(aero_state%bins(bin), &
          aero_particle)
@@ -179,13 +187,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Remove the given particle.
   subroutine aero_state_remove_particle(aero_state, bin, index)
 
-    ! Remove the given particle.
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    integer, intent(in) :: bin          ! bin number of particle to remove
-    integer, intent(in) :: index        ! index in bin of particle to remove
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin number of particle to remove.
+    integer, intent(in) :: bin
+    !> Index in bin of particle to remove.
+    integer, intent(in) :: index
 
     call aero_particle_array_remove_particle(aero_state%bins(bin), index)
     aero_state%n_part = aero_state%n_part - 1
@@ -194,12 +204,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> aero_state += aero_state_delta
   subroutine aero_state_add(aero_state, aero_state_delta)
 
-    ! aero_state += aero_state_delta
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(aero_state_t), intent(in) :: aero_state_delta ! increment
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Increment.
+    type(aero_state_t), intent(in) :: aero_state_delta
 
     integer :: i_bin, i_part
 
@@ -214,18 +225,22 @@ contains
   end subroutine aero_state_add
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Makes particles from the given number distribution and appends
+  !> them to the aero_state%v array.
   subroutine aero_state_add_disc_mode(bin_grid, aero_data, vol_frac, &
        bin_n, aero_state)
-
-    ! Makes particles from the given number distribution and appends
-    ! them to the aero_state%v array.
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aero_data data
-    real*8, intent(in) :: vol_frac(aero_data%n_spec) ! composition of particles
-    integer, intent(in) :: bin_n(bin_grid%n_bin) ! number in bins
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol, must be
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Composition of particles.
+    real*8, intent(in) :: vol_frac(aero_data%n_spec)
+    !> Number in bins.
+    integer, intent(in) :: bin_n(bin_grid%n_bin)
+    !> Aerosol, must be.
+    type(aero_state_t), intent(inout) :: aero_state
                                               ! allocated already
     
     real*8 v_low, v_high, pv
@@ -251,17 +266,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a continuous distribution into particles.
   subroutine aero_dist_to_state(bin_grid, aero_data, aero_dist, &
        n_part, aero_state)
-
-    ! Convert a continuous distribution into particles.
     
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aero_data data
-    type(aero_dist_t), intent(in) :: aero_dist ! aerosol distribution
-    integer, intent(in) :: n_part       ! total number of particles
-    type(aero_state_t), intent(out) :: aero_state ! aerosol distribution,
-                                                  ! will be alloced
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Total number of particles.
+    integer, intent(in) :: n_part
+    !> Aerosol distribution (will be allocated).
+    type(aero_state_t), intent(out) :: aero_state
 
     integer :: i
     real*8 :: total_n_den
@@ -295,18 +313,22 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generates a Poisson sample of an aero_dist, adding to
+  !> aero_state. The sampled amount is sample_prop *
+  !> aero_state%comp_vol.
   subroutine aero_dist_sample(bin_grid, aero_data, aero_dist, &
        sample_prop, aero_state)
 
-    ! Generates a Poisson sample of an aero_dist, adding to
-    ! aero_state. The sampled amount is sample_prop *
-    ! aero_state%comp_vol.
-
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aero data values
-    type(aero_dist_t), intent(in) :: aero_dist ! distribution to sample
-    real*8, intent(in) :: sample_prop   ! volume fraction to sample
-    type(aero_state_t), intent(inout) :: aero_state ! aero state to add to
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Distribution to sample.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Volume fraction to sample.
+    real*8, intent(in) :: sample_prop
+    !> Aero state to add to.
+    type(aero_state_t), intent(inout) :: aero_state
 
     real*8 :: n_samp_avg, sample_vol
     integer :: n_samp, i_mode
@@ -327,13 +349,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Choose a random particle from the aero_state.
   subroutine aero_state_rand_particle(aero_state, i_bin, i_part)
 
-    ! Choose a random particle from the aero_state.
-
-    type(aero_state_t), intent(in) :: aero_state ! original state
-    integer, intent(out) :: i_bin       ! bin number of particle
-    integer, intent(out) :: i_part      ! particle number within bin
+    !> Original state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Bin number of particle.
+    integer, intent(out) :: i_bin
+    !> Particle number within bin.
+    integer, intent(out) :: i_part
 
     integer :: n_bin, disc_pdf(size(aero_state%bins))
 
@@ -347,16 +371,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generates a Poisson sample by removing particles from
+  !> aero_state_from and adding them to aero_state_to, which must
+  !> be already allocated (and should have its comp_vol set).
   subroutine aero_state_sample(aero_state_from, aero_state_to, &
        sample_prop)
-    
-    ! Generates a Poisson sample by removing particles from
-    ! aero_state_from and adding them to aero_state_to, which must
-    ! be already allocated (and should have its comp_vol set).
 
-    type(aero_state_t), intent(inout) :: aero_state_from ! original state
-    type(aero_state_t), intent(inout) :: aero_state_to ! destination state
-    real*8, intent(in) :: sample_prop   ! proportion to sample
+    !> Original state.
+    type(aero_state_t), intent(inout) :: aero_state_from
+    !> Destination state.
+    type(aero_state_t), intent(inout) :: aero_state_to
+    !> Proportion to sample.
+    real*8, intent(in) :: sample_prop
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
@@ -406,16 +432,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generates a rough bin-wise sample by removing particles from
+  !> aero_state_from and adding them to aero_state_to, which must
+  !> be already allocated (and should have its comp_vol set).
   subroutine aero_state_sample_rough(aero_state_from, aero_state_to, &
        sample_prop)
-    
-    ! Generates a rough bin-wise sample by removing particles from
-    ! aero_state_from and adding them to aero_state_to, which must
-    ! be already allocated (and should have its comp_vol set).
 
-    type(aero_state_t), intent(inout) :: aero_state_from ! original state
-    type(aero_state_t), intent(inout) :: aero_state_to ! destination state
-    real*8, intent(in) :: sample_prop   ! proportion to sample
+    !> Original state.
+    type(aero_state_t), intent(inout) :: aero_state_from
+    !> Destination state.
+    type(aero_state_t), intent(inout) :: aero_state_to
+    !> Proportion to sample.
+    real*8, intent(in) :: sample_prop
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
@@ -465,16 +493,17 @@ contains
   end subroutine aero_state_sample_rough
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine aero_state_add_particles(aero_state, aero_state_delta)
-    
-    ! Adds aero_state_delta particles to aero_state. The number of
-    ! particles added depends on the computational volume ratio, so
-    ! either more or less particles might be added than are actually
-    ! in aero_state_delta.
 
-    type(aero_state_t), intent(inout) :: aero_state ! base state
-    type(aero_state_t), intent(in) :: aero_state_delta ! state to add
+  !> Adds aero_state_delta particles to aero_state. The number of
+  !> particles added depends on the computational volume ratio, so
+  !> either more or less particles might be added than are actually
+  !> in aero_state_delta.
+  subroutine aero_state_add_particles(aero_state, aero_state_delta)
+
+    !> Base state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> State to add.
+    type(aero_state_t), intent(in) :: aero_state_delta
     
     integer :: n_bin, i_bin, i_part, n_new_part, i_new_part
     real*8 :: vol_ratio
@@ -494,16 +523,19 @@ contains
   end subroutine aero_state_add_particles
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Create the bin number and mass arrays from aero_state%v.
   subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
        aero_binned)
     
-    ! Create the bin number and mass arrays from aero_state%v.
-    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(in) :: aero_state ! aerosol state
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
     
     integer b, j, s
     
@@ -522,12 +554,12 @@ contains
   end subroutine aero_state_to_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Doubles number of particles.
   subroutine aero_state_double(aero_state)
     
-    ! Doubles number of particles.
-    
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     
     integer :: i, n_bin
     
@@ -542,13 +574,15 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Remove approximately half of the particles in each bin.
   subroutine aero_state_halve(aero_state, aero_binned, bin_grid)
     
-    ! Remove approximately half of the particles in each bin.
-    
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aero binned.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
     
     integer :: i_bin, i_part, n_part_orig, i_remove, n_remove
 
@@ -569,15 +603,16 @@ contains
   end subroutine aero_state_halve
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Takes an aero_state_t where the particles might no longer be in
+  !> the correct bins and resorts it so that every particle is in the
+  !> correct bin.
   subroutine aero_state_resort(bin_grid, aero_state)
     
-    ! Takes a VH array where the particle volumes might no longer be
-    ! correct for the bins they are in and resorts it so that every
-    ! particle is in the correct bin.
-    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     
     integer :: bin, j, new_bin, k
     
@@ -619,18 +654,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Send a sample to the given process, and receive exactly one
+  !> sample from an unspecified source.
   subroutine aero_state_mix_to(aero_state, mix_rate, dest, &
        aero_binned, aero_data, bin_grid)
 
-    ! Send a sample to the given process, and receive exactly one
-    ! sample from an unspecified source.
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
-    integer, intent(in) :: dest         ! process to send to
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
-    type(aero_data_t), intent(in) :: aero_data ! aero data values
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Mixing rate (0 to 1).
+    real*8, intent(in) :: mix_rate
+    !> Process to send to.
+    integer, intent(in) :: dest
+    !> Aero binned to update.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
 
 #ifdef PMC_USE_MPI
     integer :: ierr, status(MPI_STATUS_SIZE)
@@ -697,17 +737,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Mix the aero_states between all processes. Currently uses a
+  !> simple periodic-1D diffusion.
   subroutine aero_state_mix(aero_state, mix_rate, &
        aero_binned, aero_data, bin_grid)
 
-    ! Mix the aero_states between all processes. Currently uses a
-    ! simple periodic-1D diffusion.
-
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
-    real*8, intent(in) :: mix_rate      ! mixing rate (0 to 1)
-    type(aero_binned_t), intent(inout) :: aero_binned ! aero binned to update
-    type(aero_data_t), intent(in) :: aero_data ! aero data values
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Mixing rate (0 to 1).
+    real*8, intent(in) :: mix_rate
+    !> Aero binned to update.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
 
     integer :: rank, n_proc, dest
 
@@ -736,16 +780,19 @@ contains
   end subroutine aero_state_mix
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Check that all particles are in the correct bins and that the
+  !> bin numbers and masses are correct. This is for debugging only.
   subroutine aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
     
-    ! Check that all particles are in the correct bins and that the
-    ! bin numbers and masses are correct. This is for debugging only.
-    
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
-    type(aero_binned_t), intent(out) :: aero_binned ! binned distributions
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_state_t), intent(inout) :: aero_state ! aerosol state
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     
     real*8 :: check_bin_v, check_vol_den, vol_tol
     real*8 :: num_tol, state_num_den
@@ -817,13 +864,14 @@ contains
   end subroutine aero_state_check
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Write full state.
   subroutine inout_write_aero_state(file, aero_state)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_state_t), intent(in) :: aero_state ! aero_state to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_state to write.
+    type(aero_state_t), intent(in) :: aero_state
 
     integer :: n_bin, i
     
@@ -841,13 +889,14 @@ contains
   end subroutine inout_write_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Read full state.
   subroutine inout_read_aero_state(file, aero_state)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_state_t), intent(out) :: aero_state ! aero_state to read
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_state to read.
+    type(aero_state_t), intent(out) :: aero_state
     
     integer :: n_bin, i, check_i
     
@@ -867,11 +916,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_state(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_state_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_state_t), intent(in) :: val
 
     integer :: i, total_size
 
@@ -888,13 +937,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_state(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_state_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_state_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
@@ -914,13 +965,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_state(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_state_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_state_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n

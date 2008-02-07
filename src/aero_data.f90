@@ -2,8 +2,10 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
-!> Contains the aero_data_t structure for constant aerosol data and
-!> helper functions.
+!> \file
+!> The pmc_aero_data module.
+
+!> The aero_data_t structure and associated subroutines.
 module pmc_aero_data
 
   use pmc_inout
@@ -34,30 +36,39 @@ module pmc_aero_data
   !! MOSAIC interface to work correctly the species must be named the
   !! same, but without the \c _a suffix.
   type aero_data_t
-     integer :: n_spec                  ! number of species
-     integer :: i_water                 ! water species number
-     character(len=AERO_NAME_LEN), pointer :: name(:) ! len n_spec, species
-     integer, pointer :: mosaic_index(:) ! length n_spec, to_mosaic(i) is the
-                                        ! mosaic index of species i, or 0 if
-                                        ! there is no match
-     real*8, pointer ::  density(:)     ! len n_spec, densities (kg m^{-3})
-     integer, pointer :: num_ions(:)    ! len n_spec, num ions in solute
-     real*8, pointer :: solubility(:)   ! len n_spec, solubilities (1)
-     real*8, pointer :: molec_weight(:) ! len n_spec, molc wghts (kg mole^{-1})
-     real*8, pointer :: kappa(:)        ! len n_spec, kappas (1)
+     !> Number of species.
+     integer :: n_spec
+     !> Water species number.
+     integer :: i_water
+     !> Len n_spec, species.
+     character(len=AERO_NAME_LEN), pointer :: name(:)
+     !> Length n_spec, mosaic_index(i) a positive integer giving the
+     !> mosaic index of species i, or 0 if there is no match.
+     integer, pointer :: mosaic_index(:)
+     !> Len n_spec, densities (kg m^{-3}).
+     real*8, pointer ::  density(:)
+     !> Len n_spec, num ions in solute.
+     integer, pointer :: num_ions(:)
+     !> Len n_spec, solubilities (1).
+     real*8, pointer :: solubility(:)
+     !> Len n_spec, molc wghts (kg mole^{-1}).
+     real*8, pointer :: molec_weight(:)
+     !> Len n_spec, kappas (1).
+     real*8, pointer :: kappa(:)
   end type aero_data_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate storage for aero_data parameters given the number of
+  !> species.
   subroutine aero_data_alloc(aero_data, n_spec)
 
-    ! Allocate storage for aero_data parameters given the number of
-    ! species.
-
-    type(aero_data_t), intent(inout) :: aero_data ! aerosol data
-    integer, intent(in) :: n_spec       ! number of species
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     aero_data%n_spec = n_spec
     allocate(aero_data%name(n_spec))
@@ -73,11 +84,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Frees all storage.
   subroutine aero_data_free(aero_data)
 
-    ! Frees all storage.
-
-    type(aero_data_t), intent(inout) :: aero_data ! aerosol data
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
 
     deallocate(aero_data%name)
     deallocate(aero_data%mosaic_index)
@@ -91,13 +102,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the number of the species in aero_data with the given name, or
+  !> returns 0 if there is no such species.
   integer function aero_data_spec_by_name(aero_data, name)
 
-    ! Returns the number of the species in aero_data with the given name, or
-    ! returns 0 if there is no such species.
-
-    type(aero_data_t), intent(in) :: aero_data     ! aero_data data
-    character(len=AERO_NAME_LEN), intent(in) :: name ! name of species to find
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Name of species to find.
+    character(len=AERO_NAME_LEN), intent(in) :: name
 
     integer i
     logical found
@@ -119,11 +131,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Fills in aero_data%i_water.
   subroutine aero_data_set_water_index(aero_data)
 
-    ! Fills in aero_data%i_water.
-
-    type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
 
     integer :: i
 
@@ -137,11 +149,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Fills in aero_data%mosaic_index.
   subroutine aero_data_set_mosaic_map(aero_data)
 
-    ! Fills in aero_data%mosaic_index.
-
-    type(aero_data_t), intent(inout) :: aero_data  ! aero_data data
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
 
     integer, parameter :: n_mosaic_spec = 19
     character(AERO_NAME_LEN), parameter, dimension(n_mosaic_spec) :: &
@@ -169,12 +181,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_aero_data(file, aero_data)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_data_t), intent(in) :: aero_data ! aero_data to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data to write.
+    type(aero_data_t), intent(in) :: aero_data
 
     call inout_write_comment(file, "begin aero_data")
     call inout_write_integer(file, "n_spec", aero_data%n_spec)
@@ -194,12 +207,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_aero_data(file, aero_data)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(aero_data_t), intent(out) :: aero_data ! aero_data to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data to read.
+    type(aero_data_t), intent(out) :: aero_data
 
     call inout_check_comment(file, "begin aero_data")
     call inout_read_integer(file, "n_spec", aero_data%n_spec)
@@ -219,12 +233,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read aero_data specification from a inout file.
   subroutine spec_read_aero_data(file, aero_data)
 
-    ! Read aero_data specification from a inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(out) :: aero_data
 
     integer :: n_species, species, i
     character(len=MAX_CHAR_LEN), pointer :: species_name(:)
@@ -262,12 +277,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read aero_data specification from a inout file.
   subroutine spec_read_aero_data_filename(file, aero_data)
 
-    ! Read aero_data specification from a inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(aero_data_t), intent(out) :: aero_data  ! aero_data data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_data data.
+    type(aero_data_t), intent(out) :: aero_data
 
     character(len=MAX_CHAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -282,14 +298,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a list of species from the given file with the given name.
   subroutine inout_read_species_list(file, name, aero_data, species_list)
 
-    ! Read a list of species from the given file with the given name.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    character(len=*), intent(in) :: name ! name of line
-    type(aero_data_t), intent(in) :: aero_data  ! aero_data data
-    integer, pointer :: species_list(:) ! list of species numbers
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Name of line.
+    character(len=*), intent(in) :: name
+    !> Aero_data data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> List of species numbers.
+    integer, pointer :: species_list(:)
 
     type(inout_line_t) :: line
     integer :: i, spec
@@ -312,11 +331,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_data(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_data_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_data_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_data = &
          pmc_mpi_pack_size_integer(val%n_spec) &
@@ -333,13 +352,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_data(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_data_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_data_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -362,13 +383,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_data(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_data_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_data_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

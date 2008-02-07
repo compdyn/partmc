@@ -1,9 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Basic particle structure.
 
+!> \file
+!> The pmc_aero_particle module.
+
+!> The aero_particle_t structure and associated subroutines.
 module pmc_aero_particle
 
   use pmc_util
@@ -15,27 +17,42 @@ module pmc_aero_particle
   use mpi
 #endif
 
+  !> Single aerosol particle data structure.
+  !!
+  !! The \c vol array stores the total volumes of the different
+  !! species that make up the particle. This array must have length
+  !! equal to aero_data%%n_spec, so that \c vol(i) is the volume (in
+  !! m^3) of the i'th aerosol species.
   type aero_particle_t
-     real*8, pointer :: vol(:)           ! constituent species volumes (m^3)
-     integer :: n_orig_part              ! number of original particles
-     real*8 :: absorb_cross_sect         ! absorption cross-section (m^2)
-     real*8 :: scatter_cross_sect        ! scattering cross-section (m^2)
-     real*8 :: asymmetry                 ! asymmetry parameter (1)
-     complex*16 :: refract_shell         ! refractive index of the shell (1)
-     complex*16 :: refract_core          ! refractive index of the core (1)
-     real*8 :: core_vol                  ! volume of the core (m^3)
+     !> Constituent species volumes [length aero_data%%n_spec] (m^3).
+     real*8, pointer :: vol(:)
+     !> Number of original particles that coagulated to form this one.
+     integer :: n_orig_part
+     !> Absorption cross-section (m^2).
+     real*8 :: absorb_cross_sect
+     !> Scattering cross-section (m^2).
+     real*8 :: scatter_cross_sect
+     !> Asymmetry parameter (1).
+     real*8 :: asymmetry
+     !> Refractive index of the shell (1).
+     complex*16 :: refract_shell
+     !> Refractive index of the core (1).
+     complex*16 :: refract_core
+     !> Volume of the core (m^3).
+     real*8 :: core_vol
   end type aero_particle_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocates memory in an aero_particle_t and initializes it to zero.
   subroutine aero_particle_alloc(aero_particle, n_spec)
 
-    ! Allocates and initializes.
-
-    type(aero_particle_t), intent(inout) :: aero_particle ! particle to init
-    integer, intent(in) :: n_spec       ! number of species
+    !> Particle to init.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     allocate(aero_particle%vol(n_spec))
     call aero_particle_zero(aero_particle)
@@ -44,11 +61,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Deallocates memory associated with an aero_particle_t.
   subroutine aero_particle_free(aero_particle)
 
-    ! Deallocates.
-
-    type(aero_particle_t), intent(inout) :: aero_particle ! particle to free
+    !> Particle to free.
+    type(aero_particle_t), intent(inout) :: aero_particle
     
     deallocate(aero_particle%vol)
 
@@ -56,12 +73,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies a particle.
   subroutine aero_particle_copy(aero_particle_from, aero_particle_to)
 
-    ! Copies a particle.
-
-    type(aero_particle_t), intent(in) :: aero_particle_from ! ref particle
-    type(aero_particle_t), intent(inout) :: aero_particle_to ! already alloc'd
+    !> Reference particle.
+    type(aero_particle_t), intent(in) :: aero_particle_from
+    !> Destination particle (already alloced on entry).
+    type(aero_particle_t), intent(inout) :: aero_particle_to
     
     integer :: n_spec
 
@@ -85,13 +103,18 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Shift data from one aero_particle_t to another and free the first
+  !> one.
+  !!
+  !! This is roughly equivalent to aero_particle_copy(from, to)
+  !! followed by aero_particle_free(from), but faster and with
+  !! different memory allocation requirements.
   subroutine aero_particle_shift(aero_particle_from, aero_particle_to)
 
-    ! Is the equivalent of aero_particle_copy(from, to) followed by
-    ! aero_particle_free(from), but faster.
-
-    type(aero_particle_t), intent(in) :: aero_particle_from ! ref particle
-    type(aero_particle_t), intent(inout) :: aero_particle_to ! not allocated
+    !> Reference particle (will be deallocated on return).
+    type(aero_particle_t), intent(inout) :: aero_particle_from
+    !> Destination particle (not allocated on entry).
+    type(aero_particle_t), intent(inout) :: aero_particle_to
 
     aero_particle_to%vol => aero_particle_from%vol
     nullify(aero_particle_from%vol)
@@ -107,11 +130,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Resets an aero_particle to be zero.
   subroutine aero_particle_zero(aero_particle)
 
-    ! Resets an aero_particle to be zero.
-
-    type(aero_particle_t), intent(inout) :: aero_particle ! particle to zero
+    !> Particle to zero.
+    type(aero_particle_t), intent(inout) :: aero_particle
     
     aero_particle%vol = 0d0
     aero_particle%n_orig_part = 1
@@ -126,12 +149,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Sets the aerosol particle volumes.
   subroutine aero_particle_set_vols(aero_particle, vols)
 
-    ! Sets the aerosol particle volumes.
-
-    type(aero_particle_t), intent(inout) :: aero_particle ! particle
-    real*8, intent(in) :: vols(size(aero_particle%vol)) ! new volumes
+    !> Particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> New volumes.
+    real*8, intent(in) :: vols(size(aero_particle%vol))
 
     aero_particle%vol = vols
 
@@ -139,12 +163,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_mass(aero_particle, aero_data) ! (kg)
+  !> Total mass of the particle (kg).
+  real*8 function aero_particle_mass(aero_particle, aero_data)
 
-    ! Total mass of the particle.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! particle
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     
     aero_particle_mass = sum(aero_particle%vol * aero_data%density)
 
@@ -152,12 +177,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_moles(aero_particle, aero_data) ! (1)
+  !> Total moles in the particle (1).
+  real*8 function aero_particle_moles(aero_particle, aero_data)
 
-    ! Total moles in the particle.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! particle
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     
     aero_particle_moles = sum(aero_particle%vol * aero_data%density &
          / aero_data%molec_weight)
@@ -166,24 +192,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_volume(aero_particle) ! m^3
+  !> Total volume of the particle (m^3).
+  real*8 function aero_particle_volume(aero_particle)
 
-    ! Total volume of the particle.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! particle
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_volume = sum(aero_particle%vol)
 
   end function aero_particle_volume
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  integer function aero_particle_in_bin(aero_particle, bin_grid)
-    
-    ! Find the bin number that contains a given particle.
 
-    type(aero_particle_t), intent(in) :: aero_particle ! particle
-    type(bin_grid_t), intent(in) :: bin_grid ! bin_grid
+  !> Find the bin number that contains a given particle.
+  integer function aero_particle_in_bin(aero_particle, bin_grid)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
     
     aero_particle_in_bin = bin_grid_particle_in_bin(bin_grid, &
          aero_particle_volume(aero_particle))
@@ -192,14 +219,16 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the volume-average of the non-water elements of quantity.
   real*8 function aero_particle_average_solute_quantity(aero_particle, &
        aero_data, quantity)
 
-    ! Returns the volume-average of the non-water elements of quantity.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to average
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Quantity to average.
+    real*8, intent(in) :: quantity(:)
 
     real*8 :: ones(aero_data%n_spec)
 
@@ -213,14 +242,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the volume-total of the non-water elements of quantity.
   real*8 function aero_particle_total_solute_quantity(aero_particle, &
        aero_data, quantity)
 
-    ! Returns the volume-total of the non-water elements of quantity.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to total
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Quantity to total.
+    real*8, intent(in) :: quantity(:)
 
     real*8 total
     integer i
@@ -237,14 +268,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the water element of quantity.
   real*8 function average_water_quantity(aero_particle, &
        aero_data, quantity)
 
-    ! Returns the water element of quantity.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to average
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Quantity to average.
+    real*8, intent(in) :: quantity(:)
 
     call assert(420016623, aero_data%i_water > 0)
     average_water_quantity = quantity(aero_data%i_water)
@@ -253,14 +286,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the volume-total of the water element of quantity.
   real*8 function total_water_quantity(aero_particle, &
        aero_data, quantity)
 
-    ! Returns the volume-total of the water element of quantity.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data   ! aerosol data
-    real*8, intent(in) :: quantity(:)   ! quantity to total
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Quantity to total.
+    real*8, intent(in) :: quantity(:)
 
     call assert(223343210, aero_data%i_water > 0)
     total_water_quantity = aero_particle%vol(aero_data%i_water) &
@@ -270,11 +305,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_water_molec_weight(aero_data) ! (kg/mole)
+  !> Returns the water molecular weight.
+  !> (kg/mole)
+  real*8 function aero_particle_water_molec_weight(aero_data)
 
-    ! Returns the water molecular weight.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     call assert(772012490, aero_data%i_water > 0)
     aero_particle_water_molec_weight &
@@ -284,13 +320,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the average of the solute molecular weight (kg/mole).
   real*8 function aero_particle_solute_molec_weight(aero_particle, &
-       aero_data) ! (kg/mole)
+       aero_data)
 
-    ! Returns the average of the solute molecular weight.
-
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_solute_molec_weight &
          = aero_particle_average_solute_quantity(aero_particle, &
@@ -300,12 +337,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_num_ions(aero_particle, aero_data) ! (1)
+  !> Returns the average of the solute ion number (1).
+  real*8 function aero_particle_solute_num_ions(aero_particle, aero_data)
 
-    ! Returns the average of the solute ion number.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_num_ions &
          = aero_particle_average_solute_quantity(aero_particle, &
@@ -315,13 +353,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the average of the solute solubilities (1).
   real*8 function aero_particle_solute_solubility(aero_particle, &
-       aero_data) ! (1)
+       aero_data)
 
-    ! Returns the average of the solute solubilities.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_solubility &
          = aero_particle_average_solute_quantity(aero_particle, &
@@ -331,11 +370,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_water_density(aero_data) ! (kg/m^3)
+  !> Returns the water density (kg/m^3).
+  real*8 function aero_particle_water_density(aero_data)
 
-    ! Returns the water density.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     call assert(235482108, aero_data%i_water > 0)
     aero_particle_water_density = aero_data%density(aero_data%i_water)
@@ -344,13 +383,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the average of the solute densities (kg/m^3).
   real*8 function aero_particle_solute_density(aero_particle, &
-       aero_data) ! (kg/m^3)
+       aero_data)
 
-    ! Returns the average of the solute densities.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_density &
          = aero_particle_average_solute_quantity(aero_particle, &
@@ -360,12 +400,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_water_mass(aero_particle, aero_data) ! (kg)
+  !> Returns the water mass (kg).
+  real*8 function aero_particle_water_mass(aero_particle, aero_data)
 
-    ! Returns the water mass.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     call assert(888636139, aero_data%i_water > 0)
     aero_particle_water_mass = aero_particle%vol(aero_data%i_water) &
@@ -375,12 +416,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_mass(aero_particle, aero_data) ! (kg)
+  !> Returns the total solute mass (kg).
+  real*8 function aero_particle_solute_mass(aero_particle, aero_data)
 
-    ! Returns the total solute mass.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_mass &
          = aero_particle_total_solute_quantity(aero_particle, &
@@ -390,12 +432,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_solute_kappa(aero_particle, aero_data) ! (1)
+  !> Returns the average of the solute kappas (1).
+  real*8 function aero_particle_solute_kappa(aero_particle, aero_data)
 
-    ! Returns the average of the solute kappas.
-
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle ! aerosol particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_kappa &
          = aero_particle_average_solute_quantity(aero_particle, &
@@ -405,14 +448,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Coagulate two particles together to make a new one.
   subroutine aero_particle_coagulate(aero_particle_1, &
        aero_particle_2, aero_particle_new)
 
-    ! Coagulate two particles together to make a new one.
-
-    type(aero_particle_t), intent(in) :: aero_particle_1 ! first particle
-    type(aero_particle_t), intent(in) :: aero_particle_2 ! second particle
-    type(aero_particle_t), intent(inout) :: aero_particle_new ! result particle
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Result particle.
+    type(aero_particle_t), intent(inout) :: aero_particle_new
 
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_new%vol))
@@ -431,13 +476,14 @@ contains
   end subroutine aero_particle_coagulate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Write full state.
   subroutine inout_write_aero_particle(file, aero_particle)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_particle_t), intent(in) :: aero_particle ! aero_particle to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_particle to write.
+    type(aero_particle_t), intent(in) :: aero_particle
     
     call inout_write_comment(file, "begin aero_particle")
     call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
@@ -456,13 +502,14 @@ contains
   end subroutine inout_write_aero_particle
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Read full state.
   subroutine inout_read_aero_particle(file, aero_particle)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(aero_particle_t), intent(out) :: aero_particle ! aero_particle to read
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Aero_particle to read.
+    type(aero_particle_t), intent(out) :: aero_particle
 
     call inout_check_comment(file, "begin aero_particle")
     call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
@@ -482,11 +529,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_particle(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(aero_particle_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(aero_particle_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_particle = &
          pmc_mpi_pack_size_real_array(val%vol) &
@@ -502,13 +549,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_particle(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_particle_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_particle_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -530,13 +579,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_particle(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(aero_particle_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(aero_particle_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

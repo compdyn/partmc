@@ -1,16 +1,11 @@
 ! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Environment data. This is everything needed to support the current
-! environment state. The environment data is not time-dependent,
-! whereas the environment is time-dependent.
-!
-! The temperature, emissions and background states are profiles
-! proscribed as functions of time by giving a number of times and the
-! corresponding data. Linear interpolation is used between the times,
-! with constant interpolation outside of the range of times.
 
+!> \file
+!> The pmc_env_data module.
+
+!> The env_data_t structure and associated subroutines.
 module pmc_env_data
 
   use pmc_gas_state
@@ -25,40 +20,69 @@ module pmc_env_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-
+  
+  !> Environment data.
+  !!
+  !! This is everything needed to support the current environment
+  !! state. The environment data is not time-dependent, whereas the
+  !! environment state in env_state_t is time-dependent.
+  !!
+  !! The temperature, emissions and background states are profiles
+  !! proscribed as functions of time by giving a number of times and
+  !! the corresponding data. Simple data such as temperature is
+  !! linearly interpoloated between times, with constant interpolation
+  !! outside of the range of times. Gases and aerosols are
+  !! interpolated with gas_state_interp_1d() and
+  !! aero_dist_interp_1d(), respectively.
   type env_data_t
-     real*8, pointer :: temp_time(:)    ! times at temp set-points (s)
-     real*8, pointer :: temp(:)         ! temps at set-points (K)
+     !> Times at temp set-points (s).
+     real*8, pointer :: temp_time(:)
+     !> Temps at set-points (K).
+     real*8, pointer :: temp(:)
 
-     real*8, pointer :: height_time(:)  ! times at height set-points (s)
-     real*8, pointer :: height(:)       ! heights at set-points (m)
+     !> Times at height set-points (s).
+     real*8, pointer :: height_time(:)
+     !> Heights at set-points (m).
+     real*8, pointer :: height(:)
 
-     real*8, pointer :: gas_emission_time(:) ! gas emissions times (s)
-     real*8, pointer :: gas_emission_rate(:) ! gas emisssion rates (s^{-1})
-     type(gas_state_t), pointer :: gas_emission(:) ! gas emissions
+     !> Gas emissions times (s).
+     real*8, pointer :: gas_emission_time(:)
+     !> Gas emisssion rates (s^{-1}).
+     real*8, pointer :: gas_emission_rate(:)
+     !> Gas emissions.
+     type(gas_state_t), pointer :: gas_emission(:)
 
-     real*8, pointer :: gas_dilution_time(:) ! gas-backgnd dilute times (s)
-     real*8, pointer :: gas_dilution_rate(:) ! gas-backgnd dlte rates (s^{-1})
-     type(gas_state_t), pointer :: gas_background(:) ! background gas concs
+     !> Gas-backgnd dilute times (s).
+     real*8, pointer :: gas_dilution_time(:)
+     !> Gas-backgnd dlte rates (s^{-1}).
+     real*8, pointer :: gas_dilution_rate(:)
+     !> Background gas concs.
+     type(gas_state_t), pointer :: gas_background(:)
 
-     real*8, pointer :: aero_emission_time(:) ! aerosol emissions times (s)
-     real*8, pointer :: aero_emission_rate(:) ! aerosol emit rates (s^{-1})
-     type(aero_dist_t), pointer :: aero_emission(:) ! aerosol emissions
+     !> Aerosol emissions times (s).
+     real*8, pointer :: aero_emission_time(:)
+     !> Aerosol emit rates (s^{-1}).
+     real*8, pointer :: aero_emission_rate(:)
+     !> Aerosol emissions.
+     type(aero_dist_t), pointer :: aero_emission(:)
 
-     real*8, pointer :: aero_dilution_time(:) ! aero-backgnd dilute times (s)
-     real*8, pointer :: aero_dilution_rate(:) ! aero-bkgd dilute rates (s^{-1})
-     type(aero_dist_t), pointer :: aero_background(:) ! aerosol backgrounds
+     !> Aero-backgnd dilute times (s).
+     real*8, pointer :: aero_dilution_time(:)
+     !> Aero-bkgd dilute rates (s^{-1}).
+     real*8, pointer :: aero_dilution_rate(:)
+     !> Aerosol backgrounds.
+     type(aero_dist_t), pointer :: aero_background(:)
   end type env_data_t
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate an empty environment.
   subroutine env_data_alloc(env_data)
 
-    ! Allocate an empty environment.
-
-    type(env_data_t), intent(out) :: env_data   ! environment data
+    !> Environment data.
+    type(env_data_t), intent(out) :: env_data
 
     allocate(env_data%temp_time(0))
     allocate(env_data%temp(0))
@@ -86,11 +110,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Free all storage.
   subroutine env_data_free(env_data)
 
-    ! Free all storage.
-
-    type(env_data_t), intent(out) :: env_data   ! environment data
+    !> Environment data.
+    type(env_data_t), intent(out) :: env_data
 
     integer :: i
 
@@ -131,15 +155,17 @@ contains
   end subroutine env_data_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine env_data_init_state(env_data, env_state, time)
-    
-    ! Initialize the time-dependent contents of the
-    ! environment. Thereafter env_data_update_state() should be used.
 
-    type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state ! environment state to update
-    real*8, intent(in) :: time          ! current time (s)
+  !> Initialize the time-dependent contents of the
+  !> environment. Thereafter env_data_update_state() should be used.
+  subroutine env_data_init_state(env_data, env_state, time)
+
+    !> Environment data.
+    type(env_data_t), intent(in) :: env_data
+    !> Environment state to update.
+    type(env_state_t), intent(inout) :: env_state
+    !> Current time (s).
+    real*8, intent(in) :: time
 
     ! init temperature
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
@@ -164,17 +190,20 @@ contains
   end subroutine env_data_init_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine env_data_update_state(env_data, env_state, time)
-    
-    ! Update time-dependent contents of the environment.
-    ! env_data_init_state() should have been called at the start.
 
-    type(env_data_t), intent(in) :: env_data ! environment data
-    type(env_state_t), intent(inout) :: env_state ! environment state to update
-    real*8, intent(in) :: time          ! current time (s)
+  !> Update time-dependent contents of the environment.
+  !> env_data_init_state() should have been called at the start.
+  subroutine env_data_update_state(env_data, env_state, time)
+
+    !> Environment data.
+    type(env_data_t), intent(in) :: env_data
+    !> Environment state to update.
+    type(env_state_t), intent(inout) :: env_state
+    !> Current time (s).
+    real*8, intent(in) :: time
     
-    real*8 :: pmv ! ambient water vapor pressure (Pa)
+    !> Ambient water vapor pressure (Pa).
+    real*8 :: pmv
     real*8 :: old_height
 
     ! update temperature and relative humidity
@@ -203,12 +232,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write full state.
   subroutine inout_write_env_data(file, env_data)
     
-    ! Write full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to write to
-    type(env_data_t), intent(in) :: env_data ! environment data to write
+    !> File to write to.
+    type(inout_file_t), intent(inout) :: file
+    !> Environment data to write.
+    type(env_data_t), intent(in) :: env_data
 
     integer :: i
     
@@ -270,12 +300,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read full state.
   subroutine inout_read_env_data(file, env_data)
     
-    ! Read full state.
-    
-    type(inout_file_t), intent(inout) :: file ! file to read from
-    type(env_data_t), intent(out) :: env_data ! environment data to read
+    !> File to read from.
+    type(inout_file_t), intent(inout) :: file
+    !> Environment data to read.
+    type(env_data_t), intent(out) :: env_data
     
     integer :: i, n
 
@@ -345,16 +376,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read environment data from an inout file.
   subroutine spec_read_env_data(file, bin_grid, gas_data, &
        aero_data, env_data)
 
-    ! Read environment data from an inout file.
-
-    type(inout_file_t), intent(inout) :: file ! inout file
-    type(bin_grid_t), intent(in) :: bin_grid ! bin grid
-    type(gas_data_t), intent(in) :: gas_data ! gas data values
-    type(aero_data_t), intent(in) :: aero_data ! aerosol data
-    type(env_data_t), intent(out) :: env_data ! environment data
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Gas data values.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment data.
+    type(env_data_t), intent(out) :: env_data
 
     call inout_read_timed_real_array(file, "temp_profile", "temp", &
          env_data%temp_time, env_data%temp)
@@ -377,11 +412,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_env_data(val)
 
-    ! Determines the number of bytes required to pack the given value.
-
-    type(env_data_t), intent(in) :: val ! value to pack
+    !> Value to pack.
+    type(env_data_t), intent(in) :: val
 
     integer :: total_size, i, n
 
@@ -421,13 +456,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_env_data(buffer, position, val)
 
-    ! Packs the given value into the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(env_data_t), intent(in) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(env_data_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
@@ -465,13 +502,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_env_data(buffer, position, val)
 
-    ! Unpacks the given value from the buffer, advancing position.
-
-    character, intent(inout) :: buffer(:) ! memory buffer
-    integer, intent(inout) :: position  ! current buffer position
-    type(env_data_t), intent(out) :: val ! value to pack
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(env_data_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

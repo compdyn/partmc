@@ -35,42 +35,42 @@ module pmc_env_data
   !! interpolated with gas_state_interp_1d() and
   !! aero_dist_interp_1d(), respectively.
   type env_data_t
-     !> Times at temp set-points (s).
+     !> Temperature set-point times (s).
      real*8, pointer :: temp_time(:)
-     !> Temps at set-points (K).
+     !> Temperatures at set-points (K).
      real*8, pointer :: temp(:)
 
-     !> Times at height set-points (s).
+     !> Height set-point times (s).
      real*8, pointer :: height_time(:)
      !> Heights at set-points (m).
      real*8, pointer :: height(:)
 
-     !> Gas emissions times (s).
+     !> Gas emission set-point times (s).
      real*8, pointer :: gas_emission_time(:)
-     !> Gas emisssion rates (s^{-1}).
+     !> Gas emisssion rates at set-points (s^{-1}).
      real*8, pointer :: gas_emission_rate(:)
-     !> Gas emissions.
+     !> Gas emissions at set-points.
      type(gas_state_t), pointer :: gas_emission(:)
 
-     !> Gas-backgnd dilute times (s).
+     !> Gas-background dilution set-point times (s).
      real*8, pointer :: gas_dilution_time(:)
-     !> Gas-backgnd dlte rates (s^{-1}).
+     !> Gas-background dilution rates at set-points (s^{-1}).
      real*8, pointer :: gas_dilution_rate(:)
-     !> Background gas concs.
+     !> Background gas concentrations at set-points.
      type(gas_state_t), pointer :: gas_background(:)
 
-     !> Aerosol emissions times (s).
+     !> Aerosol emission set-points times (s).
      real*8, pointer :: aero_emission_time(:)
-     !> Aerosol emit rates (s^{-1}).
+     !> Aerosol emission rates at set-points (s^{-1}).
      real*8, pointer :: aero_emission_rate(:)
-     !> Aerosol emissions.
+     !> Aerosol emissions at set-points.
      type(aero_dist_t), pointer :: aero_emission(:)
 
-     !> Aero-backgnd dilute times (s).
+     !> Aerosol-background dilution set-point times (s).
      real*8, pointer :: aero_dilution_time(:)
-     !> Aero-bkgd dilute rates (s^{-1}).
+     !> Aerosol-background dilution rates at set-points (s^{-1}).
      real*8, pointer :: aero_dilution_rate(:)
-     !> Aerosol backgrounds.
+     !> Aerosol background at set-points.
      type(aero_dist_t), pointer :: aero_background(:)
   end type env_data_t
   

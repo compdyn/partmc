@@ -228,8 +228,8 @@ contains
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bins(i_bin)%n_part
-          particle => aero_state%bins(i_bin)%particle(i_part)
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          particle => aero_state%bin(i_bin)%particle(i_part)
           i_mosaic = i_mosaic + 1
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -311,9 +311,9 @@ contains
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bins(i_bin)%n_part
+       do i_part = 1,aero_state%bin(i_bin)%n_part
           i_mosaic = i_mosaic + 1
-          particle => aero_state%bins(i_bin)%particle(i_part)
+          particle => aero_state%bin(i_bin)%particle(i_part)
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
@@ -453,9 +453,9 @@ contains
     ! map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bins(i_bin)%n_part
+       do i_part = 1,aero_state%bin(i_bin)%n_part
           i_mosaic = i_mosaic + 1
-          particle => aero_state%bins(i_bin)%particle(i_part)
+          particle => aero_state%bin(i_bin)%particle(i_part)
           particle%absorb_cross_sect = (ext_cross(i_mosaic) &
                - scat_cross(i_mosaic)) / 1d4                       ! (m^2)
           particle%scatter_cross_sect = scat_cross(i_mosaic) / 1d4 ! (m^2)

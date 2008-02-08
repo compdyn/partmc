@@ -31,7 +31,7 @@ module pmc_aero_state
   !! total volume \c v then calling <tt> i_bin =
   !! bin_grid_particle_in_bin(bin_grid, v)</tt> finds the bin number
   !! i_bin where that particle should go. That particle is then stored
-  !! as \c aero_state%%bins(i_bin)%%particle(i_part), where \c i_part
+  !! as \c aero_state%%bin(i_bin)%%particle(i_part), where \c i_part
   !! is the index within the bin. \c
   !! aero_state%%v(i_bin)%%p(i_part)%%vol(i_spec) is thus the volume
   !! of the \c i_spec-th species in the \c i_part-th particle in the
@@ -49,13 +49,13 @@ module pmc_aero_state
   !! storage as necessary. The actual number of particles stored in a
   !! bin will generally be less than the actual memory allocated for
   !! that bin, so we store the current number of particles in a bin in
-  !! \c aero_state%%bins(i_bin)%%n_part. The allocated size of bin
-  !! storage in \c aero_state%%bins(i_bin)%%particle is not stored
+  !! \c aero_state%%bin(i_bin)%%n_part. The allocated size of bin
+  !! storage in \c aero_state%%bin(i_bin)%%particle is not stored
   !! explicitly, but can be obtained with the Fortran 90 SIZE()
   !! intrinsic function.
   type aero_state_t
      !> Bin arrays.
-     type(aero_particle_array_t), pointer :: bins(:)
+     type(aero_particle_array_t), pointer :: bin(:)
      !> Computational volume (m^3).
      real*8 :: comp_vol
      !> Total number of particles.
@@ -80,9 +80,9 @@ contains
     
     integer i
 
-    allocate(aero_state%bins(n_bin))
+    allocate(aero_state%bin(n_bin))
     do i = 1,n_bin
-       call aero_particle_array_alloc(aero_state%bins(i), 0, n_spec)
+       call aero_particle_array_alloc(aero_state%bin(i), 0, n_spec)
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
@@ -99,11 +99,11 @@ contains
     
     integer :: n_bin, i
 
-    n_bin = size(aero_state%bins)
+    n_bin = size(aero_state%bin)
     do i = 1,n_bin
-       call aero_particle_array_free(aero_state%bins(i))
+       call aero_particle_array_free(aero_state%bin(i))
     end do
-    deallocate(aero_state%bins)
+    deallocate(aero_state%bin)
 
   end subroutine aero_state_free
   
@@ -120,14 +120,14 @@ contains
     
     integer :: n_bin, i
 
-    n_bin = size(aero_state_from%bins)
+    n_bin = size(aero_state_from%bin)
 
     call aero_state_free(aero_state_to)
     call aero_state_alloc(n_bin, 0, aero_state_to)
 
     do i = 1,n_bin
-       call aero_particle_array_copy(aero_state_from%bins(i), &
-            aero_state_to%bins(i))
+       call aero_particle_array_copy(aero_state_from%bin(i), &
+            aero_state_to%bin(i))
     end do
 
     aero_state_to%comp_vol = aero_state_from%comp_vol
@@ -159,9 +159,9 @@ contains
     
     integer :: i, n_bin
 
-    n_bin = size(aero_state%bins)
+    n_bin = size(aero_state%bin)
     do i = 1,n_bin
-       call aero_particle_array_zero(aero_state%bins(i))
+       call aero_particle_array_zero(aero_state%bin(i))
     end do
     aero_state%n_part = 0
 
@@ -170,16 +170,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
-  subroutine aero_state_add_particle(aero_state, bin, aero_particle)
+  subroutine aero_state_add_particle(aero_state, i_bin, aero_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin number of particle to remove.
-    integer, intent(in) :: bin
+    integer, intent(in) :: i_bin
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    call aero_particle_array_add_particle(aero_state%bins(bin), &
+    call aero_particle_array_add_particle(aero_state%bin(i_bin), &
          aero_particle)
     aero_state%n_part = aero_state%n_part + 1
 
@@ -188,16 +188,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove the given particle.
-  subroutine aero_state_remove_particle(aero_state, bin, index)
+  subroutine aero_state_remove_particle(aero_state, i_bin, index)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin number of particle to remove.
-    integer, intent(in) :: bin
+    integer, intent(in) :: i_bin
     !> Index in bin of particle to remove.
     integer, intent(in) :: index
 
-    call aero_particle_array_remove_particle(aero_state%bins(bin), index)
+    call aero_particle_array_remove_particle(aero_state%bin(i_bin), index)
     aero_state%n_part = aero_state%n_part - 1
 
   end subroutine aero_state_remove_particle
@@ -214,10 +214,10 @@ contains
 
     integer :: i_bin, i_part
 
-    do i_bin = 1,size(aero_state_delta%bins)
-       do i_part = 1,aero_state_delta%bins(i_bin)%n_part
+    do i_bin = 1,size(aero_state_delta%bin)
+       do i_part = 1,aero_state_delta%bin(i_bin)%n_part
           call aero_state_add_particle(aero_state, i_bin, &
-               aero_state_delta%bins(i_bin)%particle(i_part))
+               aero_state_delta%bin(i_bin)%particle(i_part))
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
@@ -359,13 +359,13 @@ contains
     !> Particle number within bin.
     integer, intent(out) :: i_part
 
-    integer :: n_bin, disc_pdf(size(aero_state%bins))
+    integer :: n_bin, disc_pdf(size(aero_state%bin))
 
     call assert(950725003, aero_state%n_part > 0)
-    n_bin = size(aero_state%bins)
-    disc_pdf = (/(aero_state%bins(i_bin)%n_part, i_bin = 1,n_bin)/)
+    n_bin = size(aero_state%bin)
+    disc_pdf = (/(aero_state%bin(i_bin)%n_part, i_bin = 1,n_bin)/)
     i_bin = sample_disc_pdf(n_bin, disc_pdf)
-    i_part = pmc_rand_int(aero_state%bins(i_bin)%n_part)
+    i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
 
   end subroutine aero_state_rand_particle
 
@@ -391,7 +391,7 @@ contains
     call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
          * dble(aero_state_total_particles(aero_state_from)))
-    n_bin = size(aero_state_from%bins)
+    n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     i_transfer = 0
     do while (i_transfer < n_transfer)
@@ -420,7 +420,7 @@ contains
        end if
        if (do_add) then
           call aero_state_add_particle(aero_state_to, i_bin, &
-               aero_state_from%bins(i_bin)%particle(i_part))
+               aero_state_from%bin(i_bin)%particle(i_part))
        end if
        if (do_remove) then
           call aero_state_remove_particle(aero_state_from, i_bin, i_part)
@@ -449,15 +449,15 @@ contains
     logical :: do_add, do_remove
     real*8 :: vol_ratio
 
-    n_bin = size(aero_state_from%bins)
+    n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     do i_bin = 1,n_bin
        n_transfer = prob_round(sample_prop &
-            * dble(aero_state_from%bins(i_bin)%n_part))
+            * dble(aero_state_from%bin(i_bin)%n_part))
        i_transfer = 0
        do while (i_transfer < n_transfer)
-          if (aero_state_from%bins(i_bin)%n_part <= 0) exit
-          i_part = pmc_rand_int(aero_state_from%bins(i_bin)%n_part)
+          if (aero_state_from%bin(i_bin)%n_part <= 0) exit
+          i_part = pmc_rand_int(aero_state_from%bin(i_bin)%n_part)
           if (vol_ratio == 1d0) then
              ! to_comp_vol == from_comp_vol so just move the particle
              do_add = .true.
@@ -481,7 +481,7 @@ contains
           end if
           if (do_add) then
              call aero_state_add_particle(aero_state_to, i_bin, &
-                  aero_state_from%bins(i_bin)%particle(i_part))
+                  aero_state_from%bin(i_bin)%particle(i_part))
           end if
           if (do_remove) then
              call aero_state_remove_particle(aero_state_from, i_bin, i_part)
@@ -508,14 +508,14 @@ contains
     integer :: n_bin, i_bin, i_part, n_new_part, i_new_part
     real*8 :: vol_ratio
     
-    n_bin = size(aero_state%bins)
+    n_bin = size(aero_state%bin)
     vol_ratio = aero_state%comp_vol / aero_state_delta%comp_vol
     do i_bin = 1,n_bin
-       do i_part = 1,aero_state_delta%bins(i_bin)%n_part
+       do i_part = 1,aero_state_delta%bin(i_bin)%n_part
           n_new_part = prob_round(vol_ratio)
           do i_new_part = 1,n_new_part
              call aero_state_add_particle(aero_state, i_bin, &
-                  aero_state_delta%bins(i_bin)%particle(i_part))
+                  aero_state_delta%bin(i_bin)%particle(i_part))
           end do
        end do
     end do
@@ -537,17 +537,17 @@ contains
     !> Binned distributions.
     type(aero_binned_t), intent(out) :: aero_binned
     
-    integer b, j, s
+    integer :: b, j, s
     
     aero_binned%num_den = 0d0
     aero_binned%vol_den = 0d0
     do b = 1,bin_grid%n_bin
-       do j = 1,aero_state%bins(b)%n_part
+       do j = 1,aero_state%bin(b)%n_part
           aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
-               + aero_state%bins(b)%particle(j)%vol / aero_state%comp_vol &
+               + aero_state%bin(b)%particle(j)%vol / aero_state%comp_vol &
                / bin_grid%dlnr
        end do
-       aero_binned%num_den(b) = dble(aero_state%bins(b)%n_part) &
+       aero_binned%num_den(b) = dble(aero_state%bin(b)%n_part) &
             / aero_state%comp_vol / bin_grid%dlnr
     end do
     
@@ -563,9 +563,9 @@ contains
     
     integer :: i, n_bin
     
-    n_bin = size(aero_state%bins)
+    n_bin = size(aero_state%bin)
     do i = 1,n_bin
-       call aero_particle_array_double(aero_state%bins(i))
+       call aero_particle_array_double(aero_state%bin(i))
     end do
     aero_state%comp_vol = 2d0 * aero_state%comp_vol
     aero_state%n_part = 2 * aero_state%n_part
@@ -588,12 +588,12 @@ contains
 
     n_part_orig = aero_state%n_part
     do i_bin = 1,bin_grid%n_bin
-       n_remove = prob_round(dble(aero_state%bins(i_bin)%n_part) / 2d0)
+       n_remove = prob_round(dble(aero_state%bin(i_bin)%n_part) / 2d0)
        do i_remove = 1,n_remove
-          i_part = pmc_rand_int(aero_state%bins(i_bin)%n_part)
+          i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
           call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
                i_bin, aero_state%comp_vol, &
-               aero_state%bins(i_bin)%particle(i_part))
+               aero_state%bin(i_bin)%particle(i_part))
           call aero_state_remove_particle(aero_state, i_bin, i_part)
        end do
     end do
@@ -614,7 +614,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     
-    integer :: bin, j, new_bin, k
+    integer :: i_bin, j, i_new_bin, k
     
     ! The approach here is inefficient because we might reprocess
     ! particles. For example, if we are doing bin 1 and we shift a
@@ -622,18 +622,18 @@ contains
     ! seems to be more trouble than it's worth to worry about this
     ! yet, however.
     
-    do bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid%n_bin
        j = 1
-       do while (j .le. aero_state%bins(bin)%n_part)
+       do while (j .le. aero_state%bin(i_bin)%n_part)
           ! find the new bin
-          new_bin = aero_particle_in_bin(aero_state%bins(bin)%particle(j), &
+          i_new_bin = aero_particle_in_bin(aero_state%bin(i_bin)%particle(j), &
                bin_grid)
           
           ! if the bin number has changed, move the particle
-          if (bin .ne. new_bin) then
-             call aero_state_add_particle(aero_state, new_bin, &
-                  aero_state%bins(bin)%particle(j))
-             call aero_state_remove_particle(aero_state, bin, j)
+          if (i_bin .ne. i_new_bin) then
+             call aero_state_add_particle(aero_state, i_new_bin, &
+                  aero_state%bin(i_bin)%particle(j))
+             call aero_state_remove_particle(aero_state, i_bin, j)
 
              ! in this case, don't advance j, so that we will still
              ! process the particle we just moved into the hole
@@ -646,8 +646,8 @@ contains
     end do
     
     ! now shrink the bin storage if necessary
-    do bin = 1,bin_grid%n_bin
-       call aero_particle_array_shrink(aero_state%bins(bin))
+    do i_bin = 1,bin_grid%n_bin
+       call aero_particle_array_shrink(aero_state%bin(i_bin))
     end do
     
   end subroutine aero_state_resort
@@ -802,7 +802,7 @@ contains
     error = .false.
 
     ! check that the total number of particles is correct
-    n_part_check = sum((/(aero_state%bins(i)%n_part, i = 1,bin_grid%n_bin)/))
+    n_part_check = sum((/(aero_state%bin(i)%n_part, i = 1,bin_grid%n_bin)/))
     if (aero_state%n_part /= n_part_check) then
        write(0,'(a20,a20)') 'aero_state%n_part', 'n_part_check'
        write(0,'(i20,i20)') aero_state%n_part, n_part_check
@@ -811,8 +811,8 @@ contains
     
     ! check that all particles are in the correct bins
     do k = 1,bin_grid%n_bin
-       do i = 1,aero_state%bins(k)%n_part
-          k_check = aero_particle_in_bin(aero_state%bins(k)%particle(i), &
+       do i = 1,aero_state%bin(k)%n_part
+          k_check = aero_particle_in_bin(aero_state%bin(k)%particle(i), &
                bin_grid)
           if (k .ne. k_check) then
              write(0,'(a10,a10,a10)') 'i', 'k', 'k_check'
@@ -825,14 +825,14 @@ contains
     ! check the aero_binned%num_den array
     do k = 1,bin_grid%n_bin
        num_tol = 0.01d0 / aero_state%comp_vol / bin_grid%dlnr
-       state_num_den = dble(aero_state%bins(k)%n_part) / aero_state%comp_vol &
+       state_num_den = dble(aero_state%bin(k)%n_part) / aero_state%comp_vol &
             / bin_grid%dlnr
        if (.not. almost_equal_abs(state_num_den, &
             aero_binned%num_den(k), num_tol)) then
           write(0,'(a10,a20,a20,a20,a20)') 'k', 'bins(k)%n_part', &
                'state_num_den', 'num_den(k)', 'comp_vol'
           write(0,'(i10,i20,e20.10,e20.10,e20.10)') k, &
-               aero_state%bins(k)%n_part, state_num_den, &
+               aero_state%bin(k)%n_part, state_num_den, &
                aero_binned%num_den(k), aero_state%comp_vol
           error = .true.
        end if
@@ -842,8 +842,8 @@ contains
     do k = 1,bin_grid%n_bin
        vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
        do s = 1,aero_data%n_spec
-          check_vol_den = sum((/(aero_state%bins(k)%particle(i)%vol(s), &
-               i = 1,aero_state%bins(k)%n_part)/)) &
+          check_vol_den = sum((/(aero_state%bin(k)%particle(i)%vol(s), &
+               i = 1,aero_state%bin(k)%n_part)/)) &
                / aero_state%comp_vol / bin_grid%dlnr
           if (.not. almost_equal_abs(check_vol_den, &
                aero_binned%vol_den(k,s), vol_tol)) then
@@ -875,14 +875,14 @@ contains
 
     integer :: n_bin, i
     
-    n_bin = size(aero_state%bins)
+    n_bin = size(aero_state%bin)
     call inout_write_comment(file, "begin aero_state")
     call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_write_integer(file, "n_part", aero_state%n_part)
     call inout_write_integer(file, "n_bin", n_bin)
     do i = 1,n_bin
        call inout_write_integer(file, "bin_number", i)
-       call inout_write_aero_particle_array(file, aero_state%bins(i))
+       call inout_write_aero_particle_array(file, aero_state%bin(i))
     end do
     call inout_write_comment(file, "end aero_state")
     
@@ -904,11 +904,11 @@ contains
     call inout_read_real(file, "comp_vol(m^3)", aero_state%comp_vol)
     call inout_read_integer(file, "n_part", aero_state%n_part)
     call inout_read_integer(file, "n_bin", n_bin)
-    allocate(aero_state%bins(n_bin))
+    allocate(aero_state%bin(n_bin))
     do i = 1,n_bin
        call inout_read_integer(file, "bin_number", check_i)
        call inout_check_index(file, i, check_i)
-       call inout_read_aero_particle_array(file, aero_state%bins(i))
+       call inout_read_aero_particle_array(file, aero_state%bin(i))
     end do
     call inout_check_comment(file, "end aero_state")
     
@@ -927,9 +927,9 @@ contains
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_real(val%comp_vol)
     total_size = total_size + pmc_mpi_pack_size_integer(val%n_part)
-    total_size = total_size + pmc_mpi_pack_size_integer(size(val%bins))
-    do i = 1,size(val%bins)
-       total_size = total_size + pmc_mpi_pack_size_apa(val%bins(i))
+    total_size = total_size + pmc_mpi_pack_size_integer(size(val%bin))
+    do i = 1,size(val%bin)
+       total_size = total_size + pmc_mpi_pack_size_apa(val%bin(i))
     end do
     pmc_mpi_pack_size_aero_state = total_size
 
@@ -953,9 +953,9 @@ contains
     prev_position = position
     call pmc_mpi_pack_real(buffer, position, val%comp_vol)
     call pmc_mpi_pack_integer(buffer, position, val%n_part)
-    call pmc_mpi_pack_integer(buffer, position, size(val%bins))
-    do i = 1,size(val%bins)
-       call pmc_mpi_pack_aero_particle_array(buffer, position, val%bins(i))
+    call pmc_mpi_pack_integer(buffer, position, size(val%bin))
+    do i = 1,size(val%bin)
+       call pmc_mpi_pack_aero_particle_array(buffer, position, val%bin(i))
     end do
     call assert(850997402, &
          position - prev_position == pmc_mpi_pack_size_aero_state(val))
@@ -982,9 +982,9 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
     call pmc_mpi_unpack_integer(buffer, position, n)
-    allocate(val%bins(n))
-    do i = 1,size(val%bins)
-       call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bins(i))
+    allocate(val%bin(n))
+    do i = 1,size(val%bin)
+       call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bin(i))
     end do
     call assert(132104747, &
          position - prev_position == pmc_mpi_pack_size_aero_state(val))

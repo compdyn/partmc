@@ -962,8 +962,8 @@ contains
     hist = 0d0
     scale = 1d0 / bin_grid%dlnr / step_width / aero_state%comp_vol
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bins(i_bin)%n_part
-          aero_particle => aero_state%bins(i_bin)%particle(i_part)
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          aero_particle => aero_state%bin(i_bin)%particle(i_part)
 
           if (process_spec%type == "kappa") then
              rh = aero_particle_kappa_rh(aero_particle, aero_data, env_state)

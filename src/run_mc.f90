@@ -336,8 +336,8 @@ contains
     n_coag = 0
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call compute_n_samp(aero_state%bins(i)%n_part, &
-               aero_state%bins(j)%n_part, i == j, k_max(i,j), &
+          call compute_n_samp(aero_state%bin(i)%n_part, &
+               aero_state%bin(j)%n_part, i == j, k_max(i,j), &
                aero_state%comp_vol, mc_opt%del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = prob_round(n_samp_real)
@@ -345,9 +345,9 @@ contains
           do i_samp = 1,n_samp
              M = aero_state_total_particles(aero_state)
              ! check we still have enough particles to coagulate
-             if ((aero_state%bins(i)%n_part < 1) &
-                  .or. (aero_state%bins(j)%n_part < 1) &
-                  .or. ((i == j) .and. (aero_state%bins(i)%n_part < 2))) then
+             if ((aero_state%bin(i)%n_part < 1) &
+                  .or. (aero_state%bin(j)%n_part < 1) &
+                  .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
                 exit
              end if
              call maybe_coag_pair(bin_grid, aero_binned, env_state, &

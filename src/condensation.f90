@@ -40,7 +40,7 @@ contains
     !> Total time to integrate.
     real*8, intent(in) :: del_t
     
-    integer :: bin, j, new_bin, k
+    integer :: i_bin, j, new_bin, k
     real*8 :: pv, pre_water_vol, post_water_vol
 
     ! FIXME: don't rely on binned data, but rather compute the total
@@ -48,10 +48,10 @@ contains
     pre_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
          * aero_state%comp_vol * bin_grid%dlnr
 
-    do bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bins(bin)%n_part
+    do i_bin = 1,bin_grid%n_bin
+       do j = 1,aero_state%bin(i_bin)%n_part
           call condense_particle(del_t, env_state, aero_data, &
-               aero_state%bins(bin)%particle(j))
+               aero_state%bin(i_bin)%particle(j))
        end do
     end do
 
@@ -631,9 +631,9 @@ contains
     integer :: i_bin, i
     
     do i_bin = 1,bin_grid%n_bin
-       do i = 1,aero_state%bins(i_bin)%n_part
+       do i = 1,aero_state%bin(i_bin)%n_part
           call equilibriate_particle(env_state, aero_data, &
-               aero_state%bins(i_bin)%particle(i))
+               aero_state%bin(i_bin)%particle(i))
        end do
     end do
 

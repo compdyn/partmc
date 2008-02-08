@@ -6,11 +6,6 @@ Test partmc -p. Make one of the testcases use this as a normal thing.
 How should we be calling aerosol_optical? Every timestep, or only on
 processing? At least remove DEBUGs from mosaic.f90.
 
-Fix "make dist".
-
-Inconsistent pluralization between aero_state%bins and
-aero_particle_array%particle. What was our convention again?
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

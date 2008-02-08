@@ -64,14 +64,14 @@ contains
     
     did_coag = .false.
     
-    if ((aero_state%bins(b1)%n_part <= 0) &
-         .or. (aero_state%bins(b2)%n_part <= 0)) then
+    if ((aero_state%bin(b1)%n_part <= 0) &
+         .or. (aero_state%bin(b2)%n_part <= 0)) then
        return
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    pv1 = aero_particle_volume(aero_state%bins(b1)%particle(s1))
-    pv2 = aero_particle_volume(aero_state%bins(b2)%particle(s2))
+    pv1 = aero_particle_volume(aero_state%bin(b1)%particle(s1))
+    pv2 = aero_particle_volume(aero_state%bin(b2)%particle(s2))
     call kernel(pv1, pv2, env_state, k)
     p = k / k_max
     
@@ -101,9 +101,9 @@ contains
     !> Second rand particle.
     integer, intent(out) :: s2
 
-    if ((aero_state%bins(b1)%n_part < 1) &
-         .or. (aero_state%bins(b2)%n_part < 1) &
-         .or. ((b1 == b2) .and. (aero_state%bins(b1)%n_part < 2))) then
+    if ((aero_state%bin(b1)%n_part < 1) &
+         .or. (aero_state%bin(b2)%n_part < 1) &
+         .or. ((b1 == b2) .and. (aero_state%bin(b1)%n_part < 2))) then
        write(*,*) 'ERROR: find_rand_pair(): insufficient particles in bins', &
             b1, b2
        call exit(1)
@@ -112,16 +112,16 @@ contains
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
 
-100 s1 = int(pmc_rand() * dble(aero_state%bins(b1)%n_part)) + 1
-    if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bins(b1)%n_part)) goto 100
-101 s2 = int(pmc_rand() * dble(aero_state%bins(b2)%n_part)) + 1
-    if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bins(b2)%n_part)) goto 101
+100 s1 = int(pmc_rand() * dble(aero_state%bin(b1)%n_part)) + 1
+    if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bin(b1)%n_part)) goto 100
+101 s2 = int(pmc_rand() * dble(aero_state%bin(b2)%n_part)) + 1
+    if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bin(b2)%n_part)) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
 ! FIXME: enable this and delete the above junk
 !    do
-!       s1 = pmc_rand_int(aero_state%bins(b1)%n_part)
-!       s2 = pmc_rand_int(aero_state%bins(b2)%n_part)
+!       s1 = pmc_rand_int(aero_state%bin(b1)%n_part)
+!       s2 = pmc_rand_int(aero_state%bin(b2)%n_part)
 !       if (.not. ((b1 .eq. b2) .and. (s1 .eq. s2))) then
 !          exit
 !       end if
@@ -159,15 +159,15 @@ contains
     call aero_particle_alloc(new_particle, aero_data%n_spec)
 
     ! coagulate particles
-    call aero_particle_coagulate(aero_state%bins(b1)%particle(s1), &
-         aero_state%bins(b2)%particle(s2), new_particle)
+    call aero_particle_coagulate(aero_state%bin(b1)%particle(s1), &
+         aero_state%bin(b2)%particle(s2), new_particle)
     bn = aero_particle_in_bin(new_particle, bin_grid)
 
     ! update binned data
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b1, aero_state%comp_vol, aero_state%bins(b1)%particle(s1))
+         b1, aero_state%comp_vol, aero_state%bin(b1)%particle(s1))
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b2, aero_state%comp_vol, aero_state%bins(b2)%particle(s2))
+         b2, aero_state%comp_vol, aero_state%bin(b2)%particle(s2))
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
          bn, aero_state%comp_vol, new_particle)
 

@@ -6,7 +6,7 @@ DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
 # set to "yes" if building as a developer, otherwise "no"
-DEV_BUILD = no
+DEV_BUILD = yes
 
 FC = gfortran
 # -O              optimize

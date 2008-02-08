@@ -347,6 +347,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do one timestep with MOSAIC.
+  !!
+  !! We currently also compute aerosol optical properties within this
+  !! subroutine. In principle this could be done at data analysis
+  !! time, rather than inside the timestepper. It's not clear if this
+  !! really matters, however. Because of this mosaic_aero_optical() is
+  !! currently disabled.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
        aero_state, aero_binned, gas_data, gas_state, time)
     
@@ -378,10 +384,8 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
-!DEBUG
        subroutine aerosol_optical()
        end subroutine aerosol_optical
-!DEBUG
     end interface
     
     ! map PartMC -> MOSAIC
@@ -393,10 +397,7 @@ contains
     end if
 
     call IntegrateChemistry
-
-!DEBUG
     call aerosol_optical
-!DEBUG
 
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_state, &
@@ -411,6 +412,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle.
+  !> FIXME: currenlty disabled.
+  !!
+  !! At the moment we are computing the aerosol optical properties
+  !! every timestep from withing mosaic_timestep. This decision should
+  !! be re-evaluated at some point in the future.
   subroutine mosaic_aero_optical(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state, time)
     
@@ -462,10 +468,10 @@ contains
           particle%asymmetry = asym_particle(i_mosaic)             ! (1)
           particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind = 8) ! (1)
           particle%refract_core = cmplx(ri_core_a(i_mosaic), kind = 8)   ! (1)
-          ! temporary debugging code follows
-          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))       ! (m^3)
-          particle%core_vol = 0d0                                  ! (m^3)
-       end do
+          ! FIXME: how do we get core_vol?
+          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))        ! (m^3)
+          particle%core_vol = 0d0
+        end do
     end do
 #endif
 

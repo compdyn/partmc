@@ -141,7 +141,7 @@ dist:
 	grep -q "^$(VERSION) - $(DATE)" README
 	grep -q "^DEV_BUILD = no" Makefile
 	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
-	test ! -d .svn
+	test ! -d .svn # check this was svn exported
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

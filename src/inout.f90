@@ -172,9 +172,18 @@ contains
     integer :: ios, n_read
 
     file%line_num = file%line_num + 1
+!DEBUG
+    write(*,*) 'line_num = ', file%line_num
+!DEBUG
     eof = .false.
+!DEBUG
+    write(*,*) 'before read, ios = ', ios
+!DEBUG
     read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) line
+!DEBUG
+    write(*,*) 'after read, ios = ', ios
+!DEBUG
     if (ios /= 0) then
        write(0,*) 'ERROR: reading from ', trim(file%name), &
             ' at line ', file%line_num, ': IOSTAT = ', ios
@@ -187,10 +196,16 @@ contains
          ' characters'
     call exit(1)
 
-100 line = "" ! will only happen if the end-of-file was encountered immediately
+!DEBUG but not line number
+100 write(*,*) 'EOF'
+!DEBUG
+    line = "" ! goto here if end-of-file was encountered immediately
     eof = .true.
 
-110 return ! successfully read some data
+!DEBUG but not line number
+110 write(*,*) 'EOR'
+!DEBUG
+    return ! goto here if end-of-record, meaning everything is ok
     
   end subroutine inout_read_line_raw
 
@@ -1135,8 +1150,17 @@ contains
     character(len=MAX_CHAR_LEN) :: line
     logical :: eof
 
+!DEBUG
+    write(*,*) 'checking comment: ', comment
+!DEBUG
     call inout_read_line_raw(file, line, eof)
+!DEBUG
+    write(*,*) 'read_line_raw returned successfully'
+!DEBUG
     if (eof) then
+!DEBUG
+       write(*,*) 'EOF encountered'
+!DEBUG
        write(0,*) "ERROR: EOF encountered at line ", file%line_num, &
             " of file ", trim(file%name), &
             " but expected comment: ", trim(comment)

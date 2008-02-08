@@ -119,6 +119,9 @@ contains
     call output_processed_open(nc_name, -1, ncid)
     do i = 4,iargc()
        call getarg(i, state_name)
+!DEBUG
+    write(*,*) 'processing: ', trim(state_name)
+!DEBUG
        call partmc_process_state_file(ncid, state_name, process_spec_list)
     end do
     call output_processed_close(ncid)

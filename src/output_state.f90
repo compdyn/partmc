@@ -194,11 +194,29 @@ contains
     call inout_open_read(state_name, file)
     
     call inout_read_real(file, 'time(s)', time)
+!DEBUG
+    write(*,*) 'time = ', time
+!DEBUG
     call inout_read_real(file, 'timestep(s)', del_t)
+!DEBUG
+    write(*,*) 'timestep = ', del_t
+!DEBUG
     call inout_read_integer(file, 'loop', i_loop)
+!DEBUG
+    write(*,*) 'loop = ', i_loop
+!DEBUG
     call inout_read_integer(file, 'index', index)
+!DEBUG
+    write(*,*) 'index = ', index
+!DEBUG
 
+!DEBUG
+    write(*,*) 'about to read bin_grid'
+!DEBUG
     call inout_read_bin_grid(file, bin_grid)
+!DEBUG
+    write(*,*) 'read bin_grid'
+!DEBUG
     call inout_read_gas_data(file, gas_data)
     call inout_read_aero_data(file, aero_data)
 

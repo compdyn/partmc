@@ -6,7 +6,7 @@ DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
 # set to "yes" if building as a developer, otherwise "no"
-DEV_BUILD = yes
+DEV_BUILD = no
 
 FC = gfortran
 # -O              optimize
@@ -44,8 +44,8 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/aero_particle src/aero_particle_array src/mpi		\
 	src/process_spec src/netcdf
 
-DIST_FILES = COPYING Doxyfile Makefile README TODO doc equilib src	\
-        test tool urban_plume
+DIST_FILES = COPYING Doxyfile Makefile README README.html TODO doc	\
+        equilib src test tool urban_plume
 
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
@@ -136,11 +136,12 @@ gprof_%: % gmon.out
 
 .PHONY: dist
 dist:
-	grep -q "Version $(VERSION)" README
-	grep -q "Released $(DATE)" README
-	grep -q "$(VERSION) - $(DATE)" README
-	grep -q "DEV_BUILD = no" Makefile
-	grep -q "PROJECT_NUMBER         = $(VERSION)" Doxyfile
+	grep -q "^Version $(VERSION)" README
+	grep -q "^Released $(DATE)" README
+	grep -q "^$(VERSION) - $(DATE)" README
+	grep -q "^DEV_BUILD = no" Makefile
+	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
+	test ! -d .svn
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

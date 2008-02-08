@@ -1,0 +1,160 @@
+<h1>PartMC</h1>
+
+<p>PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation</p>
+
+<p>Version 1.1.0 <br />
+Released 2007-12-16</p>
+
+<p><a href="http://tableau.stanford.edu/~mwest/group/PartMC/">http://tableau.stanford.edu/~mwest/group/PartMC/</a>  </p>
+
+<p>Copyright (C) 2005-2008 Nicole Riemer and Matthew West <br />
+Portions copyright (C) Andreas Bott <br />
+Distributed under the GPL (see the file COPYING)</p>
+
+<h1>Dependencies</h1>
+
+<p>Required dependencies:</p>
+
+<ul>
+<li>GNU make</li>
+<li>Fortran 90 compiler</li>
+<li>NetCDF - <a href="http://www.unidata.ucar.edu/software/netcdf/">http://www.unidata.ucar.edu/software/netcdf/</a></li>
+</ul>
+
+<p>Optional dependencies to rebuild .deps files:</p>
+
+<ul>
+<li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
+</ul>
+
+<p>Optional dependencies for chemistry:</p>
+
+<ul>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#58;&#82;&#97;&#104;&#x75;&#108;.&#x5a;&#x61;&#x76;&#x65;&#114;&#105;&#64;&#x70;&#110;&#108;&#x2e;&#103;&#111;&#118;">&#82;&#97;&#104;&#x75;&#108;.&#x5a;&#x61;&#x76;&#x65;&#114;&#105;&#64;&#x70;&#110;&#108;&#x2e;&#103;&#111;&#118;</a></li>
+</ul>
+
+<p>Optional dependencies for parallel code:</p>
+
+<ul>
+<li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
+</ul>
+
+<p>Optional dependencies for plotting NetCDF data:</p>
+
+<ul>
+<li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
+<li>ScientificPython - <a href="http://dirac.cnrs-orleans.fr/plone/software/scientificpython/">http://dirac.cnrs-orleans.fr/plone/software/scientificpython/</a></li>
+<li>PyX - <a href="http://pyx.sourceforge.net/">http://pyx.sourceforge.net/</a></li>
+</ul>
+
+<p>PartMC can be compiled out-of-the-box on Fedora 7 with all
+dependencies except MOSAIC if the following packages are installed:</p>
+
+<ul>
+<li>gcc-gfortran-4.1.2-27.fc7</li>
+<li>netcdf-3.6.2-1.fc7</li>
+<li>openmpi-1.1-8.fc7</li>
+<li>ScientificPython-2.6-8.fc7</li>
+<li>PyX-0.9-4.fc7</li>
+</ul>
+
+<h1>Installation</h1>
+
+<p>The various helper scripts and testcases assume a unix environment
+(tested on Fedora Linux 7 and OS X 10.4).</p>
+
+<p>The Makefile requires GNU make (tested with version 3.81 on Linux and
+3.80 on OS X).</p>
+
+<p>The default compiler is gfortran (tested with gcc 4.1.2 on Linux and
+gcc 4.2.1 on OS X).</p>
+
+<p>The Makefile will include Makefile.local if present to override
+compiler variables. Copying <code>Makefile.local.pgf90</code> to <code>Makefile.local</code>
+will enable the Portland group compilers (tested with pgf95 6.0-8 on
+x86-64 Linux).</p>
+
+<p>To rebuild TAGS or the .deps dependency files set <code>DEV_BUILD = yes</code> in
+the Makefile. The .deps dependency files are rebuilt using
+<code>tool/f90_mod_deps.py</code>, which requires python (tested with version 2.5
+on Linux and 2.4.2 on OS X).</p>
+
+<p>The NetCDF libraries are required to compile PartMC (tested with
+version 3.6.2 on Linux and OS X). The <code>netcdf.mod</code> Fortran 90 module
+file is required, and it must be produced by the same compiler being
+used to compile PartMC.</p>
+
+<p>To use the MOSAIC code, enable the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code>
+variables in the Makefile and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code>
+to the appropriate directories.</p>
+
+<h1>Usage</h1>
+
+<p>The main partmc command reads .spec files and does the run specified
+therein. Either Monte Carlo runs, sectional code runs, or exact
+solutions can be generated. A run produces binned summary data in a
+NetCDF file which can be plotted with the included python
+scripts. Monte Carlo runs can also output the full internal state in
+an ASCII format that can then be processed with <code>partmc -p</code> to produce
+the same summary NetCDF data.</p>
+
+<p>There are a number of examples provided in the test directory that can
+be run by the run.sh scripts. These use the python scripts with
+ScientificPython and Pyx to plot the results.</p>
+
+<h1>Coding Conventions</h1>
+
+<p>The code is mainly Fortran 90, with a few parts still clearly showing
+their Fortran 77 heritage.</p>
+
+<p>Extensive use is made of Fortran 90 derived types and pointers for
+dynamic memory allocation of arrays inside derived types. Derived
+types are named <code>my_type_t</code> and are generally defined in modules named
+<code>pmc_mod_my_type</code> within files named <code>my_type.f90</code>. Each derived type
+has allocation and deallocation functions <code>my_type_alloc()</code> and
+<code>my_type_free()</code>, respectively.</p>
+
+<p>The auto-generation of module dependencies relies on a particular
+naming convention. The module names must be the same as the name of
+the containing file, but prefixed with <code>pmc_mod_</code>. Thus the module
+<code>pmc_mod_condensation</code> is contained in the file
+<code>condensation.f90</code>. The dependencies are autogenerated by the
+<code>tool/f90_mod_deps.py</code> python script, which is called automatically by
+the Makefile to regenerate dependencies if <code>DEV_BUILD = yes</code> is set.</p>
+
+<h1>Debugging</h1>
+
+<p>To debug the parallel code run it with:</p>
+
+<pre><code>om-mpiexec --mca mpi_abort_delay -1 -n 2 ../src/partmc golovin_mc.spec
+</code></pre>
+
+<p>then run the debugger with:</p>
+
+<pre><code>gdb ../src/partmc &lt;pid&gt;
+</code></pre>
+
+<p>and use <code>bt</code> to get a backtrace.</p>
+
+<p>To turn on MPI debugging info add the <code>-d</code> parameter to
+<code>mpiexec/mpirun</code>. To restrict the transport to only TCP use the <code>--mca
+btl tcp</code> option.</p>
+
+<h1>ChangeLog</h1>
+
+<p>1.1.0 - 2007-12-16</p>
+
+<ul>
+<li><p>Internal reorganization to use Fortran 90 derived types for the
+data structures.</p></li>
+<li><p>Integration with the MOSAIC gas- and aerosol-chemistry code.</p></li>
+<li><p>Output is in binary NetCDF format.</p></li>
+<li><p>Parallel implementation using 1D mixing.</p></li>
+</ul>
+
+<p>1.0.0 - 2007-02-26</p>
+
+<ul>
+<li>First release, including hierarchical coagulation and full water
+condensation.</li>
+</ul>

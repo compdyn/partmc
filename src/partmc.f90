@@ -105,7 +105,7 @@ contains
     type(inout_file_t) :: file
     type(process_spec_t), pointer :: process_spec_list(:)
     integer :: i
-    character(len=300) :: state_name
+    character(len=1000) :: state_name
     integer :: ncid
 
     if (pmc_mpi_rank() /= 0) then
@@ -119,9 +119,7 @@ contains
     call output_processed_open(nc_name, -1, ncid)
     do i = 4,iargc()
        call getarg(i, state_name)
-!DEBUG
-    write(*,*) 'processing: ', trim(state_name)
-!DEBUG
+       write(*,*) 'processing ', trim(state_name)
        call partmc_process_state_file(ncid, state_name, process_spec_list)
     end do
     call output_processed_close(ncid)

@@ -25,11 +25,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Open the processed state output file.
+  !!
+  !! The filename is of the form \c prefix_loop.nc if \c i_loop is
+  !! positive, otherwise it is \c prefix.nc.
   subroutine output_processed_open(prefix, i_loop, ncid)
 
     !> Prefix of files to write.
     character(len=*), intent(in) :: prefix
-    !> Current loop number.
+    !> Current loop number, or 0 to ignore the loop number.
     integer, intent(in) :: i_loop
     !> New NetCDF file ID, in data mode.
     integer, intent(out) :: ncid
@@ -37,7 +40,11 @@ contains
     character(len=len(prefix)+20) :: filename
     character(len=500) :: history
 
-    write(filename, '(a,a,i4.4,a)') trim(prefix), '_', i_loop, '.nc'
+    if (i_loop > 0) then
+       write(filename, '(a,a,i4.4,a)') trim(prefix), '_', i_loop, '.nc'
+    else
+       write(filename, '(a,a)') trim(prefix), '.nc'
+    end if
     call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &

@@ -242,7 +242,7 @@ contains
     type(aero_data_t), intent(out) :: aero_data
 
     integer :: n_species, species, i
-    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     call inout_read_real_named_array(file, 0, species_name, species_data)
@@ -285,7 +285,7 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
 
     ! read the aerosol data from the specified file

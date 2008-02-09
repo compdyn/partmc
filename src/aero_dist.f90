@@ -462,9 +462,9 @@ contains
     real*8, intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
-    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
     real*8 :: tot_vol_frac
 
@@ -528,7 +528,7 @@ contains
     real*8 :: num_den(bin_grid%n_bin)
 
     real*8 :: tot_num_den
-    character(len=MAX_CHAR_LEN) :: mode_type
+    character(len=MAX_VAR_LEN) :: mode_type
     real*8 :: mean_radius, log_std_dev, radius
 
     call inout_read_real(file, 'num_den', tot_num_den)
@@ -620,7 +620,7 @@ contains
     !> Aerosol distribution.
     type(aero_dist_t), intent(inout) :: dist
 
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
 
     ! read the aerosol data from the specified file
@@ -653,11 +653,11 @@ contains
     !> Aero dists.
     type(aero_dist_t), pointer :: aero_dists(:)
 
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
     type(inout_line_t) :: aero_dist_line
     integer :: n_time, i_time
-    character(len=MAX_CHAR_LEN), pointer :: names(:)
+    character(len=MAX_VAR_LEN), pointer :: names(:)
     real*8, pointer :: data(:,:)
 
     ! read the filename then read the data from that file

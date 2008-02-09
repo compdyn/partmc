@@ -194,9 +194,9 @@ contains
     type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
-    character(len=MAX_CHAR_LEN), pointer :: species_name(:)
+    character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the gas data from the specified file

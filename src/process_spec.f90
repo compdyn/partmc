@@ -144,7 +144,7 @@ contains
     !> Data to read.
     type(process_spec_t), pointer :: process_spec_list(:)
 
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
 
     call inout_read_string(file, name, read_name)

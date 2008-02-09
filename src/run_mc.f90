@@ -124,7 +124,7 @@ contains
 
     i_time = 0
     i_summary = 1
-    i_state = 0
+    i_state = 1
     time = 0d0
     n_coag = 0
     tot_n_samp = 0

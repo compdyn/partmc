@@ -181,17 +181,8 @@ contains
     !> Bin_grid to read.
     type(bin_grid_t), intent(out) :: bin_grid
 
-!DEBUG
-    write(*,*) 'inout_read_bin_grid:'
-!DEBUG
     call inout_check_comment(file, "begin bin_grid")
-!DEBUG
-    write(*,*) 'read comment'
-!DEBUG
     call inout_read_integer(file, "n_bin", bin_grid%n_bin)
-!DEBUG
-    write(*,*) 'n_bin = ', bin_grid%n_bin
-!DEBUG
     call inout_read_real_array(file, "center_volumes(m^3)", bin_grid%v)
     call inout_read_real(file, "dlnr", bin_grid%dlnr)
     call inout_check_comment(file, "end bin_grid")

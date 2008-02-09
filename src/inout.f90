@@ -13,7 +13,7 @@ module pmc_inout
   !> Maximum size of a single line.
   integer, parameter :: MAX_LINE_LEN = 10000
   !> Maximum size of a variable.
-  integer, parameter :: MAX_CHAR_LEN = 300
+  integer, parameter :: MAX_VAR_LEN = 300
   !> Maximum number of lines in an array.
   integer, parameter :: MAX_LIST_LINES = 1000
 
@@ -27,7 +27,7 @@ module pmc_inout
   !! accessed directly via \c inout_file%%unit.
   type inout_file_t
      !> Filename.
-     character(len=MAX_CHAR_LEN) :: name
+     character(len=MAX_VAR_LEN) :: name
      !> Attached unit.
      integer :: unit
      !> Current line number.
@@ -44,9 +44,9 @@ module pmc_inout
   !! whitespace.
   type inout_line_t
      !> Variable name.
-     character(len=MAX_CHAR_LEN) :: name
+     character(len=MAX_VAR_LEN) :: name
      !> Array of data as strings.
-     character(len=MAX_CHAR_LEN), pointer :: data(:)
+     character(len=MAX_VAR_LEN), pointer :: data(:)
   end type inout_line_t
 
 contains
@@ -165,25 +165,16 @@ contains
     !> Inout file.
     type(inout_file_t), intent(inout) :: file
     !> Complete line read.
-    character(len=MAX_LINE_LEN), intent(out) :: line
+    character(len=*), intent(out) :: line
     !> True if at EOF.
     logical, intent(out) :: eof
 
     integer :: ios, n_read
 
     file%line_num = file%line_num + 1
-!DEBUG
-    write(*,*) 'line_num = ', file%line_num
-!DEBUG
     eof = .false.
-!DEBUG
-    write(*,*) 'before read, ios = ', ios
-!DEBUG
     read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) line
-!DEBUG
-    write(*,*) 'after read, ios = ', ios
-!DEBUG
     if (ios /= 0) then
        write(0,*) 'ERROR: reading from ', trim(file%name), &
             ' at line ', file%line_num, ': IOSTAT = ', ios
@@ -192,20 +183,14 @@ contains
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read, meaning the line was too long
     write(0,*) 'ERROR: reading from ', trim(file%name), &
-         ' at line ', file%line_num, ': line exceeds ', MAX_LINE_LEN, &
+         ' at line ', file%line_num, ': line exceeds ', len(line), &
          ' characters'
     call exit(1)
 
-!DEBUG but not line number
-100 write(*,*) 'EOF'
-!DEBUG
-    line = "" ! goto here if end-of-file was encountered immediately
+100 line = "" ! goto here if end-of-file was encountered immediately
     eof = .true.
 
-!DEBUG but not line number
-110 write(*,*) 'EOR'
-!DEBUG
-    return ! goto here if end-of-record, meaning everything is ok
+110 return ! goto here if end-of-record, meaning everything is ok
     
   end subroutine inout_read_line_raw
 
@@ -328,10 +313,10 @@ contains
             ' starts with whitespace'
        call exit(1)
     end if
-    if (i >= MAX_CHAR_LEN) then
+    if (i >= MAX_VAR_LEN) then
        write(0,'(a,i3,a,a,a,i6,a)') 'ERROR: line ', file%line_num, &
             ' of input file ', trim(file%name), &
-            ' has a name longer than ', MAX_CHAR_LEN, ' characters'
+            ' has a name longer than ', MAX_VAR_LEN, ' characters'
     end if
     line%name = line_string(1:(i-1))
     line_string = line_string(i:)
@@ -371,11 +356,11 @@ contains
                   ' internal processing error'
              call exit(1)
           end if
-          if (i >= MAX_CHAR_LEN) then
+          if (i >= MAX_VAR_LEN) then
              write(0,'(a,i3,a,a,a,i6,a,i6,a)') 'ERROR: line ', file%line_num, &
                   ' of input file ', trim(file%name), &
                   ' has data element ', n_data, &
-                  ' longer than ', MAX_CHAR_LEN, ' characters'
+                  ' longer than ', MAX_VAR_LEN, ' characters'
           end if
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
@@ -1033,7 +1018,7 @@ contains
     !> Max lines to read (0 = no max).
     integer, intent(in) :: max_lines
     !> Names of lines.
-    character(len=MAX_CHAR_LEN), pointer :: names(:)
+    character(len=MAX_VAR_LEN), pointer :: names(:)
     !> Data values.
     real*8, pointer :: vals(:,:)
 
@@ -1080,9 +1065,9 @@ contains
     real*8, pointer :: vals(:)
     
     integer :: n_lines, n_times
-    character(len=MAX_CHAR_LEN) :: read_name
+    character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
-    character(len=MAX_CHAR_LEN), pointer :: read_names(:)
+    character(len=MAX_VAR_LEN), pointer :: read_names(:)
     real*8, pointer :: read_data(:,:)
 
     call inout_read_string(file, line_name, read_name)
@@ -1147,20 +1132,11 @@ contains
     !> Comment string.
     character(len=*), intent(in) :: comment
 
-    character(len=MAX_CHAR_LEN) :: line
+    character(len=MAX_LINE_LEN) :: line
     logical :: eof
 
-!DEBUG
-    write(*,*) 'checking comment: ', comment
-!DEBUG
     call inout_read_line_raw(file, line, eof)
-!DEBUG
-    write(*,*) 'read_line_raw returned successfully'
-!DEBUG
     if (eof) then
-!DEBUG
-       write(*,*) 'EOF encountered'
-!DEBUG
        write(0,*) "ERROR: EOF encountered at line ", file%line_num, &
             " of file ", trim(file%name), &
             " but expected comment: ", trim(comment)
@@ -1236,7 +1212,7 @@ contains
     !> Variable to write.
     character(len=*), intent(in) :: var
 
-    write(file%unit, '(a20,a20)') trim(name), var
+    write(file%unit, '(a20,a,a)') trim(name), ' ', trim(var)
     file%line_num = file%line_num + 1
 
   end subroutine inout_write_string
@@ -1451,7 +1427,7 @@ contains
     length = size(vals)
     write(file%unit, '(a20,i20)'), trim(name), length
     do i = 1,length
-       write(file%unit, '(i20,a20)'), i, vals(i)
+       write(file%unit, '(i20,a,a)'), i, ' ', trim(vals(i))
     end do
 
   end subroutine inout_write_string_array

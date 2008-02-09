@@ -274,9 +274,9 @@ contains
                      / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
                 t_wall_est = (1d0 - prop_done) / prop_done &
                      * (t_wall_now - mc_opt%t_wall_start)
-                write(6,'(a6,a8,a9,a11,a9,a11,a10)') 'loop', 'time', &
+                write(6,'(a6,a9,a9,a11,a9,a11,a10)') 'loop', 'time', &
                      'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-                write(6,'(i6,f8.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
+                write(6,'(i6,f9.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
                      aero_state_total_particles(aero_state), tot_n_samp, &
                      n_coag, tot_n_coag, t_wall_est
              end if

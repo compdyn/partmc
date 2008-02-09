@@ -1,6 +1,4 @@
 
-Check for memory leaks with valgrind.
-
 Change output_file to output_prefix and use it for the .nc output,
 leaving state_prefix for the state output.
 

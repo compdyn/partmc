@@ -14,13 +14,13 @@ from pmc_pyx import *
 aero_species = ["SO4", "NO3", "NH4"]
 gas_species = ["NO2", "NH3"]
 
-aero_data = pmc_var(NetCDFFile("out/mosaic_state_0001.nc"),
+aero_data = pmc_var(NetCDFFile("out/mosaic_0001.nc"),
 		    "aero",
 		    [sum("radius")])
 aero_data_post = pmc_var(NetCDFFile("out/mosaic_post_0001.nc"),
 			 "aero",
 			 [sum("radius")])
-gas_data = pmc_var(NetCDFFile("out/mosaic_state_0001.nc"),
+gas_data = pmc_var(NetCDFFile("out/mosaic_0001.nc"),
 		   "gas",
 		   [])
 gas_data_post = pmc_var(NetCDFFile("out/mosaic_post_0001.nc"),

@@ -1,5 +1,4 @@
 run_type sect                   # sectional code
-output_file out/sedi_sect_summary.d # name of output file
 output_prefix out/sedi_sect     # prefix of output files
 process_spec process.dat        # processing specification
 kernel sedi                     # coagulation kernel

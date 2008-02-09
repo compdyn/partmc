@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo
-output_file out/emission_mc_summary.d # name of output file
+output_prefix out/emission_mc   # prefix of output files
 state_prefix out/emission_mc_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops

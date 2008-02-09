@@ -1,7 +1,4 @@
 
-Change output_file to output_prefix and use it for the .nc output,
-leaving state_prefix for the state output.
-
 Increase time field by 1 in run_mc progress output. Test on
 test/mosaic.
 

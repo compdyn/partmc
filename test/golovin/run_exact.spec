@@ -1,5 +1,4 @@
 run_type exact                  # exact solution
-output_file out/golovin_exact_summary.d # name of output file
 output_prefix out/golovin_exact # prefix of output files
 process_spec process.dat        # processing specification
 num_den 1e9                     # particle number density (#/m^3)

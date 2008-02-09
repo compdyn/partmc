@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -14,7 +14,7 @@ from pmc_pyx import *
 times_min = [0, 5, 10]
 times_sec = [t * 60 for t in times_min]
 
-mc_data = pmc_var(NetCDFFile("out/sedi_mc_state_0001.nc"),
+mc_data = pmc_var(NetCDFFile("out/sedi_mc_0001.nc"),
 		  "aero",
 		  [sum("aero_species")])
 sect_data = pmc_var(NetCDFFile("out/sedi_sect_0001.nc"),

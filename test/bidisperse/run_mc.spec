@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo
-output_file out/bidisperse_mc_summary.d #  output filename
+output_prefix out/bidisperse_mc # prefix of output files
 state_prefix out/bidisperse_mc_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops

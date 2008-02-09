@@ -214,7 +214,6 @@ contains
     !> Spec file.
     type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name
     character(len=100) :: kernel_name
     type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_init
@@ -237,7 +236,7 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
-       call inout_read_string(file, 'output_file', summary_name)
+       call inout_read_string(file, 'output_prefix', mc_opt%output_prefix)
        call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
        call spec_read_process_spec_list_filename(file, 'process_spec', &
             process_spec_list)
@@ -419,7 +418,6 @@ contains
     !> Spec file.
     type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name
     character(len=100) :: soln_name
     type(aero_data_t) :: aero_data
     type(env_data_t) :: env_data
@@ -434,7 +432,6 @@ contains
        return
     end if
     
-    call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'output_prefix', exact_opt%prefix)
     call spec_read_process_spec_list_filename(file, 'process_spec', &
          process_spec_list)
@@ -501,7 +498,6 @@ contains
     !> Spec file.
     type(inout_file_t), intent(out) :: file
 
-    character(len=300) :: summary_name
     character(len=100) :: kernel_name
     type(run_sect_opt_t) :: sect_opt
     type(aero_data_t) :: aero_data
@@ -518,7 +514,6 @@ contains
        return
     end if
     
-    call inout_read_string(file, 'output_file', summary_name)
     call inout_read_string(file, 'output_prefix', sect_opt%prefix)
     call spec_read_process_spec_list_filename(file, 'process_spec', &
          process_spec_list)

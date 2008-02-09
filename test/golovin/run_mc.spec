@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo run
-output_file out/golovin_mc_summary.d # name of output file
+output_prefix out/golovin_mc    # prefix of output files
 state_prefix out/golovin_mc_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 10                       # number of Monte Carlo loops

@@ -44,6 +44,8 @@ module pmc_run_mc
     real*8 :: t_progress
     !> Timestep for coagulation.
     real*8 :: del_t
+    !> Prefix for output files.
+    character(len=300) :: output_prefix
     !> Prefix for state files.
     character(len=300) :: state_prefix
     !> Whether to do coagulation.
@@ -174,7 +176,7 @@ contains
     end if
 
     if (mc_opt%t_output > 0d0) then
-       call output_processed_open(mc_opt%state_prefix, mc_opt%i_loop, ncid)
+       call output_processed_open(mc_opt%output_prefix, mc_opt%i_loop, ncid)
        call output_processed(ncid, process_spec_list, &
             bin_grid, aero_data, aero_state, gas_data, gas_state, &
             env_state, i_summary, time, mc_opt%t_output, mc_opt%i_loop)
@@ -444,6 +446,7 @@ contains
          + pmc_mpi_pack_size_real(val%t_state) &
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
+         + pmc_mpi_pack_size_string(val%output_prefix) &
          + pmc_mpi_pack_size_string(val%state_prefix) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%allow_double) &
@@ -480,6 +483,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_state)
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
+    call pmc_mpi_pack_string(buffer, position, val%output_prefix)
     call pmc_mpi_pack_string(buffer, position, val%state_prefix)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_double)
@@ -519,6 +523,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_state)
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
+    call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
     call pmc_mpi_unpack_string(buffer, position, val%state_prefix)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_double)

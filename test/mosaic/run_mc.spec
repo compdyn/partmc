@@ -1,5 +1,5 @@
 run_type mc                     # Monte Carlo run
-output_file out/mosaic_summary.d # name of output file
+output_prefix out/mosaic        # prefix of output files
 state_prefix out/mosaic_state   # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops

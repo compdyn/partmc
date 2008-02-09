@@ -1,5 +1,4 @@
 run_type exact                  # Monte Carlo
-output_file out/emission_exact_summary.d # name of output file
 output_prefix out/emission_exact # prefix of output files
 process_spec process.dat        # processing specification
 num_den 1e9                     # particle number density (#/m^3)

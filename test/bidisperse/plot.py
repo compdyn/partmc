@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -11,7 +11,7 @@ sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-mc_data = pmc_var(NetCDFFile("out/bidisperse_mc_state_0001.nc"),
+mc_data = pmc_var(NetCDFFile("out/bidisperse_mc_0001.nc"),
 		  "aero",
 		  [sum("aero_species")])
 

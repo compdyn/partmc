@@ -62,7 +62,7 @@ def add_netcdf(total, add, var_totals, var_counts):
 	if var_name not in total.variables.keys():
 	    # variable not present in total, add it
 	    print "variable: %s [%s] %s %s" \
-		% (var_name, var_type, string(var_dims), string(var_shape))
+		% (var_name, var_type, str(var_dims), str(var_shape))
 	    total_var = total.createVariable(var_name, var_type, var_dims)
 	    for att_name in dir(var):
 		if att_name not in var_dir_base:
@@ -84,13 +84,13 @@ def add_netcdf(total, add, var_totals, var_counts):
 	    total_var_shape = var.shape
 	    if var_shape != total_var_shape:
 		raise Exception("variable shape mismatch: %s, %s versus %s"
-				% (var_name, string(var_shape),
-				   string(total_var_shape)))
+				% (var_name, str(var_shape),
+				   str(total_var_shape)))
 	    total_var_dims = var.dimensions
 	    if var_dims != total_var_dims:
 		raise Exception("variable dims mismatch: %s, %s versus %s"
-				% (var_name, string(var_dims),
-				   string(total_var_dims)))
+				% (var_name, str(var_dims),
+				   str(total_var_dims)))
 	    for att_name in dir(var):
 		if att_name not in var_dir_base:
 		    if att_name not in dir(total_var):
@@ -109,8 +109,8 @@ def add_netcdf(total, add, var_totals, var_counts):
 		if any(array(var_value) != array(total_var_value)):
 		    raise Exception("dimension variable value mismatch: "
 				    + "%s, %s versus %s"
-				    % (var_name, string(var_value),
-				       string(total_var_value)))
+				    % (var_name, str(var_value),
+				       str(total_var_value)))
 	    else:
 		var_totals[var_name] += array(var.getValue())
 		var_counts[var_name] += 1

@@ -7,11 +7,14 @@ PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 Version 1.1.0  
 Released 2008-02-08
 
-<http://www.mechse.uiuc.edu/~mwest/partmc/>  
+<http://www.mechse.uiuc.edu/~mwest/partmc/>
 
 Copyright (C) 2005-2008 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott  
-Distributed under the GPL (see the file COPYING)
+Portions copyright (C) Andreas Bott and Richard Easter  
+Licensed under the GNU General Public License version 2 or (at your
+option) any later version.  
+For details see the file COPYING or
+<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 
 
 Dependencies
@@ -23,59 +26,38 @@ Required dependencies:
    * Fortran 90 compiler
    * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
 
-Optional dependencies to rebuild .deps files:
+Optional dependencies:
 
    * Python - <http://www.python.org/>
-
-Optional dependencies for chemistry:
-
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
-
-Optional dependencies for parallel code:
-
    * MPI - <http://www.open-mpi.org/>
-
-Optional dependencies for plotting NetCDF data:
-
-   * Python - <http://www.python.org/>
    * ScientificPython - <http://dirac.cnrs-orleans.fr/plone/software/scientificpython/>
    * PyX - <http://pyx.sourceforge.net/>
 
-PartMC can be compiled out-of-the-box on Fedora 7 with all
+PartMC can be compiled out-of-the-box on Fedora 8 with all
 dependencies except MOSAIC if the following packages are installed:
 
-   * gcc-gfortran-4.1.2-27.fc7
-   * netcdf-3.6.2-1.fc7
-   * openmpi-1.1-8.fc7
-   * ScientificPython-2.6-8.fc7
-   * PyX-0.9-4.fc7
+   * gcc-gfortran-4.1.2-33
+   * netcdf-3.6.2-4.fc8
+   * openmpi-1.2.4-1.fc8
+   * ScientificPython-2.6-10.fc8
+   * PyX-0.9-5.fc8
 
 Installation
 ============
 
-The various helper scripts and testcases assume a unix environment
-(tested on Fedora Linux 7 and OS X 10.4).
-
-The Makefile requires GNU make (tested with version 3.81 on Linux and
-3.80 on OS X).
-
-The default compiler is gfortran (tested with gcc 4.1.2 on Linux and
-gcc 4.2.1 on OS X).
-
-The Makefile will include Makefile.local if present to override
-compiler variables. Copying `Makefile.local.pgf90` to `Makefile.local`
-will enable the Portland group compilers (tested with pgf95 6.0-8 on
-x86-64 Linux).
+The various helper scripts and testcases assume a Unix environment
+(tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
+make. The Makefile will include Makefile.local if present to override
+compiler variables. The default compiler is gfortran.
 
 To rebuild TAGS or the .deps dependency files set `DEV_BUILD = yes` in
 the Makefile. The .deps dependency files are rebuilt using
-`tool/f90_mod_deps.py`, which requires python (tested with version 2.5
-on Linux and 2.4.2 on OS X).
+`tool/f90_mod_deps.py`, which requires Python.
 
-The NetCDF libraries are required to compile PartMC (tested with
-version 3.6.2 on Linux and OS X). The `netcdf.mod` Fortran 90 module
-file is required, and it must be produced by the same compiler being
-used to compile PartMC.
+The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
+Fortran 90 module file is required, and it must be produced by the
+same compiler being used to compile PartMC.
 
 To use the MOSAIC code, enable the `MOSAIC_LIB` and `MOSAIC_FLAG`
 variables in the Makefile and set `MOSAIC_MODDIR` and `MOSAIC_LIBDIR`
@@ -85,16 +67,16 @@ to the appropriate directories.
 Usage
 =====
 
-The main partmc command reads .spec files and does the run specified
-therein. Either Monte Carlo runs, sectional code runs, or exact
-solutions can be generated. A run produces binned summary data in a
-NetCDF file which can be plotted with the included python
+The main `partmc` command reads `.spec` files and does the run
+specified therein. Either Monte Carlo runs, sectional code runs, or
+exact solutions can be generated. A run produces binned summary data
+in a NetCDF file which can be plotted with the included python
 scripts. Monte Carlo runs can also output the full internal state in
 an ASCII format that can then be processed with `partmc -p` to produce
 the same summary NetCDF data.
 
 There are a number of examples provided in the test directory that can
-be run by the run.sh scripts. These use the python scripts with
+be run by the `run.sh` scripts. These use the python scripts with
 ScientificPython and Pyx to plot the results.
 
 

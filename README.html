@@ -5,11 +5,14 @@
 <p>Version 1.1.0 <br />
 Released 2008-02-08</p>
 
-<p><a href="http://www.mechse.uiuc.edu/~mwest/partmc/">http://www.mechse.uiuc.edu/~mwest/partmc/</a>  </p>
+<p><a href="http://www.mechse.uiuc.edu/~mwest/partmc/">http://www.mechse.uiuc.edu/~mwest/partmc/</a></p>
 
 <p>Copyright (C) 2005-2008 Nicole Riemer and Matthew West <br />
-Portions copyright (C) Andreas Bott <br />
-Distributed under the GPL (see the file COPYING)</p>
+Portions copyright (C) Andreas Bott and Richard Easter <br />
+Licensed under the GNU General Public License version 2 or (at your
+option) any later version. <br />
+For details see the file COPYING or
+<a href="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html">http://www.gnu.org/licenses/old-licenses/gpl-2.0.html</a>.</p>
 
 <h1>Dependencies</h1>
 
@@ -21,68 +24,41 @@ Distributed under the GPL (see the file COPYING)</p>
 <li>NetCDF - <a href="http://www.unidata.ucar.edu/software/netcdf/">http://www.unidata.ucar.edu/software/netcdf/</a></li>
 </ul>
 
-<p>Optional dependencies to rebuild .deps files:</p>
+<p>Optional dependencies:</p>
 
 <ul>
 <li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
-</ul>
-
-<p>Optional dependencies for chemistry:</p>
-
-<ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#x61;&#105;l&#x74;&#111;&#58;R&#97;&#104;u&#108;&#x2e;&#90;&#x61;&#118;&#101;&#114;&#x69;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;&#111;&#x76;">R&#97;&#104;u&#108;&#x2e;&#90;&#x61;&#118;&#101;&#114;&#x69;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;&#111;&#x76;</a></li>
-</ul>
-
-<p>Optional dependencies for parallel code:</p>
-
-<ul>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#82;&#97;&#104;&#117;&#108;&#46;&#90;&#x61;v&#101;&#114;&#x69;&#x40;&#x70;&#x6e;&#x6c;&#46;&#103;&#111;&#118;">&#82;&#97;&#104;&#117;&#108;&#46;&#90;&#x61;v&#101;&#114;&#x69;&#x40;&#x70;&#x6e;&#x6c;&#46;&#103;&#111;&#118;</a></li>
 <li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
-</ul>
-
-<p>Optional dependencies for plotting NetCDF data:</p>
-
-<ul>
-<li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
 <li>ScientificPython - <a href="http://dirac.cnrs-orleans.fr/plone/software/scientificpython/">http://dirac.cnrs-orleans.fr/plone/software/scientificpython/</a></li>
 <li>PyX - <a href="http://pyx.sourceforge.net/">http://pyx.sourceforge.net/</a></li>
 </ul>
 
-<p>PartMC can be compiled out-of-the-box on Fedora 7 with all
+<p>PartMC can be compiled out-of-the-box on Fedora 8 with all
 dependencies except MOSAIC if the following packages are installed:</p>
 
 <ul>
-<li>gcc-gfortran-4.1.2-27.fc7</li>
-<li>netcdf-3.6.2-1.fc7</li>
-<li>openmpi-1.1-8.fc7</li>
-<li>ScientificPython-2.6-8.fc7</li>
-<li>PyX-0.9-4.fc7</li>
+<li>gcc-gfortran-4.1.2-33</li>
+<li>netcdf-3.6.2-4.fc8</li>
+<li>openmpi-1.2.4-1.fc8</li>
+<li>ScientificPython-2.6-10.fc8</li>
+<li>PyX-0.9-5.fc8</li>
 </ul>
 
 <h1>Installation</h1>
 
-<p>The various helper scripts and testcases assume a unix environment
-(tested on Fedora Linux 7 and OS X 10.4).</p>
-
-<p>The Makefile requires GNU make (tested with version 3.81 on Linux and
-3.80 on OS X).</p>
-
-<p>The default compiler is gfortran (tested with gcc 4.1.2 on Linux and
-gcc 4.2.1 on OS X).</p>
-
-<p>The Makefile will include Makefile.local if present to override
-compiler variables. Copying <code>Makefile.local.pgf90</code> to <code>Makefile.local</code>
-will enable the Portland group compilers (tested with pgf95 6.0-8 on
-x86-64 Linux).</p>
+<p>The various helper scripts and testcases assume a Unix environment
+(tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
+make. The Makefile will include Makefile.local if present to override
+compiler variables. The default compiler is gfortran.</p>
 
 <p>To rebuild TAGS or the .deps dependency files set <code>DEV_BUILD = yes</code> in
 the Makefile. The .deps dependency files are rebuilt using
-<code>tool/f90_mod_deps.py</code>, which requires python (tested with version 2.5
-on Linux and 2.4.2 on OS X).</p>
+<code>tool/f90_mod_deps.py</code>, which requires Python.</p>
 
-<p>The NetCDF libraries are required to compile PartMC (tested with
-version 3.6.2 on Linux and OS X). The <code>netcdf.mod</code> Fortran 90 module
-file is required, and it must be produced by the same compiler being
-used to compile PartMC.</p>
+<p>The NetCDF libraries are required to compile PartMC. The <code>netcdf.mod</code>
+Fortran 90 module file is required, and it must be produced by the
+same compiler being used to compile PartMC.</p>
 
 <p>To use the MOSAIC code, enable the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code>
 variables in the Makefile and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code>
@@ -90,16 +66,16 @@ to the appropriate directories.</p>
 
 <h1>Usage</h1>
 
-<p>The main partmc command reads .spec files and does the run specified
-therein. Either Monte Carlo runs, sectional code runs, or exact
-solutions can be generated. A run produces binned summary data in a
-NetCDF file which can be plotted with the included python
+<p>The main <code>partmc</code> command reads <code>.spec</code> files and does the run
+specified therein. Either Monte Carlo runs, sectional code runs, or
+exact solutions can be generated. A run produces binned summary data
+in a NetCDF file which can be plotted with the included python
 scripts. Monte Carlo runs can also output the full internal state in
 an ASCII format that can then be processed with <code>partmc -p</code> to produce
 the same summary NetCDF data.</p>
 
 <p>There are a number of examples provided in the test directory that can
-be run by the run.sh scripts. These use the python scripts with
+be run by the <code>run.sh</code> scripts. These use the python scripts with
 ScientificPython and Pyx to plot the results.</p>
 
 <h1>Coding Conventions</h1>

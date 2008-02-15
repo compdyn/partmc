@@ -19,10 +19,9 @@ contains
 
   !> Compute the Brownian coagulation kernel.
   !!
-  !! See Seinfeld, Atmospheric chemistry and physics of air pollution,
-  !! page 394 (equation 10.18). This was the continuum version of the
-  !! kernel, but may not be any more.
-  subroutine kernel_brown(v1, v2, env_state, k)
+  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
+  !! Atmospheric Modeling, Cambridge University Press, 1999.
+  subroutine kernel_brown(v1, v2, env_state, bckernel)
 
     !> Volume of first particle (m^3).
     real*8, intent(in) :: v1
@@ -31,79 +30,19 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Kernel k(a,b) (m^3/s).
-    real*8, intent(out) :: k
-
-    !real*8 c_1, a_third, b_third
-    real*8 dens1, dens2                 ! particle densities (kg/m^3)
-    integer lundiag1, lundiag2
-
-    !c_1 = 2d0 * const%boltzmann * env_state%temp / (3.d0 * const%air_dyn_visc)
-    !a_third = v1**(1.d0/3.d0)
-    !b_third = v2**(1.d0/3.d0)
-    
-    !k = c_1 * (a_third + b_third) *(1d0/a_third + 1d0/b_third) 
-
-    dens1 = 1.8d3
-    dens2 = 1.8d3
-    lundiag1 = -91
-    lundiag2 = -92
-    call brownian_kernel(v1, v2, dens1, dens2, env_state%temp, &
-         env_state%pressure, lundiag1, lundiag2, k)
-
-  end subroutine kernel_brown
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate brownian coagulation kernel.
-  !!
-  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
-  !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine brownian_kernel(vol_i_inp, vol_j_inp, den_i_inp, &
-       den_j_inp, tk, press, lundiag1, lundiag2, bckernel)
-
-    !> First wet (ambient) particle volume (m^3).
-    real*8, intent(in) :: vol_i_inp
-    !> Second wet (ambient) particle volume (m^3).
-    real*8, intent(in) :: vol_j_inp
-    !> First wet (ambient) particle density (kg/m^3).
-    real*8, intent(in) :: den_i_inp
-    !> Second wet (ambient) particle density (kg/m^3).
-    real*8, intent(in) :: den_j_inp
-    !> Air temperature (K).
-    real*8, intent(in) :: tk
-    !> Air pressure (Pa).
-    real*8, intent(in) :: press
-    !> First logical unit for diagnostic output.
-    integer, intent(in) :: lundiag1
-    !> Second logical unit for diagnostic output.
-    integer, intent(in) :: lundiag2
-    !> Brownian coag kernel (m^3/s).
     real*8, intent(out) :: bckernel
-    
+
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0
-    integer :: i, j
-    integer :: k, m, n
-    
+    integer :: i, j, k, m, n, lundiag1, lundiag2
     real*8, save :: rad_sv(nbin_maxd)
-    real*8 ::   &
-         avogad,   &
-         bckernel1, boltz,   &
-         cunning,   &
-         deltasq_i, deltasq_j,   &
-         den_i, den_j,   &
-         diffus_i, diffus_j, diffus_sum,   &
-         freepath,   &
-         gasfreepath, gasspeed,   &
-         knud,   &
-         mwair,   &
-         rad_i, rad_j, rad_sum,   &
-         rgas, rhoair,   &
-         speedsq_i, speedsq_j,   &
-         tmp1, tmp2,   &
-         viscosd, viscosk,   &
-         vol_i, vol_j
-    
+
+    real*8 :: avogad, bckernel1, boltz, cunning, deltasq_i, &
+         deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
+         freepath, gasfreepath, gasspeed, knud, mwair, rad_i, rad_j, &
+         rad_sum, rgas, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
+         viscosd, viscosk, vol_i, vol_j, tk, press, den_i_inp, den_j_inp
+
     ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
     ! avogad  = avogadro's number (molecules/mol)
     ! mwair   = molecular weight of air (g/mol)
@@ -113,6 +52,15 @@ contains
     ! viscosk = air kinematic viscosity (cm^2/s)
     ! gasspeed    = air molecule mean thermal velocity (cm/s)
     ! gasfreepath = air molecule mean free path (cm)
+
+    den_i_inp = 1.8d3
+    den_j_inp = 1.8d3
+
+    lundiag1 = -91
+    lundiag2 = -92
+
+    tk = env_state%temp
+    press = env_state%pressure
 
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
@@ -125,7 +73,7 @@ contains
     viscosk = viscosd/rhoair
     gasspeed = sqrt(8d0*boltz*tk*avogad/(const%pi*mwair))
     gasfreepath = 2d0*viscosk/gasspeed
-    
+
     ! following code attempts to construct the bin radius values
     !    by saving/organizing the input radius values 
     ! it is purely for diagnostic purposes
@@ -135,8 +83,8 @@ contains
        if (nbin == 0) rad_sv(:) = -1d0
        if (nbin == 0) write(*,*) '*** den_i,j =', den_i_inp, den_j_inp
        
-       vol_i = vol_i_inp * 1.0d+6
-       vol_j = vol_j_inp * 1.0d+6
+       vol_i = v1 * 1.0d+6
+       vol_j = v2 * 1.0d+6
        rad_i = vol2rad(vol_i)
        rad_j = vol2rad(vol_j)
        
@@ -182,7 +130,7 @@ contains
     end if
     
     den_i     = den_i_inp * 1.0d-3   ! particle wet density (g/cm3)
-    vol_i     = vol_i_inp * 1.0d+6   ! particle wet volume (cm3)
+    vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i)       ! particle wet radius (cm)
     
     knud      = gasfreepath/rad_i  
@@ -195,7 +143,7 @@ contains
     deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
     
     den_j     = den_j_inp * 1.0d-3
-    vol_j     = vol_j_inp * 1.0d+6
+    vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j)
     
     knud      = gasfreepath/rad_j  
@@ -219,14 +167,14 @@ contains
        write(lundiag1,'(1p,2i4,5d12.4)')   &
             i, j, bckernel1, 2.0d4*rad_i, 2.0d4*rad_j, den_i, den_j
        write(lundiag1,'(1p,2i4,5d12.4)')   &
-            i, j, bckernel, vol_i, vol_i_inp, vol_j, vol_j_inp
+            i, j, bckernel, vol_i, v1, vol_j, v2
        if (lundiag2 > 0) then
           write(lundiag2,  '(1p,2i4,5d12.4)')   &
                i, j, bckernel1, 2.0d4*rad_i, 2.0d4*rad_j, den_i, den_j
        end if
     end if
     
-  end subroutine brownian_kernel
+  end subroutine kernel_brown
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

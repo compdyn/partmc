@@ -107,7 +107,7 @@ contains
   !! center bin_grid%v(i) is between bin edges i and (i + 1). This
   !! code currently assumes a logarithmically spaced bin grid and
   !! returns logarithmically spaced edges.
-  real*8 function bin_edge(bin_grid, i)
+  real*8 function bin_grid_edge(bin_grid, i)
     
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -120,9 +120,9 @@ contains
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
     log_delta = (log_v_max - log_v_min) / dble(bin_grid%n_bin - 1)
-    bin_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
+    bin_grid_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
     
-  end function bin_edge
+  end function bin_grid_edge
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

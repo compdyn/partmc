@@ -255,7 +255,7 @@ contains
        radius_widths(i_bin) = bin_grid%dlnr
     end do
     do i_bin = 1,(bin_grid%n_bin + 1)
-       radius_edges(i_bin) = vol2rad(bin_edge(bin_grid, i_bin))
+       radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
     end do
     call pmc_nc_check(nf90_put_var(ncid, varid_radius, radius_centers))
     call pmc_nc_check(nf90_put_var(ncid, varid_radius_edges, radius_edges))

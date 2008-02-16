@@ -833,6 +833,7 @@ contains
                / aero_data%molec_weight(i_spec)
        end do
     end do
+    stop
 
     start = (/ 1, 1, 1, index /)
     count = (/ bin_grid%n_bin, aero_data%n_spec, 4, 1 /)

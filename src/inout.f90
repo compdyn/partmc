@@ -173,6 +173,7 @@ contains
 
     file%line_num = file%line_num + 1
     eof = .false.
+    line = "" ! needed for pgf95 for reading blank lines
     read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) line
     if (ios /= 0) then

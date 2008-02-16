@@ -1,0 +1,5 @@
+FC = mpif90
+# -Mbounds      array bounds checking
+# -Mdclchk      check for undeclared variables
+FFLAGS = -O -Mpreprocess -DUSE_F95_RAND -module src -DPMC_USE_MOSAIC -I$(MOSAIC_MODDIR) -DPMC_USE_MPI -I/usr/local/src/mpich-1.2.7p1/f90modules
+LDFLAGS = -L$(MOSAIC_LIBDIR)

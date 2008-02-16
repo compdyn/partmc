@@ -326,13 +326,18 @@ contains
     k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
 !DEBUG
     write(*,*) 'radius = ', radius
+    write(*,*) 'volume = ', rad2vol(radius)
     write(*,*) 'k = ', k
+    write(*,*) 'bin_edge(k - 2) = ', bin_edge(bin_grid, k - 2)
     write(*,*) 'bin_edge(k - 1) = ', bin_edge(bin_grid, k - 1)
     write(*,*) 'bin_edge(k) = ', bin_edge(bin_grid, k)
     write(*,*) 'bin_edge(k + 1) = ', bin_edge(bin_grid, k + 1)
+    write(*,*) 'bin_edge(k + 2) = ', bin_edge(bin_grid, k + 2)
+    write(*,*) 'r bin_edge(k - 2) = ', vol2rad(bin_edge(bin_grid, k - 2))
     write(*,*) 'r bin_edge(k - 1) = ', vol2rad(bin_edge(bin_grid, k - 1))
     write(*,*) 'r bin_edge(k) = ', vol2rad(bin_edge(bin_grid, k))
     write(*,*) 'r bin_edge(k + 1) = ', vol2rad(bin_edge(bin_grid, k + 1))
+    write(*,*) 'r bin_edge(k + 2) = ', vol2rad(bin_edge(bin_grid, k + 2))
 !DEBUG
     num_den(k) = 1d0 / bin_grid%dlnr
     

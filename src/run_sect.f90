@@ -293,7 +293,7 @@ contains
     real*8, intent(in) :: dlnr
     !> Droplet mass grid (mg).
     real*8, intent(in) :: e(n_bin)
-    !> I + j goes in bin ima(i,j).
+    !> i + j goes in bin ima(i,j).
     integer, intent(out) :: ima(n_bin,n_bin)
     !> Courant number for bin pairs.
     real*8, intent(out) :: c(n_bin,n_bin)

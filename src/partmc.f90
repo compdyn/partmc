@@ -466,6 +466,8 @@ contains
 
     ! finished reading .spec data, now do the run
 
+    call env_data_init_state(env_data, env_state, 0d0)
+
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
             soln_golovin_exp, process_spec_list)
@@ -540,6 +542,8 @@ contains
     call inout_close(file)
 
     ! finished reading .spec data, now do the run
+
+    call env_data_init_state(env_data, env_state, 0d0)
 
     if (trim(kernel_name) == 'sedi') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &

@@ -12,7 +12,7 @@ t_output 10                     # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
-n_bin 250                       # number of bins
+n_bin 255                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e0                       # maximum radius (m)
 

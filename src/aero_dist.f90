@@ -328,6 +328,8 @@ contains
     write(*,*) 'radius = ', radius
     write(*,*) 'volume = ', rad2vol(radius)
     write(*,*) 'k = ', k
+    write(*,*) 'bin_grid%v(k) = ', bin_grid%v(k)
+    write(*,'(e50.40)') bin_grid%v(k)
     write(*,*) 'bin_edge(k - 2) = ', bin_edge(bin_grid, k - 2)
     write(*,*) 'bin_edge(k - 1) = ', bin_edge(bin_grid, k - 1)
     write(*,*) 'bin_edge(k) = ', bin_edge(bin_grid, k)

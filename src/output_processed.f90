@@ -821,9 +821,6 @@ contains
                aero_binned%num_den(i_bin) / dble(aero_data%n_spec)
           aero(i_bin, i_spec, 2) = &
                aero_binned%vol_den(i_bin, i_spec)
-!DEBUG
-          write(*,*) i_bin, i_spec, aero_binned%vol_den(i_bin, i_spec)
-!DEBUG
           aero(i_bin, i_spec, 3) = &
                aero_binned%vol_den(i_bin, i_spec) &
                * aero_data%density(i_spec)
@@ -833,7 +830,6 @@ contains
                / aero_data%molec_weight(i_spec)
        end do
     end do
-    stop
 
     start = (/ 1, 1, 1, index /)
     count = (/ bin_grid%n_bin, aero_data%n_spec, 4, 1 /)

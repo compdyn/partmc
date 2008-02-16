@@ -25,9 +25,9 @@ program bidisperse_ode
   use pmc_bin_grid
   
   ! Volume of one small particle (m^3).
-  real*8, parameter :: v_small = 0.38542868295629027618d-14
+  real*8, parameter :: v_small = 0.39670398404586712391d-14
   !> Initial volume of big particle (m^3).
-  real*8, parameter :: v_big_init = 0.37488307899239913337d-11
+  real*8, parameter :: v_big_init = 0.41887902047863934546d-11
   !> Init number of small particles.
   real*8, parameter :: n_small_init = 10000d0
   !> Total simulation time.

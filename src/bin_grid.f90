@@ -146,27 +146,27 @@ contains
     log_edge_min = log_v_min + half_log_delta
     log_edge_max = log_v_max - half_log_delta
 !DEBUG
-    write(*,*) 'bin_grid_particle_in_bin() **********************************'
-    write(*,*) 'v = ', v
-    write(*,*) 'log_v_min = ', log_v_min
-    write(*,*) 'log_v_max = ', log_v_max
-    write(*,*) 'half_log_delta = ', half_log_delta
-    write(*,*) 'log_edge_min = ', log_edge_min
-    write(*,*) 'log_edge_max = ', log_edge_max
-    write(*,*) '1 = ', (log(v) - log_edge_min)
-    write(*,*) '2 = ', (log_edge_max - log_edge_min)
-    write(*,*) '3 = ', dble(bin_grid%n_bin - 2)
-    write(*,*) '4 = ', (log(v) - log_edge_min) / (log_edge_max - log_edge_min)
-    write(*,*) '5 = ', (log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
-         * dble(bin_grid%n_bin - 2)
-    write(*,*) '6 = ', ceiling((log(v) - log_edge_min) &
-         / (log_edge_max - log_edge_min) &
-         * dble(bin_grid%n_bin - 2))
+!    write(*,*) 'bin_grid_particle_in_bin() **********************************'
+!    write(*,*) 'v = ', v
+!    write(*,*) 'log_v_min = ', log_v_min
+!    write(*,*) 'log_v_max = ', log_v_max
+!    write(*,*) 'half_log_delta = ', half_log_delta
+!    write(*,*) 'log_edge_min = ', log_edge_min
+!    write(*,*) 'log_edge_max = ', log_edge_max
+!    write(*,*) '1 = ', (log(v) - log_edge_min)
+!    write(*,*) '2 = ', (log_edge_max - log_edge_min)
+!    write(*,*) '3 = ', dble(bin_grid%n_bin - 2)
+!    write(*,*) '4 = ', (log(v) - log_edge_min) / (log_edge_max - log_edge_min)
+!    write(*,*) '5 = ', (log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
+!         * dble(bin_grid%n_bin - 2)
+!    write(*,*) '6 = ', ceiling((log(v) - log_edge_min) &
+!         / (log_edge_max - log_edge_min) &
+!         * dble(bin_grid%n_bin - 2))
 !DEBUG
     k = ceiling((log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
          * dble(bin_grid%n_bin - 2)) + 1
 !DEBUG
-    write(*,*) 'k = ', k
+!    write(*,*) 'k = ', k
 !DEBUG
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)

@@ -1,5 +1,0 @@
-MOSAIC_MODDIR = -I$(HOME)/proj/mosaic/trunk/datamodules
-MOSAIC_LIBDIR = -L$(HOME)/proj/mosaic/trunk
-
-NETCDF_MODDIR = -I/usr/include/netcdf-3
-NETCDF_LIB = -lnetcdff -lnetcdf

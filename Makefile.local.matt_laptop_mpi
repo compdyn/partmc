@@ -1,4 +1,0 @@
-
-FC = mpif90
-FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -I$(MOSAIC_MODDIR) -fbounds-check -Wp,-DPMC_USE_MPI -Wp,-DPMC_USE_MOSAIC
-LDFLAGS = -L$(MOSAIC_LIBDIR)

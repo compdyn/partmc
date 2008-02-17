@@ -1,8 +1,0 @@
-FC = pgf90
-# -Mbounds      array bounds checking
-# -Mdclchk      check for undeclared variables
-FFLAGS = -O -Mpreprocess -module src -DPMC_USE_MOSAIC $(MOSAIC_MODDIR)
-LDFLAGS = $(MOSAIC_LIBDIR)
-
-MOSAIC_MODDIR = -I$(HOME)/mosaic/mosaic/trunk/datamodules
-MOSAIC_LIBDIR = -L$(HOME)/mosaic/mosaic/trunk

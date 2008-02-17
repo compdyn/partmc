@@ -3,9 +3,9 @@
 <p>PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation</p>
 
 <p>Version 1.1.0 <br />
-Released 2008-02-08</p>
+Released 2008-02-17</p>
 
-<p><a href="http://www.mechse.uiuc.edu/~mwest/partmc/">http://www.mechse.uiuc.edu/~mwest/partmc/</a></p>
+<p><a href="http://www.mechse.uiuc.edu/research/mwest/partmc/">http://www.mechse.uiuc.edu/research/mwest/partmc/</a></p>
 
 <p>Copyright (C) 2005-2008 Nicole Riemer and Matthew West <br />
 Portions copyright (C) Andreas Bott and Richard Easter <br />
@@ -28,7 +28,7 @@ For details see the file COPYING or
 
 <ul>
 <li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#x52;&#97;&#104;&#117;&#108;&#x2e;&#x5a;&#x61;&#118;&#x65;&#x72;&#x69;&#x40;&#x70;&#x6e;l&#x2e;g&#111;&#x76;">&#x52;&#97;&#104;&#117;&#108;&#x2e;&#x5a;&#x61;&#118;&#x65;&#x72;&#x69;&#x40;&#x70;&#x6e;l&#x2e;g&#111;&#x76;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#x6d;a&#105;&#x6c;t&#x6f;&#x3a;&#82;&#x61;&#104;&#117;&#108;&#x2e;&#x5a;&#x61;&#x76;&#x65;&#x72;&#105;&#64;&#112;&#x6e;&#108;&#46;&#103;&#x6f;&#x76;">&#82;&#x61;&#104;&#117;&#108;&#x2e;&#x5a;&#x61;&#x76;&#x65;&#x72;&#105;&#64;&#112;&#x6e;&#108;&#46;&#103;&#x6f;&#x76;</a></li>
 <li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
 <li>ScientificPython - <a href="http://dirac.cnrs-orleans.fr/plone/software/scientificpython/">http://dirac.cnrs-orleans.fr/plone/software/scientificpython/</a></li>
 <li>PyX - <a href="http://pyx.sourceforge.net/">http://pyx.sourceforge.net/</a></li>
@@ -49,10 +49,9 @@ dependencies except MOSAIC if the following packages are installed:</p>
 
 <p>The various helper scripts and testcases assume a Unix environment
 (tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
-make. The Makefile will include Makefile.local if present to override
-compiler variables. The default compiler is gfortran.</p>
+make. The default compiler is gfortran.</p>
 
-<p>To rebuild TAGS or the .deps dependency files set <code>DEV_BUILD = yes</code> in
+<p>To build TAGS or the .deps dependency files set <code>DEV_BUILD = yes</code> in
 the Makefile. The .deps dependency files are rebuilt using
 <code>tool/f90_mod_deps.py</code>, which requires Python.</p>
 
@@ -60,9 +59,14 @@ the Makefile. The .deps dependency files are rebuilt using
 Fortran 90 module file is required, and it must be produced by the
 same compiler being used to compile PartMC.</p>
 
-<p>To use the MOSAIC code, enable the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code>
-variables in the Makefile and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code>
-to the appropriate directories.</p>
+<p>PartMC can interface to the MOSAIC chemistry code (see above for
+availability) but this is not enabled by default. To use MOSAIC,
+uncomment the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code> variables in the Makefile
+and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code> to the appropriate
+directories. If MOSAIC is built in <code>/opt/mosaic</code>, for example, then
+<code>MOSAIC_MODDIR</code> should be <code>/opt/mosaic/datamodules</code> and
+<code>MOSAIC_LIBDIR</code> should be <code>/opt/mosaic</code>. Without MOSAIC support the
+<code>test/mosaic</code> testcase in PartMC will fail.</p>
 
 <h1>Usage</h1>
 
@@ -118,7 +122,7 @@ btl tcp</code> option.</p>
 
 <h1>ChangeLog</h1>
 
-<p>1.1.0 - 2008-02-08</p>
+<p>1.1.0 - 2008-02-17</p>
 
 <ul>
 <li><p>Internal reorganization to use Fortran 90 derived types for the

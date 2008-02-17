@@ -58,9 +58,14 @@ The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
 Fortran 90 module file is required, and it must be produced by the
 same compiler being used to compile PartMC.
 
-To use the MOSAIC code, enable the `MOSAIC_LIB` and `MOSAIC_FLAG`
-variables in the Makefile and set `MOSAIC_MODDIR` and `MOSAIC_LIBDIR`
-to the appropriate directories.
+PartMC can interface to the MOSAIC chemistry code (see above for
+availability) but this is not enabled by default. To use MOSAIC,
+uncomment the `MOSAIC_LIB` and `MOSAIC_FLAG` variables in the Makefile
+and set `MOSAIC_MODDIR` and `MOSAIC_LIBDIR` to the appropriate
+directories. If MOSAIC is built in `/opt/mosaic`, for example, then
+`MOSAIC_MODDIR` should be `/opt/mosaic/datamodules` and
+`MOSAIC_LIBDIR` should be `/opt/mosaic`. Without MOSAIC support the
+`test/mosaic` testcase in PartMC will fail.
 
 
 Usage

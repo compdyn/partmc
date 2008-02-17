@@ -28,11 +28,8 @@ NETCDF_LIB = -lnetcdf
 
 -include Makefile.local
 
-PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
+PROGS := src/partmc test/bidisperse/bidisperse_ode	\
 	test/poisson/poisson_sample
-
-CLEAN_DIRS = test/bidisperse/out test/emission/out test/golovin/out	\
-        test/mosaic/out test/poisson/out test/sedi/out urban_plume/out
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/env_data src/env_state src/aero_dist		\
@@ -43,9 +40,6 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/output_processed src/inout src/rand_poisson			\
 	src/aero_particle src/aero_particle_array src/mpi		\
 	src/process_spec src/netcdf
-
-DIST_FILES = COPYING Doxyfile Makefile README README.html TODO doc	\
-        equilib src test tool urban_plume
 
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
@@ -64,12 +58,6 @@ bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/gas_state.o src/aero_state.o src/bin_grid.o src/inout.o	\
 	src/aero_dist.o src/aero_binned.o src/rand_poisson.o		\
 	src/aero_particle.o src/aero_particle_array.o src/mpi.o
-equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
-	src/env_state.o src/condensation.o src/util.o src/aero_state.o	\
-	src/constants.o src/gas_data.o src/gas_state.o src/bin_grid.o	\
-	src/aero_dist.o src/inout.o src/aero_binned.o			\
-	src/rand_poisson.o src/aero_particle.o				\
-	src/aero_particle_array.o src/mpi.o
 poisson_sample_OBJS := test/poisson/poisson_sample.o src/util.o	\
 	src/rand_poisson.o src/constants.o
 
@@ -104,13 +92,9 @@ src/%.o src/pmc_%.mod: src/%.f90
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 test/%.o: test/%.f90
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-equilib/%.o: equilib/%.f90 equilib/%.deps
-	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 
 src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
-equilib/equilib: $(equilib_OBJS)
-	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS)
 test/bidisperse/bidisperse_ode: $(bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(bidisperse_ode_OBJS)
 test/poisson/poisson_sample: $(poisson_sample_OBJS)

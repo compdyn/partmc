@@ -31,6 +31,7 @@ NETCDF_MODDIR = -I/usr/include/netcdf-3
 NETCDF_LIBDIR = -L/usr/lib
 NETCDF_LIB = -lnetcdff -lnetcdf
 
+# include local overrides if Makefile.local exists
 -include Makefile.local
 
 PROGS := src/partmc test/bidisperse/bidisperse_ode	\

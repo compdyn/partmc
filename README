@@ -5,7 +5,7 @@ PartMC
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.1.0  
-Released 2008-02-16
+Released 2008-02-17
 
 <http://www.mechse.uiuc.edu/research/mwest/partmc/>
 
@@ -48,10 +48,9 @@ Installation
 
 The various helper scripts and testcases assume a Unix environment
 (tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
-make. The Makefile will include Makefile.local if present to override
-compiler variables. The default compiler is gfortran.
+make. The default compiler is gfortran.
 
-To rebuild TAGS or the .deps dependency files set `DEV_BUILD = yes` in
+To build TAGS or the .deps dependency files set `DEV_BUILD = yes` in
 the Makefile. The .deps dependency files are rebuilt using
 `tool/f90_mod_deps.py`, which requires Python.
 
@@ -122,7 +121,7 @@ btl tcp` option.
 ChangeLog
 =========
 
-1.1.0 - 2008-02-16
+1.1.0 - 2008-02-17
 
   * Internal reorganization to use Fortran 90 derived types for the
     data structures.

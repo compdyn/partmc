@@ -17,22 +17,25 @@ FC = gfortran
 FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check $(MOSAIC_FLAG) $(NETCDF_MODDIR)
 LDFLAGS = $(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
-MOSAIC_MODDIR = -I/usr/include
-MOSAIC_LIBDIR = -L/usr/lib
-MOSAIC_LIB = -lmosaic
-MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
+MOSAIC_MODDIR = 
+MOSAIC_LIBDIR = 
+MOSAIC_LIB = 
+MOSAIC_FLAG = 
+# uncomment the following four lines if MOSAIC is being used
+#MOSAIC_MODDIR = -I/usr/include
+#MOSAIC_LIBDIR = -L/usr/lib
+#MOSAIC_LIB = -lmosaic
+#MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
 
-NETCDF_MODDIR = -I/usr/include
+NETCDF_MODDIR = -I/usr/include/netcdf-3
 NETCDF_LIBDIR = -L/usr/lib
-NETCDF_LIB = -lnetcdf
+NETCDF_LIB = -lnetcdff -lnetcdf
 
+# include local overrides if Makefile.local exists
 -include Makefile.local
 
 PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
 	test/poisson/poisson_sample
-
-CLEAN_DIRS = test/bidisperse/out test/emission/out test/golovin/out	\
-        test/mosaic/out test/poisson/out test/sedi/out urban_plume/out
 
 OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/constants src/env_data src/env_state src/aero_dist		\
@@ -44,8 +47,8 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/aero_particle src/aero_particle_array src/mpi		\
 	src/process_spec src/netcdf
 
-DIST_FILES = COPYING Doxyfile Makefile README README.html TODO doc	\
-        equilib src test tool urban_plume
+DIST_FILES = COPYING Doxyfile Makefile README README.html doc src test	\
+        tool
 
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\
@@ -91,7 +94,11 @@ TAGS: $(ALL_SOURCE)
 	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
 README.html: README tool/markdown2.py
-	tool/markdown2.py README > README.html
+	echo "<html>" > README.html
+	echo "<head><title>PartMC $(VERSION)</title></head>" >> README.html
+	echo "<body bgcolor=\"#ffffff\">" >> README.html
+	tool/markdown2.py README >> README.html
+	echo "</body></html>" >> README.html
 
 else
 # non-developers should only build the programs

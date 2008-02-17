@@ -1,0 +1,17 @@
+
+Sedimentation Bidisperse Test-case
+==================================
+
+Starting from many small particles and one large particle, we simulate
+with the Monte Carlo code. For this case, we can write an ODE in one
+variable (either number of small particles or volume of large
+particle), which we solve as a comparison.
+
+The output plots show both small-particle number and large-particle
+volume. We disable doubling to avoid generating multiple large
+particles, which would result in large-large coagulations and so the
+ODE would no longer be valid. While this means that the simulation is
+not all that interesting physically, it is an interesting test-case
+that sectional codes cannot do well. The lack of resolution towards
+the end of the Monte Carlo simulation is expected.
+

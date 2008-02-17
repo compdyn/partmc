@@ -17,10 +17,15 @@ FC = gfortran
 FFLAGS = -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check $(MOSAIC_FLAG) $(NETCDF_MODDIR)
 LDFLAGS = $(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)
 
-MOSAIC_MODDIR = -I/usr/include
-MOSAIC_LIBDIR = -L/usr/lib
-MOSAIC_LIB = -lmosaic
-MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
+MOSAIC_MODDIR = 
+MOSAIC_LIBDIR = 
+MOSAIC_LIB = 
+MOSAIC_FLAG = 
+# uncomment the following four lines if MOSAIC is being used
+#MOSAIC_MODDIR = -I/usr/include
+#MOSAIC_LIBDIR = -L/usr/lib
+#MOSAIC_LIB = -lmosaic
+#MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
 
 NETCDF_MODDIR = -I/usr/include
 NETCDF_LIBDIR = -L/usr/lib

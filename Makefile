@@ -27,9 +27,9 @@ MOSAIC_FLAG =
 #MOSAIC_LIB = -lmosaic
 #MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
 
-NETCDF_MODDIR = -I/usr/include
+NETCDF_MODDIR = -I/usr/include/netcdf-3
 NETCDF_LIBDIR = -L/usr/lib
-NETCDF_LIB = -lnetcdf
+NETCDF_LIB = -lnetcdff -lnetcdf
 
 -include Makefile.local
 

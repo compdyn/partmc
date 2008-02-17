@@ -31,7 +31,7 @@ For details see the file COPYING or
 
 <ul>
 <li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#x6d;&#x61;&#105;&#108;&#116;&#111;&#58;&#82;&#x61;h&#x75;&#108;&#46;&#x5a;&#x61;&#118;&#x65;&#x72;&#105;&#64;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;">&#82;&#x61;h&#x75;&#108;&#46;&#x5a;&#x61;&#118;&#x65;&#x72;&#105;&#64;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#58;&#82;&#97;&#104;u&#x6c;&#x2e;&#x5a;&#97;&#x76;e&#x72;&#105;&#64;&#x70;&#110;&#108;&#46;&#x67;&#x6f;&#x76;">&#82;&#97;&#104;u&#x6c;&#x2e;&#x5a;&#97;&#x76;e&#x72;&#105;&#64;&#x70;&#110;&#108;&#46;&#x67;&#x6f;&#x76;</a></li>
 <li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
 <li>ScientificPython - <a href="http://dirac.cnrs-orleans.fr/plone/software/scientificpython/">http://dirac.cnrs-orleans.fr/plone/software/scientificpython/</a></li>
 <li>PyX - <a href="http://pyx.sourceforge.net/">http://pyx.sourceforge.net/</a></li>
@@ -67,8 +67,8 @@ availability) but this is not enabled by default. To use MOSAIC,
 uncomment the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code> variables in the Makefile
 and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code> to the appropriate
 directories. If MOSAIC is built in <code>/opt/mosaic</code>, for example, then
-<code>MOSAIC_MODDIR</code> should be <code>/opt/mosaic/datamodules</code> and
-<code>MOSAIC_LIBDIR</code> should be <code>/opt/mosaic</code>. Without MOSAIC support the
+<code>MOSAIC_MODDIR</code> should be <code>-I/opt/mosaic/datamodules</code> and
+<code>MOSAIC_LIBDIR</code> should be <code>-L/opt/mosaic</code>. Without MOSAIC support the
 <code>test/mosaic</code> testcase in PartMC will fail.</p>
 
 <h1>Usage</h1>

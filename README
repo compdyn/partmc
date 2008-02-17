@@ -63,8 +63,8 @@ availability) but this is not enabled by default. To use MOSAIC,
 uncomment the `MOSAIC_LIB` and `MOSAIC_FLAG` variables in the Makefile
 and set `MOSAIC_MODDIR` and `MOSAIC_LIBDIR` to the appropriate
 directories. If MOSAIC is built in `/opt/mosaic`, for example, then
-`MOSAIC_MODDIR` should be `/opt/mosaic/datamodules` and
-`MOSAIC_LIBDIR` should be `/opt/mosaic`. Without MOSAIC support the
+`MOSAIC_MODDIR` should be `-I/opt/mosaic/datamodules` and
+`MOSAIC_LIBDIR` should be `-L/opt/mosaic`. Without MOSAIC support the
 `test/mosaic` testcase in PartMC will fail.
 
 

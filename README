@@ -79,8 +79,8 @@ scripts. Monte Carlo runs can also output the full internal state in
 an ASCII format that can then be processed with `partmc -p` to produce
 the same summary NetCDF data.
 
-There are a number of examples provided in the test directory that can
-be run by the `run.sh` scripts. These use the python scripts with
+There are a number of examples provided in the `test` directory that
+can be run by the `run.sh` scripts. These use the python scripts with
 ScientificPython and Pyx to plot the results.
 
 

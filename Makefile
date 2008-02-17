@@ -88,7 +88,11 @@ TAGS: $(ALL_SOURCE)
 	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
 
 README.html: README tool/markdown2.py
-	tool/markdown2.py README > README.html
+	echo "<html>" > README.html
+	echo "<head><title>PartMC $(VERSION)</title></head>" >> README.html
+	echo "<body bgcolor=\"#ffffff\">" >> README.html
+	tool/markdown2.py README >> README.html
+	echo "</body></html>" >> README.html
 
 else
 # non-developers should only build the programs

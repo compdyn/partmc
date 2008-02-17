@@ -1,19 +1,6 @@
 #!/bin/sh
 
-cat <<ENDINFO
-
-Sedimentation Exponential Test-case
------------------------------------
-
-The initial condition is a single species of particle with an
-exponential distribution and the simulation using the sedimentation
-kernel. No analytical solution is known for this case, so a sectional
-code is use as verification.
-
-This test-case demonstrates the use of the sectional model and
-comparison of sectional runs with Monte Carlo runs.
-
-ENDINFO
+cat README
 sleep 1
 
 echo ../../src/partmc run_mc.spec

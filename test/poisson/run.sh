@@ -1,18 +1,6 @@
 #!/bin/sh
 
-cat <<ENDINFO
-
-Poisson Sample Test
--------------------
-
-This test generates samples from the Poisson random number generator
-used in the main code. The resulting sampled distribution is plotted
-against the analytical expression for the Poisson PDF. The Poisson
-generator used at the moment is only approximate, so the two plots
-should be similar but not identical. The PDFs are plotted for several
-different values of the rate parameter.
-
-ENDINFO
+cat README
 sleep 1
 
 echo ./poisson_sample 1 50 10000000

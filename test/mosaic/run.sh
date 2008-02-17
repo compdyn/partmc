@@ -1,17 +1,6 @@
 #!/bin/sh
 
-cat <<ENDINFO
-
-MOSAIC Test-case
-----------------
-
-This tests the interface to the MOSAIC chemistry code. The number of
-aerosol particles is fixed at 3 and there is no coagulation. Only
-chemistry and aerosol-gas transfers occur. This also tests the full
-state output and post-processing capabilities of PartMC. The graph
-symbols derived from post-processing should overlay the lines.
-
-ENDINFO
+cat README
 sleep 1
 
 echo ../../src/partmc run_mc.spec

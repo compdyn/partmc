@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007-2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_0001.nc"),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -42,4 +42,6 @@ for i in range(len(times_hour)):
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
+    add_color_bar(g, data_slice.data.min(), data_slice.data.max(),
+		  r"colorbar label text", rainbow_palette)
     g.writePDFfile("out/testcase_nocoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])

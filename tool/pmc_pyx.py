@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007-2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -111,3 +111,34 @@ def tex_species(species):
     if species in gas_species_tex.keys():
 	return gas_species_tex[species]
     return species
+
+def add_color_bar(g, min_val, max_val, title, palette, bar_width = 0.5,
+		  bar_height_ratio = 0.8, bar_x_offset = 1.8):
+    colorbar_steps = 1000
+    color_d = []
+    for i in range(colorbar_steps):
+	x0 = float(i) / float(colorbar_steps)
+	xh = (float(i) + 0.5) / float(colorbar_steps)
+	x1 = float(i + 1) / float(colorbar_steps)
+	v0 = x0 * (max_val - min_val) + min_val
+	v1 = x1 * (max_val - min_val) + min_val
+	color_d.append([0, 1, v0, v1, xh])
+    gc = g.insert(
+	graph.graphxy(
+	    width = bar_width,
+	    height = bar_height_ratio * g.height,
+	    xpos = g.width + bar_x_offset,
+	    ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+	    x = graph.axis.linear(min = 0, max = 1,
+				  parter = None),
+	    y2 = graph.axis.linear(
+		min = min_val,
+		max = max_val,
+		title = title)))
+    gc.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
+			    ymin = 3, ymax = 4, color = 5),
+	    [graph.style.rect(palette)])
+    gc.dolayout()
+    gc.dobackground()
+    gc.dodata()
+    gc.doaxes()

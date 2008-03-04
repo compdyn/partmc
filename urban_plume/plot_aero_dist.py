@@ -7,14 +7,14 @@ import os, sys
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../../tool")
+sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [0, 1, 6, 24]
+times_hour = [0, 1, 6, 12, 24]
 times_sec = [t * 3600 for t in times_hour]
 
-data = pmc_var(NetCDFFile("out/withoutcoag/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
 	       "aero",
 	       [select("unit", "num_den"),
 		sum("aero_species")])
@@ -26,10 +26,12 @@ data.scale_dim("radius", 1e6)
 g = graph.graphxy(
     width = 10,
     x = graph.axis.log(min = 0.01,
-		       max = 5,
+		       max = 2,
 		       title = "radius ($\mu$m)",
 		       painter = grid_painter),
-    y = graph.axis.log(title = "number density (1/m$^3$)",
+    y = graph.axis.log(min = 5e6,
+                       max = 5e10,
+                       title = "number density (1/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 
@@ -41,4 +43,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/withoutcoag/aero_dist.pdf")
+g.writePDFfile("out/testcase_withcoag/aero_dist.pdf")

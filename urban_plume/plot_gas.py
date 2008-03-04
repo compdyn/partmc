@@ -7,15 +7,17 @@ import os, sys
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../../tool")
+sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-gas_species = ["N2O5", "NO3"]
+#gas_species = ["C2H6", "HCHO", "ANOL", "TOL", "ETH", "ISOP"]
+gas_species = ["NO2",  "O3", "HNO3", "SO2", "NH3", "NO"]
 
-data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
 	       "gas",
 	       [])
+
 data.write_summary(sys.stdout)
 
 g = graph.graphxy(
@@ -35,4 +37,4 @@ for i in range(len(gas_species)):
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/gas_dilut4.pdf")
+g.writePDFfile("out/testcase_nocoag/gas_dilut_anorg_4.pdf")

@@ -7,13 +7,14 @@ import os, sys
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../../tool")
+sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-aero_species = ["BC  ", "OC  " ]
+aero_species = ["SO4", "NO3", "NH4", "OC" ]
+#aero_species = ["BC" ]
 
-data = pmc_var(NetCDFFile("out/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
 	       "aero",
 	       [sum("radius"),
 		select("unit", "mass_den")])
@@ -38,4 +39,4 @@ for i in range(len(aero_species)):
 			   title = tex_species(aero_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/aero_hist_dilut.pdf")
+g.writePDFfile("out/testcase_nocoag/aero_hist_dilut_4.pdf")

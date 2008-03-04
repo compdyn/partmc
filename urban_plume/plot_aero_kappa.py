@@ -7,13 +7,13 @@ import os, sys
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../../tool")
+sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/high_init/withoutcoag/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
 	       "kappa_crit_ss",
 	       [])
 data.write_summary(sys.stdout)
@@ -27,9 +27,13 @@ data.scale_dim("time", 1.0/3600)
 for i in range(len(times_hour)):
     g = graph.graphxy(
 	width = 10,
-	x = graph.axis.log(title = r'radius ($\mu$m)',
+	x = graph.axis.log(min = 1e-3,
+                           max = 1e+1,
+                           title = r'radius ($\mu$m)',
 			   painter = grid_painter),
-	y = graph.axis.log(title = 'critical supersaturation',
+	y = graph.axis.log(min = 5e-3,
+                           max = 1e0,
+                           title = 'critical supersaturation',
 			   texter = graph.axis.texter.decimal(suffix = r"\%"),
 			   painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
@@ -38,4 +42,4 @@ for i in range(len(times_hour)):
 						   flip_axes = True),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
-    g.writePDFfile("out/high_init/withoutcoag/aero_kappa_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/testcase_nocoag/aero_kappa_%d.pdf" % times_hour[i])

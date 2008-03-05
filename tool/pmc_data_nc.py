@@ -95,7 +95,7 @@ class pmc_dim:
 	self.unit = ncf.variables[name].unit
 	edges_name = name + "_edges"
 	widths_name = name + "_widths"
-	self.grid_centers = ncf.variables[name][:]
+	self.grid_centers = array(ncf.variables[name][:])
 	if length:
 	    if len(self.grid_centers) != length:
 		raise Exception("incorrect length of variable: %s" % name)
@@ -110,12 +110,12 @@ class pmc_dim:
 				" string dimension: %s" % name)
 	self.grid_edges = None
 	if edges_name in ncf.variables.keys():
-	    self.grid_edges = ncf.variables[edges_name][:]
+	    self.grid_edges = array(ncf.variables[edges_name][:])
 	    if len(self.grid_edges) != length + 1:
 		raise Exception("incorrect length of edges variable: %s" % name)
 	self.grid_widths = None
 	if widths_name in ncf.variables.keys():
-	    self.grid_widths = ncf.variables[widths_name][:]
+	    self.grid_widths = array(ncf.variables[widths_name][:])
 	    if len(self.grid_widths) != length:
 		raise Exception("incorrect length of widths variable: %s"
 				% name)
@@ -261,7 +261,7 @@ class pmc_var:
 	self.dims = []
 	for d in ncf.variables[name].dimensions:
 	    self.dims.append(pmc_dim(ncf, d))
-	self.data = ncf.variables[name][:]
+	self.data = array(ncf.variables[name][:])
 	self.reduce(reducers)
 
     def write_summary(self, f):

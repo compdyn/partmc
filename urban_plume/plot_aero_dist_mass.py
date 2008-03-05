@@ -18,7 +18,7 @@ data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
 	       "aero", [])
 data.write_summary(sys.stdout)
 data.reduce([select("unit", "mass_den"),
-             select("aero_species", "API1")])
+             select("aero_species", "BC")])
 
 data.scale(1)
 data.scale_dim("radius", 1e6)
@@ -42,4 +42,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_withcoag/aero_dist_API1.pdf")
+g.writePDFfile("out/testcase_withcoag/aero_dist_BC.pdf")

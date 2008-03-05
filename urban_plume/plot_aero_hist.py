@@ -11,8 +11,9 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-aero_species = ["SO4", "NO3", "NH4", "OC" ]
+#aero_species = ["SO4", "NO3", "NH4", "OC" ]
 #aero_species = ["BC" ]
+aero_species = ["API1" ]
 
 data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
 	       "aero",
@@ -34,9 +35,10 @@ g = graph.graphxy(
 for i in range(len(aero_species)):
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("aero_species", aero_species[i])])
+    print data_slice.data
     g.plot(graph.data.list(data_slice.data_center_list(),
 			   x = 1, y = 2,
 			   title = tex_species(aero_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_nocoag/aero_hist_dilut_4.pdf")
+g.writePDFfile("out/testcase_nocoag/aero_hist_dilut_4API1.pdf")

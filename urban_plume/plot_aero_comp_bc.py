@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_0001.nc"),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -39,9 +39,19 @@ for i in range(len(times_hour)):
 			      painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True),
+    #min_val = data_slice.data.min(),
+    #max_val = data_slice.data.max(),
+    min_val = 0.0
+    max_val = 3e11
+    plot_data = data_slice.data_2d_list(strip_zero = True,
+					min = min_val,
+					max = max_val)
+    g.plot(graph.data.list(plot_data,
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
-    add_color_bar(g, data_slice.data.min(), data_slice.data.max(),
-		  r"colorbar label text", rainbow_palette)
-    g.writePDFfile("out/testcase_withcoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])
+    add_color_bar(g,
+		  min = min_val,
+		  max = max_val,
+		  title = r"colorbar label text",
+		  palette = rainbow_palette)
+    g.writePDFfile("out/testcase_nocoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])

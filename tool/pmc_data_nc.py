@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007-2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -340,30 +340,44 @@ class pmc_var:
 			      self.dims[0].grid_edges[i+1], d])
 	return data_list
 
-    def data_2d_list(self, strip_zero = False, flip_axes = False):
+    def data_2d_list(self, strip_zero = False, flip_axes = False,
+		     min = None, max = None):
 	if len(self.dims) != 2:
 	    raise Exception("can only generate 2d_list with exactly two dims")
 	if self.dims[0].grid_edges == None:
-	    raise Exception("cannot generate 2d_list without grid_edges")
+	    raise Exception("2d_list error: no grid_edges for dim 0")
 	if self.dims[1].grid_edges == None:
-	    raise Exception("cannot generate 2d_list without grid_edges")
+	    raise Exception("2d_list error: no grid_edges for dim 1")
 	data_list = []
-	max_val = self.data.max()
+	if max:
+	    max_val = max
+	else:
+	    max_val = self.data.max()
+	if min:
+	    min_val = min
+	else:
+	    min_val = 0.0
 	for i in range(size(self.data, 0)):
 	    for j in range(size(self.data, 1)):
 		if (not strip_zero) or (self.data[i,j] > 0):
+		    scaled_data = (self.data[i,j] - min_val) \
+			/ (max_val - min_val)
+		    if scaled_data < 0.0:
+			scaled_data = 0.0
+		    if scaled_data > 1.0:
+			scaled_data = 1.0
 		    if flip_axes:
 			data_list.append([self.dims[1].grid_edges[j],
 					  self.dims[1].grid_edges[j+1],
 					  self.dims[0].grid_edges[i],
 					  self.dims[0].grid_edges[i+1],
-					  self.data[i,j] / max_val])
+					  scaled_data])
 		    else:
 			data_list.append([self.dims[0].grid_edges[i],
 					  self.dims[0].grid_edges[i+1],
 					  self.dims[1].grid_edges[j],
 					  self.dims[1].grid_edges[j+1],
-					  self.data[i,j] / max_val])
+					  scaled_data])
 	return data_list
 
     def scale_dim(self, dim_name, factor):

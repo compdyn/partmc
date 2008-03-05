@@ -11,9 +11,9 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1, 6, 12, 18, 24]
+times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -42,7 +42,7 @@ for i in range(len(times_hour)):
     #min_val = data_slice.data.min(),
     #max_val = data_slice.data.max(),
     min_val = 0.0
-    max_val = 3e11
+    max_val = 3e10
     plot_data = data_slice.data_2d_list(strip_zero = True,
 					min = min_val,
 					max = max_val)
@@ -52,6 +52,6 @@ for i in range(len(times_hour)):
     add_color_bar(g,
 		  min = min_val,
 		  max = max_val,
-		  title = r"colorbar label text",
+		  title = r"number density",
 		  palette = rainbow_palette)
     g.writePDFfile("out/testcase_nocoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])

@@ -38,8 +38,18 @@ for i in range(len(times_hour)):
 			   painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
+    min_val = data_slice.data.min(),
+    max_val = data_slice.data.max(),
+#    min_val = 0.0
+#    max_val = 3e10
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
-						   flip_axes = True),
+						   flip_axes = True,
+                                                   min = min_val, max = max_val),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
+    add_color_bar(g,
+                  min = min_val,
+                  max = max_val,
+                  title = r"number density",
+                  palette = rainbow_palette)
     g.writePDFfile("out/testcase_nocoag/aero_kappa_%d.pdf" % times_hour[i])

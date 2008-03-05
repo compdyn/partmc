@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007-2008 Matthew West, Nicole Riemer
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -24,7 +24,7 @@ data.scale_dim("time", 1.0/3600)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species"),
-                 sum_between("composition",0,20)])
+                 sum("composition", above = 0, below = 20)])
 
 g = graph.graphxy(
 	width = 10,

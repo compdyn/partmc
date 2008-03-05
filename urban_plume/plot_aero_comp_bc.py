@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -44,4 +44,4 @@ for i in range(len(times_hour)):
 	   styles = [graph.style.rect(rainbow_palette)])
     add_color_bar(g, data_slice.data.min(), data_slice.data.max(),
 		  r"colorbar label text", rainbow_palette)
-    g.writePDFfile("out/testcase_nocoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/testcase_withcoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])

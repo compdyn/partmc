@@ -13,8 +13,8 @@ from pmc_pyx import *
 
 times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
-	       "comp_bc",
+data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
+	       "comp_soa",
 	       [])
 data.write_summary(sys.stdout)
 
@@ -54,4 +54,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/testcase_nocoag/aero_comp_bcdilute_4_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/testcase_withcoag/aero_comp_soa_4_%d.pdf" % times_hour[i])

@@ -11,10 +11,11 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-#aero_species = ["SO4", "NO3", "NH4", "OC" ]
+aero_species = ["SO4", "NO3", "NH4", "OC"]
 #aero_species = ["BC" ]
-aero_species = ["ARO1", "ARO2", "ALK1", "OLE1" ]
+#aero_species = ["ARO1", "ARO2", "ALK1", "OLE1" ]
 #aero_species = ["API1", "API2", "LIM1", "LIM2" ]
+#aero_species = ["OIN" ]
 
 data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
 	       "aero",
@@ -42,4 +43,4 @@ for i in range(len(aero_species)):
 			   title = tex_species(aero_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_withcoag/aero_hist_dilut_4SOA.pdf")
+g.writePDFfile("out/testcase_withcoag/aero_hist_check.pdf")

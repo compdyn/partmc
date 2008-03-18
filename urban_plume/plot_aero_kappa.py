@@ -38,12 +38,12 @@ for i in range(len(times_hour)):
 			   painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    min_val = data_slice.data.min()
-    max_val = data_slice.data.max()
-    print min_val
-    print max_val
-#    min_val = 0.0
-#    max_val = 3e10
+#    min_val = data_slice.data.min()
+#    max_val = data_slice.data.max()
+#    print min_val
+#    print max_val
+    min_val = 0.0
+    max_val = 7e10
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
 						   flip_axes = True,
                                                    min = min_val, max = max_val),

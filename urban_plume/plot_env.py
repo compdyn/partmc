@@ -11,31 +11,31 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-#env = ["NO2",  "O3", "HNO3", "SO2", "NH3", "NO"]
+env = ["H"]
 
 data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
-	       "env",
+	       "env_state",
 	       [])
 
 data.write_summary(sys.stdout)
 
-data.reduce([select("env", "rel_humid")])
+data.reduce([select("env", "height")])
 print data.data
-#g = graph.graphxy(
-#    width = 10,
-#    x = graph.axis.linear(title = "time (hour)",
-#			  painter = grid_painter),
-#    y = graph.axis.linear(title = "gas concentration (ppb)",
-#			  painter = grid_painter),
-#    key = graph.key.key(pos = "tr"))
+g = graph.graphxy(
+    width = 10,
+    x = graph.axis.linear(title = "time (hour)",
+			  painter = grid_painter),
+    y = graph.axis.linear(title = "mixing height (m)",
+			  painter = grid_painter),
+    key = graph.key.key(pos = "tr"))
 
-#for i in range(len(gas_species)):
-#    data_slice = module_copy.deepcopy(data)
-#    data_slice.reduce([select("gas_species", gas_species[i])])
-#    data_slice.scale_dim("time", 1.0/3600)
-#    g.plot(graph.data.list(data_slice.data_center_list(),
-#			   x = 1, y = 2,
-#			   title = tex_species(gas_species[i])),
-#	   styles = [graph.style.line(lineattrs = [color_list[i]])])
+data_slice = module_copy.deepcopy(data)
+print data_slice.data
+data_slice.scale_dim("time", 1.0/3600)
+#data_slice.scale(100.)
+g.plot(graph.data.list(data_slice.data_center_list(),
+			   x = 1, y = 2,
+                           title = "H"),
+             styles = [graph.style.line(lineattrs = [color_list[1]])])
 
-#g.writePDFfile("out/testcase_nocoag/gas_dilut_anorg_4.pdf")
+g.writePDFfile("out/testcase_nocoag/env_h.pdf")

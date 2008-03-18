@@ -29,9 +29,8 @@ g = graph.graphxy(
 		       max = 2,
 		       title = "radius ($\mu$m)",
 		       painter = grid_painter),
-    y = graph.axis.log(min = 5e6,
-                       max = 5e10,
-                       title = "number density (1/m$^3$)",
+    y = graph.axis.log(
+                       title = "mass density (kg/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 
@@ -43,4 +42,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_withcoag/aero_dist.pdf")
+g.writePDFfile("out/testcase_withcoag/aero_dist_check.pdf")

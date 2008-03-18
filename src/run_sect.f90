@@ -19,7 +19,6 @@ module pmc_run_sect
   use pmc_inout
   use pmc_bin_grid
   use pmc_aero_binned
-  use pmc_kernel_sedi
   use pmc_util
   use pmc_aero_dist
   use pmc_env_data
@@ -130,7 +129,7 @@ contains
     i_summary = 1
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel_sedi, env_state, k_bin)
+    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin

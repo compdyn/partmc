@@ -13,8 +13,8 @@ from pmc_pyx import *
 
 times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
-	       "comp_soa",
+data = pmc_var(NetCDFFile("out/testcase_nococo/urban_plume_state_0001.nc"),
+	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
 
@@ -39,8 +39,8 @@ for i in range(len(times_hour)):
 			      painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    #min_val = data_slice.data.min(),
-    #max_val = data_slice.data.max(),
+    #min_val = data_slice.data.min()
+    #max_val = data_slice.data.max()
     min_val = 0.0
     max_val = 3e10
     plot_data = data_slice.data_2d_list(strip_zero = True,
@@ -54,4 +54,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/testcase_withcoag/aero_comp_soa_4_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/testcase_nococo/aero_comp_bc_num_%d.pdf" % times_hour[i])

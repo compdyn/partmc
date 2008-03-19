@@ -11,7 +11,7 @@ sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_min = [0, 5, 10]
+times_min = [0, 50, 100]
 times_sec = [t * 60 for t in times_min]
 
 mc_data = pmc_var(NetCDFFile("out/brown_mc_0001.nc"),
@@ -23,45 +23,45 @@ sect_data = pmc_var(NetCDFFile("out/brown_sect_0001.nc"),
 
 g_num_lin = graph.graphxy(
     width = 10,
-    x = graph.axis.log(min = 1e-7,
-		       max = 1e-2,
+    x = graph.axis.log(min = 1e-10,
+		       max = 1e-7,
 		       title = "radius (m)",
 		       painter = grid_painter),
     y = graph.axis.linear(min = 0,
-			  max = 1.25e9,
+			  max = 1.25e11,
 			  title = "number density (\#/m$^3$)",
 			  painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 g_num_log = graph.graphxy(
     width = 10,
-    x = graph.axis.log(min = 1e-7,
-		       max = 1e-2,
+    x = graph.axis.log(min = 1e-10,
+		       max = 1e-7,
 		       title = "radius (m)",
 		       painter = grid_painter),
-    y = graph.axis.log(min = 1e2,
-		       max = 1e10,
+    y = graph.axis.log(min = 1e4,
+		       max = 1e11,
 		       title = "number density (\#/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "tr"))
 g_vol_lin = graph.graphxy(
     width = 10,
-    x = graph.axis.log(min = 1e-7,
-		       max = 1e-2,
+    x = graph.axis.log(min = 1e-10,
+		       max = 1e-7,
 		       title = "radius (m)",
 		       painter = grid_painter),
     y = graph.axis.linear(min = 0,
-			  max = 8e-6,
+			  max = 1e-12,
 			  title = "volume density (m$^3$/m$^3$)",
 			  painter = grid_painter),
     key = graph.key.key(pos = "tl"))
 g_vol_log = graph.graphxy(
     width = 10,
-    x = graph.axis.log(min = 1e-7,
-		       max = 1e-2,
+    x = graph.axis.log(min = 1e-10,
+		       max = 1e-7,
 		       title = "radius (m)",
 		       painter = grid_painter),
-    y = graph.axis.log(min = 1e-20,
-		       max = 1e-3,
+    y = graph.axis.log(min = 1e-25,
+		       max = 1e-12,
 		       title = "volume density (m$^3$/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "bl", hdist = 1.8))

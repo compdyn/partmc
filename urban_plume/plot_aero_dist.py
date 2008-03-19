@@ -14,9 +14,9 @@ from pmc_pyx import *
 times_hour = [0, 1, 6, 12, 24]
 times_sec = [t * 3600 for t in times_hour]
 
-data = pmc_var(NetCDFFile("out/testcase_withcoag/urban_plume_state_0001.nc"),
+data = pmc_var(NetCDFFile("out/testcase_nococo/urban_plume_state_0001.nc"),
 	       "aero",
-	       [select("unit", "num_den"),
+	       [select("unit", "mass_den"),
 		sum("aero_species")])
 data.write_summary(sys.stdout)
 
@@ -29,7 +29,8 @@ g = graph.graphxy(
 		       max = 2,
 		       title = "radius ($\mu$m)",
 		       painter = grid_painter),
-    y = graph.axis.log(
+    y = graph.axis.log(min = 1.e-12,
+                       max = 1.e-6,
                        title = "mass density (kg/m$^3$)",
 		       painter = grid_painter),
     key = graph.key.key(pos = "tr"))
@@ -42,4 +43,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_withcoag/aero_dist_check.pdf")
+g.writePDFfile("out/testcase_nococo/aero_dist_mass.pdf")

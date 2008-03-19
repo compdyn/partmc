@@ -514,7 +514,7 @@ contains
     call inout_check_comment(file, "begin aero_particle")
     call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
     call inout_read_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
-    call inout_read_real(file, "extinct(m^2)", &
+    call inout_read_real(file, "scatter(m^2)", &
          aero_particle%scatter_cross_sect)
     call inout_read_real(file, "asymmetry(1)", aero_particle%asymmetry)
     call inout_read_complex(file, "refract_shell(1)", &

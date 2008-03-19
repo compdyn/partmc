@@ -6,6 +6,9 @@ LDFLAGS = $(MOSAIC_LIBDIR)
 
 MOSAIC_MODDIR = -I$(HOME)/proj/mosaic/trunk/datamodules
 MOSAIC_LIBDIR = -L$(HOME)/proj/mosaic/trunk
+MOSAIC_LIB = -lmosaic
+MOSAIC_FLAG = -DPMC_USE_MOSAIC
 
 NETCDF_MODDIR = 
 NETCDF_LIBDIR = 
+NETCDF_LIB = -lnetcdf

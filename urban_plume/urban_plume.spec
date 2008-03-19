@@ -6,10 +6,10 @@ n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
 
-t_max 86400                     # total simulation time (s)
+t_max 108000                     # total simulation time (s)
 del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_state 3600                    # state output interval (0 disables) (s)
+t_state 0                    # state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -20,14 +20,14 @@ gas_data gas_data.dat           # file containing gas data
 gas_init gas_init_LA.dat           # initial gas concentrations
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist_LA.dat # aerosol initial condition file
+aerosol_init aero_init_dist_LA_low.dat # aerosol initial condition file
 
 temp_profile temp_LA.dat         # temperature profile file
 height_profile height_LA.dat     # height profile file
-gas_emissions gas_emit_LA.dat    # gas emissions file
+gas_emissions gas_emit_LA_NH3.dat    # gas emissions file
 gas_background gas_back_LA.dat   # background gas concentrations file
-aero_emissions aero_emit_LA.dat  # aerosol emissions file
-aero_background aero_back_LA.dat # aerosol background file
+aero_emissions aero_emit_LA_highC.dat  # aerosol emissions file
+aero_background aero_back_LA_low.dat # aerosol background file
 
 rel_humidity 0.85               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)

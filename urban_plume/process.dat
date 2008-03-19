@@ -23,11 +23,35 @@ a_species SO4 NO3 Cl NH4 MSA ARO1 ARO2 ALK1 OLE1 API1 API2 LIM1 LIM2 CO3 Na Ca O
 b_species BC                    # second species list
 
 process comp                    # scalar composition
-name comp_inorg                 # filename suffix for output
+suffix comp_so4                 # filename suffix for output
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-a_species SO4 NO3 NH4           # first species list
+a_species SO4                   # first species list
+b_species BC                    # second species list
+
+process comp                    # scalar composition
+suffix comp_no3                 # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # minimum ratio (1)
+max 1                           # maximum ratio (1)
+a_species NO3                   # first species list
+b_species BC                    # second species list
+
+process comp                    # scalar composition
+suffix comp_oc                  # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # minimum ratio (1)
+max 1                           # maximum ratio (1)
+a_species OC                    # first species list
+b_species BC                    # second species list
+
+process comp                    # scalar composition
+suffix comp_soa                 # filename suffix for output
+n_step 100                      # number of steps for histogram
+min 0                           # minimum ratio (1)
+max 1                           # maximum ratio (1)
+a_species ARO1 ARO2 ALK1 OLE1   # first species list
 b_species BC                    # second species list
 
 #process n_orig_part             # number of original particles

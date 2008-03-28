@@ -1,0 +1,8 @@
+MOSAIC_MODDIR = -I$(HOME)/svn/mosaic/trunk/datamodules
+MOSAIC_LIBDIR = -L$(HOME)/svn/mosaic/trunk
+MOSAIC_LIB = -lmosaic
+MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
+
+NETCDF_MODDIR = -I/sw/lib/netcdf-gfortran/include
+NETCDF_LIBDIR = -L/sw/lib/netcdf-gfortran/lib
+NETCDF_LIB = -lnetcdff

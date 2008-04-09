@@ -4,5 +4,5 @@ MOSAIC_LIB = -lmosaic
 MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
 
 NETCDF_MODDIR = -I/sw/lib/netcdf-gfortran/include
-NETCDF_LIBDIR = -L/sw/lib/netcdf-gfortran/lib
-NETCDF_LIB = -lnetcdff
+NETCDF_LIBDIR = -L/sw/lib/netcdf-gfortran/lib -L/sw/lib
+NETCDF_LIB = -lnetcdff -lnetcdf.3

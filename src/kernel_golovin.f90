@@ -12,6 +12,7 @@ module pmc_kernel_golovin
   use pmc_env_state
   use pmc_util
   use pmc_constants
+  use pmc_constants
   use pmc_aero_binned
   use pmc_aero_data
   use pmc_aero_dist
@@ -84,11 +85,18 @@ contains
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
+             nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+                  * exp(-((1d0 + T) * rat_v)) * b
           else
-             b = 0d0
+             ! For very large volumes we can use the asymptotic
+             ! approximation I_1(x) \approx e^x / sqrt(2 pi x) and
+             ! simplify the result to avoid the overflow from
+             ! multiplying a huge bessel function result by a very
+             ! tiny exponential.
+             nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+                  * exp((2d0*sqrt(T) - T - 1d0) * rat_v) &
+                  / sqrt(4d0 * const%pi * rat_v * sqrt(T))
           end if
-          nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
-               * exp(-((1d0 + T) * rat_v)) * b
           aero_binned%num_den(k) = const%pi/2d0 &
                * (2d0*vol2rad(bin_grid%v(k)))**3 * nn
        end do
@@ -124,15 +132,17 @@ contains
          -0.362018d-2,0.163801d-2,-0.1031555d-1,0.2282967d-1, &
          -0.2895312d-1,0.1787654d-1,-0.420059d-2/
     
-    if(abs(x) .lt. 3.75d0) then
+    if (abs(x) .lt. 3.75d0) then
        y = (x / 3.75d0)**2
        r = x*(p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7))))))
-    else
+    elseif (abs(x) .lt. 500d0) then
        ax = abs(x)
        y = 3.75d0 / ax
        r = (exp(ax)/sqrt(ax))*(q1+y*(q2+y*(q3+y*(q4+ &
             y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))))
        if (x .lt. 0d0) r = -r
+    else
+       
     end if
     
   end subroutine bessi1

@@ -54,10 +54,10 @@ max 1                           # maximum ratio (1)
 a_species ARO1 ARO2 ALK1 OLE1   # first species list
 b_species BC                    # second species list
 
-#process n_orig_part             # number of original particles
-#suffix n_orig_part              # filename suffix for output
-#min 0                           # min original particles
-#max 100                         # max original particles
+process n_orig_part             # number of original particles
+name n_orig                     # filename suffix for output
+min 0                           # min original particles
+max 100                         # max original particles
 
 #process optic_absorb            # optical absorption
 #suffix optic_absorb             # filename suffix for output

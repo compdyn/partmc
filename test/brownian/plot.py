@@ -14,7 +14,7 @@ from pmc_pyx import *
 times_min = [0, 50, 100]
 times_sec = [t * 60 for t in times_min]
 
-mc_data = pmc_var(NetCDFFile("out/brown_mc_0001.nc"),
+mc_data = pmc_var(NetCDFFile("out/brown_mc_avg.nc"),
 		  "aero",
 		  [sum("aero_species")])
 sect_data = pmc_var(NetCDFFile("out/brown_sect_0001.nc"),

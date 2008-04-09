@@ -2,7 +2,7 @@ run_type mc                     # Monte Carlo
 output_prefix  out/brown_mc       # prefix of output files
 state_prefix out/brown_mc_state  # prefix of state files
 process_spec process.dat        # processing specification
-n_loop 1                        # number of Monte Carlo loops
+n_loop 1000                     # number of Monte Carlo loops
 n_part 1000000                  # total number of particles
 kernel brown                    # coagulation kernel
 

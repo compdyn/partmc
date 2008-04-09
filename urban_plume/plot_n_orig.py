@@ -36,11 +36,11 @@ for i in range(len(times_hour)):
     data_slice.reduce([select("time", times_hour[i])])
     min_val = data_slice.data.min()
     max_val = data_slice.data.max()
-    g.plot(graph.data.points(data_slice.data_2d_list(strip_zero = True,
-                                                     min = min_val,
-                                                     max = max_val),
-                             xmin = 1, xmax = 2, ymin = 3,
-                             ymax = 4, color = 5),
+    g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
+                                                   min = min_val,
+                                                   max = max_val),
+                           xmin = 1, xmax = 2, ymin = 3,
+                           ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
     add_color_bar(g,
                   min = min_val,

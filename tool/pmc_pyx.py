@@ -24,7 +24,6 @@ color_list = [color.hsb(0/3.0, 1, 1),
 class listpalette(color.palette):
 
     def __init__(self, colorlist):
-        color.palette.__init__(self)
         self.colorclass = colorlist[0][1].__class__
         self.colorlist = colorlist
 
@@ -135,8 +134,8 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		min = min,
 		max = max,
 		title = title)))
-    gc.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
-			    ymin = 3, ymax = 4, color = 5),
+    gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
+                              ymin = 3, ymax = 4, color = 5),
 	    [graph.style.rect(palette)])
     gc.dolayout()
     gc.dobackground()

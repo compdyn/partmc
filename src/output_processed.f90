@@ -106,21 +106,21 @@ contains
     call process_time(ncid, time, index, del_t)
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
-          call process_env(ncid, process_spec_list(i)%name, &
-               time, index, env_state)
+          call process_env(ncid, time, index, env_state, &
+               process_spec_list(i))
        elseif (process_spec_list(i)%type == "gas") then
-          call process_gas(ncid, process_spec_list(i)%name, &
-               time, index, gas_data, gas_state)
+          call process_gas(ncid, time, index, gas_data, gas_state, &
+               process_spec_list(i))
        elseif (process_spec_list(i)%type == "aero") then
-          call process_aero(ncid, process_spec_list(i)%name, &
-               time, index, bin_grid, aero_data, aero_state)
+          call process_aero(ncid, time, index, bin_grid, aero_data, &
+               aero_state, process_spec_list(i))
        elseif ((process_spec_list(i)%type == "kappa") &
           .or. (process_spec_list(i)%type == "comp") &
           .or. (process_spec_list(i)%type == "n_orig_part") &
           .or. (process_spec_list(i)%type == "optic_absorb") &
           .or. (process_spec_list(i)%type == "optic_scatter") &
           .or. (process_spec_list(i)%type == "optic_extinct")) then
-          call process_hist_new(ncid, time, index, bin_grid, &
+          call process_hist(ncid, time, index, bin_grid, &
                env_state, aero_data, aero_state, process_spec_list(i))
        else
           call die(450985234)
@@ -164,14 +164,14 @@ contains
     call process_time(ncid, time, index, del_t)
     do i = 1,size(process_spec_list)
        if (process_spec_list(i)%type == "env") then
-          call process_env(ncid, process_spec_list(i)%name, &
-               time, index, env_state)
+          call process_env(ncid, time, index, env_state, &
+               process_spec_list(i))
        elseif (process_spec_list(i)%type == "gas") then
-          call process_gas(ncid, process_spec_list(i)%name, &
-               time, index, gas_data, gas_state)
+          call process_gas(ncid, time, index, gas_data, gas_state, &
+               process_spec_list(i))
        elseif (process_spec_list(i)%type == "aero") then
-          call output_aero(ncid, process_spec_list(i)%name, &
-               time, index, bin_grid, aero_data, aero_binned)
+          call output_aero(ncid, time, index, bin_grid, aero_data, &
+               aero_binned, process_spec_list(i))
        end if
     end do
 
@@ -262,6 +262,60 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid_radius_widths, radius_widths))
 
   end subroutine ensure_nc_dim_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the dry_radius dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
+  subroutine ensure_nc_dim_radius_dry(ncid, bin_grid, dimid_radius)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Dimid of the radius dimension.
+    integer, intent(out) :: dimid_radius
+
+    integer :: status, i_bin, varid_radius
+    integer :: dimid_radius_edges, varid_radius_edges, varid_radius_widths
+    real*8 :: radius_centers(bin_grid%n_bin), radius_edges(bin_grid%n_bin + 1)
+    real*8 :: radius_widths(bin_grid%n_bin)
+
+    status = nf90_inq_dimid(ncid, "dry_radius", dimid_radius)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "dry_radius", &
+         bin_grid%n_bin, dimid_radius))
+    call pmc_nc_check(nf90_def_dim(ncid, "dry_radius_edges", &
+         bin_grid%n_bin + 1, dimid_radius_edges))
+    call pmc_nc_check(nf90_def_var(ncid, "dry_radius", NF90_DOUBLE, &
+         dimid_radius, varid_radius))
+    call pmc_nc_check(nf90_put_att(ncid, varid_radius, "unit", "m"))
+    call pmc_nc_check(nf90_def_var(ncid, "dry_radius_edges", NF90_DOUBLE, &
+         dimid_radius_edges, varid_radius_edges))
+    call pmc_nc_check(nf90_put_att(ncid, varid_radius_edges, "unit", "m"))
+    call pmc_nc_check(nf90_def_var(ncid, "dry_radius_widths", NF90_DOUBLE, &
+         dimid_radius, varid_radius_widths))
+    call pmc_nc_check(nf90_put_att(ncid, varid_radius_widths, "unit", "1"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_bin = 1,bin_grid%n_bin
+       radius_centers(i_bin) = vol2rad(bin_grid%v(i_bin))
+       radius_widths(i_bin) = bin_grid%dlnr
+    end do
+    do i_bin = 1,(bin_grid%n_bin + 1)
+       radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_radius, radius_centers))
+    call pmc_nc_check(nf90_put_var(ncid, varid_radius_edges, radius_edges))
+    call pmc_nc_check(nf90_put_var(ncid, varid_radius_widths, radius_widths))
+
+  end subroutine ensure_nc_dim_radius_dry
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -500,7 +554,7 @@ contains
        dim_unit = 'm^2'
     else
        call die_msg(912387902, &
-            "unknown process_spec%type: " // process_spec%type)
+            "unknown process_spec%type: " // trim(process_spec%type))
     end if
     dim_name_edges = dim_name
     dim_name_edges((len_trim(dim_name_edges)+1):) = "_edges"
@@ -558,16 +612,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ensure_nc_var_env_state(ncid, varid_env_state)
+  subroutine ensure_nc_var_env_state(ncid, process_spec, varid_env_state)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
     !> Varid of env_state.
     integer, intent(out) :: varid_env_state
 
     integer :: dimid_time, dimid_env, dimids_env_state(2), status
 
-    status = nf90_inq_varid(ncid, "env_state", varid_env_state)
+    status = nf90_inq_varid(ncid, process_spec%name, varid_env_state)
     if (status == NF90_NOERR) return
     if (status /= NF90_ENOTVAR) call pmc_nc_check(status)
 
@@ -578,7 +634,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     dimids_env_state = (/ dimid_env, dimid_time /)
-    call pmc_nc_check(nf90_def_var(ncid, "env_state", NF90_DOUBLE, &
+    call pmc_nc_check(nf90_def_var(ncid, process_spec%name, NF90_DOUBLE, &
          dimids_env_state, varid_env_state))
     call pmc_nc_check(nf90_put_att(ncid, varid_env_state, "unit", "1"))
 
@@ -588,10 +644,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ensure_nc_var_gas(ncid, gas_data, varid_gas)
+  subroutine ensure_nc_var_gas(ncid, process_spec, gas_data, varid_gas)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Varid of gas.
@@ -602,7 +660,7 @@ contains
 
     integer :: dimid_time, dimid_gas_species, dimids_gas(2)
 
-    status = nf90_inq_varid(ncid, "gas", varid_gas)
+    status = nf90_inq_varid(ncid, process_spec%name, varid_gas)
     if (status == NF90_NOERR) return
     if (status /= NF90_ENOTVAR) call pmc_nc_check(status)
 
@@ -613,7 +671,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     dimids_gas = (/ dimid_gas_species, dimid_time /)
-    call pmc_nc_check(nf90_def_var(ncid, "gas", NF90_DOUBLE, &
+    call pmc_nc_check(nf90_def_var(ncid, process_spec%name, NF90_DOUBLE, &
          dimids_gas, varid_gas))
     call pmc_nc_check(nf90_put_att(ncid, varid_gas, "unit", "ppb"))
 
@@ -623,10 +681,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine ensure_nc_var_aero(ncid, bin_grid, aero_data, varid_aero)
+  subroutine ensure_nc_var_aero(ncid, process_spec, bin_grid, &
+       aero_data, varid_aero)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
     !> Bin_grid structure.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero_data structure.
@@ -637,12 +698,20 @@ contains
     integer :: dimid_time, dimid_radius, dimid_aero_species, dimid_unit
     integer :: status, dimids_aero(4)
 
-    status = nf90_inq_varid(ncid, "aero", varid_aero)
+    status = nf90_inq_varid(ncid, process_spec%name, varid_aero)
     if (status == NF90_NOERR) return
     if (status /= NF90_ENOTVAR) call pmc_nc_check(status)
 
     ! variable not defined, so define now define it
-    call ensure_nc_dim_radius(ncid, bin_grid, dimid_radius)
+    if (process_spec%radius == "wet") then
+       call ensure_nc_dim_radius(ncid, bin_grid, dimid_radius)
+    elseif (process_spec%radius == "dry") then
+       call ensure_nc_dim_radius_dry(ncid, bin_grid, dimid_radius)
+    else
+       call die_msg(484208239, &
+            "radius must be 'wet' or 'dry', not: " &
+            // trim(process_spec%radius))
+    end if
     call ensure_nc_dim_aero_species(ncid, aero_data, dimid_aero_species)
     call ensure_nc_dim_unit(ncid, dimid_unit)
     call ensure_nc_dim_time(ncid, dimid_time)
@@ -651,7 +720,7 @@ contains
 
     dimids_aero = (/ dimid_radius, dimid_aero_species, dimid_unit, &
          dimid_time /)
-    call pmc_nc_check(nf90_def_var(ncid, "aero", NF90_DOUBLE, &
+    call pmc_nc_check(nf90_def_var(ncid, process_spec%name, NF90_DOUBLE, &
          dimids_aero, varid_aero))
     call pmc_nc_check(nf90_put_att(ncid, varid_aero, "unit", "1"))
 
@@ -684,7 +753,15 @@ contains
 
     ! variable not defined, so define now define it
     call ensure_nc_dim_step(ncid, process_spec, dimid_step)
-    call ensure_nc_dim_radius(ncid, bin_grid, dimid_radius)
+    if (process_spec%radius == "wet") then
+       call ensure_nc_dim_radius(ncid, bin_grid, dimid_radius)
+    elseif (process_spec%radius == "dry") then
+       call ensure_nc_dim_radius_dry(ncid, bin_grid, dimid_radius)
+    else
+       call die_msg(894298398, &
+            "radius must be 'wet' or 'dry', not: " &
+            // trim(process_spec%radius))
+    end if
     call ensure_nc_dim_aero_species(ncid, aero_data, dimid_aero_species)
     call ensure_nc_dim_unit(ncid, dimid_unit)
     call ensure_nc_dim_time(ncid, dimid_time)
@@ -729,24 +806,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_env(ncid, suffix, time, index, env_state)
+  subroutine process_env(ncid, time, index, env_state, &
+       process_spec)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Suffix of the file.
-    character(len=*), intent(in) :: suffix
     !> Current time (s).
     real*8, intent(in) :: time
     !> Current index.
     integer, intent(in) :: index
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
 
     integer :: varid_env_state
     integer :: start(2), count(2)
     real*8 :: data(4)
 
-    call ensure_nc_var_env_state(ncid, varid_env_state)
+    call ensure_nc_var_env_state(ncid, process_spec, varid_env_state)
 
     data(1) = env_state%temp
     data(2) = env_state%rel_humid
@@ -762,12 +840,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_gas(ncid, suffix, time, index, gas_data, gas_state)
+  subroutine process_gas(ncid, time, index, gas_data, gas_state, &
+       process_spec)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Suffix of the file.
-    character(len=*), intent(in) :: suffix
     !> Current time (s).
     real*8, intent(in) :: time
     !> Current index.
@@ -776,11 +853,13 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
 
     integer :: varid_gas
     integer :: start(2), count(2)
 
-    call ensure_nc_var_gas(ncid, gas_data, varid_gas)
+    call ensure_nc_var_gas(ncid, process_spec, gas_data, varid_gas)
 
     start = (/ 1, index /)
     count = (/ gas_data%n_spec, 1 /)
@@ -791,13 +870,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine output_aero(ncid, suffix, time, index, bin_grid, &
-       aero_data, aero_binned)
+  subroutine output_aero(ncid, time, index, bin_grid, &
+       aero_data, aero_binned, process_spec)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Suffix for the output filename.
-    character(len=*), intent(in) :: suffix
     !> Current time (s).
     real*8, intent(in) :: time
     !> Current index.
@@ -808,12 +885,15 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aero_binned structure.
     type(aero_binned_t), intent(in) :: aero_binned
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
 
     real*8 :: aero(bin_grid%n_bin, aero_data%n_spec, 4)
     integer :: i_bin, i_spec, varid_aero
     integer :: start(4), count(4)
 
-    call ensure_nc_var_aero(ncid, bin_grid, aero_data, varid_aero)
+    call ensure_nc_var_aero(ncid, process_spec, bin_grid, &
+         aero_data, varid_aero)
 
     do i_bin = 1,bin_grid%n_bin
        do i_spec = 1,aero_data%n_spec
@@ -840,13 +920,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine process_aero(ncid, suffix, time, index, bin_grid, &
-       aero_data, aero_state)
+  subroutine process_aero(ncid, time, index, bin_grid, &
+       aero_data, aero_state, process_spec)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Suffix for the output filename.
-    character(len=*), intent(in) :: suffix
     !> Current time (s).
     real*8, intent(in) :: time
     !> Current index.
@@ -857,14 +935,23 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aero_state structure.
     type(aero_state_t), intent(in) :: aero_state
+    !> Process spec.
+    type(process_spec_t), intent(in) :: process_spec
 
     type(aero_binned_t) :: aero_binned
 
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
+    if (process_spec%radius == "wet") then
+       call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
+    elseif (process_spec%radius == "dry") then
+       call aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
+            aero_binned)
+    else
+       call die(378223982)
+    end if
 
-    call output_aero(ncid, suffix, time, index, bin_grid, &
-         aero_data, aero_binned)
+    call output_aero(ncid, time, index, bin_grid, aero_data, &
+         aero_binned, process_spec)
 
     call aero_binned_free(aero_binned)
 
@@ -908,7 +995,7 @@ contains
 
   !> Compute histogram by calling the step_comp() function on each
   !> particle.
-  subroutine process_hist_new(ncid, time, index, bin_grid, &
+  subroutine process_hist(ncid, time, index, bin_grid, &
        env_state, aero_data, aero_state, process_spec)
     
     !> NetCDF file ID, in data mode.
@@ -929,7 +1016,7 @@ contains
     type(process_spec_t), intent(in) :: process_spec
 
     real*8 :: hist(process_spec%n_step, bin_grid%n_bin, aero_data%n_spec, 4)
-    integer :: i_step, i_bin, i_part, i
+    integer :: i_step, i_bin, i_part, i, i_bin_hist
     type(aero_particle_t), pointer :: aero_particle
     real*8 :: step_width, scale, rh, supersat, val
     integer, allocatable :: a_species(:), b_species(:)
@@ -950,7 +1037,7 @@ contains
                process_spec%a_species(i))
           if (a_species(i) == 0) then
              write(error_str, '(a,a)') 'unknown species: ', &
-                  process_spec%a_species(i)
+                  trim(process_spec%a_species(i))
              call die_msg(194029329, error_str)
           end if
        end do
@@ -960,7 +1047,7 @@ contains
                process_spec%b_species(i))
           if (b_species(i) == 0) then
              write(error_str, '(a,a)') 'unknown species: ', &
-                  process_spec%b_species(i)
+                  trim(process_spec%b_species(i))
              call die_msg(283298183, error_str)
           end if
        end do
@@ -1001,13 +1088,24 @@ contains
           i_step = max(1, i_step)
           i_step = min(process_spec%n_step, i_step)
 
-          hist(i_step, i_bin, :, 1) = hist(i_step, i_bin, :, 1) &
+          if (process_spec%radius == "wet") then
+             i_bin_hist = i_bin
+          elseif (process_spec%radius == "dry") then
+             i_bin_hist = bin_grid_particle_in_bin(bin_grid, &
+                  aero_particle_solute_volume(aero_particle, aero_data))
+          else
+             call die_msg(842982739, &
+                  "radius must be 'wet' or 'dry', not: " &
+                  // trim(process_spec%radius))
+          end if
+
+          hist(i_step, i_bin_hist, :, 1) = hist(i_step, i_bin_hist, :, 1) &
                + 1d0 / dble(aero_data%n_spec) * scale
-          hist(i_step, i_bin, :, 2) = hist(i_step, i_bin, :, 2) &
+          hist(i_step, i_bin_hist, :, 2) = hist(i_step, i_bin_hist, :, 2) &
                + aero_particle%vol * scale
-          hist(i_step, i_bin, :, 3) = hist(i_step, i_bin, :, 3) &
+          hist(i_step, i_bin_hist, :, 3) = hist(i_step, i_bin_hist, :, 3) &
                + aero_particle%vol * aero_data%density * scale
-          hist(i_step, i_bin, :, 4) = hist(i_step, i_bin, :, 4) &
+          hist(i_step, i_bin_hist, :, 4) = hist(i_step, i_bin_hist, :, 4) &
                + aero_particle%vol * aero_data%density &
                / aero_data%molec_weight * scale
        end do
@@ -1020,7 +1118,7 @@ contains
     call output_hist(ncid, time, index, bin_grid, aero_data, &
          process_spec, hist)
 
-  end subroutine process_hist_new
+  end subroutine process_hist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

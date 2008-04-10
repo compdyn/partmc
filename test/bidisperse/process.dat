@@ -1,2 +1,3 @@
 process aero                    # binned aerosol state
 name aero                       # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'

@@ -447,6 +447,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total solute volume (m^3).
+  real*8 function aero_particle_solute_volume(aero_particle, aero_data)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
+    real*8 :: ones(aero_data%n_spec)
+
+    ones = 1d0
+    aero_particle_solute_volume &
+         = aero_particle_total_solute_quantity(aero_particle, &
+         aero_data, ones)
+
+  end function aero_particle_solute_volume
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the average of the solute kappas (1).
   real*8 function aero_particle_solute_kappa(aero_particle, aero_data)
 

@@ -538,20 +538,55 @@ contains
     type(aero_binned_t), intent(out) :: aero_binned
     
     integer :: b, j, s
+    type(aero_particle_t), pointer :: aero_particle
     
     aero_binned%num_den = 0d0
     aero_binned%vol_den = 0d0
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(b)%n_part
+          aero_particle => aero_state%bin(b)%particle(j)
           aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
-               + aero_state%bin(b)%particle(j)%vol / aero_state%comp_vol &
-               / bin_grid%dlnr
+               + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
+          aero_binned%num_den(b) = aero_binned%num_den(b) &
+               + 1d0 / aero_state%comp_vol / bin_grid%dlnr
        end do
-       aero_binned%num_den(b) = dble(aero_state%bin(b)%n_part) &
-            / aero_state%comp_vol / bin_grid%dlnr
     end do
     
   end subroutine aero_state_to_binned
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Does the same thing as aero_state_to_bin() but based on dry radius.
+  subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
+       aero_binned)
+    
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Binned distributions.
+    type(aero_binned_t), intent(out) :: aero_binned
+    
+    integer :: b, j, s, b_dry
+    type(aero_particle_t), pointer :: aero_particle
+    
+    aero_binned%num_den = 0d0
+    aero_binned%vol_den = 0d0
+    do b = 1,bin_grid%n_bin
+       do j = 1,aero_state%bin(b)%n_part
+          aero_particle => aero_state%bin(b)%particle(j)
+          b_dry = bin_grid_particle_in_bin(bin_grid, &
+               aero_particle_solute_volume(aero_particle, aero_data))
+          aero_binned%vol_den(b_dry,:) = aero_binned%vol_den(b_dry,:) &
+               + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
+          aero_binned%num_den(b_dry) = aero_binned%num_den(b_dry) &
+               + 1d0 / aero_state%comp_vol / bin_grid%dlnr
+       end do
+    end do
+    
+  end subroutine aero_state_to_binned_dry
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

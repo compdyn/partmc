@@ -21,6 +21,8 @@ module pmc_process_spec
   integer, parameter :: PROCESS_SPEC_TYPE_LEN = 40
   !> Maximum length of process_spec%%name.
   integer, parameter :: PROCESS_SPEC_NAME_LEN = 200
+  !> Maximum length of process_spec%radius
+  integer, parameter :: PROCESS_SPEC_RADIUS_LEN = 40
 
   !> Specification of the processing required to turn internal
   !> particle data into output data.
@@ -43,6 +45,8 @@ module pmc_process_spec
      character(len=PROCESS_SPEC_TYPE_LEN) :: type
      !> Output variable name.
      character(len=PROCESS_SPEC_NAME_LEN) :: name
+     !> Type of radius ("wet" or "dry")
+     character(len=PROCESS_SPEC_RADIUS_LEN) :: radius
      !> Number of steps for histogram.
      integer :: n_step
      !> Minimum histogram value.
@@ -69,6 +73,7 @@ contains
 
     process_spec%type = "none"
     process_spec%name = "none"
+    process_spec%radius = "wet"
     process_spec%n_step = 0
     process_spec%min_val = 0d0
     process_spec%max_val = 0d0
@@ -120,6 +125,7 @@ contains
 
     process_spec_to%type = process_spec_from%type
     process_spec_to%name = process_spec_from%name
+    process_spec_to%radius = process_spec_from%radius
     process_spec_to%n_step = process_spec_from%n_step
     process_spec_to%min_val = process_spec_from%min_val
     process_spec_to%max_val = process_spec_from%max_val
@@ -212,7 +218,9 @@ contains
        call process_spec_alloc(process_spec)
        process_spec%type = line%data(1)(1:PROCESS_SPEC_TYPE_LEN)
        call inout_read_string(file, "name", process_spec%name)
-       if (process_spec%type == "kappa") then
+       if (process_spec%type == "aero") then
+          call inout_read_process_spec_aero(file, process_spec)
+       elseif (process_spec%type == "kappa") then
           call inout_read_process_spec_kappa(file, process_spec)
        elseif (process_spec%type == "comp") then
           call inout_read_process_spec_comp(file, process_spec)
@@ -225,8 +233,7 @@ contains
        elseif (process_spec%type == "optic_extinct") then
           call inout_read_process_spec_optic(file, process_spec)
        elseif ((process_spec%type /= "env") &
-            .and. (process_spec%type /= "gas") &
-            .and. (process_spec%type /= "aero")) then
+            .and. (process_spec%type /= "gas")) then
           write(0,*) 'ERROR: unknown process type on line ', &
                file%line_num, ' of file ', trim(file%name)
           call exit(1)
@@ -238,6 +245,42 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Validate the radius type string.
+  subroutine process_spec_check_radius(process_spec, file)
+
+    !> Data to check.
+    type(process_spec_t), intent(in) :: process_spec
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+
+    if ((process_spec%radius /= "wet") &
+         .and. (process_spec%radius /= "dry")) then
+       write(0,'(a,i3,a,a,a,a)') 'ERROR: line ', file%line_num, &
+            ' of input file ', trim(file%name), &
+            ': radius must be "wet" or "dry", not: ', &
+            trim(process_spec%radius)
+       call exit(1)
+    end if
+
+  end subroutine process_spec_check_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read aero spec from an inout_file.
+  subroutine inout_read_process_spec_aero(file, process_spec)
+
+    !> Inout file.
+    type(inout_file_t), intent(inout) :: file
+    !> Data to read.
+    type(process_spec_t), intent(out) :: process_spec
+
+    call inout_read_string(file, "radius", process_spec%radius)
+    call process_spec_check_radius(process_spec, file)
+
+  end subroutine inout_read_process_spec_aero
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read kappa spec from an inout_file.
   subroutine inout_read_process_spec_kappa(file, process_spec)
 
@@ -246,6 +289,8 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "radius", process_spec%radius)
+    call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
@@ -266,6 +311,8 @@ contains
     type(inout_line_t) :: line
     integer :: i
 
+    call inout_read_string(file, "radius", process_spec%radius)
+    call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
@@ -300,6 +347,8 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "radius", process_spec%radius)
+    call process_spec_check_radius(process_spec, file)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
     process_spec%n_step = nint(process_spec%max_val - process_spec%min_val)
@@ -316,6 +365,8 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "radius", process_spec%radius)
+    call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)

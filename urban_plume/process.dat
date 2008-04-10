@@ -1,21 +1,24 @@
 
 process env                     # environment state
-name env                        # variable name for output
+name env_state                  # variable name for output
 
 process gas                     # gas state
 name gas                        # variable name for output
 
 process aero                    # binned aerosol state
 name aero                       # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'
 
 process kappa                   # kappa-derived critical supersaturation
 name kappa_crit_ss              # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 1e-5                        # min supersaturation (1)
 max 5e-2                        # max supersaturation (1)
 
 process comp                    # scalar composition
 name comp_bc                    # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -24,6 +27,7 @@ b_species BC                    # second species list
 
 process comp                    # scalar composition
 name comp_so4                   # filename suffix for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -32,6 +36,7 @@ b_species BC                    # second species list
 
 process comp                    # scalar composition
 name comp_no3                   # filename suffix for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -40,6 +45,7 @@ b_species BC                    # second species list
 
 process comp                    # scalar composition
 name comp_oc                    # filename suffix for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -48,6 +54,7 @@ b_species BC                    # second species list
 
 process comp                    # scalar composition
 name comp_soa                   # filename suffix for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
@@ -56,23 +63,27 @@ b_species BC                    # second species list
 
 process n_orig_part             # number of original particles
 name n_orig                     # filename suffix for output
+radius wet                      # radius type: 'wet' or 'dry'
 min 0                           # min original particles
 max 100                         # max original particles
 
 #process optic_absorb            # optical absorption
 #suffix optic_absorb             # filename suffix for output
+#radius wet                      # radius type: 'wet' or 'dry'
 #n_step 100                      # number of steps for histogram
 #min 0                           # min absorption cross-section (m^2)
 #max 1e-5                        # max absorption cross-section (m^2)
 
 process optic_scatter           # optical scattering
 name optic_scatter              # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 1e-20                       # min scattering cross-section (m^2)
 max 1e-10                       # max scattering cross-section (m^2)
 
 process optic_extinct           # optical extinction
 name optic_extinct              # variable name for output
+radius wet                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 1e-20                       # min extinction cross-section (m^2)
 max 1e-10                       # max extinction cross-section (m^2)

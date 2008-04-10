@@ -1,4 +1,9 @@
 
+In process.dat actually use the name for gas, aero, etc, rather than
+hard-coding the variable names in output_processed.f90. Should also
+check that we don't have conflicting names (such as env) between
+dimensions and variables.
+
 Change error messages in inout.f90 to use die_msg().
 
 We shouldn't really need both aero_binned_t and aero_dist_t. Actually

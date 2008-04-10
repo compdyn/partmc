@@ -125,6 +125,11 @@ contains
     !> Maximum kernel values.
     real*8, intent(out) :: k_max
     
+    !> Number of sample points per bin.
+    integer, parameter :: n_sample = 3
+    !> Over-estimation scale factor parameter.
+    real*8, parameter :: over_scale = 1.1d0
+    
     interface
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
@@ -137,11 +142,8 @@ contains
        end subroutine kernel_max
     end interface
     
-    real*8 v1, v2, v1_high, v1_low, v2_high, v2_low, k
-    integer i, j
-    
-    !> Number of sample points per bin.
-    integer, parameter :: n_sample = 10
+    real*8 :: v1, v2, v1_high, v1_low, v2_high, v2_low, k
+    integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
     v1_low = bin_grid_edge(bin_grid, b1)
@@ -162,6 +164,8 @@ contains
           if (k .gt. k_max) k_max = k
        end do
     end do
+    
+    k_max = k_max * over_scale
     
   end subroutine est_k_max_for_bin
   

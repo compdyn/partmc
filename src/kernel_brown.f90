@@ -68,7 +68,7 @@ contains
     real*8, intent(out) :: k_max
 
     !> Number of density sample points.
-    integer, parameter :: n_sample = 10
+    integer, parameter :: n_sample = 3
 
     real*8 :: d1, d2, d_min, d_max, k
     integer :: i, j

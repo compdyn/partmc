@@ -15,28 +15,54 @@ module pmc_kernel_constant
   use pmc_aero_binned
   use pmc_aero_data
   use pmc_aero_dist
+  use pmc_aero_data
+  use pmc_aero_particle
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constant coagulation kernel.
-  subroutine kernel_constant(v1, v2, env_state, k)
+  subroutine kernel_constant(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
 
-    !> Volume of first particle.
-    real*8, intent(in) :: v1
-    !> Volume of second particle.
-    real*8, intent(in) :: v2
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
     real*8, intent(out) :: k
     
-    real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
-    
-    k = beta_0
+    call kernel_constant_max(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
     
   end subroutine kernel_constant
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Maximum value of the constant coagulation kernel.
+  subroutine kernel_constant_max(v1, v2, aero_data, env_state, k_max)
+
+    !> Volume of first particle.
+    real*8, intent(in) :: v1
+    !> Volume of second particle.
+    real*8, intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel maximum value.
+    real*8, intent(out) :: k_max
+
+    real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
+
+    k_max = beta_0
+    
+  end subroutine kernel_constant_max
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -67,11 +93,10 @@ contains
     real*8 :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol
     integer :: k
     
-    !> Fixme: what is this?.
-    real*8, parameter :: lambda = 1d0
-    
-    call kernel_constant(1d0, 1d0, env_state, beta_0)
+    real*8, parameter :: lambda = 1d0 ! FIXME: what is this?
 
+    call kernel_constant_max(1d0, 1d0, aero_data, env_state, beta_0)
+    
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin

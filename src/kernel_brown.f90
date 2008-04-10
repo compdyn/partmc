@@ -12,6 +12,7 @@ module pmc_kernel_brown
   use pmc_env_state
   use pmc_constants
   use pmc_util
+  use pmc_aero_particle
   
 contains
 
@@ -21,14 +22,97 @@ contains
   !!
   !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
   !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown(v1, v2, env_state, bckernel)
+  subroutine kernel_brown(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Kernel k(a,b) (m^3/s).
+    real*8, intent(out) :: k
+
+    real*8 :: v1, v2, d1, d2
+
+    v1 = aero_particle_volume(aero_particle_1)
+    v2 = aero_particle_volume(aero_particle_2)
+    d1 = aero_particle_density(aero_particle_1, aero_data)
+    d2 = aero_particle_density(aero_particle_2, aero_data)
+
+    call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
+         env_state%pressure, k)
+
+  end subroutine kernel_brown
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the maximum Brownian coagulation kernel.
+  !!
+  !! Finds the maximum kernel value between particles of volumes v1
+  !! and v2, by sampling over possible densities.
+  subroutine kernel_brown_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle (m^3).
     real*8, intent(in) :: v1
     !> Volume of second particle (m^3).
     real*8, intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Maximum kernel value (m^3/s).
+    real*8, intent(out) :: k_max
+
+    !> Number of density sample points.
+    integer, parameter :: n_sample = 10
+
+    real*8 :: d1, d2, d_min, d_max, k
+    integer :: i, j
+    
+    d_min = minval(aero_data%density)
+    d_max = maxval(aero_data%density)
+    
+    k_max = 0d0
+    do i = 1,n_sample
+       do j = 1,n_sample
+          d1 = d_max * dble(n_sample - i) / dble(n_sample - 1) + &
+               d_min * dble(i - 1) / dble(n_sample - 1)
+          d2 = d_max * dble(n_sample - j) / dble(n_sample - 1) + &
+               d_min * dble(j - 1) / dble(n_sample - 1)
+          call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
+               env_state%pressure, k)
+          if (k > k_max) k_max = k
+       end do
+    end do
+
+  end subroutine kernel_brown_max
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Helper function that does the actual Brownian kernel computation.
+  !!
+  !! Helper function. Do not call directly. Instead use kernel_brown().
+  !!
+  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
+  !! Atmospheric Modeling, Cambridge University Press, 1999.
+  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
+
+    !> Volume of first particle (m^3).
+    real*8, intent(in) :: v1
+    !> Density of first particle (kg/m^3).
+    real*8, intent(in) :: d1
+    !> Volume of second particle (m^3).
+    real*8, intent(in) :: v2
+    !> Density of second particle (kg/m^3).
+    real*8, intent(in) :: d2
+    !> Temperature (K).
+    real*8, intent(in) :: tk
+    !> Pressure (Pa).
+    real*8, intent(in) :: press
     !> Kernel k(a,b) (m^3/s).
     real*8, intent(out) :: bckernel
 
@@ -36,12 +120,11 @@ contains
     integer, save :: nbin = 0
     integer :: i, j, k, m, n, lundiag1, lundiag2
     real*8, save :: rad_sv(nbin_maxd)
-
     real*8 :: avogad, bckernel1, boltz, cunning, deltasq_i, &
          deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, mwair, rad_i, rad_j, &
          rad_sum, rgas, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
-         viscosd, viscosk, vol_i, vol_j, tk, press, den_i_inp, den_j_inp
+         viscosd, viscosk, vol_i, vol_j
 
     ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
     ! avogad  = avogadro's number (molecules/mol)
@@ -53,14 +136,8 @@ contains
     ! gasspeed    = air molecule mean thermal velocity (cm/s)
     ! gasfreepath = air molecule mean free path (cm)
 
-    den_i_inp = 1.8d3
-    den_j_inp = 1.8d3
-
     lundiag1 = -91
     lundiag2 = -92
-
-    tk = env_state%temp
-    press = env_state%pressure
 
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
@@ -81,7 +158,7 @@ contains
     j = -1
     if (lundiag2 > 0) then
        if (nbin == 0) rad_sv(:) = -1d0
-       if (nbin == 0) write(*,*) '*** den_i,j =', den_i_inp, den_j_inp
+       if (nbin == 0) write(*,*) '*** den_i,j =', d1, d2
        
        vol_i = v1 * 1.0d+6
        vol_j = v2 * 1.0d+6
@@ -129,7 +206,7 @@ contains
             'i, j, coagcoef (cm3/s), dpwet_i,j (um), denswet_i,j (g/cm3)'
     end if
     
-    den_i     = den_i_inp * 1.0d-3   ! particle wet density (g/cm3)
+    den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i)       ! particle wet radius (cm)
     
@@ -142,7 +219,7 @@ contains
     tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
     
-    den_j     = den_j_inp * 1.0d-3
+    den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j)
     
@@ -174,7 +251,7 @@ contains
        end if
     end if
     
-  end subroutine kernel_brown
+  end subroutine kernel_brown_helper
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

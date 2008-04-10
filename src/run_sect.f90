@@ -87,11 +87,15 @@ contains
     logical do_output, do_progress
   
     interface
-       subroutine kernel(v1, v2, env_state, k)
+       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
+            env_state, k)
+         use pmc_aero_particle
+         use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env_state   
+         type(aero_particle_t), intent(in) :: aero_particle_1
+         type(aero_particle_t), intent(in) :: aero_particle_2
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
@@ -129,7 +133,8 @@ contains
     i_summary = 1
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%v, kernel, env_state, k_bin)
+    call bin_kernel(bin_grid%n_bin, bin_grid%v, aero_data, kernel, &
+         env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin

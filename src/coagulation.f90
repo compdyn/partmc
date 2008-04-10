@@ -50,17 +50,21 @@ contains
     logical, intent(out) :: did_coag
     
     interface
-       subroutine kernel(v1, v2, env_state, k)
+       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
+            env_state, k)
+         use pmc_aero_particle
+         use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env_state   
+         type(aero_particle_t), intent(in) :: aero_particle_1
+         type(aero_particle_t), intent(in) :: aero_particle_2
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
     
-    integer s1, s2
-    real*8 p, k, pv1, pv2
+    integer :: s1, s2
+    real*8 :: p, k
     
     did_coag = .false.
     
@@ -70,9 +74,8 @@ contains
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    pv1 = aero_particle_volume(aero_state%bin(b1)%particle(s1))
-    pv2 = aero_particle_volume(aero_state%bin(b2)%particle(s2))
-    call kernel(pv1, pv2, env_state, k)
+    call kernel(aero_state%bin(b1)%particle(s1), &
+         aero_state%bin(b2)%particle(s2), aero_data, env_state, k)
     p = k / k_max
     
     if (pmc_rand() .lt. p) then

@@ -18,22 +18,48 @@ module pmc_kernel_sedi
 
   use pmc_env_state
   use pmc_constants
+  use pmc_aero_data
+  use pmc_aero_particle
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sedimentation coagulation kernel.
-  subroutine kernel_sedi(v1, v2, env_state, k)
+  subroutine kernel_sedi(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Kernel \c k(a,b) (m^3/s).
+    real*8, intent(out) :: k
+
+    call kernel_sedi_max(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
+
+  end subroutine kernel_sedi
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sedimentation coagulation kernel.
+  subroutine kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle (m^3).
     real*8, intent(in) :: v1
     !> Volume of second particle (m^3).
     real*8, intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Kernel \c k(a,b) (m^3/s).
-    real*8, intent(out) :: k
+    !> Maximum kernel \c k(a,b) (m^3/s).
+    real*8, intent(out) :: k_max
     
     real*8 constant, onethird
     real*8 r1, r2, winf1, winf2, ec
@@ -45,9 +71,9 @@ contains
     call fall_g(r1, winf1) ! winf1 in m/s
     call fall_g(r2, winf2) ! winf2 in m/s
     call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
-    k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
+    k_max = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
 
-  end subroutine kernel_sedi
+  end subroutine kernel_sedi_max
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

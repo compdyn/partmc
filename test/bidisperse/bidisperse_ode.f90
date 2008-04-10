@@ -114,11 +114,23 @@ contains
     real*8, intent(in) :: comp_vol
     !> Derivative of n_small.
     real*8, intent(out) :: n_small_dot
-    
-    real*8 v_big, k
+
+    integer :: n_spec
+    real*8 :: v_big, k
+    type(aero_particle_t) :: aero_particle_1, aero_particle_2
+    type(aero_data_t) :: aero_data
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
-    call kernel_sedi(v_small, v_big, env_state, k)
+    n_spec = 1
+    call aero_data_alloc(aero_data, n_spec)
+    call aero_particle_alloc(aero_particle_1, n_spec)
+    call aero_particle_alloc(aero_particle_2, n_spec)
+    aero_particle_1%vol(1) = v_small
+    aero_particle_2%vol(1) = v_big
+    call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, env_state, k)
+    call aero_particle_free(aero_particle_1)
+    call aero_particle_free(aero_particle_2)
+    call aero_data_free(aero_data)
     n_small_dot = - k / comp_vol * n_small
     
   end subroutine bidisperse_f

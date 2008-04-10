@@ -16,28 +16,54 @@ module pmc_kernel_golovin
   use pmc_aero_binned
   use pmc_aero_data
   use pmc_aero_dist
+  use pmc_aero_data
+  use pmc_aero_particle
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Golovin (additive) coagulation kernel.
-  subroutine kernel_golovin(v1, v2, env_state, k)
+  subroutine kernel_golovin(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
 
-    !> Volume of first particle.
-    real*8, intent(in) :: v1
-    !> Volume of second particle.
-    real*8, intent(in) :: v2
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
     real*8, intent(out) :: k
     
-    real*8, parameter :: beta_1 = 1000d0
-    
-    k = beta_1 * (v1 + v2)
+    call kernel_golovin_max(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
     
   end subroutine kernel_golovin
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Maximum value of the Golovin (additive) kernel.
+  subroutine kernel_golovin_max(v1, v2, aero_data, env_state, k_max)
+
+    !> Volume of first particle.
+    real*8, intent(in) :: v1
+    !> Volume of second particle.
+    real*8, intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel maximum value.
+    real*8, intent(out) :: k_max
+    
+    real*8, parameter :: beta_1 = 1000d0
+    
+    k_max = beta_1 * (v1 + v2)
+    
+  end subroutine kernel_golovin_max
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -68,7 +94,7 @@ contains
     real*8 :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
     
-    call kernel_golovin(1d0, 0d0, env_state, beta_1)
+    call kernel_golovin_max(1d0, 0d0, aero_data, env_state, beta_1)
 
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then

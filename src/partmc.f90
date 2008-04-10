@@ -368,25 +368,25 @@ contains
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(kernel_sedi, bin_grid, aero_binned, env_data, &
-               env_state, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, process_spec_list)
+          call run_mc(kernel_sedi, kernel_sedi_max, bin_grid, &
+               aero_binned, env_data, env_state, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(kernel_golovin, bin_grid, aero_binned, env_data, &
-               env_state, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, process_spec_list)
+          call run_mc(kernel_golovin, kernel_golovin_max, bin_grid, &
+               aero_binned, env_data, env_state, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(kernel_constant, bin_grid, aero_binned, env_data, &
-               env_state, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, process_spec_list)
+          call run_mc(kernel_constant, kernel_constant_max, bin_grid, &
+               aero_binned, env_data, env_state, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(kernel_brown, bin_grid, aero_binned, env_data, &
-               env_state, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, process_spec_list)
+          call run_mc(kernel_brown, kernel_brown_max, bin_grid, &
+               aero_binned, env_data, env_state, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
        elseif (trim(kernel_name) == 'zero') then
-          call run_mc(kernel_zero, bin_grid, aero_binned, env_data, &
-               env_state, aero_data, aero_state, gas_data, gas_state, &
-               mc_opt, process_spec_list)
+          call run_mc(kernel_zero, kernel_zero_max, bin_grid, &
+               aero_binned, env_data, env_state, aero_data, &
+               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
        else
           if (pmc_mpi_rank() == 0) then
              write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)

@@ -21,11 +21,11 @@ init_mc_data.reduce([select("unit", "vol_den"),
 
 small_mc_data = module_copy.deepcopy(mc_data)
 small_mc_data.reduce([select("unit", "num_den"),
-		      sum_below("radius", 5e-5)])
+		      sum("radius", below = 5e-5)])
 
 large_mc_data = module_copy.deepcopy(mc_data)
 large_mc_data.reduce([select("unit", "vol_den"),
-		      sum_above("radius", 5e-5)])
+		      sum("radius", above = 5e-5)])
 
 ######################################################################
 

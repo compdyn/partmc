@@ -75,8 +75,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_mc(kernel, bin_grid, aero_binned, env_data, env_state, &
-       aero_data, aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+  subroutine run_mc(kernel, kernel_max, bin_grid, aero_binned, env_data, &
+       env_state, aero_data, aero_state, gas_data, gas_state, mc_opt, &
+       process_spec_list)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -101,13 +102,26 @@ contains
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
-       subroutine kernel(v1, v2, env_state, k)
+       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
+            env_state, k)
+         use pmc_aero_particle
+         use pmc_aero_data
+         use pmc_env_state
+         type(aero_particle_t), intent(in) :: aero_particle_1
+         type(aero_particle_t), intent(in) :: aero_particle_2
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
+         real*8, intent(out) :: k
+       end subroutine kernel
+       subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
+         use pmc_aero_data
          use pmc_env_state
          real*8, intent(in) :: v1
          real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env_state   
-         real*8, intent(out) :: k
-       end subroutine kernel
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
+         real*8, intent(out) :: k_max
+       end subroutine kernel_max
     end interface
     
     real*8 time, pre_time, pre_del_t
@@ -169,7 +183,7 @@ contains
 
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     
-    call est_k_max_binned(bin_grid, kernel, env_state, k_max)
+    call est_k_max_binned(bin_grid, kernel_max, aero_data, env_state, k_max)
 
     if (mc_opt%do_mosaic) then
        call mosaic_init(bin_grid, env_state, mc_opt%del_t)
@@ -321,11 +335,15 @@ contains
     integer, intent(out) :: n_coag
 
     interface
-       subroutine kernel(v1, v2, env_state, k)
+       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
+            env_state, k)
+         use pmc_aero_particle
+         use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
-         type(env_state_t), intent(in) :: env_state   
+         type(aero_particle_t), intent(in) :: aero_particle_1
+         type(aero_particle_t), intent(in) :: aero_particle_2
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
          real*8, intent(out) :: k
        end subroutine kernel
     end interface

@@ -204,6 +204,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Average density of the particle (kg/m^3).
+  real*8 function aero_particle_density(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    aero_particle_density = aero_particle_mass(aero_particle, aero_data) &
+         / aero_particle_volume(aero_particle)
+
+  end function aero_particle_density
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Find the bin number that contains a given particle.
   integer function aero_particle_in_bin(aero_particle, bin_grid)
 

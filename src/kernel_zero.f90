@@ -18,18 +18,23 @@ module pmc_kernel_zero
   use pmc_aero_binned
   use pmc_aero_dist
   use pmc_aero_data
+  use pmc_aero_data
+  use pmc_aero_particle
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Zero coagulation kernel.
-  subroutine kernel_zero(v1, v2, env_state, k)
+  subroutine kernel_zero(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
 
-    !> Volume of first particle.
-    real*8, intent(in) :: v1
-    !> Volume of second particle.
-    real*8, intent(in) :: v2
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
@@ -38,6 +43,26 @@ contains
     k = 0d0
     
   end subroutine kernel_zero
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Zero coagulation kernel.
+  subroutine kernel_zero_max(v1, v2, aero_data, env_state, k_max)
+
+    !> Volume of first particle.
+    real*8, intent(in) :: v1
+    !> Volume of second particle.
+    real*8, intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel maximum value.
+    real*8, intent(out) :: k_max
+    
+    k_max = 0d0
+    
+  end subroutine kernel_zero_max
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

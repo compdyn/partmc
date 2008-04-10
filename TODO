@@ -1,8 +1,8 @@
 
-In process.dat actually use the name for gas, aero, etc, rather than
-hard-coding the variable names in output_processed.f90. Should also
-check that we don't have conflicting names (such as env) between
-dimensions and variables.
+In netcdf output files name the step dimensions so that we can have
+multiple variables of each type. Maybe add the variable name to the
+dim name in ensure_nc_dim_step()? If not, at least error if we have
+repeated sections.
 
 Change error messages in inout.f90 to use die_msg().
 

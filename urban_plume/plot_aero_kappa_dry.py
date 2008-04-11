@@ -11,6 +11,9 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
+text.defaulttexrunner.set(mode = "tex",
+                          lfs = "10pt") # 10pt, 11pt, or 12pt
+
 times_hour = [1, 6, 12, 18, 24]
 
 subdir = "."
@@ -50,7 +53,8 @@ for i in range(len(times_hour)):
     max_val = 7e10
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
 						   flip_axes = True,
-                                                   min = min_val, max = max_val),
+                                                   min = min_val,
+                                                   max = max_val),
 			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
     add_color_bar(g,

@@ -134,9 +134,10 @@ cleanall: clean
 	find . -name .gdb_history -exec rm {} \;
 	find . -name gmon.out -exec rm {} \;
 	find . -name "gprof_*" -exec rm {} \;
-	rm -rf test/bidisperse/out/* test/emission/out/*		\
-               test/golovin/out/* test/mosaic/out/* test/poisson/out/*	\
-               test/sedi/out/* urban_plume/out/*
+	rm -rf test/bidisperse/out/* test/brownian/out/*		\
+               test/emission/out/* test/golovin/out/*			\
+               test/mosaic/out/* test/poisson/out/* test/sedi/out/*	\
+               urban_plume/out/*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

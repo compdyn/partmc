@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -11,16 +11,21 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1]
+times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/urban_plume_0001.nc"),
-	       "n_orig",
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+	       "kappa_crit_ss_dry",
 	       [])
 data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
-data.scale_dim("radius", 1e6)
+data.scale_dim("crit_ss_dry", 100)
+data.scale_dim("dry_radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
 for i in range(len(times_hour)):
@@ -28,23 +33,29 @@ for i in range(len(times_hour)):
 	width = 10,
 	x = graph.axis.log(min = 1e-3,
                            max = 1e+1,
-                           title = r'radius ($\mu$m)',
+                           title = r'dry radius ($\mu$m)',
 			   painter = grid_painter),
-	y = graph.axis.linear(title = 'number of constituent particles',
-                              painter = grid_painter))
+	y = graph.axis.log(min = 5e-3,
+                           max = 1e0,
+                           title = 'critical supersaturation',
+			   texter = graph.axis.texter.decimal(suffix = r"\%"),
+			   painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    min_val = data_slice.data.min()
-    max_val = data_slice.data.max()
+#    min_val = data_slice.data.min()
+#    max_val = data_slice.data.max()
+#    print min_val
+#    print max_val
+    min_val = 0.0
+    max_val = 7e10
     g.plot(graph.data.list(data_slice.data_2d_list(strip_zero = True,
-                                                   min = min_val,
-                                                   max = max_val),
-                           xmin = 1, xmax = 2, ymin = 3,
-                           ymax = 4, color = 5),
+						   flip_axes = True,
+                                                   min = min_val, max = max_val),
+			   xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
 	   styles = [graph.style.rect(rainbow_palette)])
     add_color_bar(g,
                   min = min_val,
                   max = max_val,
                   title = r"number density",
                   palette = rainbow_palette)
-    g.writePDFfile("out/aero_n_orig_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/%s/aero_kappa_dry_%d.pdf" % (subdir, times_hour[i]))

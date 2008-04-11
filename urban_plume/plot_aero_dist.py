@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -14,7 +14,11 @@ from pmc_pyx import *
 times_hour = [0, 1, 6, 12, 24]
 times_sec = [t * 3600 for t in times_hour]
 
-data = pmc_var(NetCDFFile("out/testcase_nococo/urban_plume_state_0001.nc"),
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "aero",
 	       [select("unit", "mass_den"),
 		sum("aero_species")])
@@ -43,4 +47,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_nococo/aero_dist_mass.pdf")
+g.writePDFfile("out/%s/aero_dist_mass.pdf" % subdir)

@@ -532,47 +532,42 @@ contains
     real*8 :: step_centers(process_spec%n_step)
     real*8 :: step_edges(process_spec%n_step + 1)
     real*8 :: step_widths(process_spec%n_step)
-    character(len=100) :: dim_name, dim_name_edges, dim_name_widths, dim_unit
+    character(len=PROCESS_SPEC_NAME_LEN) :: dim_name_edges, &
+         dim_name_widths, dim_unit
 
     if (process_spec%type == "kappa") then
-       dim_name = 'critical_supersat'
        dim_unit = '1'
     elseif (process_spec%type == "comp") then
-       dim_name = 'composition'
        dim_unit = '1'
     elseif (process_spec%type == "n_orig_part") then
-       dim_name = 'n_orig_part'
        dim_unit = '1'
     elseif (process_spec%type == "optic_absorb") then
-       dim_name = 'absorb_cross_section_area'
        dim_unit = 'm^2'
     elseif (process_spec%type == "optic_scatter") then
-       dim_name = 'scatter_cross_section_area'
        dim_unit = 'm^2'
     elseif (process_spec%type == "optic_extinct") then
-       dim_name = 'extinct_cross_section_area'
        dim_unit = 'm^2'
     else
        call die_msg(912387902, &
             "unknown process_spec%type: " // trim(process_spec%type))
     end if
-    dim_name_edges = dim_name
+    dim_name_edges = process_spec%dim_name
     dim_name_edges((len_trim(dim_name_edges)+1):) = "_edges"
-    dim_name_widths = dim_name
+    dim_name_widths = process_spec%dim_name
     dim_name_widths((len_trim(dim_name_widths)+1):) = "_widths"
 
-    status = nf90_inq_dimid(ncid, dim_name, dimid_step)
+    status = nf90_inq_dimid(ncid, process_spec%dim_name, dimid_step)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    call pmc_nc_check(nf90_def_dim(ncid, dim_name, &
+    call pmc_nc_check(nf90_def_dim(ncid, process_spec%dim_name, &
          process_spec%n_step, dimid_step))
     call pmc_nc_check(nf90_def_dim(ncid, dim_name_edges, &
          process_spec%n_step + 1, dimid_step_edges))
-    call pmc_nc_check(nf90_def_var(ncid, dim_name, NF90_DOUBLE, &
+    call pmc_nc_check(nf90_def_var(ncid, process_spec%dim_name, NF90_DOUBLE, &
          dimid_step, varid_step))
     call pmc_nc_check(nf90_put_att(ncid, varid_step, "unit", dim_unit))
     call pmc_nc_check(nf90_def_var(ncid, dim_name_edges, NF90_DOUBLE, &

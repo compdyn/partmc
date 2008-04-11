@@ -19,7 +19,7 @@ module pmc_process_spec
 
   !> Maximum length of process_spec%%type.
   integer, parameter :: PROCESS_SPEC_TYPE_LEN = 40
-  !> Maximum length of process_spec%%name.
+  !> Maximum length of process_spec%%name and process_spec%dim_name.
   integer, parameter :: PROCESS_SPEC_NAME_LEN = 200
   !> Maximum length of process_spec%radius
   integer, parameter :: PROCESS_SPEC_RADIUS_LEN = 40
@@ -45,6 +45,8 @@ module pmc_process_spec
      character(len=PROCESS_SPEC_TYPE_LEN) :: type
      !> Output variable name.
      character(len=PROCESS_SPEC_NAME_LEN) :: name
+     !> Step dimension name.
+     character(len=PROCESS_SPEC_NAME_LEN) :: dim_name
      !> Type of radius ("wet" or "dry")
      character(len=PROCESS_SPEC_RADIUS_LEN) :: radius
      !> Number of steps for histogram.
@@ -73,6 +75,7 @@ contains
 
     process_spec%type = "none"
     process_spec%name = "none"
+    process_spec%dim_name = "none"
     process_spec%radius = "wet"
     process_spec%n_step = 0
     process_spec%min_val = 0d0
@@ -125,6 +128,7 @@ contains
 
     process_spec_to%type = process_spec_from%type
     process_spec_to%name = process_spec_from%name
+    process_spec_to%dim_name = process_spec_from%dim_name
     process_spec_to%radius = process_spec_from%radius
     process_spec_to%n_step = process_spec_from%n_step
     process_spec_to%min_val = process_spec_from%min_val
@@ -172,8 +176,9 @@ contains
 
     type(process_spec_t), pointer :: new_process_spec_list(:)
     type(process_spec_t) :: process_spec
-    integer :: i, n_process_spec
+    integer :: i, j, n_process_spec
     logical :: eof
+    character(len=500) :: msg
     
     n_process_spec = 0
     allocate(process_spec_list(n_process_spec))
@@ -194,6 +199,24 @@ contains
        nullify(new_process_spec_list)
        call inout_read_process_spec(file, process_spec, eof)
     end do
+
+    ! check we don't have duplicate names
+    do i = 1,n_process_spec
+       do j = 1,(i-1)
+          if (process_spec_list(i)%name == process_spec_list(j)%name) then
+             write(msg, '(a,a,a,a)') 'duplicate names in ', &
+                  trim(file%name), ': ', trim(process_spec_list(i)%name)
+             call die_msg(529812394, msg)
+          end if
+          if ((process_spec_list(i)%dim_name /= "none") &
+               .and. (process_spec_list(i)%dim_name &
+               == process_spec_list(j)%dim_name)) then
+             write(msg, '(a,a,a,a)') 'duplicate dim_names in ', &
+                  trim(file%name), ': ', trim(process_spec_list(i)%dim_name)
+             call die_msg(728942981, msg)
+          end if
+       end do
+    end do
     
   end subroutine inout_read_process_spec_list
 
@@ -208,6 +231,7 @@ contains
     type(process_spec_t), intent(out) :: process_spec
     !> If eof instead of reading data.
     logical :: eof
+    character(len=MAX_VAR_LEN) :: tmp_str
 
     type(inout_line_t) :: line
 
@@ -216,7 +240,8 @@ contains
        call inout_check_line_name(file, line, "process")
        call inout_check_line_length(file, line, 1)
        call process_spec_alloc(process_spec)
-       process_spec%type = line%data(1)(1:PROCESS_SPEC_TYPE_LEN)
+       tmp_str = line%data(1) ! hack to avoid gfortran warning
+       process_spec%type = tmp_str(1:PROCESS_SPEC_TYPE_LEN)
        call inout_read_string(file, "name", process_spec%name)
        if (process_spec%type == "aero") then
           call inout_read_process_spec_aero(file, process_spec)
@@ -289,6 +314,7 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "dim_name", process_spec%dim_name)
     call inout_read_string(file, "radius", process_spec%radius)
     call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)
@@ -310,7 +336,9 @@ contains
 
     type(inout_line_t) :: line
     integer :: i
+    character(len=MAX_VAR_LEN) :: tmp_str
 
+    call inout_read_string(file, "dim_name", process_spec%dim_name)
     call inout_read_string(file, "radius", process_spec%radius)
     call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)
@@ -322,7 +350,8 @@ contains
     deallocate(process_spec%a_species)
     allocate(process_spec%a_species(size(line%data)))
     do i = 1,size(line%data)
-       process_spec%a_species(i) = line%data(i)(1:AERO_NAME_LEN)
+       tmp_str = line%data(i) ! hack to avoid gfortran warning
+       process_spec%a_species(i) = tmp_str(1:AERO_NAME_LEN)
     end do
     call inout_line_free(line)
 
@@ -331,7 +360,8 @@ contains
     deallocate(process_spec%b_species)
     allocate(process_spec%b_species(size(line%data)))
     do i = 1,size(line%data)
-       process_spec%b_species(i) = line%data(i)(1:AERO_NAME_LEN)
+       tmp_str = line%data(i) ! hack to avoid gfortran warning
+       process_spec%b_species(i) = tmp_str(1:AERO_NAME_LEN)
     end do
     call inout_line_free(line)
 
@@ -347,6 +377,7 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "dim_name", process_spec%dim_name)
     call inout_read_string(file, "radius", process_spec%radius)
     call process_spec_check_radius(process_spec, file)
     call inout_read_real(file, "min", process_spec%min_val)
@@ -365,6 +396,7 @@ contains
     !> Data to read.
     type(process_spec_t), intent(out) :: process_spec
 
+    call inout_read_string(file, "dim_name", process_spec%dim_name)
     call inout_read_string(file, "radius", process_spec%radius)
     call process_spec_check_radius(process_spec, file)
     call inout_read_integer(file, "n_step", process_spec%n_step)

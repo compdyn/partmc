@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,11 @@ from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "optic_scatter",
 	       [])
 data.write_summary(sys.stdout)
@@ -47,4 +51,4 @@ for i in range(len(times_hour)):
                   max = max_val,
                   title = r"number density",
                   palette = rainbow_palette)
-    g.writePDFfile("out/testcase_nocoag/aero_optic_scatter_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/%s/aero_optic_scatter_%d.pdf" % (subdir, times_hour[i]))

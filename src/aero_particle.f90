@@ -284,7 +284,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the water element of quantity.
-  real*8 function average_water_quantity(aero_particle, &
+  real*8 function aero_particle_average_water_quantity(aero_particle, &
        aero_data, quantity)
 
     !> Aerosol particle.
@@ -295,14 +295,14 @@ contains
     real*8, intent(in) :: quantity(:)
 
     call assert(420016623, aero_data%i_water > 0)
-    average_water_quantity = quantity(aero_data%i_water)
+    aero_particle_average_water_quantity = quantity(aero_data%i_water)
 
-  end function average_water_quantity
+  end function aero_particle_average_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-total of the water element of quantity.
-  real*8 function total_water_quantity(aero_particle, &
+  real*8 function aero_particle_total_water_quantity(aero_particle, &
        aero_data, quantity)
 
     !> Aerosol particle.
@@ -313,10 +313,11 @@ contains
     real*8, intent(in) :: quantity(:)
 
     call assert(223343210, aero_data%i_water > 0)
-    total_water_quantity = aero_particle%vol(aero_data%i_water) &
+    aero_particle_total_water_quantity &
+         = aero_particle%vol(aero_data%i_water) &
          * quantity(aero_data%i_water)
 
-  end function total_water_quantity
+  end function aero_particle_total_water_quantity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

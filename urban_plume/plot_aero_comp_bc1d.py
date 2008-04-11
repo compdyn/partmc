@@ -14,7 +14,11 @@ from Scientific.IO.NetCDF import *
 
 times_hour = [1, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -44,4 +48,4 @@ for i in range(len(times_hour)):
                            title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_nocoag/aero_comp_bc1d0-20.pdf")
+g.writePDFfile("out/%s/aero_comp_bc1d0-20.pdf" % subdir)

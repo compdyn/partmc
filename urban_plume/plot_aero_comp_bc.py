@@ -13,14 +13,18 @@ from pmc_pyx import *
 
 times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
 
-data = pmc_var(NetCDFFile("out/testcase_nococo/urban_plume_state_0001.nc"),
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
-data.scale_dim("composition", 100)
+data.scale_dim("composition_bc", 100)
 data.scale_dim("radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
@@ -54,4 +58,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/testcase_nococo/aero_comp_bc_num_%d.pdf" % times_hour[i])
+    g.writePDFfile("out/%s/aero_comp_bc_num_%d.pdf" % (subdir, times_hour[i]))

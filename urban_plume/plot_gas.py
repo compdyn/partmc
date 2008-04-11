@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -14,7 +14,11 @@ from pmc_pyx import *
 #gas_species = ["C2H6", "HCHO", "ANOL", "TOL", "ETH", "ISOP"]
 gas_species = ["NO2",  "O3", "HNO3", "SO2", "NH3", "NO"]
 
-data = pmc_var(NetCDFFile("out/testcase_nocoag/urban_plume_state_0001.nc"),
+subdir = "."
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+
+data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "gas",
 	       [])
 
@@ -37,4 +41,4 @@ for i in range(len(gas_species)):
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/testcase_nocoag/gas_dilut_anorg_4.pdf")
+g.writePDFfile("out/%s/gas_dilut_anorg_4.pdf" % subdir)

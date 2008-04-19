@@ -286,6 +286,10 @@ class pmc_var:
 	    raise Exception("dimension not found: %s" % dim_name)
 	return i_dim
 
+    def dim_by_name(self, dim_name):
+        i_dim = self.find_dim_by_name(dim_name)
+        return self.dims[i_dim]
+
     def data_center_list(self, strip_zero = False):
 	if len(self.dims) != 1:
 	    raise Exception("can only generate list with exactly one dim")

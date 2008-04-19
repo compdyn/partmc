@@ -3,12 +3,12 @@ output_prefix out/urban_plume   # prefix of output files
 state_prefix out/urban_plume_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
-n_part 10000                   # total number of particles
+n_part 100                   # total number of particles
 kernel brown                    # coagulation kernel
 
-t_max 6000                       # total simulation time (s)
+t_max 129600                       # total simulation time (s)
 del_t 300                       # timestep (s)
-t_output 300                    # output interval (0 disables) (s)
+t_output 3600                    # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_progress 300                  # progress printing interval (0 disables) (s)
 

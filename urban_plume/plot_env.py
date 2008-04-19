@@ -23,23 +23,39 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 
 data.write_summary(sys.stdout)
 
-data.reduce([select("env", "height")])
-print data.data
+data.scale_dim("time", 1.0/3600)
+
+temp_data = module_copy.deepcopy(data)
+temp_data.reduce([select("env", "temp")])
+rh_data = module_copy.deepcopy(data)
+rh_data.reduce([select("env", "rel_humid")])
+rh_data.scale(100.0)
+height_data = module_copy.deepcopy(data)
+height_data.reduce([select("env", "height")])
+
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(title = "time (hour)",
 			  painter = grid_painter),
-    y = graph.axis.linear(title = "mixing height (m)",
-			  painter = grid_painter),
+    y = graph.axis.linear(title = "temperature (K)",
+                          painter = grid_painter),
+    y2 = graph.axis.linear(title = r"relative humidity (\%)"),
+    y4 = graph.axis.linear(title = "mixing height (m)"),
     key = graph.key.key(pos = "tr"))
 
-data_slice = module_copy.deepcopy(data)
-print data_slice.data
-data_slice.scale_dim("time", 1.0/3600)
-#data_slice.scale(100.)
-g.plot(graph.data.list(data_slice.data_center_list(),
+g.plot(graph.data.list(temp_data.data_center_list(),
 			   x = 1, y = 2,
-                           title = "H"),
+                           title = "temperature"),
              styles = [graph.style.line(lineattrs = [color_list[1]])])
 
-g.writePDFfile("out/%s/env_h.pdf" % subdir)
+g.plot(graph.data.list(rh_data.data_center_list(),
+			   x = 1, y2 = 2,
+                           title = "relative humidity"),
+             styles = [graph.style.line(lineattrs = [color_list[2]])])
+
+g.plot(graph.data.list(height_data.data_center_list(),
+			   x = 1, y4 = 2,
+                           title = "mixing height"),
+             styles = [graph.style.line(lineattrs = [color_list[3]])])
+
+g.writePDFfile("out/%s/env.pdf" % subdir)

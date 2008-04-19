@@ -141,3 +141,24 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
     gc.dobackground()
     gc.dodata()
     gc.doaxes()
+
+class time_of_day:
+    "a texter creating labels of the form 04:50 for 4 hours and 50 minutes"
+
+    def __init__(self, base_time = 0, labelattrs = []):
+        """initializes the instance
+        - base_time is the offset to add (minutes)
+        - labelattrs is a list of attributes to be added to the label
+          attributes given in the painter"""
+        self.base_time = base_time
+        self.labelattrs = labelattrs
+
+    def labels(self, ticks):
+        for tick in ticks:
+            if tick.label is None and tick.labellevel is not None:
+                time = float(tick.num) / float(tick.denom) + self.base_time
+                hours, minutes = divmod(time, 60)
+                hours = hours % 24
+                tick.label = "%02d:%02d" % (hours, minutes)
+                tick.labelattrs = tick.labelattrs + self.labelattrs
+

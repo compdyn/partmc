@@ -27,12 +27,16 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 		select("unit", "mass_den")])
 data.write_summary(sys.stdout)
 
-data.scale_dim("time", 1.0/3600)
+data.scale_dim("time", 1.0/60)
 data.scale(1e9)
 
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(title = "time (hour)",
+                          max = max(data.dim_by_name("time").grid_centers),
+                          parter = graph.axis.parter.linear(tickdists
+                                                            = [6 * 60, 3 * 60]),
+                          texter = time_of_day(base_time = 6 * 60),
 			  painter = grid_painter),
     y = graph.axis.linear(title = "mass density ($\mu$g/m$^3$)",
 			  painter = grid_painter),

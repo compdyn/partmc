@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 env = ["H"]
 
-subdir = "."
+subdir = "withcoag_dry"
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
@@ -23,7 +23,7 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 
 data.write_summary(sys.stdout)
 
-data.scale_dim("time", 1.0/3600)
+data.scale_dim("time", 1.0/60)
 
 temp_data = module_copy.deepcopy(data)
 temp_data.reduce([select("env", "temp")])
@@ -35,7 +35,13 @@ height_data.reduce([select("env", "height")])
 
 g = graph.graphxy(
     width = 10,
-    x = graph.axis.linear(title = "time (hour)",
+    x = graph.axis.linear(min = 0.,
+                          max = 1440,
+#                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
+			  title = "time (hour)",
+                          parter = graph.axis.parter.linear(tickdists
+                                                            = [6 * 60, 3 * 60]),
+                          texter = time_of_day(base_time = 6 * 60),
 			  painter = grid_painter),
     y = graph.axis.linear(title = "temperature (K)",
                           painter = grid_painter),
@@ -46,16 +52,16 @@ g = graph.graphxy(
 g.plot(graph.data.list(temp_data.data_center_list(),
 			   x = 1, y = 2,
                            title = "temperature"),
-             styles = [graph.style.line(lineattrs = [color_list[1]])])
+             styles = [graph.style.line(lineattrs = [color_list[1], style.linewidth.THick])])
 
 g.plot(graph.data.list(rh_data.data_center_list(),
 			   x = 1, y2 = 2,
                            title = "relative humidity"),
-             styles = [graph.style.line(lineattrs = [color_list[2]])])
+             styles = [graph.style.line(lineattrs = [color_list[2],style.linewidth.THick])])
 
 g.plot(graph.data.list(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
-             styles = [graph.style.line(lineattrs = [color_list[3]])])
+             styles = [graph.style.line(lineattrs = [color_list[5],style.linewidth.THick])])
 
 g.writePDFfile("out/%s/env.pdf" % subdir)

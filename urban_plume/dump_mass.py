@@ -20,7 +20,9 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 data.reduce([select("unit", "mass_den")])
 data.write_summary(sys.stdout)
 print
-print "All values are in kg/m3"
+print "This is dm/dlnr. All values are in kg/m3"
+print
+print "dlnr = ", data.dims[2].grid_widths[0]
 print
 for i_time in range(size(data.data,0)):
     print "time = ", data.dims[0].grid_centers[i_time], "seconds"

@@ -11,10 +11,10 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [0, 1, 6, 12, 24]
+times_hour = [0, 1, 6, 12]
 times_sec = [t * 3600 for t in times_hour]
 
-subdir = "withcoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 

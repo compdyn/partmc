@@ -17,7 +17,7 @@ aero_species = ["SO4", "NO3", "NH4", "OC", "BC"]
 #aero_species = ["API1", "API2", "LIM1", "LIM2" ]
 #aero_species = ["OIN" ]
 
-subdir = "withcoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
@@ -33,7 +33,7 @@ data.scale(1e9)
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(min = 0,
-                          max = 1440,
+                          max = 720,
                           title = "time (hour)",
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
 #                          max = max(data.dim_by_name("time").grid_centers),

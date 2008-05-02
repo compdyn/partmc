@@ -14,7 +14,7 @@ from pmc_pyx import *
 #gas_species = ["C2H6", "HCHO", "ANOL", "TOL", "ETH", "ISOP"]
 gas_species = ["NO2",  "O3", "HNO3", "SO2", "NH3", "HCHO"]
 
-subdir = "withcoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
@@ -28,7 +28,7 @@ data.scale_dim("time", 1.0/60)
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(min = 0.,
-                          max = 1440,
+                          max = 720,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
 #                          max = max(data.dim_by_name("time").grid_centers),
                           parter = graph.axis.parter.linear(tickdists

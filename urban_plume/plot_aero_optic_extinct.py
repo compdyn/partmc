@@ -11,7 +11,7 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1, 6, 12, 18, 24]
+times_hour = [1, 6, 12]
 
 subdir = "."
 if len(sys.argv) > 1:
@@ -24,16 +24,16 @@ data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
-data.scale_dim("radius", 1e6)
+data.scale_dim("dry_radius", 1e6)
 data.scale_dim("time", 1.0/3600)
-data.scale_dim("extinct_cross_section_area", 1e12)
+data.scale_dim("extinct_area", 1e12)
 
 for i in range(len(times_hour)):
     g = graph.graphxy(
 	width = 10,
 	x = graph.axis.log(min = 0.005,
                            max = 1e+0,
-                           title = r'radius ($\mu$m)',
+                           title = r'dry radius ($\mu$m)',
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'extinction cross sectional area ($\mu {\rm m}^2$)',
 			   painter = grid_painter))

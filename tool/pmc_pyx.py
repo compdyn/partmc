@@ -70,8 +70,8 @@ aerosol_species_tex = {
     "Na": "Na",
     "Ca": "Ca",
     "OIN": "OIN",
-    "OC": "Organic carbon",
-    "BC": "Black carbon",
+    "OC": "POM",
+    "BC": "soot",
     "H2O": "H$_2$O",
     }
 

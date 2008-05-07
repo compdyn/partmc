@@ -38,7 +38,7 @@ g = graph.graphxy(
     x = graph.axis.linear(min = 0.,
                           max = 1440,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
-			  title = "time (hour)",
+			  title = "local standard time",
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),
@@ -46,8 +46,8 @@ g = graph.graphxy(
     y = graph.axis.linear(title = "temperature (K)",
                           painter = grid_painter),
     y2 = graph.axis.linear(title = r"relative humidity (\%)"),
-    y4 = graph.axis.linear(title = "mixing height (m)"),
-    key = graph.key.key(pos = "tr"))
+    y4 = graph.axis.linear(title = "mixing height (m)"))
+#    key = graph.key.key(pos = "tr"))
 
 g.plot(graph.data.list(temp_data.data_center_list(),
 			   x = 1, y = 2,
@@ -63,5 +63,8 @@ g.plot(graph.data.list(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color_list[5],style.linewidth.THick])])
+g.text(6,0.4,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(6.5,3,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(7,5.3,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g.writePDFfile("out/%s/env.pdf" % subdir)

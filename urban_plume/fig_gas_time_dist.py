@@ -37,7 +37,7 @@ g = graph.graphxy(
                           title = "local standard time",
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
-                          max = 150,
+                          max = 125,
                           title = "gas concentration (ppb)",
 			  painter = grid_painter),
     key = graph.key.key(pos = "tr"))

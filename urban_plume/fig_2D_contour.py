@@ -25,7 +25,7 @@ data.write_summary(sys.stdout)
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
 data.scale_dim("composition_bc", 100)
-data.scale_dim("dry_radius", 1e6)
+data.scale_dim("dry_radius", 2e6)
 data.scale_dim("time", 1.0/3600)
 
 for i in range(len(times_hour)):
@@ -33,7 +33,7 @@ for i in range(len(times_hour)):
 	width = 6,
 	x = graph.axis.log(min = 2.e-3,
                            max = 1.e+0,
-                           title = r'dry radius ($\mu$m)',
+                           title = r'dry diameter ($\mu$m)',
 			   painter = grid_painter),
 	y = graph.axis.linear(min = 0,
 			      max = 100,

@@ -3,7 +3,7 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys
+import os, sys, math
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
@@ -26,8 +26,10 @@ data1.reduce([select("unit", "mass_den"),
 
 print data1.data
 
-data1.scale_dim("dry_radius", 2e6)
-data1.scale(2.303*1e9)
+data1.scale_dim("dry_radius", 1e6) # m to um
+data1.scale_dim("dry_radius", 2.0) # radius to diameter
+data1.scale(1e9) # kg/m^3 to ug/m^3
+data1.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 data2 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
 	       "aero", [])
@@ -37,8 +39,10 @@ data2.reduce([select("unit", "mass_den"),
 
 print data2.data
 
-data2.scale_dim("dry_radius", 2e6)
-data2.scale(2.303*1e9)
+data2.scale_dim("dry_radius", 1e6) # m to um
+data2.scale_dim("dry_radius", 2.0) # radius to diameter
+data2.scale(1e9) # kg/m^3 to ug/m^3
+data2.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 g = graph.graphxy(
     width = 10,

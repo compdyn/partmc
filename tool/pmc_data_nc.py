@@ -243,6 +243,8 @@ class pmc_dim:
 	    self.grid_centers = [x * factor for x in self.grid_centers]
 	if self.grid_edges != None:
 	    self.grid_edges = [x * factor for x in self.grid_edges]
+        if self.grid_widths != None:
+            self.grid_widths = [x / factor for x in self.grid_widths]
 
 class pmc_var:
     def __init__(self):

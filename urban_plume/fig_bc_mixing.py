@@ -12,209 +12,69 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 from Scientific.IO.NetCDF import *
 
-times_hour = [24]
+time_hour = 24
+composition_lower = [0,  2, 80]
+composition_upper = [2, 10, 90]
 
-data1 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
+data_no = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
 	       "comp_bc",
 	       [])
-data1.write_summary(sys.stdout)
-data1.scale_dim("composition_bc", 100)
-data1.scale_dim("dry_radius", 2e6)
-data1.scale_dim("time", 1.0/3600)
-
-data1.reduce([select("unit", "mass_den"),
-		 sum("aero_species"),
-                 sum("composition_bc", above = 0, below = 100)])
-data1.scale(2.303e7)  #scaling factor 10^7 = 10^9 (for kg in microgramm) x 10^-2 (summing over composition)
-                      # 2.303 for converting into decadal log
-data2 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data2.write_summary(sys.stdout)
-data2.scale_dim("composition_bc", 100)
-data2.scale_dim("dry_radius", 2e6)      # scaling factor 2 for converting into diameter. 10^6 for converting m in micron
-data2.scale_dim("time", 1.0/3600)
-
-data2.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 2, below = 10)])
-data2.scale(2.303e7)
-
-data3 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data3.write_summary(sys.stdout)
-data3.scale_dim("composition_bc", 100)
-data3.scale_dim("dry_radius", 2e6)
-data3.scale_dim("time", 1.0/3600)
-
-data3.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 10, below = 20)])
-data3.scale(1e7)
-
-data4 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data4.write_summary(sys.stdout)
-data4.scale_dim("composition_bc", 100)
-data4.scale_dim("dry_radius", 2e6)
-data4.scale_dim("time", 1.0/3600)
-
-data4.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 20, below = 40)])
-data4.scale(1e7)
-
-data5 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data5.write_summary(sys.stdout)
-data5.scale_dim("composition_bc", 100)
-data5.scale_dim("dry_radius", 2e6)
-data5.scale_dim("time", 1.0/3600)
-
-data5.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 80, below = 90)])
-data5.scale(1e7)
-
-data1a = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
+data_wc = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
 	       "comp_bc",
 	       [])
-data1a.write_summary(sys.stdout)
-data1a.scale_dim("composition_bc", 100)
-data1a.scale_dim("dry_radius", 2e6)
-data1a.scale_dim("time", 1.0/3600)
 
-data1a.reduce([select("unit", "mass_den"),
-		 sum("aero_species"),
-                 sum("composition_bc", above = 0, below = 100)])
-data1a.scale(1e7)
+data_no.write_summary(sys.stdout)
+data_wc.write_summary(sys.stdout)
 
-data2a = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data2a.write_summary(sys.stdout)
-data2a.scale_dim("composition_bc", 100)
-data2a.scale_dim("dry_radius", 2e6)
-data2a.scale_dim("time", 1.0/3600)
+data_no.scale_dim("composition_bc", 100)
+data_wc.scale_dim("composition_bc", 100)
 
-data2a.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 2, below = 10)])
-data2a.scale(1e7)
+data_no.scale_dim("dry_radius", 2e6)
+data_wc.scale_dim("dry_radius", 2e6)
 
-data3a = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data3a.write_summary(sys.stdout)
-data3a.scale_dim("composition_bc", 100)
-data3a.scale_dim("dry_radius", 2e6)
-data3a.scale_dim("time", 1.0/3600)
+data_no.scale_dim("time", 1.0/3600)
+data_wc.scale_dim("time", 1.0/3600)
 
-data3a.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 10, below = 20)])
-data3a.scale(1e7)
+data_no.reduce([select("unit", "mass_den"),
+                select("time", time_hour),
+		sum("aero_species", without = "H2O")])
+data_wc.reduce([select("unit", "mass_den"),
+                select("time", time_hour),
+		sum("aero_species", without = "H2O")])
 
-data4a = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data4a.write_summary(sys.stdout)
-data4a.scale_dim("composition_bc", 100)
-data4a.scale_dim("dry_radius", 2e6)
-data4a.scale_dim("time", 1.0/3600)
-
-data4a.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 20, below = 40)])
-data4a.scale(1e7)
-
-data5a = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
-               "comp_bc",
-               [])
-data5a.write_summary(sys.stdout)
-data5a.scale_dim("composition_bc", 100)
-data5a.scale_dim("dry_radius", 2e6)
-data5a.scale_dim("time", 1.0/3600)
-
-data5a.reduce([select("unit", "mass_den"),
-                 sum("aero_species"),
-                 sum("composition_bc", above = 80, below = 90)])
-data5a.scale(1e7)
+data_no.scale(1e9) # kg/m^3 to ug/m^3
+data_wc.scale(1e9) # kg/m^3 to ug/m^3
+data_no.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
+data_wc.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 g = graph.graphxy(
 	width = 10,
 	x = graph.axis.log(title = r'dry diameter ($\mu$m)',
-                           min = 0.005, max = 1,
+                           min = 0.01, max = 2,
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',
-                           min = 1e-5, max =1e1,
+                           min = 1e-5, max =1e2,
 			   painter = grid_painter),
-        key = graph.key.key(pos = "tr"))
+        key = graph.key.key(pos = "br"))
 
-for i in range(len(times_hour)):
-    data1_slice = module_copy.deepcopy(data1)
-    data1_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data1_slice.data_center_list(strip_zero = True),
+for i in range(len(composition_lower)):
+    data_no_slice = module_copy.deepcopy(data_no)
+    data_wc_slice = module_copy.deepcopy(data_wc)
+        
+    reducer1 = sum("composition_bc", above = composition_lower[i], below = composition_upper[i])
+    reducers = [reducer1]
+    data_no_slice.reduce(reducers)
+    data_wc_slice.reduce(reducers)
+
+    g.plot(graph.data.list(data_no_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
-                           title = "0-2 no"),
-	   styles = [graph.style.line(lineattrs = [color_list[i+1]])])
-    data2_slice = module_copy.deepcopy(data2)
-    data2_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
-                           x = 1, y = 2,
-                           title = "2-10 no"),
-           styles = [graph.style.line(lineattrs = [color_list[i+2]])])
-    data3_slice = module_copy.deepcopy(data3)
-    data3_slice.reduce([select("time", times_hour[i])])
-#    g.plot(graph.data.list(data3_slice.data_center_list(strip_zero = True),
-#                           x = 1, y = 2,
-#                           title = "10-20 no"),
-#           styles = [graph.style.line(lineattrs = [color_list[i+3]])])
-    data4_slice = module_copy.deepcopy(data4)
-    data4_slice.reduce([select("time", times_hour[i])])
-#    g.plot(graph.data.list(data4_slice.data_center_list(strip_zero = True),
-#                           x = 1, y = 2,
-#                           title = "20-40"),
-#           styles = [graph.style.line(lineattrs = [color_list[i+4]])])
-    data5_slice = module_copy.deepcopy(data5)
-    data5_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data5_slice.data_center_list(strip_zero = True),
-                           x = 1, y = 2,
-                           title = "80-90 no"),
-           styles = [graph.style.line(lineattrs = [color_list[i+5]])])
-    data1a_slice = module_copy.deepcopy(data1a)
-    data1a_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data1a_slice.data_center_list(strip_zero = True),
+                           title = "no %d - %d" % (composition_lower[i], composition_upper[i])),
+	   styles = [graph.style.line(lineattrs = [color_list[i]])])
+
+    g.plot(graph.data.list(data_wc_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
-                           title = "0-2 with"),
-	   styles = [graph.style.line(lineattrs = [color_list[i+1],style.linewidth.THick])])
-    data2a_slice = module_copy.deepcopy(data2a)
-    data2a_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data2a_slice.data_center_list(strip_zero = True),
-                           x = 1, y = 2,
-                           title = "2-10 with"),
-           styles = [graph.style.line(lineattrs = [color_list[i+2],style.linewidth.THick])])
-    data3a_slice = module_copy.deepcopy(data3)
-    data3a_slice.reduce([select("time", times_hour[i])])
-#    g.plot(graph.data.list(data3a_slice.data_center_list(strip_zero = True),
-#                           x = 1, y = 2,
-#                           title = "10-20 with"),
-#           styles = [graph.style.line(lineattrs = [color_list[i+3],style.linewidth.THick])])
-    data4a_slice = module_copy.deepcopy(data4a)
-    data4a_slice.reduce([select("time", times_hour[i])])
-#    g.plot(graph.data.list(data4a_slice.data_center_list(strip_zero = True),
-#                           x = 1, y = 2,
-#                           title = "20-40"),
-#           styles = [graph.style.line(lineattrs = [color_list[i+4]])])
-    data5a_slice = module_copy.deepcopy(data5a)
-    data5a_slice.reduce([select("time", times_hour[i])])
-    g.plot(graph.data.list(data5a_slice.data_center_list(strip_zero = True),
-                           x = 1, y = 2,
-                           title = "80-90 with"),
-           styles = [graph.style.line(lineattrs = [color_list[i+5],style.linewidth.THick])])
+                           title = "wc %d - %d" % (composition_lower[i], composition_upper[i])),
+           styles = [graph.style.line(lineattrs = [color_list[i],style.linewidth.THick])])
 
 
-g.writePDFfile("out/nocoag_dry/aero_comp_bc1m_t24ww.pdf")
+g.writePDFfile("figs/aero_comp_bc1m_t24ww.pdf")

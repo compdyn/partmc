@@ -54,7 +54,7 @@ g = graph.graphxy(
                        max = 1.e1,
                        title = "mass density ($\mu$g/m$^3$)",
 		       painter = grid_painter),
-    key = graph.key.key(pos = "tl"))
+    key = graph.key.key(pos = "bc"))
 
 for i in range(len(times_sec)):
     data1_slice = module_copy.deepcopy(data1)
@@ -68,6 +68,6 @@ data2_slice.reduce([select("time", times_sec[2])])
 g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
-	   styles = [graph.style.line(lineattrs = [color_list[4], style.linewidth.THick])])
+	   styles = [graph.style.line(lineattrs = [color_list[2], style.linewidth.THick, style.linestyle.dashed])])
 
 g.writePDFfile("out/withcoag_dry/aero_dist_BC.pdf")

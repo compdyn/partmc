@@ -11,11 +11,13 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-aero_species = ["NO3", "NH4", "OC", "SO4","BC"]
-#aero_species = ["BC" ]
-#aero_species = ["ARO1", "ARO2", "ALK1", "OLE1" ]
-#aero_species = ["API1", "API2", "LIM1", "LIM2" ]
-#aero_species = ["OIN" ]
+aero_species = [["NO3"],
+                ["NH4"],
+                ["OC"],
+                ["SO4"],
+                ["BC"],
+                ["ARO1", "ARO2", "ALK1", "OLE1" ]]
+key_names = [ None, None, None, None, None, "SOA"]  # None means use default
 
 subdir = "withcoag_dry"
 if len(sys.argv) > 1:
@@ -47,10 +49,15 @@ g = graph.graphxy(
 print max(data.dim_by_name("time").grid_centers)
 for i in range(len(aero_species)):
     data_slice = module_copy.deepcopy(data)
-    data_slice.reduce([select("aero_species", aero_species[i])])
+    data_slice.reduce([sum("aero_species", only = aero_species[i])])
+    if key_names[i] == None:
+        title_name =  tex_species(aero_species[i][0])
+    else:
+        title_name = key_names[i]
+        
     g.plot(graph.data.list(data_slice.data_center_list(),
 			   x = 1, y = 2,
-			   title = tex_species(aero_species[i])),
+			   title = title_name),
 	   styles = [graph.style.line(lineattrs = [color_list[i],style.linewidth.THick])])
 
 #data.reduce([sum("aero_species")])

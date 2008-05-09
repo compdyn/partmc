@@ -41,15 +41,17 @@ def sum_range(data, widths, i_dim, i_range):
     return new_data
 
 class sum(reducer):
-    def __init__(self, dim_name, above = None, below = None, only = None):
+    def __init__(self, dim_name, above = None, below = None, only = None,
+                 without = None):
 	self.dim_name = dim_name      # dimension name to reduce
 	self.above = above            # value to sum above
 	self.below = below            # value to sum below
 	self.only = only              # list of values to sum
+        self.without = without        # list of values to leave out of sum
 	if only:
-	    if above or below:
-		raise Exception("cannot provide above or below if only is"
-				+ " is given: %s" % dim_name)
+	    if above or below or without:
+		raise Exception("cannot provide above, below or without if"
+				+ " only is is given: %s" % dim_name)
 
     def reduce(self, d):
 	i_dim = d.find_dim_by_name(self.dim_name)
@@ -70,6 +72,9 @@ class sum(reducer):
 	    else:
 		i_val_high = size(d.data, i_dim) - 1
 	    i_range = range(i_val_low, i_val_high + 1)
+            if self.without:
+                for val in self.without:
+                    del i_range[d.dims[i_dim].find_grid_by_value(val)]
 	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim, i_range)
 	del d.dims[i_dim]
 

@@ -52,3 +52,5 @@ for i in range(len(gas_species)):
 	   styles = [graph.style.line(lineattrs = [color_list[i], style.linewidth.THick])])
 
 g.writePDFfile("figs/gas_time_dist.pdf" % subdir)
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

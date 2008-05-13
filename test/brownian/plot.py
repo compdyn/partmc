@@ -80,7 +80,7 @@ for i in range(len(times_sec)):
 			title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
-				     symbolattrs = [color_list[i]])])
+				     symbolattrs = [color.grey.black])])
     g_num_lin.text(1.5,3,"0 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num_lin.text(2.5,1,"12 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num_lin.text(4.1,0.4,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
@@ -91,7 +91,7 @@ for i in range(len(times_sec)):
 			title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
-				     symbolattrs = [color_list[i]])])
+				     symbolattrs = [color.grey.black])])
     g_num_log.text(0.5,3,"0 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num_log.text(1.0,2,"12 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num_log.text(1.8,0.6,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
@@ -105,7 +105,7 @@ for i in range(len(times_sec)):
 			title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
-				     symbolattrs = [color_list[i]])])
+				     symbolattrs = [color.grey.black])])
     g_vol_lin.text(2.5,1.1,"0 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_vol_lin.text(2.5,0.5,"12 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_vol_lin.text(3.2,0.2,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
@@ -116,7 +116,7 @@ for i in range(len(times_sec)):
 			title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
-				     symbolattrs = [color_list[i]])])
+				     symbolattrs = [color.grey.black])])
 
     data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "num_den"),
@@ -129,12 +129,12 @@ for i in range(len(times_sec)):
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
 			title = "%g hours sect" % times_hour[i]),
-	styles = [graph.style.line(lineattrs = [color_list[i]])])
+	styles = [graph.style.line(lineattrs = [color.grey.black])])
     g_num_log.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
 			title = "%g hours sect" % times_hour[i]),
-	styles = [graph.style.line(lineattrs = [color_list[i]])])
+	styles = [graph.style.line(lineattrs = [color.grey.black])])
     
     data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "vol_den"),
@@ -143,14 +143,25 @@ for i in range(len(times_sec)):
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
 			title = "%g hours sect" % times_hour[i]),
-	styles = [graph.style.line(lineattrs = [color_list[i]])])
+	styles = [graph.style.line(lineattrs = [color.grey.black])])
     g_vol_log.plot(
 	graph.data.list(data_slice.data_center_list(strip_zero = True),
 			x = 1, y = 2,
 			title = "%g hours sect" % times_hour[i]),
-	styles = [graph.style.line(lineattrs = [color_list[i]])])
+	styles = [graph.style.line(lineattrs = [color.grey.black])])
     
 g_num_lin.writePDFfile("out/brown_num_lin.pdf")
 g_num_log.writePDFfile("out/brown_num_log.pdf")
 g_vol_lin.writePDFfile("out/brown_vol_lin.pdf")
 g_vol_log.writePDFfile("out/brown_vol_log.pdf")
+print "figure height = %.1f cm" % unit.tocm(g_num_lin.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g_num_lin.bbox().width())
+
+print "figure height = %.1f cm" % unit.tocm(g_num_log.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g_num_log.bbox().width())
+
+print "figure height = %.1f cm" % unit.tocm(g_vol_lin.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g_vol_lin.bbox().width())
+
+print "figure height = %.1f cm" % unit.tocm(g_vol_log.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g_vol_log.bbox().width())

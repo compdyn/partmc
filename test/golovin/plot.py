@@ -54,7 +54,7 @@ for i in range(len(times_sec)):
 			       title = "%g mins MC" % times_min[i]),
 	       styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 					    size = 0.05,
-					    symbolattrs = [color_list[i]])])
+					    symbolattrs = [color.grey.black])])
     g_num.text(3.8,2.8,"0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num.text(4.2,2,"5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
     g_num.text(4.5,1.2,"10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
@@ -78,7 +78,7 @@ for i in range(len(times_sec)):
     g_num.plot(graph.data.list(data_slice.data_center_list(strip_zero = True),
 			       x = 1, y = 2,
 			       title = "%g mins exact" % times_min[i]),
-	       styles = [graph.style.line(lineattrs = [color_list[i]])])
+	       styles = [graph.style.line(lineattrs = [color.grey.black])])
     
     data_slice = module_copy.deepcopy(exact_data)
     data_slice.reduce([select("unit", "vol_den"),
@@ -90,3 +90,6 @@ for i in range(len(times_sec)):
     
 g_num.writePDFfile("out/golovin_num.pdf")
 g_vol.writePDFfile("out/golovin_vol.pdf")
+
+print "figure height = %.1f cm" % unit.tocm(g_num.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g_num.bbox().width())

@@ -1,14 +1,12 @@
 
-Sedimentation Exponential Test-case
+Brownian Lognormal Test-case
 ===================================
 
-The initial condition is a single species of particle with an
-exponential distribution and the simulation using the sedimentation
+The initial condition is a single species of particle with two overlapping 
+lognormal distributions and the simulation using the brownian
 kernel. No analytical solution is known for this case, so a sectional
-code is used as verification. By default this testcase uses 10^6
-particles, which is not enough to resolve the larger peak in the
-volume density. Increasing to 10^7 or 10^8 particles fixes this at the
-expense of a longer computation.
+code is used as verification. By default this testcase uses 10^5
+particles, performing 1 Monte Carlo simulation
 
 This test-case demonstrates the use of the sectional model and
 comparison of sectional runs with Monte Carlo runs.

@@ -34,7 +34,8 @@ height_data = module_copy.deepcopy(data)
 height_data.reduce([select("env", "height")])
 
 g = graph.graphxy(
-    width = 6,
+    width = 10,
+    height = 4,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
@@ -52,19 +53,21 @@ g = graph.graphxy(
 g.plot(graph.data.list(temp_data.data_center_list(),
 			   x = 1, y = 2,
                            title = "temperature"),
-             styles = [graph.style.line(lineattrs = [color_list[1], style.linewidth.THick])])
+             styles = [graph.style.line(lineattrs = [color.grey.black, style.linewidth.Thick])])
 
 g.plot(graph.data.list(rh_data.data_center_list(),
 			   x = 1, y2 = 2,
                            title = "relative humidity"),
-             styles = [graph.style.line(lineattrs = [color_list[2],style.linewidth.THick])])
+             styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashed])])
 
 g.plot(graph.data.list(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
-             styles = [graph.style.line(lineattrs = [color_list[5],style.linewidth.THick])])
-g.text(6,0.4,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(6.5,3,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(7,5.3,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+             styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])
+#g.text(6,0.4,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+#g.text(6.5,3,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+#g.text(7,5.3,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g.writePDFfile("figs/temp_height.pdf")
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

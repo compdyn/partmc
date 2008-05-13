@@ -53,4 +53,4 @@ for i in range(len(times_hour)):
                   max = max_val,
                   title = r"number density",
                   palette = rainbow_palette)
-    g.writePDFfile("out/%s/aero_n_orig_%d.pdf" % (subdir, times_hour[i]))
+    g.writePDFfile("figs/n_orig_%d.pdf" % (subdir, times_hour[i]))

@@ -70,4 +70,4 @@ g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
 			   title = "%g hours, no coag" % times_hour[2]),
 	   styles = [graph.style.line(lineattrs = [color_list[2], style.linewidth.THick, style.linestyle.dashed])])
 
-g.writePDFfile("out/withcoag_dry/aero_dist_BC.pdf")
+g.writePDFfile("figs/mass_dist_BC.pdf")

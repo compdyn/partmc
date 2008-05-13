@@ -51,4 +51,4 @@ for i in range(len(gas_species)):
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [color_list[i], style.linewidth.THick])])
 
-g.writePDFfile("out/%s/gas.pdf" % subdir)
+g.writePDFfile("figs/gas_time_dist.pdf" % subdir)

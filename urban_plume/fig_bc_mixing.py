@@ -37,10 +37,15 @@ data_wc.scale_dim("time", 1.0/3600)
 
 data_no.reduce([select("unit", "mass_den"),
                 select("time", time_hour),
-		sum("aero_species", without = "H2O")])
+		sum("aero_species", without = ["H2O"])])
 data_wc.reduce([select("unit", "mass_den"),
                 select("time", time_hour),
-		sum("aero_species", without = "H2O")])
+		sum("aero_species", without = ["H2O"])])
+
+#total_mass = module_copy.deepcopy(data_no)
+#total_mass.reduce([sum("dry_radius"), sum("composition_bc")])
+#total_mass.scale(1e9)
+#print total_mass.data
 
 data_no.scale(1e9) # kg/m^3 to ug/m^3
 data_wc.scale(1e9) # kg/m^3 to ug/m^3
@@ -77,4 +82,4 @@ for i in range(len(composition_lower)):
            styles = [graph.style.line(lineattrs = [color_list[i],style.linewidth.THick])])
 
 
-g.writePDFfile("figs/aero_comp_bc1m_t24ww.pdf")
+g.writePDFfile("figs/BC_mixing.pdf")

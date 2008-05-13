@@ -34,7 +34,7 @@ height_data = module_copy.deepcopy(data)
 height_data.reduce([select("env", "height")])
 
 g = graph.graphxy(
-    width = 10,
+    width = 6,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
@@ -67,4 +67,4 @@ g.text(6,0.4,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0
 g.text(6.5,3,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g.text(7,5.3,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
-g.writePDFfile("out/%s/env.pdf" % subdir)
+g.writePDFfile("figs/temp_height.pdf")

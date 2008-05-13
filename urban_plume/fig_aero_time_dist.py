@@ -67,4 +67,4 @@ for i in range(len(aero_species)):
  #      styles = [graph.style.line(lineattrs
  #                                 = [color_list[len(aero_species)]])])
 
-g.writePDFfile("out/%s/aero_hist.pdf" % subdir)
+g.writePDFfile("figs/aero_time_dist.pdf" % subdir)

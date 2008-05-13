@@ -13,6 +13,7 @@ from pmc_pyx import *
 
 #gas_species = ["C2H6", "HCHO", "ANOL", "TOL", "ETH", "ISOP"]
 gas_species = ["O3", "NO2", "HCHO", "HNO3", "SO2", "NH3"]
+line_style_order = [4, 5, 0, 1, 2, 3]
 
 subdir = "withcoag_dry"
 if len(sys.argv) > 1:
@@ -26,7 +27,7 @@ data.write_summary(sys.stdout)
 
 data.scale_dim("time", 1.0/60)
 g = graph.graphxy(
-    width = 10,
+    width = 6.5,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
@@ -41,6 +42,7 @@ g = graph.graphxy(
                           title = "gas concentration (ppb)",
 			  painter = grid_painter),
     key = graph.key.key(pos = "tr"))
+#    key = graph.key.key(pos = None, hpos = 0.7, vpos = 0.8))
 
 for i in range(len(gas_species)):
     data_slice = module_copy.deepcopy(data)
@@ -49,8 +51,8 @@ for i in range(len(gas_species)):
     g.plot(graph.data.list(data_slice.data_center_list(),
 			   x = 1, y = 2,
 			   title = tex_species(gas_species[i])),
-	   styles = [graph.style.line(lineattrs = [color_list[i], style.linewidth.THick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], style.linewidth.Thick])])
 
-g.writePDFfile("figs/gas_time_dist.pdf" % subdir)
+g.writePDFfile("figs/gas_time_dist.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

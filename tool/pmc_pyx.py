@@ -21,6 +21,16 @@ color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(11/12.0, 1, 1),
 	      ]
 
+line_style_list = [style.linestyle.solid,
+                   style.linestyle.dashed,
+                   style.linestyle.dotted,
+                   style.linestyle.dashdotted,
+                   style.linestyle(style.linecap.round,
+                                   style.dash([0, 2, 0, 2, 2, 2])),
+                   style.linestyle(style.linecap.round,
+                                   style.dash([0, 2, 2, 2, 2, 2])),
+                   ]
+
 class listpalette(color.palette):
 
     def __init__(self, colorlist):
@@ -51,6 +61,7 @@ rainbow_palette = listpalette([[0, color.rgb(0, 0, 1)],
 			       [1, color.rgb(1, 0, 0)]])
 
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
+major_grid_painter = graph.axis.painter.regular(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
 
 aerosol_species_tex = {
     "SO4": "SO$_4$",

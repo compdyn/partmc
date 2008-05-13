@@ -13,10 +13,10 @@ from pmc_pyx import *
 
 times_hour = [1, 6, 12, 18]
 
-netcdf_var = "comp_bc"
-netcdf_dim = "composition_bc"
-y_axis_label = r"$f_{{\rm BC},{\rm all}}$"
-filename = "figs/comp_2d_all.pdf"
+netcdf_var = "comp_oc"
+netcdf_dim = "composition_oc"
+y_axis_label = r"$f_{{\rm BC},{\rm OC}}$"
+filename = "figs/comp_2d_oc.pdf"
 
 min_val = 0.0
 max_val = 2.0

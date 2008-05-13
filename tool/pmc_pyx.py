@@ -22,13 +22,22 @@ color_list = [color.hsb(0/3.0, 1, 1),
 	      ]
 
 line_style_list = [style.linestyle.solid,
-                   style.linestyle.dashed,
-                   style.linestyle.dotted,
-                   style.linestyle.dashdotted,
-                   style.linestyle(style.linecap.round,
+                   style.linestyle(style.linecap.round, # dash
+                                   style.dash([2, 2])),
+                   style.linestyle(style.linecap.round, # dot
+                                   style.dash([0, 2])),
+                   style.linestyle(style.linecap.round, # dot-dash
+                                   style.dash([0, 2, 2, 2])),
+                   style.linestyle(style.linecap.round, # dot-dot-dash
                                    style.dash([0, 2, 0, 2, 2, 2])),
-                   style.linestyle(style.linecap.round,
+                   style.linestyle(style.linecap.round, # dot-dash-dash
                                    style.dash([0, 2, 2, 2, 2, 2])),
+                   style.linestyle(style.linecap.round, # dot-dot-dot-dash
+                                   style.dash([0, 2, 0, 2, 0, 2, 2, 2])),
+                   style.linestyle(style.linecap.round, # dot-dot-dash-dash
+                                   style.dash([0, 2, 0, 2, 2, 2, 2, 2])),
+                   style.linestyle(style.linecap.round, # dot-dash-dash-dash
+                                   style.dash([0, 2, 2, 2, 2, 2, 2, 2])),
                    ]
 
 class listpalette(color.palette):

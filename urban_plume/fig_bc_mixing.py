@@ -53,7 +53,7 @@ data_no.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 data_wc.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 g = graph.graphxy(
-	width = 10,
+	width = 6.5,
 	x = graph.axis.log(title = r'dry diameter ($\mu$m)',
                            min = 0.01, max = 2,
 			   painter = grid_painter),
@@ -83,3 +83,5 @@ for i in range(len(composition_lower)):
 
 
 g.writePDFfile("figs/BC_mixing.pdf")
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

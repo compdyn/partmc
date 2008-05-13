@@ -74,12 +74,12 @@ for i in range(len(composition_lower)):
     g.plot(graph.data.list(data_no_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
                            title = "no %d - %d" % (composition_lower[i], composition_upper[i])),
-	   styles = [graph.style.line(lineattrs = [color_list[i]])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.Thick])])
 
     g.plot(graph.data.list(data_wc_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
                            title = "wc %d - %d" % (composition_lower[i], composition_upper[i])),
-           styles = [graph.style.line(lineattrs = [color_list[i],style.linewidth.THick])])
+           styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.THick])])
 
 
 g.writePDFfile("figs/BC_mixing.pdf")

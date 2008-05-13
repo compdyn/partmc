@@ -17,6 +17,7 @@ aero_species = [["NO3"],
                 ["SO4"],
                 ["BC"],
                 ["ARO1", "ARO2", "ALK1", "OLE1" ]]
+line_style_order = [4, 5, 0, 1, 2, 3]
 key_names = [ None, None, None, None, None, "SOA"]  # None means use default
 
 subdir = "withcoag_dry"
@@ -33,7 +34,7 @@ data.scale_dim("time", 1.0/60)
 data.scale(1e9)
 
 g = graph.graphxy(
-    width = 10,
+    width = 6.5,
     x = graph.axis.linear(min = 0,
                           max = 1440,
                           title = "local standard time",
@@ -58,7 +59,7 @@ for i in range(len(aero_species)):
     g.plot(graph.data.list(data_slice.data_center_list(),
 			   x = 1, y = 2,
 			   title = title_name),
-	   styles = [graph.style.line(lineattrs = [color_list[i],style.linewidth.THick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]],style.linewidth.Thick])])
 
 #data.reduce([sum("aero_species")])
 #g.plot(graph.data.list(data.data_center_list(),
@@ -67,4 +68,4 @@ for i in range(len(aero_species)):
  #      styles = [graph.style.line(lineattrs
  #                                 = [color_list[len(aero_species)]])])
 
-g.writePDFfile("figs/aero_time_dist.pdf" % subdir)
+g.writePDFfile("figs/aero_time_dist.pdf")

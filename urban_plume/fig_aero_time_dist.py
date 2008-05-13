@@ -34,7 +34,7 @@ data.scale_dim("time", 1.0/60)
 data.scale(1e9)
 
 g = graph.graphxy(
-    width = 6.5,
+    width = 6.7,
     x = graph.axis.linear(min = 0,
                           max = 1440,
                           title = "local standard time",
@@ -46,7 +46,12 @@ g = graph.graphxy(
 			  painter = grid_painter),
     y = graph.axis.linear(title = "mass density ($\mu$g/m$^3$)",
 			  painter = grid_painter),
-    key = graph.key.key(pos = "tl"))
+    key = graph.key.key(pos = None,
+                        hpos = 0,
+                        vpos = 0.7,
+                        hdist = 0.3 * unit.v_cm,
+                        columns = 2,
+                        keyattrs = [deco.stroked, deco.filled([color.gray.white])]))
 print max(data.dim_by_name("time").grid_centers)
 for i in range(len(aero_species)):
     data_slice = module_copy.deepcopy(data)
@@ -69,3 +74,5 @@ for i in range(len(aero_species)):
  #                                 = [color_list[len(aero_species)]])])
 
 g.writePDFfile("figs/aero_time_dist.pdf")
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

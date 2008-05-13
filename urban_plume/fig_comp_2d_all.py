@@ -19,6 +19,8 @@ max_val = 2.0
 v_space = 0.5
 h_space = 0.5
 
+graph_width = 5.9
+
 subdir = "withcoag_dry"
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
@@ -37,30 +39,30 @@ data.scale_dim("time", 1.0/3600)
 c = canvas.canvas()
 
 g21 = c.insert(graph.graphxy(
-    width = 6,
+    width = graph_width,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
                        title = r'dry diameter ($\mu$m)',
                        painter = grid_painter),
     y = graph.axis.linear(min = 0,
                           max = 100,
-                          title = 'soot volume fraction',
+                          title = r"$f_{{\rm BC},{\rm all}}$",
                           texter = graph.axis.texter.decimal(suffix
                                                              = r"\%"),
                           painter = grid_painter)))
 g11 = c.insert(graph.graphxy(
-    width = 6,
+    width = graph_width,
     ypos = g21.height + v_space,
     x = graph.axis.linkedaxis(g21.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
     y = graph.axis.linear(min = 0,
                           max = 100,
-                          title = 'soot volume fraction',
+                          title = r"$f_{{\rm BC},{\rm all}}$",
                           texter = graph.axis.texter.decimal(suffix
                                                              = r"\%"),
                           painter = grid_painter)))
 g22 = c.insert(graph.graphxy(
-    width = 6,
+    width = graph_width,
     xpos = g21.width + h_space,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
@@ -69,7 +71,7 @@ g22 = c.insert(graph.graphxy(
     y = graph.axis.linkedaxis(g21.axes["y"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted]))))
 g12 = c.insert(graph.graphxy(
-    width = 6,
+    width = graph_width,
     xpos = g11.width + h_space,
     ypos = g22.height + v_space,
     x = graph.axis.linkedaxis(g22.axes["x"],

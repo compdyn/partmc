@@ -64,9 +64,9 @@ g.plot(graph.data.list(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])
-g.text(5.4,1,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(5.3,1,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g.text(6.5,2,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(7,3.5,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(7.2,3.5,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g.writePDFfile("figs/temp_height.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

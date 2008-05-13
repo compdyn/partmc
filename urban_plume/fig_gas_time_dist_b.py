@@ -52,9 +52,9 @@ for i in range(len(gas_species)):
 			   x = 1, y = 2,
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [line_style_list[i], style.linewidth.Thick])])
-g.text(1.5,3.1,"$HNO_3$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(2.2,2,"$SO_2$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(2.4,0.7,"$NH_3$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(1.5,3.1,r"$\rm HNO_3$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(2.2,2,r"$\rm SO_2$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(2.4,0.7,r"$\rm NH_3$",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g.writePDFfile("figs/gas_time_dist_b.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

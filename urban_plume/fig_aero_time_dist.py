@@ -48,9 +48,10 @@ g = graph.graphxy(
 			  painter = grid_painter),
     key = graph.key.key(pos = None,
                         hpos = 0,
-                        vpos = 0.7,
+                        vpos = 1,
                         hdist = 0.3 * unit.v_cm,
-                        columns = 2,
+                        vinside = 0,
+                        columns = 3,
                         keyattrs = [deco.stroked, deco.filled([color.gray.white])]))
 print max(data.dim_by_name("time").grid_centers)
 for i in range(len(aero_species)):

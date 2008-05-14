@@ -15,7 +15,7 @@ from pmc_pyx import *
 gas_species = ["HNO3", "SO2", "NH3"]
 #line_style_order = [4, 5, 0, 1, 2, 3]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_with_coag_0001.nc"),
+data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "gas",
 	       [])
 

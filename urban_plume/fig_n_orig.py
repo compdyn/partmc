@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 time_hour = 24
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_with_coag_0001.nc"),
+data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "n_orig",
 	       [])
 #data.write_summary(sys.stdout)

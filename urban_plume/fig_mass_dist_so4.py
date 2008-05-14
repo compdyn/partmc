@@ -14,11 +14,8 @@ from pmc_pyx import *
 times_hour = [1, 6, 24]
 times_sec = [t * 3600 for t in times_hour]
 line_style_order = [2, 1, 0]
-#subdir = "withcoag_dry"
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
 
-data1 = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
+data1 = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "aero", [])
 data1.write_summary(sys.stdout)
 data1.reduce([select("unit", "mass_den"),

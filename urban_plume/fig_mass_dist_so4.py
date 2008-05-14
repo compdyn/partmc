@@ -17,24 +17,20 @@ line_style_order = [2, 1, 0]
 
 data1 = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "aero", [])
-data1.write_summary(sys.stdout)
+#data1.write_summary(sys.stdout)
 data1.reduce([select("unit", "mass_den"),
              select("aero_species", "SO4")])
-
-print data1.data
 
 data1.scale_dim("dry_radius", 1e6) # m to um
 data1.scale_dim("dry_radius", 2.0) # radius to diameter
 data1.scale(1e9) # kg/m^3 to ug/m^3
 data1.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
-data2 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
+data2 = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
 	       "aero", [])
-data2.write_summary(sys.stdout)
+#data2.write_summary(sys.stdout)
 data2.reduce([select("unit", "mass_den"),
              select("aero_species", "SO4")])
-
-print data2.data
 
 data2.scale_dim("dry_radius", 1e6) # m to um
 data2.scale_dim("dry_radius", 2.0) # radius to diameter

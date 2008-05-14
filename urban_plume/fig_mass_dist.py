@@ -37,8 +37,6 @@ data2 = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % nocoag_subdir),
 data2.reduce([select("unit", "mass_den"),
              select("aero_species", "BC")])
 
-print data2.data
-
 data2.scale_dim("dry_radius", 1e6) # m to um
 data2.scale_dim("dry_radius", 2.0) # radius to diameter
 data2.scale(1e9) # kg/m^3 to ug/m^3

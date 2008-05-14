@@ -64,7 +64,7 @@ g = graph.graphxy(
                            min = 0.01, max = 2,
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',
-                           min = 1e-5, max =1e2,
+                           min = 1e-6, max =2e2,
 			   painter = grid_painter),
         key = graph.key.key(pos = "br"))
 

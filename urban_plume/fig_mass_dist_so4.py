@@ -43,8 +43,8 @@ g = graph.graphxy(
 		       max = 2,
 		       title = "dry diameter ($\mu$m)",
 		       painter = major_grid_painter),
-    y = graph.axis.log(min = 1.e-5,
-                       max = 1.e1,
+    y = graph.axis.log(min = 1.e-6,
+                       max = 2.e1,
                        title = "mass density ($\mu$g/m$^3$)",
 		       painter = major_grid_painter),
     key = graph.key.key(pos = "bc"))
@@ -63,6 +63,6 @@ g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
 			   title = "%g hours, no coag" % times_hour[2]),
 	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THick])])
 
-g.writePDFfile("figs/mass_dist_SO4.pdf")
+g.writePDFfile("figs/mass_dist_so4.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

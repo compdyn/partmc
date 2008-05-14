@@ -44,21 +44,25 @@ g = graph.graphxy(
 		       title = "dry diameter ($\mu$m)",
 		       painter = major_grid_painter),
     y = graph.axis.log(min = 1.e-5,
-                       max = 1.e1,
+                       max = 1.e2,
                        title = "mass density ($\mu$g/m$^3$)",
 		       painter = major_grid_painter),
-    key = graph.key.key(pos = "bc"))
+    key = graph.key.key(pos = "br"))
 
 for i in range(len(times_sec)):
     data1_slice = module_copy.deepcopy(data1)
     data1_slice.reduce([select("time", times_sec[i])])
-    g.plot(graph.data.list(data1_slice.data_center_list(strip_zero = True),
+    if times_hour[i] == 1:
+        title = "1 hour"
+    else:
+        title = "%g hours" % times_hour[i]
+    g.plot(graph.data.points(data1_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
-			   title = "%g hours" % times_hour[i]),
+			   title = title),
 	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], style.linewidth.Thick])])
 data2_slice = module_copy.deepcopy(data2)
 data2_slice.reduce([select("time", times_sec[2])])
-g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
+g.plot(graph.data.points(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
 	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THick])])

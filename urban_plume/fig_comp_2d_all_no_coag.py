@@ -11,7 +11,7 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1, 6, 12, 18]
+times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_bc"
 netcdf_dim = "composition_bc"
@@ -24,7 +24,7 @@ max_val = 2.0
 v_space = 0.5
 h_space = 0.5
 
-graph_width = 5.9
+graph_width = 6
 
 data = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
 	       netcdf_var,

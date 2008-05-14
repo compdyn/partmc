@@ -163,7 +163,7 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
     gc.doaxes()
 
 def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
-		  bar_height_ratio = 0.6, bar_x_offset = -1, bar_y_offset = -0.7):
+		  bar_height_ratio = 0.6, bar_x_offset = -1.2, bar_y_offset = -0.7):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):

@@ -42,12 +42,10 @@ g = graph.graphxy(
 			  painter = grid_painter),
     y = graph.axis.linear(title = "mass density ($\mu$g/m$^3$)",
 			  painter = grid_painter),
-    key = graph.key.key(pos = None,
-                        hpos = 0,
-                        vpos = 1,
-                        hdist = 0.3 * unit.v_cm,
+    key = graph.key.key(pos = "tc",
                         vinside = 0,
                         columns = 3,
+                        symbolwidth = 0.75 * unit.v_cm,
                         keyattrs = [deco.stroked, deco.filled([color.gray.white])]))
 # print max(data.dim_by_name("time").grid_centers)
 for i in range(len(aero_species)):

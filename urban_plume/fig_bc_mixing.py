@@ -58,9 +58,9 @@ g = graph.graphxy(
                            min = 0.01, max = 2,
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',
-                           min = 1e-6, max =2e2,
+                           min = 1e-6, max = 2e2,
 			   painter = grid_painter),
-        key = graph.key.key(pos = "br"))
+        key = graph.key.key(pos = "br", vdist = 0.2 * unit.v_cm))
 
 for i in range(len(composition_lower)):
     data_no_slice = module_copy.deepcopy(data_no)
@@ -72,13 +72,13 @@ for i in range(len(composition_lower)):
     data_wc_slice.reduce(reducers)
 
     g.plot(graph.data.points(data_no_slice.data_center_list(strip_zero = True),
-			   x = 1, y = 2, 
-                           title = "no %d - %d" % (composition_lower[i], composition_upper[i])),
+			   x = 1, y = 2,
+                           title = "no coag %d--%d\\%%" % (composition_lower[i], composition_upper[i])),
 	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.Thick])])
 
     g.plot(graph.data.points(data_wc_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
-                           title = "wc %d - %d" % (composition_lower[i], composition_upper[i])),
+                           title = "with coag %d--%d\\%%" % (composition_lower[i], composition_upper[i])),
            styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.THick])])
 
 

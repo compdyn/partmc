@@ -47,5 +47,6 @@ add_color_bar(g,
               min = min_val,
               max = max_val,
               title = r"number density",
-              palette = rainbow_palette)
+              palette = rainbow_palette,
+              bar_x_offset = 0.6)
 g.writePDFfile("figs/n_orig.pdf")

@@ -16,16 +16,10 @@ time_hour = 24
 composition_lower = [0,  2, 80]
 composition_upper = [2, 10, 90]
 
-withcoag_subdir = "withcoag_dry"
-nocoag_subdir = "nocoag_dry"
-if len(sys.argv) > 1:
-    withcoag_subdir = sys.argv[1]
-    nocoag_subdir = sys.argv[1]
-
-data_no = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % nocoag_subdir),
+data_no = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
 	       "comp_bc",
 	       [])
-data_wc = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % withcoag_subdir),
+data_wc = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "comp_bc",
 	       [])
 

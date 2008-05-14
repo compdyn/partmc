@@ -15,11 +15,7 @@ from pmc_pyx import *
 gas_species = ["O3", "NO2", "HCHO"]
 #line_style_order = [4, 5, 0, 1, 2, 3]
 
-subdir = "withcoag_dry"
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
-
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "gas",
 	       [])
 

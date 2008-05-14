@@ -20,11 +20,7 @@ aero_species = [["NO3"],
 line_style_order = [4, 5, 0, 1, 2, 3]
 key_names = [ None, None, None, None, None, "SOA"]  # None means use default
 
-subdir = "withcoag_dry"
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
-
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "aero",
 	       [sum("dry_radius"),
 		select("unit", "mass_den")])

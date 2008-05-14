@@ -13,11 +13,7 @@ from pmc_pyx import *
 
 env = ["H"]
 
-subdir = "withcoag_dry"
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
-
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "env_state",
 	       [])
 

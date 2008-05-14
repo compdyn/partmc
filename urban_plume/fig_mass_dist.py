@@ -14,13 +14,7 @@ from pmc_pyx import *
 times_hour = [1, 6, 24]
 times_sec = [t * 3600 for t in times_hour]
 
-withcoag_subdir = "withcoag_dry"
-nocoag_subdir = "nocoag_dry"
-if len(sys.argv) > 1:
-    withcoag_subdir = sys.argv[1]
-    nocoag_subdir = sys.argv[1]
-
-data1 = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % withcoag_subdir),
+data1 = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "aero", [])
 #data1.write_summary(sys.stdout)
 data1.reduce([select("unit", "mass_den"),
@@ -31,7 +25,7 @@ data1.scale_dim("dry_radius", 2.0) # radius to diameter
 data1.scale(1e9) # kg/m^3 to ug/m^3
 data1.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
-data2 = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % nocoag_subdir),
+data2 = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
 	       "aero", [])
 #data2.write_summary(sys.stdout)
 data2.reduce([select("unit", "mass_den"),

@@ -26,11 +26,7 @@ h_space = 0.5
 
 graph_width = 5.9
 
-subdir = "nocoag_dry"
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
-
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
 	       netcdf_var,
 	       [])
 #data.write_summary(sys.stdout)

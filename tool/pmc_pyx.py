@@ -154,7 +154,7 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		min = min,
 		max = max,
 		title = title)))
-    gc.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
+    gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
 	    [graph.style.rect(palette)])
     gc.dolayout()
@@ -186,7 +186,7 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 		min = min,
 		max = max,
 		title = title)))
-    gc.plot(graph.data.list(color_d, xmin = 1, xmax = 2,
+    gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
 	    [graph.style.rect(palette)])
     gc.dolayout()

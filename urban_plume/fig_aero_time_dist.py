@@ -28,7 +28,7 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "aero",
 	       [sum("dry_radius"),
 		select("unit", "mass_den")])
-data.write_summary(sys.stdout)
+#data.write_summary(sys.stdout)
 
 data.scale_dim("time", 1.0/60)
 data.scale(1e9)
@@ -53,7 +53,7 @@ g = graph.graphxy(
                         vinside = 0,
                         columns = 3,
                         keyattrs = [deco.stroked, deco.filled([color.gray.white])]))
-print max(data.dim_by_name("time").grid_centers)
+# print max(data.dim_by_name("time").grid_centers)
 for i in range(len(aero_species)):
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([sum("aero_species", only = aero_species[i])])
@@ -62,13 +62,13 @@ for i in range(len(aero_species)):
     else:
         title_name = key_names[i]
         
-    g.plot(graph.data.list(data_slice.data_center_list(),
+    g.plot(graph.data.points(data_slice.data_center_list(),
 			   x = 1, y = 2,
 			   title = title_name),
 	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]],style.linewidth.Thick])])
 
 #data.reduce([sum("aero_species")])
-#g.plot(graph.data.list(data.data_center_list(),
+#g.plot(graph.data.points(data.data_center_list(),
  #                      x = 1, y = 2,
  #                      title = "total"),
  #      styles = [graph.style.line(lineattrs

@@ -23,7 +23,7 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "gas",
 	       [])
 
-data.write_summary(sys.stdout)
+#data.write_summary(sys.stdout)
 
 data.scale_dim("time", 1.0/60)
 g = graph.graphxy(
@@ -48,7 +48,7 @@ for i in range(len(gas_species)):
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("gas_species", gas_species[i])])
 #    data_slice.scale_dim("time", 1.0/3600)
-    g.plot(graph.data.list(data_slice.data_center_list(),
+    g.plot(graph.data.points(data_slice.data_center_list(),
 			   x = 1, y = 2,
 			   title = tex_species(gas_species[i])),
 	   styles = [graph.style.line(lineattrs = [line_style_list[i], style.linewidth.Thick])])

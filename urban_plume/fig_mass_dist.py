@@ -14,26 +14,26 @@ from pmc_pyx import *
 times_hour = [1, 6, 24]
 times_sec = [t * 3600 for t in times_hour]
 
-#subdir = "withcoag_dry"
+withcoag_subdir = "withcoag_dry"
+nocoag_subdir = "nocoag_dry"
 if len(sys.argv) > 1:
-    subdir = sys.argv[1]
+    withcoag_subdir = sys.argv[1]
+    nocoag_subdir = sys.argv[1]
 
-data1 = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
+data1 = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % withcoag_subdir),
 	       "aero", [])
-data1.write_summary(sys.stdout)
+#data1.write_summary(sys.stdout)
 data1.reduce([select("unit", "mass_den"),
              select("aero_species", "BC")])
-
-print data1.data
 
 data1.scale_dim("dry_radius", 1e6) # m to um
 data1.scale_dim("dry_radius", 2.0) # radius to diameter
 data1.scale(1e9) # kg/m^3 to ug/m^3
 data1.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
-data2 = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
+data2 = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % nocoag_subdir),
 	       "aero", [])
-data2.write_summary(sys.stdout)
+#data2.write_summary(sys.stdout)
 data2.reduce([select("unit", "mass_den"),
              select("aero_species", "BC")])
 
@@ -59,15 +59,15 @@ g = graph.graphxy(
 for i in range(len(times_sec)):
     data1_slice = module_copy.deepcopy(data1)
     data1_slice.reduce([select("time", times_sec[i])])
-    g.plot(graph.data.list(data1_slice.data_center_list(strip_zero = True),
+    g.plot(graph.data.points(data1_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i], style.linewidth.THick])])
 data2_slice = module_copy.deepcopy(data2)
 data2_slice.reduce([select("time", times_sec[2])])
-g.plot(graph.data.list(data2_slice.data_center_list(strip_zero = True),
+g.plot(graph.data.points(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
 	   styles = [graph.style.line(lineattrs = [color_list[2], style.linewidth.THick, style.linestyle.dashed])])
 
-g.writePDFfile("figs/mass_dist_BC.pdf")
+g.writePDFfile("figs/mass_dist_bc.pdf")

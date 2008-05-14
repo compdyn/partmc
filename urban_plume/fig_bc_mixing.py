@@ -16,15 +16,21 @@ time_hour = 24
 composition_lower = [0,  2, 80]
 composition_upper = [2, 10, 90]
 
-data_no = pmc_var(NetCDFFile("out/nocoag_dry/urban_plume_0001.nc"),
+withcoag_subdir = "withcoag_dry"
+nocoag_subdir = "nocoag_dry"
+if len(sys.argv) > 1:
+    withcoag_subdir = sys.argv[1]
+    nocoag_subdir = sys.argv[1]
+
+data_no = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % nocoag_subdir),
 	       "comp_bc",
 	       [])
-data_wc = pmc_var(NetCDFFile("out/withcoag_dry/urban_plume_0001.nc"),
+data_wc = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % withcoag_subdir),
 	       "comp_bc",
 	       [])
 
-data_no.write_summary(sys.stdout)
-data_wc.write_summary(sys.stdout)
+#data_no.write_summary(sys.stdout)
+#data_wc.write_summary(sys.stdout)
 
 data_no.scale_dim("composition_bc", 100)
 data_wc.scale_dim("composition_bc", 100)
@@ -71,17 +77,17 @@ for i in range(len(composition_lower)):
     data_no_slice.reduce(reducers)
     data_wc_slice.reduce(reducers)
 
-    g.plot(graph.data.list(data_no_slice.data_center_list(strip_zero = True),
+    g.plot(graph.data.points(data_no_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
                            title = "no %d - %d" % (composition_lower[i], composition_upper[i])),
 	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.Thick])])
 
-    g.plot(graph.data.list(data_wc_slice.data_center_list(strip_zero = True),
+    g.plot(graph.data.points(data_wc_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
                            title = "wc %d - %d" % (composition_lower[i], composition_upper[i])),
            styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.THick])])
 
 
-g.writePDFfile("figs/BC_mixing.pdf")
+g.writePDFfile("figs/bc_mixing.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

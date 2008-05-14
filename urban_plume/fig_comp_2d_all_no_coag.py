@@ -16,7 +16,7 @@ times_hour = [1, 6, 12, 18]
 netcdf_var = "comp_bc"
 netcdf_dim = "composition_bc"
 y_axis_label = r"$f_{{\rm BC},{\rm all}}$"
-filename = "figs/comp_2d_all.pdf"
+filename = "figs/comp_2d_all_no_coag.pdf"
 
 min_val = 0.0
 max_val = 2.0
@@ -26,14 +26,14 @@ h_space = 0.5
 
 graph_width = 5.9
 
-subdir = "withcoag_dry"
+subdir = "nocoag_dry"
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
 data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       netcdf_var,
 	       [])
-data.write_summary(sys.stdout)
+#data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
@@ -95,16 +95,16 @@ def get_plot_data(time_hour):
 					max = max_val)
     return plot_data
 
-g11.plot(graph.data.list(get_plot_data(times_hour[0]),
+g11.plot(graph.data.points(get_plot_data(times_hour[0]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(rainbow_palette)])
-g12.plot(graph.data.list(get_plot_data(times_hour[1]),
+g12.plot(graph.data.points(get_plot_data(times_hour[1]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(rainbow_palette)])
-g21.plot(graph.data.list(get_plot_data(times_hour[2]),
+g21.plot(graph.data.points(get_plot_data(times_hour[2]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(rainbow_palette)])
-g22.plot(graph.data.list(get_plot_data(times_hour[3]),
+g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(rainbow_palette)])
 
@@ -113,7 +113,7 @@ g12.dolayout()
 g21.dolayout()
 g22.dolayout()
 
-x_vpos = 0.75
+x_vpos = 0.03
 y_vpos = 0.9
 
 (x, y) = g11.vpos(x_vpos, y_vpos)

@@ -21,7 +21,7 @@ data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
 	       "env_state",
 	       [])
 
-data.write_summary(sys.stdout)
+#data.write_summary(sys.stdout)
 
 data.scale_dim("time", 1.0/60)
 
@@ -50,17 +50,17 @@ g = graph.graphxy(
     y4 = graph.axis.linear(title = "mixing height (m)"))
 #    key = graph.key.key(pos = "tr"))
 
-g.plot(graph.data.list(temp_data.data_center_list(),
+g.plot(graph.data.points(temp_data.data_center_list(),
 			   x = 1, y = 2,
                            title = "temperature"),
              styles = [graph.style.line(lineattrs = [color.grey.black, style.linewidth.Thick])])
 
-g.plot(graph.data.list(rh_data.data_center_list(),
+g.plot(graph.data.points(rh_data.data_center_list(),
 			   x = 1, y2 = 2,
                            title = "relative humidity"),
              styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashed])])
 
-g.plot(graph.data.list(height_data.data_center_list(),
+g.plot(graph.data.points(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])

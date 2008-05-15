@@ -182,6 +182,37 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
     gc.dodata()
     gc.doaxes()
 
+def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
+		  bar_width_ratio = 0.8, bar_offset = 1.8):
+    colorbar_steps = 1000
+    color_d = []
+    for i in range(colorbar_steps):
+	x0 = float(i) / float(colorbar_steps)
+	xh = (float(i) + 0.5) / float(colorbar_steps)
+	x1 = float(i + 1) / float(colorbar_steps)
+	v0 = x0 * (max - min) + min
+	v1 = x1 * (max - min) + min
+	color_d.append([0, 1, v0, v1, xh])
+    gc = g.insert(
+	graph.graphxy(
+	    width = bar_width_ratio * g.width,
+	    height = bar_height,
+	    xpos = (1.0 - bar_width_ratio) / 2.0 * g.width,
+	    ypos = g.height + bar_offset,
+	    y = graph.axis.linear(min = 0, max = 1,
+				  parter = None),
+	    x2 = graph.axis.linear(
+		min = min,
+		max = max,
+		title = title)))
+    gc.plot(graph.data.points(color_d, ymin = 1, ymax = 2,
+                            xmin = 3, xmax = 4, color = 5),
+	    [graph.style.rect(palette)])
+    gc.dolayout()
+    gc.dobackground()
+    gc.dodata()
+    gc.doaxes()
+
 def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 		  bar_height_ratio = 0.6, bar_x_offset = -1.2, bar_y_offset = -0.7):
     colorbar_steps = 1000

@@ -16,19 +16,17 @@ time_hour = 24
 data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       "n_orig",
 	       [])
-#data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
 data.scale_dim("dry_radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
-data.write_summary(sys.stdout)
 data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 1
 data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 1
 
 g = graph.graphxy(
-    width = 4.2,
+    width = 7,
     x = graph.axis.log(min = 1e-3,
                        max = 1e+0,
                        title = r'dry radius ($\mu$m)',
@@ -46,13 +44,13 @@ g.plot(graph.data.points(data_slice.data_2d_list(strip_zero = True,
                                                max = max_val),
                        xmin = 1, xmax = 2, ymin = 3,
                        ymax = 4, color = 5),
-       styles = [graph.style.rect(rainbow_palette)])
-add_color_bar(g,
+       styles = [graph.style.rect(gray_palette)])
+add_horiz_color_bar(g,
               min = min_val,
               max = max_val,
               title = r"number density",
-              palette = rainbow_palette,
-              bar_x_offset = 0.6)
+              palette = gray_palette,
+              bar_offset = 0.6)
 g.writePDFfile("figs/n_orig.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

@@ -68,10 +68,14 @@ for i in range(len(times_sec)):
         title = "1 hour"
     else:
         title = "%g hours" % times_hour[i]
+    if i < 2:
+        thickness = style.linewidth.Thick
+    else:
+        thickness = style.linewidth.Thick
     g2.plot(graph.data.points(data1_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = title),
-	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], style.linewidth.Thick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], thickness])])
 
 data2_slice = module_copy.deepcopy(data2)
 data2_slice.reduce([select("time", times_sec[2]),
@@ -79,7 +83,7 @@ data2_slice.reduce([select("time", times_sec[2]),
 g2.plot(graph.data.points(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
-	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THIck])])
 
 for i in range(len(times_sec)):
     data1_slice = module_copy.deepcopy(data1)
@@ -89,10 +93,14 @@ for i in range(len(times_sec)):
         title = "1 hour"
     else:
         title = "%g hours" % times_hour[i]
+    if i < 2:
+        thickness = style.linewidth.Thick
+    else:
+        thickness = style.linewidth.Thick
     g1.plot(graph.data.points(data1_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = title),
-	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], style.linewidth.Thick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[line_style_order[i]], thickness])])
 
 data2_slice = module_copy.deepcopy(data2)
 data2_slice.reduce([select("time", times_sec[2]),
@@ -100,7 +108,7 @@ data2_slice.reduce([select("time", times_sec[2]),
 g1.plot(graph.data.points(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
-	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THick])])
+	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THIck])])
 
 c.text(g1.xpos + 0.6 * unit.v_cm,
        g1.ypos + 3.4 * unit.v_cm,

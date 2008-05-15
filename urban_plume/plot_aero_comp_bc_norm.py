@@ -11,13 +11,13 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1, 6, 12, 24]
+times_hour = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24]
 
-subdir = "nocoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_with_coag_0001.nc" % subdir),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -65,4 +65,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/%s/aero_comp_bc_num_%dn.pdf" % (subdir, times_hour[i]))
+    g.writePDFfile("out/%s/t_%dn.pdf" % (subdir, times_hour[i]))

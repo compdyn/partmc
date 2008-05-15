@@ -104,15 +104,15 @@ g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(gray_palette)])
 
-g11.dolayout()
-g12.dolayout()
-g21.dolayout()
-g22.dolayout()
-
 g11.doaxes()
 g12.doaxes()
 g21.doaxes()
 g22.doaxes()
+
+g11.dodata()
+g12.dodata()
+g21.dodata()
+g22.dodata()
 
 x_vpos = 0.03
 y_vpos = 0.9
@@ -126,24 +126,24 @@ g21.text(x, y, "%d hours" % times_hour[2])
 (x, y) = g22.vpos(x_vpos, y_vpos)
 g22.text(x, y, "%d hours" % times_hour[3])
 
-label_point(g11, 0.05, 87, 0.005, 70, "A")
-label_point(g11, 0.05, 35, 0.005, 15, "B")
+label_point(g11, 0.05, 90, 0.005, 70, "A")
+label_point(g11, 0.05, 34, 0.005, 15, "B")
 
 label_point(g12, 0.06, 72, 0.01, 75, "C")
-label_point(g12, 0.08, 50, 0.6, 55, "D")
-label_point(g12, 0.06, 24, 0.005, 30, "E")
-label_point(g12, 0.07, 14, 0.6, 20, "F")
+label_point(g12, 0.08, 50, 0.6, 55, "A")
+label_point(g12, 0.06, 24, 0.005, 30, "D")
+label_point(g12, 0.07, 14, 0.6, 20, "B")
 
-label_point(g21, 0.05, 87, 0.005, 72, "G")
-label_point(g21, 0.07, 72, 0.008, 54, "H")
-label_point(g21, 0.07, 28, 0.6, 50, "I")
-label_point(g21, 0.1, 16, 0.007, 20, "J")
-label_point(g21, 0.1, 4, 0.6, 16, "K")
+label_point(g21, 0.05, 87, 0.005, 72, "E")
+label_point(g21, 0.07, 75, 0.008, 54, "C")
+label_point(g21, 0.07, 31, 0.6, 60, "F")
+label_point(g21, 0.1, 16, 0.007, 20, "A")
+label_point(g21, 0.1, 5, 0.6, 43, "B")
 
-label_point(g22, 0.05, 87, 0.005, 72, "G")
-label_point(g22, 0.07, 26, 0.6, 50, "I")
-label_point(g22, 0.09, 14, 0.007, 20, "J")
-label_point(g22, 0.1, 4, 0.6, 16, "K")
+label_point(g22, 0.05, 87, 0.005, 72, "E")
+label_point(g22, 0.09, 29, 0.6, 60, "F")
+label_point(g22, 0.09, 14, 0.007, 20, "A")
+label_point(g22, 0.12, 7, 0.6, 43, "B")
 
 add_canvas_color_bar(c,
                      min = min_val,

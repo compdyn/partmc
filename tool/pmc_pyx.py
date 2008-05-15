@@ -144,6 +144,13 @@ def label_point(g, x, y, label_x, label_y, label, radius = 2.5 * unit.v_mm):
            [text.halign.boxcenter, text.halign.flushcenter,
                                text.valign.middle])
 
+def boxed_text(g, x, y, label, border = 1 * unit.v_mm):
+    (x_g, y_g) = g.vpos(x, y)
+    c = text.text(x_g, y_g, label)
+    b = c.bbox().enlarged(all = border)
+    g.draw(b.path(), [deco.stroked, deco.filled([color.gray.white])])
+    g.insert(c)
+
 def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		  bar_height_ratio = 0.8, bar_x_offset = 1.8):
     colorbar_steps = 1000

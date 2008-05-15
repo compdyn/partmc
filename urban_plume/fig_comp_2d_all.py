@@ -114,17 +114,12 @@ g12.dodata()
 g21.dodata()
 g22.dodata()
 
-x_vpos = 0.03
-y_vpos = 0.9
-
-(x, y) = g11.vpos(x_vpos, y_vpos)
-g11.text(x, y, "%d hour" % times_hour[0])
-(x, y) = g12.vpos(x_vpos, y_vpos)
-g12.text(x, y, "%d hours" % times_hour[1])
-(x, y) = g21.vpos(x_vpos, y_vpos)
-g21.text(x, y, "%d hours" % times_hour[2])
-(x, y) = g22.vpos(x_vpos, y_vpos)
-g22.text(x, y, "%d hours" % times_hour[3])
+x_vpos = 0.04
+y_vpos = 0.88
+boxed_text(g11, x_vpos, y_vpos, "%d hour" % times_hour[0])
+boxed_text(g12, x_vpos, y_vpos, "%d hours" % times_hour[1])
+boxed_text(g21, x_vpos, y_vpos, "%d hours" % times_hour[2])
+boxed_text(g22, x_vpos, y_vpos, "%d hours" % times_hour[3])
 
 label_point(g11, 0.05, 90, 0.005, 70, "A")
 label_point(g11, 0.05, 34, 0.005, 18, "B")

@@ -93,16 +93,16 @@ def get_plot_data(time_hour):
 
 g11.plot(graph.data.points(get_plot_data(times_hour[0]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(rainbow_palette)])
+         styles = [graph.style.rect(gray_palette)])
 g12.plot(graph.data.points(get_plot_data(times_hour[1]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(rainbow_palette)])
+         styles = [graph.style.rect(gray_palette)])
 g21.plot(graph.data.points(get_plot_data(times_hour[2]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(rainbow_palette)])
+         styles = [graph.style.rect(gray_palette)])
 g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(rainbow_palette)])
+         styles = [graph.style.rect(gray_palette)])
 
 g11.dolayout()
 g12.dolayout()
@@ -120,7 +120,7 @@ add_canvas_color_bar(c,
                      min = min_val,
                      max = max_val,
                      title = r"normalized number density",
-                     palette = rainbow_palette)
+                     palette = gray_palette)
 
 c.writePDFfile(filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

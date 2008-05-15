@@ -134,6 +134,16 @@ def tex_species(species):
 	return gas_species_tex[species]
     return species
 
+def label_point(g, x, y, label_x, label_y, label, radius = 2.5 * unit.v_mm):
+    (x_g, y_g) = g.pos(x, y)
+    (label_x_g, label_y_g) = g.pos(label_x, label_y)
+    g.stroke(path.line(label_x_g, label_y_g, x_g, y_g))
+    g.draw(path.circle(label_x_g, label_y_g, radius),
+           [deco.stroked, deco.filled([color.gray.white])])
+    g.text(label_x_g, label_y_g, label,
+           [text.halign.boxcenter, text.halign.flushcenter,
+                               text.valign.middle])
+
 def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		  bar_height_ratio = 0.8, bar_x_offset = 1.8):
     colorbar_steps = 1000

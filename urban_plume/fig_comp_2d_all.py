@@ -109,6 +109,11 @@ g12.dolayout()
 g21.dolayout()
 g22.dolayout()
 
+g11.doaxes()
+g12.doaxes()
+g21.doaxes()
+g22.doaxes()
+
 x_vpos = 0.03
 y_vpos = 0.9
 
@@ -120,6 +125,25 @@ g12.text(x, y, "%d hours" % times_hour[1])
 g21.text(x, y, "%d hours" % times_hour[2])
 (x, y) = g22.vpos(x_vpos, y_vpos)
 g22.text(x, y, "%d hours" % times_hour[3])
+
+label_point(g11, 0.05, 87, 0.005, 70, "A")
+label_point(g11, 0.05, 35, 0.005, 15, "B")
+
+label_point(g12, 0.06, 72, 0.01, 75, "C")
+label_point(g12, 0.08, 50, 0.6, 55, "D")
+label_point(g12, 0.06, 24, 0.005, 30, "E")
+label_point(g12, 0.07, 14, 0.6, 20, "F")
+
+label_point(g21, 0.05, 87, 0.005, 72, "G")
+label_point(g21, 0.07, 72, 0.008, 54, "H")
+label_point(g21, 0.07, 28, 0.6, 50, "I")
+label_point(g21, 0.1, 16, 0.007, 20, "J")
+label_point(g21, 0.1, 4, 0.6, 16, "K")
+
+label_point(g22, 0.05, 87, 0.005, 72, "G")
+label_point(g22, 0.07, 26, 0.6, 50, "I")
+label_point(g22, 0.09, 14, 0.007, 20, "J")
+label_point(g22, 0.1, 4, 0.6, 16, "K")
 
 add_canvas_color_bar(c,
                      min = min_val,

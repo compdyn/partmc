@@ -55,9 +55,6 @@ for i in range(len(times_sec)):
 	       styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 					    size = 0.05,
 					    symbolattrs = [color.grey.black])])
-    g_num.text(3.8,2.8,"0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_num.text(4.2,2,"5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_num.text(4.5,1.2,"10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
     data_slice = module_copy.deepcopy(mc_data)
     data_slice.reduce([select("unit", "vol_den"),
@@ -68,9 +65,6 @@ for i in range(len(times_sec)):
 	       styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 					    size = 0.05,
 					    symbolattrs = [color_list[i]])])
-    g_vol.text(1.5,3,"0 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_vol.text(2.5,1,"12 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_vol.text(3.8,0.4,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
     data_slice = module_copy.deepcopy(exact_data)
     data_slice.reduce([select("unit", "num_den"),
@@ -87,7 +81,14 @@ for i in range(len(times_sec)):
 			       x = 1, y = 2,
 			       title = "%g mins exact" % times_min[i]),
 	       styles = [graph.style.line(lineattrs = [color_list[i]])])
-    
+
+g_num.text(3.8,2.8,"0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_num.text(4.2,2,"5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_num.text(4.5,1.2,"10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_vol.text(1.5,3,"0 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_vol.text(2.5,1,"12 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_vol.text(3.8,0.4,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+
 g_num.writePDFfile("out/golovin_num.pdf")
 g_vol.writePDFfile("out/golovin_vol.pdf")
 

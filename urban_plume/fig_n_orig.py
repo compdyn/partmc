@@ -23,13 +23,17 @@ data.reduce([select("unit", "num_den"),
 data.scale_dim("dry_radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
+data.write_summary(sys.stdout)
+data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 1
+data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 1
+
 g = graph.graphxy(
-    width = 6,
+    width = 4.2,
     x = graph.axis.log(min = 1e-3,
                        max = 1e+0,
                        title = r'dry radius ($\mu$m)',
                        painter = grid_painter),
-    y = graph.axis.linear(title = 'number of constituent particles',
+    y = graph.axis.linear(title = 'coagulation events',
                           painter = grid_painter))
 data_slice = module_copy.deepcopy(data)
 data_slice.reduce([select("time", time_hour)])
@@ -50,3 +54,5 @@ add_color_bar(g,
               palette = rainbow_palette,
               bar_x_offset = 0.6)
 g.writePDFfile("figs/n_orig.pdf")
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

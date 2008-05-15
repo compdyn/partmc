@@ -38,7 +38,7 @@ data2.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 c = canvas.canvas()
 
 g1 = c.insert(graph.graphxy(
-    width = 6.4,
+    width = 6.6,
     x = graph.axis.log(min = 0.01,
 		       max = 2,
 		       title = "dry diameter ($\mu$m)",
@@ -50,10 +50,10 @@ g1 = c.insert(graph.graphxy(
     key = graph.key.key(pos = "br")))
 
 g2 = c.insert(graph.graphxy(
-    width = 6.4,
+    width = 6.6,
     ypos = g1.height + 0.5,
     x = graph.axis.linkedaxis(g1.axes["x"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
+                              painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
     y = graph.axis.log(min = 1.e-5,
                        max = 1.e2,
                        title = "mass density ($\mu$g/m$^3$)",
@@ -101,6 +101,13 @@ g1.plot(graph.data.points(data2_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
 			   title = "%g hours, no coag" % times_hour[2]),
 	   styles = [graph.style.line(lineattrs = [line_style_list[0], style.linewidth.THick])])
+
+c.text(g1.xpos + 0.6 * unit.v_cm,
+       g1.ypos + 3.4 * unit.v_cm,
+       "soot")
+c.text(g2.xpos + 0.6 * unit.v_cm,
+       g2.ypos + 3.4 * unit.v_cm,
+       r"$\rm SO_4$")
 
 c.writePDFfile("figs/mass_dist.pdf")
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

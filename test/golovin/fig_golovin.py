@@ -24,7 +24,7 @@ exact_data = pmc_var(NetCDFFile("out/golovin_exact_0001.nc"),
 mc_data.scale_dim("radius", 2e6)
 exact_data.scale_dim("radius",2e6)
 
-g_num = graph.graphxy(width = 6,
+g_num = graph.graphxy(width = 6.4,
 		      x = graph.axis.log(min = 1e-1,
 					 max = 1e3,
 					 title = "diameter ($\mu$m)",
@@ -55,10 +55,6 @@ for i in range(len(times_sec)):
 	       styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 					    size = 0.05,
 					    symbolattrs = [color.grey.black])])
-    g_num.text(3.8,2.8,"0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_num.text(4.2,2,"5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-    g_num.text(4.6,1.3,"10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-
 
     data_slice = module_copy.deepcopy(exact_data)
     data_slice.reduce([select("unit", "num_den"),
@@ -68,6 +64,10 @@ for i in range(len(times_sec)):
 			       title = "%g mins exact" % times_min[i]),
 	       styles = [graph.style.line(lineattrs = [color.grey.black])])
     
+g_num.text(4.1, 3.0, "0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_num.text(4.5, 2.1, "5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g_num.text(4.9, 1.4, "10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+
 g_num.writePDFfile("out/golovin_num.pdf")
 
 print "figure height = %.1f cm" % unit.tocm(g_num.bbox().height())

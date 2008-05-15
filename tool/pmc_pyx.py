@@ -69,6 +69,9 @@ rainbow_palette = listpalette([[0, color.rgb(0, 0, 1)],
 			       [0.7, color.rgb(1, 1, 0)],
 			       [1, color.rgb(1, 0, 0)]])
 
+gray_palette = listpalette([[0, color.gray(0.7)],
+                            [1, color.gray(0)]])
+
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 major_grid_painter = graph.axis.painter.regular(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
 

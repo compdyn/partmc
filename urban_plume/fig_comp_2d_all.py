@@ -3,7 +3,7 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys
+import os, sys, math
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
@@ -43,18 +43,12 @@ g21 = c.insert(graph.graphxy(
     width = graph_width,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)',
-                       painter = grid_painter),
+                       title = r'dry diameter ($\mu$m)'),
     y = graph.axis.linear(min = 0,
                           max = 100,
                           title = y_axis_label,
                           texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"),
-                          painter = grid_painter)))
-
-#                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
-#                          painter = grid_painter)))
-
+                                                             = r"\%"))))
 g11 = c.insert(graph.graphxy(
     width = graph_width,
     ypos = g21.height + v_space,
@@ -64,24 +58,19 @@ g11 = c.insert(graph.graphxy(
                           title = y_axis_label,
                           texter = graph.axis.texter.decimal(suffix
                                                              = r"\%"))))
-
 g22 = c.insert(graph.graphxy(
     width = graph_width,
     xpos = g21.width + h_space,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)',
-                       painter = grid_painter),
-    y = graph.axis.linkedaxis(g21.axes["y"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted]))))
+                       title = r'dry diameter ($\mu$m)'),
+    y = graph.axis.linkedaxis(g21.axes["y"])))
 g12 = c.insert(graph.graphxy(
     width = graph_width,
     xpos = g11.width + h_space,
     ypos = g22.height + v_space,
-    x = graph.axis.linkedaxis(g22.axes["x"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
-    y = graph.axis.linkedaxis(g11.axes["y"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted]))))
+    x = graph.axis.linkedaxis(g22.axes["x"]),
+    y = graph.axis.linkedaxis(g11.axes["y"])))
 
 def get_plot_data(time_hour):
     data_slice = module_copy.deepcopy(data)
@@ -89,6 +78,7 @@ def get_plot_data(time_hour):
     data_num = module_copy.deepcopy(data_slice)
     data_num.reduce([sum("dry_radius"), sum(netcdf_dim)])
     data_slice.data = data_slice.data / data_num.data
+    data_slice.scale(math.log(10)) # d/dln(r) to d/dlog10(r)
     plot_data = data_slice.data_2d_list(strip_zero = True,
 					min = min_val,
 					max = max_val)
@@ -107,26 +97,15 @@ g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(gray_palette)])
 
-g11.dolayout()
-g12.dolayout()
-g21.dolayout()
-g22.dolayout()
-
-for axisname in ["x", "y"]:
-    for t in g11.axes[axisname].data.ticks:
-        if t.ticklevel is not None:
-            g11.stroke(g11.axes[axisname].positioner.vgridpath(t.temp_v),
-                       [style.linestyle.dotted])
-
-g11.dodata()
-g12.dodata()
-g21.dodata()
-g22.dodata()
-
-g11.doaxes()
-g12.doaxes()
-g21.doaxes()
-g22.doaxes()
+for g in [g11, g12, g21, g22]:
+    g.dolayout()
+    for axisname in ["x", "y"]:
+        for t in g.axes[axisname].data.ticks:
+            if t.ticklevel is not None:
+                g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
+                         [style.linestyle.dotted])
+    g.dodata()
+    g.doaxes()
 
 x_vpos = 0.04
 y_vpos = 0.88

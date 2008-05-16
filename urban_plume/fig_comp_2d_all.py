@@ -51,17 +51,20 @@ g21 = c.insert(graph.graphxy(
                           texter = graph.axis.texter.decimal(suffix
                                                              = r"\%"),
                           painter = grid_painter)))
+
+#                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
+#                          painter = grid_painter)))
+
 g11 = c.insert(graph.graphxy(
     width = graph_width,
     ypos = g21.height + v_space,
-    x = graph.axis.linkedaxis(g21.axes["x"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
+    x = graph.axis.linkedaxis(g21.axes["x"]),
     y = graph.axis.linear(min = 0,
                           max = 100,
                           title = y_axis_label,
                           texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"),
-                          painter = grid_painter)))
+                                                             = r"\%"))))
+
 g22 = c.insert(graph.graphxy(
     width = graph_width,
     xpos = g21.width + h_space,
@@ -108,6 +111,12 @@ g11.dolayout()
 g12.dolayout()
 g21.dolayout()
 g22.dolayout()
+
+for axisname in ["x", "y"]:
+    for t in g11.axes[axisname].data.ticks:
+        if t.ticklevel is not None:
+            g11.stroke(g11.axes[axisname].positioner.vgridpath(t.temp_v),
+                       [style.linestyle.dotted])
 
 g11.dodata()
 g12.dodata()

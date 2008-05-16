@@ -104,20 +104,20 @@ g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(gray_palette)])
 
-#g11.dobackground()
-#g12.dobackground()
-#g21.dobackground()
-#g22.dobackground()
+g11.dolayout()
+g12.dolayout()
+g21.dolayout()
+g22.dolayout()
 
-#g11.dodata()
-#g12.dodata()
-#g21.dodata()
-#g22.dodata()
+g11.dodata()
+g12.dodata()
+g21.dodata()
+g22.dodata()
 
-#g11.doaxes()
-#g12.doaxes()
-#g21.doaxes()
-#g22.doaxes()
+g11.doaxes()
+g12.doaxes()
+g21.doaxes()
+g22.doaxes()
 
 x_vpos = 0.04
 y_vpos = 0.88

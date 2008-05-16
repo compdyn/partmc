@@ -48,8 +48,8 @@ class sum(reducer):
 	self.below = below            # value to sum below
 	self.only = only              # list of values to sum
         self.without = without        # list of values to leave out of sum
-	if only:
-	    if above or below or without:
+	if only != None:
+	    if (above != None) or (below != None) or (without != None):
 		raise Exception("cannot provide above, below or without if"
 				+ " only is is given: %s" % dim_name)
 
@@ -58,21 +58,21 @@ class sum(reducer):
 	if d.dims[i_dim].grid_widths == None:
 	    raise Exception("cannot sum dimension without widths: %s"
 			    % self.dim_name)
-	if self.only:
+	if self.only != None:
 	    i_range = []
 	    for val in self.only:
 		i_range.append(d.dims[i_dim].find_grid_by_value(val))
 	else:
-	    if self.above:
+	    if self.above != None:
 		i_val_low = d.dims[i_dim].find_grid_by_value(self.above)
 	    else:
 		i_val_low = 0
-	    if self.below:
+	    if self.below != None:
 		i_val_high = d.dims[i_dim].find_grid_by_value(self.below)
 	    else:
 		i_val_high = size(d.data, i_dim) - 1
 	    i_range = range(i_val_low, i_val_high + 1)
-            if self.without:
+            if self.without != None:
                 for val in self.without:
                     del i_range[d.dims[i_dim].find_grid_by_value(val)]
 	d.data = sum_range(d.data, d.dims[i_dim].grid_widths, i_dim, i_range)

@@ -25,6 +25,9 @@ sect_data = pmc_var(NetCDFFile("out/brown_sect_0001.nc"),
 mc_data.scale_dim("radius", 2e6)
 sect_data.scale_dim("radius",2e6)
 
+mc_data.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
+sect_data.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
+
 c = canvas.canvas()
 
 g_vol_lin = c.insert(graph.graphxy(

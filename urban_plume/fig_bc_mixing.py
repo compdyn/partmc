@@ -59,8 +59,9 @@ g = graph.graphxy(
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',
                            min = 1e-6, max = 2e2,
-			   painter = grid_painter),
-        key = graph.key.key(pos = "br", vdist = 0.2 * unit.v_cm))
+			   painter = grid_painter))
+#        key = graph.key.key(pos = "br", vdist = 0.2 * unit.v_cm,
+#                            columns = 2))
 
 for i in range(len(composition_lower)):
     data_no_slice = module_copy.deepcopy(data_no)
@@ -73,14 +74,80 @@ for i in range(len(composition_lower)):
 
     g.plot(graph.data.points(data_no_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2,
-                           title = "no coag %d--%d\\%%" % (composition_lower[i], composition_upper[i])),
-	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.Thick])])
+                           title = "%d--%d\\%%" % (composition_lower[i], composition_upper[i])),
+	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.thick])])
 
     g.plot(graph.data.points(data_wc_slice.data_center_list(strip_zero = True),
 			   x = 1, y = 2, 
-                           title = "with coag %d--%d\\%%" % (composition_lower[i], composition_upper[i])),
+                           title = "%d--%d\\%%" % (composition_lower[i], composition_upper[i])),
            styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.THick])])
 
+g.doaxes()
+g.dodata()
+
+######################################################################
+# key
+
+dx = 1 * unit.v_cm
+dy = 0.5 * unit.v_cm
+xoff = 0.7 * unit.v_cm
+yoff = 0.3 * unit.v_cm
+length = 0.6 * unit.v_cm
+extra = 0.2 * unit.v_cm
+coag_off = 0.4 * unit.v_cm
+cornerx = 0.3 * unit.v_cm
+cornery = 0.3 * unit.v_cm
+
+c = canvas.canvas()
+
+for i in range(len(composition_lower)):
+    p = c.text(0, - i * dy,
+               "%d--%d\\%% soot" % (composition_lower[i], composition_upper[i]),
+               [text.halign.right, text.valign.middle])
+    left = p.bbox().left()
+    bottom = p.bbox().bottom()
+    if i == 0:
+        first_top = p.bbox().top()
+
+with_text = c.text(xoff, yoff,
+                   "with", [text.halign.center])
+without_text = c.text(xoff + dx, yoff,
+                      "without", [text.halign.center])
+centerx = (with_text.bbox().left() + without_text.bbox().right()) / 2.0
+coag_text = c.text(centerx, yoff + coag_off,
+                   "coagulation", [text.halign.center])
+
+for i in range(len(composition_lower)):
+    c.stroke(path.line(xoff - length / 2.0, - i * dy,
+                       xoff + length / 2.0, - i * dy),
+                       [line_style_list[i], style.linewidth.THick])
+    c.stroke(path.line(xoff + dx - length / 2.0, - i * dy,
+                       xoff + dx + length / 2.0, - i * dy),
+                       [line_style_list[i], style.linewidth.thick])
+
+#box = path.rect(left - extra, bottom - extra,
+#                without_text.bbox().right() - left + 2.0 * extra,
+#                coag_text.bbox().top() - bottom + 2.0 * extra)
+box = path.path(path.moveto(left - extra, bottom - extra),
+                path.lineto(left - extra, first_top + extra),
+                path.lineto(with_text.bbox().left() - extra,
+                            first_top + extra),
+                path.lineto(with_text.bbox().left() - extra,
+                            coag_text.bbox().top() + extra),
+                path.lineto(without_text.bbox().right() + extra,
+                            coag_text.bbox().top() + extra),
+                path.lineto(without_text.bbox().right() + extra,
+                            bottom - extra),
+                path.closepath())
+desiredx = g.width - cornerx
+desiredy = cornery
+transx = - box.bbox().right() + desiredx
+transy = - box.bbox().bottom() + desiredy
+g.draw(box, [deco.stroked, deco.filled([color.gray.white]),
+             trafo.translate(transx, transy)])
+g.insert(c, [trafo.translate(transx, transy)])
+
+######################################################################
 
 g.writePDFfile("figs/bc_mixing.pdf")
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

@@ -34,7 +34,7 @@ g_vol_lin = c.insert(graph.graphxy(
 		       title = "diameter ($\mu$m)",
 		       painter = grid_painter),
     y = graph.axis.linear(min = 0,
-			  max = 4e-11,
+			  max = 6e-11,
 			  title = "volume density (m$^3$/m$^3$)",
 			  painter = grid_painter)))
 
@@ -44,7 +44,7 @@ g_num_lin = c.insert(graph.graphxy(
     x = graph.axis.linkedaxis(g_vol_lin.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
     y = graph.axis.linear(min = 0,
-			  max = 5e10,
+			  max = 8e10,
 			  title = "number density (\#/m$^3$)",
 			  painter = grid_painter)))
 
@@ -90,20 +90,20 @@ for i in range(len(times_sec)):
 			title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
 
-g_num_lin.text(g_num_lin.xpos + 1.5,
+g_num_lin.text(g_num_lin.xpos + 1.0,
                g_num_lin.ypos + 2.9,
                "0 h",
                [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num_lin.text(g_num_lin.xpos + 2.5,
-               g_num_lin.ypos + 1.1,
+g_num_lin.text(g_num_lin.xpos + 2.4,
+               g_num_lin.ypos + 0.8,
                "12 h",
                [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num_lin.text(g_num_lin.xpos + 3,
+g_num_lin.text(g_num_lin.xpos + 3.2,
                g_num_lin.ypos + 0.1,
                "24 h",
                [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
-g_vol_lin.text(g_vol_lin.xpos + 2.3,
+g_vol_lin.text(g_vol_lin.xpos + 2.2,
                g_vol_lin.ypos + 1.1,
                "0 h",
                [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])

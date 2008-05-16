@@ -19,7 +19,7 @@ y_axis_label = r"$f_{{\rm BC},{\rm all}}$"
 filename = "figs/comp_2d_all.pdf"
 
 min_val = 0.0
-max_val = 2.0
+max_val = 4.0
 
 v_space = 0.5
 h_space = 0.5

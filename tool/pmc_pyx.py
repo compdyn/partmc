@@ -7,6 +7,15 @@ import os, sys
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 
+text.set(mode="latex")
+#text.set(docopt="10pt")
+#text.set(fontmaps="download35.map")
+#text.preamble(r"\usepackage{times}")
+text.preamble(r"""\usepackage{times}
+\usepackage{sfmath}
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
+
 color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),
 	      color.hsb(2/3.0, 1, 1),

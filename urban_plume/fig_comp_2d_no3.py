@@ -43,42 +43,34 @@ g21 = c.insert(graph.graphxy(
     width = graph_width,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)',
-                       painter = grid_painter),
+                       title = r'dry diameter ($\mu$m)'),
     y = graph.axis.linear(min = 0,
                           max = 100,
                           title = y_axis_label,
                           texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"),
-                          painter = grid_painter)))
+                                                             = r"\%"))))
 g11 = c.insert(graph.graphxy(
     width = graph_width,
     ypos = g21.height + v_space,
-    x = graph.axis.linkedaxis(g21.axes["x"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
+    x = graph.axis.linkedaxis(g21.axes["x"]),
     y = graph.axis.linear(min = 0,
                           max = 100,
                           title = y_axis_label,
                           texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"),
-                          painter = grid_painter)))
+                                                             = r"\%"))))
 g22 = c.insert(graph.graphxy(
     width = graph_width,
     xpos = g21.width + h_space,
     x = graph.axis.log(min = 2.e-3,
                        max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)',
-                       painter = grid_painter),
-    y = graph.axis.linkedaxis(g21.axes["y"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted]))))
+                       title = r'dry diameter ($\mu$m)'),
+    y = graph.axis.linkedaxis(g21.axes["y"])))
 g12 = c.insert(graph.graphxy(
     width = graph_width,
     xpos = g11.width + h_space,
     ypos = g22.height + v_space,
-    x = graph.axis.linkedaxis(g22.axes["x"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
-    y = graph.axis.linkedaxis(g11.axes["y"],
-                              painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted]))))
+    x = graph.axis.linkedaxis(g22.axes["x"]),
+    y = graph.axis.linkedaxis(g11.axes["y"])))
 
 def get_plot_data(time_hour):
     data_slice = module_copy.deepcopy(data)

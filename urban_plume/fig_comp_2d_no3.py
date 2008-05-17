@@ -19,7 +19,7 @@ y_axis_label = r"$f_{{\rm BC},{\rm NO_3}}$"
 filename = "figs/comp_2d_no3.pdf"
 
 min_val = 0.0
-max_val = 2.0
+max_val = 4.0
 
 v_space = 0.5
 h_space = 0.5
@@ -86,6 +86,7 @@ def get_plot_data(time_hour):
     data_num = module_copy.deepcopy(data_slice)
     data_num.reduce([sum("dry_radius"), sum(netcdf_dim)])
     data_slice.data = data_slice.data / data_num.data
+    data_slice.scale(math.log(10)) # d/dln(r) to d/dlog10(r)
     plot_data = data_slice.data_2d_list(strip_zero = True,
 					min = min_val,
 					max = max_val)
@@ -104,15 +105,15 @@ g22.plot(graph.data.points(get_plot_data(times_hour[3]),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
          styles = [graph.style.rect(gray_palette)])
 
-g11.doaxes()
-g12.doaxes()
-g21.doaxes()
-g22.doaxes()
-
-g11.dodata()
-g12.dodata()
-g21.dodata()
-g22.dodata()
+for g in [g11, g12, g21, g22]:
+    g.dolayout()
+    for axisname in ["x", "y"]:
+        for t in g.axes[axisname].data.ticks:
+            if t.ticklevel is not None:
+                g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
+                         [style.linestyle.dotted])
+    g.dodata()
+    g.doaxes()
 
 x_vpos = 0.04
 y_vpos = 0.88

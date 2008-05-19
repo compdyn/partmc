@@ -27,8 +27,8 @@ data.dim_by_name("n_orig_part").grid_centers -= 0.5
 data.dim_by_name("n_orig_part").grid_edges -= 0.5
 
 # shift from "num constituent particles" to "num coag events"
-data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 1
-data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 1
+data.dim_by_name("n_orig_part").grid_centers -= 1
+data.dim_by_name("n_orig_part").grid_edges -= 1
 
 data_slice = module_copy.deepcopy(data)
 data_slice.reduce([select("time", time_hour),

@@ -22,24 +22,27 @@ data.reduce([select("unit", "num_den"),
 data.scale_dim("dry_radius", 2e6)
 data.scale_dim("time", 1.0/3600)
 
+# fix data to center on integers
+data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 0.5
+data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 0.5
+
+# shift from "num constituent particles" to "num coag events"
 data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 1
 data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 1
 
 data_slice = module_copy.deepcopy(data)
-
-data_slice.reduce([select("time", time_hour)])
-reducer2 = sum("dry_radius")
-reducers = [reducer2]
-data_slice.reduce(reducers)
-
+data_slice.reduce([select("time", time_hour),
+                   sum("dry_radius")])
 data_help = module_copy.deepcopy(data_slice)
+data_slice.reduce([sum("n_orig_part")])
 
-reducer3 = sum("n_orig_part")
-reducers = [reducer3]
-data_slice.reduce(reducers)
+print "total =", data_slice.data
 
-reducer4 = sum("n_orig_part", above = 6) # means 5 coag events or more
-reducers = [reducer4]
-data_help.reduce(reducers)
+print "%20s %20s %20s" % ("num_events", "num_den", "percentage")
+for i in range(30):
+    data_help2 = module_copy.deepcopy(data_help)
+    data_help2.reduce([sum("n_orig_part", above = i)]) # >= 5 coag events
+    print "%20i %20f %20.2f%%" % (i, data_help2.data,
+                                  data_help2.data / data_slice.data * 100)
 
-print data_slice.data, data_help.data, data_help.data/data_slice.data
+#print data_slice.data, data_help.data, data_help.data/data_slice.data

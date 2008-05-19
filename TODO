@@ -1,9 +1,14 @@
 
+Fix binned output with n_coag for grid_centers and grid_edges. While
+for plotting a 2d plot it's good to have grid_edges be integers, it's
+also pretty amiguous, and messes up things like sum_above("n_coag", 4)
+to mean 4 or more consituent particles.
+
 Change error messages in inout.f90 to use die_msg().
 
 We shouldn't really need both aero_binned_t and aero_dist_t. Actually
 aero_dist_t should go away, so that we can generate exact samplings
-for particle-based methods.
+for particle-based methods from the original continuous distribution.
 
 Change Makefile to not use FFLAGS as the thing to set, but rather use
 DEF_FFLAGS or something, and include FFLAGS without settting it. Also

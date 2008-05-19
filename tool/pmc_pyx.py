@@ -14,7 +14,7 @@ text.set(mode="latex")
 text.preamble(r"""\usepackage{times}
 \usepackage{sfmath}
 \renewcommand{\familydefault}{\sfdefault}
-\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
+\renewcommand{\normalsize}{\fontsize{8}{8}\selectfont}""")
 
 color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),

@@ -24,7 +24,7 @@ max_val = 4.0
 v_space = 0.5
 h_space = 0.5
 
-graph_width = 6
+graph_width = 6.3
 
 data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
 	       netcdf_var,

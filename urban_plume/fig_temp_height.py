@@ -42,7 +42,8 @@ g = graph.graphxy(
 			  painter = grid_painter),
     y = graph.axis.linear(title = "temperature (K)",
                           painter = grid_painter),
-    y2 = graph.axis.linear(title = r"relative humidity (\%)"),
+    y2 = graph.axis.linear(title = "relative humidity",
+                          texter = graph.axis.texter.decimal(suffix = r"\%")),
     y4 = graph.axis.linear(title = "mixing height (m)"))
 #    key = graph.key.key(pos = "tr"))
 
@@ -61,7 +62,7 @@ g.plot(graph.data.points(height_data.data_center_list(),
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])
 g.text(5.2,1,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(6.5,2,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+g.text(6.5,2.1,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g.text(7.2,3.5,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g.writePDFfile("figs/temp_height.pdf")

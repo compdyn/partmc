@@ -26,7 +26,7 @@ data.scale(1e9)
 c = canvas.canvas()
 
 g2 = c.insert(graph.graphxy(
-    width = 6.5,
+    width = 6.7,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
                           parter = graph.axis.parter.linear(tickdists
@@ -36,16 +36,16 @@ g2 = c.insert(graph.graphxy(
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
                           max = 10,
-                          title = "mass density ($\mu$g/m$^3$)",
+                          title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
 g1 = c.insert(graph.graphxy(
-    width = 6.5,
+    width = 6.7,
     ypos = g2.height + 0.5,
     x = graph.axis.linkedaxis(g2.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
     y = graph.axis.linear(min = 0.,
                           max = 60,
-                          title = "mass density ($\mu$g/m$^3$)",
+                          title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
 
 for i in range(len(aero_species_1)):
@@ -73,7 +73,7 @@ g1.text(g1.xpos + 1.8,
         r"$\rm NH_4$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g1.text(g1.xpos + 2.6,
-        g1.ypos + 0.8,
+        g1.ypos + 0.9,
         r"OC",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 

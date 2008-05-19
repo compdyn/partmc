@@ -53,7 +53,7 @@ data_no.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 data_wc.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 g = graph.graphxy(
-	width = 6.7,
+	width = 6.8,
 	x = graph.axis.log(title = r'dry diameter ($\mu$m)',
                            min = 0.01, max = 2,
 			   painter = grid_painter),
@@ -96,7 +96,7 @@ length = 0.6 * unit.v_cm
 extra = 0.2 * unit.v_cm
 coag_off = 0.4 * unit.v_cm
 cornerx = 0.3 * unit.v_cm
-cornery = 0.3 * unit.v_cm
+cornery = 0.2 * unit.v_cm
 
 c = canvas.canvas()
 

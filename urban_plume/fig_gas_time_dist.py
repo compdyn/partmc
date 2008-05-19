@@ -23,7 +23,7 @@ data.scale_dim("time", 1.0/60)
 c = canvas.canvas()
 
 g1 = c.insert(graph.graphxy(
-    width = 6.5,
+    width = 6.7,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
                           parter = graph.axis.parter.linear(tickdists
@@ -36,7 +36,7 @@ g1 = c.insert(graph.graphxy(
                           title = "gas concentration (ppb)",
 			  painter = grid_painter)))
 g2 = c.insert(graph.graphxy(
-    width = 6.5,
+    width = 6.7,
     ypos = g1.height + 0.5,
     x = graph.axis.linkedaxis(g1.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
@@ -74,8 +74,8 @@ g1.text(g1.xpos + 2.6,
         r"HCHO",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
-g2.text(g2.xpos + 1.5,
-        g2.ypos + 3.1,
+g2.text(g2.xpos + 1.7,
+        g2.ypos + 3.2,
         r"$\rm HNO_3$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g2.text(g2.xpos + 2.2,

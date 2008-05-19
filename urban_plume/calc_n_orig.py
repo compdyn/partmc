@@ -23,8 +23,8 @@ data.scale_dim("dry_radius", 2e6)
 data.scale_dim("time", 1.0/3600)
 
 # fix data to center on integers
-data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 0.5
-data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 0.5
+data.dim_by_name("n_orig_part").grid_centers -= 0.5
+data.dim_by_name("n_orig_part").grid_edges -= 0.5
 
 # shift from "num constituent particles" to "num coag events"
 data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").grid_centers - 1
@@ -44,5 +44,3 @@ for i in range(30):
     data_help2.reduce([sum("n_orig_part", above = i)]) # >= 5 coag events
     print "%20i %20f %20.2f%%" % (i, data_help2.data,
                                   data_help2.data / data_slice.data * 100)
-
-#print data_slice.data, data_help.data, data_help.data/data_slice.data

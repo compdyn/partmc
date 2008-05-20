@@ -34,17 +34,28 @@ g = graph.graphxy(
     height = 4,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
-#                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
 			  title = "local standard time",
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),
 			  painter = grid_painter),
-    y = graph.axis.linear(title = "temperature (K)",
+    y = graph.axis.linear(min = 285,
+                          max = 300,
+                          parter = graph.axis.parter.linear(tickdists
+                                                            = [3, 1.5]),
+                          title = "temperature (K)",
                           painter = grid_painter),
-    y2 = graph.axis.linear(title = "relative humidity",
+    y2 = graph.axis.linear(min = 50,
+                           max = 100,
+                           parter = graph.axis.parter.linear(tickdists
+                                                             = [10, 5]),
+                           title = "relative humidity",
                           texter = graph.axis.texter.decimal(suffix = r"\%")),
-    y4 = graph.axis.linear(title = "mixing height (m)"))
+    y4 = graph.axis.linear(min = 0,
+                           max = 500,
+                           parter = graph.axis.parter.linear(tickdists
+                                                             = [100, 50]),
+                           title = "mixing height (m)"))
 #    key = graph.key.key(pos = "tr"))
 
 g.plot(graph.data.points(temp_data.data_center_list(),
@@ -61,6 +72,7 @@ g.plot(graph.data.points(height_data.data_center_list(),
 			   x = 1, y4 = 2,
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])
+
 g.text(5.2,1,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g.text(6.5,2.1,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g.text(7.2,3.5,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])

@@ -29,7 +29,7 @@ g1 = c.insert(graph.graphxy(
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),
-                          title = "local standard time",
+                          title = "local standard time (hours:minutes)",
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
                           max = 125,

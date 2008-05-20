@@ -15,7 +15,7 @@ times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_bc"
 netcdf_dim = "composition_bc"
-y_axis_label = r"$f_{{\rm BC},{\rm all}}$"
+y_axis_label = r"$f_{{\rm soot},{\rm all}} (1)$"
 filename = "figs/comp_2d_all.pdf"
 
 min_val = 0.0
@@ -140,7 +140,7 @@ label_point(g22, 0.2, 0, 0.6, 15, "C")
 add_canvas_color_bar(c,
                      min = min_val,
                      max = max_val,
-                     title = r"normalized number density",
+                     title = r"normalized number density (1)",
                      palette = gray_palette)
 
 c.writePDFfile(filename)

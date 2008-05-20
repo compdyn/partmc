@@ -32,7 +32,7 @@ g2 = c.insert(graph.graphxy(
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),
-                          title = "local standard time",
+                          title = "local standard time (hours:minutes)",
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
                           max = 10,
@@ -83,7 +83,7 @@ g2.text(g2.xpos + 1.6,
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g2.text(g2.xpos + 2.1,
         g2.ypos + 2,
-        r"$\rm BC$",
+        r"$\rm soot$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g2.text(g2.xpos + 2.4,
         g2.ypos + 1.3,

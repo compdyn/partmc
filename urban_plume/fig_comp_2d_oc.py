@@ -15,7 +15,7 @@ times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_oc"
 netcdf_dim = "composition_oc"
-y_axis_label = r"$f_{{\rm BC},{\rm OC}}$"
+y_axis_label = r"$f_{{\rm soot},{\rm OC}} (1)$"
 filename = "figs/comp_2d_oc.pdf"
 
 min_val = 0.0
@@ -117,7 +117,7 @@ boxed_text(g22, x_vpos, y_vpos, "%d hours" % times_hour[3])
 add_canvas_color_bar(c,
                      min = min_val,
                      max = max_val,
-                     title = r"normalized number density",
+                     title = r"normalized number density (1)",
                      palette = gray_palette)
 
 c.writePDFfile(filename)

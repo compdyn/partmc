@@ -34,7 +34,7 @@ g = graph.graphxy(
     height = 4,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
-			  title = "local standard time",
+			  title = "local standard time (hours:minutes)",
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),
@@ -49,7 +49,7 @@ g = graph.graphxy(
                            max = 100,
                            parter = graph.axis.parter.linear(tickdists
                                                              = [10, 5]),
-                           title = "relative humidity",
+                           title = "relative humidity (1)",
                           texter = graph.axis.texter.decimal(suffix = r"\%")),
     y4 = graph.axis.linear(min = 0,
                            max = 500,

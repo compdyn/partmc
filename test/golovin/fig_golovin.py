@@ -24,17 +24,16 @@ exact_data = pmc_var(NetCDFFile("out/golovin_exact_0001.nc"),
 mc_data.scale_dim("radius", 2e6)
 exact_data.scale_dim("radius",2e6)
 
-g_num = graph.graphxy(width = 6.4,
+g_num = graph.graphxy(width = 6.6,
 		      x = graph.axis.log(min = 1e-1,
 					 max = 1e3,
-					 title = "diameter ($\mu$m)",
+					 title = r"diameter ($\rm \mu m$)",
 					 painter = major_grid_painter),
 		      y = graph.axis.log(min = 1e5,
 					 max = 1e10,
-					 title = "number density (\#/m$^3$)",
+					 title = r"number density ($\rm m^{-3}$)",
 					 painter = major_grid_painter))
-#		      key = graph.key.key(pos = "tr"))
-g_vol = graph.graphxy(width = 6,
+g_vol = graph.graphxy(width = 6.6,
 		      x = graph.axis.log(min = 1e-1,
 					 max = 1e3,
 					 title = "diameter ($\mu$m)",
@@ -43,13 +42,12 @@ g_vol = graph.graphxy(width = 6,
 					 max = 1e-5,
 					 title = "volume density (m$^3$/m$^3$)",
 					 painter = grid_painter))
-#		      key = graph.key.key(pos = "br"))
 
 for i in range(len(times_sec)):
     data_slice = module_copy.deepcopy(mc_data)
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
-    g_num.plot(graph.data.list(data_slice.data_center_list(strip_zero = True),
+    g_num.plot(graph.data.points(data_slice.data_center_list(strip_zero = True),
 			       x = 1, y = 2,
 			       title = "%g mins MC" % times_min[i]),
 	       styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
@@ -59,16 +57,19 @@ for i in range(len(times_sec)):
     data_slice = module_copy.deepcopy(exact_data)
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
-    g_num.plot(graph.data.list(data_slice.data_center_list(strip_zero = True),
+    g_num.plot(graph.data.points(data_slice.data_center_list(strip_zero = True),
 			       x = 1, y = 2,
 			       title = "%g mins exact" % times_min[i]),
 	       styles = [graph.style.line(lineattrs = [color.grey.black])])
-    
-g_num.text(4.1, 3.0, "0 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num.text(4.5, 2.1, "5 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num.text(4.9, 1.4, "10 mins",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
-g_num.writePDFfile("out/golovin_num.pdf")
+(x, y) = g_num.pos(37, 4e8)
+g_num.text(x, y, "0 mins", [text.halign.left, text.valign.bottom])
+(x, y) = g_num.pos(80, 3e7)
+g_num.text(x, y, "5 mins", [text.halign.left, text.valign.bottom])
+(x, y) = g_num.pos(160, 3e6)
+g_num.text(x, y, "10 mins", [text.halign.left, text.valign.bottom])
+
+g_num.writePDFfile("out/golovin.pdf")
 
 print "figure height = %.1f cm" % unit.tocm(g_num.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g_num.bbox().width())

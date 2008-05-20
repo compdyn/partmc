@@ -31,24 +31,24 @@ sect_data.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 c = canvas.canvas()
 
 g_vol_lin = c.insert(graph.graphxy(
-    width = 6,
+    width = 6.1,
     x = graph.axis.log(min = 1e-2,
 		       max = 1e0,
-		       title = "diameter ($\mu$m)",
+		       title = r"diameter ($\rm \mu m$)",
 		       painter = grid_painter),
     y = graph.axis.linear(min = 0,
-			  max = 6e-11,
-			  title = "volume density (m$^3$/m$^3$)",
+			  max = 1.5e-10,
+			  title = r"volume density ($1$)",
 			  painter = grid_painter)))
 
 g_num_lin = c.insert(graph.graphxy(
-    width = 6,
+    width = 6.1,
     ypos = g_vol_lin.height + 0.5,
     x = graph.axis.linkedaxis(g_vol_lin.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
     y = graph.axis.linear(min = 0,
-			  max = 8e10,
-			  title = "number density (\#/m$^3$)",
+			  max = 2e11,
+			  title = r"number density ($\rm m^{-3}$)",
 			  painter = grid_painter)))
 
 for i in range(len(times_sec)):
@@ -93,32 +93,19 @@ for i in range(len(times_sec)):
 			title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
 
-g_num_lin.text(g_num_lin.xpos + 1.0,
-               g_num_lin.ypos + 2.9,
-               "0 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num_lin.text(g_num_lin.xpos + 2.4,
-               g_num_lin.ypos + 0.8,
-               "12 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_num_lin.text(g_num_lin.xpos + 3.2,
-               g_num_lin.ypos + 0.1,
-               "24 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
+(x, y) = g_vol_lin.pos(0.075, 4e-11)
+g_vol_lin.text(x, y, "0 hours", [text.halign.right, text.valign.bottom])
+(x, y) = g_vol_lin.pos(0.15, 8.5e-11)
+g_vol_lin.text(x, y, "12 hours", [text.halign.right, text.valign.bottom])
+(x, y) = g_vol_lin.pos(0.21, 13e-11)
+g_vol_lin.text(x, y, "24 hours", [text.halign.right, text.valign.bottom])
 
-g_vol_lin.text(g_vol_lin.xpos + 2.2,
-               g_vol_lin.ypos + 1.1,
-               "0 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_vol_lin.text(g_vol_lin.xpos + 2.8,
-               g_vol_lin.ypos + 2.2,
-               "12 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g_vol_lin.text(g_vol_lin.xpos + 3.3,
-               g_vol_lin.ypos + 3.3,
-               "24 h",
-               [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-#g_vol_lin.stroke(path.line(2.2, 0.6, 2.95, 0.5))
+(x, y) = g_num_lin.pos(0.075, 1.6e11)
+g_num_lin.text(x, y, "0 hours", [text.halign.left, text.valign.bottom])
+(x, y) = g_num_lin.pos(0.18, 4e10)
+g_num_lin.text(x, y, "12 hours", [text.halign.left, text.valign.bottom])
+(x, y) = g_num_lin.pos(0.28, 2e10)
+g_num_lin.text(x, y, "24 hours", [text.halign.left, text.valign.bottom])
 
 c.writePDFfile("out/brownian.pdf")
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

@@ -13,11 +13,11 @@ from pmc_pyx import *
 
 env = ["H"]
 
-subdir = "withcoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_test_0001.nc" % subdir),
 	       "env_state",
 	       [])
 
@@ -36,7 +36,7 @@ height_data.reduce([select("env", "height")])
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(min = 0.,
-                          max = 1440,
+                          max = 720,
 #                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
 			  title = "time (hour)",
                           parter = graph.axis.parter.linear(tickdists

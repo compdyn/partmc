@@ -18,7 +18,7 @@ subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_test_0001.nc" % subdir),
 	       "gas",
 	       [])
 
@@ -37,7 +37,7 @@ g = graph.graphxy(
                           title = "time (hour)",
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
-                          max = 150,
+                          max = 100,
                           title = "gas concentration (ppb)",
 			  painter = grid_painter),
     key = graph.key.key(pos = "tr"))

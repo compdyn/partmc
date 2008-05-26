@@ -11,20 +11,20 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [1, 2, 3, 4, 5, 6, 12, 18, 24]
+times_hour = [1, 6, 12]
 
-subdir = "withcoag_dry"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
-	       "comp_so4",
+data = pmc_var(NetCDFFile("out/%s/urban_plume_test_0001.nc" % subdir),
+	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
 
 data.reduce([select("unit", "num_den"),
 		 sum("aero_species")])
-data.scale_dim("composition_so4", 100)
+data.scale_dim("composition_bc", 100)
 data.scale_dim("dry_radius", 1e6)
 data.scale_dim("time", 1.0/3600)
 
@@ -43,10 +43,10 @@ for i in range(len(times_hour)):
 			      painter = grid_painter))
     data_slice = module_copy.deepcopy(data)
     data_slice.reduce([select("time", times_hour[i])])
-    #min_val = data_slice.data.min()
-    #max_val = data_slice.data.max()
-    min_val = 0.0
-    max_val = 3e10
+    min_val = data_slice.data.min()
+    max_val = data_slice.data.max()
+#    min_val = 0.0
+#    max_val = 3e10
     plot_data = data_slice.data_2d_list(strip_zero = True,
 					min = min_val,
 					max = max_val)
@@ -58,4 +58,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/%s/aero_comp_so4_num_%d.pdf" % (subdir, times_hour[i]))
+    g.writePDFfile("out/%s/aero_comp_bc_num_%d.pdf" % (subdir, times_hour[i]))

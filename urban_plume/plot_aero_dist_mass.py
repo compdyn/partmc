@@ -11,23 +11,23 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-times_hour = [0, 1, 6, 12, 24]
+times_hour = [0, 1, 6, 12]
 times_sec = [t * 3600 for t in times_hour]
 
 subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_test_0001.nc" % subdir),
 	       "aero", [])
 data.write_summary(sys.stdout)
 data.reduce([select("unit", "mass_den"),
-             select("aero_species", "OIN")])
+             select("aero_species", "BC")])
 
 print data.data
 
 data.scale(1)
-data.scale_dim("radius", 1e6)
+data.scale_dim("dry_radius", 1e6)
 
 g = graph.graphxy(
     width = 10,
@@ -48,4 +48,4 @@ for i in range(len(times_sec)):
 			   title = "%g hours" % times_hour[i]),
 	   styles = [graph.style.line(lineattrs = [color_list[i]])])
 
-g.writePDFfile("out/%s/aero_dist_OIN.pdf" % subdir)
+g.writePDFfile("out/%s/aero_dist_BC.pdf" % subdir)

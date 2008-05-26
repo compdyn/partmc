@@ -15,7 +15,7 @@ times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_oc"
 netcdf_dim = "composition_oc"
-y_axis_label = r"$f_{{\rm soot},{\rm OC}} (1)$"
+y_axis_label = r"$f_{{\rm soot},{\rm POM}} (1)$"
 filename = "figs/comp_2d_oc.pdf"
 
 min_val = 0.0

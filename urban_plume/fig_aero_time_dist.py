@@ -74,7 +74,7 @@ g1.text(g1.xpos + 1.8,
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g1.text(g1.xpos + 2.6,
         g1.ypos + 0.9,
-        r"OC",
+        r"POM",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
 g2.text(g2.xpos + 1.6,

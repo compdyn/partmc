@@ -326,7 +326,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do emissions and background dilution from the environment.
-  subroutine env_state_update_gas_state(env_state, delta_t, old_height, &
+  subroutine env_state_update_gas_state(env_state, delta_t, &
+       old_env_state, &
        gas_data, gas_state)
 
     !> Current environment.
@@ -334,7 +335,7 @@ contains
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
     !> Previous height (m).
-    real*8, intent(in) :: old_height
+    type(env_state_t), intent(in) :: old_env_state
     !> Gas data values.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state to update.
@@ -348,9 +349,10 @@ contains
 
     ! account for height changes
     effective_dilution_rate = env_state%gas_dilution_rate
-    if (env_state%height > old_height) then
+    if (env_state%height > old_env_state%height) then
        effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_height) / delta_t / old_height
+            + (env_state%height - old_env_state%height) / delta_t / &
+            old_env_state%height
     end if
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
@@ -377,7 +379,7 @@ contains
 
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
-  subroutine env_state_update_aero_state(env_state, delta_t, old_height, &
+  subroutine env_state_update_aero_state(env_state, delta_t, old_env_state, &
        bin_grid, aero_data, aero_state, aero_binned)
 
     !> Current environment.
@@ -385,7 +387,7 @@ contains
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
     !> Previous height (m).
-    real*8, intent(in) :: old_height
+    type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
@@ -405,9 +407,12 @@ contains
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_height) then
+    write(6,*)'height ', old_env_state%height, env_state%height
+    write(6,*)'temp   ', old_env_state%temp, env_state%temp
+    if (env_state%height > old_env_state%height) then
        effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_height) / delta_t / old_height
+            + (env_state%height - old_env_state%height) / delta_t / &
+            old_env_state%height
     end if
 
     ! loss to background
@@ -454,7 +459,8 @@ contains
 
   !> Do emissions and background dilution from the environment for a
   !> binned aerosol distribution.
-  subroutine env_state_update_aero_binned(env_state, delta_t, old_height, &
+  subroutine env_state_update_aero_binned(env_state, delta_t, & 
+       old_env_state, &
        bin_grid, aero_data, aero_binned)
 
     !> Current environment.
@@ -462,7 +468,7 @@ contains
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
     !> Previous height (m).
-    real*8, intent(in) :: old_height
+    type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
@@ -478,9 +484,10 @@ contains
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_height) then
+    if (env_state%height > old_env_state%height) then
        effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_height) / delta_t / old_height
+            + (env_state%height - old_env_state%height) / delta_t / &
+            old_env_state%height
     end if
 
     ! emission = delta_t * aero_emission_rate * aero_emissions

@@ -129,7 +129,8 @@ contains
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
     logical do_output, do_state, do_progress, did_coag
-    real*8 t_start, t_wall_now, t_wall_est, prop_done, old_height
+    real*8 t_start, t_wall_now, t_wall_est, prop_done
+    type(env_state_t) :: old_env_state
     integer n_time, i_time, i_time_start, pre_i_time, i_state, i_summary
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
@@ -145,7 +146,9 @@ contains
     n_coag = 0
     tot_n_samp = 0
     tot_n_coag = 0
-    
+
+    call env_state_alloc(old_env_state)
+
     if (mc_opt%do_restart) then
 #ifdef PMC_USE_MPI
        if (rank == 0) then
@@ -212,12 +215,12 @@ contains
 
        time = dble(i_time) * mc_opt%del_t
 
-       old_height = env_state%height
+       call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time)
        call env_state_update_gas_state(env_state, mc_opt%del_t, &
-            old_height, gas_data, gas_state)
+            old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, mc_opt%del_t, &
-            old_height, bin_grid, aero_data, aero_state, aero_binned)
+            old_env_state, bin_grid, aero_data, aero_state, aero_binned)
 
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
@@ -306,6 +309,8 @@ contains
     if (mc_opt%do_mosaic) then
        call mosaic_cleanup()
     end if
+
+    call env_state_free(old_env_state)
 
   end subroutine run_mc
   

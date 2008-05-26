@@ -334,7 +334,7 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
-    !> Previous height (m).
+    !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Gas data values.
     type(gas_data_t), intent(in) :: gas_data
@@ -386,7 +386,7 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
-    !> Previous height (m).
+    !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -467,7 +467,7 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
     real*8, intent(in) :: delta_t
-    !> Previous height (m).
+    !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid

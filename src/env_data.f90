@@ -204,7 +204,7 @@ contains
     
     !> Ambient water vapor pressure (Pa).
     real*8 :: pmv
-    real*8 :: old_height
+!    real*8 :: old_height
 
     ! update temperature and relative humidity
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid

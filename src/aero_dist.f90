@@ -159,6 +159,7 @@ contains
     integer :: i
 
     do i = 1,aero_dist%n_mode
+       write(6,*) 'i ',i, aero_dist%n_mode
        call aero_mode_free(aero_dist%mode(i))
     end do
     deallocate(aero_dist%mode)

@@ -450,6 +450,12 @@ contains
     call aero_state_add_particles(aero_state, aero_state_delta)
     call aero_binned_add(aero_binned, aero_binned_delta)
 
+    ! update computational volume
+    write(6,*)'comp_vol before ', aero_state%comp_vol
+    aero_state%comp_vol = aero_state%comp_vol * env_state%temp / &
+         old_env_state%temp
+    write(6,*)'comp_vol after  ', aero_state%comp_vol
+
     call aero_state_free(aero_state_delta)
     call aero_binned_free(aero_binned_delta)
 

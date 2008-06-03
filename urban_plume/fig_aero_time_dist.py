@@ -68,12 +68,12 @@ g1.text(g1.xpos + 1.8,
         g1.ypos + 3.5,
         r"$\rm NO_3$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g1.text(g1.xpos + 1.8,
+g1.text(g1.xpos + 1.9,
         g1.ypos + 1.3,
         r"$\rm NH_4$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g1.text(g1.xpos + 2.6,
-        g1.ypos + 0.9,
+        g1.ypos + 0.7,
         r"POM",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
@@ -81,7 +81,7 @@ g2.text(g2.xpos + 1.6,
         g2.ypos + 3.1,
         r"$\rm SO_4$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g2.text(g2.xpos + 2.1,
+g2.text(g2.xpos + 1.9,
         g2.ypos + 2,
         r"$\rm soot$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])

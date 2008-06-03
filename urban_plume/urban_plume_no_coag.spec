@@ -3,7 +3,7 @@ output_prefix out/urban_plume_no_coag   # prefix of output files
 state_prefix out/urban_plume_no_coag_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
-n_part 1000                     # total number of particles
+n_part 100000                   # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)

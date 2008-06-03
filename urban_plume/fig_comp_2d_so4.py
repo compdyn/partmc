@@ -15,7 +15,7 @@ times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_so4"
 netcdf_dim = "composition_so4"
-y_axis_label = r"$f_{{\rm soot},{\rm SO_4}} (1)$"
+y_axis_label = r"$f_{{\rm soot},{\rm SO_4}}$ ($1$)"
 filename = "figs/comp_2d_so4.pdf"
 
 min_val = 0.0

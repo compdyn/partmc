@@ -370,6 +370,8 @@ contains
     call gas_state_add(gas_state, emission)
     call gas_state_add(gas_state, dilution)
 
+    !FIXME: ensure gas state is still positive
+
     call gas_state_free(emission)
     call gas_state_free(dilution)
 
@@ -451,10 +453,8 @@ contains
     call aero_binned_add(aero_binned, aero_binned_delta)
 
     ! update computational volume
-    write(6,*)'comp_vol before ', aero_state%comp_vol
-    aero_state%comp_vol = aero_state%comp_vol * env_state%temp / &
-         old_env_state%temp
-    write(6,*)'comp_vol after  ', aero_state%comp_vol
+    aero_state%comp_vol = aero_state%comp_vol * env_state%temp &
+         / old_env_state%temp
 
     call aero_state_free(aero_state_delta)
     call aero_binned_free(aero_binned_delta)

@@ -27,7 +27,7 @@ data.dim_by_name("n_orig_part").grid_centers = data.dim_by_name("n_orig_part").g
 data.dim_by_name("n_orig_part").grid_edges = data.dim_by_name("n_orig_part").grid_edges - 1
 
 g = graph.graphxy(
-    width = 7.1,
+    width = 6.9,
     x = graph.axis.log(min = 1e-3,
                        max = 1e+0,
                        title = r'dry radius ($\rm \mu m$)',

@@ -54,7 +54,7 @@ data_wc.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
 g = graph.graphxy(
 	width = 6.8,
-	x = graph.axis.log(title = r'dry diameter ($\mu$m)',
+	x = graph.axis.log(title = r'dry diameter ($\rm \mu m$)',
                            min = 0.01, max = 2,
 			   painter = grid_painter),
 	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',

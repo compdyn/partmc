@@ -7,14 +7,29 @@ import os, sys
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 
-text.set(mode="latex")
+text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 #text.set(docopt="10pt")
 #text.set(fontmaps="download35.map")
 #text.preamble(r"\usepackage{times}")
-text.preamble(r"""\usepackage{times}
-\usepackage{sfmath}
+
+#text.preamble(r"""\usepackage{times}
+#\usepackage{sfmath}
+#\renewcommand{\familydefault}{\sfdefault}
+#\renewcommand{\normalsize}{\fontsize{8}{8}\selectfont}""")
+
+text.preamble(r"""\renewcommand{\sfdefault}{phv}
 \renewcommand{\familydefault}{\sfdefault}
-\renewcommand{\normalsize}{\fontsize{8}{8}\selectfont}""")
+\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}
+\usepackage{sfmath}""")
+
+#text.preamble(r"""\usepackage{amsmath}
+#\renewcommand{\normalsize}{\fontfamily{phvv}\selectfont}""")
+
+#text.preamble(r"""\usepackage{amsmath}
+#\usepackage{times}
+#\usepackage{sfmath}
+#\renewcommand{\familydefault}{\sfdefault}
+#\renewcommand{\normalsize}{\fontfamily{phvv}\fontsize{3}{3}\selectfont}""")
 
 color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),

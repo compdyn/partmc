@@ -115,17 +115,17 @@ boxed_text(g21, x_vpos, y_vpos, "%d hours" % times_hour[2])
 boxed_text(g22, x_vpos, y_vpos, "%d hours" % times_hour[3])
 
 #                px,   py, lx,    ly; point=(px,py), label=(lx,ly)
-label_point(g11, 0.05, 90, 0.005, 70, "A")
-label_point(g11, 0.05, 34, 0.005, 18, "B")
+label_point(g11, 0.05, 90, 0.005, 70, "D1")
+label_point(g11, 0.05, 34, 0.005, 18, "G1")
 
-label_point(g12, 0.06, 90, 0.6, 65, "A,E")
-label_point(g12, 0.06, 34, 0.008, 40, "B,D")
+label_point(g12, 0.06, 90, 0.6, 65, "D1,D2")
+label_point(g12, 0.06, 34, 0.008, 40, "G1,G2")
 
-label_point(g21, 0.05, 90, 0.008, 72, "A,E,F")
-label_point(g21, 0.07, 34, 0.5, 45, "B,D,G")
+label_point(g21, 0.05, 90, 0.008, 72, "D1,D2,D3")
+label_point(g21, 0.07, 34, 0.5, 45, "G1,G2,G")
 
-label_point(g22, 0.05, 90, 0.008, 72, "A,E,F")
-label_point(g22, 0.09, 34, 0.5, 45, "B,D,G")
+label_point(g22, 0.05, 90, 0.008, 72, "D1,D2,D3")
+label_point(g22, 0.09, 34, 0.5, 45, "G1,G2,G3")
 
 add_canvas_color_bar(c,
                      min = min_val,

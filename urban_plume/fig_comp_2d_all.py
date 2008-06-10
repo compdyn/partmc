@@ -114,6 +114,7 @@ boxed_text(g12, x_vpos, y_vpos, "%d hours" % times_hour[1])
 boxed_text(g21, x_vpos, y_vpos, "%d hours" % times_hour[2])
 boxed_text(g22, x_vpos, y_vpos, "%d hours" % times_hour[3])
 
+#                px,   py, lx,    ly; point=(px,py), label=(lx,ly)
 label_point(g11, 0.05, 90, 0.005, 70, "A")
 label_point(g11, 0.05, 34, 0.005, 18, "B")
 label_point(g11, 0.2, 0, 0.6, 15, "C")

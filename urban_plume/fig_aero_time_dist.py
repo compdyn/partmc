@@ -83,7 +83,7 @@ g2.text(g2.xpos + 1.6,
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g2.text(g2.xpos + 1.9,
         g2.ypos + 2,
-        r"$\rm soot$",
+        r"$\rm BC$",
         [text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 g2.text(g2.xpos + 2.4,
         g2.ypos + 1.3,

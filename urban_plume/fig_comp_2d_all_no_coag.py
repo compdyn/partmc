@@ -15,7 +15,7 @@ times_hour = [1, 6, 12, 24]
 
 netcdf_var = "comp_bc"
 netcdf_dim = "composition_bc"
-y_axis_label = r"$f_{{\rm soot},{\rm all}}$ ($1$)"
+y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
 filename = "figs/comp_2d_all_no_coag.pdf"
 
 min_val = 0.0

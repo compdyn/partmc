@@ -158,15 +158,29 @@ def tex_species(species):
 	return gas_species_tex[species]
     return species
 
-def label_point(g, x, y, label_x, label_y, label, radius = 2.5 * unit.v_mm):
+def path_rounded_rect(x1, y1, x2, y2, r):
+    return path.path(path.arc(x1 + r, y1 + r, r, 180, 270),
+                     path.arc(x2 - r, y1 + r, r, 270, 360),
+                     path.arc(x2 - r, y2 - r, r, 0, 90),
+                     path.arc(x1 + r, y2 - r, r, 90, 180),
+                     path.closepath())
+
+def label_point(g, x, y, label_x, label_y, label, radius = 1 * unit.t_mm):
     (x_g, y_g) = g.pos(x, y)
     (label_x_g, label_y_g) = g.pos(label_x, label_y)
-    g.stroke(path.line(label_x_g, label_y_g, x_g, y_g))
-    g.draw(path.circle(label_x_g, label_y_g, radius),
-           [deco.stroked, deco.filled([color.gray.white])])
-    g.text(label_x_g, label_y_g, label,
+    c = canvas.canvas()
+    c.text(0, 0, label, 
            [text.halign.boxcenter, text.halign.flushcenter,
                                text.valign.middle])
+    width = c.bbox().width()
+    height = c.bbox().height()
+    x_off = width / 2.0 + radius
+    y_off = height / 2.0 + radius
+    g.stroke(path.line(label_x_g, label_y_g, x_g, y_g))
+    g.draw(path_rounded_rect(label_x_g - x_off, label_y_g - y_off,
+                             label_x_g + x_off, label_y_g + y_off, radius),
+           [deco.stroked, deco.filled([color.gray.white])])
+    g.insert(c, [trafo.translate(label_x_g, label_y_g)])
 
 def boxed_text(g, x, y, label, border = 1 * unit.v_mm):
     (x_g, y_g) = g.vpos(x, y)

@@ -244,7 +244,7 @@ contains
           water_a(i_mosaic) = particle%vol(aero_data%i_water) &
                * aero_data%density(aero_data%i_water) / aero_state%comp_vol
           num_a(i_mosaic) = 1d-6 / aero_state%comp_vol ! num conc (#/cc(air))
-          jhyst_leg(i_mosaic) = 1
+          jhyst_leg(i_mosaic) = particle%water_hyst_leg
        end do
     end do
 
@@ -323,6 +323,7 @@ contains
                      / conv_fac(i_spec)
              end if
           end do
+          particle%water_hyst_leg = jhyst_leg(i_mosaic)
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
           particle%vol(aero_data%i_water) = water_a(i_mosaic) &

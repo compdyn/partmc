@@ -40,6 +40,8 @@ module pmc_aero_particle
      complex*16 :: refract_core
      !> Volume of the core (m^3).
      real*8 :: core_vol
+     !> Water hysteresis curve section (0 = lower, 1 = upper)
+     integer :: water_hyst_leg
   end type aero_particle_t
 
 contains
@@ -98,6 +100,7 @@ contains
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
     aero_particle_to%core_vol = aero_particle_from%core_vol
+    aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
 
   end subroutine aero_particle_copy
   
@@ -125,6 +128,7 @@ contains
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
     aero_particle_to%core_vol = aero_particle_from%core_vol
+    aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     
   end subroutine aero_particle_shift
 
@@ -144,6 +148,7 @@ contains
     aero_particle%refract_shell = (0d0, 0d0)
     aero_particle%refract_core = (0d0, 0d0)
     aero_particle%core_vol = 0d0
+    aero_particle%water_hyst_leg = 0
 
   end subroutine aero_particle_zero
   
@@ -507,6 +512,12 @@ contains
     aero_particle_new%refract_shell = (0d0, 0d0)
     aero_particle_new%refract_core = (0d0, 0d0)
     aero_particle_new%core_vol = 0d0
+    if ((aero_particle_1%water_hyst_leg == 1) &
+         .and. (aero_particle_2%water_hyst_leg == 1)) then
+       aero_particle_new%water_hyst_leg = 1
+    else
+       aero_particle_new%water_hyst_leg = 0
+    end if
 
   end subroutine aero_particle_coagulate
 
@@ -531,6 +542,8 @@ contains
     call inout_write_complex(file, "refract_core(1)", &
          aero_particle%refract_core)
     call inout_write_real(file, "core_vol(m^3)", aero_particle%core_vol)
+    call inout_write_integer(file, "water_hyst_leg(1)", &
+         aero_particle%water_hyst_leg)
     call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_write_comment(file, "end aero_particle")
     
@@ -557,6 +570,8 @@ contains
     call inout_read_complex(file, "refract_core(1)", &
          aero_particle%refract_core)
     call inout_read_real(file, "core_vol(m^3)", aero_particle%core_vol)
+    call inout_read_integer(file, "water_hyst_leg(1)", &
+         aero_particle%water_hyst_leg)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_check_comment(file, "end aero_particle")
     
@@ -578,7 +593,8 @@ contains
          + pmc_mpi_pack_size_real(val%asymmetry) &
          + pmc_mpi_pack_size_complex(val%refract_shell) &
          + pmc_mpi_pack_size_complex(val%refract_core) &
-         + pmc_mpi_pack_size_real(val%core_vol)
+         + pmc_mpi_pack_size_real(val%core_vol) &
+         + pmc_mpi_pack_size_integer(val%water_hyst_leg)
     
   end function pmc_mpi_pack_size_aero_particle
 
@@ -606,6 +622,7 @@ contains
     call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
+    call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
     call assert(810223998, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -636,6 +653,7 @@ contains
     call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
+    call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call assert(287447241, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif

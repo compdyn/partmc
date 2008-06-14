@@ -409,8 +409,6 @@ contains
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
-    write(6,*)'height ', old_env_state%height, env_state%height
-    write(6,*)'temp   ', old_env_state%temp, env_state%temp
     if (env_state%height > old_env_state%height) then
        effective_dilution_rate = effective_dilution_rate &
             + (env_state%height - old_env_state%height) / delta_t / &

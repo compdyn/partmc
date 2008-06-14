@@ -57,6 +57,8 @@ module pmc_process_spec
      real*8 :: max_val
      !> Use a log-scale for histogram?.
      logical :: log_scale
+     !> Type of composition ("volume", "mass", or "mole").
+     character(len=PROCESS_SPEC_TYPE_LEN) :: comp_type
      !> Composition A species.
      character(len=AERO_NAME_LEN), pointer :: a_species(:)
      !> Composition B species.
@@ -81,6 +83,7 @@ contains
     process_spec%min_val = 0d0
     process_spec%max_val = 0d0
     process_spec%log_scale = .false.
+    process_spec%comp_type = "none"
     allocate(process_spec%a_species(0))
     allocate(process_spec%b_species(0))
 
@@ -134,6 +137,7 @@ contains
     process_spec_to%min_val = process_spec_from%min_val
     process_spec_to%max_val = process_spec_from%max_val
     process_spec_to%log_scale = process_spec_from%log_scale
+    process_spec_to%comp_type = process_spec_from%comp_type
     allocate(process_spec_to%a_species(size(process_spec_from%a_species)))
     allocate(process_spec_to%b_species(size(process_spec_from%b_species)))
     process_spec_to%a_species = process_spec_from%a_species
@@ -344,6 +348,7 @@ contains
     call inout_read_integer(file, "n_step", process_spec%n_step)
     call inout_read_real(file, "min", process_spec%min_val)
     call inout_read_real(file, "max", process_spec%max_val)
+    call inout_read_string(file, "comp_type", process_spec%comp_type)
 
     call inout_read_line_no_eof(file, line)
     call inout_check_line_name(file, line, "a_species")

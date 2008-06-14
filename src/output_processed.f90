@@ -1059,7 +1059,8 @@ contains
              supersat = rh - 1d0
              val = supersat
           elseif (process_spec%type == "comp") then
-             val = aero_particle_comp(aero_particle, a_species, b_species)
+             val = aero_particle_comp(aero_particle, aero_data, &
+                  process_spec%comp_type, a_species, b_species)
           elseif (process_spec%type == "n_orig_part") then
              val = dble(aero_particle%n_orig_part) + 0.5d0
           elseif (process_spec%type == "optic_absorb") then
@@ -1117,33 +1118,59 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real*8 function aero_particle_comp(aero_particle, a_species, b_species)
+  real*8 function aero_particle_comp(aero_particle, aero_data, &
+       comp_type, a_species, b_species)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Composition type ("volume", "mass", or "mole").
+    character(len=PROCESS_SPEC_TYPE_LEN) :: comp_type
     !> First list of species.
     integer, intent(in) :: a_species(:)
     !> Second list of species.
     integer, intent(in) :: b_species(:)
 
     integer :: i
-    real*8 :: a_vol, b_vol
+    real*8 :: a_val, b_val
 
-    ! FIXME: can we just do sum(vol(a_species))?
-    a_vol = 0d0
+    a_val = 0d0
     do i = 1,size(a_species)
-       a_vol = a_vol + aero_particle%vol(a_species(i))
+       if (comp_type == "volume") then
+          a_val = a_val + aero_particle%vol(a_species(i))
+       elseif (comp_type == "mass") then
+          a_val = a_val + aero_particle%vol(a_species(i)) &
+               * aero_data%density(a_species(i))
+       elseif (comp_type == "mole") then
+          a_val = a_val + aero_particle%vol(a_species(i)) &
+               * aero_data%density(a_species(i)) &
+               / aero_data%molec_weight(a_species(i))
+       else
+          call die_msg(298305208, "unknown comp_type: " // trim(comp_type))
+       end if
     end do
-    b_vol = 0d0
+    b_val = 0d0
     do i = 1,size(b_species)
-       b_vol = b_vol + aero_particle%vol(b_species(i))
+       if (comp_type == "volume") then
+          b_val = b_val + aero_particle%vol(b_species(i))
+       elseif (comp_type == "mass") then
+          b_val = b_val + aero_particle%vol(b_species(i)) &
+               * aero_data%density(b_species(i))
+       elseif (comp_type == "mole") then
+          b_val = b_val + aero_particle%vol(b_species(i)) &
+               * aero_data%density(b_species(i)) &
+               / aero_data%molec_weight(b_species(i))
+       else
+          call die_msg(842198113, "unknown comp_type: " // trim(comp_type))
+       end if
     end do
-    call assert(880038232, a_vol >= 0d0)
-    call assert(715496111, b_vol >= 0d0)
-    if ((a_vol == 0d0) .and. (b_vol == 0d0)) then
+    call assert(880038232, a_val >= 0d0)
+    call assert(715496111, b_val >= 0d0)
+    if ((a_val == 0d0) .and. (b_val == 0d0)) then
        aero_particle_comp = 0d0
     else
-       aero_particle_comp = b_vol / (a_vol + b_vol)
+       aero_particle_comp = b_val / (a_val + b_val)
     end if
 
   end function aero_particle_comp

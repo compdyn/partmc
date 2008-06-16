@@ -11,6 +11,7 @@ module pmc_aero_data
   use pmc_inout
   use pmc_mpi
   use pmc_util
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -411,6 +412,94 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_aero_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the aero species dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_data_netcdf_dim_aero_species(aero_data, ncid, &
+       dimid_aero_species)
+
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_aero_species
+
+    integer :: status, i_spec
+    integer :: varid_aero_species
+    integer :: aero_species_centers(aero_data%n_spec)
+    character(len=(AERO_NAME_LEN * aero_data%n_spec)) :: aero_species_names
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_species", dimid_aero_species)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_species", &
+         aero_data%n_spec, dimid_aero_species))
+    aero_species_names = ""
+    do i_spec = 1,aero_data%n_spec
+       aero_species_names((len_trim(aero_species_names) + 1):) &
+            = trim(aero_data%name(i_spec))
+       if (i_spec < aero_data%n_spec) then
+          aero_species_names((len_trim(aero_species_names) + 1):) = ","
+       end if
+    end do
+    call pmc_nc_check(nf90_def_var(ncid, "aero_species", NF90_INT, &
+         dimid_aero_species, varid_aero_species))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_species, "unit", "1"))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_species, "names", &
+         aero_species_names))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_spec = 1,aero_data%n_spec
+       aero_species_centers(i_spec) = i_spec
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_species, &
+         aero_species_centers))
+
+  end subroutine aero_data_netcdf_dim_aero_species
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine aero_data_output_netcdf(aero_data, ncid)
+    
+    !> Aero_data to write.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: dimid_aero_species
+    integer :: start(1), count(1)
+    integer :: status, dimids_aero_species(1)
+    integer :: varid_mosaic_index, varid_density, varid_num_ions
+    integer :: varid_solubility, varid_molec_weight, varid_kappa
+
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
+         dimid_aero_species)
+
+    call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
+         "mosaic_index", "1", (/ dimid_aero_species /))
+    call pmc_nc_write_real_1d(ncid, aero_data%density, &
+         "density", "kg/m^3", (/ dimid_aero_species /))
+    call pmc_nc_write_integer_1d(ncid, aero_data%num_ions, &
+         "num_ions", "1", (/ dimid_aero_species /))
+    call pmc_nc_write_real_1d(ncid, aero_data%solubility, &
+         "solubility", "1", (/ dimid_aero_species /))
+    call pmc_nc_write_real_1d(ncid, aero_data%molec_weight, &
+         "molec_weight", "kg/mole", (/ dimid_aero_species /))
+    call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
+         "kappa", "1", (/ dimid_aero_species /))
+
+  end subroutine aero_data_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,7 +1,8 @@
 n_modes 1                       # number of initial aerosol distributions
 
 # first mode
-vol_frac aero_emit_comp.dat     # composition proportions of species
+frac_type mass                  # composition type ("volume", "mass", "mole")
+frac aero_emit_comp.dat         # composition proportions of species
 num_den 1e8                     # particle number density (#/m^2)
 mode_type log_normal            # type of distribution
 mean_radius 4e-8                # mean radius (m)

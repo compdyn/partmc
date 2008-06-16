@@ -26,6 +26,7 @@ module pmc_run_mc
   use pmc_kernel
   use pmc_output_processed
   use pmc_mpi
+  use pmc_output_state_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -38,8 +39,10 @@ module pmc_run_mc
     real*8 :: t_max
     !> Output interval (0 disables) (s).
     real*8 :: t_output
-    !> State output intvl (0 disables) (s).
+    !> State output interval (0 disables) (s).
     real*8 :: t_state
+    !> NetCDF state output interval (0 disables) (s).
+    real*8 :: t_state_netcdf
     !> Progress interval (0 disables) (s).
     real*8 :: t_progress
     !> Timestep for coagulation.
@@ -125,13 +128,15 @@ contains
     end interface
     
     real*8 time, pre_time, pre_del_t
-    real*8 last_output_time, last_state_time, last_progress_time
+    real*8 last_output_time, last_state_time, last_state_netcdf_time
+    real*8 last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
-    logical do_output, do_state, do_progress, did_coag
+    logical do_output, do_state, do_state_netcdf, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     type(env_state_t) :: old_env_state
-    integer n_time, i_time, i_time_start, pre_i_time, i_state, i_summary
+    integer n_time, i_time, i_time_start, pre_i_time
+    integer i_state, i_state_netcdf, i_summary
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
@@ -142,6 +147,7 @@ contains
     i_time = 0
     i_summary = 1
     i_state = 1
+    i_state_netcdf = 1
     time = 0d0
     n_coag = 0
     tot_n_samp = 0
@@ -204,10 +210,16 @@ contains
             aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
             time, mc_opt%del_t, mc_opt%i_loop)
     end if
+    if (mc_opt%t_state_netcdf > 0d0) then
+       call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
+            aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
+            time, mc_opt%del_t, mc_opt%i_loop)
+    end if
 
     t_start = time
     last_progress_time = time
     last_state_time = time
+    last_state_netcdf_time = time
     last_output_time = time
     n_time = nint(mc_opt%t_max / mc_opt%del_t)
     i_time_start = nint(time / mc_opt%del_t) + 1
@@ -277,6 +289,17 @@ contains
              call inout_write_state(mc_opt%state_prefix, bin_grid, &
                   aero_data, aero_state, gas_data, gas_state, env_state, &
                   i_state, time, mc_opt%del_t, mc_opt%i_loop)
+          end if
+       end if
+
+       if (mc_opt%t_state_netcdf > 0d0) then
+          call check_event(time, mc_opt%del_t, mc_opt%t_state_netcdf, &
+               last_state_netcdf_time, do_state_netcdf)
+          if (do_state_netcdf) then
+             i_state_netcdf = i_state_netcdf + 1
+             call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
+                  aero_data, aero_state, gas_data, gas_state, env_state, &
+                  i_state_netcdf, time, mc_opt%del_t, mc_opt%i_loop)
           end if
        end if
 
@@ -467,6 +490,7 @@ contains
          + pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
          + pmc_mpi_pack_size_real(val%t_state) &
+         + pmc_mpi_pack_size_real(val%t_state_netcdf) &
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
@@ -504,6 +528,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_max)
     call pmc_mpi_pack_real(buffer, position, val%t_output)
     call pmc_mpi_pack_real(buffer, position, val%t_state)
+    call pmc_mpi_pack_real(buffer, position, val%t_state_netcdf)
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
@@ -544,6 +569,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_max)
     call pmc_mpi_unpack_real(buffer, position, val%t_output)
     call pmc_mpi_unpack_real(buffer, position, val%t_state)
+    call pmc_mpi_unpack_real(buffer, position, val%t_state_netcdf)
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)

@@ -1028,5 +1028,125 @@ contains
   end subroutine pmc_mpi_unpack_aero_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the aero particle dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
+       dimid_aero_particle)
+
+    !> aero_state structure.
+    type(aero_state_t), intent(in) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aero particle dimension.
+    integer, intent(out) :: dimid_aero_particle
+
+    integer :: status, i_part
+    integer :: varid_aero_particle
+    integer :: aero_particle_centers(aero_state%n_part)
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_particle", &
+         aero_state%n_part, dimid_aero_particle))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_particle", NF90_INT, &
+         dimid_aero_particle, varid_aero_particle))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_particle, "unit", "1"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_part = 1,aero_state%n_part
+       aero_particle_centers(i_part) = i_part
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_particle, &
+         aero_particle_centers))
+
+  end subroutine aero_state_netcdf_dim_aero_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, aero_data)
+    
+    !> aero_state to write.
+    type(aero_state_t), intent(in) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: dimid_aero_particle, dimid_aero_species
+    integer :: i_bin, i_part_in_bin, i_part
+    type(aero_particle_t), pointer :: particle
+    real*8 :: aero_comp_mass(aero_state%n_part, aero_data%n_spec)
+    integer :: n_orig_part(aero_state%n_part)
+    real*8 :: absorb_cross_sect(aero_state%n_part)
+    real*8 :: scatter_cross_sect(aero_state%n_part)
+    real*8 :: asymmetry(aero_state%n_part)
+    real*8 :: refract_shell_real(aero_state%n_part)
+    real*8 :: refract_shell_imag(aero_state%n_part)
+    real*8 :: refract_core_real(aero_state%n_part)
+    real*8 :: refract_core_imag(aero_state%n_part)
+    real*8 :: core_vol(aero_state%n_part)
+    integer :: water_hyst_leg(aero_state%n_part)
+
+    call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
+         dimid_aero_particle)
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
+         dimid_aero_species)
+
+    i_part = 0
+    do i_bin = 1,bin_grid%n_bin
+       do i_part_in_bin = 1,aero_state%bin(i_bin)%n_part
+          i_part = i_part + 1
+          particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
+          aero_comp_mass(i_part, :) = particle%vol * aero_data%density
+          n_orig_part(i_part) = particle%n_orig_part
+          absorb_cross_sect(i_part) = particle%absorb_cross_sect
+          scatter_cross_sect(i_part) = particle%scatter_cross_sect
+          asymmetry(i_part) = particle%asymmetry
+          refract_shell_real(i_part) = real(particle%refract_shell)
+          refract_shell_imag(i_part) = aimag(particle%refract_shell)
+          refract_core_real(i_part) = real(particle%refract_core)
+          refract_core_imag(i_part) = aimag(particle%refract_core)
+          core_vol(i_part) = particle%core_vol
+          water_hyst_leg(i_part) = particle%water_hyst_leg
+       end do
+    end do
+    call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
+         "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
+    call pmc_nc_write_integer_1d(ncid, n_orig_part, &
+         "n_orig_part", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, absorb_cross_sect, &
+         "absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, scatter_cross_sect, &
+         "scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, asymmetry, &
+         "asymmetry", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, refract_shell_real, &
+         "refract_shell_real", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, refract_shell_imag, &
+         "refract_shell_imag", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, refract_core_real, &
+         "refract_core_real", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, refract_core_imag, &
+         "refract_core_imag", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, core_vol, &
+         "core_vol", "m^3", (/ dimid_aero_particle /))
+    call pmc_nc_write_integer_1d(ncid, water_hyst_leg, &
+         "water_hyst_leg", "1", (/ dimid_aero_particle /))
+
+  end subroutine aero_state_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_state

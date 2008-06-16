@@ -53,6 +53,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Exit with an error message containing filename and line number.
+  subroutine inout_die_msg(code, file, msg)
+
+    !> Failure status code.
+    integer, intent(in) :: code
+    !> Inout file.
+    type(inout_file_t), intent(in) :: file
+    !> Error message.
+    character(len=*), intent(in) :: msg
+    
+    character(len=MAX_LINE_LEN) :: full_msg
+
+    write(full_msg, *) "file ", trim(file%name), &
+         "line ", file%line_num, ": ", msg
+    call die_msg(code, full_msg)
+
+  end subroutine inout_die_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Open an inout file for reading.
   subroutine inout_open_read(filename, file)
 

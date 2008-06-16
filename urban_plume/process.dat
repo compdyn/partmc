@@ -16,7 +16,7 @@ radius dry                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-comp_type volume                # composition ratio type
+comp_type mass                  # composition type ("volume", "mass", "mole")
 a_species SO4 NO3 Cl NH4 MSA ARO1 ARO2 ALK1 OLE1 API1 API2 LIM1 LIM2 CO3 Na Ca OIN OC # first species list
 b_species BC                    # second species list
 
@@ -27,7 +27,7 @@ radius dry                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-comp_type volume                # composition ratio type
+comp_type mass                  # composition type ("volume", "mass", "mole")
 a_species SO4                   # first species list
 b_species BC                    # second species list
 
@@ -38,7 +38,7 @@ radius dry                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-comp_type volume                # composition ratio type
+comp_type mass                  # composition type ("volume", "mass", "mole")
 a_species NO3                   # first species list
 b_species BC                    # second species list
 
@@ -49,7 +49,7 @@ radius dry                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-comp_type volume                # composition ratio type
+comp_type mass                  # composition type ("volume", "mass", "mole")
 a_species OC                    # first species list
 b_species BC                    # second species list
 
@@ -60,7 +60,7 @@ radius dry                      # radius type: 'wet' or 'dry'
 n_step 100                      # number of steps for histogram
 min 0                           # minimum ratio (1)
 max 1                           # maximum ratio (1)
-comp_type volume                # composition ratio type
+comp_type mass                  # composition type ("volume", "mass", "mole")
 a_species ARO1 ARO2 ALK1 OLE1   # first species list
 b_species BC                    # second species list
 

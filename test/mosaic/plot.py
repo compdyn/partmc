@@ -33,8 +33,12 @@ g = graph.graphxy(width = 10,
 		  x = graph.axis.linear(max = max_time,
 					title = "time (hour)",
 					painter = grid_painter),
-		  y = graph.axis.linear(title = "aerosol volume density (m$^3$/m$^3$)"),
-		  y2 = graph.axis.linear(title = "gas concentration (ppb)"),
+		  y = graph.axis.linear(min = 0,
+					max = 10,
+					title = "aerosol volume density (m$^3$/m$^3$)"),
+		  y2 = graph.axis.linear(min = 0,
+					max = 50,
+					title = "gas concentration (ppb)"),
 		  key = graph.key.key(pos = "tl"))
 
 for i in range(len(aero_species)):

@@ -257,6 +257,7 @@ contains
           ! but this doesn't actually work as well as:
           pv = bin_grid%v(k)
           call aero_particle_set_vols(aero_particle, vol_frac * pv)
+          call aero_particle_new_id(aero_particle)
           call aero_state_add_particle(aero_state, k, aero_particle)
        end do
     end do
@@ -1099,6 +1100,7 @@ contains
     real*8 :: core_vol(aero_state%n_part)
     integer :: water_hyst_leg(aero_state%n_part)
     real*8 :: comp_vol(aero_state%n_part)
+    integer :: aero_id(aero_state%n_part)
 
     call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
          dimid_aero_particle)
@@ -1122,6 +1124,7 @@ contains
           core_vol(i_part) = particle%core_vol
           water_hyst_leg(i_part) = particle%water_hyst_leg
           comp_vol(i_part) = aero_state%comp_vol
+          aero_id(i_part) = particle%id
        end do
     end do
     call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
@@ -1148,6 +1151,8 @@ contains
          "water_hyst_leg", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, comp_vol, &
          "comp_vol", "m^3", (/ dimid_aero_particle /))
+    call pmc_nc_write_integer_1d(ncid, aero_id, &
+         "aero_id", "1", (/ dimid_aero_particle /))
 
   end subroutine aero_state_output_netcdf
 

@@ -5,7 +5,7 @@
 
 import os, sys, re, textwrap
 import copy as module_copy
-import numpy
+import numpy, math
 from numpy import *
 
 class reducer:
@@ -368,3 +368,198 @@ class pmc_var:
 
     def scale(self, factor):
 	self.data = self.data * factor
+
+class aero_data_t:
+
+    def __init__(self, ncf):
+        if "aero_species" not in ncf.variables.keys():
+            raise Exception("aero_species variable not found in NetCDF file")
+        if "names" not in dir(ncf.variables["aero_species"]):
+            raise Exception("aero_species variable does not have names attribute")
+        self.name = ncf.variables["aero_species"].names.split(",")
+        if "mosaic_index" not in ncf.variables.keys():
+            raise Exception("mosaic_index variable not found in NetCDF file")
+        self.mosaic_index = ncf.variables["mosaic_index"][:]
+        if "density" not in ncf.variables.keys():
+            raise Exception("density variable not found in NetCDF file")
+        self.density = ncf.variables["density"][:]
+        if "num_ions" not in ncf.variables.keys():
+            raise Exception("num_ions variable not found in NetCDF file")
+        self.num_ions = ncf.variables["num_ions"][:]
+        if "solubility" not in ncf.variables.keys():
+            raise Exception("solubility variable not found in NetCDF file")
+        self.solubility = ncf.variables["solubility"][:]
+        if "molec_weight" not in ncf.variables.keys():
+            raise Exception("molec_weight variable not found in NetCDF file")
+        self.molec_weight = ncf.variables["molec_weight"][:]
+        if "kappa" not in ncf.variables.keys():
+            raise Exception("kappa variable not found in NetCDF file")
+        self.kappa = ncf.variables["kappa"][:]
+
+class aero_particle_t:
+
+    def __init__(self, ncf, index, aero_data):
+        self.aero_data = aero_data
+        if "aero_comp_mass" not in ncf.variables.keys():
+            raise Exception("aero_comp_mass variable not found in NetCDF file")
+        self.masses = ncf.variables["aero_comp_mass"][:,index]
+        if "n_orig_part" not in ncf.variables.keys():
+            raise Exception("n_orig_part variable not found in NetCDF file")
+	self.n_orig_part = ncf.variables["n_orig_part"][index]
+        if "absorb_cross_sect" not in ncf.variables.keys():
+            raise Exception("absorb_cross_sect variable not found in NetCDF file")
+	self.absorb_cross_sect = ncf.variables["absorb_cross_sect"][index]
+        if "scatter_cross_sect" not in ncf.variables.keys():
+            raise Exception("scatter_cross_sect variable not found in NetCDF file")
+	self.scatter_cross_sect = ncf.variables["scatter_cross_sect"][index]
+        if "asymmetry" not in ncf.variables.keys():
+            raise Exception("asymmetry variable not found in NetCDF file")
+	self.asymmetry = ncf.variables["asymmetry"][index]
+        if "refract_shell_real" not in ncf.variables.keys():
+            raise Exception("refract_shell_real variable not found in NetCDF file")
+	self.refract_shell_real = ncf.variables["refract_shell_real"][index]
+        if "refract_shell_imag" not in ncf.variables.keys():
+            raise Exception("refract_shell_imag variable not found in NetCDF file")
+	self.refract_shell_imag = ncf.variables["refract_shell_imag"][index]
+        if "refract_core_real" not in ncf.variables.keys():
+            raise Exception("refract_core_real variable not found in NetCDF file")
+	self.refract_core_real = ncf.variables["refract_core_real"][index]
+        if "refract_core_imag" not in ncf.variables.keys():
+            raise Exception("refract_core_imag variable not found in NetCDF file")
+	self.refract_core_imag = ncf.variables["refract_core_imag"][index]
+        if "core_vol" not in ncf.variables.keys():
+            raise Exception("core_vol variable not found in NetCDF file")
+	self.core_vol = ncf.variables["core_vol"][index]
+        if "water_hyst_leg" not in ncf.variables.keys():
+            raise Exception("water_hyst_leg variable not found in NetCDF file")
+	self.water_hyst_leg = ncf.variables["water_hyst_leg"][index]
+        if "comp_vol" not in ncf.variables.keys():
+            raise Exception("comp_vol variable not found in NetCDF file")
+	self.comp_vol = ncf.variables["comp_vol"][index]
+
+    def mass(self):
+        return numpy.sum(self.masses)
+
+    def volume(self):
+        return numpy.sum(self.masses / self.aero_data.density)
+
+    def radius(self):
+        return (self.volume() * 3.0/4.0 / math.pi)**(1.0/3.0)
+
+    def comp_frac(self, a_species, b_species, frac_type):
+        for s in a_species:
+            if s not in self.aero_data.name:
+                raise Exception("unknown species name: %s" % s)
+        for s in b_species:
+            if s not in self.aero_data.name:
+                raise Exception("unknown species name: %s" % s)
+        a_val = 0.0
+        b_val = 0.0
+        for (i, s) in enumerate(self.aero_data.name):
+            if s in a_species:
+                if frac_type == "mass":
+                    a_val = a_val + self.masses[i]
+                elif frac_type == "volume":
+                    a_val = a_val + self.masses[i] / self.aero_density[i]
+                elif frac_type == "mole":
+                    a_val = a_val + self.masses[i] / self.molec_weight[i]
+                else:
+                    raise Exception("unknown frac_type: %s" % frac_type)
+            if s in b_species:
+                if frac_type == "mass":
+                    b_val = b_val + self.masses[i]
+                elif frac_type == "volume":
+                    b_val = b_val + self.masses[i] / self.aero_density[i]
+                elif frac_type == "mole":
+                    b_val = b_val + self.masses[i] / self.molec_weight[i]
+                else:
+                    raise Exception("unknown frac_type: %s" % frac_type)
+        if (a_val == 0.0) and (b_val == 0.0):
+            return 0.0
+        else:
+            return b_val / (a_val + b_val)
+
+def read_particles(ncf):
+    if "aero_particle" not in ncf.dimensions.keys():
+        raise Exception("aero_particle dimension not found in NetCDF file")
+    n_part = ncf.dimensions["aero_particle"]
+    aero_data = aero_data_t(ncf)
+    particles = []
+    for i in range(n_part):
+        particles.append(aero_particle_t(ncf, i, aero_data))
+    return particles
+
+class pmc_axis:
+
+    def __init__(self, min, max, n_bin):
+        self.min = float(min)
+        self.max = float(max)
+        self.n_bin = n_bin
+
+class pmc_linear_axis(pmc_axis):
+
+    def __init__(self, min, max, n_bin):
+        self.min = float(min)
+        self.max = float(max)
+        self.n_bin = n_bin
+
+    def scale(self, factor):
+        self.min = self.min * factor
+        self.max = self.max * factor
+
+    def grid_size(self, index):
+        return (self.max - self.min) / float(self.n_bin)
+
+    def find(self, value):
+        return int((value - self.min) * self.n_bin / (self.max - self.min))
+
+    def edge(self, index):
+        if (index < 0) or (index > self.n_bin):
+            raise Exception("index out of range: %d" % index)
+        if index == self.n_bin:
+            return self.max
+        elif index == 0:
+            return self.min
+        else:
+            return float(index) / float(self.n_bin) * (self.max - self.min) \
+                   + self.min
+        
+class pmc_log_axis:
+
+    def __init__(self, min, max, n_bin):
+        self.min = float(min)
+        self.max = float(max)
+        self.n_bin = n_bin
+
+    def scale(self, factor):
+        self.min = self.min * factor
+        self.max = self.max * factor
+
+    def grid_size(self, index):
+        return (math.log(self.max) - math.log(self.min)) / float(self.n_bin)
+
+    def find(self, value):
+        return int((math.log(value) - math.log(self.min)) * self.n_bin
+                     / (math.log(self.max) - math.log(self.min)))
+
+    def edge(self, index):
+        if (index < 0) or (index > self.n_bin):
+            raise Exception("index out of range: %d" % index)
+        if index == self.n_bin:
+            return self.max
+        elif index == 0:
+            return self.min
+        else:
+            return math.exp(float(index) / float(self.n_bin)
+                            * (math.log(self.max) - math.log(self.min))
+                            + math.log(self.min))
+
+def pmc_histogram_2d(array, x_axis, y_axis):
+    data = []
+    for i in range(x_axis.n_bin):
+        for j in range(y_axis.n_bin):
+            if array[i,j] > 0.0:
+                data.append([x_axis.edge(i), x_axis.edge(i + 1),
+                             y_axis.edge(j), y_axis.edge(j + 1),
+                             array[i,j]])
+    return data

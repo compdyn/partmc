@@ -1098,6 +1098,7 @@ contains
     real*8 :: refract_core_imag(aero_state%n_part)
     real*8 :: core_vol(aero_state%n_part)
     integer :: water_hyst_leg(aero_state%n_part)
+    real*8 :: comp_vol(aero_state%n_part)
 
     call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
          dimid_aero_particle)
@@ -1120,6 +1121,7 @@ contains
           refract_core_imag(i_part) = aimag(particle%refract_core)
           core_vol(i_part) = particle%core_vol
           water_hyst_leg(i_part) = particle%water_hyst_leg
+          comp_vol(i_part) = aero_state%comp_vol
        end do
     end do
     call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
@@ -1144,6 +1146,8 @@ contains
          "core_vol", "m^3", (/ dimid_aero_particle /))
     call pmc_nc_write_integer_1d(ncid, water_hyst_leg, &
          "water_hyst_leg", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, comp_vol, &
+         "comp_vol", "m^3", (/ dimid_aero_particle /))
 
   end subroutine aero_state_output_netcdf
 

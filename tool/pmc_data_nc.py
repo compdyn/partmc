@@ -436,6 +436,9 @@ class aero_particle_t:
         if "comp_vol" not in ncf.variables.keys():
             raise Exception("comp_vol variable not found in NetCDF file")
 	self.comp_vol = ncf.variables["comp_vol"][index]
+        if "aero_id" not in ncf.variables.keys():
+            raise Exception("aero_id variable not found in NetCDF file")
+	self.id = ncf.variables["aero_id"][index]
 
     def mass(self):
         return numpy.sum(self.masses)

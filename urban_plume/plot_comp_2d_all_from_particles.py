@@ -14,8 +14,8 @@ import numpy
 
 f = NetCDFFile("out/urban_plume_with_coag_state_0001_00000024.nc")
 particles = read_particles(f)
-x_axis = pmc_log_axis(min = 1e-2, max = 1, n_bin = 160)
-y_axis = pmc_linear_axis(min = 0, max = 1, n_bin = 100)
+x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
+y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
 bin_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
 a_species = ["SO4", "NO3", "Cl", "NH4", "MSA", "ARO1", "ARO2", "ALK1",
              "OLE1", "API1", "API2", "LIM1", "LIM2", "CO3", "Na", "Ca",

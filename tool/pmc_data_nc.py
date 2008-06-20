@@ -446,6 +446,9 @@ class aero_particle_t:
             raise Exception("greatest_create_time variable not found in NetCDF file")
 	self.greatest_create_time = ncf.variables["greatest_create_time"][index]
 
+    def species_mass(self, species):
+        return self.masses[self.aero_data.name.index(species)]
+        
     def mass(self):
         return numpy.sum(self.masses)
 

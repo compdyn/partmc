@@ -22,20 +22,18 @@ a_species = ["SO4", "NO3", "Cl", "NH4", "MSA", "ARO1", "ARO2", "ALK1",
              "OIN", "OC"]
 b_species = ["BC"]
 for particle in particles:
-    if particle.least_create_time == 0.0:
-        diameter = 2.0 * particle.radius() * 1e6 # um
-        comp_frac = particle.comp_frac(a_species, b_species, "mass") * 100
-        x_bin = x_axis.find(diameter)
-        y_bin = y_axis.find(comp_frac)
-        bin_array[x_bin, y_bin] = 1.0
-#    bin_array[x_bin, y_bin] += 1.0 / particle.comp_vol \
-#                               / x_axis.grid_size(x_bin) \
-#                               / y_axis.grid_size(y_bin)
+    diameter = 2.0 * particle.radius() * 1e6 # um
+    comp_frac = particle.comp_frac(a_species, b_species, "mass") * 100
+    x_bin = x_axis.find(diameter)
+    y_bin = y_axis.find(comp_frac)
+    bin_array[x_bin, y_bin] += 1.0 / particle.comp_vol \
+                               / x_axis.grid_size(x_bin) \
+                               / y_axis.grid_size(y_bin)
 max_val = bin_array.max()
 bin_array = bin_array / max_val
 
 g = graph.graphxy(
-    width = 10,
+    width = 8,
     x = graph.axis.log(min = x_axis.min,
                        max = x_axis.max,
                        title = r'diameter ($\mu$m)'),
@@ -47,6 +45,7 @@ g = graph.graphxy(
 g.plot(graph.data.points(pmc_histogram_2d(bin_array, x_axis, y_axis),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
        styles = [graph.style.rect(rainbow_palette)])
-#add_color_bar(g, min = 0.0, max = max_val / 3600.0,
-#              title = r"emission time (hours)", palette = rainbow_palette)
-g.writePDFfile("out/comp_2d_all_from_particles.pdf")
+add_color_bar(g, min = 0.0, max = max_val / 3600.0,
+              title = r"number density", palette = rainbow_palette,
+              bar_x_offset = 0.8)
+g.writePDFfile("out/comp_2d_all.pdf")

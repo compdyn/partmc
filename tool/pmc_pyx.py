@@ -8,6 +8,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 
 text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
+#text.set(mode="latex")
 #text.set(docopt="10pt")
 #text.set(fontmaps="download35.map")
 #text.preamble(r"\usepackage{times}")

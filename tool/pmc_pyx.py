@@ -190,7 +190,8 @@ def boxed_text(g, x, y, label, border = 1 * unit.v_mm):
     g.insert(c)
 
 def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
-		  bar_height_ratio = 0.8, bar_x_offset = 1.8):
+		  bar_height_ratio = 0.8, bar_x_offset = 1.8,
+                  texter = None):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -200,6 +201,17 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 	v0 = x0 * (max - min) + min
 	v1 = x1 * (max - min) + min
 	color_d.append([0, 1, v0, v1, xh])
+    if texter:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title,
+            texter = texter)
+    else:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title)
     gc = g.insert(
 	graph.graphxy(
 	    width = bar_width,
@@ -208,10 +220,7 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 	    ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
 	    x = graph.axis.linear(min = 0, max = 1,
 				  parter = None),
-	    y2 = graph.axis.linear(
-		min = min,
-		max = max,
-		title = title)))
+	    y2 = y2axis))
     gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
 	    [graph.style.rect(palette)])

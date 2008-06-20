@@ -33,7 +33,8 @@ for particle in particles:
     if particle.species_mass("H2O") == 0.0:
         dry_bin_array[x_bin, y_bin] = 1.0
     else:
-        wet_bin_array[x_bin, y_bin] += particle.species_mass("H2O")
+        wet_bin_array[x_bin, y_bin] = particle.species_mass("H2O") \
+                                      / particle.mass()
 max_wet = wet_bin_array.max()
 wet_bin_array = wet_bin_array / max_wet
 
@@ -63,9 +64,11 @@ g1.plot(graph.data.points(pmc_histogram_2d(dry_bin_array, x_axis, y_axis),
 g2.plot(graph.data.points(pmc_histogram_2d(wet_bin_array, x_axis, y_axis),
                          xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
        styles = [graph.style.rect(rainbow_palette)])
-add_color_bar(g2, min = 0.0, max = max_wet,
-              title = r"water content", palette = rainbow_palette,
-              bar_x_offset = 0.8)
+add_color_bar(g2, min = 0.0, max = max_wet * 100,
+              title = r"water fraction", palette = rainbow_palette,
+              bar_x_offset = 0.8,
+              texter = graph.axis.texter.decimal(suffix = r"\%"))
+
 boxed_text(g1, 0.8, 0.9, "dry")
 boxed_text(g2, 0.8, 0.9, "wet")
 

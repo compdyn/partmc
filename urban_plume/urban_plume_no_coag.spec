@@ -1,16 +1,16 @@
 run_type mc                     # Monte Carlo run
-output_prefix out/urban_plume_no_coag   # prefix of output files
-state_prefix out/urban_plume_no_coag_state # prefix of state files
+output_prefix out/urban_plume_1.0   # prefix of output files
+state_prefix out/urban_plume_1.0_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
-n_part 1000                   # total number of particles
+n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

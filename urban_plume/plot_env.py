@@ -13,11 +13,11 @@ from pmc_pyx import *
 
 env = ["H"]
 
-subdir = "."
+subdir = "run_RH"
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_test_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_RH05_0001.nc" % subdir),
 	       "env_state",
 	       [])
 
@@ -30,6 +30,7 @@ temp_data.reduce([select("env", "temp")])
 rh_data = module_copy.deepcopy(data)
 rh_data.reduce([select("env", "rel_humid")])
 rh_data.scale(100.0)
+print rh_data.data
 height_data = module_copy.deepcopy(data)
 height_data.reduce([select("env", "height")])
 
@@ -64,4 +65,4 @@ g.plot(graph.data.list(height_data.data_center_list(),
                            title = "mixing height"),
              styles = [graph.style.line(lineattrs = [color_list[5],style.linewidth.THick])])
 
-g.writePDFfile("out/%s/env.pdf" % subdir)
+g.writePDFfile("out/%s/figs_RH05/env_RH05.pdf" % subdir)

@@ -13,11 +13,11 @@ from pmc_pyx import *
 
 times_hour = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24]
 
-subdir = "."
+subdir = "run_szenarios"
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_with_coag_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_1.0_0001.nc" % subdir),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -37,7 +37,7 @@ for i in range(len(times_hour)):
 			   painter = grid_painter),
 	y = graph.axis.linear(min = 0,
 			      max = 100,
-			      title = 'soot volume fraction',
+			      title = 'soot mass fraction',
 			      texter = graph.axis.texter.decimal(suffix
 								 = r"\%"),
 			      painter = grid_painter))
@@ -47,11 +47,8 @@ for i in range(len(times_hour)):
     data_slice.write_summary(sys.stdout)
     data_num = module_copy.deepcopy(data_slice)
     data_num.reduce([sum("dry_radius"), sum("composition_bc")])
-#    print data_num.data
     data_slice.data = data_slice.data / data_num.data
-#    print data_slice.data
-    #min_val = data_slice.data.min()
-    #max_val = data_slice.data.max()
+
     min_val = 0.0
     max_val = 2.
     plot_data = data_slice.data_2d_list(strip_zero = True,
@@ -65,4 +62,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/%s/t_%dn.pdf" % (subdir, times_hour[i]))
+    g.writePDFfile("out/%s/figs_1.0/t_1.0_%d.pdf" % (subdir, times_hour[i]))

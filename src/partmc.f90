@@ -360,7 +360,7 @@ contains
        call gas_state_copy(gas_init, gas_state)
        call aero_state_free(aero_state)
        call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
-            mc_opt%n_part_max, aero_state)
+            mc_opt%n_part_max, 0d0, aero_state)
        call env_data_init_state(env_data, env_state, 0d0)
 
        if (mc_opt%do_condensation) then

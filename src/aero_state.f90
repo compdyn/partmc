@@ -229,7 +229,7 @@ contains
   !> Makes particles from the given number distribution and appends
   !> them to the aero_state%v array.
   subroutine aero_state_add_disc_mode(bin_grid, aero_data, vol_frac, &
-       bin_n, aero_state)
+       bin_n, create_time, aero_state)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -239,9 +239,10 @@ contains
     real*8, intent(in) :: vol_frac(aero_data%n_spec)
     !> Number in bins.
     integer, intent(in) :: bin_n(bin_grid%n_bin)
-    !> Aerosol, must be.
+    !> Creation time for new particles (s).
+    real*8, intent(in) :: create_time
+    !> Aerosol, must be allocated already.
     type(aero_state_t), intent(inout) :: aero_state
-                                              ! allocated already
     
     real*8 v_low, v_high, pv
     integer k, i
@@ -258,6 +259,7 @@ contains
           pv = bin_grid%v(k)
           call aero_particle_set_vols(aero_particle, vol_frac * pv)
           call aero_particle_new_id(aero_particle)
+          call aero_particle_set_create_time(aero_particle, create_time)
           call aero_state_add_particle(aero_state, k, aero_particle)
        end do
     end do
@@ -269,7 +271,7 @@ contains
 
   !> Convert a continuous distribution into particles.
   subroutine aero_dist_to_state(bin_grid, aero_data, aero_dist, &
-       n_part, aero_state)
+       n_part, create_time, aero_state)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -279,6 +281,8 @@ contains
     type(aero_dist_t), intent(in) :: aero_dist
     !> Total number of particles.
     integer, intent(in) :: n_part
+    !> Creation time for new particles (s).
+    real*8, intent(in) :: create_time
     !> Aerosol distribution (will be allocated).
     type(aero_state_t), intent(out) :: aero_state
 
@@ -304,7 +308,7 @@ contains
        call vec_cts_to_disc(bin_grid%n_bin, aero_dist%mode(i)%num_den, &
             mode_n_parts(i), num_per_bin)
        call aero_state_add_disc_mode(bin_grid, aero_data, &
-            aero_dist%mode(i)%vol_frac, num_per_bin, aero_state)
+            aero_dist%mode(i)%vol_frac, num_per_bin, create_time, aero_state)
     end do
 
     aero_state%comp_vol = dble(n_part) &
@@ -318,7 +322,7 @@ contains
   !> aero_state. The sampled amount is sample_prop *
   !> aero_state%comp_vol.
   subroutine aero_dist_sample(bin_grid, aero_data, aero_dist, &
-       sample_prop, aero_state)
+       sample_prop, create_time, aero_state)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -328,6 +332,8 @@ contains
     type(aero_dist_t), intent(in) :: aero_dist
     !> Volume fraction to sample.
     real*8, intent(in) :: sample_prop
+    !> Creation time for new particles (s).
+    real*8, intent(in) :: create_time
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
 
@@ -343,7 +349,8 @@ contains
        call sample_vec_cts_to_disc(bin_grid%n_bin, &
             aero_dist%mode(i_mode)%num_den, n_samp, num_per_bin)
        call aero_state_add_disc_mode(bin_grid, aero_data, &
-            aero_dist%mode(i_mode)%vol_frac, num_per_bin, aero_state)
+            aero_dist%mode(i_mode)%vol_frac, num_per_bin, create_time, &
+            aero_state)
     end do
 
   end subroutine aero_dist_sample
@@ -1101,6 +1108,8 @@ contains
     integer :: water_hyst_leg(aero_state%n_part)
     real*8 :: comp_vol(aero_state%n_part)
     integer :: aero_id(aero_state%n_part)
+    real*8 :: least_create_time(aero_state%n_part)
+    real*8 :: greatest_create_time(aero_state%n_part)
 
     call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
          dimid_aero_particle)
@@ -1125,6 +1134,8 @@ contains
           water_hyst_leg(i_part) = particle%water_hyst_leg
           comp_vol(i_part) = aero_state%comp_vol
           aero_id(i_part) = particle%id
+          least_create_time(i_part) = particle%least_create_time
+          greatest_create_time(i_part) = particle%greatest_create_time
        end do
     end do
     call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
@@ -1153,6 +1164,10 @@ contains
          "comp_vol", "m^3", (/ dimid_aero_particle /))
     call pmc_nc_write_integer_1d(ncid, aero_id, &
          "aero_id", "1", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, least_create_time, &
+         "least_create_time", "s", (/ dimid_aero_particle /))
+    call pmc_nc_write_real_1d(ncid, greatest_create_time, &
+         "greatest_create_time", "s", (/ dimid_aero_particle /))
 
   end subroutine aero_state_output_netcdf
 

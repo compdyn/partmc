@@ -167,11 +167,9 @@ contains
     !> Current time (s).
     real*8, intent(in) :: time
 
-    ! init temperature
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
-
-    ! init height
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
+    env_state%elapsed_time = time
 
     ! init gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &
@@ -204,15 +202,15 @@ contains
     
     !> Ambient water vapor pressure (Pa).
     real*8 :: pmv
-!    real*8 :: old_height
 
-    ! update temperature and relative humidity
+    ! update temperature and adjust relative humidity to maintain
+    ! water concentration
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
     env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
 
-    ! update height
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
+    env_state%elapsed_time = time
 
     ! update gas and aerosol emissions and background
     call gas_state_interp_1d(env_data%gas_emission, &

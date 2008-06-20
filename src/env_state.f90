@@ -53,6 +53,8 @@ module pmc_env_state
      real*8 :: start_time
      !> Start day of year (UTC).
      integer :: start_day
+     !> Elapsed time since start_time (s).
+     real*8 :: elapsed_time
      !> Box height (m).
      real*8 :: height
      !> Gas emissions.
@@ -91,6 +93,7 @@ contains
     env_state%altitude = 0d0
     env_state%start_time = 0d0
     env_state%start_day = 0
+    env_state%elapsed_time = 0d0
     env_state%height = 0d0
 
     call gas_state_alloc(env_state%gas_emissions, 0)
@@ -137,6 +140,8 @@ contains
     env_state%altitude = env_state%altitude + env_state_delta%altitude
     env_state%start_time = env_state%start_time + env_state_delta%start_time
     env_state%start_day = env_state%start_day + env_state_delta%start_day
+    env_state%elapsed_time = env_state%elapsed_time &
+         + env_state_delta%elapsed_time
     env_state%height = env_state%height + env_state_delta%height
     call gas_state_add(env_state%gas_emissions, env_state_delta%gas_emissions)
     env_state%gas_emission_rate = env_state%gas_emission_rate &
@@ -174,6 +179,7 @@ contains
     env_state%altitude = env_state%altitude * alpha
     env_state%start_time = env_state%start_time * alpha
     env_state%start_day = nint(dble(env_state%start_day) * alpha)
+    env_state%elapsed_time = env_state%elapsed_time * alpha
     env_state%height = env_state%height * alpha
     call gas_state_scale(env_state%gas_emissions, alpha)
     env_state%gas_emission_rate = env_state%gas_emission_rate * alpha
@@ -204,6 +210,7 @@ contains
     env_to%altitude = env_from%altitude
     env_to%start_time = env_from%start_time
     env_to%start_day = env_from%start_day
+    env_to%elapsed_time = env_from%elapsed_time
     env_to%height = env_from%height
     call gas_state_copy(env_from%gas_emissions, env_to%gas_emissions)
     env_to%gas_emission_rate = env_from%gas_emission_rate
@@ -433,7 +440,7 @@ contains
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env_state%aero_background, &
-         sample_prop, aero_state_delta)
+         sample_prop, env_state%elapsed_time, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -444,7 +451,7 @@ contains
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_dist_sample(bin_grid, aero_data, env_state%aero_emissions, &
-         sample_prop, aero_state_delta)
+         sample_prop, env_state%elapsed_time, aero_state_delta)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -534,6 +541,7 @@ contains
     call inout_write_real(file, "altitude(m)", env_state%altitude)
     call inout_write_real(file, "start_time(s)", env_state%start_time)
     call inout_write_integer(file, "start_day(days)", env_state%start_day)
+    call inout_write_real(file, "elapsed_time(s)", env_state%elapsed_time)
     call inout_write_real(file, "height(m)", env_state%height)
     call inout_write_gas_state(file, env_state%gas_emissions)
     call inout_write_real(file, "gas_emit_rate(1/s)", &
@@ -570,6 +578,7 @@ contains
     call inout_read_real(file, "altitude(m)", env_state%altitude)
     call inout_read_real(file, "start_time(s)", env_state%start_time)
     call inout_read_integer(file, "start_day(days)", env_state%start_day)
+    call inout_read_real(file, "elapsed_time(s)", env_state%elapsed_time)
     call inout_read_real(file, "height(m)", env_state%height)
     call inout_read_gas_state(file, env_state%gas_emissions)
     call inout_read_real(file, "gas_emit_rate(1/s)", &
@@ -626,6 +635,7 @@ contains
     call average_real(env_vec%altitude, env_avg%altitude)
     call average_real(env_vec%start_time, env_avg%start_time)
     call average_integer(env_vec%start_day, env_avg%start_day)
+    call average_real(env_vec%elapsed_time, env_avg%elapsed_time)
     call average_real(env_vec%height, env_avg%height)
     call gas_state_average(env_vec%gas_emissions, env_avg%gas_emissions)
     call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
@@ -678,6 +688,7 @@ contains
          + pmc_mpi_pack_size_real(val%altitude) &
          + pmc_mpi_pack_size_real(val%start_time) &
          + pmc_mpi_pack_size_integer(val%start_day) &
+         + pmc_mpi_pack_size_real(val%elapsed_time) &
          + pmc_mpi_pack_size_real(val%height) &
          + pmc_mpi_pack_size_gas_state(val%gas_emissions) &
          + pmc_mpi_pack_size_real(val%gas_emission_rate) &
@@ -714,6 +725,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%altitude)
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
+    call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_pack_real(buffer, position, val%height)
     call pmc_mpi_pack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_pack_real(buffer, position, val%gas_emission_rate)
@@ -753,6 +765,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%altitude)
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)
+    call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_unpack_real(buffer, position, val%height)
     call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_unpack_real(buffer, position, val%gas_emission_rate)

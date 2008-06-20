@@ -405,7 +405,7 @@ class aero_particle_t:
         self.masses = ncf.variables["aero_comp_mass"][:,index]
         if "n_orig_part" not in ncf.variables.keys():
             raise Exception("n_orig_part variable not found in NetCDF file")
-	self.n_orig_part = ncf.variables["n_orig_part"][index]
+	self.absorb_cross_sect = ncf.variables["n_orig_part"][index]
         if "absorb_cross_sect" not in ncf.variables.keys():
             raise Exception("absorb_cross_sect variable not found in NetCDF file")
 	self.absorb_cross_sect = ncf.variables["absorb_cross_sect"][index]
@@ -439,6 +439,12 @@ class aero_particle_t:
         if "aero_id" not in ncf.variables.keys():
             raise Exception("aero_id variable not found in NetCDF file")
 	self.id = ncf.variables["aero_id"][index]
+        if "least_create_time" not in ncf.variables.keys():
+            raise Exception("least_create_time variable not found in NetCDF file")
+	self.least_create_time = ncf.variables["least_create_time"][index]
+        if "greatest_create_time" not in ncf.variables.keys():
+            raise Exception("greatest_create_time variable not found in NetCDF file")
+	self.greatest_create_time = ncf.variables["greatest_create_time"][index]
 
     def mass(self):
         return numpy.sum(self.masses)

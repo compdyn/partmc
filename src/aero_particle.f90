@@ -44,6 +44,10 @@ module pmc_aero_particle
      integer :: water_hyst_leg
      !> Unique ID number.
      integer :: id
+     !> First time a constituent was created (s).
+     real*8 :: least_create_time
+     !> Last time a constituent was created (s).
+     real*8 :: greatest_create_time
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
@@ -107,6 +111,9 @@ contains
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
+    aero_particle_to%least_create_time = aero_particle_from%least_create_time
+    aero_particle_to%greatest_create_time = &
+         aero_particle_from%greatest_create_time
 
   end subroutine aero_particle_copy
   
@@ -136,6 +143,9 @@ contains
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
+    aero_particle_to%least_create_time = aero_particle_from%least_create_time
+    aero_particle_to%greatest_create_time = &
+         aero_particle_from%greatest_create_time
     
   end subroutine aero_particle_shift
 
@@ -157,6 +167,8 @@ contains
     aero_particle%core_vol = 0d0
     aero_particle%water_hyst_leg = 0
     aero_particle%id = 0
+    aero_particle%least_create_time = 0d0
+    aero_particle%greatest_create_time = 0d0
 
   end subroutine aero_particle_zero
   
@@ -165,13 +177,28 @@ contains
   !> Assigns a globally-unique new ID number to the particle.
   subroutine aero_particle_new_id(aero_particle)
 
-    !> Particle to set ID.
+    !> Particle to set ID for.
     type(aero_particle_t), intent(inout) :: aero_particle
     
     aero_particle%id = next_id
     next_id = next_id + 1
 
   end subroutine aero_particle_new_id
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sets the creation times for the particle.
+  subroutine aero_particle_set_create_time(aero_particle, create_time)
+
+    !> Particle to set time for.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Creation time.
+    real*8, intent(in) :: create_time
+    
+    aero_particle%least_create_time = create_time
+    aero_particle%greatest_create_time = create_time
+
+  end subroutine aero_particle_set_create_time
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -545,6 +572,12 @@ contains
     else
        aero_particle_new%id = aero_particle_2%id
     end if
+    aero_particle_new%least_create_time = &
+         min(aero_particle_1%least_create_time, &
+         aero_particle_2%least_create_time)
+    aero_particle_new%greatest_create_time = &
+         max(aero_particle_1%greatest_create_time, &
+         aero_particle_2%greatest_create_time)
 
   end subroutine aero_particle_coagulate
 
@@ -572,6 +605,10 @@ contains
     call inout_write_integer(file, "water_hyst_leg(1)", &
          aero_particle%water_hyst_leg)
     call inout_write_integer(file, "id_number(1)", aero_particle%id)
+    call inout_write_real(file, "least_create(s)", &
+         aero_particle%least_create_time)
+    call inout_write_real(file, "greatest_create(s)", &
+         aero_particle%greatest_create_time)
     call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_write_comment(file, "end aero_particle")
     
@@ -601,6 +638,10 @@ contains
     call inout_read_integer(file, "water_hyst_leg(1)", &
          aero_particle%water_hyst_leg)
     call inout_read_integer(file, "id_number(1)", aero_particle%id)
+    call inout_read_real(file, "least_create(s)", &
+         aero_particle%least_create_time)
+    call inout_read_real(file, "greatest_create(s)", &
+         aero_particle%greatest_create_time)
     call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
     call inout_check_comment(file, "end aero_particle")
     
@@ -624,7 +665,9 @@ contains
          + pmc_mpi_pack_size_complex(val%refract_core) &
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
-         + pmc_mpi_pack_size_integer(val%id)
+         + pmc_mpi_pack_size_integer(val%id) &
+         + pmc_mpi_pack_size_real(val%least_create_time) &
+         + pmc_mpi_pack_size_real(val%greatest_create_time)
     
   end function pmc_mpi_pack_size_aero_particle
 
@@ -654,6 +697,8 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_pack_integer(buffer, position, val%id)
+    call pmc_mpi_pack_real(buffer, position, val%least_create_time)
+    call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
     call assert(810223998, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -686,6 +731,8 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_unpack_integer(buffer, position, val%id)
+    call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
+    call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
     call assert(287447241, position - prev_position &
          == pmc_mpi_pack_size_aero_particle(val))
 #endif

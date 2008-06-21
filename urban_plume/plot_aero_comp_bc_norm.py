@@ -13,11 +13,11 @@ from pmc_pyx import *
 
 times_hour = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24]
 
-subdir = "run_szenarios"
+subdir = "."
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
 
-data = pmc_var(NetCDFFile("out/%s/urban_plume_1.0_0001.nc" % subdir),
+data = pmc_var(NetCDFFile("out/%s/urban_plume_1.0_3am_0001.nc" % subdir),
 	       "comp_bc",
 	       [])
 data.write_summary(sys.stdout)
@@ -62,4 +62,4 @@ for i in range(len(times_hour)):
 		  max = max_val,
 		  title = r"number density",
 		  palette = rainbow_palette)
-    g.writePDFfile("out/%s/figs_1.0/t_1.0_%d.pdf" % (subdir, times_hour[i]))
+    g.writePDFfile("out/%s/t_1.0_3am_%d.pdf" % (subdir, times_hour[i]))

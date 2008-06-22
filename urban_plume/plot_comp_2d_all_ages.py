@@ -15,7 +15,8 @@ import numpy
 graph_width = 8
 v_space = 0.5
 
-f = NetCDFFile("out/urban_plume_with_coag_state_0001_00000004.nc")
+f = NetCDFFile("out/runs_20080620/data/20080620_gas_halved_3am/urban_plume_0.5_3am_state_0001_00000024.nc")
+print "time = ", f.variables["time"].getValue()/3600
 particles = read_particles(f)
 x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
 y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)

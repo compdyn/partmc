@@ -446,59 +446,60 @@ class aero_particle_t:
             raise Exception("greatest_create_time variable not found in NetCDF file")
 	self.greatest_create_time = ncf.variables["greatest_create_time"][index]
 
-    def species_mass(self, species):
-        return self.masses[self.aero_data.name.index(species)]
-        
-    def mass(self):
-        return numpy.sum(self.masses)
+    def sum_by_species(self, array, include = None, exclude = None):
+        if include:
+            for species in include:
+                if species not in self.aero_data.name:
+                    raise Exception("unknown species: %s" % species)
+            species_list = set(include)
+        else:
+            species_list = set(self.aero_data.name)
+        if exclude:
+            for species in exclude:
+                if species not in self.aero_data.name:
+                    raise Exception("unknown species: %s" % species)
+            species_list -= set(exclude)
+        if len(species_list) == len(self.aero_data.name):
+            return numpy.sum(array)
+        else:
+            val = 0.0
+            for species in species_list:
+                val += array[self.aero_data.name.index(species)]
+        return val
+    
+    def mass(self, include = None, exclude = None):
+        return self.sum_by_species(self.masses, include, exclude)
 
-    def volume(self):
-        return numpy.sum(self.masses / self.aero_data.density)
+    def volume(self, include = None, exclude = None):
+        return self.sum_by_species(self.masses / self.aero_data.density,
+                                   include, exclude)
+
+    def moles(self, include = None, exclude = None):
+        return self.sum_by_species(self.masses / self.aero_data.density
+                                   * self.aero_density.molec_weight,
+                                   include, exclude)
 
     def radius(self):
         return (self.volume() * 3.0/4.0 / math.pi)**(1.0/3.0)
 
-    def comp_frac(self, a_species, b_species, frac_type):
-        for s in a_species:
-            if s not in self.aero_data.name:
-                raise Exception("unknown species name: %s" % s)
-        for s in b_species:
-            if s not in self.aero_data.name:
-                raise Exception("unknown species name: %s" % s)
-        a_val = 0.0
-        b_val = 0.0
-        for (i, s) in enumerate(self.aero_data.name):
-            if s in a_species:
-                if frac_type == "mass":
-                    a_val = a_val + self.masses[i]
-                elif frac_type == "volume":
-                    a_val = a_val + self.masses[i] / self.aero_density[i]
-                elif frac_type == "mole":
-                    a_val = a_val + self.masses[i] / self.molec_weight[i]
-                else:
-                    raise Exception("unknown frac_type: %s" % frac_type)
-            if s in b_species:
-                if frac_type == "mass":
-                    b_val = b_val + self.masses[i]
-                elif frac_type == "volume":
-                    b_val = b_val + self.masses[i] / self.aero_density[i]
-                elif frac_type == "mole":
-                    b_val = b_val + self.masses[i] / self.molec_weight[i]
-                else:
-                    raise Exception("unknown frac_type: %s" % frac_type)
-        if (a_val == 0.0) and (b_val == 0.0):
-            return 0.0
-        else:
-            return b_val / (a_val + b_val)
+    def dry_radius(self):
+        return (self.volume(exclude = ["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
 
-def read_particles(ncf):
+    def diameter(self):
+        return 2.0 * self.radius()
+
+    def dry_diameter(self):
+        return 2.0 * self.dry_radius()
+
+def read_particles(ncf, ids = None):
     if "aero_particle" not in ncf.dimensions.keys():
         raise Exception("aero_particle dimension not found in NetCDF file")
     n_part = ncf.dimensions["aero_particle"]
     aero_data = aero_data_t(ncf)
     particles = []
     for i in range(n_part):
-        particles.append(aero_particle_t(ncf, i, aero_data))
+        if (ids == None) or (int(ncf.variables["aero_id"][i]) in ids):
+            particles.append(aero_particle_t(ncf, i, aero_data))
     return particles
 
 class pmc_axis:
@@ -522,8 +523,11 @@ class pmc_linear_axis(pmc_axis):
     def grid_size(self, index):
         return (self.max - self.min) / float(self.n_bin)
 
-    def find(self, value):
-        return int((value - self.min) * self.n_bin / (self.max - self.min))
+    def find(self, values):
+        indices = ((values - self.min) * self.n_bin
+                   / (self.max - self.min)).astype(int)
+        indices = indices.clip(0, self.n_bin - 1)
+        return indices
 
     def edge(self, index):
         if (index < 0) or (index > self.n_bin):
@@ -548,11 +552,13 @@ class pmc_log_axis:
         self.max = self.max * factor
 
     def grid_size(self, index):
-        return (math.log(self.max) - math.log(self.min)) / float(self.n_bin)
+        return (log(self.max) - log(self.min)) / float(self.n_bin)
 
     def find(self, value):
-        return int((math.log(value) - math.log(self.min)) * self.n_bin
-                     / (math.log(self.max) - math.log(self.min)))
+        indices = ((log(value) - log(self.min)) * self.n_bin
+                   / (log(self.max) - log(self.min))).astype(int)
+        indices = indices.clip(0, self.n_bin - 1)
+        return indices
 
     def edge(self, index):
         if (index < 0) or (index > self.n_bin):
@@ -563,8 +569,8 @@ class pmc_log_axis:
             return self.min
         else:
             return math.exp(float(index) / float(self.n_bin)
-                            * (math.log(self.max) - math.log(self.min))
-                            + math.log(self.min))
+                            * (log(self.max) - log(self.min))
+                            + log(self.min))
 
 def pmc_histogram_2d(array, x_axis, y_axis):
     data = []
@@ -575,3 +581,111 @@ def pmc_histogram_2d(array, x_axis, y_axis):
                              y_axis.edge(j), y_axis.edge(j + 1),
                              array[i,j]])
     return data
+
+class aero_particle_array_t:
+
+    def __init__(self, ncf):
+        self.aero_data = aero_data_t(ncf)
+        if "aero_comp_mass" not in ncf.variables.keys():
+            raise Exception("aero_comp_mass variable not found in NetCDF file")
+        self.masses = ncf.variables["aero_comp_mass"].getValue()
+        self.n_particles = size(self.masses, 1)
+        if "n_orig_part" not in ncf.variables.keys():
+            raise Exception("n_orig_part variable not found in NetCDF file")
+	self.absorb_cross_sect = ncf.variables["n_orig_part"].getValue()
+        if "absorb_cross_sect" not in ncf.variables.keys():
+            raise Exception("absorb_cross_sect variable not found in NetCDF file")
+	self.absorb_cross_sect = ncf.variables["absorb_cross_sect"].getValue()
+        if "scatter_cross_sect" not in ncf.variables.keys():
+            raise Exception("scatter_cross_sect variable not found in NetCDF file")
+	self.scatter_cross_sect = ncf.variables["scatter_cross_sect"].getValue()
+        if "asymmetry" not in ncf.variables.keys():
+            raise Exception("asymmetry variable not found in NetCDF file")
+	self.asymmetry = ncf.variables["asymmetry"].getValue()
+        if "refract_shell_real" not in ncf.variables.keys():
+            raise Exception("refract_shell_real variable not found in NetCDF file")
+	self.refract_shell_real = ncf.variables["refract_shell_real"].getValue()
+        if "refract_shell_imag" not in ncf.variables.keys():
+            raise Exception("refract_shell_imag variable not found in NetCDF file")
+	self.refract_shell_imag = ncf.variables["refract_shell_imag"].getValue()
+        if "refract_core_real" not in ncf.variables.keys():
+            raise Exception("refract_core_real variable not found in NetCDF file")
+	self.refract_core_real = ncf.variables["refract_core_real"].getValue()
+        if "refract_core_imag" not in ncf.variables.keys():
+            raise Exception("refract_core_imag variable not found in NetCDF file")
+	self.refract_core_imag = ncf.variables["refract_core_imag"].getValue()
+        if "core_vol" not in ncf.variables.keys():
+            raise Exception("core_vol variable not found in NetCDF file")
+	self.core_vol = ncf.variables["core_vol"].getValue()
+        if "water_hyst_leg" not in ncf.variables.keys():
+            raise Exception("water_hyst_leg variable not found in NetCDF file")
+	self.water_hyst_leg = ncf.variables["water_hyst_leg"].getValue()
+        if "comp_vol" not in ncf.variables.keys():
+            raise Exception("comp_vol variable not found in NetCDF file")
+	self.comp_vol = ncf.variables["comp_vol"].getValue()
+        if "aero_id" not in ncf.variables.keys():
+            raise Exception("aero_id variable not found in NetCDF file")
+	self.id = ncf.variables["aero_id"].getValue()
+        if "least_create_time" not in ncf.variables.keys():
+            raise Exception("least_create_time variable not found in NetCDF file")
+	self.least_create_time = ncf.variables["least_create_time"].getValue()
+        if "greatest_create_time" not in ncf.variables.keys():
+            raise Exception("greatest_create_time variable not found in NetCDF file")
+	self.greatest_create_time = ncf.variables["greatest_create_time"].getValue()
+
+    def sum_mass_by_species(self, include = None, exclude = None,
+                            species_weights = None):
+        if include != None:
+            for species in include:
+                if species not in self.aero_data.name:
+                    raise Exception("unknown species: %s" % species)
+            species_list = set(include)
+        else:
+            species_list = set(self.aero_data.name)
+        if exclude != None:
+            for species in exclude:
+                if species not in self.aero_data.name:
+                    raise Exception("unknown species: %s" % species)
+            species_list -= set(exclude)
+        species_list = list(species_list)
+        if len(species_list) == 0:
+            raise Exception("no species left to sum over")
+        index = self.aero_data.name.index(species_list[0])
+        if species_weights != None:
+            val = self.masses[index,:].copy() * species_weights[index]
+        else:
+            val = self.masses[index,:].copy()
+        for i in range(len(species_list) - 1):
+            index = self.aero_data.name.index(species_list[i + 1])
+            if species_weights != None:
+                val += self.masses[index,:] * species_weights[index]
+            else:
+                val += self.masses[index,:]
+        return val
+    
+    def mass(self, include = None, exclude = None):
+        return self.sum_mass_by_species(include = include, exclude = exclude)
+
+    def volume(self, include = None, exclude = None):
+        species_weights = 1.0 / self.aero_data.density
+        return self.sum_mass_by_species(include = include, exclude = exclude,
+                                        species_weights = species_weights)
+
+    def moles(self, include = None, exclude = None):
+        species_weights = self.aero_density.molec_weight \
+                          / self.aero_data.density
+        return self.sum_mass_by_species(include = include, exclude = exclude,
+                                        species_weights = species_weights)
+
+    def radius(self):
+        return (self.volume() * 3.0/4.0 / math.pi)**(1.0/3.0)
+
+    def dry_radius(self):
+        return (self.volume(exclude = ["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
+
+    def diameter(self):
+        return 2.0 * self.radius()
+
+    def dry_diameter(self):
+        return 2.0 * self.dry_radius()
+

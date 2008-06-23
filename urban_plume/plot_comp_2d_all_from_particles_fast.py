@@ -15,7 +15,7 @@ import numpy
 netcdf_dir = "out"
 netcdf_re = re.compile(r"urban_plume_0.5_3am_state_0001_([0-9]{8})\.nc")
 netcdf_re = re.compile(r"urban_plume_0.5_3am_state_0001_([0-9]{7}0)\.nc")
-#netcdf_re = re.compile(r"urban_plume_0.5_3am_state_0001_(00000240)\.nc")
+#netcdf_re = re.compile(r"urban_plume_0.5_3am_state_0001_(00001441)\.nc")
 
 show_particles = [[1029, [0.02, 70], "wet diesel"],
                   [1892, [0.02, 45], "wet gasoline"],
@@ -26,38 +26,36 @@ show_particles = [[1029, [0.02, 70], "wet diesel"],
 
 def process_file(in_filename, out_filename):
     ncf = NetCDFFile(in_filename)
-    particles = read_particles(ncf)
+    particles = aero_particle_array_t(ncf)
     x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     bin_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    diameter = particles.dry_diameter() * 1e6
+    comp_frac = particles.mass(include = ["BC"]) \
+                / particles.mass(exclude = ["H2O"]) * 100
+    #water_frac = particles.mass(include = ["H2O"]) \
+    #             / particles.mass() * 100
+    #oc_frac = particles.mass(include = ["BC"]) \
+    #          / particles.mass(include = ["BC", "OC"]) * 100
+    x_bin = x_axis.find(diameter)
+    y_bin = y_axis.find(comp_frac)
     show_coords = [[] for show in show_particles]
-    particles.sort(cmp = lambda x,y: cmp(x.id, y.id))
-    for particle in particles:
-        diameter = particle.dry_diameter() * 1e6 # um
-        comp_frac = particle.mass(include = ["BC"]) \
-                    / particle.mass(exclude = ["H2O"]) * 100
-        #water_frac = particle.mass(include = ["H2O"]) \
-        #            / particle.mass() * 100
-        #oc_frac = particle.mass(include = ["BC"]) \
-        #            / particle.mass(include = ["BC", "OC"]) * 100
-        #print "i=%6d d=%10e b=%10e w=%10e o=%10e" \
-        #      % (particle.id, particle.dry_diameter() * 1e6,
-        #         comp_frac, water_frac, oc_frac)
-        x_bin = x_axis.find(diameter)
-        y_bin = y_axis.find(comp_frac)
-        bin_array[x_bin, y_bin] += 1.0 / particle.comp_vol \
-                                   / x_axis.grid_size(x_bin) \
-                                   / y_axis.grid_size(y_bin)
-        for i, show in enumerate(show_particles):
-            if particle.id == show[0]:
-                show_coords[i] = [diameter, comp_frac]
+    for i in range(particles.n_particles):
+        bin_array[x_bin[i], y_bin[i]] += 1.0 / particles.comp_vol[i] \
+                                         / x_axis.grid_size(x_bin[i]) \
+                                         / y_axis.grid_size(y_bin[i])
+        for j, show in enumerate(show_particles):
+            if particles.id[i] == show[0]:
+                show_coords[j] = [diameter[i], comp_frac[i]]
+        #if (oc_frac[i] > 10) and (water_frac[i] == 0.0):
+        #    print "time =", ncf.variables["time"].getValue()
+        #    print "i=%6d d=%10e b=%10e w=%10e o=%10e" \
+        #          % (particles.id[i], diameter[i],
+        #             comp_frac[i], water_frac[i], oc_frac[i])
     #max_val = bin_array.max()
     max_val = 1e10
     bin_array = bin_array / max_val
-    for i in range(x_axis.n_bin):
-        for j in range(y_axis.n_bin):
-            bin_array[i,j] = min(1.0, bin_array[i,j])
-            bin_array[i,j] = max(0.0, bin_array[i,j])
+    bin_array = bin_array.clip(0.0, 1.0)
 
     g = graph.graphxy(
         width = 8,

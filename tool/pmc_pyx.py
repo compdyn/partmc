@@ -32,18 +32,18 @@ text.preamble(r"""\renewcommand{\sfdefault}{phv}
 #\renewcommand{\familydefault}{\sfdefault}
 #\renewcommand{\normalsize}{\fontfamily{phvv}\fontsize{3}{3}\selectfont}""")
 
-color_list = [color.hsb(0/3.0, 1, 1),
+color_list = [color.hsb(2/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),
-	      color.hsb(2/3.0, 1, 1),
-	      color.hsb(1/6.0, 1, 1),
-	      color.hsb(3/6.0, 1, 1),
+	      color.hsb(0/3.0, 1, 1),
 	      color.hsb(5/6.0, 1, 1),
-	      color.hsb(1/12.0, 1, 1),
-	      color.hsb(3/12.0, 1, 1),
-	      color.hsb(5/12.0, 1, 1),
-	      color.hsb(7/12.0, 1, 1),
-	      color.hsb(9/12.0, 1, 1),
+	      color.hsb(3/6.0, 1, 1),
+	      color.hsb(1/6.0, 1, 1),
 	      color.hsb(11/12.0, 1, 1),
+	      color.hsb(9/12.0, 1, 1),
+	      color.hsb(7/12.0, 1, 1),
+	      color.hsb(5/12.0, 1, 1),
+	      color.hsb(3/12.0, 1, 1),
+	      color.hsb(1/12.0, 1, 1),
 	      ]
 
 line_style_list = [style.linestyle.solid,

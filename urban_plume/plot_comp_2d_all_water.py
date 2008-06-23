@@ -21,19 +21,16 @@ x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
 y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
 dry_bin_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
 wet_bin_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
-a_species = ["SO4", "NO3", "Cl", "NH4", "MSA", "ARO1", "ARO2", "ALK1",
-             "OLE1", "API1", "API2", "LIM1", "LIM2", "CO3", "Na", "Ca",
-             "OIN", "OC"]
-b_species = ["BC"]
 for particle in particles:
     diameter = 2.0 * particle.radius() * 1e6 # um
-    comp_frac = particle.comp_frac(a_species, b_species, "mass") * 100
+    comp_frac = particle.mass(include = ["BC"]) \
+                / particle.mass(exclude = ["H2O"]) * 100
     x_bin = x_axis.find(diameter)
     y_bin = y_axis.find(comp_frac)
-    if particle.species_mass("H2O") == 0.0:
+    if particle.mass(include = ["H2O"]) == 0.0:
         dry_bin_array[x_bin, y_bin] = 1.0
     else:
-        wet_bin_array[x_bin, y_bin] = particle.species_mass("H2O") \
+        wet_bin_array[x_bin, y_bin] = particle.mass(include = ["H2O"]) \
                                       / particle.mass()
 max_wet = wet_bin_array.max()
 wet_bin_array = wet_bin_array / max_wet

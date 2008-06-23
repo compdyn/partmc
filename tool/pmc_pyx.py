@@ -88,11 +88,12 @@ class listpalette(color.palette):
 		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
         return self.colorclass(**colordict)
 
-rainbow_palette = listpalette([[0, color.rgb(0, 0, 1)],
-			       [0.3, color.rgb(0, 1, 1)],
-			       [0.5, color.rgb(0, 1, 0)],
-			       [0.7, color.rgb(1, 1, 0)],
-			       [1, color.rgb(1, 0, 0)]])
+rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],  # blue
+			       [0.2, color.rgb(0, 1, 1)],  # cyan
+			       [0.4, color.rgb(0, 1, 0)],  # green
+			       [0.6, color.rgb(1, 1, 0)],  # yellow
+			       [0.8, color.rgb(1, 0, 0)],  # red
+                               [1.0, color.rgb(1, 0, 1)]]) # magenta
 
 gray_palette = listpalette([[0, color.gray(0.8)],
                             [1, color.gray(0)]])
@@ -313,3 +314,67 @@ class time_of_day:
                 tick.label = "%02d:%02d" % (hours, minutes)
                 tick.labelattrs = tick.labelattrs + self.labelattrs
 
+class hsb_rect(graph.style._style):
+
+    needsdata = ["vrange", "vrangeminmissing", "vrangemaxmissing"]
+
+    def __init__(self, gradient=color.gradient.Grey):
+        self.gradient = gradient
+
+    def columnnames(self, privatedata, sharedata, graph, columnnames):
+        if len(graph.axesnames) != 2:
+            raise TypeError("arrow style restricted on two-dimensional graphs")
+        if "color" not in columnnames:
+            raise ValueError("color missing")
+        if len(sharedata.vrangeminmissing) + len(sharedata.vrangemaxmissing):
+            raise ValueError("incomplete range")
+        ret_names = []
+        for name in ["color", "hue", "saturation", "brightness"]:
+            if name in columnnames:
+                ret_names.append(name)
+        return ret_names
+
+    def initdrawpoints(self, privatedata, sharedata, graph):
+        privatedata.rectcanvas = graph.insert(canvas.canvas())
+
+    def drawpoint(self, privatedata, sharedata, graph, point):
+        xvmin = sharedata.vrange[0][0]
+        xvmax = sharedata.vrange[0][1]
+        yvmin = sharedata.vrange[1][0]
+        yvmax = sharedata.vrange[1][1]
+        if (xvmin is not None and xvmin < 1 and
+            xvmax is not None and xvmax > 0 and
+            yvmin is not None and yvmin < 1 and
+            yvmax is not None and yvmax > 0):
+            if xvmin < 0:
+                xvmin = 0
+            elif xvmax > 1:
+                xvmax = 1
+            if yvmin < 0:
+                yvmin = 0
+            elif yvmax > 1:
+                yvmax = 1
+            p = graph.vgeodesic(xvmin, yvmin, xvmax, yvmin)
+            p.append(graph.vgeodesic_el(xvmax, yvmin, xvmax, yvmax))
+            p.append(graph.vgeodesic_el(xvmax, yvmax, xvmin, yvmax))
+            p.append(graph.vgeodesic_el(xvmin, yvmax, xvmin, yvmin))
+            p.append(path.closepath())
+            hue = 0.0
+            saturation = 0.0
+            brightness = 0.0
+            if "color" in point.keys():
+                c = self.gradient.getcolor(point["color"]).hsb()
+                hue = c.color["h"]
+                saturation = c.color["s"]
+                brightness = c.color["b"]
+            if "hue" in point.keys():
+                hue = point["hue"]
+            if "saturation" in point.keys():
+                saturation = point["saturation"]
+            if "brightness" in point.keys():
+                brightness = point["brightness"]
+            rect_color = color.hsb(hue, saturation, brightness)
+            privatedata.rectcanvas.fill(p, [rect_color])
+
+    def key_pt(self, privatedata, sharedata, graph, x_pt, y_pt, width_pt, height_pt):
+        raise RuntimeError("Style currently doesn't provide a graph key")

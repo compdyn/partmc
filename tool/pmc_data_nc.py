@@ -572,14 +572,28 @@ class pmc_log_axis:
                             * (log(self.max) - log(self.min))
                             + log(self.min))
 
-def pmc_histogram_2d(array, x_axis, y_axis):
+def pmc_histogram_2d(array, x_axis, y_axis, mask = None):
     data = []
     for i in range(x_axis.n_bin):
         for j in range(y_axis.n_bin):
-            if array[i,j] > 0.0:
+            if ((mask == None) and (array[i,j] > 0.0)) \
+                   or ((mask != None) and (mask[i,j] == 1)):
                 data.append([x_axis.edge(i), x_axis.edge(i + 1),
                              y_axis.edge(j), y_axis.edge(j + 1),
                              array[i,j]])
+    return data
+
+def pmc_histogram_2d_multi(array_list, x_axis, y_axis, mask = None):
+    data = []
+    for i in range(x_axis.n_bin):
+        for j in range(y_axis.n_bin):
+            if ((mask == None) and (array_list[0][i,j] > 0.0)) \
+                   or ((mask != None) and (mask[i,j] == 1)):
+                data_item = [x_axis.edge(i), x_axis.edge(i + 1),
+                             y_axis.edge(j), y_axis.edge(j + 1)]
+                for array in array_list:
+                    data_item.append(array[i,j])
+                data.append(data_item)
     return data
 
 class aero_particle_array_t:

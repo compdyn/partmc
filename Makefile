@@ -68,14 +68,14 @@ bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/bin_grid.o src/inout.o src/aero_dist.o src/aero_binned.o	\
 	src/rand_poisson.o src/aero_particle.o				\
 	src/aero_particle_array.o src/mpi.o src/netcdf.o		\
-	src/output_processed.o
+	src/output_processed.o src/process_spec.o 
 equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
 	src/env_state.o src/condensation.o src/util.o src/aero_state.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/bin_grid.o	\
 	src/output_state_netcdf.o src/aero_dist.o src/inout.o		\
 	src/aero_binned.o src/rand_poisson.o src/aero_particle.o	\
 	src/aero_particle_array.o src/mpi.o src/netcdf.o		\
-	src/output_processed.o
+	src/output_processed.o src/process_spec.o 
 poisson_sample_OBJS := test/poisson/poisson_sample.o src/util.o	\
 	src/rand_poisson.o src/constants.o
 

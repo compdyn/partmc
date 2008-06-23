@@ -10,7 +10,7 @@ t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 600              # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 60               # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -18,7 +18,7 @@ r_min 1e-10                      # minimum radius (m)
 r_max 1e-5                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
-gas_init gas_init_LA.dat           # initial gas concentrations
+gas_init gas_init_LA.dat        # initial gas concentrations
 
 aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist_LA_low.dat # aerosol initial condition file

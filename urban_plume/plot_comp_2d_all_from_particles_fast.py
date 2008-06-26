@@ -15,7 +15,7 @@ import numpy
 netcdf_dir = "out"
 netcdf_re = re.compile(r"urban_plume_0.5_3am_wc_state_0001_([0-9]{8})\.nc")
 netcdf_re = re.compile(r"urban_plume_0.5_3am_wc_state_0001_(00000201)\.nc")
-netcdf_re = re.compile(r"urban_plume_0.5_3am_wc_state_0001_([0-9]{7}1)\.nc")
+netcdf_re = re.compile(r"urban_plume_0.5_3am_state_0001_([0-9]{7}1)\.nc")
 
 show_particles = [[1029, [0.02, 70], "wet diesel"],
                   [1892, [0.02, 45], "wet gasoline"],

@@ -15,7 +15,7 @@ import numpy
 graph_width = 8
 v_space = 0.5
 
-f = NetCDFFile("out/runs_20080620/data/20080620_gas_halved_3am/urban_plume_0.5_3am_state_0001_00000024.nc")
+f = NetCDFFile("out/urban_plume_0.5_3am_state_0001_00000021.nc")
 particles = read_particles(f)
 x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
 y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
@@ -55,12 +55,16 @@ g1 = c.insert(graph.graphxy(
                           title = r"$f_{\rm BC,all}$",
                           texter = graph.axis.texter.decimal(suffix = r"\%"))))
 
-g1.plot(graph.data.points(pmc_histogram_2d(dry_bin_array, x_axis, y_axis),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-       styles = [graph.style.rect(rainbow_palette)])
-g2.plot(graph.data.points(pmc_histogram_2d(wet_bin_array, x_axis, y_axis),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-       styles = [graph.style.rect(rainbow_palette)])
+dry_plot_data = pmc_histogram_2d(dry_bin_array, x_axis, y_axis)
+if len(dry_plot_data) > 0:
+    g1.plot(graph.data.points(dry_plot_data,
+                              xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
+            styles = [graph.style.rect(rainbow_palette)])
+wet_plot_data = pmc_histogram_2d(wet_bin_array, x_axis, y_axis)
+if len(wet_plot_data) > 0:
+    g2.plot(graph.data.points(wet_plot_data,
+                              xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
+            styles = [graph.style.rect(rainbow_palette)])
 add_color_bar(g2, min = 0.0, max = max_wet * 100,
               title = r"water fraction", palette = rainbow_palette,
               bar_x_offset = 0.8,

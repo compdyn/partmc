@@ -72,6 +72,9 @@ contains
        call pmc_nc_write_integer(ncid, i_loop, "loop", "1")
        call pmc_nc_write_integer(ncid, index, "timestep_index", "1")
 
+       call env_state_output_netcdf(env_state, ncid)
+       call gas_data_output_netcdf(gas_data, ncid)
+       call gas_state_output_netcdf(gas_state, ncid, gas_data)
        call aero_data_output_netcdf(aero_data, ncid)
        call aero_state_output_netcdf(aero_state, ncid, bin_grid, aero_data)
     end if

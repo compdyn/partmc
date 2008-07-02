@@ -1141,33 +1141,33 @@ contains
     call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
          "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
     call pmc_nc_write_integer_1d(ncid, n_orig_part, &
-         "n_orig_part", "1", (/ dimid_aero_particle /))
+         "aero_n_orig_part", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, absorb_cross_sect, &
-         "absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
+         "aero_absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, scatter_cross_sect, &
-         "scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
+         "aero_scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, asymmetry, &
-         "asymmetry", "1", (/ dimid_aero_particle /))
+         "aero_asymmetry", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, refract_shell_real, &
-         "refract_shell_real", "1", (/ dimid_aero_particle /))
+         "aero_refract_shell_real", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, refract_shell_imag, &
-         "refract_shell_imag", "1", (/ dimid_aero_particle /))
+         "aero_refract_shell_imag", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, refract_core_real, &
-         "refract_core_real", "1", (/ dimid_aero_particle /))
+         "aero_refract_core_real", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, refract_core_imag, &
-         "refract_core_imag", "1", (/ dimid_aero_particle /))
+         "aero_refract_core_imag", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, core_vol, &
-         "core_vol", "m^3", (/ dimid_aero_particle /))
+         "aero_core_vol", "m^3", (/ dimid_aero_particle /))
     call pmc_nc_write_integer_1d(ncid, water_hyst_leg, &
-         "water_hyst_leg", "1", (/ dimid_aero_particle /))
+         "aero_water_hyst_leg", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, comp_vol, &
-         "comp_vol", "m^3", (/ dimid_aero_particle /))
+         "aero_comp_vol", "m^3", (/ dimid_aero_particle /))
     call pmc_nc_write_integer_1d(ncid, aero_id, &
          "aero_id", "1", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, least_create_time, &
-         "least_create_time", "s", (/ dimid_aero_particle /))
+         "aero_least_create_time", "s", (/ dimid_aero_particle /))
     call pmc_nc_write_real_1d(ncid, greatest_create_time, &
-         "greatest_create_time", "s", (/ dimid_aero_particle /))
+         "aero_greatest_create_time", "s", (/ dimid_aero_particle /))
 
   end subroutine aero_state_output_netcdf
 

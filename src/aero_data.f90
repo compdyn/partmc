@@ -478,26 +478,22 @@ contains
     integer, intent(in) :: ncid
 
     integer :: dimid_aero_species
-    integer :: start(1), count(1)
-    integer :: status, dimids_aero_species(1)
-    integer :: varid_mosaic_index, varid_density, varid_num_ions
-    integer :: varid_solubility, varid_molec_weight, varid_kappa
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
 
     call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
-         "mosaic_index", "1", (/ dimid_aero_species /))
+         "aero_mosaic_index", "1", (/ dimid_aero_species /))
     call pmc_nc_write_real_1d(ncid, aero_data%density, &
-         "density", "kg/m^3", (/ dimid_aero_species /))
+         "aero_density", "kg/m^3", (/ dimid_aero_species /))
     call pmc_nc_write_integer_1d(ncid, aero_data%num_ions, &
-         "num_ions", "1", (/ dimid_aero_species /))
+         "aero_num_ions", "1", (/ dimid_aero_species /))
     call pmc_nc_write_real_1d(ncid, aero_data%solubility, &
-         "solubility", "1", (/ dimid_aero_species /))
+         "aero_solubility", "1", (/ dimid_aero_species /))
     call pmc_nc_write_real_1d(ncid, aero_data%molec_weight, &
-         "molec_weight", "kg/mole", (/ dimid_aero_species /))
+         "aero_molec_weight", "kg/mole", (/ dimid_aero_species /))
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
-         "kappa", "1", (/ dimid_aero_species /))
+         "aero_kappa", "1", (/ dimid_aero_species /))
 
   end subroutine aero_data_output_netcdf
 

@@ -13,19 +13,15 @@ from pmc_pyx import *
 
 gas_species = ["O3", "NO2", "HCHO", "HNO3", "SO2", "NH3"]
 
-data = pmc_var(NetCDFFile("out/urban_plume_0001.nc"),
-	       "gas",
-	       [])
+netcdf_dir = "out"
+netcdf_re = re.compile(r"urban_plume_state_0001_([0-9]{8})\.nc")
 
-data.write_summary(sys.stdout)
+gas_history = read_history(gas_state_t, netcdf_dir, netcdf_pattern)
 
-data.scale_dim("time", 1.0/60)
 g = graph.graphxy(
     width = 10,
     x = graph.axis.linear(min = 0.,
                           max = 1440,
-#                          parter = graph.axis.parter.linear(tickdists = [6, 3]),
-#                          max = max(data.dim_by_name("time").grid_centers),
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
                           texter = time_of_day(base_time = 6 * 60),

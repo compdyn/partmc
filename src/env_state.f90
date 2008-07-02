@@ -20,6 +20,7 @@ module pmc_env_state
   use pmc_aero_binned
   use pmc_inout
   use pmc_mpi
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -799,6 +800,31 @@ contains
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)
 
   end subroutine pmc_mpi_reduce_avg_env_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine env_state_output_netcdf(env_state, ncid)
+    
+    !> Environment state to write.
+    type(env_state_t), intent(in) :: env_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_write_real(ncid, env_state%temp, "temperature", "K")
+    call pmc_nc_write_real(ncid, env_state%rel_humid, "relative_humidity", "1")
+    call pmc_nc_write_real(ncid, env_state%pressure, "pressure", "Pa")
+    call pmc_nc_write_real(ncid, env_state%longitude, "longitude", "degrees")
+    call pmc_nc_write_real(ncid, env_state%latitude, "latitude", "degrees")
+    call pmc_nc_write_real(ncid, env_state%altitude, "altitude", "m")
+    call pmc_nc_write_real(ncid, env_state%start_time, &
+         "start_time_of_day", "s")
+    call pmc_nc_write_integer(ncid, env_state%start_day, &
+         "start_day_of_year", "1")
+    call pmc_nc_write_real(ncid, env_state%elapsed_time, "elapsed_time", "s")
+    call pmc_nc_write_real(ncid, env_state%height, "height", "m")
+
+  end subroutine env_state_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

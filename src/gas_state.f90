@@ -12,6 +12,7 @@ module pmc_gas_state
   use pmc_inout
   use pmc_gas_data
   use pmc_mpi
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -462,6 +463,28 @@ contains
     call pmc_mpi_reduce_avg_real_array(val%conc, val_avg%conc)
 
   end subroutine pmc_mpi_reduce_avg_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine gas_state_output_netcdf(gas_state, ncid, gas_data)
+    
+    !> Gas state to write.
+    type(gas_state_t), intent(in) :: gas_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+
+    integer :: dimid_gas_species
+
+    call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
+         dimid_gas_species)
+
+    call pmc_nc_write_real_1d(ncid, gas_state%conc, &
+         "gas_concentration", "ppb", (/ dimid_gas_species /))
+
+  end subroutine gas_state_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

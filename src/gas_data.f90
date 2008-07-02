@@ -11,6 +11,7 @@ module pmc_gas_data
   use pmc_inout
   use pmc_mpi
   use pmc_util
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -293,6 +294,82 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_gas_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the gas species dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine gas_data_netcdf_dim_gas_species(gas_data, ncid, &
+       dimid_gas_species)
+
+    !> Gas_data structure.
+    type(gas_data_t), intent(in) :: gas_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_gas_species
+
+    integer :: status, i_spec
+    integer :: varid_gas_species
+    integer :: gas_species_centers(gas_data%n_spec)
+    character(len=(GAS_NAME_LEN * gas_data%n_spec)) :: gas_species_names
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "gas_species", dimid_gas_species)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "gas_species", &
+         gas_data%n_spec, dimid_gas_species))
+    gas_species_names = ""
+    do i_spec = 1,gas_data%n_spec
+       gas_species_names((len_trim(gas_species_names) + 1):) &
+            = trim(gas_data%name(i_spec))
+       if (i_spec < gas_data%n_spec) then
+          gas_species_names((len_trim(gas_species_names) + 1):) = ","
+       end if
+    end do
+    call pmc_nc_check(nf90_def_var(ncid, "gas_species", NF90_INT, &
+         dimid_gas_species, varid_gas_species))
+    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species, "unit", "1"))
+    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species, "names", &
+         gas_species_names))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_spec = 1,gas_data%n_spec
+       gas_species_centers(i_spec) = i_spec
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_gas_species, &
+         gas_species_centers))
+
+  end subroutine gas_data_netcdf_dim_gas_species
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine gas_data_output_netcdf(gas_data, ncid)
+    
+    !> Gas_data to write.
+    type(gas_data_t), intent(in) :: gas_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: dimid_gas_species
+
+    call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
+         dimid_gas_species)
+
+    call pmc_nc_write_integer_1d(ncid, gas_data%mosaic_index, &
+         "gas_mosaic_index", "1", (/ dimid_gas_species /))
+    call pmc_nc_write_real_1d(ncid, gas_data%molec_weight, &
+         "gas_molec_weight", "kg/mole", (/ dimid_gas_species /))
+
+  end subroutine gas_data_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

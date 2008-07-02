@@ -15,7 +15,7 @@ import numpy
 graph_width = 8
 v_space = 0.5
 
-f = NetCDFFile("out/urban_plume_0.5_3am_state_0001_00000021.nc")
+f = NetCDFFile("out/urban_plume_0.5_3am_state_0001_00000241.nc")
 particles = read_particles(f)
 x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
 y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
@@ -73,4 +73,4 @@ add_color_bar(g2, min = 0.0, max = max_wet * 100,
 boxed_text(g1, 0.8, 0.9, "dry")
 boxed_text(g2, 0.8, 0.9, "wet")
 
-c.writePDFfile("out/comp_2d_all_water.pdf")
+c.writePDFfile("out/comp_2d_all_water_4.pdf")

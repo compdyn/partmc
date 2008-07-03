@@ -13,9 +13,9 @@ from pmc_pyx import *
 import numpy
 
 particles = [[1029, "wet_diesel"],
-             [1570, "wet_gasoline"],
-             [4074, "dry_diesel"],
-             [4167, "dry_gasoline"],
+#             [1570, "wet_gasoline"],
+#             [4074, "dry_diesel"],
+#             [4167, "dry_gasoline"],
              ]
 
 netcdf_dir = "out"
@@ -75,9 +75,9 @@ def make_fig(particle_id, description):
     for i in range(len(aero_species)):
         data_1_shifted[i] = [[x[0] - first_time, x[1]] for x in data_1[i]]
 
-    c = canvas.canvas()
+    #c = canvas.canvas()
 
-    g2 = c.insert(graph.graphxy(
+    g = graph.graphxy(
         width = 8,
         x = graph.axis.linear(min = 0,
                               max = 24 * 60,
@@ -96,26 +96,26 @@ def make_fig(particle_id, description):
                                texter = graph.axis.texter.decimal(suffix
                                                                   = r"\%")),
         y4 = graph.axis.linear(title = "temperature (K)"),
-        key = graph.key.key(pos = "br", hinside = 0, hdist = 5 * unit.v_cm)))
+        key = graph.key.key(pos = "br", hinside = 0, hdist = 5 * unit.v_cm))
 
-    g1 = c.insert(graph.graphxy(
-        width = 8,
-        ypos = g2.height + 2,
-        x = graph.axis.log(min = 1,
-                           max = 2e3,
-                           title = r'time since %s LST (minutes)'
-                           % first_time_string,
-                           painter = grid_painter),
-        y = graph.axis.log(min = 1e-28,
-                           max = 1e-16,
-                           title = r"mass (kg)",
-                           painter = grid_painter),
-        y2 = graph.axis.log(title = r"diameter ($\rm \mu m$)"),
-        y3 = graph.axis.linear(title = "relative humidity (1)",
-                               texter = graph.axis.texter.decimal(suffix
-                                                                  = r"\%")),
-        y4 = graph.axis.linear(title = "temperature (K)"),
-        key = graph.key.key(pos = "br", hinside = 0, hdist = 5 * unit.v_cm)))
+    #g1 = c.insert(graph.graphxy(
+    #    width = 8,
+    #    ypos = g2.height + 2,
+    #    x = graph.axis.log(min = 1,
+    #                       max = 2e3,
+    #                       title = r'time since %s LST (minutes)'
+    #                       % first_time_string,
+    #                       painter = grid_painter),
+    #    y = graph.axis.log(min = 1e-28,
+    #                       max = 1e-16,
+    #                       title = r"mass (kg)",
+    #                       painter = grid_painter),
+    #    y2 = graph.axis.log(title = r"diameter ($\rm \mu m$)"),
+    #    y3 = graph.axis.linear(title = "relative humidity (1)",
+    #                           texter = graph.axis.texter.decimal(suffix
+    #                                                              = r"\%")),
+    #    y4 = graph.axis.linear(title = "temperature (K)"),
+    #    key = graph.key.key(pos = "br", hinside = 0, hdist = 5 * unit.v_cm)))
 
     for i in range(len(aero_species)):
         data_1[i].sort()
@@ -126,38 +126,38 @@ def make_fig(particle_id, description):
             title = tex_species(aero_species[i][1][0])
         else:
             title = aero_species[i][0]
-        g1.plot(graph.data.points(data_1_shifted[i], x = 1, y = 2,
-                                  title = title),
-               styles = [graph.style.line(lineattrs = [color_list[i]])])
-        g2.plot(graph.data.points(data_1[i], x = 1, y = 2, title = title),
+        #g1.plot(graph.data.points(data_1_shifted[i], x = 1, y = 2,
+        #                          title = title),
+        #       styles = [graph.style.line(lineattrs = [color_list[i]])])
+        g.plot(graph.data.points(data_1[i], x = 1, y = 2, title = title),
                styles = [graph.style.line(lineattrs = [color_list[i]])])
     data_dry_diameter.sort()
-    g2.plot(graph.data.points(data_dry_diameter, x = 1, y2 = 2,
+    g.plot(graph.data.points(data_dry_diameter, x = 1, y2 = 2,
                               title = "dry diameter"),
             styles = [graph.style.line(lineattrs = [color.rgb.black,
                                                     style.linestyle.solid,
                                                     style.linewidth.THick])])
     data_wet_diameter.sort()
-    g2.plot(graph.data.points(data_wet_diameter, x = 1, y2 = 2,
+    g.plot(graph.data.points(data_wet_diameter, x = 1, y2 = 2,
                               title = "wet diameter"),
             styles = [graph.style.line(lineattrs = [color.rgb.black,
                                                     style.linestyle.solid])])
 
-    data_dry_diameter_shifted = [[x[0] - first_time, x[1]]
-                                 for x in data_dry_diameter
-                                 if x[0] > first_time]
-    data_wet_diameter_shifted = [[x[0] - first_time, x[1]]
-                                 for x in data_wet_diameter
-                                 if x[0] > first_time]
-    g1.plot(graph.data.points(data_dry_diameter_shifted, x = 1, y2 = 2,
-                              title = "dry diameter"),
-    styles = [graph.style.line(lineattrs = [color.rgb.black,
-                                            style.linestyle.solid,
-                                            style.linewidth.THick])])
-    g1.plot(graph.data.points(data_wet_diameter_shifted, x = 1, y2 = 2,
-                              title = "wet diameter"),
-    styles = [graph.style.line(lineattrs = [color.rgb.black,
-                                            style.linestyle.solid])])
+    #data_dry_diameter_shifted = [[x[0] - first_time, x[1]]
+    #                             for x in data_dry_diameter
+    #                             if x[0] > first_time]
+    #data_wet_diameter_shifted = [[x[0] - first_time, x[1]]
+    #                             for x in data_wet_diameter
+    #                             if x[0] > first_time]
+    #g1.plot(graph.data.points(data_dry_diameter_shifted, x = 1, y2 = 2,
+    #                          title = "dry diameter"),
+    #styles = [graph.style.line(lineattrs = [color.rgb.black,
+    #                                        style.linestyle.solid,
+    #                                        style.linewidth.THick])])
+    #g1.plot(graph.data.points(data_wet_diameter_shifted, x = 1, y2 = 2,
+    #                          title = "wet diameter"),
+    #styles = [graph.style.line(lineattrs = [color.rgb.black,
+    #                                        style.linestyle.solid])])
 
     ncf = NetCDFFile("out/urban_plume_0001.nc")
     data = pmc_var(ncf, "env_state", [])
@@ -171,40 +171,40 @@ def make_fig(particle_id, description):
     height_data = module_copy.deepcopy(data)
     height_data.reduce([select("env", "height")])
 
-    g2.plot(graph.data.points(rh_data.data_center_list(),
+    g.plot(graph.data.points(rh_data.data_center_list(),
                               x = 1, y3 = 2,
                               title = "relative humidity"),
             styles = [graph.style.line(lineattrs = [color.rgb.black,
                                                     style.linestyle.dashed])])
-    g2.plot(graph.data.points(temp_data.data_center_list(),
+    g.plot(graph.data.points(temp_data.data_center_list(),
                               x = 1, y4 = 2,
                               title = "temperature"),
             styles = [graph.style.line(lineattrs = [color.rgb.black,
                                                     style.linestyle.dashdotted])])
-    rh_shifted = [[x[0] - first_time, x[1]] \
-                 for x in rh_data.data_center_list() \
-                 if x[0] > first_time]
-    rh_shifted[0:0] = [[1, interp(rh_data.data_center_list(),
-                                  first_time + 1)]]
-    temp_shifted = [[x[0] - first_time, x[1]] \
-                   for x in temp_data.data_center_list() \
-                   if x[0] > first_time]
-    temp_shifted[0:0] = [[1, interp(temp_data.data_center_list(),
-                                    first_time + 1)]]
-    g1.plot(graph.data.points(rh_shifted,
-                              x = 1, y3 = 2,
-                              title = "relative humidity"),
-            styles = [graph.style.line(lineattrs = [color.rgb.black,
-                                                    style.linestyle.dashed])])
-    g1.plot(graph.data.points(temp_shifted,
-                              x = 1, y4 = 2,
-                              title = "temperature"),
-            styles = [graph.style.line(lineattrs = [color.rgb.black,
-                                                    style.linestyle.dashdotted])])
+    #rh_shifted = [[x[0] - first_time, x[1]] \
+    #             for x in rh_data.data_center_list() \
+    #             if x[0] > first_time]
+    #rh_shifted[0:0] = [[1, interp(rh_data.data_center_list(),
+    #                              first_time + 1)]]
+    #temp_shifted = [[x[0] - first_time, x[1]] \
+    #               for x in temp_data.data_center_list() \
+    #               if x[0] > first_time]
+    #temp_shifted[0:0] = [[1, interp(temp_data.data_center_list(),
+    #                                first_time + 1)]]
+    #g1.plot(graph.data.points(rh_shifted,
+    #                          x = 1, y3 = 2,
+    #                          title = "relative humidity"),
+    #        styles = [graph.style.line(lineattrs = [color.rgb.black,
+    #                                                style.linestyle.dashed])])
+    #g1.plot(graph.data.points(temp_shifted,
+    #                          x = 1, y4 = 2,
+    #                          title = "temperature"),
+    #        styles = [graph.style.line(lineattrs = [color.rgb.black,
+    #                                                style.linestyle.dashdotted])])
 
     ncf.close()
 
-    c.writePDFfile("out/particle_%s.pdf" % description)
+    g.writePDFfile("out/particle_%s.pdf" % description)
 
 for p in particles:
     make_fig(p[0], p[1])

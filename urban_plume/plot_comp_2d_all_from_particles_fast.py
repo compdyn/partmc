@@ -21,6 +21,7 @@ show_particles = [[1049, [0.02, 75], "wet diesel"],
                   [2329, [0.7, 75], "dry diesel"],
                   [2315, [0.7, 15], "dry gasoline"],
                   ]
+show_particles = []
 
 def ratio_of_sum(array_1, array_2):
     array_sum = array_1 + array_2

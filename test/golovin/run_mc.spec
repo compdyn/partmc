@@ -10,6 +10,7 @@ t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
+t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

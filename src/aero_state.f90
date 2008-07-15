@@ -228,7 +228,7 @@ contains
 
   !> Makes particles from the given number distribution and appends
   !> them to the aero_state%v array.
-  subroutine aero_state_add_disc_mode(bin_grid, aero_data, vol_frac, &
+  subroutine old_aero_state_add_disc_mode(bin_grid, aero_data, vol_frac, &
        bin_n, create_time, aero_state)
     
     !> Bin grid.
@@ -265,12 +265,12 @@ contains
     end do
     call aero_particle_free(aero_particle)
 
-  end subroutine aero_state_add_disc_mode
+  end subroutine old_aero_state_add_disc_mode
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a continuous distribution into particles.
-  subroutine aero_dist_to_state(bin_grid, aero_data, aero_dist, &
+  subroutine old_aero_dist_to_state(bin_grid, aero_data, aero_dist, &
        n_part, create_time, aero_state)
     
     !> Bin grid.
@@ -295,7 +295,7 @@ contains
     ! find the total number density of each mode
     total_n_den = 0d0
     do i = 1,aero_dist%n_mode
-       mode_n_dens(i) = sum(aero_dist%mode(i)%num_den)
+       mode_n_dens(i) = aero_dist%mode(i)%num_den
     end do
     total_n_den = sum(mode_n_dens)
 
@@ -307,21 +307,21 @@ contains
     do i = 1,aero_dist%n_mode
        call vec_cts_to_disc(bin_grid%n_bin, aero_dist%mode(i)%num_den, &
             mode_n_parts(i), num_per_bin)
-       call aero_state_add_disc_mode(bin_grid, aero_data, &
+       call old_aero_state_add_disc_mode(bin_grid, aero_data, &
             aero_dist%mode(i)%vol_frac, num_per_bin, create_time, aero_state)
     end do
 
     aero_state%comp_vol = dble(n_part) &
-         / aero_dist_total_num_den(bin_grid, aero_dist)
+         / aero_dist_total_num_den(aero_dist)
 
-  end subroutine aero_dist_to_state
+  end subroutine old_aero_dist_to_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a Poisson sample of an aero_dist, adding to
   !> aero_state. The sampled amount is sample_prop *
   !> aero_state%comp_vol.
-  subroutine aero_dist_sample(bin_grid, aero_data, aero_dist, &
+  subroutine old_aero_dist_sample(bin_grid, aero_data, aero_dist, &
        sample_prop, create_time, aero_state)
 
     !> Bin grid.
@@ -343,17 +343,64 @@ contains
 
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
-       n_samp_avg = sample_vol * sum(aero_dist%mode(i_mode)%num_den) &
+       n_samp_avg = sample_vol * aero_dist%mode(i_mode)%num_den &
             * bin_grid%dlnr
        n_samp = rand_poisson(n_samp_avg)
        call sample_vec_cts_to_disc(bin_grid%n_bin, &
             aero_dist%mode(i_mode)%num_den, n_samp, num_per_bin)
-       call aero_state_add_disc_mode(bin_grid, aero_data, &
+       call old_aero_state_add_disc_mode(bin_grid, aero_data, &
             aero_dist%mode(i_mode)%vol_frac, num_per_bin, create_time, &
             aero_state)
     end do
 
-  end subroutine aero_dist_sample
+  end subroutine old_aero_dist_sample
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generates a Poisson sample of an aero_dist, adding to
+  !> aero_state. The sampled amount is sample_prop *
+  !> aero_state%comp_vol.
+  subroutine aero_state_add_aero_dist_sample(aero_state, bin_grid, &
+       aero_data, aero_dist, sample_prop, create_time)
+
+    !> Aero state to add to.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Distribution to sample.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Volume fraction to sample (1).
+    real*8, intent(in) :: sample_prop
+    !> Creation time for new particles (s).
+    real*8, intent(in) :: create_time
+
+    real*8 :: n_samp_avg, sample_vol, radius, vol
+    integer :: n_samp, i_mode, i_samp, i_bin
+    integer :: num_per_bin(bin_grid%n_bin)
+    type(aero_mode_t), pointer :: aero_mode
+    type(aero_particle_t) :: aero_particle
+
+    call aero_particle_alloc(aero_particle, aero_data%n_spec)
+    sample_vol = sample_prop * aero_state%comp_vol
+    do i_mode = 1,aero_dist%n_mode
+       aero_mode => aero_dist%mode(i_mode)
+       n_samp_avg = sample_vol * aero_mode%num_den
+       n_samp = rand_poisson(n_samp_avg)
+       do i_samp = 1,n_samp
+          call aero_mode_sample_radius(aero_mode, radius)
+          vol = rad2vol(radius)
+          call aero_particle_set_vols(aero_particle, aero_mode%vol_frac * vol)
+          call aero_particle_new_id(aero_particle)
+          call aero_particle_set_create_time(aero_particle, create_time)
+          i_bin = aero_particle_in_bin(aero_particle, bin_grid)
+          call aero_state_add_particle(aero_state, i_bin, aero_particle)
+       end do
+    end do
+    call aero_particle_free(aero_particle)
+
+  end subroutine aero_state_add_aero_dist_sample
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

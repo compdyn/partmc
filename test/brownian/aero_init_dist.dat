@@ -1,15 +1,15 @@
-n_modes 2                       # number of initial distributions
-
-# first mode
-vol_frac aero_init_comp.dat      # composition proportions of species
+mode_name init1                  # name of mode source
+frac_type volume                 # composition type ("volume", "mass", "mole")
+frac aero_init_comp.dat          # composition proportions of species
 num_den 1e11                     # particle number density (#/m^3)
 mode_type log_normal             # type of distribution
 mean_radius 2.5e-8               # mean radius (m)
 log_std_dev 0.24                 # log_10 of geometric standard deviation
-# second mode
-vol_frac aero_init_comp.dat       # composition proportions of species
-num_den 1e10                      # particle number density (#/m^3)
-mode_type log_normal              # type of distribution
-mean_radius 5.8e-8                # mean radius (m)
-log_std_dev 0.217                 # log_10 of geometric standard deviation
 
+mode_name init2                  # name of mode source
+frac_type volume                 # composition type ("volume", "mass", "mole")
+frac aero_init_comp.dat          # composition proportions of species
+num_den 1e10                     # particle number density (#/m^3)
+mode_type log_normal             # type of distribution
+mean_radius 5.8e-8               # mean radius (m)
+log_std_dev 0.217                # log_10 of geometric standard deviation

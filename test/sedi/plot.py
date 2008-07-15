@@ -71,16 +71,16 @@ for i in range(len(times_sec)):
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
     g_num_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins MC" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins MC" % times_min[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color_list[i]])])
     g_num_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins MC" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins MC" % times_min[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color_list[i]])])
@@ -89,16 +89,16 @@ for i in range(len(times_sec)):
     data_slice.reduce([select("unit", "vol_den"),
 		       select("time", times_sec[i])])
     g_vol_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins MC" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins MC" % times_min[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color_list[i]])])
     g_vol_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins MC" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins MC" % times_min[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color_list[i]])])
@@ -107,28 +107,28 @@ for i in range(len(times_sec)):
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
     g_num_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins sect" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     g_num_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins sect" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     
     data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "vol_den"),
 		       select("time", times_sec[i])])
     g_vol_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins sect" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     g_vol_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g mins sect" % times_min[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g mins sect" % times_min[i]),
 	styles = [graph.style.line(lineattrs = [color_list[i]])])
     
 g_num_lin.writePDFfile("out/sedi_num_lin.pdf")

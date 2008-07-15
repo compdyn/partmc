@@ -75,9 +75,9 @@ for i in range(len(times_sec)):
     data_slice.reduce([select("unit", "num_den"),
 		       select("time", times_sec[i])])
     g_num_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours MC" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color.grey.black])])
@@ -86,9 +86,9 @@ for i in range(len(times_sec)):
     g_num_lin.text(4.1,0.4,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
     g_num_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours MC" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color.grey.black])])
@@ -100,9 +100,9 @@ for i in range(len(times_sec)):
     data_slice.reduce([select("unit", "vol_den"),
 		       select("time", times_sec[i])])
     g_vol_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours MC" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color.grey.black])])
@@ -111,9 +111,9 @@ for i in range(len(times_sec)):
     g_vol_lin.text(3.2,0.2,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
     g_vol_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours MC" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours MC" % times_hour[i]),
 	styles = [graph.style.symbol(symbol = graph.style.symbol.circle,
 				     size = 0.05,
 				     symbolattrs = [color.grey.black])])
@@ -126,28 +126,28 @@ for i in range(len(times_sec)):
     g_vol_log.text(1.8,0.4,"24 h",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
 
     g_num_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours sect" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
     g_num_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours sect" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
     
     data_slice = module_copy.deepcopy(sect_data)
     data_slice.reduce([select("unit", "vol_den"),
 		       select("time", times_sec[i])])
     g_vol_lin.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours sect" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
     g_vol_log.plot(
-	graph.data.list(data_slice.data_center_list(strip_zero = True),
-			x = 1, y = 2,
-			title = "%g hours sect" % times_hour[i]),
+	graph.data.points(data_slice.data_center_list(strip_zero = True),
+                          x = 1, y = 2,
+                          title = "%g hours sect" % times_hour[i]),
 	styles = [graph.style.line(lineattrs = [color.grey.black])])
     
 g_num_lin.writePDFfile("out/brown_num_lin.pdf")

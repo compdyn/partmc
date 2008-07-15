@@ -235,8 +235,8 @@ contains
     type(process_spec_t), intent(out) :: process_spec
     !> If eof instead of reading data.
     logical :: eof
-    character(len=MAX_VAR_LEN) :: tmp_str
 
+    character(len=MAX_VAR_LEN) :: tmp_str
     type(inout_line_t) :: line
 
     call inout_read_line(file, line, eof)

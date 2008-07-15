@@ -23,12 +23,12 @@ program bidisperse_ode
   use pmc_env_state
   use pmc_util
   use pmc_bin_grid
-  
-  ! Volume of one small particle (m^3).
-  real*8, parameter :: v_small = 0.3967039840458671239139981d-14
-  !> Initial volume of big particle (m^3).
-  real*8, parameter :: v_big_init = 0.4188790204786393454605195d-11
-  !> Init number of small particles.
+
+  ! Radius of one small particle (m).
+  real*8, parameter :: r_small = 1d-5
+  !> Initial radius of big particle (m^3).
+  real*8, parameter :: r_big_init = 1d-4
+  !> Initial number of small particles.
   real*8, parameter :: n_small_init = 10000d0
   !> Total simulation time.
   real*8, parameter :: t_max = 600d0
@@ -53,9 +53,11 @@ program bidisperse_ode
   
   type(env_state_t) :: env_state
   integer :: i_step, n_step
-  real*8 :: comp_vol, n_small, time, v_big, num_den
+  real*8 :: comp_vol, n_small, time, v_big, num_den, v_small, v_big_init
   type(bin_grid_t) :: bin_grid
 
+  v_small = rad2vol(r_small)
+  v_big_init = rad2vol(r_big_init)
   num_den = num_den_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_den
   call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))

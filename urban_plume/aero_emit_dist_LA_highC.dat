@@ -1,6 +1,4 @@
-n_modes 4                       # number of initial aerosol distributions
-
-# first mode
+mode_name paved_road
 frac_type mass                  # composition type ("volume", "mass", "mole")
 frac aero_emit_comp_pavedrd.dat # composition proportions of species
 num_den 5.03E+03                # particle number density (#/m^2)
@@ -8,7 +6,7 @@ mode_type log_normal            # type of distribution
 mean_radius 7.1e-7              # mean radius (m)
 log_std_dev 0.11                # log_10 of geometric standard deviation
 
-# second mode
+mode_name cooking
 frac_type mass                  # composition type ("volume", "mass", "mole")
 frac aero_emit_comp_cooking.dat # composition proportions of species
 num_den 9.0E+06                 # particle number density (#/m^2)
@@ -16,7 +14,7 @@ mode_type log_normal            # type of distribution
 mean_radius 4.32E-08            # mean radius (m)
 log_std_dev 0.28                # log_10 of geometric standard deviation
 
-# third mode
+mode_name diesel
 frac_type mass                  # composition type ("volume", "mass", "mole")
 frac aero_emit_comp_diesel.dat  # composition proportions of species
 num_den 1.6E+08                 # particle number density (#/m^2)
@@ -24,7 +22,7 @@ mode_type log_normal            # type of distribution
 mean_radius 2.5E-08             # mean radius (m)
 log_std_dev 0.24                # log_10 of geometric standard deviation
 
-# fourth mode
+mode_name gasoline
 frac_type mass                  # composition type ("volume", "mass", "mole")
 frac aero_emit_comp_gasol.dat   # composition proportions of species
 num_den 5.00E+07                # particle number density (#/m^2)

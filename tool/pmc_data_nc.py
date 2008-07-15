@@ -7,6 +7,7 @@ import os, sys, re, textwrap
 import copy as module_copy
 import numpy, math
 from numpy import *
+from Scientific.IO.NetCDF import *
 
 class reducer:
     def __init__(self):
@@ -539,6 +540,12 @@ class pmc_linear_axis(pmc_axis):
         else:
             return float(index) / float(self.n_bin) * (self.max - self.min) \
                    + self.min
+
+    def center(self, index):
+        if (index < 0) or (index >= self.n_bin):
+            raise Exception("index out of range: %d" % index)
+        return (float(index) + 0.5) / float(self.n_bin) \
+               * (self.max - self.min) + self.min
         
 class pmc_log_axis:
 
@@ -571,6 +578,13 @@ class pmc_log_axis:
             return math.exp(float(index) / float(self.n_bin)
                             * (log(self.max) - log(self.min))
                             + log(self.min))
+        
+    def center(self, index):
+        if (index < 0) or (index >= self.n_bin):
+            raise Exception("index out of range: %d" % index)
+        return math.exp((float(index) + 0.5) / float(self.n_bin)
+                        * (log(self.max) - log(self.min))
+                        + log(self.min))
 
 def pmc_histogram_2d(array, x_axis, y_axis, mask = None):
     data = []
@@ -606,7 +620,7 @@ class aero_particle_array_t:
         self.n_particles = size(self.masses, 1)
         if "aero_n_orig_part" not in ncf.variables.keys():
             raise Exception("aero_n_orig_part variable not found in NetCDF file")
-	self.absorb_cross_sect = ncf.variables["aero_n_orig_part"].getValue()
+	self.n_orig_part = ncf.variables["aero_n_orig_part"].getValue()
         if "aero_absorb_cross_sect" not in ncf.variables.keys():
             raise Exception("aero_absorb_cross_sect variable not found in NetCDF file")
 	self.absorb_cross_sect = ncf.variables["aero_absorb_cross_sect"].getValue()
@@ -768,20 +782,35 @@ class gas_state_t:
         self.concentration = ncf.variables["gas_concentration"][:]
 
     def concentration_by_species(self, species):
-        if species_name not in self.gas_data.name:
+        if species not in self.gas_data.name:
             raise Exception("unknown species: %s" % species)
         index = self.gas_data.name.index(species)
         return self.concentration[index]
 
 def read_history(constructor, directory, filename_pattern):
-    filenames = os.listdir(netcdf_dir)
+    filenames = os.listdir(directory)
     data = []
     filename_re = re.compile(filename_pattern)
     for filename in filenames:
         if filename_re.search(filename):
-            netcdf_filename = os.path.join(netcdf_dir, filename)
+            netcdf_filename = os.path.join(directory, filename)
             print netcdf_filename
             ncf = NetCDFFile(netcdf_filename)
-            data.append([time, constructor(ncf)])
+            env_state = env_state_t(ncf)
+            data.append([env_state.elapsed_time, constructor(ncf)])
+            ncf.close()
     data.sort()
     return data
+
+def read_any(constructor, directory, filename_pattern):
+    filenames = os.listdir(directory)
+    filename_re = re.compile(filename_pattern)
+    for filename in filenames:
+        if filename_re.search(filename):
+            netcdf_filename = os.path.join(directory, filename)
+            ncf = NetCDFFile(netcdf_filename)
+            data = constructor(ncf)
+            ncf.close()
+            return data
+    raise Exception("no NetCDF file found in %s matching %s"
+                    % (directory, filename_pattern))

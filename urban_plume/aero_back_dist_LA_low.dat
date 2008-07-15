@@ -1,6 +1,5 @@
-n_modes 2                          # number of initial aerosol distributions
-
-# first mode # page 430 Seinfeld & Pandis: remote continental
+# page 430 Seinfeld & Pandis: remote continental
+mode_name back_small
 frac_type mass                     # composition type ("volume", "mass", "mole")
 frac aero_back_comp_LA.dat         # composition proportions of species
 num_den 3.2e9                      # particle number density (#/m^3)
@@ -8,7 +7,8 @@ mode_type log_normal               # type of distribution
 mean_radius 1e-8                   # mean radius (m)
 log_std_dev 0.161                  # log_10 of geometric standard deviation
 
-# second mode # page 430 Seinfeld & Pandis: remote continental
+# page 430 Seinfeld & Pandis: remote continental
+mode_name back_large
 frac_type mass                     # composition type ("volume", "mass", "mole")
 frac aero_back_comp_LA.dat         # composition proportions of species
 num_den 2.9e9                      # particle number density (#/m^3)

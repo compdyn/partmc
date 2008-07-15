@@ -232,6 +232,10 @@ contains
     character, allocatable :: buffer(:)
     integer :: buffer_size
     integer :: position
+!DEBUG
+!    type(aero_binned_t) :: aero_binned_test
+!    integer :: i_bin, i_spec
+!DEBUG
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -353,15 +357,35 @@ contains
     call gas_state_alloc(gas_state, gas_data%n_spec)
     call cpu_time(mc_opt%t_wall_start)
 
-    call aero_state_alloc(0, 0, aero_state)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
        call aero_state_free(aero_state)
-       call aero_dist_to_state(bin_grid, aero_data, aero_dist_init, &
-            mc_opt%n_part_max, 0d0, aero_state)
+       call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+       aero_state%comp_vol = dble(mc_opt%n_part_max) / &
+            aero_dist_total_num_den(aero_dist_init)
+       call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
+            aero_data, aero_dist_init, 1d0, 0d0)
        call env_data_init_state(env_data, env_state, 0d0)
+!DEBUG
+!       call aero_state_to_binned(bin_grid, aero_data, aero_state, &
+!            aero_binned)
+!       call aero_binned_alloc(aero_binned_test, bin_grid%n_bin, &
+!            aero_data%n_spec)
+!       call aero_binned_add_aero_dist(aero_binned_test, bin_grid, aero_data, &
+!            aero_dist_init)
+!       do i_bin = 1,bin_grid%n_bin
+!          write(*,*) i_bin, aero_binned%num_den(i_bin), &
+!               aero_binned_test%num_den(i_bin)
+!       end do
+!       write(*,*) sqrt(sum((aero_binned%num_den - aero_binned_test%num_den)**2)) / sqrt(sum((aero_binned_test%num_den)**2))
+!       write(*,*) sqrt(sum((aero_binned%vol_den - aero_binned_test%vol_den)**2)) / sqrt(sum((aero_binned_test%vol_den)**2))
+!       write(*,*) sum(aero_binned%num_den) * bin_grid%dlnr
+!       write(*,*) sum(aero_binned_test%num_den) * bin_grid%dlnr
+!       stop
+!DEBUG
 
        if (mc_opt%do_condensation) then
           call aero_state_equilibriate(bin_grid, env_state, aero_data, &
@@ -449,7 +473,7 @@ contains
 
     call inout_read_string(file, 'soln', soln_name)
 
-    call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0, 0)
+    call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0)
     if (trim(soln_name) == 'golovin_exp') then
        call inout_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then

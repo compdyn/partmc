@@ -23,9 +23,15 @@ module pmc_aero_dist
   use pmc_inout
   use pmc_aero_data
   use pmc_mpi
+  use pmc_rand_poisson
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+
+  !> Maximum length of an aero_dist mode name.
+  integer, parameter :: AERO_DIST_NAME_LEN = 300
+  !> Maximum length of an aero_dist mode type.
+  integer, parameter :: AERO_DIST_TYPE_LEN = 100
 
   !> An aerosol size distribution mode.
   !!
@@ -33,9 +39,17 @@ module pmc_aero_dist
   !! particle has the same composition. The \c num_den array then
   !! stores the number density distribution.
   type aero_mode_t
-     !> Number density [length bin_grid%%n_bin] (#/m^3).
-     real*8, pointer :: num_den(:)
-     !> Species fractions [length \c aero_data%%n_spec] (1).
+     !> Mode name, used to track particle sources.
+     character(len=AERO_DIST_NAME_LEN) :: name
+     !> Mode type ("log_normal", "exp", or "mono").
+     character(len=AERO_DIST_TYPE_LEN) :: type
+     !> Mean radius of mode (m).
+     real*8 :: mean_radius
+     !> Log base 10 of geometric standard deviation of radius, if necessary (m).
+     real*8 :: log10_std_dev_radius
+     !> Total number density of mode (#/m^3).
+     real*8 :: num_den
+     !> Species fractions by volume [length \c aero_data%%n_spec] (1).
      real*8, pointer :: vol_frac(:)
   end type aero_mode_t
 
@@ -52,16 +66,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_mode.
-  subroutine aero_mode_alloc(aero_mode, n_bin, n_spec)
+  subroutine aero_mode_alloc(aero_mode, n_spec)
 
-    !> Number of bins.
-    integer, intent(in) :: n_bin
-    !> Number of species.
-    integer, intent(in) :: n_spec
     !> Aerosol mode.
     type(aero_mode_t), intent(out) :: aero_mode
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
-    allocate(aero_mode%num_den(n_bin))
     allocate(aero_mode%vol_frac(n_spec))
 
   end subroutine aero_mode_alloc
@@ -74,7 +85,6 @@ contains
     !> Aerosol mode.
     type(aero_mode_t), intent(inout) :: aero_mode
 
-    deallocate(aero_mode%num_den)
     deallocate(aero_mode%vol_frac)
 
   end subroutine aero_mode_free
@@ -89,6 +99,12 @@ contains
     !> Aerosol mode copy.
     type(aero_mode_t), intent(inout) :: aero_mode_to
 
+    call aero_mode_free(aero_mode_to)
+    call aero_mode_alloc(aero_mode_to, size(aero_mode_from%vol_frac))
+    aero_mode_to%name = aero_mode_from%name
+    aero_mode_to%type = aero_mode_from%type
+    aero_mode_to%mean_radius = aero_mode_from%mean_radius
+    aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
     aero_mode_to%num_den = aero_mode_from%num_den
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
 
@@ -96,54 +112,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> aero_mode += aero_mode_delta
-  subroutine aero_mode_add(aero_mode, aero_mode_delta)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(inout) :: aero_mode
-    !> Increment.
-    type(aero_mode_t), intent(in) :: aero_mode_delta
-
-    aero_mode%num_den = aero_mode%num_den + aero_mode_delta%num_den
-    aero_mode%vol_frac = aero_mode%vol_frac + aero_mode_delta%vol_frac
-
-  end subroutine aero_mode_add
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Scale an aero_mode.
-  subroutine aero_mode_scale(aero_mode, alpha)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(inout) :: aero_mode
-    !> Scale factor.
-    real*8, intent(in) :: alpha
-
-    aero_mode%num_den = aero_mode%num_den * alpha
-    aero_mode%vol_frac = aero_mode%vol_frac * alpha
-
-  end subroutine aero_mode_scale
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Allocates an aero_dist.
-  subroutine aero_dist_alloc(aero_dist, n_mode, n_bin, n_spec)
+  subroutine aero_dist_alloc(aero_dist, n_mode, n_spec)
 
-    !> Number of modes.
-    integer, intent(in) :: n_mode
-    !> Number of bins.
-    integer, intent(in) :: n_bin
-    !> Number of species.
-    integer, intent(in) :: n_spec
     !> Aerosol distribution.
     type(aero_dist_t), intent(out) :: aero_dist
+    !> Number of modes.
+    integer, intent(in) :: n_mode
+    !> Number of species.
+    integer, intent(in) :: n_spec
 
     integer :: i
 
     aero_dist%n_mode = n_mode
     allocate(aero_dist%mode(n_mode))
     do i = 1,n_mode
-       call aero_mode_alloc(aero_dist%mode(i), n_bin, n_spec)
+       call aero_mode_alloc(aero_dist%mode(i), n_spec)
     end do
 
   end subroutine aero_dist_alloc
@@ -175,17 +159,15 @@ contains
     !> Aero_dist copy.
     type(aero_dist_t), intent(inout) :: aero_dist_to
 
-    integer :: n_bin, n_spec, i
+    integer :: n_spec, i
 
     if (aero_dist_from%n_mode > 0) then
-       n_bin = size(aero_dist_from%mode(1)%num_den)
        n_spec = size(aero_dist_from%mode(1)%vol_frac)
     else
-       n_bin = 0
        n_spec = 0
     end if
     call aero_dist_free(aero_dist_to)
-    call aero_dist_alloc(aero_dist_to, aero_dist_from%n_mode, n_bin, n_spec)
+    call aero_dist_alloc(aero_dist_to, aero_dist_from%n_mode, n_spec)
     do i = 1,aero_dist_from%n_mode
        call aero_mode_copy(aero_dist_from%mode(i), aero_dist_to%mode(i))
     end do
@@ -194,59 +176,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> aero_dist += aero_dist_delta
-  subroutine aero_dist_add(aero_dist, aero_dist_delta)
-
-    !> Aero_dist.
-    type(aero_dist_t), intent(inout) :: aero_dist
-    !> Increment.
-    type(aero_dist_t), intent(in) :: aero_dist_delta
-
-    integer :: i
-
-    do i = 1,aero_dist%n_mode
-       call aero_mode_add(aero_dist%mode(i), aero_dist_delta%mode(i))
-    end do
-
-  end subroutine aero_dist_add
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> aero_dist *= alpha
-  subroutine aero_dist_scale(aero_dist, alpha)
-
-    !> Aero_dist.
-    type(aero_dist_t), intent(inout) :: aero_dist
-    !> Scale factor.
-    real*8, intent(in) :: alpha
-
-    integer :: i
-
-    do i = 1,aero_dist%n_mode
-       call aero_mode_scale(aero_dist%mode(i), alpha)
-    end do
-
-  end subroutine aero_dist_scale
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the total number concentration in #/m^3 of a distribution.
   !> (#/m^3)
-  real*8 function aero_dist_total_num_den(bin_grid, aero_dist)
+  real*8 function aero_dist_total_num_den(aero_dist)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    integer :: i
-    
-    aero_dist_total_num_den = 0d0
-    do i = 1,aero_dist%n_mode
-       aero_dist_total_num_den = aero_dist_total_num_den &
-            + sum(aero_dist%mode(i)%num_den)
-    end do
-    aero_dist_total_num_den = aero_dist_total_num_den * bin_grid%dlnr
+    aero_dist_total_num_den = sum(aero_dist%mode%num_den)
 
   end function aero_dist_total_num_den
 
@@ -330,6 +267,29 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return a radius randomly sampled from the mode distribution.
+  subroutine aero_mode_sample_radius(aero_mode, radius)
+
+    !> Aero_mode to sample radius from.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Sampled radius (m).
+    real*8, intent(out) :: radius
+
+    if (aero_mode%type == "log_normal") then
+       radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
+            aero_mode%log10_std_dev_radius)
+    elseif (aero_mode%type == "exp") then
+       radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_rand()))
+    elseif (aero_mode%type == "mono") then
+       radius = aero_mode%mean_radius
+    else
+       call die_msg(749122931, "Unknown aero_mode type")
+    end if
+
+  end subroutine aero_mode_sample_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the current aero_dist and rate by interpolating at the
   !> current time with the lists of aero_dists and rates.
   subroutine aero_dist_interp_1d(aero_dist_list, time_list, &
@@ -380,7 +340,11 @@ contains
     type(aero_mode_t), intent(in) :: aero_mode
 
     call inout_write_comment(file, "begin aero_mode")
-    call inout_write_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
+    call inout_write_string(file, "name", aero_mode%name)
+    call inout_write_string(file, "type", aero_mode%type)
+    call inout_write_real(file, "mean_rad(m)", aero_mode%mean_radius)
+    call inout_write_real(file, "std_dev_rad(m)", aero_mode%log10_std_dev_radius)
+    call inout_write_real(file, "num_den(num/m^3)", aero_mode%num_den)
     call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
     call inout_write_comment(file, "end aero_mode")
 
@@ -419,7 +383,11 @@ contains
     type(aero_mode_t), intent(out) :: aero_mode
 
     call inout_check_comment(file, "begin aero_mode")
-    call inout_read_real_array(file, "num_dens(num/m^3)", aero_mode%num_den)
+    call inout_read_string(file, "name", aero_mode%name)
+    call inout_read_string(file, "type", aero_mode%type)
+    call inout_read_real(file, "mean_rad(m)", aero_mode%mean_radius)
+    call inout_read_real(file, "std_dev_rad(m)", aero_mode%log10_std_dev_radius)
+    call inout_read_real(file, "num_den(num/m^3)", aero_mode%num_den)
     call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
     call inout_check_comment(file, "end aero_mode")
 
@@ -531,43 +499,34 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read the shape (number density) of one mode of an aerosol
+  !> Read the shape (number density profile) of one mode of an aerosol
   !> distribution.
-  subroutine spec_read_aero_mode_shape(file, aero_data, bin_grid, num_den)
+  subroutine spec_read_aero_mode_shape(file, aero_mode)
 
     !> Inout file.
     type(inout_file_t), intent(inout) :: file
-    !> Aero_data data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Mode density.
-    real*8 :: num_den(bin_grid%n_bin)
+    !> Aerosol mode.
+    type(aero_mode_t), intent(inout) :: aero_mode
 
-    real*8 :: tot_num_den
     character(len=MAX_VAR_LEN) :: mode_type
-    real*8 :: mean_radius, log_std_dev, radius
 
-    call inout_read_real(file, 'num_den', tot_num_den)
+    call inout_read_real(file, 'num_den', aero_mode%num_den)
     call inout_read_string(file, 'mode_type', mode_type)
-    if (trim(mode_type) == 'log_normal') then
-       call inout_read_real(file, 'mean_radius', mean_radius)
-       call inout_read_real(file, 'log_std_dev', log_std_dev)
-       call num_den_log_normal(mean_radius, log_std_dev, bin_grid, num_den)
-    elseif (trim(mode_type) == 'exp') then
-       call inout_read_real(file, 'mean_radius', mean_radius)
-       call num_den_exp(mean_radius, bin_grid, num_den)
-    elseif (trim(mode_type) == 'mono') then
-       call inout_read_real(file, 'radius', radius)
-       call num_den_mono(radius, bin_grid, num_den)
+    if (len_trim(mode_type) < AERO_DIST_TYPE_LEN) then
+       aero_mode%type = mode_type(1:AERO_DIST_TYPE_LEN)
     else
-       write(0,'(a,a,a,a,a,i3)') 'ERROR: Unknown distribution type ', &
-            trim(mode_type), ' in file ', trim(file%name), &
-            ' at line ', file%line_num
-       call exit(1)
+       call inout_die_msg(284789262, file, "mode_type string too long")
     end if
-
-    num_den = num_den * tot_num_den
+    if (trim(mode_type) == 'log_normal') then
+       call inout_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       call inout_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
+    elseif (trim(mode_type) == 'exp') then
+       call inout_read_real(file, 'mean_radius', aero_mode%mean_radius)
+    elseif (trim(mode_type) == 'mono') then
+       call inout_read_real(file, 'radius', aero_mode%mean_radius)
+    else
+       call inout_die_msg(729472928, file, "Unknown distribution type")
+    end if
 
   end subroutine spec_read_aero_mode_shape
 
@@ -575,46 +534,73 @@ contains
 
   !> Read one mode of an aerosol distribution (number density and
   !> volume fractions).
-  subroutine spec_read_aero_mode(file, aero_data, bin_grid, aero_mode)
+  subroutine spec_read_aero_mode(file, aero_data, aero_mode, eof)
 
     !> Inout file.
     type(inout_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol mode (will be allocated).
     type(aero_mode_t), intent(inout) :: aero_mode
+    !> If eof instead of reading data.
+    logical :: eof
 
-    allocate(aero_mode%num_den(bin_grid%n_bin))
-    allocate(aero_mode%vol_frac(aero_data%n_spec))
-    call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
-    call spec_read_aero_mode_shape(file, aero_data, bin_grid, &
-         aero_mode%num_den)
+    character(len=MAX_VAR_LEN) :: tmp_str
+    type(inout_line_t) :: line
+
+    call inout_read_line(file, line, eof)
+    if (.not. eof) then
+       call inout_check_line_name(file, line, "mode_name")
+       call inout_check_line_length(file, line, 1)
+       call aero_mode_alloc(aero_mode, aero_data%n_spec)
+       tmp_str = line%data(1) ! hack to avoid gfortran warning
+       aero_mode%name = tmp_str(1:AERO_DIST_NAME_LEN)
+       allocate(aero_mode%vol_frac(aero_data%n_spec))
+       call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
+       call spec_read_aero_mode_shape(file, aero_mode)
+       call inout_line_free(line)
+    end if
 
   end subroutine spec_read_aero_mode
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read continuous aerosol distribution composed of several modes.
-  subroutine spec_read_aero_dist(file, aero_data, bin_grid, aero_dist)
+  subroutine spec_read_aero_dist(file, aero_data, aero_dist)
 
     !> Inout file.
     type(inout_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol dist,.
+    !> Aerosol dist, will be allocated.
     type(aero_dist_t), intent(inout) :: aero_dist
-                                                  ! will be allocated
 
-    integer :: i
-
-    call inout_read_integer(file, 'n_modes', aero_dist%n_mode)
+    type(aero_mode_t), pointer :: new_aero_mode_list(:)
+    type(aero_mode_t) :: aero_mode
+    integer :: i, j
+    logical :: eof
+    
+    aero_dist%n_mode = 0
     allocate(aero_dist%mode(aero_dist%n_mode))
-    do i = 1,aero_dist%n_mode
-       call spec_read_aero_mode(file, aero_data, bin_grid, aero_dist%mode(i))
+    call spec_read_aero_mode(file, aero_data, aero_mode, eof)
+    do while (.not. eof)
+       aero_dist%n_mode = aero_dist%n_mode + 1
+       allocate(new_aero_mode_list(aero_dist%n_mode))
+       do i = 1,aero_dist%n_mode
+          call aero_mode_alloc(new_aero_mode_list(i), 0)
+       end do
+       call aero_mode_copy(aero_mode, &
+            new_aero_mode_list(aero_dist%n_mode))
+       call aero_mode_free(aero_mode)
+       do i = 1,(aero_dist%n_mode - 1)
+          call aero_mode_copy(aero_dist%mode(i), &
+               new_aero_mode_list(i))
+          call aero_mode_free(aero_dist%mode(i))
+       end do
+       deallocate(aero_dist%mode)
+       aero_dist%mode => new_aero_mode_list
+       nullify(new_aero_mode_list)
+       call spec_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
 
   end subroutine spec_read_aero_dist
@@ -623,8 +609,7 @@ contains
 
   !> Read aerosol distribution from filename on line in file.
   subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, &
-       name, dist)
-
+       name, aero_dist)
 
     !> Inout file.
     type(inout_file_t), intent(inout) :: file
@@ -635,7 +620,7 @@ contains
     !> Name of data line for filename.
     character(len=*), intent(in) :: name
     !> Aerosol distribution.
-    type(aero_dist_t), intent(inout) :: dist
+    type(aero_dist_t), intent(inout) :: aero_dist
 
     character(len=MAX_VAR_LEN) :: read_name
     type(inout_file_t) :: read_file
@@ -643,7 +628,7 @@ contains
     ! read the aerosol data from the specified file
     call inout_read_string(file, name, read_name)
     call inout_open_read(read_name, read_file)
-    call spec_read_aero_dist(read_file, aero_data, bin_grid, dist)
+    call spec_read_aero_dist(read_file, aero_data, aero_dist)
     call inout_close(read_file)
 
   end subroutine spec_read_aero_dist_filename
@@ -710,8 +695,7 @@ contains
     allocate(rates(n_time))
     do i_time = 1,n_time
        call inout_open_read(aero_dist_line%data(i_time), read_file)
-       call spec_read_aero_dist(read_file, aero_data, bin_grid, &
-            aero_dists(i_time))
+       call spec_read_aero_dist(read_file, aero_data, aero_dists(i_time))
        call inout_close(read_file)
        times(i_time) = data(1,i_time)
        rates(i_time) = data(2,i_time)
@@ -724,55 +708,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Computes the average of an array of aero_mode.
-  subroutine aero_mode_average(aero_mode_vec, aero_mode_avg)
-
-    !> Array of aero_mode.
-    type(aero_mode_t), intent(in) :: aero_mode_vec(:)
-    !> Avg of aero_mode_vec.
-    type(aero_mode_t), intent(out) :: aero_mode_avg
-
-    integer :: n_bin, n_spec, i_bin, i_spec, i, n
-
-    n_bin = size(aero_mode_vec(1)%num_den)
-    n_spec = size(aero_mode_vec(1)%vol_frac)
-    call aero_mode_alloc(aero_mode_avg, n_bin, n_spec)
-    n = size(aero_mode_vec)
-    do i_bin = 1,n_bin
-       call average_real((/(aero_mode_vec(i)%num_den(i_bin),i=1,n)/), &
-            aero_mode_avg%num_den(i_bin))
-    end do
-    do i_spec = 1,n_spec
-       call average_real((/(aero_mode_vec(i)%vol_frac(i_spec),i=1,n)/), &
-            aero_mode_avg%vol_frac(i_spec))
-    end do
-    
-  end subroutine aero_mode_average
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Computes the average of an array of aero_dist.
-  subroutine aero_dist_average(aero_dist_vec, aero_dist_avg)
-
-    !> Array of aero_dist.
-    type(aero_dist_t), intent(in) :: aero_dist_vec(:)
-    !> Avg of aero_dist_vec.
-    type(aero_dist_t), intent(out) :: aero_dist_avg
-
-    integer :: n_modes, i_mode, i, n
-
-    n_modes = aero_dist_vec(1)%n_mode
-    call aero_dist_alloc(aero_dist_avg, n_modes, 0, 0)
-    n = size(aero_dist_vec)
-    do i_mode = 1,n_modes
-       call aero_mode_average((/(aero_dist_vec(i)%mode(i_mode),i=1,n)/), &
-            aero_dist_avg%mode(i_mode))
-    end do
-    
-  end subroutine aero_dist_average
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_mode(val)
 
@@ -780,7 +715,11 @@ contains
     type(aero_mode_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_mode = &
-         pmc_mpi_pack_size_real_array(val%num_den) &
+         pmc_mpi_pack_size_string(val%name) &
+         + pmc_mpi_pack_size_string(val%type) &
+         + pmc_mpi_pack_size_real(val%mean_radius) &
+         + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
+         + pmc_mpi_pack_size_real(val%num_den) &
          + pmc_mpi_pack_size_real_array(val%vol_frac)
 
   end function pmc_mpi_pack_size_aero_mode
@@ -819,7 +758,11 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_pack_string(buffer, position, val%name)
+    call pmc_mpi_pack_string(buffer, position, val%type)
+    call pmc_mpi_pack_real(buffer, position, val%mean_radius)
+    call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
+    call pmc_mpi_pack_real(buffer, position, val%num_den)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call assert(579699255, &
          position - prev_position == pmc_mpi_pack_size_aero_mode(val))
@@ -869,7 +812,11 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
+    call pmc_mpi_unpack_string(buffer, position, val%name)
+    call pmc_mpi_unpack_string(buffer, position, val%type)
+    call pmc_mpi_unpack_real(buffer, position, val%mean_radius)
+    call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
+    call pmc_mpi_unpack_real(buffer, position, val%num_den)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call assert(874467577, &
          position - prev_position == pmc_mpi_pack_size_aero_mode(val))

@@ -6,6 +6,8 @@
 import os, sys
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
+import pyx.bbox as bbox
+import numpy
 
 text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 #text.set(mode="latex")
@@ -225,11 +227,41 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 	    y2 = y2axis))
     gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
-	    [graph.style.rect(palette)])
+	    [hsb_rect(palette)])
     gc.dolayout()
     gc.dobackground()
     gc.dodata()
     gc.doaxes()
+
+def add_color_bar_new(g, min, max, title, bar_width = 0.5,
+                      bar_height_ratio = 0.8, bar_x_offset = 1.8,
+                      texter = None):
+    colorbar_steps = 1000
+    value = linspace(0, 1, colorbar_steps).reshape([1,colorbar_steps])
+    hue = value_to_hue(value)
+    saturation = ones(shape(hue))
+    brightness = ones(shape(hue))
+    if texter:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title,
+            texter = texter)
+    else:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title)
+    gc = g.insert(
+	graph.graphxy(
+	    width = bar_width,
+	    height = bar_height_ratio * g.height,
+	    xpos = g.width + bar_x_offset,
+	    ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+	    x = graph.axis.linear(min = 0, max = 1,
+				  parter = None),
+	    y2 = y2axis))
+    pmc_plot_image(gc, hue, saturation, brightness)
 
 def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
 		  bar_width_ratio = 0.8, bar_offset = 1.8):
@@ -263,7 +295,11 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
     gc.doaxes()
 
 def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
-		  bar_height_ratio = 0.6, bar_x_offset = -1.2, bar_y_offset = -0.7):
+		  bar_height_ratio = 0.6, bar_x_offset = -1.2,
+                         bar_y_offset = -0.7, min_palette_index = 0.0,
+                         max_palette_index = 1.0, texter = None,
+                         extra_box_value = None, extra_box_label = None,
+                         extra_box_pattern = None):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -272,20 +308,30 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 	x1 = float(i + 1) / float(colorbar_steps)
 	v0 = x0 * (max - min) + min
 	v1 = x1 * (max - min) + min
-	color_d.append([0, 1, v0, v1, xh])
+        pi = (1 - xh) * min_palette_index + xh * max_palette_index
+	color_d.append([0, 1, v0, v1, pi])
+    if texter:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title,
+            texter = texter)
+    else:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title)
+    xpos = c.bbox().width() + bar_x_offset
+    ypos = (1.0 - bar_height_ratio) / 2.0 * c.bbox().height() + bar_y_offset
     gc = c.insert(
 	graph.graphxy(
             width = bar_width,
 	    height = bar_height_ratio * c.bbox().height(),
-	    xpos = c.bbox().width() + bar_x_offset,
-	    ypos = (1.0 - bar_height_ratio) / 2.0 * c.bbox().height() \
-            + bar_y_offset,
+	    xpos = xpos,
+	    ypos = ypos,
 	    x = graph.axis.linear(min = 0, max = 1,
 				  parter = None),
-	    y2 = graph.axis.linear(
-		min = min,
-		max = max,
-		title = title)))
+	    y2 = y2axis))
     gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
 	    [graph.style.rect(palette)])
@@ -293,6 +339,16 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
     gc.dobackground()
     gc.dodata()
     gc.doaxes()
+    if extra_box_value != None:
+        box_fill_attributes = [palette.getcolor(extra_box_value)]
+        if extra_box_pattern != None:
+            box_fill_attributes.append(extra_box_pattern)
+        c.draw(path.rect(xpos, ypos - 2 * bar_width, bar_width, bar_width),
+               [deco.stroked([color.rgb.black]),
+                deco.filled(box_fill_attributes)])
+        if extra_box_label != None:
+            c.text(xpos + bar_width + 0.3, ypos - 1.5 * bar_width,
+                   extra_box_label, [text.halign.left, text.valign.middle])
 
 class time_of_day:
     "a texter creating labels of the form 04:50 for 4 hours and 50 minutes"
@@ -318,18 +374,20 @@ class hsb_rect(graph.style._style):
 
     needsdata = ["vrange", "vrangeminmissing", "vrangemaxmissing"]
 
-    def __init__(self, gradient=color.gradient.Grey):
+    def __init__(self, gradient=color.gradient.Grey,
+                 fill_pattern = None, do_stroke = True):
         self.gradient = gradient
+        self.fill_pattern = fill_pattern
+        self.do_stroke = do_stroke
 
     def columnnames(self, privatedata, sharedata, graph, columnnames):
         if len(graph.axesnames) != 2:
             raise TypeError("arrow style restricted on two-dimensional graphs")
-        if "color" not in columnnames:
-            raise ValueError("color missing")
         if len(sharedata.vrangeminmissing) + len(sharedata.vrangemaxmissing):
             raise ValueError("incomplete range")
         ret_names = []
-        for name in ["color", "hue", "saturation", "brightness"]:
+        for name in ["color", "hue", "saturation", "brightness",
+                     "stroke_color", "stroke_width"]:
             if name in columnnames:
                 ret_names.append(name)
         return ret_names
@@ -361,7 +419,7 @@ class hsb_rect(graph.style._style):
             p.append(path.closepath())
             hue = 0.0
             saturation = 0.0
-            brightness = 0.0
+            brightness = 1.0
             if "color" in point.keys():
                 c = self.gradient.getcolor(point["color"]).hsb()
                 hue = c.color["h"]
@@ -373,8 +431,95 @@ class hsb_rect(graph.style._style):
                 saturation = point["saturation"]
             if "brightness" in point.keys():
                 brightness = point["brightness"]
-            rect_color = color.hsb(hue, saturation, brightness)
-            privatedata.rectcanvas.fill(p, [rect_color])
+            fill_color = color.hsb(hue, saturation, brightness)
+            stroke_color = fill_color
+            if "stroke_color" in point.keys():
+                stroke_color = self.gradient.getcolor(point["stroke_color"])
+            stroke_width = 0.0001
+            if "stroke_width" in point.keys():
+                stroke_width = point["stroke_width"]
+            stroke_attributes = [stroke_color,
+                                 style.linewidth(stroke_width * unit.v_cm)]
+            fill_attributes = [fill_color]
+            if self.fill_pattern != None:
+                fill_attributes.append(self.fill_pattern)
+            if self.do_stroke:
+                privatedata.rectcanvas.draw(p, [deco.stroked(stroke_attributes),
+                                                deco.filled(fill_attributes)])
+            else:
+                privatedata.rectcanvas.draw(p, [deco.filled(fill_attributes)])
 
     def key_pt(self, privatedata, sharedata, graph, x_pt, y_pt, width_pt, height_pt):
         raise RuntimeError("Style currently doesn't provide a graph key")
+
+def pmc_plot_image(g, hue, saturation, brightness):
+    if (numpy.shape(hue) != numpy.shape(saturation)) \
+       or (numpy.shape(hue) != numpy.shape(brightness)):
+        raise Exception("hue, saturation, and brightness must be the same shape")
+    (nx, ny) = numpy.shape(hue)
+    image_data = numpy.zeros([ny, nx, 3], dtype='uint8')
+    for i in range(nx):
+        for j in range(ny):
+            pixel_hsb = color.hsb(hue[i,j], saturation[i,j], brightness[i,j])
+            pixel_rgb = pixel_hsb.rgb()
+            image_data[j,i,0] = int(pixel_rgb.color["r"] * 255)
+            image_data[j,i,1] = int(pixel_rgb.color["g"] * 255)
+            image_data[j,i,2] = int(pixel_rgb.color["b"] * 255)
+    image_obj = bitmap.image(nx, ny, "RGB", image_data.tostring())
+    bitmap_obj = bitmap.bitmap(0, 0, image_obj, height = 1)
+    bitmap_width = float(nx) / float(ny)
+    (x0, y0) = g.vpos(0, 0)
+    (x1, y1) = g.vpos(1, 1)
+    g.insert(bitmap_obj, [trafo.mirror(0), trafo.translate(0, 1),
+                          trafo.scale((x1 - x0) / bitmap_width, y1 - y0),
+                          trafo.translate(x0, y0)])
+
+class pmc_gradient:
+
+    def __init__(self, map_list):
+        self.map_list = map_list
+
+    def map(self, x):
+        groups = numpy.digitize(x.ravel(),
+                                bins = [val for [val, hue] in self.map_list])
+        groups = groups.reshape(shape(x))
+        x_arr = numpy.array([xa for [xa, ya] in self.map_list])
+        y_arr = numpy.array([ya for [xa, ya] in self.map_list])
+        x_arr = numpy.concatenate([array([x_arr[0] - 1.0]),
+                                   x_arr, array([x_arr[-1] + 1.0])])
+        y_arr = numpy.concatenate([array([y_arr[0]]),
+                                   y_arr, array([y_arr[-1]])])
+        x0 = x_arr[groups]
+        x1 = x_arr[groups + 1]
+        y0 = y_arr[groups]
+        y1 = y_arr[groups + 1]
+        y = (x - x0) / (x1 - x0) * (y1 - y0) + y0
+        return y
+
+rainbow_gradient = pmc_gradient([
+    [0.0, color.rgb(0, 0, 1).hsb().color["h"]], # blue
+    [0.2, color.rgb(0, 1, 1).hsb().color["h"]], # cyan
+    [0.4, color.rgb(0, 1, 0).hsb().color["h"]], # green
+    [0.6, color.rgb(1, 1, 0).hsb().color["h"]], # yellow
+    [0.8, color.rgb(1, 0, 0).hsb().color["h"]], # red
+    [1.0, color.rgb(1, 0, 1).hsb().color["h"]], # magenta
+    ])
+
+gray_gradient = pmc_gradient([[0.0, 0.8],
+                              [1.0, 1.0]])
+
+def value_to_hue(value):
+    return (2.0/3.0 - value * 5.0 / 6.0) % 1.0
+
+def hash_pattern(n_lines = 10, line_attributes = [style.linewidth.normal]):
+    p = pattern.pattern(painttype = 2,
+                        tilingtype = 2,
+                        xstep = 1,
+                        ystep = 1,
+                        bbox = bbox.bbox(0, 0, 1, 1))
+    p.stroke(path.line(1, 0, 0, 1), line_attributes)
+    for i in range(n_lines):
+        x = float(i) / float(n_lines)
+        p.stroke(path.line(x, 0, 0, x), line_attributes)
+        p.stroke(path.line(1 - x, 1, 1, 1 - x), line_attributes)
+    return p

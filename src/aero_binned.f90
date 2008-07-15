@@ -336,25 +336,42 @@ contains
   !> Add an aero_dist_t to an aero_binned_t.
   !!
   !! Symbolically does aero_binned = aero_binned + aero_dist.
-  subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
+  subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
+       aero_dist)
 
     !> Base aero_binned_t structure to add to.
-    type(aero_binned_t), intent(out) :: aero_binned
+    type(aero_binned_t), intent(inout) :: aero_binned
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> The aero_dist_t structure to add.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    integer :: i_mode, i_bin
+    integer :: i_mode, i_spec
+    real*8 :: mode_num_den(bin_grid%n_bin)
+    real*8 :: mode_vol_den(bin_grid%n_bin, aero_data%n_spec)
+    type(aero_mode_t), pointer :: aero_mode
 
     do i_mode = 1,aero_dist%n_mode
-       do i_bin = 1,bin_grid%n_bin
-          aero_binned%num_den(i_bin) = aero_binned%num_den(i_bin) &
-               + aero_dist%mode(i_mode)%num_den(i_bin)
-          aero_binned%vol_den(i_bin,:) = aero_binned%vol_den(i_bin,:) &
-               + bin_grid%v(i_bin) * aero_dist%mode(i_mode)%num_den(i_bin) &
-               * aero_dist%mode(i_mode)%vol_frac
+       aero_mode => aero_dist%mode(i_mode)
+       if (aero_mode%type == "log_normal") then
+          call num_den_log_normal(aero_mode%mean_radius, &
+               aero_mode%log10_std_dev_radius, bin_grid, mode_num_den)
+       elseif (aero_mode%type == "exp") then
+          call num_den_exp(aero_mode%mean_radius, bin_grid, mode_num_den)
+       elseif (aero_mode%type == "mono") then
+          call num_den_mono(aero_mode%mean_radius, bin_grid, mode_num_den)
+       else
+          call die_msg(749122931, "Unknown aero_mode type")
+       end if
+       mode_num_den = mode_num_den * aero_mode%num_den
+       do i_spec = 1,aero_data%n_spec
+          mode_vol_den(:,i_spec) = mode_num_den * bin_grid%v &
+               * aero_mode%vol_frac(i_spec)
        end do
+       aero_binned%num_den = aero_binned%num_den + mode_num_den
+       aero_binned%vol_den = aero_binned%vol_den + mode_vol_den
     end do
 
   end subroutine aero_binned_add_aero_dist

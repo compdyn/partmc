@@ -14,7 +14,7 @@ import numpy
 
 netcdf_dir = "out"
 netcdf_re = re.compile(r"urban_plume_state_0001_([0-9]{7}1)\.nc")
-#netcdf_re = re.compile(r"urban_plume_state_0001_(00000401)\.nc")
+#netcdf_re = re.compile(r"urban_plume_state_0001_(00000901)\.nc")
 
 show_particles = [[1049, [0.02, 75], "wet diesel"],
                   [1279, [0.02, 15], "wet gasoline"],
@@ -61,7 +61,7 @@ def white_black_dist_to_sb(dist_from_white, color_black_ratio):
 def process_file(in_filename, out_filename):
     ncf = NetCDFFile(in_filename)
     particles = aero_particle_array_t(ncf)
-    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 160)
+    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     water_frac_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     mask_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin], dtype=int)
@@ -167,11 +167,21 @@ def process_file(in_filename, out_filename):
         hue = hue / hue.max()
     hue.clip(0.0, 1.0)
 
+    hue = dry_num_den_array + wet_num_den_array
+    hue = log(1 + hue / hue.max() * 100.0)
+    #hue = hue / hue.sum() / x_axis.grid_size(0) \
+    #        / (y_axis.grid_size(0) / 100.0)
+    #hue_max = 2
+    hue_max = hue.max()
+    if hue_max > 0.0:
+        hue = hue / hue_max
+    hue = hue.clip(0.0, 1.0)
+
     saturation = ones(shape(hue))
     brightness = ones(shape(hue))
-    brightness = where(water_frac_array > 0.0,
-                  ones(shape(hue)),
-                  zeros(shape(hue)))
+    #brightness = where(water_frac_array > 0.0,
+    #              ones(shape(hue)),
+    #              zeros(shape(hue)))
 
     #print "dry_num_den_array"
     #print dry_num_den_array[39,80:]
@@ -200,6 +210,9 @@ def process_file(in_filename, out_filename):
                              xmin = 1, xmax = 2, ymin = 3, ymax = 4,
                              color = 5, saturation = 6, brightness = 7),
            styles = [hsb_rect(rainbow_palette)])
+    g.dodata()
+    g.doaxes()
+
     boxed_text(g, 0.04, 0.9, "%02d:%02d LST" % (hours, minutes))
     for i in range(len(show_particles)):
         if len(show_coords[i]) > 0:
@@ -306,7 +319,7 @@ def make_figs():
             output_key = match.group(1)
             in_filename = os.path.join(netcdf_dir, filename)
             out_filename = os.path.join(netcdf_dir,
-                                        "comp_2d_bc_all_water_%s.pdf"
+                                        "comp_2d_bc_all_num_%s.pdf"
                                         % output_key)
             print in_filename
             process_file(in_filename, out_filename)

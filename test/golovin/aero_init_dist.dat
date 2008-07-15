@@ -1,7 +1,6 @@
-n_modes 1                       # number of initial aerosol modes
-
-# mode 1
-vol_frac aero_comp_water.dat    # composition proportions of species
+mode_name init1                 # name of mode source
+frac_type volume                # composition type ("volume", "mass", "mole")
+frac aero_comp_water.dat        # composition proportions of species
 num_den 1e9                     # particle number density (#/m^3)
 mode_type exp                   # type of mode
 mean_radius 1e-5                # mean radius (m)

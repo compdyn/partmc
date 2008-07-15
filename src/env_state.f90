@@ -101,8 +101,8 @@ contains
     call gas_state_alloc(env_state%gas_background, 0)
     env_state%gas_emission_rate = 0d0
     env_state%gas_dilution_rate = 0d0
-    call aero_dist_alloc(env_state%aero_emissions, 0, 0, 0)
-    call aero_dist_alloc(env_state%aero_background, 0, 0, 0)
+    call aero_dist_alloc(env_state%aero_emissions, 0, 0)
+    call aero_dist_alloc(env_state%aero_background, 0, 0)
     env_state%aero_emission_rate = 0d0
     env_state%aero_dilution_rate = 0d0
 
@@ -151,12 +151,8 @@ contains
          env_state_delta%gas_background)
     env_state%gas_dilution_rate = env_state%gas_dilution_rate &
          + env_state_delta%gas_dilution_rate
-    call aero_dist_add(env_state%aero_emissions, &
-         env_state_delta%aero_emissions)
     env_state%aero_emission_rate = env_state%aero_emission_rate &
          + env_state_delta%aero_emission_rate
-    call aero_dist_add(env_state%aero_background, &
-         env_state_delta%aero_background)
     env_state%aero_dilution_rate = env_state%aero_dilution_rate &
          + env_state_delta%aero_dilution_rate
     
@@ -186,10 +182,6 @@ contains
     env_state%gas_emission_rate = env_state%gas_emission_rate * alpha
     call gas_state_scale(env_state%gas_background, alpha)
     env_state%gas_dilution_rate = env_state%gas_dilution_rate * alpha
-    call aero_dist_scale(env_state%aero_emissions, alpha)
-    env_state%aero_emission_rate = env_state%aero_emission_rate * alpha
-    call aero_dist_scale(env_state%aero_background, alpha)
-    env_state%aero_dilution_rate = env_state%aero_dilution_rate * alpha
     
   end subroutine env_state_scale
   
@@ -440,8 +432,9 @@ contains
     sample_prop = delta_t * effective_dilution_rate
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
-    call aero_dist_sample(bin_grid, aero_data, env_state%aero_background, &
-         sample_prop, env_state%elapsed_time, aero_state_delta)
+    call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
+         aero_data, env_state%aero_background, sample_prop, &
+         env_state%elapsed_time)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -451,8 +444,9 @@ contains
     sample_prop = delta_t * env_state%aero_emission_rate / env_state%height
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
-    call aero_dist_sample(bin_grid, aero_data, env_state%aero_emissions, &
-         sample_prop, env_state%elapsed_time, aero_state_delta)
+    call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
+         aero_data, env_state%aero_emissions, sample_prop, &
+         env_state%elapsed_time)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -504,13 +498,13 @@ contains
 
     ! emission = delta_t * aero_emission_rate * aero_emissions
     ! but emissions are #/m^2 so we need to divide by height
-    call aero_binned_add_aero_dist(emission, bin_grid, &
+    call aero_binned_add_aero_dist(emission, bin_grid, aero_data, &
          env_state%aero_emissions)
     call aero_binned_scale(emission, &
          delta_t * env_state%aero_emission_rate / env_state%height)
 
     ! dilution = delta_t * aero_dilution_rate * (aero_background - aero_binned)
-    call aero_binned_add_aero_dist(dilution, bin_grid, &
+    call aero_binned_add_aero_dist(dilution, bin_grid, aero_data, &
          env_state%aero_background)
     call aero_binned_sub(dilution, aero_binned)
     call aero_binned_scale(dilution, delta_t * effective_dilution_rate)
@@ -641,11 +635,6 @@ contains
     call gas_state_average(env_vec%gas_emissions, env_avg%gas_emissions)
     call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
     call gas_state_average(env_vec%gas_background, env_avg%gas_background)
-    call average_real(env_vec%gas_dilution_rate, env_avg%gas_dilution_rate)
-    call aero_dist_average(env_vec%aero_emissions, env_avg%aero_emissions)
-    call average_real(env_vec%aero_emission_rate, env_avg%aero_emission_rate)
-    call aero_dist_average(env_vec%aero_background, env_avg%aero_background)
-    call average_real(env_vec%aero_dilution_rate, env_avg%aero_dilution_rate)
     
   end subroutine env_state_average
   

@@ -10,94 +10,58 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
+from fig_helper import *
 
-times_hour = [1, 6, 12, 24]
-
-netcdf_var = "comp_bc"
-netcdf_dim = "composition_bc"
 y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
-filename = "figs/comp_2d_all.pdf"
+out_filename = "figs/aero_2d_all.pdf"
 
-min_val = 0.0
-max_val = 4.0
+netcdf_dir = "out"
+netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
 
-v_space = 0.5
-h_space = 0.5
+def get_plot_data(filename, value_max = None):
+    ncf = NetCDFFile(filename)
+    particles = aero_particle_array_t(ncf)
+    ncf.close()
 
-graph_width = 6.3
+    diameter = particles.dry_diameter() * 1e6
+    comp_frac = particles.mass(include = ["BC"]) \
+                / particles.mass(exclude = ["H2O"]) * 100
 
-data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
-	       netcdf_var,
-	       [])
-#data.write_summary(sys.stdout)
+    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
+    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    x_bin = x_axis.find(diameter)
+    y_bin = y_axis.find(comp_frac)
 
-data.reduce([select("unit", "num_den"),
-		 sum("aero_species")])
-data.scale_dim(netcdf_dim, 100)
-data.scale_dim("dry_radius", 2e6)
-data.scale_dim("time", 1.0/3600)
+    num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    for i in range(particles.n_particles):
+        scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i]) \
+                / y_axis.grid_size(y_bin[i]) / 100
+        num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
 
-c = canvas.canvas()
+    value = num_den_array / num_den_array.sum() \
+            / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
+    if value_max == None:
+        value_max = value.max()
+    if value_max > 0.0:
+        value = value / value_max
+    value = value.clip(0.0, 1.0)
 
-g21 = c.insert(graph.graphxy(
-    width = graph_width,
-    x = graph.axis.log(min = 2.e-3,
-                       max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)'),
-    y = graph.axis.linear(min = 0,
-                          max = 100,
-                          title = y_axis_label,
-                          texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"))))
-g11 = c.insert(graph.graphxy(
-    width = graph_width,
-    ypos = g21.height + v_space,
-    x = graph.axis.linkedaxis(g21.axes["x"]),
-    y = graph.axis.linear(min = 0,
-                          max = 100,
-                          title = y_axis_label,
-                          texter = graph.axis.texter.decimal(suffix
-                                                             = r"\%"))))
-g22 = c.insert(graph.graphxy(
-    width = graph_width,
-    xpos = g21.width + h_space,
-    x = graph.axis.log(min = 2.e-3,
-                       max = 1.e+0,
-                       title = r'dry diameter ($\mu$m)'),
-    y = graph.axis.linkedaxis(g21.axes["y"])))
-g12 = c.insert(graph.graphxy(
-    width = graph_width,
-    xpos = g11.width + h_space,
-    ypos = g22.height + v_space,
-    x = graph.axis.linkedaxis(g22.axes["x"]),
-    y = graph.axis.linkedaxis(g11.axes["y"])))
+    rects = pmc_histogram_2d_multi([value],
+                                    x_axis, y_axis)
+    return rects
 
-def get_plot_data(time_hour):
-    data_slice = module_copy.deepcopy(data)
-    data_slice.reduce([select("time", time_hour)])
-    data_num = module_copy.deepcopy(data_slice)
-    data_num.reduce([sum("dry_radius"), sum(netcdf_dim)])
-    data_slice.data = data_slice.data / data_num.data
-    data_slice.scale(math.log(10)) # d/dln(r) to d/dlog10(r)
-    plot_data = data_slice.data_2d_list(strip_zero = True,
-					min = min_val,
-					max = max_val)
-    return plot_data
+graphs = make_4x4_graph_grid(y_axis_label)
+time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
+for (graph_name, time_hour) in times_hour.iteritems():
+    time = time_hour * 3600.0
+    filename = file_filename_at_time(time_filename_list, time)
+    plot_data = get_plot_data(filename, max_val)
+    g = graphs[graph_name]
+    g.plot(graph.data.points(plot_data,
+                             xmin = 1, xmax = 2, ymin = 3, ymax = 4,
+                             color = 5),
+           styles = [hsb_rect(gray_palette)])
 
-g11.plot(graph.data.points(get_plot_data(times_hour[0]),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(gray_palette)])
-g12.plot(graph.data.points(get_plot_data(times_hour[1]),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(gray_palette)])
-g21.plot(graph.data.points(get_plot_data(times_hour[2]),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(gray_palette)])
-g22.plot(graph.data.points(get_plot_data(times_hour[3]),
-                         xmin = 1, xmax = 2, ymin = 3, ymax = 4, color = 5),
-         styles = [graph.style.rect(gray_palette)])
-
-for g in [g11, g12, g21, g22]:
     g.dolayout()
     for axisname in ["x", "y"]:
         for t in g.axes[axisname].data.ticks:
@@ -107,43 +71,23 @@ for g in [g11, g12, g21, g22]:
     g.dodata()
     g.doaxes()
 
-x_vpos = 0.04
-y_vpos = 0.88
-boxed_text(g11, x_vpos, y_vpos, "%d hour" % times_hour[0])
-boxed_text(g12, x_vpos, y_vpos, "%d hours" % times_hour[1])
-boxed_text(g21, x_vpos, y_vpos, "%d hours" % times_hour[2])
-boxed_text(g22, x_vpos, y_vpos, "%d hours" % times_hour[3])
+    suffix = "s"
+    if time_hour == 1:
+        suffix = ""
+    boxed_text(g, 0.04, 0.9, "%d hour%s" % (time_hour, suffix))
+    for i in range(len(show_particles)):
+        if len(show_coords[i]) > 0:
+            label_point(g, show_coords[i][0], show_coords[i][1],
+                        show_particles[i][1][0], show_particles[i][1][1],
+                        show_particles[i][2])
 
-#                px,   py, lx,    ly; point=(px,py), label=(lx,ly)
-label_point(g11, 0.05, 90, 0.005, 70, "D1")
-label_point(g11, 0.05, 34, 0.005, 18, "G1")
-label_point(g11, 0.2, 0, 0.6, 15, "N")
-
-label_point(g12, 0.06, 72, 0.6, 65, "D2")
-label_point(g12, 0.08, 50, 0.005, 70, "D1")
-label_point(g12, 0.06, 24, 0.008, 40, "G2")
-label_point(g12, 0.07, 14, 0.005, 18, "G1")
-label_point(g12, 0.2, 0, 0.6, 15, "N")
-
-label_point(g21, 0.05, 86, 0.008, 72, "D3")
-label_point(g21, 0.07, 75, 0.6, 65, "D2")
-label_point(g21, 0.07, 31, 0.5, 45, "G3")
-label_point(g21, 0.1, 16, 0.005, 50, "D1")
-label_point(g21, 0.1, 5, 0.005, 18, "G1")
-label_point(g21, 0.2, 0, 0.6, 15, "N")
-
-label_point(g22, 0.05, 86, 0.008, 72, "D3")
-label_point(g22, 0.09, 29, 0.5, 45, "G3")
-label_point(g22, 0.09, 14, 0.005, 50, "D1")
-label_point(g22, 0.12, 7, 0.005, 18, "G1")
-label_point(g22, 0.2, 0, 0.6, 15, "N")
-
+c = graphs["c"]
 add_canvas_color_bar(c,
-                     min = min_val,
+                     min = 0.0,
                      max = max_val,
                      title = r"normalized number density (1)",
                      palette = gray_palette)
 
-c.writePDFfile(filename)
+c.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(c.bbox().width())

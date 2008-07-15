@@ -124,7 +124,7 @@ contains
     end do
     
     ! initial mass distribution
-    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_dist)
+    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, aero_dist)
     
     call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
@@ -162,6 +162,7 @@ contains
     
     ! main time-stepping loop
     num_t = nint(sect_opt%t_max / sect_opt%del_t)
+    call env_state_alloc(old_env_state)
     do i_time = 1, num_t
 
        if (sect_opt%do_coagulation) then

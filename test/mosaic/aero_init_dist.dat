@@ -1,6 +1,4 @@
-n_modes 1                       # number of initial aerosol distributions
-
-# first mode
+mode_name init                  # name of mode source
 frac_type volume                # composition type ("volume", "mass", "mole")
 frac aero_init_comp.dat         # composition proportions of species
 num_den 1e8                     # particle number density (#/m^3)

@@ -1,16 +1,16 @@
 run_type mc                     # Monte Carlo run
-output_prefix t/urban_plume_wc   # prefix of output files
-state_prefix t/urban_plume_wc_state # prefix of state files
+output_prefix out/urban_plume_wc   # prefix of output files
+state_prefix out/urban_plume_wc_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
-n_part 1000                     # total number of particles
+n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -24,7 +24,7 @@ aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist_LA_low.dat # aerosol initial condition file
 
 temp_profile temp_LA_95.dat         # temperature profile file
-height_profile height_LA.dat     # height profile file
+height_profile height_LA_2.dat     # height profile file
 gas_emissions gas_emit_LA_NH3.dat    # gas emissions file
 gas_background gas_back_LA.dat   # background gas concentrations file
 aero_emissions aero_emit_LA_highC.dat  # aerosol emissions file

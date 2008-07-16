@@ -8,6 +8,7 @@ sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 import pyx.bbox as bbox
 import numpy
+import pmc_data_nc
 
 text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 #text.set(mode="latex")
@@ -180,6 +181,8 @@ def label_point(g, x, y, label_x, label_y, label, radius = 1 * unit.t_mm):
     height = c.bbox().height()
     x_off = width / 2.0 + radius
     y_off = height / 2.0 + radius
+    g.stroke(path.line(label_x_g, label_y_g, x_g, y_g),
+             [color.gray.white, style.linewidth.THIck])
     g.stroke(path.line(label_x_g, label_y_g, x_g, y_g))
     g.draw(path_rounded_rect(label_x_g - x_off, label_y_g - y_off,
                              label_x_g + x_off, label_y_g + y_off, radius),
@@ -523,3 +526,14 @@ def hash_pattern(n_lines = 10, line_attributes = [style.linewidth.normal]):
         p.stroke(path.line(x, 0, 0, x), line_attributes)
         p.stroke(path.line(1 - x, 1, 1, 1 - x), line_attributes)
     return p
+
+def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
+                    label_offset = unit.v_mm, xaxis = None, yaxis = None):
+    i = pmc_data_nc.find_nearest_time(plot_data, label_time)
+    [label_x, label_y] = plot_data[i]
+    [label_pos_h, label_pos_v] = label_pos
+    [label_vx, label_vy] = g.pos(label_x, label_y, xaxis, yaxis)
+    label_vx += 2.0 * (0.5 - label_pos_h) * label_offset
+    label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset
+    g.text(label_vx, label_vy, label, [text.halign(label_pos_h, label_pos_h),
+                                       text.valign(label_pos_v)])

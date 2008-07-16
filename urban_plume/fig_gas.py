@@ -12,13 +12,15 @@ from pmc_data_nc import *
 from pmc_pyx import *
 
 gas_species = [
-    {"species": "O3", "plot": "g1", , "label_time": 8, "label_pos": [1, 1]},
+    {"species": "O3", "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
     {"species": "NO2", "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
-    {"species": "HCHO", "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
+    {"species": "HCHO", "plot": "g2", "label_time": 8, "label_pos": [0, 0]},
     {"species": "HNO3", "plot": "g2", "label_time": 8, "label_pos": [1, 1]},
-    {"species": "SO2", "plot": "g2", "label_time": 8, "label_pos": [1, 1]},
-    {"species": "NH3", "plot": "g2", "label_time": 8, "label_pos": [1, 1]},
+    {"species": "SO2", "plot": "g2", "label_time": 15, "label_pos": [0, 1]},
+    {"species": "NH3", "plot": "g2", "label_time": 10, "label_pos": [0, 1]},
     ]
+
+out_filename = "figs/gas.pdf"
 
 netcdf_dir = "out"
 netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
@@ -30,7 +32,7 @@ max_time_min = max([time for [time, gas_state] in gas_state_history]) / 60
 
 c = canvas.canvas()
 
-g1 = c.insert(graph.graphxy(
+g2 = c.insert(graph.graphxy(
     width = 6.7,
     x = graph.axis.linear(min = 0.,
                           max = max_time_min,
@@ -41,16 +43,16 @@ g1 = c.insert(graph.graphxy(
                           title = "local standard time (hours:minutes)",
 			  painter = grid_painter),
     y = graph.axis.linear(min = 0.,
-                          max = 125,
+                          max = 20,
                           title = "gas concentration (ppb)",
 			  painter = grid_painter)))
-g2 = c.insert(graph.graphxy(
+g1 = c.insert(graph.graphxy(
     width = 6.7,
-    ypos = g1.height + 0.5,
-    x = graph.axis.linkedaxis(g1.axes["x"],
+    ypos = g2.height + 0.5,
+    x = graph.axis.linkedaxis(g2.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
     y = graph.axis.linear(min = 0.,
-                          max = 20,
+                          max = 150,
                           title = "gas concentration (ppb)",
 			  painter = grid_painter)))
 
@@ -60,17 +62,20 @@ for i in range(len(gas_species)):
     plot_data = []
     for [time, gas_state] in gas_state_history:
         conc = gas_state.concentration_by_species(gas_species[i]["species"])
-        x = time = 60.0
-        y = conc
-        if y > 0.0:
-            plot_data.append([x, y])
+        if conc > 0.0:
+            plot_data.append([time / 60.0, conc])
     if plot_data != []:
         graph_name = gas_species[i]["plot"]
         g = graphs[graph_name]
         g.plot(graph.data.points(plot_data, x = 1, y = 2,
                                  title = tex_species(gas_species[i])),
-               styles = [graph.style.line(lineattrs = [line_style_list[i],
-                                                       style.linewidth.THick])])
+               styles = [graph.style.line(
+            lineattrs = [line_style_list[line_counts[graph_name]],
+                         style.linewidth.THick])])
+        line_counts[graph_name] += 1
+        label = tex_species(gas_species[i]["species"])
+        label_plot_line(g, plot_data, gas_species[i]["label_time"] * 60.0,
+                    label, gas_species[i]["label_pos"], 1 * unit.v_mm)
     else:
         print "warning: only zeros for species %s" % gas_species[i]
 

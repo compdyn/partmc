@@ -11,48 +11,30 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
+netcdf_dir_wc = "out"
+netcdf_pattern_wc = r"urban_plume_state_0001_([0-9]{8})\.nc"
+
+netcdf_dir_nc = "out"
+netcdf_pattern_nc = r"urban_plume_state_0001_([0-9]{8})\.nc"
+
 max_val = 4.0
 
+diameter_axis_min = 2e-3
+diameter_axis_max = 1e0
+
 times_hour = {"g11": 1,
-              "g12" : 3,
-              "g21" : 6,
-              "g22" : 8}
+              "g12" : 6,
+              "g21" : 9,
+              "g22" : 24}
 
-show_particles = [[1049, [0.02, 75], "wet diesel"],
-                  [1279, [0.02, 15], "wet gasoline"],
-                  [2329, [0.7, 75], "dry diesel"],
-                  [2315, [0.7, 15], "dry gasoline"],
-                  ]
-show_particles = []
-
-def get_time_filename_list(dir, file_pattern):
-    time_filename_list = []
-    filenames = os.listdir(dir)
-    if filenames == []:
-        raise Exception("No files in %s match %s" % (dir, file_pattern))
-    file_re = re.compile(file_pattern)
-    for filename in filenames:
-        match = file_re.search(filename)
-        if match:
-            output_key = match.group(1)
-            netcdf_filename = os.path.join(dir, filename)
-            ncf = NetCDFFile(netcdf_filename)
-            env_state = env_state_t(ncf)
-            time_filename_list.append([env_state.elapsed_time,
-                                       netcdf_filename])
-            ncf.close()
-    time_filename_list.sort()
-    return time_filename_list
-
-def file_filename_at_time(time_filename_list, search_time):
-    min_diff = abs(search_time - time_filename_list[0][0])
-    min_filename = time_filename_list[0][1]
-    for [time, filename] in time_filename_list[1:]:
-        diff = abs(search_time - time)
-        if diff < min_diff:
-            min_diff = diff
-            min_filename = filename
-    return min_filename
+show_particles = [
+    {"id": 1285, "suffix": "wet_diesel", "label": "wet diesel",
+     "label pos": [0.4, 55], "box label": "wet diesel particle"},
+    {"id": 2511, "suffix": "dry_diesel", "label": "dry diesel",
+     "label pos": [0.006, 55], "box label": "dry diesel particle"},
+    {"id": 5027, "suffix": "late_diesel", "label": "late diesel",
+     "label pos": [0.4, 75], "box label": "late diesel particle"},
+    ]
 
 def make_4x4_graph_grid(y_axis_label):
     v_space = 0.5
@@ -64,8 +46,8 @@ def make_4x4_graph_grid(y_axis_label):
     
     g21 = c.insert(graph.graphxy(
         width = graph_width,
-        x = graph.axis.log(min = 2.e-3,
-                           max = 1.e+0,
+        x = graph.axis.log(min = diameter_axis_min,
+                           max = diameter_axis_max,
                            title = r'dry diameter ($\mu$m)'),
         y = graph.axis.linear(min = 0,
                               max = 100,
@@ -84,8 +66,8 @@ def make_4x4_graph_grid(y_axis_label):
     g22 = c.insert(graph.graphxy(
         width = graph_width,
         xpos = g21.width + h_space,
-        x = graph.axis.log(min = 2.e-3,
-                           max = 1.e+0,
+        x = graph.axis.log(min = diameter_axis_min,
+                           max = diameter_axis_max,
                            title = r'dry diameter ($\mu$m)'),
         y = graph.axis.linkedaxis(g21.axes["y"])))
     g12 = c.insert(graph.graphxy(
@@ -100,3 +82,14 @@ def make_4x4_graph_grid(y_axis_label):
             "g21" : g21,
             "g22" : g22}
 
+def corner_boxed_text(g, text):
+    boxed_text(g, 0.04, 0.9, text)
+
+def write_time(g, env_state):
+    time_lst = time_of_day_string(env_state.start_time_of_day
+                                  + env_state.elapsed_time)
+    time_hour = int(env_state.elapsed_time / 3600.0)
+    suffix = "s"
+    if time_hour == 1:
+        suffix = ""
+    corner_boxed_text(g, "%d hour%s (%s LST)" % (time_hour, suffix, time_lst))

@@ -794,7 +794,6 @@ def read_history(constructor, directory, filename_pattern):
     for filename in filenames:
         if filename_re.search(filename):
             netcdf_filename = os.path.join(directory, filename)
-            print netcdf_filename
             ncf = NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)
             data.append([env_state.elapsed_time, constructor(ncf)])
@@ -814,3 +813,36 @@ def read_any(constructor, directory, filename_pattern):
             return data
     raise Exception("no NetCDF file found in %s matching %s"
                     % (directory, filename_pattern))
+
+def get_time_filename_list(dir, file_pattern):
+    time_filename_list = []
+    filenames = os.listdir(dir)
+    if filenames == []:
+        raise Exception("No files in %s match %s" % (dir, file_pattern))
+    file_re = re.compile(file_pattern)
+    for filename in filenames:
+        match = file_re.search(filename)
+        if match:
+            output_key = match.group(1)
+            netcdf_filename = os.path.join(dir, filename)
+            ncf = NetCDFFile(netcdf_filename)
+            env_state = env_state_t(ncf)
+            time_filename_list.append([env_state.elapsed_time,
+                                       netcdf_filename])
+            ncf.close()
+    time_filename_list.sort()
+    return time_filename_list
+
+def find_nearest_time(time_indexed_data, search_time):
+    min_diff = abs(search_time - time_indexed_data[0][0])
+    min_i = 0
+    for i in range(1,len(time_indexed_data)):
+        diff = abs(search_time - time_indexed_data[i][0])
+        if diff < min_diff:
+            min_diff = diff
+            min_i = i
+    return min_i
+
+def file_filename_at_time(time_filename_list, search_time):
+    i = find_nearest_time(time_filename_list, search_time)
+    return time_filename_list[i][1]

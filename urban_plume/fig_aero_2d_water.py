@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 from fig_helper import *
 
-y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
+y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
 out_filename = "figs/aero_2d_water.pdf"
 
 max_val = 50
@@ -22,12 +22,10 @@ min_palette_index = 0
 fill_pattern = hash_pattern(n_lines = 7,
                             line_attributes = [style.linewidth.normal])
 
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
+    env_state = env_state_t(ncf)
     ncf.close()
 
     diameter = particles.dry_diameter() * 1e6
@@ -36,13 +34,15 @@ def get_plot_data(filename, value_max = None):
     water_frac = particles.mass(include = ["H2O"]) \
                  / particles.mass() * 100
 
-    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
+    x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                          n_bin = 70)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     x_bin = x_axis.find(diameter)
     y_bin = y_axis.find(comp_frac)
 
     water_frac_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     dry_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    show_coords = [[] for p in show_particles]
     for i in range(particles.n_particles):
         if water_frac[i] > 0.0:
             if water_frac_array[x_bin[i], y_bin[i]] == 0.0:
@@ -52,6 +52,9 @@ def get_plot_data(filename, value_max = None):
                      = min(water_frac_array[x_bin[i], y_bin[i]], water_frac[i])
         else:
             dry_array[x_bin[i], y_bin[i]] = 1.0
+        for j in range(len(show_particles)):
+            if particles.id[i] == show_particles[j]["id"]:
+                show_coords[j] = [diameter[i], comp_frac[i]]
 
     print "%s water = %g%% to %g%%" \
           % (filename,
@@ -71,14 +74,15 @@ def get_plot_data(filename, value_max = None):
                                        mask = value_mask)
     dry_rects = pmc_histogram_2d_multi([ones_like(dry_array)],
                                        x_axis, y_axis, mask = dry_array)
-    return (wet_rects, dry_rects, dry_array)
+    return (wet_rects, dry_rects, dry_array, show_coords, env_state)
 
 graphs = make_4x4_graph_grid(y_axis_label)
-time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0
     filename = file_filename_at_time(time_filename_list, time)
-    (wet_rects, dry_rects, dry_mask_array) = get_plot_data(filename, max_val)
+    (wet_rects, dry_rects, dry_mask_array, show_coords, env_state) \
+                = get_plot_data(filename, max_val)
     g = graphs[graph_name]
     if len(dry_rects) > 0:
         g.plot(graph.data.points(dry_rects,
@@ -101,22 +105,20 @@ for (graph_name, time_hour) in times_hour.iteritems():
     g.dodata()
     g.doaxes()
 
-    suffix = "s"
-    if time_hour == 1:
-        suffix = ""
-    boxed_text(g, 0.04, 0.9, r"%d hour%s" % (time_hour, suffix))
+    write_time(g, env_state)
     for i in range(len(show_particles)):
         if len(show_coords[i]) > 0:
             label_point(g, show_coords[i][0], show_coords[i][1],
-                        show_particles[i][1][0], show_particles[i][1][1],
-                        show_particles[i][2])
+                        show_particles[i]["label pos"][0],
+                        show_particles[i]["label pos"][1],
+                        show_particles[i]["label"])
 
 c = graphs["c"]
 add_canvas_color_bar(c,
                      min = 0.0,
                      max = max_val,
                      min_palette_index = min_palette_index,
-                     title = r"water mass fraction",
+                     title = r"water fraction $f_{\rm H_2O,all}$ (1)",
                      texter = graph.axis.texter.decimal(suffix = r"\%"),
                      palette = gray_palette,
                      extra_box_value = 0.0,

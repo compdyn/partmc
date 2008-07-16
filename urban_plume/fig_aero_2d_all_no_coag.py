@@ -10,25 +10,23 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-
 from fig_helper import *
 
 y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
 out_filename = "figs/aero_2d_all_no_coag.pdf"
 
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
+    env_state = env_state_t(ncf)
     ncf.close()
 
     diameter = particles.dry_diameter() * 1e6
     comp_frac = particles.mass(include = ["BC"]) \
                 / particles.mass(exclude = ["H2O"]) * 100
 
-    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
+    x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                          n_bin = 70)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     x_bin = x_axis.find(diameter)
     y_bin = y_axis.find(comp_frac)
@@ -49,16 +47,16 @@ def get_plot_data(filename, value_max = None):
 
     rects = pmc_histogram_2d_multi([value],
                                     x_axis, y_axis)
-    return rects
+    return (rects, env_state)
 
 graphs = make_4x4_graph_grid(y_axis_label)
-time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0
     filename = file_filename_at_time(time_filename_list, time)
-    plot_data = get_plot_data(filename, max_val)
+    (rects, env_state) = get_plot_data(filename, max_val)
     g = graphs[graph_name]
-    g.plot(graph.data.points(plot_data,
+    g.plot(graph.data.points(rects,
                              xmin = 1, xmax = 2, ymin = 3, ymax = 4,
                              color = 5),
            styles = [hsb_rect(gray_palette)])
@@ -72,15 +70,7 @@ for (graph_name, time_hour) in times_hour.iteritems():
     g.dodata()
     g.doaxes()
 
-    suffix = "s"
-    if time_hour == 1:
-        suffix = ""
-    boxed_text(g, 0.04, 0.9, "%d hour%s" % (time_hour, suffix))
-    for i in range(len(show_particles)):
-        if len(show_coords[i]) > 0:
-            label_point(g, show_coords[i][0], show_coords[i][1],
-                        show_particles[i][1][0], show_particles[i][1][1],
-                        show_particles[i][2])
+    write_time(g, env_state)
 
 c = graphs["c"]
 add_canvas_color_bar(c,

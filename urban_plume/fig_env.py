@@ -11,33 +11,25 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-env = ["H"]
+out_filename = "figs/env.pdf"
 
-data = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
-	       "env_state",
-	       [])
+netcdf_dir = "out"
+netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
 
-#data.write_summary(sys.stdout)
-
-data.scale_dim("time", 1.0/60)
-
-temp_data = module_copy.deepcopy(data)
-temp_data.reduce([select("env", "temp")])
-rh_data = module_copy.deepcopy(data)
-rh_data.reduce([select("env", "rel_humid")])
-rh_data.scale(100.0)
-height_data = module_copy.deepcopy(data)
-height_data.reduce([select("env", "height")])
+env_state_history = read_history(env_state_t, netcdf_dir, netcdf_pattern)
+start_time_of_day_min = env_state_history[0][1].start_time_of_day / 60
+max_time_min = max([time for [time, env_state] in env_state_history]) / 60
 
 g = graph.graphxy(
     width = 10,
     height = 4,
     x = graph.axis.linear(min = 0.,
-                          max = 1440,
+                          max = max_time_min,
 			  title = "local standard time (hours:minutes)",
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60, 3 * 60]),
-                          texter = time_of_day(base_time = 6 * 60),
+                          texter = time_of_day(base_time
+                                               = start_time_of_day_min),
 			  painter = grid_painter),
     y = graph.axis.linear(min = 285,
                           max = 300,
@@ -50,33 +42,36 @@ g = graph.graphxy(
                            parter = graph.axis.parter.linear(tickdists
                                                              = [10, 5]),
                            title = "relative humidity (1)",
-                          texter = graph.axis.texter.decimal(suffix = r"\%")),
+                           texter = graph.axis.texter.decimal(suffix = r"\%")),
     y4 = graph.axis.linear(min = 0,
                            max = 500,
                            parter = graph.axis.parter.linear(tickdists
                                                              = [100, 50]),
                            title = "mixing height (m)"))
-#    key = graph.key.key(pos = "tr"))
 
-g.plot(graph.data.points(temp_data.data_center_list(),
-			   x = 1, y = 2,
-                           title = "temperature"),
-             styles = [graph.style.line(lineattrs = [color.grey.black, style.linewidth.Thick])])
+temp_plot_data = []
+rh_plot_data = []
+height_plot_data = []
+for [time, env_state] in env_state_history:
+    temp_plot_data.append([time / 60, env_state.temperature])
+    rh_plot_data.append([time / 60, env_state.relative_humidity * 100])
+    height_plot_data.append([time / 60, env_state.height])
 
-g.plot(graph.data.points(rh_data.data_center_list(),
-			   x = 1, y2 = 2,
-                           title = "relative humidity"),
-             styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashed])])
+g.plot(graph.data.points(temp_plot_data, x = 1, y = 2),
+       styles = [graph.style.line(lineattrs = [line_style_list[0],
+                                               style.linewidth.THick])])
+g.plot(graph.data.points(rh_plot_data, x = 1, y2 = 2),
+       styles = [graph.style.line(lineattrs = [line_style_list[1],
+                                               style.linewidth.THick])])
+g.plot(graph.data.points(height_plot_data, x = 1, y4 = 2),
+       styles = [graph.style.line(lineattrs = [line_style_list[2],
+                                               style.linewidth.THick])])
 
-g.plot(graph.data.points(height_data.data_center_list(),
-			   x = 1, y4 = 2,
-                           title = "mixing height"),
-             styles = [graph.style.line(lineattrs = [color.grey.black,style.linewidth.Thick,style.linestyle.dashdotted])])
+label_plot_line(g, temp_plot_data, 8 * 60.0, "temperature", [0, 1],
+                1 * unit.v_mm)
+label_plot_line(g, rh_plot_data, 8 * 60.0, "relative humidity", [0, 0],
+                1 * unit.v_mm, yaxis = g.axes["y2"])
+label_plot_line(g, height_plot_data, 16 * 60.0, "mixing height", [0, 1],
+                1 * unit.v_mm, yaxis = g.axes["y4"])
 
-g.text(5.2,1,"temperature",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(6.5,2.1,"mixing height",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-g.text(7.2,3.5,"relative humidity",[text.halign.boxleft,text.valign.bottom,color.rgb(0,0,0)])
-
-g.writePDFfile("figs/temp_height.pdf")
-print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
-print "figure width = %.1f cm" % unit.tocm(g.bbox().width())
+g.writePDFfile(out_filename)

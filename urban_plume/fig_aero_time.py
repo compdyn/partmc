@@ -58,7 +58,6 @@ g1 = c.insert(graph.graphxy(
                           title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
 plot_data = [[] for x in aero_species]
-label_pos = [[] for x in aero_species]
 max_comp_vol = None
 min_comp_vol = None
 for [time, filename] in time_filename_list:
@@ -68,11 +67,7 @@ for [time, filename] in time_filename_list:
     for i in range(len(aero_species)):
         masses = particles.mass(include = aero_species[i]["species"])
         mass_den = (masses / particles.comp_vol).sum()
-        x = time / 60.0
-        y = mass_den * 1e9
-        plot_data[i].append([x, y])
-        if time < aero_species[i]["label_time"] * 3600.0:
-            label_pos[i] = [x, y]
+        plot_data[i].append([time / 60.0, mass_den * 1e9])
     if max_comp_vol == None:
         max_comp_vol = particles.comp_vol.max()
     else:
@@ -100,14 +95,8 @@ for i in range(len(aero_species)):
         label = aero_species[i]["label"]
     else:
         label = tex_species(aero_species[i]["species"][0])
-    [label_x, label_y] = label_pos[i]
-    [label_pos_h, label_pos_v] = aero_species[i]["label_pos"]
-    [label_vx, label_vy] = g.pos(label_x, label_y)
-    label_offset = 1 * unit.v_mm
-    label_vx = label_vx + 2.0 * (0.5 - label_pos_h) * label_offset
-    label_vy = label_vy - 2.0 * (0.5 - label_pos_v) * label_offset
-    g.text(label_vx, label_vy, label, [text.halign(label_pos_h, label_pos_h),
-                                       text.valign(label_pos_v)])
+    label_plot_line(g, plot_data[i], aero_species[i]["label_time"] * 60.0,
+                    label, aero_species[i]["label_pos"], 1 * unit.v_mm)
 
 c.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

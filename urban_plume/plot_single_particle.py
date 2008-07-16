@@ -30,35 +30,6 @@ aero_species = [["", ["NO3"]],
                 ["SOA", ["ARO1", "ARO2", "ALK1", "OLE1"]],
                 ]
 
-particle_ids = [id for [id, description] in particles]
-particle_history = read_history(lambda ncf:
-                                read_particles(ncf, ids = [particle_ids]),
-                                netcdf_dir, netcdf_pattern)
-
-for [id, description] in particles:
-    g = graph.graphxy(
-        width = 8,
-        x = graph.axis.linear(min = 0,
-                              max = 24 * 60,
-                              title = r'time (LST)',
-                              parter = graph.axis.parter.linear(tickdists
-                                                                = [6 * 60,
-                                                                   3 * 60]),
-                              texter = time_of_day(base_time = start_time),
-                              painter = grid_painter),
-        y = graph.axis.log(min = 1e-28,
-                           max = 1e-16,
-                           title = r"mass (kg)",
-                           painter = grid_painter),
-        y2 = graph.axis.log(title = r"diameter ($\rm \mu m$)"),
-        y3 = graph.axis.linear(title = "relative humidity (1)",
-                               texter = graph.axis.texter.decimal(suffix
-                                                                  = r"\%")),
-        y4 = graph.axis.linear(title = "temperature (K)"),
-        key = graph.key.key(pos = "br", hinside = 0, hdist = 5 * unit.v_cm))
-    
-
-
 def make_fig(particle_id, description):
     data_1 = [[] for s in aero_species]
     data_dry_diameter = []

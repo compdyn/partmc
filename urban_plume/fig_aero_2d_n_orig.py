@@ -24,8 +24,8 @@ netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
 
 g = graph.graphxy(
     width = 6.9,
-    x = graph.axis.log(min = 1e-3,
-                       max = 1e+0,
+    x = graph.axis.log(min = diameter_axis_min,
+                       max = diameter_axis_max,
                        title = r'dry radius ($\rm \mu m$)',
                        painter = grid_painter),
     y = graph.axis.linear(min = 0,
@@ -42,7 +42,8 @@ ncf.close()
 
 diameter = particles.dry_diameter() * 1e6
 
-x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
+x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                      n_bin = 70)
 y_axis = pmc_linear_axis(min = 0, max = max_n_coags, n_bin = max_n_coags)
 x_bin = x_axis.find(diameter)
 

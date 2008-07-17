@@ -11,14 +11,12 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 import numpy
-
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
+from fig_helper import *
 
 early_time = 3 # hours elapsed
 late_time = 24 # hours elapsed
 
-time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 early_filename = file_filename_at_time(time_filename_list, early_time * 3600)
 late_filename = file_filename_at_time(time_filename_list, late_time * 3600)
 early_ncf = NetCDFFile(early_filename)
@@ -75,10 +73,10 @@ for type in early_found.keys():
         for j in range(len(late_particles.id)):
             if early_particles.id[i] == late_particles.id[j]:
                 late_i = j
-        print "%s: id = %d, d0 = %f, bc0 = %g, water0 = %f, d1 = %f, bc1 = %g, water1 = %f" \
+        print "%s: id = %d, d0 = %f, bc0 = %g, water0 = %f, d1 = %f, bc1 = %g, water1 = %f, nco = %d" \
               % (type, early_particles.id[i], early_diameter[i],
                  early_comp_frac[i], early_water_frac[i], late_diameter[late_i],
-                 late_comp_frac[late_i], late_water_frac[late_i])
+                 late_comp_frac[late_i], late_water_frac[late_i], late_particles.n_orig_part[late_i] - 1)
 for type in late_found.keys():
     late_found[type].sort(cmp = lambda x,y : cmp(late_particles.id[x],
                                                  late_particles.id[y]))

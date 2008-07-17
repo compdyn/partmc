@@ -62,7 +62,7 @@ for [time, filename] in time_filename_list:
 
     num_times_array[x_bin] += 1
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] / (y_axis.grid_size(y_bin[i]) / 100)
+        scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
         num_den_array[x_bin, y_bin[i]] += 1.0 / scale
 
 for i in range(x_axis.n_bin):

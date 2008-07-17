@@ -129,7 +129,7 @@ aerosol_species_tex = {
     "Ca": "Ca",
     "OIN": "OIN",
     "OC": "POM",
-    "BC": "soot",
+    "BC": "BC",
     "H2O": "H$_2$O",
     }
 
@@ -176,9 +176,9 @@ def path_rounded_rect(x1, y1, x2, y2, r):
                      path.arc(x1 + r, y2 - r, r, 90, 180),
                      path.closepath())
 
-def label_point(g, x, y, label_x, label_y, label, radius = 1 * unit.t_mm):
+def label_point(g, x, y, label_xv, label_yv, label, radius = 1 * unit.t_mm):
     (x_g, y_g) = g.pos(x, y)
-    (label_x_g, label_y_g) = g.pos(label_x, label_y)
+    (label_x_g, label_y_g) = g.vpos(label_xv, label_yv)
     c = canvas.canvas()
     c.text(0, 0, label, 
            [text.halign.boxcenter, text.halign.flushcenter,
@@ -201,6 +201,18 @@ def boxed_text(g, x, y, label, border = 1 * unit.v_mm):
     b = c.bbox().enlarged(all = border)
     g.draw(b.path(), [deco.stroked, deco.filled([color.gray.white])])
     g.insert(c)
+
+def boxed_text_g(g, label, x_g = 0, y_g = 0, anchor_point_rel = [0, 1],
+                 border = 1 * unit.v_mm):
+    c = text.text(0, 0, label)
+    bb = c.bbox().enlarged(all = border)
+    current_x = (1.0 - anchor_point_rel[0]) * bb.left() \
+                + anchor_point_rel[0] * bb.right()
+    current_y = (1.0 - anchor_point_rel[1]) * bb.top() \
+                + anchor_point_rel[1] * bb.bottom()
+    g.draw(bb.path(), [deco.stroked, deco.filled([color.gray.white]),
+                       trafo.translate(x_g - current_x, y_g - current_y)])
+    g.insert(c, [trafo.translate(x_g - current_x, y_g - current_y)])
 
 def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		  bar_height_ratio = 0.8, bar_x_offset = 1.8,
@@ -297,7 +309,7 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
 		title = title)))
     gc.plot(graph.data.points(color_d, ymin = 1, ymax = 2,
                             xmin = 3, xmax = 4, color = 5),
-	    [graph.style.rect(palette)])
+	    [hsb_rect(palette)])
     gc.dolayout()
     gc.dobackground()
     gc.dodata()
@@ -343,7 +355,7 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 	    y2 = y2axis))
     gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
-	    [graph.style.rect(palette)])
+	    [hsb_rect(palette)])
     gc.dolayout()
     gc.dobackground()
     gc.dodata()

@@ -76,7 +76,7 @@ def get_plot_data(filename, value_max = None):
                                        x_axis, y_axis, mask = dry_array)
     return (wet_rects, dry_rects, dry_array, show_coords, env_state)
 
-graphs = make_4x4_graph_grid(y_axis_label)
+graphs = make_2x2_graph_grid(y_axis_label)
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0

@@ -496,11 +496,21 @@ def read_particles(ncf, ids = None):
     if "aero_particle" not in ncf.dimensions.keys():
         raise Exception("aero_particle dimension not found in NetCDF file")
     n_part = ncf.dimensions["aero_particle"]
+
+    if ids == None:
+        indices = range(n_part)
+    else:
+        particle_ids = ncf.variables["aero_id"].getValue()
+        indices = []
+        for i in ids:
+            ind = (particle_ids == i).argmax()
+            if (ind > 0) or (particle_ids[0] == i):
+                indices.append(ind)
+
     aero_data = aero_data_t(ncf)
     particles = []
-    for i in range(n_part):
-        if (ids == None) or (int(ncf.variables["aero_id"][i]) in ids):
-            particles.append(aero_particle_t(ncf, i, aero_data))
+    for i in indices:
+        particles.append(aero_particle_t(ncf, i, aero_data))
     return particles
 
 class pmc_axis:

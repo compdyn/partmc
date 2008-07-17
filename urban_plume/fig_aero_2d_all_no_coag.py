@@ -33,8 +33,8 @@ def get_plot_data(filename, value_max = None):
 
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i]) \
-                / y_axis.grid_size(y_bin[i]) / 100
+        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i]) \
+                * (y_axis.grid_size(y_bin[i]) / 100)
         num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
 
     value = num_den_array / num_den_array.sum() \
@@ -49,7 +49,7 @@ def get_plot_data(filename, value_max = None):
                                     x_axis, y_axis)
     return (rects, env_state)
 
-graphs = make_4x4_graph_grid(y_axis_label)
+graphs = make_2x2_graph_grid(y_axis_label)
 time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0
@@ -76,7 +76,7 @@ c = graphs["c"]
 add_canvas_color_bar(c,
                      min = 0.0,
                      max = max_val,
-                     title = r"normalized number density (1)",
+                     title = r"normalized number density $\hat{n}_{\rm BC,dry}(f,D)$ (1)",
                      palette = gray_palette)
 
 c.writePDFfile(out_filename)

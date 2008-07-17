@@ -29,19 +29,19 @@ g2 = c.insert(graph.graphxy(
 		       max = x_axis.max,
 		       title = r"dry diameter ($\rm \mu m$)",
 		       painter = major_grid_painter),
-    y = graph.axis.log(min = 1e-8,
-                       max = 1e0,
+    y = graph.axis.log(min = 1e-6,
+                       max = 1e2,
                        title = r"mass density ($\rm \mu g \, m^{-3}$)",
 		       painter = major_grid_painter),
-    key = graph.key.key(pos = "br")))
+    key = graph.key.key(pos = None, hpos = 0.8, vpos = 0)))
 
 g1 = c.insert(graph.graphxy(
     width = 6.8,
     ypos = g2.height + 0.5,
     x = graph.axis.linkedaxis(g2.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
-    y = graph.axis.log(min = 1e-8,
-                       max = 1e0,
+    y = graph.axis.log(min = 1e-6,
+                       max = 1e2,
                        title = r"mass density ($\rm \mu g \, m^{-3}$)",
 		       painter = major_grid_painter),
     key = graph.key.key(pos = "br")))
@@ -69,7 +69,7 @@ for t in range(len(times_hour)):
     so4_mass_array = numpy.zeros([x_axis.n_bin])
     bc_mass_array = numpy.zeros([x_axis.n_bin])
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i])
+        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
         so4_mass_array[x_bin[i]] += so4_mass[i] / scale
         bc_mass_array[x_bin[i]] += bc_mass[i] / scale
 
@@ -97,8 +97,8 @@ for t in range(len(times_hour)):
                                        = [line_style_list[line_style_order[t]],
                                           thickness])])
 
-corner_boxed_text(g1, r"$\rm SO_4$")
-corner_boxed_text(g2, r"$\rm BC$")
+write_text_inside(g1, r"$\rm SO_4$")
+write_text_inside(g2, r"$\rm BC$")
 
 c.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

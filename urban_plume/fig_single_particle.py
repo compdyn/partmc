@@ -86,5 +86,7 @@ for i in range(len(show_particles)):
 
     g.doaxes()
     g.dodata()
-    boxed_text(g, 0.04, 0.9, show_particles[i]["box label"])
+
+    write_text_inside(g, show_particles[i]["box label"])
+
     g.writePDFfile("%s_%s.pdf" % (out_prefix, show_particles[i]["suffix"]))

@@ -1,86 +1,79 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West, Nicole Riemer
+# Copyright (C) 2007, 2008 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys, glob
+import os, sys, math
 import copy as module_copy
+from Scientific.IO.NetCDF import *
+from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-sys.path.append(os.path.expanduser("~/.python"))
-from pyx import *
-from Scientific.IO.NetCDF import *
+from fig_helper import *
 
 time_hour = 24
-composition_lower = [0,  2, 80]
-composition_upper = [2, 10, 90]
 
-data_no = pmc_var(NetCDFFile("out/urban_plume_no_coag_0001.nc"),
-	       "comp_bc",
-	       [])
-data_wc = pmc_var(NetCDFFile("out/urban_plume_with_coag_0001.nc"),
-	       "comp_bc",
-	       [])
+BC_fractions = [[0, 2],
+                [2, 10],
+                [80, 90],
+                ]
 
-#data_no.write_summary(sys.stdout)
-#data_wc.write_summary(sys.stdout)
+out_filename = "figs/aero_bc_mixing.pdf"
 
-data_no.scale_dim("composition_bc", 100)
-data_wc.scale_dim("composition_bc", 100)
-
-data_no.scale_dim("dry_radius", 2e6)
-data_wc.scale_dim("dry_radius", 2e6)
-
-data_no.scale_dim("time", 1.0/3600)
-data_wc.scale_dim("time", 1.0/3600)
-
-data_no.reduce([select("unit", "mass_den"),
-                select("time", time_hour),
-		sum("aero_species", without = ["H2O"])])
-data_wc.reduce([select("unit", "mass_den"),
-                select("time", time_hour),
-		sum("aero_species", without = ["H2O"])])
-
-#total_mass = module_copy.deepcopy(data_no)
-#total_mass.reduce([sum("dry_radius"), sum("composition_bc")])
-#total_mass.scale(1e9)
-#print total_mass.data
-
-data_no.scale(1e9) # kg/m^3 to ug/m^3
-data_wc.scale(1e9) # kg/m^3 to ug/m^3
-data_no.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
-data_wc.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
+x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                      n_bin = 70)
 
 g = graph.graphxy(
 	width = 6.8,
-	x = graph.axis.log(title = r'dry diameter ($\rm \mu m$)',
-                           min = 0.01, max = 2,
+	x = graph.axis.log(min = x_axis.min,
+                           max = x_axis.max,
+                           title = r'dry diameter ($\rm \mu m$)',
 			   painter = grid_painter),
-	y = graph.axis.log(title = r'mass density ($\rm \mu g\, m^{-3}$)',
-                           min = 1e-6, max = 2e2,
+	y = graph.axis.log(min = 1e-6,
+                           max = 1e3,
+                           title = r'mass density ($\rm \mu g\, m^{-3}$)',
 			   painter = grid_painter))
-#        key = graph.key.key(pos = "br", vdist = 0.2 * unit.v_cm,
-#                            columns = 2))
 
-for i in range(len(composition_lower)):
-    data_no_slice = module_copy.deepcopy(data_no)
-    data_wc_slice = module_copy.deepcopy(data_wc)
-        
-    reducer1 = sum("composition_bc", above = composition_lower[i], below = composition_upper[i])
-    reducers = [reducer1]
-    data_no_slice.reduce(reducers)
-    data_wc_slice.reduce(reducers)
+time_filename_list_wc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
+time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 
-    g.plot(graph.data.points(data_no_slice.data_center_list(strip_zero = True),
-			   x = 1, y = 2,
-                           title = "%d--%d\\%%" % (composition_lower[i], composition_upper[i])),
-	   styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.thick])])
+for with_coag in [True, False]:
+    if with_coag:
+        filename = file_filename_at_time(time_filename_list_wc,
+                                         time_hour * 3600)
+    else:
+        filename = file_filename_at_time(time_filename_list_nc,
+                                         time_hour * 3600)
+    ncf = NetCDFFile(filename)
+    particles = aero_particle_array_t(ncf)
+    ncf.close()
 
-    g.plot(graph.data.points(data_wc_slice.data_center_list(strip_zero = True),
-			   x = 1, y = 2, 
-                           title = "%d--%d\\%%" % (composition_lower[i], composition_upper[i])),
-           styles = [graph.style.line(lineattrs = [line_style_list[i],style.linewidth.THick])])
+    diameter = particles.dry_diameter() * 1e6
+    mass = particles.mass() * 1e9
+    comp_frac = particles.mass(include = ["BC"]) \
+                / particles.mass(exclude = ["H2O"]) * 100
+    x_bin = x_axis.find(diameter)
+
+    for i_frac in range(len(BC_fractions)):
+        mass_array = numpy.zeros([x_axis.n_bin])
+        for i in range(particles.n_particles):
+            if (comp_frac[i] >= BC_fractions[i_frac][0]) \
+               and (comp_frac[i] <= BC_fractions[i_frac][1]):
+                scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+                mass_array[x_bin[i]] += mass[i] / scale
+
+        plot_data = [[x_axis.center(i), mass_array[i]]
+                     for i in range(x_axis.n_bin)
+                     if mass_array[i] > 0.0]
+
+        if with_coag:
+            thickness = style.linewidth.THIck
+        else:
+            thickness = style.linewidth.Thick
+        g.plot(graph.data.points(plot_data, x = 1, y = 2),
+               styles = [graph.style.line(lineattrs = [line_style_list[i_frac],
+                                                       thickness])])
 
 g.doaxes()
 g.dodata()
@@ -100,9 +93,9 @@ cornery = 0.2 * unit.v_cm
 
 c = canvas.canvas()
 
-for i in range(len(composition_lower)):
+for i in range(len(BC_fractions)):
     p = c.text(0, - i * dy,
-               "%d--%d\\%% soot" % (composition_lower[i], composition_upper[i]),
+               "%d--%d\\%% soot" % (BC_fractions[i][0], BC_fractions[i][1]),
                [text.halign.right, text.valign.middle])
     left = p.bbox().left()
     bottom = p.bbox().bottom()
@@ -117,7 +110,7 @@ centerx = (with_text.bbox().left() + without_text.bbox().right()) / 2.0
 coag_text = c.text(centerx, yoff + coag_off,
                    "coagulation", [text.halign.center])
 
-for i in range(len(composition_lower)):
+for i in range(len(BC_fractions)):
     c.stroke(path.line(xoff - length / 2.0, - i * dy,
                        xoff + length / 2.0, - i * dy),
                        [line_style_list[i], style.linewidth.THick])
@@ -149,6 +142,6 @@ g.insert(c, [trafo.translate(transx, transy)])
 
 ######################################################################
 
-g.writePDFfile("figs/bc_mixing.pdf")
+g.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

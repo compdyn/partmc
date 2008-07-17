@@ -10,11 +10,11 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-
 from fig_helper import *
 
-y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
 out_filename = "figs/aero_2d_all.pdf"
+
+y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
 
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
@@ -35,8 +35,8 @@ def get_plot_data(filename, value_max = None):
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     show_coords = [[] for p in show_particles]
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i]) \
-                / (y_axis.grid_size(y_bin[i]) / 100)
+        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i]) \
+                * (y_axis.grid_size(y_bin[i]) / 100)
         num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
         for j in range(len(show_particles)):
             if particles.id[i] == show_particles[j]["id"]:
@@ -54,7 +54,7 @@ def get_plot_data(filename, value_max = None):
                                     x_axis, y_axis)
     return (rects, show_coords, env_state)
 
-graphs = make_4x4_graph_grid(y_axis_label)
+graphs = make_2x2_graph_grid(y_axis_label)
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0
@@ -66,6 +66,8 @@ for (graph_name, time_hour) in times_hour.iteritems():
                              color = 5),
            styles = [hsb_rect(gray_palette)])
 
+    write_time(g, env_state)
+
     g.dolayout()
     for axisname in ["x", "y"]:
         for t in g.axes[axisname].data.ticks:
@@ -75,7 +77,6 @@ for (graph_name, time_hour) in times_hour.iteritems():
     g.dodata()
     g.doaxes()
 
-    write_time(g, env_state)
     for i in range(len(show_particles)):
         if len(show_coords[i]) > 0:
             label_point(g, show_coords[i][0], show_coords[i][1],
@@ -87,7 +88,7 @@ c = graphs["c"]
 add_canvas_color_bar(c,
                      min = 0.0,
                      max = max_val,
-                     title = r"normalized number density (1)",
+                     title = r"normalized number density $\hat{n}_{\rm BC,dry}(f,D)$ (1)",
                      palette = gray_palette)
 
 c.writePDFfile(out_filename)

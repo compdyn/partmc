@@ -27,11 +27,11 @@ g = graph.graphxy(
 		       max = x_axis.max,
 		       title = r"dry diameter ($\rm \mu m$)",
 		       painter = major_grid_painter),
-    y = graph.axis.log(min = 1e5,
-                       max = 1e8,
+    y = graph.axis.log(min = 1e7,
+                       max = 1e11,
                        title = r"number density ($\rm m^{-3}$)",
 		       painter = major_grid_painter),
-    key = graph.key.key(pos = "br"))
+    key = graph.key.key(pos = None, hpos = 0.6, vpos = 0))
 
 time_filename_list_wc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
@@ -52,7 +52,7 @@ for t in range(len(times_hour)):
 
     num_den_array = numpy.zeros([x_axis.n_bin])
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i])
+        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
         num_den_array[x_bin[i]] += 1.0 / scale
 
     plot_data = [[x_axis.center(i), num_den_array[i]]

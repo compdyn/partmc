@@ -10,13 +10,11 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
+from fig_helper import *
 
 out_filename = "figs/env.pdf"
 
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
-env_state_history = read_history(env_state_t, netcdf_dir, netcdf_pattern)
+env_state_history = read_history(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state_history[0][1].start_time_of_day / 60
 max_time_min = max([time for [time, env_state] in env_state_history]) / 60
 
@@ -67,11 +65,13 @@ g.plot(graph.data.points(height_plot_data, x = 1, y4 = 2),
        styles = [graph.style.line(lineattrs = [line_style_list[2],
                                                style.linewidth.THick])])
 
-label_plot_line(g, temp_plot_data, 8 * 60.0, "temperature", [0, 1],
+label_plot_line(g, temp_plot_data, 10 * 60.0, "temperature", [0, 1],
                 1 * unit.v_mm)
-label_plot_line(g, rh_plot_data, 8 * 60.0, "relative humidity", [0, 0],
+label_plot_line(g, rh_plot_data, 9.7 * 60.0, "relative humidity", [0, 0],
                 1 * unit.v_mm, yaxis = g.axes["y2"])
-label_plot_line(g, height_plot_data, 16 * 60.0, "mixing height", [0, 1],
+label_plot_line(g, height_plot_data, 15 * 60.0, "mixing height", [0, 1],
                 1 * unit.v_mm, yaxis = g.axes["y4"])
 
 g.writePDFfile(out_filename)
+print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

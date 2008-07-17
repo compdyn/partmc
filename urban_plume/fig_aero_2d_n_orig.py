@@ -13,31 +13,27 @@ from pmc_pyx import *
 from fig_helper import *
 
 time_hour = 24
-max_n_coags = 30
+max_n_coags = 20
 
 y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
 out_filename = "figs/aero_2d_n_orig.pdf"
-
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
 
 g = graph.graphxy(
     width = 6.9,
     x = graph.axis.log(min = diameter_axis_min,
                        max = diameter_axis_max,
-                       title = r'dry radius ($\rm \mu m$)',
-                       painter = grid_painter),
+                       title = r'dry radius ($\rm \mu m$)'),
     y = graph.axis.linear(min = 0,
                           max = max_n_coags,
-                          title = 'number of coagulation events',
-                          painter = grid_painter))
+                          parter = graph.axis.parter.linear(tickdists = [4, 2]),
+                          title = 'number of coagulation events'))
 
-time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 time = time_hour * 3600.0
 filename = file_filename_at_time(time_filename_list, time)
 ncf = NetCDFFile(filename)
 particles = aero_particle_array_t(ncf)
+env_state = env_state_t(ncf)
 ncf.close()
 
 diameter = particles.dry_diameter() * 1e6
@@ -49,7 +45,7 @@ x_bin = x_axis.find(diameter)
 
 num_den_array = numpy.zeros([x_axis.n_bin, max_n_coags])
 for i in range(particles.n_particles):
-    scale = particles.comp_vol[i] / x_axis.grid_size(x_bin[i])
+    scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
     n_coags = particles.n_orig_part[i] - 1
     n_coags = min(n_coags, max_n_coags - 1)
     num_den_array[x_bin[i], n_coags] += 1.0 / scale
@@ -76,15 +72,7 @@ for axisname in ["x", "y"]:
 g.dodata()
 g.doaxes()
 
-suffix = "s"
-if time_hour == 1:
-    suffix = ""
-boxed_text(g, 0.04, 0.9, "%d hour%s" % (time_hour, suffix))
-for i in range(len(show_particles)):
-    if len(show_coords[i]) > 0:
-        label_point(g, show_coords[i][0], show_coords[i][1],
-                    show_particles[i][1][0], show_particles[i][1][1],
-                    show_particles[i][2])
+write_time_inside(g, env_state)
 
 add_horiz_color_bar(g,
                     min = 0.0,

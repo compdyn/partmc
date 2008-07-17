@@ -16,19 +16,16 @@ aero_species = [
     {"species": ["NO3"], "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
     {"species": ["NH4"], "plot": "g1", "label_time": 11, "label_pos": [1, 1]},
     {"species": ["OC"], "plot": "g1", "label_time": 10, "label_pos": [0, 0]},
-    {"species": ["SO4"], "plot": "g2", "label_time": 9, "label_pos": [1, 1]},
-    {"species": ["BC"], "plot": "g2", "label_time": 8, "label_pos": [0, 0]},
+    {"species": ["SO4"], "plot": "g2", "label_time": 6, "label_pos": [1, 1]},
+    {"species": ["BC"], "plot": "g2", "label_time": 9, "label_pos": [0, 0]},
     {"species": ["ARO1", "ARO2", "ALK1", "OLE1"], "plot": "g2",
-     "label": "SOA", "label_time": 8, "label_pos": [1, 1]},
+     "label": "SOA", "label_time": 8, "label_pos": [0, 0]},
     ]
 
 out_filename = "figs/aero_time.pdf"
 
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
-time_filename_list = get_time_filename_list(netcdf_dir, netcdf_pattern)
-env_state = read_any(env_state_t, netcdf_dir, netcdf_pattern)
+time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
+env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time_min = max([time for [time, filename] in time_filename_list]) / 60
 
@@ -44,8 +41,8 @@ g2 = c.insert(graph.graphxy(
                                                = start_time_of_day_min),
                           title = "local standard time (hours:minutes)",
 			  painter = grid_painter),
-    y = graph.axis.linear(min = 0.,
-                          max = 10,
+    y = graph.axis.linear(min = 0.0,
+                          max = 8.0,
                           title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
 g1 = c.insert(graph.graphxy(
@@ -53,8 +50,8 @@ g1 = c.insert(graph.graphxy(
     ypos = g2.height + 0.5,
     x = graph.axis.linkedaxis(g2.axes["x"],
                               painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
-    y = graph.axis.linear(min = 0.,
-                          max = 30,
+    y = graph.axis.linear(min = 0.0,
+                          max = 30.0,
                           title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
 plot_data = [[] for x in aero_species]

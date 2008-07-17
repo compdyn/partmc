@@ -10,6 +10,7 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
+from fig_helper import *
 
 gas_species = [
     {"species": "O3", "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
@@ -22,11 +23,8 @@ gas_species = [
 
 out_filename = "figs/gas.pdf"
 
-netcdf_dir = "out"
-netcdf_pattern = r"urban_plume_state_0001_([0-9]{8})\.nc"
-
-gas_state_history = read_history(gas_state_t, netcdf_dir, netcdf_pattern)
-env_state = read_any(env_state_t, netcdf_dir, netcdf_pattern)
+gas_state_history = read_history(gas_state_t, netcdf_dir_wc, netcdf_pattern_wc)
+env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time_min = max([time for [time, gas_state] in gas_state_history]) / 60
 

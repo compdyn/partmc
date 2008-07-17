@@ -14,8 +14,8 @@ sleep 1
 #../src/partmc urban_plume_NOxNH3_0.5.spec
 #echo ../src/partmc urban_plume_NOxNH3_0.25.spec
 #../src/partmc urban_plume_NOxNH3_0.25.spec
-#echo ../src/partmc urban_plume_emiss_0.5.spec
-#../src/partmc urban_plume_emiss_0.5.spec
+echo ../src/partmc urban_plume_no_coag.spec
+../src/partmc urban_plume_no_coag.spec
 echo ../src/partmc urban_plume_with_coag.spec
 ../src/partmc urban_plume_with_coag.spec
 

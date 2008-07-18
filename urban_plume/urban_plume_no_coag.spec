@@ -1,6 +1,6 @@
 run_type mc                     # Monte Carlo run
-output_prefix out/urban_plume_nc # prefix of output files
-state_prefix out/urban_plume_nc_state # prefix of state files
+output_prefix out/t/urban_plume_nc # prefix of output files
+state_prefix out/t/urban_plume_nc_state # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
@@ -43,6 +43,6 @@ mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic yes                   # whether to do MOSAIC (yes/no)
+do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
 restart_name XXXX.d             # filename to restart from

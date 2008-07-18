@@ -72,6 +72,16 @@ label_plot_line(g, rh_plot_data, 9.7 * 60.0, "relative humidity", [0, 0],
 label_plot_line(g, height_plot_data, 15 * 60.0, "mixing height", [0, 1],
                 1 * unit.v_mm, yaxis = g.axes["y4"])
 
+print "min RH = %g%%" % min([v for [t,v] in rh_plot_data])
+print "max RH in night = %g%%" % max([v for [t,v] in rh_plot_data
+                                      if t > 12 * 60])
+
+i = find_nearest_time(rh_plot_data, 60)
+print "RH at %s = %g%%" \
+      % (time_of_day_string(rh_plot_data[i][0] * 60
+                            + env_state_history[0][1].start_time_of_day),
+         rh_plot_data[i][1])
+
 g.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

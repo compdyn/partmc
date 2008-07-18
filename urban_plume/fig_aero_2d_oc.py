@@ -15,7 +15,7 @@ from fig_helper import *
 
 time_hour = 24
 
-y_axis_label = r"$f_{{\rm BC},{\rm OC}}$ ($1$)"
+y_axis_label = r"$f_{{\rm BC},{\rm POM}}$ ($1$)"
 out_filename = "figs/aero_2d_oc.pdf"
 
 def get_plot_data(filename, value_max = None):

@@ -14,7 +14,7 @@ from fig_helper import *
 
 time_hour = 24
 
-BC_fractions = [[0, 2],
+bc_fractions = [[0, 2],
                 [2, 10],
                 [80, 90],
                 ]
@@ -22,7 +22,7 @@ BC_fractions = [[0, 2],
 out_filename = "figs/aero_bc_mixing.pdf"
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 70)
+                      n_bin = 20)
 
 g = graph.graphxy(
 	width = 6.8,
@@ -55,11 +55,11 @@ for with_coag in [True, False]:
                 / particles.mass(exclude = ["H2O"]) * 100
     x_bin = x_axis.find(diameter)
 
-    for i_frac in range(len(BC_fractions)):
+    for i_frac in range(len(bc_fractions)):
         mass_array = numpy.zeros([x_axis.n_bin])
         for i in range(particles.n_particles):
-            if (comp_frac[i] >= BC_fractions[i_frac][0]) \
-               and (comp_frac[i] <= BC_fractions[i_frac][1]):
+            if (comp_frac[i] >= bc_fractions[i_frac][0]) \
+               and (comp_frac[i] <= bc_fractions[i_frac][1]):
                 scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
                 mass_array[x_bin[i]] += mass[i] / scale
 
@@ -74,6 +74,28 @@ for with_coag in [True, False]:
         g.plot(graph.data.points(plot_data, x = 1, y = 2),
                styles = [graph.style.line(lineattrs = [line_style_list[i_frac],
                                                        thickness])])
+
+        diameter_limit = 0.05
+        mass_den = mass / particles.comp_vol
+        particle_select = (comp_frac >= bc_fractions[i_frac][0]) \
+                          & (comp_frac <= bc_fractions[i_frac][1]) \
+                          & (diameter < diameter_limit)
+        print ("coag = %s, BC frac %g%% to %g%%,"
+               " mass den below %g um = %g ug/m^3") \
+               % (str(with_coag), bc_fractions[i_frac][0],
+                  bc_fractions[i_frac][1], diameter_limit,
+                  (mass_den[particle_select]).sum())
+
+        diameter_limit = 0.1
+        mass_den = mass / particles.comp_vol
+        particle_select = (comp_frac >= bc_fractions[i_frac][0]) \
+                          & (comp_frac <= bc_fractions[i_frac][1]) \
+                          & (diameter > diameter_limit)
+        print ("coag = %s, BC frac %g%% to %g%%,"
+               " mass den above %g um = %g ug/m^3") \
+               % (str(with_coag), bc_fractions[i_frac][0],
+                  bc_fractions[i_frac][1], diameter_limit,
+                  (mass_den[particle_select]).sum())
 
 g.doaxes()
 g.dodata()
@@ -93,9 +115,9 @@ cornery = 0.2 * unit.v_cm
 
 c = canvas.canvas()
 
-for i in range(len(BC_fractions)):
+for i in range(len(bc_fractions)):
     p = c.text(0, - i * dy,
-               "%d--%d\\%% soot" % (BC_fractions[i][0], BC_fractions[i][1]),
+               "%d--%d\\%% soot" % (bc_fractions[i][0], bc_fractions[i][1]),
                [text.halign.right, text.valign.middle])
     left = p.bbox().left()
     bottom = p.bbox().bottom()
@@ -110,7 +132,7 @@ centerx = (with_text.bbox().left() + without_text.bbox().right()) / 2.0
 coag_text = c.text(centerx, yoff + coag_off,
                    "coagulation", [text.halign.center])
 
-for i in range(len(BC_fractions)):
+for i in range(len(bc_fractions)):
     c.stroke(path.line(xoff - length / 2.0, - i * dy,
                        xoff + length / 2.0, - i * dy),
                        [line_style_list[i], style.linewidth.THick])

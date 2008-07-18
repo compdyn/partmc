@@ -81,8 +81,12 @@ for i in range(len(show_particles)):
                    styles = [graph.style.line(lineattrs
                                               = [line_style_list[s],
                                                  style.linewidth.THick])])
-        #label_plot_line(g, plot_data[s], 18 * 60.0,
-        #            label, [0, 1], 1 * unit.v_mm)
+
+    min_time_min = min([plot_data[s][0][0] for s in range(len(aero_species))])
+    print "%s emitted at %s LST" \
+          % (show_particles[i]["label"],
+             time_of_day_string(min_time_min * 60
+                                + env_state.start_time_of_day))
 
     g.doaxes()
     g.dodata()

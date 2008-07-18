@@ -77,6 +77,13 @@ for i in range(len(gas_species)):
     else:
         print "warning: only zeros for species %s" % gas_species[i]
 
+    a_data = array([v for [t,v] in plot_data])
+    j = a_data.argmax()
+    print "%s max = %g ppb at %s LST" \
+          % (gas_species[i]["species"], plot_data[j][1],
+             time_of_day_string(plot_data[j][0] * 60
+                                + env_state.start_time_of_day))
+
 c.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
 print "figure width = %.1f cm" % unit.tocm(c.bbox().width())

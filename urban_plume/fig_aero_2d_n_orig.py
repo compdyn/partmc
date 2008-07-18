@@ -50,6 +50,19 @@ for i in range(particles.n_particles):
     n_coags = min(n_coags, max_n_coags - 1)
     num_den_array[x_bin[i], n_coags] += 1.0 / scale
 
+n_coags = particles.n_orig_part - 1
+lower_n_coag = 5
+print "%g%% particles have at least %d coagulation events" \
+      % (len(n_coags[n_coags >= lower_n_coag]) / float(len(n_coags)) * 100,
+         lower_n_coag)
+print "max coagulation events = %d" % n_coags.max()
+for d in [0.1, 0.3]:
+    x_bin = x_axis.find(array([d]))[0]
+    n_coag_list = [c for c in range(max_n_coags)
+                   if num_den_array[x_bin, c] > 0]
+    print "diameter %g um, num coags from %d to %d" \
+          % (d, min(n_coag_list), max(n_coag_list))
+
 value = num_den_array
 value_max = value.max()
 if value_max > 0.0:

@@ -56,8 +56,10 @@ def get_plot_data(filename, value_max = None):
             if particles.id[i] == show_particles[j]["id"]:
                 show_coords[j] = [diameter[i], comp_frac[i]]
 
-    print "%s water = %g%% to %g%%" \
-          % (filename,
+    print "%g hours, %s LST, water = %g%% to %g%%" \
+          % (env_state.elapsed_time / 3600,
+             time_of_day_string(env_state.elapsed_time
+                                + env_state.start_time_of_day),
              water_frac_array[water_frac_array > 0.0].min(),
              water_frac_array.max())
 

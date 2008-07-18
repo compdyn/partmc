@@ -54,13 +54,61 @@ g1 = c.insert(graph.graphxy(
                           max = 30.0,
                           title = r"mass density ($\rm \mu g \, m^{-3}$)",
 			  painter = grid_painter)))
+
 plot_data = [[] for x in aero_species]
 max_comp_vol = None
 min_comp_vol = None
+max_n_particles = None
+min_n_particles = None
+found_dry_diesel = False
+found_water_transition = False
+found_dry_diesel_with_nitrate = False
 for [time, filename] in time_filename_list:
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
+    env_state = env_state_t(ncf)
     ncf.close()
+
+    bc_oc_frac = particles.mass(include = ["BC"]) \
+                 / particles.mass(include = ["BC", "OC"]) * 100
+    water_frac = particles.mass(include = ["H2O"]) \
+                 / particles.mass() * 100
+    nitrate_frac = particles.mass(include = ["NO3"]) \
+                   / particles.mass(exclude = ["H2O"]) * 100
+    soot_water_frac = water_frac[bc_oc_frac > 2]
+    wet_soot_water_frac = soot_water_frac[soot_water_frac > 0.0]
+    if len(soot_water_frac) > 0:
+        fraction_wet_soot = len(wet_soot_water_frac) \
+                            / float(len(soot_water_frac)) * 100
+        if not found_water_transition:
+            if (time > 6 * 3600) and (fraction_wet_soot > 50):
+                found_water_transition = True
+                print ("Water transition after %g seconds (at %s LST)"
+                       " with RH = %g%%") \
+                       % (env_state.elapsed_time,
+                          time_of_day_string(env_state.elapsed_time
+                                             + env_state.start_time_of_day),
+                          env_state.relative_humidity * 100)
+    if not found_dry_diesel_with_nitrate:
+        if ((bc_oc_frac > 80) & (water_frac == 0.0) \
+            & (nitrate_frac > 0.0) & (particles.n_orig_part == 1)).any():
+            found_dry_diesel_with_nitrate = True
+            print ("First dry diesel particle with nitrate after %g seconds"
+                   " (at %s LST) with RH = %g%%") \
+                   % (env_state.elapsed_time,
+                      time_of_day_string(env_state.elapsed_time
+                                         + env_state.start_time_of_day),
+                      env_state.relative_humidity * 100)
+    if not found_dry_diesel:
+        if ((bc_oc_frac > 80) & (water_frac == 0.0)).any():
+            found_dry_diesel = True
+            print ("First dry diesel particle after %g seconds (at %s LST)"
+                   " with RH = %g%%") \
+                   % (env_state.elapsed_time,
+                      time_of_day_string(env_state.elapsed_time
+                                         + env_state.start_time_of_day),
+                      env_state.relative_humidity * 100)
+    
     for i in range(len(aero_species)):
         masses = particles.mass(include = aero_species[i]["species"])
         mass_den = (masses / particles.comp_vol).sum()
@@ -73,9 +121,19 @@ for [time, filename] in time_filename_list:
         min_comp_vol = particles.comp_vol.min()
     else:
         min_comp_vol = min(min_comp_vol, particles.comp_vol.min())
+    if max_n_particles == None:
+        max_n_particles = particles.n_particles
+    else:
+        max_n_particles = max(max_n_particles, particles.n_particles)
+    if min_n_particles == None:
+        min_n_particles = particles.n_particles
+    else:
+        min_n_particles = min(min_n_particles, particles.n_particles)
 
 print "max comp_vol = %g cm^3" % (max_comp_vol * 1e6)
 print "min comp_vol = %g cm^3" % (min_comp_vol * 1e6)
+print "max n_particles = %d" % max_n_particles
+print "min n_particles = %d" % min_n_particles
 
 graphs = {"g1": g1, "g2": g2}
 line_counts = {"g1": 0, "g2": 0}
@@ -90,10 +148,20 @@ for i in range(len(aero_species)):
     line_counts[graph_name] += 1
     if "label" in aero_species[i].keys():
         label = aero_species[i]["label"]
+        print_label = aero_species[i]["label"]
     else:
         label = tex_species(aero_species[i]["species"][0])
+        print_label = aero_species[i]["species"][0]
     label_plot_line(g, plot_data[i], aero_species[i]["label_time"] * 60.0,
                     label, aero_species[i]["label_pos"], 1 * unit.v_mm)
+
+    a_data = array([v for [t,v] in plot_data[i]])
+    j = a_data.argmax()
+    print "%s max = %g ug/m^3 at %s LST, initial = %g ug/m^3" \
+          % (print_label, plot_data[i][j][1],
+             time_of_day_string(plot_data[i][j][0] * 60
+                                + env_state.start_time_of_day),
+             plot_data[i][0][1])
 
 c.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(c.bbox().height())

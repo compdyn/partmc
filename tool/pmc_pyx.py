@@ -3,7 +3,7 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys
+import os, sys, math
 sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 import pyx.bbox as bbox
@@ -361,12 +361,18 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
     gc.dodata()
     gc.doaxes()
     if extra_box_value != None:
+        box_left = xpos
+        box_bottom = ypos - 2 * bar_width
         box_fill_attributes = [palette.getcolor(extra_box_value)]
-        if extra_box_pattern != None:
-            box_fill_attributes.append(extra_box_pattern)
-        c.draw(path.rect(xpos, ypos - 2 * bar_width, bar_width, bar_width),
-               [deco.stroked([color.rgb.black]),
-                deco.filled(box_fill_attributes)])
+        if extra_box_pattern == True:
+            draw_hash(c, box_left, box_bottom,
+                      box_left + bar_width, box_bottom + bar_width)
+            c.draw(path.rect(box_left, box_bottom, bar_width, bar_width),
+                   [deco.stroked([color.rgb.black])])
+        else:
+            c.draw(path.rect(box_left, box_bottom, bar_width, bar_width),
+                   [deco.stroked([color.rgb.black]),
+                    deco.filled(box_fill_attributes)])
         if extra_box_label != None:
             c.text(xpos + bar_width + 0.3, ypos - 1.5 * bar_width,
                    extra_box_label, [text.halign.left, text.valign.middle])
@@ -555,3 +561,32 @@ def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
     label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset
     g.text(label_vx, label_vy, label, [text.halign(label_pos_h, label_pos_h),
                                        text.valign(label_pos_v)])
+
+def draw_hash_background(g, **xargs):
+    (x_left, y_bottom) = g.vpos(0, 0)
+    (x_right, y_top) = g.vpos(1, 1)
+    draw_hash(g, x_left, y_bottom, x_right, y_top, **xargs)
+
+def draw_hash(g, x_left, y_bottom, x_right, y_top,
+              line_width = style.linewidth.normal,
+              line_spacing = 1.5 * unit.t_mm):
+    x_size = x_right - x_left
+    y_size = y_top - y_bottom
+    total_size = x_size + y_size
+    if not isinstance(total_size, unit.length):
+        total_size = unit.length(total_size)
+    n_steps = int(math.ceil(total_size / line_spacing))
+    for i in range(n_steps):
+        x0 = 0
+        y0 = i * line_spacing
+        x1 = i * line_spacing
+        y1 = 0
+        if y0 > y_size:
+            x0 = y0 - y_size
+            y0 = y_size
+        if x1 > x_size:
+            y1 = x1 - x_size
+            x1 = x_size
+        g.stroke(path.line(x_left + x0, y_bottom + y0,
+                           x_left + x1, y_bottom + y1),
+                 [line_width, color.gray.black])

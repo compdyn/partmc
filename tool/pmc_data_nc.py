@@ -596,23 +596,27 @@ class pmc_log_axis:
                         * (log(self.max) - log(self.min))
                         + log(self.min))
 
-def pmc_histogram_2d(array, x_axis, y_axis, mask = None):
+def pmc_histogram_2d(array, x_axis, y_axis, mask = None, inv_mask = None):
     data = []
     for i in range(x_axis.n_bin):
         for j in range(y_axis.n_bin):
-            if ((mask == None) and (array[i,j] > 0.0)) \
-                   or ((mask != None) and (mask[i,j] == 1)):
+            if ((mask == None) and (inv_mask == None) and (array[i,j] > 0.0)) \
+                   or ((mask != None) and (mask[i,j] != 0)) \
+                   or ((inv_mask != None) and (inv_mask[i,j] == 0)):
                 data.append([x_axis.edge(i), x_axis.edge(i + 1),
                              y_axis.edge(j), y_axis.edge(j + 1),
                              array[i,j]])
     return data
 
-def pmc_histogram_2d_multi(array_list, x_axis, y_axis, mask = None):
+def pmc_histogram_2d_multi(array_list, x_axis, y_axis, mask = None,
+                           inv_mask = None):
     data = []
     for i in range(x_axis.n_bin):
         for j in range(y_axis.n_bin):
-            if ((mask == None) and (array_list[0][i,j] > 0.0)) \
-                   or ((mask != None) and (mask[i,j] == 1)):
+            if ((mask == None) and (inv_mask == None)
+                and (array_list[0][i,j] > 0.0)) \
+                or ((mask != None) and (mask[i,j] != 0)) \
+                or ((inv_mask != None) and (inv_mask[i,j] == 0)):
                 data_item = [x_axis.edge(i), x_axis.edge(i + 1),
                              y_axis.edge(j), y_axis.edge(j + 1)]
                 for array in array_list:

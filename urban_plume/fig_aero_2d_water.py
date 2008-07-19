@@ -76,23 +76,28 @@ def get_plot_data(filename, value_max = None):
                                        mask = value_mask)
     dry_rects = pmc_histogram_2d_multi([ones_like(dry_array)],
                                        x_axis, y_axis, mask = dry_array)
-    return (wet_rects, dry_rects, dry_array, show_coords, env_state)
+    white_rects = pmc_histogram_2d_multi([zeros_like(dry_array)],
+                                         x_axis, y_axis, inv_mask = dry_array)
+    return (wet_rects, dry_rects, dry_array, show_coords, env_state,
+            white_rects)
 
 graphs = make_2x2_graph_grid(y_axis_label)
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for (graph_name, time_hour) in times_hour.iteritems():
     time = time_hour * 3600.0
     filename = file_filename_at_time(time_filename_list, time)
-    (wet_rects, dry_rects, dry_mask_array, show_coords, env_state) \
-                = get_plot_data(filename, max_val)
+    (wet_rects, dry_rects, dry_mask_array, show_coords, env_state,
+     white_rects) = get_plot_data(filename, max_val)
     g = graphs[graph_name]
     if len(dry_rects) > 0:
-        g.plot(graph.data.points(dry_rects,
-                                 xmin = 1, xmax = 2, ymin = 3, ymax = 4,
-                                 color = 5),
-               styles = [hsb_rect(gray_palette,
-                                  fill_pattern = fill_pattern,
-                                  do_stroke = False)])
+        draw_hash_background(g)
+        for [xmin, xmax, ymin, ymax, value] in white_rects:
+            (x0, y0) = g.pos(xmin, ymin)
+            (x1, y1) = g.pos(xmax, ymax)
+            g.draw(path.rect(x0, y0, x1 - x0, y1 - y0),
+                   [deco.stroked([color.rgb.white]),
+                    deco.filled([color.rgb.white])])
+        
     g.plot(graph.data.points(wet_rects,
                              xmin = 1, xmax = 2, ymin = 3, ymax = 4,
                              color = 5),
@@ -104,6 +109,7 @@ for (graph_name, time_hour) in times_hour.iteritems():
             if t.ticklevel is not None:
                 g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
                          [style.linestyle.dotted])
+
     g.dodata()
     g.doaxes()
 
@@ -124,7 +130,7 @@ add_canvas_color_bar(c,
                      texter = graph.axis.texter.decimal(suffix = r"\%"),
                      palette = gray_palette,
                      extra_box_value = 0.0,
-                     extra_box_pattern = fill_pattern,
+                     extra_box_pattern = True,
                      extra_box_label = "dry")
 
 c.writePDFfile(out_filename)

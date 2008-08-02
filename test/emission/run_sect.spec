@@ -3,10 +3,10 @@ output_prefix out/emission_sect # prefix of output files
 process_spec process.dat        # processing specification
 kernel sedi                     # coagulation kernel
 
-t_max 600                       # total simulation time (s)
-del_t 5                         # timestep (s)
-t_output 10                     # output interval (0 disables) (s)
-t_progress 60                   # progress printing interval (0 disables) (s)
+t_max 86400                     # total simulation time (s)
+del_t 60                        # timestep (s)
+t_output 60                     # output interval (0 disables) (s)
+t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)

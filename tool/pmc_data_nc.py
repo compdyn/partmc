@@ -569,7 +569,7 @@ class pmc_log_axis:
         self.max = self.max * factor
 
     def grid_size(self, index):
-        return (log(self.max) - log(self.min)) / float(self.n_bin)
+        return (log10(self.max) - log10(self.min)) / float(self.n_bin)
 
     def find(self, value):
         indices = ((log(value) - log(self.min)) * self.n_bin
@@ -845,6 +845,9 @@ def get_time_filename_list(dir, file_pattern):
                                        netcdf_filename])
             ncf.close()
     time_filename_list.sort()
+    if len(time_filename_list) == 0:
+        raise Exception("No files found in %s matching %s"
+                        % (dir, file_pattern))
     return time_filename_list
 
 def find_nearest_time(time_indexed_data, search_time):

@@ -3,8 +3,8 @@ output_prefix out/emission_exact # prefix of output files
 process_spec process.dat        # processing specification
 num_den 1e9                     # particle number density (#/m^3)
 
-t_max 600                       # total simulation time (s)
-t_output 10                     # output interval (0 disables) (s)
+t_max 86400                     # total simulation time (s)
+t_output 60                     # output interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)

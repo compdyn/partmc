@@ -13,7 +13,7 @@ from pmc_pyx import *
 import numpy
 from fig_helper import *
 
-early_time = 3 # hours elapsed
+early_time = 1 # hours elapsed
 late_time = 24 # hours elapsed
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)

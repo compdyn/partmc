@@ -32,11 +32,11 @@ grid_h_space = 0.5
 grid_graph_width = 6.3
 
 show_particles = [
-    {"id": 10904, "suffix": "1", "label": "P1",
+    {"id": 100668, "suffix": "1", "label": "P1",
      "label pos": [0.9, 0.4], "box label": "particle P1"},
-    {"id": 19845, "suffix": "2", "label": "P2",
+    {"id": 193755, "suffix": "2", "label": "P2",
      "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 54962, "suffix": "3", "label": "P3",
+    {"id": 543565, "suffix": "3", "label": "P3",
      "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
@@ -47,7 +47,7 @@ def make_2x2_graph_grid(y_axis_label):
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = r'dry diameter ($\mu$m)'),
-        y = graph.axis.linear(min = 0,
+        y = graph.axis.linear(min = -10,
                               max = 100,
                               title = y_axis_label,
                               texter = graph.axis.texter.decimal(suffix
@@ -56,7 +56,7 @@ def make_2x2_graph_grid(y_axis_label):
         width = grid_graph_width,
         ypos = g21.height + grid_v_space,
         x = graph.axis.linkedaxis(g21.axes["x"]),
-        y = graph.axis.linear(min = 0,
+        y = graph.axis.linear(min = -10,
                               max = 100,
                               title = y_axis_label,
                               texter = graph.axis.texter.decimal(suffix

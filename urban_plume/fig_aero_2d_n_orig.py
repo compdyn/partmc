@@ -23,8 +23,8 @@ g = graph.graphxy(
     x = graph.axis.log(min = diameter_axis_min,
                        max = diameter_axis_max,
                        title = r'dry radius ($\rm \mu m$)'),
-    y = graph.axis.linear(min = 0,
-                          max = max_n_coags,
+    y = graph.axis.linear(min = -0.5,
+                          max = max_n_coags + 0.5,
                           parter = graph.axis.parter.linear(tickdists = [4, 2]),
                           title = 'number of coagulation events'))
 
@@ -40,14 +40,15 @@ diameter = particles.dry_diameter() * 1e6
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                       n_bin = 70)
-y_axis = pmc_linear_axis(min = 0, max = max_n_coags, n_bin = max_n_coags)
+y_axis = pmc_linear_axis(min = -0.5, max = max_n_coags + 0.5,
+                         n_bin = max_n_coags + 1)
 x_bin = x_axis.find(diameter)
 
-num_den_array = numpy.zeros([x_axis.n_bin, max_n_coags])
+num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
 for i in range(particles.n_particles):
     scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
     n_coags = particles.n_orig_part[i] - 1
-    n_coags = min(n_coags, max_n_coags - 1)
+    n_coags = min(n_coags, max_n_coags)
     num_den_array[x_bin[i], n_coags] += 1.0 / scale
 
 n_coags = particles.n_orig_part - 1

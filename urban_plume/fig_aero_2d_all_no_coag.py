@@ -29,6 +29,8 @@ def get_plot_data(filename, value_max = None):
                           n_bin = 70)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     x_bin = x_axis.find(diameter)
+    # hack to avoid landing just around the integer boundaries
+    comp_frac *= (1.0 + 1e-12)
     y_bin = y_axis.find(comp_frac)
 
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])

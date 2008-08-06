@@ -15,6 +15,7 @@ from fig_helper import *
 times_hour = [1, 6, 24, 24]
 with_coag = [True, True, True, False]
 line_style_order = [2, 1, 0, 0]
+print_diams = [0.03, 0.05, 0.07, 0.10]
 
 out_filename = "figs/aero_num_dist.pdf"
 
@@ -72,6 +73,10 @@ for t in range(len(times_hour)):
            styles = [graph.style.line(lineattrs
                                       = [line_style_list[line_style_order[t]],
                                          thickness])])
+    for d in print_diams:
+        x_bin = x_axis.find([d])[0]
+        print "time = %g hours, coag = %s, n(%g) = %g m^{-3}" \
+              % (times_hour[t], str(with_coag[t]), d, num_den_array[x_bin])
 
 g.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

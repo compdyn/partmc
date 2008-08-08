@@ -101,14 +101,13 @@ contains
     RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
     te = env_state%temp                            ! temperature (K)
     pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
-    
-    call init_data_modules                   ! initialize indices and vars
-    call LoadPeroxyParameters                ! Aperox and Bperox only once
-    
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
+    call init_data_modules                   ! initialize indices and vars
+    call LoadPeroxyParameters                ! Aperox and Bperox only once
+    
     ! get unit for aerosol optical output
     if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()
 
@@ -145,7 +144,7 @@ contains
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         ppb, msolar, naerbin
+         cair_molm3, ppb, avogad, msolar, naerbin
 #endif
     
     !> Bin grid.
@@ -217,6 +216,9 @@ contains
     RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
     te = env_state%temp                            ! temperature (K)
     pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
+    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    ppb = 1d9
     
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
@@ -272,7 +274,7 @@ contains
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         ppb, msolar
+         cair_molm3, ppb, avogad, msolar
 #endif
     
     !> Bin grid.
@@ -307,6 +309,9 @@ contains
     env_state%rel_humid = RH / 100d0
     env_state%temp = te
     env_state%pressure = pr_atm * const%air_std_press
+    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    ppb = 1d9
 
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number

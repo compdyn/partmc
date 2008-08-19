@@ -92,9 +92,20 @@ for i in range(len(plots)):
 
 for i in range(len(plots)):
     if (plots[i]["mass"] == False):
-        print "total number, coag = %s, max = %g, final = %g m^{-3}" \
-              % (str(plots[i]["coag"]), max([v for [t, v] in plot_data[i]]),
-                 plot_data[i][-1][1])
+        peak_val = max([v for [t, v] in plot_data[i]])
+        final_val = plot_data[i][-1][1]
+        print "total number, coag = %s, peak = %g, final = %g m^{-3}" \
+              % (str(plots[i]["coag"]), peak_val, final_val)
+        if plots[i]["coag"] == False:
+            base_peak = peak_val
+            base_final = final_val
+        else:
+            new_peak = peak_val
+            new_final = final_val
+print "total number, peak_val decrease from no-coag to with-coag = %g%%" \
+      % ((base_peak - new_peak) / base_peak * 100)
+print "total number, final_val decrease from no-coag to with-coag = %g%%" \
+      % ((base_final - new_final) / base_final * 100)
 
 g.writePDFfile(out_filename)
 print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

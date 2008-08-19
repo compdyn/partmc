@@ -18,6 +18,12 @@ bc_fractions = [[0, 2],
                 [2, 10],
                 [80, 90],
                 ]
+small_diameter_limit = 0.05
+large_diameter_limit = 0.1
+base_small = []
+base_large = []
+new_small = []
+new_large = []
 
 out_filename = "figs/aero_bc_mixing.pdf"
 
@@ -75,27 +81,48 @@ for with_coag in [True, False]:
                styles = [graph.style.line(lineattrs = [line_style_list[i_frac],
                                                        thickness])])
 
-        diameter_limit = 0.05
         mass_den = mass / particles.comp_vol
         particle_select = (comp_frac >= bc_fractions[i_frac][0]) \
                           & (comp_frac <= bc_fractions[i_frac][1]) \
-                          & (diameter < diameter_limit)
+                          & (diameter < small_diameter_limit)
+        val = (mass_den[particle_select]).sum()
         print ("coag = %s, BC frac %g%% to %g%%,"
                " mass den below %g um = %g ug/m^3") \
                % (str(with_coag), bc_fractions[i_frac][0],
-                  bc_fractions[i_frac][1], diameter_limit,
-                  (mass_den[particle_select]).sum())
+                  bc_fractions[i_frac][1], small_diameter_limit, val)
+        if with_coag:
+            new_small.append(val)
+        else:
+            base_small.append(val)
 
-        diameter_limit = 0.1
         mass_den = mass / particles.comp_vol
         particle_select = (comp_frac >= bc_fractions[i_frac][0]) \
                           & (comp_frac <= bc_fractions[i_frac][1]) \
-                          & (diameter > diameter_limit)
+                          & (diameter > large_diameter_limit)
+        val = (mass_den[particle_select]).sum()
         print ("coag = %s, BC frac %g%% to %g%%,"
                " mass den above %g um = %g ug/m^3") \
                % (str(with_coag), bc_fractions[i_frac][0],
-                  bc_fractions[i_frac][1], diameter_limit,
-                  (mass_den[particle_select]).sum())
+                  bc_fractions[i_frac][1], large_diameter_limit, val)
+        if with_coag:
+            new_large.append(val)
+        else:
+            base_large.append(val)
+
+if (len(base_small) != len(bc_fractions)) \
+   or (len(base_large) != len(bc_fractions)) \
+   or (len(new_small) != len(bc_fractions)) \
+   or (len(new_large) != len(bc_fractions)):
+    print "ERROR: problem computing base/new_large/small"
+for i in range(len(bc_fractions)):
+    print ("BC frac %g%% to %g%%, decrease in mass den below %g um"
+           " from no-coag to with-coag = %g%%") \
+           % (bc_fractions[i][0], bc_fractions[i][1], small_diameter_limit,
+              (base_small[i] - new_small[i]) / base_small[i] * 100)
+    print ("BC frac %g%% to %g%%, decrease in mass den above %g um"
+           " from no-coag to with-coag = %g%%") \
+           % (bc_fractions[i][0], bc_fractions[i][1], large_diameter_limit,
+              (base_large[i] - new_large[i]) / base_large[i] * 100)
 
 g.doaxes()
 g.dodata()

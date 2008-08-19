@@ -47,7 +47,7 @@ def make_2x2_graph_grid(y_axis_label):
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = r'dry diameter ($\mu$m)'),
-        y = graph.axis.linear(min = -10,
+        y = graph.axis.linear(min = 0,
                               max = 100,
                               title = y_axis_label,
                               texter = graph.axis.texter.decimal(suffix
@@ -56,7 +56,7 @@ def make_2x2_graph_grid(y_axis_label):
         width = grid_graph_width,
         ypos = g21.height + grid_v_space,
         x = graph.axis.linkedaxis(g21.axes["x"]),
-        y = graph.axis.linear(min = -10,
+        y = graph.axis.linear(min = 0,
                               max = 100,
                               title = y_axis_label,
                               texter = graph.axis.texter.decimal(suffix

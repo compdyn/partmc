@@ -188,7 +188,7 @@ def label_point(g, x, y, label_xv, label_yv, label, radius = 1 * unit.t_mm):
     x_off = width / 2.0 + radius
     y_off = height / 2.0 + radius
     g.stroke(path.line(label_x_g, label_y_g, x_g, y_g),
-             [color.gray.white, style.linewidth.THIck])
+             [color.gray.white, style.linewidth.THIck, style.linecap.round])
     g.stroke(path.line(label_x_g, label_y_g, x_g, y_g))
     g.draw(path_rounded_rect(label_x_g - x_off, label_y_g - y_off,
                              label_x_g + x_off, label_y_g + y_off, radius),

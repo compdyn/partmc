@@ -54,7 +54,7 @@ graphs[0] = c.insert(graph.graphxy(
     width = 6.4,
     x = graph.axis.linear(min = 0,
                           max = max_time_min,
-                          title = r'time (LST)',
+                          title = r'local standard time (hours:minutes)',
                           parter = graph.axis.parter.linear(tickdists
                                                             = [6 * 60,
                                                                3 * 60]),

@@ -30,7 +30,7 @@ vol_labels = [
     ]
               
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 30)
+                      n_bin = num_diameter_bins)
 
 times_sec = [t * 3600 for t in times_hour]
 

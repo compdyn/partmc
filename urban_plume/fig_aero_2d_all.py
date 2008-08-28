@@ -27,7 +27,7 @@ def get_plot_data(filename, value_max = None):
                 / particles.mass(exclude = ["H2O"]) * 100
 
     x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                          n_bin = 70)
+                          n_bin = num_diameter_bins)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     x_bin = x_axis.find(diameter)
     # hack to avoid landing just around the integer boundaries

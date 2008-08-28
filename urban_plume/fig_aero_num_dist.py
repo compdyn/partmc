@@ -31,7 +31,7 @@ eval_change_time = 24
 out_filename = "figs/aero_num_dist.pdf"
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 70)
+                      n_bin = num_diameter_bins)
 
 g = graph.graphxy(
     width = 6.8,

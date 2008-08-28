@@ -28,7 +28,7 @@ new_large = []
 out_filename = "figs/aero_bc_mixing.pdf"
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 20)
+                      n_bin = num_diameter_bins)
 
 g = graph.graphxy(
 	width = 6.8,

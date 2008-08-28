@@ -1,4 +1,6 @@
 
+Add entrainment switch.
+
 Fix binned output with n_coag for grid_centers and grid_edges. While
 for plotting a 2d plot it's good to have grid_edges be integers, it's
 also pretty amiguous, and messes up things like sum_above("n_coag", 4)

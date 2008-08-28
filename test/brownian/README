@@ -6,7 +6,7 @@ The initial condition is a single species of particle with two overlapping
 lognormal distributions and the simulation using the brownian
 kernel. No analytical solution is known for this case, so a sectional
 code is used as verification. By default this testcase uses 10^5
-particles, performing 1 Monte Carlo simulation
+particles, performing one Monte Carlo simulation
 
 This test-case demonstrates the use of the sectional model and
 comparison of sectional runs with Monte Carlo runs.

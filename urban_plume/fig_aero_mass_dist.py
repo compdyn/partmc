@@ -19,7 +19,7 @@ line_style_order = [2, 1, 0, 0]
 out_filename = "figs/aero_mass_dist.pdf"
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 70)
+                      n_bin = num_diameter_bins)
 
 c = canvas.canvas()
 
@@ -63,7 +63,7 @@ for t in range(len(times_hour)):
     so4_mass = particles.mass(include = ["SO4"]) * 1e9
     bc_mass = particles.mass(include = ["BC"]) * 1e9
 
-    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = 70)
+    x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = num_diameter_bins)
     x_bin = x_axis.find(diameter)
 
     so4_mass_array = numpy.zeros([x_axis.n_bin])

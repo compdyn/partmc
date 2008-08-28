@@ -39,7 +39,7 @@ ncf.close()
 diameter = particles.dry_diameter() * 1e6
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = 70)
+                      n_bin = num_diameter_bins)
 y_axis = pmc_linear_axis(min = -0.5, max = max_n_coags + 0.5,
                          n_bin = max_n_coags + 1)
 x_bin = x_axis.find(diameter)

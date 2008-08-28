@@ -22,7 +22,7 @@ g = graph.graphxy(
     width = 6.9,
     x = graph.axis.log(min = diameter_axis_min,
                        max = diameter_axis_max,
-                       title = r'dry radius ($\rm \mu m$)'),
+                       title = r'dry diameter ($\rm \mu m$)'),
     y = graph.axis.linear(min = -0.5,
                           max = max_n_coags + 0.5,
                           parter = graph.axis.parter.linear(tickdists = [4, 2]),

@@ -91,18 +91,12 @@ class listpalette(color.palette):
 		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
         return self.colorclass(**colordict)
 
-#rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],  # blue
-#			       [0.2, color.rgb(0, 1, 1)],  # cyan
-#			       [0.4, color.rgb(0, 1, 0)],  # green
-#			       [0.6, color.rgb(1, 1, 0)],  # yellow
-#			       [0.8, color.rgb(1, 0, 0)],  # red
-#                               [1.0, color.rgb(1, 0, 1)]]) # magenta
-
 rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],  # blue
-                              [0.3, color.rgb(0, 1, 1)],  # cyan
-                              [0.5, color.rgb(0, 1, 0)],  # green
-                              [0.7, color.rgb(1, 1, 0)],  # yellow
-                              [1.0, color.rgb(1, 0, 0)]])  # red
+			       [0.2, color.rgb(0, 1, 1)],  # cyan
+			       [0.4, color.rgb(0, 1, 0)],  # green
+			       [0.6, color.rgb(1, 1, 0)],  # yellow
+			       [0.8, color.rgb(1, 0, 0)],  # red
+                               [1.0, color.rgb(1, 0, 1)]]) # magenta
 
 gray_palette = listpalette([[0, color.gray(0.8)],
                             [1, color.gray(0)]])
@@ -320,7 +314,7 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
                          bar_y_offset = -0.7, min_palette_index = 0.0,
                          max_palette_index = 1.0, texter = None,
                          extra_box_value = None, extra_box_label = None,
-                         extra_box_pattern = None):
+                         extra_box_pattern = None, extra_box_color = None):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -360,10 +354,13 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
     gc.dobackground()
     gc.dodata()
     gc.doaxes()
-    if extra_box_value != None:
+    if (extra_box_value != None) or (extra_box_color != None):
         box_left = xpos
         box_bottom = ypos - 2 * bar_width
-        box_fill_attributes = [palette.getcolor(extra_box_value)]
+        if extra_box_value != None:
+            box_fill_attributes = [palette.getcolor(extra_box_value)]
+        else:
+            box_fill_attributes = [extra_box_color]
         if extra_box_pattern == True:
             draw_hash(c, box_left, box_bottom,
                       box_left + bar_width, box_bottom + bar_width)

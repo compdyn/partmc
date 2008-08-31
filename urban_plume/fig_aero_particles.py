@@ -13,7 +13,7 @@ from pmc_pyx import *
 import numpy
 from fig_helper import *
 
-out_filename = "figs/aero_particles.pdf"
+out_prefix = "figs/aero_particles"
 
 aero_species = [
     {"label": "", "species": ["BC"],
@@ -46,83 +46,94 @@ def particle_by_id(particle_list, id):
             return particle
     return None
 
-c = canvas.canvas()
+for use_color in [True, False]:
+    c = canvas.canvas()
 
-graphs = {}
+    graphs = {}
 
-graphs[0] = c.insert(graph.graphxy(
-    width = 6.4,
-    x = graph.axis.linear(min = 0,
-                          max = max_time_min,
-                          title = r'local standard time (hours:minutes)',
-                          parter = graph.axis.parter.linear(tickdists
-                                                            = [6 * 60,
-                                                               3 * 60]),
-                          texter = time_of_day(base_time
-                                               = start_time_of_day_min),
-                          painter = grid_painter),
-    y = graph.axis.log(min = 1e-23,
-                       max = 1e-17,
-                       title = r"mass (kg)",
-                       painter = grid_painter)))
-
-for i in range(1, len(show_particles)):
-    if i == len(show_particles) - 1:
-        key = graph.key.key(pos = "tr", vinside = 0, columns = 4)
-        #symbolwidth = unit.v_cm)
-    else:
-        key = None
-    graphs[i] = c.insert(graph.graphxy(
+    graphs[0] = c.insert(graph.graphxy(
         width = 6.4,
-        ypos = graphs[i-1].ypos + graphs[i-1].height + 0.5,
-        x = graph.axis.linkedaxis(graphs[i-1].axes["x"],
-                                  painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+        x = graph.axis.linear(min = 0,
+                              max = max_time_min,
+                              title = r'local standard time (hours:minutes)',
+                              parter = graph.axis.parter.linear(tickdists
+                                                                = [6 * 60,
+                                                                   3 * 60]),
+                              texter = time_of_day(base_time
+                                                   = start_time_of_day_min),
+                              painter = grid_painter),
         y = graph.axis.log(min = 1e-23,
                            max = 1e-17,
                            title = r"mass (kg)",
-                           painter = grid_painter),
-        key = key))
+                           painter = grid_painter)))
 
-for i in range(len(show_particles)):
-    g = graphs[len(show_particles) - i - 1]
-
-    plot_data = [[] for s in aero_species]
-    for [time, particle_list] in particle_history:
-        particle = particle_by_id(particle_list, show_particles[i]["id"])
-        if particle == None:
-            continue
-        for s in range(len(aero_species)):
-            plot_data[s].append([time / 60,
-                                 particle.mass(include
-                                               = aero_species[s]["species"])])
-    if max([len(d) for d in plot_data]) == 0:
-        raise Exception("Particle ID not found: %d" % show_particles[i]["id"])
-
-    for s in range(len(aero_species)):
-        plot_data[s].sort()
-        plot_data[s] = [[time, value] for [time, value] in plot_data[s]
-                        if value > 0.0]
-        if aero_species[s]["label"] == "":
-            label = tex_species(aero_species[s]["species"][0])
+    for i in range(1, len(show_particles)):
+        if i == len(show_particles) - 1:
+            key = graph.key.key(pos = "tr", vinside = 0, columns = 4)
+            #symbolwidth = unit.v_cm)
         else:
-            label = aero_species[s]["label"]
-        if len(plot_data[s]) > 0:
-            g.plot(graph.data.points(plot_data[s], x = 1, y = 2, title = label),
-                   styles = [graph.style.line(lineattrs
-                                              = [aero_species[s]["style"],
-                                                 aero_species[s]["thickness"]])])
+            key = None
+        graphs[i] = c.insert(graph.graphxy(
+            width = 6.4,
+            ypos = graphs[i-1].ypos + graphs[i-1].height + 0.5,
+            x = graph.axis.linkedaxis(graphs[i-1].axes["x"],
+                                      painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+            y = graph.axis.log(min = 1e-23,
+                               max = 1e-17,
+                               title = r"mass (kg)",
+                               painter = grid_painter),
+            key = key))
 
-    min_time_min = min([plot_data[s][0][0] for s in range(len(aero_species))])
-    print "%s emitted at %s LST" \
-          % (show_particles[i]["label"],
-             time_of_day_string(min_time_min * 60
-                                + env_state.start_time_of_day))
+    for i in range(len(show_particles)):
+        g = graphs[len(show_particles) - i - 1]
 
-    g.doaxes()
-    g.dodata()
+        plot_data = [[] for s in aero_species]
+        for [time, particle_list] in particle_history:
+            particle = particle_by_id(particle_list, show_particles[i]["id"])
+            if particle == None:
+                continue
+            for s in range(len(aero_species)):
+                plot_data[s].append([time / 60,
+                                     particle.mass(include
+                                                   = aero_species[s]["species"])])
+        if max([len(d) for d in plot_data]) == 0:
+            raise Exception("Particle ID not found: %d" % show_particles[i]["id"])
 
-    write_text_inside(g, show_particles[i]["box label"])
+        for s in range(len(aero_species)):
+            plot_data[s].sort()
+            plot_data[s] = [[time, value] for [time, value] in plot_data[s]
+                            if value > 0.0]
+            if aero_species[s]["label"] == "":
+                label = tex_species(aero_species[s]["species"][0])
+            else:
+                label = aero_species[s]["label"]
+            if len(plot_data[s]) > 0:
+                if use_color:
+                    attrs = [color_list[s],
+                             style.linewidth.Thick]
+                else:
+                    attrs = [aero_species[s]["style"],
+                             aero_species[s]["thickness"]]
+                g.plot(graph.data.points(plot_data[s], x = 1, y = 2, title = label),
+                       styles = [graph.style.line(lineattrs = attrs)])
 
-c.writePDFfile(out_filename)
-print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
-print "figure width = %.1f cm" % unit.tocm(c.bbox().width())
+        min_time_min = min([plot_data[s][0][0] for s in range(len(aero_species))])
+        if not use_color:
+            print "%s emitted at %s LST" \
+                  % (show_particles[i]["label"],
+                     time_of_day_string(min_time_min * 60
+                                        + env_state.start_time_of_day))
+
+        g.doaxes()
+        g.dodata()
+
+        write_text_inside(g, show_particles[i]["box label"])
+
+    if use_color:
+        out_filename = "%s_color.pdf" % out_prefix
+    else:
+        out_filename = "%s_bw.pdf" % out_prefix
+    c.writePDFfile(out_filename)
+    if not use_color:
+        print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
+        print "figure width = %.1f cm" % unit.tocm(c.bbox().width())

@@ -12,10 +12,10 @@ from pmc_data_nc import *
 from pmc_pyx import *
 
 netcdf_dir_wc = "out"
-netcdf_pattern_wc = r"urban_plume_wc_state_0001_([0-9]{8})\.nc"
+netcdf_pattern_wc = r"urban_plume_wc_state_0001_([0-9]{6})00\.nc"
 
 netcdf_dir_nc = "out"
-netcdf_pattern_nc = r"urban_plume_nc_state_0001_([0-9]{8})\.nc"
+netcdf_pattern_nc = r"urban_plume_nc_state_0001_([0-9]{6})00\.nc"
 
 max_val = 4.0
 

@@ -14,7 +14,7 @@ from pmc_pyx import *
 from fig_helper import *
 
 y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
-out_filename = "figs/aero_2d_water.pdf"
+out_prefix = "figs/aero_2d_water"
 
 max_val = 50
 min_palette_index = 0
@@ -22,7 +22,7 @@ min_palette_index = 0
 fill_pattern = hash_pattern(n_lines = 7,
                             line_attributes = [style.linewidth.normal])
 
-def get_plot_data(filename, value_max = None):
+def get_plot_data(filename, value_max = None, print_info = True):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
     env_state = env_state_t(ncf)
@@ -58,12 +58,13 @@ def get_plot_data(filename, value_max = None):
             if particles.id[i] == show_particles[j]["id"]:
                 show_coords[j] = [diameter[i], comp_frac[i]]
 
-    print "%g hours, %s LST, water = %g%% to %g%%" \
-          % (env_state.elapsed_time / 3600,
-             time_of_day_string(env_state.elapsed_time
-                                + env_state.start_time_of_day),
-             water_frac_array[water_frac_array > 0.0].min(),
-             water_frac_array.max())
+    if print_info:
+        print "%g hours, %s LST, water = %g%% to %g%%" \
+              % (env_state.elapsed_time / 3600,
+                 time_of_day_string(env_state.elapsed_time
+                                    + env_state.start_time_of_day),
+                 water_frac_array[water_frac_array > 0.0].min(),
+                 water_frac_array.max())
 
     value = water_frac_array
     if value_max != None:
@@ -83,58 +84,87 @@ def get_plot_data(filename, value_max = None):
     return (wet_rects, dry_rects, dry_array, show_coords, env_state,
             white_rects)
 
-graphs = make_2x2_graph_grid(y_axis_label)
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
-for (graph_name, time_hour) in times_hour.iteritems():
-    time = time_hour * 3600.0
-    filename = file_filename_at_time(time_filename_list, time)
-    (wet_rects, dry_rects, dry_mask_array, show_coords, env_state,
-     white_rects) = get_plot_data(filename, max_val)
-    g = graphs[graph_name]
-    if len(dry_rects) > 0:
-        draw_hash_background(g)
-        for [xmin, xmax, ymin, ymax, value] in white_rects:
-            (x0, y0) = g.pos(xmin, ymin)
-            (x1, y1) = g.pos(xmax, ymax)
-            g.draw(path.rect(x0, y0, x1 - x0, y1 - y0),
-                   [deco.stroked([color.rgb.white]),
-                    deco.filled([color.rgb.white])])
-        
-    g.plot(graph.data.points(wet_rects,
-                             xmin = 1, xmax = 2, ymin = 3, ymax = 4,
-                             color = 5),
-           styles = [hsb_rect(gray_palette)])
+for use_color in [True, False]:
+    graphs = make_2x2_graph_grid(y_axis_label)
+    for (graph_name, time_hour) in times_hour.iteritems():
+        time = time_hour * 3600.0
+        filename = file_filename_at_time(time_filename_list, time)
+        (wet_rects, dry_rects, dry_mask_array, show_coords, env_state,
+         white_rects) = get_plot_data(filename, max_val,
+                                      print_info = not use_color)
+        g = graphs[graph_name]
+        if len(dry_rects) > 0:
+            if use_color:
+                g.plot(graph.data.points(dry_rects,
+                                         xmin = 1, xmax = 2, ymin = 3, ymax = 4,
+                                         color = 5),
+                       styles = [hsb_rect(gray_palette)])
+            else:
+                draw_hash_background(g)
+                for [xmin, xmax, ymin, ymax, value] in white_rects:
+                    (x0, y0) = g.pos(xmin, ymin)
+                    (x1, y1) = g.pos(xmax, ymax)
+                    g.draw(path.rect(x0, y0, x1 - x0, y1 - y0),
+                           [deco.stroked([color.rgb.white]),
+                            deco.filled([color.rgb.white])])
 
-    g.dolayout()
-    for axisname in ["x", "y"]:
-        for t in g.axes[axisname].data.ticks:
-            if t.ticklevel is not None:
-                g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
-                         [style.linestyle.dotted])
+        if use_color:
+            palette = rainbow_palette
+        else:
+            palette = gray_palette
+        g.plot(graph.data.points(wet_rects,
+                                 xmin = 1, xmax = 2, ymin = 3, ymax = 4,
+                                 color = 5),
+               styles = [hsb_rect(palette)])
 
-    g.dodata()
-    g.doaxes()
+        g.dolayout()
+        for axisname in ["x", "y"]:
+            for t in g.axes[axisname].data.ticks:
+                if t.ticklevel is not None:
+                    g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
+                             [style.linestyle.dotted])
 
-    write_time(g, env_state)
-    for i in range(len(show_particles)):
-        if len(show_coords[i]) > 0:
-            label_point(g, show_coords[i][0], show_coords[i][1],
-                        show_particles[i]["label pos"][0],
-                        show_particles[i]["label pos"][1],
-                        show_particles[i]["label"])
+        g.dodata()
+        g.doaxes()
 
-c = graphs["c"]
-add_canvas_color_bar(c,
-                     min = 0.0,
-                     max = max_val,
-                     min_palette_index = min_palette_index,
-                     title = r"water fraction $f_{\rm H_2O,all}$ (1)",
-                     texter = graph.axis.texter.decimal(suffix = r"\%"),
-                     palette = gray_palette,
-                     extra_box_value = 0.0,
-                     extra_box_pattern = True,
-                     extra_box_label = "dry")
+        write_time(g, env_state)
+        for i in range(len(show_particles)):
+            if len(show_coords[i]) > 0:
+                label_point(g, show_coords[i][0], show_coords[i][1],
+                            show_particles[i]["label pos"][0],
+                            show_particles[i]["label pos"][1],
+                            show_particles[i]["label"])
 
-c.writePDFfile(out_filename)
-print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
-print "figure width = %.1f cm" % unit.tocm(c.bbox().width())
+    c = graphs["c"]
+    if color:
+        add_canvas_color_bar(c,
+                             min = 0.0,
+                             max = max_val,
+                             min_palette_index = min_palette_index,
+                             title = r"water fraction $f_{\rm H_2O,all}$ (1)",
+                             texter = graph.axis.texter.decimal(suffix = r"\%"),
+                             palette = palette,
+                             extra_box_color = color.gray(0),
+                             extra_box_pattern = False,
+                             extra_box_label = "dry")
+    else:
+        add_canvas_color_bar(c,
+                             min = 0.0,
+                             max = max_val,
+                             min_palette_index = min_palette_index,
+                             title = r"water fraction $f_{\rm H_2O,all}$ (1)",
+                             texter = graph.axis.texter.decimal(suffix = r"\%"),
+                             palette = palette,
+                             extra_box_value = 0.0,
+                             extra_box_pattern = True,
+                             extra_box_label = "dry")
+
+    if use_color:
+        out_filename = "%s_color.pdf" % out_prefix
+    else:
+        out_filename = "%s_bw.pdf" % out_prefix
+    c.writePDFfile(out_filename)
+    if not use_color:
+        print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
+        print "figure width = %.1f cm" % unit.tocm(c.bbox().width())

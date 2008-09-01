@@ -110,15 +110,33 @@ def make_2x1_graph_grid(y_axis_label):
             "g11" : g11,
             "g21" : g21}
 
+def make_1x1_graph_grid(y_axis_label):
+    g = graph.graphxy(
+        width = grid_graph_width,
+        x = graph.axis.log(min = diameter_axis_min,
+                           max = diameter_axis_max,
+                           title = r'dry diameter ($\mu$m)'),
+        y = graph.axis.linear(min = 0,
+                              max = 100,
+                              title = y_axis_label,
+                              texter = graph.axis.texter.decimal(suffix
+                                                                 = r"\%")))
+    return g
+
 def write_time(g, env_state, extra_text = "", text_vpos = [0, 1],
-               anchor_point_rel = [0, 1]):
+               anchor_point_rel = [0, 1],
+               with_hours = True):
     time_lst = time_of_day_string(env_state.start_time_of_day
                                   + env_state.elapsed_time)
     time_hour = int(env_state.elapsed_time / 3600.0)
     suffix = "s"
     if time_hour == 1:
         suffix = ""
-    text = "%d hour%s (%s LST)%s" % (time_hour, suffix, time_lst, extra_text)
+    if with_hours:
+        text = "%d hour%s (%s LST)%s" \
+               % (time_hour, suffix, time_lst, extra_text)
+    else:
+        text = "%s LST%s" % (time_lst, extra_text)
     (x_g, y_g) = g.vpos(text_vpos[0], text_vpos[1])
     boxed_text_g(g, text, x_g, y_g, anchor_point_rel = anchor_point_rel)
 

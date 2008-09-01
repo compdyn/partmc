@@ -842,7 +842,8 @@ def get_time_filename_list(dir, file_pattern):
             ncf = NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)
             time_filename_list.append([env_state.elapsed_time,
-                                       netcdf_filename])
+                                       netcdf_filename,
+                                       output_key])
             ncf.close()
     time_filename_list.sort()
     if len(time_filename_list) == 0:

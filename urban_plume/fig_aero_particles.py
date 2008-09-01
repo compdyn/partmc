@@ -17,19 +17,26 @@ out_prefix = "figs/aero_particles"
 
 aero_species = [
     {"label": "", "species": ["BC"],
-     "style": style.linestyle.dashed, "thickness": style.linewidth.thick},
+     "style": style.linestyle.dashed, "thickness": style.linewidth.thick,
+     "color": color_list[0]},
     {"label": "", "species": ["OC"],
-     "style": style.linestyle.dashed, "thickness": style.linewidth.THick},
+     "style": style.linestyle.dashed, "thickness": style.linewidth.THick,
+     "color": color_list[1]},
     {"label": "", "species": ["NO3"],
-     "style": style.linestyle.solid, "thickness": style.linewidth.THick},
+     "style": style.linestyle.solid, "thickness": style.linewidth.THick,
+     "color": color_list[2]},
     {"label": "", "species": ["NH4"],
-     "style": style.linestyle.dotted, "thickness": style.linewidth.THick},
+     "style": style.linestyle.dotted, "thickness": style.linewidth.THick,
+     "color": color_list[3]},
     {"label": "", "species": ["SO4"],
-     "style": style.linestyle.dotted, "thickness": style.linewidth.thick},
+     "style": style.linestyle.dotted, "thickness": style.linewidth.thick,
+     "color": color_list[4]},
     {"label": "SOA", "species": ["ARO1", "ARO2", "ALK1", "OLE1"],
-     "style": style.linestyle.dashdotted, "thickness": style.linewidth.thick},
+     "style": style.linestyle.dashdotted, "thickness": style.linewidth.thick,
+     "color": color_list[5]},
     {"label": "", "species": ["H2O"],
-     "style": style.linestyle.solid, "thickness": style.linewidth.thick},
+     "style": style.linestyle.solid, "thickness": style.linewidth.thick,
+     "color": color.gray.black},
     ]
 
 particle_ids = [p["id"] for p in show_particles]
@@ -109,7 +116,7 @@ for use_color in [True, False]:
                 label = aero_species[s]["label"]
             if len(plot_data[s]) > 0:
                 if use_color:
-                    attrs = [color_list[s],
+                    attrs = [aero_species[s]["color"],
                              style.linewidth.Thick]
                 else:
                     attrs = [aero_species[s]["style"],

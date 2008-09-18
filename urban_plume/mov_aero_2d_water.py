@@ -98,10 +98,11 @@ for [time, filename, output_key] in time_filename_list:
                                  color = 5),
                styles = [hsb_rect(gray_palette)])
 
-    g.plot(graph.data.points(wet_rects,
-                             xmin = 1, xmax = 2, ymin = 3, ymax = 4,
-                             color = 5),
-           styles = [hsb_rect(rainbow_palette)])
+    if len(wet_rects) > 0:
+        g.plot(graph.data.points(wet_rects,
+                                 xmin = 1, xmax = 2, ymin = 3, ymax = 4,
+                                 color = 5),
+               styles = [hsb_rect(rainbow_palette)])
 
     write_time(g, env_state, with_hours = False)
 

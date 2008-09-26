@@ -714,7 +714,7 @@ class aero_particle_array_t:
                                         species_weights = species_weights)
 
     def moles(self, include = None, exclude = None):
-        species_weights = self.aero_density.molec_weight \
+        species_weights = self.aero_data.molec_weight \
                           / self.aero_data.density
         return self.sum_mass_by_species(include = include, exclude = exclude,
                                         species_weights = species_weights)
@@ -730,6 +730,23 @@ class aero_particle_array_t:
 
     def dry_diameter(self):
         return 2.0 * self.dry_radius()
+
+    def solute_kappa(self):
+        species_weights = self.aero_data.kappa \
+            / self.aero_data.density
+        solute_volume_kappa = self.sum_mass_by_species(exclude = ["H2O"],
+                                                      species_weights = species_weights)
+        solute_volume = self.volume(exclude = ["H2O"])
+        return solute_volume_kappa / solute_volume
+
+    def kappa_rh(self, env_state):
+        A = 4.0 * const.water_surf_eng * const.water_molec_weight \
+            / (const.univ_gas_const * env_state.temp * const.water_density)
+        C = sqrt(4.0 * A**3 / 27.0)
+        diam = self.diameter()
+        kappa = self.solute_kappa()
+        return C / sqrt(kappa * diam**3) + 1.0
+
 
 def time_of_day_string(time_seconds):
     time_of_day = time_seconds % (24 * 3600.0)

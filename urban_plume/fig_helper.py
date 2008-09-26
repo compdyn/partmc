@@ -19,13 +19,13 @@ netcdf_pattern_nc = r"urban_plume_nc_state_0001_([0-9]{8})\.nc"
 
 max_val = 4.0
 
-diameter_axis_min = 0.01
-diameter_axis_max = 1.0
+diameter_axis_min = 0.005
+diameter_axis_max = 2.0
 num_diameter_bins = 70
 
 times_hour = {"g11": 1,
-              "g12" : 5,
-              "g21" : 7,
+              "g12" : 6,
+              "g21" : 12,
               "g22" : 24}
 
 grid_v_space = 0.7
@@ -37,12 +37,12 @@ show_particles = [
 #     "label pos": [0.9, 0.4], "box label": "particle P1"},
 #    {"id": 195377, "suffix": "2", "label": "P2",
 #     "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 108139, "suffix": "1", "label": "P1",
-     "label pos": [0.9, 0.4], "box label": "particle P1"},
-    {"id": 192536, "suffix": "2", "label": "P2",
-     "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 549273, "suffix": "3", "label": "P3",
-     "label pos": [0.9, 0.7], "box label": "particle P3"},
+#    {"id": 108139, "suffix": "1", "label": "P1",
+#     "label pos": [0.9, 0.4], "box label": "particle P1"},
+#    {"id": 192536, "suffix": "2", "label": "P2",
+#     "label pos": [0.1, 0.5], "box label": "particle P2"},
+#    {"id": 549273, "suffix": "3", "label": "P3",
+#     "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
 def make_2x2_graph_grid(y_axis_label):

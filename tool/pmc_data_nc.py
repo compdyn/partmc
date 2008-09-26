@@ -741,7 +741,7 @@ class aero_particle_array_t:
 
     def kappa_rh(self, env_state):
         A = 4.0 * const["water_surf_eng"] * const["water_molec_weight"] \
-            / (const["univ_gas_const"] * env_state.temp \
+            / (const["univ_gas_const"] * env_state.temperature \
                * const["water_density"])
         C = sqrt(4.0 * A**3 / 27.0)
         diam = self.diameter()

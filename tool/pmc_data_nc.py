@@ -735,18 +735,18 @@ class aero_particle_array_t:
         species_weights = self.aero_data.kappa \
             / self.aero_data.density
         solute_volume_kappa = self.sum_mass_by_species(exclude = ["H2O"],
-                                                      species_weights = species_weights)
+                                                       species_weights = species_weights)
         solute_volume = self.volume(exclude = ["H2O"])
         return solute_volume_kappa / solute_volume
 
     def kappa_rh(self, env_state):
-        A = 4.0 * const.water_surf_eng * const.water_molec_weight \
-            / (const.univ_gas_const * env_state.temp * const.water_density)
+        A = 4.0 * const["water_surf_eng"] * const["water_molec_weight"] \
+            / (const["univ_gas_const"] * env_state.temp \
+               * const["water_density"])
         C = sqrt(4.0 * A**3 / 27.0)
         diam = self.diameter()
         kappa = self.solute_kappa()
         return C / sqrt(kappa * diam**3) + 1.0
-
 
 def time_of_day_string(time_seconds):
     time_of_day = time_seconds % (24 * 3600.0)
@@ -881,3 +881,29 @@ def find_nearest_time(time_indexed_data, search_time):
 def file_filename_at_time(time_filename_list, search_time):
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
+
+const = {}
+consts_file = open("../src/constants.f90")
+in_const_t = False
+found_const_t = False
+start_re = re.compile("^ *type const_t *$")
+end_re = re.compile("^ *end type const_t *$")
+const_re = re.compile("^ *real[*]8 :: ([^ ]+) = ([-0-9.]+)d([-0-9]+) *$")
+for line in consts_file:
+    if in_const_t:
+        match = const_re.search(line)
+        if match:
+            name = match.group(1)
+            mantissa = float(match.group(2))
+            exponent = float(match.group(3))
+            const[name] = mantissa * 10.0**exponent
+        if end_re.search(line):
+            in_const_t = False
+    else:
+        if start_re.search(line):
+            in_const_t = True
+            found_const_t = True
+if not found_const_t:
+    raise Exception("constants.f90 ended without finding const_t")
+if in_const_t:
+    raise Exception("constants.f90 ended without finding end of const_t")

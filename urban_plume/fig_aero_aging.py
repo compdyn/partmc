@@ -29,7 +29,10 @@ g = graph.graphxy(
                                                = start_time_of_day_min),
                           title = "local standard time (hours:minutes)",
                           painter = grid_painter),
-    y = graph.axis.linear(title = r"number fraction"))
+    y = graph.axis.linear(
+#        min = 0.2,
+#                          max = 1.,
+                          title = r"number fraction"))
 
 plot_data = []
 for [time, filename, key] in time_filename_list_wc:
@@ -43,9 +46,9 @@ for [time, filename, key] in time_filename_list_wc:
     total_num_den = num_den.sum()
     aged_num_den = 0.0
     for i in range(num_den.size):
-        if critical_ss[i] < 0.05:
+        if critical_ss[i] < 0.003:
             aged_num_den += num_den[i]
-    value = aged_num_den / total_num_den
+    value = aged_num_den
     plot_data.append([time / 60.0, value])
 
 g.plot(

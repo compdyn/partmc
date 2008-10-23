@@ -16,7 +16,6 @@ module pmc_mosaic
   use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
-  use pmc_output_state
   use pmc_util
   
 contains

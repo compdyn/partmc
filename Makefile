@@ -34,6 +34,8 @@ NETCDF_LIB = -lnetcdff -lnetcdf
 # include local overrides if Makefile.local exists
 -include Makefile.local
 
+GRAPHVIZ_FILE = doc/partmc_modules.gv
+
 PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
 	test/poisson/poisson_sample
 
@@ -88,7 +90,7 @@ ALL_DEPS = $(ALL_FILES:%=%.deps)
 
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild TAGS and .deps files
-all: README.html TAGS $(PROGS)
+all: README.html TAGS $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE)) $(PROGS)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
@@ -157,3 +159,18 @@ dist:
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
+
+$(GRAPHVIZ_FILE): $(ALL_SOURCE) tool/f90_mod_deps.py
+	echo "digraph partmc_modules {" > $@
+	echo "    rankdir = TB;" >> $@
+	tool/f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(ALL_SOURCE) >> $@
+	echo "}" >> $@
+
+%.png: %.gv
+	dot -Tpng $< > $@
+
+%.eps: %.gv
+	dot -Tps $< > $@
+
+%.pdf: %.eps
+	epstopdf $<

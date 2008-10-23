@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = PartMC
-PROJECT_NUMBER         = 1.1.0
+PROJECT_NUMBER         = 1.2.0
 OUTPUT_DIRECTORY       = doc
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -87,7 +87,10 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = src
+INPUT                  = src \
+		         test/bidisperse \
+		         test/poisson \
+			 equilib
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \
@@ -255,10 +258,10 @@ CALL_GRAPH             = NO
 CALLER_GRAPH           = NO
 GRAPHICAL_HIERARCHY    = YES
 DIRECTORY_GRAPH        = YES
-DOT_IMAGE_FORMAT       = png
-DOT_PATH               = /Applications/Doxygen.app/Contents/Resources/
-DOTFILE_DIRS           = 
-DOT_GRAPH_MAX_NODES    = 50
+DOT_IMAGE_FORMAT       = gif
+DOT_PATH               = 
+DOTFILE_DIRS           = doc
+DOT_GRAPH_MAX_NODES    = 500
 MAX_DOT_GRAPH_DEPTH    = 1000
 DOT_TRANSPARENT        = YES
 DOT_MULTI_TARGETS      = NO

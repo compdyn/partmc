@@ -1,0 +1,11 @@
+MOSAIC_MODDIR = -I$(HOME)/svn/mosaic/trunk/datamodules
+MOSAIC_LIBDIR = -L$(HOME)/svn/mosaic/trunk
+MOSAIC_LIB = -lmosaic
+MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
+
+NETCDF_MODDIR = -I/Users/mwest/opt/include
+NETCDF_LIBDIR = -L/Users/mwest/opt/lib
+NETCDF_LIB = -lnetcdf
+
+FFLAGS = -m64 -g -Jsrc -Isrc -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused $(MOSAIC_MODDIR) -fbounds-check $(MOSAIC_FLAG) $(NETCDF_MODDIR)
+LDFLAGS = -m64 $(MOSAIC_LIBDIR) $(NETCDF_LIBDIR)

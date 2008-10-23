@@ -38,7 +38,7 @@ module pmc_inout
   !!
   !! Input lines are assumed to be in the format
   !! <pre>
-  !! <name> <whitespace> <data1> <whitespace> <data2> ... # optional comment
+  !! &lt;name&gt; &lt;whitespace&gt; &lt;data1&gt; &lt;whitespace&gt; &lt;data2&gt; ... # optional comment
   !! </pre>
   !! An inout_line_t structure stores the name and data split at
   !! whitespace.

@@ -5,6 +5,10 @@
 !> \file
 !> The partmc program.
 
+!> \mainpage
+!>
+!> \dotfile partmc_modules.gv
+
 !> Top level driver.
 program partmc
 
@@ -84,7 +88,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    !> Print the usage text to stderr.
+  !> Print the usage text to stderr.
   subroutine print_usage()
 
     write(0,*) 'Usage: partmc <spec-file>'
@@ -94,7 +98,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Process a stored state file.
+  !> Process a stored state file.
   subroutine partmc_process(process_name, nc_name)
 
     !> Process.dat filename.
@@ -130,7 +134,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Process a stored state file.
+  !> Process a stored state file.
   subroutine partmc_process_state_file(ncid, state_name, process_spec_list)
 
     !> Netcdf file ID, must be open.
@@ -167,7 +171,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Do a PartMC run.
+  !> Do a PartMC run.
   subroutine partmc_run(spec_name)
     
     !> Spec filename.
@@ -208,7 +212,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Run a Monte Carlo simulation.
+  !> Run a Monte Carlo simulation.
   subroutine partmc_mc(file)
 
     !> Spec file.
@@ -437,7 +441,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Run an exact solution simulation.
+  !> Run an exact solution simulation.
   subroutine partmc_exact(file)
 
     !> Spec file.
@@ -519,7 +523,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Run a sectional code simulation.
+  !> Run a sectional code simulation.
   subroutine partmc_sect(file)
 
     !> Spec file.

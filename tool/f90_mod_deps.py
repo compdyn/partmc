@@ -134,11 +134,13 @@ def write_deps_make(outf, filename, deps, mods):
 		   % (mod, " ".join(deps)))
 
 def write_deps_graphviz(outf, filename, all_deps, has_mods):
-    outf.write("    node [shape = box, peripheries = 2];")
     for mod in all_deps.keys():
-        if not has_mods[mod]:
-            outf.write("    %s\n" % mod)
-    outf.write("    node [shape = box, peripheries = 1];")
+        if has_mods[mod]:
+            props = " peripheries = 1,"
+        else:
+            props = " peripheries = 2,"
+        outf.write(("    node [shape = box,%s"
+                    " href = \"\\ref %s.f90\"] %s\n") % (props, mod, mod))
     for mod in all_deps.keys():
         for dep in all_deps[mod]:
             outf.write("    %s -> %s\n" % (mod, dep))

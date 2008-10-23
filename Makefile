@@ -35,6 +35,8 @@ NETCDF_LIB = -lnetcdff -lnetcdf
 -include Makefile.local
 
 GRAPHVIZ_FILE = doc/partmc_modules.gv
+GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
+DOC_INDEX = doc/html/index.html
 
 PROGS := src/partmc test/bidisperse/bidisperse_ode equilib/equilib	\
 	test/poisson/poisson_sample
@@ -90,20 +92,13 @@ ALL_DEPS = $(ALL_FILES:%=%.deps)
 
 ifeq ($(DEV_BUILD),yes)
 # developers should rebuild TAGS and .deps files
-all: README.html TAGS $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE)) $(PROGS)
+all: TAGS $(PROGS)
 
 TAGS: $(ALL_SOURCE)
 	etags $(ALL_SOURCE)
 
 %.deps: %.f90 tool/f90_mod_deps.py
 	tool/f90_mod_deps.py -o $@ -d "(pmc_.*)" -D "src/\1.mod" -m "(.*)" -M "src/\1.mod" $<
-
-README.html: README tool/markdown2.py
-	echo "<html>" > README.html
-	echo "<head><title>PartMC $(VERSION)</title></head>" >> README.html
-	echo "<body bgcolor=\"#ffffff\">" >> README.html
-	tool/markdown2.py README >> README.html
-	echo "</body></html>" >> README.html
 
 else
 # non-developers should only build the programs
@@ -159,6 +154,19 @@ dist:
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
+
+.PHONY: docs
+docs: README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
+
+README.html: README tool/markdown2.py
+	echo "<html>" > README.html
+	echo "<head><title>PartMC $(VERSION)</title></head>" >> README.html
+	echo "<body bgcolor=\"#ffffff\">" >> README.html
+	tool/markdown2.py README >> README.html
+	echo "</body></html>" >> README.html
+
+$(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
+	doxygen
 
 $(GRAPHVIZ_FILE): $(ALL_SOURCE) tool/f90_mod_deps.py
 	echo "digraph partmc_modules {" > $@

@@ -18,17 +18,17 @@ r_min 1e-10                     # minimum radius (m)
 r_max 1e-5                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
-gas_init gas_init_LA.dat        # initial gas concentrations
+gas_init gas_init.dat           # initial gas concentrations
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist_LA_low.dat # aerosol initial condition file
+aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp_LA_95.dat     # temperature profile file
-height_profile height_LA_2.dat  # height profile file
-gas_emissions gas_emit_LA_NH3.dat # gas emissions file
-gas_background gas_back_LA.dat  # background gas concentrations file
-aero_emissions aero_emit_LA_highC.dat # aerosol emissions file
-aero_background aero_back_LA_low.dat # aerosol background file
+temp_profile temp.dat           # temperature profile file
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas concentrations file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.95               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
@@ -45,4 +45,4 @@ allow_double yes                # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
-restart_name XXXX.d             # filename to restart from
+restart_name XXXX.dat           # filename to restart from

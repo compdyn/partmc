@@ -78,7 +78,7 @@ contains
          aero_state%bin(b2)%particle(s2), aero_data, env_state, k)
     p = k / k_max
     
-    if (pmc_rand() .lt. p) then
+    if (pmc_random() .lt. p) then
        call coagulate(bin_grid, aero_binned, aero_data, aero_state, &
             b1, s1, b2, s2)
        did_coag = .true.
@@ -115,9 +115,9 @@ contains
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
 
-100 s1 = int(pmc_rand() * dble(aero_state%bin(b1)%n_part)) + 1
+100 s1 = int(pmc_random() * dble(aero_state%bin(b1)%n_part)) + 1
     if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bin(b1)%n_part)) goto 100
-101 s2 = int(pmc_rand() * dble(aero_state%bin(b2)%n_part)) + 1
+101 s2 = int(pmc_random() * dble(aero_state%bin(b2)%n_part)) + 1
     if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bin(b2)%n_part)) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 

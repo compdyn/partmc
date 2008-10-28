@@ -450,7 +450,7 @@ contains
   !> storing the result on the root processor.
   subroutine pmc_mpi_reduce_avg_aero_binned(val, val_avg)
 
-    !> Per-processor Value to average.
+    !> Per-processor value to average.
     type(aero_binned_t), intent(in) :: val
     !> Averaged result (only valid on root processor).
     type(aero_binned_t), intent(out) :: val_avg

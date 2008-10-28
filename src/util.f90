@@ -176,7 +176,7 @@ contains
     deallocate(seed_vec)
     ! FIXME: HACK for bad rng behavior from pgf90
     do i = 1,1000
-       r = pmc_rand()
+       r = pmc_random()
     end do
     ! FIXME: end HACK
 
@@ -184,17 +184,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns a random number between 0 and 1. Call this function
-  !> rather than rand() or random_number() directly, as some
-  !> compilers have trouble with one or the other.
-  real*8 function pmc_rand()
+  !> Returns a random number between 0 and 1.
+  real*8 function pmc_random()
 
     real*8 rnd
 
     call random_number(rnd)
-    pmc_rand = rnd
+    pmc_random = rnd
 
-  end function pmc_rand
+  end function pmc_random
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -204,7 +202,7 @@ contains
     !> Maximum random number to generate.
     integer, intent(in) :: n
 
-    pmc_rand_int = mod(int(pmc_rand() * dble(n)), n) + 1
+    pmc_rand_int = mod(int(pmc_random() * dble(n)), n) + 1
     call assert(515838689, pmc_rand_int >= 1)
     call assert(802560153, pmc_rand_int <= n)
 
@@ -221,7 +219,7 @@ contains
     real*8, intent(in) :: val
     
     prob_round = int(val)
-    if (pmc_rand() .lt. mod(val, 1d0)) then
+    if (pmc_random() .lt. mod(val, 1d0)) then
        prob_round = prob_round + 1
     endif
 
@@ -681,9 +679,8 @@ contains
 
     !> Number of entries.
     integer, intent(in) :: n
-    !> Probability density function.
+    !> Probability density function (not normalized).
     real*8, intent(in) :: pdf(n)
-                                        ! (not normalized)
 
     real*8 :: pdf_max
     integer :: k
@@ -702,7 +699,7 @@ contains
     found = .false.
     do while (.not. found)
        k = pmc_rand_int(n)
-       if (pmc_rand() < pdf(k) / pdf_max) then
+       if (pmc_random() < pdf(k) / pdf_max) then
           found = .true.
        end if
     end do
@@ -739,7 +736,7 @@ contains
     found = .false.
     do while (.not. found)
        k = pmc_rand_int(n)
-       if (pmc_rand() < dble(pdf(k)) / dble(pdf_max)) then
+       if (pmc_random() < dble(pdf(k)) / dble(pdf_max)) then
           found = .true.
        end if
     end do
@@ -749,7 +746,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert a continuous vector into a discrete vector.
+  !> Convert a real-valued vector into an integer-valued vector by
+  !> sampling.
   !!
   !! Use n_samp samples. Each discrete entry is sampled with a PDF
   !! given by vec_cts. This is very slow for large n_samp or large n.
@@ -776,13 +774,13 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert a continuous vector into a discrete vector.
+  !> Convert a real-valued vector into an integer-valued vector.
   !!
   !! Use n_samp samples. Returns discrete vector whose relative entry
   !! sizes are \f$ \ell_1 \f$ closest to the continuous vector.
   subroutine vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
     
-    !> Number of entries in vector.
+    !> Number of entries in vectors.
     integer, intent(in) :: n
     !> Continuous vector.
     real*8, intent(in) :: vec_cts(n)
@@ -852,6 +850,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Strip the extension to find the basename.
+  !!
+  !! The filename is assumed to be of the form basename.extension,
+  !! where extension contains no periods. If there is no period in
+  !! filename then basename is the whole filename.
   subroutine get_basename(filename, basename)
 
     !> Full filename.
@@ -860,13 +862,25 @@ contains
     character(len=*), intent(out) :: basename
 
     integer :: i
+    logical :: found_period
 
     basename = filename
     i = len_trim(basename)
-    do while ((basename(i:i) /= ".") .and. (i > 0))
-       i = i - 1
+    found_period = .false.
+    do while ((i > 0) .and. (.not. found_period))
+       ! Fortran .and. does not short-circuit, so we can't do the
+       ! obvious do while ((i > 0) .and. (basename(i:i) /= ".")),
+       ! instead we have to use this hack with the found_period
+       ! logical variable.
+       if (basename(i:i) == ".") then
+          found_period = .true.
+       else
+          i = i - 1
+       end if
     end do
-    basename(i:) = ""
+    if (i > 0) then
+       basename(i:) = ""
+    end if
 
   end subroutine get_basename
 

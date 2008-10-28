@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rand_poisson module.
+!> The pmc_rand module.
 
-!> Poisson random number generator.
-module pmc_rand_poisson
+!> Random number generators.
+module pmc_rand
   
   use pmc_util
   use pmc_constants
@@ -20,8 +20,8 @@ contains
   !!
   !! See http://en.wikipedia.org/wiki/Poisson_distribution for
   !! information on the method. The method used at present is rather
-  !! inefficient and inaccurate (brute force for below 10 and normal
-  !! approximation above that point).
+  !! inefficient and inaccurate (brute force for mean below 10 and
+  !! normal approximation above that point).
   !!
   !! The best known method appears to be due to Ahrens and Dieter (ACM
   !! Trans. Math. Software, 8(2), 163-179, 1982) and is available (in
@@ -48,7 +48,7 @@ contains
        p = 1d0
        do
           k = k + 1
-          p = p * pmc_rand()
+          p = p * pmc_random()
           if (p < L) exit
        end do
        rand_poisson = k - 1
@@ -75,8 +75,8 @@ contains
 
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
-    u1 = pmc_rand()
-    u2 = pmc_rand()
+    u1 = pmc_random()
+    u2 = pmc_random()
     r = sqrt(-2d0 * log(u1))
     theta = 2d0 * const%pi * u2
     z0 = r * cos(theta)
@@ -90,4 +90,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_rand_poisson
+end module pmc_rand

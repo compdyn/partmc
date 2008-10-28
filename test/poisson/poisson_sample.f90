@@ -1,7 +1,7 @@
 
 program poisson_sample
 
-  use pmc_rand_poisson
+  use pmc_rand
   use pmc_util
 
   integer :: k_max, n_samp, i_samp, k, i

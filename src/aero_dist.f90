@@ -23,7 +23,7 @@ module pmc_aero_dist
   use pmc_inout
   use pmc_aero_data
   use pmc_mpi
-  use pmc_rand_poisson
+  use pmc_rand
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -279,7 +279,7 @@ contains
        radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
             aero_mode%log10_std_dev_radius)
     elseif (aero_mode%type == "exp") then
-       radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_rand()))
+       radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_random()))
     elseif (aero_mode%type == "mono") then
        radius = aero_mode%mean_radius
     else

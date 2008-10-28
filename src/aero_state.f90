@@ -14,7 +14,7 @@ module pmc_aero_state
   use pmc_aero_particle
   use pmc_aero_dist
   use pmc_util
-  use pmc_rand_poisson
+  use pmc_rand
   use pmc_aero_binned
   use pmc_mpi
   use pmc_inout
@@ -330,14 +330,14 @@ contains
           ! remove the particle but always add it
           do_add = .true.
           do_remove = .false.
-          if (pmc_rand() < 1d0 / vol_ratio) then
+          if (pmc_random() < 1d0 / vol_ratio) then
              do_remove = .true.
           end if
        else ! vol_ratio < 1d0
           ! to_comp_vol is smaller than from_comp_vol, so always
           ! remove the particle but only maybe add it
           do_add = .false.
-          if (pmc_rand() < vol_ratio) then
+          if (pmc_random() < vol_ratio) then
              do_add = .true.
           end if
           do_remove = .true.
@@ -391,14 +391,14 @@ contains
              ! remove the particle but always add it
              do_add = .true.
              do_remove = .false.
-             if (pmc_rand() < 1d0 / vol_ratio) then
+             if (pmc_random() < 1d0 / vol_ratio) then
                 do_remove = .true.
              end if
           else ! vol_ratio < 1d0
              ! to_comp_vol is smaller than from_comp_vol, so always
              ! remove the particle but only maybe add it
              do_add = .false.
-             if (pmc_rand() < vol_ratio) then
+             if (pmc_random() < vol_ratio) then
                 do_add = .true.
              end if
              do_remove = .true.

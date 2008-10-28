@@ -1,10 +1,8 @@
 
-Add entrainment switch.
+Shift interfaces into modules. Especially kernel interface to
+kernel.f90.
 
-Fix binned output with n_coag for grid_centers and grid_edges. While
-for plotting a 2d plot it's good to have grid_edges be integers, it's
-also pretty amiguous, and messes up things like sum_above("n_coag", 4)
-to mean 4 or more consituent particles.
+Add entrainment switch.
 
 Change error messages in inout.f90 to use die_msg().
 
@@ -18,9 +16,6 @@ print out all settings before starting compilation.
 
 Change gas conc from ppb to mole proportion.
 
-Get a better bessel function so that we can compute the exact golovin
-solution for larger arguments.
-
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
 Implement a better poisson distribution generator. We should probably
@@ -32,10 +27,6 @@ t_output, etc are multiples of del_t so that the n_time header
 information is actually correct.
 
 aero_binned is really storing #/dln(m)/m^3 or something?
-
-Pass full particle data to the kernel_*() functions so that we can do
-proper density-dependent brownian kernels. Requires a separate
-max_kernel_*() function for each one.
 
 Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
 also functions called MPI_Sizeof1DR8 for a 1D array of real*8,

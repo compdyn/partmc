@@ -607,6 +607,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Make the env_state variable for the given process_spec in the
+  !> given NetCDF file if it is not already present and in any case
+  !> return the associated varid.
   subroutine ensure_nc_var_env_state(ncid, process_spec, varid_env_state)
 
     !> NetCDF file ID, in data mode.
@@ -639,6 +642,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Make the gas variable for the given process_spec in the given
+  !> NetCDF file if it is not already present and in any case return
+  !> the associated varid.
   subroutine ensure_nc_var_gas(ncid, process_spec, gas_data, varid_gas)
 
     !> NetCDF file ID, in data mode.
@@ -676,6 +682,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Make the aero variable for the given process_spec in the given
+  !> NetCDF file if it is not already present and in any case return
+  !> the associated varid.
   subroutine ensure_nc_var_aero(ncid, process_spec, bin_grid, &
        aero_data, varid_aero)
 
@@ -725,6 +734,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Make a histogram variable for the given process_spec in the given
+  !> NetCDF file if it is not already present and in any case return
+  !> the associated varid.
   subroutine ensure_nc_var_hist(ncid, process_spec, bin_grid, &
        aero_data, varid_hist)
 
@@ -775,6 +787,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current time data to the NetCDF file.
   subroutine process_time(ncid, time, index, del_t)
 
     !> NetCDF file ID, in data mode.
@@ -801,6 +814,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the given env_state data to the NetCDF file.
   subroutine process_env(ncid, time, index, env_state, &
        process_spec)
 
@@ -835,6 +849,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the given gas_state data to the NetCDF file.
   subroutine process_gas(ncid, time, index, gas_data, gas_state, &
        process_spec)
 
@@ -865,6 +880,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the given aero_binned data to the NetCDF file.
   subroutine output_aero(ncid, time, index, bin_grid, &
        aero_data, aero_binned, process_spec)
 
@@ -915,6 +931,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the given aero_state data to the NetCDF file.
   subroutine process_aero(ncid, time, index, bin_grid, &
        aero_data, aero_state, process_spec)
 
@@ -954,6 +971,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aerosol histogram data defined by the given
+  !> process_spec to the NetCDF file.
   subroutine output_hist(ncid, time, index, bin_grid, aero_data, &
        process_spec, hist)
 
@@ -988,8 +1007,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute histogram by calling the step_comp() function on each
-  !> particle.
+  !> Compute histogram of aerosol data by calling the step_comp()
+  !> function on each particle.
   subroutine process_hist(ncid, time, index, bin_grid, &
        env_state, aero_data, aero_state, process_spec)
     
@@ -1118,6 +1137,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the relative composition of an aerosol particle. The
+  !> composition is \f$ f = B / (A + B) \f$ where \f$ A \f$ is the
+  !> total amount (mass, volume, etc) in the particle of species in
+  !> the \c a_species list, and similarly for \f$ B \f$ and \c
+  !> b_species.
   real*8 function aero_particle_comp(aero_particle, aero_data, &
        comp_type, a_species, b_species)
 

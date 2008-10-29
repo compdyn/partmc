@@ -155,15 +155,15 @@ dist:
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 
-.PHONY: docs
-docs: README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
+.PHONY: doc
+doc: doc/README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
 
-README.html: README tool/markdown2.py
-	echo "<html>" > README.html
-	echo "<head><title>PartMC $(VERSION)</title></head>" >> README.html
-	echo "<body bgcolor=\"#ffffff\">" >> README.html
-	tool/markdown2.py README >> README.html
-	echo "</body></html>" >> README.html
+doc/README.html: README tool/markdown2.py
+	echo "<html>" > $@
+	echo "<head><title>PartMC $(VERSION)</title></head>" >> $@
+	echo "<body bgcolor=\"#ffffff\">" >> $@
+	tool/markdown2.py README >> $@
+	echo "</body></html>" >> $@
 
 $(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
 	doxygen

@@ -24,7 +24,7 @@ for use_color in [True, False]:
         height = 4,
         x = graph.axis.linear(min = 0.,
                               max = max_time_min,
-                              title = "local standard time (hours:minutes)",
+                              title = "local standard time (LST) (hours:minutes)",
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time

@@ -15,7 +15,6 @@ from fig_helper import *
 time_hour = 24
 max_n_coags = 20
 
-y_axis_label = r"$f_{{\rm BC},{\rm all}}$ ($1$)"
 out_prefix = "figs/aero_2d_n_orig"
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
@@ -24,11 +23,11 @@ for color in [True, False]:
         width = 6.9,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\rm \mu m$)'),
+                           title = r'dry diameter $D$ ($\rm \mu m$)'),
         y = graph.axis.linear(min = -0.5,
                               max = max_n_coags + 0.5,
                               parter = graph.axis.parter.linear(tickdists = [4, 2]),
-                              title = 'number of coagulation events'))
+                              title = 'number of coagulation events $k$'))
 
     time = time_hour * 3600.0
     filename = file_filename_at_time(time_filename_list, time)
@@ -98,7 +97,7 @@ for color in [True, False]:
     add_horiz_color_bar(g,
                         min = 0.0,
                         max = value_max,
-                        title = r"number density ($\rm m^{-3}$)",
+                        title = r"number density $n_{\rm coag}(k,D)$ ($\rm m^{-3}$)",
                         palette = palette,
                         bar_offset = 0.6)
 

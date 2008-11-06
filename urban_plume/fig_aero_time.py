@@ -40,11 +40,12 @@ for use_color in [True, False]:
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
                                                    = start_time_of_day_min),
-                              title = "local standard time (hours:minutes)",
+                              title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.0,
                               max = 8.0,
-                              title = r"mass density ($\rm \mu g \, m^{-3}$)",
+                              density = 1.5, # hack to increase number of ticks
+                              title = r"mass concentration ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter)))
     g1 = c.insert(graph.graphxy(
         width = 6.7,
@@ -53,7 +54,7 @@ for use_color in [True, False]:
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0.0,
                               max = 30.0,
-                              title = r"mass density ($\rm \mu g \, m^{-3}$)",
+                              title = r"mass concentration ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter)))
 
     plot_data = [[] for x in aero_species]

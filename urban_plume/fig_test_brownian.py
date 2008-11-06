@@ -52,11 +52,11 @@ for use_color in [True, False]:
         width = 6.1,
         x = graph.axis.log(min = 1e-2,
                            max = 1e0,
-                           title = r"dry diameter ($\rm \mu m$)",
+                           title = r"dry diameter $D$ ($\rm \mu m$)",
                            painter = grid_painter),
         y = graph.axis.linear(min = 0,
                               max = 2.5e-7,
-                              title = r"mass density ($\rm kg\,m^{-3}$)",
+                              title = r"mass concentration ($\rm kg\,m^{-3}$)",
                               painter = grid_painter)))
 
     g_num_lin = c.insert(graph.graphxy(
@@ -66,7 +66,7 @@ for use_color in [True, False]:
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0,
                               max = 2e11,
-                              title = r"number density ($\rm m^{-3}$)",
+                              title = r"number concentration ($\rm m^{-3}$)",
                               painter = grid_painter)))
 
     time_filename_list = get_time_filename_list(brownian_netcdf_dir,

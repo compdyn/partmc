@@ -15,7 +15,7 @@ from fig_helper import *
 
 time_hour = 24
 
-y_axis_label = r"$f_{{\rm BC},{\rm POM}}$ ($1$)"
+y_axis_label = r"BC-POM mass fraction $w_{{\rm BC},{\rm POM}}$ ($1$)"
 out_prefix = "figs/aero_2d_oc"
 
 def get_plot_data(filename, value_max = None):
@@ -92,7 +92,7 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number density (1)",
+                         title = r"normalized number density $\hat{n}_{\rm BC,POM}(w,D)$ ($1$)",
                          palette = palette)
 
     if color:

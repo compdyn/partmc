@@ -51,7 +51,7 @@ def make_2x2_graph_grid(y_axis_label):
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\mu$m)'),
+                           title = r'dry diameter $D$ ($\mu$m)'),
         y = graph.axis.linear(min = 0,
                               max = 100,
                               title = y_axis_label,
@@ -71,7 +71,7 @@ def make_2x2_graph_grid(y_axis_label):
         xpos = g21.width + grid_h_space,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\mu$m)'),
+                           title = r'dry diameter $D$ ($\mu$m)'),
         y = graph.axis.linkedaxis(g21.axes["y"])))
     g12 = c.insert(graph.graphxy(
         width = grid_graph_width,
@@ -92,7 +92,7 @@ def make_2x1_graph_grid(y_axis_label):
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\mu$m)'),
+                           title = r'dry diameter $D$ ($\mu$m)'),
         y = graph.axis.linear(min = 0,
                               max = 100,
                               title = y_axis_label,
@@ -103,7 +103,7 @@ def make_2x1_graph_grid(y_axis_label):
         xpos = g11.width + grid_h_space,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\mu$m)'),
+                           title = r'dry diameter $D$ ($\mu$m)'),
         y = graph.axis.linkedaxis(g11.axes["y"])))
 
     return {"c": c,
@@ -115,7 +115,7 @@ def make_1x1_graph_grid(y_axis_label):
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter ($\mu$m)'),
+                           title = r'dry diameter $D$ ($\mu$m)'),
         y = graph.axis.linear(min = 0,
                               max = 100,
                               title = y_axis_label,

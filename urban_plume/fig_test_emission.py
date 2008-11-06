@@ -52,7 +52,7 @@ for use_color in [True, False]:
                                             painter = grid_painter),
                       y = graph.axis.linear(min = 0,
                                             max = 1.5e10,
-                                            title = r"number density ($\rm m^{-3}$)",
+                                            title = r"number concentration ($\rm m^{-3}$)",
                                             painter = grid_painter))
 
     for i in range(len(samples)):

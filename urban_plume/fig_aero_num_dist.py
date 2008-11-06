@@ -45,11 +45,11 @@ for use_color in [True, False]:
         width = 6.8,
         x = graph.axis.log(min = x_axis.min,
                            max = x_axis.max,
-                           title = r"dry diameter ($\rm \mu m$)",
+                           title = r"dry diameter $D$ ($\rm \mu m$)",
                            painter = major_grid_painter),
         y = graph.axis.log(min = 1e7,
                            max = 1e11,
-                           title = r"number density ($\rm m^{-3}$)",
+                           title = r"number concentration ($\rm m^{-3}$)",
                            painter = major_grid_painter),
         key = graph.key.key(pos = None, hpos = 0.6, vpos = 0))
 

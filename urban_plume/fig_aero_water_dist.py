@@ -30,13 +30,13 @@ for use_color in [True, False]:
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
                                                    = start_time_of_day_min),
-                              title = "local standard time (hours:minutes)",
+                              title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.,
                               max = 100,
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [20, 10]),
-                              title = r"water fraction $f_{\rm H_2O,all}$ ($1$)",
+                              title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
                               painter = grid_painter,
                               texter = graph.axis.texter.decimal(suffix = r"\%")),
         y2 = graph.axis.linear(min = 0,
@@ -115,7 +115,7 @@ for use_color in [True, False]:
     add_color_bar(g,
                   min = 0.0,
                   max = value_max,
-                  title = r"number density ($\rm m^{-3}$)",
+                  title = r"number concentration ($\rm m^{-3}$)",
                   palette = palette,
                   bar_x_offset = 2.5)
 

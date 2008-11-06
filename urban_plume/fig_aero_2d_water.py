@@ -13,7 +13,7 @@ from pmc_pyx import *
 
 from fig_helper import *
 
-y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
+y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
 out_prefix = "figs/aero_2d_water"
 
 max_val = 50
@@ -142,7 +142,7 @@ for use_color in [True, False]:
                              min = 0.0,
                              max = max_val,
                              min_palette_index = min_palette_index,
-                             title = r"water fraction $f_{\rm H_2O,all}$ (1)",
+                             title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
                              texter = graph.axis.texter.decimal(suffix = r"\%"),
                              palette = palette,
                              extra_box_color = color.gray(0),
@@ -153,7 +153,7 @@ for use_color in [True, False]:
                              min = 0.0,
                              max = max_val,
                              min_palette_index = min_palette_index,
-                             title = r"water fraction $f_{\rm H_2O,all}$ (1)",
+                             title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
                              texter = graph.axis.texter.decimal(suffix = r"\%"),
                              palette = palette,
                              extra_box_value = 0.0,

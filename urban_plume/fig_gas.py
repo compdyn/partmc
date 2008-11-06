@@ -39,11 +39,11 @@ for use_color in [True, False]:
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
                                                    = start_time_of_day_min),
-                              title = "local standard time (hours:minutes)",
+                              title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.,
                               max = 20,
-                              title = "gas concentration (ppb)",
+                              title = "gas mole fraction (ppb)",
                               painter = grid_painter)))
     g1 = c.insert(graph.graphxy(
         width = 6.7,
@@ -52,7 +52,7 @@ for use_color in [True, False]:
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0.,
                               max = 150,
-                              title = "gas concentration (ppb)",
+                              title = "gas mole fraction (ppb)",
                               painter = grid_painter)))
 
     graphs = {"g1": g1, "g2": g2}

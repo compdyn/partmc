@@ -50,11 +50,11 @@ for use_color in [True, False]:
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
                                                    = start_time_of_day_min),
-                              title = "local standard time (hours:minutes)",
+                              title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
-        y = graph.axis.linear(title = r"mass density ($\rm \mu g \, m^{-3}$)",
+        y = graph.axis.linear(title = r"mass concentration ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter),
-        y2 = graph.axis.linear(title = r"number density ($\rm m^{-3}$)"))
+        y2 = graph.axis.linear(title = r"number concentration ($\rm m^{-3}$)"))
 
     plot_data = [[] for i in range(len(plots))]
     for i in range(len(plots)):

@@ -14,7 +14,7 @@ from fig_helper import *
 
 out_prefix = "figs/aero_2d_all_no_coag"
 
-y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
+y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
 
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
@@ -84,7 +84,7 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number density $\hat{n}_{\rm BC,dry}(f,D)$ (1)",
+                         title = r"normalized number concentration $\hat{n}_{\rm BC,dry}(w,D)$ ($1$)",
                          palette = palette)
 
     if color:

@@ -62,7 +62,7 @@ for use_color in [True, False]:
         width = 6.4,
         x = graph.axis.linear(min = 0,
                               max = max_time_min,
-                              title = r'local standard time (hours:minutes)',
+                              title = r'local standard time (LST) (hours:minutes)',
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60,
                                                                    3 * 60]),

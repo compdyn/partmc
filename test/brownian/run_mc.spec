@@ -7,7 +7,7 @@ n_part 100000                   # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
-del_t 0.5                       # timestep (s)
+del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)

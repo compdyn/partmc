@@ -38,11 +38,11 @@ for use_color in [True, False]:
             width = 6.8,
             x = graph.axis.log(min = x_axis.min,
                                max = x_axis.max,
-                               title = r'dry diameter ($\rm \mu m$)',
+                               title = r'dry diameter $D$ ($\rm \mu m$)',
                                painter = grid_painter),
             y = graph.axis.log(min = 1e-6,
                                max = 1e3,
-                               title = r'mass density ($\rm \mu g\, m^{-3}$)',
+                               title = r'mass concentration ($\rm \mu g\, m^{-3}$)',
                                painter = grid_painter))
 
     for with_coag in [True, False]:

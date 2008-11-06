@@ -35,6 +35,9 @@ for [time, filename, key] in time_filename_list_nc:
     total_num_den = num_den.sum()
     outf_a.write("%f " % time)
     outf_p.write("%f " % time)
+    outf_ea.write("%f " % time)
+    outf_ep.write("%f " % time)
+
     for ss_activ in [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01]:
         aged_num_den = 0.0
         fresh_num_den = 0.0

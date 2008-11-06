@@ -1,72 +1,67 @@
-load -ascii aging_a_wc
-load -ascii aging_p_wc
+load -ascii aging_a_nc
+load -ascii aging_f_nc
+load -ascii aging_ea_nc
+load -ascii aging_ef_nc
 
-time = aging_a_wc(:,1);
-activ_001 = aging_a_wc(:,2);
-pure_001  = aging_p_wc(:,2);
-total_001 = activ_001 + pure_001;
-activ_01 = aging_a_wc(:,11);
-pure_01  = aging_p_wc(:,11);
-total_01 = activ_01 + pure_01;
+time = aging_a_nc(:,1);
+activ_001 = aging_a_nc(:,2);
+fresh_001  = aging_f_nc(:,2);
+total_001 = activ_001 + fresh_001;
 
+activ_01 = aging_a_nc(:,11);
+fresh_01 = aging_f_nc(:,11);
+total_01 = activ_01 + fresh_01;
+
+e_activ_01 = aging_ea_nc(:,2);
+e_fresh_01 = aging_ef_nc(:,2);
+
+e_activ_001 = aging_ea_nc(:,11);
+e_activ_001 = aging_ef_nc(:,2);
+ 
 lambda = 1.5e-5; % s^{-1}
 
-activ_001_dot = (activ_001(60:end) - activ_001(1:(end-59))) ./ (time(60:end) - time(1:(end-59)));
-activ_01_dot = (activ_01(60:end) - activ_01(1:(end-59))) ./ (time(60:end) - time(1:(end-59)));
+activ_001_dot = (activ_001(2:end) - activ_001(1:(end-1))) ./ (time(2:end) - time(1:(end-1)));
+activ_01_dot  = (activ_01(2:end)  - activ_01(1:(end-1)))  ./ (time(2:end) - time(1:(end-1)));
 
-activ_001_plot = activ_001(1:(end-59));
-pure_001_plot = pure_001(1:(end-59));
+fresh_001_dot = (fresh_001(2:end) - fresh_001(1:(end-1))) ./ (time(2:end) - time(1:(end-1)));
+fresh_01_dot  = (fresh_01(2:end)  - fresh_01(1:(end-1)))  ./ (time(2:end) - time(1:(end-1)));
 
-activ_01_plot = activ_01(1:(end-59));
-pure_01_plot = pure_01(1:(end-59));
+activ_001_plot = (activ_001(1:(end-1)) + activ_001(2:end)) / 2 ;
+fresh_001_plot = (fresh_001(1:(end-1)) + fresh_001(2:end)) / 2 ;
 
-time_plot = time(1:(end-59));
+activ_01_plot = (activ_01(1:(end-1)) + activ_01(2:(end))) / 2;
+fresh_01_plot = (fresh_01(1:(end-1)) + fresh_01(2:(end))) / 2;
 
-%k_no_correct = activ_dot ./ pure_plot;
-k_001 = activ_001_dot ./ pure_001_plot + lambda * activ_001_plot ./ pure_001_plot;
-k_01 = activ_01_dot ./ pure_01_plot + lambda * activ_01_plot ./ pure_01_plot;
+total_001_plot = (total_001(1:(end-1)) + total_001(2:(end))) / 2;
+total_01_plot = (total_01(1:(end-1)) + total_01(2:(end))) / 2;
 
-%tau_no_correct = 1.0 ./ k_no_correct;
-tau_001 = 1.0 ./ k_001;
-tau_01  = 1.0 ./ k_01;
+e_activ_001_plot = e_activ_001(2:end);
+e_fresh_001_plot = e_fresh_001(2:end);
 
-transfer_001 = activ_001_dot + lambda * activ_001_plot;
-transfer_01 = activ_01_dot + lambda * activ_01_plot;
+e_activ_01_plot = e_activ_01(2:end);
+e_fresh_01_plot = e_fresh_01(2:end);
 
-plot(time/3600+6, activ_001, time/3600+6, pure_001, time/3600+6, total_001, time/3600+6, activ_01, time/3600+6, pure_01, time/3600+6, total_01)
+time_plot = (time(1:(end-1)) + time(2:end)) / 2;
+
+k_activ_001 = (activ_001_dot + lambda * activ_001_plot - e_activ_001_plot) ./ fresh_001_plot;
+k_activ_01 = (activ_01_dot + lambda * activ_01_plot - e_activ_01_plot) ./ fresh_01_plot;  
+
+k_fresh_001 = -(fresh_001_dot + lambda * fresh_001_plot - e_fresh_001_plot) ./ fresh_001_plot;
+k_activ_01 = -(fresh_01_dot + lambda * fresh_01_plot - e_fresh_01_plot) ./ fresh_01_plot;
+
+figure
+plot(time_plot/3600+6, activ_001_plot, time_plot/3600+6, fresh_001_plot, time_plot/3600+6, total_001_plot, 
+time_plot/3600+6, activ_01_plot, time_plot/3600+6, fresh_plot_01, time_plot/3600+6, total_01_plot)
 legend('activating ss = 0.001', 'not-activating ss = 0.001', 'total', 'activating ss = 0.01', 'not-activating ss = 0.01', 'total')
 grid on
-saveas(gcf,'number_wc.pdf')
-%figure
-%plot(time_plot/3600+6, tau_no_correct/3600)
-%title('tau no correction')
-%axis([6 30 -100 100])
-%grid on
-%figure
-%plot(time_plot/3600+6, k*3600)
-%title('k')
-%grid on
-figure
-plot(time_plot/3600+6, tau_001/3600, time_plot/3600+6, tau_01/3600)
-legend('ss = 0.001', 'ss = 0.01')
-title('tau')
-axis([6 30 -100 100])
-grid on
-saveas(gcf,'tau_wc.pdf')
+saveas(gcf,'number_nc.pdf')
 
 figure
-plot(time_plot/3600+6, k_001/3600, time_plot/3600+6, k_01/3600)
-legend('ss = 0.001', 'ss = 0.01')
+plot(time_plot/3600+6, k_activ_001/3600, time_plot/3600+6, k_activ_01/3600, time_plot/3600+6, k_fresh_001/3600, time_plot/3600+6, k_fresh_01/3600)
+legend('activ ss = 0.001', 'activ ss = 0.01', 'fresh ss = 0.001', 'fresh ss = 0.01')
 title('k')
 %axis([6 30 -100 100])
 grid on
-saveas(gcf,'k_wc.pdf')
+saveas(gcf,'k_nc.pdf')
 
-figure
-plot(time_plot/3600+6, transfer_001, time_plot/3600+6, transfer_01)
-legend('ss = 0.001', 'ss = 0.01')
-title('transfer')
-%axis([6 30 -100 100])
-grid on
-saveas(gcf,'transfer_wc.pdf')
 

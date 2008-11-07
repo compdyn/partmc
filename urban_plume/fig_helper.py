@@ -12,10 +12,10 @@ from pmc_data_nc import *
 from pmc_pyx import *
 
 netcdf_dir_wc = "out"
-netcdf_pattern_wc = r"urban_plume_wc_state_0001_([0-9]{8})\.nc"
+netcdf_pattern_wc = r"^urban_plume_wc_state_0001_([0-9]{8})\.nc$"
 
 netcdf_dir_nc = "out"
-netcdf_pattern_nc = r"urban_plume_nc_state_0001_([0-9]{8})\.nc"
+netcdf_pattern_nc = r"^urban_plume_nc_state_0001_([0-9]{8})\.nc$"
 
 max_val = 4.0
 
@@ -24,8 +24,8 @@ diameter_axis_max = 2.0
 num_diameter_bins = 70
 
 times_hour = {"g11": 1,
-              "g12" : 6,
-              "g21" : 12,
+              "g12" : 5,
+              "g21" : 7,
               "g22" : 24}
 
 grid_v_space = 0.7
@@ -33,39 +33,45 @@ grid_h_space = 0.5
 grid_graph_width = 6.3
 
 show_particles = [
-#    {"id": 106390, "suffix": "1", "label": "P1",
-#     "label pos": [0.9, 0.4], "box label": "particle P1"},
-#    {"id": 195377, "suffix": "2", "label": "P2",
-#     "label pos": [0.1, 0.5], "box label": "particle P2"},
-#    {"id": 108139, "suffix": "1", "label": "P1",
-#     "label pos": [0.9, 0.4], "box label": "particle P1"},
-#    {"id": 192536, "suffix": "2", "label": "P2",
-#     "label pos": [0.1, 0.5], "box label": "particle P2"},
-#    {"id": 549273, "suffix": "3", "label": "P3",
-#     "label pos": [0.9, 0.7], "box label": "particle P3"},
+    {"id": 106390, "suffix": "1", "label": "P1",
+     "label pos": [0.9, 0.4], "box label": "particle P1"},
+    {"id": 195377, "suffix": "2", "label": "P2",
+     "label pos": [0.1, 0.5], "box label": "particle P2"},
+    {"id": 108139, "suffix": "1", "label": "P1",
+     "label pos": [0.9, 0.4], "box label": "particle P1"},
+    {"id": 192536, "suffix": "2", "label": "P2",
+     "label pos": [0.1, 0.5], "box label": "particle P2"},
+    {"id": 549273, "suffix": "3", "label": "P3",
+     "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
-def make_2x2_graph_grid(y_axis_label):
+def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100, with_percent = True, y_log = False):
     c = canvas.canvas()
+    if with_percent:
+        texter = graph.axis.texter.decimal(suffix = r"\%")
+    else:
+        texter = graph.axis.texter.mixed()
+    if y_log:
+        y = graph.axis.log(min = y_min,
+                           max = y_max,
+                           title = y_axis_label,
+                           texter = texter)
+    else:
+        y = graph.axis.linear(min = y_min,
+                              max = y_max,
+                              title = y_axis_label,
+                              texter = texter)
     g21 = c.insert(graph.graphxy(
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = r'dry diameter $D$ ($\mu$m)'),
-        y = graph.axis.linear(min = 0,
-                              max = 100,
-                              title = y_axis_label,
-                              texter = graph.axis.texter.decimal(suffix
-                                                                 = r"\%"))))
+        y = y))
     g11 = c.insert(graph.graphxy(
         width = grid_graph_width,
         ypos = g21.height + grid_v_space,
         x = graph.axis.linkedaxis(g21.axes["x"]),
-        y = graph.axis.linear(min = 0,
-                              max = 100,
-                              title = y_axis_label,
-                              texter = graph.axis.texter.decimal(suffix
-                                                                 = r"\%"))))
+        y = y))
     g22 = c.insert(graph.graphxy(
         width = grid_graph_width,
         xpos = g21.width + grid_h_space,

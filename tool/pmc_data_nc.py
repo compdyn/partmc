@@ -696,20 +696,20 @@ class aero_particle_array_t:
         if species_weights != None:
             val = self.masses[index,:].copy() * species_weights[index]
         else:
-            val = self.masses[index,:].copy()
+            val = array(self.masses[index,:].copy())
         for i in range(len(species_list) - 1):
             index = self.aero_data.name.index(species_list[i + 1])
             if species_weights != None:
                 val += self.masses[index,:] * species_weights[index]
             else:
-                val += self.masses[index,:]
+                val += array(self.masses[index,:])
         return val
     
     def mass(self, include = None, exclude = None):
         return self.sum_mass_by_species(include = include, exclude = exclude)
 
     def volume(self, include = None, exclude = None):
-        species_weights = 1.0 / self.aero_data.density
+        species_weights = 1.0 / array(self.aero_data.density)
         return self.sum_mass_by_species(include = include, exclude = exclude,
                                         species_weights = species_weights)
 

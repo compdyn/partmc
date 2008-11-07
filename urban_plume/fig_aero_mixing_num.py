@@ -73,7 +73,8 @@ print "***********************************************************************"
 time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 for use_color in [True, False]:
     graphs = make_2x2_graph_grid(y_axis_label, y_min = y_min, y_max = y_max,
-                                 with_percent = False, y_log = True)
+                                 with_percent = False, y_log = True,
+                                 with_key = True)
     for (graph_name, time_hour) in times_hour.iteritems():
         time = time_hour * 3600.0
         filename = file_filename_at_time(time_filename_list, time)

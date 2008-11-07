@@ -45,7 +45,8 @@ show_particles = [
      "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
-def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100, with_percent = True, y_log = False):
+def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
+                        with_percent = True, y_log = False, with_key = False):
     c = canvas.canvas()
     if with_percent:
         texter = graph.axis.texter.decimal(suffix = r"\%")
@@ -67,11 +68,16 @@ def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100, with_percent = Tru
                            max = diameter_axis_max,
                            title = r'dry diameter $D$ ($\mu$m)'),
         y = y))
+    if with_key:
+        key = graph.key.key(pos = "tr", vinside = 0, columns = 1)
+    else:
+        key = None
     g11 = c.insert(graph.graphxy(
-        width = grid_graph_width,
-        ypos = g21.height + grid_v_space,
-        x = graph.axis.linkedaxis(g21.axes["x"]),
-        y = y))
+            width = grid_graph_width,
+            ypos = g21.height + grid_v_space,
+            x = graph.axis.linkedaxis(g21.axes["x"]),
+            y = y,
+            key = key))
     g22 = c.insert(graph.graphxy(
         width = grid_graph_width,
         xpos = g21.width + grid_h_space,

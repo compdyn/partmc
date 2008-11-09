@@ -109,6 +109,8 @@ gray_palette = listpalette([[0, color.gray(0.8)],
 
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 major_grid_painter = graph.axis.painter.regular(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
+linked_grid_painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])
+linked_major_grid_painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
 
 aerosol_species_tex = {
     "SO4": "SO$_4$",
@@ -216,7 +218,7 @@ def boxed_text_g(g, label, x_g = 0, y_g = 0, anchor_point_rel = [0, 1],
 
 def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 		  bar_height_ratio = 0.8, bar_x_offset = 1.8,
-                  texter = None):
+                  right = True, texter = None):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -227,25 +229,36 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 	v1 = x1 * (max - min) + min
 	color_d.append([0, 1, v0, v1, xh])
     if texter:
-        y2axis = graph.axis.linear(
+        yaxis = graph.axis.linear(
             min = min,
             max = max,
             title = title,
             texter = texter)
     else:
-        y2axis = graph.axis.linear(
+        yaxis = graph.axis.linear(
             min = min,
             max = max,
             title = title)
-    gc = g.insert(
-	graph.graphxy(
-	    width = bar_width,
-	    height = bar_height_ratio * g.height,
-	    xpos = g.width + bar_x_offset,
-	    ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
-	    x = graph.axis.linear(min = 0, max = 1,
-				  parter = None),
-	    y2 = y2axis))
+    if right:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width,
+                height = bar_height_ratio * g.height,
+                xpos = g.width + bar_x_offset,
+                ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+                x = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                y2 = yaxis))
+    else:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width,
+                height = bar_height_ratio * g.height,
+                xpos = - bar_x_offset,
+                ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+                x = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                y = yaxis))
     gc.plot(graph.data.points(color_d, xmin = 1, xmax = 2,
                             ymin = 3, ymax = 4, color = 5),
 	    [hsb_rect(palette)])
@@ -256,36 +269,48 @@ def add_color_bar(g, min, max, title, palette, bar_width = 0.5,
 
 def add_color_bar_new(g, min, max, title, bar_width = 0.5,
                       bar_height_ratio = 0.8, bar_x_offset = 1.8,
-                      texter = None):
+                      right = True, texter = None):
     colorbar_steps = 1000
     value = linspace(0, 1, colorbar_steps).reshape([1,colorbar_steps])
     hue = value_to_hue(value)
     saturation = ones(shape(hue))
     brightness = ones(shape(hue))
     if texter:
-        y2axis = graph.axis.linear(
+        yaxis = graph.axis.linear(
             min = min,
             max = max,
             title = title,
             texter = texter)
     else:
-        y2axis = graph.axis.linear(
+        yaxis = graph.axis.linear(
             min = min,
             max = max,
             title = title)
-    gc = g.insert(
-	graph.graphxy(
-	    width = bar_width,
-	    height = bar_height_ratio * g.height,
-	    xpos = g.width + bar_x_offset,
-	    ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
-	    x = graph.axis.linear(min = 0, max = 1,
-				  parter = None),
-	    y2 = y2axis))
+    if right:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width,
+                height = bar_height_ratio * g.height,
+                xpos = g.width + bar_x_offset,
+                ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+                x = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                y2 = yaxis))
+    else:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width,
+                height = bar_height_ratio * g.height,
+                xpos = - bar_x_offset,
+                ypos = (1.0 - bar_height_ratio) / 2.0 * g.height,
+                x = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                y = yaxis))
     pmc_plot_image(gc, hue, saturation, brightness)
 
 def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
-		  bar_width_ratio = 0.8, bar_offset = 1.8):
+                        bar_width_ratio = 0.8, bar_offset = 1.8,
+                        horiz_offset = 0, above = True):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -295,18 +320,32 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
 	v0 = x0 * (max - min) + min
 	v1 = x1 * (max - min) + min
 	color_d.append([0, 1, v0, v1, xh])
-    gc = g.insert(
-	graph.graphxy(
-	    width = bar_width_ratio * g.width,
-	    height = bar_height,
-	    xpos = (1.0 - bar_width_ratio) / 2.0 * g.width,
-	    ypos = g.height + bar_offset,
-	    y = graph.axis.linear(min = 0, max = 1,
-				  parter = None),
-	    x2 = graph.axis.linear(
-		min = min,
-		max = max,
-		title = title)))
+    if above:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width_ratio * g.width,
+                height = bar_height,
+                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset,
+                ypos = g.height + bar_offset,
+                y = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                x2 = graph.axis.linear(
+                    min = min,
+                    max = max,
+                    title = title)))
+    else:
+        gc = g.insert(
+            graph.graphxy(
+                width = bar_width_ratio * g.width,
+                height = bar_height,
+                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset,
+                ypos = - bar_offset,
+                y = graph.axis.linear(min = 0, max = 1,
+                                      parter = None),
+                x = graph.axis.linear(
+                    min = min,
+                    max = max,
+                    title = title)))
     gc.plot(graph.data.points(color_d, ymin = 1, ymax = 2,
                             xmin = 3, xmax = 4, color = 5),
 	    [hsb_rect(palette)])
@@ -555,9 +594,12 @@ def hash_pattern(n_lines = 10, line_attributes = [style.linewidth.normal]):
     return p
 
 def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
-                    label_offset = unit.v_mm, xaxis = None, yaxis = None):
+                    label_offset = unit.v_mm, xaxis = None, yaxis = None,
+                    flip_xy = False):
     i = pmc_data_nc.find_nearest_time(plot_data, label_time)
     [label_x, label_y] = plot_data[i]
+    if flip_xy:
+        [label_y, label_x] = [label_x, label_y]
     [label_pos_h, label_pos_v] = label_pos
     [label_vx, label_vy] = g.pos(label_x, label_y, xaxis, yaxis)
     label_vx += 2.0 * (0.5 - label_pos_h) * label_offset

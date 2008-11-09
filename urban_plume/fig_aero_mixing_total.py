@@ -30,15 +30,11 @@ disp_lines = [
      "line_color": 2, "line_color_style": style.linestyle.dashed},
     ]
 
-print_diams = [0.03, 0.05, 0.07, 0.10]
-base_vals = []
-new_vals = []
-eval_change_time = 24
+num_bc_bins = 50
 
-out_prefix = "figs/aero_num_dist"
+out_prefix = "figs/aero_mixing_total"
 
-x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                      n_bin = num_diameter_bins)
+x_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
 
 time_filename_list_wc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
@@ -46,15 +42,16 @@ time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 for use_color in [True, False]:
     g = graph.graphxy(
         width = 6.8,
-        x = graph.axis.log(min = x_axis.min,
-                           max = x_axis.max,
-                           title = r"dry diameter $D$ ($\rm \mu m$)",
-                           painter = major_grid_painter),
+        x = graph.axis.linear(min = x_axis.min,
+                              max = x_axis.max,
+                              title = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)",
+                              texter = graph.axis.texter.decimal(suffix = r"\%"),
+                              painter = major_grid_painter),
         y = graph.axis.log(min = 1e7,
-                           max = 1e11,
-                           title = r"number concentration ($\rm m^{-3}$)",
+                           max = 1e12,
+                           title = r"number concentration $n(w)$ ($\rm m^{-3}$)",
                            painter = major_grid_painter),
-        key = graph.key.key(pos = None, hpos = 0.8, vpos = 0))
+        key = graph.key.key(vinside = 0, columns = 2))
 
     for t in range(len(disp_lines)):
         if disp_lines[t]["coag"]:
@@ -68,12 +65,16 @@ for use_color in [True, False]:
         ncf.close()
 
         diameter = particles.dry_diameter() * 1e6
+        comp_frac = particles.mass(include = ["BC"]) \
+            / particles.mass(exclude = ["H2O"]) * 100
 
-        x_bin = x_axis.find(diameter)
+        # hack to avoid landing just around the integer boundaries
+        comp_frac *= (1.0 + 1e-12)
+        x_bin = x_axis.find(comp_frac)
 
         num_den_array = numpy.zeros([x_axis.n_bin])
         for i in range(particles.n_particles):
-            scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+            scale = particles.comp_vol[i] * (x_axis.grid_size(x_bin[i]) / 100)
             num_den_array[x_bin[i]] += 1.0 / scale
 
         plot_data = [[x_axis.center(i), num_den_array[i]]
@@ -97,28 +98,6 @@ for use_color in [True, False]:
         g.plot(graph.data.points(plot_data, x = 1, y = 2, title = title),
                styles = [
             graph.style.line(lineattrs = attrs)])
-        if not use_color:
-            for d in print_diams:
-                x_bin = x_axis.find([d])[0]
-                print "time = %g hours, coag = %s, n(%g) = %g m^{-3}" \
-                      % (disp_lines[t]["time_hour"],
-                         str(disp_lines[t]["coag"]), d, num_den_array[x_bin])
-                if disp_lines[t]["time_hour"] == eval_change_time:
-                    if disp_lines[t]["coag"] == False:
-                        base_vals.append(num_den_array[x_bin])
-                    else:
-                        new_vals.append(num_den_array[x_bin])
-
-    if not use_color:
-        if len(base_vals) != len(print_diams):
-            print "ERROR: something wrong with base_vals"
-        if len(new_vals) != len(print_diams):
-            print "ERROR: something wrong with new_vals"
-        for i in range(len(print_diams)):
-            print ("decrease in n(%g) from no-coag to with-coag "
-                   "at %g hours = %g%%") \
-                   % (print_diams[i], eval_change_time,
-                      (base_vals[i] - new_vals[i]) / base_vals[i] * 100)
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

@@ -12,20 +12,22 @@ from pmc_data_nc import *
 from pmc_pyx import *
 from fig_helper import *
 
-y_min = 1e6
-y_max = 1e11
+y_min = 1e7
+y_max = 1e12
 
-num_bc_mixing_bins = 4
-title_list = [r"0--25\% soot",
-              r"25--50\% soot",
-              r"50--75\% soot",
-              r"75--100\% soot",
+x_min = 0
+x_max = 100
+
+num_plot_diameter_bins = 2
+title_list = [r"small diameters $D < 0.1\rm\,\mu m$",
+              r"large diameters $D > 0.1\rm\,\mu m$",
               ]
-if num_bc_mixing_bins != len(title_list):
+if num_plot_diameter_bins != len(title_list):
     raise Exception("mismatch")
 
-out_prefix = "figs/aero_mixing_num"
+out_prefix = "figs/aero_mixing_dist"
 
+x_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
 y_axis_label = r"number concentration ($\rm m^{-3}$)"
 
 def get_plot_data(filename):
@@ -39,31 +41,31 @@ def get_plot_data(filename):
     comp_frac = particles.mass(include = ["BC"]) \
                 / particles.mass(exclude = ["H2O"]) * 100
 
-    x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
-                          n_bin = num_diameter_bins)
-    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_mixing_bins)
-    x_bin = x_axis.find(diameter)
-    # hack to avoid landing just around the integer boundaries
-    comp_frac *= (1.0 + 1e-12)
-    y_bin = y_axis.find(comp_frac)
+    y_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                          n_bin = num_plot_diameter_bins)
+    x_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    x_bin = x_axis.find(comp_frac)
+    y_bin = y_axis.find(diameter)
 
     data_list = [numpy.zeros([x_axis.n_bin])
-                 for i in range(num_bc_mixing_bins)]
+                 for i in range(num_plot_diameter_bins)]
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+        scale = particles.comp_vol[i] * (x_axis.grid_size(x_bin[i]) / 100)
         data_list[y_bin[i]][x_bin[i]] += 1.0 / scale
 
     plot_data_list = [[[x_axis.center(j), data_list[i][j]]
                        for j in range(x_axis.n_bin)
                        if data_list[i][j] > 0.0]
-                      for i in range(num_bc_mixing_bins)]
+                      for i in range(num_plot_diameter_bins)]
     return (plot_data_list, env_state)
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for use_color in [True, False]:
     graphs = make_2x2_graph_grid(y_axis_label, y_min = y_min, y_max = y_max,
-                                 with_y_percent = False, y_log = True,
-                                 with_key = True)
+                                 with_y_percent = False, with_x_percent = True,
+                                 x_axis_label = x_axis_label, x_min = x_min,
+                                 x_max = x_max, with_key = True,
+                                 x_log = False, y_log = True)
     for (graph_name, time_hour) in times_hour.iteritems():
         time = time_hour * 3600.0
         filename = file_filename_at_time(time_filename_list, time)

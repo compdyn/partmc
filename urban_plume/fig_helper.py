@@ -19,8 +19,8 @@ netcdf_pattern_nc = r"^urban_plume_nc_state_0001_([0-9]{8})\.nc$"
 
 max_val = 4.0
 
-diameter_axis_min = 0.005
-diameter_axis_max = 2.0
+diameter_axis_min = 0.01
+diameter_axis_max = 1.0
 num_diameter_bins = 70
 
 times_hour = {"g11": 1,
@@ -46,27 +46,42 @@ show_particles = [
     ]
 
 def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
-                        with_percent = True, y_log = False, with_key = False):
+                        with_y_percent = True, with_x_percent = False,
+                        y_log = False, x_log = True, with_key = False,
+                        x_axis_label = r'dry diameter $D$ ($\mu$m)',
+                        x_min = diameter_axis_min, x_max = diameter_axis_max):
     c = canvas.canvas()
-    if with_percent:
-        texter = graph.axis.texter.decimal(suffix = r"\%")
+    if with_y_percent:
+        y_texter = graph.axis.texter.decimal(suffix = r"\%")
     else:
-        texter = graph.axis.texter.mixed()
+        y_texter = graph.axis.texter.mixed()
+    if with_x_percent:
+        x_texter = graph.axis.texter.decimal(suffix = r"\%")
+    else:
+        x_texter = graph.axis.texter.mixed()
     if y_log:
         y = graph.axis.log(min = y_min,
                            max = y_max,
                            title = y_axis_label,
-                           texter = texter)
+                           texter = y_texter)
     else:
         y = graph.axis.linear(min = y_min,
                               max = y_max,
                               title = y_axis_label,
-                              texter = texter)
+                              texter = y_texter)
+    if x_log:
+        x = graph.axis.log(min = x_min,
+                           max = x_max,
+                           title = x_axis_label,
+                           texter = x_texter)
+    else:
+        x = graph.axis.linear(min = x_min,
+                              max = x_max,
+                              title = x_axis_label,
+                              texter = x_texter)
     g21 = c.insert(graph.graphxy(
         width = grid_graph_width,
-        x = graph.axis.log(min = diameter_axis_min,
-                           max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\mu$m)'),
+        x = x,
         y = y))
     if with_key:
         key = graph.key.key(pos = "tr", vinside = 0, columns = 1)
@@ -81,9 +96,7 @@ def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
     g22 = c.insert(graph.graphxy(
         width = grid_graph_width,
         xpos = g21.width + grid_h_space,
-        x = graph.axis.log(min = diameter_axis_min,
-                           max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\mu$m)'),
+        x = x,
         y = graph.axis.linkedaxis(g21.axes["y"])))
     g12 = c.insert(graph.graphxy(
         width = grid_graph_width,

@@ -29,7 +29,7 @@ def get_plot_data(filename, value_max = None):
                 / particles.mass(include = ["BC", "OC"]) * 100
 
     x_axis = pmc_log_axis(min = 1e-2, max = 2, n_bin = num_diameter_bins)
-    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
     x_bin = x_axis.find(diameter)
     # hack to avoid landing just around the integer boundaries
     comp_frac *= (1.0 + 1e-12)
@@ -62,11 +62,11 @@ for color in [True, False]:
         if with_coag:
             filename = file_filename_at_time(time_filename_list_wc, time)
             g = graphs["g11"]
-            extra_text = ", with coagulation"
+            extra_text = "with coagulation"
         else:
             filename = file_filename_at_time(time_filename_list_nc, time)
             g = graphs["g21"]
-            extra_text = ", no coagulation"
+            extra_text = "no coagulation"
         (rects, env_state) = get_plot_data(filename, max_val)
         if color:
             palette = rainbow_palette
@@ -77,7 +77,8 @@ for color in [True, False]:
                                  color = 5),
                styles = [hsb_rect(palette)])
 
-        write_time(g, env_state, extra_text = extra_text)
+        write_time(g, env_state)
+        boxed_text(g, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
 
         g.dolayout()
         for axisname in ["x", "y"]:

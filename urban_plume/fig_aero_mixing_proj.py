@@ -14,8 +14,6 @@ from fig_helper import *
 
 time_hour = 24
 
-num_bc_bins = 50
-
 diam_num_min_max = [1e7, 1e11]
 diam_mass_min_max = [1e-4, 1e4]
 bc_num_min_max = [1e8, 1e13]
@@ -165,10 +163,11 @@ for use_coag in [True, False]:
                styles = [graph.style.line(lineattrs = attrs_mass)])
 
         if use_coag:
-            extra_text = ", with coagulation"
+            extra_text = "with coagulation"
         else:
-            extra_text = ", no coagulation"
-        write_time(g11, env_state, extra_text = extra_text)
+            extra_text = "no coagulation"
+        write_time(g11, env_state)
+        boxed_text(g11, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
 
         label_plot_line(g11, diam_num_plot_data, 0.08,
                         "number", [1, 1], 1 * unit.v_mm)

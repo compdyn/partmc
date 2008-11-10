@@ -36,7 +36,7 @@ def get_plot_data(filename, value_max = None, print_info = True):
 
     x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                           n_bin = num_diameter_bins)
-    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
     x_bin = x_axis.find(diameter)
     # hack to avoid landing just around the integer boundaries
     comp_frac *= (1.0 + 1e-12)
@@ -135,6 +135,9 @@ for use_color in [True, False]:
                             show_particles[i]["label pos"][0],
                             show_particles[i]["label pos"][1],
                             show_particles[i]["label"])
+
+    boxed_text(graphs["g12"], "with coagulation", point = [1, 1],
+               anchor_point_rel = [1, 1])
 
     c = graphs["c"]
     if color:

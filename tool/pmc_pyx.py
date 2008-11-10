@@ -197,12 +197,10 @@ def label_point(g, x, y, label_xv, label_yv, label, radius = 1 * unit.t_mm):
            [deco.stroked, deco.filled([color.gray.white])])
     g.insert(c, [trafo.translate(label_x_g, label_y_g)])
 
-def boxed_text(g, x, y, label, border = 1 * unit.v_mm):
-    (x_g, y_g) = g.vpos(x, y)
-    c = text.text(x_g, y_g, label)
-    b = c.bbox().enlarged(all = border)
-    g.draw(b.path(), [deco.stroked, deco.filled([color.gray.white])])
-    g.insert(c)
+def boxed_text(g, label, point = [0, 1], anchor_point_rel = [0, 1],
+               border = 1 * unit.v_mm):
+    (x_g, y_g) = g.vpos(point[0], point[1])
+    boxed_text_g(g, label, x_g, y_g, anchor_point_rel, border)
 
 def boxed_text_g(g, label, x_g = 0, y_g = 0, anchor_point_rel = [0, 1],
                  border = 1 * unit.v_mm):

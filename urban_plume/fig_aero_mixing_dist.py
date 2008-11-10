@@ -43,7 +43,7 @@ def get_plot_data(filename):
 
     y_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                           n_bin = num_plot_diameter_bins)
-    x_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    x_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
     x_bin = x_axis.find(comp_frac)
     y_bin = y_axis.find(diameter)
 

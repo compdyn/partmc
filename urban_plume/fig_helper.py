@@ -22,6 +22,7 @@ max_val = 4.0
 diameter_axis_min = 0.01
 diameter_axis_max = 1.0
 num_diameter_bins = 70
+num_bc_bins = 50
 
 times_hour = {"g11": 1,
               "g12" : 5,

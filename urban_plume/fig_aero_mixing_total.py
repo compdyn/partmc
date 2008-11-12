@@ -44,7 +44,7 @@ for use_color in [True, False]:
                               max = x_axis.max,
                               title = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)",
                               texter = graph.axis.texter.decimal(suffix = r"\%"),
-                              painter = major_grid_painter),
+                              painter = grid_painter),
         y = graph.axis.log(min = 1e7,
                            max = 1e12,
                            title = r"number concentration $n(w)$ ($\rm m^{-3}$)",

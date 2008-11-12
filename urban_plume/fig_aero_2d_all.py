@@ -41,7 +41,7 @@ def get_plot_data(filename, value_max = None):
                 * (y_axis.grid_size(y_bin[i]) / 100)
         num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
         for j in range(len(show_particles)):
-            if particles.id[i] == show_particles[j]["id"]:
+            if int(particles.id[i]) == show_particles[j]["id"]:
                 show_coords[j] = [diameter[i], comp_frac[i]]
 
     value = num_den_array / num_den_array.sum() \
@@ -91,8 +91,8 @@ for color in [True, False]:
                             show_particles[i]["label pos"][1],
                             show_particles[i]["label"])
 
-    boxed_text(graphs["g12"], "with coagulation", point = [1, 1],
-               anchor_point_rel = [1, 1])
+    #boxed_text(graphs["g12"], "with coagulation", point = [1, 1],
+    #           anchor_point_rel = [1, 1])
 
     c = graphs["c"]
     add_canvas_color_bar(c,

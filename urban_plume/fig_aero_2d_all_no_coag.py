@@ -80,8 +80,8 @@ for color in [True, False]:
 
         write_time(g, env_state)
 
-    boxed_text(graphs["g12"], "no coagulation", point = [1, 1],
-               anchor_point_rel = [1, 1])
+    #boxed_text(graphs["g12"], "no coagulation", point = [1, 1],
+    #           anchor_point_rel = [1, 1])
 
     c = graphs["c"]
     add_canvas_color_bar(c,

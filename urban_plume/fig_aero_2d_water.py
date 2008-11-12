@@ -55,7 +55,7 @@ def get_plot_data(filename, value_max = None, print_info = True):
         else:
             dry_array[x_bin[i], y_bin[i]] = 1.0
         for j in range(len(show_particles)):
-            if particles.id[i] == show_particles[j]["id"]:
+            if int(particles.id[i]) == show_particles[j]["id"]:
                 show_coords[j] = [diameter[i], comp_frac[i]]
 
     if print_info:
@@ -136,11 +136,11 @@ for use_color in [True, False]:
                             show_particles[i]["label pos"][1],
                             show_particles[i]["label"])
 
-    boxed_text(graphs["g12"], "with coagulation", point = [1, 1],
-               anchor_point_rel = [1, 1])
+    #boxed_text(graphs["g12"], "with coagulation", point = [1, 1],
+    #           anchor_point_rel = [1, 1])
 
     c = graphs["c"]
-    if color:
+    if use_color:
         add_canvas_color_bar(c,
                              min = 0.0,
                              max = max_val,

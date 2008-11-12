@@ -167,7 +167,7 @@ for use_coag in [True, False]:
         else:
             extra_text = "no coagulation"
         write_time(g11, env_state)
-        boxed_text(g11, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
+        #boxed_text(g11, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
 
         label_plot_line(g11, diam_num_plot_data, 0.08,
                         "number", [1, 1], 1 * unit.v_mm)

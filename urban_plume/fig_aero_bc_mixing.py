@@ -54,6 +54,7 @@ for use_color in [True, False]:
                                              time_hour * 3600)
         ncf = NetCDFFile(filename)
         particles = aero_particle_array_t(ncf)
+        env_state = env_state_t(ncf)
         ncf.close()
 
         diameter = particles.dry_diameter() * 1e6
@@ -227,6 +228,8 @@ for use_color in [True, False]:
     g.insert(c, [trafo.translate(transx, transy)])
 
     ######################################################################
+
+    write_time_inside(g, env_state)
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

@@ -76,7 +76,7 @@ for use_color in [True, False]:
 
     for i in range(1, len(show_particles)):
         if i == len(show_particles) - 1:
-            key = graph.key.key(pos = "tr", vinside = 0, columns = 4)
+            key = graph.key.key(pos = "tc", vinside = 0, columns = 4)
             #symbolwidth = unit.v_cm)
         else:
             key = None
@@ -84,7 +84,7 @@ for use_color in [True, False]:
             width = 6.4,
             ypos = graphs[i-1].ypos + graphs[i-1].height + 0.5,
             x = graph.axis.linkedaxis(graphs[i-1].axes["x"],
-                                      painter = graph.axis.painter.linked(gridattrs = [attr.changelist([style.linestyle.dotted, None])])),
+                                      painter = linked_grid_painter),
             y = graph.axis.log(min = 1e-23,
                                max = 1e-17,
                                title = r"mass (kg)",

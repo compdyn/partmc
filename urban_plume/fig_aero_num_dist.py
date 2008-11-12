@@ -49,12 +49,13 @@ for use_color in [True, False]:
         x = graph.axis.log(min = x_axis.min,
                            max = x_axis.max,
                            title = r"dry diameter $D$ ($\rm \mu m$)",
-                           painter = major_grid_painter),
+                           painter = grid_painter),
         y = graph.axis.log(min = 1e7,
                            max = 1e11,
                            title = r"number concentration ($\rm m^{-3}$)",
                            painter = major_grid_painter),
-        key = graph.key.key(pos = None, hpos = 0.8, vpos = 0))
+        #key = graph.key.key(pos = None, hpos = 0.8, vpos = 0))
+        key = graph.key.key(vinside = 0, columns = 2))
 
     for t in range(len(disp_lines)):
         if disp_lines[t]["coag"]:

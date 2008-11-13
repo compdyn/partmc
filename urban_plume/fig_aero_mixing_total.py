@@ -47,7 +47,7 @@ for use_color in [True, False]:
                               painter = grid_painter),
         y = graph.axis.log(min = 1e7,
                            max = 1e12,
-                           title = r"number concentration $n(w)$ ($\rm m^{-3}$)",
+                           title = r"number concentration $n_{\rm BC,dry}(w)$ ($\rm m^{-3}$)",
                            painter = major_grid_painter),
         key = graph.key.key(vinside = 0, columns = 2))
 

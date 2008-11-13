@@ -182,7 +182,7 @@ for use_coag in [True, False]:
         add_horiz_color_bar(g21,
                             min = 0.0,
                             max = max_val,
-                            title = r"number concentration $n_{\rm BC,dry}(w,D)$ ($m^{-3}$)",
+                            title = r"number concentration $n_{\rm BC,dry}(D,w)$ ($m^{-3}$)",
                             palette = palette,
                             bar_offset = 2.1,
                             above = False)

@@ -97,7 +97,7 @@ for color in [True, False]:
     add_horiz_color_bar(g,
                         min = 0.0,
                         max = value_max,
-                        title = r"number density $n_{\rm coag}(k,D)$ ($\rm m^{-3}$)",
+                        title = r"number concentration $n_{\rm coag}(D,k)$ ($\rm m^{-3}$)",
                         palette = palette,
                         bar_offset = 0.6)
 

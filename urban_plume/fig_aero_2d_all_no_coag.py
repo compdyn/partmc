@@ -87,7 +87,7 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number concentration $\hat{n}_{\rm BC,dry}(w,D)$ ($1$)",
+                         title = r"normalized number concentration $\hat{n}_{\rm BC,dry}(D,w)$ ($1$)",
                          palette = palette)
 
     if color:

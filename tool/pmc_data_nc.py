@@ -439,7 +439,7 @@ class aero_particle_t:
 	self.comp_vol = ncf.variables["aero_comp_vol"][index]
         if "aero_id" not in ncf.variables.keys():
             raise Exception("aero_id variable not found in NetCDF file")
-	self.id = ncf.variables["aero_id"][index]
+	self.id = int(ncf.variables["aero_id"][index])
         if "aero_least_create_time" not in ncf.variables.keys():
             raise Exception("aero_least_create_time variable not found in NetCDF file")
 	self.least_create_time = ncf.variables["aero_least_create_time"][index]
@@ -500,7 +500,7 @@ def read_particles(ncf, ids = None):
     if ids == None:
         indices = range(n_part)
     else:
-        particle_ids = ncf.variables["aero_id"].getValue()
+        particle_ids = array(ncf.variables["aero_id"].getValue())
         indices = []
         for i in ids:
             ind = (particle_ids == i).argmax()

@@ -27,7 +27,7 @@ out_prefix = "figs/aero_time"
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
-max_time_min = max([time for [time, filename] in time_filename_list]) / 60
+max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
 
 for use_color in [True, False]:
     c = canvas.canvas()
@@ -65,7 +65,7 @@ for use_color in [True, False]:
     found_dry_diesel = False
     found_water_transition = False
     found_dry_diesel_with_nitrate = False
-    for [time, filename] in time_filename_list:
+    for [time, filename, key] in time_filename_list:
         ncf = NetCDFFile(filename)
         particles = aero_particle_array_t(ncf)
         env_state = env_state_t(ncf)
@@ -119,13 +119,13 @@ for use_color in [True, False]:
             mass_den = (masses / particles.comp_vol).sum()
             plot_data[i].append([time / 60.0, mass_den * 1e9])
         if max_comp_vol == None:
-            max_comp_vol = particles.comp_vol.max()
+            max_comp_vol = array(particles.comp_vol).max()
         else:
-            max_comp_vol = max(max_comp_vol, particles.comp_vol.max())
+            max_comp_vol = max(max_comp_vol, array(particles.comp_vol).max())
         if min_comp_vol == None:
-            min_comp_vol = particles.comp_vol.min()
+            min_comp_vol = array(particles.comp_vol).min()
         else:
-            min_comp_vol = min(min_comp_vol, particles.comp_vol.min())
+            min_comp_vol = min(min_comp_vol, array(particles.comp_vol).min())
         if max_n_particles == None:
             max_n_particles = particles.n_particles
         else:

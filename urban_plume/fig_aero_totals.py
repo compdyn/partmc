@@ -39,7 +39,7 @@ time_filename_list_wc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
-max_time_min = max([time for [time, filename] in time_filename_list_wc]) / 60
+max_time_min = max([time for [time, filename, key] in time_filename_list_wc]) / 60
 
 for use_color in [True, False]:
     g = graph.graphxy(
@@ -52,9 +52,11 @@ for use_color in [True, False]:
                                                    = start_time_of_day_min),
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
-        y = graph.axis.linear(title = r"mass concentration $M_a$ ($\rm \mu g \, m^{-3}$)",
+        y = graph.axis.linear(min = 0,
+                              title = r"mass concentration $M_a$ ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter),
-        y2 = graph.axis.linear(title = r"number concentration $N$ ($\rm m^{-3}$)"))
+        y2 = graph.axis.linear(min = 0,
+                               title = r"number concentration $N$ ($\rm m^{-3}$)"))
 
     plot_data = [[] for i in range(len(plots))]
     for i in range(len(plots)):
@@ -62,19 +64,19 @@ for use_color in [True, False]:
             time_filename_list = time_filename_list_wc
         else:
             time_filename_list = time_filename_list_nc
-        for [time, filename] in time_filename_list:
+        for [time, filename, key] in time_filename_list:
             print i, filename
             ncf = NetCDFFile(filename)
             particles = aero_particle_array_t(ncf)
             ncf.close()
             if plots[i]["mass"]:
                 if plots[i]["wet"]:
-                    value = (particles.mass() / particles.comp_vol).sum() * 1e9
+                    value = (particles.mass() / array(particles.comp_vol)).sum() * 1e9
                 else:
                     value = (particles.mass(exclude = ["H2O"])
-                             / particles.comp_vol).sum() * 1e9
+                             / array(particles.comp_vol)).sum() * 1e9
             else:
-                value = (1.0 / particles.comp_vol).sum()
+                value = (1.0 / array(particles.comp_vol)).sum()
             plot_data[i].append([time / 60.0, value])
 
     for i in range(len(plots)):

@@ -353,7 +353,7 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
     gc.doaxes()
 
 def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
-		  bar_height_ratio = 0.6, bar_x_offset = -1.2,
+                         bar_height_ratio = 0.6, bar_x_offset = -1.2,
                          bar_y_offset = -0.7, min_palette_index = 0.0,
                          max_palette_index = 1.0, texter = None,
                          extra_box_value = None, extra_box_label = None,

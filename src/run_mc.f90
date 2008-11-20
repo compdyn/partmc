@@ -229,16 +229,17 @@ contains
 
        call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time)
-       call env_state_update_gas_state(env_state, mc_opt%del_t, &
-            old_env_state, gas_data, gas_state)
-       call env_state_update_aero_state(env_state, mc_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_state, aero_binned)
 
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
                aero_state, mc_opt, k_max, tot_n_samp, n_coag)
        end if
        tot_n_coag = tot_n_coag + n_coag
+
+       call env_state_update_gas_state(env_state, mc_opt%del_t, &
+            old_env_state, gas_data, gas_state)
+       call env_state_update_aero_state(env_state, mc_opt%del_t, &
+            old_env_state, bin_grid, aero_data, aero_state, aero_binned)
 
        if (mc_opt%do_condensation) then
           call condense_particles(bin_grid, aero_binned, env_state, &

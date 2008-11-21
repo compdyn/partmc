@@ -1,0 +1,4 @@
+MOSAIC_MODDIR = -I$(HOME)/svn/mosaic/trunk/datamodules
+MOSAIC_LIBDIR = -L$(HOME)/svn/mosaic/trunk
+MOSAIC_LIB = -lmosaic
+MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC

@@ -109,17 +109,25 @@ endif
 
 src/%.o src/pmc_%.mod: src/%.f90
 	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-test/%.o: test/%.f90
-	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
-equilib/%.o: equilib/%.f90 equilib/%.deps
-	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
+	touch $(patsubst src/%.f90,src/pmc_%.mod,$<)
 
+src/partmc.o: src/partmc.f90
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 src/partmc: $(partmc_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(partmc_OBJS) $(MOSAIC_LIB) $(NETCDF_LIB)
+
+equilib/equilib.o: equilib/equilib.f90
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 equilib/equilib: $(equilib_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(equilib_OBJS) $(NETCDF_LIB)
+
+test/bidisperse/bidisperse_ode.o: test/bidisperse/bidisperse_ode.f90
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 test/bidisperse/bidisperse_ode: $(bidisperse_ode_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(bidisperse_ode_OBJS) $(NETCDF_LIB)
+
+test/poisson/poisson_sample.o: test/poisson/poisson_sample.f90
+	$(FC) $(FFLAGS) -c -o $(patsubst %.f90,%.o,$<) $<
 test/poisson/poisson_sample: $(poisson_sample_OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(poisson_sample_OBJS)
 

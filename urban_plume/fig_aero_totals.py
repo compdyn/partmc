@@ -66,7 +66,6 @@ for use_color in [True, False]:
         else:
             time_filename_list = time_filename_list_nc
         for [time, filename, key] in time_filename_list:
-            print i, filename
             ncf = NetCDFFile(filename)
             particles = aero_particle_array_t(ncf)
             ncf.close()

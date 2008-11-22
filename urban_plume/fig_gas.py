@@ -10,6 +10,7 @@ from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
+sys.path.append(".")
 from fig_helper import *
 
 gas_species = [

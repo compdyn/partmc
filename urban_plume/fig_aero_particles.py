@@ -11,6 +11,7 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 import numpy
+sys.path.append(".")
 from fig_helper import *
 
 out_prefix = "figs/aero_particles"

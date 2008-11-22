@@ -9,6 +9,7 @@ from Scientific.IO.NetCDF import *
 from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
+sys.path.append(".")
 from pmc_pyx import *
 
 from fig_helper import *

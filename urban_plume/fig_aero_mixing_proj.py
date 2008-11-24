@@ -42,7 +42,8 @@ def get_plot_data(filename):
 
     diam_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                              n_bin = num_diameter_bins)
-    bc_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
+    bc_axis = pmc_linear_axis(min = bc_axis_min, max = bc_axis_max,
+                              n_bin = num_bc_bins)
     diam_bin = diam_axis.find(diameter)
     # hack to avoid landing just around the integer boundaries
     comp_frac *= (1.0 + 1e-12)
@@ -94,8 +95,9 @@ for use_coag in [True, False]:
             x = graph.axis.log(min = diameter_axis_min,
                                max = diameter_axis_max,
                                title = diam_axis_label),
-            y = graph.axis.linear(min = 0,
-                                  max = 100,
+            y = graph.axis.linear(min = bc_axis_min,
+                                  max = bc_axis_max,
+                                  density = 1.2,
                                   title = bc_axis_label,
                                   texter = graph.axis.texter.decimal(suffix = r"\%"))))
         g11 = c.insert(graph.graphxy(
@@ -174,9 +176,9 @@ for use_coag in [True, False]:
                         "number", [1, 1], 1 * unit.v_mm)
         label_plot_line(g11, diam_mass_plot_data, 0.05,
                         "mass", [0, 0], 1 * unit.v_mm, yaxis = g11.axes["y2"])
-        label_plot_line(g22, bc_num_plot_data, 50,
+        label_plot_line(g22, bc_num_plot_data, 30,
                         "number", [1, 0], 1 * unit.v_mm, flip_xy = True)
-        label_plot_line(g22, bc_mass_plot_data, 50,
+        label_plot_line(g22, bc_mass_plot_data, 33,
                         "mass", [0, 1], 1 * unit.v_mm, flip_xy = True,
                         xaxis = g22.axes["x3"])
 

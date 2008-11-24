@@ -33,7 +33,8 @@ disp_lines = [
 
 out_prefix = "figs/aero_mixing_total"
 
-x_axis = pmc_linear_axis(min = 0, max = 100, n_bin = num_bc_bins)
+x_axis = pmc_linear_axis(min = bc_axis_min, max = bc_axis_max,
+                         n_bin = num_bc_bins)
 
 time_filename_list_wc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)

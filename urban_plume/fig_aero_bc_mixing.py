@@ -17,7 +17,7 @@ time_hour = 24
 
 bc_fractions = [[0, 2],
                 [2, 10],
-                [80, 90],
+                [60, 70],
                 ]
 small_diameter_limit = 0.05
 large_diameter_limit = 0.1
@@ -67,8 +67,8 @@ for use_color in [True, False]:
         for i_frac in range(len(bc_fractions)):
             mass_array = numpy.zeros([x_axis.n_bin])
             for i in range(particles.n_particles):
-                if (comp_frac[i] >= bc_fractions[i_frac][0]) \
-                   and (comp_frac[i] <= bc_fractions[i_frac][1]):
+                if (comp_frac[i] >= bc_fractions[i_frac][0] * (1.0 - 1e-8)) \
+                   and (comp_frac[i] <= bc_fractions[i_frac][1] * (1.0 + 1e8)):
                     scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
                     mass_array[x_bin[i]] += mass[i] / scale
 

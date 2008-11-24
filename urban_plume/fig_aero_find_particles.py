@@ -40,9 +40,11 @@ early_oc_frac = early_particles.mass(include = ["BC"]) \
                 / early_particles.mass(include = ["BC", "OC"]) * 100
 late_oc_frac = late_particles.mass(include = ["BC"]) \
                / late_particles.mass(include = ["BC", "OC"]) * 100
+early_id = array([int(id) for id in early_particles.id])
+late_id = array([int(id) for id in late_particles.id])
 early_found = {}
 for i in range(early_particles.n_particles):
-    if early_particles.id[i] in late_particles.id:
+    if early_id[i] in late_id:
         type = ""
         if early_comp_frac[i] > 50:
             if early_water_frac[i] == 0.0:
@@ -61,27 +63,30 @@ for i in range(early_particles.n_particles):
 late_found = {}
 for i in range(late_particles.n_particles):
     type = ""
-    if late_comp_frac[i] > 85:
+    if late_comp_frac[i] > 64:
         type = "late diesel"
     if type != "":
         if type not in late_found.keys():
             late_found[type] = []
         late_found[type].append(i)
 for type in early_found.keys():
-    early_found[type].sort(cmp = lambda x,y : cmp(early_particles.id[x],
-                                                  early_particles.id[y]))
+    early_found[type].sort(cmp = lambda x,y : cmp(early_id[x],
+                                                  early_id[y]))
     for i in early_found[type]:
-        for j in range(len(late_particles.id)):
-            if early_particles.id[i] == late_particles.id[j]:
+        for j in range(len(late_id)):
+            if early_id[i] == late_id[j]:
                 late_i = j
-        print "%s: id = %d, d0 = %f, bc0 = %g, water0 = %f, d1 = %f, bc1 = %g, water1 = %f, nco = %d" \
-              % (type, early_particles.id[i], early_diameter[i],
-                 early_comp_frac[i], early_water_frac[i], late_diameter[late_i],
-                 late_comp_frac[late_i], late_water_frac[late_i], late_particles.n_orig_part[late_i] - 1)
+        n_coag = int(late_particles.n_orig_part[late_i]) - 1
+        if n_coag == 0:
+            print "%s: id = %d, d0 = %f, bc0 = %g, water0 = %f, d1 = %f, bc1 = %g, water1 = %f, nco = %d" \
+                % (type, early_id[i], early_diameter[i],
+                   early_comp_frac[i], early_water_frac[i], late_diameter[late_i],
+                   late_comp_frac[late_i], late_water_frac[late_i], n_coag)
 for type in late_found.keys():
-    late_found[type].sort(cmp = lambda x,y : cmp(late_particles.id[x],
-                                                 late_particles.id[y]))
+    late_found[type].sort(cmp = lambda x,y : cmp(late_id[x],
+                                                 late_id[y]))
     for i in late_found[type]:
-        print "%s: id = %d, d = %f, bc = %g, water = %f" \
-              % (type, late_particles.id[i], late_diameter[i],
-                 late_comp_frac[i], late_water_frac[i])
+        if late_diameter[i] < 0.1:
+            print "%s: id = %d, d = %f, bc = %g, water = %f, emit_time = %f" \
+                % (type, late_id[i], late_diameter[i],
+                   late_comp_frac[i], late_water_frac[i], late_particles.least_create_time[i])

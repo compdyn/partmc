@@ -22,7 +22,10 @@ max_val = 4.0
 diameter_axis_min = 0.01
 diameter_axis_max = 1.0
 num_diameter_bins = 70
-num_bc_bins = 50
+
+bc_axis_min = 0
+bc_axis_max = 80
+num_bc_bins = 40
 
 times_hour = {"g11": 1,
               "g12" : 5,
@@ -34,19 +37,20 @@ grid_h_space = 0.5
 grid_graph_width = 6.3
 
 show_particles = [
-    {"id": 108139, "suffix": "1", "label": "P1",
+    {"id": 101334, "suffix": "1", "label": "P1",
      "label pos": [0.9, 0.4], "box label": "particle P1"},
-    {"id": 192536, "suffix": "2", "label": "P2",
+    {"id": 194517, "suffix": "2", "label": "P2",
      "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 549273, "suffix": "3", "label": "P3",
+    {"id": 555532, "suffix": "3", "label": "P3",
      "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
-def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
+def make_2x2_graph_grid(y_axis_label, y_min = bc_axis_min, y_max = bc_axis_max,
                         with_y_percent = True, with_x_percent = False,
                         y_log = False, x_log = True, with_key = False,
                         x_axis_label = r'dry diameter $D$ ($\mu$m)',
-                        x_min = diameter_axis_min, x_max = diameter_axis_max):
+                        x_min = diameter_axis_min, x_max = diameter_axis_max,
+                        y_density = 1.2):
     c = canvas.canvas()
     if with_y_percent:
         y_texter = graph.axis.texter.decimal(suffix = r"\%")
@@ -60,12 +64,14 @@ def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
         y = graph.axis.log(min = y_min,
                            max = y_max,
                            title = y_axis_label,
-                           texter = y_texter)
+                           texter = y_texter,
+                           density = y_density)
     else:
         y = graph.axis.linear(min = y_min,
                               max = y_max,
                               title = y_axis_label,
-                              texter = y_texter)
+                              texter = y_texter,
+                              density = y_density)
     if x_log:
         x = graph.axis.log(min = x_min,
                            max = x_max,
@@ -107,7 +113,7 @@ def make_2x2_graph_grid(y_axis_label, y_min = 0, y_max = 100,
             "g21" : g21,
             "g22" : g22}
 
-def make_2x1_graph_grid(y_axis_label):
+def make_2x1_graph_grid(y_axis_label, y_density = 1.2):
     c = canvas.canvas()
     
     g11 = c.insert(graph.graphxy(
@@ -115,9 +121,10 @@ def make_2x1_graph_grid(y_axis_label):
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = r'dry diameter $D$ ($\mu$m)'),
-        y = graph.axis.linear(min = 0,
-                              max = 100,
+        y = graph.axis.linear(min = bc_axis_min,
+                              max = bc_axis_max,
                               title = y_axis_label,
+                              density = y_density,
                               texter = graph.axis.texter.decimal(suffix
                                                                  = r"\%"))))
     g21 = c.insert(graph.graphxy(
@@ -138,8 +145,8 @@ def make_1x1_graph_grid(y_axis_label):
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = r'dry diameter $D$ ($\mu$m)'),
-        y = graph.axis.linear(min = 0,
-                              max = 100,
+        y = graph.axis.linear(min = bc_axis_min,
+                              max = bc_axis_max,
                               title = y_axis_label,
                               texter = graph.axis.texter.decimal(suffix
                                                                  = r"\%")))

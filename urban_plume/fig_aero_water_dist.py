@@ -19,7 +19,7 @@ time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state_history = read_history(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
-max_time = max([time for [time, filename] in time_filename_list])
+max_time = max([time for [time, filename, key] in time_filename_list])
 max_time_min = max_time / 60
 
 for use_color in [True, False]:
@@ -52,7 +52,7 @@ for use_color in [True, False]:
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     num_times_array = numpy.zeros([x_axis.n_bin], dtype=int)
 
-    for [time, filename] in time_filename_list:
+    for [time, filename, key] in time_filename_list:
         ncf = NetCDFFile(filename)
         particles = aero_particle_array_t(ncf)
         ncf.close()

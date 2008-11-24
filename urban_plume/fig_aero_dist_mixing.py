@@ -31,7 +31,7 @@ disp_lines = [
      "line_color": 2, "line_color_style": style.linestyle.dashed},
     ]
 
-out_prefix = "figs/aero_mixing_total"
+out_prefix = "figs/aero_dist_mixing"
 
 x_axis = pmc_linear_axis(min = bc_axis_min, max = bc_axis_max,
                          n_bin = num_bc_bins)

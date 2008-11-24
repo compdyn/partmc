@@ -23,7 +23,7 @@ aero_species = [
      "label": "SOA", "label_time": 8, "label_pos": [0, 0]},
     ]
 
-out_prefix = "figs/aero_time"
+out_prefix = "figs/aero_time_species"
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)

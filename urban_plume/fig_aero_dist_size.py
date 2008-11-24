@@ -36,7 +36,7 @@ base_vals = []
 new_vals = []
 eval_change_time = 24
 
-out_prefix = "figs/aero_num_dist"
+out_prefix = "figs/aero_dist_size"
 
 x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                       n_bin = num_diameter_bins)

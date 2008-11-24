@@ -106,10 +106,10 @@ for use_color in [True, False]:
                        " mass den below %g um = %g ug/m^3") \
                        % (str(with_coag), bc_fractions[i_frac][0],
                           bc_fractions[i_frac][1], small_diameter_limit, val)
-            if with_coag:
-                new_small.append(val)
-            else:
-                base_small.append(val)
+                if with_coag:
+                    new_small.append(val)
+                else:
+                    base_small.append(val)
 
             mass_den = mass / particles.comp_vol
             particle_select = (comp_frac >= bc_fractions[i_frac][0]) \
@@ -121,17 +121,17 @@ for use_color in [True, False]:
                        " mass den above %g um = %g ug/m^3") \
                        % (str(with_coag), bc_fractions[i_frac][0],
                           bc_fractions[i_frac][1], large_diameter_limit, val)
-            if with_coag:
-                new_large.append(val)
-            else:
-                base_large.append(val)
+                if with_coag:
+                    new_large.append(val)
+                else:
+                    base_large.append(val)
 
-    if (len(base_small) != len(bc_fractions)) \
-       or (len(base_large) != len(bc_fractions)) \
-       or (len(new_small) != len(bc_fractions)) \
-       or (len(new_large) != len(bc_fractions)):
-        print "ERROR: problem computing base/new_large/small"
     if not use_color:
+        if (len(base_small) != len(bc_fractions)) \
+                or (len(base_large) != len(bc_fractions)) \
+                or (len(new_small) != len(bc_fractions)) \
+                or (len(new_large) != len(bc_fractions)):
+            print "ERROR: problem computing base/new_large/small"
         for i in range(len(bc_fractions)):
             print ("BC frac %g%% to %g%%, decrease in mass den below %g um"
                    " from no-coag to with-coag = %g%%") \

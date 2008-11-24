@@ -13,7 +13,7 @@ from pmc_pyx import *
 sys.path.append(".")
 from fig_helper import *
 
-out_prefix = "figs/aero_totals"
+out_prefix = "figs/aero_time_totals"
 
 plots = [
     {"mass": True, "coag": True, "wet": True, "yaxis": "y",

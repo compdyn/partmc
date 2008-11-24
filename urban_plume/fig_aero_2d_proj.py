@@ -20,7 +20,7 @@ diam_mass_min_max = [1e-4, 1e4]
 bc_num_min_max = [1e8, 1e13]
 bc_mass_min_max = [1e-1, 1e4]
 
-out_prefix = "figs/aero_mixing_proj"
+out_prefix = "figs/aero_2d_proj"
 
 diam_axis_label = r'dry diameter $D$ ($\mu$m)'
 bc_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"

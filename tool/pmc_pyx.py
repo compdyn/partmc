@@ -4,36 +4,26 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
-sys.path.append(os.path.expanduser("~/.python"))
+# FIXME
+#sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 import pyx.bbox as bbox
 import numpy
 import pmc_data_nc
 
+# FIXME
 #text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
-text.set(mode="latex")
-#text.set(docopt="10pt")
-#text.set(fontmaps="download35.map")
-#text.preamble(r"\usepackage{times}")
+#text.set(mode="latex")
 
-#text.preamble(r"""\usepackage{times}
-#\usepackage{sfmath}
+#text.preamble(r"""\renewcommand{\sfdefault}{phv}
 #\renewcommand{\familydefault}{\sfdefault}
-#\renewcommand{\normalsize}{\fontsize{8}{8}\selectfont}""")
+#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
 
-text.preamble(r"""\renewcommand{\sfdefault}{phv}
-\renewcommand{\familydefault}{\sfdefault}
-\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}
-\usepackage{sfmath}""")
 
-#text.preamble(r"""\usepackage{amsmath}
-#\renewcommand{\normalsize}{\fontfamily{phvv}\selectfont}""")
-
-#text.preamble(r"""\usepackage{amsmath}
-#\usepackage{times}
-#\usepackage{sfmath}
+#text.preamble(r"""\renewcommand{\sfdefault}{phv}
 #\renewcommand{\familydefault}{\sfdefault}
-#\renewcommand{\normalsize}{\fontfamily{phvv}\fontsize{3}{3}\selectfont}""")
+#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}
+#\usepackage{sfmath}""")
 
 color_list = [color.hsb(2/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),
@@ -308,7 +298,8 @@ def add_color_bar_new(g, min, max, title, bar_width = 0.5,
 
 def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
                         bar_width_ratio = 0.8, bar_offset = 1.8,
-                        horiz_offset = 0, above = True):
+                        horiz_offset = 0, above = True,
+                        texter = None):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -318,6 +309,17 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
 	v0 = x0 * (max - min) + min
 	v1 = x1 * (max - min) + min
 	color_d.append([0, 1, v0, v1, xh])
+    if texter:
+        xaxis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title,
+            texter = texter)
+    else:
+        xaxis = graph.axis.linear(
+            min = min,
+            max = max,
+            title = title)
     if above:
         gc = g.insert(
             graph.graphxy(

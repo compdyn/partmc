@@ -24,7 +24,7 @@ for color in [True, False]:
         width = 6.9,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\rm \mu m$)'),
+                           title = diameter_axis_label),
         y = graph.axis.linear(min = -0.5,
                               max = max_n_coags + 0.5,
                               parter = graph.axis.parter.linear(tickdists = [4, 2]),
@@ -98,7 +98,7 @@ for color in [True, False]:
     add_horiz_color_bar(g,
                         min = 0.0,
                         max = value_max,
-                        title = r"number concentration $n_{\rm coag}(D,k)$ ($\rm m^{-3}$)",
+                        title = r"number concentration $n_{\rm coag}(D,k)\ (\rm m^{-3})$",
                         palette = palette,
                         bar_offset = 0.6)
 

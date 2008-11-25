@@ -9,7 +9,16 @@ from Scientific.IO.NetCDF import *
 from pyx import *
 sys.path.append("../tool")
 from pmc_data_nc import *
+
+text.set(mode="latex")
+#text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 from pmc_pyx import *
+
+text.preamble(r"""\usepackage{times}""")
+
+#text.preamble(r"""\renewcommand{\sfdefault}{phv}
+#\renewcommand{\familydefault}{\sfdefault}
+#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
 
 netcdf_dir_wc = "out"
 netcdf_pattern_wc = r"^urban_plume_wc_state_0001_([0-9]{8})\.nc$"
@@ -22,6 +31,7 @@ max_val = 4.0
 diameter_axis_min = 0.01
 diameter_axis_max = 1.0
 num_diameter_bins = 70
+diameter_axis_label = r'dry diameter $D\ (\rm\mu m)$'
 
 bc_axis_min = 0
 bc_axis_max = 80
@@ -34,7 +44,7 @@ times_hour = {"g11": 1,
 
 grid_v_space = 0.7
 grid_h_space = 0.5
-grid_graph_width = 6.3
+grid_graph_width = 6.25
 
 show_particles = [
     {"id": 101334, "suffix": "1", "label": "P1",
@@ -48,18 +58,20 @@ show_particles = [
 def make_2x2_graph_grid(y_axis_label, y_min = bc_axis_min, y_max = bc_axis_max,
                         with_y_percent = True, with_x_percent = False,
                         y_log = False, x_log = True, with_key = False,
-                        x_axis_label = r'dry diameter $D$ ($\mu$m)',
+                        x_axis_label = diameter_axis_label,
                         x_min = diameter_axis_min, x_max = diameter_axis_max,
                         y_density = 1.2):
     c = canvas.canvas()
     if with_y_percent:
-        y_texter = graph.axis.texter.decimal(suffix = r"\%")
+        y_texter = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"\%}")
     else:
-        y_texter = graph.axis.texter.mixed()
+        y_texter = graph.axis.texter.mixed(
+            decimal = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"}"))
     if with_x_percent:
-        x_texter = graph.axis.texter.decimal(suffix = r"\%")
+        x_texter = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"\%}")
     else:
-        x_texter = graph.axis.texter.mixed()
+        x_texter = graph.axis.texter.mixed(
+            decimal = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"}"))
     if y_log:
         y = graph.axis.log(min = y_min,
                            max = y_max,
@@ -120,7 +132,7 @@ def make_2x1_graph_grid(y_axis_label, y_density = 1.2):
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\mu$m)'),
+                           title = diameter_axis_label),
         y = graph.axis.linear(min = bc_axis_min,
                               max = bc_axis_max,
                               title = y_axis_label,
@@ -132,7 +144,7 @@ def make_2x1_graph_grid(y_axis_label, y_density = 1.2):
         xpos = g11.width + grid_h_space,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\mu$m)'),
+                           title = diameter_axis_label),
         y = graph.axis.linkedaxis(g11.axes["y"])))
 
     return {"c": c,
@@ -144,7 +156,7 @@ def make_1x1_graph_grid(y_axis_label):
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = r'dry diameter $D$ ($\mu$m)'),
+                           title = diameter_axis_label),
         y = graph.axis.linear(min = bc_axis_min,
                               max = bc_axis_max,
                               title = y_axis_label,

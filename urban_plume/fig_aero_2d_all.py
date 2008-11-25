@@ -7,15 +7,15 @@ import os, sys, math
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
+sys.path.append(".")
+from fig_helper import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
-sys.path.append(".")
-from fig_helper import *
 
 out_prefix = "figs/aero_2d_all"
 
-y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
+y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}\ (1)$"
 
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
@@ -100,7 +100,8 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number concentration $\hat{n}_{\rm BC,dry}(D,w)$ ($1$)",
+                         texter = graph.axis.texter.decimal(infix = r"\textsf{", suffix = "}"),
+                         title = r"normalized number concentration $\hat{n}_{\rm BC,dry}(D,w)\ (1)$",
                          palette = palette)
 
     if color:

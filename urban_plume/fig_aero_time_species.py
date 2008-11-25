@@ -80,6 +80,7 @@ for use_color in [True, False]:
                        / particles.mass(exclude = ["H2O"]) * 100
         soot_water_frac = water_frac[bc_oc_frac > 2]
         wet_soot_water_frac = soot_water_frac[soot_water_frac > 0.0]
+        n_orig_part = array([int(n) for n in particles.n_orig_part])
         if len(soot_water_frac) > 0:
             fraction_wet_soot = len(wet_soot_water_frac) \
                                 / float(len(soot_water_frac)) * 100
@@ -94,8 +95,8 @@ for use_color in [True, False]:
                                                      + env_state.start_time_of_day),
                                   env_state.relative_humidity * 100)
         if not found_dry_diesel_with_nitrate:
-            if ((bc_oc_frac > 80) & (water_frac == 0.0) \
-                & (nitrate_frac > 0.0) & (particles.n_orig_part == 1)).any():
+            if ((bc_oc_frac > 60) & (water_frac == 0.0) \
+                & (nitrate_frac > 0.0) & (n_orig_part == 1)).any():
                 found_dry_diesel_with_nitrate = True
                 if not use_color:
                     print ("First dry diesel particle with nitrate after %g seconds"
@@ -105,7 +106,7 @@ for use_color in [True, False]:
                                                  + env_state.start_time_of_day),
                               env_state.relative_humidity * 100)
         if not found_dry_diesel:
-            if ((bc_oc_frac > 80) & (water_frac == 0.0)).any():
+            if ((bc_oc_frac > 60) & (water_frac == 0.0)).any():
                 found_dry_diesel = True
                 if not use_color:
                     print ("First dry diesel particle after %g seconds (at %s LST)"
@@ -137,6 +138,12 @@ for use_color in [True, False]:
             min_n_particles = min(min_n_particles, particles.n_particles)
 
     if not use_color:
+        if not found_water_transition:
+            print "ERROR: did not find water transition"
+        if not found_dry_diesel_with_nitrate:
+            print "ERROR: did not find dry diesel with nitrate"
+        if not found_dry_diesel:
+            print "ERROR: did not find dry diesel"
         print "max comp_vol = %g cm^3" % (max_comp_vol * 1e6)
         print "min comp_vol = %g cm^3" % (min_comp_vol * 1e6)
         print "max n_particles = %d" % max_n_particles

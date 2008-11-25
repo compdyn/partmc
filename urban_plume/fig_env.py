@@ -79,11 +79,13 @@ for use_color in [True, False]:
                     1 * unit.v_mm, yaxis = g.axes["y4"])
 
     if not use_color:
+        print "init RH = %g%%" % rh_plot_data[0][1]
         print "min RH = %g%%" % min([v for [t,v] in rh_plot_data])
         print "max RH in night = %g%%" % max([v for [t,v] in rh_plot_data
                                               if t > 12 * 60])
-
-        i = find_nearest_time(rh_plot_data, 60)
+        t_85 = min([t for [t,v] in rh_plot_data
+                    if v < 85])
+        i = find_nearest_time(rh_plot_data, t_85)
         print "RH at %s = %g%%" \
               % (time_of_day_string(rh_plot_data[i][0] * 60
                                     + env_state_history[0][1].start_time_of_day),

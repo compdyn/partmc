@@ -24,10 +24,10 @@ out_prefix = "figs/aero_2d_proj"
 
 diam_axis_label = r'dry diameter $D$ ($\mu$m)'
 bc_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
-diam_num_axis_label = r"number concentration $n(D)$ ($\rm m^{-3}$)"
-diam_mass_axis_label = r"mass concentration $m(D)$ ($\rm \mu g\,m^{-3}$)"
-bc_num_axis_label = r"number concentration $n_{\rm BC,dry}(w)$ ($\rm m^{-3}$)"
-bc_mass_axis_label = r"mass concentration $m_{\rm BC,dry}(w)$ ($\rm \mu g\,m^{-3}$)"
+diam_num_axis_label = r"number conc. $n(D)$ ($\rm m^{-3}$)"
+diam_mass_axis_label = r"mass conc. $m(D)$ ($\rm \mu g\,m^{-3}$)"
+bc_num_axis_label = r"number conc. $n_{\rm BC,dry}(w)$ ($\rm m^{-3}$)"
+bc_mass_axis_label = r"mass conc. $m_{\rm BC,dry}(w)$ ($\rm \mu g\,m^{-3}$)"
 
 def get_plot_data(filename):
     ncf = NetCDFFile(filename)
@@ -125,6 +125,10 @@ for use_coag in [True, False]:
             y = graph.axis.linkedaxis(g21.axes["y"],
                                       painter = linked_grid_painter)))
 
+        g11.doaxes()
+        g21.doaxes()
+        g22.doaxes()
+
         time = time_hour * 3600.0
         filename = file_filename_at_time(time_filename_list, time)
         (plot_data_2d, max_val, diam_num_plot_data, diam_mass_plot_data,
@@ -172,20 +176,20 @@ for use_coag in [True, False]:
         write_time(g11, env_state)
         #boxed_text(g11, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
 
-        label_plot_line(g11, diam_num_plot_data, 0.08,
-                        "number", [1, 1], 1 * unit.v_mm)
-        label_plot_line(g11, diam_mass_plot_data, 0.05,
-                        "mass", [0, 0], 1 * unit.v_mm, yaxis = g11.axes["y2"])
-        label_plot_line(g22, bc_num_plot_data, 30,
-                        "number", [1, 0], 1 * unit.v_mm, flip_xy = True)
-        label_plot_line(g22, bc_mass_plot_data, 33,
-                        "mass", [0, 1], 1 * unit.v_mm, flip_xy = True,
+        label_plot_line_boxed(g11, diam_num_plot_data, 0.08,
+                        "number", [1, 1])
+        label_plot_line_boxed(g11, diam_mass_plot_data, 0.05,
+                        "mass", [0, 0], yaxis = g11.axes["y2"])
+        label_plot_line_boxed(g22, bc_num_plot_data, 30,
+                        "number", [1, 0], flip_xy = True)
+        label_plot_line_boxed(g22, bc_mass_plot_data, 31,
+                        "mass", [0, 1], flip_xy = True,
                         xaxis = g22.axes["x3"])
 
         add_horiz_color_bar(g21,
                             min = 0.0,
                             max = max_val,
-                            title = r"number concentration $n_{\rm BC,dry}(D,w)$ ($m^{-3}$)",
+                            title = r"number conc. $n_{\rm BC,dry}(D,w)$ ($m^{-3}$)",
                             palette = palette,
                             bar_offset = 2.1,
                             above = False)

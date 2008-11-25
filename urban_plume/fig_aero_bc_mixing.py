@@ -43,7 +43,7 @@ for use_color in [True, False]:
                                painter = grid_painter),
             y = graph.axis.log(min = 1e-6,
                                max = 1e3,
-                               title = r'mass concentration ($\rm \mu g\, m^{-3}$)',
+                               title = r'mass conc. ($\rm \mu g\, m^{-3}$)',
                                painter = grid_painter))
 
     for with_coag in [True, False]:

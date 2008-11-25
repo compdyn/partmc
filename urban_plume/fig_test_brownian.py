@@ -57,7 +57,7 @@ for use_color in [True, False]:
                            painter = grid_painter),
         y = graph.axis.linear(min = 0,
                               max = 2.5e-7,
-                              title = r"mass concentration $m(D)$ ($\rm kg\,m^{-3}$)",
+                              title = r"mass conc. $m(D)$ ($\rm kg\,m^{-3}$)",
                               painter = grid_painter)))
 
     g_num_lin = c.insert(graph.graphxy(
@@ -67,8 +67,11 @@ for use_color in [True, False]:
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0,
                               max = 2e11,
-                              title = r"number concentration $n(D)$ ($\rm m^{-3}$)",
+                              title = r"number conc. $n(D)$ ($\rm m^{-3}$)",
                               painter = grid_painter)))
+
+    g_vol_lin.doaxes()
+    g_num_lin.doaxes()
 
     time_filename_list = get_time_filename_list(brownian_netcdf_dir,
                                                 brownian_netcdf_pattern)
@@ -121,7 +124,7 @@ for use_color in [True, False]:
         g_num_lin.plot(
             graph.data.points(plot_data, x = 1, y = 2),
             styles = [graph.style.line(lineattrs = [plot_color])])
-        label_plot_line(g_num_lin, plot_data, num_labels[i]["diameter"],
+        label_plot_line_boxed(g_num_lin, plot_data, num_labels[i]["diameter"],
                         "%d hours" % times_hour[i],
                         label_pos = num_labels[i]["pos"])
 
@@ -133,7 +136,7 @@ for use_color in [True, False]:
         g_vol_lin.plot(
             graph.data.points(plot_data, x = 1, y = 2),
             styles = [graph.style.line(lineattrs = [plot_color])])
-        label_plot_line(g_vol_lin, plot_data, vol_labels[i]["diameter"],
+        label_plot_line_boxed(g_vol_lin, plot_data, vol_labels[i]["diameter"],
                         "%d hours" % times_hour[i],
                         label_pos = vol_labels[i]["pos"])
 

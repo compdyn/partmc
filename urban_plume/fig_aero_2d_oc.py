@@ -96,7 +96,7 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number density $\hat{n}_{\rm BC,POM}(D,w)$ ($1$)",
+                         title = r"normalized number conc. $\hat{n}_{\rm BC,POM}(D,w)$ ($1$)",
                          palette = palette)
 
     if color:

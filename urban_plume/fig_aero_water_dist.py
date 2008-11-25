@@ -47,6 +47,8 @@ for use_color in [True, False]:
                                title = "relative humidity (1)",
                                texter = graph.axis.texter.decimal(suffix = r"\%")))
 
+    g.doaxes()
+
     x_axis = pmc_linear_axis(min = 0, max = max_time_min, n_bin = 500)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
@@ -110,13 +112,13 @@ for use_color in [True, False]:
     g.dodata()
     g.doaxes()
 
-    label_plot_line(g, rh_plot_data, 11.5 * 60.0, "relative humidity", [1, 1],
-                    1 * unit.v_mm, yaxis = g.axes["y2"])
+    label_plot_line_boxed(g, rh_plot_data, 11.5 * 60.0, "relative humidity", [1, 1],
+                          yaxis = g.axes["y2"])
 
     add_color_bar(g,
                   min = 0.0,
                   max = value_max,
-                  title = r"number concentration ($\rm m^{-3}$)",
+                  title = r"number conc. ($\rm m^{-3}$)",
                   palette = palette,
                   bar_x_offset = 2.5)
 

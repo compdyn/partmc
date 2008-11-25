@@ -49,6 +49,8 @@ for use_color in [True, False]:
                                                                  = [100, 50]),
                                title = "mixing height (m)"))
 
+    g.doaxes()
+
     temp_plot_data = []
     rh_plot_data = []
     height_plot_data = []
@@ -71,12 +73,11 @@ for use_color in [True, False]:
            styles = [graph.style.line(lineattrs = [use_line_style_list[2],
                                                    style.linewidth.THick])])
 
-    label_plot_line(g, temp_plot_data, 10 * 60.0, "temperature", [0, 1],
-                    1 * unit.v_mm)
-    label_plot_line(g, rh_plot_data, 9.7 * 60.0, "relative humidity", [0, 0],
-                    1 * unit.v_mm, yaxis = g.axes["y2"])
-    label_plot_line(g, height_plot_data, 15 * 60.0, "mixing height", [0, 1],
-                    1 * unit.v_mm, yaxis = g.axes["y4"])
+    label_plot_line_boxed(g, temp_plot_data, 10 * 60.0, "temperature", [0, 1])
+    label_plot_line_boxed(g, rh_plot_data, 9.7 * 60.0, "relative humidity", [0, 0],
+                    yaxis = g.axes["y2"])
+    label_plot_line_boxed(g, height_plot_data, 15 * 60.0, "mixing height", [0, 1],
+                    yaxis = g.axes["y4"])
 
     if not use_color:
         print "init RH = %g%%" % rh_plot_data[0][1]

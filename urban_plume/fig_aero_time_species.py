@@ -18,7 +18,7 @@ aero_species = [
     {"species": ["NH4"], "plot": "g1", "label_time": 8, "label_pos": [0, 0]},
     {"species": ["OC"], "plot": "g1", "label_time": 5, "label_pos": [1, 1]},
     {"species": ["SO4"], "plot": "g2", "label_time": 6, "label_pos": [1, 1]},
-    {"species": ["BC"], "plot": "g2", "label_time": 9, "label_pos": [0, 0]},
+    {"species": ["BC"], "plot": "g2", "label_time": 9, "label_pos": [1, 1]},
     {"species": ["ARO1", "ARO2", "ALK1", "OLE1"], "plot": "g2",
      "label": "SOA", "label_time": 8, "label_pos": [0, 0]},
     ]
@@ -46,7 +46,7 @@ for use_color in [True, False]:
         y = graph.axis.linear(min = 0.0,
                               max = 8.0,
                               density = 1.5, # hack to increase number of ticks
-                              title = r"mass concentration ($\rm \mu g \, m^{-3}$)",
+                              title = r"mass conc. ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter)))
     g1 = c.insert(graph.graphxy(
         width = 6.7,
@@ -55,8 +55,11 @@ for use_color in [True, False]:
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0.0,
                               max = 30.0,
-                              title = r"mass concentration ($\rm \mu g \, m^{-3}$)",
+                              title = r"mass conc. ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter)))
+
+    g1.doaxes()
+    g2.doaxes()
 
     plot_data = [[] for x in aero_species]
     max_comp_vol = None
@@ -170,8 +173,8 @@ for use_color in [True, False]:
         else:
             label = tex_species(aero_species[i]["species"][0])
             print_label = aero_species[i]["species"][0]
-        label_plot_line(g, plot_data[i], aero_species[i]["label_time"] * 60.0,
-                        label, aero_species[i]["label_pos"], 1 * unit.v_mm)
+        label_plot_line_boxed(g, plot_data[i], aero_species[i]["label_time"] * 60.0,
+                        label, aero_species[i]["label_pos"])
 
         a_data = array([v for [t,v] in plot_data[i]])
         j = a_data.argmax()

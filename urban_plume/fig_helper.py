@@ -14,11 +14,12 @@ text.set(mode="latex")
 #text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 from pmc_pyx import *
 
-text.preamble(r"""\usepackage{times}""")
+text.preamble(r"""\usepackage{times}
+\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}""")
 
 #text.preamble(r"""\renewcommand{\sfdefault}{phv}
 #\renewcommand{\familydefault}{\sfdefault}
-#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
+#\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}""")
 
 netcdf_dir_wc = "out"
 netcdf_pattern_wc = r"^urban_plume_wc_state_0001_([0-9]{8})\.nc$"
@@ -63,15 +64,13 @@ def make_2x2_graph_grid(y_axis_label, y_min = bc_axis_min, y_max = bc_axis_max,
                         y_density = 1.2):
     c = canvas.canvas()
     if with_y_percent:
-        y_texter = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"\%}")
+        y_texter = graph.axis.texter.decimal(suffix = r"\%")
     else:
-        y_texter = graph.axis.texter.mixed(
-            decimal = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"}"))
+        y_texter = graph.axis.texter.mixed()
     if with_x_percent:
-        x_texter = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"\%}")
+        x_texter = graph.axis.texter.decimal(suffix = r"\%")
     else:
-        x_texter = graph.axis.texter.mixed(
-            decimal = graph.axis.texter.decimal(infix = r"\textsf{", suffix = r"}"))
+        x_texter = graph.axis.texter.mixed()
     if y_log:
         y = graph.axis.log(min = y_min,
                            max = y_max,

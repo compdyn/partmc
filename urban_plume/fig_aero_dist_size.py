@@ -53,7 +53,7 @@ for use_color in [True, False]:
                            painter = grid_painter),
         y = graph.axis.log(min = 1e7,
                            max = 1e11,
-                           title = r"number concentration $n(D)$ ($\rm m^{-3}$)",
+                           title = r"number conc. $n(D)$ ($\rm m^{-3}$)",
                            painter = major_grid_painter),
         #key = graph.key.key(pos = None, hpos = 0.8, vpos = 0))
         key = graph.key.key(vinside = 0, columns = 2))

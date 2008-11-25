@@ -54,10 +54,14 @@ for use_color in [True, False]:
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0,
-                              title = r"mass concentration $M_a$ ($\rm \mu g \, m^{-3}$)",
+                              max = 250
+                              title = r"mass conc. $M_a$ ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter),
         y2 = graph.axis.linear(min = 0,
-                               title = r"number concentration $N$ ($\rm m^{-3}$)"))
+                               max = 2.5e10,
+                               title = r"number conc. $N$ ($\rm m^{-3}$)"))
+
+    g.doaxes()
 
     plot_data = [[] for i in range(len(plots))]
     for i in range(len(plots)):
@@ -100,7 +104,7 @@ for use_color in [True, False]:
 
     for i in range(len(plots)):
         if plots[i]["label"] != None:
-            label_plot_line(g, plot_data[i], plots[i]["time"] * 60.0,
+            label_plot_line_boxed(g, plot_data[i], plots[i]["time"] * 60.0,
                             plots[i]["label"], plots[i]["pos"],
                             yaxis = g.axes[plots[i]["yaxis"]])
 

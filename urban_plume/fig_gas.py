@@ -19,7 +19,7 @@ gas_species = [
     {"species": "HCHO", "plot": "g2", "label_time": 8, "label_pos": [0, 0]},
     {"species": "HNO3", "plot": "g2", "label_time": 8, "label_pos": [1, 1]},
     {"species": "SO2", "plot": "g2", "label_time": 15, "label_pos": [0, 1]},
-    {"species": "NH3", "plot": "g2", "label_time": 10, "label_pos": [0, 1]},
+    {"species": "NH3", "plot": "g2", "label_time": 11, "label_pos": [0, 1]},
     ]
 
 out_prefix = "figs/gas"
@@ -56,6 +56,9 @@ for use_color in [True, False]:
                               title = "gas mole fraction (ppb)",
                               painter = grid_painter)))
 
+    g1.doaxes()
+    g2.doaxes()
+
     graphs = {"g1": g1, "g2": g2}
     line_counts = {"g1": 0, "g2": 0}
     for i in range(len(gas_species)):
@@ -78,8 +81,8 @@ for use_color in [True, False]:
                              style.linewidth.THick])])
             line_counts[graph_name] += 1
             label = tex_species(gas_species[i]["species"])
-            label_plot_line(g, plot_data, gas_species[i]["label_time"] * 60.0,
-                        label, gas_species[i]["label_pos"], 1 * unit.v_mm)
+            label_plot_line_boxed(g, plot_data, gas_species[i]["label_time"] * 60.0,
+                        label, gas_species[i]["label_pos"])
         else:
             print "warning: only zeros for species %s" % gas_species[i]
 

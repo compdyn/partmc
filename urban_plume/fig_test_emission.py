@@ -35,13 +35,13 @@ sect_data = pmc_var(NetCDFFile(os.path.join(emission_netcdf_dir,
 samples = [
     {"radius": 1.5e-5,
      "label": "initial", "label_time": 2, "label_pos": [0, 1],
-     "label_offset": unit.v_mm},
+     "label_offset": 0 * unit.v_mm},
     {"radius": 3.0e-5,
      "label": "emissions", "label_time": 22, "label_pos": [1, 1],
-     "label_offset": 1.5 * unit.v_mm},
+     "label_offset": 0.5 * unit.v_mm},
     {"radius": 5.0e-5,
      "label": "background", "label_time": 17, "label_pos": [1, 1],
-     "label_offset": unit.v_mm},
+     "label_offset": 0 * unit.v_mm},
     ]
 
 for use_color in [True, False]:
@@ -53,8 +53,10 @@ for use_color in [True, False]:
                                             painter = grid_painter),
                       y = graph.axis.linear(min = 0,
                                             max = 1.5e10,
-                                            title = r"number concentration ($\rm m^{-3}$)",
+                                            title = r"number conc. ($\rm m^{-3}$)",
                                             painter = grid_painter))
+
+    g.doaxes()
 
     for i in range(len(samples)):
         data_slice = module_copy.deepcopy(mc_data)
@@ -81,7 +83,7 @@ for use_color in [True, False]:
         g.plot(graph.data.points(plot_data, x = 1, y = 2),
                styles = [graph.style.line(lineattrs = [plot_color,
                                                        style.linestyle.solid])])
-        label_plot_line(g, plot_data, samples[i]["label_time"],
+        label_plot_line_boxed(g, plot_data, samples[i]["label_time"],
                         samples[i]["label"], label_pos = samples[i]["label_pos"],
                         label_offset = samples[i]["label_offset"])
 

@@ -54,7 +54,7 @@ for use_color in [True, False]:
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0,
-                              max = 250
+                              max = 250,
                               title = r"mass conc. $M_a$ ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter),
         y2 = graph.axis.linear(min = 0,

@@ -4,26 +4,10 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
-# FIXME
-#sys.path.append(os.path.expanduser("~/.python"))
 from pyx import *
 import pyx.bbox as bbox
 import numpy
 import pmc_data_nc
-
-# FIXME
-#text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
-#text.set(mode="latex")
-
-#text.preamble(r"""\renewcommand{\sfdefault}{phv}
-#\renewcommand{\familydefault}{\sfdefault}
-#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}""")
-
-
-#text.preamble(r"""\renewcommand{\sfdefault}{phv}
-#\renewcommand{\familydefault}{\sfdefault}
-#\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}
-#\usepackage{sfmath}""")
 
 color_list = [color.hsb(2/3.0, 1, 1),
 	      color.hsb(1/3.0, 1, 1),
@@ -606,6 +590,27 @@ def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
     label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset
     g.text(label_vx, label_vy, label, [text.halign(label_pos_h, label_pos_h),
                                        text.valign(label_pos_v)])
+
+def label_plot_line_boxed(g, plot_data, label_time, label, label_pos = [0, 1],
+                          label_offset = 0 * unit.v_mm, xaxis = None, yaxis = None,
+                          flip_xy = False, border = 1 * unit.v_mm):
+    i = pmc_data_nc.find_nearest_time(plot_data, label_time)
+    [label_x, label_y] = plot_data[i]
+    if flip_xy:
+        [label_y, label_x] = [label_x, label_y]
+    [label_pos_h, label_pos_v] = label_pos
+    [label_vx, label_vy] = g.pos(label_x, label_y, xaxis, yaxis)
+    label_vx += 2.0 * (0.5 - label_pos_h) * label_offset
+    label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset
+    c = text.text(0, 0, label)
+    bb = c.bbox().enlarged(all = border)
+    current_x = (1.0 - label_pos[0]) * bb.left() \
+                + label_pos[0] * bb.right()
+    current_y = (1.0 - label_pos[1]) * bb.top() \
+                + label_pos[1] * bb.bottom()
+    g.draw(bb.path(), [deco.filled([color.gray.white]),
+                       trafo.translate(label_vx - current_x, label_vy - current_y)])
+    g.insert(c, [trafo.translate(label_vx - current_x, label_vy - current_y)])
 
 def draw_hash_background(g, **xargs):
     (x_left, y_bottom) = g.vpos(0, 0)

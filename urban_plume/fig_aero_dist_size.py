@@ -127,6 +127,6 @@ for use_color in [True, False]:
     else:
         out_filename = "%s_bw.pdf" % out_prefix
     g.writePDFfile(out_filename)
-    if not color:
+    if not use_color:
         print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
         print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

@@ -21,7 +21,7 @@ out_prefix = "figs/aero_2d_n_orig"
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for color in [True, False]:
     g = graph.graphxy(
-        width = 6.9,
+        width = 7.1,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = diameter_axis_label),

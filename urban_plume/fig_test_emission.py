@@ -45,7 +45,7 @@ samples = [
     ]
 
 for use_color in [True, False]:
-    g = graph.graphxy(width = 6,
+    g = graph.graphxy(width = 6.1,
                       x = graph.axis.linear(min = 0,
                                             max = 24,
                                             parter = graph.axis.parter.linear(tickdists = [6, 3]),

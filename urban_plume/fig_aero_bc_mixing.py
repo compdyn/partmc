@@ -36,7 +36,7 @@ time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 
 for use_color in [True, False]:
     g = graph.graphxy(
-            width = 6.8,
+            width = 6.7,
             x = graph.axis.log(min = x_axis.min,
                                max = x_axis.max,
                                title = r'dry diameter $D$ ($\rm \mu m$)',

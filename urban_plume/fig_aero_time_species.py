@@ -18,7 +18,7 @@ aero_species = [
     {"species": ["NH4"], "plot": "g1", "label_time": 8, "label_pos": [0, 0]},
     {"species": ["OC"], "plot": "g1", "label_time": 5, "label_pos": [1, 1]},
     {"species": ["SO4"], "plot": "g2", "label_time": 6, "label_pos": [1, 1]},
-    {"species": ["BC"], "plot": "g2", "label_time": 9, "label_pos": [1, 1]},
+    {"species": ["BC"], "plot": "g2", "label_time": 10, "label_pos": [1, 1]},
     {"species": ["ARO1", "ARO2", "ALK1", "OLE1"], "plot": "g2",
      "label": "SOA", "label_time": 8, "label_pos": [0, 0]},
     ]
@@ -34,7 +34,7 @@ for use_color in [True, False]:
     c = canvas.canvas()
 
     g2 = c.insert(graph.graphxy(
-        width = 6.7,
+        width = 6.8,
         x = graph.axis.linear(min = 0.,
                               max = max_time_min,
                               parter = graph.axis.parter.linear(tickdists

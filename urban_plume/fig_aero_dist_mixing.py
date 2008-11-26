@@ -41,7 +41,7 @@ time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 
 for use_color in [True, False]:
     g = graph.graphxy(
-        width = 6.8,
+        width = 6.6,
         x = graph.axis.linear(min = x_axis.min,
                               max = x_axis.max,
                               title = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)",
@@ -104,6 +104,6 @@ for use_color in [True, False]:
     else:
         out_filename = "%s_bw.pdf" % out_prefix
     g.writePDFfile(out_filename)
-    if not color:
+    if not use_color:
         print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
         print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

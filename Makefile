@@ -145,7 +145,7 @@ cleanall: clean
 	rm -rf test/bidisperse/out/* test/brownian/out/*		\
                test/emission/out/* test/golovin/out/*			\
                test/mosaic/out/* test/poisson/out/* test/sedi/out/*	\
-               urban_plume/out/*
+               urban_plume/out/* cond/out/*
 
 gprof_%: % gmon.out
 	gprof -p -q $< gmon.out > gprof_$<

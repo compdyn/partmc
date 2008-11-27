@@ -882,28 +882,30 @@ def file_filename_at_time(time_filename_list, search_time):
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
 
-const = {}
-consts_file = open("../src/constants.f90")
-in_const_t = False
-found_const_t = False
-start_re = re.compile("^ *type const_t *$")
-end_re = re.compile("^ *end type const_t *$")
-const_re = re.compile("^ *real[*]8 :: ([^ ]+) = ([-0-9.]+)d([-0-9]+) *$")
-for line in consts_file:
+def load_constants(filename):
+    const = {}
+    consts_file = open(filename) # filename of "constants.f90"
+    in_const_t = False
+    found_const_t = False
+    start_re = re.compile("^ *type const_t *$")
+    end_re = re.compile("^ *end type const_t *$")
+    const_re = re.compile("^ *real[*]8 :: ([^ ]+) = ([-0-9.]+)d([-0-9]+) *$")
+    for line in consts_file:
+        if in_const_t:
+            match = const_re.search(line)
+            if match:
+                name = match.group(1)
+                mantissa = float(match.group(2))
+                exponent = float(match.group(3))
+                const[name] = mantissa * 10.0**exponent
+            if end_re.search(line):
+                in_const_t = False
+        else:
+            if start_re.search(line):
+                in_const_t = True
+                found_const_t = True
+    if not found_const_t:
+        raise Exception("constants.f90 ended without finding const_t")
     if in_const_t:
-        match = const_re.search(line)
-        if match:
-            name = match.group(1)
-            mantissa = float(match.group(2))
-            exponent = float(match.group(3))
-            const[name] = mantissa * 10.0**exponent
-        if end_re.search(line):
-            in_const_t = False
-    else:
-        if start_re.search(line):
-            in_const_t = True
-            found_const_t = True
-if not found_const_t:
-    raise Exception("constants.f90 ended without finding const_t")
-if in_const_t:
-    raise Exception("constants.f90 ended without finding end of const_t")
+        raise Exception("constants.f90 ended without finding end of const_t")
+    return const

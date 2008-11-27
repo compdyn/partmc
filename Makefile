@@ -51,8 +51,8 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/rand src/aero_particle src/aero_particle_array src/mpi	\
 	src/process_spec src/netcdf
 
-DIST_FILES = COPYING Doxyfile Makefile README README.html doc src test	\
-        tool urban_plume
+DIST_FILES = COPYING Doxyfile Makefile README doc src test tool	\
+        urban_plume
 
 partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/aero_dist.o src/condensation.o src/kernel_sedi.o		\

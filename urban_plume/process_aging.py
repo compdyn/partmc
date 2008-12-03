@@ -12,27 +12,29 @@ from pmc_data_nc import *
 from pmc_pyx import *
 from fig_helper import *
 
-time_filename_list_nc = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
+time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
-max_time_min = max([time for [time, filename, key] in time_filename_list_nc]) / 60
+max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
 
-outf_a = open("aging_a_wc", "w")
-outf_f = open("aging_f_wc", "w")
-outf_ea = open("aging_ea_wc", "w")
-outf_ef = open("aging_ef_wc", "w")
-outf_h = open("aging_h_wc", "w")
+outf_a = open("out/aging_a_wc", "w")
+outf_p = open("out/aging_p_wc", "w")
+outf_ea = open("out/aging_ea_wc", "w")
+outf_ep = open("out/aging_ep_wc", "w")
+outf_h = open("out/aging_h_wc", "w")
 
 old_id = set()
 
-for [time, filename, key] in time_filename_list_nc:
+const = load_constants("../src/constants.f90")
+
+for [time, filename, key] in time_filename_list:
     print time, filename
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
     env_state = env_state_t(ncf)
     ncf.close()
     num_den = 1.0 / particles.comp_vol
-    critical_ss = particles.kappa_rh(env_state) - 1.0
+    critical_ss = particles.kappa_rh(env_state, const) - 1.0
     total_num_den = num_den.sum()
     outf_h.write("%f %e\n" % (time, env_state.height))
     outf_a.write("%f " % time)
@@ -46,8 +48,9 @@ for [time, filename, key] in time_filename_list_nc:
         aged_emissions = 0.0
         fresh_emissions = 0.0
         
-        for i in range(num_den.size):
+        for i in range(particles.n_particles):
             # i is particle index
+            print particles.id[i]
             if particles.id[i] not in old_id:    
                 if critical_ss[i] < ss_activ:
                     aged_emissions += num_den[i]

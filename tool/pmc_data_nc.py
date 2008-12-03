@@ -739,7 +739,7 @@ class aero_particle_array_t:
         solute_volume = self.volume(exclude = ["H2O"])
         return solute_volume_kappa / solute_volume
 
-    def kappa_rh(self, env_state):
+    def kappa_rh(self, env_state, const):
         A = 4.0 * const["water_surf_eng"] * const["water_molec_weight"] \
             / (const["univ_gas_const"] * env_state.temperature \
                * const["water_density"])

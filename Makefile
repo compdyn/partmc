@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .f90 .o .deps .mod
 
-VERSION = 1.1.0
+VERSION = 1.2.0
 DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 

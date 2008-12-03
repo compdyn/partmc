@@ -43,6 +43,7 @@ dependencies except MOSAIC if the following packages are installed:
    * ScientificPython-2.6-10.fc8
    * PyX-0.9-5.fc8
 
+
 Installation
 ============
 

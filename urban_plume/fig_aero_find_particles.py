@@ -87,6 +87,9 @@ for type in late_found.keys():
                                                  late_id[y]))
     for i in late_found[type]:
         if late_diameter[i] < 0.1:
-            print "%s: id = %d, d = %f, bc = %g, water = %f, emit_time = %f" \
-                % (type, late_id[i], late_diameter[i],
-                   late_comp_frac[i], late_water_frac[i], late_particles.least_create_time[i])
+            n_coag = int(late_particles.n_orig_part[i]) - 1
+            if n_coag == 0:
+                print "%s: id = %d, d = %f, bc = %g, water = %f, emit_time = %f, nco = %d" \
+                    % (type, late_id[i], late_diameter[i],
+                       late_comp_frac[i], late_water_frac[i],
+                       late_particles.least_create_time[i], n_coag)

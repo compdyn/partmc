@@ -17,7 +17,7 @@ aero_species = [
     {"species": ["NO3"], "plot": "g1", "label_time": 8, "label_pos": [1, 1]},
     {"species": ["NH4"], "plot": "g1", "label_time": 8, "label_pos": [0, 0]},
     {"species": ["OC"], "plot": "g1", "label_time": 5, "label_pos": [1, 1]},
-    {"species": ["SO4"], "plot": "g2", "label_time": 6, "label_pos": [1, 1]},
+    {"species": ["SO4"], "plot": "g2", "label_time": 7, "label_pos": [1, 1]},
     {"species": ["BC"], "plot": "g2", "label_time": 10, "label_pos": [1, 1]},
     {"species": ["ARO1", "ARO2", "ALK1", "OLE1"], "plot": "g2",
      "label": "SOA", "label_time": 8, "label_pos": [0, 0]},

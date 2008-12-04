@@ -48,11 +48,11 @@ grid_h_space = 0.5
 grid_graph_width = 6.25
 
 show_particles = [
-    {"id": 101334, "suffix": "1", "label": "P1",
+    {"id": 104382, "suffix": "1", "label": "P1",
      "label pos": [0.9, 0.4], "box label": "particle P1"},
-    {"id": 194517, "suffix": "2", "label": "P2",
+    {"id": 194297, "suffix": "2", "label": "P2",
      "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 555532, "suffix": "3", "label": "P3",
+    {"id": 552857, "suffix": "3", "label": "P3",
      "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 

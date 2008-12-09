@@ -14,7 +14,7 @@ from pmc_pyx import *
 
 from fig_helper import *
 
-y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
+y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}$ ($\%$)"
 out_prefix = "figs/aero_2d_water"
 
 max_val = 50
@@ -146,9 +146,11 @@ for use_color in [True, False]:
         add_canvas_color_bar(c,
                              min = 0.0,
                              max = max_val,
+                             xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
+                             ybottom = graphs["g22"].ypos,
+                             ytop = graphs["g12"].ypos + graphs["g12"].height,
                              min_palette_index = min_palette_index,
-                             title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
-                             texter = graph.axis.texter.decimal(suffix = r"\%"),
+                             title = r"water mass frac. $w_{\rm H_2O,all}$ ($\%$)",
                              palette = palette,
                              extra_box_color = color.gray(0),
                              extra_box_pattern = False,
@@ -157,9 +159,11 @@ for use_color in [True, False]:
         add_canvas_color_bar(c,
                              min = 0.0,
                              max = max_val,
+                             xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
+                             ybottom = graphs["g22"].ypos,
+                             ytop = graphs["g12"].ypos + graphs["g12"].height,
                              min_palette_index = min_palette_index,
-                             title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
-                             texter = graph.axis.texter.decimal(suffix = r"\%"),
+                             title = r"water mass frac. $w_{\rm H_2O,all}$ ($\%$)",
                              palette = palette,
                              extra_box_value = 0.0,
                              extra_box_pattern = True,

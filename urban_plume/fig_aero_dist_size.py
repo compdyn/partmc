@@ -46,16 +46,15 @@ time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 
 for use_color in [True, False]:
     g = graph.graphxy(
-        width = 6.8,
+        width = 6.9,
         x = graph.axis.log(min = x_axis.min,
                            max = x_axis.max,
                            title = r"dry diameter $D$ ($\rm \mu m$)",
                            painter = grid_painter),
-        y = graph.axis.log(min = 1e7,
-                           max = 1e11,
-                           title = r"number conc. $n(D)$ ($\rm m^{-3}$)",
+        y = graph.axis.log(min = 1e1,
+                           max = 1e5,
+                           title = r"number conc. $n(D)$ ($\rm cm^{-3}$)",
                            painter = major_grid_painter),
-        #key = graph.key.key(pos = None, hpos = 0.8, vpos = 0))
         key = graph.key.key(vinside = 0, columns = 2))
 
     for t in range(len(disp_lines)):
@@ -76,7 +75,7 @@ for use_color in [True, False]:
         num_den_array = numpy.zeros([x_axis.n_bin])
         for i in range(particles.n_particles):
             scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
-            num_den_array[x_bin[i]] += 1.0 / scale
+            num_den_array[x_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
         plot_data = [[x_axis.center(i), num_den_array[i]]
                      for i in range(x_axis.n_bin) if num_den_array[i] > 0.0]
@@ -102,7 +101,7 @@ for use_color in [True, False]:
         if not use_color:
             for d in print_diams:
                 x_bin = x_axis.find([d])[0]
-                print "time = %g hours, coag = %s, n(%g) = %g m^{-3}" \
+                print "time = %g hours, coag = %s, n(%g) = %g cm^{-3}" \
                       % (disp_lines[t]["time_hour"],
                          str(disp_lines[t]["coag"]), d, num_den_array[x_bin])
                 if disp_lines[t]["time_hour"] == eval_change_time:

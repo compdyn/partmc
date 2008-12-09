@@ -70,9 +70,9 @@ for use_color in [True, False]:
                               texter = time_of_day(base_time
                                                    = start_time_of_day_min),
                               painter = grid_painter),
-        y = graph.axis.log(min = 1e-23,
-                           max = 1e-17,
-                           title = r"mass (kg)",
+        y = graph.axis.log(min = 1e-14,
+                           max = 1e-8,
+                           title = r"mass ($\rm\mu g$)",
                            painter = grid_painter)))
 
     for i in range(1, len(show_particles)):
@@ -86,9 +86,9 @@ for use_color in [True, False]:
             ypos = graphs[i-1].ypos + graphs[i-1].height + 0.5,
             x = graph.axis.linkedaxis(graphs[i-1].axes["x"],
                                       painter = linked_grid_painter),
-            y = graph.axis.log(min = 1e-23,
-                               max = 1e-17,
-                               title = r"mass (kg)",
+            y = graph.axis.log(min = 1e-14,
+                               max = 1e-8,
+                               title = r"mass ($\rm\mu g$)",
                                painter = grid_painter),
             key = key))
 
@@ -101,9 +101,8 @@ for use_color in [True, False]:
             if particle == None:
                 continue
             for s in range(len(aero_species)):
-                plot_data[s].append([time / 60,
-                                     particle.mass(include
-                                                   = aero_species[s]["species"])])
+                spec_mass = particle.mass(include = aero_species[s]["species"]) * 1e9 # kg to ug
+                plot_data[s].append([time / 60, spec_mass])
         if max([len(d) for d in plot_data]) == 0:
             raise Exception("Particle ID not found: %d" % show_particles[i]["id"])
 

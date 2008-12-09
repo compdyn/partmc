@@ -50,7 +50,7 @@ for color in [True, False]:
         scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
         n_coags = int(particles.n_orig_part[i]) - 1
         n_coags = min(n_coags, max_n_coags)
-        num_den_array[x_bin[i], n_coags] += 1.0 / scale
+        num_den_array[x_bin[i], n_coags] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
     n_coags = array(particles.n_orig_part) - 1
     lower_n_coag = 5
@@ -98,7 +98,7 @@ for color in [True, False]:
     add_horiz_color_bar(g,
                         min = 0.0,
                         max = value_max,
-                        title = r"number conc. $n_{\rm coag}(D,k)\ (\rm m^{-3})$",
+                        title = r"number conc. $n_{\rm coag}(D,k)\ (\rm cm^{-3})$",
                         palette = palette,
                         bar_offset = 0.6)
 

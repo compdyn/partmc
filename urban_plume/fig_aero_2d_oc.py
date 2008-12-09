@@ -16,7 +16,7 @@ from fig_helper import *
 
 time_hour = 24
 
-y_axis_label = r"BC-POM mass fraction $w_{{\rm BC},{\rm POM}}$ ($1$)"
+y_axis_label = r"BC-POA mass frac. $w_{{\rm BC},{\rm POA}}$ ($\%$)"
 out_prefix = "figs/aero_2d_oc"
 
 def get_plot_data(filename, value_max = None):
@@ -96,7 +96,11 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number conc. $\hat{n}_{\rm BC,POM}(D,w)$ ($1$)",
+                         xpos = graphs["g21"].xpos + graphs["g21"].width + grid_h_space,
+                         ybottom = graphs["g21"].ypos,
+                         ytop = graphs["g21"].ypos + graphs["g21"].height,
+                         bar_height_ratio = 0.9,
+                         title = r"normalized number conc. $\hat{n}_{\rm BC,POA}(D,w)$",
                          palette = palette)
 
     if color:

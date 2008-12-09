@@ -37,17 +37,13 @@ for use_color in [True, False]:
                               max = 100,
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [20, 10]),
-                              title = r"water mass fraction $w_{\rm H_2O,all}$ ($1$)",
-                              painter = grid_painter,
-                              texter = graph.axis.texter.decimal(suffix = r"\%")),
+                              title = r"water mass frac. $w_{\rm H_2O,all}$ ($\%$)",
+                              painter = grid_painter),
         y2 = graph.axis.linear(min = 0,
                                max = 100,
                                parter = graph.axis.parter.linear(tickdists
                                                                  = [20, 10]),
-                               title = "relative humidity (1)",
-                               texter = graph.axis.texter.decimal(suffix = r"\%")))
-
-    g.doaxes()
+                               title = "relative humidity ($\%$)"))
 
     x_axis = pmc_linear_axis(min = 0, max = max_time_min, n_bin = 500)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
@@ -67,7 +63,7 @@ for use_color in [True, False]:
         num_times_array[x_bin] += 1
         for i in range(particles.n_particles):
             scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
-            num_den_array[x_bin, y_bin[i]] += 1.0 / scale
+            num_den_array[x_bin, y_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
     for i in range(x_axis.n_bin):
         num_den_array[i,:] /= num_times_array[i]
@@ -118,7 +114,7 @@ for use_color in [True, False]:
     add_color_bar(g,
                   min = 0.0,
                   max = value_max,
-                  title = r"number conc. ($\rm m^{-3}$)",
+                  title = r"number conc. ($\rm cm^{-3}$)",
                   palette = palette,
                   bar_x_offset = 2.5)
 

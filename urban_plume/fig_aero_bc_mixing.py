@@ -43,7 +43,7 @@ for use_color in [True, False]:
                                painter = grid_painter),
             y = graph.axis.log(min = 1e-6,
                                max = 1e3,
-                               title = r'mass conc. ($\rm \mu g\, m^{-3}$)',
+                               title = r'mass conc. $m_{\rm BC,dry}(D,[w_1,w_2])$ ($\rm \mu g\, m^{-3}$)',
                                painter = grid_painter))
 
     for with_coag in [True, False]:
@@ -164,7 +164,7 @@ for use_color in [True, False]:
 
     for i in range(len(bc_fractions)):
         p = c.text(0, - i * dy,
-                   "%d--%d\\%% soot" % (bc_fractions[i][0], bc_fractions[i][1]),
+                   "%d--%d\\%% BC" % (bc_fractions[i][0], bc_fractions[i][1]),
                    [text.halign.right, text.valign.middle])
         left = p.bbox().left()
         bottom = p.bbox().bottom()

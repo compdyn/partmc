@@ -15,7 +15,7 @@ from pmc_pyx import *
 
 out_prefix = "figs/aero_2d_all"
 
-y_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}\ (1)$"
+y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
@@ -100,7 +100,10 @@ for color in [True, False]:
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         title = r"normalized number conc. $\hat{n}_{\rm BC,dry}(D,w)\ (1)$",
+                         xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
+                         ybottom = graphs["g22"].ypos,
+                         ytop = graphs["g12"].ypos + graphs["g12"].height,
+                         title = r"normalized number conc. $\hat{n}_{\rm BC,dry}(D,w)$",
                          palette = palette)
 
     if color:

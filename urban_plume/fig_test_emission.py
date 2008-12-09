@@ -21,14 +21,17 @@ mc_data = pmc_var(NetCDFFile(os.path.join(emission_netcdf_dir,
                                           "emission_mc_0001.nc")),
 		  "aero",
 		  [sum("aero_species")])
+mc_data.scale(1e-6) # m^{-3} to cm^{-3}
 exact_data = pmc_var(NetCDFFile(os.path.join(emission_netcdf_dir,
                                              "emission_exact_0001.nc")),
 		     "aero",
 		     [sum("aero_species")])
+exact_data.scale(1e-6) # m^{-3} to cm^{-3}
 sect_data = pmc_var(NetCDFFile(os.path.join(emission_netcdf_dir,
                                             "emission_sect_0001.nc")),
 		    "aero",
 		    [sum("aero_species")])
+sect_data.scale(1e-6) # m^{-3} to cm^{-3}
 
 ######################################################################
 
@@ -45,15 +48,15 @@ samples = [
     ]
 
 for use_color in [True, False]:
-    g = graph.graphxy(width = 6.1,
+    g = graph.graphxy(width = 6.2,
                       x = graph.axis.linear(min = 0,
                                             max = 24,
                                             parter = graph.axis.parter.linear(tickdists = [6, 3]),
                                             title = r"elapsed time (hours)",
                                             painter = grid_painter),
                       y = graph.axis.linear(min = 0,
-                                            max = 1.5e10,
-                                            title = r"number conc. ($\rm m^{-3}$)",
+                                            max = 1.5e4,
+                                            title = r"number conc. $N\ (\rm cm^{-3})$",
                                             painter = grid_painter))
 
     g.doaxes()

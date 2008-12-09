@@ -41,8 +41,7 @@ for use_color in [True, False]:
                                max = 100,
                                parter = graph.axis.parter.linear(tickdists
                                                                  = [10, 5]),
-                               title = "relative humidity (1)",
-                               texter = graph.axis.texter.decimal(suffix = r"\%")),
+                               title = "relative humidity ($\%$)"),
         y4 = graph.axis.linear(min = 0,
                                max = 500,
                                parter = graph.axis.parter.linear(tickdists
@@ -73,10 +72,10 @@ for use_color in [True, False]:
            styles = [graph.style.line(lineattrs = [use_line_style_list[2],
                                                    style.linewidth.THick])])
 
-    label_plot_line_boxed(g, temp_plot_data, 10 * 60.0, "temperature", [0, 1])
-    label_plot_line_boxed(g, rh_plot_data, 9.7 * 60.0, "relative humidity", [0, 0],
+    label_plot_line_boxed(g, temp_plot_data, 9.7 * 60.0, "temperature", [0, 1])
+    label_plot_line_boxed(g, rh_plot_data, 4 * 60.0, "relative humidity", [0, 1],
                     yaxis = g.axes["y2"])
-    label_plot_line_boxed(g, height_plot_data, 15 * 60.0, "mixing height", [0, 1],
+    label_plot_line_boxed(g, height_plot_data, 22 * 60.0, "mixing height", [1, 0],
                     yaxis = g.axes["y4"])
 
     if not use_color:

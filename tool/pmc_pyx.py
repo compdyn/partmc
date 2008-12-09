@@ -104,7 +104,7 @@ aerosol_species_tex = {
     "Na": "Na",
     "Ca": "Ca",
     "OIN": "OIN",
-    "OC": "POM",
+    "OC": "POA",
     "BC": "BC",
     "H2O": "H$_2$O",
     }
@@ -310,7 +310,7 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
                 width = bar_width_ratio * g.width,
                 height = bar_height,
                 xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset,
-                ypos = g.height + bar_offset,
+                ypos = g.ypos + g.height + bar_offset,
                 y = graph.axis.linear(min = 0, max = 1,
                                       parter = None),
                 x2 = graph.axis.linear(
@@ -339,8 +339,9 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
     gc.doaxes()
 
 def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
-                         bar_height_ratio = 0.6, bar_x_offset = -1.2,
-                         bar_y_offset = -0.7, min_palette_index = 0.0,
+                         bar_height_ratio = 0.7,
+                         xpos = 0, ybottom = 0, ytop = 1,
+                         min_palette_index = 0.0,
                          max_palette_index = 1.0, texter = None,
                          extra_box_value = None, extra_box_label = None,
                          extra_box_pattern = None, extra_box_color = None):
@@ -365,12 +366,11 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
             min = min,
             max = max,
             title = title)
-    xpos = c.bbox().width() + bar_x_offset
-    ypos = (1.0 - bar_height_ratio) / 2.0 * c.bbox().height() + bar_y_offset
+    ypos = (1.0 - bar_height_ratio) / 2.0 * (ytop - ybottom) + ybottom
     gc = c.insert(
 	graph.graphxy(
             width = bar_width,
-	    height = bar_height_ratio * c.bbox().height(),
+	    height = bar_height_ratio * (ytop - ybottom),
 	    xpos = xpos,
 	    ypos = ypos,
 	    x = graph.axis.linear(min = 0, max = 1,

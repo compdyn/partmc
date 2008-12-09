@@ -45,7 +45,7 @@ times_hour = {"g11": 1,
 
 grid_v_space = 0.7
 grid_h_space = 0.5
-grid_graph_width = 6.25
+grid_graph_width = 6.45
 
 show_particles = [
     {"id": 104382, "suffix": "1", "label": "P1",
@@ -57,7 +57,7 @@ show_particles = [
     ]
 
 def make_2x2_graph_grid(y_axis_label, y_min = bc_axis_min, y_max = bc_axis_max,
-                        with_y_percent = True, with_x_percent = False,
+                        with_y_percent = False, with_x_percent = False,
                         y_log = False, x_log = True, with_key = False,
                         x_axis_label = diameter_axis_label,
                         x_min = diameter_axis_min, x_max = diameter_axis_max,
@@ -135,9 +135,7 @@ def make_2x1_graph_grid(y_axis_label, y_density = 1.2):
         y = graph.axis.linear(min = bc_axis_min,
                               max = bc_axis_max,
                               title = y_axis_label,
-                              density = y_density,
-                              texter = graph.axis.texter.decimal(suffix
-                                                                 = r"\%"))))
+                              density = y_density)))
     g21 = c.insert(graph.graphxy(
         width = grid_graph_width,
         xpos = g11.width + grid_h_space,
@@ -158,9 +156,7 @@ def make_1x1_graph_grid(y_axis_label):
                            title = diameter_axis_label),
         y = graph.axis.linear(min = bc_axis_min,
                               max = bc_axis_max,
-                              title = y_axis_label,
-                              texter = graph.axis.texter.decimal(suffix
-                                                                 = r"\%")))
+                              title = y_axis_label))
     return g
 
 def write_time(g, env_state, extra_text = "", text_vpos = [0, 1],

@@ -41,15 +41,14 @@ time_filename_list_nc = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
 
 for use_color in [True, False]:
     g = graph.graphxy(
-        width = 6.6,
+        width = 6.8,
         x = graph.axis.linear(min = x_axis.min,
                               max = x_axis.max,
-                              title = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)",
-                              texter = graph.axis.texter.decimal(suffix = r"\%"),
+                              title = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}$ ($\%$)",
                               painter = grid_painter),
-        y = graph.axis.log(min = 1e7,
-                           max = 1e12,
-                           title = r"number conc. $n_{\rm BC,dry}(w)$ ($\rm m^{-3}$)",
+        y = graph.axis.log(min = 1e1,
+                           max = 1e6,
+                           title = r"number conc. $n_{\rm BC,dry}(w)$ ($\rm cm^{-3}$)",
                            painter = major_grid_painter),
         key = graph.key.key(vinside = 0, columns = 2))
 
@@ -75,7 +74,7 @@ for use_color in [True, False]:
         num_den_array = numpy.zeros([x_axis.n_bin])
         for i in range(particles.n_particles):
             scale = particles.comp_vol[i] * (x_axis.grid_size(x_bin[i]) / 100)
-            num_den_array[x_bin[i]] += 1.0 / scale
+            num_den_array[x_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
         plot_data = [[x_axis.center(i), num_den_array[i]]
                      for i in range(x_axis.n_bin) if num_den_array[i] > 0.0]

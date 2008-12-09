@@ -58,8 +58,8 @@ for use_color in [True, False]:
                               title = r"mass conc. $M_a$ ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter),
         y2 = graph.axis.linear(min = 0,
-                               max = 2.5e10,
-                               title = r"number conc. $N$ ($\rm m^{-3}$)"))
+                               max = 2.5e4,
+                               title = r"number conc. $N$ ($\rm cm^{-3}$)"))
 
     g.doaxes()
 
@@ -80,7 +80,7 @@ for use_color in [True, False]:
                     value = (particles.mass(exclude = ["H2O"])
                              / array(particles.comp_vol)).sum() * 1e9
             else:
-                value = (1.0 / array(particles.comp_vol)).sum()
+                value = (1.0 / array(particles.comp_vol)).sum() * 1e-6 # m^{-3} to cm^{-3}
             plot_data[i].append([time / 60.0, value])
 
     for i in range(len(plots)):
@@ -113,7 +113,7 @@ for use_color in [True, False]:
             if (plots[i]["mass"] == False):
                 peak_val = max([v for [t, v] in plot_data[i]])
                 final_val = plot_data[i][-1][1]
-                print "total number, coag = %s, peak = %g, final = %g m^{-3}" \
+                print "total number, coag = %s, peak = %g, final = %g cm^{-3}" \
                       % (str(plots[i]["coag"]), peak_val, final_val)
                 if plots[i]["coag"] == False:
                     base_peak = peak_val

@@ -14,7 +14,7 @@ sys.path.append(".")
 from fig_helper import *
 
 gas_species = [
-    {"species": "O3", "plot": "g1", "label_time": 8, "label_pos": [1, 1], "label_offset": 0 * unit.v_mm},
+    {"species": "O3", "plot": "g1", "label_time": 6.1, "label_pos": [1, 1], "label_offset": 0 * unit.v_mm},
     {"species": "NO2", "plot": "g1", "label_time": 8, "label_pos": [1, 1], "label_offset": 0.5 * unit.v_mm},
     {"species": "HCHO", "plot": "g2", "label_time": 8, "label_pos": [0, 0], "label_offset": 0 * unit.v_mm},
     {"species": "HNO3", "plot": "g2", "label_time": 8, "label_pos": [1, 1], "label_offset": 0 * unit.v_mm},

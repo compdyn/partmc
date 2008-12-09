@@ -15,18 +15,18 @@ from fig_helper import *
 
 time_hour = 24
 
-diam_num_min_max = [1e7, 1e11]
+diam_num_min_max = [1e1, 1e5]
 diam_mass_min_max = [1e-4, 1e4]
-bc_num_min_max = [1e8, 1e13]
-bc_mass_min_max = [1e-1, 1e4]
+bc_num_min_max = [1e3, 1e7]
+bc_mass_min_max = [1e0, 1e4]
 
 out_prefix = "figs/aero_2d_proj"
 
-diam_axis_label = r'dry diameter $D$ ($\mu$m)'
-bc_axis_label = r"BC dry mass fraction $w_{{\rm BC},{\rm dry}}$ ($1$)"
-diam_num_axis_label = r"number conc. $n(D)$ ($\rm m^{-3}$)"
+diam_axis_label = r'dry diameter $D$ ($\rm\mu m$)'
+bc_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}$ ($\%$)"
+diam_num_axis_label = r"number conc. $n(D)$ ($\rm cm^{-3}$)"
 diam_mass_axis_label = r"mass conc. $m(D)$ ($\rm \mu g\,m^{-3}$)"
-bc_num_axis_label = r"number conc. $n_{\rm BC,dry}(w)$ ($\rm m^{-3}$)"
+bc_num_axis_label = r"number conc. $n_{\rm BC,dry}(w)$ ($\rm cm^{-3}$)"
 bc_mass_axis_label = r"mass conc. $m_{\rm BC,dry}(w)$ ($\rm \mu g\,m^{-3}$)"
 
 def get_plot_data(filename):
@@ -61,10 +61,10 @@ def get_plot_data(filename):
         diam_scale = particles.comp_vol[i] * diam_axis.grid_size(diam_bin[i])
         bc_scale = particles.comp_vol[i] * (bc_axis.grid_size(bc_bin[i]) / 100)
         
-        num_den_2d[diam_bin[i]][bc_bin[i]] += 1.0 / scale_2d
-        diam_num_den[diam_bin[i]] += 1.0 / diam_scale
+        num_den_2d[diam_bin[i]][bc_bin[i]] += 1.0 / scale_2d * 1e-6 # m^{-3} to cm^{-3}
+        diam_num_den[diam_bin[i]] += 1.0 / diam_scale * 1e-6 # m^{-3} to cm^{-3}
         diam_mass_den[diam_bin[i]] += mass[i] / diam_scale
-        bc_num_den[bc_bin[i]] += 1.0 / bc_scale
+        bc_num_den[bc_bin[i]] += 1.0 / bc_scale * 1e-6 # m^{-3} to cm^{-3}
         bc_mass_den[bc_bin[i]] += mass[i] / bc_scale
 
     max_val = num_den_2d.max()
@@ -98,8 +98,7 @@ for use_coag in [True, False]:
             y = graph.axis.linear(min = bc_axis_min,
                                   max = bc_axis_max,
                                   density = 1.2,
-                                  title = bc_axis_label,
-                                  texter = graph.axis.texter.decimal(suffix = r"\%"))))
+                                  title = bc_axis_label)))
         g11 = c.insert(graph.graphxy(
                 width = grid_graph_width,
                 ypos = g21.height + grid_h_space,
@@ -180,7 +179,7 @@ for use_coag in [True, False]:
                         "number", [1, 1])
         label_plot_line_boxed(g11, diam_mass_plot_data, 0.05,
                         "mass", [0, 0], yaxis = g11.axes["y2"])
-        label_plot_line_boxed(g22, bc_num_plot_data, 30,
+        label_plot_line_boxed(g22, bc_num_plot_data, 20,
                         "number", [1, 0], flip_xy = True)
         label_plot_line_boxed(g22, bc_mass_plot_data, 31,
                         "mass", [0, 1], flip_xy = True,
@@ -189,7 +188,7 @@ for use_coag in [True, False]:
         add_horiz_color_bar(g21,
                             min = 0.0,
                             max = max_val,
-                            title = r"number conc. $n_{\rm BC,dry}(D,w)$ ($m^{-3}$)",
+                            title = r"number conc. $n_{\rm BC,dry}(D,w)$ ($\rm cm^{-3}$)",
                             palette = palette,
                             bar_offset = 2.1,
                             above = False)

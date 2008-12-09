@@ -42,7 +42,7 @@ sect_data = pmc_var(NetCDFFile(os.path.join(brownian_netcdf_dir,
 		    "aero",
 		    [sum("aero_species")])
 
-sect_data.scale_dim("radius",2e6)
+sect_data.scale_dim("radius", 2e6)
 
 sect_data.scale(math.log(10.0)) # d/dln(r) to d/dlog10(r)
 
@@ -50,24 +50,24 @@ for use_color in [True, False]:
     c = canvas.canvas()
 
     g_vol_lin = c.insert(graph.graphxy(
-        width = 6.1,
+        width = 6.2,
         x = graph.axis.log(min = 1e-2,
                            max = 1e0,
                            title = r"dry diameter $D$ ($\rm \mu m$)",
                            painter = grid_painter),
         y = graph.axis.linear(min = 0,
-                              max = 2.5e-7,
-                              title = r"mass conc. $m(D)$ ($\rm kg\,m^{-3}$)",
+                              max = 2.5e2,
+                              title = r"mass conc. $m(D)\ (\rm \mu g\,m^{-3})$",
                               painter = grid_painter)))
 
     g_num_lin = c.insert(graph.graphxy(
-        width = 6.1,
+        width = 6.2,
         ypos = g_vol_lin.height + 0.5,
         x = graph.axis.linkedaxis(g_vol_lin.axes["x"],
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
         y = graph.axis.linear(min = 0,
-                              max = 2e11,
-                              title = r"number conc. $n(D)$ ($\rm m^{-3}$)",
+                              max = 2e5,
+                              title = r"number conc. $n(D)\ (\rm cm^{-3})$",
                               painter = grid_painter)))
 
     g_vol_lin.doaxes()
@@ -83,6 +83,7 @@ for use_color in [True, False]:
 
         diameter = particles.diameter() * 1e6
         mass = particles.mass() * 1.8 # scale density from H2O to 1800 kg/m^3
+        mass = mass * 1e9 # kg/m^3 to ug/m^3
 
         x_bin = x_axis.find(diameter)
 
@@ -90,7 +91,7 @@ for use_color in [True, False]:
         mass_den_array = numpy.zeros([x_axis.n_bin])
         for k in range(particles.n_particles):
             scale = particles.comp_vol[k] * x_axis.grid_size(x_bin[k])
-            num_den_array[x_bin[k]] += 1.0 / scale
+            num_den_array[x_bin[k]] += 1.0 / scale / 1e6 # m^{-3} to cm^{-3}
             mass_den_array[x_bin[k]] += mass[k] / scale
 
         num_plot_data = [[x_axis.center(k), num_den_array[k]]
@@ -119,7 +120,7 @@ for use_color in [True, False]:
         data_slice = module_copy.deepcopy(sect_data)
         data_slice.reduce([select("unit", "num_den"),
                            select("time", times_sec[i])])
-
+        data_slice.scale(1e-6) # m^{-3} to cm^{-3}
         plot_data = data_slice.data_center_list(strip_zero = True)
         g_num_lin.plot(
             graph.data.points(plot_data, x = 1, y = 2),
@@ -132,6 +133,7 @@ for use_color in [True, False]:
         data_slice.reduce([select("unit", "vol_den"),
                            select("time", times_sec[i])])
         data_slice.scale(1800) # volume to mass with density = 1800 kg/m^3
+        data_slice.scale(1e9)  # kg/m^3 to ug/m^3
         plot_data = data_slice.data_center_list(strip_zero = True)
         g_vol_lin.plot(
             graph.data.points(plot_data, x = 1, y = 2),

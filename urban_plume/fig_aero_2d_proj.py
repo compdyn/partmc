@@ -185,7 +185,7 @@ for use_coag in [True, False]:
                         "number", [1, 0], flip_xy = True)
         label_plot_line_boxed(g22, bc_mass_plot_data, 31,
                         "mass", [0, 1], flip_xy = True,
-                        xaxis = g22.axes["x3"])
+                        xaxis = g22.axes["x3"], label_offset = 0.7 * unit.v_mm)
 
         add_horiz_color_bar(g21,
                             min = 0.0,

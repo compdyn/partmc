@@ -61,11 +61,14 @@ def get_plot_data(filename):
         diam_scale = particles.comp_vol[i] * diam_axis.grid_size(diam_bin[i])
         bc_scale = particles.comp_vol[i] * (bc_axis.grid_size(bc_bin[i]) / 100)
         
-        num_den_2d[diam_bin[i]][bc_bin[i]] += 1.0 / scale_2d * 1e-6 # m^{-3} to cm^{-3}
-        diam_num_den[diam_bin[i]] += 1.0 / diam_scale * 1e-6 # m^{-3} to cm^{-3}
-        diam_mass_den[diam_bin[i]] += mass[i] / diam_scale
-        bc_num_den[bc_bin[i]] += 1.0 / bc_scale * 1e-6 # m^{-3} to cm^{-3}
-        bc_mass_den[bc_bin[i]] += mass[i] / bc_scale
+        if diam_axis.valid_bin(diam_bin[i]) and bc_axis.valid_bin(bc_bin[i]):
+            num_den_2d[diam_bin[i]][bc_bin[i]] += 1.0 / scale_2d * 1e-6 # m^{-3} to cm^{-3}
+        if diam_axis.valid_bin(diam_bin[i]):
+            diam_num_den[diam_bin[i]] += 1.0 / diam_scale * 1e-6 # m^{-3} to cm^{-3}
+            diam_mass_den[diam_bin[i]] += mass[i] / diam_scale
+        if bc_axis.valid_bin(bc_bin[i]):
+            bc_num_den[bc_bin[i]] += 1.0 / bc_scale * 1e-6 # m^{-3} to cm^{-3}
+            bc_mass_den[bc_bin[i]] += mass[i] / bc_scale
 
     max_val = num_den_2d.max()
     value = num_den_2d / max_val
@@ -125,7 +128,6 @@ for use_coag in [True, False]:
                                       painter = linked_grid_painter)))
 
         g11.doaxes()
-        g21.doaxes()
         g22.doaxes()
 
         time = time_hour * 3600.0

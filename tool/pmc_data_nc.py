@@ -534,10 +534,15 @@ class pmc_linear_axis(pmc_axis):
     def grid_size(self, index):
         return (self.max - self.min) / float(self.n_bin)
 
+    def valid_bin(self, bin):
+        if (bin >= 0) and (bin < self.n_bin):
+            return True
+        return False
+
     def find(self, values):
         indices = ((values - self.min) * self.n_bin
                    / (self.max - self.min)).astype(int)
-        indices = indices.clip(0, self.n_bin - 1)
+        #indices = indices.clip(0, self.n_bin - 1)
         return indices
 
     def edge(self, index):
@@ -571,10 +576,15 @@ class pmc_log_axis:
     def grid_size(self, index):
         return (log10(self.max) - log10(self.min)) / float(self.n_bin)
 
+    def valid_bin(self, bin):
+        if (bin >= 0) and (bin < self.n_bin):
+            return True
+        return False
+
     def find(self, value):
         indices = ((log(value) - log(self.min)) * self.n_bin
                    / (log(self.max) - log(self.min))).astype(int)
-        indices = indices.clip(0, self.n_bin - 1)
+        #indices = indices.clip(0, self.n_bin - 1)
         return indices
 
     def edge(self, index):

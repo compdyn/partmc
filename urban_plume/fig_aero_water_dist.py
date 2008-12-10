@@ -58,12 +58,14 @@ for use_color in [True, False]:
         water_frac = particles.mass(include = ["H2O"]) \
                      / particles.mass() * 100
         x_bin = x_axis.find(array([time / 60.0]))[0]
+        x_bin = x_bin.clip(0, x_axis.n_bin -1)
         y_bin = y_axis.find(water_frac)
 
         num_times_array[x_bin] += 1
         for i in range(particles.n_particles):
-            scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
-            num_den_array[x_bin, y_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
+            if y_axis.valid_bin(y_bin[i]):
+                scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
+                num_den_array[x_bin, y_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
     for i in range(x_axis.n_bin):
         num_den_array[i,:] /= num_times_array[i]

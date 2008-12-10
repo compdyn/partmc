@@ -47,10 +47,11 @@ for color in [True, False]:
 
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
-        n_coags = int(particles.n_orig_part[i]) - 1
-        n_coags = min(n_coags, max_n_coags)
-        num_den_array[x_bin[i], n_coags] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
+        if x_axis.valid_bin(x_bin[i]):
+            scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+            n_coags = int(particles.n_orig_part[i]) - 1
+            if n_coags <= max_n_coags:
+                num_den_array[x_bin[i], n_coags] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
     n_coags = array(particles.n_orig_part) - 1
     lower_n_coag = 5

@@ -67,10 +67,11 @@ for use_color in [True, False]:
         for i_frac in range(len(bc_fractions)):
             mass_array = numpy.zeros([x_axis.n_bin])
             for i in range(particles.n_particles):
-                if (comp_frac[i] >= bc_fractions[i_frac][0] * (1.0 - 1e-8)) \
-                   and (comp_frac[i] <= bc_fractions[i_frac][1] * (1.0 + 1e8)):
-                    scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
-                    mass_array[x_bin[i]] += mass[i] / scale
+                if x_axis.valid_bin(x_bin[i]):
+                    if (comp_frac[i] >= bc_fractions[i_frac][0] * (1.0 - 1e-8)) \
+                       and (comp_frac[i] <= bc_fractions[i_frac][1] * (1.0 + 1e8)):
+                        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+                        mass_array[x_bin[i]] += mass[i] / scale
 
             plot_data = [[x_axis.center(i), mass_array[i]]
                          for i in range(x_axis.n_bin)

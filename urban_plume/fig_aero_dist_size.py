@@ -74,8 +74,9 @@ for use_color in [True, False]:
 
         num_den_array = numpy.zeros([x_axis.n_bin])
         for i in range(particles.n_particles):
-            scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
-            num_den_array[x_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
+            if x_axis.valid_bin(x_bin[i]):
+                scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i])
+                num_den_array[x_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
         plot_data = [[x_axis.center(i), num_den_array[i]]
                      for i in range(x_axis.n_bin) if num_den_array[i] > 0.0]

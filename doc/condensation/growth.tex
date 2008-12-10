@@ -25,14 +25,14 @@ This review contains the derivation of droplet condensation growth equations bas
 \item $c_{w, \infty}$ : environmental vapor pressure (vapor pressure far away from the droplet surface)
 \item $D_{p}$: diameter of droplet 
 \item $D_{v}$: diffusion coefficient (not corrected for non-continuum effect )
+\item $D_{v}^{'}$: diffusion coefficient (corrected for non-continuum effect )
 \item $d_u$ : diameter of insoluble material
-\item $k^{'}_{a}$ : thermal conductivity of air (corrected for non-continuum effect )
+\item $k_{a}$ : thermal conductivity of air (not corrected for non-continuum effect )
+\item $k_{a}^{'}$ : thermal conductivity of air (corrected for non-continuum effect )
 \item $\Delta H_{v}$: latent heat of condensation
 \item $\rho_{w}$ : density of water
 \item $m$ : mass of droplet
-\item $m_d$ : mass of droplet
-\item $m_p$ : mass of dry particle
-\item $m_s$ : mass of solute (soluble part of aerosol)
+\item for other mass variable, refer to the table 1 in the text
 \item $M_{s}$ : molecular weight of salt
 \item $M_{w}$ : molecular weight of water
 \item $P^{o}$ : environmental saturated water vapor pressure 
@@ -46,10 +46,23 @@ This review contains the derivation of droplet condensation growth equations bas
 \item $\nu$ : number of ions produced per molecule after complete dissociation of salt 
 \end{itemize}
 
- 
-\section{Seinfeld and Pandis (SP) }
 
-\subsection{derivation of the condensational growth equation of a droplet}
+\section{General steps of deriving droplet growth equation}
+
+\begin{enumerate}
+\item start from diffusion equation 
+\item use ideal gas law to convert concentration to pressure and temperature
+\item use conservation of energy to derive the relationship between droplet temperature and environmental temperature
+\item use Kohler 's equation to calculate ratio of vapor pressure of solution droplet of diameter $D_{p}$ to pure plane water surface 
+\item use Clausius-Clapeyron equation to calculate of vapor pressure at droplet temperature to that at environmental temperature
+\item recognize the growth equation is an implicit equation of $\frac{dm}{dt}$ or $\frac{dD_{p}}{dt}$
+\item use newton method to solve
+ 
+\end{enumerate}
+ 
+\section{Seinfeld and Pandis (S\&P) }
+
+\subsection{Derivation of the condensational growth equation of a droplet}
 
 
 The derivation is contained in chapter 15 (pp. 801- 803) of Senfeld and Pandis. The following derivations just show the mathematical derivation in more detail.
@@ -95,23 +108,23 @@ To relate the temperature of the environment, $T_{\infty}$ to that on the drople
 
 and further express \ref{eqn:7} in terms of diameter growth, 
 
-\begin{equation}
+\begin{equation}\label{eqn:8}
 2 \pi D_{p} k^{'}_{a} (T_{\infty}-T_{a})= -\Delta H_{v} \frac{1}{2} \pi \rho_{w} D_{p}^{2} \frac{dD_{p}}{dt},
 \end{equation}
 
 and after rearranging we get, 
-\begin{equation}
+\begin{equation}\label{eqn:9}
 T_{a}= T_{\infty} + \frac{\Delta H_{v}  \rho_{w}}{4 k^{'}_{a}} D_{p} \frac{dD_{p}}{dt},
 \end{equation}
 
 and write as 
-\begin{equation}
+\begin{equation}\label{eqn:10}
 T_{a}=T_{\infty}(1+\delta),
 \end{equation}
 
 where 
 
-\begin{equation}\label{eqn:SPdelta}
+\begin{equation}\label{eqn:11}
 \delta= \frac{\Delta H_{v}  \rho_{w}}{4 k^{'}_{a}T_{\infty}} D_{p} \frac{dD_{p}}{dt}.
 \end{equation}
 
@@ -155,11 +168,11 @@ D_{p}\frac{dD_{p}}{dt}=4 \frac{D_{v}} {\rho_{w}} \frac{M_{w}}{R} \frac{P^{o}(T_{
 
 The eqn \ref{eqn:SPfinal} agrees with the equation (15.73). According to S\&N, with the approximation of $\delta \ll 1$, equation (15.74) could be obtained from equation (15.73).  However, the author cannot reach equation (15.74).
 
-Two more points to note are, first the temperature in the denominator of the term  $\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}$ is $T_{a}$, the temperature of the droplet. In S\&P equation (15.73), the variable $T$ is not explicitly indicated as droplet or environmental temperature. The second point to note is that the diffusion coefficient in S\&P, denoted by $D_{v}^{'}$  is the one corrected for non-continuum effect, but the author found that the one not corrected for non-continuum effect should be used.
+Two points to note, the temperature in the denominator of the term  $\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}$ is $T_{a}$, the temperature of the droplet. In S\&P equation (15.73), the variable $T$ is not explicitly indicated as droplet or environmental temperature. The second point to note is that the diffusion coefficient in S\&P, denoted by $D_{v}^{'}$  is the one corrected for non-continuum effect. When the one corrected for non-continuum is needed, it just substitutes the $D_{v}$ in eqn \ref{eqn:SPfinal}.
 
 \subsection{The agreement between 15.73 and 15.74 in S\&P text}
 
-To simplify the equations of 15.73 and 15.74, we introduce the following terms.
+Since we are not sure how to reach 15.74 from 15.73, we also use Taylor series expansion to expand 15.73 and truncate the second and higher order terms. Before doing that, it is better to simplify the equations of 15.73 and 15.74. We introduce the following terms.
 
 \begin{equation}
 A=\frac{\Delta H_{v} \rho_w}{4 k_a^{'} T_{\infty}}
@@ -181,34 +194,36 @@ E=\frac{4 M_{w}\sigma_{w}}{R T_{\infty} rho_{w} D_{p}}
 F=\frac{6 n_{s} M_{w}}{\pi \rho_{w} (D_{p}^{3}-d_{u}^{3})}
 \end{equation}
 
-\begin{equation}
+\begin{equation}\label{eqn:23}
 \delta=\frac{\Delta H_{v} \rho_w}{4 k_a^{'} T_{\infty}} D_{p} \frac{d D_{p}}{dt}=A\frac{d D_{p}}{dt}
 \end{equation}
 
 Then 15.73 and 15.74 in S\&P can be written respectively as follow,
 
-\begin{equation}
-\frac{\delta}{A}=B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F)),
+\begin{equation}\label{eqn:15.73}
+\frac{\delta}{A}=B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))
 \end{equation}
 
-\begin{equation}
+and 
+\begin{equation}\label{eqn:15.74}
 \frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}+A(C-1)},
 \end{equation}
 
 where S is the relative humidity. The above 2 equations are solved for $\delta$ as a function of $D_{p}$ and compared. 
 
+Now, we also use Taylor series expansion to expand 15.73 and truncate the second and higher order terms. First, rearranging  eqn \ref{eqn:15.73} we get
 
-Since we are not sure how to reach 15.74 from 15.73, we also use Taylor series expansion to expand 15.73 and truncate the second and above order terms. And we get the following,
-
-\begin{equation}
-f(\delta)=\frac{\delta}{A}-B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))
-\end{equation}
 
 \begin{equation}
-f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta^{2}-0)+...
+f(\delta)=\frac{\delta}{A}-B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))=0.
 \end{equation}
 
-Ignoring second and higher order terms, we have
+From Taylor series expansion, we have
+\begin{equation}
+0=f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta^{2}-0)+....
+\end{equation}
+
+Ignoring second and higher order terms, we then have
 \begin{equation}
 \delta=\frac{-f(0)}{f^{'}(0)},
 \end{equation}
@@ -218,13 +233,13 @@ which can be expressed as
 \frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}-A \exp(E-F) (1-C+E)}.
 \end{equation}
 
-The above three expressions are plotted and compared.
+The above three expressions are plotted and compared. [see attached plots]
 
-\section{Majeed and Wexler (MW) }
+\section{Majeed and Wexler (M\&W) }
 
-The difference between the SN and MW is that the growth equation in SP is given in terms of diameter rate of change $\frac{d D_{p}}{dt}$, while the MW version is given in terms of mass rate of change, $\frac{dm}{dt}$.
+The difference between the S\&P and M\&W is that the growth equation in S\&P is given in terms of diameter rate of change $\frac{d D_{p}}{dt}$, while the M\&W version is given in terms of mass rate of change, $\frac{dm}{dt}$.
 
-Similar to the derivation given by SP the derivation by MW starts with the mass transfer equation due to diffusion, which is as  (In the following derivation, the subscripts of i which means the size bin i,  are dropped for simplicity.)
+Similar to the derivation given by S\&P, the derivation by M\&W starts with the mass transfer equation due to diffusion, which is as  (In the following derivation, the subscripts of i which means the size bin i,  are dropped for simplicity. In M\&W, the authors keep the subscript i.)
 
 \begin{equation}\label{eqn:18}
 \frac{dm}{dt}=2 \pi D_{p} D_{v} (c_{w, \infty} - c_{w}^{eq}).  
@@ -242,15 +257,14 @@ By ideal gas law, the above can be expressed as,
 \end{equation}
 
 
-\begin{equation}\label{eqn:MWgrowth}
+\begin{equation}\label{eqn:MWgrowth1}
 \frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{p^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{p_{w}(D_{p}, T_{a})}{p^{o}(T_{a})} \frac{p^{o}(T_{a})}{p^{o}(T_{\infty})}\frac{1}{1+\delta}).
 \end{equation}
 
 where RH has the same meaning as $S_{v, \infty}$ and $\delta=\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt}$.
 Note that the $\delta$s in SN and MW derivations are different, the former is given in $\frac{dD_{p}}{dt}$ and the latter $\frac{dm}{dt}$.
 
-
-The next step is to substitute the results from Kelvin (eqn (4) in MW text) and Clausius-Clapeyron equations (eqn (6) in MW text) in the eqn \ref{eqn:MWgrowth}. However, as pointed by James Kelly, the equation (4) in MW text may contain mistake. James suggested that starting from 15.38 of S\&P, we can get 
+The next step is to substitute the results from Kelvin (eqn (4) in M\&W text) and Clausius-Clapeyron equations (eqn (6) in MW text) in the eqn \ref{eqn:MWgrowth1}. However, as pointed by James Kelly, the equation (4) in M\&W is erroneous. James suggested that starting from 15.38 of S\&P, we can get 
 
 \begin{equation} 
 \ln(\frac{P_{w}(D_{p})}{P^{o}})=\frac{4 M_{w} \sigma_{w}}{R T_{a} \rho_{w}D_{p}}-\frac{M_{w}}{M_{s}}\frac{\nu m_{s}}{\rho_w(\frac{m_p}{\rho_p}-(1-\epsilon)\frac{m_{dry}}{\rho_u})}.
@@ -259,75 +273,226 @@ The next step is to substitute the results from Kelvin (eqn (4) in MW text) and 
 While equation (4) in M\&W, 
 
 \begin{equation}
-\frac{p_{w}(D_{p}, T_{a})}{p^{0}(T_{a}}=\exp(\frac{4 M_{w} \sigma_{w}}{R T_{a} \rho_{w}}-\frac{M_{w}}{M_{s}}\frac{\nu m_{s}}{m_{D}-m_{dry}}),
+\frac{p_{w}(D_{p}, T_{a})}{p^{0}(T_{a})}=\exp(\frac{4 M_{w} \sigma_{w}}{R T_{a} \rho_{w} D_{p}}-\frac{M_{w}}{M_{s}}\frac{\nu m_{s}}{m_{D}-m_{dry}}),
 \end{equation}
 
-where $m_{D}$ in the above equation means droplet mass, same as $m_{p}$ in S\&P. 
+where $m_{D}$ in the above equation means droplet mass, same as $m_{p}$ in S\&P. For different definitions of mass variable in the reference publications, refer to table \ref{table:1}. 
 
-Since different text use different symbol to denote the same quantity, the following table is a clarification.
-
-
-%\begin{table}[htdp]
-%\caption{default}
-%\begin{center}
-%\begin{tabular}{c|c|c}
-%--   & S$\&$P  &  M$\&$W
-%$m_{s}$  &   solute mass  & solute mass 
-%$m_{D}$  & --  &  droplet mass 
-%$m_{p}$  & droplet particle  &  dry particle
-%\end{tabular}
-%\end{center}
-%\label{default}
-%\end{table}
+In next section, the droplet mass rate of change equation is derived with the correction of treatment of insoluble components suggested by James Kelly. We would say the equation 7 in M\&W is erroneous.
 
 
 
+\begin{table}\label{table:1}
+\caption{Clarification of different definitions of symbols used in the references.}
+\begin{center}
+\begin{tabular}{cccc} \hline
+   & S$\&$P  &  M$\&$W   & James Kelly \\ \hline
+$m_{s}$  &   solute mass  & solute mass  &   soluble mass \\ 
+$m_{D}$  & --  &  droplet mass  &   \\ 
+$m_{p}$  & droplet mass  &  dry particle &  droplet mass \\ 
+$m_{u}$  & insoluble mass  & -- & insoluble mass \\ 
+$m_{dry}$ &  -- & -- & dry particle mass \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
 
-
-\begin{equation}\label{eqn:22}
-\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{1}{1+\delta} \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}+\frac{\Delta H_{v} M_{w}}{R} (\frac{T_{a}-T_{\infty}}{T_{a} T_{\infty}}))).
-\end{equation}
-
-\begin{equation}\label{eqn:23}
-\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{1}{1+\delta} \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} (\frac{\delta}{1+\delta}))).
-\end{equation}
-
-For $\delta \ll 1$, the above can be simplified as follows,
-
-
-\begin{equation}\label{eqn:24}
-\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}) (1+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \delta)).
-\end{equation}
-
-
-Substituting $\delta$ into \ref{eqn:24}, we get 
-\begin{equation}\label{eqn:25}
-\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}) (1+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt}).
-\end{equation}
-
-
-Grouping terms containing $\frac{dm}{dt}$, we have  
-\begin{eqnarray}\label{eqn:26}
-\frac{dm}{dt}(1+\frac{2 \pi D_{p} D_{v} M_{w} P^{o}(T_{\infty})}{R T_{\infty}} \times \\  \nonumber
-\exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}- \frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})})(\frac{\Delta H_{v} M_{w}} {R T_{\infty}}\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}})) \\  \nonumber
-=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
- (\textrm{RH}-\exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} 
-\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}). \nonumber
-\end{eqnarray}
-
-
-\begin{eqnarray}\label{eqn:MWfinal}
-\frac{dm}{dt}= (2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
-(\textrm{RH} - \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} 
-\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})})) \\
-\times (1+\frac{2 \pi D_{p} D_{v} M_{w} P^{o}(T_{\infty})}{R T_{\infty}} \exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}) (\frac{\Delta H_{v} M_{w}} {R T_{\infty}}\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}}))^{-1}. \nonumber
-\end{eqnarray}
-
-The eqn \ref{eqn:MWfinal} agrees with eqn (7) in MW derivation.
 
 \section{James Kelly}
 
-The paper by James Kelly deals with the case when the particle contains insoluble, slightly soluble and  highly soluble components.
+The paper by James Kelly deals with the cases when the particle contains insoluble, slightly soluble and  highly soluble components, which is closer to reality. The derivation below assumes spherical shape of particles. The difference between James Kelly et al., and S\&P lies in the treatment of Kohler's theory, which is demonstrated below.
+
+Equation 15.38 in S\&P, 
+
+\begin{equation}\label{eqn:36}
+\ln(\frac{p_{w}(D_{p})}{p^{o}})=\frac{4M_{w}\sigma_{w}}{RT_{a}\rho_{w} D_{p}}-\frac{6n_{s}M_{w}}{\pi\rho_{w}(D_{p}^{3}-d_{u}^{3})}
+\end{equation}
+
+Equation 1 in James Kelly et al., 
+
+\begin{equation}\label{eqn:37}
+S_{w}\approx 1+\frac{4M_{w}\sigma_{w}}{RT_{a}\rho_{w}D_{p}}-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC}
+\end{equation}
+
+where $D_{core}$ is the diameter of the undissolved particle core (quartz plus undissolved SSC), SSC means slightly soluble components, HSC means highly soluble component.
+
+In the above two equations, $d_{u}$ and $D_{core}$ have the same meaning.  $n_{s}$ is the number of moles of particle after complete dissociation, and is calculated as (from equation 15.33 in S\&P) 
+
+\begin{equation}\label{eqn:38}
+n_{s}=\frac{\nu \pi d_{s}^{3} \rho_{s}}{6 M_{s}}.
+\end{equation}
+
+This can be transformed through the following steps
+
+\begin{equation}\label{eqn:39}
+n_{s}=\nu (\frac{\pi}{6}d_{s}^{3} \rho_{s} ) \frac{1}{M_{s}},
+\end{equation}
+
+
+\begin{equation}\label{eqn:40}
+n_{s}=\nu m_{s}  \frac{1}{M_{s}},
+\end{equation}
+
+to 
+\begin{equation}\label{eqn:41}
+n_{s}=\nu n,
+\end{equation}
+
+where $m_{s}$ and $M_{s}$ are the mass of and molecular weight of the soluble component respectively. n is the number of mole of soluble component. $\nu$ is the number of mole of ions produced per mole of soluble component after complete dissociation.
+
+By considering only the highly soluble component, the above can be written as $n_{s}=\nu_{HSC} n_{HSC}$, this makes the eqn \ref{eqn:36} and eqn \ref{eqn:37} agreeable except the last term of slightly soluble component. 
+
+\begin{equation}\label{eqn:42}
+n_{s}=\nu n=\nu_{HSC} n_{HSC}
+\end{equation}
+
+James Kelly et al consider the effect of slightly soluble component by adding an extra term $\gamma_{SSC}$.  Let's derive the mass growth rate equation of a cloud droplet with the correction suggested by James Kelly and see how it compares to the one derived by Majeed Wexler.
+
+We start from eqn \ref{eqn:20}, 
+
+\begin{equation}\label{eqn:43}
+\frac{dm}{dt}=2 \pi D_{p} D_{v} \frac{M_{w}}{R}  \frac{p^{o}(T_{\infty})} {T_{\infty}} (\frac{p_{w, \infty}}{p^{o}(T_{\infty})} - \frac{p_{w}(D_{p}, T_{a}) T_{\infty}}{p^{o}(T_{\infty}) T_{a}}).
+\end{equation}
+
+Manipulating the second term in the bracket on the right hand side, we get
+\begin{equation}\label{eqn:44}
+\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{p^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{p_{w}(D_{p}, T_{a})}{p^{o}(T_{a})} \frac{p^{o}(T_{a})}{p^{o}(T_{\infty})}\frac{1}{1+\delta}),
+\end{equation}
+
+where RH has the same meaning as $S_{v, \infty}$ and $\delta=\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt}$. Eqn \ref{eqn:43} and \ref{eqn:44} are the same as James Kelly appendix notes A5.7 and A5.13.
+
+From corrected Kohler's  equation (with treatment of insoluble, slightly soluble and highly soluble components), equation 1  in James Kelly et al, 
+
+\begin{equation}\label{eqn:45}
+S_{w}=\frac{p^{o}(D_{p} ,T_{a})} {p^{o}(T_{a})} =\exp(\frac{4M_{w}\sigma_{w}}{RT_{a}\rho_{w}D_{p}}-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w} (D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC}),
+\end{equation}
+
+and from Clausius Clapeyron equation, we have
+
+\begin{equation}\label{eqn:46}
+\frac{P^{o}(T_{a})}{P^{o}(T_{\infty})}=\exp (\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\end{equation}
+  
+Substituting the corrected Kohler's equation (eqn \ref{eqn:45}) and Clausius Clapeyron equations (eqn \ref{eqn:46}) into the (eqn \ref{eqn:44}), we have
+
+\begin{eqnarray}\label{eqn:47}
+\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{1}{1+\delta}  \\ \nonumber
+\exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC}+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} (\frac{\delta}{1+\delta}))).  \nonumber
+\end{eqnarray}
+
+For $\delta \ll 1$ and substituting $\delta$ into eqn \ref{eqn:47}, then it  can be simplified as follows, 
+
+\begin{eqnarray}\label{eqn:48}
+\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} 
+\rho_{w}} \frac{1}{D_{p}}\\ \nonumber 
+-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC})(1+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt})). \nonumber
+\end{eqnarray}
+
+Note the term $\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}$ can be simplified as,
+
+\begin{equation}\label{eqn:49}
+\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}=\frac{6M_{w}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}\nu_{HSC}n_{HSC}
+\end{equation}
+
+\begin{equation}\label{eqn:50}
+=\frac{\nu_{HSC}n_{HSC}}{n_{w}}
+\end{equation}
+
+where $n_{w}$ is the number of mole of water molecules. 
+
+Then eqn \ref{eqn:48} can be written as 
+\begin{eqnarray}\label{eqn:53}
+\frac{dm}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
+(\textrm{RH} - \exp( \frac{4 M_{w} \sigma_{w}}{R T_{a} \rho_{w}} \frac{1}{D_{p}}\\ \nonumber
+-\frac{\nu_{HSC}n_{HSC}}{n_{w}}-\gamma_{SSC})(1+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt})). \nonumber
+\end{eqnarray}
+
+Grouping terms containing $\frac{dm}{dt}$, we have  
+\begin{eqnarray}\label{eqn:51}
+\frac{dm}{dt}(1+\frac{2 \pi D_{p} D_{v} M_{w} P^{o}(T_{\infty})}{R T_{\infty}} \times \\  \nonumber
+\exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} \frac{1}{D_{p}}- \frac{\nu_{HSC}n_{HSC}} {n_{w}}-\gamma_{SSC})(\frac{\Delta H_{v} M_{w}} {R T_{\infty}}\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}})) \\  \nonumber
+=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
+(\textrm{RH}-\exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{\nu_{HSC}n_{HSC}}{n_{w}}-\gamma_{SSC}). \nonumber
+\end{eqnarray}
+
+\begin{equation}\label{eqn:JKfinal}
+\frac{dm}{dt}= \frac{2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
+(\textrm{RH} - \exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} \frac{1}{D_{p}}- \frac{\nu_{HSC}n_{HSC}} {n_{w}}-\gamma_{SSC}))}{1+\frac{2 \pi D_{p} D_{v} M_{w} P^{o}(T_{\infty})}{R T_{\infty}} \exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} \frac{1}{D_{p}}- \frac{\nu_{HSC}n_{HSC}} {n_{w}}-\gamma_{SSC})(\frac{\Delta H_{v} M_{w}} {R T_{\infty}}\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}})}. 
+\end{equation}
+
+
+\begin{equation}\label{eqn:MWfinal}
+\frac{dm}{dt}= \frac{2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} 
+(\textrm{RH} - \exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w} 
+\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p})}))}{1+\frac{2 \pi D_{p} D_{v} M_{w} P^{o}(T_{\infty})}{R T_{\infty}} \exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{ M_{w} \nu m_{s}}{M_{s} (m_{d}-m_{p}}) (\frac{\Delta H_{v} M_{w}} {R T_{\infty}}\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}})}. 
+\end{equation}
+
+Now we can compare the \ref{eqn:JKfinal} (A5.22) to \ref{eqn:MWfinal} (equation 7 in M\&W). The main difference between the two lie in the Raoult term in Kohler's equation component in the eqn \ref{eqn:JKfinal} and eqn \ref{eqn:MWfinal}. 
+
+
+\section{Consistency between S\&P and James Kelly versions of growth rate equation}
+
+As mentioned earlier,  the growth rate equation in S\&P is given as rate of change of droplet diameter, while that in James Kelly is given as rate of change of droplet mass.  The two, namely eqn \ref{eqn:47} and eqn \ref{eqn:SPfinal}, should be consistent with each other, in this section, we check the consistency between the two.
+
+First, mass change and diameter change has the following relationship,
+
+\begin{equation}\label{eqn:55}
+\frac{dm}{dt}=\frac{\pi}{2}\rho_wD_{p}^{2}\frac{dD_{p}}{dt}.
+\end{equation}
+
+Here we assume the droplet is dilute, otherwise we cannot use density of water to represent the density of the whole droplet.
+This assumption should be further examined. This assumption is also invoked in eqn \ref{eqn:8}.
+
+Starting from eqn \ref{eqn:47}, substituting eqn \ref{eqn:55} into eqn \ref{eqn:47},  we have 
+
+\begin{eqnarray}\label{eqn:56}
+\frac{\pi}{2}\rho_wD_{p}^{2}\frac{dD_{p}}{dt}=2 \pi D_{p} D_{v}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{1}{1+\delta}  \\ \nonumber
+\exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC}+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} (\frac{\delta}{1+\delta})))  \nonumber
+\end{eqnarray}
+
+Then simplifying LHS, we get 
+
+\begin{eqnarray}\label{eqn:57}
+D_{p}\frac{dD_{p}}{dt}=4 \frac{D_{v}}{\rho_{w}}  \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (\textrm{RH} - \frac{1}{1+\delta}  \\ \nonumber
+\exp( \frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{6M_{w}\nu_{HSC}n_{HSC}}{\pi \rho_{w}(D_{p}^{3}-D_{core}^{3})}-\gamma_{SSC}+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} (\frac{\delta}{1+\delta}))).  \nonumber
+\end{eqnarray}
+
+Comparing eqn \ref{eqn:57} to eqn \ref{eqn:SPfinal}, which is re-written below for comparison,
+
+\begin{equation}
+D_{p}\frac{dD_{p}}{dt}=4 \frac{D_{v}} {\rho_{w}} \frac{M_{w}}{R} \frac{P^{o}(T_{\infty})} {T_{\infty}} (S_{v, \infty} - \frac{1}{1+\delta} \exp(\frac{4 M_{w}\sigma_{w}}{R T_{a} \rho_w}\frac{1}{D_{p}}-\frac{6 n_{s} M_{w}}{\pi \rho_{w}} \frac{1}{D_{p}^{3}-d_{u}^{3}}+\frac{\Delta H_{v} M_{w}}{R T_{\infty}} \frac{\delta}{1+\delta}). \nonumber
+\end{equation} 
+
+RH is the same as $S_{v, \infty}$, $n_{s}$=$\nu_{HSC}$$n_{HSC}$ as demonstrated in eqn \ref{eqn:42} with the assumption that only highly soluble components are considered. For checking consistency, what remained is to be checked is the $\delta$ in eqn \ref{eqn:SPfinal} and \ref{eqn:57}. 
+
+
+\begin{equation}
+\delta_{57}=\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{dm}{dt}
+=\frac{\Delta H_{v}}{2 \pi D_{p} k^{'}_{a} T_{\infty}} \frac{\pi}{2}\rho_wD_{p}^{2}\frac{dD_{p}}{dt}
+\end{equation}
+
+
+\begin{equation}
+\delta_{57}=\frac{\Delta H_{v} \rho_{w}}{4 k^{'}_{a} T_{\infty}} D_{p}\frac{dD_{p}}{dt}=\delta_{17},
+\end{equation}
+
+where $\delta_{17}$ is given in eqn \ref{eqn:11}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \end{document}

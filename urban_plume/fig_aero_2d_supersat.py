@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,7 @@ from pmc_pyx import *
 sys.path.append(".")
 from fig_helper import *
 
-out_prefix = "figs/aero_water_dist"
+out_prefix = "figs/aero_2d_supersat"
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state_history = read_history(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
@@ -21,6 +21,8 @@ env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time = max([time for [time, filename, key] in time_filename_list])
 max_time_min = max_time / 60
+
+max_supersat = 2.0
 
 for use_color in [True, False]:
     g = graph.graphxy(
@@ -34,12 +36,12 @@ for use_color in [True, False]:
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.,
-                              max = 2,
+                              max = max_supersat,
                               title = r"critical supersaturation ($\%$)",
                               painter = grid_painter))
 
     x_axis = pmc_linear_axis(min = 0, max = max_time_min, n_bin = 500)
-    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    y_axis = pmc_linear_axis(min = 0, max = max_supersat, n_bin = 100)
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     num_times_array = numpy.zeros([x_axis.n_bin], dtype=int)
 
@@ -48,23 +50,24 @@ for use_color in [True, False]:
         particles = aero_particle_array_t(ncf)
         ncf.close()
 
-        water_frac = particles.mass(include = ["H2O"]) \
-                     / particles.mass() * 100
+        soot_mass = particles.mass(include = ["BC"])
+        critical_ss = (particles.kappa_rh(env_state, const) - 1.0) * 100.0
         x_bin = x_axis.find(array([time / 60.0]))[0]
-        x_bin = x_bin.clip(0, x_axis.n_bin -1)
-        y_bin = y_axis.find(water_frac)
+        x_bin = x_bin.clip(0, x_axis.n_bin - 1)
+        y_bin = y_axis.find(critical_ss)
 
         num_times_array[x_bin] += 1
         for i in range(particles.n_particles):
-            if y_axis.valid_bin(y_bin[i]):
-                scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
-                num_den_array[x_bin, y_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
+            if soot_mass[i] > 0.0:
+                if y_axis.valid_bin(y_bin[i]):
+                    scale = particles.comp_vol[i] * (y_axis.grid_size(y_bin[i]) / 100)
+                    num_den_array[x_bin, y_bin[i]] += 1.0 / scale * 1e-6 # m^{-3} to cm^{-3}
 
     for i in range(x_axis.n_bin):
         num_den_array[i,:] /= num_times_array[i]
 
     value = num_den_array
-    value_max = value.max() / 10.0
+    value_max = value.max()
     if value_max != None:
         value = value / value_max
     value = value.clip(0.0, 1.0)
@@ -80,20 +83,6 @@ for use_color in [True, False]:
                              color = 5),
            styles = [hsb_rect(palette)])
 
-    rh_plot_data = []
-    for [time, env_state] in env_state_history:
-        rh_plot_data.append([time / 60, env_state.relative_humidity * 100])
-    if use_color:
-        rh_attr = style.linestyle.solid
-    else:
-        rh_attr = style.linestyle.dashed
-    g.plot(graph.data.points(rh_plot_data, x = 1, y2 = 2),
-           styles = [graph.style.line(lineattrs = [color.gray.white,
-                                                   style.linewidth.THICk]),
-                     graph.style.line(lineattrs = [color.gray.black,
-                                                   rh_attr,
-                                                   style.linewidth.THick])])
-
     g.dolayout()
     for axisname in ["x", "y"]:
         for t in g.axes[axisname].data.ticks:
@@ -102,9 +91,6 @@ for use_color in [True, False]:
                          [style.linestyle.dotted])
     g.dodata()
     g.doaxes()
-
-    label_plot_line_boxed(g, rh_plot_data, 11.5 * 60.0, "relative humidity", [1, 1],
-                          yaxis = g.axes["y2"])
 
     add_color_bar(g,
                   min = 0.0,

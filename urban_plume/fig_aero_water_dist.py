@@ -34,9 +34,16 @@ for use_color in [True, False]:
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.,
-                              max = 2,
-                              title = r"critical supersaturation ($\%$)",
-                              painter = grid_painter))
+                              max = 100,
+                              parter = graph.axis.parter.linear(tickdists
+                                                                = [20, 10]),
+                              title = r"water mass frac. $w_{\rm H_2O,all}$ ($\%$)",
+                              painter = grid_painter),
+        y2 = graph.axis.linear(min = 0,
+                               max = 100,
+                               parter = graph.axis.parter.linear(tickdists
+                                                                 = [20, 10]),
+                               title = "relative humidity ($\%$)"))
 
     x_axis = pmc_linear_axis(min = 0, max = max_time_min, n_bin = 500)
     y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)

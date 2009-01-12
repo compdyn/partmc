@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -742,8 +742,8 @@ class aero_particle_array_t:
         return 2.0 * self.dry_radius()
 
     def solute_kappa(self):
-        species_weights = self.aero_data.kappa \
-            / self.aero_data.density
+        species_weights = array(self.aero_data.kappa) \
+            / array(self.aero_data.density)
         solute_volume_kappa = self.sum_mass_by_species(exclude = ["H2O"],
                                                        species_weights = species_weights)
         solute_volume = self.volume(exclude = ["H2O"])

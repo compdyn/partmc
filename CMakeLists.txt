@@ -8,7 +8,7 @@ set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "1.2.0")
 
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
-option(ENABLE_MPI "Enable MPI support" OFF)
+#option(ENABLE_MPI "Enable MPI support" OFF)
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
@@ -44,22 +44,69 @@ find_library(MOSAIC_LIB mosaic
   $ENV{HOME}/subversion/mosaic/trunk
   $ENV{HOME}/svn/mosaic/trunk)
 
-set(EXTRA_COMPILE_FLAGS "")
-set(EXTRA_LINK_FLAGS "")
+set(EXTRA_LIBS)
 
-set(OPTIONAL_LIBS)
+include_directories(${NETCDF_INCLUDE_DIR})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIB})
 
 if(ENABLE_MOSAIC)
   include_directories(${MOSAIC_INCLUDE_DIR})
-  set(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MOSAIC_LIB})
+  set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSAIC_LIB})
+  add_definitions(-DPMC_USE_MOSAIC)
 endif(ENABLE_MOSAIC)
 
-include_directories(${NETCDF_INCLUDE_DIR})
+get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
-if(CMAKE_Fortran_COMPILER MATCHES "gfortran$")
-  set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -x f95-cpp-input")
-elseif(CMAKE_Fortran_COMPILER MATCHES "pgf95$")
-  set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -Mpreprocess")
-endif(CMAKE_Fortran_COMPILER MATCHES "gfortran$")
+if(COMPILER_NAME STREQUAL "gfortran")
+  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
+elseif(COMPILER_NAME STREQUAL "pgf95")
+  add_definitions(-Mpreprocess)
+endif(COMPILER_NAME STREQUAL "gfortran")
 
-add_subdirectory(src)
+#add_subdirectory(src)
+#add_subdirectory(test)
+
+ENABLE_TESTING()
+ADD_TEST(poisson ${EXECUTABLE_OUTPUT_PATH}/poisson/run.sh)
+
+add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR})
+
+######################################################################
+
+add_executable(partmc src/partmc.f90 src/aero_state.f90
+               src/aero_binned.f90 src/bin_grid.f90
+               src/condensation.f90 src/constants.f90 src/env_data.f90
+               src/env_state.f90 src/aero_dist.f90
+               src/kernel_golovin.f90 src/kernel_sedi.f90
+               src/kernel_constant.f90 src/kernel_brown.f90
+               src/kernel_zero.f90 src/aero_data.f90 src/run_exact.f90
+               src/run_mc.f90 src/util.f90 src/run_sect.f90
+               src/output_state.f90 src/output_state_netcdf.f90
+               src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
+               src/coagulation.f90 src/kernel.f90
+               src/output_processed.f90 src/inout.f90 src/rand.f90
+               src/aero_particle.f90 src/aero_particle_array.f90
+               src/mpi.f90 src/process_spec.f90 src/netcdf.f90)
+
+TARGET_LINK_LIBRARIES(partmc ${EXTRA_LIBS})
+
+######################################################################
+
+add_executable(bidisperse_ode test/bidisperse/bidisperse_ode.f90
+               src/kernel_sedi.f90 src/env_data.f90 src/env_state.f90
+               src/constants.f90 src/aero_data.f90 src/util.f90
+               src/gas_data.f90 src/gas_state.f90 src/aero_state.f90
+               src/output_state_netcdf.f90 src/bin_grid.f90
+               src/inout.f90 src/aero_dist.f90 src/aero_binned.f90
+               src/rand.f90 src/aero_particle.f90
+               src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
+               src/output_processed.f90 src/process_spec.f90)
+
+TARGET_LINK_LIBRARIES(bidisperse_ode ${EXTRA_LIBS})
+
+######################################################################
+
+add_executable(poisson_sample test/poisson/poisson_sample.f90
+               src/util.f90 src/rand.f90 src/constants.f90)
+
+TARGET_LINK_LIBRARIES(poisson_sample ${EXTRA_LIBS})

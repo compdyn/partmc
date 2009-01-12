@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -381,8 +381,8 @@ contains
 
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
-  subroutine env_state_update_aero_state(env_state, delta_t, old_env_state, &
-       bin_grid, aero_data, aero_state, aero_binned)
+  subroutine env_state_update_aero_state(env_state, delta_t, &
+       old_env_state, bin_grid, aero_data, aero_state, aero_binned)
 
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
@@ -404,8 +404,10 @@ contains
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_delta)
-    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, &
+         aero_state_delta)
+    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, &
+         aero_data%n_spec)
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
@@ -423,7 +425,8 @@ contains
     end if
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
-    call aero_state_sample(aero_state, aero_state_delta, sample_prop)
+    call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
+         AERO_INFO_DILUTION)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
          aero_binned_delta)
     call aero_binned_sub(aero_binned, aero_binned_delta)

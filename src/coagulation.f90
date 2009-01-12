@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -156,37 +156,60 @@ contains
     !> Second particle (number in bin).
     integer, intent(in) :: s2
     
+    type(aero_particle_t), pointer :: particle_1, particle_2
     type(aero_particle_t) :: new_particle
     integer :: bn
+    type(aero_info_t) :: aero_info
 
     call aero_particle_alloc(new_particle, aero_data%n_spec)
+    particle_1 => aero_state%bin(b1)%particle(s1)
+    particle_2 => aero_state%bin(b2)%particle(s2)
 
     ! coagulate particles
-    call aero_particle_coagulate(aero_state%bin(b1)%particle(s1), &
-         aero_state%bin(b2)%particle(s2), new_particle)
+    call aero_particle_coagulate(particle_1, particle_2, new_particle)
     bn = aero_particle_in_bin(new_particle, bin_grid)
 
     ! update binned data
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b1, aero_state%comp_vol, aero_state%bin(b1)%particle(s1))
+         b1, aero_state%comp_vol, particle_1)
     call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b2, aero_state%comp_vol, aero_state%bin(b2)%particle(s2))
+         b2, aero_state%comp_vol, particle_2)
     call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
          bn, aero_state%comp_vol, new_particle)
 
-    ! remove old particles and add new one
+    ! remove old particles
+    call aero_info_alloc(aero_info)
+    if (new_particle%id /= particle_1%id) then
+       ! particle_1 is the removed particle
+       assert(361912382, new_particle%id == particle_2%id)
+       aero_info%id = particle_1%id
+       aero_info%action = AERO_INFO_COAG
+       aero_info%other_id = particle_2%id
+    else
+       ! particle_2 is the removed particle
+       assert(742917292, new_particle%id /= particle_2%id)
+       aero_info%id = particle_2%id
+       aero_info%action = AERO_INFO_COAG
+       aero_info%other_id = particle_1%id
+    end if
     if ((b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
-       call aero_state_remove_particle(aero_state, b2, s2)
-       call aero_state_remove_particle(aero_state, b1, s1)
+       call aero_state_remove_particle(aero_state, b2, s2, .true., &
+            aero_info)
+       call aero_state_remove_particle(aero_state, b1, s1, .true., &
+            aero_info)
     else
-       call aero_state_remove_particle(aero_state, b1, s1)
-       call aero_state_remove_particle(aero_state, b2, s2)
+       call aero_state_remove_particle(aero_state, b1, s1, .true., &
+            aero_info)
+       call aero_state_remove_particle(aero_state, b2, s2, .true., &
+            aero_info)
     end if
-    call aero_state_add_particle(aero_state, bn, new_particle)
+    call aero_info_free(aero_info)
 
+    ! add new particle
+    call aero_state_add_particle(aero_state, bn, new_particle)
     call aero_particle_free(new_particle)
     
   end subroutine coagulate

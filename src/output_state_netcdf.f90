@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -27,7 +27,8 @@ contains
 
   !> Write the current state.
   subroutine output_state_netcdf(state_prefix, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, del_t, i_loop)
+       aero_state, gas_data, gas_state, env_state, index, time, &
+       del_t, i_loop, record_removals)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: state_prefix
@@ -51,6 +52,8 @@ contains
     real*8, intent(in) :: del_t
     !> Current loop number.
     integer, intent(in) :: i_loop
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
     
     character*300 :: filename
     type(inout_file_t) :: file
@@ -76,7 +79,8 @@ contains
        call gas_data_output_netcdf(gas_data, ncid)
        call gas_state_output_netcdf(gas_state, ncid, gas_data)
        call aero_data_output_netcdf(aero_data, ncid)
-       call aero_state_output_netcdf(aero_state, ncid, bin_grid, aero_data)
+       call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
+            aero_data, record_removals)
     end if
 
 #ifdef PMC_USE_MPI

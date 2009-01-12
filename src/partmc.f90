@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -286,6 +286,7 @@ contains
 
        call inout_read_logical(file, 'do_restart', mc_opt%do_restart)
        call inout_read_string(file, 'restart_name', mc_opt%restart_name)
+       call inout_read_logical(file, 'record_removals', mc_opt%record_removals)
        
        call inout_close(file)
     end if

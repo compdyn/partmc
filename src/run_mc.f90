@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -71,6 +71,8 @@ module pmc_run_mc
     real*8 :: t_wall_start
     !> Mix rate for parallel states (0 to 1).
     real*8 :: mix_rate
+    !> Whether to record particle removal information.
+    logical :: record_removals
  end type run_mc_opt_t
   
 contains
@@ -213,7 +215,8 @@ contains
     if (mc_opt%t_state_netcdf > 0d0) then
        call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
             aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
-            time, mc_opt%del_t, mc_opt%i_loop)
+            time, mc_opt%del_t, mc_opt%i_loop, mc_opt%record_removals)
+       call aero_info_array_zero(aero_state%aero_info_array)
     end if
 
     t_start = time
@@ -300,8 +303,17 @@ contains
              i_state_netcdf = i_state_netcdf + 1
              call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
                   aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_state_netcdf, time, mc_opt%del_t, mc_opt%i_loop)
+                  i_state_netcdf, time, mc_opt%del_t, mc_opt%i_loop, &
+                  mc_opt%record_removals)
+             call aero_info_array_zero(aero_state%aero_info_array)
           end if
+       end if
+
+       if (.not. mc_opt%record_removals) then
+          ! If we are not recording removals then we can zero them as
+          ! often as possible to minimize the cost of maintaining
+          ! them.
+          call aero_info_array_zero(aero_state%aero_info_array)
        end if
 
        if (mc_opt%t_progress > 0d0) then
@@ -505,7 +517,8 @@ contains
          + pmc_mpi_pack_size_integer(val%i_loop) &
          + pmc_mpi_pack_size_integer(val%n_loop) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
-         + pmc_mpi_pack_size_real(val%mix_rate)
+         + pmc_mpi_pack_size_real(val%mix_rate) &
+         + pmc_mpi_pack_size_logical(val%record_removals)
 
   end function pmc_mpi_pack_size_mc_opt
 
@@ -544,6 +557,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_pack_real(buffer, position, val%mix_rate)
+    call pmc_mpi_pack_logical(buffer, position, val%record_removals)
     call assert(946070052, &
          position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif
@@ -585,6 +599,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
+    call pmc_mpi_unpack_logical(buffer, position, val%record_removals)
     call assert(480118362, &
          position - prev_position == pmc_mpi_pack_size_mc_opt(val))
 #endif

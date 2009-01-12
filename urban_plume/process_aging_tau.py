@@ -67,8 +67,8 @@ def smooth(x,window_len=10,window='hanning'):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/6"
-coag_suffix = "wc"
+data_prefix = "aging_data/8"
+coag_suffix = "nc"
 
 smooth_window_len = 60
 
@@ -148,6 +148,9 @@ aged_mid = mid(aged)
 fresh_mid = mid(fresh)
 height_mid = mid(height)
 
+aged_raw_dot = delta(aged_raw) / delta(time)
+fresh_raw_dot = delta(fresh_raw) / delta(time)
+height_raw_dot = delta(height_raw) / delta(time)
 aged_raw_mid = mid(aged_raw)
 fresh_raw_mid = mid(fresh_raw)
 height_raw_mid = mid(height_raw)
@@ -204,6 +207,9 @@ loss_fresh_dilution = dilution_rate_eff * fresh_mid
 k_aged = (aged_dot - emission_aged_end_rate + loss_aged_end_rate) / fresh_mid
 k_fresh = -(fresh_dot - emission_fresh_end_rate + loss_fresh_end_rate) / fresh_mid
 k_transfer = transfer_net_end_rate / fresh_mid
+
+k_aged_raw = (aged_raw_dot - emission_aged_end_raw_rate + loss_aged_end_raw_rate) / fresh_raw_mid
+k_fresh_raw = -(fresh_raw_dot - emission_fresh_end_raw_rate + loss_fresh_end_raw_rate) / fresh_raw_mid
 k_transfer_raw = transfer_net_end_raw_rate / fresh_raw_mid
 
 total_dot = delta(total) / delta(time)
@@ -216,6 +222,9 @@ total_rhs = emission_total_end_rate - loss_total_end_rate
 tau_aged = 1.0 / k_aged
 tau_fresh = 1.0 / k_fresh
 tau_transfer = 1.0 / k_transfer
+
+tau_aged_raw = 1.0 / k_aged_raw
+tau_fresh_raw = 1.0 / k_fresh_raw
 tau_transfer_raw = 1.0 / k_transfer_raw
 
 ######################################################################
@@ -434,14 +443,14 @@ g.writePDFfile("%s/aging_raw_%d_%s.pdf" % (data_prefix, level, coag_suffix))
 
 g = pyx.graph.graphxy(
     width = 10,
-    x = graph.axis.linear(min = 0.,
-                          max = max_time_min,
-                          parter = graph.axis.parter.linear(tickdists
-                                                            = [6 * 60, 3 * 60]),
-                          texter = time_of_day(base_time
-                                               = start_time_of_day_min),
-                          title = "local standard time (LST) (hours:minutes)",
-                          painter = grid_painter),
+    x = pyx.graph.axis.linear(min = 0.,
+                              max = max_time_min,
+                              parter = graph.axis.parter.linear(tickdists
+                                                                = [6 * 60, 3 * 60]),
+                              texter = time_of_day(base_time
+                                                   = start_time_of_day_min),
+                              title = "local standard time (LST) (hours:minutes)",
+                              painter = grid_painter),
     y = pyx.graph.axis.linear(min = 0,
                               max = 100,
                               title = r"aged fraction (\%)",
@@ -463,16 +472,14 @@ c = pyx.canvas.canvas()
 
 g2 = c.insert(pyx.graph.graphxy(
     width = 10,
-    x = graph.axis.linear(min = 0.,
-                          max = max_time_min,
-                          parter = graph.axis.parter.linear(tickdists
-                                                            = [6 * 60, 3 * 60]),
-                          texter = time_of_day(base_time
-                                               = start_time_of_day_min),
-                          title = "local standard time (LST) (hours:minutes)",
-                          painter = grid_painter),
-#    x = pyx.graph.axis.linear(title = r"time (s)",
-#                          painter = grid_painter),
+    x = pyx.graph.axis.linear(min = 0.,
+                              max = max_time_min,
+                              parter = graph.axis.parter.linear(tickdists
+                                                                = [6 * 60, 3 * 60]),
+                              texter = time_of_day(base_time
+                                                   = start_time_of_day_min),
+                              title = "local standard time (LST) (hours:minutes)",
+                              painter = grid_painter),
     y = pyx.graph.axis.log(reverse = 1,
                            min = 1e-1,
                            max = 1e5,
@@ -490,16 +497,14 @@ g1 = c.insert(pyx.graph.graphxy(
 
 gs = pyx.graph.graphxy(
     width = 10,
-    x = graph.axis.linear(min = 0.,
-                          max = max_time_min,
-                          parter = graph.axis.parter.linear(tickdists
-                                                            = [6 * 60, 3 * 60]),
-                          texter = time_of_day(base_time
-                                               = start_time_of_day_min),
-                          title = "local standard time (LST) (hours:minutes)",
-                          painter = grid_painter),
-#    x = pyx.graph.axis.linear(title = r"time (s)",
-#                              painter = grid_painter),
+    x = pyx.graph.axis.linear(min = 0.,
+                              max = max_time_min,
+                              parter = graph.axis.parter.linear(tickdists
+                                                                = [6 * 60, 3 * 60]),
+                              texter = time_of_day(base_time
+                                                   = start_time_of_day_min),
+                              title = "local standard time (LST) (hours:minutes)",
+                              painter = grid_painter),
     y = pyx.graph.axis.log(min = 1e-1,
                            max = 1e5,
                            title = r"aging timescale $\tau$ (hours)",
@@ -547,6 +552,46 @@ for signed_data in chopped_data:
             styles = [pyx.graph.style.line(lineattrs = [pyx.color.grey(grey_level),
                                                         pyx.style.linestyle.dashed])])
 
+plot_data = zip(time_mid / 60, tau_aged_raw / 3600)
+chopped_data = chop_sign_data(plot_data)
+for signed_data in chopped_data:
+    if signed_data[0][1] > 0:
+        g1.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(1,grey_level,grey_level)])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(1,grey_level,grey_level)])])
+    else:
+        signed_data = [[t,-d] for [t,d] in signed_data]
+        g2.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(1,grey_level,grey_level)])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(1,grey_level,grey_level),
+                                                        pyx.style.linestyle.dashed])])
+
+plot_data = zip(time_mid / 60, tau_fresh_raw / 3600)
+chopped_data = chop_sign_data(plot_data)
+for signed_data in chopped_data:
+    if signed_data[0][1] > 0:
+        g1.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(grey_level, grey_level, 1)])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(grey_level, grey_level, 1)])])
+    else:
+        signed_data = [[t,-d] for [t,d] in signed_data]
+        g2.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(grey_level, grey_level, 1)])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb(grey_level, grey_level, 1),
+                                                        pyx.style.linestyle.dashed])])
+
 plot_data = zip(time_mid / 60, tau_aged / 3600)
 chopped_data = chop_sign_data(plot_data)
 for signed_data in chopped_data:
@@ -554,18 +599,18 @@ for signed_data in chopped_data:
         g1.plot(
             pyx.graph.data.points(signed_data, x = 1, y = 2),
             styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red])])
-#        gs.plot(
-#            pyx.graph.data.points(signed_data, x = 1, y = 2),
-#            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red])])
     else:
         signed_data = [[t,-d] for [t,d] in signed_data]
         g2.plot(
             pyx.graph.data.points(signed_data, x = 1, y = 2),
             styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red])])
-#        gs.plot(
-#            pyx.graph.data.points(signed_data, x = 1, y = 2),
-#            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red,
-#                                                        pyx.style.linestyle.dashed])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.red,
+                                                        pyx.style.linestyle.dashed])])
 
 plot_data = zip(time_mid / 60, tau_fresh / 3600)
 chopped_data = chop_sign_data(plot_data)
@@ -574,18 +619,18 @@ for signed_data in chopped_data:
         g1.plot(
             pyx.graph.data.points(signed_data, x = 1, y = 2),
             styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue])])
-#        gs.plot(
-#            pyx.graph.data.points(signed_data, x = 1, y = 2),
-#            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue])])
     else:
         signed_data = [[t,-d] for [t,d] in signed_data]
         g2.plot(
             pyx.graph.data.points(signed_data, x = 1, y = 2),
             styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue])])
-#        gs.plot(
-#            pyx.graph.data.points(signed_data, x = 1, y = 2),
-#            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue,
-#                                                        pyx.style.linestyle.dashed])])
+        gs.plot(
+            pyx.graph.data.points(signed_data, x = 1, y = 2),
+            styles = [pyx.graph.style.line(lineattrs = [pyx.color.rgb.blue,
+                                                        pyx.style.linestyle.dashed])])
 
 plot_data = zip(time_mid / 60, tau_transfer / 3600)
 chopped_data = chop_sign_data(plot_data)

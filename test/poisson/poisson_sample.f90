@@ -12,7 +12,7 @@ program poisson_sample
 
   ! process commandline arguments
   if (iargc() .ne. 3) then
-     write(6,*) 'Usage: process_summary <lambda> <k_max> <n_samp>'
+     write(6,*) 'Usage: poisson_sample <lambda> <k_max> <n_samp>'
      call exit(2)
   endif
   call getarg(1, tmp)

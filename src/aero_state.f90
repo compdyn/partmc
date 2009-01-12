@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -18,6 +18,7 @@ module pmc_aero_state
   use pmc_aero_binned
   use pmc_mpi
   use pmc_inout
+  use pmc_aero_info_array
 #ifdef PMC_USE_MPI
 #ifndef PMC_EVEREST
   use mpi
@@ -53,6 +54,10 @@ module pmc_aero_state
   !! storage in \c aero_state%%bin(i_bin)%%particle is not stored
   !! explicitly, but can be obtained with the Fortran 90 SIZE()
   !! intrinsic function.
+  !!
+  !! Every time we remove particles we keep track of the particle ID
+  !! and the action performed in the aero_info_array_t structure. This
+  !! is typically cleared each time we output data to disk.
   type aero_state_t
      !> Bin arrays.
      type(aero_particle_array_t), pointer :: bin(:)
@@ -60,6 +65,8 @@ module pmc_aero_state
      real*8 :: comp_vol
      !> Total number of particles.
      integer :: n_part
+     !> Information on removed particles.
+     type(aero_info_array_t) :: aero_info_array
   end type aero_state_t
 
 contains
@@ -86,6 +93,7 @@ contains
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
+    call aero_info_array_alloc(aero_state%aero_info_array, 0)
 
   end subroutine aero_state_alloc
   
@@ -104,6 +112,7 @@ contains
        call aero_particle_array_free(aero_state%bin(i))
     end do
     deallocate(aero_state%bin)
+    call aero_info_array_free(aero_state%aero_info_array)
 
   end subroutine aero_state_free
   
@@ -132,6 +141,9 @@ contains
 
     aero_state_to%comp_vol = aero_state_from%comp_vol
     aero_state_to%n_part = aero_state_from%n_part
+
+    call aero_state_copy(aero_state_from%aero_info_array, &
+         aero_state_to%aero_info_array)
 
   end subroutine aero_state_copy
   
@@ -164,6 +176,7 @@ contains
        call aero_particle_array_zero(aero_state%bin(i))
     end do
     aero_state%n_part = 0
+    call aero_info_array_zero(aero_state%aero_info_array)
 
   end subroutine aero_state_zero
   
@@ -188,7 +201,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove the given particle.
-  subroutine aero_state_remove_particle(aero_state, i_bin, index)
+  subroutine aero_state_remove_particle(aero_state, i_bin, index, &
+       record_removal, aero_info)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -196,9 +210,17 @@ contains
     integer, intent(in) :: i_bin
     !> Index in bin of particle to remove.
     integer, intent(in) :: index
+    !> Whether to record the removal in the aero_info_array.
+    logical, intent(in) :: record_removal
+    !> Removal info.
+    type(aero_info_t), intent(in) :: aero_info
 
     call aero_particle_array_remove_particle(aero_state%bin(i_bin), index)
     aero_state%n_part = aero_state%n_part - 1
+    if (record_removal) then
+       call aero_info_array_add_aero_info(aero_state%aero_info_array, &
+            aero_info)
+    end if
 
   end subroutine aero_state_remove_particle
 
@@ -299,7 +321,7 @@ contains
   !> aero_state_from and adding them to aero_state_to, which must
   !> be already allocated (and should have its comp_vol set).
   subroutine aero_state_sample(aero_state_from, aero_state_to, &
-       sample_prop)
+       sample_prop, removal_action)
 
     !> Original state.
     type(aero_state_t), intent(inout) :: aero_state_from
@@ -307,10 +329,14 @@ contains
     type(aero_state_t), intent(inout) :: aero_state_to
     !> Proportion to sample.
     real*8, intent(in) :: sample_prop
+    !> Action for removal (see pmc_aero_info module for action
+    !> parameters). Set to AERO_INFO_NONE to not log removal.
+    integer, intent(in) :: removal_action
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
     real*8 :: vol_ratio
+    type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
@@ -347,7 +373,18 @@ contains
                aero_state_from%bin(i_bin)%particle(i_part))
        end if
        if (do_remove) then
-          call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+          if (removal_action /= AERO_INFO_NONE) then
+             call aero_info_alloc(aero_info)
+             aero_info%id = &
+                  aero_state_from%bin(i_bin)%particle(i_part)%id
+             aero_info%action = removal_action
+             call aero_state_remove_particle(aero_state_from, i_bin, &
+                  i_part, .true., aero_info)
+             call aero_info_free(aero_info)
+          else
+             call aero_state_remove_particle(aero_state_from, i_bin, &
+                  i_part, .false., aero_info)
+          end if
           i_transfer = i_transfer + 1
        end if
     end do
@@ -360,7 +397,7 @@ contains
   !> aero_state_from and adding them to aero_state_to, which must
   !> be already allocated (and should have its comp_vol set).
   subroutine aero_state_sample_rough(aero_state_from, aero_state_to, &
-       sample_prop)
+       sample_prop, removal_action)
 
     !> Original state.
     type(aero_state_t), intent(inout) :: aero_state_from
@@ -368,10 +405,14 @@ contains
     type(aero_state_t), intent(inout) :: aero_state_to
     !> Proportion to sample.
     real*8, intent(in) :: sample_prop
+    !> Action for removal (see pmc_aero_info module for action
+    !> parameters). Set to AERO_INFO_NONE to not log removal.
+    integer, intent(in) :: removal_action
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
     real*8 :: vol_ratio
+    type(aero_info_t) :: aero_info
 
     n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
@@ -408,7 +449,18 @@ contains
                   aero_state_from%bin(i_bin)%particle(i_part))
           end if
           if (do_remove) then
-             call aero_state_remove_particle(aero_state_from, i_bin, i_part)
+             if (removal_action /= AERO_INFO_NONE) then
+                call aero_info_alloc(aero_info)
+                aero_info%id = &
+                     aero_state_from%bin(i_bin)%particle(i_part)%id
+                aero_info%action = removal_action
+                call aero_state_remove_particle(aero_state_from, i_bin, &
+                     i_part, .true., aero_info)
+                call aero_info_free(aero_info)
+             else
+                call aero_state_remove_particle(aero_state_from, i_bin, &
+                     i_part, .false., aero_info)
+             end if
              i_transfer = i_transfer + 1
           end if
        end do
@@ -544,6 +596,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     
     integer :: i_bin, i_part, n_part_orig, i_remove, n_remove
+    type(aero_info_t) :: aero_info
 
     n_part_orig = aero_state%n_part
     do i_bin = 1,bin_grid%n_bin
@@ -553,7 +606,14 @@ contains
           call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
                i_bin, aero_state%comp_vol, &
                aero_state%bin(i_bin)%particle(i_part))
-          call aero_state_remove_particle(aero_state, i_bin, i_part)
+          call aero_info_alloc(aero_info)
+          aero_info%id = &
+               aero_state_from%bin(i_bin)%particle(i_part)%id
+          aero_info%action = removal_action
+          call aero_state_remove_particle(aero_state, i_bin, &
+               i_part, .true., aero_info)
+          call aero_info_free(aero_info)
+          i_transfer = i_transfer + 1
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol &
@@ -574,25 +634,27 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     
     integer :: i_bin, j, i_new_bin, k
+    type(aero_info_t) :: aero_info ! dummy variable, never used
     
     ! The approach here is inefficient because we might reprocess
     ! particles. For example, if we are doing bin 1 and we shift a
     ! particle up to bin 2, when we do bin 2 we will reprocess it. It
-    ! seems to be more trouble than it's worth to worry about this
-    ! yet, however.
+    ! seems to be more trouble than it's worth to worry about this,
+    ! however.
     
     do i_bin = 1,bin_grid%n_bin
        j = 1
        do while (j .le. aero_state%bin(i_bin)%n_part)
           ! find the new bin
-          i_new_bin = aero_particle_in_bin(aero_state%bin(i_bin)%particle(j), &
-               bin_grid)
+          i_new_bin = aero_particle_in_bin( &
+               aero_state%bin(i_bin)%particle(j), bin_grid)
           
           ! if the bin number has changed, move the particle
           if (i_bin .ne. i_new_bin) then
              call aero_state_add_particle(aero_state, i_new_bin, &
                   aero_state%bin(i_bin)%particle(j))
-             call aero_state_remove_particle(aero_state, i_bin, j)
+             call aero_state_remove_particle(aero_state, i_bin, j, &
+                  .false., aero_info)
 
              ! in this case, don't advance j, so that we will still
              ! process the particle we just moved into the hole
@@ -643,14 +705,17 @@ contains
     end if
 
     ! allocate memory
-    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, &
+         aero_data%n_spec)
 
     ! extract particles to send
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state_send)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, &
+         aero_state_send)
     aero_state_send%comp_vol = aero_state%comp_vol
     ! FIXME: would probably be slightly better for sampling purposes
     ! to use the destination comp_vol here
-    call aero_state_sample_rough(aero_state, aero_state_send, mix_rate)
+    call aero_state_sample_rough(aero_state, aero_state_send, &
+         mix_rate, AERO_INFO_NONE)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_send, &
          aero_binned_delta)
     call aero_binned_sub(aero_binned, aero_binned_delta)
@@ -659,7 +724,8 @@ contains
     buffer_size_send = pmc_mpi_pack_size_aero_state(aero_state_send)
     allocate(buffer_send(buffer_size_send))
     position = 0
-    call pmc_mpi_pack_aero_state(buffer_send, position, aero_state_send)
+    call pmc_mpi_pack_aero_state(buffer_send, position, &
+         aero_state_send)
     call assert(420102502, position == buffer_size_send)
 
     ! transfer buffer size info and allocate receive buffers
@@ -670,14 +736,15 @@ contains
     allocate(buffer_recv(buffer_size_recv))
 
     ! do data transfer
-    call mpi_sendrecv(buffer_send, buffer_size_send, MPI_PACKED, dest, 0, &
-         buffer_recv, buffer_size_recv, MPI_PACKED, MPI_ANY_SOURCE, &
-         MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+    call mpi_sendrecv(buffer_send, buffer_size_send, MPI_PACKED, &
+         dest, 0, buffer_recv, buffer_size_recv, MPI_PACKED, &
+         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
 
     ! unpack received data and process it
     position = 0
-    call pmc_mpi_unpack_aero_state(buffer_recv, position, aero_state_recv)
+    call pmc_mpi_unpack_aero_state(buffer_recv, position, &
+         aero_state_recv)
     call assert(593694264, position == buffer_size_recv)
     call aero_state_add_particles(aero_state, aero_state_recv)
     call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
@@ -996,8 +1063,52 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero removed dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
+       dimid_aero_removed)
+
+    !> aero_state structure.
+    type(aero_state_t), intent(in) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aero removed dimension.
+    integer, intent(out) :: dimid_aero_removed
+
+    integer :: status, i_part
+    integer :: varid_aero_removed
+    integer :: aero_removed_centers(aero_state%n_part)
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_removed", &
+         aero_state%n_part, dimid_aero_removed))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_removed", NF90_INT, &
+         dimid_aero_removed, varid_aero_removed))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_removed, "unit", "1"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_part = 1,aero_state%n_part
+       aero_removed_centers(i_part) = i_part
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_removed, &
+         aero_removed_centers))
+
+  end subroutine aero_state_netcdf_dim_aero_removed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write full state.
-  subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, aero_data)
+  subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, &
+       aero_data, record_removals)
     
     !> aero_state to write.
     type(aero_state_t), intent(in) :: aero_state
@@ -1007,25 +1118,31 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
 
     integer :: dimid_aero_particle, dimid_aero_species
-    integer :: i_bin, i_part_in_bin, i_part
+    integer :: dimid_aero_removed
+    integer :: i_bin, i_part_in_bin, i_part, i_remove
     type(aero_particle_t), pointer :: particle
     real*8 :: aero_comp_mass(aero_state%n_part, aero_data%n_spec)
-    integer :: n_orig_part(aero_state%n_part)
-    real*8 :: absorb_cross_sect(aero_state%n_part)
-    real*8 :: scatter_cross_sect(aero_state%n_part)
-    real*8 :: asymmetry(aero_state%n_part)
-    real*8 :: refract_shell_real(aero_state%n_part)
-    real*8 :: refract_shell_imag(aero_state%n_part)
-    real*8 :: refract_core_real(aero_state%n_part)
-    real*8 :: refract_core_imag(aero_state%n_part)
-    real*8 :: core_vol(aero_state%n_part)
-    integer :: water_hyst_leg(aero_state%n_part)
-    real*8 :: comp_vol(aero_state%n_part)
+    integer :: aero_n_orig_part(aero_state%n_part)
+    real*8 :: aero_absorb_cross_sect(aero_state%n_part)
+    real*8 :: aero_scatter_cross_sect(aero_state%n_part)
+    real*8 :: aero_asymmetry(aero_state%n_part)
+    real*8 :: aero_refract_shell_real(aero_state%n_part)
+    real*8 :: aero_refract_shell_imag(aero_state%n_part)
+    real*8 :: aero_refract_core_real(aero_state%n_part)
+    real*8 :: aero_refract_core_imag(aero_state%n_part)
+    real*8 :: aero_core_vol(aero_state%n_part)
+    integer :: aero_water_hyst_leg(aero_state%n_part)
+    real*8 :: aero_comp_vol(aero_state%n_part)
     integer :: aero_id(aero_state%n_part)
-    real*8 :: least_create_time(aero_state%n_part)
-    real*8 :: greatest_create_time(aero_state%n_part)
+    real*8 :: aero_least_create_time(aero_state%n_part)
+    real*8 :: aero_greatest_create_time(aero_state%n_part)
+    integer :: aero_removed_id(aero_state%aero_info_array%n_item)
+    integer :: aero_removed_action(aero_state%aero_info_array%n_item)
+    integer :: aero_removed_other_ids(aero_state%aero_info_array%n_item)
 
     call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
          dimid_aero_particle)
@@ -1038,52 +1155,71 @@ contains
           i_part = i_part + 1
           particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
           aero_comp_mass(i_part, :) = particle%vol * aero_data%density
-          n_orig_part(i_part) = particle%n_orig_part
-          absorb_cross_sect(i_part) = particle%absorb_cross_sect
-          scatter_cross_sect(i_part) = particle%scatter_cross_sect
-          asymmetry(i_part) = particle%asymmetry
-          refract_shell_real(i_part) = real(particle%refract_shell)
-          refract_shell_imag(i_part) = aimag(particle%refract_shell)
-          refract_core_real(i_part) = real(particle%refract_core)
-          refract_core_imag(i_part) = aimag(particle%refract_core)
-          core_vol(i_part) = particle%core_vol
-          water_hyst_leg(i_part) = particle%water_hyst_leg
-          comp_vol(i_part) = aero_state%comp_vol
+          aero_n_orig_part(i_part) = particle%n_orig_part
+          aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
+          aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
+          aero_asymmetry(i_part) = particle%asymmetry
+          aero_refract_shell_real(i_part) = real(particle%refract_shell)
+          aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
+          aero_refract_core_real(i_part) = real(particle%refract_core)
+          aero_refract_core_imag(i_part) = aimag(particle%refract_core)
+          aero_core_vol(i_part) = particle%core_vol
+          aero_water_hyst_leg(i_part) = particle%water_hyst_leg
+          aero_comp_vol(i_part) = aero_state%comp_vol
           aero_id(i_part) = particle%id
-          least_create_time(i_part) = particle%least_create_time
-          greatest_create_time(i_part) = particle%greatest_create_time
+          aero_least_create_time(i_part) = particle%least_create_time
+          aero_greatest_create_time(i_part) = particle%greatest_create_time
        end do
     end do
     call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
          "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
-    call pmc_nc_write_integer_1d(ncid, n_orig_part, &
+    call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
          "aero_n_orig_part", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, absorb_cross_sect, &
+    call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
          "aero_absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, scatter_cross_sect, &
+    call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
          "aero_scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, asymmetry, &
+    call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
          "aero_asymmetry", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, refract_shell_real, &
+    call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
          "aero_refract_shell_real", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, refract_shell_imag, &
+    call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
          "aero_refract_shell_imag", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, refract_core_real, &
+    call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
          "aero_refract_core_real", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, refract_core_imag, &
+    call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
          "aero_refract_core_imag", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, core_vol, &
+    call pmc_nc_write_real_1d(ncid, aero_core_vol, &
          "aero_core_vol", "m^3", (/ dimid_aero_particle /))
-    call pmc_nc_write_integer_1d(ncid, water_hyst_leg, &
+    call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
          "aero_water_hyst_leg", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, comp_vol, &
+    call pmc_nc_write_real_1d(ncid, aero_comp_vol, &
          "aero_comp_vol", "m^3", (/ dimid_aero_particle /))
     call pmc_nc_write_integer_1d(ncid, aero_id, &
          "aero_id", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, least_create_time, &
+    call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time", "s", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, greatest_create_time, &
+    call pmc_nc_write_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time", "s", (/ dimid_aero_particle /))
+
+    if (record_removals) then
+       call aero_data_netcdf_dim_aero_removed(aero_state, ncid, &
+            dimid_aero_removed)
+       do i_remove = 1,aero_state%aero_info_array%n_item
+          aero_removed_id(i_remove) = &
+               aero_state%aero_info_array%aero_info(i_remove)%id
+          aero_removed_action(i_remove) = &
+               aero_state%aero_info_array%aero_info(i_remove)%action
+          aero_removed_other_id(i_remove) = &
+               aero_state%aero_info_array%aero_info(i_remove)%other_id
+       end do
+       call pmc_nc_write_integer_1d(ncid, aero_removed_id, &
+            "aero_removed_id", "1", (/ dimid_aero_removed /))
+       call pmc_nc_write_integer_1d(ncid, aero_removed_action, &
+            "aero_removed_action", "1", (/ dimid_aero_removed /))
+       call pmc_nc_write_integer_1d(ncid, aero_removed_other_id, &
+            "aero_removed_other_id", "1", (/ dimid_aero_removed /))
+    end if
 
   end subroutine aero_state_output_netcdf
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -117,7 +117,7 @@ for use_color in [True, False]:
             if len(plot_data[s]) > 0:
                 if use_color:
                     attrs = [aero_species[s]["color"],
-                             style.linewidth.Thick]
+                             style.linewidth.thick]
                 else:
                     attrs = [aero_species[s]["style"],
                              aero_species[s]["thickness"]]

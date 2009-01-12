@@ -22,7 +22,9 @@ start_time_of_day_min = env_state.start_time_of_day / 60
 max_time = max([time for [time, filename, key] in time_filename_list])
 max_time_min = max_time / 60
 
-max_supersat = 2.0
+max_supersat = 1.0
+
+const = load_constants("../src/constants.f90")
 
 for use_color in [True, False]:
     g = graph.graphxy(
@@ -67,7 +69,7 @@ for use_color in [True, False]:
         num_den_array[i,:] /= num_times_array[i]
 
     value = num_den_array
-    value_max = value.max()
+    value_max = value.max() / 4.0
     if value_max != None:
         value = value / value_max
     value = value.clip(0.0, 1.0)

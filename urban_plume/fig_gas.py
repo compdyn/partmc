@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -78,7 +78,7 @@ for use_color in [True, False]:
                                      title = tex_species(gas_species[i])),
                    styles = [graph.style.line(
                 lineattrs = [style_attr,
-                             style.linewidth.THick])])
+                             style.linewidth.Thick])])
             line_counts[graph_name] += 1
             label = tex_species(gas_species[i]["species"])
             label_plot_line_boxed(g, plot_data, gas_species[i]["label_time"] * 60.0,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -81,13 +81,13 @@ for use_color in [True, False]:
             if with_coag:
                 if use_color:
                     attrs.append(style.linestyle.solid)
-                    attrs.append(style.linewidth.THick)
+                    attrs.append(style.linewidth.Thick)
                 else:
                     attrs.append(style.linewidth.THIck)
             else:
                 if use_color:
                     attrs.append(style.linestyle.dashed)
-                    attrs.append(style.linewidth.THick)
+                    attrs.append(style.linewidth.Thick)
                 else:
                     attrs.append(style.linewidth.Thick)
             if use_color:
@@ -151,11 +151,11 @@ for use_color in [True, False]:
     ######################################################################
     # key
 
-    dx = 1 * unit.v_cm
+    dx = 1.1 * unit.v_cm
     dy = 0.5 * unit.v_cm
     xoff = 0.7 * unit.v_cm
     yoff = 0.3 * unit.v_cm
-    length = 0.6 * unit.v_cm
+    length = 0.72 * unit.v_cm
     extra = 0.2 * unit.v_cm
     coag_off = 0.4 * unit.v_cm
     cornerx = 0.3 * unit.v_cm
@@ -185,15 +185,15 @@ for use_color in [True, False]:
             if with_coag:
                 if use_color:
                     attrs.append(style.linestyle.solid)
-                    attrs.append(style.linewidth.THick)
+                    attrs.append(style.linewidth.Thick)
                 else:
-                    attrs.append(style.linewidth.THick)
+                    attrs.append(style.linewidth.THIck)
             else:
                 if use_color:
                     attrs.append(style.linestyle.dashed)
-                    attrs.append(style.linewidth.THick)
+                    attrs.append(style.linewidth.Thick)
                 else:
-                    attrs.append(style.linewidth.thick)
+                    attrs.append(style.linewidth.Thick)
             if use_color:
                 attrs.append(color_list[i])
             else:

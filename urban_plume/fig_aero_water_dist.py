@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -96,10 +96,10 @@ for use_color in [True, False]:
         rh_attr = style.linestyle.dashed
     g.plot(graph.data.points(rh_plot_data, x = 1, y2 = 2),
            styles = [graph.style.line(lineattrs = [color.gray.white,
-                                                   style.linewidth.THICk]),
+                                                   style.linewidth.THIck]),
                      graph.style.line(lineattrs = [color.gray.black,
                                                    rh_attr,
-                                                   style.linewidth.THick])])
+                                                   style.linewidth.Thick])])
 
     g.dolayout()
     for axisname in ["x", "y"]:

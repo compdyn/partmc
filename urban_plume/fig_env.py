@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -64,13 +64,13 @@ for use_color in [True, False]:
         use_line_style_list = line_style_list
     g.plot(graph.data.points(temp_plot_data, x = 1, y = 2),
            styles = [graph.style.line(lineattrs = [use_line_style_list[0],
-                                                   style.linewidth.THick])])
+                                                   style.linewidth.Thick])])
     g.plot(graph.data.points(rh_plot_data, x = 1, y2 = 2),
            styles = [graph.style.line(lineattrs = [use_line_style_list[1],
-                                                   style.linewidth.THick])])
+                                                   style.linewidth.Thick])])
     g.plot(graph.data.points(height_plot_data, x = 1, y4 = 2),
            styles = [graph.style.line(lineattrs = [use_line_style_list[2],
-                                                   style.linewidth.THick])])
+                                                   style.linewidth.Thick])])
 
     label_plot_line_boxed(g, temp_plot_data, 9.7 * 60.0, "temperature", [0, 1])
     label_plot_line_boxed(g, rh_plot_data, 4 * 60.0, "relative humidity", [0, 1],

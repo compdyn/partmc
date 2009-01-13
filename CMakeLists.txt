@@ -14,16 +14,31 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
   /usr/include
+  /usr/include/netcdf-3
   /usr/local/include
   /opt/include
   $ENV{HOME}/opt/include)
-find_library(NETCDF_LIB netcdf
-  DOC "NetCDF library"
+find_library(NETCDF_C_LIB netcdf
+  DOC "NetCDF C library"
   PATHS
   /usr/lib
+  /usr/lib64
   /usr/local/lib
   /opt/lib
   $ENV{HOME}/opt/lib)
+find_library(NETCDF_FORTRAN_LIB netcdff
+  DOC "NetCDF Fortran library"
+  PATHS
+  /usr/lib
+  /usr/lib64
+  /usr/local/lib
+  /opt/lib
+  $ENV{HOME}/opt/lib)
+
+SET(NETCDF_LIB
+  ${NETCDF_C_LIB}
+  ${NETCDF_FORTRAN_LIB}
+)
 
 find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
   DOC "MOSAIC include directory"
@@ -57,11 +72,14 @@ endif(ENABLE_MOSAIC)
 
 get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
-if(COMPILER_NAME STREQUAL "gfortran")
+#if(COMPILER_NAME STREQUAL "gfortran")
+if(CMAKE_COMPILER_IS_GNUFORTRAN)
   add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
 elseif(COMPILER_NAME STREQUAL "pgf95")
   add_definitions(-Mpreprocess)
-endif(COMPILER_NAME STREQUAL "gfortran")
+endif(CMAKE_COMPILER_IS_GNUFORTRAN)
+
+add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
 
 #add_subdirectory(src)
 #add_subdirectory(test)

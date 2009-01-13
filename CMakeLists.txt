@@ -10,54 +10,47 @@ set(PACKAGE_VERSION "1.2.0")
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 #option(ENABLE_MPI "Enable MPI support" OFF)
 
+######################################################################
+
 find_path(NETCDF_INCLUDE_DIR netcdf.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
-  /usr/include
-  /usr/include/netcdf-3
-  /usr/local/include
-  /opt/include
-  $ENV{HOME}/opt/include)
+  $ENV{HOME}/opt/include
+  PATH_SUFFIXES netcdf-3)
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
   PATHS
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /opt/lib
-  $ENV{HOME}/opt/lib)
+  $ENV{HOME}/opt/lib
+  $ENV{HOME}/opt/lib64)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
   PATHS
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /opt/lib
-  $ENV{HOME}/opt/lib)
+  $ENV{HOME}/opt/lib
+  $ENV{HOME}/opt/lib64)
 
-SET(NETCDF_LIB
-  ${NETCDF_C_LIB}
-  ${NETCDF_FORTRAN_LIB}
-)
+set(NETCDF_LIB ${NETCDF_C_LIB})
+if(NETCDF_FORTRAN_LIB)
+  set(NETCDF_LIB ${NETCDF_LIB} ${NETCDF_FORTRAN_LIB})
+endif(NETCDF_FORTRAN_LIB)
+
+######################################################################
 
 find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
   DOC "MOSAIC include directory"
   PATHS
-  /usr/lib
-  /usr/local/lib
-  /opt/lib
   $ENV{HOME}/opt/lib
   $ENV{HOME}/subversion/mosaic/trunk/datamodules
-  $ENV{HOME}/svn/mosaic/trunk/datamodules)
+  $ENV{HOME}/svn/mosaic/trunk/datamodules
+  ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
 find_library(MOSAIC_LIB mosaic
   DOC "MOSAIC library"
   PATHS
-  /usr/lib
-  /usr/local/lib
-  /opt/lib
   $ENV{HOME}/opt/lib
   $ENV{HOME}/subversion/mosaic/trunk
-  $ENV{HOME}/svn/mosaic/trunk)
+  $ENV{HOME}/svn/mosaic/trunk
+  ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
+
+######################################################################
 
 set(EXTRA_LIBS)
 
@@ -73,16 +66,12 @@ endif(ENABLE_MOSAIC)
 get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 #if(COMPILER_NAME STREQUAL "gfortran")
-if(CMAKE_COMPILER_IS_GNUFORTRAN)
+#if(CMAKE_COMPILER_IS_GNUG77)
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
 elseif(COMPILER_NAME STREQUAL "pgf95")
   add_definitions(-Mpreprocess)
-endif(CMAKE_COMPILER_IS_GNUFORTRAN)
-
-add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
-
-#add_subdirectory(src)
-#add_subdirectory(test)
+endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 ENABLE_TESTING()
 ADD_TEST(poisson ${EXECUTABLE_OUTPUT_PATH}/poisson/run.sh)
@@ -107,7 +96,7 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/mpi.f90 src/process_spec.f90 src/netcdf.f90
                src/aero_info.f90 src/aero_info_array.f90)
 
-TARGET_LINK_LIBRARIES(partmc ${EXTRA_LIBS})
+target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################
 
@@ -122,11 +111,11 @@ add_executable(bidisperse_ode test/bidisperse/bidisperse_ode.f90
                src/output_processed.f90 src/process_spec.f90
                src/aero_info.f90 src/aero_info_array.f90)
 
-TARGET_LINK_LIBRARIES(bidisperse_ode ${EXTRA_LIBS})
+target_link_libraries(bidisperse_ode ${EXTRA_LIBS})
 
 ######################################################################
 
 add_executable(poisson_sample test/poisson/poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
 
-TARGET_LINK_LIBRARIES(poisson_sample ${EXTRA_LIBS})
+target_link_libraries(poisson_sample ${EXTRA_LIBS})

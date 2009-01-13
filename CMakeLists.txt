@@ -86,7 +86,8 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/coagulation.f90 src/kernel.f90
                src/output_processed.f90 src/inout.f90 src/rand.f90
                src/aero_particle.f90 src/aero_particle_array.f90
-               src/mpi.f90 src/process_spec.f90 src/netcdf.f90)
+               src/mpi.f90 src/process_spec.f90 src/netcdf.f90
+               src/aero_info.f90 src/aero_info_array.f90)
 
 TARGET_LINK_LIBRARIES(partmc ${EXTRA_LIBS})
 
@@ -100,7 +101,8 @@ add_executable(bidisperse_ode test/bidisperse/bidisperse_ode.f90
                src/inout.f90 src/aero_dist.f90 src/aero_binned.f90
                src/rand.f90 src/aero_particle.f90
                src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-               src/output_processed.f90 src/process_spec.f90)
+               src/output_processed.f90 src/process_spec.f90
+               src/aero_info.f90 src/aero_info_array.f90)
 
 TARGET_LINK_LIBRARIES(bidisperse_ode ${EXTRA_LIBS})
 

@@ -18,6 +18,7 @@ module pmc_aero_state
   use pmc_aero_binned
   use pmc_mpi
   use pmc_inout
+  use pmc_aero_info
   use pmc_aero_info_array
 #ifdef PMC_USE_MPI
 #ifndef PMC_EVEREST
@@ -142,7 +143,7 @@ contains
     aero_state_to%comp_vol = aero_state_from%comp_vol
     aero_state_to%n_part = aero_state_from%n_part
 
-    call aero_state_copy(aero_state_from%aero_info_array, &
+    call aero_info_array_copy(aero_state_from%aero_info_array, &
          aero_state_to%aero_info_array)
 
   end subroutine aero_state_copy
@@ -608,12 +609,11 @@ contains
                aero_state%bin(i_bin)%particle(i_part))
           call aero_info_alloc(aero_info)
           aero_info%id = &
-               aero_state_from%bin(i_bin)%particle(i_part)%id
-          aero_info%action = removal_action
+               aero_state%bin(i_bin)%particle(i_part)%id
+          aero_info%action = AERO_INFO_HALVED
           call aero_state_remove_particle(aero_state, i_bin, &
                i_part, .true., aero_info)
           call aero_info_free(aero_info)
-          i_transfer = i_transfer + 1
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol &
@@ -1076,9 +1076,9 @@ contains
     !> Dimid of the aero removed dimension.
     integer, intent(out) :: dimid_aero_removed
 
-    integer :: status, i_part
+    integer :: status, i_remove, dim_size
     integer :: varid_aero_removed
-    integer :: aero_removed_centers(aero_state%n_part)
+    integer :: aero_removed_centers(max(aero_state%aero_info_array%n_item,1))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
@@ -1088,16 +1088,17 @@ contains
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
+    dim_size = max(aero_state%aero_info_array%n_item, 1)
     call pmc_nc_check(nf90_def_dim(ncid, "aero_removed", &
-         aero_state%n_part, dimid_aero_removed))
+         dim_size, dimid_aero_removed))
     call pmc_nc_check(nf90_def_var(ncid, "aero_removed", NF90_INT, &
          dimid_aero_removed, varid_aero_removed))
     call pmc_nc_check(nf90_put_att(ncid, varid_aero_removed, "unit", "1"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
-    do i_part = 1,aero_state%n_part
-       aero_removed_centers(i_part) = i_part
+    do i_remove = 1,dim_size
+       aero_removed_centers(i_remove) = i_remove
     end do
     call pmc_nc_check(nf90_put_var(ncid, varid_aero_removed, &
          aero_removed_centers))
@@ -1140,9 +1141,9 @@ contains
     integer :: aero_id(aero_state%n_part)
     real*8 :: aero_least_create_time(aero_state%n_part)
     real*8 :: aero_greatest_create_time(aero_state%n_part)
-    integer :: aero_removed_id(aero_state%aero_info_array%n_item)
-    integer :: aero_removed_action(aero_state%aero_info_array%n_item)
-    integer :: aero_removed_other_ids(aero_state%aero_info_array%n_item)
+    integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
+    integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
+    integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
 
     call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
          dimid_aero_particle)
@@ -1203,16 +1204,22 @@ contains
          "aero_greatest_create_time", "s", (/ dimid_aero_particle /))
 
     if (record_removals) then
-       call aero_data_netcdf_dim_aero_removed(aero_state, ncid, &
+       call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
             dimid_aero_removed)
-       do i_remove = 1,aero_state%aero_info_array%n_item
-          aero_removed_id(i_remove) = &
-               aero_state%aero_info_array%aero_info(i_remove)%id
-          aero_removed_action(i_remove) = &
-               aero_state%aero_info_array%aero_info(i_remove)%action
-          aero_removed_other_id(i_remove) = &
-               aero_state%aero_info_array%aero_info(i_remove)%other_id
-       end do
+       if (aero_state%aero_info_array%n_item >= 1) then
+          do i_remove = 1,aero_state%aero_info_array%n_item
+             aero_removed_id(i_remove) = &
+                  aero_state%aero_info_array%aero_info(i_remove)%id
+             aero_removed_action(i_remove) = &
+                  aero_state%aero_info_array%aero_info(i_remove)%action
+             aero_removed_other_id(i_remove) = &
+                  aero_state%aero_info_array%aero_info(i_remove)%other_id
+          end do
+       else
+          aero_removed_id(1) = 0
+          aero_removed_action(1) = AERO_INFO_NONE
+          aero_removed_other_id(1) = 0
+       end if
        call pmc_nc_write_integer_1d(ncid, aero_removed_id, &
             "aero_removed_id", "1", (/ dimid_aero_removed /))
        call pmc_nc_write_integer_1d(ncid, aero_removed_action, &

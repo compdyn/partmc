@@ -160,6 +160,7 @@ contains
     type(aero_particle_t) :: new_particle
     integer :: bn
     type(aero_info_t) :: aero_info
+    logical :: p1_removed, p2_removed
 
     call aero_particle_alloc(new_particle, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
@@ -181,30 +182,34 @@ contains
     call aero_info_alloc(aero_info)
     if (new_particle%id /= particle_1%id) then
        ! particle_1 is the removed particle
-       assert(361912382, new_particle%id == particle_2%id)
+       call assert(361912382, new_particle%id == particle_2%id)
        aero_info%id = particle_1%id
        aero_info%action = AERO_INFO_COAG
        aero_info%other_id = particle_2%id
+       p1_removed = .true.
+       p2_removed = .false.
     else
        ! particle_2 is the removed particle
-       assert(742917292, new_particle%id /= particle_2%id)
+       call assert(742917292, new_particle%id /= particle_2%id)
        aero_info%id = particle_2%id
        aero_info%action = AERO_INFO_COAG
        aero_info%other_id = particle_1%id
+       p1_removed = .false.
+       p2_removed = .true.
     end if
     if ((b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
-       call aero_state_remove_particle(aero_state, b2, s2, .true., &
-            aero_info)
-       call aero_state_remove_particle(aero_state, b1, s1, .true., &
-            aero_info)
+       call aero_state_remove_particle(aero_state, b2, s2, &
+            p2_removed, aero_info)
+       call aero_state_remove_particle(aero_state, b1, s1, &
+            p1_removed, aero_info)
     else
-       call aero_state_remove_particle(aero_state, b1, s1, .true., &
-            aero_info)
-       call aero_state_remove_particle(aero_state, b2, s2, .true., &
-            aero_info)
+       call aero_state_remove_particle(aero_state, b1, s1, &
+            p1_removed, aero_info)
+       call aero_state_remove_particle(aero_state, b2, s2, &
+            p2_removed, aero_info)
     end if
     call aero_info_free(aero_info)
 

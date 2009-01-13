@@ -684,6 +684,15 @@ class aero_particle_array_t:
         if "aero_greatest_create_time" not in ncf.variables.keys():
             raise Exception("aero_greatest_create_time variable not found in NetCDF file")
 	self.greatest_create_time = ncf.variables["aero_greatest_create_time"].getValue()
+        if "aero_removed_id" not in ncf.variables.keys():
+            raise Exception("aero_removed_id variable not found in NetCDF file")
+	self.aero_removed_id = ncf.variables["aero_removed_id"].getValue()
+        if "aero_removed_action" not in ncf.variables.keys():
+            raise Exception("aero_removed_action variable not found in NetCDF file")
+	self.aero_removed_action = ncf.variables["aero_removed_action"].getValue()
+        if "aero_removed_other_id" not in ncf.variables.keys():
+            raise Exception("aero_removed_other_id variable not found in NetCDF file")
+	self.aero_removed_other_id = ncf.variables["aero_removed_other_id"].getValue()
 
     def sum_mass_by_species(self, include = None, exclude = None,
                             species_weights = None):

@@ -49,7 +49,7 @@ OTHER := src/aero_state src/aero_binned src/bin_grid src/condensation	\
 	src/output_state_netcdf src/mosaic src/gas_data src/gas_state	\
 	src/coagulation src/kernel src/output_processed src/inout	\
 	src/rand src/aero_particle src/aero_particle_array src/mpi	\
-	src/process_spec src/netcdf
+	src/process_spec src/netcdf src/aero_info src/aero_info_array
 
 DIST_FILES = COPYING Doxyfile Makefile README doc src test tool	\
         urban_plume
@@ -64,7 +64,7 @@ partmc_OBJS := src/partmc.o src/bin_grid.o src/aero_state.o		\
 	src/coagulation.o src/kernel.o src/output_processed.o		\
 	src/inout.o src/aero_binned.o src/rand.o src/aero_particle.o	\
 	src/aero_particle_array.o src/mpi.o src/process_spec.o		\
-	src/netcdf.o
+	src/netcdf.o src/aero_info.o src/aero_info_array.o
 bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/kernel_sedi.o src/env_data.o src/env_state.o		\
 	src/constants.o src/aero_data.o src/util.o src/gas_data.o	\
@@ -72,14 +72,15 @@ bidisperse_ode_OBJS := test/bidisperse/bidisperse_ode.o			\
 	src/bin_grid.o src/inout.o src/aero_dist.o src/aero_binned.o	\
 	src/rand.o src/aero_particle.o src/aero_particle_array.o	\
 	src/mpi.o src/netcdf.o src/output_processed.o			\
-	src/process_spec.o
+	src/process_spec.o src/aero_info.o src/aero_info_array.o
 equilib_OBJS := equilib/equilib.o src/aero_data.o src/env_data.o	\
 	src/env_state.o src/condensation.o src/util.o src/aero_state.o	\
 	src/constants.o src/gas_data.o src/gas_state.o src/bin_grid.o	\
 	src/output_state_netcdf.o src/aero_dist.o src/inout.o		\
 	src/aero_binned.o src/rand.o src/aero_particle.o		\
 	src/aero_particle_array.o src/mpi.o src/netcdf.o		\
-	src/output_processed.o src/process_spec.o
+	src/output_processed.o src/process_spec.o src/aero_info.o	\
+	src/aero_info_array.o
 poisson_sample_OBJS := test/poisson/poisson_sample.o src/util.o	\
 	src/rand.o src/constants.o
 

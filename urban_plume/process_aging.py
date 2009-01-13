@@ -24,6 +24,7 @@ outf_lf = open("out/aging_loss_fresh_nc", "w")
 outf_ta = open("out/aging_transfer_to_aged_nc", "w")
 outf_tf = open("out/aging_transfer_to_fresh_nc", "w")
 outf_h = open("out/aging_height_nc", "w")
+outf_v = open("out/aging_comp_vol", "w")
 
 old_id = set()
 
@@ -42,6 +43,7 @@ for [time, filename, key] in time_filename_list:
     critical_ss = particles.kappa_rh(env_state, const) - 1.0
     total_num_den = num_den.sum()
     outf_h.write("%f %e\n" % (time, env_state.height))
+    outf_v.write("%f %e\n" % (time, particles.comp_vol[0]))
     outf_a.write("%f " % time)
     outf_f.write("%f " % time)
     outf_ea.write("%f " % time)
@@ -52,14 +54,23 @@ for [time, filename, key] in time_filename_list:
     outf_tf.write("%f " % time)
 
     for ss_activ in [0.001, 0.003, 0.006, 0.010]:
-        aged_num_den = 0.0
-        fresh_num_den = 0.0
-        aged_emissions = 0.0
-        fresh_emissions = 0.0
-        aged_loss = 0.0
-        fresh_loss = 0.0
-        transfer_to_aged = 0.0
-        transfer_to_fresh = 0.0
+        aged_num = 0
+        fresh_num = 0
+        aged_added = 0
+        fresh_added = 0
+        aged_lost_dilution = 0
+        fresh_lost_dilution = 0
+        aged_lost_coag = 0
+        fresh_lost_coag = 0
+        aged_lost_halving = 0
+        fresh_lost_halving = 0
+        transfer_to_aged = 0
+        transfer_to_fresh = 0
+
+        removed_particles = {}
+        for i in range(len(particles.removed_id)):
+            removed_particles[particles.removed_id[i]] = [particles.removed_action[i],
+                                                          particles.removed_other_id[i]]
 
         current_id = set()
         for i in range(particles.n_particles):
@@ -82,7 +93,8 @@ for [time, filename, key] in time_filename_list:
                 if old_soot_mass[i] > 0.0:
                     if old_particles.id[i] not in current_id:
                         if old_critical_ss[i] < ss_activ:
-                            aged_loss += old_num_den[i]
+                            if 
+                            aged_lost += old_num_den[i]
                         else:
                             fresh_loss += old_num_den[i]
 
@@ -138,3 +150,4 @@ outf_lf.close()
 outf_ta.close()
 outf_tf.close()
 outf_h.close()
+outf_v.close()

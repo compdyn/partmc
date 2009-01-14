@@ -10,6 +10,9 @@ set(PACKAGE_VERSION "1.2.0")
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 #option(ENABLE_MPI "Enable MPI support" OFF)
 
+#set(FIND_LIBRARY_USE_LIB64_PATHS ON)
+#SET_PROPERTY(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+
 ######################################################################
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod
@@ -20,11 +23,15 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
   PATHS
+  /usr/lib
+  /usr/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
   PATHS
+  /usr/lib
+  /usr/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 

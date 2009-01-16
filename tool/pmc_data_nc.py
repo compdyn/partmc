@@ -693,6 +693,10 @@ class aero_particle_array_t:
         if "aero_removed_other_id" not in ncf.variables.keys():
             raise Exception("aero_removed_other_id variable not found in NetCDF file")
 	self.aero_removed_other_id = ncf.variables["aero_removed_other_id"].getValue()
+        if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
+            self.aero_removed_id = array([],'int32')
+            self.aero_removed_action = array([],'int32')
+            self.aero_removed_other_id = array([],'int32')
 
     def sum_mass_by_species(self, include = None, exclude = None,
                             species_weights = None):
@@ -928,3 +932,8 @@ def load_constants(filename):
     if in_const_t:
         raise Exception("constants.f90 ended without finding end of const_t")
     return const
+
+AERO_INFO_NONE = 0
+AERO_INFO_DILUTION = 1
+AERO_INFO_COAG = 2
+AERO_INFO_HALVED = 3

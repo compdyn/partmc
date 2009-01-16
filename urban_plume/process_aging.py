@@ -10,144 +10,297 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from fig_helper import *
 
-time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
-env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
-start_time_of_day_min = env_state.start_time_of_day / 60
-max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
-
-outf_a = open("out/aging_aged_nc", "w")
-outf_f = open("out/aging_fresh_nc", "w")
-outf_ea = open("out/aging_emission_aged_nc", "w")
-outf_ef = open("out/aging_emission_fresh_nc", "w")
-outf_la = open("out/aging_loss_aged_nc", "w")
-outf_lf = open("out/aging_loss_fresh_nc", "w")
-outf_ta = open("out/aging_transfer_to_aged_nc", "w")
-outf_tf = open("out/aging_transfer_to_fresh_nc", "w")
-outf_h = open("out/aging_height_nc", "w")
-outf_v = open("out/aging_comp_vol", "w")
-
-old_id = set()
-
 const = load_constants("../src/constants.f90")
 
-first_time = True
-for [time, filename, key] in time_filename_list:
-    print time, filename
-    ncf = NetCDFFile(filename)
-    particles = aero_particle_array_t(ncf)
-    particles.id = [int(i) for i in particles.id]
-    env_state = env_state_t(ncf)
-    ncf.close()
-    num_den = 1.0 / array(particles.comp_vol)
-    soot_mass = particles.mass(include = ["BC"])
-    critical_ss = particles.kappa_rh(env_state, const) - 1.0
-    total_num_den = num_den.sum()
-    outf_h.write("%f %e\n" % (time, env_state.height))
-    outf_v.write("%f %e\n" % (time, particles.comp_vol[0]))
-    outf_a.write("%f " % time)
-    outf_f.write("%f " % time)
-    outf_ea.write("%f " % time)
-    outf_ef.write("%f " % time)
-    outf_la.write("%f " % time)
-    outf_lf.write("%f " % time)
-    outf_ta.write("%f " % time)
-    outf_tf.write("%f " % time)
+for coag in [True, False]:
+    if coag:
+        time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
+        env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
+        coag_suffix = "wc"
+    else:
+        time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
+        env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
+        coag_suffix = "nc"
+    start_time_of_day_min = env_state.start_time_of_day / 60
+    max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
 
-    for ss_activ in [0.001, 0.003, 0.006, 0.010]:
-        aged_num = 0
-        fresh_num = 0
-        aged_added = 0
-        fresh_added = 0
-        aged_lost_dilution = 0
-        fresh_lost_dilution = 0
-        aged_lost_coag = 0
-        fresh_lost_coag = 0
-        aged_lost_halving = 0
-        fresh_lost_halving = 0
-        transfer_to_aged = 0
-        transfer_to_fresh = 0
+    outf_height = open("out/aging_%s_height.txt" % coag_suffix, "w")
+    outf_comp_vol = open("out/aging_%s_comp_vol.txt" % coag_suffix, "w")
 
-        removed_particles = {}
-        for i in range(len(particles.removed_id)):
-            removed_particles[particles.removed_id[i]] = [particles.removed_action[i],
-                                                          particles.removed_other_id[i]]
+    outf_num_a = open("out/aging_%s_num_a.txt" % coag_suffix, "w")
+    outf_num_f = open("out/aging_%s_num_f.txt" % coag_suffix, "w")
+    outf_num_emit_a = open("out/aging_%s_num_emit_a.txt" % coag_suffix, "w")
+    outf_num_emit_f = open("out/aging_%s_num_emit_f.txt" % coag_suffix, "w")
+    outf_num_dilution_a = open("out/aging_%s_num_dilution_a.txt" % coag_suffix, "w")
+    outf_num_dilution_f = open("out/aging_%s_num_dilution_f.txt" % coag_suffix, "w")
+    outf_num_halving_a = open("out/aging_%s_num_halving_a.txt" % coag_suffix, "w")
+    outf_num_halving_f = open("out/aging_%s_num_halving_f.txt" % coag_suffix, "w")
+    outf_num_cond_a_a = open("out/aging_%s_num_cond_a_a.txt" % coag_suffix, "w")
+    outf_num_cond_a_f = open("out/aging_%s_num_cond_a_f.txt" % coag_suffix, "w")
+    outf_num_cond_f_a = open("out/aging_%s_num_cond_f_a.txt" % coag_suffix, "w")
+    outf_num_cond_f_f = open("out/aging_%s_num_cond_f_f.txt" % coag_suffix, "w")
+    outf_num_coag_gain_a = open("out/aging_%s_num_coag_gain_a.txt" % coag_suffix, "w")
+    outf_num_coag_gain_f = open("out/aging_%s_num_coag_gain_f.txt" % coag_suffix, "w")
+    outf_num_coag_loss_a_a = open("out/aging_%s_num_coag_loss_a_a.txt" % coag_suffix, "w")
+    outf_num_coag_loss_a_f = open("out/aging_%s_num_coag_loss_a_f.txt" % coag_suffix, "w")
+    outf_num_coag_loss_f_a = open("out/aging_%s_num_coag_loss_f_a.txt" % coag_suffix, "w")
+    outf_num_coag_loss_f_f = open("out/aging_%s_num_coag_loss_f_f.txt" % coag_suffix, "w")
 
-        current_id = set()
-        for i in range(particles.n_particles):
-            current_id.add(particles.id[i])
+    first_time = True
+    for [time, filename, key] in time_filename_list:
+        print time, filename
+        ncf = NetCDFFile(filename)
+        particles = aero_particle_array_t(ncf)
+        particles.id = [int(i) for i in particles.id]
+        env_state = env_state_t(ncf)
+        ncf.close()
+        num_den = 1.0 / array(particles.comp_vol)
+        soot_mass = particles.mass(include = ["BC"])
+        critical_ss = particles.kappa_rh(env_state, const) - 1.0
+        total_num_den = num_den.sum()
 
-        if not first_time:
-            old_id = set()
-            for i in range(old_particles.n_particles):
-                old_id.add(old_particles.id[i])
+        outf_height.write("%f %e\n" % (time, env_state.height))
+        outf_comp_vol.write("%f %e\n" % (time, particles.comp_vol[0]))
 
-            old_aged_id = set()
-            old_fresh_id = set()
-            for i in range(old_particles.n_particles):
-                if old_critical_ss[i] < ss_activ:
-                    old_aged_id.add(old_particles.id[i])
-                else:
-                    old_fresh_id.add(old_particles.id[i])
+        outf_num_a.write("%f " % time)
+        outf_num_f.write("%f " % time)
+        outf_num_emit_a.write("%f " % time)
+        outf_num_emit_f.write("%f " % time)
+        outf_num_dilution_a.write("%f " % time)
+        outf_num_dilution_f.write("%f " % time)
+        outf_num_halving_a.write("%f " % time)
+        outf_num_halving_f.write("%f " % time)
+        outf_num_cond_a_a.write("%f " % time)
+        outf_num_cond_a_f.write("%f " % time)
+        outf_num_cond_f_a.write("%f " % time)
+        outf_num_cond_f_f.write("%f " % time)
+        outf_num_coag_gain_a.write("%f " % time)
+        outf_num_coag_gain_f.write("%f " % time)
+        outf_num_coag_loss_a_a.write("%f " % time)
+        outf_num_coag_loss_a_f.write("%f " % time)
+        outf_num_coag_loss_f_a.write("%f " % time)
+        outf_num_coag_loss_f_f.write("%f " % time)
 
-            for i in range(old_particles.n_particles):
-                if old_soot_mass[i] > 0.0:
-                    if old_particles.id[i] not in current_id:
-                        if old_critical_ss[i] < ss_activ:
-                            if 
-                            aged_lost += old_num_den[i]
+        for ss_active in [0.001, 0.003, 0.006, 0.010]:
+            num_a = 0
+            num_f = 0
+            num_emit_a = 0
+            num_emit_f = 0
+            num_dilution_a = 0
+            num_dilution_f = 0
+            num_halving_a = 0
+            num_halving_f = 0
+            num_cond_a_a = 0
+            num_cond_a_f = 0
+            num_cond_f_a = 0
+            num_cond_f_f = 0
+            num_coag_gain_a = 0
+            num_coag_gain_f = 0
+            num_coag_loss_a_a = 0
+            num_coag_loss_a_f = 0
+            num_coag_loss_f_a = 0
+            num_coag_loss_f_f = 0
+
+            if any(particles.aero_removed_action == AERO_INFO_HALVED):
+                halving_occured = True
+            else:
+                halving_occured = False
+
+            # num
+            for i in range(particles.n_particles):
+                if soot_mass[i] > 0.0:
+                    if critical_ss[i] < ss_active:
+                        num_a += 1
+                    else:
+                        num_f += 1
+
+            if not first_time:
+                removed_particles = {}
+                for i in range(len(particles.aero_removed_id)):
+                    removed_particles[particles.aero_removed_id[i]] = [particles.aero_removed_action[i],
+                                                                       particles.aero_removed_other_id[i]]
+
+                current_id = set()
+                current_aged_id = set()
+                current_fresh_id = set()
+                for i in range(particles.n_particles):
+                    current_id.add(particles.id[i])
+                    if soot_mass[i] > 0.0:
+                        if critical_ss[i] < ss_active:
+                            current_aged_id.add(particles.id[i])
                         else:
-                            fresh_loss += old_num_den[i]
+                            current_fresh_id.add(particles.id[i])
 
-        for i in range(particles.n_particles):
-            if soot_mass[i] > 0.0:
-                if not first_time:
-                    if particles.id[i] not in old_id:    
-                        if critical_ss[i] < ss_activ:
-                            aged_emissions += num_den[i]
+                old_id = set()
+                old_aged_id = set()
+                old_fresh_id = set()
+                for i in range(old_particles.n_particles):
+                    old_id.add(old_particles.id[i])
+                    if old_soot_mass[i] > 0.0:
+                        if old_critical_ss[i] < ss_active:
+                            old_aged_id.add(old_particles.id[i])
                         else:
-                            fresh_emissions += num_den[i]
-                if critical_ss[i] < ss_activ:
-                    aged_num_den += num_den[i]
-                    if particles.id[i] in old_fresh_id:
-                        transfer_to_aged += num_den[i]
-                else:
-                    fresh_num_den += num_den[i]
-                    if particles.id[i] in old_aged_id:
-                        transfer_to_fresh += num_den[i]
-        print "%e %e %e %e %e %e %e %e %e %e %e" \
-            % (time / 60., ss_activ, aged_emissions,
-               fresh_emissions, aged_loss, fresh_loss,
-               aged_num_den, fresh_num_den, total_num_den,
-               transfer_to_aged, transfer_to_fresh)
-        outf_a.write("%e " % aged_num_den)
-        outf_f.write("%e " % fresh_num_den)
-        outf_ea.write("%e " % aged_emissions)
-        outf_ef.write("%e " % fresh_emissions)
-        outf_la.write("%e " % aged_loss)
-        outf_lf.write("%e " % fresh_loss)
-        outf_ta.write("%e " % transfer_to_aged)
-        outf_tf.write("%e " % transfer_to_fresh)
-    outf_a.write("\n")
-    outf_f.write("\n")
-    outf_ea.write("\n")
-    outf_ef.write("\n")
-    outf_la.write("\n")
-    outf_lf.write("\n")
-    outf_ta.write("\n")
-    outf_tf.write("\n")
-    old_particles = particles
-    old_num_den = num_den
-    old_critical_ss = critical_ss
-    old_soot_mass = soot_mass
-    first_time = False
+                            old_fresh_id.add(old_particles.id[i])
 
-outf_a.close()
-outf_f.close()
-outf_ea.close()
-outf_ef.close()
-outf_la.close()
-outf_lf.close()
-outf_ta.close()
-outf_tf.close()
-outf_h.close()
-outf_v.close()
+                if not halving_occured:
+                    if old_id - current_id != set(removed_particles.keys()):
+                        print "old_id - current_id: ", old_id - current_id
+                        print "removed_particles: ", set(removed_particles.keys())
+                        print "xor: ", ((old_id - current_id) ^ set(removed_particles.keys()))
+                        raise Exception("lost particle mismatch at t = %f" % time)
+
+                final_outcomes = {}
+                for (id, [action, other_id]) in removed_particles.iteritems():
+                    final_id = id
+                    while final_id in removed_particles.keys():
+                        [final_action, final_other_id] = removed_particles[final_id]
+                        if final_action == AERO_INFO_COAG:
+                            final_id = final_other_id
+                        else:
+                            break
+                    final_outcomes[id] = [final_action, final_other_id]
+                for (id, [action, other_id]) in removed_particles.iteritems():
+                    if other_id not in final_outcomes.keys():
+                        final_outcomes[other_id] = [AERO_INFO_COAG, other_id]
+                # final_outcomes now stores the final outcome
+                # (diluted, halved, coagulated) of all particles that
+                # are removed or which underwent
+                # coagulation. Particles that are still present but
+                # which underwent coagulation will be in
+                # final_outcomes with other_id set to id.
+
+                # num_dilution, num_halving, num_coag_loss
+                for i in range(old_particles.n_particles):
+                    if old_soot_mass[i] > 0.0:
+                        id = old_particles.id[i]
+                        if id in final_outcomes.keys():
+                            [final_action, final_other_id] = final_outcomes[id]
+                            if final_action == AERO_INFO_NONE:
+                                raise Exception("found AERO_INFO_NONE at t = %f" % time)
+                            elif final_action == AERO_INFO_DILUTION:
+                                if old_critical_ss[i] < ss_active:
+                                    num_dilution_a += 1
+                                else:
+                                    num_dilution_f += 1
+                            elif final_action == AERO_INFO_COAG:
+                                if final_other_id in current_aged_id:
+                                    if old_critical_ss[i] < ss_active:
+                                        num_coag_loss_a_a += 1
+                                    else:
+                                        num_coag_loss_f_a += 1
+                                elif final_other_id in current_fresh_id:
+                                    if old_critical_ss[i] < ss_active:
+                                        num_coag_loss_a_f += 1
+                                    else:
+                                        num_coag_loss_f_f += 1
+                                else:
+                                    raise Exception("soot particle coagulated into a non-soot particle at t = %f" % time)
+                            elif final_action == AERO_INFO_HALVED:
+                                if old_critical_ss[i] < ss_active:
+                                    num_halving_a += 1
+                                else:
+                                    num_halving_f += 1
+
+                coag_id = set()
+                for (id, [action, other_id]) in removed_particles.iteritems():
+                    if action == AERO_INFO_COAG:
+                        coag_id.add(id)
+                        coag_id.add(other_id)
+
+                if not (coag_id <= old_id):
+                    raise Exception("coag_id not a subset of old_id at t = %f" % time)
+                if not (coag_id <= set(final_outcomes.keys())):
+                    raise Exception("coag_id not a subset of final_outcomes at t = %f" % time)
+
+                # num_emit, num_cond, num_coag_gain
+                for id in current_aged_id:
+                    if id in coag_id:
+                        num_coag_gain_a += 1
+                    elif id in old_aged_id:
+                        num_cond_a_a += 1
+                    elif id in old_fresh_id:
+                        num_cond_f_a += 1
+                    elif id in old_id:
+                        raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
+                    else:
+                        num_emit_a += 1
+                for id in current_fresh_id:
+                    if id in coag_id:
+                        num_coag_gain_f += 1
+                    elif id in old_aged_id:
+                        num_cond_a_f += 1
+                    elif id in old_fresh_id:
+                        num_cond_f_f += 1
+                    elif id in old_id:
+                        raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
+                    else:
+                        num_emit_f += 1
+            
+            outf_num_a.write("%e " % num_a)
+            outf_num_f.write("%e " % num_f)
+            outf_num_emit_a.write("%e " % num_emit_a)
+            outf_num_emit_f.write("%e " % num_emit_f)
+            outf_num_dilution_a.write("%e " % num_dilution_a)
+            outf_num_dilution_f.write("%e " % num_dilution_f)
+            outf_num_halving_a.write("%e " % num_halving_a)
+            outf_num_halving_f.write("%e " % num_halving_f)
+            outf_num_cond_a_a.write("%e " % num_cond_a_a)
+            outf_num_cond_a_f.write("%e " % num_cond_a_f)
+            outf_num_cond_f_a.write("%e " % num_cond_f_a)
+            outf_num_cond_f_f.write("%e " % num_cond_f_f)
+            outf_num_coag_gain_a.write("%e " % num_coag_gain_a)
+            outf_num_coag_gain_f.write("%e " % num_coag_gain_f)
+            outf_num_coag_loss_a_a.write("%e " % num_coag_loss_a_a)
+            outf_num_coag_loss_a_f.write("%e " % num_coag_loss_a_f)
+            outf_num_coag_loss_f_a.write("%e " % num_coag_loss_f_a)
+            outf_num_coag_loss_f_f.write("%e " % num_coag_loss_f_f)
+
+        outf_height.write("\n")
+        outf_comp_vol.write("\n")
+
+        outf_num_a.write("\n")
+        outf_num_f.write("\n")
+        outf_num_emit_a.write("\n")
+        outf_num_emit_f.write("\n")
+        outf_num_dilution_a.write("\n")
+        outf_num_dilution_f.write("\n")
+        outf_num_halving_a.write("\n")
+        outf_num_halving_f.write("\n")
+        outf_num_cond_a_a.write("\n")
+        outf_num_cond_a_f.write("\n")
+        outf_num_cond_f_a.write("\n")
+        outf_num_cond_f_f.write("\n")
+        outf_num_coag_gain_a.write("\n")
+        outf_num_coag_gain_f.write("\n")
+        outf_num_coag_loss_a_a.write("\n")
+        outf_num_coag_loss_a_f.write("\n")
+        outf_num_coag_loss_f_a.write("\n")
+        outf_num_coag_loss_f_f.write("\n")
+
+        old_particles = particles
+        old_num_den = num_den
+        old_critical_ss = critical_ss
+        old_soot_mass = soot_mass
+        first_time = False
+
+    outf_height.close()
+    outf_comp_vol.close()
+
+    outf_num_a.close()
+    outf_num_f.close()
+    outf_num_emit_a.close()
+    outf_num_emit_f.close()
+    outf_num_dilution_a.close()
+    outf_num_dilution_f.close()
+    outf_num_halving_a.close()
+    outf_num_halving_f.close()
+    outf_num_cond_a_a.close()
+    outf_num_cond_a_f.close()
+    outf_num_cond_f_a.close()
+    outf_num_cond_f_f.close()
+    outf_num_coag_gain_a.close()
+    outf_num_coag_gain_f.close()
+    outf_num_coag_loss_a_a.close()
+    outf_num_coag_loss_a_f.close()
+    outf_num_coag_loss_f_a.close()
+    outf_num_coag_loss_f_f.close()

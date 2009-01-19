@@ -46,6 +46,25 @@ for coag in [True, False]:
     outf_num_coag_loss_f_a = open("out/aging_%s_num_coag_loss_f_a.txt" % coag_suffix, "w")
     outf_num_coag_loss_f_f = open("out/aging_%s_num_coag_loss_f_f.txt" % coag_suffix, "w")
 
+    outf_mass_a = open("out/aging_%s_mass_a.txt" % coag_suffix, "w")
+    outf_mass_f = open("out/aging_%s_mass_f.txt" % coag_suffix, "w")
+    outf_mass_emit_a = open("out/aging_%s_mass_emit_a.txt" % coag_suffix, "w")
+    outf_mass_emit_f = open("out/aging_%s_mass_emit_f.txt" % coag_suffix, "w")
+    outf_mass_dilution_a = open("out/aging_%s_mass_dilution_a.txt" % coag_suffix, "w")
+    outf_mass_dilution_f = open("out/aging_%s_mass_dilution_f.txt" % coag_suffix, "w")
+    outf_mass_halving_a = open("out/aging_%s_mass_halving_a.txt" % coag_suffix, "w")
+    outf_mass_halving_f = open("out/aging_%s_mass_halving_f.txt" % coag_suffix, "w")
+    outf_mass_cond_a_a = open("out/aging_%s_mass_cond_a_a.txt" % coag_suffix, "w")
+    outf_mass_cond_a_f = open("out/aging_%s_mass_cond_a_f.txt" % coag_suffix, "w")
+    outf_mass_cond_f_a = open("out/aging_%s_mass_cond_f_a.txt" % coag_suffix, "w")
+    outf_mass_cond_f_f = open("out/aging_%s_mass_cond_f_f.txt" % coag_suffix, "w")
+    outf_mass_coag_gain_a = open("out/aging_%s_mass_coag_gain_a.txt" % coag_suffix, "w")
+    outf_mass_coag_gain_f = open("out/aging_%s_mass_coag_gain_f.txt" % coag_suffix, "w")
+    outf_mass_coag_loss_a_a = open("out/aging_%s_mass_coag_loss_a_a.txt" % coag_suffix, "w")
+    outf_mass_coag_loss_a_f = open("out/aging_%s_mass_coag_loss_a_f.txt" % coag_suffix, "w")
+    outf_mass_coag_loss_f_a = open("out/aging_%s_mass_coag_loss_f_a.txt" % coag_suffix, "w")
+    outf_mass_coag_loss_f_f = open("out/aging_%s_mass_coag_loss_f_f.txt" % coag_suffix, "w")
+
     first_time = True
     for [time, filename, key] in time_filename_list:
         print time, filename
@@ -59,8 +78,8 @@ for coag in [True, False]:
         critical_ss = particles.kappa_rh(env_state, const) - 1.0
         total_num_den = num_den.sum()
 
-        outf_height.write("%f %e" % (time, env_state.height))
-        outf_comp_vol.write("%f %e" % (time, particles.comp_vol[0]))
+        outf_height.write("%f %.20e" % (time, env_state.height))
+        outf_comp_vol.write("%f %.20e" % (time, particles.comp_vol[0]))
 
         outf_num_a.write("%f " % time)
         outf_num_f.write("%f " % time)
@@ -80,6 +99,25 @@ for coag in [True, False]:
         outf_num_coag_loss_a_f.write("%f " % time)
         outf_num_coag_loss_f_a.write("%f " % time)
         outf_num_coag_loss_f_f.write("%f " % time)
+
+        outf_mass_a.write("%f " % time)
+        outf_mass_f.write("%f " % time)
+        outf_mass_emit_a.write("%f " % time)
+        outf_mass_emit_f.write("%f " % time)
+        outf_mass_dilution_a.write("%f " % time)
+        outf_mass_dilution_f.write("%f " % time)
+        outf_mass_halving_a.write("%f " % time)
+        outf_mass_halving_f.write("%f " % time)
+        outf_mass_cond_a_a.write("%f " % time)
+        outf_mass_cond_a_f.write("%f " % time)
+        outf_mass_cond_f_a.write("%f " % time)
+        outf_mass_cond_f_f.write("%f " % time)
+        outf_mass_coag_gain_a.write("%f " % time)
+        outf_mass_coag_gain_f.write("%f " % time)
+        outf_mass_coag_loss_a_a.write("%f " % time)
+        outf_mass_coag_loss_a_f.write("%f " % time)
+        outf_mass_coag_loss_f_a.write("%f " % time)
+        outf_mass_coag_loss_f_f.write("%f " % time)
 
         for ss_active in [0.001, 0.003, 0.006, 0.010]:
             num_a = 0
@@ -101,18 +139,39 @@ for coag in [True, False]:
             num_coag_loss_f_a = 0
             num_coag_loss_f_f = 0
 
+            mass_a = 0.0
+            mass_f = 0.0
+            mass_emit_a = 0.0
+            mass_emit_f = 0.0
+            mass_dilution_a = 0.0
+            mass_dilution_f = 0.0
+            mass_halving_a = 0.0
+            mass_halving_f = 0.0
+            mass_cond_a_a = 0.0
+            mass_cond_a_f = 0.0
+            mass_cond_f_a = 0.0
+            mass_cond_f_f = 0.0
+            mass_coag_gain_a = 0.0
+            mass_coag_gain_f = 0.0
+            mass_coag_loss_a_a = 0.0
+            mass_coag_loss_a_f = 0.0
+            mass_coag_loss_f_a = 0.0
+            mass_coag_loss_f_f = 0.0
+
             if any(array(particles.aero_removed_action) == AERO_INFO_HALVED):
                 halving_occured = True
             else:
                 halving_occured = False
 
-            # num
+            # num, mass
             for i in range(particles.n_particles):
                 if soot_mass[i] > 0.0:
                     if critical_ss[i] < ss_active:
                         num_a += 1
+                        mass_a += soot_mass[i]
                     else:
                         num_f += 1
+                        mass_f += soot_mass[i]
 
             if not first_time:
                 removed_particles = {}
@@ -169,7 +228,7 @@ for coag in [True, False]:
                 # which underwent coagulation will be in
                 # final_outcomes with other_id set to id.
 
-                # num_dilution, num_halving, num_coag_loss
+                # dilution, halving, coag_loss
                 for i in range(old_particles.n_particles):
                     if old_soot_mass[i] > 0.0:
                         id = old_particles.id[i]
@@ -180,26 +239,34 @@ for coag in [True, False]:
                             elif final_action == AERO_INFO_DILUTION:
                                 if old_critical_ss[i] < ss_active:
                                     num_dilution_a += 1
+                                    mass_dilution_a += old_soot_mass[i]
                                 else:
                                     num_dilution_f += 1
+                                    mass_dilution_f += old_soot_mass[i]
                             elif final_action == AERO_INFO_COAG:
                                 if final_other_id in current_aged_id:
                                     if old_critical_ss[i] < ss_active:
                                         num_coag_loss_a_a += 1
+                                        mass_coag_loss_a_a += old_soot_mass[i]
                                     else:
                                         num_coag_loss_f_a += 1
+                                        mass_coag_loss_f_a += old_soot_mass[i]
                                 elif final_other_id in current_fresh_id:
                                     if old_critical_ss[i] < ss_active:
                                         num_coag_loss_a_f += 1
+                                        mass_coag_loss_a_f += old_soot_mass[i]
                                     else:
                                         num_coag_loss_f_f += 1
+                                        mass_coag_loss_f_f += old_soot_mass[i]
                                 else:
                                     raise Exception("soot particle coagulated into a non-soot particle at t = %f" % time)
                             elif final_action == AERO_INFO_HALVED:
                                 if old_critical_ss[i] < ss_active:
                                     num_halving_a += 1
+                                    mass_halving_a += old_soot_mass[i]
                                 else:
                                     num_halving_f += 1
+                                    mass_halving_f += old_soot_mass[i]
 
                 coag_id = set()
                 for (id, [action, other_id]) in removed_particles.iteritems():
@@ -213,47 +280,76 @@ for coag in [True, False]:
                     raise Exception("coag_id not a subset of final_outcomes at t = %f" % time)
 
                 # num_emit, num_cond, num_coag_gain
-                for id in current_aged_id:
-                    if id in coag_id:
-                        num_coag_gain_a += 1
-                    elif id in old_aged_id:
-                        num_cond_a_a += 1
-                    elif id in old_fresh_id:
-                        num_cond_f_a += 1
-                    elif id in old_id:
-                        raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
-                    else:
-                        num_emit_a += 1
-                for id in current_fresh_id:
-                    if id in coag_id:
-                        num_coag_gain_f += 1
-                    elif id in old_aged_id:
-                        num_cond_a_f += 1
-                    elif id in old_fresh_id:
-                        num_cond_f_f += 1
-                    elif id in old_id:
-                        raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
-                    else:
-                        num_emit_f += 1
+                for i in range(particles.n_particles):
+                    id = particles.id[i]
+                    if id in current_aged_id:
+                        if id in coag_id:
+                            num_coag_gain_a += 1
+                            mass_coag_gain_a += soot_mass[i]
+                        elif id in old_aged_id:
+                            num_cond_a_a += 1
+                            mass_cond_a_a += soot_mass[i]
+                        elif id in old_fresh_id:
+                            num_cond_f_a += 1
+                            mass_cond_f_a += soot_mass[i]
+                        elif id in old_id:
+                            raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
+                        else:
+                            num_emit_a += 1
+                            mass_emit_a += soot_mass[i]
+                    if id in current_fresh_id:
+                        if id in coag_id:
+                            num_coag_gain_f += 1
+                            mass_coag_gain_f += soot_mass[i]
+                        elif id in old_aged_id:
+                            num_cond_a_f += 1
+                            mass_cond_a_f += soot_mass[i]
+                        elif id in old_fresh_id:
+                            num_cond_f_f += 1
+                            mass_cond_f_f += soot_mass[i]
+                        elif id in old_id:
+                            raise Exception("non-soot particle became soot particle without coagulation at t = %f" % time)
+                        else:
+                            num_emit_f += 1
+                            mass_emit_f += soot_mass[i]
             
-            outf_num_a.write("%e " % num_a)
-            outf_num_f.write("%e " % num_f)
-            outf_num_emit_a.write("%e " % num_emit_a)
-            outf_num_emit_f.write("%e " % num_emit_f)
-            outf_num_dilution_a.write("%e " % num_dilution_a)
-            outf_num_dilution_f.write("%e " % num_dilution_f)
-            outf_num_halving_a.write("%e " % num_halving_a)
-            outf_num_halving_f.write("%e " % num_halving_f)
-            outf_num_cond_a_a.write("%e " % num_cond_a_a)
-            outf_num_cond_a_f.write("%e " % num_cond_a_f)
-            outf_num_cond_f_a.write("%e " % num_cond_f_a)
-            outf_num_cond_f_f.write("%e " % num_cond_f_f)
-            outf_num_coag_gain_a.write("%e " % num_coag_gain_a)
-            outf_num_coag_gain_f.write("%e " % num_coag_gain_f)
-            outf_num_coag_loss_a_a.write("%e " % num_coag_loss_a_a)
-            outf_num_coag_loss_a_f.write("%e " % num_coag_loss_a_f)
-            outf_num_coag_loss_f_a.write("%e " % num_coag_loss_f_a)
-            outf_num_coag_loss_f_f.write("%e " % num_coag_loss_f_f)
+            outf_num_a.write("%d " % num_a)
+            outf_num_f.write("%d " % num_f)
+            outf_num_emit_a.write("%d " % num_emit_a)
+            outf_num_emit_f.write("%d " % num_emit_f)
+            outf_num_dilution_a.write("%d " % num_dilution_a)
+            outf_num_dilution_f.write("%d " % num_dilution_f)
+            outf_num_halving_a.write("%d " % num_halving_a)
+            outf_num_halving_f.write("%d " % num_halving_f)
+            outf_num_cond_a_a.write("%d " % num_cond_a_a)
+            outf_num_cond_a_f.write("%d " % num_cond_a_f)
+            outf_num_cond_f_a.write("%d " % num_cond_f_a)
+            outf_num_cond_f_f.write("%d " % num_cond_f_f)
+            outf_num_coag_gain_a.write("%d " % num_coag_gain_a)
+            outf_num_coag_gain_f.write("%d " % num_coag_gain_f)
+            outf_num_coag_loss_a_a.write("%d " % num_coag_loss_a_a)
+            outf_num_coag_loss_a_f.write("%d " % num_coag_loss_a_f)
+            outf_num_coag_loss_f_a.write("%d " % num_coag_loss_f_a)
+            outf_num_coag_loss_f_f.write("%d " % num_coag_loss_f_f)
+            
+            outf_mass_a.write("%.20e " % mass_a)
+            outf_mass_f.write("%.20e " % mass_f)
+            outf_mass_emit_a.write("%.20e " % mass_emit_a)
+            outf_mass_emit_f.write("%.20e " % mass_emit_f)
+            outf_mass_dilution_a.write("%.20e " % mass_dilution_a)
+            outf_mass_dilution_f.write("%.20e " % mass_dilution_f)
+            outf_mass_halving_a.write("%.20e " % mass_halving_a)
+            outf_mass_halving_f.write("%.20e " % mass_halving_f)
+            outf_mass_cond_a_a.write("%.20e " % mass_cond_a_a)
+            outf_mass_cond_a_f.write("%.20e " % mass_cond_a_f)
+            outf_mass_cond_f_a.write("%.20e " % mass_cond_f_a)
+            outf_mass_cond_f_f.write("%.20e " % mass_cond_f_f)
+            outf_mass_coag_gain_a.write("%.20e " % mass_coag_gain_a)
+            outf_mass_coag_gain_f.write("%.20e " % mass_coag_gain_f)
+            outf_mass_coag_loss_a_a.write("%.20e " % mass_coag_loss_a_a)
+            outf_mass_coag_loss_a_f.write("%.20e " % mass_coag_loss_a_f)
+            outf_mass_coag_loss_f_a.write("%.20e " % mass_coag_loss_f_a)
+            outf_mass_coag_loss_f_f.write("%.20e " % mass_coag_loss_f_f)
 
         outf_height.write("\n")
         outf_comp_vol.write("\n")
@@ -276,6 +372,25 @@ for coag in [True, False]:
         outf_num_coag_loss_a_f.write("\n")
         outf_num_coag_loss_f_a.write("\n")
         outf_num_coag_loss_f_f.write("\n")
+
+        outf_mass_a.write("\n")
+        outf_mass_f.write("\n")
+        outf_mass_emit_a.write("\n")
+        outf_mass_emit_f.write("\n")
+        outf_mass_dilution_a.write("\n")
+        outf_mass_dilution_f.write("\n")
+        outf_mass_halving_a.write("\n")
+        outf_mass_halving_f.write("\n")
+        outf_mass_cond_a_a.write("\n")
+        outf_mass_cond_a_f.write("\n")
+        outf_mass_cond_f_a.write("\n")
+        outf_mass_cond_f_f.write("\n")
+        outf_mass_coag_gain_a.write("\n")
+        outf_mass_coag_gain_f.write("\n")
+        outf_mass_coag_loss_a_a.write("\n")
+        outf_mass_coag_loss_a_f.write("\n")
+        outf_mass_coag_loss_f_a.write("\n")
+        outf_mass_coag_loss_f_f.write("\n")
 
         old_particles = particles
         old_num_den = num_den
@@ -304,3 +419,22 @@ for coag in [True, False]:
     outf_num_coag_loss_a_f.close()
     outf_num_coag_loss_f_a.close()
     outf_num_coag_loss_f_f.close()
+    
+    outf_mass_a.close()
+    outf_mass_f.close()
+    outf_mass_emit_a.close()
+    outf_mass_emit_f.close()
+    outf_mass_dilution_a.close()
+    outf_mass_dilution_f.close()
+    outf_mass_halving_a.close()
+    outf_mass_halving_f.close()
+    outf_mass_cond_a_a.close()
+    outf_mass_cond_a_f.close()
+    outf_mass_cond_f_a.close()
+    outf_mass_cond_f_f.close()
+    outf_mass_coag_gain_a.close()
+    outf_mass_coag_gain_f.close()
+    outf_mass_coag_loss_a_a.close()
+    outf_mass_coag_loss_a_f.close()
+    outf_mass_coag_loss_f_a.close()
+    outf_mass_coag_loss_f_f.close()

@@ -687,12 +687,15 @@ class aero_particle_array_t:
         if "aero_removed_id" not in ncf.variables.keys():
             raise Exception("aero_removed_id variable not found in NetCDF file")
 	self.aero_removed_id = ncf.variables["aero_removed_id"].getValue()
+        self.aero_removed_id = [int(i) for i in self.aero_removed_id]
         if "aero_removed_action" not in ncf.variables.keys():
             raise Exception("aero_removed_action variable not found in NetCDF file")
 	self.aero_removed_action = ncf.variables["aero_removed_action"].getValue()
+        self.aero_removed_action = [int(i) for i in self.aero_removed_action]
         if "aero_removed_other_id" not in ncf.variables.keys():
             raise Exception("aero_removed_other_id variable not found in NetCDF file")
 	self.aero_removed_other_id = ncf.variables["aero_removed_other_id"].getValue()
+        self.aero_removed_other_id = [int(i) for i in self.aero_removed_other_id]
         if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
             self.aero_removed_id = array([],'int32')
             self.aero_removed_action = array([],'int32')

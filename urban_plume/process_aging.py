@@ -59,8 +59,8 @@ for coag in [True, False]:
         critical_ss = particles.kappa_rh(env_state, const) - 1.0
         total_num_den = num_den.sum()
 
-        outf_height.write("%f %e\n" % (time, env_state.height))
-        outf_comp_vol.write("%f %e\n" % (time, particles.comp_vol[0]))
+        outf_height.write("%f %e" % (time, env_state.height))
+        outf_comp_vol.write("%f %e" % (time, particles.comp_vol[0]))
 
         outf_num_a.write("%f " % time)
         outf_num_f.write("%f " % time)
@@ -101,7 +101,7 @@ for coag in [True, False]:
             num_coag_loss_f_a = 0
             num_coag_loss_f_f = 0
 
-            if any(particles.aero_removed_action == AERO_INFO_HALVED):
+            if any(array(particles.aero_removed_action) == AERO_INFO_HALVED):
                 halving_occured = True
             else:
                 halving_occured = False

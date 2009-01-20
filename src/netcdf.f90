@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Matthew West
+! Copyright (C) 2007-2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -29,7 +29,77 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Open a NetCDF file for reading.
+  subroutine pmc_nc_open_read(filename, ncid)
+
+    !> Filename of NetCDF file to open.
+    character(len=*), intent(in) :: filename
+    !> NetCDF file ID, in data mode.
+    integer, intent(out) :: ncid
+
+    call pmc_nc_check(nf90_open(filename, NF90_NOWRITE, ncid))
+
+  end subroutine pmc_nc_open_read
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Close a NetCDF file.
+  subroutine pmc_nc_close(ncid)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_check(nf90_close(ncid))
+
+  end subroutine pmc_nc_close
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a single real from a NetCDF file.
+  subroutine pmc_nc_read_real(ncid, var, name, unit)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    real*8, intent(out) :: var
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Unit of variable.
+    character(len=*), intent(out) :: unit
+
+    integer :: varid
+
+    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
+    call pmc_nc_check(nf90_get_var(ncid, varid, var))
+    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    
+  end subroutine pmc_nc_read_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a single integer from a NetCDF file.
+  subroutine pmc_nc_read_integer(ncid, var, name, unit)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    integer, intent(out) :: var
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Unit of variable.
+    character(len=*), intent(out) :: unit
+
+    integer :: varid
+
+    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
+    call pmc_nc_check(nf90_get_var(ncid, varid, var))
+    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    
+  end subroutine pmc_nc_read_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a single real to a NetCDF file.
   subroutine pmc_nc_write_real(ncid, var, name, unit)
 
     !> NetCDF file ID, in data mode.
@@ -54,7 +124,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Write a single integer to a NetCDF file.
   subroutine pmc_nc_write_integer(ncid, var, name, unit)
 
     !> NetCDF file ID, in data mode.
@@ -79,7 +149,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Write a simple real array to a NetCDF file.
   subroutine pmc_nc_write_real_1d(ncid, var, name, unit, dimids)
 
     !> NetCDF file ID, in data mode.
@@ -109,7 +179,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Write a simple integer array to a NetCDF file.
   subroutine pmc_nc_write_integer_1d(ncid, var, name, unit, dimids)
 
     !> NetCDF file ID, in data mode.
@@ -139,7 +209,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Write a simple real 2D array to a NetCDF file.
   subroutine pmc_nc_write_real_2d(ncid, var, name, unit, dimids)
 
     !> NetCDF file ID, in data mode.
@@ -169,7 +239,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write a simple array to a NetCDF file.
+  !> Write a simple integer 2D array to a NetCDF file.
   subroutine pmc_nc_write_integer_2d(ncid, var, name, unit, dimids)
 
     !> NetCDF file ID, in data mode.

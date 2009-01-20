@@ -25,24 +25,32 @@ program poisson_sample
   allocate(count(0:k_max), count_pdf(0:k_max), pdf(0:k_max))
   
   ! compute exact PDF
-  do k = 0,k_max
-     pdf(k) = exp(-lambda) * lambda**k
-     do i = 1,k
-        pdf(k) = pdf(k) / dble(i)
+  if (n_samp == 0) then
+     do k = 0,k_max
+        pdf(k) = exp(-lambda) * lambda**k
+        do i = 1,k
+           pdf(k) = pdf(k) / dble(i)
+        end do
      end do
-  end do
+  end if
 
   ! compute sampled PDF
-  count = 0
-  do i_samp = 1,n_samp
-     k = rand_poisson(lambda)
-     if (k <= k_max) count(k) = count(k) + 1
-  end do
-  count_pdf = dble(count) / dble(n_samp)
+  if (n_samp > 0) then
+     count = 0
+     do i_samp = 1,n_samp
+        k = rand_poisson(lambda)
+        if (k <= k_max) count(k) = count(k) + 1
+     end do
+     count_pdf = dble(count) / dble(n_samp)
+  end if
 
   ! write results
   do k = 0,k_max
-     write(*,'(i6,e20.10,e20.10)') k, pdf(k), count_pdf(k)
+     if (n_samp == 0) then
+        write(*,'(i6,e20.10)') k, pdf(k)
+     else
+        write(*,'(i6,e20.10)') k, count_pdf(k)
+     end if
   end do
 
 end program poisson_sample

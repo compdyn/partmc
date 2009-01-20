@@ -10,7 +10,7 @@ t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 600              # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -46,3 +46,4 @@ do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_restart no                   # whether to restart from stored state (yes/no)
 restart_name XXXX.d             # filename to restart from
+record_removals no              # whether to record particle removals (yes/no)

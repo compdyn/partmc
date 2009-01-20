@@ -152,4 +152,70 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the current state.
+  subroutine input_state_netcdf(filename, bin_grid, aero_data, &
+       aero_state, gas_data, gas_state, env_state, index, time, &
+       del_t, i_loop)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: filename
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(out) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(out) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(out) :: env_state
+    !> Filename index.
+    integer, intent(out) :: index
+    !> Current time (s).
+    real*8, intent(out) :: time
+    !> Current timestep (s).
+    real*8, intent(out) :: del_t
+    !> Current loop number.
+    integer, intent(out) :: i_loop
+    
+    type(inout_file_t) :: file
+    type(env_state_t) :: env_write
+    type(gas_state_t) :: gas_state_write
+    type(aero_state_t) :: aero_state_write
+    integer :: ierr, status, buffer_size, i_proc, position
+    character, allocatable :: buffer(:)
+    integer :: ncid
+    character(len=1000) :: unit
+
+    ! only root node actually reads from the file
+    if (pmc_mpi_rank() == 0) then
+       call pmc_nc_open_read(filename, ncid)
+
+       call pmc_nc_read_real(ncid, time, "time", unit)
+       call pmc_nc_read_real(ncid, del_t, "timestep", unit)
+       call pmc_nc_read_integer(ncid, i_loop, "loop", unit)
+       call pmc_nc_read_integer(ncid, index, "timestep_index", unit)
+
+       !call env_state_output_netcdf(env_state, ncid)
+       !call gas_data_output_netcdf(gas_data, ncid)
+       !call gas_state_output_netcdf(gas_state, ncid, gas_data)
+       !call aero_data_output_netcdf(aero_data, ncid)
+       !call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
+       !     aero_data, record_removals)
+    end if
+
+#ifdef PMC_USE_MPI
+    call die(742912371)
+#endif
+       
+    if (pmc_mpi_rank() == 0) then
+       call pmc_nc_close(ncid)
+    end if
+    
+  end subroutine input_state_netcdf
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_output_state_netcdf

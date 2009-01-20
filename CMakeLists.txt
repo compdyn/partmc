@@ -87,11 +87,11 @@ elseif(COMPILER_NAME STREQUAL "pgf95")
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 enable_testing()
-add_test(poisson_1 ${EXECUTABLE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
-add_test(poisson_2 ${EXECUTABLE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
-add_test(poisson_3 ${EXECUTABLE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
-add_test(poisson_4 ${EXECUTABLE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
-add_test(poisson_5 ${EXECUTABLE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
+add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
+add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
+add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
+add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
+add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
 
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/run_test)
 

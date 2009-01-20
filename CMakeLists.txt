@@ -61,7 +61,7 @@ find_library(MOSAIC_LIB mosaic
 
 set(EXTRA_LIBS)
 
-include_directories(${NETCDF_INCLUDE_DIR})
+include_directories(SYSTEM ${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIB})
 
 if(ENABLE_MOSAIC)
@@ -72,16 +72,22 @@ endif(ENABLE_MOSAIC)
 
 get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
+# MW 2009-01-20: Below we add -I/usr/include manually because gfortran
+# does not search this by default [1], but cmake strips it from paths
+# given by include_directories(), assuming that the compiler will
+# search it anyway (as gcc does).
+# [1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
+
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check)
+  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check -I/usr/include)
 elseif(COMPILER_NAME STREQUAL "pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
-ENABLE_TESTING()
-ADD_TEST(poisson ${EXECUTABLE_OUTPUT_PATH}/poisson/run.sh)
+enable_testing()
+add_test(poisson ${EXECUTABLE_OUTPUT_PATH}/poisson/run.sh)
 
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR})
 

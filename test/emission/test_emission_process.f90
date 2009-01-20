@@ -27,14 +27,42 @@ program test_emission_process
   real*8 :: del_t
   integer :: i_loop
 
+  integer :: i_spec
+
+  call env_state_alloc(env_state)
+  call gas_data_alloc(gas_data, 0)
+
   filename = "out/emission_mc_state_0001_00000001.nc"
   call input_state_netcdf(filename, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
+  write(*,*) '########################################################'
   write(*,*) 'index ', index
   write(*,*) 'time ', time
   write(*,*) 'del_t ', del_t
   write(*,*) 'i_loop ', i_loop
+
+  write(*,*) '########################################################'
+  write(*,*) "temperature", env_state%temp
+  write(*,*) "relative_humidity", env_state%rel_humid
+  write(*,*) "pressure", env_state%pressure
+  write(*,*) "longitude", env_state%longitude
+  write(*,*) "latitude", env_state%latitude
+  write(*,*) "altitude", env_state%altitude
+  write(*,*) "start_time_of_day", env_state%start_time
+  write(*,*) "start_day", env_state%start_day
+  write(*,*) "elapsed_time", env_state%elapsed_time
+  write(*,*) "height", env_state%height
+
+  write(*,*) '########################################################'
+  write(*,*) 'n_spec', gas_data%n_spec
+  do i_spec = 1,gas_data%n_spec
+     write(*,*) i_spec, trim(gas_data%name(i_spec)), &
+          gas_data%mosaic_index(i_spec), gas_data%molec_weight(i_spec)
+  end do
+
+  call env_state_free(env_state)
+  call gas_data_free(gas_data)
 
 end program test_emission_process

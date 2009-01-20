@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -313,7 +313,7 @@ contains
     integer :: status, i_spec
     integer :: varid_gas_species
     integer :: gas_species_centers(gas_data%n_spec)
-    character(len=(GAS_NAME_LEN * gas_data%n_spec)) :: gas_species_names
+    character(len=((GAS_NAME_LEN + 2) * gas_data%n_spec)) :: gas_species_names
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "gas_species", dimid_gas_species)
@@ -370,6 +370,48 @@ contains
          "gas_molec_weight", "kg/mole", (/ dimid_gas_species /))
 
   end subroutine gas_data_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine gas_data_input_netcdf(gas_data, ncid)
+    
+    !> Gas_data to read.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    character(len=1000) :: unit, name
+    integer :: dimid_gas_species, n_spec, varid_gas_species, i_spec, i
+    character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, n_spec))
+    call gas_data_free(gas_data)
+    call gas_data_alloc(gas_data, n_spec)
+    call assert(719237193, n_spec < 1000)
+
+    call pmc_nc_read_integer_1d(ncid, gas_data%mosaic_index, &
+         "gas_mosaic_index", unit)
+    call pmc_nc_read_real_1d(ncid, gas_data%molec_weight, &
+         "gas_molec_weight", unit)
+
+    call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
+    call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", gas_species_names))
+    ! gas_species_names are comma-separated, so unpack them
+    do i_spec = 1,gas_data%n_spec
+       i = 1
+       do while ((gas_species_names(i:i) /= " ") &
+            .and. (gas_species_names(i:i) /= ","))
+          i = i + 1
+       end do
+       call assert(173021381, i > 1)
+       gas_data%name(i_spec) = gas_species_names(1:(i-1))
+       gas_species_names = gas_species_names((i+1):)
+    end do
+    call assert(729138192, gas_species_names == "")
+
+  end subroutine gas_data_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

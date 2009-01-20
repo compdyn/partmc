@@ -198,11 +198,11 @@ contains
        call pmc_nc_read_integer(ncid, i_loop, "loop", unit)
        call pmc_nc_read_integer(ncid, index, "timestep_index", unit)
 
-       !call env_state_output_netcdf(env_state, ncid)
-       !call gas_data_output_netcdf(gas_data, ncid)
-       !call gas_state_output_netcdf(gas_state, ncid, gas_data)
-       !call aero_data_output_netcdf(aero_data, ncid)
-       !call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
+       call env_state_input_netcdf(env_state, ncid)
+       call gas_data_input_netcdf(gas_data, ncid)
+       !call gas_state_input_netcdf(gas_state, ncid, gas_data)
+       !call aero_data_input_netcdf(aero_data, ncid)
+       !call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
        !     aero_data, record_removals)
     end if
 

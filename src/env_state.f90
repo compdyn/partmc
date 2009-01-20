@@ -819,5 +819,32 @@ contains
   end subroutine env_state_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine env_state_input_netcdf(env_state, ncid)
+    
+    !> Environment state to read.
+    type(env_state_t), intent(inout) :: env_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    character(len=1000) :: unit
+
+    call pmc_nc_read_real(ncid, env_state%temp, "temperature", unit)
+    call pmc_nc_read_real(ncid, env_state%rel_humid, "relative_humidity", unit)
+    call pmc_nc_read_real(ncid, env_state%pressure, "pressure", unit)
+    call pmc_nc_read_real(ncid, env_state%longitude, "longitude", unit)
+    call pmc_nc_read_real(ncid, env_state%latitude, "latitude", unit)
+    call pmc_nc_read_real(ncid, env_state%altitude, "altitude", unit)
+    call pmc_nc_read_real(ncid, env_state%start_time, &
+         "start_time_of_day", unit)
+    call pmc_nc_read_integer(ncid, env_state%start_day, &
+         "start_day_of_year", unit)
+    call pmc_nc_read_real(ncid, env_state%elapsed_time, "elapsed_time", unit)
+    call pmc_nc_read_real(ncid, env_state%height, "height", unit)
+
+  end subroutine env_state_input_netcdf
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_env_state

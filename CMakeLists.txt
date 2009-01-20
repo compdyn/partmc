@@ -8,16 +8,17 @@ set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "1.2.0")
 
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
-#option(ENABLE_MPI "Enable MPI support" OFF)
-
-#set(FIND_LIBRARY_USE_LIB64_PATHS ON)
-#SET_PROPERTY(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 
 ######################################################################
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
+  /include
+  /usr/include
+  /usr/local/include
+  /opt/include
+  $ENV{HOME}/include
   $ENV{HOME}/opt/include
   PATH_SUFFIXES netcdf-3)
 find_library(NETCDF_C_LIB netcdf
@@ -45,7 +46,12 @@ endif(NETCDF_FORTRAN_LIB)
 find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
   DOC "MOSAIC include directory"
   PATHS
-  $ENV{HOME}/opt/lib
+  /include
+  /usr/include
+  /usr/local/include
+  /opt/include
+  $ENV{HOME}/include
+  $ENV{HOME}/opt/include
   $ENV{HOME}/subversion/mosaic/trunk/datamodules
   $ENV{HOME}/svn/mosaic/trunk/datamodules
   ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
@@ -61,7 +67,7 @@ find_library(MOSAIC_LIB mosaic
 
 set(EXTRA_LIBS)
 
-include_directories(SYSTEM ${NETCDF_INCLUDE_DIR})
+include_directories(${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIB})
 
 if(ENABLE_MOSAIC)
@@ -75,13 +81,14 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 # MW 2009-01-20: Below we add -I/usr/include manually because gfortran
 # does not search this by default [1], but cmake strips it from paths
 # given by include_directories(), assuming that the compiler will
-# search it anyway (as gcc does).
+# search it anyway (as gcc does). I reported this as a cmake bug [2].
 # [1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
+# [2] http://www.cmake.org/Bug/view.php?id=8408
 
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check -I/include -I/usr/include)
+  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
 elseif(COMPILER_NAME STREQUAL "pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
@@ -159,3 +166,5 @@ target_link_libraries(poisson_sample ${EXTRA_LIBS})
 ######################################################################
 
 add_executable(numeric_diff tool/numeric_diff.f90)
+
+######################################################################

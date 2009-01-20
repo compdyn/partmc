@@ -97,7 +97,7 @@ def smooth(x,window_len=10,window='hanning'):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/3"
+data_prefix = "aging_data/4"
 
 smooth_window_len = 60
 
@@ -545,7 +545,7 @@ for level in range(1,5):
                                           title = "local standard time (LST) (hours:minutes)",
                                           painter = grid_painter),
                 y = pyx.graph.axis.linear(min = -2e-4,
-                                          max = 2e-3,
+                                          max = 4e-3,
                                           title = r"aging rate $k$ ($\rm s^{-1}$)",
                                           painter = grid_painter),
                 key = pyx.graph.key.key(pos = "tr"))
@@ -581,7 +581,7 @@ for level in range(1,5):
                                                                = start_time_of_day_min),
                                           title = "local standard time (LST) (hours:minutes)",
                                           painter = grid_painter),
-                y = pyx.graph.axis.log(min = 1e-1,
+                y = pyx.graph.axis.log(min = 1e-2,
                                        max = 1e3,
                                        title = r"aging timescale $\tau$ (hours)",
                                        painter = grid_painter))

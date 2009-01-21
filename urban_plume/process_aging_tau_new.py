@@ -24,6 +24,17 @@ def sign(x):
         return -1
     return 0
 
+def mean(x):
+    return float(sum(x)) / len(x)
+
+def mean_day(time, data):
+    return mean([x for [t,x] in filter_inf(zip(time, data))
+                 if t >= 6 * 3600 - 0.1 and t <= 9 * 3600 + 0.1])
+
+def mean_night(time, data):
+    return mean([x for [t,x] in filter_inf(zip(time, data))
+                 if t >= 12 * 3600 - 0.1 and t <= 22 * 3600 + 0.1])
+
 def chop_sign_data_helper(plot_data, chopped_data):
     if len(plot_data) == 0:
         return chopped_data
@@ -103,6 +114,20 @@ smooth_window_len = 60
 
 grey_level = 0.2
 
+ss_active = [0.001, 0.003, 0.006, 0.010]
+tau_day_wc_mass = [0 for x in ss_active]
+tau_day_wc_cond_mass = [0 for x in ss_active]
+tau_day_nc_mass = [0 for x in ss_active]
+tau_day_wc_num = [0 for x in ss_active]
+tau_day_wc_cond_num = [0 for x in ss_active]
+tau_day_nc_num = [0 for x in ss_active]
+tau_night_wc_mass = [0 for x in ss_active]
+tau_night_wc_cond_mass = [0 for x in ss_active]
+tau_night_nc_mass = [0 for x in ss_active]
+tau_night_wc_num = [0 for x in ss_active]
+tau_night_wc_cond_num = [0 for x in ss_active]
+tau_night_nc_num = [0 for x in ss_active]
+
 for level in range(1,5):
     for coag in [True, False]:
         for num in [True, False]:
@@ -137,7 +162,6 @@ for level in range(1,5):
             data_coag_loss_a_f_array = loadtxt("%s/aging_%s_%s_coag_loss_a_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
             data_coag_loss_f_a_array = loadtxt("%s/aging_%s_%s_coag_loss_f_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
             data_coag_loss_f_f_array = loadtxt("%s/aging_%s_%s_coag_loss_f_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-
 
             time = comp_vol_array[0,:]
             max_time_min = max(time) / 60
@@ -243,6 +267,25 @@ for level in range(1,5):
             tau_transfer_cond_net_smooth = 1 / k_transfer_cond_net_smooth
             tau_transfer_smooth = 1 / k_transfer_smooth
             tau_transfer_net_smooth = 1 / k_transfer_net_smooth
+
+            if coag:
+                if num:
+                    tau_day_wc_num[level - 1] = mean_day(time[1:], tau_transfer)
+                    tau_day_wc_cond_num[level - 1] = mean_day(time[1:], tau_transfer_cond)
+                    tau_night_wc_num[level - 1] = mean_night(time[1:], tau_transfer)
+                    tau_night_wc_cond_num[level - 1] = mean_night(time[1:], tau_transfer_cond)
+                else:
+                    tau_day_wc_mass[level - 1] = mean_day(time[1:], tau_transfer)
+                    tau_day_wc_cond_mass[level - 1] = mean_day(time[1:], tau_transfer_cond)
+                    tau_night_wc_mass[level - 1] = mean_night(time[1:], tau_transfer)
+                    tau_night_wc_cond_mass[level - 1] = mean_night(time[1:], tau_transfer_cond)
+            else:
+                if num:
+                    tau_day_nc_num[level - 1] = mean_day(time[1:], tau_transfer)
+                    tau_night_nc_num[level - 1] = mean_night(time[1:], tau_transfer)
+                else:
+                    tau_day_nc_mass[level - 1] = mean_day(time[1:], tau_transfer)
+                    tau_night_nc_mass[level - 1] = mean_night(time[1:], tau_transfer)
 
             ######################################################################
 
@@ -621,4 +664,47 @@ for level in range(1,5):
 
             g.writePDFfile("%s/aging_%s_%s_%d_tau_log.pdf" % (data_prefix, coag_suffix, type_suffix, level))
 
-            ######################################################################
+######################################################################
+
+g = pyx.graph.graphxy(
+    width = 20,
+    x = pyx.graph.axis.linear(title = r"critical supersaturation",
+                              painter = grid_painter),
+    y = pyx.graph.axis.log(title = r"characteristic time (hours)",
+                           painter = grid_painter),
+    key = pyx.graph.key.key(pos = "tr"))
+
+red = pyx.color.rgb(1, 0, 0)
+magenta = pyx.color.rgb(1, 0, 1)
+blue = pyx.color.rgb(0, 0, 1)
+cyan = pyx.color.rgb(0, 1, 1)
+
+solid = pyx.style.linestyle.solid
+dashed = pyx.style.linestyle(pyx.style.linecap.round, pyx.style.dash([2, 2]))
+dashdot = pyx.style.linestyle(pyx.style.linecap.round, pyx.style.dash([0, 2, 2, 2]))
+
+data = [
+    [tau_day_wc_mass, "tau day wc mass", red, dashdot],
+    [tau_day_wc_cond_mass, "tau day wc cond mass", red, solid],
+    [tau_day_nc_mass, "tau day nc mass", red, dashed],
+    [tau_day_wc_num, "tau day wc num", magenta, dashdot],
+    [tau_day_wc_cond_num, "tau day wc cond num", magenta, solid],
+    [tau_day_nc_num, "tau day nc num", magenta, dashed],
+    [tau_night_wc_mass, "tau night wc mass", blue, dashdot],
+    [tau_night_wc_cond_mass, "tau night wc cond mass", blue, solid],
+    [tau_night_nc_mass, "tau night nc mass", blue, dashed],
+    [tau_night_wc_num, "tau night wc num", cyan, dashdot],
+    [tau_night_wc_cond_num, "tau night wc cond num", cyan, solid],
+    [tau_night_nc_num, "tau night nc num", cyan, dashed],
+    ]
+
+for [tau_data, label, color, pattern] in data:
+    tau_data_hour = [t / 3600 for t in tau_data]
+    g.plot(
+        pyx.graph.data.points(zip(ss_active, tau_data_hour), x = 1, y = 2,
+                              title = label),
+        styles = [pyx.graph.style.line(lineattrs = [color, pattern])])
+
+g.writePDFfile("%s/aging_tau.pdf" % data_prefix)
+
+######################################################################

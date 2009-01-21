@@ -143,6 +143,50 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a simple real 2D array from a NetCDF file.
+  subroutine pmc_nc_read_real_2d(ncid, var, name, unit)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read, must be correctly sized.
+    real*8, intent(out) :: var(:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Unit of variable.
+    character(len=*), intent(out) :: unit
+
+    integer :: varid, start(1), count(1)
+
+    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
+    call pmc_nc_check(nf90_get_var(ncid, varid, var))
+    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    
+  end subroutine pmc_nc_read_real_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a simple integer 2D array from a NetCDF file.
+  subroutine pmc_nc_read_integer_2d(ncid, var, name, unit)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read, must be correctly sized.
+    integer, intent(out) :: var(:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Unit of variable.
+    character(len=*), intent(out) :: unit
+
+    integer :: varid, start(1), count(1)
+
+    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
+    call pmc_nc_check(nf90_get_var(ncid, varid, var))
+    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    
+  end subroutine pmc_nc_read_integer_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write a single real to a NetCDF file.
   subroutine pmc_nc_write_real(ncid, var, name, unit)
 

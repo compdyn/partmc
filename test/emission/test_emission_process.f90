@@ -27,23 +27,29 @@ program test_emission_process
   real*8 :: del_t
   integer :: i_loop
 
-  integer :: i_spec
+  integer :: i_spec, i_bin, i_part
+  type(aero_particle_t), pointer :: aero_particle
+
+  call bin_grid_make(bin_grid, 160, rad2vol(1d-8), rad2vol(1d-3))
 
   call env_state_alloc(env_state)
   call gas_data_alloc(gas_data, 0)
+  call gas_state_alloc(gas_state, 0)
+  call aero_data_alloc(aero_data, 0)
+  call aero_state_alloc(0, 0, aero_state)
 
-  filename = "out/emission_mc_state_0001_00000001.nc"
+  filename = "out/emission_mc_state_0001_00000009.nc"
   call input_state_netcdf(filename, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
-  write(*,*) '########################################################'
+  write(*,*) '# misc #################################################'
   write(*,*) 'index ', index
   write(*,*) 'time ', time
   write(*,*) 'del_t ', del_t
   write(*,*) 'i_loop ', i_loop
 
-  write(*,*) '########################################################'
+  write(*,*) '# env_state ############################################'
   write(*,*) "temperature", env_state%temp
   write(*,*) "relative_humidity", env_state%rel_humid
   write(*,*) "pressure", env_state%pressure
@@ -55,14 +61,58 @@ program test_emission_process
   write(*,*) "elapsed_time", env_state%elapsed_time
   write(*,*) "height", env_state%height
 
-  write(*,*) '########################################################'
+  write(*,*) '# gas_data #############################################'
   write(*,*) 'n_spec', gas_data%n_spec
   do i_spec = 1,gas_data%n_spec
      write(*,*) i_spec, trim(gas_data%name(i_spec)), &
           gas_data%mosaic_index(i_spec), gas_data%molec_weight(i_spec)
   end do
 
+  write(*,*) '# gas_state ############################################'
+  do i_spec = 1,gas_data%n_spec
+     write(*,*) i_spec, gas_state%conc(i_spec)
+  end do
+
+  write(*,*) '# aero_data ############################################'
+  write(*,*) 'n_spec', aero_data%n_spec
+  write(*,*) 'i_water', aero_data%i_water
+  write(*,'(a4,a10,a4,a10,a4,a10,a10,a10)') 'i', 'name', 'mos', 'den', &
+       'ion', 'solu', 'wght', 'kap'
+  do i_spec = 1,aero_data%n_spec
+     write(*,'(i4,a10,i4,e10.2,i4,e10.2,e10.2,e10.2)') i_spec, &
+          trim(aero_data%name(i_spec)), aero_data%mosaic_index(i_spec), &
+          aero_data%density(i_spec), aero_data%num_ions(i_spec), &
+          aero_data%solubility(i_spec), aero_data%molec_weight(i_spec), &
+          aero_data%kappa(i_spec)
+  end do
+
+  write(*,*) '# aero_state ###########################################'
+  write(*,*) 'n_part', aero_state%n_part
+  do i_bin = 1,bin_grid%n_bin
+     write(*,*) i_bin, aero_state%bin(i_bin)%n_part
+!     do i_part = 1,aero_state%bin(i_bin)%n_part
+!        write(*,*) '(', i_bin, ',', i_part, ')'
+!        aero_particle => aero_state%bin(i_bin)%particle(i_part)
+!        write(*,*) '  vol', aero_particle%vol
+!        write(*,*) '  n_orig_part', aero_particle%n_orig_part
+!        write(*,*) '  absorb_cross_sect', aero_particle%absorb_cross_sect
+!        write(*,*) '  scatter_cross_sect', aero_particle%scatter_cross_sect
+!        write(*,*) '  asymmetry', aero_particle%asymmetry
+!        write(*,*) '  refract_shell', aero_particle%refract_shell
+!        write(*,*) '  refract_core', aero_particle%refract_core
+!        write(*,*) '  core_vol', aero_particle%core_vol
+!        write(*,*) '  water_hyst_leg', aero_particle%water_hyst_leg
+!        write(*,*) '  id', aero_particle%id
+!        write(*,*) '  least_create_time', aero_particle%least_create_time
+!        write(*,*) '  greatest_create_time', aero_particle%greatest_create_time
+!     end do
+  end do
+
+  call bin_grid_free(bin_grid)
   call env_state_free(env_state)
   call gas_data_free(gas_data)
+  call gas_state_free(gas_state)
+  call aero_data_free(aero_data)
+  call aero_state_free(aero_state)
 
 end program test_emission_process

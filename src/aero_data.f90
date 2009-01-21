@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -496,6 +496,58 @@ contains
          "aero_kappa", "1", (/ dimid_aero_species /))
 
   end subroutine aero_data_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine aero_data_input_netcdf(aero_data, ncid)
+    
+    !> Aero_data to read.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    character(len=1000) :: unit, name
+    integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
+    character(len=((AERO_NAME_LEN + 2) * 1000)) :: aero_species_names
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, name, n_spec))
+    call aero_data_free(aero_data)
+    call aero_data_alloc(aero_data, n_spec)
+    call assert(739238793, n_spec < 1000)
+
+    call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
+         "aero_mosaic_index", unit)
+    call pmc_nc_read_real_1d(ncid, aero_data%density, &
+         "aero_density", unit)
+    call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, &
+         "aero_num_ions", unit)
+    call pmc_nc_read_real_1d(ncid, aero_data%solubility, &
+         "aero_solubility", unit)
+    call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, &
+         "aero_molec_weight", unit)
+    call pmc_nc_read_real_1d(ncid, aero_data%kappa, &
+         "aero_kappa", unit)
+
+    call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
+    call pmc_nc_check(nf90_get_att(ncid, varid_aero_species, "names", aero_species_names))
+    ! aero_species_names are comma-separated, so unpack them
+    do i_spec = 1,aero_data%n_spec
+       i = 1
+       do while ((aero_species_names(i:i) /= " ") &
+            .and. (aero_species_names(i:i) /= ","))
+          i = i + 1
+       end do
+       call assert(852937292, i > 1)
+       aero_data%name(i_spec) = aero_species_names(1:(i-1))
+       aero_species_names = aero_species_names((i+1):)
+    end do
+    call assert(729138192, aero_species_names == "")
+
+    call aero_data_set_water_index(aero_data)
+
+  end subroutine aero_data_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

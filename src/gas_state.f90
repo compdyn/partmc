@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Matthew West
+! Copyright (C) 2007-2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -485,6 +485,27 @@ contains
          "gas_concentration", "ppb", (/ dimid_gas_species /))
 
   end subroutine gas_state_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine gas_state_input_netcdf(gas_state, ncid, gas_data)
+    
+    !> Gas state to read.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+
+    character(len=1000) :: unit
+
+    call gas_state_free(gas_state)
+    call gas_state_alloc(gas_state, gas_data%n_spec)
+    call pmc_nc_read_real_1d(ncid, gas_state%conc, &
+         "gas_concentration", unit)
+
+  end subroutine gas_state_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

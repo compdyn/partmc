@@ -188,7 +188,7 @@ contains
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin number of particle to remove.
+    !> Bin number of particle to add.
     integer, intent(in) :: i_bin
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -1229,6 +1229,174 @@ contains
     end if
 
   end subroutine aero_state_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine aero_state_input_netcdf(aero_state, ncid, bin_grid, &
+       aero_data)
+    
+    !> aero_state to read.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: dimid_aero_particle, dimid_aero_removed, n_info_item, n_part
+    integer :: i_bin, i_part_in_bin, i_part, i_remove, status
+    type(aero_particle_t) :: aero_particle
+    character(len=1000) :: unit, name
+
+    real*8, allocatable :: aero_comp_mass(:,:)
+    integer, allocatable :: aero_n_orig_part(:)
+    real*8, allocatable :: aero_absorb_cross_sect(:)
+    real*8, allocatable :: aero_scatter_cross_sect(:)
+    real*8, allocatable :: aero_asymmetry(:)
+    real*8, allocatable :: aero_refract_shell_real(:)
+    real*8, allocatable :: aero_refract_shell_imag(:)
+    real*8, allocatable :: aero_refract_core_real(:)
+    real*8, allocatable :: aero_refract_core_imag(:)
+    real*8, allocatable :: aero_core_vol(:)
+    integer, allocatable :: aero_water_hyst_leg(:)
+    real*8, allocatable :: aero_comp_vol(:)
+    integer, allocatable :: aero_id(:)
+    real*8, allocatable :: aero_least_create_time(:)
+    real*8, allocatable :: aero_greatest_create_time(:)
+    integer, allocatable :: aero_removed_id(:)
+    integer, allocatable :: aero_removed_action(:)
+    integer, allocatable :: aero_removed_other_id(:)
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, name, n_part))
+
+    allocate(aero_comp_mass(n_part, aero_data%n_spec))
+    allocate(aero_n_orig_part(n_part))
+    allocate(aero_absorb_cross_sect(n_part))
+    allocate(aero_scatter_cross_sect(n_part))
+    allocate(aero_asymmetry(n_part))
+    allocate(aero_refract_shell_real(n_part))
+    allocate(aero_refract_shell_imag(n_part))
+    allocate(aero_refract_core_real(n_part))
+    allocate(aero_refract_core_imag(n_part))
+    allocate(aero_core_vol(n_part))
+    allocate(aero_water_hyst_leg(n_part))
+    allocate(aero_comp_vol(n_part))
+    allocate(aero_id(n_part))
+    allocate(aero_least_create_time(n_part))
+    allocate(aero_greatest_create_time(n_part))
+
+    call pmc_nc_read_real_2d(ncid, aero_comp_mass, &
+         "aero_comp_mass", unit)
+    call pmc_nc_read_integer_1d(ncid, aero_n_orig_part, &
+         "aero_n_orig_part", unit)
+    call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
+         "aero_absorb_cross_sect", unit)
+    call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
+         "aero_scatter_cross_sect", unit)
+    call pmc_nc_read_real_1d(ncid, aero_asymmetry, &
+         "aero_asymmetry", unit)
+    call pmc_nc_read_real_1d(ncid, aero_refract_shell_real, &
+         "aero_refract_shell_real", unit)
+    call pmc_nc_read_real_1d(ncid, aero_refract_shell_imag, &
+         "aero_refract_shell_imag", unit)
+    call pmc_nc_read_real_1d(ncid, aero_refract_core_real, &
+         "aero_refract_core_real", unit)
+    call pmc_nc_read_real_1d(ncid, aero_refract_core_imag, &
+         "aero_refract_core_imag", unit)
+    call pmc_nc_read_real_1d(ncid, aero_core_vol, &
+         "aero_core_vol", unit)
+    call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
+         "aero_water_hyst_leg", unit)
+    call pmc_nc_read_real_1d(ncid, aero_comp_vol, &
+         "aero_comp_vol", unit)
+    call pmc_nc_read_integer_1d(ncid, aero_id, &
+         "aero_id", unit)
+    call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
+         "aero_least_create_time", unit)
+    call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
+         "aero_greatest_create_time", unit)
+
+    call aero_state_free(aero_state)
+    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+
+    call aero_particle_alloc(aero_particle, aero_data%n_spec)
+    do i_part = 1,n_part
+       aero_particle%vol = aero_comp_mass(i_part, :) / aero_data%density
+       aero_particle%n_orig_part = aero_n_orig_part(i_part)
+       aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
+       aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
+       aero_particle%asymmetry = aero_asymmetry(i_part)
+       aero_particle%refract_shell = complex(aero_refract_shell_real(i_part), &
+            aero_refract_shell_imag(i_part))
+       aero_particle%refract_core = complex(aero_refract_core_real(i_part), &
+            aero_refract_core_imag(i_part))
+       aero_particle%core_vol = aero_core_vol(i_part)
+       aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
+       aero_state%comp_vol = aero_comp_vol(i_part)
+       aero_particle%id = aero_id(i_part)
+       aero_particle%least_create_time = aero_least_create_time(i_part)
+       aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
+
+       i_bin = aero_particle_in_bin(aero_particle, bin_grid)
+       call aero_state_add_particle(aero_state, i_bin, aero_particle)
+    end do
+    call aero_particle_free(aero_particle)
+
+    deallocate(aero_comp_mass)
+    deallocate(aero_n_orig_part)
+    deallocate(aero_absorb_cross_sect)
+    deallocate(aero_scatter_cross_sect)
+    deallocate(aero_asymmetry)
+    deallocate(aero_refract_shell_real)
+    deallocate(aero_refract_shell_imag)
+    deallocate(aero_refract_core_real)
+    deallocate(aero_refract_core_imag)
+    deallocate(aero_core_vol)
+    deallocate(aero_water_hyst_leg)
+    deallocate(aero_comp_vol)
+    deallocate(aero_id)
+    deallocate(aero_least_create_time)
+    deallocate(aero_greatest_create_time)
+
+    status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
+    if ((status /= NF90_NOERR) .and. (status /= NF90_EBADDIM)) then
+       call pmc_nc_check(status)
+    end if
+    if (status == NF90_NOERR) then
+       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, name, n_info_item))
+
+       allocate(aero_removed_id(max(n_info_item,1)))
+       allocate(aero_removed_action(max(n_info_item,1)))
+       allocate(aero_removed_other_id(max(n_info_item,1)))
+
+       call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
+            "aero_removed_id", unit)
+       call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
+            "aero_removed_action", unit)
+       call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
+            "aero_removed_other_id", unit)
+
+       if ((n_info_item > 1) .or. (aero_removed_id(1) /= 0)) then
+          call aero_info_array_enlarge_to(aero_state%aero_info_array, n_info_item)
+          do i_remove = 1,n_info_item
+             aero_state%aero_info_array%aero_info(i_remove)%id &
+                  = aero_removed_id(i_remove)
+             aero_state%aero_info_array%aero_info(i_remove)%action &
+                  = aero_removed_action(i_remove)
+             aero_state%aero_info_array%aero_info(i_remove)%other_id &
+                  = aero_removed_other_id(i_remove)
+          end do
+       end if
+
+       deallocate(aero_removed_id)
+       deallocate(aero_removed_action)
+       deallocate(aero_removed_other_id)
+    end if
+
+  end subroutine aero_state_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

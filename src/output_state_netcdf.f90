@@ -200,10 +200,10 @@ contains
 
        call env_state_input_netcdf(env_state, ncid)
        call gas_data_input_netcdf(gas_data, ncid)
-       !call gas_state_input_netcdf(gas_state, ncid, gas_data)
-       !call aero_data_input_netcdf(aero_data, ncid)
-       !call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-       !     aero_data, record_removals)
+       call gas_state_input_netcdf(gas_state, ncid, gas_data)
+       call aero_data_input_netcdf(aero_data, ncid)
+       call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
+            aero_data)
     end if
 
 #ifdef PMC_USE_MPI

@@ -300,6 +300,23 @@ contains
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
+    call cond_growth_rate_old(dvdt, env_state, aero_data, aero_particle)
+
+  end subroutine cond_growth_rate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine cond_growth_rate_old(dvdt, env_state, aero_data, aero_particle)
+
+    !> Dv/dt (m^3 s^{-1}).
+    real*8, intent(out) :: dvdt
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
     !> Relative dm/dt convergence tol.
     real*8, parameter :: dmdt_rel_tol = 1d-8
     !> Function convergence tolerance.
@@ -318,7 +335,7 @@ contains
     
     dvdt = dmdt / aero_data%density(aero_data%i_water)
 
-  end subroutine cond_growth_rate
+  end subroutine cond_growth_rate_old
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

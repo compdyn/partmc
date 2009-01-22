@@ -520,6 +520,17 @@ class pmc_axis:
         self.max = float(max)
         self.n_bin = n_bin
 
+    def find_clipped(self, values):
+        indices = self.find(values)
+        indices = indices.clip(0, self.n_bin - 1)
+        return indices
+
+    def find_clipped_outer(self, values):
+        indices = self.find(values)
+        indices += 1
+        indices = indices.clip(0, self.n_bin + 1)
+        return indices
+
 class pmc_linear_axis(pmc_axis):
 
     def __init__(self, min, max, n_bin):

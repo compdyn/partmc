@@ -106,7 +106,7 @@ def smooth(x,window_len=10,window='hanning'):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/9"
+data_prefix = "aging_data/10"
 
 smooth_window_len = 60
 
@@ -701,11 +701,11 @@ def process_data(level, output_means = False, output_plots = False, outf = None)
 
             g.writePDFfile("%s/aging_%s_%s_%d_tau_log.pdf" % (data_prefix, coag_suffix, type_suffix, level))
 
-#for plot_ss in [0.001, 0.003, 0.006, 0.01]:
-#    level = int(ss_active_axis.closest_edge(array(plot_ss)))
-#    print "plot_ss = ", plot_ss
-#    print "level = ", level
-#    process_data(level, output_means = False, output_plots = True)
+for plot_ss in [0.001, 0.003, 0.006, 0.01]:
+    level = int(ss_active_axis.closest_edge(array(plot_ss)))
+    print "plot_ss = ", plot_ss
+    print "level = ", level
+    process_data(level, output_means = False, output_plots = True)
 
 outf_means = open("%s/aging_tau_means.txt" % data_prefix, "w")
 for level in range(ss_active_axis.n_bin + 1):

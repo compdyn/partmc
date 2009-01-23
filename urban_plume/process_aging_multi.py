@@ -29,6 +29,10 @@ for coag in [True, False]:
 
     first_time = True
     for [time, filename, key] in time_filename_list:
+        #DEBUG
+        #if time > 121:
+        #    sys.exit(0)
+        #DEBUG
         print time, filename
         ncf = NetCDFFile(filename)
         particles = aero_particle_array_t(ncf)
@@ -67,8 +71,15 @@ for coag in [True, False]:
         # num, mass
         for i in range(particles.n_particles):
             if soot_mass[i] > 0.0:
+                #DEBUG
+                #if critical_ss[i] < 0.001:
+                #    print critical_ss[i], ss_bin[i], ss_active_axis.find(array([critical_ss[i]])), ss_active_axis.min
+                #DEBUG
                 num[ss_bin[i]] += 1
                 mass[ss_bin[i]] += soot_mass[i]
+        #DEBUG
+        #sys.exit(0)
+        #DEBUG
 
         if not first_time:
             removed_particles = {}
@@ -82,6 +93,10 @@ for coag in [True, False]:
                     print "removed_particles: ", set(removed_particles.keys())
                     print "xor: ", ((old_id_set - id_set) ^ set(removed_particles.keys()))
                     raise Exception("lost particle mismatch at t = %f" % time)
+            #DEBUG
+            #print "len(id_set - old_id_set): ", len(id_set - old_id_set)
+            #print "id_set - old_id_set: ", id_set - old_id_set
+            #DEBUG
 
             final_outcomes = {}
             for (id, [action, other_id]) in removed_particles.iteritems():
@@ -116,8 +131,8 @@ for coag in [True, False]:
                             mass_dilution[old_ss_bin[old_i]] += old_soot_mass[old_i]
                         elif final_action == AERO_INFO_COAG:
                             final_i = particle_index_by_id[final_other_id]
-                            num_coag_loss[old_ss_bin[i], ss_bin[final_i]] += 1
-                            mass_coag_loss[old_ss_bin[i], ss_bin[final_i]] += old_soot_mass[old_i]
+                            num_coag_loss[old_ss_bin[old_i], ss_bin[final_i]] += 1
+                            mass_coag_loss[old_ss_bin[old_i], ss_bin[final_i]] += old_soot_mass[old_i]
                         elif final_action == AERO_INFO_HALVED:
                             num_halving[old_ss_bin[old_i]] += 1
                             mass_halving[old_ss_bin[old_i]] += old_soot_mass[old_i]
@@ -136,16 +151,20 @@ for coag in [True, False]:
             # num_emit, num_cond, num_coag_gain
             for i in range(particles.n_particles):
                 id = particles.id[i]
-                if id in coag_id:
-                    num_coag_gain[ss_bin[i]] += 1
-                    mass_coag_gain[ss_bin[i]] += soot_mass[i]
-                elif id in old_id_set:
-                    old_i = old_particle_index_by_id[id]
-                    num_cond[old_ss_bin[old_i], ss_bin[i]] += 1
-                    mass_cond[old_ss_bin[old_i], ss_bin[i]] += soot_mass[i]
-                else:
-                    num_emit[ss_bin[i]] += 1
-                    mass_emit[ss_bin[i]] += soot_mass[i]
+                if soot_mass[i] > 0.0:
+                    if id in coag_id:
+                        num_coag_gain[ss_bin[i]] += 1
+                        mass_coag_gain[ss_bin[i]] += soot_mass[i]
+                    elif id in old_id_set:
+                        old_i = old_particle_index_by_id[id]
+                        num_cond[old_ss_bin[old_i], ss_bin[i]] += 1
+                        mass_cond[old_ss_bin[old_i], ss_bin[i]] += soot_mass[i]
+                    else:
+                        #DEBUG
+                        #print "emit id: ", id
+                        #DEBUG
+                        num_emit[ss_bin[i]] += 1
+                        mass_emit[ss_bin[i]] += soot_mass[i]
 
         time_array = array([time])
         height_array = array([env_state.height])

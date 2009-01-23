@@ -531,6 +531,15 @@ class pmc_axis:
         indices = indices.clip(0, self.n_bin + 1)
         return indices
 
+    def closest_edge(self, value):
+        i = self.find_clipped(value)
+        lower_edge = self.edge(i)
+        upper_edge = self.edge(i + 1)
+        if abs(value - lower_edge) < abs(value - upper_edge):
+            return i
+        else:
+            return i + 1
+
 class pmc_linear_axis(pmc_axis):
 
     def __init__(self, min, max, n_bin):
@@ -551,8 +560,8 @@ class pmc_linear_axis(pmc_axis):
         return False
 
     def find(self, values):
-        indices = ((values - self.min) * self.n_bin
-                   / (self.max - self.min)).astype(int)
+        indices = (floor((values - self.min) * self.n_bin
+                         / (self.max - self.min))).astype(int)
         #indices = indices.clip(0, self.n_bin - 1)
         return indices
 
@@ -593,8 +602,8 @@ class pmc_log_axis:
         return False
 
     def find(self, value):
-        indices = ((log(value) - log(self.min)) * self.n_bin
-                   / (log(self.max) - log(self.min))).astype(int)
+        indices = (floor((log(value) - log(self.min)) * self.n_bin
+                   / (log(self.max) - log(self.min)))).astype(int)
         #indices = indices.clip(0, self.n_bin - 1)
         return indices
 
@@ -882,10 +891,28 @@ def read_any(constructor, directory, filename_pattern):
     raise Exception("no NetCDF file found in %s matching %s"
                     % (directory, filename_pattern))
 
+def get_filename_list(dir, file_pattern):
+    filename_list = []
+    filenames = os.listdir(dir)
+    if len(filenames)  == 0:
+        raise Exception("No files in %s match %s" % (dir, file_pattern))
+    file_re = re.compile(file_pattern)
+    for filename in filenames:
+        match = file_re.search(filename)
+        if match:
+            output_key = match.group(1)
+            full_filename = os.path.join(dir, filename)
+            filename_list.append(full_filename)
+    filename_list.sort()
+    if len(filename_list) == 0:
+        raise Exception("No files found in %s matching %s"
+                        % (dir, file_pattern))
+    return filename_list
+
 def get_time_filename_list(dir, file_pattern):
     time_filename_list = []
     filenames = os.listdir(dir)
-    if filenames == []:
+    if len(filenames) == 0:
         raise Exception("No files in %s match %s" % (dir, file_pattern))
     file_re = re.compile(file_pattern)
     for filename in filenames:

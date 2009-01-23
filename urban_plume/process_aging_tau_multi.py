@@ -4,9 +4,11 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, pyx
-from numpy import *
 sys.path.append("../tool")
 from pmc_pyx import *
+sys.path.append(".")
+from process_aging_config import *
+from numpy import *
 
 def delta(arr):
     return (arr[1:] - arr[:-1])
@@ -87,18 +89,14 @@ def smooth(x,window_len=10,window='hanning'):
     if x.size < window_len:
         raise ValueError, "Input vector needs to be bigger than window size."
 
-
     if window_len<3:
         return x
 
-
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
-
+        raise ValueError, "Window is not one of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
 
     s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
+    if window == 'flat':
         w=ones(window_len,'d')
     else:
         w=eval('numpy.'+window+'(window_len)')
@@ -108,27 +106,17 @@ def smooth(x,window_len=10,window='hanning'):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/6"
+data_prefix = "aging_data/9"
 
 smooth_window_len = 60
 
 grey_level = 0.2
 
-ss_active = [0.001, 0.003, 0.006, 0.010]
-tau_day_wc_mass = [0 for x in ss_active]
-tau_day_wc_cond_mass = [0 for x in ss_active]
-tau_day_nc_mass = [0 for x in ss_active]
-tau_day_wc_num = [0 for x in ss_active]
-tau_day_wc_cond_num = [0 for x in ss_active]
-tau_day_nc_num = [0 for x in ss_active]
-tau_night_wc_mass = [0 for x in ss_active]
-tau_night_wc_cond_mass = [0 for x in ss_active]
-tau_night_nc_mass = [0 for x in ss_active]
-tau_night_wc_num = [0 for x in ss_active]
-tau_night_wc_cond_num = [0 for x in ss_active]
-tau_night_nc_num = [0 for x in ss_active]
+max_error_num = 0
+max_error_mass = 0.0
 
-for level in range(1,5):
+def process_data(level, output_means = False, output_plots = False, outf = None):
+    global max_error_num, max_error_mass
     for coag in [True, False]:
         for num in [True, False]:
             if coag:
@@ -138,55 +126,109 @@ for level in range(1,5):
 
             if num:
                 type_suffix = "num"
+                type = int
             else:
                 type_suffix = "mass"
+                type = float
 
-            height_array = loadtxt("%s/aging_%s_height.txt" % (data_prefix, coag_suffix), unpack = True)
-            comp_vol_array = loadtxt("%s/aging_%s_comp_vol.txt" % (data_prefix, coag_suffix), unpack = True)
+            filename_pattern = "aging_%s_([0-9]{8})_time.txt" % coag_suffix
+            filename_re = re.compile(filename_pattern)
+            filename_list = get_filename_list(data_prefix, filename_pattern)
+            n = len(filename_list)
 
-            data_a_array = loadtxt("%s/aging_%s_%s_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_f_array = loadtxt("%s/aging_%s_%s_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_emit_a_array = loadtxt("%s/aging_%s_%s_emit_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_emit_f_array = loadtxt("%s/aging_%s_%s_emit_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_dilution_a_array = loadtxt("%s/aging_%s_%s_dilution_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_dilution_f_array = loadtxt("%s/aging_%s_%s_dilution_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_halving_a_array = loadtxt("%s/aging_%s_%s_halving_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_halving_f_array = loadtxt("%s/aging_%s_%s_halving_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_cond_a_a_array = loadtxt("%s/aging_%s_%s_cond_a_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_cond_a_f_array = loadtxt("%s/aging_%s_%s_cond_a_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_cond_f_a_array = loadtxt("%s/aging_%s_%s_cond_f_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_cond_f_f_array = loadtxt("%s/aging_%s_%s_cond_f_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_gain_a_array = loadtxt("%s/aging_%s_%s_coag_gain_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_gain_f_array = loadtxt("%s/aging_%s_%s_coag_gain_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_loss_a_a_array = loadtxt("%s/aging_%s_%s_coag_loss_a_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_loss_a_f_array = loadtxt("%s/aging_%s_%s_coag_loss_a_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_loss_f_a_array = loadtxt("%s/aging_%s_%s_coag_loss_f_a.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
-            data_coag_loss_f_f_array = loadtxt("%s/aging_%s_%s_coag_loss_f_f.txt" % (data_prefix, coag_suffix, type_suffix), unpack = True)
+            time = zeros(n, float)
+            height = zeros(n, float)
+            comp_vol = zeros(n, float)
 
-            time = comp_vol_array[0,:]
+            data_a = zeros(n, type)
+            data_f = zeros(n, type)
+            data_emit_a = zeros(n - 1, type)
+            data_emit_f = zeros(n - 1, type)
+            data_dilution_a = zeros(n - 1, type)
+            data_dilution_f = zeros(n - 1, type)
+            data_halving_a = zeros(n - 1, type)
+            data_halving_f = zeros(n - 1, type)
+            data_cond_a_a = zeros(n - 1, type)
+            data_cond_a_f = zeros(n - 1, type)
+            data_cond_f_a = zeros(n - 1, type)
+            data_cond_f_f = zeros(n - 1, type)
+            data_coag_gain_a = zeros(n - 1, type)
+            data_coag_gain_f = zeros(n - 1, type)
+            data_coag_loss_a_a = zeros(n - 1, type)
+            data_coag_loss_a_f = zeros(n - 1, type)
+            data_coag_loss_f_a = zeros(n - 1, type)
+            data_coag_loss_f_f = zeros(n - 1, type)
+
+            first_time = True
+            for (i, filename) in enumerate(filename_list):
+                match = filename_re.search(filename)
+                if not match:
+                    raise Exception()
+                key = match.group(1)
+
+                filename_base = "%s/aging_%s_%s" % (data_prefix, coag_suffix, key)
+                filename_base_type = "%s/aging_%s_%s_%s" % (data_prefix, coag_suffix, key, type_suffix)
+
+                time_array = loadtxt("%s_time.txt" % filename_base)
+                height_array = loadtxt("%s_height.txt" % filename_base)
+                comp_vol_array = loadtxt("%s_comp_vol.txt" % filename_base)
+
+                data_array = loadtxt("%s.txt" % filename_base_type)
+                data_emit_array = loadtxt("%s_emit.txt" % filename_base_type)
+                data_dilution_array = loadtxt("%s_dilution.txt" % filename_base_type)
+                data_halving_array = loadtxt("%s_halving.txt" % filename_base_type)
+                data_cond_array = loadtxt("%s_cond.txt" % filename_base_type)
+                data_coag_gain_array = loadtxt("%s_coag_gain.txt" % filename_base_type)
+                data_coag_loss_array = loadtxt("%s_coag_loss.txt" % filename_base_type)
+
+                time[i] = float(time_array)
+                height[i] = float(height_array)
+                comp_vol[i] = float(comp_vol_array)
+
+                k = level + 1
+                data_a[i] = data_array[:k].sum()
+                data_f[i] = data_array[k:].sum()
+                if not first_time:
+                    data_emit_a[i-1] = data_emit_array[:k].sum()
+                    data_emit_f[i-1] = data_emit_array[k:].sum()
+                    data_dilution_a[i-1] = data_dilution_array[:k].sum()
+                    data_dilution_f[i-1] = data_dilution_array[k:].sum()
+                    data_halving_a[i-1] = data_halving_array[:k].sum()
+                    data_halving_f[i-1] = data_halving_array[k:].sum()
+                    data_cond_a_a[i-1] = data_cond_array[:k,:k].sum().sum()
+                    data_cond_a_f[i-1] = data_cond_array[:k,k:].sum().sum()
+                    data_cond_f_a[i-1] = data_cond_array[k:,:k].sum().sum()
+                    data_cond_f_f[i-1] = data_cond_array[k:,k:].sum().sum()
+                    data_coag_gain_a[i-1] = data_coag_gain_array[:k].sum()
+                    data_coag_gain_f[i-1] = data_coag_gain_array[k:].sum()
+                    data_coag_loss_a_a[i-1] = data_coag_loss_array[:k,:k].sum().sum()
+                    data_coag_loss_a_f[i-1] = data_coag_loss_array[:k,k:].sum().sum()
+                    data_coag_loss_f_a[i-1] = data_coag_loss_array[k:,:k].sum().sum()
+                    data_coag_loss_f_f[i-1] = data_coag_loss_array[k:,k:].sum().sum()
+
+                first_time = False
+
+            #print "data_a: ", data_a
+            #print "data_f: ", data_f
+            #print "data_emit_a: ", data_emit_a
+            #print "data_emit_f: ", data_emit_f
+            #print "data_dilution_a: ", data_dilution_a
+            #print "data_dilution_f: ", data_dilution_f
+            #print "data_halving_a: ", data_halving_a
+            #print "data_halving_f: ", data_halving_f
+            #print "data_cond_a_a: ", data_cond_a_a
+            #print "data_cond_a_f: ", data_cond_a_f
+            #print "data_cond_f_a: ", data_cond_f_a
+            #print "data_cond_f_f: ", data_cond_f_f
+            #print "data_coag_gain_a: ", data_coag_gain_a
+            #print "data_coag_gain_f: ", data_coag_gain_f
+            #print "data_coag_loss_a_a: ", data_coag_loss_a_a
+            #print "data_coag_loss_a_f: ", data_coag_loss_a_f
+            #print "data_coag_loss_f_a: ", data_coag_loss_f_a
+            #print "data_coag_loss_f_f: ", data_coag_loss_f_f
+            
             max_time_min = max(time) / 60
             start_time_of_day_min = 6 * 60
-            height = height_array[1,:]
-            comp_vol = comp_vol_array[1,:]
-
-            data_a = data_a_array[level,:]
-            data_f = data_f_array[level,:]
-            data_emit_a = data_emit_a_array[level,1:]
-            data_emit_f = data_emit_f_array[level,1:]
-            data_dilution_a = data_dilution_a_array[level,1:]
-            data_dilution_f = data_dilution_f_array[level,1:]
-            data_halving_a = data_halving_a_array[level,1:]
-            data_halving_f = data_halving_f_array[level,1:]
-            data_cond_a_a = data_cond_a_a_array[level,1:]
-            data_cond_a_f = data_cond_a_f_array[level,1:]
-            data_cond_f_a = data_cond_f_a_array[level,1:]
-            data_cond_f_f = data_cond_f_f_array[level,1:]
-            data_coag_gain_a = data_coag_gain_a_array[level,1:]
-            data_coag_gain_f = data_coag_gain_f_array[level,1:]
-            data_coag_loss_a_a = data_coag_loss_a_a_array[level,1:]
-            data_coag_loss_a_f = data_coag_loss_a_f_array[level,1:]
-            data_coag_loss_f_a = data_coag_loss_f_a_array[level,1:]
-            data_coag_loss_f_f = data_coag_loss_f_f_array[level,1:]
 
             data_a_smooth = smooth(data_a, window_len = smooth_window_len)
             data_f_smooth = smooth(data_f, window_len = smooth_window_len)
@@ -247,6 +289,10 @@ for level in range(1,5):
                 max(abs(aged_delta)), max(abs(fresh_kp1)),
                 max(abs(fresh_k)), max(abs(fresh_delta))])
             print "%s %4s %d -- %g" % (coag_suffix, type_suffix, level, max_error)
+            if num:
+                max_error_num = max(max_error_num, max_error)
+            else:
+                max_error_mass = max(max_error_mass, max_error)
 
             k_transfer_cond = data_cond_f_a / delta(time) / data_f[1:]
             k_transfer_cond_net = (data_cond_f_a - data_cond_a_f) / delta(time) / data_f[1:]
@@ -268,24 +314,15 @@ for level in range(1,5):
             tau_transfer_smooth = 1 / k_transfer_smooth
             tau_transfer_net_smooth = 1 / k_transfer_net_smooth
 
-            if coag:
-                if num:
-                    tau_day_wc_num[level - 1] = mean_day(time[1:], tau_transfer)
-                    tau_day_wc_cond_num[level - 1] = mean_day(time[1:], tau_transfer_cond)
-                    tau_night_wc_num[level - 1] = mean_night(time[1:], tau_transfer)
-                    tau_night_wc_cond_num[level - 1] = mean_night(time[1:], tau_transfer_cond)
-                else:
-                    tau_day_wc_mass[level - 1] = mean_day(time[1:], tau_transfer)
-                    tau_day_wc_cond_mass[level - 1] = mean_day(time[1:], tau_transfer_cond)
-                    tau_night_wc_mass[level - 1] = mean_night(time[1:], tau_transfer)
-                    tau_night_wc_cond_mass[level - 1] = mean_night(time[1:], tau_transfer_cond)
-            else:
-                if num:
-                    tau_day_nc_num[level - 1] = mean_day(time[1:], tau_transfer)
-                    tau_night_nc_num[level - 1] = mean_night(time[1:], tau_transfer)
-                else:
-                    tau_day_nc_mass[level - 1] = mean_day(time[1:], tau_transfer)
-                    tau_night_nc_mass[level - 1] = mean_night(time[1:], tau_transfer)
+            if output_means:
+                tau_day = mean_day(time[1:], tau_transfer)
+                tau_day_cond = mean_day(time[1:], tau_transfer_cond)
+                tau_night = mean_night(time[1:], tau_transfer)
+                tau_night_cond = mean_night(time[1:], tau_transfer_cond)
+                outf.write("%.20e %.20e %.20e %.20e " % (tau_day, tau_day_cond, tau_night, tau_night_cond))
+
+            if not output_plots:
+                continue
 
             ######################################################################
 
@@ -664,47 +701,20 @@ for level in range(1,5):
 
             g.writePDFfile("%s/aging_%s_%s_%d_tau_log.pdf" % (data_prefix, coag_suffix, type_suffix, level))
 
-######################################################################
+#for plot_ss in [0.001, 0.003, 0.006, 0.01]:
+#    level = int(ss_active_axis.closest_edge(array(plot_ss)))
+#    print "plot_ss = ", plot_ss
+#    print "level = ", level
+#    process_data(level, output_means = False, output_plots = True)
 
-g = pyx.graph.graphxy(
-    width = 20,
-    x = pyx.graph.axis.linear(title = r"critical supersaturation",
-                              painter = grid_painter),
-    y = pyx.graph.axis.log(title = r"characteristic time (hours)",
-                           painter = grid_painter),
-    key = pyx.graph.key.key(pos = "tr"))
+outf_means = open("%s/aging_tau_means.txt" % data_prefix, "w")
+for level in range(ss_active_axis.n_bin + 1):
+    print "plot_ss = ", ss_active_axis.edge(level)
+    print "level = ", level
+    outf_means.write("%d %.20e " % (level, ss_active_axis.edge(level)))
+    process_data(level, output_means = True, output_plots = False, outf = outf_means)
+    outf_means.write("\n")
+outf_means.close()
 
-red = pyx.color.rgb(1, 0, 0)
-magenta = pyx.color.rgb(1, 0, 1)
-blue = pyx.color.rgb(0, 0, 1)
-cyan = pyx.color.rgb(0, 1, 1)
-
-solid = pyx.style.linestyle.solid
-dashed = pyx.style.linestyle(pyx.style.linecap.round, pyx.style.dash([2, 2]))
-dashdot = pyx.style.linestyle(pyx.style.linecap.round, pyx.style.dash([0, 2, 2, 2]))
-
-data = [
-    [tau_day_wc_mass, "tau day wc mass", red, dashdot],
-    [tau_day_wc_cond_mass, "tau day wc cond mass", red, solid],
-    [tau_day_nc_mass, "tau day nc mass", red, dashed],
-    [tau_day_wc_num, "tau day wc num", magenta, dashdot],
-    [tau_day_wc_cond_num, "tau day wc cond num", magenta, solid],
-    [tau_day_nc_num, "tau day nc num", magenta, dashed],
-    [tau_night_wc_mass, "tau night wc mass", blue, dashdot],
-    [tau_night_wc_cond_mass, "tau night wc cond mass", blue, solid],
-    [tau_night_nc_mass, "tau night nc mass", blue, dashed],
-    [tau_night_wc_num, "tau night wc num", cyan, dashdot],
-    [tau_night_wc_cond_num, "tau night wc cond num", cyan, solid],
-    [tau_night_nc_num, "tau night nc num", cyan, dashed],
-    ]
-
-for [tau_data, label, color, pattern] in data:
-    tau_data_hour = [t / 3600 for t in tau_data]
-    g.plot(
-        pyx.graph.data.points(zip(ss_active, tau_data_hour), x = 1, y = 2,
-                              title = label),
-        styles = [pyx.graph.style.line(lineattrs = [color, pattern])])
-
-g.writePDFfile("%s/aging_tau.pdf" % data_prefix)
-
-######################################################################
+print "max_error_num: ", max_error_num
+print "max_error_mass: ", max_error_mass

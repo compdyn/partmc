@@ -67,6 +67,10 @@ for coag in [True, False]:
 
     first_time = True
     for [time, filename, key] in time_filename_list:
+        #DEBUG
+        if time > 121:
+            sys.exit(0)
+        #DEBUG
         print time, filename
         ncf = NetCDFFile(filename)
         particles = aero_particle_array_t(ncf)
@@ -200,6 +204,10 @@ for coag in [True, False]:
                             old_aged_id.add(old_particles.id[i])
                         else:
                             old_fresh_id.add(old_particles.id[i])
+                #DEBUG
+                print "len(current_id - old_id): ", len(current_id - old_id)
+                print "current_id - old_id: ", current_id - old_id
+                #DEBUG
 
                 if not halving_occured:
                     if old_id - current_id != set(removed_particles.keys()):

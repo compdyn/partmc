@@ -7,5 +7,5 @@ import sys
 sys.path.append("../tool")
 from pmc_data_nc import *
 
-n_bin = 4
+n_bin = 450
 ss_active_axis = pmc_linear_axis(0.001, 0.01, n_bin)

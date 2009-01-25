@@ -106,7 +106,7 @@ def smooth(x,window_len=10,window='hanning'):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/10"
+data_prefix = "out"
 
 smooth_window_len = 60
 

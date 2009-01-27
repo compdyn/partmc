@@ -5,37 +5,9 @@
 
 import os, sys, pyx
 sys.path.append("../tool")
+from pmc_data_nc import *
 from pmc_pyx import *
 from numpy import *
-
-def delta(arr):
-    return (arr[1:] - arr[:-1])
-
-def mid(arr):
-    return (arr[1:] + arr[:-1]) / 2.0
-
-def filter_inf(plot_data):
-    return [[x, y] for [x, y] in plot_data if isfinite(y)]
-
-def nan_to_value(x, value):
-    values = x.copy()
-    values.fill(value)
-    return where(isnan(x), values, x)
-
-def inf_to_value(x, value):
-    values = x.copy()
-    values.fill(value)
-    return where(isinf(x), values, x)
-
-def sign(x):
-    if x > 0:
-        return 1
-    elif x < 0:
-        return -1
-    return 0
-
-def mean(x):
-    return float(sum(x)) / len(x)
 
 def mean_day(time, data):
     return mean([x for [t,x] in filter_inf(zip(time, data))
@@ -45,76 +17,9 @@ def mean_night(time, data):
     return mean([x for [t,x] in filter_inf(zip(time, data))
                  if t >= 12 * 3600 - 0.1 and t <= 22 * 3600 + 0.1])
 
-def chop_sign_data_helper(plot_data, chopped_data):
-    if len(plot_data) == 0:
-        return chopped_data
-    if sign(plot_data[0][1]) == 0:
-        return chop_sign_data_helper(plot_data[1:], chopped_data)
-    i = 0
-    while (i < len(plot_data)) \
-              and (sign(plot_data[i][1]) == sign(plot_data[0][1])):
-        i += 1
-    chopped_data.append(plot_data[0:i])
-    return chop_sign_data_helper(plot_data[i:], chopped_data)
-
-def chop_sign_data(plot_data):
-    return chop_sign_data_helper(plot_data, [])
-
-def smooth(x,window_len=10,window='hanning'):
-    """smooth the data using a window with requested size.
-    
-    This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal 
-    (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
-    
-    input:
-        x: the input signal 
-        window_len: the dimension of the smoothing window
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-            flat window will produce a moving average smoothing.
-
-    output:
-        the smoothed signal
-        
-    example:
-
-    t=linspace(-2,2,0.1)
-    x=sin(t)+randn(len(t))*0.1
-    y=smooth(x)
-    
-    see also: 
-    
-    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-    scipy.signal.lfilter
- 
-    TODO: the window parameter could be the window itself if an array instead of a string   
-    """
-
-    if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
-
-    if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
-
-    if window_len<3:
-        return x
-
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is not one of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
-
-    s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
-    if window == 'flat':
-        w=ones(window_len,'d')
-    else:
-        w=eval('numpy.'+window+'(window_len)')
-
-    y=numpy.convolve(w/w.sum(),s,mode='same')
-    return y[window_len-1:-window_len+1]
-
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "aging_data/9"
+data_prefix = "out"
 
 smooth_window_len = 60
 

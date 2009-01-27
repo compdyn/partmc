@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,7 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-out_prefix = "figs/aero_2d_all"
+out_prefix = "figs_aging/aero_2d_all"
 
 y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
@@ -61,7 +61,8 @@ def get_plot_data(filename, value_max = None):
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for color in [True, False]:
-    graphs = make_2x2_graph_grid(y_axis_label)
+    graphs = make_2x1_graph_grid(y_axis_label)
+    times_hour = {"g11": 1, "g21": 24}
     for (graph_name, time_hour) in times_hour.iteritems():
         time = time_hour * 3600.0
         filename = file_filename_at_time(time_filename_list, time)
@@ -87,20 +88,20 @@ for color in [True, False]:
         g.dodata()
         g.doaxes()
 
-        for i in range(len(show_particles)):
-            if len(show_coords[i]) > 0:
-                label_point(g, show_coords[i][0], show_coords[i][1],
-                            show_particles[i]["label pos"][0],
-                            show_particles[i]["label pos"][1],
-                            show_particles[i]["label"])
+        #for i in range(len(show_particles)):
+        #    if len(show_coords[i]) > 0:
+        #        label_point(g, show_coords[i][0], show_coords[i][1],
+        #                    show_particles[i]["label pos"][0],
+        #                    show_particles[i]["label pos"][1],
+        #                    show_particles[i]["label"])
 
     c = graphs["c"]
     add_canvas_color_bar(c,
                          min = 0.0,
                          max = max_val,
-                         xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
-                         ybottom = graphs["g22"].ypos,
-                         ytop = graphs["g12"].ypos + graphs["g12"].height,
+                         xpos = graphs["g21"].xpos + graphs["g21"].width + grid_h_space,
+                         ybottom = graphs["g21"].ypos,
+                         ytop = graphs["g21"].ypos + graphs["g21"].height,
                          title = r"normalized number conc. $\hat{n}_{\rm BC,dry}(D,w)$",
                          palette = palette)
 

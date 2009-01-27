@@ -6,8 +6,6 @@
 import os, sys, pyx
 sys.path.append("../tool")
 from pmc_pyx import *
-sys.path.append(".")
-from process_aging_config import *
 from numpy import *
 
 def delta(arr):

@@ -10,10 +10,11 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from fig_helper import *
 from numpy import *
-sys.path.append(".")
-from process_aging_config import *
 
 const = load_constants("../src/constants.f90")
+
+n_bin = 450
+ss_active_axis = pmc_linear_axis(0.001, 0.01, n_bin)
 
 for coag in [True, False]:
     if coag:

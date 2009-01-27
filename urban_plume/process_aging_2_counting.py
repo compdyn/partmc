@@ -3,14 +3,14 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import os, sys, pyx
+import os, sys, pyx, re
 sys.path.append("../tool")
 from pmc_pyx import *
-sys.path.append(".")
-from process_aging_config import *
 from numpy import *
+sys.path.append("../tool")
+from pmc_data_nc import *
 
-data_prefix = "aging_data/9"
+data_prefix = "out"
 
 def delta(arr):
     return (arr[1:] - arr[:-1])
@@ -28,31 +28,6 @@ for coag_suffix in ["wc", "nc"]:
         filename_list = get_filename_list(data_prefix, filename_pattern)
         n_time = len(filename_list)
         print "Found %d times" % n_time
-
-        time = zeros([n_time], float)
-        height = zeros([n_time], float)
-        comp_vol = zeros([n_time], float)
-
-        n_level = ss_active_axis.n_bin + 1
-
-        data_a = zeros([n_time, n_level], type)
-        data_f = zeros([n_time, n_level], type)
-        data_emit_a = zeros([n_time - 1, n_level], type)
-        data_emit_f = zeros([n_time - 1, n_level], type)
-        data_dilution_a = zeros([n_time - 1, n_level], type)
-        data_dilution_f = zeros([n_time - 1, n_level], type)
-        data_halving_a = zeros([n_time - 1, n_level], type)
-        data_halving_f = zeros([n_time - 1, n_level], type)
-        data_cond_a_a = zeros([n_time - 1, n_level], type)
-        data_cond_a_f = zeros([n_time - 1, n_level], type)
-        data_cond_f_a = zeros([n_time - 1, n_level], type)
-        data_cond_f_f = zeros([n_time - 1, n_level], type)
-        data_coag_gain_a = zeros([n_time - 1, n_level], type)
-        data_coag_gain_f = zeros([n_time - 1, n_level], type)
-        data_coag_loss_a_a = zeros([n_time - 1, n_level], type)
-        data_coag_loss_a_f = zeros([n_time - 1, n_level], type)
-        data_coag_loss_f_a = zeros([n_time - 1, n_level], type)
-        data_coag_loss_f_f = zeros([n_time - 1, n_level], type)
 
         first_time = True
         for (i, filename) in enumerate(filename_list):
@@ -76,6 +51,32 @@ for coag_suffix in ["wc", "nc"]:
             data_cond_array = loadtxt("%s_cond.txt" % filename_base_type, type)
             data_coag_gain_array = loadtxt("%s_coag_gain.txt" % filename_base_type, type)
             data_coag_loss_array = loadtxt("%s_coag_loss.txt" % filename_base_type, type)
+
+            if first_time:
+                n_level = data_total_array.size
+
+                time = zeros([n_time], float)
+                height = zeros([n_time], float)
+                comp_vol = zeros([n_time], float)
+
+                data_a = zeros([n_time, n_level], type)
+                data_f = zeros([n_time, n_level], type)
+                data_emit_a = zeros([n_time - 1, n_level], type)
+                data_emit_f = zeros([n_time - 1, n_level], type)
+                data_dilution_a = zeros([n_time - 1, n_level], type)
+                data_dilution_f = zeros([n_time - 1, n_level], type)
+                data_halving_a = zeros([n_time - 1, n_level], type)
+                data_halving_f = zeros([n_time - 1, n_level], type)
+                data_cond_a_a = zeros([n_time - 1, n_level], type)
+                data_cond_a_f = zeros([n_time - 1, n_level], type)
+                data_cond_f_a = zeros([n_time - 1, n_level], type)
+                data_cond_f_f = zeros([n_time - 1, n_level], type)
+                data_coag_gain_a = zeros([n_time - 1, n_level], type)
+                data_coag_gain_f = zeros([n_time - 1, n_level], type)
+                data_coag_loss_a_a = zeros([n_time - 1, n_level], type)
+                data_coag_loss_a_f = zeros([n_time - 1, n_level], type)
+                data_coag_loss_f_a = zeros([n_time - 1, n_level], type)
+                data_coag_loss_f_f = zeros([n_time - 1, n_level], type)
 
             time[i] = float(time_array)
             height[i] = float(height_array)

@@ -13,7 +13,7 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-out_prefix = "figs_aging/aero_2d_all"
+out_prefix = "figs_aging/aging_aero_2d_all"
 
 y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
@@ -88,13 +88,6 @@ for color in [True, False]:
         g.dodata()
         g.doaxes()
 
-        #for i in range(len(show_particles)):
-        #    if len(show_coords[i]) > 0:
-        #        label_point(g, show_coords[i][0], show_coords[i][1],
-        #                    show_particles[i]["label pos"][0],
-        #                    show_particles[i]["label pos"][1],
-        #                    show_particles[i]["label"])
-
     c = graphs["c"]
     add_canvas_color_bar(c,
                          min = 0.0,
@@ -102,7 +95,7 @@ for color in [True, False]:
                          xpos = graphs["g21"].xpos + graphs["g21"].width + grid_h_space,
                          ybottom = graphs["g21"].ypos,
                          ytop = graphs["g21"].ypos + graphs["g21"].height,
-                         title = r"normalized number conc. $\hat{n}_{\rm BC,dry}(D,w)$",
+                         title = r"normalized number conc.",
                          palette = palette)
 
     if color:

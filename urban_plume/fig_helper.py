@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2008 Matthew West
+# Copyright (C) 2008, 2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -26,6 +26,16 @@ netcdf_pattern_wc = r"^urban_plume_wc_state_0001_([0-9]{8})\.nc$"
 
 netcdf_dir_nc = "out"
 netcdf_pattern_nc = r"^urban_plume_nc_state_0001_([0-9]{8})\.nc$"
+
+aging_data_dir = "out"
+n_level_bin = 450
+ss_active_axis = pmc_linear_axis(0.001, 0.01, n_level_bin)
+level_low = int(ss_active_axis.closest_edge(array(0.001)))
+level_mid = int(ss_active_axis.closest_edge(array(0.006)))
+level_high = int(ss_active_axis.closest_edge(array(0.01)))
+level_low_value = ss_active_axis.edge(level_low)
+level_mid_value = ss_active_axis.edge(level_mid)
+level_high_value = ss_active_axis.edge(level_high)
 
 max_val = 4.0
 

@@ -13,7 +13,7 @@ from pmc_pyx import *
 sys.path.append(".")
 from fig_helper import *
 
-out_prefix = "figs/env"
+out_prefix = "figs_aging/aging_env"
 
 env_state_history = read_history(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state_history[0][1].start_time_of_day / 60

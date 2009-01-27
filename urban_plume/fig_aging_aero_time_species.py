@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -23,7 +23,7 @@ aero_species = [
      "label": "SOA", "label_time": 8, "label_pos": [0, 0]},
     ]
 
-out_prefix = "figs/aero_time_species"
+out_prefix = "figs_aging/aging_aero_time_species"
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)

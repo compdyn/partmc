@@ -28,6 +28,9 @@ grey_level = 0.2
 max_error_num = 0
 max_error_mass = 0.0
 
+smooth_had_nan = False
+smooth_had_inf = False
+
 for coag_suffix in ["wc", "nc"]:
     for (type_suffix, type) in [("num", int),
                                 ("mass", float)]:
@@ -68,24 +71,43 @@ for coag_suffix in ["wc", "nc"]:
         max_time_min = max(time) / 60
         start_time_of_day_min = 6 * 60
 
-        data_a_smooth = zeros([n_time, n_level], type)
-        data_f_smooth = zeros([n_time, n_level], type)
-        data_emit_a_smooth = zeros([n_time - 1, n_level], type)
-        data_emit_f_smooth = zeros([n_time - 1, n_level], type)
-        data_dilution_a_smooth = zeros([n_time - 1, n_level], type)
-        data_dilution_f_smooth = zeros([n_time - 1, n_level], type)
-        data_halving_a_smooth = zeros([n_time - 1, n_level], type)
-        data_halving_f_smooth = zeros([n_time - 1, n_level], type)
-        data_cond_a_a_smooth = zeros([n_time - 1, n_level], type)
-        data_cond_a_f_smooth = zeros([n_time - 1, n_level], type)
-        data_cond_f_a_smooth = zeros([n_time - 1, n_level], type)
-        data_cond_f_f_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_gain_a_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_gain_f_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_loss_a_a_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_loss_a_f_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_loss_f_a_smooth = zeros([n_time - 1, n_level], type)
-        data_coag_loss_f_f_smooth = zeros([n_time - 1, n_level], type)
+        data_a_conc = zeros([n_time, n_level], float)
+        data_f_conc = zeros([n_time, n_level], float)
+        data_emit_a_conc = zeros([n_time - 1, n_level], float)
+        data_emit_f_conc = zeros([n_time - 1, n_level], float)
+        data_dilution_a_conc = zeros([n_time - 1, n_level], float)
+        data_dilution_f_conc = zeros([n_time - 1, n_level], float)
+        data_halving_a_conc = zeros([n_time - 1, n_level], float)
+        data_halving_f_conc = zeros([n_time - 1, n_level], float)
+        data_cond_a_a_conc = zeros([n_time - 1, n_level], float)
+        data_cond_a_f_conc = zeros([n_time - 1, n_level], float)
+        data_cond_f_a_conc = zeros([n_time - 1, n_level], float)
+        data_cond_f_f_conc = zeros([n_time - 1, n_level], float)
+        data_coag_gain_a_conc = zeros([n_time - 1, n_level], float)
+        data_coag_gain_f_conc = zeros([n_time - 1, n_level], float)
+        data_coag_loss_a_a_conc = zeros([n_time - 1, n_level], float)
+        data_coag_loss_a_f_conc = zeros([n_time - 1, n_level], float)
+        data_coag_loss_f_a_conc = zeros([n_time - 1, n_level], float)
+        data_coag_loss_f_f_conc = zeros([n_time - 1, n_level], float)
+
+        data_a_conc_smooth = zeros([n_time, n_level], float)
+        data_f_conc_smooth = zeros([n_time, n_level], float)
+        data_emit_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_emit_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_dilution_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_dilution_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_halving_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_halving_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_cond_a_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_cond_a_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_cond_f_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_cond_f_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_gain_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_gain_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_loss_a_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_loss_a_f_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_loss_f_a_conc_smooth = zeros([n_time - 1, n_level], float)
+        data_coag_loss_f_f_conc_smooth = zeros([n_time - 1, n_level], float)
 
         k_transfer_cond = zeros([n_time - 1, n_level], float)
         k_transfer_cond_net = zeros([n_time - 1, n_level], float)
@@ -113,24 +135,43 @@ for coag_suffix in ["wc", "nc"]:
         tau_night_cond = zeros([n_level], float)
 
         for level in range(n_level):
-            data_a_smooth[:,level] = smooth(data_a[:,level], window_len = smooth_window_len)
-            data_f_smooth[:,level] = smooth(data_f[:,level], window_len = smooth_window_len)
-            data_emit_a_smooth[:,level] = smooth(data_emit_a[:,level], window_len = smooth_window_len)
-            data_emit_f_smooth[:,level] = smooth(data_emit_f[:,level], window_len = smooth_window_len)
-            data_dilution_a_smooth[:,level] = smooth(data_dilution_a[:,level], window_len = smooth_window_len)
-            data_dilution_f_smooth[:,level] = smooth(data_dilution_f[:,level], window_len = smooth_window_len)
-            data_halving_a_smooth[:,level] = smooth(data_halving_a[:,level], window_len = smooth_window_len)
-            data_halving_f_smooth[:,level] = smooth(data_halving_f[:,level], window_len = smooth_window_len)
-            data_cond_a_a_smooth[:,level] = smooth(data_cond_a_a[:,level], window_len = smooth_window_len)
-            data_cond_a_f_smooth[:,level] = smooth(data_cond_a_f[:,level], window_len = smooth_window_len)
-            data_cond_f_a_smooth[:,level] = smooth(data_cond_f_a[:,level], window_len = smooth_window_len)
-            data_cond_f_f_smooth[:,level] = smooth(data_cond_f_f[:,level], window_len = smooth_window_len)
-            data_coag_gain_a_smooth[:,level] = smooth(data_coag_gain_a[:,level], window_len = smooth_window_len)
-            data_coag_gain_f_smooth[:,level] = smooth(data_coag_gain_f[:,level], window_len = smooth_window_len)
-            data_coag_loss_a_a_smooth[:,level] = smooth(data_coag_loss_a_a[:,level], window_len = smooth_window_len)
-            data_coag_loss_a_f_smooth[:,level] = smooth(data_coag_loss_a_f[:,level], window_len = smooth_window_len)
-            data_coag_loss_f_a_smooth[:,level] = smooth(data_coag_loss_f_a[:,level], window_len = smooth_window_len)
-            data_coag_loss_f_f_smooth[:,level] = smooth(data_coag_loss_f_f[:,level], window_len = smooth_window_len)
+            data_a_conc[:,level] = data_a[:,level] / comp_vol
+            data_f_conc[:,level] = data_f[:,level] / comp_vol
+            data_emit_a_conc[:,level] = data_emit_a[:,level] / comp_vol[1:]
+            data_emit_f_conc[:,level] = data_emit_f[:,level] / comp_vol[1:]
+            data_dilution_a_conc[:,level] = data_dilution_a[:,level] / comp_vol[1:]
+            data_dilution_f_conc[:,level] = data_dilution_f[:,level] / comp_vol[1:]
+            data_halving_a_conc[:,level] = data_halving_a[:,level] / comp_vol[1:]
+            data_halving_f_conc[:,level] = data_halving_f[:,level] / comp_vol[1:]
+            data_cond_a_a_conc[:,level] = data_cond_a_a[:,level] / comp_vol[1:]
+            data_cond_a_f_conc[:,level] = data_cond_a_f[:,level] / comp_vol[1:]
+            data_cond_f_a_conc[:,level] = data_cond_f_a[:,level] / comp_vol[1:]
+            data_cond_f_f_conc[:,level] = data_cond_f_f[:,level] / comp_vol[1:]
+            data_coag_gain_a_conc[:,level] = data_coag_gain_a[:,level] / comp_vol[1:]
+            data_coag_gain_f_conc[:,level] = data_coag_gain_f[:,level] / comp_vol[1:]
+            data_coag_loss_a_a_conc[:,level] = data_coag_loss_a_a[:,level] / comp_vol[1:]
+            data_coag_loss_a_f_conc[:,level] = data_coag_loss_a_f[:,level] / comp_vol[1:]
+            data_coag_loss_f_a_conc[:,level] = data_coag_loss_f_a[:,level] / comp_vol[1:]
+            data_coag_loss_f_f_conc[:,level] = data_coag_loss_f_f[:,level] / comp_vol[1:]
+
+            data_a_conc_smooth[:,level] = smooth(data_a_conc[:,level], window_len = smooth_window_len)
+            data_f_conc_smooth[:,level] = smooth(data_f_conc[:,level], window_len = smooth_window_len)
+            data_emit_a_conc_smooth[:,level] = smooth(data_emit_a_conc[:,level], window_len = smooth_window_len)
+            data_emit_f_conc_smooth[:,level] = smooth(data_emit_f_conc[:,level], window_len = smooth_window_len)
+            data_dilution_a_conc_smooth[:,level] = smooth(data_dilution_a_conc[:,level], window_len = smooth_window_len)
+            data_dilution_f_conc_smooth[:,level] = smooth(data_dilution_f_conc[:,level], window_len = smooth_window_len)
+            data_halving_a_conc_smooth[:,level] = smooth(data_halving_a_conc[:,level], window_len = smooth_window_len)
+            data_halving_f_conc_smooth[:,level] = smooth(data_halving_f_conc[:,level], window_len = smooth_window_len)
+            data_cond_a_a_conc_smooth[:,level] = smooth(data_cond_a_a_conc[:,level], window_len = smooth_window_len)
+            data_cond_a_f_conc_smooth[:,level] = smooth(data_cond_a_f_conc[:,level], window_len = smooth_window_len)
+            data_cond_f_a_conc_smooth[:,level] = smooth(data_cond_f_a_conc[:,level], window_len = smooth_window_len)
+            data_cond_f_f_conc_smooth[:,level] = smooth(data_cond_f_f_conc[:,level], window_len = smooth_window_len)
+            data_coag_gain_a_conc_smooth[:,level] = smooth(data_coag_gain_a_conc[:,level], window_len = smooth_window_len)
+            data_coag_gain_f_conc_smooth[:,level] = smooth(data_coag_gain_f_conc[:,level], window_len = smooth_window_len)
+            data_coag_loss_a_a_conc_smooth[:,level] = smooth(data_coag_loss_a_a_conc[:,level], window_len = smooth_window_len)
+            data_coag_loss_a_f_conc_smooth[:,level] = smooth(data_coag_loss_a_f_conc[:,level], window_len = smooth_window_len)
+            data_coag_loss_f_a_conc_smooth[:,level] = smooth(data_coag_loss_f_a_conc[:,level], window_len = smooth_window_len)
+            data_coag_loss_f_f_conc_smooth[:,level] = smooth(data_coag_loss_f_f_conc[:,level], window_len = smooth_window_len)
 
             data_delta_a = delta(data_a[:,level])
             data_delta_f = delta(data_f[:,level])
@@ -184,17 +225,43 @@ for coag_suffix in ["wc", "nc"]:
                               + data_coag_loss_f_a[:,level] - data_coag_loss_a_f[:,level]) \
                               / delta(time) / data_f[1:,level]
 
-            k_transfer_cond_smooth[:,level] = data_cond_f_a_smooth[:,level] / delta(time) / data_f_smooth[1:,level]
-            k_transfer_cond_net_smooth[:,level] = (data_cond_f_a_smooth[:,level] - data_cond_a_f_smooth[:,level]) / delta(time) / data_f_smooth[1:,level]
-            k_transfer_smooth[:,level] = (data_cond_f_a_smooth[:,level] + data_coag_loss_f_a_smooth[:,level]) / delta(time) / data_f_smooth[1:,level]
-            k_transfer_net_smooth[:,level] = (data_cond_f_a_smooth[:,level] - data_cond_a_f_smooth[:,level]
-                                     + data_coag_loss_f_a_smooth[:,level] - data_coag_loss_a_f_smooth[:,level]) \
-                                     / delta(time) / data_f_smooth[1:,level]
+            k_transfer_cond_smooth[:,level] = data_cond_f_a_conc_smooth[:,level] / delta(time) / data_f_conc_smooth[1:,level]
+            k_transfer_cond_net_smooth[:,level] = (data_cond_f_a_conc_smooth[:,level] - data_cond_a_f_conc_smooth[:,level]) \
+                / delta(time) / data_f_conc_smooth[1:,level]
+            k_transfer_smooth[:,level] = (data_cond_f_a_conc_smooth[:,level] + data_coag_loss_f_a_conc_smooth[:,level]) \
+                / delta(time) / data_f_conc_smooth[1:,level]
+            k_transfer_net_smooth[:,level] = (data_cond_f_a_conc_smooth[:,level] - data_cond_a_f_conc_smooth[:,level]
+                                     + data_coag_loss_f_a_conc_smooth[:,level] - data_coag_loss_a_f_conc_smooth[:,level]) \
+                                     / delta(time) / data_f_conc_smooth[1:,level]
+
+#            print "data_cond_f_a[:,level]", data_cond_f_a[:,level]
+#            print "data_cond_f_a_conc_smooth[:,level]", data_cond_f_a_conc_smooth[:,level]
+#            print "data_coag_loss_f_a_conc_smooth[:,level]", data_coag_loss_f_a_conc_smooth[:,level]
+#            print "delta(time)", delta(time)
+#            print "data_f[1:,level]", data_f[1:,level]
+#            print "data_f_conc_smooth[1:,level]", data_f_conc_smooth[1:,level]
 
             k_transfer_cond[:,level] = nan_to_value(k_transfer_cond[:,level], 0.0)
             k_transfer_cond_net[:,level] = nan_to_value(k_transfer_cond_net[:,level], 0.0)
             k_transfer[:,level] = nan_to_value(k_transfer[:,level], 0.0)
             k_transfer_net[:,level] = nan_to_value(k_transfer_net[:,level], 0.0)
+
+#            if any(isnan(k_transfer_smooth[:,level])):
+#                smooth_had_nan = True
+#                print "k_transfer_smooth:", k_transfer_smooth[:,level]
+#                sys.exit(1)
+#            if any(isnan(k_transfer_net_smooth)):
+#                smooth_had_nan = True
+#                print "k_transfer_net_smooth:", k_transfer_net_smooth
+#                sys.exit(1)
+#            if any(isnan(k_transfer_cond_smooth)):
+#                smooth_had_nan = True
+#                print "k_transfer_cond_smooth:", k_transfer_cond_smooth
+#                sys.exit(1)
+#            if any(isnan(k_transfer_cond_net_smooth)):
+#                smooth_had_nan = True
+#                print "k_transfer_cond_net_smooth:", k_transfer_cond_net_smooth
+#                sys.exit(1)
 
             k_transfer_cond_smooth[:,level] = nan_to_value(k_transfer_cond_smooth[:,level], 0.0)
             k_transfer_cond_net_smooth[:,level] = nan_to_value(k_transfer_cond_net_smooth[:,level], 0.0)
@@ -218,53 +285,67 @@ for coag_suffix in ["wc", "nc"]:
             tau_transfer[:,level] = inf_to_value(tau_transfer[:,level], big_value)
             tau_transfer_net[:,level] = inf_to_value(tau_transfer_net[:,level], big_value)
 
+#            if any(isinf(tau_transfer_cond_smooth)):
+#                smooth_had_inf = True
+#            if any(isinf(tau_transfer_cond_net_smooth)):
+#                smooth_had_inf = True
+#            if any(isinf(tau_transfer_smooth)):
+#                smooth_had_inf = True
+#            if any(isinf(tau_transfer_net_smooth)):
+#                smooth_had_inf = True
+
             tau_transfer_cond_smooth[:,level] = inf_to_value(tau_transfer_cond_smooth[:,level], big_value)
             tau_transfer_cond_net_smooth[:,level] = inf_to_value(tau_transfer_cond_net_smooth[:,level], big_value)
             tau_transfer_smooth[:,level] = inf_to_value(tau_transfer_smooth[:,level], big_value)
             tau_transfer_net_smooth[:,level] = inf_to_value(tau_transfer_net_smooth[:,level], big_value)
 
-            tau_day[level] = mean_day(time[1:], tau_transfer[:,level])
-            tau_day_cond[level] = mean_day(time[1:], tau_transfer_cond[:,level])
-            tau_night[level] = mean_night(time[1:], tau_transfer[:,level])
-            tau_night_cond[level] = mean_night(time[1:], tau_transfer_cond[:,level])
+            tau_day[level] = mean_day(time[1:], tau_transfer_smooth[:,level])
+            tau_day_cond[level] = mean_day(time[1:], tau_transfer_cond_smooth[:,level])
+            tau_night[level] = mean_night(time[1:], tau_transfer_smooth[:,level])
+            tau_night_cond[level] = mean_night(time[1:], tau_transfer_cond_smooth[:,level])
 
         print "Writing data %s %s..." % (coag_suffix, type_suffix)
         filename = "%s/aging_%s_%s_%%s.txt" % (data_prefix, coag_suffix, type_suffix)
 
-        savetxt(filename % "a_smooth", data_a_smooth, fmt = "%.20e")
-        savetxt(filename % "f_smooth", data_f_smooth, fmt = "%.20e")
-        savetxt(filename % "emit_a_smooth", data_emit_a_smooth, fmt = "%.20e")
-        savetxt(filename % "emit_f_smooth", data_emit_f_smooth, fmt = "%.20e")
-        savetxt(filename % "dilution_a_smooth", data_dilution_a_smooth, fmt = "%.20e")
-        savetxt(filename % "dilution_f_smooth", data_dilution_f_smooth, fmt = "%.20e")
-        savetxt(filename % "halving_a_smooth", data_halving_a_smooth, fmt = "%.20e")
-        savetxt(filename % "halving_f_smooth", data_halving_f_smooth, fmt = "%.20e")
-        savetxt(filename % "cond_a_a_smooth", data_cond_a_a_smooth, fmt = "%.20e")
-        savetxt(filename % "cond_a_f_smooth", data_cond_a_f_smooth, fmt = "%.20e")
-        savetxt(filename % "cond_f_a_smooth", data_cond_f_a_smooth, fmt = "%.20e")
-        savetxt(filename % "cond_f_f_smooth", data_cond_f_f_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_gain_a_smooth", data_coag_gain_a_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_gain_f_smooth", data_coag_gain_f_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_loss_a_a_smooth", data_coag_loss_a_a_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_loss_a_f_smooth", data_coag_loss_a_f_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_loss_f_a_smooth", data_coag_loss_f_a_smooth, fmt = "%.20e")
-        savetxt(filename % "coag_loss_f_f_smooth", data_coag_loss_f_f_smooth, fmt = "%.20e")
+        savetxt(filename % "a_conc_smooth", data_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "f_conc_smooth", data_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "emit_a_conc_smooth", data_emit_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "emit_f_conc_smooth", data_emit_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "dilution_a_conc_smooth", data_dilution_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "dilution_f_conc_smooth", data_dilution_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "halving_a_conc_smooth", data_halving_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "halving_f_conc_smooth", data_halving_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "cond_a_a_conc_smooth", data_cond_a_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "cond_a_f_conc_smooth", data_cond_a_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "cond_f_a_conc_smooth", data_cond_f_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "cond_f_f_conc_smooth", data_cond_f_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_gain_a_conc_smooth", data_coag_gain_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_gain_f_conc_smooth", data_coag_gain_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_loss_a_a_conc_smooth", data_coag_loss_a_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_loss_a_f_conc_smooth", data_coag_loss_a_f_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_loss_f_a_conc_smooth", data_coag_loss_f_a_conc_smooth, fmt = "%.20e")
+        savetxt(filename % "coag_loss_f_f_conc_smooth", data_coag_loss_f_f_conc_smooth, fmt = "%.20e")
+
         savetxt(filename % "k_transfer_cond", k_transfer_cond, fmt = "%.20e")
         savetxt(filename % "k_transfer_cond_net", k_transfer_cond_net, fmt = "%.20e")
         savetxt(filename % "k_transfer", k_transfer, fmt = "%.20e")
         savetxt(filename % "k_transfer_net", k_transfer_net, fmt = "%.20e")
+
         savetxt(filename % "k_transfer_cond_smooth", k_transfer_cond_smooth, fmt = "%.20e")
         savetxt(filename % "k_transfer_cond_net_smooth", k_transfer_cond_net_smooth, fmt = "%.20e")
         savetxt(filename % "k_transfer_smooth", k_transfer_smooth, fmt = "%.20e")
         savetxt(filename % "k_transfer_net_smooth", k_transfer_net_smooth, fmt = "%.20e")
+
         savetxt(filename % "tau_transfer_cond", tau_transfer_cond, fmt = "%.20e")
         savetxt(filename % "tau_transfer_cond_net", tau_transfer_cond_net, fmt = "%.20e")
         savetxt(filename % "tau_transfer", tau_transfer, fmt = "%.20e")
         savetxt(filename % "tau_transfer_net", tau_transfer_net, fmt = "%.20e")
+
         savetxt(filename % "tau_transfer_cond_smooth", tau_transfer_cond_smooth, fmt = "%.20e")
         savetxt(filename % "tau_transfer_cond_net_smooth", tau_transfer_cond_net_smooth, fmt = "%.20e")
         savetxt(filename % "tau_transfer_smooth", tau_transfer_smooth, fmt = "%.20e")
         savetxt(filename % "tau_transfer_net_smooth", tau_transfer_net_smooth, fmt = "%.20e")
+
         savetxt(filename % "tau_day", tau_day, fmt = "%.20e")
         savetxt(filename % "tau_day_cond", tau_day_cond, fmt = "%.20e")
         savetxt(filename % "tau_night", tau_night, fmt = "%.20e")
@@ -272,3 +353,6 @@ for coag_suffix in ["wc", "nc"]:
 
 print "max_error_num: ", max_error_num
 print "max_error_mass: ", max_error_mass
+
+print "smooth_had_nan:", smooth_had_nan
+print "smooth_had_inf:", smooth_had_inf

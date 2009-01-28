@@ -121,19 +121,6 @@ mass_low_cond_smooth = mass_tau_transfer_cond_smooth[:,level_low] / 3600 # s to 
 mass_mid_cond_smooth = mass_tau_transfer_cond_smooth[:,level_mid] / 3600 # s to hour
 mass_high_cond_smooth = mass_tau_transfer_cond_smooth[:,level_high] / 3600 # s to hour
 
-#num_low_smooth = smooth(num_low, window_len = smooth_window_len)
-#num_mid_smooth = smooth(num_mid, window_len = smooth_window_len)
-#num_high_smooth = smooth(num_high, window_len = smooth_window_len)
-#num_low_cond_smooth = smooth(num_low_cond, window_len = smooth_window_len)
-#num_mid_cond_smooth = smooth(num_mid_cond, window_len = smooth_window_len)
-#num_high_cond_smooth = smooth(num_high_cond, window_len = smooth_window_len)
-#mass_low_smooth = smooth(mass_low, window_len = smooth_window_len)
-#mass_mid_smooth = smooth(mass_mid, window_len = smooth_window_len)
-#mass_high_smooth = smooth(mass_high, window_len = smooth_window_len)
-#mass_low_cond_smooth = smooth(mass_low_cond, window_len = smooth_window_len)
-#mass_mid_cond_smooth = smooth(mass_mid_cond, window_len = smooth_window_len)
-#mass_high_cond_smooth = smooth(mass_high_cond, window_len = smooth_window_len)
-
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time_min = max(time) / 60
@@ -275,12 +262,12 @@ for use_color in [True, False]:
                               plot_info[key]["label"],
                               plot_info[key]["label_pos"])
 
-    write_text_outside(g11, "%.1f\\%% critical supersaturation" % (level_low_value * 100))
-    write_text_outside(g21, "%.1f\\%% critical supersaturation" % (level_mid_value * 100))
-    write_text_outside(g31, "%.1f\\%% critical supersaturation" % (level_high_value * 100))
-    write_text_outside(g12, "%.1f\\%% critical supersaturation" % (level_low_value * 100))
-    write_text_outside(g22, "%.1f\\%% critical supersaturation" % (level_mid_value * 100))
-    write_text_outside(g32, "%.1f\\%% critical supersaturation" % (level_high_value * 100))
+    write_text_outside(g11, r"critical supersaturation $S = %.1f\%%$" % (level_low_value * 100))
+    write_text_outside(g21, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
+    write_text_outside(g31, r"critical supersaturation $S = %.1f\%%$" % (level_high_value * 100))
+    write_text_outside(g12, r"critical supersaturation $S = %.1f\%%$" % (level_low_value * 100))
+    write_text_outside(g22, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
+    write_text_outside(g32, r"critical supersaturation $S = %.1f\%%$" % (level_high_value * 100))
 
     boxed_text(g11, "number", point = [1, 1], anchor_point_rel = [1, 1])
     boxed_text(g21, "number", point = [1, 1], anchor_point_rel = [1, 1])

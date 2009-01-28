@@ -53,7 +53,7 @@ for coag_suffix in ["wc", "nc"]:
             data_coag_loss_array = loadtxt("%s_coag_loss.txt" % filename_base_type, type)
 
             if first_time:
-                n_level = data_total_array.size
+                n_level = data_total_array.size - 1
 
                 time = zeros([n_time], float)
                 height = zeros([n_time], float)
@@ -84,31 +84,29 @@ for coag_suffix in ["wc", "nc"]:
 
             for level in range(n_level):
                 k = level + 1
-                data_a[i, k - 1] = data_total_array[:k].sum()
-                data_f[i, k - 1] = data_total_array[k:].sum()
+                data_a[i, level] = data_total_array[:k].sum()
+                data_f[i, level] = data_total_array[k:].sum()
                 if not first_time:
-                    data_emit_a[i - 1, k - 1] = data_emit_array[:k].sum()
-                    data_emit_f[i - 1, k - 1] = data_emit_array[k:].sum()
-                    data_dilution_a[i - 1, k - 1] = data_dilution_array[:k].sum()
-                    data_dilution_f[i - 1, k - 1] = data_dilution_array[k:].sum()
-                    data_halving_a[i - 1, k - 1] = data_halving_array[:k].sum()
-                    data_halving_f[i - 1, k - 1] = data_halving_array[k:].sum()
-                    data_cond_a_a[i - 1, k - 1] = data_cond_array[:k,:k].sum()
-                    data_cond_a_f[i - 1, k - 1] = data_cond_array[:k,k:].sum()
-                    data_cond_f_a[i - 1, k - 1] = data_cond_array[k:,:k].sum()
-                    data_cond_f_f[i - 1, k - 1] = data_cond_array[k:,k:].sum()
-                    data_coag_gain_a[i - 1, k - 1] = data_coag_gain_array[:k].sum()
-                    data_coag_gain_f[i - 1, k - 1] = data_coag_gain_array[k:].sum()
-                    data_coag_loss_a_a[i - 1, k - 1] = data_coag_loss_array[:k,:k].sum()
-                    data_coag_loss_a_f[i - 1, k - 1] = data_coag_loss_array[:k,k:].sum()
-                    data_coag_loss_f_a[i - 1, k - 1] = data_coag_loss_array[k:,:k].sum()
-                    data_coag_loss_f_f[i - 1, k - 1] = data_coag_loss_array[k:,k:].sum()
+                    data_emit_a[i - 1, level] = data_emit_array[:k].sum()
+                    data_emit_f[i - 1, level] = data_emit_array[k:].sum()
+                    data_dilution_a[i - 1, level] = data_dilution_array[:k].sum()
+                    data_dilution_f[i - 1, level] = data_dilution_array[k:].sum()
+                    data_halving_a[i - 1, level] = data_halving_array[:k].sum()
+                    data_halving_f[i - 1, level] = data_halving_array[k:].sum()
+                    data_cond_a_a[i - 1, level] = data_cond_array[:k,:k].sum()
+                    data_cond_a_f[i - 1, level] = data_cond_array[:k,k:].sum()
+                    data_cond_f_a[i - 1, level] = data_cond_array[k:,:k].sum()
+                    data_cond_f_f[i - 1, level] = data_cond_array[k:,k:].sum()
+                    data_coag_gain_a[i - 1, level] = data_coag_gain_array[:k].sum()
+                    data_coag_gain_f[i - 1, level] = data_coag_gain_array[k:].sum()
+                    data_coag_loss_a_a[i - 1, level] = data_coag_loss_array[:k,:k].sum()
+                    data_coag_loss_a_f[i - 1, level] = data_coag_loss_array[:k,k:].sum()
+                    data_coag_loss_f_a[i - 1, level] = data_coag_loss_array[k:,:k].sum()
+                    data_coag_loss_f_f[i - 1, level] = data_coag_loss_array[k:,k:].sum()
 
             first_time = False
 
         for level in range(n_level):
-            k = level + 1
-
             delta_data_a = delta(data_a[:,level])
             delta_data_f = delta(data_f[:,level])
 

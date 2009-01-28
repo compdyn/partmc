@@ -94,9 +94,6 @@ for use_color in [True, False]:
                            painter = major_grid_painter)))
     graphs = {"g1": g1, "g2": g2}
 
-    g1.doaxes()
-    g2.doaxes()
-
     for (key, y_data) \
             in [("cond_a_f", cond_a_f_conc),
                 ("cond_f_a", cond_f_a_conc),
@@ -139,6 +136,8 @@ for use_color in [True, False]:
 
     g1.dodata()
     g2.dodata()
+    g1.doaxes()
+    g2.doaxes()
 
     for (key, y_data) \
             in [("cond_a_f", cond_a_f_smooth_conc),
@@ -151,6 +150,11 @@ for use_color in [True, False]:
                               plot_info[key]["label_time"] * 60,
                               plot_info[key]["label"],
                               plot_info[key]["label_pos"])
+
+    boxed_text(g1, "condensation", point = [1, 1], anchor_point_rel = [1, 0])
+    boxed_text(g2, "coagulation", point = [1, 1], anchor_point_rel = [1, 0])
+
+    write_text_outside(g1, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

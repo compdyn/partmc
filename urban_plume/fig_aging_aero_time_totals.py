@@ -16,13 +16,13 @@ from fig_helper import *
 out_prefix = "figs_aging/aging_aero_time_totals"
 
 plot_info = {
-    "total": {"label": "total", "label_time": 8, "label_pos": [1, 1],
+    "total": {"label": r"$N_{\rm tot}$", "label_time": 8, "label_pos": [1, 1],
               "linewidth": style.linewidth.Thick,
               "color": color_list[0], "pattern": line_style_list[0]},
-    "aged":  {"label": "aged", "label_time": 15, "label_pos": [1, 0],
+    "aged":  {"label": r"$N_{\rm a}$", "label_time": 15, "label_pos": [1, 0],
               "linewidth": style.linewidth.Thick,
               "color": color_list[1], "pattern": line_style_list[1]},
-    "fresh": {"label": "fresh", "label_time": 15, "label_pos": [0, 1],
+    "fresh": {"label": r"$N_{\rm f}$", "label_time": 15, "label_pos": [0, 1],
               "linewidth": style.linewidth.Thick,
               "color": color_list[2], "pattern": line_style_list[2]},
     }
@@ -78,6 +78,8 @@ for use_color in [True, False]:
                               plot_info[key]["label_time"] * 60,
                               plot_info[key]["label"],
                               plot_info[key]["label_pos"])
+
+    write_text_outside(g, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

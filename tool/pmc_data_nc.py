@@ -540,6 +540,9 @@ class pmc_axis:
         else:
             return i + 1
 
+    def edges(self):
+        return array([self.edge(i) for i in range(self.n_bin + 1)])
+
 class pmc_linear_axis(pmc_axis):
 
     def __init__(self, min, max, n_bin):
@@ -978,6 +981,16 @@ AERO_INFO_NONE = 0
 AERO_INFO_DILUTION = 1
 AERO_INFO_COAG = 2
 AERO_INFO_HALVED = 3
+
+def nan_to_value(x, value):
+    values = x.copy()
+    values.fill(value)
+    return where(isnan(x), values, x)
+
+def inf_to_value(x, value):
+    values = x.copy()
+    values.fill(value)
+    return where(isinf(x), values, x)
 
 def delta(arr):
     return (arr[1:] - arr[:-1])

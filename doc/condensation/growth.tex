@@ -182,7 +182,7 @@ B=\frac{4 D_{\rm v}^{'} M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}}
 \end{equation}
 
 \begin{equation}
-C=\frac{\delta H_{\rm v} M_{\rm w}}{R T_{\infty}}
+C=\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}}
 \end{equation}
 
 \begin{equation}
@@ -210,25 +210,25 @@ and
 
 where S is the relative humidity. The above 2 equations are solved for $\delta$ as a function of $D_{p}$ and compared. 
 
-Now, we also use Taylor series expansion to expand 15.73 and truncate the second and higher order terms. First, rearranging  eqn \ref{eqn:15.73} we get
+Now, we also use Taylor series expansion to expand 15.73 about zero and truncate the second and higher order terms. First, rearranging  eqn \ref{eqn:15.73} we get
 
 
-\begin{equation}
+\begin{equation}\label{eqn:26}
 f(\delta)=\frac{\delta}{A}-B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))=0.
 \end{equation}
 
 From Taylor series expansion, we have
-\begin{equation}
+\begin{equation}\label{eqn:27}
 0=f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta^{2}-0)+....
 \end{equation}
 
 Ignoring second and higher order terms, we then have
-\begin{equation}
+\begin{equation}\label{eqn:28}
 \delta=\frac{-f(0)}{f^{'}(0)},
 \end{equation}
 
 which can be expressed as
-\begin{equation}
+\begin{equation}\label{eqn:29}
 \frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}-A \exp(E-F) (1-C+E)}.
 \end{equation}
 
@@ -238,28 +238,27 @@ The above three expressions are plotted and compared. [see attached plots]
 
 Again from Taylor series expansion, we have
 
-\begin{equation}
+\begin{equation}\label{eqn:30}
 0=f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta-0)^{2}+ \frac{1}{3!} f^{'''}(0)(\delta-0)^{3}+...
 \end{equation}
 
 Ignoring third and higher order terms, we then have
-\begin{equation}
+\begin{equation}\label{eqn:31}
 0=f(0)+f^{'}(0)\delta+\frac{1}{2}f^{''}(0)\delta^{2}.
 \end{equation}
 
 By solving the above quadratic equation, we can get $\delta$.
 
-\subsection{Expressions of derivatives of $f(\delta)$}.
+\subsection{Expressions of derivatives of $f(\delta)$}
 
-\begin{eqnarray}
+\begin{eqnarray}\label{eqn:32}
 f^{'}(\delta)=\frac{1}{A}-B(\frac{1}{(1+\delta)^{2}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+
 \delta})-F) \\ \nonumber
 -\frac{1}{1+\delta}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}}))
 \end{eqnarray}
 
 
-
-\begin{eqnarray}
+\begin{eqnarray}\label{eqn:33}
 f^{''}(\delta)=-B(\frac{-2}{(1+\delta)^{3}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F) \\ \nonumber
 +\frac{2}{(1+\delta)^{2}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}}) \\ \nonumber
 -\frac{1}{1+\delta}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}})^{2} \\ \nonumber
@@ -267,18 +266,30 @@ f^{''}(\delta)=-B(\frac{-2}{(1+\delta)^{3}}\exp(C (\frac{\delta}{1+\delta})+E(\f
 \end{eqnarray}
 
 
-\begin{equation}
+\begin{equation}\label{eqn:34}
 f(0)=-B(S-\exp(E-F))
 \end{equation}
 
-\begin{equation}
+\begin{equation}\label{eqn:35}
 f^{'}(0)=\frac{1}{A}-B(\exp(E-F)-\exp(E-F)(C-E))
 \end{equation}
 
-\begin{eqnarray}
+Simplified as 
+
+\begin{equation}\label{eqn:36}
+f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-(C-E))).
+\end{equation}
+
+\begin{eqnarray}\label{eqn:37}
 f^{''}(0)=-B(-2\exp(E-F)+2\exp(E-F)(C-E) \\ \nonumber
 -\exp(E-F)(C-E)^{2}-\exp(E-F)(-2C+2E))
 \end{eqnarray}
+
+Simplified as 
+
+\begin{equation}\label{eqn:38}
+f^{''}(0)=-B(\exp(E-F)(-2+4(C-E)-(C-E)^2))
+\end{equation}
 
 
 \section{Majeed and Wexler (M\&W) }
@@ -488,7 +499,7 @@ As mentioned earlier,  the growth rate equation in S\&P is given as rate of chan
 First, mass change and diameter change has the following relationship,
 
 \begin{equation}\label{eqn:55}
-\frac{dm}{dt}=\frac{\pi}{2}\rho_wD_{p}^{2}\frac{dD_{p}}{dt}.
+\frac{dm}{dt}=\frac{\pi}{2}\rho_{\rm w}D_{\rm p}^{2}\frac{dD_{\rm p}}{dt}.
 \end{equation}
 
 Here we assume the droplet is dilute, otherwise we cannot use density of water to represent the density of the whole droplet.
@@ -531,10 +542,128 @@ where $\delta_{17}$ is given in eqn \ref{eqn:11}.
 
 \section{Treatment of density}
 
+\section{Treatment of hygroscopicity, $\nu$ and $\kappa$}
 
 
+1.1 need to show the formulation/scheme has one root under atmospheric condition
+by showing and arguing the first and second derivative of f when delta(0)
+need to run the above calculation in other range of temp, radius, pressure, ...
 
 
+1.2 need to show the formulation/scheme give correct sign of delta
+i.e. radius smaller than $d_{\rm eq}$, positive delta; vice versa
 
 
+2. then need to plot he error to give the accuracy of various formulation/scheme
+
+
+3. investigate the efficiency of the formulation/scheme
+
+\section{Terminology}
+
+water activity,
+continuum effect,
+hygroscopic growth factor
+
+
+\section{Schemes proposed to solve droplet growth equation 15.73 in S$\&$P} 
+
+To recap, the growth equation without any approximation is given as equation 15.74 in S$\&$P, which is repeated as follows,
+
+\begin{equation}
+\frac{\delta}{A}=B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E\frac{1}{\delta}-F))
+\end{equation}
+
+
+The first scheme, denoted by T1 hereafter, is obtained by keeping zeroth and first term of the Taylor series expansion of the above equation, which is given as 
+
+\begin{equation}
+\frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}-A\exp(E-F)(1-C+E)}.
+\end{equation}
+
+The second scheme, denoted by T2 hereafter, is obtained by keeping zeroth, first and second order of the Taylor series expansion of the above equation 15.73. The value of $\delta$ is one of the roots of the following quadratic equation,
+
+\begin{equation}\label{eqn:73}
+\frac{1}{2}f^{''}(0)\delta^{2}+f^{'}(0)\delta+f(0)=0.
+\end{equation}
+
+A scheme is devised to solve the above quadratic equation, which take the larger roots of the two as the solution. 
+It is proved in the following that in the usual range of environmental temperature $T_{\infty}$,  the larger of the two roots is in fact the value of $\delta$ that we are seeking. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The proof is based on the analysis of the signs of the three coefficients of the above quadratic equation \ref{eqn:73}.
+
+First, the second derivative is investigated as follows.
+\begin{equation}
+f^{''}(0)=-B(\exp(E-F)(-2+4(C-E)-(C-E)^2))
+\end{equation}
+Denote $C-E$ by y, then the above second derivative can be written as,
+
+\begin{equation}
+f^{''}(0)=B(\exp(E-F)(2-4y+y^2)).
+\end{equation}
+
+The sign of the second derivative is determined by the sign of the quadratic factor in terms of $y$, 
+since $B>0$.
+
+\begin{equation}
+y^2-4y+2=(y-2)^2-2
+\end{equation}
+
+From the above, it can be concluded that when $y=C-E>2+\sqrt{2}$, $f^{''}(0)>0$.
+The corresponding $D_{\rm p}$ can be found from the following,
+\begin{equation}\label{eqn:77}
+C-E=\frac{\Delta H_{\rm v}M_{\rm w}}{RT_{\infty}}-\frac{4M_{\rm w}\sigma_{\rm w}}{RT_{\infty}\rho_{\rm w}D_{\rm p}}>2+\sqrt{2},
+\end{equation} 
+which is equivalent to 
+\begin{equation}\label{eqn:78}
+D_{\rm p}>\frac{4 \sigma_{\rm w}}{\rho_{\rm w}}\frac{1}{\Delta H_{\rm v}-(2+\sqrt{2})\frac{R T_{\infty}}{M_{\rm w}}}.
+\end{equation}
+For the first derivatives, 
+\begin{equation}\label{eqn:79}
+f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-(C-E)))=f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-y))
+\end{equation}
+It can be seen that when $y>1$, $f^{'}(0)>0$ is guaranteed. The corresponding $D_{\rm p}$ is
+\begin{equation}\label{eqn:80}
+D_{\rm p}>\frac{4 \sigma_{\rm w}}{\rho_{\rm w}}\frac{1}{\Delta H_{\rm v}-\frac{R T_{\infty}}{M_{\rm w}}}.
+\end{equation}
+ For $f(0)$, 
+\begin{equation}\label{eqn:81}
+f(0)=-B(S-\exp(E-F)),
+\end{equation} 
+greater than zero when $S<\exp(E-F)$ and smaller than zero when $S>\exp(E-F)$.
+
+From eqn \ref{eqn:78} and \ref{eqn:80}, the value of $D_{\rm p}$ depends on environmental temperature only, $T_{\infty}$. A range of values of $D_{p}$ is calculated from $T_{\infty}=273K$ to $T_{\infty}=313K$ and summarized below.
+
+\begin{table}\label{table:2}
+\caption{Range of $D_{\rm p}$ under usual environmental temperature range}
+\begin{center}
+\begin{tabular}{cccc} \hline
+   & 273 K  &  293 K  &  313 K \\ \hline
+For $f^{''}(0)>0 $ & $D_{\rm p}>1.699\times 10^{-10} \rm m$  & $D_{\rm p}>1.729\times 10^{-10} \rm m$ & $D_{\rm p}>1.790\times 10^{-10} \rm m$   \\ 
+For $f^{'}(0)>0 $  & $D_{\rm p}>1.457\times 10^{-10} \rm m$ &  $D_{\rm p}>1.463\times 10^{-10} \rm m$ & $D_{\rm p}>1.469\times 10^{-10 \rm } \rm m$ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+From the above table, it can be seen that, under usual environmental temperature range, the $D_{\rm p}$ need to be greater than nanometer order of magnitude, which is usually the case for the aerosol existing in the atmosphere.
+This means generally, $f^{'}(0)$, $f^{''}(0)$ both are greater than zero. Depending on whether $f(0)>0$ or $f(0)<0$, the pair of roots can be both negative or of opposite respectively. However, no matter which case, the larger root of the two roots is the one that is sought. 
+
+For the former case, when both roots are negative, the larger one is closer to the Taylor series expansion at the $\delta=0$. 
+
+
+For the later case, when $f(0)<0$, which is $S>\exp(E-F)$ and physically implies the environmental saturation vapor pressure is larger than the equilibrium vapor pressure over the droplet curved surface, the droplet should growth accordingly, $\delta>0$.
+
+
+The third and fourth schemes are actually newton iterations repeating twice and three times, and denoted by N2 and N3. Note that the Newton iteration once is actually taylor series expansion with zeroth and first order term. Newton iteration formula is given as,
+
+\begin{equation}
+\delta_{\rm n+1}=\delta_{\rm n}-\frac{f(\delta_{\rm n})}{f^{'}(\delta_{\rm n})}.
+\end{equation}
+
+The above accuracy of aforementioned schemes are compared. It is found that the T2, N2 and N3 have reasonably high accuracies. T1 accuracy is far off from the other three schemes.
+
+ 
+The computational efficiencies are remained to be examined.
+ 
 \end{document}

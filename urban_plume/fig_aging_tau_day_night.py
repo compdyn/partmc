@@ -16,43 +16,43 @@ from fig_helper import *
 out_prefix = "figs_aging/aging_tau_day_night"
 
 plot_info = {
-    "day_num": {"label": r"day/num",
-                 "label_time": 0.6, "label_pos": [0, 1],
-                 "linewidth": style.linewidth.THIck,
-                 "color": color_list[0], "pattern": line_style_list[0],
-                 "graph": "g1"},
-    "day_num_cond": {"label": r"day/num/only-cond",
-                 "label_time": 0.6, "label_pos": [0, 1],
+    "day_num": {"label": r"$\tau_{\rm N,day}$",
+                 "label_time": 0.32, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g1"},
-    "night_num": {"label": r"night/num",
-                 "label_time": 0.6, "label_pos": [0, 1],
-                 "linewidth": style.linewidth.THIck,
-                 "color": color_list[1], "pattern": line_style_list[1],
-                 "graph": "g2"},
-    "night_num_cond": {"label": r"night/num/only-cond",
-                 "label_time": 0.6, "label_pos": [0, 1],
+#    "day_num_cond": {"label": r"$\tau^{\rm cond}_{\rm N,day}$",
+#                 "label_time": 0.6, "label_pos": [0, 1],
+#                 "linewidth": style.linewidth.Thick,
+#                 "color": color_list[1], "pattern": line_style_list[1],
+#                 "graph": "g1"},
+    "night_num": {"label": r"$\tau_{\rm N,night}$",
+                 "label_time": 0.35, "label_pos": [1, 0],
                  "linewidth": style.linewidth.Thick,
-                 "color": color_list[1], "pattern": line_style_list[1],
+                 "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g2"},
-    "day_mass": {"label": r"day/mass",
-                 "label_time": 0.6, "label_pos": [0, 1],
-                 "linewidth": style.linewidth.THIck,
-                 "color": color_list[2], "pattern": line_style_list[2],
-                 "graph": "g1"},
-    "day_mass_cond": {"label": r"day/mass/only-cond",
-                 "label_time": 0.6, "label_pos": [0, 1],
+    "night_num_cond": {"label": r"$\tau^{\rm cond}_{\rm N,night}$",
+                 "label_time": 0.78, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
-                 "color": color_list[2], "pattern": line_style_list[2],
-                 "graph": "g1"},
-    "night_mass": {"label": r"night/mass",
-                 "label_time": 0.6, "label_pos": [0, 1],
-                 "linewidth": style.linewidth.THIck,
-                 "color": color_list[3], "pattern": line_style_list[3],
+                 "color": color_list[1], "pattern": line_style_list[2],
                  "graph": "g2"},
-    "night_mass_cond": {"label": r"night/mass/only-cond",
-                 "label_time": 0.6, "label_pos": [0, 1],
+    "day_mass": {"label": r"$\tau_{\rm M,day}$",
+                 "label_time": 0.35, "label_pos": [1, 0],
+                 "linewidth": style.linewidth.Thick,
+                 "color": color_list[2], "pattern": line_style_list[1],
+                 "graph": "g1"},
+#    "day_mass_cond": {"label": r"$\tau^{\rm cond}_{\rm M,day}$",
+#                 "label_time": 0.6, "label_pos": [0, 1],
+#                 "linewidth": style.linewidth.Thick,
+#                 "color": color_list[3], "pattern": line_style_list[3],
+#                 "graph": "g1"},
+    "night_mass": {"label": r"$\tau_{\rm M,night}$",
+                 "label_time": 0.25, "label_pos": [0, 1],
+                 "linewidth": style.linewidth.Thick,
+                 "color": color_list[2], "pattern": line_style_list[1],
+                 "graph": "g2"},
+    "night_mass_cond": {"label": r"$\tau^{\rm cond}_{\rm M,night}$",
+                 "label_time": 0.85, "label_pos": [1, 0],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[3], "pattern": line_style_list[3],
                  "graph": "g2"},
@@ -103,7 +103,7 @@ for use_color in [True, False]:
                               title = r"critical supersaturation (\%)",
                               painter = grid_painter),
         y = graph.axis.log(min = 1e-1,
-                           max = 1e4,
+                           max = 1e3,
                            title = r"aging timescale $\tau$ (hours)",
                            painter = major_grid_painter)))
     g2 = c.insert(graph.graphxy(
@@ -125,11 +125,11 @@ for use_color in [True, False]:
 
     for (key, y_data) \
             in [("day_num", day_num),
-                ("day_num_cond", day_num_cond),
+#                ("day_num_cond", day_num_cond),
                 ("night_num", night_num),
                 ("night_num_cond", night_num_cond),
                 ("day_mass", day_mass),
-                ("day_mass_cond", day_mass_cond),
+#                ("day_mass_cond", day_mass_cond),
                 ("night_mass", night_mass),
                 ("night_mass_cond", night_mass_cond)]:
         g = graphs[plot_info[key]["graph"]]
@@ -148,11 +148,11 @@ for use_color in [True, False]:
 
     for (key, y_data) \
             in [("day_num", day_num_smooth),
-                ("day_num_cond", day_num_cond_smooth),
+#                ("day_num_cond", day_num_cond_smooth),
                 ("night_num", night_num_smooth),
                 ("night_num_cond", night_num_cond_smooth),
                 ("day_mass", day_mass_smooth),
-                ("day_mass_cond", day_mass_cond_smooth),
+#                ("day_mass_cond", day_mass_cond_smooth),
                 ("night_mass", night_mass_smooth),
                 ("night_mass_cond", night_mass_cond_smooth)]:
         g = graphs[plot_info[key]["graph"]]
@@ -172,11 +172,11 @@ for use_color in [True, False]:
 
     for (key, y_data) \
             in [("day_num", day_num_smooth),
-                ("day_num_cond", day_num_cond_smooth),
+#                ("day_num_cond", day_num_cond_smooth),
                 ("night_num", night_num_smooth),
                 ("night_num_cond", night_num_cond_smooth),
                 ("day_mass", day_mass_smooth),
-                ("day_mass_cond", day_mass_cond_smooth),
+#                ("day_mass_cond", day_mass_cond_smooth),
                 ("night_mass", night_mass_smooth),
                 ("night_mass_cond", night_mass_cond_smooth)]:
         g = graphs[plot_info[key]["graph"]]
@@ -185,6 +185,9 @@ for use_color in [True, False]:
                               plot_info[key]["label_time"],
                               plot_info[key]["label"],
                               plot_info[key]["label_pos"])
+
+    write_text_outside(g1, "day (12:00 LST to 15:00 LST)")
+    write_text_outside(g2, "night (18:00 LST to 04:00 LST)")
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

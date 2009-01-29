@@ -1093,3 +1093,35 @@ def smooth(x,window_len=10,window='hanning'):
 
     y=numpy.convolve(w/w.sum(),s,mode='same')
     return y[window_len-1:-window_len+1]
+
+def cumulative_plot_data(x, y_inc, start = 0.0, final = None):
+    plot_data = []
+    y = start
+    for i in range(x.size):
+        plot_data.append([x[i], y])
+        y += y_inc[i]
+        if (i == x.size - 1) and (final != None):
+            y = final
+        plot_data.append([x[i], y])
+    return plot_data
+
+def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
+                      min_x_step = None, min_y_step = None):
+    plot_data = []
+    i = 0
+    y = start
+    plot_data.append([x[i], y])
+    last_x, last_y = x[i], y
+    for i in range(1,x.size):
+        y += y_inc[i]
+        if (i == x.size - 1) and (final != None):
+            y = final
+        x_step = x[i] - last_x
+        y_step = y - last_y
+        if (x_step > min_x_step) \
+                or (y_step > min_y_step) \
+                or (i == x.size - 1):
+            plot_data.append([x[i], y])
+            last_x = x[i]
+            last_y = y
+    return plot_data

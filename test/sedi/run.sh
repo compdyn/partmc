@@ -3,10 +3,10 @@
 cat README
 sleep 1
 
-echo ../../src/partmc run_mc.spec
-../../src/partmc run_mc.spec
-echo ../../src/partmc run_sect.spec
-../../src/partmc run_sect.spec
+echo ../../build/partmc run_mc.spec
+../../build/partmc run_mc.spec
+echo ../../build/partmc run_sect.spec
+../../build/partmc run_sect.spec
 
 echo ./plot.py
 ./plot.py

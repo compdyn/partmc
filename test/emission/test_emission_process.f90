@@ -7,112 +7,132 @@
 
 program test_emission_process
 
-  use pmc_output_state_netcdf
-  use pmc_bin_grid
-  use pmc_aero_data
-  use pmc_aero_state
-  use pmc_gas_data
-  use pmc_gas_state
-  use pmc_env_state
+  use netcdf
 
-  character(len=1000) :: filename
-  type(bin_grid_t) :: bin_grid
-  type(aero_data_t) :: aero_data
-  type(aero_state_t) :: aero_state
-  type(gas_data_t) :: gas_data
-  type(gas_state_t) :: gas_state
-  type(env_state_t) :: env_state
-  integer :: index
-  real*8 :: time
-  real*8 :: del_t
-  integer :: i_loop
+  integer, parameter :: out_unit = 64
 
-  integer :: i_spec, i_bin, i_part
-  type(aero_particle_t), pointer :: aero_particle
+  character(len=1000) :: in_filename, out_filename
+  integer :: ncid
+  integer :: dimid_time, dimid_radius, dimid_aero_species, dimid_unit
+  integer :: varid_time, varid_radius, varid_aero_species, varid_unit
+  integer :: varid_aero
+  integer :: n_time, n_radius, n_aero_species, n_unit
+  character(len=1000) :: tmp_str, aero_species_names, data_units
+  real*8, allocatable :: time(:)
+  real*8, allocatable :: radius(:)
+  real*8, allocatable :: aero(:,:,:,:)
+  integer :: xtype, ndims, nAtts
+  integer, dimension(nf90_max_var_dims) :: dimids
+  integer :: ios, i_time, i_radius
 
-  call bin_grid_make(bin_grid, 160, rad2vol(1d-8), rad2vol(1d-3))
+  ! process commandline arguments
+  if (iargc() .ne. 2) then
+     write(6,*) 'Usage: test_emission_process <netcdf_filename> <output_filename>'
+     call exit(2)
+  endif
+  call getarg(1, in_filename)
+  call getarg(2, out_filename)
 
-  call env_state_alloc(env_state)
-  call gas_data_alloc(gas_data, 0)
-  call gas_state_alloc(gas_state, 0)
-  call aero_data_alloc(aero_data, 0)
-  call aero_state_alloc(0, 0, aero_state)
+  ! read NetCDF file
+  call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
 
-  filename = "out/emission_mc_state_0001_00000009.nc"
-  call input_state_netcdf(filename, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop)
+  call nc_check(nf90_inq_dimid(ncid, "time", dimid_time))
+  call nc_check(nf90_Inquire_Dimension(ncid, dimid_time, &
+       tmp_str, n_time))
+  allocate(time(n_time))
+  call nc_check(nf90_inq_varid(ncid, "time", varid_time))
+  call nc_check(nf90_get_var(ncid, varid_time, time))
+  write(*,*) "n_time:", n_time
+  write(*,*) "min time:", minval(time)
+  write(*,*) "max time:", maxval(time)
 
-  write(*,*) '# misc #################################################'
-  write(*,*) 'index ', index
-  write(*,*) 'time ', time
-  write(*,*) 'del_t ', del_t
-  write(*,*) 'i_loop ', i_loop
+  call nc_check(nf90_inq_dimid(ncid, "radius", dimid_radius))
+  call nc_check(nf90_Inquire_Dimension(ncid, dimid_radius, &
+       tmp_str, n_radius))
+  allocate(radius(n_radius))
+  call nc_check(nf90_inq_varid(ncid, "radius", varid_radius))
+  call nc_check(nf90_get_var(ncid, varid_radius, radius))
+  write(*,*) "n_radius:", n_radius
+  write(*,*) "min radius:", minval(radius)
+  write(*,*) "max radius:", maxval(radius)
 
-  write(*,*) '# env_state ############################################'
-  write(*,*) "temperature", env_state%temp
-  write(*,*) "relative_humidity", env_state%rel_humid
-  write(*,*) "pressure", env_state%pressure
-  write(*,*) "longitude", env_state%longitude
-  write(*,*) "latitude", env_state%latitude
-  write(*,*) "altitude", env_state%altitude
-  write(*,*) "start_time_of_day", env_state%start_time
-  write(*,*) "start_day", env_state%start_day
-  write(*,*) "elapsed_time", env_state%elapsed_time
-  write(*,*) "height", env_state%height
+  call nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
+  call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
+       tmp_str, n_aero_species))
+  call nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
+  call nc_check(nf90_get_att(ncid, varid_aero_species, &
+       "names", aero_species_names))
+  write(*,*) "n_aero_species:", n_aero_species
+  write(*,*) "aero_species_names: ", trim(aero_species_names)
 
-  write(*,*) '# gas_data #############################################'
-  write(*,*) 'n_spec', gas_data%n_spec
-  do i_spec = 1,gas_data%n_spec
-     write(*,*) i_spec, trim(gas_data%name(i_spec)), &
-          gas_data%mosaic_index(i_spec), gas_data%molec_weight(i_spec)
+  call nc_check(nf90_inq_dimid(ncid, "unit", dimid_unit))
+  call nc_check(nf90_Inquire_Dimension(ncid, dimid_unit, &
+       tmp_str, n_unit))
+  if (n_unit /= 4) then
+     write(*,*) "ERROR: unexpected number of units"
+     call exit(1)
+  end if
+  call nc_check(nf90_inq_varid(ncid, "unit", varid_unit))
+  call nc_check(nf90_get_att(ncid, varid_unit, &
+       "data_units", data_units))
+  write(*,*) "n_unit:", n_unit
+  write(*,*) "data_units: ", trim(data_units)
+
+  call nc_check(nf90_inq_varid(ncid, "aero", varid_aero))
+  call nc_check(nf90_Inquire_Variable(ncid, varid_aero, tmp_str, &
+       xtype, ndims, dimids, nAtts))
+  if ((ndims /= 4) &
+       .or. (dimids(1) /= dimid_radius) &
+       .or. (dimids(2) /= dimid_aero_species) &
+       .or. (dimids(3) /= dimid_unit) &
+       .or. (dimids(4) /= dimid_time)) then
+     write(*,*) "ERROR: unexpected aero dimids"
+     call exit(1)
+  end if
+  allocate(aero(n_radius, n_aero_species, n_unit, n_time))
+  call nc_check(nf90_get_var(ncid, varid_aero, aero))
+
+  call nc_check(nf90_close(ncid))
+
+  ! output data
+  open(unit=out_unit, file=out_filename, iostat=ios)
+  if (ios /= 0) then
+     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
+          trim(out_filename), ' for writing: ', ios
+     call exit(1)
+  end if
+  write(out_unit, '(e25.15)', advance='no') 0d0
+  do i_radius = 1,n_radius
+     write(out_unit, '(e25.15)', advance='no') radius(i_radius)
   end do
-
-  write(*,*) '# gas_state ############################################'
-  do i_spec = 1,gas_data%n_spec
-     write(*,*) i_spec, gas_state%conc(i_spec)
+  write(out_unit, '(a)') ''
+  do i_time = 1,n_time
+     write(out_unit, '(e25.15)', advance='no') time(i_time)
+     do i_radius = 1,n_radius
+        write(out_unit, '(e25.15)', advance='no') &
+             aero(i_radius, 1, 1, i_time)
+     end do
+     write(out_unit, '(a)') ''
   end do
+  close(out_unit)
 
-  write(*,*) '# aero_data ############################################'
-  write(*,*) 'n_spec', aero_data%n_spec
-  write(*,*) 'i_water', aero_data%i_water
-  write(*,'(a4,a10,a4,a10,a4,a10,a10,a10)') 'i', 'name', 'mos', 'den', &
-       'ion', 'solu', 'wght', 'kap'
-  do i_spec = 1,aero_data%n_spec
-     write(*,'(i4,a10,i4,e10.2,i4,e10.2,e10.2,e10.2)') i_spec, &
-          trim(aero_data%name(i_spec)), aero_data%mosaic_index(i_spec), &
-          aero_data%density(i_spec), aero_data%num_ions(i_spec), &
-          aero_data%solubility(i_spec), aero_data%molec_weight(i_spec), &
-          aero_data%kappa(i_spec)
-  end do
+  deallocate(time)
+  deallocate(radius)
+  deallocate(aero)
 
-  write(*,*) '# aero_state ###########################################'
-  write(*,*) 'n_part', aero_state%n_part
-  do i_bin = 1,bin_grid%n_bin
-     write(*,*) i_bin, aero_state%bin(i_bin)%n_part
-!     do i_part = 1,aero_state%bin(i_bin)%n_part
-!        write(*,*) '(', i_bin, ',', i_part, ')'
-!        aero_particle => aero_state%bin(i_bin)%particle(i_part)
-!        write(*,*) '  vol', aero_particle%vol
-!        write(*,*) '  n_orig_part', aero_particle%n_orig_part
-!        write(*,*) '  absorb_cross_sect', aero_particle%absorb_cross_sect
-!        write(*,*) '  scatter_cross_sect', aero_particle%scatter_cross_sect
-!        write(*,*) '  asymmetry', aero_particle%asymmetry
-!        write(*,*) '  refract_shell', aero_particle%refract_shell
-!        write(*,*) '  refract_core', aero_particle%refract_core
-!        write(*,*) '  core_vol', aero_particle%core_vol
-!        write(*,*) '  water_hyst_leg', aero_particle%water_hyst_leg
-!        write(*,*) '  id', aero_particle%id
-!        write(*,*) '  least_create_time', aero_particle%least_create_time
-!        write(*,*) '  greatest_create_time', aero_particle%greatest_create_time
-!     end do
-  end do
+contains
 
-  call bin_grid_free(bin_grid)
-  call env_state_free(env_state)
-  call gas_data_free(gas_data)
-  call gas_state_free(gas_state)
-  call aero_data_free(aero_data)
-  call aero_state_free(aero_state)
+  subroutine nc_check(status)
+
+    !> Status return value.
+    integer, intent(in) :: status
+
+    if (status /= NF90_NOERR) then
+       write(0,*) nf90_strerror(status)
+       call exit(1)
+    end if
+
+  end subroutine nc_check
 
 end program test_emission_process
+

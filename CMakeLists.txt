@@ -99,6 +99,8 @@ add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
 add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
 add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
 add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
+add_test(emission_1 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_1.sh)
+add_test(emission_2 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_2.sh)
 
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/run_test)
 
@@ -140,19 +142,7 @@ target_link_libraries(bidisperse_ode ${EXTRA_LIBS})
 ######################################################################
 
 add_executable(test_emission_process
-	test/emission/test_emission_process.f90 src/aero_state.f90
-	src/aero_binned.f90 src/bin_grid.f90 src/condensation.f90
-	src/constants.f90 src/env_data.f90 src/env_state.f90
-	src/aero_dist.f90 src/kernel_golovin.f90 src/kernel_sedi.f90
-	src/kernel_constant.f90 src/kernel_brown.f90
-	src/kernel_zero.f90 src/aero_data.f90 src/run_exact.f90
-	src/run_mc.f90 src/util.f90 src/run_sect.f90
-	src/output_state.f90 src/output_state_netcdf.f90
-	src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
-	src/coagulation.f90 src/kernel.f90 src/output_processed.f90
-	src/inout.f90 src/rand.f90 src/aero_particle.f90
-	src/aero_particle_array.f90 src/mpi.f90 src/process_spec.f90
-	src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90)
+	test/emission/test_emission_process.f90)
 
 target_link_libraries(test_emission_process ${EXTRA_LIBS})
 

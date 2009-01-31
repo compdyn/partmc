@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# make sure that the current directory is the one where this script is
+cd ${0%/*}
+
+../../partmc run_mc.spec
+../../partmc run_exact.spec
+../../test_emission_process out/emission_mc_0001.nc out/emission_mc.txt
+../../test_emission_process out/emission_exact_0001.nc out/emission_exact.txt
+../../numeric_diff out/emission_mc.txt out/emission_exact.txt 0 1e-3
+exit $?

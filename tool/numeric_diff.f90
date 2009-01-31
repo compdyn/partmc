@@ -82,7 +82,7 @@ program numeric_diff
           .or. ((.not. eol1) .and. eol2) &
           .or. (eof1 .and. (.not. eof2)) &
           .or. ((.not. eof1) .and. eof2)) then
-        write(*,'(a,i8,a,i8)') 'different at', row, ',', col
+        write(*,'(a,i8,i8)') 'different at', row, col
         call exit(1)
      end if
      if (len(word1) > 0) then
@@ -102,14 +102,14 @@ program numeric_diff
   norm1 = sqrt(norm1)
   norm2 = sqrt(norm2)
   abs_error = sqrt(abs_error)
-  rel_error = abs_error / (norm1 + norm2)
+  rel_error = 2d0 * abs_error / (norm1 + norm2)
   
   ! check equivalence
   if (((abs_tol == 0d0) .or. (abs_error < abs_tol)) &
        .and. ((rel_tol == 0d0) .or. (rel_error < rel_tol))) then
      call exit(0)
   end if
-  write(*,'(a,e12.3,a,e12.3)') 'different', abs_error, '/', rel_error
+  write(*,'(a,e12.3,e12.3)') 'different', abs_error, rel_error
   call exit(1)
 
 contains
@@ -125,7 +125,7 @@ contains
     real*8 :: val
     integer :: ios
 
-    read(string, '(f20.0)', iostat=ios) val
+    read(string, '(e40.0)', iostat=ios) val
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to real: IOSTAT = ', ios

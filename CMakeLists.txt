@@ -36,9 +36,9 @@ find_library(NETCDF_FORTRAN_LIB netcdff
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 
-set(NETCDF_LIB ${NETCDF_C_LIB})
+set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
-  set(NETCDF_LIB ${NETCDF_LIB} ${NETCDF_FORTRAN_LIB})
+  set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
 endif(NETCDF_FORTRAN_LIB)
 
 ######################################################################
@@ -68,7 +68,7 @@ find_library(MOSAIC_LIB mosaic
 set(EXTRA_LIBS)
 
 include_directories(${NETCDF_INCLUDE_DIR})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIB})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIBS})
 
 if(ENABLE_MOSAIC)
   include_directories(${MOSAIC_INCLUDE_DIR})
@@ -142,17 +142,16 @@ target_link_libraries(bidisperse_ode ${EXTRA_LIBS})
 
 ######################################################################
 
-add_executable(test_emission_process
-	test/emission/test_emission_process.f90)
-
-target_link_libraries(test_emission_process ${EXTRA_LIBS})
-
-######################################################################
-
 add_executable(poisson_sample test/poisson/poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
 
-target_link_libraries(poisson_sample ${EXTRA_LIBS})
+target_link_libraries(poisson_sample)
+
+######################################################################
+
+add_executable(extract_summary tool/extract_summary.f90)
+
+target_link_libraries(extract_summary ${NETCDF_LIBS})
 
 ######################################################################
 

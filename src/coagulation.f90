@@ -104,12 +104,12 @@ contains
     !> Second rand particle.
     integer, intent(out) :: s2
 
-    if ((aero_state%bin(b1)%n_part < 1) &
-         .or. (aero_state%bin(b2)%n_part < 1) &
-         .or. ((b1 == b2) .and. (aero_state%bin(b1)%n_part < 2))) then
-       write(*,*) 'ERROR: find_rand_pair(): insufficient particles in bins', &
-            b1, b2
-       call exit(1)
+    ! check we have enough particles to avoid being stuck in an
+    ! infinite loop below
+    call assert(362349482, aero_state%bin(b1)%n_part >= 1)
+    call assert(479121681, aero_state%bin(b2)%n_part >= 1)
+    if (b1 == b2) then
+       call assert(161928491, aero_state%bin(b1)%n_part >= 2)
     end if
     
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
@@ -165,6 +165,7 @@ contains
     call aero_particle_alloc(new_particle, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
     particle_2 => aero_state%bin(b2)%particle(s2)
+    call assert(371947172, particle_1%id /= particle_2%id)
 
     ! coagulate particles
     call aero_particle_coagulate(particle_1, particle_2, new_particle)

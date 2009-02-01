@@ -822,8 +822,9 @@ contains
     
     real*8 :: check_bin_v, check_vol_den, vol_tol
     real*8 :: num_tol, state_num_den
-    integer :: i, k, k_check, s, n_part_check
+    integer :: i, k, k_check, s, n_part_check, id, max_id
     logical :: error
+    logical, allocatable :: id_present(:)
     
     error = .false.
 
@@ -881,10 +882,34 @@ contains
           end if
        end do
     end do
+
+    ! check we don't have duplicate IDs
+    max_id = 0
+    do k = 1,bin_grid%n_bin
+       do i = 1,aero_state%bin(k)%n_part
+          id = aero_state%bin(k)%particle(i)%id
+          if (id > max_id) max_id = id
+       end do
+    end do
+    allocate(id_present(max_id))
+    do i = 1,max_id
+       id_present(i) = .false.
+    end do
+    do k = 1,bin_grid%n_bin
+       do i = 1,aero_state%bin(k)%n_part
+          id = aero_state%bin(k)%particle(i)%id
+          if (id_present(id)) then
+             write(0,'(a15,a10,a10)') 'duplicate id', 'bin', 'index'
+             write(0,'(i15,i10,i10)') id, k, i
+             error = .true.
+          end if
+          id_present(id) = .true.
+       end do
+    end do
+    deallocate(id_present)
     
     if (error) then
-       write(0,*) 'ERROR: aero_state_check() failed'
-       call exit(2)
+       call die_msg(371923719, 'aero_state_check() failed')
     end if
     
   end subroutine aero_state_check

@@ -390,7 +390,7 @@ contains
     end interface
     
     logical did_coag
-    integer i, j, n_samp, i_samp, M
+    integer i, j, n_samp, i_samp
     real*8 n_samp_real
 
     tot_n_samp = 0
@@ -404,7 +404,6 @@ contains
           n_samp = prob_round(n_samp_real)
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
-             M = aero_state_total_particles(aero_state)
              ! check we still have enough particles to coagulate
              if ((aero_state%bin(i)%n_part < 1) &
                   .or. (aero_state%bin(j)%n_part < 1) &

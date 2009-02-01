@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -278,6 +278,7 @@ contains
             aero_particle_array%n_spec)
        call aero_particle_copy(aero_particle_array%particle(i), &
             aero_particle_array%particle(i + n))
+       call aero_particle_new_id(aero_particle_array%particle(i + n))
     end do
     aero_particle_array%n_part = 2 * n
 

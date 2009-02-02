@@ -123,10 +123,7 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/aero_particle.f90 src/aero_particle_array.f90
                src/mpi.f90 src/process_spec.f90 src/netcdf.f90
                src/aero_info.f90 src/aero_info_array.f90)
-
 target_link_libraries(partmc ${EXTRA_LIBS})
-
-######################################################################
 
 add_executable(test_bidisperse_ode
 	       test/bidisperse/test_bidisperse_ode.f90
@@ -139,30 +136,21 @@ add_executable(test_bidisperse_ode
 	       src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
 	       src/output_processed.f90 src/process_spec.f90
 	       src/aero_info.f90 src/aero_info_array.f90)
-
 target_link_libraries(test_bidisperse_ode ${EXTRA_LIBS})
-
-######################################################################
 
 add_executable(test_bidisperse_extract
                test/bidisperse/test_bidisperse_extract.f90)
-
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
-
-######################################################################
 
 add_executable(poisson_sample test/poisson/poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
-
 target_link_libraries(poisson_sample)
 
-######################################################################
-
 add_executable(extract_summary tool/extract_summary.f90)
-
 target_link_libraries(extract_summary ${NETCDF_LIBS})
 
-######################################################################
+add_executable(extract_summary_gas tool/extract_summary_gas.f90)
+target_link_libraries(extract_summary_gas ${NETCDF_LIBS})
 
 add_executable(numeric_diff tool/numeric_diff.f90)
 

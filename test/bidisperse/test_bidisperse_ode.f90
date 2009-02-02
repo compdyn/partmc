@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -30,6 +30,8 @@ program bidisperse_ode
   real*8, parameter :: r_big_init = 1d-4
   !> Initial number of small particles.
   real*8, parameter :: n_small_init = 10000d0
+  !> Particle density (kg/m^3).
+  real*8, parameter :: density = 1000d0
   !> Total simulation time.
   real*8, parameter :: t_max = 600d0
   !> Timestep.
@@ -49,7 +51,7 @@ program bidisperse_ode
   !> Output unit number.
   integer, parameter :: out_unit = 33
   !> Output filename.
-  character(len=*), parameter :: out_name = "out/bidisperse_ode_counts.d"
+  character(len=*), parameter :: out_name = "out/bidisperse_ode_data.txt"
   
   type(env_state_t) :: env_state
   integer :: i_step, n_step
@@ -68,12 +70,12 @@ program bidisperse_ode
   n_step = nint(t_max / del_t) + 1
   v_big = v_big_init + (n_small_init - n_small) * v_small
   write(*,'(a8,a14,a14,a9)') &
-       't', 'n_small', 'v_big', 'n_coag'
+       't', 'n_small', 'm_big', 'n_coag'
   write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-       time, n_small / comp_vol, v_big / comp_vol, &
+       time, n_small / comp_vol, v_big * density / comp_vol, &
        n_small_init - n_small
   write(out_unit,'(e20.10,e20.10,e20.10)') &
-       time, n_small / comp_vol, v_big / comp_vol
+       time, n_small / comp_vol, v_big * density / comp_vol
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call bidisperse_step(v_small, v_big_init, n_small_init, &
@@ -81,12 +83,12 @@ program bidisperse_ode
      v_big = v_big_init + (n_small_init - n_small) * v_small
      if (mod(i_step - 1, nint(t_progress / del_t)) .eq. 0) then
         write(*,'(a8,a14,a14,a9)') &
-             't', 'n_small', 'v_big', 'n_coag'
+             't', 'n_small', 'm_big', 'n_coag'
         write(*,'(f8.1,e14.5,e14.5,f9.2)') &
-             time, n_small / comp_vol, v_big / comp_vol, &
+             time, n_small / comp_vol, v_big * density / comp_vol, &
              n_small_init - n_small
         write(out_unit,'(e20.10,e20.10,e20.10)') &
-             time, n_small / comp_vol, v_big / comp_vol
+             time, n_small / comp_vol, v_big * density / comp_vol
      end if
   end do
 

@@ -5,7 +5,7 @@
 ! Read a NetCDF summary file and write out the size- and time-resolved
 ! number or mass density in text format.
 
-program extract_summary
+program extract_summary_aero
 
   use netcdf
 
@@ -148,4 +148,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_summary
+end program extract_summary_aero

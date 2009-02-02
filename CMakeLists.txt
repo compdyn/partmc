@@ -146,8 +146,8 @@ add_executable(poisson_sample test/poisson/poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
 target_link_libraries(poisson_sample)
 
-add_executable(extract_summary tool/extract_summary.f90)
-target_link_libraries(extract_summary ${NETCDF_LIBS})
+add_executable(extract_summary_aero tool/extract_summary_aero.f90)
+target_link_libraries(extract_summary_aero ${NETCDF_LIBS})
 
 add_executable(extract_summary_gas tool/extract_summary_gas.f90)
 target_link_libraries(extract_summary_gas ${NETCDF_LIBS})

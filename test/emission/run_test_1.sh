@@ -5,7 +5,7 @@ cd ${0%/*}
 
 ../../partmc run_mc.spec
 ../../partmc run_exact.spec
-../../extract_summary num out/emission_mc_0001.nc out/emission_mc.txt
-../../extract_summary num out/emission_exact_0001.nc out/emission_exact.txt
+../../extract_summary_aero num out/emission_mc_0001.nc out/emission_mc.txt
+../../extract_summary_aero num out/emission_exact_0001.nc out/emission_exact.txt
 ../../numeric_diff out/emission_mc.txt out/emission_exact.txt 0 1e-2
 exit $?

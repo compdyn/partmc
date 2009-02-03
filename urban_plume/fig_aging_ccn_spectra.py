@@ -14,10 +14,10 @@ sys.path.append(".")
 from fig_helper import *
 
 plot_info_list = [
-    {"time_hour": 1, "label_x": 2, "label_pos": [0, 0],
+    {"time_hour": 1, "label_x": 1.2, "label_pos": [0, 0],
      "linewidth": style.linewidth.Thick,
      "color": color_list[0], "pattern": line_style_list[0]},
-    {"time_hour": 24, "label_x": 0.6, "label_pos": [0, 0],
+    {"time_hour": 24, "label_x": 0.18, "label_pos": [1, 1],
      "linewidth": style.linewidth.Thick,
      "color": color_list[2], "pattern": line_style_list[1]},
     ]
@@ -43,17 +43,17 @@ def get_plot_data(filename):
         critical_ss,
         ones_like(critical_ss) / critical_ss.size * 100.0,
         final = 100.0,
-        min_x_step = 0.1, min_y_step = 0.1)
+        min_x_factor = 1.1, min_y_step = 0.3)
 
     return (plot_data, env_state)
 
 for use_color in [True, False]:
     g = graph.graphxy(
         width = 6.8,
-        x = graph.axis.linear(min = 0,
-                              max = 4,
-                              title = r"critical supersaturation $S$ (\%)",
-                              painter = grid_painter),
+        x = graph.axis.log(min = 0.01,
+                           max = 10,
+                           title = r"critical supersaturation $S$ (\%)",
+                           painter = grid_painter),
         y = graph.axis.linear(min = 0.0,
                               max = 100.0,
                               title = r"cumulative number fraction (\%)",

@@ -1106,7 +1106,8 @@ def cumulative_plot_data(x, y_inc, start = 0.0, final = None):
     return plot_data
 
 def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
-                      min_x_step = None, min_y_step = None):
+                      min_x_step = None, min_y_step = None,
+                      min_x_factor = None, min_y_factor = None):
     plot_data = []
     i = 0
     y = start
@@ -1116,10 +1117,10 @@ def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
         y += y_inc[i]
         if (i == x.size - 1) and (final != None):
             y = final
-        x_step = x[i] - last_x
-        y_step = y - last_y
-        if (x_step > min_x_step) \
-                or (y_step > min_y_step) \
+        if ((min_x_step != None) and (x[i] - last_x > min_x_step)) \
+                or ((min_y_step != None) and (y - last_y > min_y_step)) \
+                or ((min_x_factor != None) and (x[i]/last_x > min_x_factor)) \
+                or ((min_y_factor != None) and (y/last_y > min_y_factor)) \
                 or (i == x.size - 1):
             plot_data.append([x[i], y])
             last_x = x[i]

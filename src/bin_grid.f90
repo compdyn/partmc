@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -150,6 +150,9 @@ contains
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)
     bin_grid_particle_in_bin = k
+    !FIXME: above should be equivalent to:
+    !    i_bin = ceiling((log(radius) - log(r_min)) &
+    !         / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
     
   end function bin_grid_particle_in_bin
   

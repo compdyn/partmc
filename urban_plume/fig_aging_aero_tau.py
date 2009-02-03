@@ -18,61 +18,73 @@ out_prefix = "figs_aging/aging_aero_tau"
 plot_info = {
     "num_low": {"label": r"$\tau_{\rm N}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g11"},
     "num_low_cond": {"label": r"$\tau^{\rm cond}_{\rm N}$",
-                 "label_time": 12, "label_pos": [1, 1],
+                 "label_time": 14, "label_pos": [1, 1],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g11"},
     "num_mid": {"label": r"$\tau_{\rm N}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g21"},
     "num_mid_cond": {"label": r"$\tau^{\rm cond}_{\rm N}$",
-                 "label_time": 12, "label_pos": [1, 1],
+                 "label_time": 11, "label_pos": [1, 1],
+                 "label_offset": 2 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g21"},
     "num_high": {"label": r"$\tau_{\rm N}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g31"},
     "num_high_cond": {"label": r"$\tau^{\rm cond}_{\rm N}$",
-                 "label_time": 12, "label_pos": [1, 1],
+                 "label_time": 13, "label_pos": [1, 1],
+                 "label_offset": 2 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g31"},
     "mass_low": {"label": r"$\tau_{\rm M}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g12"},
     "mass_low_cond": {"label": r"$\tau^{\rm cond}_{\rm M}$",
                  "label_time": 12, "label_pos": [1, 1],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g12"},
     "mass_mid": {"label": r"$\tau_{\rm M}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g22"},
     "mass_mid_cond": {"label": r"$\tau^{\rm cond}_{\rm M}$",
-                 "label_time": 12, "label_pos": [1, 1],
+                 "label_time": 11, "label_pos": [1, 1],
+                 "label_offset": 2 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g22"},
     "mass_high": {"label": r"$\tau_{\rm M}$",
                  "label_time": 12, "label_pos": [0, 0],
+                 "label_offset": 1 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g32"},
     "mass_high_cond": {"label": r"$\tau^{\rm cond}_{\rm M}$",
                  "label_time": 12, "label_pos": [1, 1],
+                 "label_offset": 2 * unit.v_mm,
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g32"},
@@ -239,7 +251,6 @@ for use_color in [True, False]:
             styles = [graph.style.line(lineattrs = style_attrs)])
 
     for (g_name, g) in graphs.iteritems():
-        g.dodata()
         g.doaxes()
 
     for (key, y_data) \
@@ -260,7 +271,34 @@ for use_color in [True, False]:
         label_plot_line_boxed(g, plot_data,
                               plot_info[key]["label_time"] * 60,
                               plot_info[key]["label"],
-                              plot_info[key]["label_pos"])
+                              plot_info[key]["label_pos"],
+                              draw_text = False,
+                              label_offset = plot_info[key]["label_offset"])
+
+    for (g_name, g) in graphs.iteritems():
+        g.dodata()
+
+    for (key, y_data) \
+            in [("num_low", num_low_smooth),
+                ("num_low_cond", num_low_cond_smooth),
+                ("num_mid", num_mid_smooth),
+                ("num_mid_cond", num_mid_cond_smooth),
+                ("num_high", num_high_smooth),
+                ("num_high_cond", num_high_cond_smooth),
+                ("mass_low", mass_low_smooth),
+                ("mass_low_cond", mass_low_cond_smooth),
+                ("mass_mid", mass_mid_smooth),
+                ("mass_mid_cond", mass_mid_cond_smooth),
+                ("mass_high", mass_high_smooth),
+                ("mass_high_cond", mass_high_cond_smooth)]:
+        g = graphs[plot_info[key]["graph"]]
+        plot_data = zip(time[1:] / 60, y_data)
+        label_plot_line_boxed(g, plot_data,
+                              plot_info[key]["label_time"] * 60,
+                              plot_info[key]["label"],
+                              plot_info[key]["label_pos"],
+                              draw_box = False,
+                              label_offset = plot_info[key]["label_offset"])
 
     write_text_outside(g11, r"critical supersaturation $S = %.1f\%%$" % (level_low_value * 100))
     write_text_outside(g21, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))

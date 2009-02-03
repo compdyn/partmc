@@ -75,7 +75,6 @@ for use_color in [True, False]:
             graph.data.points(plot_data, x = 1, y = 2),
             styles = [graph.style.line(lineattrs = style_attrs)])
     
-    g.dodata()
     g.doaxes()
 
     for [plot_info, plot_data] in zip(plot_info_list, plot_data_list):

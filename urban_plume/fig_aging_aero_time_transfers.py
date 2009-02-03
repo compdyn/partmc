@@ -27,7 +27,7 @@ plot_info = {
                  "color": color_list[2], "pattern": line_style_list[0],
                  "graph": "g1"},
     "coag_loss_a_f": {"label": r"$\dot{N}^{\rm coag}_{\rm a \to f}$",
-                 "label_time": 7, "label_pos": [0, 1],
+                 "label_time": 6, "label_pos": [1, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[1],
                  "graph": "g2"},
@@ -134,8 +134,6 @@ for use_color in [True, False]:
                 graph.data.points(signed_data, x = 1, y = 2),
                 styles = [graph.style.line(lineattrs = style_attrs)])
 
-    g1.dodata()
-    g2.dodata()
     g1.doaxes()
     g2.doaxes()
 

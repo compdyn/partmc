@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -592,8 +592,10 @@ def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
                                        text.valign(label_pos_v)])
 
 def label_plot_line_boxed(g, plot_data, label_time, label, label_pos = [0, 1],
-                          label_offset = 0 * unit.v_mm, xaxis = None, yaxis = None,
-                          flip_xy = False, border = 1 * unit.v_mm):
+                          label_offset = 0 * unit.v_mm,
+                          xaxis = None, yaxis = None,
+                          flip_xy = False, border = 1 * unit.v_mm,
+                          draw_text = True, draw_box = True):
     i = pmc_data_nc.find_nearest_time(plot_data, label_time)
     [label_x, label_y] = plot_data[i]
     if flip_xy:
@@ -608,9 +610,13 @@ def label_plot_line_boxed(g, plot_data, label_time, label, label_pos = [0, 1],
                 + label_pos[0] * bb.right()
     current_y = (1.0 - label_pos[1]) * bb.top() \
                 + label_pos[1] * bb.bottom()
-    g.draw(bb.path(), [deco.filled([color.gray.white]),
-                       trafo.translate(label_vx - current_x, label_vy - current_y)])
-    g.insert(c, [trafo.translate(label_vx - current_x, label_vy - current_y)])
+    if draw_box:
+        g.draw(bb.path(), [deco.filled([color.gray.white]),
+                           trafo.translate(label_vx - current_x,
+                                           label_vy - current_y)])
+    if draw_text:
+        g.insert(c, [trafo.translate(label_vx - current_x,
+                                     label_vy - current_y)])
 
 def draw_hash_background(g, **xargs):
     (x_left, y_bottom) = g.vpos(0, 0)

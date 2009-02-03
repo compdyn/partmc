@@ -103,7 +103,7 @@ for use_color in [True, False]:
                               title = r"critical supersaturation (\%)",
                               painter = grid_painter),
         y = graph.axis.log(min = 1e-1,
-                           max = 1e3,
+                           max = 1e2,
                            title = r"aging timescale $\tau$ (hours)",
                            painter = major_grid_painter)))
     g2 = c.insert(graph.graphxy(
@@ -123,6 +123,29 @@ for use_color in [True, False]:
 
     x_data = ss_active_axis.edges() * 100
 
+#    for (key, y_data) \
+#            in [("day_num", day_num),
+#                ("day_num_cond", day_num_cond),
+#                ("night_num", night_num),
+#                ("night_num_cond", night_num_cond),
+#                ("day_mass", day_mass),
+#                ("day_mass_cond", day_mass_cond),
+#                ("night_mass", night_mass),
+#                ("night_mass_cond", night_mass_cond)]:
+#        g = graphs[plot_info[key]["graph"]]
+#        if use_color:
+#            grey_color = color.hsb(plot_info[key]["color"].hsb().color["h"], grey_level, 1)
+#            style_attrs = [plot_info[key]["linewidth"],
+#                           grey_color]
+#        else:
+#            grey_color = color.grey(1 - grey_level)
+#            style_attrs = [plot_info[key]["linewidth"],
+#                           grey_color]
+#        plot_data = zip(x_data, y_data)
+#        g.plot(
+#            graph.data.points(plot_data, x = 1, y = 2),
+#            styles = [graph.style.line(lineattrs = style_attrs)])
+
     for (key, y_data) \
             in [("day_num", day_num),
 #                ("day_num_cond", day_num_cond),
@@ -132,29 +155,6 @@ for use_color in [True, False]:
 #                ("day_mass_cond", day_mass_cond),
                 ("night_mass", night_mass),
                 ("night_mass_cond", night_mass_cond)]:
-        g = graphs[plot_info[key]["graph"]]
-        if use_color:
-            grey_color = color.hsb(plot_info[key]["color"].hsb().color["h"], grey_level, 1)
-            style_attrs = [plot_info[key]["linewidth"],
-                           grey_color]
-        else:
-            grey_color = color.grey(1 - grey_level)
-            style_attrs = [plot_info[key]["linewidth"],
-                           grey_color]
-        plot_data = zip(x_data, y_data)
-        g.plot(
-            graph.data.points(plot_data, x = 1, y = 2),
-            styles = [graph.style.line(lineattrs = style_attrs)])
-
-    for (key, y_data) \
-            in [("day_num", day_num_smooth),
-#                ("day_num_cond", day_num_cond_smooth),
-                ("night_num", night_num_smooth),
-                ("night_num_cond", night_num_cond_smooth),
-                ("day_mass", day_mass_smooth),
-#                ("day_mass_cond", day_mass_cond_smooth),
-                ("night_mass", night_mass_smooth),
-                ("night_mass_cond", night_mass_cond_smooth)]:
         g = graphs[plot_info[key]["graph"]]
         if use_color:
             style_attrs = [plot_info[key]["linewidth"],
@@ -167,18 +167,15 @@ for use_color in [True, False]:
             graph.data.points(plot_data, x = 1, y = 2),
             styles = [graph.style.line(lineattrs = style_attrs)])
 
-    g1.dodata()
-    g2.dodata()
-
     for (key, y_data) \
-            in [("day_num", day_num_smooth),
-#                ("day_num_cond", day_num_cond_smooth),
-                ("night_num", night_num_smooth),
-                ("night_num_cond", night_num_cond_smooth),
-                ("day_mass", day_mass_smooth),
-#                ("day_mass_cond", day_mass_cond_smooth),
-                ("night_mass", night_mass_smooth),
-                ("night_mass_cond", night_mass_cond_smooth)]:
+            in [("day_num", day_num),
+#                ("day_num_cond", day_num_cond),
+                ("night_num", night_num),
+                ("night_num_cond", night_num_cond),
+                ("day_mass", day_mass),
+#                ("day_mass_cond", day_mass_cond),
+                ("night_mass", night_mass),
+                ("night_mass_cond", night_mass_cond)]:
         g = graphs[plot_info[key]["graph"]]
         plot_data = zip(x_data, y_data)
         label_plot_line_boxed(g, plot_data,

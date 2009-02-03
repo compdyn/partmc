@@ -10,12 +10,12 @@ from pmc_pyx import *
 from numpy import *
 
 def mean_day(time, data):
-    return mean([x for [t,x] in filter_inf(zip(time, data))
-                 if t >= 6 * 3600 - 0.1 and t <= 9 * 3600 + 0.1])
+    return 1/mean([1/x for [t,x] in filter_inf(zip(time, data))
+                   if t >= 6 * 3600 - 0.1 and t <= 9 * 3600 + 0.1])
 
 def mean_night(time, data):
-    return mean([x for [t,x] in filter_inf(zip(time, data))
-                 if t >= 12 * 3600 - 0.1 and t <= 22 * 3600 + 0.1])
+    return 1/mean([1/x for [t,x] in filter_inf(zip(time, data))
+                   if t >= 12 * 3600 - 0.1 and t <= 22 * 3600 + 0.1])
 
 dilution_rate = 1.5e-5 # s^{-1}
 

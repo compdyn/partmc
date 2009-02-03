@@ -112,19 +112,19 @@ program extract_summary_aero
           trim(out_filename), ' for writing: ', ios
      call exit(1)
   end if
-  write(out_unit, '(e30.15e6)', advance='no') 0d0
+  write(out_unit, '(e30.15e3)', advance='no') 0d0
   do i_radius = 1,n_radius
-     write(out_unit, '(e30.15e6)', advance='no') radius(i_radius)
+     write(out_unit, '(e30.15e3)', advance='no') radius(i_radius)
   end do
   write(out_unit, '(a)') ''
   do i_time = 1,n_time
-     write(out_unit, '(e30.15e6)', advance='no') time(i_time)
+     write(out_unit, '(e30.15e3)', advance='no') time(i_time)
      do i_radius = 1,n_radius
         val = 0d0
         do i_spec = 1,n_aero_species
            val = val + aero(i_radius, i_spec, i_unit, i_time)
         end do
-        write(out_unit, '(e30.15e6)', advance='no') val
+        write(out_unit, '(e30.15e3)', advance='no') val
      end do
      write(out_unit, '(a)') ''
   end do

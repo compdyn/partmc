@@ -5,7 +5,7 @@
 ! Read a NetCDF summary file and write out the gas concenrations in
 ! text format.
 
-program extract_summary_gas
+program extract_summary_env
 
   use netcdf
 
@@ -13,20 +13,20 @@ program extract_summary_gas
 
   character(len=1000) :: in_filename, out_filename
   integer :: ncid
-  integer :: dimid_time, dimid_gas_species
-  integer :: varid_time, varid_gas_species
-  integer :: varid_gas
-  integer :: n_time, n_gas_species
-  character(len=1000) :: tmp_str, gas_species_names
+  integer :: dimid_time, dimid_env
+  integer :: varid_time, varid_env
+  integer :: varid_env_state
+  integer :: n_time, n_env
+  character(len=1000) :: tmp_str, env_names
   real*8, allocatable :: time(:)
-  real*8, allocatable :: gas(:,:)
+  real*8, allocatable :: env_state(:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec
+  integer :: ios, i_time, i_env
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_summary_gas <netcdf_filename> <output_filename>'
+     write(6,*) 'Usage: extract_summary_env <netcdf_filename> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_filename)
@@ -45,26 +45,30 @@ program extract_summary_gas
   write(*,*) "min time:", minval(time)
   write(*,*) "max time:", maxval(time)
 
-  call nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
-  call nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, &
-       tmp_str, n_gas_species))
-  call nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
-  call nc_check(nf90_get_att(ncid, varid_gas_species, &
-       "names", gas_species_names))
-  write(*,*) "n_gas_species:", n_gas_species
-  write(*,*) "gas_species_names: ", trim(gas_species_names)
-
-  call nc_check(nf90_inq_varid(ncid, "gas", varid_gas))
-  call nc_check(nf90_Inquire_Variable(ncid, varid_gas, tmp_str, &
-       xtype, ndims, dimids, nAtts))
-  if ((ndims /= 2) &
-       .or. (dimids(1) /= dimid_gas_species) &
-       .or. (dimids(2) /= dimid_time)) then
-     write(*,*) "ERROR: unexpected gas dimids"
+  call nc_check(nf90_inq_dimid(ncid, "env", dimid_env))
+  call nc_check(nf90_Inquire_Dimension(ncid, dimid_env, &
+       tmp_str, n_env))
+  call nc_check(nf90_inq_varid(ncid, "env", varid_env))
+  call nc_check(nf90_get_att(ncid, varid_env, &
+       "names", env_names))
+  write(*,*) "n_env:", n_env
+  write(*,*) "env_names: ", trim(env_names)
+  if (n_env /= 4) then
+     write(0,*) 'ERROR: invalid size of env dimension'
      call exit(1)
   end if
-  allocate(gas(n_gas_species, n_time))
-  call nc_check(nf90_get_var(ncid, varid_gas, gas))
+
+  call nc_check(nf90_inq_varid(ncid, "env_state", varid_env_state))
+  call nc_check(nf90_Inquire_Variable(ncid, varid_env_state, tmp_str, &
+       xtype, ndims, dimids, nAtts))
+  if ((ndims /= 2) &
+       .or. (dimids(1) /= dimid_env) &
+       .or. (dimids(2) /= dimid_time)) then
+     write(*,*) "ERROR: unexpected env_state dimids"
+     call exit(1)
+  end if
+  allocate(env_state(n_env, n_time))
+  call nc_check(nf90_get_var(ncid, varid_env_state, env_state))
 
   call nc_check(nf90_close(ncid))
 
@@ -77,15 +81,15 @@ program extract_summary_gas
   end if
   do i_time = 1,n_time
      write(out_unit, '(e30.15e3)', advance='no') time(i_time)
-     do i_spec = 1,n_gas_species
-        write(out_unit, '(e30.15e3)', advance='no') gas(i_spec, i_time)
+     do i_env = 1,n_env
+        write(out_unit, '(e30.15e3)', advance='no') env_state(i_env, i_time)
      end do
      write(out_unit, '(a)') ''
   end do
   close(out_unit)
 
   deallocate(time)
-  deallocate(gas)
+  deallocate(env_state)
 
 contains
 
@@ -101,4 +105,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_summary_gas
+end program extract_summary_env

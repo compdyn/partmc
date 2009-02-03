@@ -152,6 +152,12 @@ target_link_libraries(extract_summary_aero ${NETCDF_LIBS})
 add_executable(extract_summary_gas tool/extract_summary_gas.f90)
 target_link_libraries(extract_summary_gas ${NETCDF_LIBS})
 
+add_executable(extract_summary_env tool/extract_summary_env.f90)
+target_link_libraries(extract_summary_env ${NETCDF_LIBS})
+
+add_executable(extract_state_gas tool/extract_state_gas.f90)
+target_link_libraries(extract_state_gas ${NETCDF_LIBS})
+
 add_executable(numeric_diff tool/numeric_diff.f90)
 
 ######################################################################

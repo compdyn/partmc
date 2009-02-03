@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read a NetCDF summary file and write out the gas concenrations in
+! Read a NetCDF summary file and write out the gas concentrations in
 ! text format.
 
 program extract_summary_gas

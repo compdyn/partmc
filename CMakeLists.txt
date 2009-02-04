@@ -125,6 +125,8 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/aero_info.f90 src/aero_info_array.f90)
 target_link_libraries(partmc ${EXTRA_LIBS})
 
+######################################################################
+
 add_executable(test_bidisperse_ode
 	       test/bidisperse/test_bidisperse_ode.f90
 	       src/kernel_sedi.f90 src/env_data.f90 src/env_state.f90
@@ -146,6 +148,8 @@ add_executable(poisson_sample test/poisson/poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
 target_link_libraries(poisson_sample)
 
+######################################################################
+
 add_executable(extract_summary_aero tool/extract_summary_aero.f90)
 target_link_libraries(extract_summary_aero ${NETCDF_LIBS})
 
@@ -155,6 +159,8 @@ target_link_libraries(extract_summary_gas ${NETCDF_LIBS})
 add_executable(extract_summary_env tool/extract_summary_env.f90)
 target_link_libraries(extract_summary_env ${NETCDF_LIBS})
 
+######################################################################
+
 add_executable(extract_state_aero_size_num
 	tool/extract_state_aero_size_num.f90)
 target_link_libraries(extract_state_aero_size_num ${NETCDF_LIBS})
@@ -162,6 +168,10 @@ target_link_libraries(extract_state_aero_size_num ${NETCDF_LIBS})
 add_executable(extract_state_aero_size_mass
 	tool/extract_state_aero_size_mass.f90)
 target_link_libraries(extract_state_aero_size_mass ${NETCDF_LIBS})
+
+add_executable(extract_state_aero_species
+	tool/extract_state_aero_species.f90)
+target_link_libraries(extract_state_aero_species ${NETCDF_LIBS})
 
 add_executable(extract_state_aero_total
 	tool/extract_state_aero_total.f90)
@@ -172,6 +182,8 @@ target_link_libraries(extract_state_gas ${NETCDF_LIBS})
 
 add_executable(extract_state_env tool/extract_state_env.f90)
 target_link_libraries(extract_state_env ${NETCDF_LIBS})
+
+######################################################################
 
 add_executable(numeric_diff tool/numeric_diff.f90)
 

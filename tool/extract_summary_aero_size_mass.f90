@@ -3,9 +3,9 @@
 ! option) any later version. See the file COPYING for details.
 !
 ! Read a NetCDF summary file and write out the size- and time-resolved
-! number or mass density in text format.
+! mass concentration in text format.
 
-program extract_summary_aero
+program extract_summary_aero_size_mass
 
   use netcdf
 
@@ -27,22 +27,18 @@ program extract_summary_aero
   real*8 :: val
 
   ! process commandline arguments
-  if (iargc() .ne. 3) then
-     write(6,*) 'Usage: extract_summary <"num" | "mass"> <netcdf_filename> <output_filename>'
+  if (iargc() .ne. 2) then
+     write(6,*) 'Usage: extract_summary_size_mass <netcdf_filename> <output_filename>'
      call exit(2)
   endif
-  call getarg(1, tmp_str)
-  if (trim(tmp_str) == "num") then
-     i_unit = 1
-  elseif (trim(tmp_str) == "mass") then
-     i_unit = 3
-  else
-     write(0,*) 'ERROR: first argument must be "num" or "mass", not: ', &
-          trim(tmp_str)
-     call exit(2)
-  end if
-  call getarg(2, in_filename)
-  call getarg(3, out_filename)
+  call getarg(1, in_filename)
+  call getarg(2, out_filename)
+
+  ! write information
+  write(*,*) "Output file array A has:"
+  write(*,*) "  A(1, j+1) = radius(j) (m)"
+  write(*,*) "  A(i+1, 1) = time(i) (s)"
+  write(*,*) "  A(i+1, j+1) = mass concentration at time(i) and radius(j) (kg/m^3)"
 
   ! read NetCDF file
   call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
@@ -106,6 +102,7 @@ program extract_summary_aero
   call nc_check(nf90_close(ncid))
 
   ! output data
+  i_unit = 3 ! mass
   open(unit=out_unit, file=out_filename, iostat=ios)
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
@@ -148,4 +145,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_summary_aero
+end program extract_summary_aero_size_mass

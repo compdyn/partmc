@@ -162,6 +162,10 @@ add_executable(extract_summary_aero_species
 	tool/extract_summary_aero_species.f90)
 target_link_libraries(extract_summary_aero_species ${NETCDF_LIBS})
 
+add_executable(extract_summary_aero_total
+	tool/extract_summary_aero_total.f90)
+target_link_libraries(extract_summary_aero_total ${NETCDF_LIBS})
+
 add_executable(extract_summary_gas tool/extract_summary_gas.f90)
 target_link_libraries(extract_summary_gas ${NETCDF_LIBS})
 

@@ -27,6 +27,8 @@ program extract_state_aero_size_num
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
+  integer :: n_bin, i_bin
+  real*8 :: r_min, r_max, radius, volume
 
   ! process commandline arguments
   if (iargc() .ne. 5) then
@@ -49,8 +51,16 @@ program extract_state_aero_size_num
           trim(out_filename), ' for writing: ', ios
      call exit(1)
   end if
+  write(out_unit, '(e30.15e3)', advance='no') 0d0
+  do i_bin = 1,n_bin
+     radius = exp(dble(i_bin - 1) / dble(n_bin - 1) &
+          * (log(r_max) - log(r_min)) + log(r_min))
+     write(out_unit, '(e30.15e3)', advance='no') radius
+  end do
+  write(out_unit, '(a)') ''
 
-  ! read NetCDF files
+  ! process NetCDF files
+  allocate(aero_dist(n_bin))
   i_time = 0
   do while (.true.)
      i_time = i_time + 1
@@ -60,9 +70,11 @@ program extract_state_aero_size_num
         exit
      end if
 
+     ! read time
      call nc_check(nf90_inq_varid(ncid, "time", varid_time))
      call nc_check(nf90_get_var(ncid, varid_time, time))
 
+     ! read aero_species
      call nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
      call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
           tmp_str, n_aero_species))
@@ -74,10 +86,12 @@ program extract_state_aero_size_num
         write(*,*) "aero_species_names: ", trim(aero_species_names)
      end if
      
+     ! read aero_particle dimension
      call nc_check(nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle))
      call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
           tmp_str, n_aero_particle))
      
+     ! read aero_comp_mass
      call nc_check(nf90_inq_varid(ncid, "aero_comp_mass", &
           varid_aero_comp_mass))
      call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_mass, &
@@ -92,6 +106,7 @@ program extract_state_aero_size_num
      call nc_check(nf90_get_var(ncid, varid_aero_comp_mass, &
           aero_comp_mass))
      
+     ! read aero_density
      call nc_check(nf90_inq_varid(ncid, "aero_density", &
           varid_aero_density))
      call nc_check(nf90_Inquire_Variable(ncid, varid_aero_density, &
@@ -105,6 +120,7 @@ program extract_state_aero_size_num
      call nc_check(nf90_get_var(ncid, varid_aero_density, &
           aero_density))
      
+     ! read aero_comp_vol
      call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
           varid_aero_comp_vol))
      call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
@@ -128,14 +144,14 @@ program extract_state_aero_size_num
              * 3.14159265358979323846d0))**(1d0/3d0)
         i_bin = ceiling((log(radius) - log(r_min)) &
              / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
-        
-
+        aero_dist(i_bin) = aero_dist(i_bin) + 1d0 / aero_comp_vol(i_part)
+     end do
 
      ! output data
      write(out_unit, '(e30.15e3)', advance='no') time
-     do i_spec = 1,n_aero_species
+     do i_bin = 1,n_bin
         write(out_unit, '(e30.15e3)', advance='no') &
-             gas_concentration(i_spec)
+             aero_dist(i_bin)
      end do
      write(out_unit, '(a)') ''
 
@@ -145,6 +161,7 @@ program extract_state_aero_size_num
   end do
 
   close(out_unit)
+  deallocate(aero_dist)
 
 contains
 

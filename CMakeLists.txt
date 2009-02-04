@@ -159,6 +159,10 @@ add_executable(extract_state_aero_size_num
 	tool/extract_state_aero_size_num.f90)
 target_link_libraries(extract_state_aero_size_num ${NETCDF_LIBS})
 
+add_executable(extract_state_aero_total
+	tool/extract_state_aero_total.f90)
+target_link_libraries(extract_state_aero_total ${NETCDF_LIBS})
+
 add_executable(extract_state_gas tool/extract_state_gas.f90)
 target_link_libraries(extract_state_gas ${NETCDF_LIBS})
 

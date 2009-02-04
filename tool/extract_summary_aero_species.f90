@@ -2,10 +2,10 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read a NetCDF summary file and write out the size- and time-resolved
+! Read a NetCDF summary file and write out the species- and time-resolved
 ! mass concentration in text format.
 
-program extract_summary_aero_size_mass
+program extract_summary_aero_species
 
   use netcdf
 
@@ -15,11 +15,12 @@ program extract_summary_aero_size_mass
   integer :: ncid
   integer :: dimid_time, dimid_radius, dimid_aero_species, dimid_unit
   integer :: varid_time, varid_radius, varid_aero_species, varid_unit
-  integer :: varid_aero
+  integer :: varid_aero, varid_radius_widths
   integer :: n_time, n_radius, n_aero_species, n_unit
   character(len=1000) :: tmp_str, aero_species_names, data_units
   real*8, allocatable :: time(:)
   real*8, allocatable :: radius(:)
+  real*8, allocatable :: radius_widths(:)
   real*8, allocatable :: aero(:,:,:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
@@ -28,7 +29,7 @@ program extract_summary_aero_size_mass
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_summary_aero_size_mass <netcdf_filename> <output_filename>'
+     write(6,*) 'Usage: extract_summary_aero_species <netcdf_filename> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_filename)
@@ -36,9 +37,8 @@ program extract_summary_aero_size_mass
 
   ! write information
   write(*,*) "Output file array A has:"
-  write(*,*) "  A(1, j+1) = radius(j) (m)"
-  write(*,*) "  A(i+1, 1) = time(i) (s)"
-  write(*,*) "  A(i+1, j+1) = mass concentration at time(i) and radius(j) (kg/m^3)"
+  write(*,*) "  A(i, 1) = time(i) (s)"
+  write(*,*) "  A(i, j+1) = mass concentration at time(i) and species(j) (kg/m^3)"
 
   ! read NetCDF file
   call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
@@ -62,6 +62,12 @@ program extract_summary_aero_size_mass
   write(*,*) "n_radius:", n_radius
   write(*,*) "min radius:", minval(radius)
   write(*,*) "max radius:", maxval(radius)
+
+  allocate(radius_widths(n_radius))
+  call nc_check(nf90_inq_varid(ncid, "radius_widths", varid_radius_widths))
+  call nc_check(nf90_get_var(ncid, varid_radius, radius_widths))
+  write(*,*) "min radius width:", minval(radius_widths)
+  write(*,*) "max radius width:", maxval(radius_widths)
 
   call nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
   call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
@@ -109,17 +115,13 @@ program extract_summary_aero_size_mass
           trim(out_filename), ' for writing: ', ios
      call exit(1)
   end if
-  write(out_unit, '(e30.15e3)', advance='no') 0d0
-  do i_radius = 1,n_radius
-     write(out_unit, '(e30.15e3)', advance='no') radius(i_radius)
-  end do
-  write(out_unit, '(a)') ''
   do i_time = 1,n_time
      write(out_unit, '(e30.15e3)', advance='no') time(i_time)
-     do i_radius = 1,n_radius
+     do i_spec = 1,n_aero_species
         val = 0d0
-        do i_spec = 1,n_aero_species
-           val = val + aero(i_radius, i_spec, i_unit, i_time)
+        do i_radius = 1,n_radius
+           val = val + aero(i_radius, i_spec, i_unit, i_time) &
+                * radius_widths(i_radius)
         end do
         write(out_unit, '(e30.15e3)', advance='no') val
      end do
@@ -129,6 +131,7 @@ program extract_summary_aero_size_mass
 
   deallocate(time)
   deallocate(radius)
+  deallocate(radius_widths)
   deallocate(aero)
 
 contains
@@ -145,4 +148,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_summary_aero_size_mass
+end program extract_summary_aero_species

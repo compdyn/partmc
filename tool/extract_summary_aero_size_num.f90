@@ -28,7 +28,7 @@ program extract_summary_aero_size_num
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_summary_size_num <netcdf_filename> <output_filename>'
+     write(6,*) 'Usage: extract_summary_aero_size_num <netcdf_filename> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_filename)

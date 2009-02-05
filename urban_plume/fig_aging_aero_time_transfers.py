@@ -27,7 +27,7 @@ plot_info = {
                  "color": color_list[2], "pattern": line_style_list[0],
                  "graph": "g1"},
     "coag_loss_a_f": {"label": r"$\dot{N}^{\rm coag}_{\rm a \to f}$",
-                 "label_time": 6, "label_pos": [1, 1],
+                 "label_time": 8.5, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[1],
                  "graph": "g2"},
@@ -79,8 +79,8 @@ for use_color in [True, False]:
                                                    = start_time_of_day_min),
                               title = "local standard time (LST) (hours:minutes)",
                               painter = grid_painter),
-        y = graph.axis.log(min = 0.002,
-                           max = 3,
+        y = graph.axis.log(min = 0.001,
+                           max = 10,
                            title = r"number conc. rate ($\rm cm^{-3}\,s^{-1}$)",
                            painter = major_grid_painter)))
     g1 = c.insert(graph.graphxy(
@@ -88,8 +88,8 @@ for use_color in [True, False]:
         ypos = g2.height + 0.5,
         x = graph.axis.linkedaxis(g2.axes["x"],
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),
-        y = graph.axis.log(min = 0.002,
-                           max = 3,
+        y = graph.axis.log(min = 0.001,
+                           max = 10,
                            title = r"number conc. rate ($\rm cm^{-3}\,s^{-1}$)",
                            painter = major_grid_painter)))
     graphs = {"g1": g1, "g2": g2}
@@ -152,7 +152,7 @@ for use_color in [True, False]:
     boxed_text(g1, "condensation", point = [1, 1], anchor_point_rel = [1, 0])
     boxed_text(g2, "coagulation", point = [1, 1], anchor_point_rel = [1, 0])
 
-    write_text_outside(g1, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
+    write_text_outside(g1, r"critical supersaturation $S_{\rm c} = %.1f\%%$" % (level_mid_value * 100))
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

@@ -51,8 +51,8 @@ for use_color in [True, False]:
     g = graph.graphxy(
         width = 6.8,
         x = graph.axis.log(min = 0.01,
-                           max = 10,
-                           title = r"critical supersaturation $S$ (\%)",
+                           max = 100,
+                           title = r"critical supersaturation $S_{\rm c}$ (\%)",
                            painter = grid_painter),
         y = graph.axis.linear(min = 0.0,
                               max = 100.0,

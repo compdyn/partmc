@@ -406,21 +406,28 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 class time_of_day:
     "a texter creating labels of the form 04:50 for 4 hours and 50 minutes"
 
-    def __init__(self, base_time = 0, labelattrs = []):
+    def __init__(self, base_time = 0, labelattrs = [],
+                 first_prefix = None, last_suffix = None):
         """initializes the instance
         - base_time is the offset to add (minutes)
         - labelattrs is a list of attributes to be added to the label
           attributes given in the painter"""
         self.base_time = base_time
         self.labelattrs = labelattrs
+        self.first_prefix = first_prefix
+        self.last_suffix = last_suffix
 
     def labels(self, ticks):
-        for tick in ticks:
+        for (i, tick) in enumerate(ticks):
             if tick.label is None and tick.labellevel is not None:
                 time = float(tick.num) / float(tick.denom) + self.base_time
                 hours, minutes = divmod(time, 60)
                 hours = hours % 24
                 tick.label = "%02d:%02d" % (hours, minutes)
+                if (i == 0) and self.first_prefix:
+                    tick.label = self.first_prefix + tick.label
+                if (i == len(ticks) - 1) and self.last_suffix:
+                    tick.label = tick.label + self.last_suffix
                 tick.labelattrs = tick.labelattrs + self.labelattrs
 
 class hsb_rect(graph.style._style):

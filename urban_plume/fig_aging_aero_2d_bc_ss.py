@@ -18,8 +18,8 @@ out_prefix = "figs_aging/aging_aero_2d_bc_ss"
 y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
 ss_axis_min = 1e-2
-ss_axis_max = 1e1
-num_ss_bins = 60
+ss_axis_max = 1e2
+num_ss_bins = 40
 
 bc_max_val = 4.0
 ss_max_val = 100.0
@@ -113,7 +113,7 @@ for color in [True, False]:
                            title = diameter_axis_label),
         y = graph.axis.log(min = ss_axis_min,
                               max = ss_axis_max,
-                              title = r"critical supersaturation $S$ (\%)")))
+                              title = r"critical supersaturation $S_{\rm c}$ (\%)")))
     g11 = c.insert(graph.graphxy(
             width = grid_graph_width,
             ypos = g21.height + grid_v_space,

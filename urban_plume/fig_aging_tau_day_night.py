@@ -52,7 +52,7 @@ plot_info = {
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g2"},
     "night_mass_cond": {"label": r"$\tau^{\rm cond}_{\rm M,night}$",
-                 "label_time": 0.85, "label_pos": [1, 0],
+                 "label_time": 0.85, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[3], "pattern": line_style_list[3],
                  "graph": "g2"},
@@ -100,9 +100,9 @@ for use_color in [True, False]:
         width = 6.8,
         x = graph.axis.linear(min = 0,
                               max = 1,
-                              title = r"critical supersaturation (\%)",
+                              title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
-        y = graph.axis.log(min = 1e-1,
+        y = graph.axis.log(min = 1e-2,
                            max = 1e2,
                            title = r"aging timescale $\tau$ (hours)",
                            painter = major_grid_painter)))
@@ -111,10 +111,13 @@ for use_color in [True, False]:
         xpos = g1.xpos + g1.width + grid_h_space,
         x = graph.axis.linear(min = 0,
                               max = 1,
-                              title = r"critical supersaturation (\%)",
+                              title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
         y = graph.axis.linkedaxis(g1.axes["y"],
-                                  painter = linked_major_grid_painter)))
+                                  painter = linked_major_grid_painter),
+        key = graph.key.key(pos = "br", columns = 2,
+                            keyattrs = [deco.stroked,
+                                        deco.filled([color.rgb.white])])))
 
     graphs = {"g1": g1, "g2": g2}
 
@@ -164,7 +167,8 @@ for use_color in [True, False]:
                            plot_info[key]["pattern"]]
         plot_data = zip(x_data, y_data)
         g.plot(
-            graph.data.points(plot_data, x = 1, y = 2),
+            graph.data.points(plot_data, x = 1, y = 2,
+                              title = plot_info[key]["label"]),
             styles = [graph.style.line(lineattrs = style_attrs)])
 
     for (key, y_data) \
@@ -178,10 +182,11 @@ for use_color in [True, False]:
                 ("night_mass_cond", night_mass_cond)]:
         g = graphs[plot_info[key]["graph"]]
         plot_data = zip(x_data, y_data)
-        label_plot_line_boxed(g, plot_data,
-                              plot_info[key]["label_time"],
-                              plot_info[key]["label"],
-                              plot_info[key]["label_pos"])
+        if g != g2:
+            label_plot_line_boxed(g, plot_data,
+                                  plot_info[key]["label_time"],
+                                  plot_info[key]["label"],
+                                  plot_info[key]["label_pos"])
 
     write_text_outside(g1, "day (12:00 LST to 15:00 LST)")
     write_text_outside(g2, "night (18:00 LST to 04:00 LST)")

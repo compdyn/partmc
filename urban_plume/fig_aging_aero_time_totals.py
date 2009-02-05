@@ -79,7 +79,7 @@ for use_color in [True, False]:
                               plot_info[key]["label"],
                               plot_info[key]["label_pos"])
 
-    write_text_outside(g, r"critical supersaturation $S = %.1f\%%$" % (level_mid_value * 100))
+    write_text_outside(g, r"critical supersaturation $S_{\rm c} = %.1f\%%$" % (level_mid_value * 100))
 
     if use_color:
         out_filename = "%s_color.pdf" % out_prefix

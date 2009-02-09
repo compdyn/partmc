@@ -38,10 +38,12 @@ program numeric_diff
   logical :: eol1, eol2, eof1, eof2
   real*8 :: value1, value2, norm1, norm2, abs_error, rel_error
   integer :: row, col
+  integer :: min_row, max_row, min_col, max_col
 
   ! process commandline arguments
-  if (iargc() .ne. 4) then
-     write(6,*) 'Usage: numeric_diff <filename1> <filename2> <abs_tol> <rel_tol>'
+  if ((iargc() < 4) .or. (iargc() > 8)) then
+     write(6,*) 'Usage: numeric_diff <filename1> <filename2> <abs_tol> <rel_tol> [min_row] [max_row] [min_col] [max_col]'
+     write(6,*) 'Setting tolerances or min/max values to 0 disables that check.'
      call exit(2)
   endif
   call getarg(1, filename1)
@@ -50,6 +52,26 @@ program numeric_diff
   abs_tol = string_to_real(tmp)
   call getarg(4, tmp)
   rel_tol = string_to_real(tmp)
+  min_row = 0
+  max_row = 0
+  min_col = 0
+  max_col = 0
+  if (iargc() >= 5) then
+     call getarg(5, tmp)
+     min_row = string_to_integer(tmp)
+  end if
+  if (iargc() >= 6) then
+     call getarg(6, tmp)
+     max_row = string_to_integer(tmp)
+  end if
+  if (iargc() >= 7) then
+     call getarg(7, tmp)
+     min_col = string_to_integer(tmp)
+  end if
+  if (iargc() >= 8) then
+     call getarg(8, tmp)
+     max_col = string_to_integer(tmp)
+  end if
 
   ! open files
   open(unit=unit1, status='old', file=filename1, iostat=ios)
@@ -88,9 +110,14 @@ program numeric_diff
      if (len(word1) > 0) then
         value1 = string_to_real(word1)
         value2 = string_to_real(word2)
-        norm1 = norm1 + value1**2
-        norm2 = norm2 + value2**2
-        abs_error = abs_error + (value1 - value2)**2
+        if (((min_row == 0) .or. (row >= min_row)) &
+             .and. ((max_row == 0) .or. (row <= max_row)) &
+             .and. ((min_col == 0) .or. (col >= min_col)) &
+             .and. ((max_col == 0) .or. (col <= max_col))) then
+             norm1 = norm1 + value1**2
+             norm2 = norm2 + value2**2
+             abs_error = abs_error + (value1 - value2)**2
+          end if
         if (eol1) then
            row = row + 1
            col = 1
@@ -134,6 +161,27 @@ contains
     string_to_real = val
 
   end function string_to_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a string to an integer.
+  integer function string_to_integer(string)
+
+    !> String to convert.
+    character(len=*), intent(in) :: string
+    
+    integer :: val
+    integer :: ios
+
+    read(string, '(i20)', iostat=ios) val
+    if (ios /= 0) then
+       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
+            ' to integer: IOSTAT = ', ios
+       call exit(1)
+    end if
+    string_to_integer = val
+
+  end function string_to_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

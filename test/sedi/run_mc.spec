@@ -13,9 +13,9 @@ t_state 0                       # state output interval (0 disables) (s)
 t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
-n_bin 160                       # number of bins
+n_bin 220                       # number of bins
 r_min 1e-8                      # minimum radius (m)
-r_max 1e-3                      # maximum radius (m)
+r_max 1e-2                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations

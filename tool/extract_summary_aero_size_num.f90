@@ -36,9 +36,8 @@ program extract_summary_aero_size_num
 
   ! write information
   write(*,*) "Output file array A has:"
-  write(*,*) "  A(1, j+1) = radius(j) (m)"
-  write(*,*) "  A(i+1, 1) = time(i) (s)"
-  write(*,*) "  A(i+1, j+1) = number concentration at time(i) and radius(j) (#/m^3)"
+  write(*,*) "  A(i, 1) = radius(i) (m)"
+  write(*,*) "  A(i, j+1) = number concentration at radius(i) and time(j) (#/m^3)"
 
   ! read NetCDF file
   call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
@@ -50,8 +49,8 @@ program extract_summary_aero_size_num
   call nc_check(nf90_inq_varid(ncid, "time", varid_time))
   call nc_check(nf90_get_var(ncid, varid_time, time))
   write(*,*) "n_time:", n_time
-  write(*,*) "min time:", minval(time)
-  write(*,*) "max time:", maxval(time)
+  write(*,*) "min time (s):", minval(time)
+  write(*,*) "max time (s):", maxval(time)
 
   call nc_check(nf90_inq_dimid(ncid, "radius", dimid_radius))
   call nc_check(nf90_Inquire_Dimension(ncid, dimid_radius, &
@@ -109,14 +108,9 @@ program extract_summary_aero_size_num
           trim(out_filename), ' for writing: ', ios
      call exit(1)
   end if
-  write(out_unit, '(e30.15e3)', advance='no') 0d0
   do i_radius = 1,n_radius
      write(out_unit, '(e30.15e3)', advance='no') radius(i_radius)
-  end do
-  write(out_unit, '(a)') ''
-  do i_time = 1,n_time
-     write(out_unit, '(e30.15e3)', advance='no') time(i_time)
-     do i_radius = 1,n_radius
+     do i_time = 1,n_time
         val = 0d0
         do i_spec = 1,n_aero_species
            val = val + aero(i_radius, i_spec, i_unit, i_time)

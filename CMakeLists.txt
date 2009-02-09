@@ -104,6 +104,8 @@ add_test(emission_2 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_2.sh)
 add_test(golovin_1 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_1.sh)
 add_test(golovin_2 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_2.sh)
 add_test(bidisperse_1 ${CMAKE_BINARY_DIR}/run_test/bidisperse/run_test_1.sh)
+add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
+add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/run_test)
 

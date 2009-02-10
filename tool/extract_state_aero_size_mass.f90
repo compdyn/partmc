@@ -29,7 +29,7 @@ program extract_state_aero_size_mass
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time
-  real*8 :: r_min, r_max, radius, volume
+  real*8 :: r_min, r_max, radius, volume, dlnr
 
   ! process commandline arguments
   if (iargc() .ne. 5) then
@@ -47,6 +47,7 @@ program extract_state_aero_size_mass
 
   ! process NetCDF files
   allocate(aero_dist(n_bin, MAX_N_TIME))
+  aero_dist = 0d0
   i_time = 0
   do while (.true.)
      i_time = i_time + 1
@@ -128,7 +129,7 @@ program extract_state_aero_size_mass
      call nc_check(nf90_close(ncid))
 
      ! compute distribution
-     aero_dist = 0d0
+     dlnr = log(r_max / r_min) / dble(n_bin - 1)
      do i_part = 1,n_aero_particle
         volume = sum(aero_comp_mass(i_part,:) / aero_density)
         radius = (volume / (4d0 / 3d0 &
@@ -136,7 +137,8 @@ program extract_state_aero_size_mass
         i_bin = ceiling((log(radius) - log(r_min)) &
              / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
         aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
-             + sum(aero_comp_mass(i_part,:)) / aero_comp_vol(i_part)
+             + sum(aero_comp_mass(i_part,:)) / aero_comp_vol(i_part) &
+             / dlnr
      end do
 
      deallocate(aero_comp_mass)

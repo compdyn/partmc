@@ -65,7 +65,7 @@ program extract_summary_aero_species
 
   allocate(radius_widths(n_radius))
   call nc_check(nf90_inq_varid(ncid, "radius_widths", varid_radius_widths))
-  call nc_check(nf90_get_var(ncid, varid_radius, radius_widths))
+  call nc_check(nf90_get_var(ncid, varid_radius_widths, radius_widths))
   write(*,*) "min radius width:", minval(radius_widths)
   write(*,*) "max radius width:", maxval(radius_widths)
 

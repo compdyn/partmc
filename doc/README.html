@@ -1,5 +1,5 @@
 <html>
-<head><title>PartMC 1.1.0</title></head>
+<head><title>PartMC 1.2.0</title></head>
 <body bgcolor="#ffffff">
 <h1>PartMC</h1>
 
@@ -10,7 +10,7 @@ Released 2008-02-17</p>
 
 <p><a href="http://lagrange.mechse.uiuc.edu/mwest/partmc/">http://lagrange.mechse.uiuc.edu/mwest/partmc/</a></p>
 
-<p>Copyright (C) 2005-2008 Nicole Riemer and Matthew West <br />
+<p>Copyright (C) 2005-2009 Nicole Riemer and Matthew West <br />
 Portions copyright (C) Andreas Bott and Richard Easter <br />
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version. <br />
@@ -22,68 +22,71 @@ For details see the file COPYING or
 <p>Required dependencies:</p>
 
 <ul>
-<li>GNU make</li>
 <li>Fortran 90 compiler</li>
+<li>cmake - <a href="http://www.cmake.org/">http://www.cmake.org/</a></li>
 <li>NetCDF - <a href="http://www.unidata.ucar.edu/software/netcdf/">http://www.unidata.ucar.edu/software/netcdf/</a></li>
 </ul>
 
 <p>Optional dependencies:</p>
 
 <ul>
-<li>Python - <a href="http://www.python.org/">http://www.python.org/</a></li>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="m&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#82;&#x61;&#104;&#117;&#108;&#46;&#x5a;&#x61;v&#101;&#114;i&#x40;&#112;&#x6e;&#x6c;&#x2e;&#x67;&#111;&#x76;">&#82;&#x61;&#104;&#117;&#108;&#46;&#x5a;&#x61;v&#101;&#114;i&#x40;&#112;&#x6e;&#x6c;&#x2e;&#x67;&#111;&#x76;</a></li>
-<li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
-<li>ScientificPython - <a href="http://dirac.cnrs-orleans.fr/plone/software/scientificpython/">http://dirac.cnrs-orleans.fr/plone/software/scientificpython/</a></li>
-<li>PyX - <a href="http://pyx.sourceforge.net/">http://pyx.sourceforge.net/</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;R&#x61;&#x68;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;">R&#x61;&#x68;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;</a></li>
 </ul>
 
-<p>PartMC can be compiled out-of-the-box on Fedora 8 with all
+<p>PartMC can be compiled out-of-the-box on Fedora 10 with all
 dependencies except MOSAIC if the following packages are installed:</p>
 
 <ul>
-<li>gcc-gfortran-4.1.2-33</li>
-<li>netcdf-3.6.2-4.fc8</li>
-<li>openmpi-1.2.4-1.fc8</li>
-<li>ScientificPython-2.6-10.fc8</li>
-<li>PyX-0.9-5.fc8</li>
+<li>gcc-gfortran-4.3.2-7</li>
+<li>cmake-2.6.2-3.fc10</li>
+<li>netcdf-4.0.0-1.fc10</li>
 </ul>
 
 <h1>Installation</h1>
 
-<p>The various helper scripts and testcases assume a Unix environment
-(tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
-make. The default compiler is gfortran.</p>
+<p>In principle PartMC should compile under any modern OS. Testing has
+mainly been under Linux and OS X. The quick-start instructions under
+Linux are:</p>
 
-<p>To build TAGS or the .deps dependency files set <code>DEV_BUILD = yes</code> in
-the Makefile. The .deps dependency files are rebuilt using
-<code>tool/f90_mod_deps.py</code>, which requires Python.</p>
+<ol>
+<li><p>Unpack PartMC with something like:
+ tar xzvf partmc-1.2.0.tar.gz</p></li>
+<li><p>Change into the main PartMC directory (where this README file is
+located) with something like:
+ cd partmc-1.2.0</p></li>
+<li><p>Make a directory called <code>build</code> and change into it:
+ mkdir build
+ cd build</p></li>
+<li><p>Run cmake with (note the double-c):
+ ccmake ..</p></li>
+<li><p>Inside ccmake press <code>c</code>, edit the values as needed, press <code>c</code>
+again, then <code>g</code>.</p></li>
+<li><p>Compile PartMC and test it:
+make
+make test</p></li>
+</ol>
 
 <p>The NetCDF libraries are required to compile PartMC. The <code>netcdf.mod</code>
 Fortran 90 module file is required, and it must be produced by the
 same compiler being used to compile PartMC.</p>
 
 <p>PartMC can interface to the MOSAIC chemistry code (see above for
-availability) but this is not enabled by default. To use MOSAIC,
-uncomment the <code>MOSAIC_LIB</code> and <code>MOSAIC_FLAG</code> variables in the Makefile
-and set <code>MOSAIC_MODDIR</code> and <code>MOSAIC_LIBDIR</code> to the appropriate
-directories. If MOSAIC is built in <code>/opt/mosaic</code>, for example, then
-<code>MOSAIC_MODDIR</code> should be <code>-I/opt/mosaic/datamodules</code> and
-<code>MOSAIC_LIBDIR</code> should be <code>-L/opt/mosaic</code>. Without MOSAIC support the
-<code>test/mosaic</code> testcase in PartMC will fail.</p>
+availability) but this is not enabled by default. To use MOSAIC, set
+the <code>ENABLE_MOSAIC</code> variable to <code>ON</code> in cmake. The
+<code>MOSAIC_INCLUDE_DIR</code> variable should be the location of the MOSAIC
+module files (compiled with the same compiler), probably ending in
+<code>mosaic/datamodules</code>. The <code>MOSAIC_LIB</code> variable should end in
+something like <code>mosaic/libmosaic.a</code>.</p>
 
 <h1>Usage</h1>
 
 <p>The main <code>partmc</code> command reads <code>.spec</code> files and does the run
 specified therein. Either Monte Carlo runs, sectional code runs, or
-exact solutions can be generated. A run produces binned summary data
-in a NetCDF file which can be plotted with the included python
-scripts. Monte Carlo runs can also output the full internal state in
-an ASCII format that can then be processed with <code>partmc -p</code> to produce
-the same summary NetCDF data.</p>
-
-<p>There are a number of examples provided in the <code>test</code> directory that
-can be run by the <code>run.sh</code> scripts. These use the python scripts with
-ScientificPython and Pyx to plot the results.</p>
+exact solutions can be generated. A run can produce binned summary
+data in NetCDF format, or full per-particle state data in either
+NetCDF or ASCII format. The extract_* programs in the tool/ directory
+can read either summary or full-state NetCDF files and serve as
+examples for processing the data.</p>
 
 <h1>Coding Conventions</h1>
 
@@ -97,33 +100,9 @@ types are named <code>my_type_t</code> and are generally defined in modules name
 has allocation and deallocation functions <code>my_type_alloc()</code> and
 <code>my_type_free()</code>, respectively.</p>
 
-<p>The auto-generation of module dependencies relies on a particular
-naming convention. The module names must be the same as the name of
-the containing file, but prefixed with <code>pmc_mod_</code>. Thus the module
-<code>pmc_mod_condensation</code> is contained in the file
-<code>condensation.f90</code>. The dependencies are autogenerated by the
-<code>tool/f90_mod_deps.py</code> python script, which is called automatically by
-the Makefile to regenerate dependencies if <code>DEV_BUILD = yes</code> is
-set. See <a href="http://lagrange.mechse.illinois.edu/mwest/f90_mod_deps/">http://lagrange.mechse.illinois.edu/mwest/f90_mod_deps/</a> for
-more information.</p>
-
-<h1>Debugging</h1>
-
-<p>To debug the parallel code run it with:</p>
-
-<pre><code>om-mpiexec --mca mpi_abort_delay -1 -n 2 ../src/partmc golovin_mc.spec
-</code></pre>
-
-<p>then run the debugger with:</p>
-
-<pre><code>gdb ../src/partmc &lt;pid&gt;
-</code></pre>
-
-<p>and use <code>bt</code> to get a backtrace.</p>
-
-<p>To turn on MPI debugging info add the <code>-d</code> parameter to
-<code>mpiexec/mpirun</code>. To restrict the transport to only TCP use the <code>--mca
-btl tcp</code> option.</p>
+<p>Module names are always the same as the name of the containing file,
+but prefixed with <code>pmc_mod_</code>. Thus the module <code>pmc_mod_condensation</code>
+is contained in the file <code>condensation.f90</code>.</p>
 
 <h1>ChangeLog</h1>
 
@@ -133,6 +112,7 @@ btl tcp</code> option.</p>
 <li><p>Output of full per-particle data in NetCDF format.</p></li>
 <li><p><code>urban_plume</code> test-case added, as described in the paper
 <a href="http://arxiv.org/abs/0809.0875">http://arxiv.org/abs/0809.0875</a></p></li>
+<li><p>Build system switched to <code>cmake</code>.</p></li>
 </ul>
 
 <p>1.1.0 - 2008-02-17</p>

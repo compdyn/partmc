@@ -1,6 +1,6 @@
 mode_name emit1                 # name of mode source
 frac_type volume                # composition type ("volume", "mass", "mole")
-frac aero_comp_emit.dat         # composition proportions of species
+frac aero_emit_comp.dat         # composition proportions of species
 num_den 1e12                    # particle number density (#/m^2)
 mode_type mono                  # type of distribution
 radius 3e-5                     # radius (m)

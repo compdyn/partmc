@@ -38,7 +38,7 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-rand_init 8                     # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 mix_rate 0.1                    # mixing rate between processes (0 to 1)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_double no                 # whether to allow doubling (yes/no)

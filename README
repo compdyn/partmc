@@ -66,16 +66,21 @@ Linux are:
     make
     make test
 
+7. To make some plots from the tests run them like:
+    cd run_test/emission
+    gnuplot plot_species.gnuplot
+
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
 Fortran 90 module file is required, and it must be produced by the
 same compiler being used to compile PartMC.
 
 PartMC can interface to the MOSAIC chemistry code (see above for
 availability) but this is not enabled by default. To use MOSAIC, set
-the ENABLE_MOSAIC variable to ON in cmake. The MOSAIC_INCLUDE_DIR
-variable should be the location of the MOSAIC module files (compiled
-with the same compiler), probably ending in mosaic/datamodules. The
-MOSAIC_LIB variable should end in something like mosaic/libmosaic.a.
+the `ENABLE_MOSAIC` variable to `ON` in cmake. The
+`MOSAIC_INCLUDE_DIR` variable should be the location of the MOSAIC
+module files (compiled with the same compiler), probably ending in
+`mosaic/datamodules`. The `MOSAIC_LIB` variable should end in
+something like `mosaic/libmosaic.a`.
 
 
 Usage

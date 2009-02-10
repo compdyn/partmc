@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -221,6 +221,27 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute a log-normal distribution in volume.
+  subroutine vol_den_log_normal(mean_radius, log_sigma, bin_grid, vol_den)
+    
+    !> Geometric mean radius (m).
+    real*8, intent(in) :: mean_radius
+    !> log_10(geom. std dev) (1).
+    real*8, intent(in) :: log_sigma
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Normalized volume density (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    
+    real*8 :: num_den(bin_grid%n_bin)
+
+    call num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
+    vol_den = num_den * bin_grid%v
+    
+  end subroutine vol_den_log_normal
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Exponential distribution in volume
   !> n(v) = 1 / mean_vol * exp(- v / mean_vol)
   !> Normalized so that sum(num_den(k) * dlnr) = 1
@@ -246,6 +267,25 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Exponential distribution in volume.
+  subroutine vol_den_exp(mean_radius, bin_grid, vol_den)
+    
+    !> Mean radius (m).
+    real*8, intent(in) :: mean_radius
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Num den (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    
+    real*8 :: num_den(bin_grid%n_bin)
+
+    call num_den_exp(mean_radius, bin_grid, num_den)
+    vol_den = num_den * bin_grid%v
+    
+  end subroutine vol_den_exp
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Mono-disperse distribution.
   !> Normalized so that sum(num_den(k) * dlnr) = 1
   subroutine num_den_mono(radius, bin_grid, num_den)
@@ -264,6 +304,26 @@ contains
     num_den(k) = 1d0 / bin_grid%dlnr
     
   end subroutine num_den_mono
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Mono-disperse distribution in volume.
+  subroutine vol_den_mono(radius, bin_grid, vol_den)
+    
+    !> Radius of each particle (m^3).
+    real*8, intent(in) :: radius
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Num den (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    
+    integer :: k
+
+    vol_den = 0d0
+    k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
+    vol_den(k) = 1d0 / bin_grid%dlnr * rad2vol(radius)
+    
+  end subroutine vol_den_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

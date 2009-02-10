@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for the.
 
@@ -350,7 +350,8 @@ contains
 
     integer :: i_mode, i_spec
     real*8 :: mode_num_den(bin_grid%n_bin)
-    real*8 :: mode_vol_den(bin_grid%n_bin, aero_data%n_spec)
+    real*8 :: mode_vol_den(bin_grid%n_bin)
+    real*8 :: mode_vol_spec_den(bin_grid%n_bin, aero_data%n_spec)
     type(aero_mode_t), pointer :: aero_mode
 
     do i_mode = 1,aero_dist%n_mode
@@ -358,20 +359,25 @@ contains
        if (aero_mode%type == "log_normal") then
           call num_den_log_normal(aero_mode%mean_radius, &
                aero_mode%log10_std_dev_radius, bin_grid, mode_num_den)
+          call vol_den_log_normal(aero_mode%mean_radius, &
+               aero_mode%log10_std_dev_radius, bin_grid, mode_vol_den)
        elseif (aero_mode%type == "exp") then
           call num_den_exp(aero_mode%mean_radius, bin_grid, mode_num_den)
+          call vol_den_exp(aero_mode%mean_radius, bin_grid, mode_vol_den)
        elseif (aero_mode%type == "mono") then
           call num_den_mono(aero_mode%mean_radius, bin_grid, mode_num_den)
+          call vol_den_mono(aero_mode%mean_radius, bin_grid, mode_vol_den)
        else
           call die_msg(749122931, "Unknown aero_mode type")
        end if
        mode_num_den = mode_num_den * aero_mode%num_den
+       mode_vol_den = mode_vol_den * aero_mode%num_den
        do i_spec = 1,aero_data%n_spec
-          mode_vol_den(:,i_spec) = mode_num_den * bin_grid%v &
+          mode_vol_spec_den(:,i_spec) = mode_vol_den &
                * aero_mode%vol_frac(i_spec)
        end do
        aero_binned%num_den = aero_binned%num_den + mode_num_den
-       aero_binned%vol_den = aero_binned%vol_den + mode_vol_den
+       aero_binned%vol_den = aero_binned%vol_den + mode_vol_spec_den
     end do
 
   end subroutine aero_binned_add_aero_dist

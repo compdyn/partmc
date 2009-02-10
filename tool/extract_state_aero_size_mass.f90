@@ -9,6 +9,7 @@ program extract_state_aero_size_mass
 
   use netcdf
 
+  integer, parameter :: MAX_N_TIME = 10000
   integer, parameter :: out_unit = 64
 
   character(len=1000) :: in_prefix, in_filename, out_filename
@@ -23,11 +24,11 @@ program extract_state_aero_size_mass
   real*8, allocatable :: aero_comp_mass(:,:)
   real*8, allocatable :: aero_density(:)
   real*8, allocatable :: aero_comp_vol(:)
-  real*8, allocatable :: aero_dist(:)
+  real*8, allocatable :: aero_dist(:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
-  integer :: n_bin, i_bin
+  integer :: n_bin, i_bin, n_time
   real*8 :: r_min, r_max, radius, volume
 
   ! process commandline arguments
@@ -44,29 +45,8 @@ program extract_state_aero_size_mass
   call getarg(4, in_prefix)
   call getarg(5, out_filename)
 
-  ! open output file
-  open(unit=out_unit, file=out_filename, iostat=ios)
-  if (ios /= 0) then
-     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-          trim(out_filename), ' for writing: ', ios
-     call exit(1)
-  end if
-  write(out_unit, '(e30.15e3)', advance='no') 0d0
-  do i_bin = 1,n_bin
-     radius = exp(dble(i_bin - 1) / dble(n_bin - 1) &
-          * (log(r_max) - log(r_min)) + log(r_min))
-     write(out_unit, '(e30.15e3)', advance='no') radius
-  end do
-  write(out_unit, '(a)') ''
-
-  ! write information
-  write(*,*) "Output file array A has:"
-  write(*,*) "  A(1, j+1) = radius(j) (m)"
-  write(*,*) "  A(i+1, 1) = time(i) (s)"
-  write(*,*) "  A(i+1, j+1) = mass concentration at time(i) and radius(j) (kg/m^3)"
-
   ! process NetCDF files
-  allocate(aero_dist(n_bin))
+  allocate(aero_dist(n_bin, MAX_N_TIME))
   i_time = 0
   do while (.true.)
      i_time = i_time + 1
@@ -74,6 +54,11 @@ program extract_state_aero_size_mass
      status = nf90_open(in_filename, NF90_NOWRITE, ncid)
      if (status /= NF90_NOERR) then
         exit
+     end if
+     n_time = i_time
+     if (n_time >= MAX_N_TIME) then
+        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', MAX_N_TIME
+        call exit(1)
      end if
 
      ! read time
@@ -150,21 +135,38 @@ program extract_state_aero_size_mass
              * 3.14159265358979323846d0))**(1d0/3d0)
         i_bin = ceiling((log(radius) - log(r_min)) &
              / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
-        aero_dist(i_bin) = aero_dist(i_bin) &
+        aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
              + sum(aero_comp_mass(i_part,:)) / aero_comp_vol(i_part)
      end do
-
-     ! output data
-     write(out_unit, '(e30.15e3)', advance='no') time
-     do i_bin = 1,n_bin
-        write(out_unit, '(e30.15e3)', advance='no') &
-             aero_dist(i_bin)
-     end do
-     write(out_unit, '(a)') ''
 
      deallocate(aero_comp_mass)
      deallocate(aero_density)
      deallocate(aero_comp_vol)
+  end do
+
+  ! write information
+  write(*,*) "Output file array A has:"
+  write(*,*) "  A(i, 1) = radius(i) (m)"
+  write(*,*) "  A(i, j+1) = mass concentration at radius(i) and time(j) (kg/m^3)"
+
+  ! open output file
+  open(unit=out_unit, file=out_filename, iostat=ios)
+  if (ios /= 0) then
+     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
+          trim(out_filename), ' for writing: ', ios
+     call exit(1)
+  end if
+
+  ! output data
+  do i_bin = 1,n_bin
+     radius = exp(dble(i_bin - 1) / dble(n_bin - 1) &
+          * (log(r_max) - log(r_min)) + log(r_min))
+     write(out_unit, '(e30.15e3)', advance='no') radius
+     do i_time = 1,n_time
+        write(out_unit, '(e30.15e3)', advance='no') &
+             aero_dist(i_bin, i_time)
+     end do
+     write(out_unit, '(a)') ''
   end do
 
   close(out_unit)

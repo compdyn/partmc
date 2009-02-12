@@ -2,8 +2,8 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Compare two files containing a numericals array and check whether
-! they are the same as each other, to within the specified tolerance.
+! Compare two files containing numerical arrays and check whether they
+! are the same as each other, to within the specified tolerance.
 !
 ! If the arrays in the two files are of different sizes then they are
 ! automatically different. Otherwise the are the same if
@@ -41,33 +41,41 @@ program numeric_diff
   integer :: min_row, max_row, min_col, max_col
 
   ! process commandline arguments
-  if ((iargc() < 4) .or. (iargc() > 8)) then
-     write(6,*) 'Usage: numeric_diff <filename1> <filename2> <abs_tol> <rel_tol> [min_row] [max_row] [min_col] [max_col]'
+  if ((iargc() < 2) .or. (iargc() > 8)) then
+     write(6,*) 'Usage: numeric_diff <filename1> <filename2> [abs_tol] [rel_tol] [min_row] [max_row] [min_col] [max_col]'
      write(6,*) 'Setting tolerances or min/max values to 0 disables that check.'
+     write(6,*) 'If both tolerances are 0 then just print the differences.'
+     write(6,*) 'All parameters default to 0 if not specified.'
      call exit(2)
   endif
   call getarg(1, filename1)
   call getarg(2, filename2)
-  call getarg(3, tmp)
-  abs_tol = string_to_real(tmp)
-  call getarg(4, tmp)
-  rel_tol = string_to_real(tmp)
+  abs_tol = 0d0
+  if (iargc() >= 3) then
+     call getarg(3, tmp)
+     abs_tol = string_to_real(tmp)
+  end if
+  rel_tol = 0d0
+  if (iargc() >= 3) then
+     call getarg(4, tmp)
+     rel_tol = string_to_real(tmp)
+  end if
   min_row = 0
-  max_row = 0
-  min_col = 0
-  max_col = 0
   if (iargc() >= 5) then
      call getarg(5, tmp)
      min_row = string_to_integer(tmp)
   end if
+  max_row = 0
   if (iargc() >= 6) then
      call getarg(6, tmp)
      max_row = string_to_integer(tmp)
   end if
+  min_col = 0
   if (iargc() >= 7) then
      call getarg(7, tmp)
      min_col = string_to_integer(tmp)
   end if
+  max_col = 0
   if (iargc() >= 8) then
      call getarg(8, tmp)
      max_col = string_to_integer(tmp)
@@ -104,7 +112,7 @@ program numeric_diff
           .or. ((.not. eol1) .and. eol2) &
           .or. (eof1 .and. (.not. eof2)) &
           .or. ((.not. eof1) .and. eof2)) then
-        write(*,'(a,i8,i8)') 'different at', row, col
+        write(*,'(a,i8,i8)') 'different shape at', row, col
         call exit(1)
      end if
      if (len(word1) > 0) then
@@ -132,6 +140,10 @@ program numeric_diff
   rel_error = 2d0 * abs_error / (norm1 + norm2)
   
   ! check equivalence
+  if ((abs_tol == 0d0) .and. (rel_tol == 0d0)) then
+     write(*,'(e12.3,e12.3)') abs_error, rel_error
+     call exit(0)
+  end if
   if (((abs_tol == 0d0) .or. (abs_error < abs_tol)) &
        .and. ((rel_tol == 0d0) .or. (rel_error < rel_tol))) then
      call exit(0)

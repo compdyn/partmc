@@ -1,15 +1,15 @@
-run_type sect                    # sectional code
-output_prefix out/brown_sect     # prefix of output files
+run_type sect                   # sectional code
+output_prefix out/brownian_sect # prefix of output files
 process_spec process.dat        # processing specification
 kernel brown                    # coagulation kernel
 
-t_max 86400                       # total simulation time (s)
-del_t 1                         # timestep (s)
-t_output 3600                     # output interval (0 disables) (s)
-t_progress 600                   # progress printing interval (0 disables) (s)
+t_max 86400                     # total simulation time (s)
+del_t 60                        # timestep (s)
+t_output 3600                   # output interval (0 disables) (s)
+t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 220                       # number of bins
-r_min 1e-10                      # minimum radius (m)
+r_min 1e-10                     # minimum radius (m)
 r_max 1e-4                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data

@@ -1,21 +1,21 @@
 run_type mc                     # Monte Carlo
-output_prefix  out/brown_mc     # prefix of output files
-state_prefix out/brown_mc_state # prefix of state files
+output_prefix  out/brownian_mc  # prefix of output files
+state_prefix out/brownian_mc_state # prefix of state files
 process_spec process.dat        # processing specification
-n_loop 1                        # number of Monte Carlo loops
-n_part 100000                   # total number of particles
+n_loop 9                        # number of Monte Carlo loops
+n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
-del_t 60                        # timestep (s)
+del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
-n_bin 160                       # number of bins
+n_bin 220                       # number of bins
 r_min 1e-10                     # minimum radius (m)
-r_max 1e-5                      # maximum radius (m)
+r_max 1e-4                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations
@@ -38,7 +38,7 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-rand_init 26                    # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_double yes                # whether to allow doubling (yes/no)

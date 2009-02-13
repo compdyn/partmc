@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,7 @@ from pmc_data_nc import *
 from pmc_pyx import *
 from fig_helper import *
 
-out_prefix = "movs/aero_2d_all"
+out_prefix = "movs/aero_2d_all_pdfs"
 
 y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
 

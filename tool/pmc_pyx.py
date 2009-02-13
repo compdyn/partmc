@@ -65,18 +65,18 @@ class listpalette(color.palette):
 		+ (1 - alpha) * self.colorlist[i-1][1].color[key]
         return self.colorclass(**colordict)
 
-rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],  # blue
-			       [0.2, color.rgb(0, 1, 1)],  # cyan
-			       [0.4, color.rgb(0, 1, 0)],  # green
-			       [0.6, color.rgb(1, 1, 0)],  # yellow
-			       [0.8, color.rgb(1, 0, 0)],  # red
-                               [1.0, color.rgb(1, 0, 1)]]) # magenta
+#rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],  # blue
+#			       [0.2, color.rgb(0, 1, 1)],  # cyan
+#			       [0.4, color.rgb(0, 1, 0)],  # green
+#			       [0.6, color.rgb(1, 1, 0)],  # yellow
+#			       [0.8, color.rgb(1, 0, 0)],  # red
+#                               [1.0, color.rgb(1, 0, 1)]]) # magenta
 
-#rainbow_palette = listpalette([[0.0, color.rgb(1, 0, 0)],  # red
-#                               [0.25, color.rgb(1, 1, 0)],  # yellow
-#                               [0.5, color.rgb(0, 1, 0)],  # green
-#			       [0.75, color.rgb(0, 1, 1)],  # cyan
-#                               [1.0, color.rgb(0, 0, 1)]])  # blue
+rainbow_palette = listpalette([[0.0, color.rgb(1, 0, 0)],   # red
+                               [0.25, color.rgb(1, 1, 0)],  # yellow
+                               [0.5, color.rgb(0, 1, 0)],   # green
+			       [0.75, color.rgb(0, 1, 1)],  # cyan
+                               [1.0, color.rgb(0, 0, 1)]])  # blue
 
 gray_palette = listpalette([[0, color.gray(0.8)],
                             [1, color.gray(0)]])

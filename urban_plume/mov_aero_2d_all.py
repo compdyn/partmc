@@ -38,12 +38,13 @@ def get_plot_data(filename, value_max = None):
     num_den_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     show_coords = [[] for p in show_particles]
     for i in range(particles.n_particles):
-        scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i]) \
+        if x_axis.valid_bin(x_bin[i]) and y_axis.valid_bin(y_bin[i]):
+            scale = particles.comp_vol[i] * x_axis.grid_size(x_bin[i]) \
                 * (y_axis.grid_size(y_bin[i]) / 100)
-        num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
-        for j in range(len(show_particles)):
-            if particles.id[i] == show_particles[j]["id"]:
-                show_coords[j] = [diameter[i], comp_frac[i]]
+            num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
+            for j in range(len(show_particles)):
+                if particles.id[i] == show_particles[j]["id"]:
+                    show_coords[j] = [diameter[i], comp_frac[i]]
 
     value = num_den_array / num_den_array.sum() \
             / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)

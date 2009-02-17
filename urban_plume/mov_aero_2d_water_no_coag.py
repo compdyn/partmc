@@ -44,17 +44,18 @@ def get_plot_data(filename, value_max = None, print_info = True):
     dry_array = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
     show_coords = [[] for p in show_particles]
     for i in range(particles.n_particles):
-        if water_frac[i] > 0.0:
-            if water_frac_array[x_bin[i], y_bin[i]] == 0.0:
-                water_frac_array[x_bin[i], y_bin[i]] = water_frac[i]
+        if x_axis.valid_bin(x_bin[i]) and y_axis.valid_bin(y_bin[i]):
+            if water_frac[i] > 0.0:
+                if water_frac_array[x_bin[i], y_bin[i]] == 0.0:
+                    water_frac_array[x_bin[i], y_bin[i]] = water_frac[i]
+                else:
+                    water_frac_array[x_bin[i], y_bin[i]] \
+                         = min(water_frac_array[x_bin[i], y_bin[i]], water_frac[i])
             else:
-                water_frac_array[x_bin[i], y_bin[i]] \
-                     = min(water_frac_array[x_bin[i], y_bin[i]], water_frac[i])
-        else:
-            dry_array[x_bin[i], y_bin[i]] = 1.0
-        for j in range(len(show_particles)):
-            if particles.id[i] == show_particles[j]["id"]:
-                show_coords[j] = [diameter[i], comp_frac[i]]
+                dry_array[x_bin[i], y_bin[i]] = 1.0
+            for j in range(len(show_particles)):
+                if particles.id[i] == show_particles[j]["id"]:
+                    show_coords[j] = [diameter[i], comp_frac[i]]
 
     if print_info:
         print "%g hours, %s LST, water = %g%% to %g%%" \

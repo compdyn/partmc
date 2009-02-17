@@ -16,13 +16,13 @@ from fig_helper import *
 out_prefix = "figs_aging/aging_aero_time_totals"
 
 plot_info = {
-    "total": {"label": r"$N_{\rm tot}$", "label_time": 8, "label_pos": [1, 1],
+    "total": {"label": r"$N_{\rm BC}$", "label_time": 8, "label_pos": [1, 1],
               "linewidth": style.linewidth.Thick,
               "color": color_list[0], "pattern": line_style_list[0]},
-    "aged":  {"label": r"$N_{\rm a}$", "label_time": 15, "label_pos": [1, 0],
+    "aged":  {"label": r"$N_{\rm a}$", "label_time": 14.5, "label_pos": [1, 0],
               "linewidth": style.linewidth.Thick,
               "color": color_list[1], "pattern": line_style_list[1]},
-    "fresh": {"label": r"$N_{\rm f}$", "label_time": 15, "label_pos": [0, 1],
+    "fresh": {"label": r"$N_{\rm f}$", "label_time": 15.5, "label_pos": [0, 1],
               "linewidth": style.linewidth.Thick,
               "color": color_list[2], "pattern": line_style_list[2]},
     }

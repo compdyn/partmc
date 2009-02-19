@@ -13,9 +13,9 @@ from pmc_data_nc import *
 from pmc_pyx import *
 from fig_helper import *
 
-out_prefix = "movs/aero_2d_water_pdfs"
+out_prefix = "movs/aero_2d_water_pdfs/aero_2d_water"
 
-y_axis_label = r"BC fraction $f_{{\rm BC},{\rm dry}}$ ($1$)"
+y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
 max_val = 50
 min_palette_index = 0
@@ -34,7 +34,8 @@ def get_plot_data(filename, value_max = None, print_info = True):
 
     x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                           n_bin = num_diameter_bins)
-    y_axis = pmc_linear_axis(min = 0, max = 100, n_bin = 100)
+    y_axis = pmc_linear_axis(min = bc_axis_min, max = bc_axis_max,
+                             n_bin = num_bc_bins)
     x_bin = x_axis.find(diameter)
     # hack to avoid landing just around the integer boundaries
     comp_frac *= (1.0 + 1e-12)
@@ -120,8 +121,10 @@ for [time, filename, output_key] in time_filename_list:
                          min = 0.0,
                          max = max_val,
                          min_palette_index = min_palette_index,
-                         title = r"water fraction $f_{\rm H_2O,all}$ (1)",
-                         texter = graph.axis.texter.decimal(suffix = r"\%"),
+                         xpos = g.xpos + g.width + grid_h_space,
+                         ybottom = g.ypos,
+                         ytop = g.ypos + g.height,
+                         title = r"water mass frac. $w_{\rm H_2O,all}$ ($\%$)",
                          palette = rainbow_palette,
                          extra_box_color = color.gray(0),
                          extra_box_pattern = False,

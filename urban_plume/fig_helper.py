@@ -169,6 +169,7 @@ def make_1x1_graph_grid(y_axis_label):
                            title = diameter_axis_label),
         y = graph.axis.linear(min = bc_axis_min,
                               max = bc_axis_max,
+                              density = 1.2,
                               title = y_axis_label))
     return g
 

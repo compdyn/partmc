@@ -289,7 +289,7 @@ def add_color_bar_new(g, min, max, title, bar_width = 0.5,
 def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
                         bar_width_ratio = 0.8, bar_offset = 1.8,
                         horiz_offset = 0, above = True,
-                        texter = None):
+                        texter = None, density = 1, manualticks = []):
     colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
@@ -315,26 +315,30 @@ def add_horiz_color_bar(g, min, max, title, palette, bar_height = 0.5,
             graph.graphxy(
                 width = bar_width_ratio * g.width,
                 height = bar_height,
-                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset,
-                ypos = g.ypos + g.height + bar_offset,
+                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset + g.xpos,
+                ypos = g.ypos + g.height + bar_offset + g.ypos,
                 y = graph.axis.linear(min = 0, max = 1,
                                       parter = None),
                 x2 = graph.axis.linear(
                     min = min,
                     max = max,
+                    density = density,
+                    manualticks = manualticks,
                     title = title)))
     else:
         gc = g.insert(
             graph.graphxy(
                 width = bar_width_ratio * g.width,
                 height = bar_height,
-                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset,
-                ypos = - bar_offset,
+                xpos = (1.0 - bar_width_ratio) / 2.0 * g.width + horiz_offset + g.xpos,
+                ypos = - bar_offset + g.ypos,
                 y = graph.axis.linear(min = 0, max = 1,
                                       parter = None),
                 x = graph.axis.linear(
                     min = min,
                     max = max,
+                    density = density,
+                    manualticks = manualticks,
                     title = title)))
     gc.plot(graph.data.points(color_d, ymin = 1, ymax = 2,
                             xmin = 3, xmax = 4, color = 5),

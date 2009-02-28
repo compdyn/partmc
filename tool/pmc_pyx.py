@@ -352,6 +352,7 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
                          bar_height_ratio = 0.7,
                          xpos = 0, ybottom = 0, ytop = 1,
                          min_palette_index = 0.0,
+                         density = 1.0,
                          max_palette_index = 1.0, texter = None,
                          extra_box_value = None, extra_box_label = None,
                          extra_box_pattern = None, extra_box_color = None):
@@ -369,12 +370,14 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
         y2axis = graph.axis.linear(
             min = min,
             max = max,
+            density = density,
             title = title,
             texter = texter)
     else:
         y2axis = graph.axis.linear(
             min = min,
             max = max,
+            density = density,
             title = title)
     ypos = (1.0 - bar_height_ratio) / 2.0 * (ytop - ybottom) + ybottom
     gc = c.insert(

@@ -120,6 +120,7 @@ for [time, filename, output_key] in time_filename_list:
     add_canvas_color_bar(g,
                          min = 0.0,
                          max = max_val,
+                         density = 0.8,
                          min_palette_index = min_palette_index,
                          xpos = g.xpos + g.width + grid_h_space,
                          ybottom = g.ypos,

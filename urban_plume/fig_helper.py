@@ -37,6 +37,8 @@ level_low_value = ss_active_axis.edge(level_low)
 level_mid_value = ss_active_axis.edge(level_mid)
 level_high_value = ss_active_axis.edge(level_high)
 
+movie_stroke_width = 0.01
+
 smooth_window_len = 60
 grey_level = 0.2
 

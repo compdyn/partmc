@@ -659,7 +659,30 @@ def pmc_histogram_2d_multi(array_list, x_axis, y_axis, mask = None,
 
 class aero_particle_array_t:
 
-    def __init__(self, ncf):
+    def __init__(self, ncf = None, n_particles = None, aero_data = None):
+        if ncf == None:
+            self.aero_data = aero_data
+            self.n_particles = n_particles
+            self.masses = zeros([len(aero_data.name), n_particles])
+            self.n_orig_part = zeros(n_particles, 'int32')
+            self.absorb_cross_sect = zeros(n_particles)
+            self.scatter_cross_sect = zeros(n_particles)
+            self.asymmetry = zeros(n_particles)
+            self.refract_shell_real = zeros(n_particles)
+            self.refract_shell_imag = zeros(n_particles)
+            self.refract_core_real = zeros(n_particles)
+            self.refract_core_imag = zeros(n_particles)
+            self.core_vol = zeros(n_particles)
+            self.water_hyst_leg = zeros(n_particles, 'int32')
+            self.comp_vol = zeros(n_particles)
+            self.id = zeros(n_particles,'int32')
+            self.least_create_time = zeros(n_particles)
+            self.greatest_create_time = zeros(n_particles)
+            self.aero_removed_id = array([],'int32')
+            self.aero_removed_action = array([],'int32')
+            self.aero_removed_other_id = array([],'int32')
+            return
+        
         self.aero_data = aero_data_t(ncf)
         if "aero_comp_mass" not in ncf.variables.keys():
             raise Exception("aero_comp_mass variable not found in NetCDF file")
@@ -796,6 +819,22 @@ class aero_particle_array_t:
         diam = self.diameter()
         kappa = self.solute_kappa()
         return C / sqrt(kappa * diam**3) + 1.0
+
+    def bin_average(self, diameter_axis):
+        averaged_particles = aero_particle_array_t(n_particles = diameter_axis.n_bin,
+                                                   aero_data = self.aero_data)
+        diameter = self.dry_diameter() * 1e6
+        diameter_bin = diameter_axis.find(diameter)
+        num_den = zeros(diameter_axis.n_bin)
+        masses_den = zeros([self.masses.shape[0], diameter_axis.n_bin])
+        for i in range(self.n_particles):
+            if diameter_axis.valid_bin(diameter_bin[i]):
+                num_den[diameter_bin[i]] += 1 / self.comp_vol[i]
+                masses_den[:,diameter_bin[i]] += self.masses[:,i] / self.comp_vol[i]
+        for i in range(averaged_particles.n_particles):
+            averaged_particles.comp_vol[i] = 1 / num_den[i]
+            averaged_particles.masses[:,i] = masses_den[:,i] * averaged_particles.comp_vol[i]
+        return averaged_particles
 
 def time_of_day_string(time_seconds):
     time_of_day = time_seconds % (24 * 3600.0)

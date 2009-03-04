@@ -18,6 +18,8 @@ out_prefix = "figs_prop/ssa_ccn"
 ssa_array = loadtxt("SSA output.txt", float)
 plot_data_ssa_resolved = []
 plot_data_ssa_binned = []
+plot_data_ssa_resolved.append([0, 1])
+plot_data_ssa_binned.append([0, 1])
 for i in range(ssa_array.shape[0]):
     plot_data_ssa_resolved.append([ssa_array[i,0] * 60, ssa_array[i,1]])
     plot_data_ssa_binned.append([ssa_array[i,0] * 60, ssa_array[i,2]])
@@ -26,9 +28,13 @@ ccn_array = loadtxt("figs_prop/ccn.txt", float)
 plot_data_ccn_resolved = []
 plot_data_ccn_binned = []
 for i in range(ccn_array.shape[0]):
-    if i % 15 == 1:
+    if i % 20 == 0:
         plot_data_ccn_resolved.append([ccn_array[i,0], ccn_array[i,1]])
         plot_data_ccn_binned.append([ccn_array[i,0], ccn_array[i,2]])
+plot_data_ccn_resolved[0][0] = ccn_array[1,0]
+plot_data_ccn_resolved[0][1] = ccn_array[1,1]
+plot_data_ccn_binned[0][0] = ccn_array[1,0]
+plot_data_ccn_binned[0][1] = ccn_array[1,2]
 
 max_time_min = 24 * 60
 start_time_of_day_min = 6 * 60
@@ -72,7 +78,7 @@ for use_color in [True, False]:
     g2.doaxes()
 
     if use_color:
-        style_attr_resolved = color_list[1]
+        style_attr_resolved = color_list[0]
         style_attr_binned = color_list[2]
     else:
         style_attr_resolved = line_style_list[0]

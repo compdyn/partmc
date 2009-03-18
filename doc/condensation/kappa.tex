@@ -54,269 +54,16 @@ This short report is about the derivation of the relationship the single paramet
 
 \item In Summary, we need to have a formulation for an overall $\kappa$ for a general mixture of soluble and insoluble substances and also organic and inorganic substance. 
  
+\end{itemize}
+ 
 \subsection{Petters and Kreidenweis (2007) $\kappa$ formulation (for aerosol particles contain no insoluble substances)}
-
-Saturation vapor pressure ratio, $S$ over a solution droplet is given by 
-
-\begin{equation}\label{eqn:83}
-S=a_w \exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}). 
-\end{equation}
-
-$\kappa$ is by the following definition, defined through $a_w$,
-
-\begin{equation}\label{eqn:84}
-\frac{1}{a_w}=1+\kappa \frac{V_s}{V_w},
-\end{equation}  
-where $ V_s$ and $ V_w$ are volume of dry particulate (dry salt) and water respectively.
-
-Assuming ZSR assumption applies, i.e.  $ V_w = \sum_{i} V_{wi}$, where $V_{wi}$ is the water content associated with each component in the internally mixed aerosol particle, and also $a_{wi}$ = $ a_{w}$. 
-
-Then rearranging the above equation, we have
-
-\begin{equation}\label{eqn:85}
-V_w = \frac {a_{w}}{(1-a_{w})} \kappa V_{s}. 
-\end{equation} 
- 
-Also write eqn \ref{eqn:84} for each component in the internally mixed aerosol particle, 
-
-\begin{equation}\label{eqn:86}
- \frac{1}{a_{wi}}=1+\kappa_{i} \frac{V_{si}}{V_{wi}}.
-\end{equation} 
-
-Then similarly, we have 
-
-\begin{equation}\label{eqn:87}
-V_{wi} = \frac {a_{wi}}{(1-a_{wi})} \kappa_{i} V_{si}
-\end{equation}
-
-Notice that $ V_w = \sum_{i} V_{wi}$, then we have
-
-\begin{equation}\label{eqn:88}
-V_{w} = \sum_{i} V_{wi} = \sum_{i} \frac {a_{wi}}{(1-a_{wi})} \kappa_{i} V_{si}.
-\end{equation}
-
-Since $a_{wi}$=$a_{w}$, we have
-\begin{equation}\label{eqn:89}
-V_{w}  = \frac {a_{w}}{(1-a_{w})} \sum_{i} \kappa_{i} V_{si},
-\end{equation}
-which is equation (3) in Petters and Kreidenweis (2007).
-
-Recognizing the fact that $V_{T}$=$V_{s}+V_{w}$, where $V_{T}$ is the total volume of the system, water plus solute, when there is no insoluble substance and rearranging eqn \ref{eqn:89}, we then have
-
-\begin{equation}
-(V_{T}-V_{s}) (1-a_{w})=a_{w}\sum_{i} \kappa_{i} V_{si}.
-\end{equation}
-
-
-\begin{equation}
-V_{T}-V_{s} =a_{w}\Big( \sum_{i} \kappa_{i} V_{si} +(V_{T}-V_{s}) \Big)
-\end{equation}
-
-
-\begin{equation}
-a_{w}= \frac {V_{T}-V_{s} }{\sum_{i} \kappa_{i} V_{si} +(V_{T}-V_{s})}
-\end{equation}
-
-
-\begin{equation}
-a_{w}= \frac {V_{T}-V_{s} }{V_{s} \sum_{i} \kappa_{i} \frac{V_{si}}{V_{s}} +(V_{T}-V_{s})}
-\end{equation}
-
-
-\begin{equation}
-a_{w}= \frac {V_{T}-V_{s} }{V_{T} - V_{s} (1- \sum_{i} \kappa_{i} \epsilon_{i})}
-\end{equation}
-
- or
- 
- \begin{equation}
-a_{w}= \frac {D^{3}-D_{d}^{3} }{D^{3}-D_{d}^{3} (1- \sum_{i} \kappa_{i} \epsilon_{i})},
-\end{equation}
-
-where 
-$D$ and $D_{d}$ are the diameter of the droplet and the dry salt respectively and $\epsilon_{i}$ is the volume fraction of component $i$.
-
-\begin{equation}
-a_{w}= \frac {D^{3}-D_{d}^{3} }{D^{3}-D_{d}^{3} (1- \kappa)},
-\end{equation}
-
-where $\kappa$ = $\sum_{i} \kappa_{i} \epsilon_{i}$.
-
-Substitute above into eqn(\ref{eqn:83}), we get the following
-
-\begin{equation}\label{eqn:99}
-S=\frac {D^{3}-D_{d}^{3} }{D^{3}-D_{d}^{3} (1- \kappa)}\exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}).
-\end{equation}
-
-To obtain the relationship between $\kappa$ and the solute term in Kohler's equation, we notice from equation 15.23 in S$\&$P, we have 
-
-\begin{equation}
-\ln \Big(\frac{P_{w}(D_{p})}{p^{o}} \Big)=\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}}-\ln(\gamma_{w})-\ln(1+\frac{6 n_{s} {\overline{v_{w} } } } {\pi D_{p}^{3} } ).
-\end{equation}
-
-Assuming $\gamma_{w}$, the activity coefficient (refer to p.783 S$\&$P), equals 1, noting that $\ln(\frac{P_{w}((D_{p})}{p^{o}})$=$\ln(S)$  and $\ln(1+x)$$\approx x$  , we have
-
-\begin{equation}
-\ln \Big(\frac{P_{w}(D_{p})}{p^{o}} \Big)=\ln(S)=\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}}-\frac{6 n_{s} {\overline{v_{w} } } } {\pi D_{p}^{3} }.  
-\end{equation}
-
-Then 
-
-\begin{equation}
-S=\exp{(\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}})} \exp{( - \frac{6 n_{s} {\overline{v_{w} } } } {\pi D_{p}^{3}})},  
-\end{equation}
-
-comparing the above to eqn(\ref{eqn:99}), we can see
-
-\begin{equation}
-a_{w}=\exp{(- \frac {6 n_{s} {\overline{v_{w} } } } {\pi D_{p}^{3}}) }
-\end{equation}
-
-and as above assuming again $\frac{6 n_{s} \overline{v_{w}} } {\pi D_{p}^{3}}$ $\ll$ 1,
-
-\begin{equation}
-\frac{1}{a_{w}}=1+\frac{6 n_{s} \overline{v_{w}} } {\pi D_{p}^{3}} 
-\end{equation}
-
-\begin{equation}
-1+\kappa \frac{V_{s}}{V_{w}}=1+\frac{6 n_{s} \overline{v_{w}} } {\pi D_{p}^{3}} 
-\end{equation}
-
-Assuming dilute solution, $\overline{v_{w}}$ $\approx$ $\frac{V_{w}}{n_{w}}$, where $\overline{v_{w}}$ is molar partial volume of water in the solution, 
-
-\begin{equation}\label{eqn:106}
-\kappa=\frac{n_{s} V_{w}}{ n_{w}} \frac{1} {V_{p}} \frac{V_{w}}{V_{s}}
-\end{equation}
-
-\begin{equation}\label{eqn:107}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w}V_{p} V_{s}}.
-\end{equation}
-
-If $V_{w}$$\gg$ $V_{s}$, the above can be approximated as,
-
-\begin{equation}\label{eqn:108}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w}V_{p} V_{s}}= \frac{n_{s}V_{w}^{2}}{n_{w} (V_{w}+V_{s}) V_{s}}
-\end{equation}
-
-\begin{equation}\label{eqn:109}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w} V_{w}V_{s}}
-\end{equation}
-
-\begin{equation}\label{eqn:110}
-\kappa=\frac{n_{s}V_{w}}{n_{w} V_{s}}=\frac{M_{w} \rho_{s}}{ M_{s} \rho_{w} }
-\end{equation}
-
-
-If $V_{s}$$\gg$ $V_{w}$, the above can be approximated as,
-
-
-\begin{equation}\label{eqn:111}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w}V_{p} V_{s}}= \frac{n_{s}V_{w}^{2}}{n_{w} (V_{w}+V_{s}) V_{s}}
-\end{equation}
-
-\begin{equation}\label{eqn:112}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w} V_{s}^{2}}= (\frac{M_{w} \rho_{s}}{ M_{s} \rho_{w}})^{2} \frac{n_{w}}{n_{s}}
-\end{equation}.
-
-From eqn \ref{eqn:110}, when the solution droplet (aerosol particle)  is dilute, the value of $\kappa$ does not depends on the amount of salt in the aerosol particle. However, when the solution is not dilute, the value of $\kappa$ depends on the number of moles of water and salt (solute)  (i.e. $n_{w}$ and $n_{s}$) in the solution.
-
-\subsection{$\kappa$ formulation for aerosol particles contain insoluble}
-
-We are still not sure about whether the definition of water activity, $a_{w}$ should be revised when the solution contain insoluble substances. Therefore we still use the same definition of $a_{w}$ to derive the relationship between $\kappa$ and the solute term in the Kohler equation.
-
-
-Equation (5) in Petters and  Kreidenweis (2007) or eqn(\ref{eqn:89}) above  should be rewritten as follows to account for insoluble substances, since $V_{p}$=$V_{s}$+$V_{w}$+$V_{u}$,
-
-\begin{equation}
-V_{p}-V_{s}-V_{u}=\frac {a_{w}}{(1-a_{w})} \sum_{i} \kappa_{i} V_{si},
-\end{equation}
-where $V_{p}$, $V_{w}$ and $V_{u}$ are the volumes of the whole droplet, the water and the insoluble substances in the aerosol particle respectively.
-
-
-\begin{equation}
-a_{w}= \frac {V_{p}-V_{s}-V_{u}}{V_{p} -V_{u}- V_{s} (1- \sum_{i} \kappa_{i} \epsilon_{i})}
-\end{equation}
-
- or
- 
- \begin{equation}
-a_{w}= \frac {D^{3}-D_{d}^{3}-d_{u}^{3}}{D^{3}- d_{u}^{3}- D_{d}^{3} (1- \sum_{i} \kappa_{i} \epsilon_{i})},
-\end{equation}
-
-where 
-$D$, $d_{u}$ and $D_{d}$ are the diameter of the droplet, the diameter of insoluble substance (assuming spherical shape of insoluble substances) and the dry salt respectively and $\epsilon_{i}$ is the volume fraction of component $i$ respectively.
-
-\begin{equation}
-a_{w}= \frac {D^{3}-D_{d}^{3}-d_{u}^{3} }{D^{3}-d_{u}^{3}-D_{d}^{3} (1- \kappa)},
-\end{equation}
-
-where $\kappa$ = $\sum_{i} \kappa_{i} \epsilon_{i}$.
-
-
-Following similar strategy as we do for aerosol particles contain no insoluble substances, we have
-
-\begin{equation}
-S(D)= \frac {D^{3}-D_{d}^{3}-d_{u}^{3} }{D^{3}-d_{u}^{3}-D_{d}^{3} (1- \kappa)}\exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}). 
-\end{equation}
-
-
-To obtain the relationship between $\kappa$ and the solute term in Kohler's equation, we notice from equation 15.37 in S$\&$P, we have 
-
-\begin{equation}
-\ln \Big(\frac{P_{w}(D_{p})}{p^{o}} \Big)=\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}}-\ln(\gamma_{w})-\ln \Big(1+\frac{n_{s} {\overline{v_{w} } } } {(\pi/6) (D_{p}^{3}-d_{u}^{3}) - n_{s} \overline{v_{s}} } \Big).
-\end{equation}
-
-Assuming $\gamma_{w}$, the activity coefficient (refer to p.783 S$\&$P), equals 1, noting that $\ln(\frac{P_{w}((D_{p})}{p^{o}})$=$\ln(S)$  and $\ln(1+x)$$\approx x$  , we have
-
-\begin{equation}
-\ln \Big(\frac{P_{w}(D_{p})}{p^{o}} \Big)=\ln(S)=\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}}-\frac{n_{s} {\overline{v_{w} } } } {(\pi/6) (D_{p}^{3}-d_{u}^{3}) - n_{s} \overline{v_{s}} } . 
-\end{equation}
-
-Furthering assuming it is a very dilute solution, 
-
-\begin{equation}
-\ln \Big(\frac{P_{w}(D_{p})}{p^{o}} \Big)=\ln(S)=\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}}-\frac{n_{s} {\overline{v_{w} } } } {(\pi/6) (D_{p}^{3}-d_{u}^{3})} . 
-\end{equation}
-
-\begin{equation}
-S=\exp{(\frac{4M_{w}\sigma_{w}}{RT\rho_{w}D_{p}})} \exp{\Big( - \frac{6 n_{s} {\overline{v_{w} } } } {\pi (D_{p}^{3} -d_{u}^{3})}\Big)},  
-\end{equation}
-
-comparing the above to eqn(\ref{eqn:99}), we can see
-
-\begin{equation}
-a_{w}=\exp{\Big(- \frac {6 n_{s} {\overline{v_{w} } } } {\pi (D_{p}^{3}-d_{u}^{3})} \Big)}
-\end{equation}
-
-and as above assuming again $\frac{6 n_{s} \overline{v_{w}} } {\pi D_{p}^{3}}$ $\ll$ 1,
-
-\begin{equation}
-\frac{1}{a_{w}}=1+\frac{6 n_{s} \overline{v_{w}} } {\pi (D_{p}^{3}-d_{u}^{3})} 
-\end{equation}
-
-\begin{equation}\label{eqn:41}
-1+\kappa \frac{V_{s}}{V_{w}}=1+\frac{6 n_{s} \overline{v_{w}} } {\pi (D_{p}^{3}-d_{u}^{3})} 
-\end{equation}
-
-Assuming dilute solution, $\overline{v_{w}}$ $\approx$ $\frac{V_{w}}{n_{w}}$, where $\overline{v_{w}}$ is molar partial volume of water in the solution, 
-
-
-\begin{equation}\label{eqn:42}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w}(V_{p}-V_{u}) V_{s}}.
-\end{equation}
-
-or 
-
-\begin{equation}\label{eqn:42}
-\kappa=\frac{n_{s}V_{w}^{2}}{n_{w}(V_{w}+V_{s}) V_{s}}.
-\end{equation}
-
 
 
 \subsection{the relationship between $i$ and $\nu$}
 
 \subsection{few concepts needed to be clarify}
 
+\begin{itemize}
 
 \item $i$ and $\nu$
 \item water activity, $a_{w}$
@@ -326,13 +73,107 @@ or
 
 \end{itemize}
 
+\subsection{Petters and Kreidenweis (2007) $\kappa$ formulation Updated formulation on 11 March 2009}
+
+Define $a_{w}$ as follows (from equation (2) in Kredenweis 2007)
+
+\begin{equation}\label{eqn:1}
+a_{w}^{-1}=1+\kappa \frac{V_s}{V_w}
+\end{equation}
+
+and equation (1) in Kredenweis 2007 states that
+
+\begin{equation}
+S=a_{w} \exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}).
+\end{equation}
+
+and note that also the another definition of $a_{w}$ from equation 15.18 in S\&P
+
+\begin{equation}
+S=\gamma_{w}(1+ \frac{n_{i}}{n_{w}})^{-1}\exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD})
+\end{equation}
+where $n_{i}$ is the number of mole of ions after dissociation.
+
+Comparing the above two definitions, we have
+
+\begin{equation}
+a_{w}=\gamma_{w}(1+\frac{n_{i}}{n_{w}})^{-1}=(1+\kappa \frac{V_{s}}{V_{w}})^{-1}.
+\end{equation}
+
+Then we have a relationship for $\kappa$ as follows, assuming $\gamma_{w}$=1, 
+
+\begin{equation}
+\kappa= \frac{V_{w} n_{i}}{V_{s} n_{w}}.
+\end{equation}
+
+Here is the relationship between $V_{s}$ and $n_{i}$, based on equation (15.33) on S$\&$P,
+
+
+\begin{equation}
+n_{i}=n_{s}= \frac {\nu \pi d_{s}^{3} \rho_{s} } {6 M_{s}},
+\end{equation}
+where $n_{s}$ is used in S\&P to stand for after dissociation and $\nu$ is number of ions produced per one  dissociation of molecules.
+
+\subsection{aerosol particles containing insoluble substances}
+
+For aerosol particle does not contain any insoluble substances,
+
+\begin{equation}
+\frac{1}{6} \pi D_{p}^{3}=n_{w} \overline{v_{w}} + n_{s} \overline{v_{s}}
+\end{equation}
+
+\begin{equation}
+1+\frac{n_{i}}{n_{w}}= 1+ \frac{n_{i} \overline{v_{w}}} {(\pi / 6) D_{p}^{3} - n_{s} \overline{v_{s}} }
+\end{equation}
+
+For aerosol particle contain insoluble substances of diameter $d_{u}$
+
+\begin{equation}
+\frac{1}{6} \pi D_{p}^{3}=n_{w} \overline{v_{w}} + n_{s} \overline{v_{s}} + \frac{1}{6}\pi d_{u}^{3}
+\end{equation}
+
+\begin{equation}
+1+\frac{n_{i}}{n_{w}}= 1+ \frac{n_{i} \overline{v_{w}}} {(\pi / 6) (D_{p}^{3}-d_{u}^{3} )- n_{s} \overline{v_{s}} }
+\end{equation}
 
 
 
+\subsection{relationship between $\kappa$ of individual component and overall $\kappa$}
 
 
+Define $\kappa^{a}$ for individual component as follows, 
 
+\begin{equation}
+a_{w}^{-1}=1+\kappa^{a} \frac{V_{s}^{a}}{V_{w}^{a}} 
+\end{equation}
 
+\begin{equation}
+a_{w}^{-1}=\gamma^{-1} (1+\frac{n_{i}^{a}}{n_{w}^{a}})
+\end{equation}
+
+assuming $\gamma_{w}$=1, we have 
+
+\begin{equation}\label{eqn:13}
+a_{w}^{-1}=(1+\frac{n_{i}^{a}}{n_{w}^{a}})
+\end{equation}
+
+By equating eqn(\ref{eqn:1}) to eqn(\ref{eqn:13}), we have
+
+\begin{equation}
+\kappa \frac{V_{s}}{V_{w}}= \kappa^{a} \frac{V_{s}^{a}}{V_{w}^{a}}
+\end{equation}
+
+\begin{equation}
+\sum_{a} \kappa \frac{V_{s}}{V_{w}} V_{w}^{a}= \sum_{a} \kappa^{a} V_{s}^{a}
+\end{equation}
+
+\begin{equation}
+\kappa V_{s}= \sum_{a} \kappa^{a} V_{s}^{a}
+\end{equation}
+
+\begin{equation}
+\kappa= \sum_{a} \kappa^{a} \frac {V_{s}^{a}}{V_{s}} = \sum_{a} \kappa^{a} \epsilon_{a}
+\end{equation}
 
 \end{document}
 

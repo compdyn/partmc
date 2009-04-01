@@ -15,10 +15,435 @@
 \maketitle
 \tableofcontents
 
-This short report is about the derivation of the relationship the single parameter proposed by number of previous studies (which account for the hygroscopicity) and the solute term in traditional solute term (Raoult) in Kohler's equation.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This short report reviews the single liquid water droplet growth equation in terms of the 
+water activity $a_{\rm w}$ and the hygroscopicity parameter $\kappa$. 
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Paradigm of the study of effect of the aerosol mixing state on hygroscopicity}
+
+\begin{itemize}
+
+\item For inorganic substances only, (e.g. NaCl, ($ \rm NH_{4})_{2} \rm SO_{4}$), derive single droplet growth equation in terms of water activity, $a_{w}$.
+
+\item For inorganic substances only, derive equilibrium equation in terms of water activity, $a_{w}$.
+
+\item Define parameter called hygroscopicity, $\kappa$ in terms of water activity $a_{w}$. Define also parameters, $n_{w}^{a}$ and $V_{w}^{a}$ which are number of mole of water molecules and volume of water associated to aerosol species $a$ respectively. 
+
+\item Define $\kappa$ for individual aerosol species and derive the relationship between the overall $\kappa$ for an aerosol particle (which is a mixture of various species) and the $\kappa$ for an individual species (Theorem 1). 
+
+\item An appendix section to include the method of how to treat mixture of insoluble substance and soluble substances in an aerosol particle.
+
+\item For inorganic substances only, (e.g. NaCl, ($ \rm NH_{4})_{2} \rm SO_{4}$), derive single droplet growth equation and equilibrium equation in terms $\kappa$.
+
+\item For treatment of mixture of organic substances and inorganic substances, assume the $\kappa$ values for organic substances (given by laboratory measurement) obey the same rule of addition as the inorganic substances do.
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Petters and Kreidenweis (2007) $\kappa$ formulation Updated formulation on 11 March 2009}
+
+Define $a_{w}$ as follows (from equation (2) in Kreidenweis 2007)
+
+\begin{equation}\label{eqn:1}
+a_{w}^{-1}=1+\kappa \frac{V_s}{V_w}
+\end{equation}
+
+and equation (1) in Kreidenweis 2007 states that
+
+\begin{equation}\label{eqn:2}
+S=a_{w} \exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}).
+\end{equation}
+
+and note that also the another definition of $a_{w}$ from equation 15.18 in S\&P
+
+\begin{equation}\label{eqn:3}
+S=\gamma_{w}(1+ \frac{n_{i}}{n_{w}})^{-1}\exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD})
+\end{equation}
+where $n_{\rm i}$ is the number of mole of ions after dissociation.
+
+Comparing the above two definitions, we have
 
 
-\section{Treatment of hygroscopicity, $\nu$ and $\kappa$}  
+\begin{equation}\label{eqn:4}
+a_{\rm w}=\gamma _{\rm w}(1+\frac{n_{\rm i}}{n_{\rm w}})^{-1}=(1+\kappa \frac{V_{\rm s}}{V_{\rm w}})^{-1}.
+\end{equation}
+
+Then we have a relationship for $\kappa$ as follows, assuming $\gamma_{w}$=1, 
+
+\begin{equation}\label{eqn:5}
+\kappa= \frac{V_{\rm w} n_{\rm i}}{V_{\rm s} n_{\rm w}}.
+\end{equation}
+
+Several remarks here to make. First from eqn(\ref{eqn:3}), the $n_{\rm i}$ is the number of moles of ions (after dissociation) and hereafter is denoted by $n_{\rm ions}$. 
+And from eqn(\ref{eqn:4}), $V_{\rm s}$ is the volume of the dry particulate matter, which is the sum of the volumes of the soluble matter, $V_{\rm sol}$ and the insoluble substances, $V_{\rm u}$.
+
+Eqn(\ref{eqn:5}) should be re-written as follows,
+ 
+\begin{equation}\label{eqn:6}
+\kappa= \frac{V_{\rm w} n_{\rm ions}}{V_{\rm s} n_{\rm w}}.
+\end{equation}
+
+From S$\&$P, the relationship between dry diameter and $n_{\rm ions}$ are given by eqn 15.33 and 15.40 depending on whether the aerosol particle contain insoluble material or not.
+
+\begin{equation}\label{eqn:7}
+\kappa= \frac{\nu V_{\rm w}}{n_{\rm w}}  \frac{\rho_{\rm s}}{M_{\rm s}}= \frac{\nu M_{\rm w}}{\rho_{\rm w}}  \frac{\rho_{\rm s}}{M_{\rm s}}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{the relationship between $i$ and $\nu$}
+
+Taylor series expansion of Vant' Hoff factor $i$ in terms of $\nu$ and $\Phi$, molal osmotic coefficient. (Kreidenweis et al., 2005 Water activity and activation diameters from hygroscopicity data- Part I: Theory and application to inorganic salts.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{few concepts needed to be clarify}
+
+\begin{itemize}
+
+\item $i$ and $\nu$
+\item water activity, $a_{w}$
+\item water activity coefficient $\gamma_{w}$
+\item partial molar volume of water $\overline{v_{w}}$
+\item hygroscopicity growth factor
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Equilibrium equation and Growth equation}
+
+This section contains the equilibrium equation and growth equation as function of $a_{\rm w}$ and $\kappa$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\subsection{Equilibrium equation as function of water activity $a_{\rm w}$}
+
+From S$\&$P 15.18, 
+
+\begin{equation}\label{eqn:8}
+\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=\gamma_{\rm w}x_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
+\end{equation}
+
+or from Kreidenweis equation (1),
+
+\begin{equation}\label{eqn:9}
+S=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}, 
+\end{equation}
+
+where $\gamma_{\rm w}$ is the water activity coefficient (and $\gamma_{\rm w}$ $\rightarrow$ 1 when the solution is dilute.), and $x_{\rm w}$ is the mole fraction of water which is defined as,
+
+\begin{equation}\label{eqn:10}
+x_{\rm w}=\frac{n_{\rm w}}{n_{\rm w}+n_{\rm ions}},
+\end{equation}
+
+where $n_{\rm w}$ and $n_{\rm ions}$ are the number of moles of water and ions respectively.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Growth equation in terms of water activity $a_{\rm w}$}
+
+From previously derived result, the growth equation is as follow,
+
+\begin{equation}\label{eqn:11}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}).
+\end{equation}
+
+Write eqn(\ref{eqn:11}) as follows,
+\begin{equation}\label{eqn:12}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})} \frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}\frac{1}{1+\delta}).
+\end{equation}
+
+By eqn(\ref{eqn:9}), 
+
+\begin{equation}\label{eqn:13}
+\frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}\end{equation}
+
+By Clausius and Clapeyron equation,
+
+\begin{equation}\label{eqn:14}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp (\frac{\Delta H_{\rm v} M_{\rm w}}{R} (\frac{T_{\rm a}-T_{\infty}}{T_{\rm a} T_{\infty}})).
+\end{equation}
+
+which can be further simplified into 
+
+\begin{equation}\label{eqn:15}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp (\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\end{equation}
+
+Substituting the above two equations into eqn(\ref{eqn:13}) and eqn (\ref{eqn:15}) into eqn(\ref{eqn:12}) , we get
+
+\begin{equation}\label{eqn:16}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{\rm v, \infty} - a_{w} \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta})\Big).
+\end{equation}
+
+By comparing the above growth and equilibrium equations, we can see the water activity $a_{w}$ is actually a measure of the solute effect on the single droplet growth and is usually expressed alternatively as the Raoult term in the growth equation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Definition of hygroscopicity $\kappa$ in terms of water activity $a_{\rm w}$}
+
+\begin{equation}\label{eqn:17}
+a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}
+\end{equation}
+
+\begin{equation}\label{eqn:18}
+a_{\rm w}=\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm s}}
+\end{equation}
+
+where $V_{\rm s}$ is the volume of dry particulate matter, which is the sum of soluble (solute) and insoluble material.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Equilibrium equation as function of $\kappa$}
+
+From eqn(\ref{eqn:9}),
+
+\begin{equation}\label{eqn:19}
+S=\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=(\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm s}})   \exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
+\end{equation}
+
+or 
+
+\begin{equation}\label{eqn:20}
+S=\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=\frac{m_{\rm w}/ \rho_{\rm w}} {m_{\rm w}/\rho_{\rm w} + \kappa (m_{\rm s'}/\rho_{\rm s'} + m_{\rm u}/\rho_{\rm u})}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
+\end{equation}
+
+or 
+
+\begin{equation}\label{eqn:21}
+S=\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=\Big(\frac{\frac{\pi}{6}D_{\rm p}^{3}-V_{\rm s}}{\frac{\pi}{6}D_{\rm p}^{3}+(\kappa-1)V_{\rm s}} \Big)\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Growth equation as function of $\kappa$ }
+
+\begin{equation}\label{eqn:22}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} -  (\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm s}}) \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Relationship between $\kappa$ of individual component and overall $\kappa$}
+
+Define $\kappa^{a}$ for individual component as follows, 
+
+\begin{equation}\label{eqn:23}
+a_{\rm w}^{-1}=1+\kappa^{a} \frac{V_{\rm s}^{a}}{V_{\rm w}^{a}} 
+\end{equation}
+
+\begin{equation}\label{eqn:24}
+a_{w}^{-1}=\gamma_{\rm w}^{-1} (1+\frac{n_{\rm ion}^{a}}{n_{\rm w}^{a}}).
+\end{equation}
+
+where
+\begin{equation}\label{eqn:25}
+\sum_{a} n_{\rm ion}^{a}=n_{\rm ion}.
+\end{equation}
+ and 
+ 
+\begin{equation}\label{eqn:25}
+\sum_{a} V_{\rm s}^{a}=V_{s}.
+\end{equation}
+
+ 
+Assuming $\gamma_{w}$=1, we have 
+
+\begin{equation}\label{eqn:26}
+a_{\rm w}^{-1}=(1+\frac{n_{\rm ion}^{a}}{n_{\rm w}^{a}})
+\end{equation}
+
+From eqn(\ref{eqn:24}), we have
+
+\begin{equation}\label{eqn:27}
+n_{\rm w}^{a}=n_{\rm ion}^{a}(\frac{a_{\rm w}^{-1}}{\gamma_{\rm w}^{-1}}-1)^{-1}
+\end{equation}
+
+\begin{equation}
+\sum_{a} n_{\rm w}^{a}=\sum_{a}n_{\rm ion}^{a}(\frac{a_{\rm w}^{-1}}{\gamma_{\rm w}^{-1}}-1)^{-1}
+\end{equation}
+
+\begin{equation}
+\sum_{a} n_{\rm w}^{a}=(\frac{a_{\rm w}^{-1}}{\gamma_{\rm w}^{-1}}-1)^{-1}\sum_{a}n_{\rm ion}^{a}
+\end{equation}
+
+\begin{equation}
+\sum_{a} n_{\rm w}^{a}=(\frac{a_{\rm w}^{-1}}{\gamma_{\rm w}^{-1}}-1)^{-1} n_{\rm ion}
+\end{equation}
+
+From eqn(\ref{eqn:4}), the RHS of the above equation is just the $n_{\rm w}$. Then we have 
+
+\begin{equation}
+\sum_{a} n_{\rm w}^{a}=n_{\rm w}
+\end{equation}
+
+The above result states that the total number of mole of water molecules is the sum of the number of moles of water molecules associated to each aerosol species. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+From eqn(\ref{eqn:23})
+
+\begin{equation}
+V_{\rm w}^{a}=\frac{\kappa^{a} V_{\rm s}^{a}}{a_{\rm w}^{-1}-1}
+\end{equation}
+
+\begin{equation}
+\sum_{a}V_{\rm w}^{a}  =\sum_{a}\frac{\kappa^{a} V_{\rm s}^{a}}{a_{\rm w}^{-1}-1}
+\end{equation}
+
+\begin{equation}
+\sum_{a}V_{\rm w}^{a}  =\frac{\sum_{a}\kappa^{a} V_{\rm s}^{a}}{a_{\rm w}^{-1}-1}
+\end{equation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+By equating eqn(\ref{eqn:1}) to eqn(\ref{eqn:23}), we have
+
+\begin{equation}\label{eqn:28}
+\kappa \frac{V_{\rm s}}{V_{\rm w}}= \kappa^{a} \frac{V_{\rm s}^{a}}{V_{\rm w}^{a}}
+\end{equation}
+
+\begin{equation}\label{eqn:29}
+\sum_{a} \kappa \frac{V_{\rm s}}{V_{\rm w}} V_{\rm w}^{a}= \sum_{a} \kappa^{a} V_{\rm s}^{a}
+\end{equation}
+
+\begin{equation}\label{eqn:30}
+\kappa V_{\rm s}= \sum_{a} \kappa^{a} V_{\rm s}^{a}
+\end{equation}
+
+\begin{equation}\label{eqn:31}
+\kappa= \sum_{a} \kappa^{a} \frac {V_{s}^{a}}{V_{s}} = \sum_{a} \kappa^{a} \epsilon_{a},
+\end{equation}
+where $\epsilon_{a}$ = $ \frac{V_{s}^{a}}{V_{s}}$ is the volume fraction.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Appendix- How to treat insoluble substances in the model PARTMC}
+
+There are two approaches to treat insoluble substances in PARTMC, the first one is include the volume of the insoluble material with the assignment of $\nu^{u}$=$0$ in PARTMC. The second approach is to only include the soluble (solute) part of the aerosol particle. This section is to show that both approaches are mathematically equivalent.
+ 
+Approach 1. 
+\begin{equation}\label{eqn:32}
+a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
+\end{equation}
+
+Then,
+\begin{equation}\label{eqn:33}
+a_{\rm w}^{-1}=1+ (\kappa^{\rm u} \epsilon_{\rm u} +\kappa^{\rm s'} \epsilon_{\rm s'}) \frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+where
+\begin{equation}\label{eqn:34}
+\epsilon_{\rm u}=\frac{V_{\rm u}}{V_{\rm s}}=\frac{V_{\rm u}}{V_{\rm u}+V_{\rm s'}},
+\end{equation}
+and
+\begin{equation}\label{eqn:35}
+\epsilon_{\rm s'}=\frac{V_{\rm s'}}{V_{\rm s}}=\frac{V_{\rm s'}}{V_{\rm u}+V_{\rm s'}}.
+\end{equation}
+
+We have,
+\begin{equation}\label{eqn:36}
+a_{\rm w}^{-1}=1+ (  \frac{\nu^{\rm u} M_{\rm w} \rho_{\rm u}}{\rho_{\rm w}M_{\rm u}} 
+\frac{V_{\rm u}}{V_{\rm s}} +
+\frac{\nu^{\rm s'} M_{\rm w} \rho_{\rm s'}}{\rho_{\rm w} M_{\rm s'}}    
+\frac{V_{\rm s'}}{V_{\rm s}})
+\frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+where $\rm V_{\rm s}$ = $ V_{\rm u}$ + $V_{\rm s'}$. $V_{\rm u}$ and $V_{\rm s'}$ are the volumes of the insoluble and solute respectively.
+
+If in PARTMC, for insoluble substances, the $\nu^{\rm u}$ is prescribed as zero, and hence $\kappa^{\rm u}$, $n^{\rm u}$  are zero from eqn({\ref{eqn:6}) and eqn(\ref{eqn:7}), we don't need to distinguish whether a particular component in an aerosol species is soluble or not when we use eqn(\ref{eqn:31}).
+
+From above, we get the following,
+
+\begin{equation}\label{eqn:37}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
+\end{equation}
+
+Approach 2.
+
+\begin{equation}\label{eqn:38}
+a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
+\end{equation}
+
+Then,
+
+\begin{equation}\label{eqn:39}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \epsilon_{\rm s'} \frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+\begin{equation}\label{eqn:40}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} (\frac{V_{\rm s'}}{V_{\rm s}})(\frac{V_{\rm s}}{V_{\rm w}}).
+\end{equation}
+
+\begin{equation}\label{eqn:37}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
+\end{equation}
+
+This is the same as approach 1. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Several other relevant formulae from Kreidenweis et al 2005}
+
+\subsection{Mathematical relationship between the various variables}
+
+The supersaturation S can be expressed as follows,
+
+\begin{equation}
+S=\frac{p_{\rm w}}{p^{o}(T)}=a_{\rm w} \exp {(\frac{4 \sigma_{\rm sol} \overline{V_{\rm w}}} {RT D_{\rm p} ) } }= \frac {RH}{100},
+\end{equation}
+
+where $\sigma_{\rm w}$ is the surface tension of the solution and $\overline V_{\rm w}$ is the partial molar volume of water in the solution which is expressed as, 
+
+\begin{equation}
+\overline{V_{\rm w}}=\frac{ M_{\rm w}}{\rho_{\rm sol}} (1 + \frac{x}{\rho_{\rm sol}} \frac{d \rho_{\rm sol}}{dx}).
+\end{equation}
+
+$M_{\rm w}$ is the molecular weight of water, $\rho_{\rm sol}$ is the density of the solution, and $x$ is the percentage of solute by weight. Assuming the ideal solution behavior.
+
+\begin{equation}
+a_{\rm w}=\gamma_{\rm w} x_{\rm w}
+\end{equation}
+
+and alternatively, 
+
+\begin{equation}
+\ln {(a_{\rm w})}=\frac{- \nu m M_{\rm w} \Phi }{1000}.
+\end{equation}
+
+or 
+
+\begin{equation}\label{eqn:46}
+a_{\rm w}^{-1}=\exp{(\frac{\nu m M_{\rm w} \Phi }{1000})},
+\end{equation}
+$\nu$ is the number of ions of solute present in the solution (after dissociation). 
+
+However in earlier days, 
+
+\begin{equation}
+a_{w}^{-1}=1+i \frac{n_{s}}{n_{w}},
+\end{equation}
+
+where $i$ is called the van't Hoff factor.
+
+By Taylor series expansion of eqn(\ref{eqn:46}), 
+
+\begin{equation}
+a_{w}^{-1}=1+(\frac{\nu m M_{\rm w} \Phi }{1000})+\frac{1}{2}(\frac{\nu m M_{\rm w} \Phi }{1000})^{2}+...
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Treatment of hygroscopicity, $\nu$ and $\kappa$}  
  
 \begin{itemize}
 
@@ -28,7 +453,7 @@ This short report is about the derivation of the relationship the single paramet
 
 \item Traditionally, vant' Hoff factor, $i$ is used to quantify the degree of dissociation for inorganic salt. 
 
-\item Some past literatures used, $\nu$ to quantify the number of ions produces per dissociation of one unit of salt. There is correspondence between $i$ and $\nu$ which will be also reviewed in this repot.
+\item Some past literatures used, $\nu$ to quantify the number of ions produces per dissociation of one unit of salt. There is correspondence between $i$ and $\nu$ which will be also reviewed in this report.
 
 \item  In the case of NaCl, $\nu$ is 2, $\rm (NH_4)_2SO_4$, $\nu$ is 3.
 
@@ -55,127 +480,13 @@ This short report is about the derivation of the relationship the single paramet
 \item In Summary, we need to have a formulation for an overall $\kappa$ for a general mixture of soluble and insoluble substances and also organic and inorganic substance. 
  
 \end{itemize}
- 
-\subsection{Petters and Kreidenweis (2007) $\kappa$ formulation (for aerosol particles contain no insoluble substances)}
-
-
-\subsection{the relationship between $i$ and $\nu$}
-
-\subsection{few concepts needed to be clarify}
-
-\begin{itemize}
-
-\item $i$ and $\nu$
-\item water activity, $a_{w}$
-\item water activity coefficient $\gamma_{w}$
-\item partial molar volume of water $\overline{v_{w}}$
-\item need to find out about whether $a_{w}$ change when the solution contain insoluble or slightly soluble substances.
-
-\end{itemize}
-
-\subsection{Petters and Kreidenweis (2007) $\kappa$ formulation Updated formulation on 11 March 2009}
-
-Define $a_{w}$ as follows (from equation (2) in Kredenweis 2007)
-
-\begin{equation}\label{eqn:1}
-a_{w}^{-1}=1+\kappa \frac{V_s}{V_w}
-\end{equation}
-
-and equation (1) in Kredenweis 2007 states that
-
-\begin{equation}
-S=a_{w} \exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD}).
-\end{equation}
-
-and note that also the another definition of $a_{w}$ from equation 15.18 in S\&P
-
-\begin{equation}
-S=\gamma_{w}(1+ \frac{n_{i}}{n_{w}})^{-1}\exp (\frac{4 \sigma_{s/a} M_{w}} {RT\rho_wD})
-\end{equation}
-where $n_{i}$ is the number of mole of ions after dissociation.
-
-Comparing the above two definitions, we have
-
-\begin{equation}
-a_{w}=\gamma_{w}(1+\frac{n_{i}}{n_{w}})^{-1}=(1+\kappa \frac{V_{s}}{V_{w}})^{-1}.
-\end{equation}
-
-Then we have a relationship for $\kappa$ as follows, assuming $\gamma_{w}$=1, 
-
-\begin{equation}
-\kappa= \frac{V_{w} n_{i}}{V_{s} n_{w}}.
-\end{equation}
-
-Here is the relationship between $V_{s}$ and $n_{i}$, based on equation (15.33) on S$\&$P,
-
-
-\begin{equation}
-n_{i}=n_{s}= \frac {\nu \pi d_{s}^{3} \rho_{s} } {6 M_{s}},
-\end{equation}
-where $n_{s}$ is used in S\&P to stand for after dissociation and $\nu$ is number of ions produced per one  dissociation of molecules.
-
-\subsection{aerosol particles containing insoluble substances}
-
-For aerosol particle does not contain any insoluble substances,
-
-\begin{equation}
-\frac{1}{6} \pi D_{p}^{3}=n_{w} \overline{v_{w}} + n_{s} \overline{v_{s}}
-\end{equation}
-
-\begin{equation}
-1+\frac{n_{i}}{n_{w}}= 1+ \frac{n_{i} \overline{v_{w}}} {(\pi / 6) D_{p}^{3} - n_{s} \overline{v_{s}} }
-\end{equation}
-
-For aerosol particle contain insoluble substances of diameter $d_{u}$
-
-\begin{equation}
-\frac{1}{6} \pi D_{p}^{3}=n_{w} \overline{v_{w}} + n_{s} \overline{v_{s}} + \frac{1}{6}\pi d_{u}^{3}
-\end{equation}
-
-\begin{equation}
-1+\frac{n_{i}}{n_{w}}= 1+ \frac{n_{i} \overline{v_{w}}} {(\pi / 6) (D_{p}^{3}-d_{u}^{3} )- n_{s} \overline{v_{s}} }
-\end{equation}
 
 
 
-\subsection{relationship between $\kappa$ of individual component and overall $\kappa$}
 
-
-Define $\kappa^{a}$ for individual component as follows, 
-
-\begin{equation}
-a_{w}^{-1}=1+\kappa^{a} \frac{V_{s}^{a}}{V_{w}^{a}} 
-\end{equation}
-
-\begin{equation}
-a_{w}^{-1}=\gamma^{-1} (1+\frac{n_{i}^{a}}{n_{w}^{a}})
-\end{equation}
-
-assuming $\gamma_{w}$=1, we have 
-
-\begin{equation}\label{eqn:13}
-a_{w}^{-1}=(1+\frac{n_{i}^{a}}{n_{w}^{a}})
-\end{equation}
-
-By equating eqn(\ref{eqn:1}) to eqn(\ref{eqn:13}), we have
-
-\begin{equation}
-\kappa \frac{V_{s}}{V_{w}}= \kappa^{a} \frac{V_{s}^{a}}{V_{w}^{a}}
-\end{equation}
-
-\begin{equation}
-\sum_{a} \kappa \frac{V_{s}}{V_{w}} V_{w}^{a}= \sum_{a} \kappa^{a} V_{s}^{a}
-\end{equation}
-
-\begin{equation}
-\kappa V_{s}= \sum_{a} \kappa^{a} V_{s}^{a}
-\end{equation}
-
-\begin{equation}
-\kappa= \sum_{a} \kappa^{a} \frac {V_{s}^{a}}{V_{s}} = \sum_{a} \kappa^{a} \epsilon_{a}
-\end{equation}
 
 \end{document}
+
 
 
 

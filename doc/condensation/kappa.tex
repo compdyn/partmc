@@ -115,6 +115,81 @@ Taylor series expansion of Vant' Hoff factor $i$ in terms of $\nu$ and $\Phi$, m
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Derivation of the condensational growth equation of a droplet based on S$\&$P}
+
+
+The derivation is contained in chapter 15 (pp. 801- 803) of Senfeld and Pandis. The following derivations just show the mathematical derivation in more detail.
+
+The derivation starts from the equation of diffusion of mass which is given as
+\begin{equation}\label{eqn:SP1}
+\frac{dm}{dt}=2 \pi D_{\rm p} D_{\rm v} (c_{\rm w, \infty} - c_{\rm w}^{eq}).  
+\end{equation}
+
+To express the growth equation in terms of diameter rate of change, instead of mass rate of change,
+
+\begin{equation}\label{eqn:SP2}
+\frac{dm}{dt}=\frac{1}{2} \pi \rho_{\rm w} D_{\rm p}^{2} \frac{dD_{\rm p}}{dt}
+\end{equation}
+
+and them put eqn \ref{eqn:SP2} into the the eqn \ref{eqn:SP1}, gives
+
+\begin{equation}\label{eqn:SP3}
+\frac{1}{2} \pi \rho_{\rm w} D_{\rm p}^{2} \frac{dD_{\rm p}}{dt}= 2 \pi D_{\rm p} D_{\rm v} (c_{\rm w, \infty} - c_{\rm w}^{\rm eq}),
+\end{equation}
+
+and after rearranging we get, 
+\begin{equation}\label{eqn:SP4}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} (c_{\rm w, \infty} - c_{\rm w}^{eq}).
+\end{equation}
+
+By ideal gas law, the eqn \ref{eqn:SP4} can be expressed as,
+
+\begin{equation}\label{eqn:SP5}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} (\frac{P_{\rm w, \infty}}{T_{\infty}} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{T_{\rm a}}).
+\end{equation}
+
+To have the term environmental relative humidity or supersaturation entered into eqn \ref{eqn:5} as follows,  
+\begin{equation}\label{eqn:SP6}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4  \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (\frac{P_{\rm w, \infty}}{P^{\rm 0}(T_{\infty})} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a}) T_{\infty}}{P^{\rm 0}(T_{\infty}) T_{\rm a}}).
+\end{equation}
+
+To relate the temperature of the environment, $T_{\infty}$ to that on the droplet surface, $T_{\rm a}$, we need the argument of the conservation of energy, to derive the energy balance,
+
+\begin{equation}\label{eqn:SP7}
+2 \pi D_{\rm p} k^{'}_{\rm a} (T_{\infty}-T_{\rm a})= -\Delta H_{\rm v}(\frac{dm}{dt}).
+\end{equation}
+
+and further express \ref{eqn:SP7} in terms of diameter growth, 
+
+\begin{equation}\label{eqn:SP8}
+2 \pi D_{\rm p} k^{'}_{\rm a} (T_{\infty}-T_{\rm a})= -\Delta H_{\rm v} \frac{1}{2} \pi \rho_{\rm w} D_{\rm p}^{2} \frac{dD_{\rm p}}{dt},
+\end{equation}
+
+and after rearranging we get, 
+\begin{equation}\label{eqn:SP9}
+T_{\rm a}= T_{\infty} + \frac{\Delta H_{\rm v}  \rho_{\rm w}}{4 k^{'}_{\rm a}} D_{\rm p} \frac{dD_{\rm p}}{dt},
+\end{equation}
+
+and write as 
+\begin{equation}\label{eqn:SP10}
+T_{\rm a}=T_{\infty}(1+\delta),
+\end{equation}
+
+where 
+
+\begin{equation}\label{eqn:SP11}
+\delta= \frac{\Delta H_{\rm v}  \rho_{\rm w}}{4 k^{'}_{\rm a}T_{\infty}} D_{\rm p} \frac{dD_{\rm p}}{dt}.
+\end{equation}
+
+By substituting $T_{\rm a}$ in the eqn \ref{eqn:6} in terms of $T_{\infty}$, we get 
+
+
+\begin{equation}\label{eqn:SP12}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}\Big).
+\end{equation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Equilibrium equation and Growth equation}
 
@@ -148,10 +223,10 @@ where $n_{\rm w}$ and $n_{\rm ions}$ are the number of moles of water and ions r
 
 \subsection{Growth equation in terms of water activity $a_{\rm w}$}
 
-From previously derived result, the growth equation is as follow,
+From previously derived result, the growth equation (eqn(\ref{eqn:SP12})) is as follow,
 
 \begin{equation}\label{eqn:11}
-D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}).
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}\Big).
 \end{equation}
 
 Write eqn(\ref{eqn:11}) as follows,
@@ -323,73 +398,6 @@ By equating eqn(\ref{eqn:1}) to eqn(\ref{eqn:23}), we have
 \end{equation}
 where $\epsilon_{a}$ = $ \frac{V_{s}^{a}}{V_{s}}$ is the volume fraction.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Appendix- How to treat insoluble substances in the model PARTMC}
-
-There are two approaches to treat insoluble substances in PARTMC, the first one is include the volume of the insoluble material with the assignment of $\nu^{u}$=$0$ in PARTMC. The second approach is to only include the soluble (solute) part of the aerosol particle. This section is to show that both approaches are mathematically equivalent.
- 
-Approach 1. 
-\begin{equation}\label{eqn:32}
-a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
-\end{equation}
-
-Then,
-\begin{equation}\label{eqn:33}
-a_{\rm w}^{-1}=1+ (\kappa^{\rm u} \epsilon_{\rm u} +\kappa^{\rm s'} \epsilon_{\rm s'}) \frac{V_{\rm s}}{V_{\rm w}},
-\end{equation}
-
-where
-\begin{equation}\label{eqn:34}
-\epsilon_{\rm u}=\frac{V_{\rm u}}{V_{\rm s}}=\frac{V_{\rm u}}{V_{\rm u}+V_{\rm s'}},
-\end{equation}
-and
-\begin{equation}\label{eqn:35}
-\epsilon_{\rm s'}=\frac{V_{\rm s'}}{V_{\rm s}}=\frac{V_{\rm s'}}{V_{\rm u}+V_{\rm s'}}.
-\end{equation}
-
-We have,
-\begin{equation}\label{eqn:36}
-a_{\rm w}^{-1}=1+ (  \frac{\nu^{\rm u} M_{\rm w} \rho_{\rm u}}{\rho_{\rm w}M_{\rm u}} 
-\frac{V_{\rm u}}{V_{\rm s}} +
-\frac{\nu^{\rm s'} M_{\rm w} \rho_{\rm s'}}{\rho_{\rm w} M_{\rm s'}}    
-\frac{V_{\rm s'}}{V_{\rm s}})
-\frac{V_{\rm s}}{V_{\rm w}},
-\end{equation}
-
-where $\rm V_{\rm s}$ = $ V_{\rm u}$ + $V_{\rm s'}$. $V_{\rm u}$ and $V_{\rm s'}$ are the volumes of the insoluble and solute respectively.
-
-If in PARTMC, for insoluble substances, the $\nu^{\rm u}$ is prescribed as zero, and hence $\kappa^{\rm u}$, $n^{\rm u}$  are zero from eqn({\ref{eqn:6}) and eqn(\ref{eqn:7}), we don't need to distinguish whether a particular component in an aerosol species is soluble or not when we use eqn(\ref{eqn:31}).
-
-From above, we get the following,
-
-\begin{equation}\label{eqn:37}
-a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
-\end{equation}
-
-Approach 2.
-
-\begin{equation}\label{eqn:38}
-a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
-\end{equation}
-
-Then,
-
-\begin{equation}\label{eqn:39}
-a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \epsilon_{\rm s'} \frac{V_{\rm s}}{V_{\rm w}},
-\end{equation}
-
-\begin{equation}\label{eqn:40}
-a_{\rm w}^{-1}=1+ \kappa^{\rm s'} (\frac{V_{\rm s'}}{V_{\rm s}})(\frac{V_{\rm s}}{V_{\rm w}}).
-\end{equation}
-
-\begin{equation}\label{eqn:37}
-a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
-\end{equation}
-
-This is the same as approach 1. 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Several other relevant formulae from Kreidenweis et al 2005}
@@ -481,8 +489,96 @@ a_{w}^{-1}=1+(\frac{\nu m M_{\rm w} \Phi }{1000})+\frac{1}{2}(\frac{\nu m M_{\rm
  
 \end{itemize}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Appendix I - How to treat insoluble substances in the model PARTMC}
 
+There are two approaches to treat insoluble substances in PARTMC, the first one is include the volume of the insoluble material with the assignment of $\nu^{u}$=$0$ in PARTMC. The second approach is to only include the soluble (solute) part of the aerosol particle. This section is to show that both approaches are mathematically equivalent.
+ 
+Approach 1. 
+\begin{equation}\label{eqn:32}
+a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
+\end{equation}
 
+Then,
+\begin{equation}\label{eqn:33}
+a_{\rm w}^{-1}=1+ (\kappa^{\rm u} \epsilon_{\rm u} +\kappa^{\rm s'} \epsilon_{\rm s'}) \frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+where
+\begin{equation}\label{eqn:34}
+\epsilon_{\rm u}=\frac{V_{\rm u}}{V_{\rm s}}=\frac{V_{\rm u}}{V_{\rm u}+V_{\rm s'}},
+\end{equation}
+and
+\begin{equation}\label{eqn:35}
+\epsilon_{\rm s'}=\frac{V_{\rm s'}}{V_{\rm s}}=\frac{V_{\rm s'}}{V_{\rm u}+V_{\rm s'}}.
+\end{equation}
+
+We have,
+\begin{equation}\label{eqn:36}
+a_{\rm w}^{-1}=1+ (  \frac{\nu^{\rm u} M_{\rm w} \rho_{\rm u}}{\rho_{\rm w}M_{\rm u}} 
+\frac{V_{\rm u}}{V_{\rm s}} +
+\frac{\nu^{\rm s'} M_{\rm w} \rho_{\rm s'}}{\rho_{\rm w} M_{\rm s'}}    
+\frac{V_{\rm s'}}{V_{\rm s}})
+\frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+where $\rm V_{\rm s}$ = $ V_{\rm u}$ + $V_{\rm s'}$. $V_{\rm u}$ and $V_{\rm s'}$ are the volumes of the insoluble and solute respectively.
+
+If in PARTMC, for insoluble substances, the $\nu^{\rm u}$ is prescribed as zero, and hence $\kappa^{\rm u}$, $n^{\rm u}$  are zero from eqn({\ref{eqn:6}) and eqn(\ref{eqn:7}), we don't need to distinguish whether a particular component in an aerosol species is soluble or not when we use eqn(\ref{eqn:31}).
+
+From above, we get the following,
+
+\begin{equation}\label{eqn:37}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
+\end{equation}
+
+Approach 2.
+
+\begin{equation}\label{eqn:38}
+a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}=1+ (\sum_{a} \kappa^{a} \epsilon_{a})\frac{V_{\rm s}}{V_{\rm w}}.
+\end{equation}
+
+Then,
+
+\begin{equation}\label{eqn:39}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \epsilon_{\rm s'} \frac{V_{\rm s}}{V_{\rm w}},
+\end{equation}
+
+\begin{equation}\label{eqn:40}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} (\frac{V_{\rm s'}}{V_{\rm s}})(\frac{V_{\rm s}}{V_{\rm w}}).
+\end{equation}
+
+\begin{equation}\label{eqn:37}
+a_{\rm w}^{-1}=1+ \kappa^{\rm s'} \frac{V_{\rm s'}}{V_{\rm w}}.
+\end{equation}
+
+This is the same as approach 1. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Appendix II - The equilibration subroutine in PARTMC}
+
+The equilibration subroutine is to associate the aerosol particle with the required amount of water such that it is in equilibrium with the environmental saturation/supersaturation.
+
+Thus the required amount of water is calculated by the equilibrium equation which is given as follow.
+
+\begin{equation}
+\ln{\Big(\frac{p_{\rm w}(D_{\rm p})}{p^{o}}\Big)}=\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}}-\frac{6 \nu m_{\rm s} M_{\rm w}}{\pi \rho_{\rm w} M_{\rm s}(D_{\rm p}^{3}-d_{\rm u}^{3})}
+\end{equation}
+
+\begin{equation}
+f=\ln{\Big(\frac{p_{\rm w}(D_{\rm p})}{p^{o}}\Big)}-\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}}+\frac{6 \nu m_{\rm s} M_{\rm w}}{\pi \rho_{\rm w} M_{\rm s}(D_{\rm p}^{3}-d_{\rm u}^{3})}
+\end{equation}
+
+Or in terms of water activity, $a_{\rm w}$, the equilibrium equation is given as (proved previously), 
+
+\begin{equation}
+S=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}, 
+\end{equation}
+
+\begin{equation}
+f=\ln{S}-\ln{a_{\rm w}}+\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}}
+\end{equation}
 
 
 \end{document}

@@ -1,8 +1,0 @@
-MOSAIC_MODDIR = -I$(HOME)/proj/mosaic/trunk/datamodules
-MOSAIC_LIBDIR = -L$(HOME)/proj/mosaic/trunk
-MOSAIC_LIB = -lmosaic
-MOSAIC_FLAG = -Wp,-DPMC_USE_MOSAIC
-
-NETCDF_MODDIR = -I$(HOME)/opt/include
-NETCDF_LIBDIR = -L$(HOME)/opt/lib
-NETCDF_LIB = -lnetcdf

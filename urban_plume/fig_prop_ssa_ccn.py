@@ -43,7 +43,7 @@ for use_color in [True, False]:
     c = canvas.canvas()
 
     g1 = c.insert(graph.graphxy(
-        width = 6.8,
+        width = grid_graph_width,
         x = graph.axis.linear(min = 0.,
                               max = max_time_min,
                               parter = graph.axis.parter.linear(tickdists
@@ -58,7 +58,7 @@ for use_color in [True, False]:
                               title = r"single scattering albedo",
                               painter = grid_painter)))
     g2 = c.insert(graph.graphxy(
-        width = 6.8,
+        width = grid_graph_width,
         xpos = g1.xpos + g1.width + 0.6,
         x = graph.axis.linear(min = 0.,
                               max = max_time_min,
@@ -71,8 +71,9 @@ for use_color in [True, False]:
                               painter = grid_painter),
         y2 = graph.axis.linear(min = 0.0,
                               max = 100.0,
-                              title = r"unscavenged fraction (\%)",
-                              painter = grid_painter)))
+                              title = r"$S = 0.6\%$ unscavenged fraction (\%)",
+                              painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted],
+                                                                   titlepos = 0.46))))
 
     g1.doaxes()
     g2.doaxes()

@@ -5,7 +5,7 @@ PartMC
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.2.0  
-Released 2008-02-17
+Released 2009-02-17
 
 <http://lagrange.mechse.uiuc.edu/mwest/partmc/>
 
@@ -70,6 +70,9 @@ Linux are:
     cd run_test/emission
     gnuplot plot_species.gnuplot
 
+8. To see what make is doing run it like this:
+    VERBOSE=1 make
+
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
 Fortran 90 module file is required, and it must be produced by the
 same compiler being used to compile PartMC.
@@ -124,6 +127,8 @@ ChangeLog
     <http://arxiv.org/abs/0809.0875>
 
   * Build system switched to `cmake`.
+
+  * Automated test suite added (`make test`).
 
 1.1.0 - 2008-02-17
 

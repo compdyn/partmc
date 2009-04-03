@@ -1,2 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-test/poisson/poisson_sample.o: src/pmc_rand.mod src/pmc_util.mod

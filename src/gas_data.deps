@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/gas_data.o: src/pmc_inout.mod src/pmc_mpi.mod src/pmc_util.mod src/pmc_netcdf.mod
-src/pmc_gas_data.mod: src/pmc_inout.mod src/pmc_mpi.mod src/pmc_util.mod src/pmc_netcdf.mod

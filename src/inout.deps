@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/inout.o: src/pmc_util.mod
-src/pmc_inout.mod: src/pmc_util.mod

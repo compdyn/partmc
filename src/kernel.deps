@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/kernel.o: src/pmc_env_state.mod src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_aero_data.mod
-src/pmc_kernel.mod: src/pmc_env_state.mod src/pmc_bin_grid.mod src/pmc_aero_particle.mod src/pmc_aero_data.mod

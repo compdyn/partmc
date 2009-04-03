@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/condensation.o: src/pmc_aero_state.mod src/pmc_bin_grid.mod src/pmc_aero_binned.mod src/pmc_env_state.mod src/pmc_aero_data.mod src/pmc_util.mod src/pmc_aero_particle.mod src/pmc_constants.mod
-src/pmc_condensation.mod: src/pmc_aero_state.mod src/pmc_bin_grid.mod src/pmc_aero_binned.mod src/pmc_env_state.mod src/pmc_aero_data.mod src/pmc_util.mod src/pmc_aero_particle.mod src/pmc_constants.mod

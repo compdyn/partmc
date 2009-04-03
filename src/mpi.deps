@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/mpi.o: src/pmc_util.mod
-src/pmc_mpi.mod: src/pmc_util.mod

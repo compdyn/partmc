@@ -1,3 +1,0 @@
-# DO NOT EDIT --- auto-generated file
-src/rand.o: src/pmc_util.mod src/pmc_constants.mod
-src/pmc_rand.mod: src/pmc_util.mod src/pmc_constants.mod

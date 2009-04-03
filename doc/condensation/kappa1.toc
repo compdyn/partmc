@@ -1,0 +1,18 @@
+\contentsline {section}{\numberline {1}Equilibrium equation and Growth equation}{2}
+\contentsline {subsection}{\numberline {1.1}Derivation of the condensational growth equation of a droplet based on S$\&$P}{2}
+\contentsline {subsection}{\numberline {1.2}Equilibrium equation as function of water activity $a_{\rm w}$}{3}
+\contentsline {subsection}{\numberline {1.3}Growth equation in terms of water activity $a_{\rm w}$}{4}
+\contentsline {section}{\numberline {2}Kohler framework of droplet condensational growth in terms of $\kappa $}{5}
+\contentsline {subsection}{\numberline {2.1}Paradigm of the study of effect of the aerosol mixing state on hygroscopicity}{5}
+\contentsline {subsection}{\numberline {2.2}Definition of hygroscopicity $\kappa $ in terms of water activity $a_{\rm w}$}{5}
+\contentsline {subsection}{\numberline {2.3}Petters and Kreidenweis (2007) $\kappa $ formulation Updated formulation on 11 March 2009}{6}
+\contentsline {subsection}{\numberline {2.4}Equilibrium equation as function of $\kappa $}{6}
+\contentsline {subsection}{\numberline {2.5}Growth equation as function of $\kappa $ }{7}
+\contentsline {section}{\numberline {3}Algorithm implemented to solve the equilibrium and growth equation}{7}
+\contentsline {subsection}{\numberline {3.1}Equilibrium equation as function of $\kappa $}{7}
+\contentsline {subsection}{\numberline {3.2}Growth equation as function of $\kappa $}{7}
+\contentsline {section}{\numberline {4}Relationship between $\kappa $ of individual component and overall $\kappa $}{8}
+\contentsline {section}{\numberline {5}Appendix I - How to treat insoluble substances in the model PARTMC}{9}
+\contentsline {section}{\numberline {6}Appendix II - The equilibration subroutine in PARTMC}{10}
+\contentsline {section}{\numberline {7}Several other relevant formulae from Kreidenweis et al 2005}{11}
+\contentsline {section}{\numberline {8}Treatment of hygroscopicity, $\nu $ and $\kappa $}{12}

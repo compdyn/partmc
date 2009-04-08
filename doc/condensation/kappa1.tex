@@ -30,9 +30,22 @@ water activity $a_{\rm w}$.
 
 The derivation is contained in chapter 15 (pp. 801- 803) of Senfeld and Pandis. The following derivations just show the mathematical derivation in more detail.
 
-The derivation starts from the equation of diffusion of mass which is given as
+Assuming the diffusional growth of a cloud droplet is directly proportional to the vapor density gradient and the surface area of the droplet. The derivation starts from the equation of diffusion of mass (eqn15.64 in S$\&$P) which is given as
 \begin{equation}\label{eqn:SP1}
-\frac{dm}{dt}=2 \pi D_{\rm p} D_{\rm v} (c_{\rm w, \infty} - c_{\rm w}^{eq}).  
+\frac{dm}{dt}=2 \pi D_{\rm p} D_{\rm v} (c_{\rm w, \infty} - c_{\rm w}^{eq}),  
+\end{equation}
+where $D_{\rm p}$ is the droplet wet diameter, $D_{\rm v}$ is the diffusion constant, $c_{\rm w, \infty}$ and $c^{eq}_{\rm w}$ are the environmental vapor density and equilibrium vapor density over the droplet surface respectively.
+
+The total mass of a droplet, $m$ is the sum of the dry mass and water,
+
+\begin{equation}\label{eqn:1.1}
+m=\rho_{\rm d}V_{\rm d}+\rho_{\rm w}V_{\rm d}
+\end{equation}
+ 
+The rate of change of mass is then expressed as
+
+\begin{equation}\label{eqn:1.2}
+\frac{dm}{dt}=\rho_{\rm w} \frac{dV_{\rm w}}{dt} 
 \end{equation}
 
 To express the growth equation in terms of diameter rate of change, instead of mass rate of change,
@@ -52,24 +65,24 @@ and after rearranging we get,
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} (c_{\rm w, \infty} - c_{\rm w}^{eq}).
 \end{equation}
 
-By ideal gas law, the eqn \ref{eqn:SP4} can be expressed as,
+Assuming ideal gas law, $P$=$c$$(R / M_{\rm w})$$T$, the eqn (\ref{eqn:SP4}) can be expressed as,
 
 \begin{equation}\label{eqn:SP5}
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} (\frac{P_{\rm w, \infty}}{T_{\infty}} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{T_{\rm a}}).
 \end{equation}
 
-To have the term environmental relative humidity or supersaturation entered into eqn \ref{eqn:5} as follows,  
+To have the term environmental relative humidity or supersaturation entered into eqn (\ref{eqn:SP5}) as follows,  
 \begin{equation}\label{eqn:SP6}
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4  \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (\frac{P_{\rm w, \infty}}{P^{\rm 0}(T_{\infty})} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a}) T_{\infty}}{P^{\rm 0}(T_{\infty}) T_{\rm a}}).
 \end{equation}
 
-To relate the temperature of the environment, $T_{\infty}$ to that on the droplet surface, $T_{\rm a}$, we need the argument of the conservation of energy, to derive the energy balance,
+To relate the temperature of the environment, $T_{\infty}$ to that on the droplet surface, $T_{\rm a}$, we need to the law of conservation of energy, which implies that the latent heat released during condensation is conducted away from the droplet to the environment. The energy balance is described as follows, 
 
 \begin{equation}\label{eqn:SP7}
 2 \pi D_{\rm p} k^{'}_{\rm a} (T_{\infty}-T_{\rm a})= -\Delta H_{\rm v}(\frac{dm}{dt}).
 \end{equation}
 
-and further express \ref{eqn:SP7} in terms of diameter growth, 
+and can be further expressed in terms of diameter growth, 
 
 \begin{equation}\label{eqn:SP8}
 2 \pi D_{\rm p} k^{'}_{\rm a} (T_{\infty}-T_{\rm a})= -\Delta H_{\rm v} \frac{1}{2} \pi \rho_{\rm w} D_{\rm p}^{2} \frac{dD_{\rm p}}{dt},
@@ -88,34 +101,147 @@ T_{\rm a}=T_{\infty}(1+\delta),
 where 
 
 \begin{equation}\label{eqn:SP11}
-\delta= \frac{\Delta H_{\rm v}  \rho_{\rm w}}{4 k^{'}_{\rm a}T_{\infty}} D_{\rm p} \frac{dD_{\rm p}}{dt}.
+\delta= \frac{\Delta H_{\rm v}  \rho_{\rm w}}{4 k^{'}_{\rm a}T_{\infty}} D_{\rm p} \frac{dD_{\rm p}}{dt}, 
 \end{equation}
+and $\Delta H_{\rm v}$ is the latent heat of evaporation.
 
-By substituting $T_{\rm a}$ in the eqn \ref{eqn:6} in terms of $T_{\infty}$, we get 
+
+By substituting eqn (\ref{eqn:SP10}) into eqn (\ref{eqn:SP6}) and denote the relative humidity or the supersaturation, $P_{\rm w, \infty}$ / $P^{\rm 0}(T_{\infty})$ as $S_{v, \infty}$, we get 
 
 \begin{equation}\label{eqn:SP12}
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}\Big).
 \end{equation}
 
+
+Write the above equation as follows,
+\begin{equation}\label{eqn:SP13}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})} \frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}\frac{1}{1+\delta}).
+\end{equation}
+
+
+Then we need to obtain the mathematical relationships for the two ratios of $P_{\rm w}(D_{\rm p}, T_{\rm a})$/$P^{\rm 0}(T_{\rm a})$ and $P^{\rm 0}(T_{\rm a})$ / $P^{\rm 0}(T_{\infty})$. 
+
+
+For the first ratio, it is obtained by the Kohler's equation which is proved and given in S$\&$P eqn (15.38). The equation is 
+\begin{equation}\label{eqn:SP14a}
+ \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=\exp{\Big(\frac{4M_{\rm w} \sigma_{\rm w}}{RT_{\rm a}\rho_{\rm w}D_{\rm p}}-\frac{6n_{\rm ions}M_{\rm w}}{\pi \rho_{\rm w}(D_{\rm p}^{3}-d_{\rm u}^{3})}\Big)},
+\end{equation} 
+where $d_{\rm u}$ is the diameter of the insoluble substances.
+
+The first term in the above equation is usually called Kelvin or curvature term, the second term is called Raoult or solute term.
+
+The above equation is usually written as 
+
+\begin{equation}\label{eqn:SP14b}
+\frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=\exp{\Big(\frac{A}{D_{\rm p}}-\frac{B}{(D_{\rm p}^{3}-d_{\rm u}^{3})}\Big)},
+\end{equation} 
+
+with 
+
+\begin{equation}\label{eqn:SP14c}
+A=\frac{4 M_{\rm w}\sigma_{\rm w}} {R T_{\rm a} \rho_{\rm w}}
+\end{equation}
+
+and 
+
+\begin{equation}\label{eqn:SP14d}
+B=\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}}.
+\end{equation}
+
+
+For the second ratio, assuming the ratio of the equilibrium vapor pressure at droplet surface temperature, $T_{\rm a}$ to that at the environmental temperature, $T_{\infty}$ is given by the Clausius-Clapeyron equation as follows,
+
+\begin{equation}\label{eqn:SP15}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp \Big(\frac{\Delta H_{\rm v} M_{\rm w}}{R} (\frac{T_{\rm a}-T_{\infty}}{T_{\rm a} T_{\infty}})\Big).
+\end{equation}
+
+which can then be further simplified into 
+
+\begin{equation}\label{eqn:SP16}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp \Big(\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}\Big).
+\end{equation}
+
+Substituting the eqn(\ref{eqn:SP14a}) and eqn(\ref{eqn:SP16}) into eqn(\ref{eqn:SP13}), we have
+the growth equation, 
+\begin{equation}\label{eqn:SP17a}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} - \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}-\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}} \frac{1}{D_{\rm p}^{3}-d_{\rm u}^{3}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\end{equation}
+
+Or writing the above equation in terms of  $A$ and $B$, we have
+
+\begin{equation}\label{eqn:17b}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} - \frac{1}{1+\delta} \exp(\frac{A}{D_{\rm p}}- \frac{B}{D_{\rm p}^{3}-d_{\rm u}^{3}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Equilibrium equation}
+To obtain the equilibrium equation, we can put $\delta=0$ into the above equation,  we then have the following,
+
+\begin{equation}\label{eqn:SP18}
+S_{\rm v, \infty} = \exp(\frac{A}{D_{\rm p}}- \frac{B}{D_{\rm p}^{3}-d_{\rm u}^{3}}).
+\end{equation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Critical diameter and supersaturation} 
+
+By differentiating eqn(\ref{eqn:SP18}) with respect to droplet diameter $D_{\rm p}$, and solve for $D_{\rm p}$ in the following equation,  
+
+\begin{equation}\label{eqn:SP19}
+\frac{\partial S_{\rm v, \infty}}{\partial D_{\rm p}}=0.
+\end{equation}
+
+Assuming $B$ does not depends on the wet diameter $D_{\rm p}$ (i.e. assuming Molal osmotic coefficient =1 and $\nu$ = constant ?? see eqn(\ref{eqn:16})),  we get
+\begin{equation}\label{eqn:SP20}
+\frac{A}{D_{\rm p}^{2}}=\frac{3 B D_{\rm p}^{2}}{(D_{\rm p}^{3}- d_{\rm u}^{3})^{2}}.
+\end{equation} 
+
+After some algebra, we obtain the following six degree equation.
+\begin{equation}\label{eqn:SP21}
+A(D_{\rm p}^{*})^{6}-3B(D_{\rm p}^{*})^{4}-2 A(D_{\rm p}^{*})^{3} d_{\rm u}^{3}+ A d_{\rm u}^{6}=0.
+\end{equation}
+
+We call the solution to the above equation the critical diameter and denote by $D_{\rm p}^{*}$. If there is no insoluble substance ($d_{\rm u}=0$), the above equation reduces to 
+
+\begin{equation}\label{eqn:SP22}
+(D_{\rm p}^{*})^{2}=\frac{3B}{A} 
+\end{equation}
+
+and hence 
+2
+\begin{equation}\label{eqn:SP23}
+D_{\rm p}^{*}=\sqrt{\frac{3B}{A}}= \sqrt {\frac{9}{2 \pi} \frac{n_{\rm ions} RT_{\rm a}}{\sigma_{\rm w}}}.
+\end{equation}
+
+This agree with equation 15.30 in S$\&P$.
+
+By substituting the critical diameter into eqn (\ref{eqn:SP18}), we get the corresponding supersaturation, $S^{*}$,
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{equation}\label{eqn:SP24}
+{\rm ln} S^{*} = \Big(A (\sqrt{\frac{A}{3B}})   -   B (\sqrt{\frac{A}{3B}}) ^{3} \Big).
+\end{equation}
+
+
+\begin{equation}\label{eqn:SP25}
+{\rm ln}  S^{*}=(\frac{4A^{3}}{27B})^{1/2}
+\end{equation}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
+\section{Growth and equilibrium equations in terms of $a_{\rm w}$} 
 \subsection{Equilibrium equation as function of water activity $a_{\rm w}$}
 
-From S$\&$P 15.18, 
+The equilibrium equation is given in S$\&$P 15.18 as follows, 
 
-\begin{equation}\label{eqn:8}
-\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=\gamma_{\rm w}x_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
+\begin{equation}\label{eqn:1}
+S=\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})}=\gamma_{\rm w}x_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}})},
 \end{equation}
 
-or from Kreidenweis equation (1),
-
-\begin{equation}\label{eqn:9}
-S=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}, 
-\end{equation}
 
 where $\gamma_{\rm w}$ is the water activity coefficient (and $\gamma_{\rm w}$ $\rightarrow$ 1 when the solution is dilute.), and $x_{\rm w}$ is the mole fraction of water which is defined as,
 
-\begin{equation}\label{eqn:10}
+\begin{equation}\label{eqn:3}
 x_{\rm w}=\frac{n_{\rm w}}{n_{\rm w}+n_{\rm ions}},
 \end{equation}
 
@@ -127,49 +253,54 @@ where $n_{\rm w}$ and $n_{\rm ions}$ are the number of moles of water and ions r
 
 From previously derived result, the growth equation (eqn(\ref{eqn:SP12})) is as follow,
 
-\begin{equation}\label{eqn:11}
+\begin{equation}\label{eqn:4}
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\infty})} \frac{1}{1+\delta}\Big).
 \end{equation}
 
-Write eqn(\ref{eqn:11}) as follows,
-\begin{equation}\label{eqn:12}
+Write eqn(\ref{eqn:4}) as follows,
+\begin{equation}\label{eqn:5}
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} (S_{\rm v, \infty} - \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})} \frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}\frac{1}{1+\delta}).
 \end{equation}
 
-By eqn(\ref{eqn:9}), 
+From the result of eqn(\ref{eqn:1}), we know that 
 
-\begin{equation}\label{eqn:13}
-\frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}\end{equation}
+\begin{equation}\label{eqn:6}
+\frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}.
+\end{equation}
 
-By Clausius and Clapeyron equation,
-
-\begin{equation}\label{eqn:14}
-\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp (\frac{\Delta H_{\rm v} M_{\rm w}}{R} (\frac{T_{\rm a}-T_{\infty}}{T_{\rm a} T_{\infty}})).
+And same as section 1.1, assuming the ratio of the equilibrium vapor pressure at droplet surface temperature, $T_{\rm a}$ to that at the environmental temperature, $T_{\infty}$ is given by the Clausius-Clapeyron equation as follows,
+  
+\begin{equation}\label{eqn:7}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp \Big(\frac{\Delta H_{\rm v} M_{\rm w}}{R} (\frac{T_{\rm a}-T_{\infty}}{T_{\rm a} T_{\infty}})\Big).
 \end{equation}
 
 which can be further simplified into 
 
-\begin{equation}\label{eqn:15}
-\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp (\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}).
+\begin{equation}\label{eqn:8}
+\frac{P^{\rm 0}(T_{\rm a})}{P^{\rm 0}(T_{\infty})}=\exp \Big(\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta}\Big).
 \end{equation}
 
-Substituting the above two equations into eqn(\ref{eqn:13}) and eqn (\ref{eqn:15}) into eqn(\ref{eqn:12}) , we get
+Substituting the eqn(\ref{eqn:6}) and eqn (\ref{eqn:8}) into eqn(\ref{eqn:5}) , we get
 
-\begin{equation}\label{eqn:16}
-D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{\rm v, \infty} - a_{w} \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta})\Big).
+\begin{equation}\label{eqn:9}
+D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{\rm v, \infty} - a_{\rm w} \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta})\Big).
 \end{equation}
 
 By comparing the above growth and equilibrium equations, we can see the water activity $a_{w}$ is actually a measure of the solute effect on the single droplet growth and is usually expressed alternatively as the Raoult term in the growth equation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Kohler framework of droplet condensational growth in terms of $\kappa$}
+%\subsection{critical diameter and super-saturation in terms of $a_{\rm w}$}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Droplet condensational growth in terms of $\kappa$}
 
 \subsection{Paradigm of the study of effect of the aerosol mixing state on hygroscopicity}
 
 \begin{itemize}
 
-\item For inorganic substances only, (e.g. NaCl, ($ \rm NH_{4})_{2} \rm SO_{4}$), derive single droplet growth equation in terms of water activity, $a_{w}$.
+\item For inorganic substances only, (e.g. NaCl, ($ \rm NH_{4})_{2} \rm SO_{4}$), derive single droplet growth equation in terms of water activity, $a_{\rm w}$.
 
 \item For inorganic substances only, derive equilibrium equation in terms of water activity, $a_{w}$.
 
@@ -186,60 +317,47 @@ By comparing the above growth and equilibrium equations, we can see the water ac
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Definition of hygroscopicity $\kappa$}
 
-
-\subsection{Definition of hygroscopicity $\kappa$ in terms of water activity $a_{\rm w}$}
-
-\begin{equation}\label{eqn:17}
+\begin{equation}\label{eqn:10}
 a_{\rm w}^{-1}=1+\kappa \frac{V_{\rm s}}{V_{\rm w}}
 \end{equation}
 
-\begin{equation}\label{eqn:18}
+\begin{equation}\label{eqn:11}
 a_{\rm w}=\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm s}}
 \end{equation}
 
 where $V_{\rm s}$ is the volume of dry particulate matter, which is the sum of soluble (solute) and insoluble material.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Petters and Kreidenweis (2007) $\kappa$ formulation Updated formulation on 11 March 2009}
-
-Define $a_{\rm w}$ as follows 
-
-\begin{equation}
-S=a_{\rm w} \exp (\frac{4 \sigma_{\rm w} M_{\rm w}} {RT\rho_{\rm w}D}).
+$a_{\rm w}$ can be alternatively defined as eqn (9.63) and eqn (15.16) in S$\&$P as follows, 
+\begin{equation}\label{eqn:12}
+a_{\rm w}=\gamma_{\rm w}(1+\frac{n_{\rm ions}}{n_{\rm w}})^{-1}
 \end{equation}
 
-and note that also the another definition of $a_{w}$ from equation 15.18 in S\&P
+Equating the above two definitions, we have
 
-\begin{equation}
-S=\gamma_{\rm w}(1+ \frac{n_{\rm ions}}{n_{\rm w}})^{-1}\exp (\frac{4 \sigma_{\rm w} M_{\rm w}} {RT\rho_{\rm w} D})
-\end{equation}
-where $n_{i}$ is the number of mole of ions after dissociation.
-
-Comparing the above two definitions, we have
-
-\begin{equation}
+\begin{equation}\label{eqn:13}
 a_{\rm w}=\gamma_{\rm w}(1+\frac{n_{\rm ions}}{n_{\rm w}})^{-1}=(1+\kappa \frac{V_{\rm s}}{V_{\rm w}})^{-1}.
 \end{equation}
 
 Then we have a relationship for $\kappa$ as follows, assuming $\gamma_{w}$=1, 
 
-\begin{equation}
+\begin{equation}\label{eqn:14}
 \kappa= \frac{V_{\rm w} n_{\rm ions}}{V_{\rm s} n_{\rm w}}.
 \end{equation}
 
 This can be further simplifies as 
 
-\begin{equation}
+\begin{equation}\label{eqn:15}
 \kappa= \frac{M_{\rm w}}{V_{\rm s} \rho_{\rm w}}n_{\rm ions}.
 \end{equation}
 
-The $n_{\rm ions}$ is calculated by the following, 
+The $n_{\rm ions}$ can be  calculated by eqn(10) in Kreidenweis e al 2005, 
 
-\begin{equation}
-n_{\rm ions}=\nu \frac{m_{\rm s}}{M_{\rm s}},
+\begin{equation}\label{eqn:16}
+n_{\rm ions}=\Big((\nu \Phi) + \frac{m M_{\rm w}}{1000} \frac{(\nu \Phi)^{2}}{2!} + \frac{m M_{\rm w}}{1000} \frac{(\nu \Phi)^{3}}{3!}+... \Big) \frac{m_{\rm s}}{M_{\rm s}},
 \end{equation}
-where $m_{\rm s}$ and $M_{\rm s}$ are the mass and molecular weight of salt respectively. and $\nu$ is the number of ions produced per dissociation of one molecular of the salt.  
+where $m_{\rm s}$ and $M_{\rm s}$ are the mass and molecular weight of salt respectively. and $\nu$ is the number of ions produced per dissociation of one molecular of the salt. $m$ is molarity of the solution. $\Phi$ is the Molal osmotic coefficient, which depends on the concentration of the solution. It is assumed to be 1 when the solution is dilute. Eqn(\ref{eqn:16}) implies that the value of $\kappa$ depends on the amount of water, hence depends on the wet diameter $D_{\rm p}$ and changes as the droplet grows or shrinks.
 
 In future, $n_{\rm ions}$ is not calculated by the above formula and instead by MOZART which is coupled to PARTMC-MOZART.
 
@@ -274,6 +392,52 @@ S=\frac{P_{\rm w}(D_{\rm p})}{P^{o}}=(\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm
 D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}}{R} \frac{P^{\rm 0}(T_{\infty})} {T_{\infty}} \Big(S_{\rm v, \infty} -  (\frac{V_{\rm w}}{V_{\rm w} + \kappa V_{\rm s}}) \frac{1}{1+\delta} \exp(\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}}\frac{1}{D_{\rm p}}+\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \frac{\delta}{1+\delta})\Big).
 \end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Critical diameter and supersaturation in terms of $\kappa$}
+
+
+From eqn(\ref{eqn:15}), 
+
+\begin{equation}\label{eqn:23}
+\kappa= \frac{M_{\rm w}}{V_{\rm s} \rho_{\rm w}}n_{\rm ions}.
+\end{equation}
+
+\begin{equation}\label{eqn:24}
+\kappa= \frac{M_{\rm w}} {\rho_{\rm w}} \frac{6}{\pi D_{\rm d}^{3}} n_{\rm ions}.
+\end{equation}
+
+
+And from eqn(\ref{eqn:SP14d}),
+\begin{equation}\label{eqn:25}
+B=\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}},
+\end{equation}
+
+\begin{equation}\label{eqn:26}
+B=\kappa D_{\rm d}^{3}
+\end{equation}
+
+Substituting this into eqn(\ref{eqn:SP23}) and eqn(\ref{eqn:SP25})
+we have 
+
+\begin{equation}\label{eqn:27}
+D_{\rm p}^{*}=\sqrt{\frac{3B}{A}}=\sqrt{\frac{3 \kappa D_{\rm d}^{3}}{A}}
+\end{equation}
+
+and
+
+\begin{equation}\label{eqn:28}
+{\rm ln}  S^{*}=(\frac{4A^{3}}{27B})^{1/2}=(\frac{4A^{3}}{27\kappa D_{\rm d}^{3} })^{1/2}
+\end{equation}
+
+or 
+
+\begin{equation}\label{eqn:28}
+\kappa=\frac{4A^{3}} {27D_{\rm d}^{3} {\rm ln}^{2} S^{*} }.
+\end{equation}
+
+This agrees with equation (10) in Petters and Kreidenweis 2007. However this is an approximate expression for the critical diameter and supersaturation. As mentioned before when carrying out the differentiation of eqn(\ref{eqn:SP18}), we are assuming $B$ is independent of the wet diameter $D_{\rm p}$. We see that $B$ depends on $n_{\rm ions}$ which in turn depends on molarity $m$ and Molal osmotic coefficient $\Phi$ eqn(\ref{eqn:16}). These parameters all change with wet diameter $D_{\rm p}$ as a drop grows or shrinks. 
+Does $\nu$ change as the drop size changes?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Algorithm implemented to solve the equilibrium and growth equation}

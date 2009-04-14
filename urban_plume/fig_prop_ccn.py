@@ -91,6 +91,14 @@ for [time, filename, key] in time_filename_list:
 
 print max([v for [t,v] in plot_data_ratio])
 
+data_array = zeros([len(plot_data_resolved), 4])
+for i in range(len(plot_data_resolved)):
+    data_array[i,0] = plot_data_resolved[i][0]
+    data_array[i,1] = plot_data_resolved[i][1]
+    data_array[i,2] = plot_data_binned[i][1]
+    data_array[i,3] = plot_data_ratio[i][1]
+savetxt("%s.txt" % out_prefix, data_array)
+
 for use_color in [True, False]:
     g = graph.graphxy(
         width = 6.8,

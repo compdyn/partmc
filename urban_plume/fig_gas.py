@@ -18,7 +18,7 @@ gas_species = [
     {"species": "NO2", "plot": "g1", "label_time": 8, "label_pos": [1, 1], "label_offset": 0.5 * unit.v_mm},
     {"species": "HCHO", "plot": "g2", "label_time": 8, "label_pos": [0, 0], "label_offset": 0 * unit.v_mm},
     {"species": "HNO3", "plot": "g2", "label_time": 8, "label_pos": [1, 1], "label_offset": 0 * unit.v_mm},
-    {"species": "SO2", "plot": "g2", "label_time": 15, "label_pos": [0, 1], "label_offset": 0 * unit.v_mm},
+    {"species": "SO2", "plot": "g2", "label_time": 14.7, "label_pos": [0, 1], "label_offset": 0 * unit.v_mm},
     {"species": "NH3", "plot": "g2", "label_time": 11, "label_pos": [0, 1], "label_offset": 0 * unit.v_mm},
     ]
 
@@ -39,8 +39,9 @@ for use_color in [True, False]:
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
-                                                   = start_time_of_day_min),
-                              title = "local standard time (LST) (hours:minutes)",
+                                                   = start_time_of_day_min,
+                                                   separator = ""),
+                              title = "local standard time (LST) (hours and minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.,
                               max = 20,

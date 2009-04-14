@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -40,8 +40,9 @@ for use_color in [True, False]:
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
-                                                   = start_time_of_day_min),
-                              title = "local standard time (LST) (hours:minutes)",
+                                                   = start_time_of_day_min,
+                                                   separator = ""),
+                              title = "local standard time (LST) (hours and minutes)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 0.0,
                               max = 8.0,

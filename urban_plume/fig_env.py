@@ -25,11 +25,12 @@ for use_color in [True, False]:
         height = 4,
         x = graph.axis.linear(min = 0.,
                               max = max_time_min,
-                              title = "local standard time (LST) (hours:minutes)",
+                              title = "local standard time (LST) (hours and minutes)",
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60, 3 * 60]),
                               texter = time_of_day(base_time
-                                                   = start_time_of_day_min),
+                                                   = start_time_of_day_min,
+                                                   separator = ""),
                               painter = grid_painter),
         y = graph.axis.linear(min = 285,
                               max = 300,

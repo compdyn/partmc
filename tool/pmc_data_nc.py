@@ -686,61 +686,61 @@ class aero_particle_array_t:
         self.aero_data = aero_data_t(ncf)
         if "aero_comp_mass" not in ncf.variables.keys():
             raise Exception("aero_comp_mass variable not found in NetCDF file")
-        self.masses = ncf.variables["aero_comp_mass"].getValue()
+        self.masses = asarray(ncf.variables["aero_comp_mass"].getValue())
         self.n_particles = size(self.masses, 1)
         if "aero_n_orig_part" not in ncf.variables.keys():
             raise Exception("aero_n_orig_part variable not found in NetCDF file")
-	self.n_orig_part = ncf.variables["aero_n_orig_part"].getValue()
+	self.n_orig_part = asarray(ncf.variables["aero_n_orig_part"].getValue())
         if "aero_absorb_cross_sect" not in ncf.variables.keys():
             raise Exception("aero_absorb_cross_sect variable not found in NetCDF file")
-	self.absorb_cross_sect = ncf.variables["aero_absorb_cross_sect"].getValue()
+	self.absorb_cross_sect = asarray(ncf.variables["aero_absorb_cross_sect"].getValue())
         if "aero_scatter_cross_sect" not in ncf.variables.keys():
             raise Exception("aero_scatter_cross_sect variable not found in NetCDF file")
-	self.scatter_cross_sect = ncf.variables["aero_scatter_cross_sect"].getValue()
+	self.scatter_cross_sect = asarray(ncf.variables["aero_scatter_cross_sect"].getValue())
         if "aero_asymmetry" not in ncf.variables.keys():
             raise Exception("aero_asymmetry variable not found in NetCDF file")
-	self.asymmetry = ncf.variables["aero_asymmetry"].getValue()
+	self.asymmetry = asarray(ncf.variables["aero_asymmetry"].getValue())
         if "aero_refract_shell_real" not in ncf.variables.keys():
             raise Exception("aero_refract_shell_real variable not found in NetCDF file")
-	self.refract_shell_real = ncf.variables["aero_refract_shell_real"].getValue()
+	self.refract_shell_real = asarray(ncf.variables["aero_refract_shell_real"].getValue())
         if "aero_refract_shell_imag" not in ncf.variables.keys():
             raise Exception("aero_refract_shell_imag variable not found in NetCDF file")
-	self.refract_shell_imag = ncf.variables["aero_refract_shell_imag"].getValue()
+	self.refract_shell_imag = asarray(ncf.variables["aero_refract_shell_imag"].getValue())
         if "aero_refract_core_real" not in ncf.variables.keys():
             raise Exception("aero_refract_core_real variable not found in NetCDF file")
-	self.refract_core_real = ncf.variables["aero_refract_core_real"].getValue()
+	self.refract_core_real = asarray(ncf.variables["aero_refract_core_real"].getValue())
         if "aero_refract_core_imag" not in ncf.variables.keys():
             raise Exception("aero_refract_core_imag variable not found in NetCDF file")
-	self.refract_core_imag = ncf.variables["aero_refract_core_imag"].getValue()
+	self.refract_core_imag = asarray(ncf.variables["aero_refract_core_imag"].getValue())
         if "aero_core_vol" not in ncf.variables.keys():
             raise Exception("aero_core_vol variable not found in NetCDF file")
-	self.core_vol = ncf.variables["aero_core_vol"].getValue()
+	self.core_vol = asarray(ncf.variables["aero_core_vol"].getValue())
         if "aero_water_hyst_leg" not in ncf.variables.keys():
             raise Exception("aero_water_hyst_leg variable not found in NetCDF file")
-	self.water_hyst_leg = ncf.variables["aero_water_hyst_leg"].getValue()
+	self.water_hyst_leg = asarray(ncf.variables["aero_water_hyst_leg"].getValue())
         if "aero_comp_vol" not in ncf.variables.keys():
             raise Exception("aero_comp_vol variable not found in NetCDF file")
-	self.comp_vol = ncf.variables["aero_comp_vol"].getValue()
+	self.comp_vol = asarray(ncf.variables["aero_comp_vol"].getValue())
         if "aero_id" not in ncf.variables.keys():
             raise Exception("aero_id variable not found in NetCDF file")
-	self.id = ncf.variables["aero_id"].getValue()
+	self.id = asarray(ncf.variables["aero_id"].getValue())
         if "aero_least_create_time" not in ncf.variables.keys():
             raise Exception("aero_least_create_time variable not found in NetCDF file")
-	self.least_create_time = ncf.variables["aero_least_create_time"].getValue()
+	self.least_create_time = asarray(ncf.variables["aero_least_create_time"].getValue())
         if "aero_greatest_create_time" not in ncf.variables.keys():
             raise Exception("aero_greatest_create_time variable not found in NetCDF file")
-	self.greatest_create_time = ncf.variables["aero_greatest_create_time"].getValue()
+	self.greatest_create_time = asarray(ncf.variables["aero_greatest_create_time"].getValue())
         if "aero_removed_id" not in ncf.variables.keys():
             raise Exception("aero_removed_id variable not found in NetCDF file")
-	self.aero_removed_id = ncf.variables["aero_removed_id"].getValue()
+	self.aero_removed_id = asarray(ncf.variables["aero_removed_id"].getValue())
         self.aero_removed_id = [int(i) for i in self.aero_removed_id]
         if "aero_removed_action" not in ncf.variables.keys():
             raise Exception("aero_removed_action variable not found in NetCDF file")
-	self.aero_removed_action = ncf.variables["aero_removed_action"].getValue()
+	self.aero_removed_action = asarray(ncf.variables["aero_removed_action"].getValue())
         self.aero_removed_action = [int(i) for i in self.aero_removed_action]
         if "aero_removed_other_id" not in ncf.variables.keys():
             raise Exception("aero_removed_other_id variable not found in NetCDF file")
-	self.aero_removed_other_id = ncf.variables["aero_removed_other_id"].getValue()
+	self.aero_removed_other_id = asarray(ncf.variables["aero_removed_other_id"].getValue())
         self.aero_removed_other_id = [int(i) for i in self.aero_removed_other_id]
         if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
             self.aero_removed_id = array([],'int32')
@@ -836,12 +836,12 @@ class aero_particle_array_t:
             averaged_particles.masses[:,i] = masses_den[:,i] * averaged_particles.comp_vol[i]
         return averaged_particles
 
-def time_of_day_string(time_seconds):
+def time_of_day_string(time_seconds, separator = ":"):
     time_of_day = time_seconds % (24 * 3600.0)
     hours = int(time_of_day / 3600.0)
     minutes = int(time_of_day / 60.0) % 60
     seconds = int(time_of_day) % 60
-    return "%02d:%02d" % (hours, minutes)
+    return "%02d%s%02d" % (hours, separator, minutes)
 
 class env_state_t:
 

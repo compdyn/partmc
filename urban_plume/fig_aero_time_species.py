@@ -49,7 +49,7 @@ for use_color in [True, False]:
                               title = r"mass conc. ($\rm \mu g \, m^{-3}$)",
                               painter = grid_painter)))
     g1 = c.insert(graph.graphxy(
-        width = 6.7,
+        width = 6.8,
         ypos = g2.height + 0.5,
         x = graph.axis.linkedaxis(g2.axes["x"],
                                   painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])),

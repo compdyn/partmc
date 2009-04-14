@@ -11,6 +11,8 @@ for f in fig_aero_2d_all_no_coag.py \
     fig_aero_dist_size.py \
     fig_aero_particles.py \
     fig_aero_time_species.py \
+    fig_aero_time_totals.py \
+    fig_aero_water_dist.py \
     fig_env.py \
     fig_gas.py \
     fig_test_brownian.py \

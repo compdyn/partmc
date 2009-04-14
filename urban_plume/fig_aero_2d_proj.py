@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007, 2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -177,9 +177,9 @@ for use_coag in [True, False]:
         write_time(g11, env_state)
         #boxed_text(g11, extra_text, point = [1, 1], anchor_point_rel = [1, 1])
 
-        label_plot_line_boxed(g11, diam_num_plot_data, 0.08,
+        label_plot_line_boxed(g11, diam_num_plot_data, 0.079,
                         "number", [1, 1])
-        label_plot_line_boxed(g11, diam_mass_plot_data, 0.05,
+        label_plot_line_boxed(g11, diam_mass_plot_data, 0.053,
                         "mass", [0, 0], yaxis = g11.axes["y2"])
         label_plot_line_boxed(g22, bc_num_plot_data, 20,
                         "number", [1, 0], flip_xy = True)

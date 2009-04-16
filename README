@@ -70,7 +70,10 @@ Linux are:
     cd run_test/emission
     gnuplot plot_species.gnuplot
 
-8. To see what make is doing run it like this:
+8. To run just a single test do:
+    ctest -R poisson_1 # argument is a regexp for test names
+
+9. To see what make is doing run it like this:
     VERBOSE=1 make
 
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`

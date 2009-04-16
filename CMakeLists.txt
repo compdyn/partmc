@@ -18,6 +18,8 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod
   /usr/include
   /usr/local/include
   /opt/include
+  /usr/lib64/gfortran/modules
+  /usr/lib/gfortran/modules
   $ENV{HOME}/include
   $ENV{HOME}/opt/include
   PATH_SUFFIXES netcdf-3)

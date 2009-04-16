@@ -6,5 +6,5 @@ cd ${0%/*}
 ../../partmc run_mc.spec
 ../../test_bidisperse_extract
 ../../test_bidisperse_ode
-../../numeric_diff out/bidisperse_mc_data.txt out/bidisperse_ode_data.txt 0 3e-2
+../../numeric_diff out/bidisperse_mc_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1
 exit $?

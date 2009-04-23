@@ -28,6 +28,8 @@ find_library(NETCDF_C_LIB netcdf
   PATHS
   /usr/lib
   /usr/lib64
+  /usr/local/lib
+  /usr/local/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 find_library(NETCDF_FORTRAN_LIB netcdff
@@ -35,6 +37,8 @@ find_library(NETCDF_FORTRAN_LIB netcdff
   PATHS
   /usr/lib
   /usr/lib64
+  /usr/local/lib
+  /usr/local/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 

@@ -1,4 +1,8 @@
 
+Add gnuplot scripts for all testcases.
+
+=======================================
+
 Shift interfaces into modules. Especially kernel interface to
 kernel.f90.
 

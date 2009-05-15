@@ -1,22 +1,52 @@
 
 Add gnuplot scripts for all testcases.
 
-=======================================
+remove process.dat -- just output a minimal summary
 
-Shift interfaces into modules. Especially kernel interface to
-kernel.f90.
+only have one t_output for both state and summary
 
-Add entrainment switch.
+change summary format to be simpler (gas totals, aerosol number size-resolved,
+aerosol mass size-resolved)
+
+input fractions only by mass (no volume, etc)
 
 Change error messages in inout.f90 to use die_msg().
 
-We shouldn't really need both aero_binned_t and aero_dist_t. Actually
-aero_dist_t should go away, so that we can generate exact samplings
-for particle-based methods from the original continuous distribution.
+Memory allocation policy should be that all functions must be called
+with an already allocated structure. That is, always call type_alloc()
+before calling anything else. The functions will call type_free() if
+they need to before writing new data, or will take care of
+(de)allocation internally. Currently at least the spec_read functions
+don't free before setting new values and should be fixed.
 
-Change Makefile to not use FFLAGS as the thing to set, but rather use
-DEF_FFLAGS or something, and include FFLAGS without settting it. Also
-print out all settings before starting compilation.
+Add allow_halve to control that separately.
+
+Re-add generation of dependency graph.
+
+Get rid of PMC_EVEREST in mpi.f90.
+
+In output_processed.f90 change ensure_nc_var_env_state() to have a
+name argument which will be process_spec%name. In
+urban_plume/process.dat we currently list env to have "name env" which
+should be "name env_state" to match current behavior. We should check
+that the names specified in process.dat do not conflict with each
+other or with the dimension names.
+
+Remove ASCII state output, or at least rename to output_state_ascii.
+
+Remove process_spec.f90
+Remove output_processed.f90
+Remove output_state.f90
+Rename output_state_netcdf.f90 to output_state.f90
+Add output_summary.f90
+
+Shift interfaces into modules. Especially kernel interface to
+kernel.f90, to avoid having to include all the various kernel_*
+modules everywhere.
+
+=======================================
+
+Add entrainment switch.
 
 Change gas conc from ppb to mole proportion.
 
@@ -50,52 +80,22 @@ Add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
 
-Memory allocation policy should be that all functions must be called
-with an already allocated structure. That is, always call type_alloc()
-before calling anything else. The functions will call type_free() if
-they need to before writing new data, or will take care of
-(de)allocation internally. Currently at least the spec_read functions
-don't free before setting new values and should be fixed.
-
 Fix local variable sections to always be all integers, then all reals,
 etc, with only one "integer ::" and then & for the rest of the lines.
 
 Change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
 
-Add allow_halve to control that separately.
-
-Add parameter to composition processing for type: vol, mass or mole.
-
-Use switch/case rather than elseif chains.
+Use switch/case rather than elseif chains?
 
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
 
-Change aero_dists to actually store the distribution parameters,
-rather than generating the discretized version immediately. This will
-allow us to sample log-normal and others exactly.
-
 Maybe generate initial number of particles from a Poisson
 distribution, rather than just using the mean as we do now?
 
-Use doxygen to generate docs. Fortran supported as of version 1.5.4.
-
 Fix MPI so it works again.
-
-Change state files to be in NetCDF format.
 
 Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
 just be gas_state_daxpy(), and for other structures.
-
-Get rid of PMC_EVEREST in mpi.f90.
-
-In output_processed.f90 change ensure_nc_var_env_state() to have a
-name argument which will be process_spec%name. In
-urban_plume/process.dat we currently list env to have "name env" which
-should be "name env_state" to match current behavior. We should check
-that the names specified in process.dat do not conflict with each
-other or with the dimension names.
-
-rename frac_type to comp_type for consistency

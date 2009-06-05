@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Matthew West
+! Copyright (C) 2007, 2008, 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -15,11 +15,7 @@ module pmc_mpi
   use pmc_util
   
 #ifdef PMC_USE_MPI
-#ifdef PMC_EVEREST
-  include 'mpif.h'
-#else
   use mpi
-#endif
 #endif
 
 contains
@@ -851,13 +847,8 @@ contains
     do i = 1,n
        call pmc_mpi_unpack_string(buffer, position, val(i))
     end do
-#ifndef PMC_EVEREST
-    !FIXME: some weird bug makes this fail on everest with pgf90 and MPICH
-    ! apparently pmc_mpi_pack_size_string_array() gets empty strings,
-    ! despite the fact that they are returned correctly.
     call assert(320065648, &
          position - prev_position == pmc_mpi_pack_size_string_array(val))
-#endif
 #endif
 
   end subroutine pmc_mpi_unpack_string_array

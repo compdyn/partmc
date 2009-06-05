@@ -41,8 +41,6 @@ Add allow_halve to control that separately.
 
 Re-add generation of dependency graph.
 
-Get rid of PMC_EVEREST in mpi.f90.
-
 In output_processed.f90 change ensure_nc_var_env_state() to have a
 name argument which will be process_spec%name. In
 urban_plume/process.dat we currently list env to have "name env" which

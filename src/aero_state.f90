@@ -21,9 +21,7 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
 #ifdef PMC_USE_MPI
-#ifndef PMC_EVEREST
   use mpi
-#endif
 #endif
 
   !> The current collection of aerosol particles.

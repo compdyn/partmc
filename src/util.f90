@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -171,6 +171,7 @@ contains
     else
        clock = seed
     end if
+    i = 0 ! HACK to shut up gfortran warning
     seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)

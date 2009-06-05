@@ -77,55 +77,63 @@ program extract_state_aero_total
      end if
      
      ! read aero_particle dimension
-     call nc_check(nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle))
-     call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
-          tmp_str, n_aero_particle))
-     
-     ! read aero_comp_mass
-     call nc_check(nf90_inq_varid(ncid, "aero_comp_mass", &
-          varid_aero_comp_mass))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_mass, &
-          tmp_str, xtype, ndims, dimids, nAtts))
-     if ((ndims /= 2) &
-          .or. (dimids(1) /= dimid_aero_particle) &
-          .or. (dimids(2) /= dimid_aero_species)) then
-        write(*,*) "ERROR: unexpected aero_comp_mass dimids"
-        call exit(1)
+     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
+     if (status == NF90_EBADDIM) then
+        ! dimension missing ==> no particles, so concentration = 0
+        num_conc = 0d0
+        mass_conc = 0d0
+     else
+        call nc_check(status)
+        call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
+             tmp_str, n_aero_particle))
+        
+        ! read aero_comp_mass
+        call nc_check(nf90_inq_varid(ncid, "aero_comp_mass", &
+             varid_aero_comp_mass))
+        call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_mass, &
+             tmp_str, xtype, ndims, dimids, nAtts))
+        if ((ndims /= 2) &
+             .or. (dimids(1) /= dimid_aero_particle) &
+             .or. (dimids(2) /= dimid_aero_species)) then
+           write(*,*) "ERROR: unexpected aero_comp_mass dimids"
+           call exit(1)
+        end if
+        allocate(aero_comp_mass(n_aero_particle, n_aero_species))
+        call nc_check(nf90_get_var(ncid, varid_aero_comp_mass, &
+             aero_comp_mass))
+        
+        ! read aero_comp_vol
+        call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
+             varid_aero_comp_vol))
+        call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
+             tmp_str, xtype, ndims, dimids, nAtts))
+        if ((ndims /= 1) &
+             .or. (dimids(1) /= dimid_aero_particle)) then
+           write(*,*) "ERROR: unexpected aero_comp_vol dimids"
+           call exit(1)
+        end if
+        allocate(aero_comp_vol(n_aero_particle))
+        call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
+             aero_comp_vol))
+        
+        call nc_check(nf90_close(ncid))
+        
+        ! compute number and mass concentrations
+        num_conc = 0d0
+        mass_conc = 0d0
+        do i_part = 1,n_aero_particle
+           num_conc = num_conc + 1d0 / aero_comp_vol(i_part)
+           mass_conc = mass_conc + sum(aero_comp_mass(i_part,:)) &
+                / aero_comp_vol(i_part)
+        end do
+        
+        deallocate(aero_comp_mass)
+        deallocate(aero_comp_vol)
      end if
-     allocate(aero_comp_mass(n_aero_particle, n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_comp_mass, &
-          aero_comp_mass))
-     
-     ! read aero_comp_vol
-     call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
-          varid_aero_comp_vol))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
-          tmp_str, xtype, ndims, dimids, nAtts))
-     if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_particle)) then
-        write(*,*) "ERROR: unexpected aero_comp_vol dimids"
-        call exit(1)
-     end if
-     allocate(aero_comp_vol(n_aero_particle))
-     call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
-          aero_comp_vol))
-     
-     call nc_check(nf90_close(ncid))
-
-     ! compute number and mass concentrations
-     num_conc = 0d0
-     mass_conc = 0d0
-     do i_part = 1,n_aero_particle
-        num_conc = num_conc + 1d0 / aero_comp_vol(i_part)
-        mass_conc = mass_conc + sum(aero_comp_mass(i_part,:)) &
-             / aero_comp_vol(i_part)
-     end do
 
      ! output data
      write(out_unit, '(3e30.15e3)') time, num_conc, mass_conc
 
-     deallocate(aero_comp_mass)
-     deallocate(aero_comp_vol)
   end do
 
   close(out_unit)

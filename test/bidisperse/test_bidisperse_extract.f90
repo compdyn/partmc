@@ -34,6 +34,7 @@ program extract_summary
   real*8 :: val, large_init_num_den, small_init_num_den
   real*8 :: large_mass_den, small_num_den
   real*8 :: large_rel_error, small_rel_error
+  logical :: bad_init
 
   ! read NetCDF file
   call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
@@ -121,12 +122,14 @@ program extract_summary
        - desired_small_init_num_den) / desired_small_init_num_den)
   large_rel_error = abs((large_init_num_den &
        - desired_large_init_num_den) / desired_large_init_num_den)
+  bad_init = .false.
   if ((small_rel_error > init_rel_tol) &
        .or. (large_rel_error > init_rel_tol)) then
      write(*,*) "WARNING: randomly chosen initial conditions differ", &
           " by too much from the desired values, so results", &
-          " may be bad. To fix, change the rand_init value in", &
-          " run_mc.spec until an acceptable run is obtained."
+          " may be bad. To fix, simply re-run, or change the rand_init", &
+          " value in run_mc.spec until an acceptable run is obtained."
+     bad_init = .true.
   end if
 
   ! output data
@@ -161,6 +164,10 @@ program extract_summary
   deallocate(radius)
   deallocate(radius_widths)
   deallocate(aero)
+
+  if (bad_init) then
+     call exit(1)
+  end if
 
 contains
 

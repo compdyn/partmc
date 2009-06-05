@@ -260,8 +260,9 @@ contains
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array, and the same for halving
        if (mc_opt%allow_double) then
-          do while (aero_state_total_particles(aero_state) &
-               < mc_opt%n_part_max / 2)
+          do while ((aero_state_total_particles(aero_state) &
+               < mc_opt%n_part_max / 2) &
+               .and. (aero_state_total_particles(aero_state) > 0))
              call aero_state_double(aero_state)
           end do
           do while (aero_state_total_particles(aero_state) &

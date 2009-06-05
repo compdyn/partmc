@@ -159,9 +159,10 @@ contains
     integer, parameter :: n_mosaic_spec = 19
     character(AERO_NAME_LEN), parameter, dimension(n_mosaic_spec) :: &
          mosaic_spec_name = [ &
-         "SO4", "NO3", "Cl", "NH4", "MSA", "ARO1", &
-         "ARO2", "ALK1", "OLE1", "API1", "API2", "LIM1", &
-         "LIM2", "CO3", "Na", "Ca", "OIN", "OC", "BC" ]
+         "SO4   ", "NO3   ", "Cl    ", "NH4   ", "MSA   ", "ARO1  ", &
+         "ARO2  ", "ALK1  ", "OLE1  ", "API1  ", "API2  ", "LIM1  ", &
+         "LIM2  ", "CO3   ", "Na    ", "Ca    ", "OIN   ", "OC    ", &
+         "BC    "]
 
     integer :: i_spec, i_mosaic_spec, i
 

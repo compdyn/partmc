@@ -79,7 +79,12 @@ program extract_state_aero_size_mass
      end if
      
      ! read aero_particle dimension
-     call nc_check(nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle))
+     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
+     if (status == NF90_EBADDIM) then
+        ! dimension missing ==> no particles, so skip this time
+        cycle
+     end if
+     call nc_check(status)
      call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
           tmp_str, n_aero_particle))
      

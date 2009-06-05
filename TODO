@@ -1,14 +1,34 @@
 
-Add gnuplot scripts for all testcases.
+Change screen output to have just n_samp and n_coag since last screen
+output.
 
-remove process.dat -- just output a minimal summary
+Shift equilib to old/
 
-only have one t_output for both state and summary
+Delete aero_state_input_netcdf() or make it handle zero paricle case.
 
-change summary format to be simpler (gas totals, aerosol number size-resolved,
-aerosol mass size-resolved)
+Remove restart capability from run_mc.f90
 
-input fractions only by mass (no volume, etc)
+Change output state variable aero_comp_mass to aero_particle_mass to
+distinguish it from aero_comp_vol.
+
+Change mass density to mass concentration, etc.
+
+Array constructors for mosaic_species -- is it true that these all
+have to have the same length?
+
+Sometimes cmake seems to rebuild even if no source files have changed
+at all?
+
+Add gnuplot scripts for all testcases and remove plot.py.
+
+Remove process.dat -- just output a minimal summary.
+
+Have t_output_summary and t_output_state.
+
+Change summary format to be simpler (gas totals, aerosol number
+size-resolved, aerosol mass size-resolved).
+
+Input fractions only by mass (no volume, etc).
 
 Change error messages in inout.f90 to use die_msg().
 

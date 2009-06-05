@@ -1170,64 +1170,67 @@ contains
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
 
-    call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
-         dimid_aero_particle)
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
-
-    i_part = 0
-    do i_bin = 1,bin_grid%n_bin
-       do i_part_in_bin = 1,aero_state%bin(i_bin)%n_part
-          i_part = i_part + 1
-          particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
-          aero_comp_mass(i_part, :) = particle%vol * aero_data%density
-          aero_n_orig_part(i_part) = particle%n_orig_part
-          aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
-          aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
-          aero_asymmetry(i_part) = particle%asymmetry
-          aero_refract_shell_real(i_part) = real(particle%refract_shell)
-          aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
-          aero_refract_core_real(i_part) = real(particle%refract_core)
-          aero_refract_core_imag(i_part) = aimag(particle%refract_core)
-          aero_core_vol(i_part) = particle%core_vol
-          aero_water_hyst_leg(i_part) = particle%water_hyst_leg
-          aero_comp_vol(i_part) = aero_state%comp_vol
-          aero_id(i_part) = particle%id
-          aero_least_create_time(i_part) = particle%least_create_time
-          aero_greatest_create_time(i_part) = particle%greatest_create_time
+    
+    if (aero_state%n_part > 0) then
+       call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
+            dimid_aero_particle)
+       
+       i_part = 0
+       do i_bin = 1,bin_grid%n_bin
+          do i_part_in_bin = 1,aero_state%bin(i_bin)%n_part
+             i_part = i_part + 1
+             particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
+             aero_comp_mass(i_part, :) = particle%vol * aero_data%density
+             aero_n_orig_part(i_part) = particle%n_orig_part
+             aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
+             aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
+             aero_asymmetry(i_part) = particle%asymmetry
+             aero_refract_shell_real(i_part) = real(particle%refract_shell)
+             aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
+             aero_refract_core_real(i_part) = real(particle%refract_core)
+             aero_refract_core_imag(i_part) = aimag(particle%refract_core)
+             aero_core_vol(i_part) = particle%core_vol
+             aero_water_hyst_leg(i_part) = particle%water_hyst_leg
+             aero_comp_vol(i_part) = aero_state%comp_vol
+             aero_id(i_part) = particle%id
+             aero_least_create_time(i_part) = particle%least_create_time
+             aero_greatest_create_time(i_part) = particle%greatest_create_time
+          end do
        end do
-    end do
-    call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
-         "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
-    call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
-         "aero_n_orig_part", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
-         "aero_absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
-         "aero_scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
-         "aero_asymmetry", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
-         "aero_refract_shell_real", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
-         "aero_refract_shell_imag", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
-         "aero_refract_core_real", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
-         "aero_refract_core_imag", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_core_vol, &
-         "aero_core_vol", "m^3", (/ dimid_aero_particle /))
-    call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
-         "aero_water_hyst_leg", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_comp_vol, &
-         "aero_comp_vol", "m^3", (/ dimid_aero_particle /))
-    call pmc_nc_write_integer_1d(ncid, aero_id, &
-         "aero_id", "1", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
-         "aero_least_create_time", "s", (/ dimid_aero_particle /))
-    call pmc_nc_write_real_1d(ncid, aero_greatest_create_time, &
-         "aero_greatest_create_time", "s", (/ dimid_aero_particle /))
-
+       call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
+            "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
+       call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
+            "aero_n_orig_part", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
+            "aero_absorb_cross_sect", "m^2", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
+            "aero_scatter_cross_sect", "m^2", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
+            "aero_asymmetry", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
+            "aero_refract_shell_real", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
+            "aero_refract_shell_imag", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
+            "aero_refract_core_real", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
+            "aero_refract_core_imag", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_core_vol, &
+            "aero_core_vol", "m^3", (/ dimid_aero_particle /))
+       call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
+            "aero_water_hyst_leg", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_comp_vol, &
+            "aero_comp_vol", "m^3", (/ dimid_aero_particle /))
+       call pmc_nc_write_integer_1d(ncid, aero_id, &
+            "aero_id", "1", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
+            "aero_least_create_time", "s", (/ dimid_aero_particle /))
+       call pmc_nc_write_real_1d(ncid, aero_greatest_create_time, &
+            "aero_greatest_create_time", "s", (/ dimid_aero_particle /))
+    end if
+    
     if (record_removals) then
        call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
             dimid_aero_removed)

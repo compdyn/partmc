@@ -1,6 +1,6 @@
 run_type mc                     # Monte Carlo
 output_prefix out/emission_mc   # prefix of output files
-state_prefix out/emission_mc_state # prefix of state files
+state_prefix out/emission_mc    # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
@@ -8,7 +8,7 @@ kernel sedi                     # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 1200                   # output interval (0 disables) (s)
+t_output 0                      # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
 t_state_netcdf 1200             # NetCDF state output interval (0 disables) (s)
 t_progress 1200                 # progress printing interval (0 disables) (s)

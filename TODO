@@ -1,6 +1,4 @@
 
-Change bins to have r_min, r_max as edges, not centers.
-
 Add extract_particle_mass or extract_particle_data or similar.
 
 Delete aero_state_input_netcdf() or make it handle zero paricle case.
@@ -116,3 +114,5 @@ Fix MPI so it works again.
 
 Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
 just be gas_state_daxpy(), and for other structures.
+
+Change bins to have r_min, r_max as edges, not centers.

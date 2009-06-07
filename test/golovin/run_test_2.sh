@@ -3,8 +3,11 @@
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
-../../extract_summary_aero_size_mass out/golovin_mc_0001.nc out/golovin_mc_mass.txt
+echo "../../extract_state_aero_size_mass 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_mass.txt"
+../../extract_state_aero_size_mass 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_mass.txt
+echo "../../extract_summary_aero_size_mass out/golovin_exact_0001.nc out/golovin_exact_mass.txt"
 ../../extract_summary_aero_size_mass out/golovin_exact_0001.nc out/golovin_exact_mass.txt
 
+echo "../../numeric_diff out/golovin_mc_mass.txt out/golovin_exact_mass.txt 0 1e-1"
 ../../numeric_diff out/golovin_mc_mass.txt out/golovin_exact_mass.txt 0 1e-1
 exit $?

@@ -1,16 +1,16 @@
 run_type mc                     # Monte Carlo run
 output_prefix out/golovin_mc    # prefix of output files
-state_prefix out/golovin_mc_state # prefix of state files
+state_prefix out/golovin_mc     # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
-n_part 100000                    # number of Monte Carlo particles
+n_part 100000                   # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
-t_output 60                     # output interval (0 disables) (s)
+t_output 0                      # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 60               # NetCDF state output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

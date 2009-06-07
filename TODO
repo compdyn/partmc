@@ -1,4 +1,6 @@
 
+Add extract_particle_mass or extract_particle_data or similar.
+
 Delete aero_state_input_netcdf() or make it handle zero paricle case.
 
 Remove restart capability from run_mc.f90

@@ -1,4 +1,6 @@
 
+Change bins to have r_min, r_max as edges, not centers.
+
 Add extract_particle_mass or extract_particle_data or similar.
 
 Delete aero_state_input_netcdf() or make it handle zero paricle case.

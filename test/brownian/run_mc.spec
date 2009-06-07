@@ -1,6 +1,6 @@
 run_type mc                     # Monte Carlo
-output_prefix  out/brownian_mc  # prefix of output files
-state_prefix out/brownian_mc_state # prefix of state files
+output_prefix out/brownian_mc   # prefix of output files
+state_prefix out/brownian_mc    # prefix of state files
 process_spec process.dat        # processing specification
 n_loop 9                        # number of Monte Carlo loops
 n_part 1000                     # total number of particles
@@ -8,9 +8,9 @@ kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
-t_output 3600                   # output interval (0 disables) (s)
+t_output 0                      # output interval (0 disables) (s)
 t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 0                # NetCDF state output interval (0 disables) (s)
+t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 220                       # number of bins

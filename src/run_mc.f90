@@ -133,7 +133,8 @@ contains
     real*8 last_output_time, last_state_time, last_state_netcdf_time
     real*8 last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer n_coag, tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
+    integer tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
+    integer progress_n_samp, progress_n_coag
     logical do_output, do_state, do_state_netcdf, do_progress, did_coag
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     type(env_state_t) :: old_env_state
@@ -151,9 +152,10 @@ contains
     i_state = 1
     i_state_netcdf = 1
     time = 0d0
-    n_coag = 0
     tot_n_samp = 0
     tot_n_coag = 0
+    progress_n_samp = 0
+    progress_n_coag = 0
 
     call env_state_alloc(old_env_state)
 
@@ -235,9 +237,10 @@ contains
 
        if (mc_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
-               aero_state, mc_opt, k_max, tot_n_samp, n_coag)
+               aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
        end if
-       tot_n_coag = tot_n_coag + n_coag
+       progress_n_samp = progress_n_samp + tot_n_samp
+       progress_n_coag = progress_n_coag + tot_n_coag
 
        call env_state_update_gas_state(env_state, mc_opt%del_t, &
             old_env_state, gas_data, gas_state)
@@ -328,11 +331,13 @@ contains
                      / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
                 t_wall_est = (1d0 - prop_done) / prop_done &
                      * (t_wall_now - mc_opt%t_wall_start)
-                write(6,'(a6,a9,a9,a11,a9,a11,a10)') 'loop', 'time', &
-                     'n_part', 'tot_n_samp', 'n_coag', 'tot_n_coag', 't_est'
-                write(6,'(i6,f9.1,i9,i11,i9,i11,f10.0)') mc_opt%i_loop, time, &
-                     aero_state_total_particles(aero_state), tot_n_samp, &
-                     n_coag, tot_n_coag, t_wall_est
+                write(6,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
+                     'n_particle', 'n_samples', 'n_coagulate', 't_remain(s)'
+                write(6,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
+                     aero_state_total_particles(aero_state), progress_n_samp, &
+                     progress_n_coag, t_wall_est
+                progress_n_samp = 0
+                progress_n_coag = 0
              end if
           end if
        end if
@@ -355,7 +360,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
-       aero_state, mc_opt, k_max, tot_n_samp, n_coag)
+       aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -374,7 +379,7 @@ contains
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
-    integer, intent(out) :: n_coag
+    integer, intent(out) :: tot_n_coag
 
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
@@ -395,7 +400,7 @@ contains
     real*8 n_samp_real
 
     tot_n_samp = 0
-    n_coag = 0
+    tot_n_coag = 0
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
           call compute_n_samp(aero_state%bin(i)%n_part, &
@@ -414,7 +419,7 @@ contains
              call maybe_coag_pair(bin_grid, aero_binned, env_state, &
                   aero_data, aero_state, i, j, mc_opt%del_t, k_max(i,j), &
                   kernel, did_coag)
-             if (did_coag) n_coag = n_coag + 1
+             if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
        enddo
     enddo

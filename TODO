@@ -1,7 +1,4 @@
 
-Change screen output to have just n_samp and n_coag since last screen
-output.
-
 Delete aero_state_input_netcdf() or make it handle zero paricle case.
 
 Remove restart capability from run_mc.f90

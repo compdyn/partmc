@@ -146,9 +146,10 @@ program numeric_diff
   end if
   if (((abs_tol == 0d0) .or. (abs_error < abs_tol)) &
        .and. ((rel_tol == 0d0) .or. (rel_error < rel_tol))) then
+     write(*,*) 'files match within the given tolerances'
      call exit(0)
   end if
-  write(*,'(a,e12.3,e12.3)') 'different', abs_error, rel_error
+  write(*,'(a,e12.3,e12.3)') 'files are different', abs_error, rel_error
   call exit(1)
 
 contains

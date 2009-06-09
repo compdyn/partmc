@@ -146,10 +146,11 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/output_state.f90 src/output_state_netcdf.f90
                src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
                src/coagulation.f90 src/kernel.f90
-               src/output_processed.f90 src/inout.f90 src/rand.f90
-               src/aero_particle.f90 src/aero_particle_array.f90
-               src/mpi.f90 src/process_spec.f90 src/netcdf.f90
-               src/aero_info.f90 src/aero_info_array.f90)
+               src/output_processed.f90 src/output_sectional.f90
+               src/inout.f90 src/rand.f90 src/aero_particle.f90
+               src/aero_particle_array.f90 src/mpi.f90
+               src/process_spec.f90 src/netcdf.f90 src/aero_info.f90
+               src/aero_info_array.f90)
 target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################
@@ -222,6 +223,16 @@ target_link_libraries(extract_state_gas ${NETCDF_LIBS})
 
 add_executable(extract_state_env tool/extract_state_env.f90)
 target_link_libraries(extract_state_env ${NETCDF_LIBS})
+
+######################################################################
+
+add_executable(extract_sectional_aero_size_num
+	tool/extract_sectional_aero_size_num.f90)
+target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})
+
+add_executable(extract_sectional_aero_size_mass
+	tool/extract_sectional_aero_size_mass.f90)
+target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
 
 ######################################################################
 

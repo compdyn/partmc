@@ -411,7 +411,6 @@ contains
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
-    type(process_spec_t), pointer :: process_spec_list(:)
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -419,8 +418,6 @@ contains
     end if
     
     call inout_read_string(file, 'output_prefix', sect_opt%prefix)
-    call spec_read_process_spec_list_filename(file, 'process_spec', &
-         process_spec_list)
     call inout_read_string(file, 'kernel', kernel_name)
 
     call inout_read_real(file, 't_max', sect_opt%t_max)
@@ -449,19 +446,19 @@ contains
 
     if (trim(kernel_name) == 'sedi') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_sedi, sect_opt, process_spec_list)
+            env_data, env_state, kernel_sedi, sect_opt)
     elseif (trim(kernel_name) == 'golovin') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_golovin, sect_opt, process_spec_list)
+            env_data, env_state, kernel_golovin, sect_opt)
     elseif (trim(kernel_name) == 'constant') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_constant, sect_opt, process_spec_list)
+            env_data, env_state, kernel_constant, sect_opt)
     elseif (trim(kernel_name) == 'brown') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_brown, sect_opt, process_spec_list)
+            env_data, env_state, kernel_brown, sect_opt)
     elseif (trim(kernel_name) == 'zero') then
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_zero, sect_opt, process_spec_list)
+            env_data, env_state, kernel_zero, sect_opt)
     else
        write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
        call exit(1)
@@ -473,7 +470,6 @@ contains
     call env_data_free(env_data)
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
-    call process_spec_list_free(process_spec_list)
     
   end subroutine partmc_sect
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -25,10 +25,9 @@ module pmc_run_sect
   use pmc_env_state
   use pmc_aero_data
   use pmc_kernel
-  use pmc_output_processed
+  use pmc_output_sectional
   use pmc_gas_data
   use pmc_gas_state
-  use pmc_process_spec
 
   !> Options to control the operation of run_sect().
   type run_sect_opt_t
@@ -52,7 +51,7 @@ contains
 
   !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env_state, kernel, sect_opt, process_spec_list)
+       env_data, env_state, kernel, sect_opt)
   
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -68,8 +67,6 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Options.
     type(run_sect_opt_t), intent(in) :: sect_opt
-    !> Processing spec.
-    type(process_spec_t), intent(in) :: process_spec_list(:)
     
     real*8 c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
@@ -84,7 +81,7 @@ contains
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
     
-    integer i, j, i_time, num_t, i_summary, ncid
+    integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
     interface
@@ -154,10 +151,9 @@ contains
     call check_event(time, sect_opt%del_t, sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
-       call output_processed_open(sect_opt%prefix, 1, ncid)
-       call output_processed_binned(ncid, process_spec_list, &
-            bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-            env_state, i_summary, time, sect_opt%t_output)
+       call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
+            aero_binned, gas_data, gas_state, env_state, i_summary, &
+            time, sect_opt%t_output)
     end if
     
     ! main time-stepping loop
@@ -187,9 +183,9 @@ contains
             last_output_time, do_output)
        if (do_output) then
           i_summary = i_summary + 1
-          call output_processed_binned(ncid, process_spec_list, &
-               bin_grid, aero_data, aero_binned, gas_data, gas_state, &
-               env_state, i_summary, time, sect_opt%t_output)
+          call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
+               aero_binned, gas_data, gas_state, env_state, i_summary, &
+               time, sect_opt%t_output)
        end if
        
        ! print progress to stdout
@@ -201,7 +197,6 @@ contains
        end if
     end do
 
-    call output_processed_close(ncid)
     call aero_binned_free(aero_binned)
     call gas_state_free(gas_state)
 

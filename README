@@ -66,17 +66,17 @@ Linux are:
      make
      make test
 
-7. To make some plots from the tests run them as follows. Some tests
+7. To run just a single test do:
+     ctest -R poisson_1 # argument is a regexp for test names
+
+8. To see what make is doing run it like this:
+     VERBOSE=1 make
+
+9. To make some plots from the tests run them as follows. Some tests
    may fail due to bad random initial conditions, so re-run the tests
    a few times to see if failures persist.
      cd run_test/emission
      gnuplot plot_species.gnuplot
-
-8. To run just a single test do:
-     ctest -R poisson_1 # argument is a regexp for test names
-
-9. To see what make is doing run it like this:
-     VERBOSE=1 make
 
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
 Fortran 90 module file is required, and it must be produced by the

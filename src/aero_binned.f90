@@ -467,5 +467,73 @@ contains
   end subroutine pmc_mpi_reduce_avg_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
+       aero_data)
+    
+    !> Aero_binned to write.
+    type(aero_binned_t), intent(in) :: aero_binned
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: dimid_aero_radius, dimid_aero_species
+    real*8 :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    integer :: i_bin
+    
+    do i_bin = 1,bin_grid%n_bin
+       mass_den(i_bin,:) = aero_binned%vol_den(i_bin,:) &
+            * aero_data%density
+    end do
+
+    call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
+         dimid_aero_radius)
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
+         dimid_aero_species)
+
+    call pmc_nc_write_real_1d(ncid, aero_binned%num_den, &
+         "aero_number_density", "1/m^3", (/ dimid_aero_radius /))
+    call pmc_nc_write_real_2d(ncid, mass_den, &
+         "aero_mass_density", "kg/m^3", &
+         (/ dimid_aero_radius, dimid_aero_species /))
+
+  end subroutine aero_binned_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
+       aero_data)
+    
+    !> Aero_binned to write.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real*8 :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    integer :: i_bin
+    character(len=1000) :: unit
+
+    call pmc_nc_read_real_1d(ncid, aero_binned%num_den, &
+         "aero_number_density", unit)
+    call pmc_nc_read_real_2d(ncid, mass_den, &
+         "aero_mass_density", unit)
+
+    do i_bin = 1,bin_grid%n_bin
+       aero_binned%vol_den(i_bin,:) = mass_den(i_bin,:) &
+            / aero_data%density
+    end do
+
+  end subroutine aero_binned_input_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_binned

@@ -12,6 +12,7 @@ module pmc_bin_grid
   use pmc_util
   use pmc_inout
   use pmc_mpi
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -277,6 +278,121 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the aero_radius dimension to the given NetCDF file if it is
+  !> not already present and in any case return the associated dimid.
+  subroutine bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
+       dimid_aero_radius)
+
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aero_radius dimension.
+    integer, intent(out) :: dimid_aero_radius
+
+    integer :: status, i_bin, varid_aero_radius
+    integer :: dimid_aero_radius_edges, varid_aero_radius_edges, varid_aero_radius_widths
+    real*8 :: aero_radius_centers(bin_grid%n_bin), aero_radius_edges(bin_grid%n_bin + 1)
+    real*8 :: aero_radius_widths(bin_grid%n_bin)
+
+    status = nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_radius", &
+         bin_grid%n_bin, dimid_aero_radius))
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_radius_edges", &
+         bin_grid%n_bin + 1, dimid_aero_radius_edges))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_radius", NF90_DOUBLE, &
+         dimid_aero_radius, varid_aero_radius))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius, "unit", "m"))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_radius_edges", NF90_DOUBLE, &
+         dimid_aero_radius_edges, varid_aero_radius_edges))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_edges, "unit", "m"))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_radius_widths", NF90_DOUBLE, &
+         dimid_aero_radius, varid_aero_radius_widths))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_widths, "unit", "1"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_bin = 1,bin_grid%n_bin
+       aero_radius_centers(i_bin) = vol2rad(bin_grid%v(i_bin))
+       aero_radius_widths(i_bin) = bin_grid%dlnr
+    end do
+    do i_bin = 1,(bin_grid%n_bin + 1)
+       aero_radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius, aero_radius_centers))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_edges, aero_radius_edges))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_widths, aero_radius_widths))
+
+  end subroutine bin_grid_netcdf_dim_aero_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine bin_grid_output_netcdf(bin_grid, ncid)
+    
+    !> bin_grid to write.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: dimid_aero_radius
+
+    call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
+         dimid_aero_radius)
+
+    ! no need to write any more data as it's all contained in the
+    ! dimension and associated variables
+
+  end subroutine bin_grid_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine bin_grid_input_netcdf(bin_grid, ncid)
+    
+    !> bin_grid to read.
+    type(bin_grid_t), intent(inout) :: bin_grid
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: dimid_aero_radius
+    character(len=1000) :: unit, name
+    integer :: n_bin, i_bin
+    real*8, allocatable :: aero_radius_centers(:)
+    real*8, allocatable :: aero_radius_widths(:)
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, n_bin))
+
+    call bin_grid_free(bin_grid)
+    call bin_grid_alloc(bin_grid, n_bin)
+
+    allocate(aero_radius_centers(n_bin))
+    allocate(aero_radius_widths(n_bin))
+
+    call pmc_nc_read_real_1d(ncid, aero_radius_centers, &
+         "aero_radius", unit)
+    call pmc_nc_read_real_1d(ncid, aero_radius_widths, &
+         "aero_radius_widths", unit)
+
+    do i_bin = 1,n_bin
+       bin_grid%v(i_bin) = rad2vol(aero_radius_centers(i_bin))
+    end do
+    bin_grid%dlnr = aero_radius_widths(1)
+
+    deallocate(aero_radius_centers)
+    deallocate(aero_radius_widths)
+
+  end subroutine bin_grid_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

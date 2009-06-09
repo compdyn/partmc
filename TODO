@@ -1,14 +1,55 @@
 
+Add n_time == 0 check to extract_state_*.
+
+Write dlnr to screen from extract_*_aero_size_*.
+
+Combine output_sectional and output_state_netcdf into output.f90?
+
+Trying to write out/file.nc gives useless error if out doesn't exist.
+
+Why is i_loop not used, but rather always written as 1 in
+output_state_netcdf. Why does the brownian testcase still work?
+
+Add new "sectional" output format for the sectional and exact modes,
+converting extract_summary_* programs to extract_sectional_* and
+change testcases.
+
+Remove ASCII state output, or at least rename to output_state_ascii.
+
+Remove summary output.
+
+Remove process_spec.f90
+Remove output_processed.f90
+Remove output_state.f90
+Rename output_state_netcdf.f90 to output_state.f90
+Add output_summary.f90
+
+Remove process.dat -- just output a minimal summary.
+
+Use t_output for netcdf state output and remove t_state and
+t_state_netcdf.
+
+Change summary format to be simpler (gas totals, aerosol number
+size-resolved, aerosol mass size-resolved).
+
+In output_processed.f90 change ensure_nc_var_env_state() to have a
+name argument which will be process_spec%name. In
+urban_plume/process.dat we currently list env to have "name env" which
+should be "name env_state" to match current behavior. We should check
+that the names specified in process.dat do not conflict with each
+other or with the dimension names.
+
 Add extract_particle_mass or extract_particle_data or similar.
 
-Delete aero_state_input_netcdf() or make it handle zero paricle case.
+Make aero_state_input_netcdf() handle zero paricle case.
 
 Remove restart capability from run_mc.f90
 
 Change output state variable aero_comp_mass to aero_particle_mass to
 distinguish it from aero_comp_vol.
 
-Change mass density to mass concentration, etc.
+Change gas_concentration to gas_molar_ratio, etc. Then change mass
+density to mass concentration, etc.
 
 Array constructors for mosaic_species -- is it true that these all
 have to have the same length?
@@ -17,13 +58,6 @@ Sometimes cmake seems to rebuild even if no source files have changed
 at all?
 
 Add gnuplot scripts for all testcases and remove plot.py.
-
-Remove process.dat -- just output a minimal summary.
-
-Have t_output_summary and t_output_state.
-
-Change summary format to be simpler (gas totals, aerosol number
-size-resolved, aerosol mass size-resolved).
 
 Input fractions only by mass (no volume, etc).
 
@@ -39,21 +73,6 @@ don't free before setting new values and should be fixed.
 Add allow_halve to control that separately.
 
 Re-add generation of dependency graph.
-
-In output_processed.f90 change ensure_nc_var_env_state() to have a
-name argument which will be process_spec%name. In
-urban_plume/process.dat we currently list env to have "name env" which
-should be "name env_state" to match current behavior. We should check
-that the names specified in process.dat do not conflict with each
-other or with the dimension names.
-
-Remove ASCII state output, or at least rename to output_state_ascii.
-
-Remove process_spec.f90
-Remove output_processed.f90
-Remove output_state.f90
-Rename output_state_netcdf.f90 to output_state.f90
-Add output_summary.f90
 
 Shift interfaces into modules. Especially kernel interface to
 kernel.f90, to avoid having to include all the various kernel_*

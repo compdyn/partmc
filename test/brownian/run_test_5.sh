@@ -22,8 +22,8 @@ echo "../../numeric_average out/brownian_mc_average_num_error.txt out/brownian_m
 echo "../../numeric_average out/brownian_mc_size_num_average.txt out/brownian_mc_size_num_????.txt"
 ../../numeric_average out/brownian_mc_size_num_average.txt out/brownian_mc_size_num_????.txt
 
-echo "../../extract_summary_aero_size_num out/brownian_sect_0001.nc out/brownian_sect_size_num.txt"
-../../extract_summary_aero_size_num out/brownian_sect_0001.nc out/brownian_sect_size_num.txt
+echo "../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt"
+../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt
 
 echo "../../numeric_diff out/brownian_mc_size_num_average.txt out/brownian_sect_size_num.txt 0 0 0 0 2 0 >> out/brownian_mc_average_num_error.txt"
 ../../numeric_diff out/brownian_mc_size_num_average.txt out/brownian_sect_size_num.txt 0 0 0 0 2 0 >> out/brownian_mc_average_num_error.txt

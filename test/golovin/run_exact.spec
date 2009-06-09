@@ -1,6 +1,5 @@
 run_type exact                  # exact solution
 output_prefix out/golovin_exact # prefix of output files
-process_spec process.dat        # processing specification
 num_den 1e9                     # particle number density (#/m^3)
 
 t_max 600                       # total simulation time (s)

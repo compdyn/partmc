@@ -327,7 +327,6 @@ contains
     type(run_exact_opt_t) :: exact_opt
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
-    type(process_spec_t), pointer :: process_spec_list(:)
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -335,8 +334,6 @@ contains
     end if
     
     call inout_read_string(file, 'output_prefix', exact_opt%prefix)
-    call spec_read_process_spec_list_filename(file, 'process_spec', &
-         process_spec_list)
     call inout_read_real(file, 'num_den', exact_opt%num_den)
 
     call inout_read_real(file, 't_max', exact_opt%t_max)
@@ -372,13 +369,13 @@ contains
 
     if (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_golovin_exp, process_spec_list)
+            soln_golovin_exp)
     elseif (trim(soln_name) == 'golovin_exp') then
        call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_constant_exp_cond, process_spec_list)
+            soln_constant_exp_cond)
     elseif (trim(soln_name) == 'zero') then
        call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_zero, process_spec_list)
+            soln_zero)
     else
        write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
        call exit(1)
@@ -390,7 +387,6 @@ contains
     call bin_grid_free(bin_grid)
     call gas_data_free(gas_data)
     call aero_dist_free(exact_opt%aero_dist_init)
-    call process_spec_list_free(process_spec_list)
     
   end subroutine partmc_exact
 

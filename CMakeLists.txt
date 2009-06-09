@@ -234,6 +234,14 @@ add_executable(extract_sectional_aero_size_mass
 	tool/extract_sectional_aero_size_mass.f90)
 target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
 
+add_executable(extract_sectional_aero_species
+	tool/extract_sectional_aero_species.f90)
+target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})
+
+add_executable(extract_sectional_aero_total
+	tool/extract_sectional_aero_total.f90)
+target_link_libraries(extract_sectional_aero_total ${NETCDF_LIBS})
+
 ######################################################################
 
 add_executable(numeric_diff tool/numeric_diff.f90)

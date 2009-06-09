@@ -1,6 +1,5 @@
 run_type exact                  # Monte Carlo
 output_prefix out/emission_exact # prefix of output files
-process_spec process.dat        # processing specification
 num_den 1e9                     # particle number density (#/m^3)
 
 t_max 86400                     # total simulation time (s)

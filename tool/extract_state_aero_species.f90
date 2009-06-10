@@ -25,7 +25,7 @@ program extract_state_aero_species
   real*8, allocatable :: aero_conc(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, i_part, status
+  integer :: ios, i_time, i_spec, i_part, status, n_time
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
@@ -50,6 +50,7 @@ program extract_state_aero_species
 
   ! process NetCDF files
   i_time = 0
+  n_time = 0
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -57,6 +58,7 @@ program extract_state_aero_species
      if (status /= NF90_NOERR) then
         exit
      end if
+     n_time = i_time
 
      ! read time
      call nc_check(nf90_inq_varid(ncid, "time", varid_time))
@@ -139,6 +141,12 @@ program extract_state_aero_species
      write(out_unit, '(a)') ''
 
   end do
+
+  if (n_time == 0) then
+     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
+          trim(in_filename)
+     call exit(1)
+  end if
 
   close(out_unit)
   deallocate(aero_conc)

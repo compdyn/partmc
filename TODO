@@ -1,6 +1,4 @@
 
-Add n_time == 0 check to extract_state_*.
-
 Write dlnr to screen from extract_*_aero_size_*.
 
 Combine output_sectional and output_state_netcdf into output.f90?

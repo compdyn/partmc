@@ -49,6 +49,7 @@ program extract_state_aero_size_mass
   allocate(aero_dist(n_bin, MAX_N_TIME))
   aero_dist = 0d0
   i_time = 0
+  n_time = 0
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -150,6 +151,12 @@ program extract_state_aero_size_mass
      deallocate(aero_density)
      deallocate(aero_comp_vol)
   end do
+
+  if (n_time == 0) then
+     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
+          trim(in_filename)
+     call exit(1)
+  end if
 
   ! write information
   write(*,*) "Output file array A has:"

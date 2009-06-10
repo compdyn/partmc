@@ -22,7 +22,7 @@ program extract_state_gas
   real*8, allocatable :: gas_concentration(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, status
+  integer :: ios, i_time, i_spec, status, n_time
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
@@ -42,6 +42,7 @@ program extract_state_gas
 
   ! read NetCDF files
   i_time = 0
+  n_time = 0
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -49,6 +50,7 @@ program extract_state_gas
      if (status /= NF90_NOERR) then
         exit
      end if
+     n_time = i_time
 
      call nc_check(nf90_inq_varid(ncid, "time", varid_time))
      call nc_check(nf90_get_var(ncid, varid_time, time))
@@ -89,6 +91,12 @@ program extract_state_gas
 
      deallocate(gas_concentration)
   end do
+
+  if (n_time == 0) then
+     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
+          trim(in_filename)
+     call exit(1)
+  end if
 
   close(out_unit)
 

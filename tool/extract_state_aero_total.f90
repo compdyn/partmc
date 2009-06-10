@@ -25,7 +25,7 @@ program extract_state_aero_total
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_part, status
-  integer :: n_bin, i_bin
+  integer :: n_bin, i_bin, n_time
   real*8 :: num_conc, mass_conc
 
   ! process commandline arguments
@@ -52,6 +52,7 @@ program extract_state_aero_total
 
   ! process NetCDF files
   i_time = 0
+  n_time = 0
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -59,6 +60,7 @@ program extract_state_aero_total
      if (status /= NF90_NOERR) then
         exit
      end if
+     n_time = i_time
 
      ! read time
      call nc_check(nf90_inq_varid(ncid, "time", varid_time))
@@ -135,6 +137,12 @@ program extract_state_aero_total
      write(out_unit, '(3e30.15e3)') time, num_conc, mass_conc
 
   end do
+
+  if (n_time == 0) then
+     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
+          trim(in_filename)
+     call exit(1)
+  end if
 
   close(out_unit)
 

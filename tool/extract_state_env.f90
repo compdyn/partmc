@@ -16,7 +16,7 @@ program extract_state_env
   integer :: varid_time, varid_temp, varid_rh
   integer :: varid_pres, varid_height
   real*8 :: time, temp, rh, pres, height
-  integer :: ios, i_time, status
+  integer :: ios, i_time, status, n_time
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
@@ -36,6 +36,7 @@ program extract_state_env
 
   ! read NetCDF files
   i_time = 0
+  n_time = 0
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -43,6 +44,7 @@ program extract_state_env
      if (status /= NF90_NOERR) then
         exit
      end if
+     n_time = i_time
 
      call nc_check(nf90_inq_varid(ncid, "time", varid_time))
      call nc_check(nf90_get_var(ncid, varid_time, time))
@@ -64,6 +66,12 @@ program extract_state_env
      ! output data
      write(out_unit, '(5e30.15e3)') time, temp, rh, pres, height
   end do
+
+  if (n_time == 0) then
+     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
+          trim(in_filename)
+     call exit(1)
+  end if
 
   close(out_unit)
 

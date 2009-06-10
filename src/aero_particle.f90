@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -11,7 +11,7 @@ module pmc_aero_particle
   use pmc_util
   use pmc_aero_data
   use pmc_bin_grid
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -581,72 +581,6 @@ contains
 
   end subroutine aero_particle_coagulate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_particle(file, aero_particle)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_particle to write.
-    type(aero_particle_t), intent(in) :: aero_particle
-    
-    call inout_write_comment(file, "begin aero_particle")
-    call inout_write_integer(file, "n_orig_part", aero_particle%n_orig_part)
-    call inout_write_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
-    call inout_write_real(file, "scatter(m^2)", &
-         aero_particle%scatter_cross_sect)
-    call inout_write_real(file, "asymmetry(1)", aero_particle%asymmetry)
-    call inout_write_complex(file, "refract_shell(1)", &
-         aero_particle%refract_shell)
-    call inout_write_complex(file, "refract_core(1)", &
-         aero_particle%refract_core)
-    call inout_write_real(file, "core_vol(m^3)", aero_particle%core_vol)
-    call inout_write_integer(file, "water_hyst_leg(1)", &
-         aero_particle%water_hyst_leg)
-    call inout_write_integer(file, "id_number(1)", aero_particle%id)
-    call inout_write_real(file, "least_create(s)", &
-         aero_particle%least_create_time)
-    call inout_write_real(file, "greatest_create(s)", &
-         aero_particle%greatest_create_time)
-    call inout_write_real_array(file, "spec_vols(m^3)", aero_particle%vol)
-    call inout_write_comment(file, "end aero_particle")
-    
-  end subroutine inout_write_aero_particle
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_particle(file, aero_particle)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_particle to read.
-    type(aero_particle_t), intent(out) :: aero_particle
-
-    call inout_check_comment(file, "begin aero_particle")
-    call inout_read_integer(file, "n_orig_part", aero_particle%n_orig_part)
-    call inout_read_real(file, "absorb(m^2)", aero_particle%absorb_cross_sect)
-    call inout_read_real(file, "scatter(m^2)", &
-         aero_particle%scatter_cross_sect)
-    call inout_read_real(file, "asymmetry(1)", aero_particle%asymmetry)
-    call inout_read_complex(file, "refract_shell(1)", &
-         aero_particle%refract_shell)
-    call inout_read_complex(file, "refract_core(1)", &
-         aero_particle%refract_core)
-    call inout_read_real(file, "core_vol(m^3)", aero_particle%core_vol)
-    call inout_read_integer(file, "water_hyst_leg(1)", &
-         aero_particle%water_hyst_leg)
-    call inout_read_integer(file, "id_number(1)", aero_particle%id)
-    call inout_read_real(file, "least_create(s)", &
-         aero_particle%least_create_time)
-    call inout_read_real(file, "greatest_create(s)", &
-         aero_particle%greatest_create_time)
-    call inout_read_real_array(file, "spec_vols(m^3)", aero_particle%vol)
-    call inout_check_comment(file, "end aero_particle")
-    
-  end subroutine inout_read_aero_particle
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.

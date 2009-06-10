@@ -9,7 +9,7 @@
 module pmc_gas_state
 
   use pmc_util
-  use pmc_inout
+  use pmc_spec_read
   use pmc_gas_data
   use pmc_mpi
   use pmc_netcdf
@@ -188,43 +188,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_gas_state(file, gas_state)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Gas_state to write.
-    type(gas_state_t), intent(in) :: gas_state
-
-    call inout_write_comment(file, "begin gas_state")
-    call inout_write_real_array(file, "conc(ppb)", gas_state%conc)
-    call inout_write_comment(file, "end gas_state")
-    
-  end subroutine inout_write_gas_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_gas_state(file, gas_state)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Gas_state to read.
-    type(gas_state_t), intent(out) :: gas_state
-
-    call inout_check_comment(file, "begin gas_state")
-    call inout_read_real_array(file, "conc(ppb)", gas_state%conc)
-    call inout_check_comment(file, "end gas_state")
-    
-  end subroutine inout_read_gas_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Read gas state from the file named on the line read from file.
   subroutine spec_read_gas_state(file, gas_data, name, gas_state)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Name of data line for filename.
@@ -233,16 +201,16 @@ contains
     type(gas_state_t), intent(out) :: gas_state
 
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
     integer :: n_species, species, i
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
-    call inout_read_string(file, name, read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 0, species_name, species_data)
-    call inout_close(read_file)
+    call spec_read_string(file, name, read_name)
+    call spec_read_open(read_name, read_file)
+    call spec_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_read_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -276,8 +244,8 @@ contains
   subroutine spec_read_gas_states_times_rates(file, gas_data, name, &
        times, rates, gas_states)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Name of data line for filename.
@@ -290,16 +258,16 @@ contains
     type(gas_state_t), pointer :: gas_states(:)
 
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
     integer :: n_lines, species, i, n_time, i_time
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
-    call inout_read_string(file, name, read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 0, species_name, species_data)
-    call inout_close(read_file)
+    call spec_read_string(file, name, read_name)
+    call spec_read_open(read_name, read_file)
+    call spec_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_read_close(read_file)
 
     ! check the data size
     n_lines = size(species_data, 1)

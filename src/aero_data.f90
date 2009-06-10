@@ -8,7 +8,7 @@
 !> The aero_data_t structure and associated subroutines.
 module pmc_aero_data
 
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
@@ -183,63 +183,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_aero_data(file, aero_data)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_data to write.
-    type(aero_data_t), intent(in) :: aero_data
-
-    call inout_write_comment(file, "begin aero_data")
-    call inout_write_integer(file, "n_spec", aero_data%n_spec)
-    call inout_write_integer(file, "i_water", aero_data%i_water)
-    call inout_write_string_array(file, "species_names", aero_data%name)
-    call inout_write_integer_array(file, "mosaic_indices", &
-         aero_data%mosaic_index)
-    call inout_write_real_array(file, "rho(kg/m^3)", aero_data%density)
-    call inout_write_integer_array(file, "nu", aero_data%num_ions)
-    call inout_write_real_array(file, "eps(1)", aero_data%solubility)
-    call inout_write_real_array(file, "molec_wght(kg/mole)", &
-         aero_data%molec_weight)
-    call inout_write_real_array(file, "kappa(1)", aero_data%kappa)
-    call inout_write_comment(file, "end aero_data")
-    
-  end subroutine inout_write_aero_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_data(file, aero_data)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_data to read.
-    type(aero_data_t), intent(out) :: aero_data
-
-    call inout_check_comment(file, "begin aero_data")
-    call inout_read_integer(file, "n_spec", aero_data%n_spec)
-    call inout_read_integer(file, "i_water", aero_data%i_water)
-    call inout_read_string_array(file, "species_names", aero_data%name)
-    call inout_read_integer_array(file, "mosaic_indices", &
-         aero_data%mosaic_index)
-    call inout_read_real_array(file, "rho(kg/m^3)", aero_data%density)
-    call inout_read_integer_array(file, "nu", aero_data%num_ions)
-    call inout_read_real_array(file, "eps(1)", aero_data%solubility)
-    call inout_read_real_array(file, "molec_wght(kg/mole)", &
-         aero_data%molec_weight)
-    call inout_read_real_array(file, "kappa(1)", aero_data%kappa)
-    call inout_check_comment(file, "end aero_data")
-    
-  end subroutine inout_read_aero_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read aero_data specification from a inout file.
+  !> Read aero_data specification from a spec file.
   subroutine spec_read_aero_data(file, aero_data)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
@@ -247,7 +195,7 @@ contains
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
-    call inout_read_real_named_array(file, 0, species_name, species_data)
+    call spec_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -279,32 +227,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read aero_data specification from a inout file.
+  !> Read aero_data specification from a spec file.
   subroutine spec_read_aero_data_filename(file, aero_data)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
 
     ! read the aerosol data from the specified file
-    call inout_read_string(file, 'aerosol_data', read_name)
-    call inout_open_read(read_name, read_file)
+    call spec_read_string(file, 'aerosol_data', read_name)
+    call spec_read_open(read_name, read_file)
     call spec_read_aero_data(read_file, aero_data)
-    call inout_close(read_file)
+    call spec_read_close(read_file)
 
   end subroutine spec_read_aero_data_filename
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a list of species from the given file with the given name.
-  subroutine inout_read_species_list(file, name, aero_data, species_list)
+  subroutine spec_read_species_list(file, name, aero_data, species_list)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Name of line.
     character(len=*), intent(in) :: name
     !> Aero_data data.
@@ -312,11 +260,11 @@ contains
     !> List of species numbers.
     integer, pointer :: species_list(:)
 
-    type(inout_line_t) :: line
+    type(spec_line_t) :: line
     integer :: i, spec
 
-    call inout_read_line_no_eof(file, line)
-    call inout_check_line_name(file, line, name)
+    call spec_read_line_no_eof(file, line)
+    call spec_read_check_line_name(file, line, name)
     allocate(species_list(size(line%data)))
     do i = 1,size(line%data)
        spec = aero_data_spec_by_name(aero_data, line%data(i))
@@ -327,9 +275,9 @@ contains
        end if
        species_list(i) = spec
     end do
-    call inout_line_free(line)
+    call spec_line_free(line)
 
-  end subroutine inout_read_species_list
+  end subroutine spec_read_species_list
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -10,7 +10,7 @@ module pmc_aero_binned
 
   use pmc_bin_grid
   use pmc_aero_particle
-  use pmc_inout
+  use pmc_spec_read
   use pmc_util
   use pmc_bin_grid
   use pmc_aero_dist
@@ -190,44 +190,6 @@ contains
          aero_particle)
 
   end subroutine aero_binned_remove_particle
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write the aero_binned_t to a file.
-  subroutine inout_write_aero_binned(file, aero_binned)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to write.
-    type(aero_binned_t), intent(in) :: aero_binned
-
-    call inout_write_comment(file, "begin aero_binned")
-    call inout_write_real_array(file, "num_dens(num/m^3)", &
-         aero_binned%num_den)
-    call inout_write_real_array_2d(file, "vol_dens(num/m^3)", &
-         aero_binned%vol_den)
-    call inout_write_comment(file, "end aero_binned")
-    
-  end subroutine inout_write_aero_binned
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read an aero_binned_t from a file.
-  subroutine inout_read_aero_binned(file, aero_binned)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to read (must not have internal memory allocated).
-    type(aero_binned_t), intent(out) :: aero_binned
-
-    call inout_check_comment(file, "begin aero_binned")
-    call inout_read_real_array(file, "num_dens(num/m^3)", &
-         aero_binned%num_den)
-    call inout_read_real_array_2d(file, "vol_dens(num/m^3)", &
-         aero_binned%vol_den)
-    call inout_check_comment(file, "end aero_binned")
-    
-  end subroutine inout_read_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

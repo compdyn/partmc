@@ -17,7 +17,7 @@ module pmc_aero_state
   use pmc_rand
   use pmc_aero_binned
   use pmc_mpi
-  use pmc_inout
+  use pmc_spec_read
   use pmc_aero_info
   use pmc_aero_info_array
 #ifdef PMC_USE_MPI
@@ -911,57 +911,6 @@ contains
     end if
     
   end subroutine aero_state_check
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_state(file, aero_state)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_state to write.
-    type(aero_state_t), intent(in) :: aero_state
-
-    integer :: n_bin, i
-    
-    n_bin = size(aero_state%bin)
-    call inout_write_comment(file, "begin aero_state")
-    call inout_write_real(file, "comp_vol(m^3)", aero_state%comp_vol)
-    call inout_write_integer(file, "n_part", aero_state%n_part)
-    call inout_write_integer(file, "n_bin", n_bin)
-    do i = 1,n_bin
-       call inout_write_integer(file, "bin_number", i)
-       call inout_write_aero_particle_array(file, aero_state%bin(i))
-    end do
-    call inout_write_comment(file, "end aero_state")
-    
-  end subroutine inout_write_aero_state
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_state(file, aero_state)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_state to read.
-    type(aero_state_t), intent(out) :: aero_state
-    
-    integer :: n_bin, i, check_i
-    
-    call inout_check_comment(file, "begin aero_state")
-    call inout_read_real(file, "comp_vol(m^3)", aero_state%comp_vol)
-    call inout_read_integer(file, "n_part", aero_state%n_part)
-    call inout_read_integer(file, "n_bin", n_bin)
-    allocate(aero_state%bin(n_bin))
-    do i = 1,n_bin
-       call inout_read_integer(file, "bin_number", check_i)
-       call inout_check_index(file, i, check_i)
-       call inout_read_aero_particle_array(file, aero_state%bin(i))
-    end do
-    call inout_check_comment(file, "end aero_state")
-    
-  end subroutine inout_read_aero_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

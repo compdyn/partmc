@@ -20,7 +20,7 @@ module pmc_aero_dist
   use pmc_bin_grid
   use pmc_util
   use pmc_constants
-  use pmc_inout
+  use pmc_spec_read
   use pmc_aero_data
   use pmc_mpi
   use pmc_rand
@@ -391,99 +391,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_aero_mode(file, aero_mode)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_mode to write.
-    type(aero_mode_t), intent(in) :: aero_mode
-
-    call inout_write_comment(file, "begin aero_mode")
-    call inout_write_string(file, "name", aero_mode%name)
-    call inout_write_string(file, "type", aero_mode%type)
-    call inout_write_real(file, "mean_rad(m)", aero_mode%mean_radius)
-    call inout_write_real(file, "std_dev_rad(m)", aero_mode%log10_std_dev_radius)
-    call inout_write_real(file, "num_den(num/m^3)", aero_mode%num_den)
-    call inout_write_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
-    call inout_write_comment(file, "end aero_mode")
-
-  end subroutine inout_write_aero_mode
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_dist(file, aero_dist)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_dist to write.
-    type(aero_dist_t), intent(in) :: aero_dist
-
-    integer :: i
-    
-    call inout_write_comment(file, "begin aero_dist")
-    call inout_write_integer(file, "n_modes", aero_dist%n_mode)
-    do i = 1,aero_dist%n_mode
-       call inout_write_integer(file, "mode_number", i)
-       call inout_write_aero_mode(file, aero_dist%mode(i))
-    end do
-    call inout_write_comment(file, "end aero_dist")
-
-  end subroutine inout_write_aero_dist
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_mode(file, aero_mode)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_mode to read.
-    type(aero_mode_t), intent(out) :: aero_mode
-
-    call inout_check_comment(file, "begin aero_mode")
-    call inout_read_string(file, "name", aero_mode%name)
-    call inout_read_string(file, "type", aero_mode%type)
-    call inout_read_real(file, "mean_rad(m)", aero_mode%mean_radius)
-    call inout_read_real(file, "std_dev_rad(m)", aero_mode%log10_std_dev_radius)
-    call inout_read_real(file, "num_den(num/m^3)", aero_mode%num_den)
-    call inout_read_real_array(file, "volume_frac(1)", aero_mode%vol_frac)
-    call inout_check_comment(file, "end aero_mode")
-
-  end subroutine inout_read_aero_mode
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_dist(file, aero_dist)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Aero_dist to read.
-    type(aero_dist_t), intent(out) :: aero_dist
-
-    integer :: i, check_i
-    
-    call inout_check_comment(file, "begin aero_dist")
-    call inout_read_integer(file, "n_modes", aero_dist%n_mode)
-    allocate(aero_dist%mode(aero_dist%n_mode))
-    do i = 1,aero_dist%n_mode
-       call inout_read_integer(file, "mode_number", check_i)
-       call inout_check_index(file, i, check_i)
-       call inout_read_aero_mode(file, aero_dist%mode(i))
-    end do
-    call inout_check_comment(file, "end aero_dist")
-
-  end subroutine inout_read_aero_dist
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Read volume fractions from a data file.
   subroutine spec_read_vol_frac(file, aero_data, vol_frac)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
@@ -491,24 +403,24 @@ contains
 
     integer :: n_species, species, i
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     character(len=MAX_VAR_LEN) :: frac_type
     real*8, pointer :: species_data(:,:)
     real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
-    call inout_read_string(file, 'frac_type', frac_type)
+    call spec_read_string(file, 'frac_type', frac_type)
     if ((frac_type /= "volume") &
          .and. (frac_type /= "mass") &
          .and. (frac_type /= "mole")) then
-       call inout_die_msg(842919812,file, "unknown frac_type " &
+       call spec_read_die_msg(842919812,file, "unknown frac_type " &
             // "(should be 'volume', 'mass', or 'mole'): " // trim(frac_type))
     end if
-    call inout_read_string(file, 'frac', read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 0, species_name, species_data)
-    call inout_close(read_file)
+    call spec_read_string(file, 'frac', read_name)
+    call spec_read_open(read_name, read_file)
+    call spec_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_read_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -563,29 +475,29 @@ contains
   !> distribution.
   subroutine spec_read_aero_mode_shape(file, aero_mode)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aerosol mode.
     type(aero_mode_t), intent(inout) :: aero_mode
 
     character(len=MAX_VAR_LEN) :: mode_type
 
-    call inout_read_real(file, 'num_den', aero_mode%num_den)
-    call inout_read_string(file, 'mode_type', mode_type)
+    call spec_read_real(file, 'num_den', aero_mode%num_den)
+    call spec_read_string(file, 'mode_type', mode_type)
     if (len_trim(mode_type) < AERO_DIST_TYPE_LEN) then
        aero_mode%type = mode_type(1:AERO_DIST_TYPE_LEN)
     else
-       call inout_die_msg(284789262, file, "mode_type string too long")
+       call spec_read_die_msg(284789262, file, "mode_type string too long")
     end if
     if (trim(mode_type) == 'log_normal') then
-       call inout_read_real(file, 'mean_radius', aero_mode%mean_radius)
-       call inout_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
+       call spec_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       call spec_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
     elseif (trim(mode_type) == 'exp') then
-       call inout_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       call spec_read_real(file, 'mean_radius', aero_mode%mean_radius)
     elseif (trim(mode_type) == 'mono') then
-       call inout_read_real(file, 'radius', aero_mode%mean_radius)
+       call spec_read_real(file, 'radius', aero_mode%mean_radius)
     else
-       call inout_die_msg(729472928, file, "Unknown distribution type")
+       call spec_read_die_msg(729472928, file, "Unknown distribution type")
     end if
 
   end subroutine spec_read_aero_mode_shape
@@ -596,8 +508,8 @@ contains
   !> volume fractions).
   subroutine spec_read_aero_mode(file, aero_data, aero_mode, eof)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol mode (will be allocated).
@@ -606,19 +518,19 @@ contains
     logical :: eof
 
     character(len=MAX_VAR_LEN) :: tmp_str
-    type(inout_line_t) :: line
+    type(spec_line_t) :: line
 
-    call inout_read_line(file, line, eof)
+    call spec_read_line(file, line, eof)
     if (.not. eof) then
-       call inout_check_line_name(file, line, "mode_name")
-       call inout_check_line_length(file, line, 1)
+       call spec_read_check_line_name(file, line, "mode_name")
+       call spec_read_check_line_length(file, line, 1)
        call aero_mode_alloc(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_DIST_NAME_LEN)
        allocate(aero_mode%vol_frac(aero_data%n_spec))
        call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
        call spec_read_aero_mode_shape(file, aero_mode)
-       call inout_line_free(line)
+       call spec_line_free(line)
     end if
 
   end subroutine spec_read_aero_mode
@@ -628,8 +540,8 @@ contains
   !> Read continuous aerosol distribution composed of several modes.
   subroutine spec_read_aero_dist(file, aero_data, aero_dist)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol dist, will be allocated.
@@ -671,8 +583,8 @@ contains
   subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, &
        name, aero_dist)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
@@ -683,13 +595,13 @@ contains
     type(aero_dist_t), intent(inout) :: aero_dist
 
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
 
     ! read the aerosol data from the specified file
-    call inout_read_string(file, name, read_name)
-    call inout_open_read(read_name, read_file)
+    call spec_read_string(file, name, read_name)
+    call spec_read_open(read_name, read_file)
     call spec_read_aero_dist(read_file, aero_data, aero_dist)
-    call inout_close(read_file)
+    call spec_read_close(read_file)
 
   end subroutine spec_read_aero_dist_filename
     
@@ -700,8 +612,8 @@ contains
   subroutine spec_read_aero_dists_times_rates(file, aero_data, &
        bin_grid, name, times, rates, aero_dists)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Aero data.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
@@ -716,20 +628,20 @@ contains
     type(aero_dist_t), pointer :: aero_dists(:)
 
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
-    type(inout_line_t) :: aero_dist_line
+    type(spec_file_t) :: read_file
+    type(spec_line_t) :: aero_dist_line
     integer :: n_time, i_time
     character(len=MAX_VAR_LEN), pointer :: names(:)
     real*8, pointer :: data(:,:)
 
     ! read the filename then read the data from that file
-    call inout_read_string(file, name, read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 2, names, data)
-    call inout_read_line_no_eof(read_file, aero_dist_line)
-    call inout_check_line_name(read_file, aero_dist_line, "dist")
-    call inout_check_line_length(read_file, aero_dist_line, size(data, 2))
-    call inout_close(read_file)
+    call spec_read_string(file, name, read_name)
+    call spec_read_open(read_name, read_file)
+    call spec_read_real_named_array(read_file, 2, names, data)
+    call spec_read_line_no_eof(read_file, aero_dist_line)
+    call spec_read_check_line_name(read_file, aero_dist_line, "dist")
+    call spec_read_check_line_length(read_file, aero_dist_line, size(data, 2))
+    call spec_read_close(read_file)
 
     ! check the data size
     if (trim(names(1)) /= 'time') then
@@ -754,15 +666,15 @@ contains
     allocate(times(n_time))
     allocate(rates(n_time))
     do i_time = 1,n_time
-       call inout_open_read(aero_dist_line%data(i_time), read_file)
+       call spec_read_open(aero_dist_line%data(i_time), read_file)
        call spec_read_aero_dist(read_file, aero_data, aero_dists(i_time))
-       call inout_close(read_file)
+       call spec_read_close(read_file)
        times(i_time) = data(1,i_time)
        rates(i_time) = data(2,i_time)
     end do
     deallocate(names)
     deallocate(data)
-    call inout_line_free(aero_dist_line)
+    call spec_line_free(aero_dist_line)
 
   end subroutine spec_read_aero_dists_times_rates
 

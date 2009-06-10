@@ -8,7 +8,7 @@
 !> The gas_data_t structure and associated subroutines.
 module pmc_gas_data
 
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
@@ -159,67 +159,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_gas_data(file, gas_data)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Gas_data to write.
-    type(gas_data_t), intent(in) :: gas_data
-
-    call inout_write_comment(file, "begin gas_data")
-    call inout_write_integer(file, "n_spec", gas_data%n_spec)
-    call inout_write_real_array(file, "molec_wght(kg/mole)", &
-         gas_data%molec_weight)
-    call inout_write_string_array(file, "species_names", gas_data%name)
-    call inout_write_integer_array(file, "mosaic_indices", &
-         gas_data%mosaic_index)
-    call inout_write_comment(file, "end gas_data")
-    
-  end subroutine inout_write_gas_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_gas_data(file, gas_data)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Gas_data to read.
-    type(gas_data_t), intent(out) :: gas_data
-
-    call inout_check_comment(file, "begin gas_data")
-    call inout_read_integer(file, "n_spec", gas_data%n_spec)
-    call inout_read_real_array(file, "molec_wght(kg/mole)", &
-         gas_data%molec_weight)
-    call inout_read_string_array(file, "species_names", gas_data%name)
-    call inout_read_integer_array(file, "mosaic_indices", &
-         gas_data%mosaic_index)
-    call inout_check_comment(file, "end gas_data")
-    
-  end subroutine inout_read_gas_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Read gas data from a .spec file.
   subroutine spec_read_gas_data(file, gas_data)
 
     !> Spec file.
-    type(inout_file_t), intent(inout) :: file
+    type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
     character(len=MAX_VAR_LEN) :: read_name
-    type(inout_file_t) :: read_file
+    type(spec_file_t) :: read_file
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the gas data from the specified file
-    call inout_read_string(file, 'gas_data', read_name)
-    call inout_open_read(read_name, read_file)
-    call inout_read_real_named_array(read_file, 0, species_name, species_data)
-    call inout_close(read_file)
+    call spec_read_string(file, 'gas_data', read_name)
+    call spec_read_open(read_name, read_file)
+    call spec_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_read_close(read_file)
 
     ! check the data size
     if (size(species_data, 2) /= 1) then

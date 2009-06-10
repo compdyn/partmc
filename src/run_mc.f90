@@ -8,7 +8,6 @@
 !> Monte Carlo simulation.
 module pmc_run_mc
 
-  use pmc_inout
   use pmc_util
   use pmc_aero_state
   use pmc_bin_grid 
@@ -156,9 +155,9 @@ contains
           call pmc_mpi_abort(1)
        end if
 #endif
-       call inout_read_state(mc_opt%restart_name, restart_bin_grid, &
-            restart_aero_data, aero_state, restart_gas_data, gas_state, &
-            env_state, time, pre_index, pre_del_t, pre_i_loop)
+       !call spec_read_state(mc_opt%restart_name, restart_bin_grid, &
+       !     restart_aero_data, aero_state, restart_gas_data, gas_state, &
+       !     env_state, time, pre_index, pre_del_t, pre_i_loop)
        ! FIXME: should we check whether bin_grid == restart_bin_grid, etc?
        i_time = nint(time / mc_opt%del_t)
        if (mc_opt%allow_double) then

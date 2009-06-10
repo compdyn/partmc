@@ -10,7 +10,7 @@ module pmc_bin_grid
 
   use pmc_constants
   use pmc_util
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -159,57 +159,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_bin_grid(file, bin_grid)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Bin_grid to write.
-    type(bin_grid_t), intent(in) :: bin_grid
-
-    call inout_write_comment(file, "begin bin_grid")
-    call inout_write_integer(file, "n_bin", bin_grid%n_bin)
-    call inout_write_real_array(file, "center_volumes(m^3)", bin_grid%v)
-    call inout_write_real(file, "dlnr", bin_grid%dlnr)
-    call inout_write_comment(file, "end bin_grid")
-    
-  end subroutine inout_write_bin_grid
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_bin_grid(file, bin_grid)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Bin_grid to read.
-    type(bin_grid_t), intent(out) :: bin_grid
-
-    call inout_check_comment(file, "begin bin_grid")
-    call inout_read_integer(file, "n_bin", bin_grid%n_bin)
-    call inout_read_real_array(file, "center_volumes(m^3)", bin_grid%v)
-    call inout_read_real(file, "dlnr", bin_grid%dlnr)
-    call inout_check_comment(file, "end bin_grid")
-    
-  end subroutine inout_read_bin_grid
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read the specification for a bin_grid from a inout file and
+  !> Read the specification for a bin_grid from a spec file and
   !> generate it.
   subroutine spec_read_bin_grid(file, bin_grid)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Bin grid.
     type(bin_grid_t), intent(out) :: bin_grid
 
     integer :: n_bin
     real*8 :: r_min, r_max
 
-    call inout_read_integer(file, 'n_bin', n_bin)
-    call inout_read_real(file, 'r_min', r_min)
-    call inout_read_real(file, 'r_max', r_max)
+    call spec_read_integer(file, 'n_bin', n_bin)
+    call spec_read_real(file, 'r_min', r_min)
+    call spec_read_real(file, 'r_max', r_max)
     call bin_grid_make(bin_grid, n_bin, rad2vol(r_min), rad2vol(r_max))
 
   end subroutine spec_read_bin_grid

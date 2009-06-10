@@ -29,7 +29,7 @@ program partmc
   use pmc_run_mc
   use pmc_run_exact
   use pmc_run_sect
-  use pmc_inout
+  use pmc_spec_read
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
@@ -73,7 +73,7 @@ contains
     !> Spec filename.
     character(len=*), intent(in) :: spec_name
 
-    type(inout_file_t) :: file
+    type(spec_file_t) :: file
     character(len=100) :: run_type
     integer :: i
 
@@ -85,8 +85,8 @@ contains
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
-       call inout_open_read(spec_name, file)
-       call inout_read_string(file, 'run_type', run_type)
+       call spec_read_open(spec_name, file)
+       call spec_read_string(file, 'run_type', run_type)
     end if
     
     call pmc_mpi_bcast_string(run_type)
@@ -108,7 +108,7 @@ contains
   subroutine partmc_mc(file)
 
     !> Spec file.
-    type(inout_file_t), intent(out) :: file
+    type(spec_file_t), intent(out) :: file
 
     character(len=100) :: kernel_name
     type(gas_data_t) :: gas_data
@@ -131,16 +131,16 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
-       call inout_read_string(file, 'output_prefix', mc_opt%output_prefix)
-       call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
-       call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
-       call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
-       call inout_read_string(file, 'kernel', kernel_name)
+       call spec_read_string(file, 'output_prefix', mc_opt%output_prefix)
+       call spec_read_string(file, 'state_prefix', mc_opt%state_prefix)
+       call spec_read_integer(file, 'n_loop', mc_opt%n_loop)
+       call spec_read_integer(file, 'n_part', mc_opt%n_part_max)
+       call spec_read_string(file, 'kernel', kernel_name)
        
-       call inout_read_real(file, 't_max', mc_opt%t_max)
-       call inout_read_real(file, 'del_t', mc_opt%del_t)
-       call inout_read_real(file, 't_output', mc_opt%t_output)
-       call inout_read_real(file, 't_progress', mc_opt%t_progress)
+       call spec_read_real(file, 't_max', mc_opt%t_max)
+       call spec_read_real(file, 'del_t', mc_opt%del_t)
+       call spec_read_real(file, 't_output', mc_opt%t_output)
+       call spec_read_real(file, 't_progress', mc_opt%t_progress)
        
        call spec_read_bin_grid(file, bin_grid)
        
@@ -154,12 +154,12 @@ contains
        call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
        call spec_read_env_state(file, env_state)
        
-       call inout_read_integer(file, 'rand_init', rand_init)
-       call inout_read_real(file, 'mix_rate', mc_opt%mix_rate)
-       call inout_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
-       call inout_read_logical(file, 'allow_double', mc_opt%allow_double)
-       call inout_read_logical(file, 'do_condensation', mc_opt%do_condensation)
-       call inout_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
+       call spec_read_integer(file, 'rand_init', rand_init)
+       call spec_read_real(file, 'mix_rate', mc_opt%mix_rate)
+       call spec_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
+       call spec_read_logical(file, 'allow_double', mc_opt%allow_double)
+       call spec_read_logical(file, 'do_condensation', mc_opt%do_condensation)
+       call spec_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
        if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then
           write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
             ' of input file ', trim(file%name), &
@@ -167,11 +167,11 @@ contains
           call exit(1)
        end if
 
-       call inout_read_logical(file, 'do_restart', mc_opt%do_restart)
-       call inout_read_string(file, 'restart_name', mc_opt%restart_name)
-       call inout_read_logical(file, 'record_removals', mc_opt%record_removals)
+       call spec_read_logical(file, 'do_restart', mc_opt%do_restart)
+       call spec_read_string(file, 'restart_name', mc_opt%restart_name)
+       call spec_read_logical(file, 'record_removals', mc_opt%record_removals)
        
-       call inout_close(file)
+       call spec_read_close(file)
     end if
 
     ! finished reading .spec data, now broadcast data
@@ -306,7 +306,7 @@ contains
   subroutine partmc_exact(file)
 
     !> Spec file.
-    type(inout_file_t), intent(out) :: file
+    type(spec_file_t), intent(out) :: file
 
     character(len=100) :: soln_name
     type(aero_data_t) :: aero_data
@@ -321,11 +321,11 @@ contains
        return
     end if
     
-    call inout_read_string(file, 'output_prefix', exact_opt%prefix)
-    call inout_read_real(file, 'num_den', exact_opt%num_den)
+    call spec_read_string(file, 'output_prefix', exact_opt%prefix)
+    call spec_read_real(file, 'num_den', exact_opt%num_den)
 
-    call inout_read_real(file, 't_max', exact_opt%t_max)
-    call inout_read_real(file, 't_output', exact_opt%t_output)
+    call spec_read_real(file, 't_max', exact_opt%t_max)
+    call spec_read_real(file, 't_output', exact_opt%t_output)
 
     call spec_read_bin_grid(file, bin_grid)
     call spec_read_gas_data(file, gas_data)
@@ -333,13 +333,13 @@ contains
     call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
     call spec_read_env_state(file, env_state)
 
-    call inout_read_string(file, 'soln', soln_name)
+    call spec_read_string(file, 'soln', soln_name)
 
     call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0)
     if (trim(soln_name) == 'golovin_exp') then
-       call inout_read_real(file, 'mean_radius', exact_opt%mean_radius)
+       call spec_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then
-       call inout_read_real(file, 'mean_radius', exact_opt%mean_radius)
+       call spec_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'zero') then
        call aero_dist_free(exact_opt%aero_dist_init)
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
@@ -349,7 +349,7 @@ contains
        call exit(1)
     end if
     
-    call inout_close(file)
+    call spec_read_close(file)
 
     ! finished reading .spec data, now do the run
 
@@ -384,7 +384,7 @@ contains
   subroutine partmc_sect(file)
 
     !> Spec file.
-    type(inout_file_t), intent(out) :: file
+    type(spec_file_t), intent(out) :: file
 
     character(len=100) :: kernel_name
     type(run_sect_opt_t) :: sect_opt
@@ -401,13 +401,13 @@ contains
        return
     end if
     
-    call inout_read_string(file, 'output_prefix', sect_opt%prefix)
-    call inout_read_string(file, 'kernel', kernel_name)
+    call spec_read_string(file, 'output_prefix', sect_opt%prefix)
+    call spec_read_string(file, 'kernel', kernel_name)
 
-    call inout_read_real(file, 't_max', sect_opt%t_max)
-    call inout_read_real(file, 'del_t', sect_opt%del_t)
-    call inout_read_real(file, 't_output', sect_opt%t_output)
-    call inout_read_real(file, 't_progress', sect_opt%t_progress)
+    call spec_read_real(file, 't_max', sect_opt%t_max)
+    call spec_read_real(file, 'del_t', sect_opt%del_t)
+    call spec_read_real(file, 't_output', sect_opt%t_output)
+    call spec_read_real(file, 't_progress', sect_opt%t_progress)
 
     call spec_read_bin_grid(file, bin_grid)
 
@@ -420,9 +420,9 @@ contains
     call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
     call spec_read_env_state(file, env_state)
 
-    call inout_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
+    call spec_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
     
-    call inout_close(file)
+    call spec_read_close(file)
 
     ! finished reading .spec data, now do the run
 

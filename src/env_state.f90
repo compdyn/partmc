@@ -18,7 +18,7 @@ module pmc_env_state
   use pmc_bin_grid
   use pmc_aero_state
   use pmc_aero_binned
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -522,96 +522,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_env_state(file, env_state)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Environment to write.
-    type(env_state_t), intent(in) :: env_state
-    
-    call inout_write_comment(file, "begin env_state")
-    call inout_write_real(file, "temp(K)", env_state%temp)
-    call inout_write_real(file, "rel_humidity(1)", env_state%rel_humid)
-    call inout_write_real(file, "pressure(Pa)", env_state%pressure)
-    call inout_write_real(file, "longitude(deg)", env_state%longitude)
-    call inout_write_real(file, "latitude(deg)", env_state%latitude)
-    call inout_write_real(file, "altitude(m)", env_state%altitude)
-    call inout_write_real(file, "start_time(s)", env_state%start_time)
-    call inout_write_integer(file, "start_day(days)", env_state%start_day)
-    call inout_write_real(file, "elapsed_time(s)", env_state%elapsed_time)
-    call inout_write_real(file, "height(m)", env_state%height)
-    call inout_write_gas_state(file, env_state%gas_emissions)
-    call inout_write_real(file, "gas_emit_rate(1/s)", &
-         env_state%gas_emission_rate)
-    call inout_write_gas_state(file, env_state%gas_background)
-    call inout_write_real(file, "gas_dilute_rate(1/s)", &
-         env_state%gas_dilution_rate)
-    call inout_write_aero_dist(file, env_state%aero_emissions)
-    call inout_write_real(file, "aero_emit_rate(1/s)", &
-         env_state%aero_emission_rate)
-    call inout_write_aero_dist(file, env_state%aero_background)
-    call inout_write_real(file, "aero_dilute_rat(1/s)", &
-         env_state%aero_dilution_rate)
-    call inout_write_comment(file, "end env_state")
-
-  end subroutine inout_write_env_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_env_state(file, env_state)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Environment to read.
-    type(env_state_t), intent(out) :: env_state
-    
-    call inout_check_comment(file, "begin env_state")
-    call inout_read_real(file, "temp(K)", env_state%temp)
-    call inout_read_real(file, "rel_humidity(1)", env_state%rel_humid)
-    call inout_read_real(file, "pressure(Pa)", env_state%pressure)
-    call inout_read_real(file, "longitude(deg)", env_state%longitude)
-    call inout_read_real(file, "latitude(deg)", env_state%latitude)
-    call inout_read_real(file, "altitude(m)", env_state%altitude)
-    call inout_read_real(file, "start_time(s)", env_state%start_time)
-    call inout_read_integer(file, "start_day(days)", env_state%start_day)
-    call inout_read_real(file, "elapsed_time(s)", env_state%elapsed_time)
-    call inout_read_real(file, "height(m)", env_state%height)
-    call inout_read_gas_state(file, env_state%gas_emissions)
-    call inout_read_real(file, "gas_emit_rate(1/s)", &
-         env_state%gas_emission_rate)
-    call inout_read_gas_state(file, env_state%gas_background)
-    call inout_read_real(file, "gas_dilute_rate(1/s)", &
-         env_state%gas_dilution_rate)
-    call inout_read_aero_dist(file, env_state%aero_emissions)
-    call inout_read_real(file, "aero_emit_rate(1/s)", &
-         env_state%aero_emission_rate)
-    call inout_read_aero_dist(file, env_state%aero_background)
-    call inout_read_real(file, "aero_dilute_rat(1/s)", &
-         env_state%aero_dilution_rate)
-    call inout_check_comment(file, "end env_state")
-
-  end subroutine inout_read_env_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read environment specification from a inout file.
+  !> Read environment specification from a spec file.
   subroutine spec_read_env_state(file, env_state)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Environment data.
     type(env_state_t), intent(out) :: env_state
 
     call env_state_alloc(env_state)
-    call inout_read_real(file, 'rel_humidity', env_state%rel_humid)
-    call inout_read_real(file, 'pressure', env_state%pressure)
-    call inout_read_real(file, 'latitude', env_state%latitude)
-    call inout_read_real(file, 'longitude', env_state%longitude)
-    call inout_read_real(file, 'altitude', env_state%altitude)
-    call inout_read_real(file, 'start_time', env_state%start_time)
-    call inout_read_integer(file, 'start_day', env_state%start_day)
+    call spec_read_real(file, 'rel_humidity', env_state%rel_humid)
+    call spec_read_real(file, 'pressure', env_state%pressure)
+    call spec_read_real(file, 'latitude', env_state%latitude)
+    call spec_read_real(file, 'longitude', env_state%longitude)
+    call spec_read_real(file, 'altitude', env_state%altitude)
+    call spec_read_real(file, 'start_time', env_state%start_time)
+    call spec_read_integer(file, 'start_day', env_state%start_day)
 
   end subroutine spec_read_env_state
 

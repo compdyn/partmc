@@ -9,7 +9,7 @@
 module pmc_aero_info
 
   use pmc_util
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -101,42 +101,6 @@ contains
     aero_info%other_id = 0
 
   end subroutine aero_info_zero
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_info(file, aero_info)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to write.
-    type(aero_info_t), intent(in) :: aero_info
-
-    call inout_write_comment(file, "begin aero_info")
-    call inout_write_integer(file, "id", aero_info%id)
-    call inout_write_integer(file, "action", aero_info%action)
-    call inout_write_integer(file, "other_id", aero_info%other_id)
-    call inout_write_comment(file, "end aero_info")
-    
-  end subroutine inout_write_aero_info
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_info(file, aero_info)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to read into (must not be allocated).
-    type(aero_info_t), intent(out) :: aero_info
-
-    call inout_check_comment(file, "begin aero_info")
-    call inout_read_integer(file, "id", aero_info%id)
-    call inout_read_integer(file, "action", aero_info%action)
-    call inout_read_integer(file, "other_id", aero_info%other_id)
-    call inout_check_comment(file, "end aero_info")
-    
-  end subroutine inout_read_aero_info
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

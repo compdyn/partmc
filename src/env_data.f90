@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -12,7 +12,7 @@ module pmc_env_data
   use pmc_aero_dist
   use pmc_util
   use pmc_env_state
-  use pmc_inout
+  use pmc_spec_read
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_gas_data
@@ -230,156 +230,12 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
-  subroutine inout_write_env_data(file, env_data)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Environment data to write.
-    type(env_data_t), intent(in) :: env_data
-
-    integer :: i
-    
-    call inout_write_comment(file, "begin env_data")
-
-    call inout_write_real_array(file, "temp_time(s)", env_data%temp_time)
-    call inout_write_real_array(file, "temp(K)", env_data%temp)
-    
-    call inout_write_real_array(file, "height_time(s)", env_data%height_time)
-    call inout_write_real_array(file, "height(m)", env_data%height)
-    
-    call inout_write_integer(file, 'n_gas_emit', &
-         size(env_data%gas_emission_time))
-    do i = 1,size(env_data%gas_emission_time)
-       call inout_write_integer(file, "gas_emit_num", i)
-       call inout_write_real(file, "gas_emit_time(s)", &
-            env_data%gas_emission_time(i))
-       call inout_write_real(file, "gas_emit_rate(1/s)", &
-            env_data%gas_emission_rate(i))
-       call inout_write_gas_state(file, env_data%gas_emission(i))
-    end do
-
-    call inout_write_integer(file, 'n_gas_dilute', &
-         size(env_data%gas_dilution_time))
-    do i = 1,size(env_data%gas_dilution_time)
-       call inout_write_integer(file, "gas_dilute_num", i)
-       call inout_write_real(file, "gas_dilute_time(s)", &
-            env_data%gas_dilution_time(i))
-       call inout_write_real(file, "gas_dilute_rate(1/s)", &
-            env_data%gas_dilution_rate(i))
-       call inout_write_gas_state(file, env_data%gas_background(i))
-    end do
-
-    call inout_write_integer(file, 'n_aero_emit', &
-         size(env_data%aero_emission_time))
-    do i = 1,size(env_data%aero_emission_time)
-       call inout_write_integer(file, "aero_emit_num", i)
-       call inout_write_real(file, "aero_emit_time(s)", &
-            env_data%aero_emission_time(i))
-       call inout_write_real(file, "aero_emit_rate(1/s)", &
-            env_data%aero_emission_rate(i))
-       call inout_write_aero_dist(file, env_data%aero_emission(i))
-    end do
-
-    call inout_write_integer(file, 'n_aero_dilute', &
-         size(env_data%aero_dilution_time))
-    do i = 1,size(env_data%aero_dilution_time)
-       call inout_write_integer(file, "aero_dilute_num", i)
-       call inout_write_real(file, "aero_dilute_time(s)", &
-            env_data%aero_dilution_time(i))
-       call inout_write_real(file, "aero_dilute_rate(1/s)", &
-            env_data%aero_dilution_rate(i))
-       call inout_write_aero_dist(file, env_data%aero_background(i))
-    end do
-
-    call inout_write_comment(file, "end env_data")
-
-  end subroutine inout_write_env_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_env_data(file, env_data)
-    
-    !> File to read from.
-    type(inout_file_t), intent(inout) :: file
-    !> Environment data to read.
-    type(env_data_t), intent(out) :: env_data
-    
-    integer :: i, n
-
-    call inout_check_comment(file, "begin env_data")
-
-    call inout_read_real_array(file, "temp_time(s)", env_data%temp_time)
-    call inout_read_real_array(file, "temp(K)", env_data%temp)
-    
-    call inout_read_real_array(file, "height_time(s)", env_data%height_time)
-    call inout_read_real_array(file, "height(m)", env_data%height)
-    
-    call inout_read_integer(file, 'n_gas_emit', n)
-    allocate(env_data%gas_emission_time(n))
-    allocate(env_data%gas_emission_rate(n))
-    allocate(env_data%gas_emission(n))
-    do i = 1,size(env_data%gas_emission_time)
-       call inout_read_integer(file, "gas_emit_num", i)
-       call inout_read_real(file, "gas_emit_time(s)", &
-            env_data%gas_emission_time(i))
-       call inout_read_real(file, "gas_emit_rate(1/s)", &
-            env_data%gas_emission_rate(i))
-       call inout_read_gas_state(file, env_data%gas_emission(i))
-    end do
-
-    call inout_read_integer(file, 'n_gas_dilute', n)
-    allocate(env_data%gas_dilution_time(n))
-    allocate(env_data%gas_dilution_rate(n))
-    allocate(env_data%gas_background(n))
-    do i = 1,size(env_data%gas_dilution_time)
-       call inout_read_integer(file, "gas_dilute_num", i)
-       call inout_read_real(file, "gas_dilute_time(s)", &
-            env_data%gas_dilution_time(i))
-       call inout_read_real(file, "gas_dilute_rate(1/s)", &
-            env_data%gas_dilution_rate(i))
-       call inout_read_gas_state(file, env_data%gas_background(i))
-    end do
-
-    call inout_read_integer(file, 'n_aero_emit', n)
-    allocate(env_data%aero_emission_time(n))
-    allocate(env_data%aero_emission_rate(n))
-    allocate(env_data%aero_emission(n))
-    do i = 1,size(env_data%aero_emission_time)
-       call inout_read_integer(file, "aero_emit_num", i)
-       call inout_read_real(file, "aero_emit_time(s)", &
-            env_data%aero_emission_time(i))
-       call inout_read_real(file, "aero_emit_rate(1/s)", &
-            env_data%aero_emission_rate(i))
-       call inout_read_aero_dist(file, env_data%aero_emission(i))
-    end do
-
-    call inout_read_integer(file, 'n_aero_dilute', n)
-    allocate(env_data%aero_dilution_time(n))
-    allocate(env_data%aero_dilution_rate(n))
-    allocate(env_data%aero_background(n))
-    do i = 1,size(env_data%aero_dilution_time)
-       call inout_read_integer(file, "aero_dilute_num", i)
-       call inout_read_real(file, "aero_dilute_time(s)", &
-            env_data%aero_dilution_time(i))
-       call inout_read_real(file, "aero_dilute_rate(1/s)", &
-            env_data%aero_dilution_rate(i))
-       call inout_read_aero_dist(file, env_data%aero_background(i))
-    end do
-
-    call inout_check_comment(file, "end env_data")
-
-  end subroutine inout_read_env_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read environment data from an inout file.
+  !> Read environment data from an spec file.
   subroutine spec_read_env_data(file, bin_grid, gas_data, &
        aero_data, env_data)
 
-    !> Inout file.
-    type(inout_file_t), intent(inout) :: file
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Gas data values.
@@ -389,9 +245,9 @@ contains
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
 
-    call inout_read_timed_real_array(file, "temp_profile", "temp", &
+    call spec_read_timed_real_array(file, "temp_profile", "temp", &
          env_data%temp_time, env_data%temp)
-    call inout_read_timed_real_array(file, "height_profile", "height", &
+    call spec_read_timed_real_array(file, "height_profile", "height", &
          env_data%height_time, env_data%height)
     call spec_read_gas_states_times_rates(file, gas_data, &
          'gas_emissions', env_data%gas_emission_time, &

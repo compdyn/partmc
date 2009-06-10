@@ -10,7 +10,7 @@ module pmc_aero_info_array
 
   use pmc_aero_info
   use pmc_util
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -252,52 +252,6 @@ contains
 
   end subroutine aero_info_array_remove_aero_info
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_info_array(file, aero_info_array)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to write.
-    type(aero_info_array_t), intent(in) :: aero_info_array
-
-    integer :: i
-
-    call inout_write_comment(file, "begin aero_info_array")
-    call inout_write_integer(file, "n_item", aero_info_array%n_item)
-    do i = 1,aero_info_array%n_item
-       call inout_write_integer(file, "aero_info_number", i)
-       call inout_write_aero_info(file, aero_info_array%aero_info(i))
-    end do
-    call inout_write_comment(file, "end aero_info_array")
-    
-  end subroutine inout_write_aero_info_array
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_info_array(file, aero_info_array)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to read into (must not be allocated).
-    type(aero_info_array_t), intent(out) :: aero_info_array
-
-    integer :: i, check_i
-
-    call inout_check_comment(file, "begin aero_info_array")
-    call inout_read_integer(file, "n_item", aero_info_array%n_item)
-    allocate(aero_info_array%aero_info(aero_info_array%n_item))
-    do i = 1,aero_info_array%n_item
-       call inout_read_integer(file, "aero_info_number", check_i)
-       call inout_check_index(file, i, check_i)
-       call inout_read_aero_info(file, aero_info_array%aero_info(i))
-    end do
-    call inout_check_comment(file, "end aero_info_array")
-    
-  end subroutine inout_read_aero_info_array
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.

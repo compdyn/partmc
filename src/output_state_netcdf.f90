@@ -16,7 +16,6 @@ module pmc_output_state_netcdf
   use pmc_aero_state
   use pmc_env_state
   use pmc_util
-  use pmc_inout
   use pmc_gas_data
   use pmc_mpi
   
@@ -56,7 +55,7 @@ contains
     
     character(len=len(prefix)+100) :: filename
     character(len=500) :: history
-    type(inout_file_t) :: file
+    type(spec_file_t) :: file
     type(env_state_t) :: env_write
     type(gas_state_t) :: gas_state_write
     type(aero_state_t) :: aero_state_write
@@ -140,10 +139,10 @@ contains
        end if
        ! process state at root node
        if (pmc_mpi_rank() == 0) then
-          call inout_write_integer(file, 'processor', i_proc)
-          call inout_write_env_state(file, env_write)
-          call inout_write_gas_state(file, gas_state_write)
-          call inout_write_aero_state(file, aero_state_write)
+          !call write_integer(file, 'processor', i_proc)
+          !call write_env_state(file, env_write)
+          !call write_gas_state(file, gas_state_write)
+          !call write_aero_state(file, aero_state_write)
           
           call env_state_free(env_write)
           call gas_state_free(gas_state_write)
@@ -188,7 +187,7 @@ contains
     !> Current loop number.
     integer, intent(out) :: i_loop
     
-    type(inout_file_t) :: file
+    type(spec_file_t) :: file
     type(env_state_t) :: env_write
     type(gas_state_t) :: gas_state_write
     type(aero_state_t) :: aero_state_write

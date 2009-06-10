@@ -8,7 +8,6 @@
 !> Exact solution simulation.
 module pmc_run_exact
 
-  use pmc_inout
   use pmc_aero_dist
   use pmc_bin_grid
   use pmc_aero_state

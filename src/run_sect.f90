@@ -16,7 +16,6 @@
 !!       1998.
 module pmc_run_sect
 
-  use pmc_inout
   use pmc_bin_grid
   use pmc_aero_binned
   use pmc_util

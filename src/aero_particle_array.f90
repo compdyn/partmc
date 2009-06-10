@@ -10,7 +10,7 @@ module pmc_aero_particle_array
 
   use pmc_aero_particle
   use pmc_util
-  use pmc_inout
+  use pmc_spec_read
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -284,54 +284,6 @@ contains
 
   end subroutine aero_particle_array_double
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write full state.
-  subroutine inout_write_aero_particle_array(file, aero_particle_array)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to write.
-    type(aero_particle_array_t), intent(in) :: aero_particle_array
-
-    integer :: i
-
-    call inout_write_comment(file, "begin aero_particle_array")
-    call inout_write_integer(file, "n_part", aero_particle_array%n_part)
-    call inout_write_integer(file, "n_spec", aero_particle_array%n_spec)
-    do i = 1,aero_particle_array%n_part
-       call inout_write_integer(file, "particle_number", i)
-       call inout_write_aero_particle(file, aero_particle_array%particle(i))
-    end do
-    call inout_write_comment(file, "end aero_particle_array")
-    
-  end subroutine inout_write_aero_particle_array
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read full state.
-  subroutine inout_read_aero_particle_array(file, aero_particle_array)
-    
-    !> File to write to.
-    type(inout_file_t), intent(inout) :: file
-    !> Structure to read into (must not be allocated).
-    type(aero_particle_array_t), intent(out) :: aero_particle_array
-
-    integer :: i, check_i
-
-    call inout_check_comment(file, "begin aero_particle_array")
-    call inout_read_integer(file, "n_part", aero_particle_array%n_part)
-    call inout_read_integer(file, "n_spec", aero_particle_array%n_spec)
-    allocate(aero_particle_array%particle(aero_particle_array%n_part))
-    do i = 1,aero_particle_array%n_part
-       call inout_read_integer(file, "particle_number", check_i)
-       call inout_check_index(file, i, check_i)
-       call inout_read_aero_particle(file, aero_particle_array%particle(i))
-    end do
-    call inout_check_comment(file, "end aero_particle_array")
-    
-  end subroutine inout_read_aero_particle_array
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.

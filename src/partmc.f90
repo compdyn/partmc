@@ -13,7 +13,6 @@
 program partmc
 
   use pmc_mpi
-  use pmc_process_spec
   use pmc_bin_grid
   use pmc_aero_state
   use pmc_aero_dist
@@ -123,7 +122,6 @@ contains
     type(bin_grid_t) :: bin_grid
     type(aero_binned_t) :: aero_binned
     type(run_mc_opt_t) :: mc_opt
-    type(process_spec_t), pointer :: process_spec_list(:)
     integer :: i_loop
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -135,8 +133,6 @@ contains
 
        call inout_read_string(file, 'output_prefix', mc_opt%output_prefix)
        call inout_read_string(file, 'state_prefix', mc_opt%state_prefix)
-       call spec_read_process_spec_list_filename(file, 'process_spec', &
-            process_spec_list)
        call inout_read_integer(file, 'n_loop', mc_opt%n_loop)
        call inout_read_integer(file, 'n_part', mc_opt%n_part_max)
        call inout_read_string(file, 'kernel', kernel_name)
@@ -197,8 +193,6 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
        buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
        buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
-       buffer_size = buffer_size &
-            + pmc_mpi_pack_size_process_spec_list(process_spec_list)
     end if
 
     ! tell everyone the size and allocate buffer space
@@ -218,7 +212,6 @@ contains
        call pmc_mpi_pack_env_data(buffer, position, env_data)
        call pmc_mpi_pack_env_state(buffer, position, env_state)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
-       call pmc_mpi_pack_process_spec_list(buffer, position, process_spec_list)
     end if
 
     ! broadcast data to everyone
@@ -237,8 +230,6 @@ contains
        call pmc_mpi_unpack_env_data(buffer, position, env_data)
        call pmc_mpi_unpack_env_state(buffer, position, env_state)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
-       call pmc_mpi_unpack_process_spec_list(buffer, position, &
-            process_spec_list)
     end if
 
     ! free the buffer
@@ -272,23 +263,23 @@ contains
        if (trim(kernel_name) == 'sedi') then
           call run_mc(kernel_sedi, kernel_sedi_max, bin_grid, &
                aero_binned, env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(kernel_golovin, kernel_golovin_max, bin_grid, &
                aero_binned, env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(kernel_constant, kernel_constant_max, bin_grid, &
                aero_binned, env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(kernel_brown, kernel_brown_max, bin_grid, &
                aero_binned, env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+               aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'zero') then
           call run_mc(kernel_zero, kernel_zero_max, bin_grid, &
                aero_binned, env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt, process_spec_list)
+               aero_state, gas_data, gas_state, mc_opt)
        else
           if (pmc_mpi_rank() == 0) then
              write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
@@ -308,7 +299,6 @@ contains
     call env_state_free(env_state)
     call bin_grid_free(bin_grid)
     call aero_binned_free(aero_binned)
-    call process_spec_list_free(process_spec_list)
 
   end subroutine partmc_mc
 

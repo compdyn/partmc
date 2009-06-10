@@ -1,16 +1,13 @@
 run_type mc                     # Monte Carlo
 output_prefix out/sedi_mc       # prefix of output files
 state_prefix out/sedi_mc        # prefix of state files
-process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 1000000                  # total number of particles
 kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
 del_t 0.5                       # timestep (s)
-t_output 0                      # output interval (0 disables) (s)
-t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 60               # NetCDF state output interval (0 disables) (s)
+t_output 60                     # output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
 n_bin 220                       # number of bins

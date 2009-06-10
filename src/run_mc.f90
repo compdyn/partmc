@@ -9,7 +9,6 @@
 module pmc_run_mc
 
   use pmc_inout
-  use pmc_process_spec
   use pmc_util
   use pmc_aero_state
   use pmc_bin_grid 
@@ -24,7 +23,6 @@ module pmc_run_mc
   use pmc_mosaic
   use pmc_coagulation
   use pmc_kernel
-  use pmc_output_processed
   use pmc_mpi
   use pmc_output_state_netcdf
 #ifdef PMC_USE_MPI
@@ -81,8 +79,7 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_mc(kernel, kernel_max, bin_grid, aero_binned, env_data, &
-       env_state, aero_data, aero_state, gas_data, gas_state, mc_opt, &
-       process_spec_list)
+       env_state, aero_data, aero_state, gas_data, gas_state, mc_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -102,8 +99,6 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_mc_opt_t), intent(in) :: mc_opt
-    !> Processing spec.
-    type(process_spec_t), intent(in) :: process_spec_list(:)
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
@@ -139,7 +134,7 @@ contains
     real*8 t_start, t_wall_now, t_wall_est, prop_done
     type(env_state_t) :: old_env_state
     integer n_time, i_time, i_time_start, pre_i_time
-    integer i_state, i_state_netcdf, i_summary
+    integer i_state, i_state_netcdf, i_output
     character*100 filename
     type(bin_grid_t) :: restart_bin_grid
     type(aero_data_t) :: restart_aero_data
@@ -148,7 +143,7 @@ contains
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
-    i_summary = 1
+    i_output = 1
     i_state = 1
     i_state_netcdf = 1
     time = 0d0
@@ -203,18 +198,6 @@ contains
     end if
 
     if (mc_opt%t_output > 0d0) then
-       call output_processed_open(mc_opt%output_prefix, mc_opt%i_loop, ncid)
-       call output_processed(ncid, process_spec_list, &
-            bin_grid, aero_data, aero_state, gas_data, gas_state, &
-            env_state, i_summary, time, mc_opt%t_output, mc_opt%i_loop)
-    end if
-
-    if (mc_opt%t_state > 0d0) then
-       call inout_write_state(mc_opt%state_prefix, bin_grid, &
-            aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
-            time, mc_opt%del_t, mc_opt%i_loop)
-    end if
-    if (mc_opt%t_state_netcdf > 0d0) then
        call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
             aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
             time, mc_opt%del_t, mc_opt%i_loop, mc_opt%record_removals)
@@ -282,32 +265,10 @@ contains
           call check_event(time, mc_opt%del_t, mc_opt%t_output, &
                last_output_time, do_output)
           if (do_output) then
-             i_summary = i_summary + 1
-             call output_processed(ncid, process_spec_list, bin_grid, &
-                  aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_summary, time, mc_opt%t_output, mc_opt%i_loop)
-          end if
-       end if
-
-       if (mc_opt%t_state > 0d0) then
-          call check_event(time, mc_opt%del_t, mc_opt%t_state, &
-               last_state_time, do_state)
-          if (do_state) then
-             i_state = i_state + 1
-             call inout_write_state(mc_opt%state_prefix, bin_grid, &
-                  aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_state, time, mc_opt%del_t, mc_opt%i_loop)
-          end if
-       end if
-
-       if (mc_opt%t_state_netcdf > 0d0) then
-          call check_event(time, mc_opt%del_t, mc_opt%t_state_netcdf, &
-               last_state_netcdf_time, do_state_netcdf)
-          if (do_state_netcdf) then
-             i_state_netcdf = i_state_netcdf + 1
+             i_output = i_output + 1
              call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
                   aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_state_netcdf, time, mc_opt%del_t, mc_opt%i_loop, &
+                  i_output, time, mc_opt%del_t, mc_opt%i_loop, &
                   mc_opt%record_removals)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
@@ -336,6 +297,8 @@ contains
                 write(6,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
                      aero_state_total_particles(aero_state), progress_n_samp, &
                      progress_n_coag, t_wall_est
+                ! reset counters so they show information since last
+                ! progress display
                 progress_n_samp = 0
                 progress_n_coag = 0
              end if
@@ -343,10 +306,6 @@ contains
        end if
        
     enddo
-
-    if (mc_opt%t_output > 0d0) then
-       call output_processed_close(ncid)
-    end if
 
     if (mc_opt%do_mosaic) then
        call mosaic_cleanup()

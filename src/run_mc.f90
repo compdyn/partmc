@@ -52,10 +52,6 @@ module pmc_run_mc
     logical :: do_condensation
     !> Whether to do MOSAIC.
     logical :: do_mosaic
-    !> Whether to restart from state.
-    logical :: do_restart
-    !> Name of state to restart from.
-    character(len=300) :: restart_name
     !> Loop number of run.
     integer :: i_loop
     !> Total number of loops.
@@ -130,9 +126,6 @@ contains
     integer n_time, i_time, i_time_start, pre_i_time
     integer i_state, i_state_netcdf, i_output
     character*100 filename
-    type(bin_grid_t) :: restart_bin_grid
-    type(aero_data_t) :: restart_aero_data
-    type(gas_data_t) :: restart_gas_data
 
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
@@ -147,41 +140,6 @@ contains
     progress_n_coag = 0
 
     call env_state_alloc(old_env_state)
-
-    if (mc_opt%do_restart) then
-#ifdef PMC_USE_MPI
-       if (rank == 0) then
-          die_msg(388502926, 'restarting not currently supported with MPI')
-          call pmc_mpi_abort(1)
-       end if
-#endif
-       !call spec_read_state(mc_opt%restart_name, restart_bin_grid, &
-       !     restart_aero_data, aero_state, restart_gas_data, gas_state, &
-       !     env_state, time, pre_index, pre_del_t, pre_i_loop)
-       ! FIXME: should we check whether bin_grid == restart_bin_grid, etc?
-       i_time = nint(time / mc_opt%del_t)
-       if (mc_opt%allow_double) then
-          do while (aero_state_total_particles(aero_state) &
-               < mc_opt%n_part_max / 2)
-             call aero_state_double(aero_state)
-          end do
-       end if
-       ! write data into output file so that it will look correct
-       pre_time = 0d0
-       last_output_time = pre_time
-       call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
-       do pre_i_time = 0,(i_time - 1)
-          call env_data_update_state(env_data, env_state, pre_time)
-          if (mc_opt%t_output > 0d0) then
-             call check_event(pre_time, mc_opt%del_t, mc_opt%t_output, &
-                  last_output_time, do_output)
-             if (do_output) then
-                call die_msg(139423908, "not implemented")
-             end if
-          end if
-          pre_time = pre_time + mc_opt%del_t
-       end do
-    end if
 
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     
@@ -466,8 +424,6 @@ contains
          + pmc_mpi_pack_size_logical(val%allow_double) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
-         + pmc_mpi_pack_size_logical(val%do_restart) &
-         + pmc_mpi_pack_size_string(val%restart_name) &
          + pmc_mpi_pack_size_integer(val%i_loop) &
          + pmc_mpi_pack_size_integer(val%n_loop) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
@@ -503,8 +459,6 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%allow_double)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
-    call pmc_mpi_pack_logical(buffer, position, val%do_restart)
-    call pmc_mpi_pack_string(buffer, position, val%restart_name)
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
@@ -543,8 +497,6 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%allow_double)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
-    call pmc_mpi_unpack_logical(buffer, position, val%do_restart)
-    call pmc_mpi_unpack_string(buffer, position, val%restart_name)
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)

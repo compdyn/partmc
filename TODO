@@ -17,8 +17,6 @@ Add extract_particle_mass or extract_particle_data or similar.
 
 Make aero_state_input_netcdf() handle zero paricle case.
 
-Remove restart capability from run_mc.f90
-
 Change output state variable aero_comp_mass to aero_particle_mass to
 distinguish it from aero_comp_vol.
 

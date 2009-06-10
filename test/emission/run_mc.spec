@@ -41,6 +41,4 @@ do_coagulation no               # whether to do coagulation (yes/no)
 allow_double no                 # whether to allow doubling (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
-do_restart no                   # whether to restart from stored state (yes/no)
-restart_name XXXX.d             # filename to restart from
 record_removals no              # whether to record particle removals (yes/no)

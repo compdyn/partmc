@@ -165,8 +165,6 @@ contains
                'cannot use MOSAIC, support is not compiled in')
        end if
 
-       call spec_read_logical(file, 'do_restart', mc_opt%do_restart)
-       call spec_read_string(file, 'restart_name', mc_opt%restart_name)
        call spec_read_logical(file, 'record_removals', mc_opt%record_removals)
        
        call spec_read_close(file)

@@ -7,33 +7,13 @@ Combine output_sectional and output_state_netcdf into output.f90?
 
 Trying to write out/file.nc gives useless error if out doesn't exist.
 
-Why is i_loop not used, but rather always written as 1 in
-output_state_netcdf. Why does the brownian testcase still work?
-
 Remove ASCII state output, or at least rename to output_state_ascii.
-
-Remove summary output.
 
 Remove process_spec.f90
 Remove output_processed.f90
 Remove output_state.f90
 Rename output_state_netcdf.f90 to output_state.f90
 Add output_summary.f90
-
-Remove process.dat -- just output a minimal summary.
-
-Use t_output for netcdf state output and remove t_state and
-t_state_netcdf.
-
-Change summary format to be simpler (gas totals, aerosol number
-size-resolved, aerosol mass size-resolved).
-
-In output_processed.f90 change ensure_nc_var_env_state() to have a
-name argument which will be process_spec%name. In
-urban_plume/process.dat we currently list env to have "name env" which
-should be "name env_state" to match current behavior. We should check
-that the names specified in process.dat do not conflict with each
-other or with the dimension names.
 
 Add extract_particle_mass or extract_particle_data or similar.
 

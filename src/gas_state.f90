@@ -215,9 +215,8 @@ contains
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 1) .or. (n_species == 0))) then
-       write(0,*) 'ERROR: each line in ', trim(read_name), &
-            ' should contain exactly one data value'
-       call exit(1)
+       call die_msg(686719840, 'each line in ' // trim(read_name) &
+            // ' must contain exactly one data value')
     end if
 
     ! copy over the data
@@ -226,9 +225,8 @@ contains
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
-          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
-               ' in file ', trim(read_name)
-          call exit(1)
+          call die_msg(129794076, 'unknown species ' // &
+               trim(species_name(i)) // ' in file ' // trim(read_name))
        end if
        gas_state%conc(species) = species_data(i,1)
     end do
@@ -272,24 +270,21 @@ contains
     ! check the data size
     n_lines = size(species_data, 1)
     if (n_lines < 2) then
-       write(0,*) 'ERROR: insufficient data lines in ', trim(read_name)
-       call exit(1)
+       call die_msg(291542946, 'insufficient data lines in file ' &
+            // trim(read_name))
     end if
     if (trim(species_name(1)) /= 'time') then
-       write(0,*) 'ERROR: row 1 in ', trim(read_name), &
-            ' must start with: time'
-       call exit(1)
+       call die_msg(398532628, 'row 1 in file ' &
+            // trim(read_name) // ' must start with: time')
     end if
     if (trim(species_name(2)) /= 'rate') then
-       write(0,*) 'ERROR: row 2 in ', trim(read_name), &
-            ' must start with: rate'
-       call exit(1)
+       call die_msg(398532628, 'row 2 in file ' &
+            // trim(read_name) // ' must start with: rate')
     end if
     n_time = size(species_data, 2)
     if (n_time < 1) then
-       write(0,*) 'ERROR: each line in ', trim(read_name), &
-            ' must contain at least one data value'
-       call exit(1)
+       call die_msg(398532628, 'each line in file ' &
+            // trim(read_name) // ' must contain at least one data value')
     end if
 
     ! copy over the data
@@ -304,9 +299,9 @@ contains
     do i = 3,n_lines
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
-          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
-               ' in file ', trim(read_name)
-          call exit(1)
+          call die_msg(806500079, 'unknown species ' &
+               // trim(species_name(i)) // ' in file ' &
+               // trim(read_name))
        end if
        do i_time = 1,n_time
           gas_states(i_time)%conc(species) = species_data(i,i_time)

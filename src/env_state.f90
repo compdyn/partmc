@@ -420,8 +420,8 @@ contains
     ! loss to background
     sample_prop = delta_t * effective_dilution_rate
     if (sample_prop > 1d0) then
-       write(0,*) 'ERROR: effective dilution rate too high for this timestep'
-       call exit(1)
+       call die_msg(925788271, &
+            'effective dilution rate too high for this timestep')
     end if
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol

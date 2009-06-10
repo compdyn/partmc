@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -398,11 +398,7 @@ contains
        old_f = f
        
        if (iter .ge. iter_max) then
-          write(0,*) 'ERROR: Newton iteration failed to terminate'
-          write(0,*) 'iter_max = ', iter_max
-          write(0,*) 'x = ', x
-          write(0,*) 'aero_particle%vol = ', aero_particle%vol
-          call exit(1)
+          call die_msg(449343787, 'Newton iteration failed to terminate')
        end if
        
        ! FIXME: gfortran 4.1.1 requires the "then" in the following

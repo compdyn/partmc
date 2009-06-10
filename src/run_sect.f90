@@ -103,8 +103,8 @@ contains
     ! dlnr: constant grid distance of logarithmic grid 
 
     if (aero_data%n_spec /= 1) then
-       write(0,*) 'ERROR: run_sect() can only use one aerosol species'
-       call exit(1)
+       call die_msg(844211192, &
+            'run_sect() can only use one aerosol species')
     end if
 
     ! output data structure
@@ -191,8 +191,8 @@ contains
        call check_event(time, sect_opt%del_t, sect_opt%t_progress, &
             last_progress_time, do_progress)
        if (do_progress) then
-          write(6,'(a6,a8)') 'step', 'time'
-          write(6,'(i6,f8.1)') i_time, time
+          write(*,'(a6,a8)') 'step', 'time'
+          write(*,'(i6,f8.1)') i_time, time
        end if
     end do
 

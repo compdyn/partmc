@@ -63,11 +63,11 @@ contains
     !> Error message.
     character(len=*), intent(in) :: msg
     
-    character(len=MAX_LINE_LEN) :: full_msg
+    character(len=MAX_LINE_LEN) :: error_msg
 
-    write(full_msg, *) "file ", trim(file%name), &
+    write(error_msg, *) "file ", trim(file%name), &
          "line ", file%line_num, ": ", msg
-    call die_msg(code, full_msg)
+    call die_msg(code, error_msg)
 
   end subroutine spec_read_die_msg
 
@@ -82,14 +82,15 @@ contains
     type(spec_file_t), intent(out) :: file
 
     integer :: ios, unit
+    character(len=MAX_LINE_LEN) :: error_msg
 
     file%name = trim(filename)
     file%unit = get_unit()
     open(unit=file%unit, status='old', file=file%name, iostat=ios)
     if (ios /= 0) then
-       write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-            trim(file%name), ' for reading: ', ios
-       call exit(1)
+       write(error_msg, *) 'unable to open file ', &
+            trim(file%name), ' for reading: IOSTAT = ', ios
+       call die_msg(173932734, error_msg)
     end if
     file%line_num = 0
 
@@ -166,6 +167,7 @@ contains
     logical, intent(out) :: eof
 
     integer :: ios, n_read
+    character(len=MAX_LINE_LEN) :: error_msg
 
     file%line_num = file%line_num + 1
     eof = .false.
@@ -173,16 +175,13 @@ contains
     read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) line
     if (ios /= 0) then
-       write(0,*) 'ERROR: reading from ', trim(file%name), &
-            ' at line ', file%line_num, ': IOSTAT = ', ios
-       call exit(1)
+       write(error_msg, *) 'error reading: IOSTAT = ', ios
+       call spec_read_die_msg(869855853, file, error_msg)
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read, meaning the line was too long
-    write(0,*) 'ERROR: reading from ', trim(file%name), &
-         ' at line ', file%line_num, ': line exceeds ', len(line), &
-         ' characters'
-    call exit(1)
+    write(error_msg, *) 'line exceeds length: ', len(line)
+    call spec_read_die_msg(468785871, file, error_msg)
 
 100 line = "" ! goto here if end-of-file was encountered immediately
     eof = .true.
@@ -292,6 +291,7 @@ contains
     character(len=MAX_LINE_LEN) :: line_string, rest
     integer i, n_data
     logical done
+    character(len=MAX_LINE_LEN) :: error_msg
 
     call spec_read_next_data_line(file, line_string, eof)
     if (eof) return
@@ -299,21 +299,14 @@ contains
     ! strip off the name
     i = index(line_string, ' ') ! first space
     if (i == 0) then
-       write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ' contains no whitespace'
-       call exit(1)
+       call spec_read_die_msg(117442928, file, 'line contains no whitespace')
     end if
     if (i == 1) then
-       write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ' starts with whitespace'
-       call exit(1)
+       call spec_read_die_msg(650916702, file, 'line starts with whitespace')
     end if
     if (i >= MAX_VAR_LEN) then
-       write(0,'(a,i3,a,a,a,i6,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ' has a name longer than ', MAX_VAR_LEN, ' characters'
+       write(error_msg, *) 'line name longer than: ', MAX_VAR_LEN
+       call spec_read_die_msg(170403881, file, error_msg)
     end if
     line%name = line_string(1:(i-1))
     line_string = line_string(i:)
@@ -348,16 +341,12 @@ contains
           n_data = n_data + 1
           i = index(rest, ' ') ! first space
           if (i <= 1) then
-             write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
-                  ' of input file ', trim(file%name), &
-                  ' internal processing error'
-             call exit(1)
+             call spec_read_die_msg(332939443, file, 'internal processing error')
           end if
           if (i >= MAX_VAR_LEN) then
-             write(0,'(a,i3,a,a,a,i6,a,i6,a)') 'ERROR: line ', file%line_num, &
-                  ' of input file ', trim(file%name), &
-                  ' has data element ', n_data, &
-                  ' longer than ', MAX_VAR_LEN, ' characters'
+             write(error_msg, *) 'data element ', n_data, ' longer than: ', &
+                  MAX_VAR_LEN
+             call spec_read_die_msg(145508629, file, error_msg)
           end if
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
@@ -383,9 +372,7 @@ contains
 
     call spec_read_line(file, line, eof)
     if (eof) then
-       write(0,*) 'ERROR: end of file ', trim(file%name), &
-            ' unexpected at line ', file%line_num
-       call exit(1)
+       call spec_read_die_msg(358475502, file, 'unexpected end of file')
     end if
 
   end subroutine spec_read_line_no_eof
@@ -415,9 +402,7 @@ contains
     do while (.not. eof)
        num_lines = num_lines + 1
        if (num_lines > MAX_LIST_LINES) then
-          write(0,*) 'ERROR: maximum number of lines exceeded in file ', &
-               trim(file%name), ' at line ', file%line_num
-          call exit(1)
+          call spec_read_die_msg(450564159, file, 'maximum number of lines exceeded')
        end if
        if (max_lines > 0) then
           if (num_lines >= max_lines) then
@@ -460,12 +445,8 @@ contains
        line_length = size(line_array(1)%data)
        do i = 2,size(line_array)
           if (size(line_array(i)%data) /= line_length) then
-             write(0,'(a,a,i3,a,a,a,i3,a,a)') 'ERROR: tried to read ', &
-                  'array before line ', file%line_num, &
-                  ' of input file ', trim(file%name), &
-                  ' but line ', i,' contains a different number of', &
-                  ' elements to line 1'
-             call exit(1)
+             call spec_read_die_msg(298076484, file, &
+                  'lines have unequal numbers of entries for array')
           end if
        end do
     end if
@@ -485,10 +466,9 @@ contains
     character(len=*), intent(in) :: name
 
     if (line%name /= name) then
-       write(0,'(a,i3,a,a,a,a,a,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ' must begin with: ', trim(name), ', not: ', trim(line%name)
-       call exit(1)
+       call spec_read_die_msg(462932478, file, &
+            'line must begin with: ' // trim(name) &
+            // ' not: ' // trim(line%name))
     end if
 
   end subroutine spec_read_check_line_name
@@ -508,10 +488,9 @@ contains
     integer name_len, read_name_len
 
     if (name /= read_name) then
-       write(0,'(a,i3,a,a,a,a,a,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ' must begin with: ', trim(name), ', not: ', trim(read_name)
-       call exit(1)
+       call spec_read_die_msg(683719069, file, &
+            'line must begin with: ' // trim(name) &
+            // ' not: ' // trim(read_name))
     end if
     
   end subroutine spec_read_check_name
@@ -528,10 +507,11 @@ contains
     !> Expected data length.
     integer, intent(in) :: length
 
+    character(len=MAX_LINE_LEN) :: error_msg
+
     if (size(line%data) /= length) then
-       write(0,*) 'ERROR: expected ', length, ' data items on line ', &
-            file%line_num, ' of file ', trim(file%name)
-       call exit(1)
+       write(error_msg, *) 'expected ', length, ' data items on line'
+       call spec_read_die_msg(189339129, file, error_msg)
     end if
 
   end subroutine spec_read_check_line_length
@@ -548,11 +528,11 @@ contains
     !> Type being read during error.
     character(len=*), intent(in) :: type
 
+    character(len=MAX_LINE_LEN) :: error_msg
+
     if (ios /= 0) then
-       write(0,'(a,a,a,a,a,i8,a,i4)') 'ERROR: reading ', trim(type), &
-            ' from file ', trim(file%name), ' at line ', file%line_num, &
-            ': IOSTAT = ', ios
-       call exit(1)
+       write(error_msg, *) 'error reading: IOSTAT = ', ios
+       call spec_read_die_msg(704342497, file, error_msg)
     end if
 
   end subroutine spec_read_check_read_iostat
@@ -803,6 +783,7 @@ contains
     type(spec_file_t) :: read_file
     character(len=MAX_VAR_LEN), pointer :: read_names(:)
     real*8, pointer :: read_data(:,:)
+    character(len=MAX_LINE_LEN) :: error_msg
 
     call spec_read_string(file, line_name, read_name)
     call spec_read_open(read_name, read_file)
@@ -811,25 +792,22 @@ contains
 
     n_lines = size(read_names)
     if (n_lines /= 2) then
-       write(0,*) 'ERROR: must have exact two data lines in file ', &
-            trim(read_name)
-       call exit(1)
+       call die_msg(694159200, 'must have exactly two data lines in file ' &
+            // trim(read_name))
     end if
     n_times = size(read_data,2)
     if (n_times < 1) then
-       write(0,*) 'ERROR: must have at least one data point in file ', &
-            trim(read_name)
-       call exit(1)
+       call die_msg(925956383, 'must have at least one data poin in file ' &
+            // trim(read_name))
     end if
     if (trim(read_names(1)) /= "time") then
-       write(0,*) 'ERROR: first data line in ', trim(read_name), &
-            ' must start with: time'
-       call exit(1)
+       call die_msg(692842968, 'first data line in ' // trim(read_name) &
+            // ' must start with: time not: ' // trim(read_names(1)))
     end if
     if (trim(read_names(2)) /= name) then
-       write(0,*) 'ERROR: second data line in ', trim(read_name), &
-            ' must start with: ', trim(name), ', not: ', trim(read_names(2))
-       call exit(1)
+       call die_msg(692842968, 'second data line in ' // trim(read_name) &
+            // ' must start with: ' // trim(name) &
+            // ' not: ' // trim(read_names(2)))
     end if
     
     allocate(times(n_times))

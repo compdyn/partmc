@@ -200,9 +200,8 @@ contains
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 5) .or. (n_species == 0))) then
-       write(0,*) 'ERROR: each line in ', trim(file%name), &
-            ' should contain exactly 5 values'
-       call exit(1)
+       call die_msg(428926381, 'each line in ' // trim(file%name) &
+            // ' should contain exactly 5 values')
     end if
 
     ! allocate and copy over the data
@@ -269,9 +268,8 @@ contains
     do i = 1,size(line%data)
        spec = aero_data_spec_by_name(aero_data, line%data(i))
        if (spec == 0) then
-          write(0,*) 'ERROR: unknown species ', trim(line%data(i)), &
-               ' on line ', file%line_num, ' of file ', trim(file%name)
-          call exit(1)
+          call spec_read_die_msg(964771833, file, &
+               'unknown species: ' // trim(line%data(i)))
        end if
        species_list(i) = spec
     end do

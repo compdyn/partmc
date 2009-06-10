@@ -425,14 +425,12 @@ contains
     ! check the data size
     n_species = size(species_data, 1)
     if (n_species < 1) then
-       write(0,*) 'ERROR: file ', trim(read_name), &
-            ' must contain at least one line of data'
-       call exit(1)
+       call die_msg(427666881, 'file ' // trim(read_name) &
+            // ' must contain at least one line of data')
     end if
     if (size(species_data, 2) /= 1) then
-       write(0,*) 'ERROR: each line in ', trim(read_name), &
-            ' should contain exactly one data value'
-       call exit(1)
+       call die_msg(427666881, 'each line in file ' &
+            // trim(read_name) // ' must contain exactly one data value')
     end if
 
     ! copy over the data
@@ -440,9 +438,9 @@ contains
     do i = 1,n_species
        species = aero_data_spec_by_name(aero_data, species_name(i))
        if (species == 0) then
-          write(0,*) 'ERROR: unknown species ', trim(species_name(i)), &
-               ' in file ', trim(read_name)
-          call exit(1)
+          call die_msg(775942501, 'unknown species ' &
+               // trim(species_name(i)) // ' in file ' &
+               // trim(read_name))
        end if
        vol_frac(species) = species_data(i,1)
     end do
@@ -461,9 +459,8 @@ contains
     ! normalize
     tot_vol_frac = sum(vol_frac)
     if ((minval(vol_frac) < 0d0) .or. (tot_vol_frac <= 0d0)) then
-       write(0,*) 'ERROR: vol_frac in ', trim(read_name), &
-            ' is not positive'
-       call exit(1)
+       call die_msg(356648030, 'vol_frac in ' // trim(read_name) &
+            // ' is not positive')
     end if
     vol_frac = vol_frac / tot_vol_frac
 
@@ -645,20 +642,17 @@ contains
 
     ! check the data size
     if (trim(names(1)) /= 'time') then
-       write(0,*) 'ERROR: row 1 in ', trim(read_name), &
-            ' must start with: time'
-       call exit(1)
+       call die_msg(570205795, 'row 1 in ' // trim(read_name) &
+            // ' must start with: time not: ' // trim(names(1)))
     end if
     if (trim(names(2)) /= 'rate') then
-       write(0,*) 'ERROR: row 2 in ', trim(read_name), &
-            ' must start with: rate'
-       call exit(1)
+       call die_msg(221270915, 'row 2 in ' // trim(read_name) &
+            // ' must start with: rate not: ' // trim(names(1)))
     end if
     n_time = size(data, 2)
     if (n_time < 1) then
-       write(0,*) 'ERROR: each line in ', trim(read_name), &
-            ' must contain at least one data value'
-       call exit(1)
+       call die_msg(457229710, 'each line in ' // trim(read_name) &
+            // ' must contain at least one data value')
     end if
 
     ! copy over the data

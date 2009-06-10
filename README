@@ -62,7 +62,9 @@ Linux are:
 5. Inside ccmake press `c`, edit the values as needed, press `c`
    again, then `g`.
 
-6. Compile PartMC and test it:
+6. Compile PartMC and test it as follows. Some tests
+   may fail due to bad random initial conditions, so re-run the tests
+   a few times to see if failures persist.
      make
      make test
 
@@ -72,9 +74,7 @@ Linux are:
 8. To see what make is doing run it like this:
      VERBOSE=1 make
 
-9. To make some plots from the tests run them as follows. Some tests
-   may fail due to bad random initial conditions, so re-run the tests
-   a few times to see if failures persist.
+9. To make some plots from the tests run them as:
      cd run_test/emission
      gnuplot plot_species.gnuplot
 

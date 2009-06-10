@@ -61,7 +61,7 @@ contains
   !> Print the usage text to stderr.
   subroutine print_usage()
 
-    write(0,*) 'Usage: partmc <spec-file>'
+    write(*,*) 'Usage: partmc <spec-file>'
 
   end subroutine print_usage
 
@@ -161,10 +161,8 @@ contains
        call spec_read_logical(file, 'do_condensation', mc_opt%do_condensation)
        call spec_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
        if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then
-          write(0,'(a,i3,a,a,a)') 'ERROR: line ', file%line_num, &
-            ' of input file ', trim(file%name), &
-            ': cannot use MOSAIC, support is not compiled in'
-          call exit(1)
+          call spec_read_die_msg(230495365, file, &
+               'cannot use MOSAIC, support is not compiled in')
        end if
 
        call spec_read_logical(file, 'do_restart', mc_opt%do_restart)
@@ -280,7 +278,8 @@ contains
                aero_state, gas_data, gas_state, mc_opt)
        else
           if (pmc_mpi_rank() == 0) then
-             write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
+             call die_msg(727498351, 'unknown kernel type: ' &
+                  // trim(kernel_name))
           end if
           call pmc_mpi_abort(1)
        end if
@@ -345,8 +344,8 @@ contains
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', exact_opt%aero_dist_init)
     else
-       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
-       call exit(1)
+       call die_msg(955390033, 'unknown solution type: ' &
+            // trim(soln_name))
     end if
     
     call spec_read_close(file)
@@ -365,8 +364,8 @@ contains
        call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
             soln_zero)
     else
-       write(0,*) 'ERROR: unknown solution type: ', trim(soln_name)
-       call exit(1)
+       call die_msg(859292825, 'unknown solution type: ' &
+            // trim(soln_name))
     end if
 
     call aero_data_free(aero_data)
@@ -444,8 +443,8 @@ contains
        call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
             env_data, env_state, kernel_zero, sect_opt)
     else
-       write(0,*) 'ERROR: Unknown kernel type; ', trim(kernel_name)
-       call exit(1)
+       call die_msg(859292825, 'unknown kernel type: ' &
+            // trim(kernel_name))
     end if
 
     call aero_data_free(aero_data)

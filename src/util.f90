@@ -106,8 +106,7 @@ contains
        end if
     end do
     if (.not. found_unit) then
-       write(0,*) 'ERROR: no more units available - need to free_unit()'
-       call exit(1)
+       call die_msg(690355443, 'no more units available - need to free_unit()')
     end if
     unit_used(i) = .true.
     get_unit = i + unit_offset
@@ -124,29 +123,6 @@ contains
     unit_used(unit - unit_offset) = .false.
 
   end subroutine free_unit
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocate a new unit and open it with a filename given by
-  !> basename + suffix.
-  subroutine open_output(basename, suffix, out_unit)
-
-    !> Basename of the output file.
-    character(len=*), intent(in) :: basename
-    !> Suffix of the output file.
-    character(len=*), intent(in) :: suffix
-    !> Unit for the file.
-    integer, intent(out) :: out_unit
-
-    character(len=len(basename)+len(suffix)) :: filename
-    
-    filename = basename
-    filename((len_trim(filename)+1):) = suffix
-    out_unit = get_unit()
-    open(out_unit, file=filename)
-    write(*,'(a,a)') 'Writing ', trim(filename)
-    
-  end subroutine open_output
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -393,28 +369,6 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Opens a file for reading that must already exist, checking for
-  !> errors.
-  subroutine open_existing(unit, filename)
-
-    !> Unit to open with.
-    integer, intent(in) :: unit
-    !> Filename of file to open.
-    character(len=*), intent(in) :: filename
-
-    integer ios
-
-    open(unit=unit, file=filename, status='old', iostat=ios)
-    if (ios /= 0) then
-       write(0,*) 'ERROR: unable to open file ', trim(filename), &
-            ': IOSTAT = ', ios
-       call exit(1)
-    end if
-
-  end subroutine open_existing
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Makes a linearly spaced array of length n from min to max.
   subroutine linspace(min_x, max_x, n, x)
 
@@ -606,12 +560,13 @@ contains
     
     integer :: val
     integer :: ios
+    character(len=len(string)+300) :: error_msg
 
     read(string, '(i20)', iostat=ios) val
     if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
+       write(error_msg, *) 'error converting ', trim(string), &
             ' to integer: IOSTAT = ', ios
-       call exit(1)
+       call die_msg(895881873, error_msg)
     end if
     string_to_integer = val
 
@@ -627,12 +582,13 @@ contains
     
     real*8 :: val
     integer :: ios
+    character(len=len(string)+300) :: error_msg
 
     read(string, '(f20.0)', iostat=ios) val
     if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
+       write(error_msg, *) 'error converting ', trim(string), &
             ' to real: IOSTAT = ', ios
-       call exit(1)
+       call die_msg(727430097, error_msg)
     end if
     string_to_real = val
 
@@ -648,6 +604,7 @@ contains
     
     logical :: val
     integer :: ios
+    character(len=len(string)+300) :: error_msg
 
     val = .false.
     if ((trim(string) == 'yes') &
@@ -663,8 +620,9 @@ contains
          .or. (trim(string) == '0')) then
        val = .false.
     else
-       write(0,'(a,a,a)') 'Error converting ', trim(string), ' to logical'
-       call exit(1)
+       write(error_msg, *) 'error converting ', trim(string), &
+            ' to logical: IOSTAT = ', ios
+       call die_msg(985010153, error_msg)
     end if
     string_to_logical = val
 
@@ -690,12 +648,10 @@ contains
     ! use accept-reject
     pdf_max = maxval(pdf)
     if (minval(pdf) < 0d0) then
-       write(0,*) 'ERROR: pdf contains negative values'
-       call exit(1)
+       call die_msg(121838078, 'pdf contains negative values')
     end if
     if (pdf_max <= 0d0) then
-       write(*,*) 'ERROR: pdf is not positive'
-       call exit(1)
+       call die_msg(119208863, 'pdf is not positive')
     end if
     found = .false.
     do while (.not. found)
@@ -727,12 +683,10 @@ contains
     ! use accept-reject
     pdf_max = maxval(pdf)
     if (minval(pdf) < 0) then
-       write(0,*) 'ERROR: pdf contains negative values'
-       call exit(1)
+       call die_msg(598024763, 'pdf contains negative values')
     end if
     if (pdf_max <= 0) then
-       write(*,*) 'ERROR: pdf is not positive'
-       call exit(1)
+       call die_msg(109961454, 'pdf is not positive')
     end if
     found = .false.
     do while (.not. found)
@@ -814,8 +768,7 @@ contains
     
     ! asserts
     if (sum(vec_disc) /= n_samp) then
-       write(0,*) 'ERROR: generated incorrect number of samples'
-       call exit(1)
+       call die_msg(323412496, 'generated incorrect number of samples')
     end if
     
   end subroutine vec_cts_to_disc

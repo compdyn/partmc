@@ -7,8 +7,6 @@ Combine output_sectional and output_state_netcdf into output.f90?
 
 Trying to write out/file.nc gives useless error if out doesn't exist.
 
-Remove ASCII state output, or at least rename to output_state_ascii.
-
 Remove process_spec.f90
 Remove output_processed.f90
 Remove output_state.f90
@@ -29,9 +27,6 @@ density to mass concentration, etc.
 
 Array constructors for mosaic_species -- is it true that these all
 have to have the same length?
-
-Sometimes cmake seems to rebuild even if no source files have changed
-at all?
 
 Add gnuplot scripts for all testcases and remove plot.py.
 
@@ -55,6 +50,9 @@ kernel.f90, to avoid having to include all the various kernel_*
 modules everywhere.
 
 =======================================
+
+Sometimes cmake seems to rebuild even if no source files have changed
+at all?
 
 Add entrainment switch.
 

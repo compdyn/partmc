@@ -151,7 +151,7 @@ contains
     if (mc_opt%do_restart) then
 #ifdef PMC_USE_MPI
        if (rank == 0) then
-          write(0,*) 'ERROR: restarting not currently supported with MPI'
+          die_msg(388502926, 'restarting not currently supported with MPI')
           call pmc_mpi_abort(1)
        end if
 #endif
@@ -284,9 +284,9 @@ contains
                      / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
                 t_wall_est = (1d0 - prop_done) / prop_done &
                      * (t_wall_now - mc_opt%t_wall_start)
-                write(6,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
+                write(*,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
                      'n_particle', 'n_samples', 'n_coagulate', 't_remain(s)'
-                write(6,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
+                write(*,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
                      aero_state_total_particles(aero_state), progress_n_samp, &
                      progress_n_coag, t_wall_est
                 ! reset counters so they show information since last

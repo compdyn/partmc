@@ -181,9 +181,8 @@ contains
 
     ! check the data size
     if (size(species_data, 2) /= 1) then
-       write(0,*) 'ERROR: each line in ', trim(read_name), &
-            ' should only contain one value'
-       call exit(1)
+       call die_msg(614290516, 'each line in ' // trim(read_name) &
+            // ' must only contain one value')
     end if
 
     ! allocate and copy over the data

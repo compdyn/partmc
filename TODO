@@ -10,10 +10,6 @@ Trying to write out/file.nc gives useless error if out doesn't exist.
 Why is i_loop not used, but rather always written as 1 in
 output_state_netcdf. Why does the brownian testcase still work?
 
-Add new "sectional" output format for the sectional and exact modes,
-converting extract_summary_* programs to extract_sectional_* and
-change testcases.
-
 Remove ASCII state output, or at least rename to output_state_ascii.
 
 Remove summary output.

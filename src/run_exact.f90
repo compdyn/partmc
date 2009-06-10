@@ -10,7 +10,6 @@ module pmc_run_exact
 
   use pmc_inout
   use pmc_aero_dist
-  use pmc_process_spec
   use pmc_bin_grid
   use pmc_aero_state
   use pmc_env_data

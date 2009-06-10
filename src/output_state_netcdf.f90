@@ -19,19 +19,18 @@ module pmc_output_state_netcdf
   use pmc_inout
   use pmc_gas_data
   use pmc_mpi
-  use pmc_output_processed
   
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the current state.
-  subroutine output_state_netcdf(state_prefix, bin_grid, aero_data, &
+  subroutine output_state_netcdf(prefix, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop, record_removals)
 
     !> Prefix of state file.
-    character(len=*), intent(in) :: state_prefix
+    character(len=*), intent(in) :: prefix
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -55,7 +54,8 @@ contains
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
     
-    character*300 :: filename
+    character(len=len(prefix)+100) :: filename
+    character(len=500) :: history
     type(inout_file_t) :: file
     type(env_state_t) :: env_write
     type(gas_state_t) :: gas_state_write
@@ -66,9 +66,17 @@ contains
 
     ! only root node actually writes to the file
     if (pmc_mpi_rank() == 0) then
-       write(filename, '(a,a,i4.4,a,i8.8)') trim(state_prefix), &
-            '_', i_loop, '_', index
-       call output_processed_open(filename, 0, ncid)
+       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+            '_', i_loop, '_', index, '.nc'
+       call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
+       
+       call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+            "PartMC output file"))
+       call iso8601_date_and_time(history)
+       history((len_trim(history)+1):) = " created by PartMC"
+       call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+       
+       call pmc_nc_check(nf90_enddef(ncid))
 
        call pmc_nc_write_real(ncid, time, "time", "s")
        call pmc_nc_write_real(ncid, del_t, "timestep", "s")
@@ -145,7 +153,7 @@ contains
 #endif
        
     if (pmc_mpi_rank() == 0) then
-       call output_processed_close(ncid)
+       call pmc_nc_check(nf90_close(ncid))
     end if
     
   end subroutine output_state_netcdf

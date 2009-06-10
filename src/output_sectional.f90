@@ -16,7 +16,6 @@ module pmc_output_sectional
   use pmc_gas_state
   use pmc_env_state
   use pmc_util
-  use pmc_process_spec
   use pmc_netcdf
   use netcdf
 
@@ -51,7 +50,7 @@ contains
     real*8, intent(in) :: del_t
 
     integer :: ncid
-    character(len=len(prefix)+20) :: filename
+    character(len=len(prefix)+100) :: filename
     character(len=500) :: history
 
     write(filename, '(a,a,i8.8,a)') trim(prefix), &

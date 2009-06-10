@@ -334,7 +334,7 @@ a_{\rm w}=\gamma_{\rm w}(1+\frac{n_{\rm ions}}{n_{\rm w}})^{-1}=(1+\kappa \frac{
 Then we have a relationship for $\kappa$ as follows,
 
 \begin{equation}\label{eqn:3.5}
-\kappa=\left(\frac{(\gamma_{\rm w}-1)n_{\rm_w}+\gamma_{\rm w}n_{\rm ions}}{n_{\rm w}}\right)\frac{V_{\rm w}}{V_{\rm s}}.
+\kappa=\frac{n_{\rm w}(1-\gamma_{\rm w})+n_{\rm ions}}{\gamma_{\rm w}n_{\rm w}}\frac{V_{\rm w}}{V_{\rm s}}
 \end{equation} 
 
 Assuming $\gamma_{w}$=1, we got 
@@ -352,7 +352,7 @@ This can be further simplified as
 The $n_{\rm ions}$ can be  calculated by eqn(10) in Kreidenweis e al 2005, 
 
 \begin{equation}\label{eqn:3.8}
-n_{\rm ions}=\Big((\nu \Phi) + \frac{m M_{\rm w}}{1000} \frac{(\nu \Phi)^{2}}{2!} + \frac{m M_{\rm w}}{1000} \frac{(\nu \Phi)^{3}}{3!}+... \Big) \frac{m_{\rm s}}{M_{\rm s}},
+n_{\rm ions}=\Big((\nu \Phi) + \frac{m M_{\rm w}}{1000} \frac{(\nu \Phi)^{2}}{2!} + (\frac{m M_{\rm w}}{1000})^{2} \frac{(\nu \Phi)^{3}}{3!}+... \Big) \frac{m_{\rm s}}{M_{\rm s}},
 \end{equation}
 where $m_{\rm s}$ and $M_{\rm s}$ are the mass and molecular weight of salt respectively. and $\nu$ is the number of ions produced per dissociation of one molecular of the salt. $m$ is molarity of the solution. $\Phi$ is the Molal osmotic coefficient, which depends on the concentration of the solution. It is assumed to be 1 when the solution is dilute. Eqns (\ref{eqn:3.7}) and (\ref{eqn:3.8}) imply that the value of $\kappa$ depends on the amount of water, hence depends on the wet diameter $D_{\rm p}$ and changes as the droplet grows or shrinks.
 
@@ -427,45 +427,45 @@ Comparing eqn(\ref{eqn:3.19}) to eqn(\ref{eqn:1.27}), the two equations are cons
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Critical diameter and supersaturation in Kreidenweis 2007}
+\subsection{Critical diameter and supersaturation in Kreidenweis 2007}
 
-%From eqn(\ref{eqn:3.7}), 
+From eqn(\ref{eqn:3.7}), 
 
-%\begin{equation}\label{eqn:3.20}
-%\kappa= \frac{M_{\rm w}}{V_{\rm s} \rho_{\rm w}}n_{\rm ions}.
-%\end{equation}
+\begin{equation}\label{eqn:3.20}
+\kappa= \frac{M_{\rm w}}{V_{\rm s} \rho_{\rm w}}n_{\rm ions}.
+\end{equation}
 
-%\begin{equation}\label{eqn:3.21}
-%\kappa= \frac{M_{\rm w}} {\rho_{\rm w}} \frac{6}{\pi D_{\rm d}^{3}} n_{\rm ions}.
-%\end{equation}
+\begin{equation}\label{eqn:3.21}
+\kappa= \frac{M_{\rm w}} {\rho_{\rm w}} \frac{6}{\pi D_{\rm d}^{3}} n_{\rm ions}.
+\end{equation}
 
-%And from eqn(\ref{eqn:3.22}),
-%\begin{equation}\label{eqn:25}
-%B=\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}},
-%\end{equation}
+And from eqn(\ref{eqn:3.22}),
+\begin{equation}\label{eqn:25}
+B=\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}},
+\end{equation}
 
-%\begin{equation}\label{eqn:3.23}
-%B=\kappa D_{\rm d}^{3}
-%\end{equation}
+\begin{equation}\label{eqn:3.23}
+B=\kappa D_{\rm d}^{3}
+\end{equation}
 
-%Substituting this into eqn(\ref{eqn:SP23}) and eqn(\ref{eqn:SP25})
-%we have 
+Substituting this into eqn(\ref{eqn:SP23}) and eqn(\ref{eqn:SP25})
+we have 
 
-%\begin{equation}\label{eqn:3.24}
-%D_{\rm p}^{*}=\sqrt{\frac{3B}{A}}=\sqrt{\frac{3 \kappa D_{\rm d}^{3}}{A}}
-%\end{equation}
+\begin{equation}\label{eqn:3.24}
+D_{\rm p}^{*}=\sqrt{\frac{3B}{A}}=\sqrt{\frac{3 \kappa D_{\rm d}^{3}}{A}}
+\end{equation}
 
-%and
+and
 
-%\begin{equation}\label{eqn:3.25}
-%{\rm ln}  S^{*}=(\frac{4A^{3}}{27B})^{1/2}=(\frac{4A^{3}}{27\kappa D_{\rm d}^{3} })^{1/2}
-%\end{equation}
+\begin{equation}\label{eqn:3.25}
+{\rm ln}  S^{*}=(\frac{4A^{3}}{27B})^{1/2}=(\frac{4A^{3}}{27\kappa D_{\rm d}^{3} })^{1/2}
+\end{equation}
 
-%or 
+or 
 
-%\begin{equation}\label{eqn:3.26}
-%\kappa=\frac{4A^{3}} {27D_{\rm d}^{3} {\rm ln}^{2} S^{*} }.
-%\end{equation}
+\begin{equation}\label{eqn:3.26}
+\kappa=\frac{4A^{3}} {27D_{\rm d}^{3} {\rm ln}^{2} S^{*} }.
+\end{equation}
 
 %This agrees with equation (10) in Petters and Kreidenweis 2007. However this is an approximate expression for the critical diameter and supersaturation. As mentioned before when carrying out the differentiation of eqn(\ref{eqn:SP18}), we are assuming $B$ is independent of the wet diameter $D_{\rm p}$. We see that $B$ depends on $n_{\rm ions}$ which in turn depends on molarity $m$ and Molal osmotic coefficient $\Phi$ eqn(\ref{eqn:16}). These parameters all change with wet diameter $D_{\rm p}$ as a drop grows or shrinks. 
 
@@ -480,9 +480,9 @@ When deriving the condensational growth equation of a single droplet, we make th
 \end{itemize}
 
 
-\begin{tabular}{c | c | c | c } 
+\begin{tabular}{p{2cm} p{4cm} p{4cm} p{4cm}} 
 \hline
-             &  Traditional  &   In terms of $a_{\rm w}$  &  In terms of $\kappa$ \\
+             &  Traditional (A\&B)  &   In terms of $a_{\rm w}$  &  In terms of $\kappa$ \\
 \hline  \hline             
     growth equation  &  Eqn(\ref{eqn:1.23})   &   Eqn(\ref{eqn:2.6})   &    Eqn(\ref{eqn:3.13}) \\ 
 \hline 
@@ -837,7 +837,334 @@ a_{w}^{-1}=1+(\frac{\nu m M_{\rm w} \Phi }{1000})+\frac{1}{2}(\frac{\nu m M_{\rm
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The algorithm proposed to solve the condensational growth equation}
+\subsection{Taylor series expansion of $\delta$ keeping up to the first order}
 
+To solve 15.73, we can use Taylor series expansion to expand 15.73 and truncate the second and higher order terms. Before doing that, it is better to simplify the equations of 15.73 and 15.74. We introduce the following terms.
+
+\begin{equation}
+A=\frac{\Delta H_{\rm v} \rho_{\rm w}}{4 k_{\rm a}^{'} T_{\infty}}
+\end{equation}
+
+\begin{equation}
+B=\frac{4 D_{\rm v}^{'} M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}}
+\end{equation}
+
+\begin{equation}
+C=\frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}}
+\end{equation}
+
+\begin{equation}
+E=\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w} D_{\rm p}}
+\end{equation}
+
+\begin{equation}
+F=\frac{6 n_{\rm s} M_{\rm w}}{\pi \rho_{\rm w} (D_{\rm p}^{3}-d_{\rm u}^{3})}
+\end{equation}
+
+\begin{equation}\label{eqn:23}
+\delta=\frac{\Delta H_{\rm v} \rho_{\rm w}}{4 k_a^{'} T_{\infty}} D_{\rm p} \frac{d D_{\rm p}}{dt}=A D_{\rm p} \frac{d D_{\rm p}}{dt}
+\end{equation}
+
+Then 15.73 and 15.74 in S\&P can be written respectively as follow,
+
+\begin{equation}\label{eqn:15.73}
+\frac{\delta}{A}=B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))
+\end{equation}
+
+and 
+\begin{equation}\label{eqn:15.74}
+\frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}+A(C-1)},
+\end{equation}
+
+where S is the relative humidity. Now, we use Taylor series expansion to expand 15.73 about zero and truncate the second and higher order terms. First, rearranging  eqn(\ref{eqn:15.73}) we get
+
+\begin{equation}\label{eqn:26}
+f(\delta)=\frac{\delta}{A}-B(S-\frac{1}{1+\delta}\exp(C\frac{\delta}{1+\delta}+E \frac{1}{1+\delta}-F))=0.
+\end{equation}
+
+
+From Taylor series expansion, we have
+\begin{equation}\label{eqn:27}
+0=f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta^{2}-0)+....
+\end{equation}
+
+The first scheme, denoted by T1 hereafter, is obtained by keeping zeroth and first term of the Taylor series expansion of the above equation. Ignoring second and higher order terms, we then have
+\begin{equation}\label{eqn:28}
+\delta=\frac{-f(0)}{f^{'}(0)},
+\end{equation}
+which can be expressed as
+\begin{equation}\label{eqn:29}
+\frac{\delta}{A}=\frac{S-\exp(E-F)}{\frac{1}{B}-A \exp(E-F) (1-C+E)}.
+\end{equation}
+
+\subsection{Taylor series expansion of $\delta$ keeping up to the second order}
+
+Again from Taylor series expansion, we have
+
+\begin{equation}\label{eqn:30}
+0=f(\delta)=f(0)+f^{'}(0)(\delta-0)+\frac{1}{2!}f^{''}(0)(\delta-0)^{2}+ \frac{1}{3!} f^{'''}(0)(\delta-0)^{3}+...
+\end{equation}
+
+Ignoring third and higher order terms, we then have
+\begin{equation}\label{eqn:31}
+0=f(0)+f^{'}(0)\delta+\frac{1}{2}f^{''}(0)\delta^{2}.
+\end{equation}
+
+By solving the above quadratic equation, we can get $\delta$.
+
+\subsection{Expressions of derivatives of $f(\delta)$}
+
+\begin{eqnarray}\label{eqn:32}
+f^{'}(\delta)=\frac{1}{A}-B(\frac{1}{(1+\delta)^{2}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+
+\delta})-F) \\ \nonumber
+-\frac{1}{1+\delta}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}}))
+\end{eqnarray}
+
+
+\begin{eqnarray}\label{eqn:33}
+f^{''}(\delta)=-B(\frac{-2}{(1+\delta)^{3}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F) \\ \nonumber
++\frac{2}{(1+\delta)^{2}}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}}) \\ \nonumber
+-\frac{1}{1+\delta}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{C}{(1+\delta)^{2}}-\frac{E}{(1+\delta)^{2}})^{2} \\ \nonumber
+-\frac{1}{1+\delta}\exp(C (\frac{\delta}{1+\delta})+E(\frac{1}{1+\delta})-F)(\frac{-2C+2E}{(1+\delta)^{3}}))
+\end{eqnarray}
+
+
+\begin{equation}\label{eqn:34}
+f(0)=-B(S-\exp(E-F))
+\end{equation}
+
+\begin{equation}\label{eqn:35}
+f^{'}(0)=\frac{1}{A}-B(\exp(E-F)-\exp(E-F)(C-E))
+\end{equation}
+
+Simplified as 
+
+\begin{equation}\label{eqn:36}
+f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-(C-E))).
+\end{equation}
+
+\begin{eqnarray}\label{eqn:37}
+f^{''}(0)=-B(-2\exp(E-F)+2\exp(E-F)(C-E) \\ \nonumber
+-\exp(E-F)(C-E)^{2}-\exp(E-F)(-2C+2E))
+\end{eqnarray}
+
+Simplified as 
+
+\begin{equation}\label{eqn:38}
+f^{''}(0)=-B(\exp(E-F)(-2+4(C-E)-(C-E)^2))
+\end{equation}
+
+The second scheme, denoted by T2 hereafter, is obtained by keeping zeroth, first and second order of the Taylor series expansion of the above equation 15.73. The value of $\delta$ is one of the roots of the following quadratic equation,
+
+\begin{equation}\label{eqn:73}
+\frac{1}{2}f^{''}(0)\delta^{2}+f^{'}(0)\delta+f(0)=0.
+\end{equation}
+
+A scheme is devised to solve the above quadratic equation, which take the larger roots of the two as the solution. 
+It is proved in the following that in the usual range of environmental temperature $T_{\infty}$,  the larger of the two roots is in fact the value of $\delta$ that we are seeking. 
+
+The proof is based on the analysis of the signs of the three coefficients of the above quadratic equation \ref{eqn:73}.
+
+First, the second derivative is investigated as follows.
+\begin{equation}
+f^{''}(0)=-B(\exp(E-F)(-2+4(C-E)-(C-E)^2))
+\end{equation}
+Denote $C-E$ by y, then the above second derivative can be written as,
+
+\begin{equation}
+f^{''}(0)=B(\exp(E-F)(2-4y+y^2)).
+\end{equation}
+
+The sign of the second derivative is determined by the sign of the quadratic factor in terms of $y$, 
+since $B>0$.
+
+\begin{equation}
+y^2-4y+2=(y-2)^2-2
+\end{equation}
+
+From the above, it can be concluded that when $y=C-E>2+\sqrt{2}$, $f^{''}(0)>0$.
+The corresponding $D_{\rm p}$ can be found from the following,
+\begin{equation}\label{eqn:77}
+C-E=\frac{\Delta H_{\rm v}M_{\rm w}}{RT_{\infty}}-\frac{4M_{\rm w}\sigma_{\rm w}}{RT_{\infty}\rho_{\rm w}D_{\rm p}}>2+\sqrt{2},
+\end{equation} 
+which is equivalent to 
+\begin{equation}\label{eqn:78}
+D_{\rm p}>\frac{4 \sigma_{\rm w}}{\rho_{\rm w}}\frac{1}{\Delta H_{\rm v}-(2+\sqrt{2})\frac{R T_{\infty}}{M_{\rm w}}}.
+\end{equation}
+For the first derivatives, 
+\begin{equation}\label{eqn:79}
+f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-(C-E)))=f^{'}(0)=\frac{1}{A}-B(\exp(E-F)(1-y))
+\end{equation}
+It can be seen that when $y>1$, $f^{'}(0)>0$ is guaranteed. The corresponding $D_{\rm p}$ is
+\begin{equation}\label{eqn:80}
+D_{\rm p}>\frac{4 \sigma_{\rm w}}{\rho_{\rm w}}\frac{1}{\Delta H_{\rm v}-\frac{R T_{\infty}}{M_{\rm w}}}.
+\end{equation}
+ For $f(0)$, 
+\begin{equation}\label{eqn:81}
+f(0)=-B(S-\exp(E-F)),
+\end{equation} 
+greater than zero when $S<\exp(E-F)$ and smaller than zero when $S>\exp(E-F)$.
+
+From eqn \ref{eqn:78} and \ref{eqn:80}, the value of $D_{\rm p}$ depends on environmental temperature only, $T_{\infty}$. A range of values of $D_{p}$ is calculated from $T_{\infty}=273K$ to $T_{\infty}=313K$ and summarized below.
+
+\begin{table}\label{table:2}
+\caption{Range of $D_{\rm p}$ under usual environmental temperature range}
+\begin{center}
+\begin{tabular}{cccc} \hline
+   & 273 K  &  293 K  &  313 K \\ \hline
+For $f^{''}(0)>0 $ & $D_{\rm p}>1.699\times 10^{-10} \rm m$  & $D_{\rm p}>1.729\times 10^{-10} \rm m$ & $D_{\rm p}>1.790\times 10^{-10} \rm m$   \\ 
+For $f^{'}(0)>0 $  & $D_{\rm p}>1.457\times 10^{-10} \rm m$ &  $D_{\rm p}>1.463\times 10^{-10} \rm m$ & $D_{\rm p}>1.469\times 10^{-10 \rm } \rm m$ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+From the above table, it can be seen that, under usual environmental temperature range, the $D_{\rm p}$ need to be greater than nanometer order of magnitude, which is usually the case for the aerosol existing in the atmosphere.
+This means generally, $f^{'}(0)$, $f^{''}(0)$ both are greater than zero. Depending on whether $f(0)>0$ or $f(0)<0$, the pair of roots can be both negative or of opposite respectively. However, no matter which case, the larger root of the two roots is the one that is sought. 
+
+For the former case, when both roots are negative, the larger one is closer to the Taylor series expansion at the $\delta=0$. 
+
+
+For the later case, when $f(0)<0$, which is $S>\exp(E-F)$ and physically implies the environmental saturation vapor pressure is larger than the equilibrium vapor pressure over the droplet curved surface, the droplet should growth accordingly, $\delta>0$.
+
+
+The third and fourth schemes are actually newton iterations repeating twice and three times, and denoted by N2 and N3. Note that the Newton iteration once is actually taylor series expansion with zeroth and first order term. Newton iteration formula is given as,
+
+\begin{equation}
+\delta_{\rm n+1}=\delta_{\rm n}-\frac{f(\delta_{\rm n})}{f^{'}(\delta_{\rm n})}.
+\end{equation}
+
+The above accuracy of aforementioned schemes are compared. It is found that the T2, N2 and N3 have reasonably high accuracies. T1 accuracy is far off from the other three schemes.
+
+
+\section{Equivalence of the equations governing critical diameter $D_{\rm p}^{*}$ in traditional framework and $\kappa$ framework}
+
+Rewrite the eqn(\ref{eqn:1.27}), the equation for critical diameter $D_{\rm p}^{*}$ in traditional framework with the assumption that $B$ is independent of $D_{\rm p}$,
+
+\begin{equation}\label{eqn:12.1}
+A(D_{\rm p}^{*})^{6}-3B(D_{\rm p}^{*})^{4}-2 Ad_{\rm u}^{3}(D_{\rm p}^{*})^{3}+ A d_{\rm u}^{6}=0.
+\end{equation}
+
+Below is the governing equation without such assumption, 
+
+\begin{equation}\label{eqn:12.2}
+A(D_{\rm p}^{*})^{6}+ 
+\frac{\partial B}{\partial D_{\rm p}}(D_{\rm p}^{*})^{5}-3B(D_{\rm p}^{*})^{4}-2 Ad_{\rm u}^{3} (D_{\rm p}^{*})^{3} 
+-\frac{\partial B}{\partial D_{\rm p}}(D_{\rm p}^{*})^{2}d_{\rm u}^{3}+ A d_{\rm u}^{6}=0.
+\end{equation}
+
+In the $\kappa$ framework, the governing equations with the assumption of $\kappa$ independent of $D_{\rm p}$ and without are as follows respectively, 
+
+\begin{equation}\label{eqn:12.3}
+A(D_{\rm p}^{*})^{6}-\kappa\frac{18}{\pi}V_{\rm s}(D_{\rm p}^{*})^4+\left(\frac{6 A \kappa V_{\rm s}}{\pi}-\frac{12 A V_{\rm s}}{\pi}\right)(D_{\rm p}^{*})^{3} - \frac{36A V_{\rm s}^2(\kappa -1)}{\pi^2} =0
+\end{equation}
+
+\begin{equation}\label{eqn:12.4}
+A(D_{\rm p}^{*})^{6}+
+\frac{\partial \kappa}{\partial D_{\rm p}}\frac{6 V_{\rm s}}{\pi}(D_{\rm p}^{*})^{5}
+-\kappa\frac{18}{\pi}V_{\rm s}(D_{\rm p}^{*})^4+
+\left(\frac{6 A \kappa V_{\rm s}}{\pi}-\frac{12 A V_{\rm s}}{\pi}\right)(D_{\rm p}^{*})^{3}
+-\frac{\partial \kappa}{\partial D_{\rm p}}\frac{36 V_{\rm s}^{2}}{\pi^{2}}(D_{\rm p}^{*})^{2}
+ -\frac{36 A V_{\rm s}^{2}}{\pi^{2}}(\kappa -1) =0
+\end{equation}
+
+From the above four equations, two main points can be observed, when the assumptions of independence of $\kappa$ and $B$ on $D_{\rm p}$ are removed, fifth and second order terms emerge. Besides, in both frameworks, 
+the new terms emerged are in the same order (i.e. second and fifth order). One remark for the derivation of all the above four equations is no assumption of $d_{\rm u}$ is made.
+
+\subsection{Equivalence of eqn(\ref{eqn:12.1}) and eqn(\ref{eqn:12.3})}
+
+By comparing coefficients of eqn(\ref{eqn:12.1}) and eqn(\ref{eqn:12.3}), we have the following 3 constraints,
+
+\begin{equation}\label{eqn:12.41}
+B=\kappa D_{\rm d}^{3},
+\end{equation}
+
+\begin{equation}\label{eqn:12.42.1}
+d_{\rm u}^{3}=\frac{6V_{\rm s}}{\pi} - \frac{3 \kappa V_{\rm s}}{\pi},
+\end{equation}
+which can be simplified as 
+
+\begin{equation}\label{eqn:12.42.2}
+d_{\rm u}^{3}=(1-\frac{\kappa}{2}) D_{\rm d}^{3} ,
+\end{equation}
+and 
+
+\begin{equation}\label{eqn:12.43}
+d_{\rm u}^{6}=(1-\kappa) D_{\rm d}^{6}.
+\end{equation}
+
+Combining eqn({\ref{eqn:12.42.2}) and eqn(\ref{eqn:12.43}), we have
+
+\begin{equation}\label{eqn:12.44}
+2(1-\kappa) D_{\rm d}^{6}+(2-\kappa)D_{\rm d}^{3}-2d_{\rm u}^{6}-2d_{\rm u}^{3}=0
+\end{equation}
+
+Then we now have 2 contraints eqn({\ref{eqn:12.41}) and eqn({\ref{eqn:12.44}).
+
+\subsection{Equivalence of eqn(\ref{eqn:12.2}) and eqn(\ref{eqn:12.4})}
+
+By comparing coefficients of eqn(\ref{eqn:12.2}) and eqn(\ref{eqn:12.4}), we have the following 5 constraints,
+
+\begin{equation}\label{eqn:12.45}
+\frac{\partial B}{\partial D_{\rm p}}=\frac{\partial \kappa}{\partial D_{\rm p}} D_{\rm d}^{3},
+\end{equation}
+
+
+\begin{equation}\label{eqn:12.46}
+B=\kappa D_{\rm d}^{3},
+\end{equation}
+
+\begin{equation}\label{eqn:12.47}
+d_{\rm u}^{3}=(1-\frac{\kappa}{2}) D_{\rm d}^{3}, 
+\end{equation}
+
+\begin{equation}\label{eqn:12.48}
+\frac{\partial B}{\partial D_{\rm p}} d_{\rm u}^{3} = \frac{\partial \kappa}{\partial D_{\rm p}} D_{\rm d}^{6},
+\end{equation}
+
+\begin{equation}\label{eqn:12.49}
+d_{\rm u}^{6}=(1-\kappa) D_{\rm d}^{6}.
+\end{equation}
+
+Combining eqn({\ref{eqn:12.47}) and eqn(\ref{eqn:12.49}), we have
+
+\begin{equation}\label{eqn:12.410}
+2(1-\kappa) D_{\rm d}^{6}+(2-\kappa)D_{\rm d}^{3}-2d_{\rm u}^{6}-2d_{\rm u}^{3}=0
+\end{equation}
+
+And combining eqn({\ref{eqn:12.45}) and eqn(\ref{eqn:12.48}), we have
+
+\begin{equation}\label{eqn:12.411}
+\frac{\partial B}{\partial D_{\rm p}}(1-d_{\rm u}^{3})-  \frac{\partial \kappa}{\partial D_{\rm p}} (D_{\rm d}^{3}-D_{\rm d}^{6})=0
+\end{equation}
+
+Then we now have 3 contraints eqn({\ref{eqn:12.46}),  eqn({\ref{eqn:12.410}) and eqn({\ref{eqn:12.411}).
+
+
+\subsection{Interpretation of the constraints} 
+
+First it should be noticed that when we write the Kohler equation in the form of eqn(\ref{eqn:1.24}), where B is written as eqn{\ref{eqn:1.19}, it is assumed $\gamma_{\rm w}$=$1$. In other words, When deriving equations (\ref{eqn:12.1}) to (\ref{eqn:12.2}), in traditional framework (A$\&$B), it is assumed that $\gamma_{\rm w}$=$1$. However, in $\kappa$ framework, there is no such assumption. So for the equations in the 2 frameworks to be mathematically equivalent, there should be a constraint requiring $\gamma_{\rm w}$=$1$. In fact eqn(\ref{eqn:12.41}) and eqn(\ref{eqn:12.46}) are that constraint. It can be shown as the followings,
+
+
+From S$\&$P, assuming the solution is dilute, then $\gamma_{\rm w}$=$1$, $B$ can be written as follows, 
+
+\begin{equation}\label{eqn:12.6}
+B=\frac{6 n_{\rm ions} M_{\rm w}}{\pi \rho_{\rm w}}.
+\end{equation}
+
+With $\gamma_{\rm w}$=$1$, from eqn(\ref{eqn:3.6}), 
+
+\begin{equation}\label{eqn:12.7}
+\kappa= \frac{V_{\rm w} n_{\rm ions}}{V_{\rm s} n_{\rm w}}.
+\end{equation}
+
+and by equating eqn(\ref{eqn:12.6}) and eqn(\ref{eqn:12.7}), we have,
+
+\begin{equation}
+B=\kappa D_{\rm d}^{3}
+\end{equation}
+
+There are other constraints apart from the one derived above. However those constraints compose an underestimated system of equations, meaning that we have more variables than equations. This is reasonable as the equations in the 2 different frameworks should not be equivalent just with certain values of $B$, $\kappa$, $D_{\rm d}$, $D_{\rm p}$ and $d_{\rm u}$. Besides, it is not surprised that those variables are not independent, they are related according to those constraints since these variable are physically related.
 
 
 

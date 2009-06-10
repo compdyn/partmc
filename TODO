@@ -32,8 +32,6 @@ Add gnuplot scripts for all testcases and remove plot.py.
 
 Input fractions only by mass (no volume, etc).
 
-Change error messages in inout.f90 to use die_msg().
-
 Memory allocation policy should be that all functions must be called
 with an already allocated structure. That is, always call type_alloc()
 before calling anything else. The functions will call type_free() if

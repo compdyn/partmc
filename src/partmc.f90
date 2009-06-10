@@ -140,8 +140,6 @@ contains
        call inout_read_real(file, 't_max', mc_opt%t_max)
        call inout_read_real(file, 'del_t', mc_opt%del_t)
        call inout_read_real(file, 't_output', mc_opt%t_output)
-       call inout_read_real(file, 't_state', mc_opt%t_state)
-       call inout_read_real(file, 't_state_netcdf', mc_opt%t_state_netcdf)
        call inout_read_real(file, 't_progress', mc_opt%t_progress)
        
        call spec_read_bin_grid(file, bin_grid)

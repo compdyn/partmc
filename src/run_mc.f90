@@ -37,10 +37,6 @@ module pmc_run_mc
     real*8 :: t_max
     !> Output interval (0 disables) (s).
     real*8 :: t_output
-    !> State output interval (0 disables) (s).
-    real*8 :: t_state
-    !> NetCDF state output interval (0 disables) (s).
-    real*8 :: t_state_netcdf
     !> Progress interval (0 disables) (s).
     real*8 :: t_progress
     !> Timestep for coagulation.
@@ -125,8 +121,7 @@ contains
     end interface
     
     real*8 time, pre_time, pre_del_t
-    real*8 last_output_time, last_state_time, last_state_netcdf_time
-    real*8 last_progress_time
+    real*8 last_output_time, last_progress_time
     real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
     integer progress_n_samp, progress_n_coag
@@ -205,10 +200,8 @@ contains
     end if
 
     t_start = time
-    last_progress_time = time
-    last_state_time = time
-    last_state_netcdf_time = time
     last_output_time = time
+    last_progress_time = time
     n_time = nint(mc_opt%t_max / mc_opt%del_t)
     i_time_start = nint(time / mc_opt%del_t) + 1
     do i_time = i_time_start,n_time
@@ -466,8 +459,6 @@ contains
          pmc_mpi_pack_size_integer(val%n_part_max) &
          + pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
-         + pmc_mpi_pack_size_real(val%t_state) &
-         + pmc_mpi_pack_size_real(val%t_state_netcdf) &
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
@@ -505,8 +496,6 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%n_part_max)
     call pmc_mpi_pack_real(buffer, position, val%t_max)
     call pmc_mpi_pack_real(buffer, position, val%t_output)
-    call pmc_mpi_pack_real(buffer, position, val%t_state)
-    call pmc_mpi_pack_real(buffer, position, val%t_state_netcdf)
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
@@ -547,8 +536,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_part_max)
     call pmc_mpi_unpack_real(buffer, position, val%t_max)
     call pmc_mpi_unpack_real(buffer, position, val%t_output)
-    call pmc_mpi_unpack_real(buffer, position, val%t_state)
-    call pmc_mpi_unpack_real(buffer, position, val%t_state_netcdf)
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)

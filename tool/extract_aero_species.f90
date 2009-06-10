@@ -2,10 +2,10 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF state files and write out the total aerosol number and
-! mass concentrations in text format.
+! Read NetCDF state files and write out the aerosol concentrations in
+! text format.
 
-program extract_state_aero_total
+program extract_aero_species
 
   use netcdf
 
@@ -22,15 +22,14 @@ program extract_state_aero_total
   real*8 :: time
   real*8, allocatable :: aero_comp_mass(:,:)
   real*8, allocatable :: aero_comp_vol(:)
+  real*8, allocatable :: aero_conc(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_part, status
-  integer :: n_bin, i_bin, n_time
-  real*8 :: num_conc, mass_conc
+  integer :: ios, i_time, i_spec, i_part, status, n_time
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_state_total <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_aero_species <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -47,8 +46,7 @@ program extract_state_aero_total
   ! write information
   write(*,*) "Output file array A has:"
   write(*,*) "  A(i, 1) = time(i) (s)"
-  write(*,*) "  A(i, 2) = total number concentration at time(i) (#/m^3)"
-  write(*,*) "  A(i, 3) = total mass concentration at time(i) (kg/m^3)"
+  write(*,*) "  A(i, j+1) = mass concentration at time(i) of species(j) (kg/m^3)"
 
   ! process NetCDF files
   i_time = 0
@@ -76,14 +74,14 @@ program extract_state_aero_total
      if (i_time == 1) then
         write(*,*) "n_aero_species:", n_aero_species
         write(*,*) "aero_species_names: ", trim(aero_species_names)
+        allocate(aero_conc(n_aero_species))
      end if
      
      ! read aero_particle dimension
      status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
      if (status == NF90_EBADDIM) then
         ! dimension missing ==> no particles, so concentration = 0
-        num_conc = 0d0
-        mass_conc = 0d0
+        aero_conc = 0d0
      else
         call nc_check(status)
         call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
@@ -120,21 +118,27 @@ program extract_state_aero_total
         
         call nc_check(nf90_close(ncid))
         
-        ! compute number and mass concentrations
-        num_conc = 0d0
-        mass_conc = 0d0
+        ! compute per-species total mass
+        aero_conc = 0d0
         do i_part = 1,n_aero_particle
-           num_conc = num_conc + 1d0 / aero_comp_vol(i_part)
-           mass_conc = mass_conc + sum(aero_comp_mass(i_part,:)) &
-                / aero_comp_vol(i_part)
+           do i_spec = 1,n_aero_species
+              aero_conc(i_spec) = aero_conc(i_spec) &
+                   + aero_comp_mass(i_part, i_spec) &
+                   / aero_comp_vol(i_part)
+           end do
         end do
-        
+
         deallocate(aero_comp_mass)
         deallocate(aero_comp_vol)
      end if
 
      ! output data
-     write(out_unit, '(3e30.15e3)') time, num_conc, mass_conc
+     write(out_unit, '(e30.15e3)', advance='no') time
+     do i_spec = 1,n_aero_species
+        write(out_unit, '(e30.15e3)', advance='no') &
+             aero_conc(i_spec)
+     end do
+     write(out_unit, '(a)') ''
 
   end do
 
@@ -145,6 +149,7 @@ program extract_state_aero_total
   end if
 
   close(out_unit)
+  deallocate(aero_conc)
 
 contains
 
@@ -165,4 +170,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program extract_state_aero_total
+end program extract_aero_species

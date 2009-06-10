@@ -8,8 +8,8 @@ cd ${0%/*}
 for f in out/brownian_mc_????_00000001.nc ; do
     f1=${f/_00000001.nc/}
     f2=${f1/_mc_/_mc_size_mass_}.txt
-    echo "../../extract_state_aero_size_mass 1e-10 1e-4 220 ${f1}_ $f2"
-    ../../extract_state_aero_size_mass 1e-10 1e-4 220 ${f1}_ $f2
+    echo "../../extract_aero_size_mass 1e-10 1e-4 220 ${f1}_ $f2"
+    ../../extract_aero_size_mass 1e-10 1e-4 220 ${f1}_ $f2
     f3=${f2/_mc_size_mass_/_mc_size_mass_error_}
     echo "../../numeric_diff $f2 out/brownian_sect_size_mass.txt 0 0 0 0 2 0 > $f3"
     ../../numeric_diff $f2 out/brownian_sect_size_mass.txt 0 0 0 0 2 0 > $f3

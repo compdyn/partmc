@@ -5,7 +5,7 @@
 ! Read NetCDF state files and write out the gas concenrations in text
 ! format.
 
-program extract_state_gas
+program extract_gas
 
   use netcdf
 
@@ -26,7 +26,7 @@ program extract_state_gas
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_state_gas <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_gas <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -114,4 +114,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_state_gas
+end program extract_gas

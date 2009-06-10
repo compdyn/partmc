@@ -18,8 +18,8 @@ while (( $mc_run_not_ok )) ; do
     echo Try number $try_number
     echo "../../partmc run_mc.spec"
     ../../partmc run_mc.spec
-    echo "../../extract_state_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
-    ../../extract_state_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
+    echo "../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
+    ../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
     echo "../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 1 2"
     ../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 1 2
     mc_run_not_ok=$?
@@ -32,8 +32,8 @@ while (( $mc_run_not_ok )) ; do
     fi
 done
 
-echo "../../extract_state_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
-../../extract_state_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
+echo "../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
+../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
 echo "../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 0 0"
 ../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 0 0
 exit $?

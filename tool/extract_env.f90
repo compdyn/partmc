@@ -5,7 +5,7 @@
 ! Read NetCDF state files and write out the environment variables in
 ! text format.
 
-program extract_state_env
+program extract_env
 
   use netcdf
 
@@ -20,7 +20,7 @@ program extract_state_env
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_state_env <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_env <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -89,4 +89,4 @@ contains
 
   end subroutine nc_check
 
-end program extract_state_env
+end program extract_env

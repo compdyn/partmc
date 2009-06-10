@@ -34,8 +34,8 @@ echo "../../test_bidisperse_ode"
 ../../test_bidisperse_ode
 
 # extract size distributions for plotting
-echo "../../extract_state_aero_size_num 1e-8 1e0 255 out/bidisperse_mc_0001_ out/bidisperse_mc_aero_size_num.txt"
-../../extract_state_aero_size_num 1e-8 1e0 255 out/bidisperse_mc_0001_ out/bidisperse_mc_aero_size_num.txt
+echo "../../extract_aero_size_num 1e-8 1e0 255 out/bidisperse_mc_0001_ out/bidisperse_mc_aero_size_num.txt"
+../../extract_aero_size_num 1e-8 1e0 255 out/bidisperse_mc_0001_ out/bidisperse_mc_aero_size_num.txt
 
 echo "../../numeric_diff out/bidisperse_mc_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1"
 ../../numeric_diff out/bidisperse_mc_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1

@@ -1,6 +1,4 @@
 
-Rename extract_state_* to extract_*.
-
 Make aero_state_input_netcdf() handle zero paricle case.
 
 Change output state variable aero_comp_mass to aero_particle_mass to
@@ -8,9 +6,6 @@ distinguish it from aero_comp_vol.
 
 Change gas_concentration to gas_molar_ratio, etc. Then change mass
 density to mass concentration, etc.
-
-Array constructors for mosaic_species -- is it true that these all
-have to have the same length?
 
 Add gnuplot scripts for all testcases and remove plot.py.
 
@@ -32,9 +27,6 @@ kernel.f90, to avoid having to include all the various kernel_*
 modules everywhere.
 
 =======================================
-
-Sometimes cmake seems to rebuild even if no source files have changed
-at all?
 
 Add entrainment switch.
 
@@ -64,31 +56,24 @@ midnight) and shift info on start day, start time, etc to
 env_data. Change mosaic_timestep() to just read time/day info out of
 env directly. Update this info in env_data_update_state().
 
-Allow times to be input as 1d, 34m, etc. No unit implies seconds.
-
 Add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
 
-Fix local variable sections to always be all integers, then all reals,
-etc, with only one "integer ::" and then & for the rest of the lines.
-
 Change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
-
-Use switch/case rather than elseif chains?
 
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
 
-Maybe generate initial number of particles from a Poisson
-distribution, rather than just using the mean as we do now?
-
 Fix MPI so it works again.
 
 Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
-just be gas_state_daxpy(), and for other structures.
+just be gas_state_daxpy(), and similarly for other structures.
+
+Sometimes cmake seems to rebuild even if no source files have changed
+at all?
 
 Change bins to have r_min, r_max as edges, not centers.
 

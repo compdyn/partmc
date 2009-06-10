@@ -5,7 +5,7 @@
 ! Read NetCDF state files and write out the individual particle
 ! masses.
 
-program extract_state_aero_particle_masses
+program extract_aero_particle_masses
 
   use netcdf
 
@@ -33,7 +33,7 @@ program extract_state_aero_particle_masses
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_state_aero_size_mass <netcdf_state_file> <output_filename>'
+     write(6,*) 'Usage: extract_aero_size_mass <netcdf_state_file> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_filename)
@@ -193,4 +193,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program extract_state_aero_particle_masses
+end program extract_aero_particle_masses

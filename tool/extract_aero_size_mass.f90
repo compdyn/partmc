@@ -5,7 +5,7 @@
 ! Read NetCDF state files and write out the aerosol concentrations in
 ! text format.
 
-program extract_state_aero_size_mass
+program extract_aero_size_mass
 
   use netcdf
 
@@ -33,7 +33,7 @@ program extract_state_aero_size_mass
 
   ! process commandline arguments
   if (iargc() .ne. 5) then
-     write(6,*) 'Usage: extract_state_aero_size_mass <r_min> <r_max> <n_bin> <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_aero_size_mass <r_min> <r_max> <n_bin> <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, tmp_str)
@@ -249,4 +249,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program extract_state_aero_size_mass
+end program extract_aero_size_mass

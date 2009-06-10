@@ -160,6 +160,8 @@ program extract_sectional_aero_size_mass
   write(*,*) "Output file array A has:"
   write(*,*) "  A(i, 1) = radius(i) (m)"
   write(*,*) "  A(i, j+1) = mass concentration at radius(i) and time(j) (kg/m^3)"
+  write(*,*) "Radius bins have logarithmic width:"
+  write(*,*) "  d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
 
   ! open output file
   open(unit=out_unit, file=out_filename, iostat=ios)

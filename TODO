@@ -1,6 +1,4 @@
 
-Write dlnr to screen from extract_*_aero_size_*.
-
 Trying to write out/file.nc gives useless error if out doesn't exist.
 
 Add extract_particle_mass or extract_particle_data or similar.

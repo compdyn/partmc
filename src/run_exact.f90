@@ -14,7 +14,7 @@ module pmc_run_exact
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data
-  use pmc_output_sectional
+  use pmc_output
   use pmc_aero_binned
   use pmc_gas_data
   use pmc_gas_state

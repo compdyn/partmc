@@ -18,12 +18,11 @@ module pmc_run_mc
   use pmc_aero_data
   use pmc_gas_data
   use pmc_gas_state
-  use pmc_output_state
+  use pmc_output
   use pmc_mosaic
   use pmc_coagulation
   use pmc_kernel
   use pmc_mpi
-  use pmc_output_state_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif

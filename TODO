@@ -1,15 +1,7 @@
 
 Write dlnr to screen from extract_*_aero_size_*.
 
-Combine output_sectional and output_state_netcdf into output.f90?
-
 Trying to write out/file.nc gives useless error if out doesn't exist.
-
-Remove process_spec.f90
-Remove output_processed.f90
-Remove output_state.f90
-Rename output_state_netcdf.f90 to output_state.f90
-Add output_summary.f90
 
 Add extract_particle_mass or extract_particle_data or similar.
 

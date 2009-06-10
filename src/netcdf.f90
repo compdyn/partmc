@@ -29,6 +29,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check the status of a NetCDF function call and prints the given
+  !> error message on failure.
+  subroutine pmc_nc_check_msg(status, error_msg)
+
+    !> Status return value.
+    integer, intent(in) :: status
+    !> Error message in case of failure.
+    character(len=*), intent(in) :: error_msg
+
+    if (status /= NF90_NOERR) then
+       call die_msg(291021908, trim(error_msg) &
+            // " : " // trim(nf90_strerror(status)))
+    end if
+
+  end subroutine pmc_nc_check_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Open a NetCDF file for reading.
   subroutine pmc_nc_open_read(filename, ncid)
 
@@ -37,7 +55,8 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(out) :: ncid
 
-    call pmc_nc_check(nf90_open(filename, NF90_NOWRITE, ncid))
+    call pmc_nc_check_msg(nf90_open(filename, NF90_NOWRITE, ncid), &
+         "opening " // trim(filename))
 
   end subroutine pmc_nc_open_read
 

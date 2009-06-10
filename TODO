@@ -1,6 +1,4 @@
 
-Trying to write out/file.nc gives useless error if out doesn't exist.
-
 Add extract_particle_mass or extract_particle_data or similar.
 
 Make aero_state_input_netcdf() handle zero paricle case.
@@ -93,3 +91,6 @@ Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
 just be gas_state_daxpy(), and for other structures.
 
 Change bins to have r_min, r_max as edges, not centers.
+
+Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
+pmc_nc_open_read().

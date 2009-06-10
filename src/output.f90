@@ -66,7 +66,8 @@ contains
     if (pmc_mpi_rank() == 0) then
        write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
             '_', i_loop, '_', index, '.nc'
-       call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
+       call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+            "opening " // trim(filename))
        
        call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
             "PartMC output file"))
@@ -255,7 +256,8 @@ contains
 
     write(filename, '(a,a,i8.8,a)') trim(prefix), &
          '_', index, '.nc'
-    call pmc_nc_check(nf90_create(filename, NF90_CLOBBER, ncid))
+    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+         "opening " // trim(filename))
 
     ! write header attributes
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &

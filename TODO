@@ -1,5 +1,5 @@
 
-Add extract_particle_mass or extract_particle_data or similar.
+Rename extract_state_* to extract_*.
 
 Make aero_state_input_netcdf() handle zero paricle case.
 

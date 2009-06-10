@@ -127,6 +127,7 @@ add_test(mosaic_3 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_3.sh)
 add_test(mosaic_4 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_4.sh)
 add_test(mosaic_5 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_5.sh)
 add_test(mosaic_6 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_6.sh)
+add_test(mosaic_7 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_7.sh)
 add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
 add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
 add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
@@ -175,6 +176,10 @@ add_executable(poisson_sample test/poisson/poisson_sample.f90
 target_link_libraries(poisson_sample)
 
 ######################################################################
+
+add_executable(extract_state_aero_particle_masses
+	tool/extract_state_aero_particle_masses.f90)
+target_link_libraries(extract_state_aero_particle_masses ${NETCDF_LIBS})
 
 add_executable(extract_state_aero_size_num
 	tool/extract_state_aero_size_num.f90)

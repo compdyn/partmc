@@ -1,0 +1,57 @@
+
+VERSION = 1.2.0
+DIST_NAME = partmc-$(VERSION)
+DATE := $(shell date +"%Y-%m-%d")
+
+GRAPHVIZ_FILE = doc/partmc_modules.gv
+GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
+DOC_INDEX = doc/html/index.html
+
+DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test tool	\
+	urban_plume
+
+ALL_SOURCE = src/*.f90
+
+.PHONY: all
+all: dist
+
+.PHONY: dist
+dist: doc
+	grep -q "^Version $(VERSION)" README
+	grep -q "^Released $(DATE)" README
+	grep -q "^$(VERSION) - $(DATE)" README
+	grep -q "^DEV_BUILD = no" Makefile
+	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
+	test ! -d .svn # check this was svn exported
+	mkdir $(DIST_NAME)
+	cp -r $(DIST_FILES) $(DIST_NAME)
+	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
+	rm -r $(DIST_NAME)
+
+.PHONY: doc
+doc: doc/README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
+
+doc/README.html: README tool/markdown2.py
+	echo "<html>" > $@
+	echo "<head><title>PartMC $(VERSION)</title></head>" >> $@
+	echo "<body bgcolor=\"#ffffff\">" >> $@
+	tool/markdown2.py README >> $@
+	echo "</body></html>" >> $@
+
+$(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
+	doxygen
+
+$(GRAPHVIZ_FILE): $(ALL_SOURCE) tool/f90_mod_deps.py
+	echo "digraph partmc_modules {" > $@
+	echo "    rankdir = TB;" >> $@
+	tool/f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(ALL_SOURCE) >> $@
+	echo "}" >> $@
+
+%.png: %.gv
+	dot -Tpng $< > $@
+
+%.eps: %.gv
+	dot -Tps $< > $@
+
+%.pdf: %.eps
+	epstopdf $<

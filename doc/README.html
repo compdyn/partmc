@@ -6,7 +6,7 @@
 <p>PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation</p>
 
 <p>Version 1.2.0 <br />
-Released 2008-02-17</p>
+Released 2009-02-17</p>
 
 <p><a href="http://lagrange.mechse.uiuc.edu/mwest/partmc/">http://lagrange.mechse.uiuc.edu/mwest/partmc/</a></p>
 
@@ -30,7 +30,7 @@ For details see the file COPYING or
 <p>Optional dependencies:</p>
 
 <ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;R&#x61;&#x68;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;">R&#x61;&#x68;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#x67;o&#118;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;a&#105;&#x6c;&#x74;&#111;&#x3a;&#82;&#97;&#104;&#x75;&#108;&#46;&#90;&#x61;&#x76;&#101;&#114;&#105;&#64;&#x70;&#110;&#108;&#46;g&#111;&#118;">&#82;&#97;&#104;&#x75;&#108;&#46;&#90;&#x61;&#x76;&#101;&#114;&#105;&#64;&#x70;&#110;&#108;&#46;g&#111;&#118;</a></li>
 </ul>
 
 <p>PartMC can be compiled out-of-the-box on Fedora 10 with all
@@ -61,9 +61,18 @@ located) with something like:
  ccmake ..</p></li>
 <li><p>Inside ccmake press <code>c</code>, edit the values as needed, press <code>c</code>
 again, then <code>g</code>.</p></li>
-<li><p>Compile PartMC and test it:
-make
-make test</p></li>
+<li><p>Compile PartMC and test it as follows. Some tests
+may fail due to bad random initial conditions, so re-run the tests
+a few times to see if failures persist.
+ make
+ make test</p></li>
+<li><p>To run just a single test do:
+ ctest -R poisson_1 # argument is a regexp for test names</p></li>
+<li><p>To see what make is doing run it like this:
+ VERBOSE=1 make</p></li>
+<li><p>To make some plots from the tests run them as:
+ cd run<em>test/emission
+ gnuplot plot</em>species.gnuplot</p></li>
 </ol>
 
 <p>The NetCDF libraries are required to compile PartMC. The <code>netcdf.mod</code>
@@ -113,6 +122,7 @@ is contained in the file <code>condensation.f90</code>.</p>
 <li><p><code>urban_plume</code> test-case added, as described in the paper
 <a href="http://arxiv.org/abs/0809.0875">http://arxiv.org/abs/0809.0875</a></p></li>
 <li><p>Build system switched to <code>cmake</code>.</p></li>
+<li><p>Automated test suite added (<code>make test</code>).</p></li>
 </ul>
 
 <p>1.1.0 - 2008-02-17</p>

@@ -1,51 +1,97 @@
 digraph partmc_modules {
     rankdir = TB;
-f90_mod_deps.py [options] <file ...>
-
-Generates dependencies for the given Fortran 90 source files based on
-module and use statements in them. Options are:
-
-  -h, --help     This help output.
-
-  -o, --output <file>
-                 Specify the output file. If unspecified then output
-                 is to stdout.
-
-  -d, --dep-re <regexp>
-                 Regular expression to match against each module name
-                 within use statements. Defaults to matching
-                 everything.
-
-  -D, --dep-template <template>
-                 Template expression for the dependency produced from
-                 each module matched by the dep-re regular expression.
-
-  -m, --mod-re <regexp>
-                 Regular expression to match against each module name
-                 within module definition statements. Defaults to
-                 matching everything.
-
-  -M, --mod-template <template>
-                 Template expression for the dependency target
-                 produced from each module matched by the mod-re
-                 regular expression.
-
-  -g, --graph    Produce output in .dot format suitable for use with
-                 graphviz.
-
-  -i, --indirect
-                 Allow indirect references (only for graphing), so if
-                 A depends on B and C, and B depends on C, then the
-                 direct dependency of A on C will dropped as there is
-                 an indirect dependency via B.
-
-  -v, --verbose  Turn on verbose debugging output.
-
-For a discussion of managing Fortran 90 dependencies see:
-http://tableau.stanford.edu/~mwest/group/Fortran_90_Module_Dependencies
-
-Example:
-f90_mod_deps.py --output src/myfile.deps --dep-re "(pmc_.*)" \
-      --dep-template "src/.mod" --mod-re "(.*)" \
-      --mod-template "src/.mod" src/myfile.f90
-
+    node [shape = box, peripheries = 1, href = "\ref kernel.f90"] kernel
+    node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
+    node [shape = box, peripheries = 1, href = "\ref kernel_golovin.f90"] kernel_golovin
+    node [shape = box, peripheries = 1, href = "\ref netcdf.f90"] netcdf
+    node [shape = box, peripheries = 1, href = "\ref bin_grid.f90"] bin_grid
+    node [shape = box, peripheries = 1, href = "\ref aero_dist.f90"] aero_dist
+    node [shape = box, peripheries = 1, href = "\ref aero_binned.f90"] aero_binned
+    node [shape = box, peripheries = 1, href = "\ref kernel_constant.f90"] kernel_constant
+    node [shape = box, peripheries = 1, href = "\ref kernel_zero.f90"] kernel_zero
+    node [shape = box, peripheries = 1, href = "\ref kernel_brown.f90"] kernel_brown
+    node [shape = box, peripheries = 1, href = "\ref kernel_sedi.f90"] kernel_sedi
+    node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
+    node [shape = box, peripheries = 1, href = "\ref run_sect.f90"] run_sect
+    node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
+    node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
+    node [shape = box, peripheries = 1, href = "\ref env_state.f90"] env_state
+    node [shape = box, peripheries = 1, href = "\ref gas_state.f90"] gas_state
+    node [shape = box, peripheries = 1, href = "\ref aero_state.f90"] aero_state
+    node [shape = box, peripheries = 1, href = "\ref aero_particle.f90"] aero_particle
+    node [shape = box, peripheries = 1, href = "\ref mpi.f90"] mpi
+    node [shape = box, peripheries = 1, href = "\ref aero_info_array.f90"] aero_info_array
+    node [shape = box, peripheries = 1, href = "\ref env_data.f90"] env_data
+    node [shape = box, peripheries = 1, href = "\ref gas_data.f90"] gas_data
+    node [shape = box, peripheries = 1, href = "\ref aero_data.f90"] aero_data
+    node [shape = box, peripheries = 1, href = "\ref constants.f90"] constants
+    node [shape = box, peripheries = 1, href = "\ref util.f90"] util
+    node [shape = box, peripheries = 1, href = "\ref condensation.f90"] condensation
+    node [shape = box, peripheries = 1, href = "\ref run_mc.f90"] run_mc
+    node [shape = box, peripheries = 1, href = "\ref aero_particle_array.f90"] aero_particle_array
+    node [shape = box, peripheries = 1, href = "\ref coagulation.f90"] coagulation
+    node [shape = box, peripheries = 1, href = "\ref spec_read.f90"] spec_read
+    node [shape = box, peripheries = 1, href = "\ref output.f90"] output
+    node [shape = box, peripheries = 1, href = "\ref aero_info.f90"] aero_info
+    kernel -> env_state
+    rand -> util
+    kernel_golovin -> env_state
+    netcdf -> util
+    bin_grid -> netcdf
+    bin_grid -> spec_read
+    bin_grid -> mpi
+    aero_dist -> rand
+    aero_dist -> bin_grid
+    aero_dist -> aero_data
+    aero_binned -> aero_particle
+    aero_binned -> aero_dist
+    kernel_constant -> env_state
+    kernel_zero -> env_state
+    kernel_brown -> env_state
+    kernel_sedi -> env_state
+    partmc -> kernel_golovin
+    partmc -> run_exact
+    partmc -> kernel_zero
+    partmc -> kernel_brown
+    partmc -> kernel_sedi
+    partmc -> kernel_constant
+    partmc -> run_sect
+    partmc -> run_mc
+    run_sect -> kernel
+    run_sect -> env_data
+    run_sect -> output
+    mosaic -> env_state
+    run_exact -> env_data
+    run_exact -> output
+    env_state -> gas_state
+    env_state -> aero_state
+    gas_state -> gas_data
+    aero_state -> aero_info_array
+    aero_state -> aero_particle_array
+    aero_state -> aero_binned
+    aero_particle -> bin_grid
+    aero_particle -> aero_data
+    mpi -> util
+    aero_info_array -> aero_info
+    env_data -> env_state
+    gas_data -> spec_read
+    gas_data -> netcdf
+    gas_data -> mpi
+    aero_data -> spec_read
+    aero_data -> netcdf
+    aero_data -> mpi
+    util -> constants
+    condensation -> env_state
+    run_mc -> kernel
+    run_mc -> env_data
+    run_mc -> mosaic
+    run_mc -> condensation
+    run_mc -> coagulation
+    run_mc -> output
+    aero_particle_array -> aero_particle
+    coagulation -> env_state
+    spec_read -> util
+    output -> env_state
+    aero_info -> spec_read
+    aero_info -> mpi
+}

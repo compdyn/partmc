@@ -1,4 +1,4 @@
-# species     init conc (ppb)
+# species     init mixing ratio (ppb)
 H2SO4           0.0
 HNO3            0.2
 HCl             0.1

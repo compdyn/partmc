@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -69,7 +69,7 @@ contains
 
   !> Exact solution with the Golovin coagulation kernel and
   !> exponential initial condition.
-  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_den, &
+  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
        mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 
     !> Bin grid.
@@ -79,7 +79,7 @@ contains
     !> Current time.
     real*8, intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_den
+    real*8, intent(in) :: num_conc
     !> Mean init radius (m).
     real*8, intent(in) :: mean_radius
     !> Particle density (kg/m^3).
@@ -99,19 +99,19 @@ contains
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
-          aero_binned%num_den(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_den / mean_vol &
+          aero_binned%num_conc(k) = const%pi/2d0 &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
                * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
-       tau = num_den * mean_vol * beta_1 * time
+       tau = num_conc * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
        do k = 1,bin_grid%n_bin
           rat_v = bin_grid%v(k) / mean_vol
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
-             nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+             nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
                   * exp(-((1d0 + T) * rat_v)) * b
           else
              ! For very large volumes we can use the asymptotic
@@ -119,19 +119,19 @@ contains
              ! simplify the result to avoid the overflow from
              ! multiplying a huge bessel function result by a very
              ! tiny exponential.
-             nn = num_den / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+             nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
                   * exp((2d0*sqrt(T) - T - 1d0) * rat_v) &
                   / sqrt(4d0 * const%pi * rat_v * sqrt(T))
           end if
-          aero_binned%num_den(k) = const%pi/2d0 &
+          aero_binned%num_conc(k) = const%pi/2d0 &
                * (2d0*vol2rad(bin_grid%v(k)))**3 * nn
        end do
     end if
 
-    aero_binned%vol_den = 0d0
+    aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
-       aero_binned%vol_den(k,1) = const%pi/6d0 &
-            * (2d0*vol2rad(bin_grid%v(k)))**3 * aero_binned%num_den(k)
+       aero_binned%vol_conc(k,1) = const%pi/6d0 &
+            * (2d0*vol2rad(bin_grid%v(k)))**3 * aero_binned%num_conc(k)
     end do
     
   end subroutine soln_golovin_exp

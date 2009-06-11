@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF state files and write out the gas concenrations in text
+! Read NetCDF state files and write out the gas mixing ratios in text
 ! format.
 
 program extract_gas
@@ -15,11 +15,11 @@ program extract_gas
   integer :: ncid
   integer :: dimid_gas_species
   integer :: varid_time, varid_gas_species
-  integer :: varid_gas_concentration
+  integer :: varid_gas_mixing_ratio
   integer :: n_gas_species
   character(len=1000) :: tmp_str, gas_species_names
   real*8 :: time
-  real*8, allocatable :: gas_concentration(:)
+  real*8, allocatable :: gas_mixing_ratio(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, status, n_time
@@ -66,18 +66,18 @@ program extract_gas
         write(*,*) "gas_species_names: ", trim(gas_species_names)
      end if
      
-     call nc_check(nf90_inq_varid(ncid, "gas_concentration", &
-          varid_gas_concentration))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_gas_concentration, &
+     call nc_check(nf90_inq_varid(ncid, "gas_mixing_ratio", &
+          varid_gas_mixing_ratio))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_gas_mixing_ratio, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_gas_species)) then
-        write(*,*) "ERROR: unexpected gas_concentration dimids"
+        write(*,*) "ERROR: unexpected gas_mixing_ratio dimids"
         call exit(1)
      end if
-     allocate(gas_concentration(n_gas_species))
-     call nc_check(nf90_get_var(ncid, varid_gas_concentration, &
-          gas_concentration))
+     allocate(gas_mixing_ratio(n_gas_species))
+     call nc_check(nf90_get_var(ncid, varid_gas_mixing_ratio, &
+          gas_mixing_ratio))
      
      call nc_check(nf90_close(ncid))
 
@@ -85,11 +85,11 @@ program extract_gas
      write(out_unit, '(e30.15e3)', advance='no') time
      do i_spec = 1,n_gas_species
         write(out_unit, '(e30.15e3)', advance='no') &
-             gas_concentration(i_spec)
+             gas_mixing_ratio(i_spec)
      end do
      write(out_unit, '(a)') ''
 
-     deallocate(gas_concentration)
+     deallocate(gas_mixing_ratio)
   end do
 
   if (n_time == 0) then

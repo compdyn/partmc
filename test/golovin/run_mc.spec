@@ -15,7 +15,7 @@ r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
-gas_init gas_init.dat           # initial gas concentrations
+gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist.dat # aerosol initial condition file
@@ -23,7 +23,7 @@ aerosol_init aero_init_dist.dat # aerosol initial condition file
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
-gas_background gas_back.dat     # background gas concentrations file
+gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 

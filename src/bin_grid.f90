@@ -63,15 +63,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert a density f(vol)d(vol) to f(ln(r))d(ln(r))
+  !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
   subroutine vol_to_lnr(r, f_vol, f_lnr)
     
     !> Radius (m).
     real*8, intent(in) :: r
-    !> Density as a function of volume.
+    !> Concentration as a function of volume.
     real*8, intent(in) :: f_vol
-    !> Density as a function of ln(r).
+    !> Concentration as a function of ln(r).
     real*8, intent(out) :: f_lnr
     
     f_lnr = f_vol * 4d0 * const%pi * r**3

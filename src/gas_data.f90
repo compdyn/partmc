@@ -24,9 +24,9 @@ module pmc_gas_data
   !! Each gas species is identified by an integer \c i between 1 and
   !! \c n_spec. Species \c i has name \c gas_data%%name(i), molecular
   !! weight gas_data%%molec_weight(i), etc. The variable gas data
-  !! describing the current concentrations is stored in the
-  !! gas_state_t structure, so the concentration of species \c i is
-  !! gas_state%%conc(i).
+  !! describing the current mixing ratios is stored in the
+  !! gas_state_t structure, so the mixing ratio of species \c i is
+  !! gas_state%%mix_rat(i).
   type gas_data_t
      !> Number of species.
      integer :: n_spec

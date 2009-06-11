@@ -15,7 +15,7 @@ program extract_sectional_aero_size_num
   character(len=1000) :: in_prefix, in_filename, out_filename
   integer :: ncid
   integer :: dimid_aero_radius
-  integer :: varid_time, varid_aero_number_density
+  integer :: varid_time, varid_aero_number_concentration
   integer :: varid_aero_radius, varid_aero_radius_widths
   integer :: n_bin
   character(len=1000) :: tmp_str
@@ -23,7 +23,7 @@ program extract_sectional_aero_size_num
   real*8, allocatable :: aero_dist(:,:)
   real*8, allocatable :: aero_radius(:)
   real*8, allocatable :: aero_radius_widths(:)
-  real*8, allocatable :: aero_number_density(:)
+  real*8, allocatable :: aero_number_concentration(:)
   real*8, allocatable :: save_aero_radius(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
@@ -108,29 +108,29 @@ program extract_sectional_aero_size_num
      call nc_check(nf90_get_var(ncid, varid_aero_radius_widths, &
           aero_radius_widths))
 
-     ! read aero_number_density
-     call nc_check(nf90_inq_varid(ncid, "aero_number_density", &
-          varid_aero_number_density))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_number_density, &
+     ! read aero_number_concentration
+     call nc_check(nf90_inq_varid(ncid, "aero_number_concentration", &
+          varid_aero_number_concentration))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_number_concentration, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_number_density dimids"
+        write(*,*) "ERROR: unexpected aero_number_concentration dimids"
         call exit(1)
      end if
-     allocate(aero_number_density(n_bin))
-     call nc_check(nf90_get_var(ncid, varid_aero_number_density, &
-          aero_number_density))
+     allocate(aero_number_concentration(n_bin))
+     call nc_check(nf90_get_var(ncid, varid_aero_number_concentration, &
+          aero_number_concentration))
      
      call nc_check(nf90_close(ncid))
 
      ! compute distribution
      dlnr = aero_radius_widths(1)
-     aero_dist(:, i_time) = aero_number_density
+     aero_dist(:, i_time) = aero_number_concentration
 
      deallocate(aero_radius)
      deallocate(aero_radius_widths)
-     deallocate(aero_number_density)
+     deallocate(aero_number_concentration)
   end do
 
   if (n_time == 0) then

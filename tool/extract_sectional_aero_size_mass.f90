@@ -17,14 +17,14 @@ program extract_sectional_aero_size_mass
   integer :: dimid_aero_species, dimid_aero_radius
   integer :: varid_time, varid_aero_species
   integer :: varid_aero_radius, varid_aero_radius_widths
-  integer :: varid_aero_mass_density
+  integer :: varid_aero_mass_concentration
   integer :: n_aero_species, n_bin
   character(len=1000) :: tmp_str, aero_species_names
   real*8 :: time
   real*8, allocatable :: aero_dist(:,:)
   real*8, allocatable :: aero_radius(:)
   real*8, allocatable :: aero_radius_widths(:)
-  real*8, allocatable :: aero_mass_density(:,:)
+  real*8, allocatable :: aero_mass_concentration(:,:)
   real*8, allocatable :: save_aero_radius(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
@@ -121,20 +121,20 @@ program extract_sectional_aero_size_mass
      call nc_check(nf90_get_var(ncid, varid_aero_radius_widths, &
           aero_radius_widths))
 
-     ! read aero_mass_density
-     call nc_check(nf90_inq_varid(ncid, "aero_mass_density", &
-          varid_aero_mass_density))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_density, &
+     ! read aero_mass_concentration
+     call nc_check(nf90_inq_varid(ncid, "aero_mass_concentration", &
+          varid_aero_mass_concentration))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_concentration, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
-        write(*,*) "ERROR: unexpected aero_mass_density dimids"
+        write(*,*) "ERROR: unexpected aero_mass_concentration dimids"
         call exit(1)
      end if
-     allocate(aero_mass_density(n_bin, n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_mass_density, &
-          aero_mass_density))
+     allocate(aero_mass_concentration(n_bin, n_aero_species))
+     call nc_check(nf90_get_var(ncid, varid_aero_mass_concentration, &
+          aero_mass_concentration))
      
      call nc_check(nf90_close(ncid))
 
@@ -142,12 +142,12 @@ program extract_sectional_aero_size_mass
      dlnr = aero_radius_widths(1)
      do i_bin = 1,n_bin
         aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
-             + sum(aero_mass_density(i_bin,:))
+             + sum(aero_mass_concentration(i_bin,:))
      end do
 
      deallocate(aero_radius)
      deallocate(aero_radius_widths)
-     deallocate(aero_mass_density)
+     deallocate(aero_mass_concentration)
   end do
 
   if (n_time == 0) then

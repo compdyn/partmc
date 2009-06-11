@@ -244,7 +244,7 @@ contains
        call aero_state_free(aero_state)
        call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
        aero_state%comp_vol = dble(mc_opt%n_part_max) / &
-            aero_dist_total_num_den(aero_dist_init)
+            aero_dist_total_num_conc(aero_dist_init)
        call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
             aero_data, aero_dist_init, 1d0, 0d0)
        call env_data_init_state(env_data, env_state, 0d0)
@@ -319,7 +319,7 @@ contains
     end if
     
     call spec_read_string(file, 'output_prefix', exact_opt%prefix)
-    call spec_read_real(file, 'num_den', exact_opt%num_den)
+    call spec_read_real(file, 'num_conc', exact_opt%num_conc)
 
     call spec_read_real(file, 't_max', exact_opt%t_max)
     call spec_read_real(file, 't_output', exact_opt%t_output)

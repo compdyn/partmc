@@ -1,7 +1,4 @@
 
-Change gas_concentration to gas_molar_ratio, etc. Then change mass
-density to mass concentration, etc.
-
 Add gnuplot scripts for all testcases and remove plot.py.
 
 Input fractions only by mass (no volume, etc).

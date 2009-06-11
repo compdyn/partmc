@@ -45,7 +45,7 @@ contains
 
     ! FIXME: don't rely on binned data, but rather compute the total
     ! water transfered in condense_particle() and return it
-    pre_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
+    pre_water_vol = sum(aero_binned%vol_conc(:,aero_data%i_water)) &
          * aero_state%comp_vol * bin_grid%dlnr
 
     do i_bin = 1,bin_grid%n_bin
@@ -64,7 +64,7 @@ contains
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(aero_binned%vol_den(:,aero_data%i_water)) &
+    post_water_vol = sum(aero_binned%vol_conc(:,aero_data%i_water)) &
          * aero_state%comp_vol * bin_grid%dlnr
     call env_state_change_water_volume(env_state, aero_data, &
          (post_water_vol - pre_water_vol) / aero_state%comp_vol)

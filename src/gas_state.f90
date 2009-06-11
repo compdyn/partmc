@@ -17,14 +17,14 @@ module pmc_gas_state
   use mpi
 #endif
 
-  !> Current state of the gas concentrations in the system.
+  !> Current state of the gas mixing ratios in the system.
   !!
   !! The gas species are defined by the gas_data_t structure, so that
-  !! \c gas_state%%conc(i) is the current concentration of the gas
+  !! \c gas_state%%mix_rat(i) is the current mixing ratio of the gas
   !! with name \c gas_data%%name(i), etc.
   type gas_state_t
-     !> Length n_spec, concentration (ppb).
-     real*8, pointer :: conc(:)
+     !> Length n_spec, mixing ratio (ppb).
+     real*8, pointer :: mix_rat(:)
   end type gas_state_t
 
 contains
@@ -39,7 +39,7 @@ contains
     !> Number of species.
     integer, intent(in) :: n_spec
 
-    allocate(gas_state%conc(n_spec))
+    allocate(gas_state%mix_rat(n_spec))
     call gas_state_zero(gas_state)
 
   end subroutine gas_state_alloc
@@ -52,7 +52,7 @@ contains
     !> Gas state to be freed.
     type(gas_state_t), intent(inout) :: gas_state
 
-    deallocate(gas_state%conc)
+    deallocate(gas_state%mix_rat)
 
   end subroutine gas_state_free
 
@@ -64,7 +64,7 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
 
-    gas_state%conc = 0d0
+    gas_state%mix_rat = 0d0
 
   end subroutine gas_state_zero
 
@@ -80,10 +80,10 @@ contains
 
     integer :: n_spec
 
-    n_spec = size(from_state%conc)
-    deallocate(to_state%conc)
-    allocate(to_state%conc(n_spec))
-    to_state%conc = from_state%conc
+    n_spec = size(from_state%mix_rat)
+    deallocate(to_state%mix_rat)
+    allocate(to_state%mix_rat(n_spec))
+    to_state%mix_rat = from_state%mix_rat
 
   end subroutine gas_state_copy
 
@@ -97,7 +97,7 @@ contains
     !> Scale factor.
     real*8, intent(in) :: alpha
 
-    gas_state%conc = gas_state%conc * alpha
+    gas_state%mix_rat = gas_state%mix_rat * alpha
 
   end subroutine gas_state_scale
 
@@ -111,7 +111,7 @@ contains
     !> Incremental state.
     type(gas_state_t), intent(in) :: gas_state_delta
 
-    gas_state%conc = gas_state%conc + gas_state_delta%conc
+    gas_state%mix_rat = gas_state%mix_rat + gas_state_delta%mix_rat
 
   end subroutine gas_state_add
 
@@ -125,7 +125,7 @@ contains
     !> Incremental state.
     type(gas_state_t), intent(in) :: gas_state_delta
 
-    gas_state%conc = gas_state%conc - gas_state_delta%conc
+    gas_state%mix_rat = gas_state%mix_rat - gas_state_delta%mix_rat
 
   end subroutine gas_state_sub
 
@@ -141,7 +141,7 @@ contains
     !> Existing gas state.
     type(gas_state_t), intent(inout) :: gas_state_y
 
-    gas_state_y%conc = alpha * gas_state_x%conc + gas_state_y%conc
+    gas_state_y%mix_rat = alpha * gas_state_x%mix_rat + gas_state_y%mix_rat
 
   end subroutine gas_state_axpy
 
@@ -221,14 +221,14 @@ contains
 
     ! copy over the data
     call gas_state_alloc(gas_state, gas_data%n_spec)
-    gas_state%conc = 0d0
+    gas_state%mix_rat = 0d0
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
           call die_msg(129794076, 'unknown species ' // &
                trim(species_name(i)) // ' in file ' // trim(read_name))
        end if
-       gas_state%conc(species) = species_data(i,1)
+       gas_state%mix_rat(species) = species_data(i,1)
     end do
     deallocate(species_name)
     deallocate(species_data)
@@ -304,7 +304,7 @@ contains
                // trim(read_name))
        end if
        do i_time = 1,n_time
-          gas_states(i_time)%conc(species) = species_data(i,i_time)
+          gas_states(i_time)%mix_rat(species) = species_data(i,i_time)
        end do
     end do
     deallocate(species_name)
@@ -324,12 +324,12 @@ contains
 
     integer :: n_spec, i_spec, i, n
 
-    n_spec = size(gas_state_vec(1)%conc)
+    n_spec = size(gas_state_vec(1)%mix_rat)
     call gas_state_alloc(gas_state_avg, n_spec)
     n = size(gas_state_vec)
     do i_spec = 1,n_spec
-       call average_real((/(gas_state_vec(i)%conc(i_spec),i=1,n)/), &
-            gas_state_avg%conc(i_spec))
+       call average_real((/(gas_state_vec(i)%mix_rat(i_spec),i=1,n)/), &
+            gas_state_avg%mix_rat(i_spec))
     end do
     
   end subroutine gas_state_average
@@ -345,9 +345,9 @@ contains
 #ifdef PMC_USE_MPI
     type(gas_state_t) :: val_avg
 
-    call gas_state_alloc(val_avg, size(val%conc))
-    call pmc_mpi_allreduce_average_real_array(val%conc, val_avg%conc)
-    val%conc = val_avg%conc
+    call gas_state_alloc(val_avg, size(val%mix_rat))
+    call pmc_mpi_allreduce_average_real_array(val%mix_rat, val_avg%mix_rat)
+    val%mix_rat = val_avg%mix_rat
     call gas_state_free(val_avg)
 #endif
 
@@ -362,7 +362,7 @@ contains
     type(gas_state_t), intent(in) :: val
 
     pmc_mpi_pack_size_gas_state = &
-         + pmc_mpi_pack_size_real_array(val%conc)
+         + pmc_mpi_pack_size_real_array(val%mix_rat)
 
   end function pmc_mpi_pack_size_gas_state
 
@@ -382,7 +382,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_real_array(buffer, position, val%conc)
+    call pmc_mpi_pack_real_array(buffer, position, val%mix_rat)
     call assert(655827004, &
          position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
@@ -405,7 +405,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_real_array(buffer, position, val%conc)
+    call pmc_mpi_unpack_real_array(buffer, position, val%mix_rat)
     call assert(520815247, &
          position - prev_position == pmc_mpi_pack_size_gas_state(val))
 #endif
@@ -423,7 +423,7 @@ contains
     !> Result.
     type(gas_state_t), intent(out) :: val_avg
 
-    call pmc_mpi_reduce_avg_real_array(val%conc, val_avg%conc)
+    call pmc_mpi_reduce_avg_real_array(val%mix_rat, val_avg%mix_rat)
 
   end subroutine pmc_mpi_reduce_avg_gas_state
 
@@ -444,8 +444,8 @@ contains
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)
 
-    call pmc_nc_write_real_1d(ncid, gas_state%conc, &
-         "gas_concentration", "ppb", (/ dimid_gas_species /))
+    call pmc_nc_write_real_1d(ncid, gas_state%mix_rat, &
+         "gas_mixing_ratio", "ppb", (/ dimid_gas_species /))
 
   end subroutine gas_state_output_netcdf
 
@@ -465,8 +465,8 @@ contains
 
     call gas_state_free(gas_state)
     call gas_state_alloc(gas_state, gas_data%n_spec)
-    call pmc_nc_read_real_1d(ncid, gas_state%conc, &
-         "gas_concentration", unit)
+    call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
+         "gas_mixing_ratio", unit)
 
   end subroutine gas_state_input_netcdf
 

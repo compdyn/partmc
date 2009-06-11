@@ -276,7 +276,7 @@ contains
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
-       n_samp_avg = sample_vol * aero_mode%num_den
+       n_samp_avg = sample_vol * aero_mode%num_conc
        n_samp = rand_poisson(n_samp_avg)
        do i_samp = 1,n_samp
           call aero_mode_sample_radius(aero_mode, radius)
@@ -515,14 +515,14 @@ contains
     integer :: b, j, s
     type(aero_particle_t), pointer :: aero_particle
     
-    aero_binned%num_den = 0d0
-    aero_binned%vol_den = 0d0
+    aero_binned%num_conc = 0d0
+    aero_binned%vol_conc = 0d0
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(b)%n_part
           aero_particle => aero_state%bin(b)%particle(j)
-          aero_binned%vol_den(b,:) = aero_binned%vol_den(b,:) &
+          aero_binned%vol_conc(b,:) = aero_binned%vol_conc(b,:) &
                + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
-          aero_binned%num_den(b) = aero_binned%num_den(b) &
+          aero_binned%num_conc(b) = aero_binned%num_conc(b) &
                + 1d0 / aero_state%comp_vol / bin_grid%dlnr
        end do
     end do
@@ -547,16 +547,16 @@ contains
     integer :: b, j, s, b_dry
     type(aero_particle_t), pointer :: aero_particle
     
-    aero_binned%num_den = 0d0
-    aero_binned%vol_den = 0d0
+    aero_binned%num_conc = 0d0
+    aero_binned%vol_conc = 0d0
     do b = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(b)%n_part
           aero_particle => aero_state%bin(b)%particle(j)
           b_dry = bin_grid_particle_in_bin(bin_grid, &
                aero_particle_solute_volume(aero_particle, aero_data))
-          aero_binned%vol_den(b_dry,:) = aero_binned%vol_den(b_dry,:) &
+          aero_binned%vol_conc(b_dry,:) = aero_binned%vol_conc(b_dry,:) &
                + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
-          aero_binned%num_den(b_dry) = aero_binned%num_den(b_dry) &
+          aero_binned%num_conc(b_dry) = aero_binned%num_conc(b_dry) &
                + 1d0 / aero_state%comp_vol / bin_grid%dlnr
        end do
     end do
@@ -818,8 +818,8 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     
-    real*8 :: check_bin_v, check_vol_den, vol_tol
-    real*8 :: num_tol, state_num_den
+    real*8 :: check_bin_v, check_vol_conc, vol_tol
+    real*8 :: num_tol, state_num_conc
     integer :: i, k, k_check, s, n_part_check, id, max_id
     logical :: error
     logical, allocatable :: id_present(:)
@@ -847,35 +847,35 @@ contains
        end do
     end do
     
-    ! check the aero_binned%num_den array
+    ! check the aero_binned%num_conc array
     do k = 1,bin_grid%n_bin
        num_tol = 0.01d0 / aero_state%comp_vol / bin_grid%dlnr
-       state_num_den = dble(aero_state%bin(k)%n_part) / aero_state%comp_vol &
+       state_num_conc = dble(aero_state%bin(k)%n_part) / aero_state%comp_vol &
             / bin_grid%dlnr
-       if (.not. almost_equal_abs(state_num_den, &
-            aero_binned%num_den(k), num_tol)) then
+       if (.not. almost_equal_abs(state_num_conc, &
+            aero_binned%num_conc(k), num_tol)) then
           write(0,'(a10,a20,a20,a20,a20)') 'k', 'bins(k)%n_part', &
-               'state_num_den', 'num_den(k)', 'comp_vol'
+               'state_num_conc', 'num_conc(k)', 'comp_vol'
           write(0,'(i10,i20,e20.10,e20.10,e20.10)') k, &
-               aero_state%bin(k)%n_part, state_num_den, &
-               aero_binned%num_den(k), aero_state%comp_vol
+               aero_state%bin(k)%n_part, state_num_conc, &
+               aero_binned%num_conc(k), aero_state%comp_vol
           error = .true.
        end if
     end do
     
-    ! check the aero_binned%vol_den array
+    ! check the aero_binned%vol_conc array
     do k = 1,bin_grid%n_bin
        vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
        do s = 1,aero_data%n_spec
-          check_vol_den = sum((/(aero_state%bin(k)%particle(i)%vol(s), &
+          check_vol_conc = sum((/(aero_state%bin(k)%particle(i)%vol(s), &
                i = 1,aero_state%bin(k)%n_part)/)) &
                / aero_state%comp_vol / bin_grid%dlnr
-          if (.not. almost_equal_abs(check_vol_den, &
-               aero_binned%vol_den(k,s), vol_tol)) then
-             write(0,'(a10,a10,a25,a25)') 'k', 's', 'check_vol_den', &
-                  'vol_den(k,s)'
-             write(0,'(i10,i10,e25.10,e25.10)') k, s, check_vol_den, &
-                  aero_binned%vol_den(k,s)
+          if (.not. almost_equal_abs(check_vol_conc, &
+               aero_binned%vol_conc(k,s), vol_tol)) then
+             write(0,'(a10,a10,a25,a25)') 'k', 's', 'check_vol_conc', &
+                  'vol_conc(k,s)'
+             write(0,'(i10,i10,e25.10,e25.10)') k, s, check_vol_conc, &
+                  aero_binned%vol_conc(k,s)
              error = .true.
           end if
        end do

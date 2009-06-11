@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Matthew West
+! Copyright (C) 2007, 2008, 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -255,7 +255,7 @@ contains
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert ppbv to molec/cc
-          cnn(i_spec_mosaic) = gas_state%conc(i_spec) * cair_mlc / ppb
+          cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
 #endif
@@ -342,7 +342,7 @@ contains
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert molec/cc to ppbv
-          gas_state%conc(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
+          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
        end if
     end do
 #endif

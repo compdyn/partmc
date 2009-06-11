@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008 Matthew West
+! Copyright (C) 2007, 2008, 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -92,7 +92,7 @@ contains
   !!                   = n_{\rm back}(r)
   !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(r)
   !! \f]
-  subroutine soln_zero(bin_grid, aero_data, time, num_den, mean_vol, &
+  subroutine soln_zero(bin_grid, aero_data, time, num_conc, mean_vol, &
        rho_p, aero_dist_init, env_state, aero_binned)
 
     !> Bin grid.
@@ -102,7 +102,7 @@ contains
     !> Current time (s).
     real*8, intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_den
+    real*8, intent(in) :: num_conc
     !> Mean init volume (m^3).
     real*8, intent(in) :: mean_vol
     !> Particle density (kg/m^3).

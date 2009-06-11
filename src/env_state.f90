@@ -62,7 +62,7 @@ module pmc_env_state
      type(gas_state_t) :: gas_emissions
      !> Gas emisssion rate (s^{-1}).
      real*8 :: gas_emission_rate
-     !> Background gas concentrations.
+     !> Background gas mixing ratios.
      type(gas_state_t) :: gas_background
      !> Gas-background dilution rate (s^{-1}).
      real*8 :: gas_dilution_rate
@@ -226,7 +226,7 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aero_data constants.
     type(aero_data_t), intent(in) :: aero_data
-    !> Conc of water added (m^3/m^3).
+    !> Volume concentration of water added (m^3/m^3).
     real*8, intent(in) :: dv
     
     real*8 pmv     ! ambient water vapor pressure (Pa)
@@ -319,7 +319,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     
-    gas_state%conc = gas_state%conc / env_state_air_molar_den(env_state) * 1d9
+    gas_state%mix_rat = gas_state%mix_rat / env_state_air_molar_den(env_state) * 1d9
     
   end subroutine gas_state_mole_dens_to_ppb
 

@@ -23,20 +23,20 @@ module pmc_aero_binned
   !> Aerosol number and volume distributions stored per bin.
   !!
   !! These quantities are densities both in volume (per m^3) and in
-  !! radius (per dlnr). The total density per volume is computed as
-  !! sum(aero_binned\%num_den * bin_grid\%dlnr).
+  !! radius (per dlnr). The total concentration per volume is computed as
+  !! sum(aero_binned\%num_conc * bin_grid\%dlnr).
   !!
   !! An aero_binned_t is similar to an aero_dist_t in that they both
   !! store binned aerosol distributions. The difference is that an
   !! aero_dist_t has the same composition in every bin, whereas an
   !! aero_binned_t can have aerosol composition that varies per bin.
   type aero_binned_t
-     !> Number density per bin (#/m^3/dlnr).
+     !> Number concentration per bin (#/m^3/dlnr).
      !! Array length is typically \c bin_grid\%n_bin.
-     real*8, pointer :: num_den(:)
-     !> Volume density per bin and per species (m^3/m^3/dlnr).
+     real*8, pointer :: num_conc(:)
+     !> Volume concentration per bin and per species (m^3/m^3/dlnr).
      !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
-     real*8, pointer :: vol_den(:,:)
+     real*8, pointer :: vol_conc(:,:)
   end type aero_binned_t
 
 contains
@@ -53,8 +53,8 @@ contains
     !> Number of aerosol species to allocate (typically \c aero_data%%n_spec).
     integer, intent(in) :: n_spec
 
-    allocate(aero_binned%num_den(n_bin))
-    allocate(aero_binned%vol_den(n_bin, n_spec))
+    allocate(aero_binned%num_conc(n_bin))
+    allocate(aero_binned%vol_conc(n_bin, n_spec))
     call aero_binned_zero(aero_binned)
 
   end subroutine aero_binned_alloc
@@ -67,8 +67,8 @@ contains
     !> Structure to free.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    deallocate(aero_binned%num_den)
-    deallocate(aero_binned%vol_den)
+    deallocate(aero_binned%num_conc)
+    deallocate(aero_binned%vol_conc)
 
   end subroutine aero_binned_free
 
@@ -80,8 +80,8 @@ contains
     !> Structure to zero.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    aero_binned%num_den = 0d0
-    aero_binned%vol_den = 0d0
+    aero_binned%num_conc = 0d0
+    aero_binned%vol_conc = 0d0
 
   end subroutine aero_binned_zero
 
@@ -106,9 +106,9 @@ contains
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    aero_binned%num_den(bin) = aero_binned%num_den(bin) &
+    aero_binned%num_conc(bin) = aero_binned%num_conc(bin) &
          + 1d0 / comp_vol / bin_grid%dlnr
-    aero_binned%vol_den(bin,:) = aero_binned%vol_den(bin,:) &
+    aero_binned%vol_conc(bin,:) = aero_binned%vol_conc(bin,:) &
          + aero_particle%vol / comp_vol / bin_grid%dlnr
 
   end subroutine aero_binned_add_particle_in_bin
@@ -159,9 +159,9 @@ contains
     !> Particle to remove.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    aero_binned%num_den(bin) = aero_binned%num_den(bin) &
+    aero_binned%num_conc(bin) = aero_binned%num_conc(bin) &
          - 1d0 / comp_vol / bin_grid%dlnr
-    aero_binned%vol_den(bin,:) = aero_binned%vol_den(bin,:) &
+    aero_binned%vol_conc(bin,:) = aero_binned%vol_conc(bin,:) &
          - aero_particle%vol / comp_vol / bin_grid%dlnr
 
   end subroutine aero_binned_remove_particle_in_bin
@@ -203,17 +203,17 @@ contains
 
     integer :: n_bin, n_spec, i_bin, i_spec, n, i
 
-    n_bin = size(aero_binned_vec(1)%vol_den, 1)
-    n_spec = size(aero_binned_vec(1)%vol_den, 2)
+    n_bin = size(aero_binned_vec(1)%vol_conc, 1)
+    n_spec = size(aero_binned_vec(1)%vol_conc, 2)
     call aero_binned_alloc(aero_binned_avg, n_bin, n_spec)
     n = size(aero_binned_vec)
     do i_bin = 1,n_bin
-       call average_real((/(aero_binned_vec(i)%num_den(i_bin),i=1,n)/), &
-            aero_binned_avg%num_den(i_bin))
+       call average_real((/(aero_binned_vec(i)%num_conc(i_bin),i=1,n)/), &
+            aero_binned_avg%num_conc(i_bin))
        do i_spec = 1,n_spec
-          call average_real((/(aero_binned_vec(i)%vol_den(i_bin,i_spec),&
+          call average_real((/(aero_binned_vec(i)%vol_conc(i_bin,i_spec),&
                i=1,n)/), &
-               aero_binned_avg%vol_den(i_bin,i_spec))
+               aero_binned_avg%vol_conc(i_bin,i_spec))
        end do
     end do
     
@@ -231,8 +231,8 @@ contains
     !> Structure to add to aero_binned.
     type(aero_binned_t), intent(in) :: aero_binned_delta
 
-    aero_binned%num_den = aero_binned%num_den + aero_binned_delta%num_den
-    aero_binned%vol_den = aero_binned%vol_den + aero_binned_delta%vol_den
+    aero_binned%num_conc = aero_binned%num_conc + aero_binned_delta%num_conc
+    aero_binned%vol_conc = aero_binned%vol_conc + aero_binned_delta%vol_conc
 
   end subroutine aero_binned_add
 
@@ -248,8 +248,8 @@ contains
     !> Structure to subtract from aero_binned.
     type(aero_binned_t), intent(in) :: aero_binned_delta
 
-    aero_binned%num_den = aero_binned%num_den - aero_binned_delta%num_den
-    aero_binned%vol_den = aero_binned%vol_den - aero_binned_delta%vol_den
+    aero_binned%num_conc = aero_binned%num_conc - aero_binned_delta%num_conc
+    aero_binned%vol_conc = aero_binned%vol_conc - aero_binned_delta%vol_conc
 
   end subroutine aero_binned_sub
 
@@ -265,8 +265,8 @@ contains
     !> Scale factor.
     real*8, intent(in) :: alpha
 
-    aero_binned%num_den = aero_binned%num_den * alpha
-    aero_binned%vol_den = aero_binned%vol_den * alpha
+    aero_binned%num_conc = aero_binned%num_conc * alpha
+    aero_binned%vol_conc = aero_binned%vol_conc * alpha
 
   end subroutine aero_binned_scale
 
@@ -285,11 +285,11 @@ contains
     integer :: n_bin, n_spec
 
     call aero_binned_free(aero_binned_to)
-    n_bin = size(aero_binned_from%vol_den, 1)
-    n_spec = size(aero_binned_from%vol_den, 2)
+    n_bin = size(aero_binned_from%vol_conc, 1)
+    n_spec = size(aero_binned_from%vol_conc, 2)
     call aero_binned_alloc(aero_binned_to, n_bin, n_spec)
-    aero_binned_to%num_den = aero_binned_from%num_den
-    aero_binned_to%vol_den = aero_binned_from%vol_den
+    aero_binned_to%num_conc = aero_binned_from%num_conc
+    aero_binned_to%vol_conc = aero_binned_from%vol_conc
 
   end subroutine aero_binned_copy
 
@@ -311,35 +311,35 @@ contains
     type(aero_dist_t), intent(in) :: aero_dist
 
     integer :: i_mode, i_spec
-    real*8 :: mode_num_den(bin_grid%n_bin)
-    real*8 :: mode_vol_den(bin_grid%n_bin)
+    real*8 :: mode_num_conc(bin_grid%n_bin)
+    real*8 :: mode_vol_conc(bin_grid%n_bin)
     real*8 :: mode_vol_spec_den(bin_grid%n_bin, aero_data%n_spec)
     type(aero_mode_t), pointer :: aero_mode
 
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
        if (aero_mode%type == "log_normal") then
-          call num_den_log_normal(aero_mode%mean_radius, &
-               aero_mode%log10_std_dev_radius, bin_grid, mode_num_den)
-          call vol_den_log_normal(aero_mode%mean_radius, &
-               aero_mode%log10_std_dev_radius, bin_grid, mode_vol_den)
+          call num_conc_log_normal(aero_mode%mean_radius, &
+               aero_mode%log10_std_dev_radius, bin_grid, mode_num_conc)
+          call vol_conc_log_normal(aero_mode%mean_radius, &
+               aero_mode%log10_std_dev_radius, bin_grid, mode_vol_conc)
        elseif (aero_mode%type == "exp") then
-          call num_den_exp(aero_mode%mean_radius, bin_grid, mode_num_den)
-          call vol_den_exp(aero_mode%mean_radius, bin_grid, mode_vol_den)
+          call num_conc_exp(aero_mode%mean_radius, bin_grid, mode_num_conc)
+          call vol_conc_exp(aero_mode%mean_radius, bin_grid, mode_vol_conc)
        elseif (aero_mode%type == "mono") then
-          call num_den_mono(aero_mode%mean_radius, bin_grid, mode_num_den)
-          call vol_den_mono(aero_mode%mean_radius, bin_grid, mode_vol_den)
+          call num_conc_mono(aero_mode%mean_radius, bin_grid, mode_num_conc)
+          call vol_conc_mono(aero_mode%mean_radius, bin_grid, mode_vol_conc)
        else
           call die_msg(749122931, "Unknown aero_mode type")
        end if
-       mode_num_den = mode_num_den * aero_mode%num_den
-       mode_vol_den = mode_vol_den * aero_mode%num_den
+       mode_num_conc = mode_num_conc * aero_mode%num_conc
+       mode_vol_conc = mode_vol_conc * aero_mode%num_conc
        do i_spec = 1,aero_data%n_spec
-          mode_vol_spec_den(:,i_spec) = mode_vol_den &
+          mode_vol_spec_den(:,i_spec) = mode_vol_conc &
                * aero_mode%vol_frac(i_spec)
        end do
-       aero_binned%num_den = aero_binned%num_den + mode_num_den
-       aero_binned%vol_den = aero_binned%vol_den + mode_vol_spec_den
+       aero_binned%num_conc = aero_binned%num_conc + mode_num_conc
+       aero_binned%vol_conc = aero_binned%vol_conc + mode_vol_spec_den
     end do
 
   end subroutine aero_binned_add_aero_dist
@@ -355,8 +355,8 @@ contains
     type(aero_binned_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_binned = &
-         pmc_mpi_pack_size_real_array(val%num_den) &
-         + pmc_mpi_pack_size_real_array_2d(val%vol_den)
+         pmc_mpi_pack_size_real_array(val%num_conc) &
+         + pmc_mpi_pack_size_real_array_2d(val%vol_conc)
 
   end function pmc_mpi_pack_size_aero_binned
 
@@ -378,8 +378,8 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_real_array(buffer, position, val%num_den)
-    call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_den)
+    call pmc_mpi_pack_real_array(buffer, position, val%num_conc)
+    call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_conc)
     call assert(348207873, &
          position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
@@ -404,8 +404,8 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_real_array(buffer, position, val%num_den)
-    call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_den)
+    call pmc_mpi_unpack_real_array(buffer, position, val%num_conc)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_conc)
     call assert(878267066, &
          position - prev_position == pmc_mpi_pack_size_aero_binned(val))
 #endif
@@ -423,8 +423,8 @@ contains
     !> Averaged result (only valid on root processor).
     type(aero_binned_t), intent(out) :: val_avg
 
-    call pmc_mpi_reduce_avg_real_array(val%num_den, val_avg%num_den)
-    call pmc_mpi_reduce_avg_real_array_2d(val%vol_den, val_avg%vol_den)
+    call pmc_mpi_reduce_avg_real_array(val%num_conc, val_avg%num_conc)
+    call pmc_mpi_reduce_avg_real_array_2d(val%vol_conc, val_avg%vol_conc)
 
   end subroutine pmc_mpi_reduce_avg_aero_binned
 
@@ -448,7 +448,7 @@ contains
     integer :: i_bin
     
     do i_bin = 1,bin_grid%n_bin
-       mass_den(i_bin,:) = aero_binned%vol_den(i_bin,:) &
+       mass_den(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
             * aero_data%density
     end do
 
@@ -457,10 +457,10 @@ contains
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
 
-    call pmc_nc_write_real_1d(ncid, aero_binned%num_den, &
-         "aero_number_density", "1/m^3", (/ dimid_aero_radius /))
+    call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &
+         "aero_number_concentration", "1/m^3", (/ dimid_aero_radius /))
     call pmc_nc_write_real_2d(ncid, mass_den, &
-         "aero_mass_density", "kg/m^3", &
+         "aero_mass_concentration", "kg/m^3", &
          (/ dimid_aero_radius, dimid_aero_species /))
 
   end subroutine aero_binned_output_netcdf
@@ -484,13 +484,13 @@ contains
     integer :: i_bin
     character(len=1000) :: unit
 
-    call pmc_nc_read_real_1d(ncid, aero_binned%num_den, &
-         "aero_number_density", unit)
+    call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
+         "aero_number_concentration", unit)
     call pmc_nc_read_real_2d(ncid, mass_den, &
-         "aero_mass_density", unit)
+         "aero_mass_concentration", unit)
 
     do i_bin = 1,bin_grid%n_bin
-       aero_binned%vol_den(i_bin,:) = mass_den(i_bin,:) &
+       aero_binned%vol_conc(i_bin,:) = mass_den(i_bin,:) &
             / aero_data%density
     end do
 

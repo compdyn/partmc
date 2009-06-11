@@ -56,7 +56,7 @@ module pmc_env_data
      real*8, pointer :: gas_dilution_time(:)
      !> Gas-background dilution rates at set-points (s^{-1}).
      real*8, pointer :: gas_dilution_rate(:)
-     !> Background gas concentrations at set-points.
+     !> Background gas mixing ratios at set-points.
      type(gas_state_t), pointer :: gas_background(:)
 
      !> Aerosol emission set-points times (s).
@@ -204,7 +204,7 @@ contains
     real*8 :: pmv
 
     ! update temperature and adjust relative humidity to maintain
-    ! water concentration
+    ! water mixing ratio
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
     env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)

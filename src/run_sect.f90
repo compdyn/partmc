@@ -109,7 +109,7 @@ contains
 
     ! output data structure
     call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
-    aero_binned%vol_den = 0d0
+    aero_binned%vol_conc = 0d0
     call gas_state_alloc(gas_state, gas_data%n_spec)
     
     ! mass and radius grid
@@ -161,11 +161,11 @@ contains
     do i_time = 1, num_t
 
        if (sect_opt%do_coagulation) then
-          g = aero_binned%vol_den(:,1) * aero_data%density(1)
+          g = aero_binned%vol_conc(:,1) * aero_data%density(1)
           call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
-          aero_binned%vol_den(:,1) = g / aero_data%density(1)
-          aero_binned%num_den = aero_binned%vol_den(:,1) / bin_grid%v
+          aero_binned%vol_conc(:,1) = g / aero_data%density(1)
+          aero_binned%num_conc = aero_binned%vol_conc(:,1) / bin_grid%v
        end if
 
        time = sect_opt%t_max * dble(i_time) / dble(num_t)

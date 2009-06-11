@@ -9,7 +9,7 @@
 !!
 !! The initial size distributions are computed as number densities, so
 !! they can be used for both sectional and particle-resolved
-!! simulations. The routine dist_to_n() converts a number density
+!! simulations. The routine dist_to_n() converts a number concentration
 !! distribution to an actual number of particles ready for a
 !! particle-resolved simulation.
 !!
@@ -36,8 +36,8 @@ module pmc_aero_dist
   !> An aerosol size distribution mode.
   !!
   !! Each mode is assumed to be fully internally mixed so that every
-  !! particle has the same composition. The \c num_den array then
-  !! stores the number density distribution.
+  !! particle has the same composition. The \c num_conc array then
+  !! stores the number concentration distribution.
   type aero_mode_t
      !> Mode name, used to track particle sources.
      character(len=AERO_DIST_NAME_LEN) :: name
@@ -47,8 +47,8 @@ module pmc_aero_dist
      real*8 :: mean_radius
      !> Log base 10 of geometric standard deviation of radius, if necessary (m).
      real*8 :: log10_std_dev_radius
-     !> Total number density of mode (#/m^3).
-     real*8 :: num_den
+     !> Total number concentration of mode (#/m^3).
+     real*8 :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
      real*8, pointer :: vol_frac(:)
   end type aero_mode_t
@@ -105,7 +105,7 @@ contains
     aero_mode_to%type = aero_mode_from%type
     aero_mode_to%mean_radius = aero_mode_from%mean_radius
     aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
-    aero_mode_to%num_den = aero_mode_from%num_den
+    aero_mode_to%num_conc = aero_mode_from%num_conc
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
 
   end subroutine aero_mode_copy
@@ -178,20 +178,20 @@ contains
 
   !> Returns the total number concentration in #/m^3 of a distribution.
   !> (#/m^3)
-  real*8 function aero_dist_total_num_den(aero_dist)
+  real*8 function aero_dist_total_num_conc(aero_dist)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    aero_dist_total_num_den = sum(aero_dist%mode%num_den)
+    aero_dist_total_num_conc = sum(aero_dist%mode%num_conc)
 
-  end function aero_dist_total_num_den
+  end function aero_dist_total_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution, normalized so that
-  !> sum(num_den(k) * dlnr) = 1
-  subroutine num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
+  !> sum(num_conc(k) * dlnr) = 1
+  subroutine num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
     
     !> Geometric mean radius (m).
     real*8, intent(in) :: mean_radius
@@ -199,13 +199,13 @@ contains
     real*8, intent(in) :: log_sigma
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Normalized number density (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_den(bin_grid%n_bin)
+    !> Normalized number concentration (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
     
     do k = 1,bin_grid%n_bin
-       num_den(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
+       num_conc(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
             dexp(-(dlog10(vol2rad(bin_grid%v(k))) &
             - dlog10(mean_radius))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
@@ -217,12 +217,12 @@ contains
 
     ! Remember that log_e(r) = log_10(r) * log_e(10).
     
-  end subroutine num_den_log_normal
+  end subroutine num_conc_log_normal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
-  subroutine vol_den_log_normal(mean_radius, log_sigma, bin_grid, vol_den)
+  subroutine vol_conc_log_normal(mean_radius, log_sigma, bin_grid, vol_conc)
     
     !> Geometric mean radius (m).
     real*8, intent(in) :: mean_radius
@@ -230,100 +230,100 @@ contains
     real*8, intent(in) :: log_sigma
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Normalized volume density (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    !> Normalized volume concentration (#(ln(r))d(ln(r))).
+    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
     
-    real*8 :: num_den(bin_grid%n_bin)
+    real*8 :: num_conc(bin_grid%n_bin)
 
-    call num_den_log_normal(mean_radius, log_sigma, bin_grid, num_den)
-    vol_den = num_den * bin_grid%v
+    call num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
+    vol_conc = num_conc * bin_grid%v
     
-  end subroutine vol_den_log_normal
+  end subroutine vol_conc_log_normal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume
   !> n(v) = 1 / mean_vol * exp(- v / mean_vol)
-  !> Normalized so that sum(num_den(k) * dlnr) = 1
-  subroutine num_den_exp(mean_radius, bin_grid, num_den)
+  !> Normalized so that sum(num_conc(k) * dlnr) = 1
+  subroutine num_conc_exp(mean_radius, bin_grid, num_conc)
     
     !> Mean radius (m).
     real*8, intent(in) :: mean_radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Num den (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_den(bin_grid%n_bin)
+    real*8, intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
-    real*8 :: mean_vol, num_den_vol
+    real*8 :: mean_vol, num_conc_vol
     
     mean_vol = rad2vol(mean_radius)
     do k = 1,bin_grid%n_bin
-       num_den_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
-       call vol_to_lnr(vol2rad(bin_grid%v(k)), num_den_vol, num_den(k))
+       num_conc_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
+       call vol_to_lnr(vol2rad(bin_grid%v(k)), num_conc_vol, num_conc(k))
     end do
     
-  end subroutine num_den_exp
+  end subroutine num_conc_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
-  subroutine vol_den_exp(mean_radius, bin_grid, vol_den)
+  subroutine vol_conc_exp(mean_radius, bin_grid, vol_conc)
     
     !> Mean radius (m).
     real*8, intent(in) :: mean_radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Num den (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
     
-    real*8 :: num_den(bin_grid%n_bin)
+    real*8 :: num_conc(bin_grid%n_bin)
 
-    call num_den_exp(mean_radius, bin_grid, num_den)
-    vol_den = num_den * bin_grid%v
+    call num_conc_exp(mean_radius, bin_grid, num_conc)
+    vol_conc = num_conc * bin_grid%v
     
-  end subroutine vol_den_exp
+  end subroutine vol_conc_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution.
-  !> Normalized so that sum(num_den(k) * dlnr) = 1
-  subroutine num_den_mono(radius, bin_grid, num_den)
+  !> Normalized so that sum(num_conc(k) * dlnr) = 1
+  subroutine num_conc_mono(radius, bin_grid, num_conc)
     
     !> Radius of each particle (m^3).
     real*8, intent(in) :: radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Num den (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_den(bin_grid%n_bin)
+    real*8, intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
 
-    num_den = 0d0
+    num_conc = 0d0
     k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
-    num_den(k) = 1d0 / bin_grid%dlnr
+    num_conc(k) = 1d0 / bin_grid%dlnr
     
-  end subroutine num_den_mono
+  end subroutine num_conc_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution in volume.
-  subroutine vol_den_mono(radius, bin_grid, vol_den)
+  subroutine vol_conc_mono(radius, bin_grid, vol_conc)
     
     !> Radius of each particle (m^3).
     real*8, intent(in) :: radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Num den (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_den(bin_grid%n_bin)
+    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
     
     integer :: k
 
-    vol_den = 0d0
+    vol_conc = 0d0
     k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
-    vol_den(k) = 1d0 / bin_grid%dlnr * rad2vol(radius)
+    vol_conc(k) = 1d0 / bin_grid%dlnr * rad2vol(radius)
     
-  end subroutine vol_den_mono
+  end subroutine vol_conc_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -468,7 +468,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read the shape (number density profile) of one mode of an aerosol
+  !> Read the shape (number concentration profile) of one mode of an aerosol
   !> distribution.
   subroutine spec_read_aero_mode_shape(file, aero_mode)
 
@@ -479,7 +479,7 @@ contains
 
     character(len=MAX_VAR_LEN) :: mode_type
 
-    call spec_read_real(file, 'num_den', aero_mode%num_den)
+    call spec_read_real(file, 'num_conc', aero_mode%num_conc)
     call spec_read_string(file, 'mode_type', mode_type)
     if (len_trim(mode_type) < AERO_DIST_TYPE_LEN) then
        aero_mode%type = mode_type(1:AERO_DIST_TYPE_LEN)
@@ -501,7 +501,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read one mode of an aerosol distribution (number density and
+  !> Read one mode of an aerosol distribution (number concentration and
   !> volume fractions).
   subroutine spec_read_aero_mode(file, aero_data, aero_mode, eof)
 
@@ -685,7 +685,7 @@ contains
          + pmc_mpi_pack_size_string(val%type) &
          + pmc_mpi_pack_size_real(val%mean_radius) &
          + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
-         + pmc_mpi_pack_size_real(val%num_den) &
+         + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac)
 
   end function pmc_mpi_pack_size_aero_mode
@@ -728,7 +728,7 @@ contains
     call pmc_mpi_pack_string(buffer, position, val%type)
     call pmc_mpi_pack_real(buffer, position, val%mean_radius)
     call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
-    call pmc_mpi_pack_real(buffer, position, val%num_den)
+    call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call assert(579699255, &
          position - prev_position == pmc_mpi_pack_size_aero_mode(val))
@@ -782,7 +782,7 @@ contains
     call pmc_mpi_unpack_string(buffer, position, val%type)
     call pmc_mpi_unpack_real(buffer, position, val%mean_radius)
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
-    call pmc_mpi_unpack_real(buffer, position, val%num_den)
+    call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call assert(874467577, &
          position - prev_position == pmc_mpi_pack_size_aero_mode(val))

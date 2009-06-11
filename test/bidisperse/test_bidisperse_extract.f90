@@ -12,8 +12,8 @@ program extract_summary
   character(len=*), parameter :: in_prefix = "out/bidisperse_mc_0001_"
   character(len=*), parameter :: out_filename = "out/bidisperse_mc_data.txt"
   real*8, parameter :: radius_cutoff = 5d-5
-  real*8, parameter :: desired_small_init_num_den = 1d9
-  real*8, parameter :: desired_large_init_num_den = 1d5
+  real*8, parameter :: desired_small_init_num_conc = 1d9
+  real*8, parameter :: desired_large_init_num_conc = 1d5
   real*8, parameter :: init_rel_tol = 5d-2
 
   character(len=1000) :: in_filename
@@ -32,8 +32,8 @@ program extract_summary
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
-  real*8 :: val, large_init_num_den, small_init_num_den
-  real*8 :: large_mass_den, small_num_den
+  real*8 :: val, large_init_num_conc, small_init_num_conc
+  real*8 :: large_mass_conc, small_num_conc
   real*8 :: radius, volume
   integer :: large_number
   real*8 :: large_rel_error, small_rel_error
@@ -118,18 +118,18 @@ program extract_summary
      call nc_check(nf90_close(ncid))
 
      ! compute information
-     small_num_den = 0d0
-     large_mass_den = 0d0
+     small_num_conc = 0d0
+     large_mass_conc = 0d0
      large_number = 0
      do i_part = 1,n_aero_particle
         volume = sum(aero_particle_mass(i_part,:) / aero_density)
         radius = (volume / (4d0 / 3d0 &
              * 3.14159265358979323846d0))**(1d0/3d0)
         if (radius < radius_cutoff) then
-           small_num_den = small_num_den + 1d0 / aero_comp_vol(i_part)
+           small_num_conc = small_num_conc + 1d0 / aero_comp_vol(i_part)
         else
            large_number = large_number + 1
-           large_mass_den = large_mass_den &
+           large_mass_conc = large_mass_conc &
                 + sum(aero_particle_mass(i_part,:)) / aero_comp_vol(i_part)
         end if
      end do
@@ -140,7 +140,7 @@ program extract_summary
 
      ! write output
      write(out_unit,'(e20.10,e20.10,e20.10)') &
-          time, small_num_den, large_mass_den
+          time, small_num_conc, large_mass_conc
 
      ! check we only ever have one large particle
      if (large_number /= 1) then

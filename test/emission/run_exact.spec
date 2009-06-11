@@ -1,6 +1,6 @@
 run_type exact                  # Monte Carlo
 output_prefix out/emission_exact # prefix of output files
-num_den 1e9                     # particle number density (#/m^3)
+num_conc 1e9                     # particle number concentration (#/m^3)
 
 t_max 86400                     # total simulation time (s)
 t_output 1200                   # output interval (0 disables) (s)
@@ -15,7 +15,7 @@ aerosol_data aero_data.dat      # file containing aerosol data
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
-gas_background gas_back.dat     # background gas concentrations file
+gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -68,7 +68,7 @@ contains
 
   !> Exact solution with a constant coagulation kernel and an
   !> exponential initial condition.
-  subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_den, &
+  subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_conc, &
        mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 
     !> Bin grid.
@@ -78,7 +78,7 @@ contains
     !> Current time.
     real*8, intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_den
+    real*8, intent(in) :: num_conc
     !> Mean init radius (m).
     real*8, intent(in) :: mean_radius
     !> Particle density (kg/m^3).
@@ -100,26 +100,26 @@ contains
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
-          aero_binned%num_den(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_den / mean_vol &
+          aero_binned%num_conc(k) = const%pi/2d0 &
+               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
                * exp(-(bin_grid%v(k)/mean_vol))
        end do
     else
-       tau = num_den * beta_0 * time
+       tau = num_conc * beta_0 * time
        do k = 1,bin_grid%n_bin
           rat_v = bin_grid%v(k) / mean_vol
           x = 2d0 * rat_v / (tau + 2d0)
-          nn = 4d0 * num_den / (mean_vol * ( tau + 2d0 ) ** 2d0) &
+          nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
-          aero_binned%num_den(k) = const%pi/2d0 &
+          aero_binned%num_conc(k) = const%pi/2d0 &
                * (2d0*vol2rad(bin_grid%v(k)))**3d0 * nn
        end do
     end if
     
-    aero_binned%vol_den = 0d0
+    aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
-       aero_binned%vol_den(k,1) = const%pi/6d0 &
-            * (2d0*vol2rad(bin_grid%v(k)))**3d0 * aero_binned%num_den(k)
+       aero_binned%vol_conc(k,1) = const%pi/6d0 &
+            * (2d0*vol2rad(bin_grid%v(k)))**3d0 * aero_binned%num_conc(k)
     end do
     
   end subroutine soln_constant_exp_cond

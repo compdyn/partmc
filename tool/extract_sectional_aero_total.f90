@@ -16,14 +16,14 @@ program extract_sectional_aero_total
   integer :: dimid_aero_species, dimid_aero_radius
   integer :: varid_time, varid_aero_species
   integer :: varid_aero_radius, varid_aero_radius_widths
-  integer :: varid_aero_mass_density, varid_aero_number_density
+  integer :: varid_aero_mass_concentration, varid_aero_number_concentration
   integer :: n_aero_species, n_bin
   character(len=1000) :: tmp_str, aero_species_names
   real*8 :: time
   real*8, allocatable :: aero_radius(:)
   real*8, allocatable :: aero_radius_widths(:)
-  real*8, allocatable :: aero_mass_density(:,:)
-  real*8, allocatable :: aero_number_density(:)
+  real*8, allocatable :: aero_mass_concentration(:,:)
+  real*8, allocatable :: aero_number_concentration(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
@@ -106,49 +106,49 @@ program extract_sectional_aero_total
      call nc_check(nf90_get_var(ncid, varid_aero_radius_widths, &
           aero_radius_widths))
 
-     ! read aero_number_density
-     call nc_check(nf90_inq_varid(ncid, "aero_number_density", &
-          varid_aero_number_density))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_number_density, &
+     ! read aero_number_concentration
+     call nc_check(nf90_inq_varid(ncid, "aero_number_concentration", &
+          varid_aero_number_concentration))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_number_concentration, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_number_density dimids"
+        write(*,*) "ERROR: unexpected aero_number_concentration dimids"
         call exit(1)
      end if
-     allocate(aero_number_density(n_bin))
-     call nc_check(nf90_get_var(ncid, varid_aero_number_density, &
-          aero_number_density))
+     allocate(aero_number_concentration(n_bin))
+     call nc_check(nf90_get_var(ncid, varid_aero_number_concentration, &
+          aero_number_concentration))
      
-     ! read aero_mass_density
-     call nc_check(nf90_inq_varid(ncid, "aero_mass_density", &
-          varid_aero_mass_density))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_density, &
+     ! read aero_mass_concentration
+     call nc_check(nf90_inq_varid(ncid, "aero_mass_concentration", &
+          varid_aero_mass_concentration))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_concentration, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
-        write(*,*) "ERROR: unexpected aero_mass_density dimids"
+        write(*,*) "ERROR: unexpected aero_mass_concentration dimids"
         call exit(1)
      end if
-     allocate(aero_mass_density(n_bin, n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_mass_density, &
-          aero_mass_density))
+     allocate(aero_mass_concentration(n_bin, n_aero_species))
+     call nc_check(nf90_get_var(ncid, varid_aero_mass_concentration, &
+          aero_mass_concentration))
      
      call nc_check(nf90_close(ncid))
 
      ! compute number and mass concentrations
-     num_conc = sum(aero_number_density * aero_radius_widths)
+     num_conc = sum(aero_number_concentration * aero_radius_widths)
      mass_conc = 0d0
      do i_spec = 1,n_aero_species
-        mass_conc = mass_conc + sum(aero_mass_density(:,i_spec) &
+        mass_conc = mass_conc + sum(aero_mass_concentration(:,i_spec) &
              * aero_radius_widths)
      end do
 
      deallocate(aero_radius)
      deallocate(aero_radius_widths)
-     deallocate(aero_mass_density)
-     deallocate(aero_number_density)
+     deallocate(aero_mass_concentration)
+     deallocate(aero_number_concentration)
 
      ! output data
      write(out_unit, '(3e30.15e3)') time, num_conc, mass_conc

@@ -23,7 +23,7 @@ module pmc_run_exact
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
      !> Particle number concentration (#/m^3).
-     real*8 :: num_den
+     real*8 :: num_conc
      !> Mean init radius (m).
      real*8 :: mean_radius
      !> Aerosol initial distribution.
@@ -44,7 +44,7 @@ contains
 
   !> Run an exact simulation.
   !!
-  !! FIXME: num_den and mean_radius are really parameters for the
+  !! FIXME: num_conc and mean_radius are really parameters for the
   !! initial value of the particle distribution. They should be
   !! replaced by a n_param, params() pair.
   subroutine run_exact(bin_grid, env_data, env_state, aero_data, &
@@ -68,7 +68,7 @@ contains
     type(gas_state_t) :: gas_state
     
     interface
-       subroutine soln(bin_grid, aero_data, time, num_den, mean_radius, &
+       subroutine soln(bin_grid, aero_data, time, num_conc, mean_radius, &
             rho_p, aero_dist_init, env_state, aero_binned)
 
          use pmc_bin_grid
@@ -82,8 +82,8 @@ contains
          type(aero_data_t), intent(in) :: aero_data
          !> Current time.
          real*8, intent(in) :: time
-         !> Particle number conc (#/m^3).
-         real*8, intent(in) :: num_den
+         !> Particle number concentration (#/m^3).
+         real*8, intent(in) :: num_conc
          !> Mean init radius (m).
          real*8, intent(in) :: mean_radius
          !> Particle density (kg/m^3).
@@ -105,7 +105,7 @@ contains
     do i_time = 0,n_time
        time = dble(i_time) / dble(n_time) * exact_opt%t_max
        call env_data_update_state(env_data, env_state, time)
-       call soln(bin_grid, aero_data, time, exact_opt%num_den, &
+       call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_radius, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env_state, aero_binned)
        call output_sectional(exact_opt%prefix, bin_grid, aero_data, &

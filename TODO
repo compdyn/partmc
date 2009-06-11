@@ -39,7 +39,9 @@ also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
 etc. What about 2D arrays, is it correct to treat them as 1D as we do
 at present with mpi_pack?
 
-Change gas mixing to be by diffusion, rather than allreduce, also env.
+Change gas mixing to be by diffusion, rather than allreduce, also env,
+but first fix weighting so it is not all equal, but weighted by
+particle numbers and comp vols or something?
 
 Add env%day_of_year (days since jan 1) and env%time_of_day (secs since
 midnight) and shift info on start day, start time, etc to

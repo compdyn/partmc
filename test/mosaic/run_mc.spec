@@ -29,7 +29,7 @@ aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.85               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
-latitude 40                     # latitude (degrees, -90 to 90)
+latitude 0                      # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
 start_time 43200                # start time (s since 00:00 UTC)

@@ -1,6 +1,4 @@
 
-Make aero_state_input_netcdf() handle zero paricle case.
-
 Change output state variable aero_comp_mass to aero_particle_mass to
 distinguish it from aero_comp_vol.
 

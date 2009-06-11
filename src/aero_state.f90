@@ -1244,7 +1244,14 @@ contains
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
 
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle))
+    status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
+    if (status == NF90_EBADDIM) then
+       ! no aero_particle dimension means no particles present
+       call aero_state_free(aero_state)
+       call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+       return
+    end if
+    call pmc_nc_check(status)
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, name, n_part))
 
     allocate(aero_comp_mass(n_part, aero_data%n_spec))

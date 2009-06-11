@@ -177,9 +177,9 @@ target_link_libraries(poisson_sample)
 
 ######################################################################
 
-add_executable(extract_aero_particle_masses
-	tool/extract_aero_particle_masses.f90)
-target_link_libraries(extract_aero_particle_masses ${NETCDF_LIBS})
+add_executable(extract_aero_particle_mass
+	tool/extract_aero_particle_mass.f90)
+target_link_libraries(extract_aero_particle_mass ${NETCDF_LIBS})
 
 add_executable(extract_aero_size_num
 	tool/extract_aero_size_num.f90)

@@ -66,6 +66,8 @@ contains
        end subroutine AllocateMemory
     end interface
 
+    call init_data_modules                   ! initialize indices and vars
+
     ! allocate one aerosol bin
     naerbin = 1
     call AllocateMemory()
@@ -95,7 +97,7 @@ contains
     rlon = env_state%longitude * deg2rad           ! longitude
     rlat = env_state%latitude * deg2rad            ! latitude
     zalt_m = env_state%altitude                    ! altitude (m)
-    
+ 
     ! environmental parameters: map PartMC -> MOSAIC
     RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
     te = env_state%temp                            ! temperature (K)
@@ -104,7 +106,6 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
-    call init_data_modules                   ! initialize indices and vars
     call LoadPeroxyParameters                ! Aperox and Bperox only once
     
     ! get unit for aerosol optical output

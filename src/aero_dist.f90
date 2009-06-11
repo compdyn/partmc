@@ -405,19 +405,11 @@ contains
     character(len=MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
-    character(len=MAX_VAR_LEN) :: frac_type
     real*8, pointer :: species_data(:,:)
     real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
-    call spec_read_string(file, 'frac_type', frac_type)
-    if ((frac_type /= "volume") &
-         .and. (frac_type /= "mass") &
-         .and. (frac_type /= "mole")) then
-       call spec_read_die_msg(842919812,file, "unknown frac_type " &
-            // "(should be 'volume', 'mass', or 'mole'): " // trim(frac_type))
-    end if
-    call spec_read_string(file, 'frac', read_name)
+    call spec_read_string(file, 'mass_frac', read_name)
     call spec_read_open(read_name, read_file)
     call spec_read_real_named_array(read_file, 0, species_name, species_data)
     call spec_read_close(read_file)
@@ -447,14 +439,8 @@ contains
     deallocate(species_name)
     deallocate(species_data)
 
-    ! convert to appropriate fraction type
-    if (frac_type == "mass") then
-       vol_frac = vol_frac / aero_data%density
-    elseif (frac_type == "mole") then
-       vol_frac = vol_frac / aero_data%density * aero_data%molec_weight
-    elseif (frac_type /= "volume") then
-       call die_msg(719123834, "unknown frac_type: " // trim(frac_type))
-    end if
+    ! convert mass fractions to volume fractions
+    vol_frac = vol_frac / aero_data%density
     
     ! normalize
     tot_vol_frac = sum(vol_frac)

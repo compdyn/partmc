@@ -1,6 +1,5 @@
 mode_name init1                 # name of mode source
-frac_type volume                # composition type ("volume", "mass", "mole")
-frac aero_init_comp.dat         # composition proportions of species
+mass_frac aero_init_comp.dat    # species mass fractions
 num_conc 1e9                    # particle number concentration (#/m^3)
 mode_type mono                  # type of distribution
 radius 1.5e-5                   # radius (m)

@@ -3,8 +3,8 @@
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
-echo "../../extract_env out/mosaic_0001_ out/mosaic_env.txt"
-../../extract_env out/mosaic_0001_ out/mosaic_env.txt
-echo "../../numeric_diff true_env.txt out/mosaic_env.txt 0 1e-8 0 0 0 0"
-../../numeric_diff true_env.txt out/mosaic_env.txt 0 1e-8 0 0 0 0
+echo "../../extract_aero_total out/mosaic_0001_ out/mosaic_aero_total.txt"
+../../extract_aero_total out/mosaic_0001_ out/mosaic_aero_total.txt
+echo "../../numeric_diff true_aero_total.txt out/mosaic_aero_total.txt 0 1e-8 0 0 3 3"
+../../numeric_diff true_aero_total.txt out/mosaic_aero_total.txt 0 1e-8 0 0 3 3
 exit $?

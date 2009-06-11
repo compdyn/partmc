@@ -5,6 +5,6 @@ cd ${0%/*}
 
 echo "../../extract_aero_species out/mosaic_0001_ out/mosaic_aero_species.txt"
 ../../extract_aero_species out/mosaic_0001_ out/mosaic_aero_species.txt
-echo "../../numeric_diff true_aero_species.txt out/mosaic_aero_species.txt 0 1e-8 0 0 0 0"
-../../numeric_diff true_aero_species.txt out/mosaic_aero_species.txt 0 1e-8 0 0 0 0
+echo "../../numeric_diff true_aero_species.txt out/mosaic_aero_species.txt 0 1e-8 0 0 2 0"
+../../numeric_diff true_aero_species.txt out/mosaic_aero_species.txt 0 1e-8 0 0 2 0
 exit $?

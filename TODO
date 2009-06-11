@@ -1,6 +1,4 @@
 
-Input fractions only by mass (no volume, etc).
-
 Memory allocation policy should be that all functions must be called
 with an already allocated structure. That is, always call type_alloc()
 before calling anything else. The functions will call type_free() if
@@ -10,13 +8,15 @@ don't free before setting new values and should be fixed.
 
 Add allow_halve to control that separately.
 
-Re-add generation of dependency graph.
-
 Shift interfaces into modules. Especially kernel interface to
 kernel.f90, to avoid having to include all the various kernel_*
-modules everywhere.
+modules everywhere. Actually not a problem, we don't include them
+everywhere at all. Can we shift interfaces out to modules if they are
+in fact for functions passed in as arguments? I wouldn't think so.
 
 =======================================
+
+Add flag to numeric_diff to compute errors column-wise.
 
 Add entrainment switch.
 

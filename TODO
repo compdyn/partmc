@@ -1,6 +1,4 @@
 
-Add gnuplot scripts for all testcases and remove plot.py.
-
 Input fractions only by mass (no volume, etc).
 
 Memory allocation policy should be that all functions must be called

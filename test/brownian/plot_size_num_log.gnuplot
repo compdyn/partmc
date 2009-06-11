@@ -1,7 +1,7 @@
 # run from inside gnuplot with:
-# load "weight_plot.gnuplot"
+# load "<filename>.gnuplot"
 # or from the commandline with:
-# gnuplot weight_plot.gnuplot -
+# gnuplot <filename>.gnuplot
 
 set logscale
 set xlabel "radius (m)"
@@ -18,6 +18,6 @@ replot "out/brownian_mc_size_num_average.txt" using 1:2 with lines title "MC ave
 replot "out/brownian_mc_size_num_average.txt" using 1:14 with lines title "MC average t = 12 hours"
 replot "out/brownian_mc_size_num_average.txt" using 1:26 with lines title "MC average t = 24 hours"
 
-replot "out/brownian_sect_size_num.txt" using 1:2 with lines title "sect t = 0 hours"
-replot "out/brownian_sect_size_num.txt" using 1:14 with lines title "sect t = 12 hours"
-replot "out/brownian_sect_size_num.txt" using 1:26 with lines title "sect t = 24 hours"
+replot "out/brownian_sect_size_num.txt" using 1:2 with lines title "sectional t = 0 hours"
+replot "out/brownian_sect_size_num.txt" using 1:14 with lines title "sectional t = 12 hours"
+replot "out/brownian_sect_size_num.txt" using 1:26 with lines title "sectional t = 24 hours"

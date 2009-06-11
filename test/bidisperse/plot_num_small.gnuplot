@@ -1,7 +1,7 @@
 # run from inside gnuplot with:
-# load "weight_plot.gnuplot"
+# load "<filename>.gnuplot"
 # or from the commandline with:
-# gnuplot weight_plot.gnuplot -
+# gnuplot <filename>.gnuplot
 
 set logscale y
 set xlabel "time (s)"

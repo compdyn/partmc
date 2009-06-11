@@ -8,11 +8,11 @@ echo "../../partmc run_mc.spec"
 echo "../../partmc run_exact.spec"
 ../../partmc run_exact.spec
 
-echo "../../extract_aero_size_num 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_num.txt"
-../../extract_aero_size_num 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_num.txt
-echo "../../extract_sectional_aero_size_num out/golovin_exact_ out/golovin_exact_num.txt"
-../../extract_sectional_aero_size_num out/golovin_exact_ out/golovin_exact_num.txt
+echo "../../extract_aero_size_num 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_size_num.txt"
+../../extract_aero_size_num 1e-8 1e-3 160 out/golovin_mc_0001_ out/golovin_mc_size_num.txt
+echo "../../extract_sectional_aero_size_num out/golovin_exact_ out/golovin_exact_size_num.txt"
+../../extract_sectional_aero_size_num out/golovin_exact_ out/golovin_exact_size_num.txt
 
-echo "../../numeric_diff out/golovin_mc_num.txt out/golovin_exact_num.txt 0 2e-2"
-../../numeric_diff out/golovin_mc_num.txt out/golovin_exact_num.txt 0 2e-2
+echo "../../numeric_diff out/golovin_mc_size_num.txt out/golovin_exact_size_num.txt 0 2e-2"
+../../numeric_diff out/golovin_mc_size_num.txt out/golovin_exact_size_num.txt 0 5e-2
 exit $?

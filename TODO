@@ -1,7 +1,4 @@
 
-Change output state variable aero_comp_mass to aero_particle_mass to
-distinguish it from aero_comp_vol.
-
 Change gas_concentration to gas_molar_ratio, etc. Then change mass
 density to mass concentration, etc.
 

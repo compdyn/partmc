@@ -1098,7 +1098,7 @@ contains
     integer :: dimid_aero_removed
     integer :: i_bin, i_part_in_bin, i_part, i_remove
     type(aero_particle_t), pointer :: particle
-    real*8 :: aero_comp_mass(aero_state%n_part, aero_data%n_spec)
+    real*8 :: aero_particle_mass(aero_state%n_part, aero_data%n_spec)
     integer :: aero_n_orig_part(aero_state%n_part)
     real*8 :: aero_absorb_cross_sect(aero_state%n_part)
     real*8 :: aero_scatter_cross_sect(aero_state%n_part)
@@ -1129,7 +1129,7 @@ contains
           do i_part_in_bin = 1,aero_state%bin(i_bin)%n_part
              i_part = i_part + 1
              particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
-             aero_comp_mass(i_part, :) = particle%vol * aero_data%density
+             aero_particle_mass(i_part, :) = particle%vol * aero_data%density
              aero_n_orig_part(i_part) = particle%n_orig_part
              aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
              aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
@@ -1146,8 +1146,8 @@ contains
              aero_greatest_create_time(i_part) = particle%greatest_create_time
           end do
        end do
-       call pmc_nc_write_real_2d(ncid, aero_comp_mass, &
-            "aero_comp_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
+       call pmc_nc_write_real_2d(ncid, aero_particle_mass, &
+            "aero_particle_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
        call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
             "aero_n_orig_part", "1", (/ dimid_aero_particle /))
        call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
@@ -1225,7 +1225,7 @@ contains
     type(aero_particle_t) :: aero_particle
     character(len=1000) :: unit, name
 
-    real*8, allocatable :: aero_comp_mass(:,:)
+    real*8, allocatable :: aero_particle_mass(:,:)
     integer, allocatable :: aero_n_orig_part(:)
     real*8, allocatable :: aero_absorb_cross_sect(:)
     real*8, allocatable :: aero_scatter_cross_sect(:)
@@ -1254,7 +1254,7 @@ contains
     call pmc_nc_check(status)
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, name, n_part))
 
-    allocate(aero_comp_mass(n_part, aero_data%n_spec))
+    allocate(aero_particle_mass(n_part, aero_data%n_spec))
     allocate(aero_n_orig_part(n_part))
     allocate(aero_absorb_cross_sect(n_part))
     allocate(aero_scatter_cross_sect(n_part))
@@ -1270,8 +1270,8 @@ contains
     allocate(aero_least_create_time(n_part))
     allocate(aero_greatest_create_time(n_part))
 
-    call pmc_nc_read_real_2d(ncid, aero_comp_mass, &
-         "aero_comp_mass", unit)
+    call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
+         "aero_particle_mass", unit)
     call pmc_nc_read_integer_1d(ncid, aero_n_orig_part, &
          "aero_n_orig_part", unit)
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
@@ -1306,7 +1306,7 @@ contains
 
     call aero_particle_alloc(aero_particle, aero_data%n_spec)
     do i_part = 1,n_part
-       aero_particle%vol = aero_comp_mass(i_part, :) / aero_data%density
+       aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part)
        aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
@@ -1327,7 +1327,7 @@ contains
     end do
     call aero_particle_free(aero_particle)
 
-    deallocate(aero_comp_mass)
+    deallocate(aero_particle_mass)
     deallocate(aero_n_orig_part)
     deallocate(aero_absorb_cross_sect)
     deallocate(aero_scatter_cross_sect)

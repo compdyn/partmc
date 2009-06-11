@@ -16,12 +16,12 @@ program extract_aero_size_num
   integer :: ncid
   integer :: dimid_aero_species, dimid_aero_particle
   integer :: varid_time, varid_aero_species
-  integer :: varid_aero_comp_mass, varid_aero_density
+  integer :: varid_aero_particle_mass, varid_aero_density
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
   real*8 :: time
-  real*8, allocatable :: aero_comp_mass(:,:)
+  real*8, allocatable :: aero_particle_mass(:,:)
   real*8, allocatable :: aero_density(:)
   real*8, allocatable :: aero_comp_vol(:)
   real*8, allocatable :: aero_dist(:,:)
@@ -89,20 +89,20 @@ program extract_aero_size_num
      call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
           tmp_str, n_aero_particle))
      
-     ! read aero_comp_mass
-     call nc_check(nf90_inq_varid(ncid, "aero_comp_mass", &
-          varid_aero_comp_mass))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_mass, &
+     ! read aero_particle_mass
+     call nc_check(nf90_inq_varid(ncid, "aero_particle_mass", &
+          varid_aero_particle_mass))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_particle) &
           .or. (dimids(2) /= dimid_aero_species)) then
-        write(*,*) "ERROR: unexpected aero_comp_mass dimids"
+        write(*,*) "ERROR: unexpected aero_particle_mass dimids"
         call exit(1)
      end if
-     allocate(aero_comp_mass(n_aero_particle, n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_comp_mass, &
-          aero_comp_mass))
+     allocate(aero_particle_mass(n_aero_particle, n_aero_species))
+     call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
+          aero_particle_mass))
      
      ! read aero_density
      call nc_check(nf90_inq_varid(ncid, "aero_density", &
@@ -137,7 +137,7 @@ program extract_aero_size_num
      ! compute distribution
      dlnr = log(r_max / r_min) / dble(n_bin - 1)
      do i_part = 1,n_aero_particle
-        volume = sum(aero_comp_mass(i_part,:) / aero_density)
+        volume = sum(aero_particle_mass(i_part,:) / aero_density)
         radius = (volume / (4d0 / 3d0 &
              * 3.14159265358979323846d0))**(1d0/3d0)
         i_bin = ceiling((log(radius) - log(r_min)) &
@@ -146,7 +146,7 @@ program extract_aero_size_num
              + 1d0 / aero_comp_vol(i_part) / dlnr
      end do
 
-     deallocate(aero_comp_mass)
+     deallocate(aero_particle_mass)
      deallocate(aero_density)
      deallocate(aero_comp_vol)
   end do

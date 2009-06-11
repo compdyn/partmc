@@ -15,12 +15,12 @@ program extract_aero_species
   integer :: ncid
   integer :: dimid_aero_species, dimid_aero_particle
   integer :: varid_time, varid_aero_species
-  integer :: varid_aero_comp_mass
+  integer :: varid_aero_particle_mass
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
   real*8 :: time
-  real*8, allocatable :: aero_comp_mass(:,:)
+  real*8, allocatable :: aero_particle_mass(:,:)
   real*8, allocatable :: aero_comp_vol(:)
   real*8, allocatable :: aero_conc(:)
   integer :: xtype, ndims, nAtts
@@ -87,20 +87,20 @@ program extract_aero_species
         call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
              tmp_str, n_aero_particle))
         
-        ! read aero_comp_mass
-        call nc_check(nf90_inq_varid(ncid, "aero_comp_mass", &
-             varid_aero_comp_mass))
-        call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_mass, &
+        ! read aero_particle_mass
+        call nc_check(nf90_inq_varid(ncid, "aero_particle_mass", &
+             varid_aero_particle_mass))
+        call nc_check(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
              tmp_str, xtype, ndims, dimids, nAtts))
         if ((ndims /= 2) &
              .or. (dimids(1) /= dimid_aero_particle) &
              .or. (dimids(2) /= dimid_aero_species)) then
-           write(*,*) "ERROR: unexpected aero_comp_mass dimids"
+           write(*,*) "ERROR: unexpected aero_particle_mass dimids"
            call exit(1)
         end if
-        allocate(aero_comp_mass(n_aero_particle, n_aero_species))
-        call nc_check(nf90_get_var(ncid, varid_aero_comp_mass, &
-             aero_comp_mass))
+        allocate(aero_particle_mass(n_aero_particle, n_aero_species))
+        call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
+             aero_particle_mass))
         
         ! read aero_comp_vol
         call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
@@ -123,12 +123,12 @@ program extract_aero_species
         do i_part = 1,n_aero_particle
            do i_spec = 1,n_aero_species
               aero_conc(i_spec) = aero_conc(i_spec) &
-                   + aero_comp_mass(i_part, i_spec) &
+                   + aero_particle_mass(i_part, i_spec) &
                    / aero_comp_vol(i_part)
            end do
         end do
 
-        deallocate(aero_comp_mass)
+        deallocate(aero_particle_mass)
         deallocate(aero_comp_vol)
      end if
 

@@ -46,7 +46,9 @@ module pmc_run_mc
     !> Whether to do coagulation.
     logical :: do_coagulation
     !> Allow doubling if needed.
-    logical :: allow_double
+    logical :: allow_doubling
+    !> Allow halving if needed.
+    logical :: allow_halving
     !> Whether to do condensation.
     logical :: do_condensation
     !> Whether to do MOSAIC.
@@ -193,13 +195,16 @@ contains
             aero_binned, env_state, bin_grid, mc_opt%mix_rate)
        
        ! if we have less than half the maximum number of particles then
-       ! double until we fill up the array, and the same for halving
-       if (mc_opt%allow_double) then
+       ! double until we fill up the array
+       if (mc_opt%allow_doubling) then
           do while ((aero_state_total_particles(aero_state) &
                < mc_opt%n_part_max / 2) &
                .and. (aero_state_total_particles(aero_state) > 0))
              call aero_state_double(aero_state)
           end do
+       end if
+       ! same for halving if we have too many particles
+       if (mc_opt%allow_halving) then
           do while (aero_state_total_particles(aero_state) &
                > mc_opt%n_part_max * 2)
              call aero_state_halve(aero_state, aero_binned, bin_grid)
@@ -420,7 +425,7 @@ contains
          + pmc_mpi_pack_size_string(val%output_prefix) &
          + pmc_mpi_pack_size_string(val%state_prefix) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
-         + pmc_mpi_pack_size_logical(val%allow_double) &
+         + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_integer(val%i_loop) &
@@ -455,7 +460,7 @@ contains
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
     call pmc_mpi_pack_string(buffer, position, val%state_prefix)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
-    call pmc_mpi_pack_logical(buffer, position, val%allow_double)
+    call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
@@ -493,7 +498,7 @@ contains
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
     call pmc_mpi_unpack_string(buffer, position, val%state_prefix)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
-    call pmc_mpi_unpack_logical(buffer, position, val%allow_double)
+    call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)

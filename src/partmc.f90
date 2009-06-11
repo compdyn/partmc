@@ -157,7 +157,8 @@ contains
        call spec_read_integer(file, 'rand_init', rand_init)
        call spec_read_real(file, 'mix_rate', mc_opt%mix_rate)
        call spec_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
-       call spec_read_logical(file, 'allow_double', mc_opt%allow_double)
+       call spec_read_logical(file, 'allow_doubling', mc_opt%allow_doubling)
+       call spec_read_logical(file, 'allow_halving', mc_opt%allow_halving)
        call spec_read_logical(file, 'do_condensation', mc_opt%do_condensation)
        call spec_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
        if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then

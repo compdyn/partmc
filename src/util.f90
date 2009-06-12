@@ -859,5 +859,29 @@ contains
   end subroutine iso8601_date_and_time
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert degrees to radians.
+  real*8 function deg2rad(deg)
+
+    !> Input degrees.
+    real*8, intent(in) :: deg
+
+    deg2rad = deg / 180d0 * const%pi
+
+  end function deg2rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert radians to degrees.
+  real*8 function rad2deg(rad)
+
+    !> Input radians.
+    real*8, intent(in) :: rad
+
+    rad2deg = rad / const%pi * 180d0
+
+  end function rad2deg
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_util

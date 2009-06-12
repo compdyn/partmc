@@ -44,7 +44,7 @@ contains
     
     use module_data_mosaic_main, only: tbeg_sec, dt_sec, rlon, rlat, &
          zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
-         deg2rad, mmode, mgas, maer, mcld, maeroptic, mshellcore, &
+         mmode, mgas, maer, mcld, maeroptic, mshellcore, &
          msolar, mphoto, lun_aeroptic, naerbin
 #endif
     
@@ -66,7 +66,7 @@ contains
        end subroutine AllocateMemory
     end interface
 
-    call init_data_modules                   ! initialize indices and vars
+    call init_data_modules  ! initialize indices and vars
 
     ! allocate one aerosol bin
     naerbin = 1
@@ -89,24 +89,24 @@ contains
     ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
     
     ! time variables
-    dt_sec = del_t                           ! time-step (s)
+    dt_sec = del_t                                 ! time-step (s)
     tbeg_sec = env_state%start_day*24*3600 + &     ! time since the beg of
          nint(env_state%start_time)                ! year 00:00, UTC (s)
     
     ! geographic location
-    rlon = env_state%longitude * deg2rad           ! longitude
-    rlat = env_state%latitude * deg2rad            ! latitude
+    rlon = deg2rad(env_state%longitude)            ! longitude
+    rlat = deg2rad(env_state%latitude)             ! latitude
     zalt_m = env_state%altitude                    ! altitude (m)
  
     ! environmental parameters: map PartMC -> MOSAIC
     RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
     te = env_state%temp                            ! temperature (K)
     pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
-    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
-    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    cair_mlc = avogad*pr_atm/(82.056d0*te)         ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)          ! air conc [mol/m^3]
     ppb = 1d9
 
-    call LoadPeroxyParameters                ! Aperox and Bperox only once
+    call LoadPeroxyParameters ! Aperox and Bperox only once
     
     ! get unit for aerosol optical output
     if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()

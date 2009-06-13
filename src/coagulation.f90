@@ -13,7 +13,6 @@ module pmc_coagulation
   use pmc_util
   use pmc_env_state
   use pmc_aero_state
-  use pmc_aero_binned
   
 contains
 
@@ -25,13 +24,11 @@ contains
   !!
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
-  subroutine maybe_coag_pair(bin_grid, aero_binned, env_state, aero_data, &
+  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, &
        aero_state, b1, b2, del_t, k_max, kernel, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -79,7 +76,7 @@ contains
     p = k / k_max
     
     if (pmc_random() .lt. p) then
-       call coagulate(bin_grid, aero_binned, aero_data, aero_state, &
+       call coagulate(bin_grid, aero_data, aero_state, &
             b1, s1, b2, s2)
        did_coag = .true.
     end if
@@ -136,13 +133,11 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_binned, aero_data, aero_state, &
+  subroutine coagulate(bin_grid, aero_data, aero_state, &
        b1, s1, b2, s2)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -170,14 +165,6 @@ contains
     ! coagulate particles
     call aero_particle_coagulate(particle_1, particle_2, new_particle)
     bn = aero_particle_in_bin(new_particle, bin_grid)
-
-    ! update binned data
-    call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b1, aero_state%comp_vol, particle_1)
-    call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-         b2, aero_state%comp_vol, particle_2)
-    call aero_binned_add_particle_in_bin(aero_binned, bin_grid, &
-         bn, aero_state%comp_vol, new_particle)
 
     ! remove old particles
     call aero_info_allocate(aero_info)

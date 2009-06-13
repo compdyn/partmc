@@ -11,7 +11,6 @@ module pmc_run_mc
   use pmc_util
   use pmc_aero_state
   use pmc_bin_grid 
-  use pmc_aero_binned
   use pmc_condensation
   use pmc_env_data
   use pmc_env_state
@@ -70,13 +69,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_mc(kernel, kernel_max, bin_grid, aero_binned, env_data, &
+  subroutine run_mc(kernel, kernel_max, bin_grid, env_data, &
        env_state, aero_data, aero_state, gas_data, gas_state, mc_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
     !> Environment state.
     type(env_data_t), intent(in) :: env_data
     !> Environment state.
@@ -142,8 +139,6 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
-    
     call est_k_max_binned(bin_grid, kernel_max, aero_data, env_state, k_max)
 
     if (mc_opt%do_mosaic) then
@@ -170,7 +165,7 @@ contains
        call env_data_update_state(env_data, env_state, time)
 
        if (mc_opt%do_coagulation) then
-          call mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
+          call mc_coag(kernel, bin_grid, env_state, aero_data, &
                aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
        end if
        progress_n_samp = progress_n_samp + tot_n_samp
@@ -179,20 +174,20 @@ contains
        call env_state_update_gas_state(env_state, mc_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, mc_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_state, aero_binned)
+            old_env_state, bin_grid, aero_data, aero_state)
 
        if (mc_opt%do_condensation) then
-          call condense_particles(bin_grid, aero_binned, env_state, &
+          call condense_particles(bin_grid, env_state, &
                aero_data, aero_state, mc_opt%del_t)
        end if
 
        if (mc_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_state, aero_binned, gas_data, gas_state, time)
+               aero_state, gas_data, gas_state, time)
        end if
 
        call mc_mix(aero_data, aero_state, gas_data, gas_state, &
-            aero_binned, env_state, bin_grid, mc_opt%mix_rate)
+            env_state, bin_grid, mc_opt%mix_rate)
        
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array
@@ -207,12 +202,12 @@ contains
        if (mc_opt%allow_halving) then
           do while (aero_state_total_particles(aero_state) &
                > mc_opt%n_part_max * 2)
-             call aero_state_halve(aero_state, aero_binned, bin_grid)
+             call aero_state_halve(aero_state, bin_grid)
           end do
        end if
     
        ! DEBUG: enable to check array handling
-       ! call aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
+       ! call aero_state_check(bin_grid, aero_data, aero_state)
        ! DEBUG: end
        
        if (mc_opt%t_output > 0d0) then
@@ -272,13 +267,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag(kernel, bin_grid, aero_binned, env_state, aero_data, &
+  subroutine mc_coag(kernel, bin_grid, env_state, aero_data, &
        aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -329,7 +322,7 @@ contains
                   .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, aero_binned, env_state, &
+             call maybe_coag_pair(bin_grid, env_state, &
                   aero_data, aero_state, i, j, mc_opt%del_t, k_max(i,j), &
                   kernel, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
@@ -379,7 +372,7 @@ contains
 
   !> Mix data between processes.
   subroutine mc_mix(aero_data, aero_state, gas_data, gas_state, &
-       aero_binned, env_state, bin_grid, mix_rate)
+       env_state, bin_grid, mix_rate)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -389,8 +382,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
-    !> Binned aerosol data.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Environment.
     type(env_state_t), intent(inout) :: env_state
     !> Bin grid.
@@ -401,8 +392,7 @@ contains
     call assert(173605827, (mix_rate >= 0d0) .and. (mix_rate <= 1d0))
     if (mix_rate == 0d0) return
 
-    call aero_state_mix(aero_state, mix_rate, &
-         aero_binned, aero_data, bin_grid)
+    call aero_state_mix(aero_state, mix_rate, aero_data, bin_grid)
     call gas_state_mix(gas_state)
     call env_state_mix(env_state)
     

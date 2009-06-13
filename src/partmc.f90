@@ -120,7 +120,6 @@ contains
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
-    type(aero_binned_t) :: aero_binned
     type(run_mc_opt_t) :: mc_opt
     integer :: i_loop
     integer :: rand_init
@@ -240,7 +239,6 @@ contains
 
     call pmc_srand(rand_init + pmc_mpi_rank())
 
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(mc_opt%t_wall_start)
 
@@ -264,23 +262,23 @@ contains
        
        if (trim(kernel_name) == 'sedi') then
           call run_mc(kernel_sedi, kernel_sedi_max, bin_grid, &
-               aero_binned, env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'golovin') then
           call run_mc(kernel_golovin, kernel_golovin_max, bin_grid, &
-               aero_binned, env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'constant') then
           call run_mc(kernel_constant, kernel_constant_max, bin_grid, &
-               aero_binned, env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'brown') then
           call run_mc(kernel_brown, kernel_brown_max, bin_grid, &
-               aero_binned, env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        elseif (trim(kernel_name) == 'zero') then
           call run_mc(kernel_zero, kernel_zero_max, bin_grid, &
-               aero_binned, env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, &
                aero_state, gas_data, gas_state, mc_opt)
        else
           if (pmc_mpi_rank() == 0) then
@@ -301,7 +299,6 @@ contains
     call env_data_deallocate(env_data)
     call env_state_deallocate(env_state)
     call bin_grid_deallocate(bin_grid)
-    call aero_binned_deallocate(aero_binned)
 
   end subroutine partmc_mc
 

@@ -10,7 +10,6 @@ module pmc_condensation
 
   use pmc_aero_state
   use pmc_bin_grid
-  use pmc_aero_binned
   use pmc_env_state
   use pmc_aero_data
   use pmc_util
@@ -24,13 +23,11 @@ contains
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
   !> vapor.
-  subroutine condense_particles(bin_grid, aero_binned, env_state, aero_data, &
+  subroutine condense_particles(bin_grid, env_state, aero_data, &
        aero_state, del_t)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -41,12 +38,16 @@ contains
     real*8, intent(in) :: del_t
     
     integer :: i_bin, j, new_bin, k
-    real*8 :: pv, pre_water_vol, post_water_vol
+    real*8 :: pv, pre_water, post_water
+    type(aero_particle_t), pointer :: particle
 
-    ! FIXME: don't rely on binned data, but rather compute the total
-    ! water transfered in condense_particle() and return it
-    pre_water_vol = sum(aero_binned%vol_conc(:,aero_data%i_water)) &
-         * aero_state%comp_vol * bin_grid%dlnr
+    pre_water = 0d0
+    do i_bin = 1,bin_grid%n_bin
+       do j = 1,aero_state%bin(i_bin)%n_part
+          particle => aero_state%bin(i_bin)%particle(j)
+          pre_water = pre_water + particle%vol(aero_data%i_water)
+       end do
+    end do
 
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
@@ -60,14 +61,17 @@ contains
     ! ones have had condensation and which have not.
     call aero_state_resort(bin_grid, aero_state)
 
-    ! update the bin arrays
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
+    post_water = 0d0
+    do i_bin = 1,bin_grid%n_bin
+       do j = 1,aero_state%bin(i_bin)%n_part
+          particle => aero_state%bin(i_bin)%particle(j)
+          post_water = post_water + particle%vol(aero_data%i_water)
+       end do
+    end do
 
     ! update the environment due to condensation of water
-    post_water_vol = sum(aero_binned%vol_conc(:,aero_data%i_water)) &
-         * aero_state%comp_vol * bin_grid%dlnr
     call env_state_change_water_volume(env_state, aero_data, &
-         (post_water_vol - pre_water_vol) / aero_state%comp_vol)
+         (post_water - pre_water) / aero_state%comp_vol)
 
   end subroutine condense_particles
 
@@ -75,7 +79,8 @@ contains
 
   !> Integrate the condensation growth or decay ODE for total time
   !> del_t for a single particle.
-  subroutine condense_particle(del_t, env_state, aero_data, aero_particle)
+  subroutine condense_particle(del_t, env_state, aero_data, &
+       aero_particle)
 
     !> Total time to integrate.
     real*8, intent(in) :: del_t
@@ -86,11 +91,8 @@ contains
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
-    real*8 time_step, time
-    logical done
-
-    integer i
-    real*8 dvdt
+    real*8 :: time_step, time, pre_water, post_water
+    logical :: done
 
     time = 0d0
     done = .false.

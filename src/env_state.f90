@@ -13,11 +13,11 @@ module pmc_env_state
   use pmc_constants
   use pmc_aero_data
   use pmc_aero_particle
+  use pmc_aero_binned
   use pmc_util
   use pmc_gas_data
   use pmc_bin_grid
   use pmc_aero_state
-  use pmc_aero_binned
   use pmc_spec_read
   use pmc_mpi
   use pmc_netcdf
@@ -382,7 +382,7 @@ contains
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
   subroutine env_state_update_aero_state(env_state, delta_t, &
-       old_env_state, bin_grid, aero_data, aero_state, aero_binned)
+       old_env_state, bin_grid, aero_data, aero_state)
 
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
@@ -396,17 +396,12 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aero state to update.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Aero binned to update.
-    type(aero_binned_t), intent(inout) :: aero_binned
 
     integer :: i
     real*8 :: sample_prop, effective_dilution_rate
     type(aero_state_t) :: aero_state_delta
-    type(aero_binned_t) :: aero_binned_delta
 
     call aero_state_allocate_size(aero_state_delta, bin_grid%n_bin, &
-         aero_data%n_spec)
-    call aero_binned_allocate_size(aero_binned_delta, bin_grid%n_bin, &
          aero_data%n_spec)
 
     ! account for height changes
@@ -427,9 +422,6 @@ contains
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
          AERO_INFO_DILUTION)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
-         aero_binned_delta)
-    call aero_binned_sub(aero_binned, aero_binned_delta)
 
     ! addition from background
     sample_prop = delta_t * effective_dilution_rate
@@ -438,10 +430,7 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, env_state%aero_background, sample_prop, &
          env_state%elapsed_time)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
-         aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
-    call aero_binned_add(aero_binned, aero_binned_delta)
     
     ! emissions
     sample_prop = delta_t * env_state%aero_emission_rate / env_state%height
@@ -450,17 +439,13 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, env_state%aero_emissions, sample_prop, &
          env_state%elapsed_time)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state_delta, &
-         aero_binned_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
-    call aero_binned_add(aero_binned, aero_binned_delta)
 
     ! update computational volume
     aero_state%comp_vol = aero_state%comp_vol * env_state%temp &
          / old_env_state%temp
 
     call aero_state_deallocate(aero_state_delta)
-    call aero_binned_deallocate(aero_binned_delta)
 
   end subroutine env_state_update_aero_state
 

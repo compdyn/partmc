@@ -30,18 +30,6 @@ This means that every subroutine (except for alloc and free) should
 contain matching allocate/deallocate and struct_alloc/struct_free
 calls.
 
-Things like spec_read_aero_data_filename() should take the filename,
-not the file containing the line containing the filename.
-
-Old: Change spec_read_aero_data to spec_read_aero_data_filename and pass in
-the name, and similar spec_read_*.
-
-Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
-just be gas_state_axpy(), and similarly for other structures.
-
-Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
-pmc_nc_open_read().
-
 Make sure every structure has a struct_zero() and that it's called
 from struct_alloc_size() and struct_alloc().
 
@@ -51,18 +39,12 @@ Split spec_read.f90 into spec_file.f90 and spec_line.f90.
 
 Rename spec_read_struct() to struct_read_from_spec().
 
-Remove aero_binned from aero_state_t and all the calculations with
-it. We don't even use it for anything anymore.
-
 Fix lines > 80 chars.
 
 Remove state_prefix, just use output_prefix.
 
 What's up with pointer arguments, can they have intent? See
 spec_read_gas_states_times_rates().
-
-Add help to *_alloc to indicate that struct must not be currently
-allocated.
 
 =======================================
 
@@ -75,6 +57,8 @@ Change gas conc from ppb to mole proportion.
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
 Make array names plural.
+
+Properly use kind() rather than real*8.
 
 Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
@@ -120,3 +104,15 @@ if t_i <= t < t_{i+1} for some i. Temperature and mixing-layer height
 are linearly interpolated: we use d_1 if t < t_1, d_n if t > t_n, and
 (1 - a) d_i + a d_{i+1} if t_i <= t < t_{i+1} for some i, where a = (t
 - t_i) / (t_{i+1} - t_i).
+
+Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
+pmc_nc_open_read().
+
+Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
+just be gas_state_axpy(), and similarly for other structures.
+
+Things like spec_read_aero_data_filename() should take the filename,
+not the file containing the line containing the filename.
+
+Change spec_read_aero_data to spec_read_aero_data_filename and pass in
+the name, and similar spec_read_*.

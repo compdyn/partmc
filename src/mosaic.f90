@@ -8,7 +8,6 @@
 !> Interface to the MOSAIC aerosol and gas phase chemistry code.
 module pmc_mosaic
   
-  use pmc_aero_binned
   use pmc_aero_data
   use pmc_aero_state
   use pmc_bin_grid 
@@ -266,7 +265,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
-       aero_state, aero_binned, gas_data, gas_state)
+       aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -285,8 +284,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Binned aerosol data.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
@@ -336,7 +333,6 @@ contains
        end do
     end do
     call aero_state_resort(bin_grid, aero_state)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec
@@ -360,7 +356,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
-       aero_state, aero_binned, gas_data, gas_state, time)
+       aero_state, gas_data, gas_state, time)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -374,8 +370,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Binned aerosol data.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
@@ -407,7 +401,7 @@ contains
 
     ! map MOSAIC -> PartMC
     call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_state, &
-         aero_binned, gas_data, gas_state)
+         gas_data, gas_state)
 
     call mosaic_aero_optical(bin_grid, env_state, aero_data, &
          aero_state, gas_data, gas_state, time)

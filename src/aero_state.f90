@@ -596,12 +596,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove approximately half of the particles in each bin.
-  subroutine aero_state_halve(aero_state, aero_binned, bin_grid)
+  subroutine aero_state_halve(aero_state, bin_grid)
     
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Aero binned.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     
@@ -613,9 +611,6 @@ contains
        n_remove = prob_round(dble(aero_state%bin(i_bin)%n_part) / 2d0)
        do i_remove = 1,n_remove
           i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
-          call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
-               i_bin, aero_state%comp_vol, &
-               aero_state%bin(i_bin)%particle(i_part))
           call aero_info_allocate(aero_info)
           aero_info%id = &
                aero_state%bin(i_bin)%particle(i_part)%id
@@ -687,7 +682,7 @@ contains
   !> Send a sample to the given process, and receive exactly one
   !> sample from an unspecified source.
   subroutine aero_state_mix_to(aero_state, mix_rate, dest, &
-       aero_binned, aero_data, bin_grid)
+       aero_data, bin_grid)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -695,8 +690,6 @@ contains
     real*8, intent(in) :: mix_rate
     !> Process to send to.
     integer, intent(in) :: dest
-    !> Aero binned to update.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
@@ -707,15 +700,10 @@ contains
     type(aero_state_t) :: aero_state_send, aero_state_recv
     character, allocatable :: buffer_send(:), buffer_recv(:)
     integer :: buffer_size_send, buffer_size_recv, position
-    type(aero_binned_t) :: aero_binned_delta
 
     if (pmc_mpi_rank() == dest) then
        return
     end if
-
-    ! allocate memory
-    call aero_binned_allocate_size(aero_binned_delta, bin_grid%n_bin, &
-         aero_data%n_spec)
 
     ! extract particles to send
     call aero_state_allocate_size(aero_state_send, bin_grid%n_bin, &
@@ -725,9 +713,6 @@ contains
     ! to use the destination comp_vol here
     call aero_state_sample_rough(aero_state, aero_state_send, &
          mix_rate, AERO_INFO_NONE)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state_send, &
-         aero_binned_delta)
-    call aero_binned_sub(aero_binned, aero_binned_delta)
 
     ! pack up data to send
     buffer_size_send = pmc_mpi_pack_size_aero_state(aero_state_send)
@@ -756,12 +741,8 @@ contains
          aero_state_recv)
     call assert(593694264, position == buffer_size_recv)
     call aero_state_add_particles(aero_state, aero_state_recv)
-    call aero_state_to_binned(bin_grid, aero_data, aero_state_recv, &
-         aero_binned_delta)
-    call aero_binned_add(aero_binned, aero_binned_delta)
 
     ! cleanup
-    call aero_binned_deallocate(aero_binned_delta)
     call aero_state_deallocate(aero_state_send)
     call aero_state_deallocate(aero_state_recv)
     deallocate(buffer_send)
@@ -775,14 +756,12 @@ contains
   !> Mix the aero_states between all processes. Currently uses a
   !> simple periodic-1D diffusion.
   subroutine aero_state_mix(aero_state, mix_rate, &
-       aero_binned, aero_data, bin_grid)
+       aero_data, bin_grid)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Mixing rate (0 to 1).
     real*8, intent(in) :: mix_rate
-    !> Aero binned to update.
-    type(aero_binned_t), intent(inout) :: aero_binned
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
@@ -799,7 +778,7 @@ contains
        dest = 0
     end if
     call aero_state_mix_to(aero_state, mix_rate, dest, &
-       aero_binned, aero_data, bin_grid)
+       aero_data, bin_grid)
 
     ! synchronize
     call pmc_mpi_barrier()
@@ -810,7 +789,7 @@ contains
        dest = n_proc - 1
     end if
     call aero_state_mix_to(aero_state, mix_rate, dest, &
-       aero_binned, aero_data, bin_grid)
+       aero_data, bin_grid)
 
   end subroutine aero_state_mix
 
@@ -818,12 +797,10 @@ contains
 
   !> Check that all particles are in the correct bins and that the
   !> bin numbers and masses are correct. This is for debugging only.
-  subroutine aero_state_check(bin_grid, aero_binned, aero_data, aero_state)
+  subroutine aero_state_check(bin_grid, aero_data, aero_state)
     
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -858,40 +835,6 @@ contains
        end do
     end do
     
-    ! check the aero_binned%num_conc array
-    do k = 1,bin_grid%n_bin
-       num_tol = 0.01d0 / aero_state%comp_vol / bin_grid%dlnr
-       state_num_conc = dble(aero_state%bin(k)%n_part) / aero_state%comp_vol &
-            / bin_grid%dlnr
-       if (.not. almost_equal_abs(state_num_conc, &
-            aero_binned%num_conc(k), num_tol)) then
-          write(0,'(a10,a20,a20,a20,a20)') 'k', 'bins(k)%n_part', &
-               'state_num_conc', 'num_conc(k)', 'comp_vol'
-          write(0,'(i10,i20,e20.10,e20.10,e20.10)') k, &
-               aero_state%bin(k)%n_part, state_num_conc, &
-               aero_binned%num_conc(k), aero_state%comp_vol
-          error = .true.
-       end if
-    end do
-    
-    ! check the aero_binned%vol_conc array
-    do k = 1,bin_grid%n_bin
-       vol_tol = bin_grid%v(k) / 1d3 / bin_grid%dlnr
-       do s = 1,aero_data%n_spec
-          check_vol_conc = sum((/(aero_state%bin(k)%particle(i)%vol(s), &
-               i = 1,aero_state%bin(k)%n_part)/)) &
-               / aero_state%comp_vol / bin_grid%dlnr
-          if (.not. almost_equal_abs(check_vol_conc, &
-               aero_binned%vol_conc(k,s), vol_tol)) then
-             write(0,'(a10,a10,a25,a25)') 'k', 's', 'check_vol_conc', &
-                  'vol_conc(k,s)'
-             write(0,'(i10,i10,e25.10,e25.10)') k, s, check_vol_conc, &
-                  aero_binned%vol_conc(k,s)
-             error = .true.
-          end if
-       end do
-    end do
-
     ! check we don't have duplicate IDs
     max_id = 0
     do k = 1,bin_grid%n_bin

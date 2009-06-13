@@ -23,7 +23,7 @@ Dependencies
 Required dependencies:
 
    * Fortran 90 compiler
-   * cmake - <http://www.cmake.org/>
+   * cmake version 2.6 or higher - <http://www.cmake.org/>
    * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
 
 Optional dependencies:
@@ -95,12 +95,13 @@ Usage
 =====
 
 The main `partmc` command reads `.spec` files and does the run
-specified therein. Either Monte Carlo runs, sectional code runs, or
-exact solutions can be generated. A run can produce binned summary
-data in NetCDF format, or full per-particle state data in either
-NetCDF or ASCII format. The extract_* programs in the tool/ directory
-can read either summary or full-state NetCDF files and serve as
-examples for processing the data.
+specified therein. Either particle-resolved runs, sectional-code runs,
+or exact solutions can be generated. A run produces one NetCDF file
+per timestep, containing per-particle data (from particle-resolved
+runs) or binned data (from sectional or exact runs). The extract_*
+programs in the tool/ directory can read these per-timestep NetCDF
+files and output ASCII data (the extract_sectional_* programs are used
+for sectional and exact model output).
 
 
 Coding Conventions

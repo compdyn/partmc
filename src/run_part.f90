@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_run_mc module.
+!> The pmc_run_part module.
 
 !> Monte Carlo simulation.
-module pmc_run_mc
+module pmc_run_part
 
   use pmc_util
   use pmc_aero_state
@@ -26,8 +26,8 @@ module pmc_run_mc
   use mpi
 #endif
 
-  !> Options controlling the execution of run_mc().
-  type run_mc_opt_t
+  !> Options controlling the execution of run_part().
+  type run_part_opt_t
      !> Maximum number of particles.
     integer :: n_part_max
     !> Final time (s).
@@ -60,15 +60,15 @@ module pmc_run_mc
     real*8 :: mix_rate
     !> Whether to record particle removal information.
     logical :: record_removals
- end type run_mc_opt_t
+ end type run_part_opt_t
   
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_mc(kernel, kernel_max, bin_grid, env_data, &
-       env_state, aero_data, aero_state, gas_data, gas_state, mc_opt)
+  subroutine run_part(kernel, kernel_max, bin_grid, env_data, &
+       env_state, aero_data, aero_state, gas_data, gas_state, part_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -85,7 +85,7 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
-    type(run_mc_opt_t), intent(in) :: mc_opt
+    type(run_part_opt_t), intent(in) :: part_opt
 
     ! FIXME: can we shift this to a module? pmc_kernel presumably
     interface
@@ -139,67 +139,67 @@ contains
 
     call est_k_max_binned(bin_grid, kernel_max, aero_data, env_state, k_max)
 
-    if (mc_opt%do_mosaic) then
-       call mosaic_init(bin_grid, env_state, mc_opt%del_t)
+    if (part_opt%do_mosaic) then
+       call mosaic_init(bin_grid, env_state, part_opt%del_t)
     end if
 
-    if (mc_opt%t_output > 0d0) then
-       call output_state_netcdf(mc_opt%output_prefix, bin_grid, &
+    if (part_opt%t_output > 0d0) then
+       call output_state_netcdf(part_opt%output_prefix, bin_grid, &
             aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
-            time, mc_opt%del_t, mc_opt%i_loop, mc_opt%record_removals)
+            time, part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
 
     t_start = time
     last_output_time = time
     last_progress_time = time
-    n_time = nint(mc_opt%t_max / mc_opt%del_t)
-    i_time_start = nint(time / mc_opt%del_t) + 1
+    n_time = nint(part_opt%t_max / part_opt%del_t)
+    i_time_start = nint(time / part_opt%del_t) + 1
     do i_time = i_time_start,n_time
 
-       time = dble(i_time) * mc_opt%del_t
+       time = dble(i_time) * part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time)
 
-       if (mc_opt%do_coagulation) then
+       if (part_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, env_state, aero_data, &
-               aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
+               aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
        end if
        progress_n_samp = progress_n_samp + tot_n_samp
        progress_n_coag = progress_n_coag + tot_n_coag
 
-       call env_state_update_gas_state(env_state, mc_opt%del_t, &
+       call env_state_update_gas_state(env_state, part_opt%del_t, &
             old_env_state, gas_data, gas_state)
-       call env_state_update_aero_state(env_state, mc_opt%del_t, &
+       call env_state_update_aero_state(env_state, part_opt%del_t, &
             old_env_state, bin_grid, aero_data, aero_state)
 
-       if (mc_opt%do_condensation) then
+       if (part_opt%do_condensation) then
           call condense_particles(bin_grid, env_state, &
-               aero_data, aero_state, mc_opt%del_t)
+               aero_data, aero_state, part_opt%del_t)
        end if
 
-       if (mc_opt%do_mosaic) then
+       if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
                aero_state, gas_data, gas_state, time)
        end if
 
        call mc_mix(aero_data, aero_state, gas_data, gas_state, &
-            env_state, bin_grid, mc_opt%mix_rate)
+            env_state, bin_grid, part_opt%mix_rate)
        
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array
-       if (mc_opt%allow_doubling) then
+       if (part_opt%allow_doubling) then
           do while ((aero_state_total_particles(aero_state) &
-               < mc_opt%n_part_max / 2) &
+               < part_opt%n_part_max / 2) &
                .and. (aero_state_total_particles(aero_state) > 0))
              call aero_state_double(aero_state)
           end do
        end if
        ! same for halving if we have too many particles
-       if (mc_opt%allow_halving) then
+       if (part_opt%allow_halving) then
           do while (aero_state_total_particles(aero_state) &
-               > mc_opt%n_part_max * 2)
+               > part_opt%n_part_max * 2)
              call aero_state_halve(aero_state, bin_grid)
           end do
        end if
@@ -208,40 +208,40 @@ contains
        ! call aero_state_check(bin_grid, aero_data, aero_state)
        ! DEBUG: end
        
-       if (mc_opt%t_output > 0d0) then
-          call check_event(time, mc_opt%del_t, mc_opt%t_output, &
+       if (part_opt%t_output > 0d0) then
+          call check_event(time, part_opt%del_t, part_opt%t_output, &
                last_output_time, do_output)
           if (do_output) then
              i_output = i_output + 1
-             call output_state_netcdf(mc_opt%output_prefix, bin_grid, &
+             call output_state_netcdf(part_opt%output_prefix, bin_grid, &
                   aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_output, time, mc_opt%del_t, mc_opt%i_loop, &
-                  mc_opt%record_removals)
+                  i_output, time, part_opt%del_t, part_opt%i_loop, &
+                  part_opt%record_removals)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
 
-       if (.not. mc_opt%record_removals) then
+       if (.not. part_opt%record_removals) then
           ! If we are not recording removals then we can zero them as
           ! often as possible to minimize the cost of maintaining
           ! them.
           call aero_info_array_zero(aero_state%aero_info_array)
        end if
 
-       if (mc_opt%t_progress > 0d0) then
+       if (part_opt%t_progress > 0d0) then
           if (rank == 0) then
              ! progress only printed from root process
-             call check_event(time, mc_opt%del_t, mc_opt%t_progress, &
+             call check_event(time, part_opt%del_t, part_opt%t_progress, &
                   last_progress_time, do_progress)
              if (do_progress) then
                 call cpu_time(t_wall_now)
-                prop_done = (dble(mc_opt%i_loop - 1) + (time - t_start) &
-                     / (mc_opt%t_max - t_start)) / dble(mc_opt%n_loop)
+                prop_done = (dble(part_opt%i_loop - 1) + (time - t_start) &
+                     / (part_opt%t_max - t_start)) / dble(part_opt%n_loop)
                 t_wall_est = (1d0 - prop_done) / prop_done &
-                     * (t_wall_now - mc_opt%t_wall_start)
+                     * (t_wall_now - part_opt%t_wall_start)
                 write(*,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
                      'n_particle', 'n_samples', 'n_coagulate', 't_remain(s)'
-                write(*,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
+                write(*,'(i6,f9.1,i11,i12,i12,f12.0)') part_opt%i_loop, time, &
                      aero_state_total_particles(aero_state), &
                      progress_n_samp, progress_n_coag, t_wall_est
                 ! reset counters so they show information since last
@@ -254,19 +254,19 @@ contains
        
     enddo
 
-    if (mc_opt%do_mosaic) then
+    if (part_opt%do_mosaic) then
        call mosaic_cleanup()
     end if
 
     call env_state_deallocate(old_env_state)
 
-  end subroutine run_mc
+  end subroutine run_part
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
   subroutine mc_coag(kernel, bin_grid, env_state, aero_data, &
-       aero_state, mc_opt, k_max, tot_n_samp, tot_n_coag)
+       aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -277,7 +277,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Monte Carlo options.
-    type(run_mc_opt_t), intent(in) :: mc_opt
+    type(run_part_opt_t), intent(in) :: part_opt
     !> Maximum kernel.
     real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
@@ -309,7 +309,7 @@ contains
        do j = 1,bin_grid%n_bin
           call compute_n_samp(aero_state%bin(i)%n_part, &
                aero_state%bin(j)%n_part, i == j, k_max(i,j), &
-               aero_state%comp_vol, mc_opt%del_t, n_samp_real)
+               aero_state%comp_vol, part_opt%del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = prob_round(n_samp_real)
           tot_n_samp = tot_n_samp + n_samp
@@ -321,7 +321,7 @@ contains
                 exit
              end if
              call maybe_coag_pair(bin_grid, env_state, &
-                  aero_data, aero_state, i, j, mc_opt%del_t, k_max(i,j), &
+                  aero_data, aero_state, i, j, part_opt%del_t, k_max(i,j), &
                   kernel, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
@@ -399,12 +399,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_mc_opt(val)
+  integer function pmc_mpi_pack_size_part_opt(val)
 
     !> Value to pack.
-    type(run_mc_opt_t), intent(in) :: val
+    type(run_part_opt_t), intent(in) :: val
 
-    pmc_mpi_pack_size_mc_opt = &
+    pmc_mpi_pack_size_part_opt = &
          pmc_mpi_pack_size_integer(val%n_part_max) &
          + pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
@@ -421,19 +421,19 @@ contains
          + pmc_mpi_pack_size_real(val%mix_rate) &
          + pmc_mpi_pack_size_logical(val%record_removals)
 
-  end function pmc_mpi_pack_size_mc_opt
+  end function pmc_mpi_pack_size_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_mc_opt(buffer, position, val)
+  subroutine pmc_mpi_pack_part_opt(buffer, position, val)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(run_mc_opt_t), intent(in) :: val
+    type(run_part_opt_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -455,22 +455,22 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%mix_rate)
     call pmc_mpi_pack_logical(buffer, position, val%record_removals)
     call assert(946070052, &
-         position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+         position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif
 
-  end subroutine pmc_mpi_pack_mc_opt
+  end subroutine pmc_mpi_pack_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_mc_opt(buffer, position, val)
+  subroutine pmc_mpi_unpack_part_opt(buffer, position, val)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(run_mc_opt_t), intent(out) :: val
+    type(run_part_opt_t), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -492,11 +492,11 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
     call pmc_mpi_unpack_logical(buffer, position, val%record_removals)
     call assert(480118362, &
-         position - prev_position == pmc_mpi_pack_size_mc_opt(val))
+         position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif
 
-  end subroutine pmc_mpi_unpack_mc_opt
+  end subroutine pmc_mpi_unpack_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_run_mc
+end module pmc_run_part

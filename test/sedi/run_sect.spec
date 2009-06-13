@@ -1,4 +1,4 @@
-run_type sect                   # sectional code
+run_type sectional              # sectional code run
 output_prefix out/sedi_sect     # prefix of output files
 kernel sedi                     # coagulation kernel
 

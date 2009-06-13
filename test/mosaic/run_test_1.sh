@@ -16,8 +16,8 @@ try_number=0
 while (( $mc_run_not_ok )) ; do
     try_number=$(( $try_number + 1 ))
     echo Try number $try_number
-    echo "../../partmc run_mc.spec"
-    ../../partmc run_mc.spec
+    echo "../../partmc run_part.spec"
+    ../../partmc run_part.spec
     echo "../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
     ../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
     echo "../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 1 2"

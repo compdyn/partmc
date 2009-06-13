@@ -7,7 +7,13 @@
 
 !> \mainpage
 !>
+!> \ref coding_style
+!>
 !> \dotfile partmc_modules.gv
+
+!> \page coding_style Coding Style
+!>
+!> This is the coding style page.
 
 !> Top level driver.
 program partmc
@@ -26,7 +32,7 @@ program partmc
   use pmc_aero_data
   use pmc_env_data
   use pmc_env_state
-  use pmc_run_mc
+  use pmc_run_part
   use pmc_run_exact
   use pmc_run_sect
   use pmc_spec_file
@@ -90,11 +96,11 @@ contains
     end if
     
     call pmc_mpi_bcast_string(run_type)
-    if (trim(run_type) == 'mc') then
-       call partmc_mc(file)
+    if (trim(run_type) == 'particle') then
+       call partmc_part(file)
     elseif (trim(run_type) == 'exact') then
        call partmc_exact(file)
-    elseif (trim(run_type) == 'sect') then
+    elseif (trim(run_type) == 'sectional') then
        call partmc_sect(file)
     else
        call die_msg(719261940, "unknown run_type: " // trim(run_type))
@@ -105,7 +111,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run a Monte Carlo simulation.
-  subroutine partmc_mc(file)
+  subroutine partmc_part(file)
 
     !> Spec file.
     type(spec_file_t), intent(out) :: file
@@ -120,7 +126,7 @@ contains
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
-    type(run_mc_opt_t) :: mc_opt
+    type(run_part_opt_t) :: part_opt
     integer :: i_loop
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -130,15 +136,16 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
-       call spec_file_read_string(file, 'output_prefix', mc_opt%output_prefix)
-       call spec_file_read_integer(file, 'n_loop', mc_opt%n_loop)
-       call spec_file_read_integer(file, 'n_part', mc_opt%n_part_max)
+       call spec_file_read_string(file, 'output_prefix', &
+            part_opt%output_prefix)
+       call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
+       call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
        call spec_file_read_string(file, 'kernel', kernel_name)
        
-       call spec_file_read_real(file, 't_max', mc_opt%t_max)
-       call spec_file_read_real(file, 'del_t', mc_opt%del_t)
-       call spec_file_read_real(file, 't_output', mc_opt%t_output)
-       call spec_file_read_real(file, 't_progress', mc_opt%t_progress)
+       call spec_file_read_real(file, 't_max', part_opt%t_max)
+       call spec_file_read_real(file, 'del_t', part_opt%del_t)
+       call spec_file_read_real(file, 't_output', part_opt%t_output)
+       call spec_file_read_real(file, 't_progress', part_opt%t_progress)
 
        call bin_grid_allocate(bin_grid)
        call spec_file_read_bin_grid(file, bin_grid)
@@ -161,23 +168,23 @@ contains
        call spec_file_read_env_state(file, env_state)
        
        call spec_file_read_integer(file, 'rand_init', rand_init)
-       call spec_file_read_real(file, 'mix_rate', mc_opt%mix_rate)
+       call spec_file_read_real(file, 'mix_rate', part_opt%mix_rate)
        call spec_file_read_logical(file, 'do_coagulation', &
-            mc_opt%do_coagulation)
+            part_opt%do_coagulation)
        call spec_file_read_logical(file, 'allow_doubling', &
-            mc_opt%allow_doubling)
+            part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
-            mc_opt%allow_halving)
+            part_opt%allow_halving)
        call spec_file_read_logical(file, 'do_condensation', &
-            mc_opt%do_condensation)
-       call spec_file_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
-       if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then
+            part_opt%do_condensation)
+       call spec_file_read_logical(file, 'do_mosaic', part_opt%do_mosaic)
+       if (part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
 
        call spec_file_read_logical(file, 'record_removals', &
-            mc_opt%record_removals)
+            part_opt%record_removals)
        
        call spec_file_close(file)
     end if
@@ -188,7 +195,7 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! root process determines size
        buffer_size = 0
-       buffer_size = buffer_size + pmc_mpi_pack_size_mc_opt(mc_opt)
+       buffer_size = buffer_size + pmc_mpi_pack_size_part_opt(part_opt)
        buffer_size = buffer_size + pmc_mpi_pack_size_string(kernel_name)
        buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
@@ -208,7 +215,7 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! root process packs data
        position = 0
-       call pmc_mpi_pack_mc_opt(buffer, position, mc_opt)
+       call pmc_mpi_pack_part_opt(buffer, position, part_opt)
        call pmc_mpi_pack_string(buffer, position, kernel_name)
        call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
@@ -226,7 +233,7 @@ contains
     if (pmc_mpi_rank() /= 0) then
        ! non-root processes unpack data
        position = 0
-       call pmc_mpi_unpack_mc_opt(buffer, position, mc_opt)
+       call pmc_mpi_unpack_part_opt(buffer, position, part_opt)
        call pmc_mpi_unpack_string(buffer, position, kernel_name)
        call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
@@ -245,48 +252,48 @@ contains
     call pmc_srand(rand_init + pmc_mpi_rank())
 
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    call cpu_time(mc_opt%t_wall_start)
+    call cpu_time(part_opt%t_wall_start)
 
     call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
          aero_data%n_spec)
-    do i_loop = 1,mc_opt%n_loop
-       mc_opt%i_loop = i_loop
+    do i_loop = 1,part_opt%n_loop
+       part_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
        call aero_state_deallocate(aero_state)
        call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
             aero_data%n_spec)
-       aero_state%comp_vol = dble(mc_opt%n_part_max) / &
+       aero_state%comp_vol = dble(part_opt%n_part_max) / &
             aero_dist_total_num_conc(aero_dist_init)
        call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
             aero_data, aero_dist_init, 1d0, 0d0)
        call env_data_init_state(env_data, env_state, 0d0)
 
-       if (mc_opt%do_condensation) then
+       if (part_opt%do_condensation) then
           call aero_state_equilibriate(bin_grid, env_state, aero_data, &
                aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then
-          call run_mc(kernel_sedi, kernel_sedi_max, bin_grid, &
+          call run_part(kernel_sedi, kernel_sedi_max, bin_grid, &
                env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt)
+               aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'golovin') then
-          call run_mc(kernel_golovin, kernel_golovin_max, bin_grid, &
+          call run_part(kernel_golovin, kernel_golovin_max, bin_grid, &
                env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt)
+               aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'constant') then
-          call run_mc(kernel_constant, kernel_constant_max, bin_grid, &
+          call run_part(kernel_constant, kernel_constant_max, bin_grid, &
                env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt)
+               aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'brown') then
-          call run_mc(kernel_brown, kernel_brown_max, bin_grid, &
+          call run_part(kernel_brown, kernel_brown_max, bin_grid, &
                env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt)
+               aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'zero') then
-          call run_mc(kernel_zero, kernel_zero_max, bin_grid, &
+          call run_part(kernel_zero, kernel_zero_max, bin_grid, &
                env_data, env_state, aero_data, &
-               aero_state, gas_data, gas_state, mc_opt)
+               aero_state, gas_data, gas_state, part_opt)
        else
           if (pmc_mpi_rank() == 0) then
              call die_msg(727498351, 'unknown kernel type: ' &
@@ -307,7 +314,7 @@ contains
     call env_state_deallocate(env_state)
     call bin_grid_deallocate(bin_grid)
 
-  end subroutine partmc_mc
+  end subroutine partmc_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

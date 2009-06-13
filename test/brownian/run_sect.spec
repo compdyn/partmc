@@ -1,4 +1,4 @@
-run_type sect                   # sectional code
+run_type sectional              # sectional code run
 output_prefix out/brownian_sect # prefix of output files
 kernel brown                    # coagulation kernel
 

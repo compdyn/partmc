@@ -146,7 +146,7 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/kernel_golovin.f90 src/kernel_sedi.f90
                src/kernel_constant.f90 src/kernel_brown.f90
                src/kernel_zero.f90 src/aero_data.f90 src/run_exact.f90
-               src/run_mc.f90 src/util.f90 src/run_sect.f90
+               src/run_part.f90 src/util.f90 src/run_sect.f90
                src/output.f90 src/mosaic.f90 src/gas_data.f90
                src/gas_state.f90 src/coagulation.f90 src/kernel.f90
                src/spec_line.f90 src/spec_file.f90 src/rand.f90

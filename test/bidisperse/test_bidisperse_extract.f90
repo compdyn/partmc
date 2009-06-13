@@ -9,8 +9,8 @@ program extract_summary
   use netcdf
 
   integer, parameter :: out_unit = 64
-  character(len=*), parameter :: in_prefix = "out/bidisperse_mc_0001_"
-  character(len=*), parameter :: out_filename = "out/bidisperse_mc_data.txt"
+  character(len=*), parameter :: in_prefix = "out/bidisperse_part_0001_"
+  character(len=*), parameter :: out_filename = "out/bidisperse_part_data.txt"
   real*8, parameter :: radius_cutoff = 5d-5
   real*8, parameter :: desired_small_init_num_conc = 1d9
   real*8, parameter :: desired_large_init_num_conc = 1d5

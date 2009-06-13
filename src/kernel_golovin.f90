@@ -142,7 +142,7 @@ contains
   !!
   !! This looks like it was taken from Numerical Recipes.
   !!
-  !! FIXME: Where did this come from? What license does it have?
+  !! FIXME: Where did this code come from? What license does it have?
   subroutine bessi1(x, r)
 
     !> Function argument.

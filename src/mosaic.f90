@@ -1,4 +1,4 @@
-! Copyright (C) 2007, 2008, 2009 Matthew West
+! Copyright (C) 2007-2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 

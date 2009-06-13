@@ -33,15 +33,11 @@ calls.
 Make sure every structure has a struct_zero() and that it's called
 from struct_alloc_size() and struct_alloc().
 
-Split aero_mode_t out of aero_dist.f90.
-
 Split spec_read.f90 into spec_file.f90 and spec_line.f90.
 
 Rename spec_read_struct() to struct_read_from_spec().
 
 Fix lines > 80 chars.
-
-Remove state_prefix, just use output_prefix.
 
 What's up with pointer arguments, can they have intent? See
 spec_read_gas_states_times_rates().
@@ -116,3 +112,9 @@ not the file containing the line containing the filename.
 
 Change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
+
+soln_* shouldn't need to be passed mean_radius, etc, as they can read
+this out of aero_dist_init if they need it.
+
+soln_* should check that aero_dist_init and emissions, etc, are
+correct for the given analytic solution.

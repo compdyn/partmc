@@ -283,8 +283,8 @@ contains
   !> Add an aero_dist_t to an aero_binned_t.
   !!
   !! Symbolically does aero_binned = aero_binned + aero_dist.
-  subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
-       aero_dist)
+  subroutine aero_binned_add_aero_dist(aero_binned, bin_grid, &
+       aero_data, aero_dist)
 
     !> Base aero_binned_t structure to add to.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -295,37 +295,16 @@ contains
     !> The aero_dist_t structure to add.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    integer :: i_mode, i_spec
-    real*8 :: mode_num_conc(bin_grid%n_bin)
-    real*8 :: mode_vol_conc(bin_grid%n_bin)
-    real*8 :: mode_vol_spec_den(bin_grid%n_bin, aero_data%n_spec)
-    type(aero_mode_t), pointer :: aero_mode
+    real*8 :: dist_num_conc(size(aero_binned%num_conc, 1))
+    real*8 :: dist_vol_conc(size(aero_binned%vol_conc, 1), &
+         size(aero_binned%vol_conc, 2))
 
-    do i_mode = 1,aero_dist%n_mode
-       aero_mode => aero_dist%mode(i_mode)
-       if (aero_mode%type == "log_normal") then
-          call num_conc_log_normal(aero_mode%mean_radius, &
-               aero_mode%log10_std_dev_radius, bin_grid, mode_num_conc)
-          call vol_conc_log_normal(aero_mode%mean_radius, &
-               aero_mode%log10_std_dev_radius, bin_grid, mode_vol_conc)
-       elseif (aero_mode%type == "exp") then
-          call num_conc_exp(aero_mode%mean_radius, bin_grid, mode_num_conc)
-          call vol_conc_exp(aero_mode%mean_radius, bin_grid, mode_vol_conc)
-       elseif (aero_mode%type == "mono") then
-          call num_conc_mono(aero_mode%mean_radius, bin_grid, mode_num_conc)
-          call vol_conc_mono(aero_mode%mean_radius, bin_grid, mode_vol_conc)
-       else
-          call die_msg(749122931, "Unknown aero_mode type")
-       end if
-       mode_num_conc = mode_num_conc * aero_mode%num_conc
-       mode_vol_conc = mode_vol_conc * aero_mode%num_conc
-       do i_spec = 1,aero_data%n_spec
-          mode_vol_spec_den(:,i_spec) = mode_vol_conc &
-               * aero_mode%vol_frac(i_spec)
-       end do
-       aero_binned%num_conc = aero_binned%num_conc + mode_num_conc
-       aero_binned%vol_conc = aero_binned%vol_conc + mode_vol_spec_den
-    end do
+    call aero_dist_num_conc(aero_dist, bin_grid, aero_data, &
+         dist_num_conc)
+    call aero_dist_vol_conc(aero_dist, bin_grid, aero_data, &
+         dist_vol_conc)
+    aero_binned%num_conc = aero_binned%num_conc + dist_num_conc
+    aero_binned%vol_conc = aero_binned%vol_conc + dist_vol_conc
 
   end subroutine aero_binned_add_aero_dist
 

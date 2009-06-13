@@ -98,7 +98,7 @@ program bidisperse_ode
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, env_state, comp_vol, n_small_dot)
@@ -132,7 +132,8 @@ contains
     call aero_particle_allocate_size(aero_particle_2, n_spec)
     aero_particle_1%vol(1) = v_small
     aero_particle_2%vol(1) = v_big
-    call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, env_state, k)
+    call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &
+         env_state, k)
     call aero_particle_deallocate(aero_particle_1)
     call aero_particle_deallocate(aero_particle_2)
     call aero_data_deallocate(aero_data)
@@ -140,7 +141,7 @@ contains
     
   end subroutine bidisperse_f
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        env_state, comp_vol, del_t, n_small)
@@ -186,6 +187,6 @@ contains
     
   end subroutine bidisperse_step
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end program bidisperse_ode

@@ -42,8 +42,10 @@ program numeric_diff
 
   ! process commandline arguments
   if ((iargc() < 2) .or. (iargc() > 8)) then
-     write(6,*) 'Usage: numeric_diff <filename1> <filename2> [abs_tol] [rel_tol] [min_row] [max_row] [min_col] [max_col]'
-     write(6,*) 'Setting tolerances or min/max values to 0 disables that check.'
+     write(6,*) 'Usage: numeric_diff <filename1> <filename2> [abs_tol]' &
+          // ' [rel_tol] [min_row] [max_row] [min_col] [max_col]'
+     write(6,*) 'Setting tolerances or min/max values to 0 disables' &
+          // ' that check.'
      write(6,*) 'If both tolerances are 0 then just print the differences.'
      write(6,*) 'All parameters default to 0 if not specified.'
      call exit(2)
@@ -154,7 +156,7 @@ program numeric_diff
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
   real*8 function string_to_real(string)
@@ -175,7 +177,7 @@ contains
 
   end function string_to_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an integer.
   integer function string_to_integer(string)
@@ -196,7 +198,7 @@ contains
 
   end function string_to_integer
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Expand all tabs in a line into single spaces (one tab makes one
   !> space).
@@ -215,7 +217,7 @@ contains
 
   end subroutine inout_tabs_to_spaces
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single character from a file, signaling if we have hit EOL
   !> or EOF. If EOL or EOF are true then the character value should be
@@ -260,7 +262,7 @@ contains
     
   end subroutine read_char_raw
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a white-space delimited word from a file, signaling if we
   !> have EOL or EOF. If EOL or EOF are true then the word will still
@@ -303,6 +305,6 @@ contains
 
   end subroutine read_word_raw
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program numeric_diff

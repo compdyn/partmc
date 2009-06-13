@@ -21,7 +21,8 @@ program numeric_average
 
   ! process commandline arguments
   if (iargc() < 2) then
-     write(6,*) 'Usage: numeric_average <out_filename> <in_filename_1> ... <in_filename_N>'
+     write(6,*) 'Usage: numeric_average <out_filename>' &
+          // ' <in_filename_1> ... <in_filename_N>'
      call exit(2)
   endif
   n_file = iargc() - 1
@@ -97,7 +98,7 @@ program numeric_average
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
   real*8 function string_to_real(string)
@@ -118,7 +119,7 @@ contains
 
   end function string_to_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Expand all tabs in a line into single spaces (one tab makes one
   !> space).
@@ -137,7 +138,7 @@ contains
 
   end subroutine inout_tabs_to_spaces
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single character from a file, signaling if we have hit EOL
   !> or EOF. If EOL or EOF are true then the character value should be
@@ -182,7 +183,7 @@ contains
     
   end subroutine read_char_raw
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a white-space delimited word from a file, signaling if we
   !> have EOL or EOF. If EOL or EOF are true then the word will still
@@ -225,6 +226,6 @@ contains
 
   end subroutine read_word_raw
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program numeric_average

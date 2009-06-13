@@ -78,7 +78,7 @@ module pmc_env_state
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an empty environment.
   subroutine env_state_allocate(env_state)
@@ -108,7 +108,7 @@ contains
 
   end subroutine env_state_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
   subroutine env_state_deallocate(env_state)
@@ -123,7 +123,7 @@ contains
 
   end subroutine env_state_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_state += env_state_delta
   subroutine env_state_add(env_state, env_state_delta)
@@ -158,7 +158,7 @@ contains
     
   end subroutine env_state_add
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_state *= alpha
   subroutine env_state_scale(env_state, alpha)
@@ -185,7 +185,7 @@ contains
     
   end subroutine env_state_scale
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_to = env_from
   subroutine env_state_copy(env_from, env_to)
@@ -216,7 +216,7 @@ contains
     
   end subroutine env_state_copy
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Adds the given water volume to the water vapor and updates all
   !> environment quantities.
@@ -245,7 +245,7 @@ contains
     
   end subroutine env_state_change_water_volume
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the current saturation vapor pressure (Pa).
   real*8 function env_state_sat_vapor_pressure(env_state)
@@ -259,7 +259,7 @@ contains
     
   end function env_state_sat_vapor_pressure
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the critical relative humidity from the kappa value (1).
   real*8 function aero_particle_kappa_rh(aero_particle, aero_data, &
@@ -283,7 +283,7 @@ contains
 
   end function aero_particle_kappa_rh
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air density (kg m^{-3}).
   real*8 function env_state_air_den(env_state)
@@ -296,7 +296,7 @@ contains
 
   end function env_state_air_den
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air molar density (mole m^{-3}).
   real*8 function env_state_air_molar_den(env_state)
@@ -309,7 +309,7 @@ contains
 
   end function env_state_air_molar_den
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert (mole m^{-3}) to (ppb).
   subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
@@ -319,11 +319,12 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     
-    gas_state%mix_rat = gas_state%mix_rat / env_state_air_molar_den(env_state) * 1d9
+    gas_state%mix_rat = gas_state%mix_rat &
+         / env_state_air_molar_den(env_state) * 1d9
     
   end subroutine gas_state_mole_dens_to_ppb
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do emissions and background dilution from the environment.
   subroutine env_state_update_gas_state(env_state, delta_t, &
@@ -377,7 +378,7 @@ contains
 
   end subroutine env_state_update_gas_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
@@ -449,7 +450,7 @@ contains
 
   end subroutine env_state_update_aero_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do emissions and background dilution from the environment for a
   !> binned aerosol distribution.
@@ -491,7 +492,8 @@ contains
     call aero_binned_scale(emission, &
          delta_t * env_state%aero_emission_rate / env_state%height)
 
-    ! dilution = delta_t * aero_dilution_rate * (aero_background - aero_binned)
+    ! dilution = delta_t * aero_dilution_rate
+    !            * (aero_background - aero_binned)
     call aero_binned_add_aero_dist(dilution, bin_grid, aero_data, &
          env_state%aero_background)
     call aero_binned_sub(dilution, aero_binned)
@@ -505,7 +507,7 @@ contains
 
   end subroutine env_state_update_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment specification from a spec file.
   subroutine spec_file_read_env_state(file, env_state)
@@ -525,7 +527,7 @@ contains
 
   end subroutine spec_file_read_env_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Average val over all processes.
   subroutine env_state_mix(val)
@@ -548,7 +550,7 @@ contains
 
   end subroutine env_state_mix
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_env_state(val)
@@ -578,7 +580,7 @@ contains
 
   end function pmc_mpi_pack_size_env_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_env_state(buffer, position, val)
@@ -618,7 +620,7 @@ contains
 
   end subroutine pmc_mpi_pack_env_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_env_state(buffer, position, val)
@@ -658,7 +660,7 @@ contains
 
   end subroutine pmc_mpi_unpack_env_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of val across all processes, storing the
   !> result in val_avg on the root process.
@@ -677,7 +679,7 @@ contains
 
   end subroutine pmc_mpi_reduce_avg_env_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine env_state_output_netcdf(env_state, ncid)
@@ -688,7 +690,8 @@ contains
     integer, intent(in) :: ncid
 
     call pmc_nc_write_real(ncid, env_state%temp, "temperature", "K")
-    call pmc_nc_write_real(ncid, env_state%rel_humid, "relative_humidity", "1")
+    call pmc_nc_write_real(ncid, env_state%rel_humid, &
+         "relative_humidity", "1")
     call pmc_nc_write_real(ncid, env_state%pressure, "pressure", "Pa")
     call pmc_nc_write_real(ncid, env_state%longitude, "longitude", "degrees")
     call pmc_nc_write_real(ncid, env_state%latitude, "latitude", "degrees")
@@ -702,7 +705,7 @@ contains
 
   end subroutine env_state_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine env_state_input_netcdf(env_state, ncid)
@@ -715,7 +718,8 @@ contains
     character(len=1000) :: unit
 
     call pmc_nc_read_real(ncid, env_state%temp, "temperature", unit)
-    call pmc_nc_read_real(ncid, env_state%rel_humid, "relative_humidity", unit)
+    call pmc_nc_read_real(ncid, env_state%rel_humid, "relative_humidity", &
+         unit)
     call pmc_nc_read_real(ncid, env_state%pressure, "pressure", unit)
     call pmc_nc_read_real(ncid, env_state%longitude, "longitude", unit)
     call pmc_nc_read_real(ncid, env_state%latitude, "latitude", unit)
@@ -729,6 +733,6 @@ contains
 
   end subroutine env_state_input_netcdf
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_env_state

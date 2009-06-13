@@ -70,7 +70,7 @@ module pmc_aero_state
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays.
   subroutine aero_state_allocate(aero_state)
@@ -83,7 +83,7 @@ contains
 
   end subroutine aero_state_allocate
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
   subroutine aero_state_allocate_size(aero_state, n_bin, n_spec)
@@ -107,7 +107,7 @@ contains
 
   end subroutine aero_state_allocate_size
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated aerosol.
   subroutine aero_state_deallocate(aero_state)
@@ -126,7 +126,7 @@ contains
 
   end subroutine aero_state_deallocate
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies aerosol to a destination that has already had
   !> aero_state_allocate() called on it.
@@ -157,7 +157,7 @@ contains
 
   end subroutine aero_state_copy
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total number of particles in an aerosol distribution.
   integer function aero_state_total_particles(aero_state)
@@ -169,7 +169,7 @@ contains
 
   end function aero_state_total_particles
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_state to have zero particles per bin. This must
   !> already have had aero_state_allocate() called on it. This
@@ -190,7 +190,7 @@ contains
 
   end subroutine aero_state_zero
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
   subroutine aero_state_add_particle(aero_state, i_bin, aero_particle)
@@ -208,7 +208,7 @@ contains
 
   end subroutine aero_state_add_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove the given particle.
   subroutine aero_state_remove_particle(aero_state, i_bin, index, &
@@ -234,7 +234,7 @@ contains
 
   end subroutine aero_state_remove_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> aero_state += aero_state_delta
   subroutine aero_state_add(aero_state, aero_state_delta)
@@ -256,7 +256,7 @@ contains
 
   end subroutine aero_state_add
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a Poisson sample of an aero_dist, adding to
   !> aero_state. The sampled amount is sample_prop *
@@ -303,7 +303,7 @@ contains
 
   end subroutine aero_state_add_aero_dist_sample
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Choose a random particle from the aero_state.
   subroutine aero_state_rand_particle(aero_state, i_bin, i_part)
@@ -325,7 +325,7 @@ contains
 
   end subroutine aero_state_rand_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a Poisson sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, which must
@@ -401,7 +401,7 @@ contains
     
   end subroutine aero_state_sample
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a rough bin-wise sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, which must
@@ -478,7 +478,7 @@ contains
     
   end subroutine aero_state_sample_rough
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Adds aero_state_delta particles to aero_state. The number of
   !> particles added depends on the computational volume ratio, so
@@ -508,7 +508,7 @@ contains
     
   end subroutine aero_state_add_particles
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create the bin number and mass arrays from aero_state%v.
   subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
@@ -540,7 +540,7 @@ contains
     
   end subroutine aero_state_to_binned
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
@@ -574,7 +574,7 @@ contains
     
   end subroutine aero_state_to_binned_dry
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Doubles number of particles.
   subroutine aero_state_double(aero_state)
@@ -593,7 +593,7 @@ contains
 
   end subroutine aero_state_double
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove approximately half of the particles in each bin.
   subroutine aero_state_halve(aero_state, bin_grid)
@@ -625,7 +625,7 @@ contains
 
   end subroutine aero_state_halve
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Takes an aero_state_t where the particles might no longer be in
   !> the correct bins and resorts it so that every particle is in the
@@ -677,7 +677,7 @@ contains
     
   end subroutine aero_state_resort
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Send a sample to the given process, and receive exactly one
   !> sample from an unspecified source.
@@ -751,7 +751,7 @@ contains
 
   end subroutine aero_state_mix_to
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mix the aero_states between all processes. Currently uses a
   !> simple periodic-1D diffusion.
@@ -793,7 +793,7 @@ contains
 
   end subroutine aero_state_mix
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that all particles are in the correct bins and that the
   !> bin numbers and masses are correct. This is for debugging only.
@@ -866,7 +866,7 @@ contains
     
   end subroutine aero_state_check
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_state(val)
@@ -887,7 +887,7 @@ contains
 
   end function pmc_mpi_pack_size_aero_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_state(buffer, position, val)
@@ -915,7 +915,7 @@ contains
 
   end subroutine pmc_mpi_pack_aero_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_state(buffer, position, val)
@@ -944,7 +944,7 @@ contains
 
   end subroutine pmc_mpi_unpack_aero_state
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the aero particle dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
@@ -987,7 +987,7 @@ contains
 
   end subroutine aero_state_netcdf_dim_aero_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the aero removed dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
@@ -1031,7 +1031,7 @@ contains
 
   end subroutine aero_state_netcdf_dim_aero_removed
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, &
@@ -1101,7 +1101,8 @@ contains
           end do
        end do
        call pmc_nc_write_real_2d(ncid, aero_particle_mass, &
-            "aero_particle_mass", "kg", (/ dimid_aero_particle, dimid_aero_species /))
+            "aero_particle_mass", "kg", (/ dimid_aero_particle, &
+            dimid_aero_species /))
        call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
             "aero_n_orig_part", "1", (/ dimid_aero_particle /))
        call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
@@ -1159,7 +1160,7 @@ contains
 
   end subroutine aero_state_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine aero_state_input_netcdf(aero_state, ncid, bin_grid, &
@@ -1202,11 +1203,13 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+       call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
+            aero_data%n_spec)
        return
     end if
     call pmc_nc_check(status)
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, name, n_part))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
+         name, n_part))
 
     allocate(aero_particle_mass(n_part, aero_data%n_spec))
     allocate(aero_n_orig_part(n_part))
@@ -1256,7 +1259,8 @@ contains
          "aero_greatest_create_time", unit)
 
     call aero_state_deallocate(aero_state)
-    call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+    call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
+         aero_data%n_spec)
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
     do i_part = 1,n_part
@@ -1265,7 +1269,8 @@ contains
        aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
        aero_particle%asymmetry = aero_asymmetry(i_part)
-       aero_particle%refract_shell = complex(aero_refract_shell_real(i_part), &
+       aero_particle%refract_shell = &
+            complex(aero_refract_shell_real(i_part), &
             aero_refract_shell_imag(i_part))
        aero_particle%refract_core = complex(aero_refract_core_real(i_part), &
             aero_refract_core_imag(i_part))
@@ -1302,7 +1307,8 @@ contains
        call pmc_nc_check(status)
     end if
     if (status == NF90_NOERR) then
-       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, name, n_info_item))
+       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, &
+            name, n_info_item))
 
        allocate(aero_removed_id(max(n_info_item,1)))
        allocate(aero_removed_action(max(n_info_item,1)))
@@ -1316,7 +1322,8 @@ contains
             "aero_removed_other_id", unit)
 
        if ((n_info_item > 1) .or. (aero_removed_id(1) /= 0)) then
-          call aero_info_array_enlarge_to(aero_state%aero_info_array, n_info_item)
+          call aero_info_array_enlarge_to(aero_state%aero_info_array, &
+               n_info_item)
           do i_remove = 1,n_info_item
              aero_state%aero_info_array%aero_info(i_remove)%id &
                   = aero_removed_id(i_remove)
@@ -1334,6 +1341,6 @@ contains
 
   end subroutine aero_state_input_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_state

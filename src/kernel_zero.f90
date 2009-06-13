@@ -23,7 +23,7 @@ module pmc_kernel_zero
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Zero coagulation kernel.
   subroutine kernel_zero(aero_particle_1, aero_particle_2, &
@@ -44,7 +44,7 @@ contains
     
   end subroutine kernel_zero
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Zero coagulation kernel.
   subroutine kernel_zero_max(v1, v2, aero_data, env_state, k_max)
@@ -64,7 +64,7 @@ contains
     
   end subroutine kernel_zero_max
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exact solution with the zero coagulation kernel. Only useful for
   !> testing emissions and background dilution.
@@ -126,13 +126,13 @@ contains
        ! calculate the limit steady state distribution
        call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
             aero_data%n_spec)
-       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, aero_data, &
-            env_state%aero_emissions)
+       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+            aero_data, env_state%aero_emissions)
        call aero_binned_scale(aero_binned_limit, &
             env_state%aero_emission_rate / env_state%height &
             / env_state%aero_dilution_rate)
-       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, aero_data, &
-            env_state%aero_background)
+       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+            aero_data, env_state%aero_background)
 
        ! calculate the current state
        call aero_binned_zero(aero_binned)
@@ -148,6 +148,6 @@ contains
 
   end subroutine soln_zero
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_kernel_zero

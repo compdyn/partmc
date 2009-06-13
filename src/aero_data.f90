@@ -60,7 +60,7 @@ module pmc_aero_data
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for aero_data.
   subroutine aero_data_allocate(aero_data)
@@ -80,7 +80,7 @@ contains
 
   end subroutine aero_data_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for aero_data parameters given the number of
   !> species.
@@ -103,7 +103,7 @@ contains
 
   end subroutine aero_data_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Frees all storage.
   subroutine aero_data_deallocate(aero_data)
@@ -121,7 +121,7 @@ contains
 
   end subroutine aero_data_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the number of the species in aero_data with the given name, or
   !> returns 0 if there is no such species.
@@ -150,7 +150,7 @@ contains
 
   end function aero_data_spec_by_name
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Fills in aero_data%i_water.
   subroutine aero_data_set_water_index(aero_data)
@@ -168,7 +168,7 @@ contains
 
   end subroutine aero_data_set_water_index
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Fills in aero_data%mosaic_index.
   subroutine aero_data_set_mosaic_map(aero_data)
@@ -201,7 +201,7 @@ contains
 
   end subroutine aero_data_set_mosaic_map
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
   subroutine spec_file_read_aero_data(file, aero_data)
@@ -247,7 +247,7 @@ contains
 
   end subroutine spec_file_read_aero_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
   subroutine spec_file_read_aero_data_filename(file, aero_data)
@@ -268,7 +268,7 @@ contains
 
   end subroutine spec_file_read_aero_data_filename
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a list of species from the given file with the given name.
   subroutine spec_file_read_species_list(file, name, aero_data, species_list)
@@ -300,7 +300,7 @@ contains
 
   end subroutine spec_file_read_species_list
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_data(val)
@@ -321,7 +321,7 @@ contains
 
   end function pmc_mpi_pack_size_aero_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_data(buffer, position, val)
@@ -352,7 +352,7 @@ contains
 
   end subroutine pmc_mpi_pack_aero_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_data(buffer, position, val)
@@ -383,7 +383,7 @@ contains
 
   end subroutine pmc_mpi_unpack_aero_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the aero species dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
@@ -437,7 +437,7 @@ contains
 
   end subroutine aero_data_netcdf_dim_aero_species
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine aero_data_output_netcdf(aero_data, ncid)
@@ -467,7 +467,7 @@ contains
 
   end subroutine aero_data_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine aero_data_input_netcdf(aero_data, ncid)
@@ -481,8 +481,10 @@ contains
     integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
     character(len=((AERO_NAME_LEN + 2) * 1000)) :: aero_species_names
 
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, name, n_spec))
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
+         dimid_aero_species))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_species, name, n_spec))
     call aero_data_deallocate(aero_data)
     call aero_data_allocate_size(aero_data, n_spec)
     call assert(739238793, n_spec < 1000)
@@ -500,8 +502,10 @@ contains
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, &
          "aero_kappa", unit)
 
-    call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
-    call pmc_nc_check(nf90_get_att(ncid, varid_aero_species, "names", aero_species_names))
+    call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
+         varid_aero_species))
+    call pmc_nc_check(nf90_get_att(ncid, varid_aero_species, "names", &
+         aero_species_names))
     ! aero_species_names are comma-separated, so unpack them
     do i_spec = 1,aero_data%n_spec
        i = 1
@@ -519,6 +523,6 @@ contains
 
   end subroutine aero_data_input_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_aero_data

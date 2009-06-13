@@ -13,7 +13,7 @@ module pmc_netcdf
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check the status of a NetCDF function call.
   subroutine pmc_nc_check(status)
@@ -27,7 +27,7 @@ contains
 
   end subroutine pmc_nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check the status of a NetCDF function call and prints the given
   !> error message on failure.
@@ -45,7 +45,7 @@ contains
 
   end subroutine pmc_nc_check_msg
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Open a NetCDF file for reading.
   subroutine pmc_nc_open_read(filename, ncid)
@@ -60,7 +60,7 @@ contains
 
   end subroutine pmc_nc_open_read
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Close a NetCDF file.
   subroutine pmc_nc_close(ncid)
@@ -72,7 +72,7 @@ contains
 
   end subroutine pmc_nc_close
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single real from a NetCDF file.
   subroutine pmc_nc_read_real(ncid, var, name, unit)
@@ -94,7 +94,7 @@ contains
     
   end subroutine pmc_nc_read_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single integer from a NetCDF file.
   subroutine pmc_nc_read_integer(ncid, var, name, unit)
@@ -116,7 +116,7 @@ contains
     
   end subroutine pmc_nc_read_integer
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real array from a NetCDF file.
   subroutine pmc_nc_read_real_1d(ncid, var, name, unit)
@@ -138,7 +138,7 @@ contains
     
   end subroutine pmc_nc_read_real_1d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer array from a NetCDF file.
   subroutine pmc_nc_read_integer_1d(ncid, var, name, unit)
@@ -160,7 +160,7 @@ contains
     
   end subroutine pmc_nc_read_integer_1d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real 2D array from a NetCDF file.
   subroutine pmc_nc_read_real_2d(ncid, var, name, unit)
@@ -182,7 +182,7 @@ contains
     
   end subroutine pmc_nc_read_real_2d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer 2D array from a NetCDF file.
   subroutine pmc_nc_read_integer_2d(ncid, var, name, unit)
@@ -204,7 +204,7 @@ contains
     
   end subroutine pmc_nc_read_integer_2d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a single real to a NetCDF file.
   subroutine pmc_nc_write_real(ncid, var, name, unit)
@@ -229,7 +229,7 @@ contains
     
   end subroutine pmc_nc_write_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a single integer to a NetCDF file.
   subroutine pmc_nc_write_integer(ncid, var, name, unit)
@@ -254,7 +254,7 @@ contains
     
   end subroutine pmc_nc_write_integer
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple real array to a NetCDF file.
   subroutine pmc_nc_write_real_1d(ncid, var, name, unit, dimids)
@@ -284,7 +284,7 @@ contains
     
   end subroutine pmc_nc_write_real_1d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer array to a NetCDF file.
   subroutine pmc_nc_write_integer_1d(ncid, var, name, unit, dimids)
@@ -314,7 +314,7 @@ contains
     
   end subroutine pmc_nc_write_integer_1d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple real 2D array to a NetCDF file.
   subroutine pmc_nc_write_real_2d(ncid, var, name, unit, dimids)
@@ -344,7 +344,7 @@ contains
     
   end subroutine pmc_nc_write_real_2d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer 2D array to a NetCDF file.
   subroutine pmc_nc_write_integer_2d(ncid, var, name, unit, dimids)
@@ -374,6 +374,6 @@ contains
     
   end subroutine pmc_nc_write_integer_2d
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_netcdf

@@ -42,7 +42,7 @@ module pmc_gas_data
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for gas species.
   subroutine gas_data_allocate(gas_data)
@@ -57,7 +57,7 @@ contains
 
   end subroutine gas_data_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for gas species with the given size.
   subroutine gas_data_allocate_size(gas_data, n_spec)
@@ -74,7 +74,7 @@ contains
 
   end subroutine gas_data_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
   subroutine gas_data_deallocate(gas_data)
@@ -88,7 +88,7 @@ contains
 
   end subroutine gas_data_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the number of the species in gas with the given name, or
   !> returns 0 if there is no such species.
@@ -117,7 +117,7 @@ contains
 
   end function gas_data_spec_by_name
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Fills in gas_data%mosaic_index.
   subroutine gas_data_set_mosaic_map(gas_data)
@@ -172,7 +172,7 @@ contains
 
   end subroutine gas_data_set_mosaic_map
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas data from a .spec file.
   subroutine spec_file_read_gas_data(file, gas_data)
@@ -193,7 +193,8 @@ contains
     call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_read_real_named_array(read_file, 0, species_name, &
+         species_data)
     call spec_file_close(read_file)
 
     ! check the data size
@@ -217,7 +218,7 @@ contains
 
   end subroutine spec_file_read_gas_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_gas_data(val)
@@ -233,7 +234,7 @@ contains
 
   end function pmc_mpi_pack_size_gas_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_gas_data(buffer, position, val)
@@ -259,7 +260,7 @@ contains
 
   end subroutine pmc_mpi_pack_gas_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_gas_data(buffer, position, val)
@@ -285,7 +286,7 @@ contains
 
   end subroutine pmc_mpi_unpack_gas_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the gas species dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
@@ -339,7 +340,7 @@ contains
 
   end subroutine gas_data_netcdf_dim_gas_species
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine gas_data_output_netcdf(gas_data, ncid)
@@ -361,7 +362,7 @@ contains
 
   end subroutine gas_data_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine gas_data_input_netcdf(gas_data, ncid)
@@ -376,7 +377,8 @@ contains
     character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, n_spec))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, &
+         n_spec))
     call gas_data_deallocate(gas_data)
     call gas_data_allocate_size(gas_data, n_spec)
     call assert(719237193, n_spec < 1000)
@@ -387,7 +389,8 @@ contains
          "gas_molec_weight", unit)
 
     call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
-    call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", gas_species_names))
+    call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &
+         gas_species_names))
     ! gas_species_names are comma-separated, so unpack them
     do i_spec = 1,gas_data%n_spec
        i = 1
@@ -403,6 +406,6 @@ contains
 
   end subroutine gas_data_input_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_gas_data

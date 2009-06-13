@@ -30,8 +30,6 @@ This means that every subroutine (except for alloc and free) should
 contain matching allocate/deallocate and struct_alloc/struct_free
 calls.
 
-Fix lines > 80 chars.
-
 What's up with pointer arguments, can they have intent? See
 spec_read_gas_states_times_rates().
 

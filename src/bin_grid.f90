@@ -34,7 +34,7 @@ module pmc_bin_grid
 
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a bin_grid.
   subroutine bin_grid_allocate(bin_grid)
@@ -47,7 +47,7 @@ contains
 
   end subroutine bin_grid_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a bin_grid of the given size.
   subroutine bin_grid_allocate_size(bin_grid, n_bin)
@@ -62,7 +62,7 @@ contains
 
   end subroutine bin_grid_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Frees all memory.
   subroutine bin_grid_deallocate(bin_grid)
@@ -74,7 +74,7 @@ contains
 
   end subroutine bin_grid_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
@@ -91,7 +91,7 @@ contains
     
   end subroutine vol_to_lnr
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates the bin grid given the range and number of bins.
   subroutine bin_grid_make(bin_grid, n_bin, v_min, v_max)
@@ -113,7 +113,7 @@ contains
 
   end subroutine bin_grid_make
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Given a bin_grid (which stores the center points of the bins),
   !> find the given edge volume (m^3).
@@ -139,7 +139,7 @@ contains
     
   end function bin_grid_edge
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the bin number that contains a given particle. This assumes
   !> logarithmically spaced bins.
@@ -171,7 +171,7 @@ contains
     
   end function bin_grid_particle_in_bin
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for a bin_grid from a spec file and
   !> generate it.
@@ -192,7 +192,7 @@ contains
 
   end subroutine spec_file_read_bin_grid
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_bin_grid(val)
@@ -207,7 +207,7 @@ contains
 
   end function pmc_mpi_pack_size_bin_grid
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_bin_grid(buffer, position, val)
@@ -232,7 +232,7 @@ contains
 
   end subroutine pmc_mpi_pack_bin_grid
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_bin_grid(buffer, position, val)
@@ -257,7 +257,7 @@ contains
 
   end subroutine pmc_mpi_unpack_bin_grid
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the aero_radius dimension to the given NetCDF file if it is
   !> not already present and in any case return the associated dimid.
@@ -272,8 +272,10 @@ contains
     integer, intent(out) :: dimid_aero_radius
 
     integer :: status, i_bin, varid_aero_radius
-    integer :: dimid_aero_radius_edges, varid_aero_radius_edges, varid_aero_radius_widths
-    real*8 :: aero_radius_centers(bin_grid%n_bin), aero_radius_edges(bin_grid%n_bin + 1)
+    integer :: dimid_aero_radius_edges, varid_aero_radius_edges, &
+         varid_aero_radius_widths
+    real*8 :: aero_radius_centers(bin_grid%n_bin), &
+         aero_radius_edges(bin_grid%n_bin + 1)
     real*8 :: aero_radius_widths(bin_grid%n_bin)
 
     status = nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius)
@@ -292,10 +294,12 @@ contains
     call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius, "unit", "m"))
     call pmc_nc_check(nf90_def_var(ncid, "aero_radius_edges", NF90_DOUBLE, &
          dimid_aero_radius_edges, varid_aero_radius_edges))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_edges, "unit", "m"))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_edges, &
+         "unit", "m"))
     call pmc_nc_check(nf90_def_var(ncid, "aero_radius_widths", NF90_DOUBLE, &
          dimid_aero_radius, varid_aero_radius_widths))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_widths, "unit", "1"))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_widths, &
+         "unit", "1"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
@@ -306,13 +310,16 @@ contains
     do i_bin = 1,(bin_grid%n_bin + 1)
        aero_radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
     end do
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius, aero_radius_centers))
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_edges, aero_radius_edges))
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_widths, aero_radius_widths))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius, &
+         aero_radius_centers))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_edges, &
+         aero_radius_edges))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_widths, &
+         aero_radius_widths))
 
   end subroutine bin_grid_netcdf_dim_aero_radius
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine bin_grid_output_netcdf(bin_grid, ncid)
@@ -332,7 +339,7 @@ contains
 
   end subroutine bin_grid_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine bin_grid_input_netcdf(bin_grid, ncid)
@@ -349,7 +356,8 @@ contains
     real*8, allocatable :: aero_radius_widths(:)
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius))
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, n_bin))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, &
+         n_bin))
 
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
@@ -372,6 +380,6 @@ contains
 
   end subroutine bin_grid_input_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_bin_grid

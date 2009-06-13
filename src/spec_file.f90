@@ -33,7 +33,7 @@ module pmc_spec_file
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exit with an error message containing filename and line number.
   subroutine spec_file_die_msg(code, file, msg)
@@ -53,7 +53,7 @@ contains
 
   end subroutine spec_file_die_msg
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Open a spec file for reading.
   subroutine spec_file_open(filename, file)
@@ -78,7 +78,7 @@ contains
 
   end subroutine spec_file_open
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Close a spec file.
   subroutine spec_file_close(file)
@@ -91,7 +91,7 @@ contains
 
   end subroutine spec_file_close
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single line from a spec file, signaling if we have hit EOF.
   subroutine spec_file_read_line_raw(file, line, eof)
@@ -127,7 +127,7 @@ contains
     
   end subroutine spec_file_read_line_raw
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the next line from the spec file that contains useful data
   !> (stripping comments and blank lines).
@@ -159,7 +159,7 @@ contains
 
   end subroutine spec_file_read_next_data_line
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a spec_line from the spec_file.
   subroutine spec_file_read_line(file, line, eof)
@@ -225,7 +225,8 @@ contains
           n_data = n_data + 1
           i = index(rest, ' ') ! first space
           if (i <= 1) then
-             call spec_file_die_msg(332939443, file, 'internal processing error')
+             call spec_file_die_msg(332939443, file, &
+                  'internal processing error')
           end if
           if (i >= SPEC_LINE_MAX_VAR_LEN) then
              write(error_msg, *) 'data element ', n_data, ' longer than: ', &
@@ -240,7 +241,7 @@ contains
     
   end subroutine spec_file_read_line
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a spec_line from the spec_file. This will always succeed or
   !> error out, so should only be called if we know there should be a
@@ -261,7 +262,7 @@ contains
 
   end subroutine spec_file_read_line_no_eof
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a list of spec_lines from a file, stopping at max_lines
   !> or EOF, whichever comes first.
@@ -286,7 +287,8 @@ contains
     do while (.not. eof)
        num_lines = num_lines + 1
        if (num_lines > SPEC_FILE_MAX_LIST_LINES) then
-          call spec_file_die_msg(450564159, file, 'maximum number of lines exceeded')
+          call spec_file_die_msg(450564159, file, &
+               'maximum number of lines exceeded')
        end if
        if (max_lines > 0) then
           if (num_lines >= max_lines) then
@@ -313,7 +315,7 @@ contains
 
   end subroutine spec_file_read_line_list
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of spec_lines from a file, stopping at max_lines
   !> or EOF. All lines must have the same number of elements.
@@ -341,7 +343,7 @@ contains
     
   end subroutine spec_file_read_line_array
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the name of the line data is as given.
   subroutine spec_file_check_line_name(file, line, name)
@@ -361,7 +363,7 @@ contains
 
   end subroutine spec_file_check_line_name
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Checks that the read_name is the same as name.
   subroutine spec_file_check_name(file, name, read_name)
@@ -383,7 +385,7 @@ contains
     
   end subroutine spec_file_check_name
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the length of the line data is as given.
   subroutine spec_file_check_line_length(file, line, length)
@@ -404,7 +406,7 @@ contains
 
   end subroutine spec_file_check_line_length
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check the IOSTAT and error if it is bad.
   subroutine spec_file_check_read_iostat(file, ios, type)
@@ -425,7 +427,7 @@ contains
 
   end subroutine spec_file_check_read_iostat
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an integer.
   integer function spec_file_string_to_integer(file, string)
@@ -444,7 +446,7 @@ contains
 
   end function spec_file_string_to_integer
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an real.
   real*8 function spec_file_string_to_real(file, string)
@@ -463,7 +465,7 @@ contains
 
   end function spec_file_string_to_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an logical.
   logical function spec_file_string_to_logical(file, string)
@@ -496,7 +498,7 @@ contains
 
   end function spec_file_string_to_logical
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an integer from a spec file that must have the given name.
   subroutine spec_file_read_integer(file, name, var)
@@ -519,7 +521,7 @@ contains
 
   end subroutine spec_file_read_integer
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a real number from a spec file that must have the given
   !> name.
@@ -543,7 +545,7 @@ contains
 
   end subroutine spec_file_read_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a logical from a spec file that must have a given name.
   subroutine spec_file_read_logical(file, name, var)
@@ -566,7 +568,7 @@ contains
 
   end subroutine spec_file_read_logical
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a string from a spec file that must have a given name.
   subroutine spec_file_read_string(file, name, var)
@@ -589,7 +591,7 @@ contains
 
   end subroutine spec_file_read_string
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a complex number from a spec file that must have the given
   !> name.
@@ -614,7 +616,7 @@ contains
 
   end subroutine spec_file_read_complex
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of named lines with real data. All lines must have
   !> the same number of data elements.
@@ -658,10 +660,11 @@ contains
 
   end subroutine spec_file_read_real_named_array
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an a time-indexed array of real data.
-  subroutine spec_file_read_timed_real_array(file, line_name, name, times, vals)
+  subroutine spec_file_read_timed_real_array(file, line_name, name, times, &
+       vals)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -719,6 +722,6 @@ contains
 
   end subroutine spec_file_read_timed_real_array
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_spec_file

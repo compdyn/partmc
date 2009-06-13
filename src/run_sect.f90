@@ -46,7 +46,7 @@ module pmc_run_sect
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
@@ -71,7 +71,8 @@ contains
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
     real*8 g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
     real*8 k_bin(bin_grid%n_bin,bin_grid%n_bin)
-    real*8 ck(bin_grid%n_bin,bin_grid%n_bin), ec(bin_grid%n_bin,bin_grid%n_bin)
+    real*8 ck(bin_grid%n_bin,bin_grid%n_bin)
+    real*8 ec(bin_grid%n_bin,bin_grid%n_bin)
     real*8 taug(bin_grid%n_bin), taup(bin_grid%n_bin)
     real*8 taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
     real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
@@ -108,7 +109,8 @@ contains
     end if
 
     ! output data structure
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
+         aero_data%n_spec)
     aero_binned%vol_conc = 0d0
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     
@@ -120,7 +122,8 @@ contains
     end do
     
     ! initial mass distribution
-    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, aero_dist)
+    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
+         aero_dist)
     
     call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
     
@@ -201,7 +204,7 @@ contains
 
   end subroutine run_sect
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Collision subroutine, exponential approach.
   subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
@@ -282,7 +285,7 @@ contains
     
   end subroutine coad
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the Courant number for each bin pair.
   subroutine courant(n_bin, dlnr, e, ima, c)
@@ -327,7 +330,7 @@ contains
     
   end subroutine courant
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Smooths kernel values for bin pairs, and halves the self-rate.
   subroutine smooth_bin_kernel(n_bin, k, k_smooth)
@@ -358,6 +361,6 @@ contains
     
   end subroutine smooth_bin_kernel
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_run_sect

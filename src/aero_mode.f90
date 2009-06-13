@@ -36,7 +36,8 @@ module pmc_aero_mode
      character(len=AERO_MODE_TYPE_LEN) :: type
      !> Mean radius of mode (m).
      real*8 :: mean_radius
-     !> Log base 10 of geometric standard deviation of radius, if necessary (m).
+     !> Log base 10 of geometric standard deviation of radius, if
+     !> necessary (m).
      real*8 :: log10_std_dev_radius
      !> Total number concentration of mode (#/m^3).
      real*8 :: num_conc
@@ -46,7 +47,7 @@ module pmc_aero_mode
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_mode.
   subroutine aero_mode_allocate(aero_mode)
@@ -58,7 +59,7 @@ contains
 
   end subroutine aero_mode_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_mode of the given size.
   subroutine aero_mode_allocate_size(aero_mode, n_spec)
@@ -72,7 +73,7 @@ contains
 
   end subroutine aero_mode_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
   subroutine aero_mode_deallocate(aero_mode)
@@ -84,7 +85,7 @@ contains
 
   end subroutine aero_mode_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copy an aero_mode.
   subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
@@ -105,7 +106,7 @@ contains
 
   end subroutine aero_mode_copy
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution, normalized so that
   !> sum(num_conc(k) * dlnr) = 1
@@ -137,7 +138,7 @@ contains
     
   end subroutine num_conc_log_normal
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
   subroutine vol_conc_log_normal(mean_radius, log_sigma, bin_grid, vol_conc)
@@ -158,7 +159,7 @@ contains
     
   end subroutine vol_conc_log_normal
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume
   !> n(v) = 1 / mean_vol * exp(- v / mean_vol)
@@ -183,7 +184,7 @@ contains
     
   end subroutine num_conc_exp
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
   subroutine vol_conc_exp(mean_radius, bin_grid, vol_conc)
@@ -202,7 +203,7 @@ contains
     
   end subroutine vol_conc_exp
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution.
   !> Normalized so that sum(num_conc(k) * dlnr) = 1
@@ -223,7 +224,7 @@ contains
     
   end subroutine num_conc_mono
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution in volume.
   subroutine vol_conc_mono(radius, bin_grid, vol_conc)
@@ -243,7 +244,7 @@ contains
     
   end subroutine vol_conc_mono
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the binned number concentration for an aero_mode.
   subroutine aero_mode_num_conc(aero_mode, bin_grid, aero_data, &
@@ -272,7 +273,7 @@ contains
 
   end subroutine aero_mode_num_conc
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the binned per-species volume concentration for an
   !> aero_mode.
@@ -311,7 +312,7 @@ contains
 
   end subroutine aero_mode_vol_conc
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return a radius randomly sampled from the mode distribution.
   subroutine aero_mode_sample_radius(aero_mode, radius)
@@ -334,7 +335,7 @@ contains
 
   end subroutine aero_mode_sample_radius
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read volume fractions from a data file.
   subroutine spec_file_read_vol_frac(file, aero_data, vol_frac)
@@ -358,7 +359,8 @@ contains
     call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_read_real_named_array(read_file, 0, species_name, &
+         species_data)
     call spec_file_close(read_file)
 
     ! check the data size
@@ -399,7 +401,7 @@ contains
 
   end subroutine spec_file_read_vol_frac
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the shape (number concentration profile) of one mode of an aerosol
   !> distribution.
@@ -421,7 +423,8 @@ contains
     end if
     if (trim(mode_type) == 'log_normal') then
        call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
-       call spec_file_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
+       call spec_file_read_real(file, 'log_std_dev', &
+            aero_mode%log10_std_dev_radius)
     elseif (trim(mode_type) == 'exp') then
        call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
     elseif (trim(mode_type) == 'mono') then
@@ -432,7 +435,7 @@ contains
 
   end subroutine spec_file_read_aero_mode_shape
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read one mode of an aerosol distribution (number concentration and
   !> volume fractions).
@@ -467,7 +470,7 @@ contains
 
   end subroutine spec_file_read_aero_mode
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_mode(val)
@@ -485,7 +488,7 @@ contains
 
   end function pmc_mpi_pack_size_aero_mode
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_mode(buffer, position, val)
@@ -513,7 +516,7 @@ contains
 
   end subroutine pmc_mpi_pack_aero_mode
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_mode(buffer, position, val)
@@ -541,6 +544,6 @@ contains
 
   end subroutine pmc_mpi_unpack_aero_mode
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_aero_mode

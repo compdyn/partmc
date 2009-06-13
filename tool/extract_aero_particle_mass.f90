@@ -33,7 +33,8 @@ program extract_aero_particle_mass
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_aero_particle_mass <netcdf_state_file> <output_filename>'
+     write(6,*) 'Usage: extract_aero_particle_mass ' &
+          // '<netcdf_state_file> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_filename)
@@ -176,7 +177,7 @@ program extract_aero_particle_mass
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
   subroutine nc_check(status)
@@ -191,6 +192,6 @@ contains
 
   end subroutine nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program extract_aero_particle_mass

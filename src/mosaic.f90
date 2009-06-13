@@ -19,7 +19,7 @@ module pmc_mosaic
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Whether MOSAIC support is compiled in.
   logical function mosaic_support()
@@ -32,7 +32,7 @@ contains
 
   end function mosaic_support
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize all MOSAIC data-structures.
   subroutine mosaic_init(bin_grid, env_state, del_t)
@@ -114,7 +114,7 @@ contains
     
   end subroutine mosaic_init
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Clean-up after running MOSAIC, deallocating memory.
   subroutine mosaic_cleanup()
@@ -131,7 +131,7 @@ contains
     
   end subroutine mosaic_cleanup
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
@@ -180,11 +180,11 @@ contains
     end interface
 
     ! update time variables
-    tmar21_sec = dble((79*24 + 12)*3600)       ! noon, mar 21, UTC
-    tcur_sec = dble(tbeg_sec) + time           ! current (old) time since
-                                               ! the beg of year 00:00, UTC (s)
+    tmar21_sec = dble((79*24 + 12)*3600)    ! noon, mar 21, UTC
+    tcur_sec = dble(tbeg_sec) + time        ! current (old) time since
+                                            ! the beg of year 00:00, UTC (s)
 
-    time_UTC = env_state%start_time/3600d0         ! 24-hr UTC clock time (hr)
+    time_UTC = env_state%start_time/3600d0  ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0
 
     do while (time_UTC >= 24d0)
@@ -193,10 +193,10 @@ contains
 
     tmid_sec = tcur_sec + 0.5d0*dt_sec
     if(tmid_sec .ge. tmar21_sec)then
-      tmid_sec = tmid_sec - tmar21_sec          ! seconds since noon, march 21
+       tmid_sec = tmid_sec - tmar21_sec     ! seconds since noon, march 21
     else
-      tmid_sec = tmid_sec + &
-                 dble(((365-79)*24 - 12)*3600)  ! seconds since noon, march 21
+       tmid_sec = tmid_sec &
+            + dble(((365-79)*24 - 12)*3600) ! seconds since noon, march 21
     endif
 
     ! transport timestep (min)
@@ -262,7 +262,7 @@ contains
 
   end subroutine mosaic_from_partmc
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
        aero_state, gas_data, gas_state)
@@ -346,7 +346,7 @@ contains
 
   end subroutine mosaic_to_partmc
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do one timestep with MOSAIC.
   !!
@@ -409,7 +409,7 @@ contains
 
   end subroutine mosaic_timestep
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle.
   !> FIXME: currenlty disabled.
@@ -477,6 +477,6 @@ contains
 
   end subroutine mosaic_aero_optical
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_mosaic

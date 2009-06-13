@@ -19,6 +19,7 @@ module pmc_spec_line
   !!
   !! Input lines are assumed to be in the format
   !! <pre>
+  !! # stand-alone comment
   !! &lt;name&gt; &lt;whitespace&gt; &lt;data1&gt; &lt;whitespace&gt; &lt;data2&gt; ... # optional comment
   !! </pre>
   !! An spec_line_t structure stores the name and data split at
@@ -32,7 +33,7 @@ module pmc_spec_line
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates memory for a spec_line.
   subroutine spec_line_allocate(spec_line)
@@ -44,7 +45,7 @@ contains
 
   end subroutine spec_line_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates memory for a spec_line of the given size.
   subroutine spec_line_allocate_size(spec_line, n_data)
@@ -58,7 +59,7 @@ contains
 
   end subroutine spec_line_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Frees all storage.
   subroutine spec_line_deallocate(spec_line)
@@ -70,7 +71,7 @@ contains
 
   end subroutine spec_line_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies a spec_line.
   subroutine spec_line_copy(from_spec_line, to_spec_line)
@@ -90,7 +91,7 @@ contains
 
   end subroutine spec_line_copy
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Strip the comments from a string. Comments are everything after
   !> the first # character.
@@ -108,7 +109,7 @@ contains
     
   end subroutine spec_line_strip_comment
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Expand all tabs in a string into single spaces (one tab makes one
   !> space).
@@ -127,7 +128,7 @@ contains
 
   end subroutine spec_line_tabs_to_spaces
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Strip leading spaces from a string.
   subroutine spec_line_strip_leading_spaces(string)
@@ -144,6 +145,6 @@ contains
 
   end subroutine spec_line_strip_leading_spaces
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_spec_line

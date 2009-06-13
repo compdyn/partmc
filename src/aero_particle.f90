@@ -55,7 +55,7 @@ module pmc_aero_particle
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates memory in an aero_particle_t.
   subroutine aero_particle_allocate(aero_particle)
@@ -68,7 +68,7 @@ contains
 
   end subroutine aero_particle_allocate
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_particle_t of the given size.
   subroutine aero_particle_allocate_size(aero_particle, n_spec)
@@ -83,7 +83,7 @@ contains
 
   end subroutine aero_particle_allocate_size
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates memory associated with an aero_particle_t.
   subroutine aero_particle_deallocate(aero_particle)
@@ -95,7 +95,7 @@ contains
 
   end subroutine aero_particle_deallocate
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies a particle.
   subroutine aero_particle_copy(aero_particle_from, aero_particle_to)
@@ -117,7 +117,8 @@ contains
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = aero_particle_from%scatter_cross_sect
+    aero_particle_to%scatter_cross_sect = &
+         aero_particle_from%scatter_cross_sect
     aero_particle_to%asymmetry = aero_particle_from%asymmetry
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
@@ -130,7 +131,7 @@ contains
 
   end subroutine aero_particle_copy
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Shift data from one aero_particle_t to another and free the first
   !> one.
@@ -149,7 +150,8 @@ contains
     nullify(aero_particle_from%vol)
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = aero_particle_from%scatter_cross_sect
+    aero_particle_to%scatter_cross_sect = &
+         aero_particle_from%scatter_cross_sect
     aero_particle_to%asymmetry = aero_particle_from%asymmetry
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
@@ -162,7 +164,7 @@ contains
     
   end subroutine aero_particle_shift
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_particle to be zero.
   subroutine aero_particle_zero(aero_particle)
@@ -185,7 +187,7 @@ contains
 
   end subroutine aero_particle_zero
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Assigns a globally-unique new ID number to the particle.
   subroutine aero_particle_new_id(aero_particle)
@@ -198,7 +200,7 @@ contains
 
   end subroutine aero_particle_new_id
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the creation times for the particle.
   subroutine aero_particle_set_create_time(aero_particle, create_time)
@@ -213,7 +215,7 @@ contains
 
   end subroutine aero_particle_set_create_time
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the aerosol particle volumes.
   subroutine aero_particle_set_vols(aero_particle, vols)
@@ -227,7 +229,7 @@ contains
 
   end subroutine aero_particle_set_vols
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total mass of the particle (kg).
   real*8 function aero_particle_mass(aero_particle, aero_data)
@@ -241,7 +243,7 @@ contains
 
   end function aero_particle_mass
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total moles in the particle (1).
   real*8 function aero_particle_moles(aero_particle, aero_data)
@@ -256,7 +258,7 @@ contains
 
   end function aero_particle_moles
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total volume of the particle (m^3).
   real*8 function aero_particle_volume(aero_particle)
@@ -268,7 +270,7 @@ contains
 
   end function aero_particle_volume
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Average density of the particle (kg/m^3).
   real*8 function aero_particle_density(aero_particle, aero_data)
@@ -283,7 +285,7 @@ contains
 
   end function aero_particle_density
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the bin number that contains a given particle.
   integer function aero_particle_in_bin(aero_particle, bin_grid)
@@ -298,7 +300,7 @@ contains
     
   end function aero_particle_in_bin
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-average of the non-water elements of quantity.
   real*8 function aero_particle_average_solute_quantity(aero_particle, &
@@ -321,7 +323,7 @@ contains
 
   end function aero_particle_average_solute_quantity
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-total of the non-water elements of quantity.
   real*8 function aero_particle_total_solute_quantity(aero_particle, &
@@ -347,7 +349,7 @@ contains
 
   end function aero_particle_total_solute_quantity
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the water element of quantity.
   real*8 function aero_particle_average_water_quantity(aero_particle, &
@@ -365,7 +367,7 @@ contains
 
   end function aero_particle_average_water_quantity
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-total of the water element of quantity.
   real*8 function aero_particle_total_water_quantity(aero_particle, &
@@ -385,7 +387,7 @@ contains
 
   end function aero_particle_total_water_quantity
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the water molecular weight.
   !> (kg/mole)
@@ -400,7 +402,7 @@ contains
 
   end function aero_particle_water_molec_weight
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute molecular weight (kg/mole).
   real*8 function aero_particle_solute_molec_weight(aero_particle, &
@@ -417,7 +419,7 @@ contains
 
   end function aero_particle_solute_molec_weight
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute ion number (1).
   real*8 function aero_particle_solute_num_ions(aero_particle, aero_data)
@@ -433,7 +435,7 @@ contains
 
   end function aero_particle_solute_num_ions
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute solubilities (1).
   real*8 function aero_particle_solute_solubility(aero_particle, &
@@ -450,7 +452,7 @@ contains
 
   end function aero_particle_solute_solubility
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the water density (kg/m^3).
   real*8 function aero_particle_water_density(aero_data)
@@ -463,7 +465,7 @@ contains
 
   end function aero_particle_water_density
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute densities (kg/m^3).
   real*8 function aero_particle_solute_density(aero_particle, &
@@ -480,7 +482,7 @@ contains
 
   end function aero_particle_solute_density
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the water mass (kg).
   real*8 function aero_particle_water_mass(aero_particle, aero_data)
@@ -496,7 +498,7 @@ contains
 
   end function aero_particle_water_mass
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total solute mass (kg).
   real*8 function aero_particle_solute_mass(aero_particle, aero_data)
@@ -512,7 +514,7 @@ contains
 
   end function aero_particle_solute_mass
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total solute volume (m^3).
   real*8 function aero_particle_solute_volume(aero_particle, aero_data)
@@ -531,7 +533,7 @@ contains
 
   end function aero_particle_solute_volume
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute kappas (1).
   real*8 function aero_particle_solute_kappa(aero_particle, aero_data)
@@ -547,7 +549,7 @@ contains
 
   end function aero_particle_solute_kappa
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate two particles together to make a new one.
   subroutine aero_particle_coagulate(aero_particle_1, &
@@ -594,7 +596,7 @@ contains
 
   end subroutine aero_particle_coagulate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_particle(val)
@@ -618,7 +620,7 @@ contains
     
   end function pmc_mpi_pack_size_aero_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_aero_particle(buffer, position, val)
@@ -652,7 +654,7 @@ contains
 
   end subroutine pmc_mpi_pack_aero_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_particle(buffer, position, val)
@@ -686,6 +688,6 @@ contains
 
   end subroutine pmc_mpi_unpack_aero_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_particle

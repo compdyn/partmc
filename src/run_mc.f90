@@ -64,7 +64,7 @@ module pmc_run_mc
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_mc(kernel, kernel_max, bin_grid, env_data, &
@@ -242,8 +242,8 @@ contains
                 write(*,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
                      'n_particle', 'n_samples', 'n_coagulate', 't_remain(s)'
                 write(*,'(i6,f9.1,i11,i12,i12,f12.0)') mc_opt%i_loop, time, &
-                     aero_state_total_particles(aero_state), progress_n_samp, &
-                     progress_n_coag, t_wall_est
+                     aero_state_total_particles(aero_state), &
+                     progress_n_samp, progress_n_coag, t_wall_est
                 ! reset counters so they show information since last
                 ! progress display
                 progress_n_samp = 0
@@ -262,7 +262,7 @@ contains
 
   end subroutine run_mc
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
   subroutine mc_coag(kernel, bin_grid, env_state, aero_data, &
@@ -330,7 +330,7 @@ contains
 
   end subroutine mc_coag
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number of samples required for the pair of bins.
   subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
@@ -366,7 +366,7 @@ contains
     
   end subroutine compute_n_samp
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mix data between processes.
   subroutine mc_mix(aero_data, aero_state, gas_data, gas_state, &
@@ -396,7 +396,7 @@ contains
     
   end subroutine mc_mix
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_mc_opt(val)
@@ -423,7 +423,7 @@ contains
 
   end function pmc_mpi_pack_size_mc_opt
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_mc_opt(buffer, position, val)
@@ -460,7 +460,7 @@ contains
 
   end subroutine pmc_mpi_pack_mc_opt
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_mc_opt(buffer, position, val)
@@ -497,6 +497,6 @@ contains
 
   end subroutine pmc_mpi_unpack_mc_opt
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_run_mc

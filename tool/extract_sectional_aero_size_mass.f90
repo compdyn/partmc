@@ -34,7 +34,8 @@ program extract_sectional_aero_size_mass
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_sectional_aero_size_mass <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_sectional_aero_size_mass' &
+          // ' <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -52,7 +53,8 @@ program extract_sectional_aero_size_mass
      end if
      n_time = i_time
      if (n_time >= MAX_N_TIME) then
-        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', MAX_N_TIME
+        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
+             MAX_N_TIME
         call exit(1)
      end if
 
@@ -124,8 +126,9 @@ program extract_sectional_aero_size_mass
      ! read aero_mass_concentration
      call nc_check(nf90_inq_varid(ncid, "aero_mass_concentration", &
           varid_aero_mass_concentration))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_concentration, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check(nf90_Inquire_Variable(ncid, &
+          varid_aero_mass_concentration, tmp_str, xtype, ndims, &
+          dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
@@ -159,7 +162,8 @@ program extract_sectional_aero_size_mass
   ! write information
   write(*,*) "Output file array A has:"
   write(*,*) "  A(i, 1) = radius(i) (m)"
-  write(*,*) "  A(i, j+1) = mass concentration at radius(i) and time(j) (kg/m^3)"
+  write(*,*) "  A(i, j+1) = mass concentration at radius(i) and " &
+       // "time(j) (kg/m^3)"
   write(*,*) "Radius bins have logarithmic width:"
   write(*,*) "  d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
 
@@ -188,7 +192,7 @@ program extract_sectional_aero_size_mass
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
   subroutine nc_check(status)
@@ -203,6 +207,6 @@ contains
 
   end subroutine nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program extract_sectional_aero_size_mass

@@ -18,7 +18,7 @@ module pmc_condensation
   
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
@@ -75,7 +75,7 @@ contains
 
   end subroutine condense_particles
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the condensation growth or decay ODE for total time
   !> del_t for a single particle.
@@ -104,7 +104,7 @@ contains
     
   end subroutine condense_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Does one timestep (determined by this subroutine) of the
   !> condensation ODE.
@@ -150,7 +150,7 @@ contains
    
   end subroutine condense_step_euler
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Does one timestep (determined by this subroutine) of the
   !> condensation ODE.
@@ -188,7 +188,7 @@ contains
    
   end subroutine condense_step_rk_fixed
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Does one fixed timestep of Runge-Kutta-4.
   subroutine condense_step_rk(dt, env_state, aero_data, aero_particle)
@@ -243,7 +243,7 @@ contains
    
   end subroutine condense_step_rk
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Just returns a constant timestep.
   subroutine find_condense_timestep_constant(dt, env_state, aero_data, &
@@ -262,7 +262,7 @@ contains
 
   end subroutine find_condense_timestep_constant
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes a timestep proportional to V / (dV/dt).
   subroutine find_condense_timestep_variable(dt, env_state, aero_data, &
@@ -288,7 +288,7 @@ contains
 
   end subroutine find_condense_timestep_variable
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the water volume growth rate due to condensation.
   subroutine cond_growth_rate(dvdt, env_state, aero_data, aero_particle)
@@ -306,7 +306,7 @@ contains
 
   end subroutine cond_growth_rate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine cond_growth_rate_old(dvdt, env_state, aero_data, aero_particle)
 
@@ -339,7 +339,7 @@ contains
 
   end subroutine cond_growth_rate_old
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Scalar Newton's method for solving the implicit condensation
   !> functions.
@@ -413,7 +413,7 @@ contains
 
   end subroutine cond_newt
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the error function value and its derivative for the
   !> implicit growth rate function.
@@ -523,7 +523,7 @@ contains
 
   end subroutine cond_growth_rate_func
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add water to the particle until it is in equilibrium.
   subroutine equilibriate_particle(env_state, aero_data, aero_particle)
@@ -561,7 +561,7 @@ contains
 
   end subroutine equilibriate_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the error function value and its derivative for the
   !> implicit function that determines the equilibrium state of a
@@ -628,7 +628,7 @@ contains
 
   end subroutine equilibriate_func
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Call equilibriate_particle() on each particle in the aerosol.
   subroutine aero_state_equilibriate(bin_grid, env_state, aero_data, &
@@ -654,6 +654,6 @@ contains
 
   end subroutine aero_state_equilibriate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_condensation

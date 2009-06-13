@@ -40,7 +40,7 @@ module pmc_run_exact
 
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run an exact simulation.
   !!
@@ -97,7 +97,8 @@ contains
        end subroutine soln
     end interface
 
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
+         aero_data%n_spec)
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
 
@@ -119,6 +120,6 @@ contains
     
   end subroutine run_exact
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_run_exact

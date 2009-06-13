@@ -32,7 +32,8 @@ program extract_sectional_aero_species
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_sectional_aero_species <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_sectional_aero_species' &
+          // ' <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -49,7 +50,8 @@ program extract_sectional_aero_species
   ! write information
   write(*,*) "Output file array A has:"
   write(*,*) "  A(i, 1) = time(i) (s)"
-  write(*,*) "  A(i, j+1) = mass concentration at time(i) of species(j) (kg/m^3)"
+  write(*,*) "  A(i, j+1) = mass concentration at time(i) of" &
+       // " species(j) (kg/m^3)"
 
   ! process NetCDF files
   i_time = 0
@@ -116,8 +118,9 @@ program extract_sectional_aero_species
      ! read aero_mass_concentration
      call nc_check(nf90_inq_varid(ncid, "aero_mass_concentration", &
           varid_aero_mass_concentration))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_concentration, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check(nf90_Inquire_Variable(ncid, &
+          varid_aero_mass_concentration, tmp_str, xtype, ndims, &
+          dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
@@ -162,7 +165,7 @@ program extract_sectional_aero_species
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
   subroutine nc_check(status)
@@ -177,6 +180,6 @@ contains
 
   end subroutine nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program extract_sectional_aero_species

@@ -33,7 +33,8 @@ program extract_aero_size_mass
 
   ! process commandline arguments
   if (iargc() .ne. 5) then
-     write(6,*) 'Usage: extract_aero_size_mass <r_min> <r_max> <n_bin> <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_aero_size_mass <r_min> <r_max>' &
+          // ' <n_bin> <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, tmp_str)
@@ -59,7 +60,8 @@ program extract_aero_size_mass
      end if
      n_time = i_time
      if (n_time >= MAX_N_TIME) then
-        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', MAX_N_TIME
+        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
+             MAX_N_TIME
         call exit(1)
      end if
 
@@ -161,7 +163,8 @@ program extract_aero_size_mass
   ! write information
   write(*,*) "Output file array A has:"
   write(*,*) "  A(i, 1) = radius(i) (m)"
-  write(*,*) "  A(i, j+1) = mass concentration at radius(i) and time(j) (kg/m^3)"
+  write(*,*) "  A(i, j+1) = mass concentration at radius(i) and " &
+       // "time(j) (kg/m^3)"
   write(*,*) "Radius bins have logarithmic width:"
   write(*,*) "  d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
 
@@ -190,7 +193,7 @@ program extract_aero_size_mass
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
   subroutine nc_check(status)
@@ -205,7 +208,7 @@ contains
 
   end subroutine nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
   real*8 function string_to_real(string)
@@ -226,7 +229,7 @@ contains
 
   end function string_to_real
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an integer.
   integer function string_to_integer(string)
@@ -247,6 +250,6 @@ contains
 
   end function string_to_integer
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program extract_aero_size_mass

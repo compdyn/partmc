@@ -56,7 +56,7 @@ program partmc
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the usage text to stderr.
   subroutine print_usage()
@@ -65,7 +65,7 @@ contains
 
   end subroutine print_usage
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a PartMC run.
   subroutine partmc_run(spec_name)
@@ -102,7 +102,7 @@ contains
 
   end subroutine partmc_run
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run a Monte Carlo simulation.
   subroutine partmc_mc(file)
@@ -155,23 +155,29 @@ contains
             'aerosol_init', aero_dist_init)
 
        call env_data_allocate(env_data)
-       call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+       call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
+            env_data)
        call env_state_allocate(env_state)
        call spec_file_read_env_state(file, env_state)
        
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_real(file, 'mix_rate', mc_opt%mix_rate)
-       call spec_file_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
-       call spec_file_read_logical(file, 'allow_doubling', mc_opt%allow_doubling)
-       call spec_file_read_logical(file, 'allow_halving', mc_opt%allow_halving)
-       call spec_file_read_logical(file, 'do_condensation', mc_opt%do_condensation)
+       call spec_file_read_logical(file, 'do_coagulation', &
+            mc_opt%do_coagulation)
+       call spec_file_read_logical(file, 'allow_doubling', &
+            mc_opt%allow_doubling)
+       call spec_file_read_logical(file, 'allow_halving', &
+            mc_opt%allow_halving)
+       call spec_file_read_logical(file, 'do_condensation', &
+            mc_opt%do_condensation)
        call spec_file_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
        if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
 
-       call spec_file_read_logical(file, 'record_removals', mc_opt%record_removals)
+       call spec_file_read_logical(file, 'record_removals', &
+            mc_opt%record_removals)
        
        call spec_file_close(file)
     end if
@@ -241,13 +247,15 @@ contains
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(mc_opt%t_wall_start)
 
-    call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+    call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
+         aero_data%n_spec)
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+       call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
+            aero_data%n_spec)
        aero_state%comp_vol = dble(mc_opt%n_part_max) / &
             aero_dist_total_num_conc(aero_dist_init)
        call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
@@ -301,7 +309,7 @@ contains
 
   end subroutine partmc_mc
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run an exact solution simulation.
   subroutine partmc_exact(file)
@@ -338,7 +346,8 @@ contains
     call spec_file_read_bin_grid(file, bin_grid)
     call spec_file_read_gas_data(file, gas_data)
     call spec_file_read_aero_data_filename(file, aero_data)
-    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
+         env_data)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_string(file, 'soln', soln_name)
@@ -385,7 +394,7 @@ contains
     
   end subroutine partmc_exact
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run a sectional code simulation.
   subroutine partmc_sect(file)
@@ -431,10 +440,12 @@ contains
     call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_dist_init)
 
-    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
+         env_data)
     call spec_file_read_env_state(file, env_state)
 
-    call spec_file_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
+    call spec_file_read_logical(file, 'do_coagulation', &
+         sect_opt%do_coagulation)
     
     call spec_file_close(file)
 
@@ -471,6 +482,6 @@ contains
     
   end subroutine partmc_sect
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program partmc

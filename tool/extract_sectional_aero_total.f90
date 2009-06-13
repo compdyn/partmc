@@ -32,7 +32,8 @@ program extract_sectional_aero_total
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_sectional_aero_total <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_sectional_aero_total' &
+          // ' <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)
@@ -109,8 +110,9 @@ program extract_sectional_aero_total
      ! read aero_number_concentration
      call nc_check(nf90_inq_varid(ncid, "aero_number_concentration", &
           varid_aero_number_concentration))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_number_concentration, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check(nf90_Inquire_Variable(ncid, &
+          varid_aero_number_concentration, tmp_str, xtype, ndims, &
+          dimids, nAtts))
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_radius)) then
         write(*,*) "ERROR: unexpected aero_number_concentration dimids"
@@ -123,8 +125,9 @@ program extract_sectional_aero_total
      ! read aero_mass_concentration
      call nc_check(nf90_inq_varid(ncid, "aero_mass_concentration", &
           varid_aero_mass_concentration))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_mass_concentration, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check(nf90_Inquire_Variable(ncid, &
+          varid_aero_mass_concentration, tmp_str, xtype, ndims, &
+          dimids, nAtts))
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
@@ -165,7 +168,7 @@ program extract_sectional_aero_total
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
   subroutine nc_check(status)
@@ -180,6 +183,6 @@ contains
 
   end subroutine nc_check
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end program extract_sectional_aero_total

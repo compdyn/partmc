@@ -41,7 +41,7 @@ module pmc_aero_binned
 
 contains
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an aero_binned_t.
   subroutine aero_binned_allocate(aero_binned)
@@ -54,7 +54,7 @@ contains
 
   end subroutine aero_binned_allocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an aero_binned_t of the given size.
   subroutine aero_binned_allocate_size(aero_binned, n_bin, n_spec)
@@ -63,7 +63,8 @@ contains
     type(aero_binned_t), intent(out) :: aero_binned
     !> Number of aerosol bins to allocate (typically \c bin_grid%%n_bin).
     integer, intent(in) :: n_bin
-    !> Number of aerosol species to allocate (typically \c aero_data%%n_spec).
+    !> Number of aerosol species to allocate (typically
+    !> \c aero_data%%n_spec).
     integer, intent(in) :: n_spec
 
     allocate(aero_binned%num_conc(n_bin))
@@ -72,7 +73,7 @@ contains
 
   end subroutine aero_binned_allocate_size
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free internal memory in an aero_binned_t structure.
   subroutine aero_binned_deallocate(aero_binned)
@@ -85,7 +86,7 @@ contains
 
   end subroutine aero_binned_deallocate
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set all internal data in an aero_binned_t structure to zero.
   subroutine aero_binned_zero(aero_binned)
@@ -98,7 +99,7 @@ contains
 
   end subroutine aero_binned_zero
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update aero_binned_t structure for the addition of the given
   !> particle whose bin is also given.
@@ -126,7 +127,7 @@ contains
 
   end subroutine aero_binned_add_particle_in_bin
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update aero_binned_t structure for the addition of the given
   !> particle.
@@ -151,7 +152,7 @@ contains
 
   end subroutine aero_binned_add_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update aero_binned_t structure for the removal of the given
   !> particle whose bin is also given.
@@ -179,7 +180,7 @@ contains
 
   end subroutine aero_binned_remove_particle_in_bin
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the aero_binned_t structure for the removal of the given
   !> particle.
@@ -204,7 +205,7 @@ contains
 
   end subroutine aero_binned_remove_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add two aero_binned_t structures together.
   !!
@@ -221,7 +222,7 @@ contains
 
   end subroutine aero_binned_add
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Subtract one aero_binned_t structure from another.
   !!
@@ -238,7 +239,7 @@ contains
 
   end subroutine aero_binned_sub
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Scale an aero_binned_t by a real number.
   !!
@@ -255,7 +256,7 @@ contains
 
   end subroutine aero_binned_scale
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copy one aero_binned_t structure to another.
   !!
@@ -278,7 +279,7 @@ contains
 
   end subroutine aero_binned_copy
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add an aero_dist_t to an aero_binned_t.
   !!
@@ -308,7 +309,7 @@ contains
 
   end subroutine aero_binned_add_aero_dist
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the number of bytes required to pack the structure.
   !!
@@ -324,7 +325,7 @@ contains
 
   end function pmc_mpi_pack_size_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the structure into the buffer and advance position.
   !!
@@ -350,7 +351,7 @@ contains
 
   end subroutine pmc_mpi_pack_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the structure from the buffer and advance position.
   !!
@@ -376,7 +377,7 @@ contains
 
   end subroutine pmc_mpi_unpack_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of the structure across all processors,
   !> storing the result on the root processor.
@@ -392,7 +393,7 @@ contains
 
   end subroutine pmc_mpi_reduce_avg_aero_binned
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
   subroutine aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
@@ -429,7 +430,7 @@ contains
 
   end subroutine aero_binned_output_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
   subroutine aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
@@ -460,6 +461,6 @@ contains
 
   end subroutine aero_binned_input_netcdf
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_binned

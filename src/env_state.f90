@@ -542,32 +542,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Computes the average of an array of env_state.
-  subroutine env_state_average(env_vec, env_avg)
-
-    !> Array of env_state.
-    type(env_state_t), intent(in) :: env_vec(:)
-    !> Average of env_vec.
-    type(env_state_t), intent(out) :: env_avg
-
-    call average_real(env_vec%temp, env_avg%temp)
-    call average_real(env_vec%rel_humid, env_avg%rel_humid)
-    call average_real(env_vec%pressure, env_avg%pressure)
-    call average_real(env_vec%longitude, env_avg%longitude)
-    call average_real(env_vec%latitude, env_avg%latitude)
-    call average_real(env_vec%altitude, env_avg%altitude)
-    call average_real(env_vec%start_time, env_avg%start_time)
-    call average_integer(env_vec%start_day, env_avg%start_day)
-    call average_real(env_vec%elapsed_time, env_avg%elapsed_time)
-    call average_real(env_vec%height, env_avg%height)
-    call gas_state_average(env_vec%gas_emissions, env_avg%gas_emissions)
-    call average_real(env_vec%gas_emission_rate, env_avg%gas_emission_rate)
-    call gas_state_average(env_vec%gas_background, env_avg%gas_background)
-    
-  end subroutine env_state_average
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Average val over all processes.
   subroutine env_state_mix(val)
 

@@ -1,4 +1,7 @@
 
+Documentation for coding style -- object orientation, one file per
+type, etc, same names as files, types, modules.
+
 Documentation for coding style in doxygen, particularly memory
 allocation policy.
 
@@ -26,10 +29,6 @@ change the size.
 This means that every subroutine (except for alloc and free) should
 contain matching allocate/deallocate and struct_alloc/struct_free
 calls.
-
-What's up with gas_state_average(), env_state_average(), etc? Can
-delete aero_binned_average(), env_state_average(),
-gas_state_average(), so in fact all of them can be deleted.
 
 Things like spec_read_aero_data_filename() should take the filename,
 not the file containing the line containing the filename.
@@ -62,8 +61,6 @@ Remove state_prefix, just use output_prefix.
 What's up with pointer arguments, can they have intent? See
 spec_read_gas_states_times_rates().
 
-Make array names plural.
-
 Add help to *_alloc to indicate that struct must not be currently
 allocated.
 
@@ -76,6 +73,8 @@ Add entrainment switch.
 Change gas conc from ppb to mole proportion.
 
 Add implicit, adaptive timestepping for the condensation ODE solver.
+
+Make array names plural.
 
 Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample

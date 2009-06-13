@@ -206,35 +206,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the average of an array of aero_binned_t structures.
-  subroutine aero_binned_average(aero_binned_vec, aero_binned_avg)
-
-    !> Array of structures to average.
-    type(aero_binned_t), intent(in) :: aero_binned_vec(:)
-    !> Average structure (should not be allocated on entry).
-    type(aero_binned_t), intent(out) :: aero_binned_avg
-
-    integer :: n_bin, n_spec, i_bin, i_spec, n, i
-
-    n_bin = size(aero_binned_vec(1)%vol_conc, 1)
-    n_spec = size(aero_binned_vec(1)%vol_conc, 2)
-    call aero_binned_deallocate(aero_binned_avg)
-    call aero_binned_allocate_size(aero_binned_avg, n_bin, n_spec)
-    n = size(aero_binned_vec)
-    do i_bin = 1,n_bin
-       call average_real((/(aero_binned_vec(i)%num_conc(i_bin),i=1,n)/), &
-            aero_binned_avg%num_conc(i_bin))
-       do i_spec = 1,n_spec
-          call average_real((/(aero_binned_vec(i)%vol_conc(i_bin,i_spec),&
-               i=1,n)/), &
-               aero_binned_avg%vol_conc(i_bin,i_spec))
-       end do
-    end do
-    
-  end subroutine aero_binned_average
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Add two aero_binned_t structures together.
   !!
   !! Symbolically does aero_binned = aero_binned + aero_binned_delta.

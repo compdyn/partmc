@@ -337,29 +337,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Computes the average of an array of gas_state.
-  subroutine gas_state_average(gas_state_vec, gas_state_avg)
-
-    !> Array of gas_state.
-    type(gas_state_t), intent(in) :: gas_state_vec(:)
-    !> Average of gas_state_vec.
-    type(gas_state_t), intent(out) :: gas_state_avg
-
-    integer :: n_spec, i_spec, i, n
-
-    n_spec = size(gas_state_vec(1)%mix_rat)
-    call gas_state_deallocate(gas_state_avg)
-    call gas_state_allocate_size(gas_state_avg, n_spec)
-    n = size(gas_state_vec)
-    do i_spec = 1,n_spec
-       call average_real((/(gas_state_vec(i)%mix_rat(i_spec),i=1,n)/), &
-            gas_state_avg%mix_rat(i_spec))
-    end do
-    
-  end subroutine gas_state_average
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Average val over all processes.
   subroutine gas_state_mix(val)
 

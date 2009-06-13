@@ -62,9 +62,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Allocate storage for aero_data.
+  subroutine aero_data_alloc(aero_data)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+
+    aero_data%n_spec = 0
+    allocate(aero_data%name(0))
+    allocate(aero_data%mosaic_index(0))
+    allocate(aero_data%density(0))
+    allocate(aero_data%num_ions(0))
+    allocate(aero_data%solubility(0))
+    allocate(aero_data%molec_weight(0))
+    allocate(aero_data%kappa(0))
+    aero_data%i_water = 0
+
+  end subroutine aero_data_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Allocate storage for aero_data parameters given the number of
   !> species.
-  subroutine aero_data_alloc(aero_data, n_spec)
+  subroutine aero_data_alloc_size(aero_data, n_spec)
 
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
@@ -81,7 +101,7 @@ contains
     allocate(aero_data%kappa(n_spec))
     aero_data%i_water = 0
 
-  end subroutine aero_data_alloc
+  end subroutine aero_data_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -195,6 +215,8 @@ contains
     character(len=MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
+    allocate(species_name(0))
+    allocate(species_data(0,0))
     call spec_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
@@ -205,7 +227,8 @@ contains
     end if
 
     ! allocate and copy over the data
-    call aero_data_alloc(aero_data, n_species)
+    call aero_data_free(aero_data)
+    call aero_data_alloc_size(aero_data, n_species)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        if (species_name(i) == "H2O") then
@@ -461,7 +484,7 @@ contains
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, name, n_spec))
     call aero_data_free(aero_data)
-    call aero_data_alloc(aero_data, n_spec)
+    call aero_data_alloc_size(aero_data, n_spec)
     call assert(739238793, n_spec < 1000)
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &

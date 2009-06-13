@@ -43,8 +43,21 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate internal memory in an aero_binned_t structure.
-  subroutine aero_binned_alloc(aero_binned, n_bin, n_spec)
+  !> Allocate an aero_binned_t.
+  subroutine aero_binned_alloc(aero_binned)
+
+    !> Structure to be allocated.
+    type(aero_binned_t), intent(out) :: aero_binned
+
+    allocate(aero_binned%num_conc(0))
+    allocate(aero_binned%vol_conc(0, 0))
+
+  end subroutine aero_binned_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate an aero_binned_t of the given size.
+  subroutine aero_binned_alloc_size(aero_binned, n_bin, n_spec)
 
     !> Structure to be allocated.
     type(aero_binned_t), intent(out) :: aero_binned
@@ -57,7 +70,7 @@ contains
     allocate(aero_binned%vol_conc(n_bin, n_spec))
     call aero_binned_zero(aero_binned)
 
-  end subroutine aero_binned_alloc
+  end subroutine aero_binned_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -205,7 +218,8 @@ contains
 
     n_bin = size(aero_binned_vec(1)%vol_conc, 1)
     n_spec = size(aero_binned_vec(1)%vol_conc, 2)
-    call aero_binned_alloc(aero_binned_avg, n_bin, n_spec)
+    call aero_binned_free(aero_binned_avg)
+    call aero_binned_alloc_size(aero_binned_avg, n_bin, n_spec)
     n = size(aero_binned_vec)
     do i_bin = 1,n_bin
        call average_real((/(aero_binned_vec(i)%num_conc(i_bin),i=1,n)/), &
@@ -284,10 +298,10 @@ contains
 
     integer :: n_bin, n_spec
 
-    call aero_binned_free(aero_binned_to)
     n_bin = size(aero_binned_from%vol_conc, 1)
     n_spec = size(aero_binned_from%vol_conc, 2)
-    call aero_binned_alloc(aero_binned_to, n_bin, n_spec)
+    call aero_binned_free(aero_binned_to)
+    call aero_binned_alloc_size(aero_binned_to, n_bin, n_spec)
     aero_binned_to%num_conc = aero_binned_from%num_conc
     aero_binned_to%vol_conc = aero_binned_from%vol_conc
 

@@ -162,7 +162,7 @@ contains
     type(aero_info_t) :: aero_info
     logical :: p1_removed, p2_removed
 
-    call aero_particle_alloc(new_particle, aero_data%n_spec)
+    call aero_particle_alloc_size(new_particle, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
     particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)

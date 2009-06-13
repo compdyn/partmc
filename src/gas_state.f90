@@ -32,7 +32,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for gas species.
-  subroutine gas_state_alloc(gas_state, n_spec)
+  subroutine gas_state_alloc(gas_state)
+
+    !> Gas state to be allocated.
+    type(gas_state_t), intent(out) :: gas_state
+
+    allocate(gas_state%mix_rat(0))
+
+  end subroutine gas_state_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate storage for gas species of the given size.
+  subroutine gas_state_alloc_size(gas_state, n_spec)
 
     !> Gas state to be allocated.
     type(gas_state_t), intent(out) :: gas_state
@@ -42,7 +54,7 @@ contains
     allocate(gas_state%mix_rat(n_spec))
     call gas_state_zero(gas_state)
 
-  end subroutine gas_state_alloc
+  end subroutine gas_state_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -209,6 +221,8 @@ contains
     ! read the filename then read the data from that file
     call spec_read_string(file, name, read_name)
     call spec_read_open(read_name, read_file)
+    allocate(species_name(0))
+    allocate(species_data(0,0))
     call spec_read_real_named_array(read_file, 0, species_name, species_data)
     call spec_read_close(read_file)
 
@@ -220,7 +234,8 @@ contains
     end if
 
     ! copy over the data
-    call gas_state_alloc(gas_state, gas_data%n_spec)
+    call gas_state_free(gas_state)
+    call gas_state_alloc_size(gas_state, gas_data%n_spec)
     gas_state%mix_rat = 0d0
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
@@ -264,6 +279,8 @@ contains
     ! read the filename then read the data from that file
     call spec_read_string(file, name, read_name)
     call spec_read_open(read_name, read_file)
+    allocate(species_name(0))
+    allocate(species_data(0,0))
     call spec_read_real_named_array(read_file, 0, species_name, species_data)
     call spec_read_close(read_file)
 
@@ -288,11 +305,17 @@ contains
     end if
 
     ! copy over the data
+    do i_time = 1,size(gas_states)
+       call gas_state_free(gas_states(i_time))
+    end do
+    deallocate(gas_states)
+    deallocate(times)
+    deallocate(rates)
     allocate(gas_states(n_time))
     allocate(times(n_time))
     allocate(rates(n_time))
     do i_time = 1,n_time
-       call gas_state_alloc(gas_states(i_time), gas_data%n_spec)
+       call gas_state_alloc_size(gas_states(i_time), gas_data%n_spec)
        times(i_time) = species_data(1,i_time)
        rates(i_time) = species_data(2,i_time)
     end do
@@ -325,7 +348,8 @@ contains
     integer :: n_spec, i_spec, i, n
 
     n_spec = size(gas_state_vec(1)%mix_rat)
-    call gas_state_alloc(gas_state_avg, n_spec)
+    call gas_state_free(gas_state_avg)
+    call gas_state_alloc_size(gas_state_avg, n_spec)
     n = size(gas_state_vec)
     do i_spec = 1,n_spec
        call average_real((/(gas_state_vec(i)%mix_rat(i_spec),i=1,n)/), &
@@ -345,7 +369,7 @@ contains
 #ifdef PMC_USE_MPI
     type(gas_state_t) :: val_avg
 
-    call gas_state_alloc(val_avg, size(val%mix_rat))
+    call gas_state_alloc_size(val_avg, size(val%mix_rat))
     call pmc_mpi_allreduce_average_real_array(val%mix_rat, val_avg%mix_rat)
     val%mix_rat = val_avg%mix_rat
     call gas_state_free(val_avg)
@@ -464,7 +488,7 @@ contains
     character(len=1000) :: unit
 
     call gas_state_free(gas_state)
-    call gas_state_alloc(gas_state, gas_data%n_spec)
+    call gas_state_alloc_size(gas_state, gas_data%n_spec)
     call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
          "gas_mixing_ratio", unit)
 

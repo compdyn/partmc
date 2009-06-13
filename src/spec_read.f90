@@ -112,16 +112,28 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates memory for a spec_line.
-  subroutine spec_line_alloc(n_data, spec_line)
+  subroutine spec_line_alloc(spec_line)
 
-    !> Number of data items.
-    integer, intent(in) :: n_data
     !> Struct to alloc.
     type(spec_line_t), intent(inout) :: spec_line
 
-    allocate(spec_line%data(n_data))
+    allocate(spec_line%data(0))
 
   end subroutine spec_line_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates memory for a spec_line of the given size.
+  subroutine spec_line_alloc_size(spec_line, n_data)
+
+    !> Struct to alloc.
+    type(spec_line_t), intent(inout) :: spec_line
+    !> Number of data items.
+    integer, intent(in) :: n_data
+
+    allocate(spec_line%data(n_data))
+
+  end subroutine spec_line_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -145,11 +157,11 @@ contains
     !> Destination, already alloced.
     type(spec_line_t), intent(out) :: to_line
 
-    to_line%name = from_line%name
     if (size(to_line%data) /= size(from_line%data)) then
-       deallocate(to_line%data)
+       call spec_line_free(to_line)
+       call spec_line_alloc_size(to_line, size(from_line%data))
     end if
-    allocate(to_line%data(size(from_line%data)))
+    to_line%name = from_line%name
     to_line%data = from_line%data
 
   end subroutine spec_line_copy
@@ -284,7 +296,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Spec line.
-    type(spec_line_t), intent(out) :: line
+    type(spec_line_t), intent(inout) :: line
     !> True if EOF encountered.
     logical, intent(out) :: eof
 
@@ -329,7 +341,8 @@ contains
     end do
 
     ! allocate the data and read out the data items
-    allocate(line%data(n_data))
+    call spec_line_free(line)
+    call spec_line_alloc_size(line, n_data)
     n_data = 0
     rest = line_string
     done = .false.
@@ -387,9 +400,8 @@ contains
     type(spec_file_t), intent(inout) :: file
     !> Max lines to read (0 = no max).
     integer, intent(in) :: max_lines
-    !> List of spec_lines,.
+    !> List of spec_lines.
     type(spec_line_t), pointer :: line_list(:)
-                                                ! will be allocated
 
     logical :: eof
     integer :: i, num_lines
@@ -398,6 +410,7 @@ contains
     ! read file, working out how many lines we have
     num_lines = 0
     eof = .false.
+    call spec_line_alloc(temp_line_list(num_lines + 1))
     call spec_read_line(file, temp_line_list(num_lines + 1), eof)
     do while (.not. eof)
        num_lines = num_lines + 1
@@ -410,14 +423,19 @@ contains
           end if
        end if
        if (.not. eof) then
+          call spec_line_alloc(temp_line_list(num_lines + 1))
           call spec_read_line(file, temp_line_list(num_lines + 1), eof)
        end if
     end do
 
     ! copy data to actual list
+    do i = 1,size(line_list)
+       call spec_line_free(line_list(i))
+    end do
+    deallocate(line_list)
     allocate(line_list(num_lines))
     do i = 1,num_lines
-       call spec_line_alloc(0, line_list(i))
+       call spec_line_alloc(line_list(i))
        call spec_line_copy(temp_line_list(i), line_list(i))
        call spec_line_free(temp_line_list(i))
     end do
@@ -436,7 +454,6 @@ contains
     integer, intent(in) :: max_lines
     !> Array of spec_lines,.
     type(spec_line_t), pointer :: line_array(:)
-                                                 ! will be allocated
 
     integer :: i, line_length
 
@@ -622,6 +639,7 @@ contains
 
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line_no_eof(file, line)
     call spec_read_check_line_name(file, line, name)
     call spec_read_check_line_length(file, line, 1)
@@ -645,6 +663,7 @@ contains
 
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line_no_eof(file, line)
     call spec_read_check_line_name(file, line, name)
     call spec_read_check_line_length(file, line, 1)
@@ -667,6 +686,7 @@ contains
 
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line_no_eof(file, line)
     call spec_read_check_line_name(file, line, name)
     call spec_read_check_line_length(file, line, 1)
@@ -689,6 +709,7 @@ contains
 
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line_no_eof(file, line)
     call spec_read_check_line_name(file, line, name)
     call spec_read_check_line_length(file, line, 1)
@@ -712,6 +733,7 @@ contains
 
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line_no_eof(file, line)
     call spec_read_check_line_name(file, line, name)
     call spec_read_check_line_length(file, line, 2)
@@ -739,8 +761,11 @@ contains
     type(spec_line_t), pointer :: line_array(:)
     integer :: num_lines, line_length, i, j
 
+    allocate(line_array(0))
     call spec_read_line_array(file, max_lines, line_array)
     num_lines = size(line_array)
+    deallocate(names)
+    deallocate(vals)
     if (num_lines > 0) then
        line_length = size(line_array(1)%data)
        allocate(names(num_lines))
@@ -787,6 +812,8 @@ contains
 
     call spec_read_string(file, line_name, read_name)
     call spec_read_open(read_name, read_file)
+    allocate(read_names(0))
+    allocate(read_data(0,0))
     call spec_read_real_named_array(read_file, 0, read_names, read_data)
     call spec_read_close(read_file)
 
@@ -809,7 +836,9 @@ contains
             // ' must start with: ' // trim(name) &
             // ' not: ' // trim(read_names(2)))
     end if
-    
+
+    deallocate(times)
+    deallocate(vals)
     allocate(times(n_times))
     allocate(vals(n_times))
     times = read_data(1,:)

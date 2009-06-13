@@ -204,7 +204,7 @@ contains
     real*8 k1, k2, k3, k4
     type(aero_particle_t) :: aero_particle_tmp
 
-    call aero_particle_alloc(aero_particle_tmp, aero_data%n_spec)
+    call aero_particle_alloc_size(aero_particle_tmp, aero_data%n_spec)
     call aero_particle_copy(aero_particle, aero_particle_tmp)
 
     ! step 1

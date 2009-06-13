@@ -57,8 +57,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates memory in an aero_particle_t and initializes it to zero.
-  subroutine aero_particle_alloc(aero_particle, n_spec)
+  !> Allocates memory in an aero_particle_t.
+  subroutine aero_particle_alloc(aero_particle)
+
+    !> Particle to init.
+    type(aero_particle_t), intent(inout) :: aero_particle
+
+    allocate(aero_particle%vol(0))
+    call aero_particle_zero(aero_particle)
+
+  end subroutine aero_particle_alloc
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an aero_particle_t of the given size.
+  subroutine aero_particle_alloc_size(aero_particle, n_spec)
 
     !> Particle to init.
     type(aero_particle_t), intent(inout) :: aero_particle
@@ -68,7 +81,7 @@ contains
     allocate(aero_particle%vol(n_spec))
     call aero_particle_zero(aero_particle)
 
-  end subroutine aero_particle_alloc
+  end subroutine aero_particle_alloc_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -97,7 +110,7 @@ contains
     n_spec = size(aero_particle_from%vol)
     if (n_spec /= size(aero_particle_to%vol)) then
        call aero_particle_free(aero_particle_to)
-       call aero_particle_alloc(aero_particle_to, n_spec)
+       call aero_particle_alloc_size(aero_particle_to, n_spec)
     end if
     call assert(651178226, size(aero_particle_from%vol) &
          == size(aero_particle_to%vol))

@@ -141,17 +141,24 @@ contains
        call spec_read_real(file, 'del_t', mc_opt%del_t)
        call spec_read_real(file, 't_output', mc_opt%t_output)
        call spec_read_real(file, 't_progress', mc_opt%t_progress)
-       
+
+       call bin_grid_alloc(bin_grid)
        call spec_read_bin_grid(file, bin_grid)
-       
+
+       call gas_data_alloc(gas_data)
        call spec_read_gas_data(file, gas_data)
+       call gas_state_alloc(gas_init)
        call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
-       
+
+       call aero_data_alloc(aero_data)
        call spec_read_aero_data_filename(file, aero_data)
+       call aero_dist_alloc(aero_dist_init)
        call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', aero_dist_init)
-       
+
+       call env_data_alloc(env_data)
        call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+       call env_state_alloc(env_state)
        call spec_read_env_state(file, env_state)
        
        call spec_read_integer(file, 'rand_init', rand_init)
@@ -233,17 +240,17 @@ contains
 
     call pmc_srand(rand_init + pmc_mpi_rank())
 
-    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
-    call gas_state_alloc(gas_state, gas_data%n_spec)
+    call aero_binned_alloc_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call gas_state_alloc_size(gas_state, gas_data%n_spec)
     call cpu_time(mc_opt%t_wall_start)
 
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
     do i_loop = 1,mc_opt%n_loop
        mc_opt%i_loop = i_loop
        
        call gas_state_copy(gas_init, gas_state)
        call aero_state_free(aero_state)
-       call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+       call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
        aero_state%comp_vol = dble(mc_opt%n_part_max) / &
             aero_dist_total_num_conc(aero_dist_init)
        call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
@@ -319,6 +326,13 @@ contains
        return
     end if
     
+    call bin_grid_alloc(bin_grid)
+    call gas_data_alloc(gas_data)
+    call aero_data_alloc(aero_data)
+    call env_data_alloc(env_data)
+    call env_state_alloc(env_state)
+    call aero_dist_alloc(exact_opt%aero_dist_init)
+
     call spec_read_string(file, 'output_prefix', exact_opt%prefix)
     call spec_read_real(file, 'num_conc', exact_opt%num_conc)
 
@@ -333,7 +347,6 @@ contains
 
     call spec_read_string(file, 'soln', soln_name)
 
-    call aero_dist_alloc(exact_opt%aero_dist_init, 0, 0)
     if (trim(soln_name) == 'golovin_exp') then
        call spec_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then
@@ -399,6 +412,13 @@ contains
        return
     end if
     
+    call aero_data_alloc(aero_data)
+    call aero_dist_alloc(aero_dist_init)
+    call env_state_alloc(env_state)
+    call env_data_alloc(env_data)
+    call bin_grid_alloc(bin_grid)
+    call gas_data_alloc(gas_data)
+
     call spec_read_string(file, 'output_prefix', sect_opt%prefix)
     call spec_read_string(file, 'kernel', kernel_name)
 

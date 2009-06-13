@@ -6,6 +6,68 @@ they need to before writing new data, or will take care of
 (de)allocation internally. Currently at least the spec_read functions
 don't free before setting new values and should be fixed.
 
+The only routines to which it is allowed to pass an unallocated struct
+are struct_alloc() and struct_alloc_size() (and struct must be
+unallocated when passed to these routines). All other code must
+allocate each structure in the same subroutine where the variable is
+defined (by calling struct_alloc() or struct_alloc_size()) before
+passing the struct to any other subroutine.
+
+Similarly, any subroutine that declares a pointer variable must
+allocate it and any data it points to before passing it to other
+subroutines or functions. If no specific length is known for an array
+pointer then it should be allocated to zero size. Any subsequent
+subroutines are free to deallocate and reallocate if they need to
+change the size.
+
+This means that every subroutine (except for alloc and free) should
+contain matching allocate/deallocate and struct_alloc/struct_free
+calls.
+
+Rename struct_alloc to struct_allocate and struct_free to
+struct_deallocate.
+
+What's up with gas_state_average(), env_state_average(), etc?
+
+Things like spec_read_aero_data_filename() should take the filename,
+not the file containing the line containing the filename.
+
+Old: Change spec_read_aero_data to spec_read_aero_data_filename and pass in
+the name, and similar spec_read_*.
+
+Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
+just be gas_state_axpy(), and similarly for other structures.
+
+Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
+pmc_nc_open_read().
+
+Make sure every structure has a struct_zero() and that it's called
+from struct_alloc_size().
+
+Documentation for coding style in doxygen, particularly memory
+allocation policy.
+
+Split aero_mode_t out of aero_dist.f90.
+
+Split spec_read.f90 into spec_file.f90 and spec_line.f90.
+
+Rename spec_read_struct() to struct_read_from_spec().
+
+Remove aero_binned from aero_state_t and all the calculations with
+it. We don't even use it for anything anymore.
+
+Fix lines > 80 chars.
+
+Remove state_prefix, just use output_prefix.
+
+What's up with pointer arguments, can they have intent? See
+spec_read_gas_states_times_rates().
+
+Make array names plural.
+
+Add help to *_alloc to indicate that struct must not be currently
+allocated.
+
 =======================================
 
 Add flag to numeric_diff to compute errors column-wise.
@@ -23,8 +85,6 @@ and then using a slow sampling to pick samples one-by-one.
 Add separate del_t for mosaic, coag, and cond. Check on input that
 t_output, etc are multiples of del_t so that the n_time header
 information is actually correct.
-
-aero_binned is really storing #/dln(m)/m^3 or something?
 
 Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
 also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
@@ -44,22 +104,21 @@ Add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
 gas_data, gas_state) function.
 
-Change spec_read_aero_data to spec_read_aero_data_filename and pass in
-the name, and similar spec_read_*.
-
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
 
-Fix MPI so it works again.
-
-Change gas_state_add(), gas_state_sub(), gas_state_scale(), etc, to
-just be gas_state_daxpy(), and similarly for other structures.
+Implement parallel version with coagulation done centrally.
 
 Sometimes cmake seems to rebuild even if no source files have changed
 at all?
 
-Change bins to have r_min, r_max as edges, not centers.
+Change bins to have r_min, r_max as edges, not centers?
 
-Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
-pmc_nc_open_read().
+Document interpolation strategies. Emissions and background all use
+piecewise constant: for data d_1, d_2, ..., d_n at times t_1, t_2,
+..., t_n then at time t we use d_1 if t < t_1, d_n if t > t_n, and d_i
+if t_i <= t < t_{i+1} for some i. Temperature and mixing-layer height
+are linearly interpolated: we use d_1 if t < t_1, d_n if t > t_n, and
+(1 - a) d_i + a d_{i+1} if t_i <= t < t_{i+1} for some i, where a = (t
+- t_i) / (t_{i+1} - t_i).

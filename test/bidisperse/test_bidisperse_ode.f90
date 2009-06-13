@@ -62,6 +62,7 @@ program bidisperse_ode
   v_big_init = rad2vol(r_big_init)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
+  call bin_grid_alloc(bin_grid)
   call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
 
   open(unit=out_unit, file=out_name)
@@ -126,9 +127,9 @@ contains
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
-    call aero_data_alloc(aero_data, n_spec)
-    call aero_particle_alloc(aero_particle_1, n_spec)
-    call aero_particle_alloc(aero_particle_2, n_spec)
+    call aero_data_alloc_size(aero_data, n_spec)
+    call aero_particle_alloc_size(aero_particle_1, n_spec)
+    call aero_particle_alloc_size(aero_particle_2, n_spec)
     aero_particle_1%vol(1) = v_small
     aero_particle_2%vol(1) = v_big
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, env_state, k)

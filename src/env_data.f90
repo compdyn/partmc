@@ -78,7 +78,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate an empty environment.
+  !> Allocate an env_data.
   subroutine env_data_alloc(env_data)
 
     !> Environment data.

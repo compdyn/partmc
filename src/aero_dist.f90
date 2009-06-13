@@ -66,7 +66,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_mode.
-  subroutine aero_mode_alloc(aero_mode, n_spec)
+  subroutine aero_mode_alloc(aero_mode)
+
+    !> Aerosol mode.
+    type(aero_mode_t), intent(out) :: aero_mode
+
+    allocate(aero_mode%vol_frac(0))
+
+  end subroutine aero_mode_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an aero_mode of the given size.
+  subroutine aero_mode_alloc_size(aero_mode, n_spec)
 
     !> Aerosol mode.
     type(aero_mode_t), intent(out) :: aero_mode
@@ -75,7 +87,7 @@ contains
 
     allocate(aero_mode%vol_frac(n_spec))
 
-  end subroutine aero_mode_alloc
+  end subroutine aero_mode_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -100,7 +112,7 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode_to
 
     call aero_mode_free(aero_mode_to)
-    call aero_mode_alloc(aero_mode_to, size(aero_mode_from%vol_frac))
+    call aero_mode_alloc_size(aero_mode_to, size(aero_mode_from%vol_frac))
     aero_mode_to%name = aero_mode_from%name
     aero_mode_to%type = aero_mode_from%type
     aero_mode_to%mean_radius = aero_mode_from%mean_radius
@@ -113,7 +125,22 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_dist.
-  subroutine aero_dist_alloc(aero_dist, n_mode, n_spec)
+  subroutine aero_dist_alloc(aero_dist)
+
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(out) :: aero_dist
+
+    integer :: i
+
+    aero_dist%n_mode = 0
+    allocate(aero_dist%mode(0))
+
+  end subroutine aero_dist_alloc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an aero_dist of the given size.
+  subroutine aero_dist_alloc_size(aero_dist, n_mode, n_spec)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(out) :: aero_dist
@@ -127,10 +154,10 @@ contains
     aero_dist%n_mode = n_mode
     allocate(aero_dist%mode(n_mode))
     do i = 1,n_mode
-       call aero_mode_alloc(aero_dist%mode(i), n_spec)
+       call aero_mode_alloc_size(aero_dist%mode(i), n_spec)
     end do
 
-  end subroutine aero_dist_alloc
+  end subroutine aero_dist_alloc_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -167,7 +194,7 @@ contains
        n_spec = 0
     end if
     call aero_dist_free(aero_dist_to)
-    call aero_dist_alloc(aero_dist_to, aero_dist_from%n_mode, n_spec)
+    call aero_dist_alloc_size(aero_dist_to, aero_dist_from%n_mode, n_spec)
     do i = 1,aero_dist_from%n_mode
        call aero_mode_copy(aero_dist_from%mode(i), aero_dist_to%mode(i))
     end do
@@ -411,6 +438,8 @@ contains
     ! read the aerosol data from the specified file
     call spec_read_string(file, 'mass_frac', read_name)
     call spec_read_open(read_name, read_file)
+    allocate(species_name(0))
+    allocate(species_data(0,0))
     call spec_read_real_named_array(read_file, 0, species_name, species_data)
     call spec_read_close(read_file)
 
@@ -495,7 +524,7 @@ contains
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol mode (will be allocated).
+    !> Aerosol mode.
     type(aero_mode_t), intent(inout) :: aero_mode
     !> If eof instead of reading data.
     logical :: eof
@@ -503,18 +532,20 @@ contains
     character(len=MAX_VAR_LEN) :: tmp_str
     type(spec_line_t) :: line
 
+    call spec_line_alloc(line)
     call spec_read_line(file, line, eof)
     if (.not. eof) then
        call spec_read_check_line_name(file, line, "mode_name")
        call spec_read_check_line_length(file, line, 1)
-       call aero_mode_alloc(aero_mode, aero_data%n_spec)
+       call aero_mode_free(aero_mode)
+       call aero_mode_alloc_size(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_DIST_NAME_LEN)
        allocate(aero_mode%vol_frac(aero_data%n_spec))
        call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
        call spec_read_aero_mode_shape(file, aero_mode)
-       call spec_line_free(line)
     end if
+    call spec_line_free(line)
 
   end subroutine spec_read_aero_mode
 
@@ -527,7 +558,7 @@ contains
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol dist, will be allocated.
+    !> Aerosol dist.
     type(aero_dist_t), intent(inout) :: aero_dist
 
     type(aero_mode_t), pointer :: new_aero_mode_list(:)
@@ -536,17 +567,17 @@ contains
     logical :: eof
     
     aero_dist%n_mode = 0
-    allocate(aero_dist%mode(aero_dist%n_mode))
+    allocate(aero_dist%mode(0))
+    call aero_mode_alloc(aero_mode)
     call spec_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
        aero_dist%n_mode = aero_dist%n_mode + 1
        allocate(new_aero_mode_list(aero_dist%n_mode))
        do i = 1,aero_dist%n_mode
-          call aero_mode_alloc(new_aero_mode_list(i), 0)
+          call aero_mode_alloc(new_aero_mode_list(i))
        end do
        call aero_mode_copy(aero_mode, &
             new_aero_mode_list(aero_dist%n_mode))
-       call aero_mode_free(aero_mode)
        do i = 1,(aero_dist%n_mode - 1)
           call aero_mode_copy(aero_dist%mode(i), &
                new_aero_mode_list(i))
@@ -557,6 +588,7 @@ contains
        nullify(new_aero_mode_list)
        call spec_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
+    call aero_mode_free(aero_mode)
 
   end subroutine spec_read_aero_dist
 
@@ -620,7 +652,10 @@ contains
     ! read the filename then read the data from that file
     call spec_read_string(file, name, read_name)
     call spec_read_open(read_name, read_file)
+    allocate(names(0))
+    allocate(data(0,0))
     call spec_read_real_named_array(read_file, 2, names, data)
+    call spec_line_alloc(aero_dist_line)
     call spec_read_line_no_eof(read_file, aero_dist_line)
     call spec_read_check_line_name(read_file, aero_dist_line, "dist")
     call spec_read_check_line_length(read_file, aero_dist_line, size(data, 2))
@@ -642,6 +677,12 @@ contains
     end if
 
     ! copy over the data
+    do i_time = 1,size(aero_dists)
+       call aero_dist_free(aero_dists(i_time))
+    end do
+    deallocate(aero_dists)
+    deallocate(times)
+    deallocate(rates)
     allocate(aero_dists(n_time))
     allocate(times(n_time))
     allocate(rates(n_time))

@@ -97,9 +97,9 @@ contains
        end subroutine soln
     end interface
 
-    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
-    call gas_data_alloc(gas_data, 0)
-    call gas_state_alloc(gas_state, 0)
+    call aero_binned_alloc_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call gas_data_alloc(gas_data)
+    call gas_state_alloc(gas_state)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     do i_time = 0,n_time

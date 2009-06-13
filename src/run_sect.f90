@@ -108,9 +108,9 @@ contains
     end if
 
     ! output data structure
-    call aero_binned_alloc(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_alloc_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     aero_binned%vol_conc = 0d0
-    call gas_state_alloc(gas_state, gas_data%n_spec)
+    call gas_state_alloc_size(gas_state, gas_data%n_spec)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin

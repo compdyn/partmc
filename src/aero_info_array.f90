@@ -44,8 +44,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates and initializes.
-  subroutine aero_info_array_alloc(aero_info_array, n_item)
+  !> Allocates the structure.
+  subroutine aero_info_array_alloc(aero_info_array)
+
+    !> Result.
+    type(aero_info_array_t), intent(inout) :: aero_info_array
+
+    integer :: i
+
+    aero_info_array%n_item = 0
+    allocate(aero_info_array%aero_info(0))
+
+  end subroutine aero_info_array_alloc
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates with the given size.
+  subroutine aero_info_array_alloc_size(aero_info_array, n_item)
 
     !> Result.
     type(aero_info_array_t), intent(inout) :: aero_info_array
@@ -60,7 +75,7 @@ contains
        call aero_info_alloc(aero_info_array%aero_info(i))
     end do
 
-  end subroutine aero_info_array_alloc
+  end subroutine aero_info_array_alloc_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,7 +109,7 @@ contains
     integer :: i
     
     call aero_info_array_free(aero_info_array_to)
-    call aero_info_array_alloc(aero_info_array_to, &
+    call aero_info_array_alloc_size(aero_info_array_to, &
          aero_info_array_from%n_item)
     do i = 1,aero_info_array_from%n_item
        call aero_info_copy(aero_info_array_from%aero_info(i), &

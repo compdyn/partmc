@@ -72,29 +72,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initializes aerosol arrays to have zero particles in each
-  !> bin. Do not call this more than once on a given aerosol, use
-  !> aero_state_zero() instead to reset to zero.
-  subroutine aero_state_alloc(n_bin, n_spec, aero_state)
+  !> Allocates aerosol arrays.
+  subroutine aero_state_alloc(aero_state)
 
+    !> Aerosol to initialize.
+    type(aero_state_t), intent(inout) :: aero_state
+    
+    allocate(aero_state%bin(0))
+    call aero_info_array_alloc(aero_state%aero_info_array)
+
+  end subroutine aero_state_alloc
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates aerosol arrays with the given sizes.
+  subroutine aero_state_alloc_size(aero_state, n_bin, n_spec)
+
+    !> Aerosol to initialize.
+    type(aero_state_t), intent(inout) :: aero_state
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Number of species.
     integer, intent(in) :: n_spec
-    !> Aerosol to initialize.
-    type(aero_state_t), intent(inout) :: aero_state
     
     integer i
 
     allocate(aero_state%bin(n_bin))
     do i = 1,n_bin
-       call aero_particle_array_alloc(aero_state%bin(i), 0, n_spec)
+       call aero_particle_array_alloc_size(aero_state%bin(i), 0, n_spec)
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
-    call aero_info_array_alloc(aero_state%aero_info_array, 0)
+    call aero_info_array_alloc(aero_state%aero_info_array)
 
-  end subroutine aero_state_alloc
+  end subroutine aero_state_alloc_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -131,7 +142,7 @@ contains
     n_bin = size(aero_state_from%bin)
 
     call aero_state_free(aero_state_to)
-    call aero_state_alloc(n_bin, 0, aero_state_to)
+    call aero_state_alloc_size(aero_state_to, n_bin, 0)
 
     do i = 1,n_bin
        call aero_particle_array_copy(aero_state_from%bin(i), &
@@ -272,7 +283,7 @@ contains
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_alloc(aero_particle, aero_data%n_spec)
+    call aero_particle_alloc_size(aero_particle, aero_data%n_spec)
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
@@ -703,12 +714,12 @@ contains
     end if
 
     ! allocate memory
-    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, &
+    call aero_binned_alloc_size(aero_binned_delta, bin_grid%n_bin, &
          aero_data%n_spec)
 
     ! extract particles to send
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, &
-         aero_state_send)
+    call aero_state_alloc_size(aero_state_send, bin_grid%n_bin, &
+         aero_data%n_spec)
     aero_state_send%comp_vol = aero_state%comp_vol
     ! FIXME: would probably be slightly better for sampling purposes
     ! to use the destination comp_vol here
@@ -1248,7 +1259,7 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_free(aero_state)
-       call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+       call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
        return
     end if
     call pmc_nc_check(status)
@@ -1302,9 +1313,9 @@ contains
          "aero_greatest_create_time", unit)
 
     call aero_state_free(aero_state)
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, aero_state)
+    call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
 
-    call aero_particle_alloc(aero_particle, aero_data%n_spec)
+    call aero_particle_alloc_size(aero_particle, aero_data%n_spec)
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part)

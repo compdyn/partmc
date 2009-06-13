@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -50,8 +50,8 @@ contains
     integer :: i, j
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     
-    call aero_particle_alloc(aero_particle_1, aero_data%n_spec)
-    call aero_particle_alloc(aero_particle_2, aero_data%n_spec)
+    call aero_particle_alloc_size(aero_particle_1, aero_data%n_spec)
+    call aero_particle_alloc_size(aero_particle_2, aero_data%n_spec)
     do i = 1,n_bin
        do j = 1,n_bin
           aero_particle_1%vol(1) = bin_v(i)

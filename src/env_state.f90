@@ -97,12 +97,12 @@ contains
     env_state%elapsed_time = 0d0
     env_state%height = 0d0
 
-    call gas_state_alloc(env_state%gas_emissions, 0)
-    call gas_state_alloc(env_state%gas_background, 0)
+    call gas_state_alloc(env_state%gas_emissions)
+    call gas_state_alloc(env_state%gas_background)
     env_state%gas_emission_rate = 0d0
     env_state%gas_dilution_rate = 0d0
-    call aero_dist_alloc(env_state%aero_emissions, 0, 0)
-    call aero_dist_alloc(env_state%aero_background, 0, 0)
+    call aero_dist_alloc(env_state%aero_emissions)
+    call aero_dist_alloc(env_state%aero_background)
     env_state%aero_emission_rate = 0d0
     env_state%aero_dilution_rate = 0d0
 
@@ -344,8 +344,8 @@ contains
     real*8 :: effective_dilution_rate
     type(gas_state_t) :: emission, dilution
 
-    call gas_state_alloc(emission, gas_data%n_spec)
-    call gas_state_alloc(dilution, gas_data%n_spec)
+    call gas_state_alloc_size(emission, gas_data%n_spec)
+    call gas_state_alloc_size(dilution, gas_data%n_spec)
 
     ! account for height changes
     effective_dilution_rate = env_state%gas_dilution_rate
@@ -404,9 +404,9 @@ contains
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
-    call aero_state_alloc(bin_grid%n_bin, aero_data%n_spec, &
-         aero_state_delta)
-    call aero_binned_alloc(aero_binned_delta, bin_grid%n_bin, &
+    call aero_state_alloc_size(aero_state_delta, bin_grid%n_bin, &
+         aero_data%n_spec)
+    call aero_binned_alloc_size(aero_binned_delta, bin_grid%n_bin, &
          aero_data%n_spec)
 
     ! account for height changes
@@ -488,8 +488,8 @@ contains
     type(aero_binned_t) :: emission, dilution
     real*8 :: effective_dilution_rate
 
-    call aero_binned_alloc(emission, bin_grid%n_bin, aero_data%n_spec)
-    call aero_binned_alloc(dilution, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_alloc_size(emission, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_alloc_size(dilution, bin_grid%n_bin, aero_data%n_spec)
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
@@ -530,7 +530,6 @@ contains
     !> Environment data.
     type(env_state_t), intent(out) :: env_state
 
-    call env_state_alloc(env_state)
     call spec_read_real(file, 'rel_humidity', env_state%rel_humid)
     call spec_read_real(file, 'pressure', env_state%pressure)
     call spec_read_real(file, 'latitude', env_state%latitude)

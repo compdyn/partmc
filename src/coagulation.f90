@@ -162,7 +162,7 @@ contains
     type(aero_info_t) :: aero_info
     logical :: p1_removed, p2_removed
 
-    call aero_particle_alloc_size(new_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(new_particle, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
     particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)
@@ -180,7 +180,7 @@ contains
          bn, aero_state%comp_vol, new_particle)
 
     ! remove old particles
-    call aero_info_alloc(aero_info)
+    call aero_info_allocate(aero_info)
     if (new_particle%id /= particle_1%id) then
        ! particle_1 is the removed particle
        call assert(361912382, new_particle%id == particle_2%id)
@@ -212,11 +212,11 @@ contains
        call aero_state_remove_particle(aero_state, b2, s2, &
             p2_removed, aero_info)
     end if
-    call aero_info_free(aero_info)
+    call aero_info_deallocate(aero_info)
 
     ! add new particle
     call aero_state_add_particle(aero_state, bn, new_particle)
-    call aero_particle_free(new_particle)
+    call aero_particle_deallocate(new_particle)
     
   end subroutine coagulate
 

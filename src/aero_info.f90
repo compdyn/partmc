@@ -51,24 +51,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates and initializes.
-  subroutine aero_info_alloc(aero_info)
+  subroutine aero_info_allocate(aero_info)
 
     !> Result.
     type(aero_info_t), intent(inout) :: aero_info
 
     call aero_info_zero(aero_info)
 
-  end subroutine aero_info_alloc
+  end subroutine aero_info_allocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates.
-  subroutine aero_info_free(aero_info)
+  subroutine aero_info_deallocate(aero_info)
 
     !> Structure to deallocate.
     type(aero_info_t), intent(inout) :: aero_info
 
-  end subroutine aero_info_free
+  end subroutine aero_info_deallocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

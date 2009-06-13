@@ -45,7 +45,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for gas species.
-  subroutine gas_data_alloc(gas_data)
+  subroutine gas_data_allocate(gas_data)
 
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
@@ -55,12 +55,12 @@ contains
     allocate(gas_data%name(0))
     allocate(gas_data%mosaic_index(0))
 
-  end subroutine gas_data_alloc
+  end subroutine gas_data_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for gas species with the given size.
-  subroutine gas_data_alloc_size(gas_data, n_spec)
+  subroutine gas_data_allocate_size(gas_data, n_spec)
 
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
@@ -72,12 +72,12 @@ contains
     allocate(gas_data%name(n_spec))
     allocate(gas_data%mosaic_index(n_spec))
 
-  end subroutine gas_data_alloc_size
+  end subroutine gas_data_allocate_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
-  subroutine gas_data_free(gas_data)
+  subroutine gas_data_deallocate(gas_data)
 
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
@@ -86,7 +86,7 @@ contains
     deallocate(gas_data%name)
     deallocate(gas_data%mosaic_index)
 
-  end subroutine gas_data_free
+  end subroutine gas_data_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -204,8 +204,8 @@ contains
 
     ! allocate and copy over the data
     n_species = size(species_data, 1)
-    call gas_data_free(gas_data)
-    call gas_data_alloc_size(gas_data, n_species)
+    call gas_data_deallocate(gas_data)
+    call gas_data_allocate_size(gas_data, n_species)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
        gas_data%molec_weight(i) = species_data(i,1)
@@ -377,8 +377,8 @@ contains
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, n_spec))
-    call gas_data_free(gas_data)
-    call gas_data_alloc_size(gas_data, n_spec)
+    call gas_data_deallocate(gas_data)
+    call gas_data_allocate_size(gas_data, n_spec)
     call assert(719237193, n_spec < 1000)
 
     call pmc_nc_read_integer_1d(ncid, gas_data%mosaic_index, &

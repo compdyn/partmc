@@ -1,4 +1,7 @@
 
+Documentation for coding style in doxygen, particularly memory
+allocation policy.
+
 Memory allocation policy should be that all functions must be called
 with an already allocated structure. That is, always call type_alloc()
 before calling anything else. The functions will call type_free() if
@@ -24,10 +27,9 @@ This means that every subroutine (except for alloc and free) should
 contain matching allocate/deallocate and struct_alloc/struct_free
 calls.
 
-Rename struct_alloc to struct_allocate and struct_free to
-struct_deallocate.
-
-What's up with gas_state_average(), env_state_average(), etc?
+What's up with gas_state_average(), env_state_average(), etc? Can
+delete aero_binned_average(), env_state_average(),
+gas_state_average(), so in fact all of them can be deleted.
 
 Things like spec_read_aero_data_filename() should take the filename,
 not the file containing the line containing the filename.
@@ -42,10 +44,7 @@ Convert more pmc_nc_check() calls to pmc_nc_check_msg(), as in
 pmc_nc_open_read().
 
 Make sure every structure has a struct_zero() and that it's called
-from struct_alloc_size().
-
-Documentation for coding style in doxygen, particularly memory
-allocation policy.
+from struct_alloc_size() and struct_alloc().
 
 Split aero_mode_t out of aero_dist.f90.
 

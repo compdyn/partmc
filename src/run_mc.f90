@@ -140,7 +140,7 @@ contains
     progress_n_samp = 0
     progress_n_coag = 0
 
-    call env_state_alloc(old_env_state)
+    call env_state_allocate(old_env_state)
 
     call aero_state_to_binned(bin_grid, aero_data, aero_state, aero_binned)
     
@@ -265,7 +265,7 @@ contains
        call mosaic_cleanup()
     end if
 
-    call env_state_free(old_env_state)
+    call env_state_deallocate(old_env_state)
 
   end subroutine run_mc
   

@@ -63,7 +63,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for aero_data.
-  subroutine aero_data_alloc(aero_data)
+  subroutine aero_data_allocate(aero_data)
 
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
@@ -78,13 +78,13 @@ contains
     allocate(aero_data%kappa(0))
     aero_data%i_water = 0
 
-  end subroutine aero_data_alloc
+  end subroutine aero_data_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate storage for aero_data parameters given the number of
   !> species.
-  subroutine aero_data_alloc_size(aero_data, n_spec)
+  subroutine aero_data_allocate_size(aero_data, n_spec)
 
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
@@ -101,12 +101,12 @@ contains
     allocate(aero_data%kappa(n_spec))
     aero_data%i_water = 0
 
-  end subroutine aero_data_alloc_size
+  end subroutine aero_data_allocate_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Frees all storage.
-  subroutine aero_data_free(aero_data)
+  subroutine aero_data_deallocate(aero_data)
 
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
@@ -119,7 +119,7 @@ contains
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
 
-  end subroutine aero_data_free
+  end subroutine aero_data_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -227,8 +227,8 @@ contains
     end if
 
     ! allocate and copy over the data
-    call aero_data_free(aero_data)
-    call aero_data_alloc_size(aero_data, n_species)
+    call aero_data_deallocate(aero_data)
+    call aero_data_allocate_size(aero_data, n_species)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        if (species_name(i) == "H2O") then
@@ -296,7 +296,7 @@ contains
        end if
        species_list(i) = spec
     end do
-    call spec_line_free(line)
+    call spec_line_deallocate(line)
 
   end subroutine spec_read_species_list
 
@@ -483,8 +483,8 @@ contains
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, name, n_spec))
-    call aero_data_free(aero_data)
-    call aero_data_alloc_size(aero_data, n_spec)
+    call aero_data_deallocate(aero_data)
+    call aero_data_allocate_size(aero_data, n_spec)
     call assert(739238793, n_spec < 1000)
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &

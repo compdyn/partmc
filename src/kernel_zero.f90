@@ -124,7 +124,7 @@ contains
             env_state%aero_emission_rate * time / env_state%height)
     else
        ! calculate the limit steady state distribution
-       call aero_binned_alloc_size(aero_binned_limit, bin_grid%n_bin, &
+       call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
             aero_data%n_spec)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, aero_data, &
             env_state%aero_emissions)
@@ -143,7 +143,7 @@ contains
             exp(-env_state%aero_dilution_rate * time))
        call aero_binned_add(aero_binned, aero_binned_limit)
 
-       call aero_binned_free(aero_binned_limit)
+       call aero_binned_deallocate(aero_binned_limit)
     end if
 
   end subroutine soln_zero

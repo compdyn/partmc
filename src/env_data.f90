@@ -79,7 +79,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an env_data.
-  subroutine env_data_alloc(env_data)
+  subroutine env_data_allocate(env_data)
 
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
@@ -106,12 +106,12 @@ contains
     allocate(env_data%aero_dilution_rate(0))
     allocate(env_data%aero_background(0))
 
-  end subroutine env_data_alloc
+  end subroutine env_data_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
-  subroutine env_data_free(env_data)
+  subroutine env_data_deallocate(env_data)
 
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
@@ -125,34 +125,34 @@ contains
     deallocate(env_data%height)
 
     do i = 1,size(env_data%gas_emission)
-       call gas_state_free(env_data%gas_emission(i))
+       call gas_state_deallocate(env_data%gas_emission(i))
     end do
     deallocate(env_data%gas_emission_time)
     deallocate(env_data%gas_emission_rate)
     deallocate(env_data%gas_emission)
 
     do i = 1,size(env_data%gas_background)
-       call gas_state_free(env_data%gas_background(i))
+       call gas_state_deallocate(env_data%gas_background(i))
     end do
     deallocate(env_data%gas_dilution_time)
     deallocate(env_data%gas_dilution_rate)
     deallocate(env_data%gas_background)
 
     do i = 1,size(env_data%aero_emission)
-       call aero_dist_free(env_data%aero_emission(i))
+       call aero_dist_deallocate(env_data%aero_emission(i))
     end do
     deallocate(env_data%aero_emission_time)
     deallocate(env_data%aero_emission_rate)
     deallocate(env_data%aero_emission)
 
     do i = 1,size(env_data%aero_background)
-       call aero_dist_free(env_data%aero_background(i))
+       call aero_dist_deallocate(env_data%aero_background(i))
     end do
     deallocate(env_data%aero_dilution_time)
     deallocate(env_data%aero_dilution_rate)
     deallocate(env_data%aero_background)
 
-  end subroutine env_data_free
+  end subroutine env_data_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -58,7 +58,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates memory in an aero_particle_t.
-  subroutine aero_particle_alloc(aero_particle)
+  subroutine aero_particle_allocate(aero_particle)
 
     !> Particle to init.
     type(aero_particle_t), intent(inout) :: aero_particle
@@ -66,12 +66,12 @@ contains
     allocate(aero_particle%vol(0))
     call aero_particle_zero(aero_particle)
 
-  end subroutine aero_particle_alloc
+  end subroutine aero_particle_allocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_particle_t of the given size.
-  subroutine aero_particle_alloc_size(aero_particle, n_spec)
+  subroutine aero_particle_allocate_size(aero_particle, n_spec)
 
     !> Particle to init.
     type(aero_particle_t), intent(inout) :: aero_particle
@@ -81,19 +81,19 @@ contains
     allocate(aero_particle%vol(n_spec))
     call aero_particle_zero(aero_particle)
 
-  end subroutine aero_particle_alloc_size
+  end subroutine aero_particle_allocate_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates memory associated with an aero_particle_t.
-  subroutine aero_particle_free(aero_particle)
+  subroutine aero_particle_deallocate(aero_particle)
 
     !> Particle to free.
     type(aero_particle_t), intent(inout) :: aero_particle
     
     deallocate(aero_particle%vol)
 
-  end subroutine aero_particle_free
+  end subroutine aero_particle_deallocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -109,8 +109,8 @@ contains
 
     n_spec = size(aero_particle_from%vol)
     if (n_spec /= size(aero_particle_to%vol)) then
-       call aero_particle_free(aero_particle_to)
-       call aero_particle_alloc_size(aero_particle_to, n_spec)
+       call aero_particle_deallocate(aero_particle_to)
+       call aero_particle_allocate_size(aero_particle_to, n_spec)
     end if
     call assert(651178226, size(aero_particle_from%vol) &
          == size(aero_particle_to%vol))
@@ -136,7 +136,7 @@ contains
   !> one.
   !!
   !! This is roughly equivalent to aero_particle_copy(from, to)
-  !! followed by aero_particle_free(from), but faster and with
+  !! followed by aero_particle_deallocate(from), but faster and with
   !! different memory allocation requirements.
   subroutine aero_particle_shift(aero_particle_from, aero_particle_to)
 

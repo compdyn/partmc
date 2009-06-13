@@ -45,7 +45,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates the structure.
-  subroutine aero_info_array_alloc(aero_info_array)
+  subroutine aero_info_array_allocate(aero_info_array)
 
     !> Result.
     type(aero_info_array_t), intent(inout) :: aero_info_array
@@ -55,12 +55,12 @@ contains
     aero_info_array%n_item = 0
     allocate(aero_info_array%aero_info(0))
 
-  end subroutine aero_info_array_alloc
+  end subroutine aero_info_array_allocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates with the given size.
-  subroutine aero_info_array_alloc_size(aero_info_array, n_item)
+  subroutine aero_info_array_allocate_size(aero_info_array, n_item)
 
     !> Result.
     type(aero_info_array_t), intent(inout) :: aero_info_array
@@ -72,15 +72,15 @@ contains
     aero_info_array%n_item = n_item
     allocate(aero_info_array%aero_info(n_item))
     do i = 1,n_item
-       call aero_info_alloc(aero_info_array%aero_info(i))
+       call aero_info_allocate(aero_info_array%aero_info(i))
     end do
 
-  end subroutine aero_info_array_alloc_size
+  end subroutine aero_info_array_allocate_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates.
-  subroutine aero_info_array_free(aero_info_array)
+  subroutine aero_info_array_deallocate(aero_info_array)
 
     !> Structure to deallocate.
     type(aero_info_array_t), intent(inout) :: aero_info_array
@@ -88,11 +88,11 @@ contains
     integer :: i
     
     do i = 1,aero_info_array%n_item
-       call aero_info_free(aero_info_array%aero_info(i))
+       call aero_info_deallocate(aero_info_array%aero_info(i))
     end do
     deallocate(aero_info_array%aero_info)
 
-  end subroutine aero_info_array_free
+  end subroutine aero_info_array_deallocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -108,8 +108,8 @@ contains
 
     integer :: i
     
-    call aero_info_array_free(aero_info_array_to)
-    call aero_info_array_alloc_size(aero_info_array_to, &
+    call aero_info_array_deallocate(aero_info_array_to)
+    call aero_info_array_allocate_size(aero_info_array_to, &
          aero_info_array_from%n_item)
     do i = 1,aero_info_array_from%n_item
        call aero_info_copy(aero_info_array_from%aero_info(i), &
@@ -126,7 +126,7 @@ contains
     !> Structure to reset.
     type(aero_info_array_t), intent(inout) :: aero_info_array
 
-    call aero_info_array_free(aero_info_array)
+    call aero_info_array_deallocate(aero_info_array)
     allocate(aero_info_array%aero_info(0))
     aero_info_array%n_item = 0
 
@@ -156,7 +156,7 @@ contains
     do i = 1,aero_info_array%n_item
        call aero_info_copy(aero_info_array%aero_info(i), &
             new_particles(i))
-       call aero_info_free(aero_info_array%aero_info(i))
+       call aero_info_deallocate(aero_info_array%aero_info(i))
     end do
     deallocate(aero_info_array%aero_info)
     aero_info_array%aero_info => new_particles
@@ -234,7 +234,7 @@ contains
 
     n = aero_info_array%n_item + 1
     call aero_info_array_enlarge_to(aero_info_array, n)
-    call aero_info_alloc(aero_info_array%aero_info(n))
+    call aero_info_allocate(aero_info_array%aero_info(n))
     call aero_info_copy(aero_info, aero_info_array%aero_info(n))
     aero_info_array%n_item = aero_info_array%n_item + 1
 
@@ -253,13 +253,13 @@ contains
 
     call assert(213892348, index >= 1)
     call assert(953927392, index <= aero_info_array%n_item)
-    call aero_info_free(aero_info_array%aero_info(index))
+    call aero_info_deallocate(aero_info_array%aero_info(index))
     if (index < aero_info_array%n_item) then
        ! shift last aero_info into empty slot to preserve dense packing
        call aero_info_copy( &
             aero_info_array%aero_info(aero_info_array%n_item), &
             aero_info_array%aero_info(index))
-       call aero_info_free( &
+       call aero_info_deallocate( &
             aero_info_array%aero_info(aero_info_array%n_item))
     end if
     aero_info_array%n_item = aero_info_array%n_item - 1

@@ -73,20 +73,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays.
-  subroutine aero_state_alloc(aero_state)
+  subroutine aero_state_allocate(aero_state)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(inout) :: aero_state
     
     allocate(aero_state%bin(0))
-    call aero_info_array_alloc(aero_state%aero_info_array)
+    call aero_info_array_allocate(aero_state%aero_info_array)
 
-  end subroutine aero_state_alloc
+  end subroutine aero_state_allocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_alloc_size(aero_state, n_bin, n_spec)
+  subroutine aero_state_allocate_size(aero_state, n_bin, n_spec)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(inout) :: aero_state
@@ -99,18 +99,18 @@ contains
 
     allocate(aero_state%bin(n_bin))
     do i = 1,n_bin
-       call aero_particle_array_alloc_size(aero_state%bin(i), 0, n_spec)
+       call aero_particle_array_allocate_size(aero_state%bin(i), 0, n_spec)
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
-    call aero_info_array_alloc(aero_state%aero_info_array)
+    call aero_info_array_allocate(aero_state%aero_info_array)
 
-  end subroutine aero_state_alloc_size
+  end subroutine aero_state_allocate_size
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated aerosol.
-  subroutine aero_state_free(aero_state)
+  subroutine aero_state_deallocate(aero_state)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(inout) :: aero_state
@@ -119,17 +119,17 @@ contains
 
     n_bin = size(aero_state%bin)
     do i = 1,n_bin
-       call aero_particle_array_free(aero_state%bin(i))
+       call aero_particle_array_deallocate(aero_state%bin(i))
     end do
     deallocate(aero_state%bin)
-    call aero_info_array_free(aero_state%aero_info_array)
+    call aero_info_array_deallocate(aero_state%aero_info_array)
 
-  end subroutine aero_state_free
+  end subroutine aero_state_deallocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies aerosol to a destination that has already had
-  !> aero_state_alloc() called on it.
+  !> aero_state_allocate() called on it.
   subroutine aero_state_copy(aero_state_from, aero_state_to)
 
     !> Reference aerosol.
@@ -141,8 +141,8 @@ contains
 
     n_bin = size(aero_state_from%bin)
 
-    call aero_state_free(aero_state_to)
-    call aero_state_alloc_size(aero_state_to, n_bin, 0)
+    call aero_state_deallocate(aero_state_to)
+    call aero_state_allocate_size(aero_state_to, n_bin, 0)
 
     do i = 1,n_bin
        call aero_particle_array_copy(aero_state_from%bin(i), &
@@ -172,7 +172,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_state to have zero particles per bin. This must
-  !> already have had aero_state_alloc() called on it. This
+  !> already have had aero_state_allocate() called on it. This
   !> function can be called more than once on the same state.
   subroutine aero_state_zero(aero_state)
 
@@ -283,7 +283,7 @@ contains
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_alloc_size(aero_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
@@ -299,7 +299,7 @@ contains
           call aero_state_add_particle(aero_state, i_bin, aero_particle)
        end do
     end do
-    call aero_particle_free(aero_particle)
+    call aero_particle_deallocate(aero_particle)
 
   end subroutine aero_state_add_aero_dist_sample
   
@@ -384,13 +384,13 @@ contains
        end if
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
-             call aero_info_alloc(aero_info)
+             call aero_info_allocate(aero_info)
              aero_info%id = &
                   aero_state_from%bin(i_bin)%particle(i_part)%id
              aero_info%action = removal_action
              call aero_state_remove_particle(aero_state_from, i_bin, &
                   i_part, .true., aero_info)
-             call aero_info_free(aero_info)
+             call aero_info_deallocate(aero_info)
           else
              call aero_state_remove_particle(aero_state_from, i_bin, &
                   i_part, .false., aero_info)
@@ -460,13 +460,13 @@ contains
           end if
           if (do_remove) then
              if (removal_action /= AERO_INFO_NONE) then
-                call aero_info_alloc(aero_info)
+                call aero_info_allocate(aero_info)
                 aero_info%id = &
                      aero_state_from%bin(i_bin)%particle(i_part)%id
                 aero_info%action = removal_action
                 call aero_state_remove_particle(aero_state_from, i_bin, &
                      i_part, .true., aero_info)
-                call aero_info_free(aero_info)
+                call aero_info_deallocate(aero_info)
              else
                 call aero_state_remove_particle(aero_state_from, i_bin, &
                      i_part, .false., aero_info)
@@ -616,13 +616,13 @@ contains
           call aero_binned_remove_particle_in_bin(aero_binned, bin_grid, &
                i_bin, aero_state%comp_vol, &
                aero_state%bin(i_bin)%particle(i_part))
-          call aero_info_alloc(aero_info)
+          call aero_info_allocate(aero_info)
           aero_info%id = &
                aero_state%bin(i_bin)%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
           call aero_state_remove_particle(aero_state, i_bin, &
                i_part, .true., aero_info)
-          call aero_info_free(aero_info)
+          call aero_info_deallocate(aero_info)
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol &
@@ -714,11 +714,11 @@ contains
     end if
 
     ! allocate memory
-    call aero_binned_alloc_size(aero_binned_delta, bin_grid%n_bin, &
+    call aero_binned_allocate_size(aero_binned_delta, bin_grid%n_bin, &
          aero_data%n_spec)
 
     ! extract particles to send
-    call aero_state_alloc_size(aero_state_send, bin_grid%n_bin, &
+    call aero_state_allocate_size(aero_state_send, bin_grid%n_bin, &
          aero_data%n_spec)
     aero_state_send%comp_vol = aero_state%comp_vol
     ! FIXME: would probably be slightly better for sampling purposes
@@ -761,9 +761,9 @@ contains
     call aero_binned_add(aero_binned, aero_binned_delta)
 
     ! cleanup
-    call aero_binned_free(aero_binned_delta)
-    call aero_state_free(aero_state_send)
-    call aero_state_free(aero_state_recv)
+    call aero_binned_deallocate(aero_binned_delta)
+    call aero_state_deallocate(aero_state_send)
+    call aero_state_deallocate(aero_state_recv)
     deallocate(buffer_send)
     deallocate(buffer_recv)
 #endif
@@ -1258,8 +1258,8 @@ contains
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
-       call aero_state_free(aero_state)
-       call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+       call aero_state_deallocate(aero_state)
+       call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
        return
     end if
     call pmc_nc_check(status)
@@ -1312,10 +1312,10 @@ contains
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time", unit)
 
-    call aero_state_free(aero_state)
-    call aero_state_alloc_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
+    call aero_state_deallocate(aero_state)
+    call aero_state_allocate_size(aero_state, bin_grid%n_bin, aero_data%n_spec)
 
-    call aero_particle_alloc_size(aero_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part)
@@ -1336,7 +1336,7 @@ contains
        i_bin = aero_particle_in_bin(aero_particle, bin_grid)
        call aero_state_add_particle(aero_state, i_bin, aero_particle)
     end do
-    call aero_particle_free(aero_particle)
+    call aero_particle_deallocate(aero_particle)
 
     deallocate(aero_particle_mass)
     deallocate(aero_n_orig_part)

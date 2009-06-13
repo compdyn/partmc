@@ -204,7 +204,7 @@ contains
     real*8 k1, k2, k3, k4
     type(aero_particle_t) :: aero_particle_tmp
 
-    call aero_particle_alloc_size(aero_particle_tmp, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle_tmp, aero_data%n_spec)
     call aero_particle_copy(aero_particle, aero_particle_tmp)
 
     ! step 1
@@ -237,7 +237,7 @@ contains
     aero_particle%vol(aero_data%i_water) = &
          max(0d0, aero_particle%vol(aero_data%i_water))
 
-    call aero_particle_free(aero_particle_tmp)
+    call aero_particle_deallocate(aero_particle_tmp)
    
   end subroutine condense_step_rk
 

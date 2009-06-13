@@ -108,9 +108,9 @@ contains
     end if
 
     ! output data structure
-    call aero_binned_alloc_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
     aero_binned%vol_conc = 0d0
-    call gas_state_alloc_size(gas_state, gas_data%n_spec)
+    call gas_state_allocate_size(gas_state, gas_data%n_spec)
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
@@ -157,7 +157,7 @@ contains
     
     ! main time-stepping loop
     num_t = nint(sect_opt%t_max / sect_opt%del_t)
-    call env_state_alloc(old_env_state)
+    call env_state_allocate(old_env_state)
     do i_time = 1, num_t
 
        if (sect_opt%do_coagulation) then
@@ -196,8 +196,8 @@ contains
        end if
     end do
 
-    call aero_binned_free(aero_binned)
-    call gas_state_free(gas_state)
+    call aero_binned_deallocate(aero_binned)
+    call gas_state_deallocate(gas_state)
 
   end subroutine run_sect
   

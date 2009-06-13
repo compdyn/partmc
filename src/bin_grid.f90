@@ -37,7 +37,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a bin_grid.
-  subroutine bin_grid_alloc(bin_grid)
+  subroutine bin_grid_allocate(bin_grid)
 
     !> Bin grid.
     type(bin_grid_t), intent(out) :: bin_grid
@@ -45,12 +45,12 @@ contains
     bin_grid%n_bin = 0
     allocate(bin_grid%v(0))
 
-  end subroutine bin_grid_alloc
+  end subroutine bin_grid_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a bin_grid of the given size.
-  subroutine bin_grid_alloc_size(bin_grid, n_bin)
+  subroutine bin_grid_allocate_size(bin_grid, n_bin)
 
     !> Bin grid.
     type(bin_grid_t), intent(out) :: bin_grid
@@ -60,19 +60,19 @@ contains
     bin_grid%n_bin = n_bin
     allocate(bin_grid%v(n_bin))
 
-  end subroutine bin_grid_alloc_size
+  end subroutine bin_grid_allocate_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Frees all memory.
-  subroutine bin_grid_free(bin_grid)
+  subroutine bin_grid_deallocate(bin_grid)
 
     !> Bin_grid to free.
     type(bin_grid_t), intent(inout) :: bin_grid
 
     deallocate(bin_grid%v)
 
-  end subroutine bin_grid_free
+  end subroutine bin_grid_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -105,8 +105,8 @@ contains
     !> Minimum volume (m^3).
     real*8, intent(in) :: v_max
 
-    call bin_grid_free(bin_grid)
-    call bin_grid_alloc_size(bin_grid, n_bin)
+    call bin_grid_deallocate(bin_grid)
+    call bin_grid_allocate_size(bin_grid, n_bin)
     call logspace(v_min, v_max, n_bin, bin_grid%v)
     ! dlnr = ln(r(i) / r(i-1))
     bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / dble(n_bin - 1)
@@ -351,8 +351,8 @@ contains
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, n_bin))
 
-    call bin_grid_free(bin_grid)
-    call bin_grid_alloc_size(bin_grid, n_bin)
+    call bin_grid_deallocate(bin_grid)
+    call bin_grid_allocate_size(bin_grid, n_bin)
 
     allocate(aero_radius_centers(n_bin))
     allocate(aero_radius_widths(n_bin))

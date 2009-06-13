@@ -97,9 +97,9 @@ contains
        end subroutine soln
     end interface
 
-    call aero_binned_alloc_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
-    call gas_data_alloc(gas_data)
-    call gas_state_alloc(gas_state)
+    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, aero_data%n_spec)
+    call gas_data_allocate(gas_data)
+    call gas_state_allocate(gas_state)
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     do i_time = 0,n_time
@@ -113,9 +113,9 @@ contains
             time, exact_opt%t_output)
     end do
 
-    call gas_data_free(gas_data)
-    call gas_state_free(gas_state)
-    call aero_binned_free(aero_binned)
+    call gas_data_deallocate(gas_data)
+    call gas_state_deallocate(gas_state)
+    call aero_binned_deallocate(aero_binned)
     
   end subroutine run_exact
   

@@ -144,9 +144,9 @@ contains
           !call write_gas_state(file, gas_state_write)
           !call write_aero_state(file, aero_state_write)
           
-          call env_state_free(env_write)
-          call gas_state_free(gas_state_write)
-          call aero_state_free(aero_state_write)
+          call env_state_deallocate(env_write)
+          call gas_state_deallocate(gas_state_write)
+          call aero_state_deallocate(aero_state_write)
        end if
     end do
 #endif

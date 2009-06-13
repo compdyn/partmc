@@ -81,7 +81,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an empty environment.
-  subroutine env_state_alloc(env_state)
+  subroutine env_state_allocate(env_state)
 
     !> Environment.
     type(env_state_t), intent(out) :: env_state
@@ -97,31 +97,31 @@ contains
     env_state%elapsed_time = 0d0
     env_state%height = 0d0
 
-    call gas_state_alloc(env_state%gas_emissions)
-    call gas_state_alloc(env_state%gas_background)
+    call gas_state_allocate(env_state%gas_emissions)
+    call gas_state_allocate(env_state%gas_background)
     env_state%gas_emission_rate = 0d0
     env_state%gas_dilution_rate = 0d0
-    call aero_dist_alloc(env_state%aero_emissions)
-    call aero_dist_alloc(env_state%aero_background)
+    call aero_dist_allocate(env_state%aero_emissions)
+    call aero_dist_allocate(env_state%aero_background)
     env_state%aero_emission_rate = 0d0
     env_state%aero_dilution_rate = 0d0
 
-  end subroutine env_state_alloc
+  end subroutine env_state_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free all storage.
-  subroutine env_state_free(env_state)
+  subroutine env_state_deallocate(env_state)
 
     !> Environment.
     type(env_state_t), intent(out) :: env_state
 
-    call gas_state_free(env_state%gas_emissions)
-    call gas_state_free(env_state%gas_background)
-    call aero_dist_free(env_state%aero_emissions)
-    call aero_dist_free(env_state%aero_background)
+    call gas_state_deallocate(env_state%gas_emissions)
+    call gas_state_deallocate(env_state%gas_background)
+    call aero_dist_deallocate(env_state%aero_emissions)
+    call aero_dist_deallocate(env_state%aero_background)
 
-  end subroutine env_state_free
+  end subroutine env_state_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -344,8 +344,8 @@ contains
     real*8 :: effective_dilution_rate
     type(gas_state_t) :: emission, dilution
 
-    call gas_state_alloc_size(emission, gas_data%n_spec)
-    call gas_state_alloc_size(dilution, gas_data%n_spec)
+    call gas_state_allocate_size(emission, gas_data%n_spec)
+    call gas_state_allocate_size(dilution, gas_data%n_spec)
 
     ! account for height changes
     effective_dilution_rate = env_state%gas_dilution_rate
@@ -372,8 +372,8 @@ contains
 
     !FIXME: ensure gas state is still positive
 
-    call gas_state_free(emission)
-    call gas_state_free(dilution)
+    call gas_state_deallocate(emission)
+    call gas_state_deallocate(dilution)
 
   end subroutine env_state_update_gas_state
 
@@ -404,9 +404,9 @@ contains
     type(aero_state_t) :: aero_state_delta
     type(aero_binned_t) :: aero_binned_delta
 
-    call aero_state_alloc_size(aero_state_delta, bin_grid%n_bin, &
+    call aero_state_allocate_size(aero_state_delta, bin_grid%n_bin, &
          aero_data%n_spec)
-    call aero_binned_alloc_size(aero_binned_delta, bin_grid%n_bin, &
+    call aero_binned_allocate_size(aero_binned_delta, bin_grid%n_bin, &
          aero_data%n_spec)
 
     ! account for height changes
@@ -459,8 +459,8 @@ contains
     aero_state%comp_vol = aero_state%comp_vol * env_state%temp &
          / old_env_state%temp
 
-    call aero_state_free(aero_state_delta)
-    call aero_binned_free(aero_binned_delta)
+    call aero_state_deallocate(aero_state_delta)
+    call aero_binned_deallocate(aero_binned_delta)
 
   end subroutine env_state_update_aero_state
 
@@ -488,8 +488,8 @@ contains
     type(aero_binned_t) :: emission, dilution
     real*8 :: effective_dilution_rate
 
-    call aero_binned_alloc_size(emission, bin_grid%n_bin, aero_data%n_spec)
-    call aero_binned_alloc_size(dilution, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_allocate_size(emission, bin_grid%n_bin, aero_data%n_spec)
+    call aero_binned_allocate_size(dilution, bin_grid%n_bin, aero_data%n_spec)
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
@@ -515,8 +515,8 @@ contains
     call aero_binned_add(aero_binned, emission)
     call aero_binned_add(aero_binned, dilution)
 
-    call aero_binned_free(emission)
-    call aero_binned_free(dilution)
+    call aero_binned_deallocate(emission)
+    call aero_binned_deallocate(dilution)
 
   end subroutine env_state_update_aero_binned
 
@@ -577,14 +577,14 @@ contains
 #ifdef PMC_USE_MPI
     type(env_state_t) :: val_avg
 
-    call env_state_alloc(val_avg)
+    call env_state_allocate(val_avg)
     call pmc_mpi_allreduce_average_real(val%temp, val_avg%temp)
     call pmc_mpi_allreduce_average_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_allreduce_average_real(val%pressure, val_avg%pressure)
     val%temp = val_avg%temp
     val%rel_humid = val_avg%rel_humid
     val%pressure = val_avg%pressure
-    call env_state_free(val_avg)
+    call env_state_deallocate(val_avg)
 #endif
 
   end subroutine env_state_mix
@@ -710,7 +710,7 @@ contains
     !> Result.
     type(env_state_t), intent(out) :: val_avg
 
-    call env_state_alloc(val_avg)
+    call env_state_allocate(val_avg)
     call env_state_copy(val, val_avg)
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)

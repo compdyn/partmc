@@ -50,8 +50,8 @@ contains
     integer :: i, j
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     
-    call aero_particle_alloc_size(aero_particle_1, aero_data%n_spec)
-    call aero_particle_alloc_size(aero_particle_2, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle_1, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle_2, aero_data%n_spec)
     do i = 1,n_bin
        do j = 1,n_bin
           aero_particle_1%vol(1) = bin_v(i)
@@ -60,8 +60,8 @@ contains
                env_state, k(i,j))
        end do
     end do
-    call aero_particle_free(aero_particle_1)
-    call aero_particle_free(aero_particle_2)
+    call aero_particle_deallocate(aero_particle_1)
+    call aero_particle_deallocate(aero_particle_2)
     
   end subroutine bin_kernel
   

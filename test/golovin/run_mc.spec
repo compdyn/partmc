@@ -1,6 +1,5 @@
 run_type mc                     # Monte Carlo run
 output_prefix out/golovin_mc    # prefix of output files
-state_prefix out/golovin_mc     # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 n_part 100000                   # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel

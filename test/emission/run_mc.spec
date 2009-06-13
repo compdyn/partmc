@@ -1,6 +1,5 @@
 run_type mc                     # Monte Carlo
 output_prefix out/emission_mc   # prefix of output files
-state_prefix out/emission_mc    # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
 kernel sedi                     # coagulation kernel

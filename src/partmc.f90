@@ -131,7 +131,6 @@ contains
        ! only the root process does I/O
 
        call spec_read_string(file, 'output_prefix', mc_opt%output_prefix)
-       call spec_read_string(file, 'state_prefix', mc_opt%state_prefix)
        call spec_read_integer(file, 'n_loop', mc_opt%n_loop)
        call spec_read_integer(file, 'n_part', mc_opt%n_part_max)
        call spec_read_string(file, 'kernel', kernel_name)

@@ -1,6 +1,5 @@
 run_type mc                     # Monte Carlo
 output_prefix out/brownian_mc   # prefix of output files
-state_prefix out/brownian_mc    # prefix of state files
 n_loop 9                        # number of Monte Carlo loops
 n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel

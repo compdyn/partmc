@@ -40,8 +40,6 @@ module pmc_run_mc
     real*8 :: del_t
     !> Prefix for output files.
     character(len=300) :: output_prefix
-    !> Prefix for state files.
-    character(len=300) :: state_prefix
     !> Whether to do coagulation.
     logical :: do_coagulation
     !> Allow doubling if needed.
@@ -146,7 +144,7 @@ contains
     end if
 
     if (mc_opt%t_output > 0d0) then
-       call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
+       call output_state_netcdf(mc_opt%output_prefix, bin_grid, &
             aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
             time, mc_opt%del_t, mc_opt%i_loop, mc_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
@@ -215,7 +213,7 @@ contains
                last_output_time, do_output)
           if (do_output) then
              i_output = i_output + 1
-             call output_state_netcdf(mc_opt%state_prefix, bin_grid, &
+             call output_state_netcdf(mc_opt%output_prefix, bin_grid, &
                   aero_data, aero_state, gas_data, gas_state, env_state, &
                   i_output, time, mc_opt%del_t, mc_opt%i_loop, &
                   mc_opt%record_removals)
@@ -413,7 +411,6 @@ contains
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
-         + pmc_mpi_pack_size_string(val%state_prefix) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
@@ -448,7 +445,6 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
-    call pmc_mpi_pack_string(buffer, position, val%state_prefix)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
@@ -486,7 +482,6 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
-    call pmc_mpi_unpack_string(buffer, position, val%state_prefix)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)

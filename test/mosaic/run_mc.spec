@@ -1,6 +1,5 @@
 run_type mc                     # Monte Carlo run
 output_prefix out/mosaic        # prefix of output files
-state_prefix out/mosaic         # prefix of state files
 n_loop 1                        # number of Monte Carlo loops
 n_part 3                        # total number of particles
 kernel golovin                  # coagulation kernel

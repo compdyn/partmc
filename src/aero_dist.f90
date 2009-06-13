@@ -20,7 +20,7 @@ module pmc_aero_dist
   use pmc_bin_grid
   use pmc_util
   use pmc_constants
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_aero_data
   use pmc_aero_mode
   use pmc_mpi
@@ -230,7 +230,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read continuous aerosol distribution composed of several modes.
-  subroutine spec_read_aero_dist(file, aero_data, aero_dist)
+  subroutine spec_file_read_aero_dist(file, aero_data, aero_dist)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -247,7 +247,7 @@ contains
     aero_dist%n_mode = 0
     allocate(aero_dist%mode(0))
     call aero_mode_allocate(aero_mode)
-    call spec_read_aero_mode(file, aero_data, aero_mode, eof)
+    call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
        aero_dist%n_mode = aero_dist%n_mode + 1
        allocate(new_aero_mode_list(aero_dist%n_mode))
@@ -264,16 +264,16 @@ contains
        deallocate(aero_dist%mode)
        aero_dist%mode => new_aero_mode_list
        nullify(new_aero_mode_list)
-       call spec_read_aero_mode(file, aero_data, aero_mode, eof)
+       call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
     call aero_mode_deallocate(aero_mode)
 
-  end subroutine spec_read_aero_dist
+  end subroutine spec_file_read_aero_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aerosol distribution from filename on line in file.
-  subroutine spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+  subroutine spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
        name, aero_dist)
 
     !> Spec file.
@@ -287,22 +287,22 @@ contains
     !> Aerosol distribution.
     type(aero_dist_t), intent(inout) :: aero_dist
 
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
 
     ! read the aerosol data from the specified file
-    call spec_read_string(file, name, read_name)
-    call spec_read_open(read_name, read_file)
-    call spec_read_aero_dist(read_file, aero_data, aero_dist)
-    call spec_read_close(read_file)
+    call spec_file_read_string(file, name, read_name)
+    call spec_file_open(read_name, read_file)
+    call spec_file_read_aero_dist(read_file, aero_data, aero_dist)
+    call spec_file_close(read_file)
 
-  end subroutine spec_read_aero_dist_filename
+  end subroutine spec_file_read_aero_dist_filename
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of aero_dists with associated times and rates from
   !> the given file.
-  subroutine spec_read_aero_dists_times_rates(file, aero_data, &
+  subroutine spec_file_read_aero_dists_times_rates(file, aero_data, &
        bin_grid, name, times, rates, aero_dists)
 
     !> Spec file.
@@ -320,24 +320,24 @@ contains
     !> Aero dists.
     type(aero_dist_t), pointer :: aero_dists(:)
 
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     type(spec_line_t) :: aero_dist_line
     integer :: n_time, i_time
-    character(len=MAX_VAR_LEN), pointer :: names(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
     real*8, pointer :: data(:,:)
 
     ! read the filename then read the data from that file
-    call spec_read_string(file, name, read_name)
-    call spec_read_open(read_name, read_file)
+    call spec_file_read_string(file, name, read_name)
+    call spec_file_open(read_name, read_file)
     allocate(names(0))
     allocate(data(0,0))
-    call spec_read_real_named_array(read_file, 2, names, data)
+    call spec_file_read_real_named_array(read_file, 2, names, data)
     call spec_line_allocate(aero_dist_line)
-    call spec_read_line_no_eof(read_file, aero_dist_line)
-    call spec_read_check_line_name(read_file, aero_dist_line, "dist")
-    call spec_read_check_line_length(read_file, aero_dist_line, size(data, 2))
-    call spec_read_close(read_file)
+    call spec_file_read_line_no_eof(read_file, aero_dist_line)
+    call spec_file_check_line_name(read_file, aero_dist_line, "dist")
+    call spec_file_check_line_length(read_file, aero_dist_line, size(data, 2))
+    call spec_file_close(read_file)
 
     ! check the data size
     if (trim(names(1)) /= 'time') then
@@ -365,9 +365,9 @@ contains
     allocate(times(n_time))
     allocate(rates(n_time))
     do i_time = 1,n_time
-       call spec_read_open(aero_dist_line%data(i_time), read_file)
-       call spec_read_aero_dist(read_file, aero_data, aero_dists(i_time))
-       call spec_read_close(read_file)
+       call spec_file_open(aero_dist_line%data(i_time), read_file)
+       call spec_file_read_aero_dist(read_file, aero_data, aero_dists(i_time))
+       call spec_file_close(read_file)
        times(i_time) = data(1,i_time)
        rates(i_time) = data(2,i_time)
     end do
@@ -375,7 +375,7 @@ contains
     deallocate(data)
     call spec_line_deallocate(aero_dist_line)
 
-  end subroutine spec_read_aero_dists_times_rates
+  end subroutine spec_file_read_aero_dists_times_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

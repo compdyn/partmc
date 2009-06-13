@@ -8,7 +8,7 @@
 !> The aero_data_t structure and associated subroutines.
 module pmc_aero_data
 
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
@@ -204,7 +204,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
-  subroutine spec_read_aero_data(file, aero_data)
+  subroutine spec_file_read_aero_data(file, aero_data)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -212,12 +212,12 @@ contains
     type(aero_data_t), intent(out) :: aero_data
 
     integer :: n_species, species, i
-    character(len=MAX_VAR_LEN), pointer :: species_name(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_read_real_named_array(file, 0, species_name, species_data)
+    call spec_file_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -245,33 +245,33 @@ contains
     call aero_data_set_water_index(aero_data)
     call aero_data_set_mosaic_map(aero_data)
 
-  end subroutine spec_read_aero_data
+  end subroutine spec_file_read_aero_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
-  subroutine spec_read_aero_data_filename(file, aero_data)
+  subroutine spec_file_read_aero_data_filename(file, aero_data)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
 
     ! read the aerosol data from the specified file
-    call spec_read_string(file, 'aerosol_data', read_name)
-    call spec_read_open(read_name, read_file)
-    call spec_read_aero_data(read_file, aero_data)
-    call spec_read_close(read_file)
+    call spec_file_read_string(file, 'aerosol_data', read_name)
+    call spec_file_open(read_name, read_file)
+    call spec_file_read_aero_data(read_file, aero_data)
+    call spec_file_close(read_file)
 
-  end subroutine spec_read_aero_data_filename
+  end subroutine spec_file_read_aero_data_filename
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a list of species from the given file with the given name.
-  subroutine spec_read_species_list(file, name, aero_data, species_list)
+  subroutine spec_file_read_species_list(file, name, aero_data, species_list)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -285,20 +285,20 @@ contains
     type(spec_line_t) :: line
     integer :: i, spec
 
-    call spec_read_line_no_eof(file, line)
-    call spec_read_check_line_name(file, line, name)
+    call spec_file_read_line_no_eof(file, line)
+    call spec_file_check_line_name(file, line, name)
     allocate(species_list(size(line%data)))
     do i = 1,size(line%data)
        spec = aero_data_spec_by_name(aero_data, line%data(i))
        if (spec == 0) then
-          call spec_read_die_msg(964771833, file, &
+          call spec_file_die_msg(964771833, file, &
                'unknown species: ' // trim(line%data(i)))
        end if
        species_list(i) = spec
     end do
     call spec_line_deallocate(line)
 
-  end subroutine spec_read_species_list
+  end subroutine spec_file_read_species_list
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

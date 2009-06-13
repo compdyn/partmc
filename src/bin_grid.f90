@@ -10,7 +10,7 @@ module pmc_bin_grid
 
   use pmc_constants
   use pmc_util
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -175,7 +175,7 @@ contains
 
   !> Read the specification for a bin_grid from a spec file and
   !> generate it.
-  subroutine spec_read_bin_grid(file, bin_grid)
+  subroutine spec_file_read_bin_grid(file, bin_grid)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -185,12 +185,12 @@ contains
     integer :: n_bin
     real*8 :: r_min, r_max
 
-    call spec_read_integer(file, 'n_bin', n_bin)
-    call spec_read_real(file, 'r_min', r_min)
-    call spec_read_real(file, 'r_max', r_max)
+    call spec_file_read_integer(file, 'n_bin', n_bin)
+    call spec_file_read_real(file, 'r_min', r_min)
+    call spec_file_read_real(file, 'r_max', r_max)
     call bin_grid_make(bin_grid, n_bin, rad2vol(r_min), rad2vol(r_max))
 
-  end subroutine spec_read_bin_grid
+  end subroutine spec_file_read_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

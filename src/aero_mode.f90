@@ -11,7 +11,7 @@ module pmc_aero_mode
   use pmc_bin_grid
   use pmc_util
   use pmc_constants
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_aero_data
   use pmc_mpi
   use pmc_rand
@@ -337,7 +337,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read volume fractions from a data file.
-  subroutine spec_read_vol_frac(file, aero_data, vol_frac)
+  subroutine spec_file_read_vol_frac(file, aero_data, vol_frac)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -347,19 +347,19 @@ contains
     real*8, intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
-    character(len=MAX_VAR_LEN), pointer :: species_name(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
     real*8 :: tot_vol_frac
 
     ! read the aerosol data from the specified file
-    call spec_read_string(file, 'mass_frac', read_name)
-    call spec_read_open(read_name, read_file)
+    call spec_file_read_string(file, 'mass_frac', read_name)
+    call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_read_real_named_array(read_file, 0, species_name, species_data)
-    call spec_read_close(read_file)
+    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -397,46 +397,46 @@ contains
     end if
     vol_frac = vol_frac / tot_vol_frac
 
-  end subroutine spec_read_vol_frac
+  end subroutine spec_file_read_vol_frac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the shape (number concentration profile) of one mode of an aerosol
   !> distribution.
-  subroutine spec_read_aero_mode_shape(file, aero_mode)
+  subroutine spec_file_read_aero_mode_shape(file, aero_mode)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Aerosol mode.
     type(aero_mode_t), intent(inout) :: aero_mode
 
-    character(len=MAX_VAR_LEN) :: mode_type
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: mode_type
 
-    call spec_read_real(file, 'num_conc', aero_mode%num_conc)
-    call spec_read_string(file, 'mode_type', mode_type)
+    call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
+    call spec_file_read_string(file, 'mode_type', mode_type)
     if (len_trim(mode_type) < AERO_MODE_TYPE_LEN) then
        aero_mode%type = mode_type(1:AERO_MODE_TYPE_LEN)
     else
-       call spec_read_die_msg(284789262, file, "mode_type string too long")
+       call spec_file_die_msg(284789262, file, "mode_type string too long")
     end if
     if (trim(mode_type) == 'log_normal') then
-       call spec_read_real(file, 'mean_radius', aero_mode%mean_radius)
-       call spec_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
+       call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       call spec_file_read_real(file, 'log_std_dev', aero_mode%log10_std_dev_radius)
     elseif (trim(mode_type) == 'exp') then
-       call spec_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
     elseif (trim(mode_type) == 'mono') then
-       call spec_read_real(file, 'radius', aero_mode%mean_radius)
+       call spec_file_read_real(file, 'radius', aero_mode%mean_radius)
     else
-       call spec_read_die_msg(729472928, file, "Unknown distribution type")
+       call spec_file_die_msg(729472928, file, "Unknown distribution type")
     end if
 
-  end subroutine spec_read_aero_mode_shape
+  end subroutine spec_file_read_aero_mode_shape
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read one mode of an aerosol distribution (number concentration and
   !> volume fractions).
-  subroutine spec_read_aero_mode(file, aero_data, aero_mode, eof)
+  subroutine spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -447,25 +447,25 @@ contains
     !> If eof instead of reading data.
     logical :: eof
 
-    character(len=MAX_VAR_LEN) :: tmp_str
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str
     type(spec_line_t) :: line
 
     call spec_line_allocate(line)
-    call spec_read_line(file, line, eof)
+    call spec_file_read_line(file, line, eof)
     if (.not. eof) then
-       call spec_read_check_line_name(file, line, "mode_name")
-       call spec_read_check_line_length(file, line, 1)
+       call spec_file_check_line_name(file, line, "mode_name")
+       call spec_file_check_line_length(file, line, 1)
        call aero_mode_deallocate(aero_mode)
        call aero_mode_allocate_size(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        allocate(aero_mode%vol_frac(aero_data%n_spec))
-       call spec_read_vol_frac(file, aero_data, aero_mode%vol_frac)
-       call spec_read_aero_mode_shape(file, aero_mode)
+       call spec_file_read_vol_frac(file, aero_data, aero_mode%vol_frac)
+       call spec_file_read_aero_mode_shape(file, aero_mode)
     end if
     call spec_line_deallocate(line)
 
-  end subroutine spec_read_aero_mode
+  end subroutine spec_file_read_aero_mode
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

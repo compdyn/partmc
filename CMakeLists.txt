@@ -149,9 +149,10 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/run_mc.f90 src/util.f90 src/run_sect.f90
                src/output.f90 src/mosaic.f90 src/gas_data.f90
                src/gas_state.f90 src/coagulation.f90 src/kernel.f90
-               src/spec_read.f90 src/rand.f90 src/aero_particle.f90
-               src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-               src/aero_info.f90 src/aero_info_array.f90)
+               src/spec_line.f90 src/spec_file.f90 src/rand.f90
+               src/aero_particle.f90 src/aero_particle_array.f90
+               src/mpi.f90 src/netcdf.f90 src/aero_info.f90
+               src/aero_info_array.f90)
 target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################
@@ -161,9 +162,9 @@ add_executable(test_bidisperse_ode
 	       src/kernel_sedi.f90 src/env_data.f90 src/env_state.f90
 	       src/constants.f90 src/aero_data.f90 src/util.f90
 	       src/gas_data.f90 src/gas_state.f90 src/aero_state.f90
-	       src/output.f90 src/bin_grid.f90 src/spec_read.f90
-	       src/aero_mode.f90 src/aero_dist.f90 src/aero_binned.f90
-	       src/rand.f90 src/aero_particle.f90
+	       src/output.f90 src/bin_grid.f90 src/spec_line.f90
+	       src/spec_file.f90 src/aero_mode.f90 src/aero_dist.f90
+	       src/aero_binned.f90 src/rand.f90 src/aero_particle.f90
 	       src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
 	       src/aero_info.f90 src/aero_info_array.f90)
 target_link_libraries(test_bidisperse_ode ${EXTRA_LIBS})

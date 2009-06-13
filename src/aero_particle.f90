@@ -11,7 +11,7 @@ module pmc_aero_particle
   use pmc_util
   use pmc_aero_data
   use pmc_bin_grid
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi

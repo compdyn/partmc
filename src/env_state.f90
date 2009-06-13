@@ -18,7 +18,7 @@ module pmc_env_state
   use pmc_gas_data
   use pmc_bin_grid
   use pmc_aero_state
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -508,22 +508,22 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment specification from a spec file.
-  subroutine spec_read_env_state(file, env_state)
+  subroutine spec_file_read_env_state(file, env_state)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Environment data.
     type(env_state_t), intent(out) :: env_state
 
-    call spec_read_real(file, 'rel_humidity', env_state%rel_humid)
-    call spec_read_real(file, 'pressure', env_state%pressure)
-    call spec_read_real(file, 'latitude', env_state%latitude)
-    call spec_read_real(file, 'longitude', env_state%longitude)
-    call spec_read_real(file, 'altitude', env_state%altitude)
-    call spec_read_real(file, 'start_time', env_state%start_time)
-    call spec_read_integer(file, 'start_day', env_state%start_day)
+    call spec_file_read_real(file, 'rel_humidity', env_state%rel_humid)
+    call spec_file_read_real(file, 'pressure', env_state%pressure)
+    call spec_file_read_real(file, 'latitude', env_state%latitude)
+    call spec_file_read_real(file, 'longitude', env_state%longitude)
+    call spec_file_read_real(file, 'altitude', env_state%altitude)
+    call spec_file_read_real(file, 'start_time', env_state%start_time)
+    call spec_file_read_integer(file, 'start_day', env_state%start_day)
 
-  end subroutine spec_read_env_state
+  end subroutine spec_file_read_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

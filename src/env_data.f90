@@ -12,7 +12,7 @@ module pmc_env_data
   use pmc_aero_dist
   use pmc_util
   use pmc_env_state
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_gas_data
@@ -231,7 +231,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment data from an spec file.
-  subroutine spec_read_env_data(file, bin_grid, gas_data, &
+  subroutine spec_file_read_env_data(file, bin_grid, gas_data, &
        aero_data, env_data)
 
     !> Spec file.
@@ -245,24 +245,24 @@ contains
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
 
-    call spec_read_timed_real_array(file, "temp_profile", "temp", &
+    call spec_file_read_timed_real_array(file, "temp_profile", "temp", &
          env_data%temp_time, env_data%temp)
-    call spec_read_timed_real_array(file, "height_profile", "height", &
+    call spec_file_read_timed_real_array(file, "height_profile", "height", &
          env_data%height_time, env_data%height)
-    call spec_read_gas_states_times_rates(file, gas_data, &
+    call spec_file_read_gas_states_times_rates(file, gas_data, &
          'gas_emissions', env_data%gas_emission_time, &
          env_data%gas_emission_rate, env_data%gas_emission)
-    call spec_read_gas_states_times_rates(file, gas_data, &
+    call spec_file_read_gas_states_times_rates(file, gas_data, &
          'gas_background', env_data%gas_dilution_time, &
          env_data%gas_dilution_rate, env_data%gas_background)
-    call spec_read_aero_dists_times_rates(file, aero_data, bin_grid, &
+    call spec_file_read_aero_dists_times_rates(file, aero_data, bin_grid, &
          'aero_emissions', env_data%aero_emission_time, &
          env_data%aero_emission_rate, env_data%aero_emission)
-    call spec_read_aero_dists_times_rates(file, aero_data, bin_grid, &
+    call spec_file_read_aero_dists_times_rates(file, aero_data, bin_grid, &
          'aero_background', env_data%aero_dilution_time, &
          env_data%aero_dilution_rate, env_data%aero_background)
 
-  end subroutine spec_read_env_data
+  end subroutine spec_file_read_env_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

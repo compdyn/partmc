@@ -8,7 +8,7 @@
 !> The gas_data_t structure and associated subroutines.
 module pmc_gas_data
 
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
@@ -175,7 +175,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas data from a .spec file.
-  subroutine spec_read_gas_data(file, gas_data)
+  subroutine spec_file_read_gas_data(file, gas_data)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -183,18 +183,18 @@ contains
     type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
-    character(len=MAX_VAR_LEN), pointer :: species_name(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the gas data from the specified file
-    call spec_read_string(file, 'gas_data', read_name)
-    call spec_read_open(read_name, read_file)
+    call spec_file_read_string(file, 'gas_data', read_name)
+    call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_read_real_named_array(read_file, 0, species_name, species_data)
-    call spec_read_close(read_file)
+    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_close(read_file)
 
     ! check the data size
     if (size(species_data, 2) /= 1) then
@@ -215,7 +215,7 @@ contains
     
     call gas_data_set_mosaic_map(gas_data)
 
-  end subroutine spec_read_gas_data
+  end subroutine spec_file_read_gas_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

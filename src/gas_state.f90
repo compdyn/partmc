@@ -9,7 +9,7 @@
 module pmc_gas_state
 
   use pmc_util
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_gas_data
   use pmc_mpi
   use pmc_netcdf
@@ -201,7 +201,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas state from the file named on the line read from file.
-  subroutine spec_read_gas_state(file, gas_data, name, gas_state)
+  subroutine spec_file_read_gas_state(file, gas_data, name, gas_state)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -212,19 +212,19 @@ contains
     !> Gas data.
     type(gas_state_t), intent(out) :: gas_state
 
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     integer :: n_species, species, i
-    character(len=MAX_VAR_LEN), pointer :: species_name(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
-    call spec_read_string(file, name, read_name)
-    call spec_read_open(read_name, read_file)
+    call spec_file_read_string(file, name, read_name)
+    call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_read_real_named_array(read_file, 0, species_name, species_data)
-    call spec_read_close(read_file)
+    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
@@ -248,13 +248,13 @@ contains
     deallocate(species_name)
     deallocate(species_data)
 
-  end subroutine spec_read_gas_state
+  end subroutine spec_file_read_gas_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of gas states with associated times and rates from
   !> the file named on the line read from the given file.
-  subroutine spec_read_gas_states_times_rates(file, gas_data, name, &
+  subroutine spec_file_read_gas_states_times_rates(file, gas_data, name, &
        times, rates, gas_states)
 
     !> Spec file.
@@ -270,19 +270,19 @@ contains
     !> Gas states.
     type(gas_state_t), pointer :: gas_states(:)
 
-    character(len=MAX_VAR_LEN) :: read_name
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     integer :: n_lines, species, i, n_time, i_time
-    character(len=MAX_VAR_LEN), pointer :: species_name(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real*8, pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
-    call spec_read_string(file, name, read_name)
-    call spec_read_open(read_name, read_file)
+    call spec_file_read_string(file, name, read_name)
+    call spec_file_open(read_name, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_read_real_named_array(read_file, 0, species_name, species_data)
-    call spec_read_close(read_file)
+    call spec_file_read_real_named_array(read_file, 0, species_name, species_data)
+    call spec_file_close(read_file)
 
     ! check the data size
     n_lines = size(species_data, 1)
@@ -333,7 +333,7 @@ contains
     deallocate(species_name)
     deallocate(species_data)
 
-  end subroutine spec_read_gas_states_times_rates
+  end subroutine spec_file_read_gas_states_times_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

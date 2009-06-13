@@ -29,7 +29,7 @@ program partmc
   use pmc_run_mc
   use pmc_run_exact
   use pmc_run_sect
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
@@ -85,8 +85,8 @@ contains
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
-       call spec_read_open(spec_name, file)
-       call spec_read_string(file, 'run_type', run_type)
+       call spec_file_open(spec_name, file)
+       call spec_file_read_string(file, 'run_type', run_type)
     end if
     
     call pmc_mpi_bcast_string(run_type)
@@ -130,50 +130,50 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
-       call spec_read_string(file, 'output_prefix', mc_opt%output_prefix)
-       call spec_read_integer(file, 'n_loop', mc_opt%n_loop)
-       call spec_read_integer(file, 'n_part', mc_opt%n_part_max)
-       call spec_read_string(file, 'kernel', kernel_name)
+       call spec_file_read_string(file, 'output_prefix', mc_opt%output_prefix)
+       call spec_file_read_integer(file, 'n_loop', mc_opt%n_loop)
+       call spec_file_read_integer(file, 'n_part', mc_opt%n_part_max)
+       call spec_file_read_string(file, 'kernel', kernel_name)
        
-       call spec_read_real(file, 't_max', mc_opt%t_max)
-       call spec_read_real(file, 'del_t', mc_opt%del_t)
-       call spec_read_real(file, 't_output', mc_opt%t_output)
-       call spec_read_real(file, 't_progress', mc_opt%t_progress)
+       call spec_file_read_real(file, 't_max', mc_opt%t_max)
+       call spec_file_read_real(file, 'del_t', mc_opt%del_t)
+       call spec_file_read_real(file, 't_output', mc_opt%t_output)
+       call spec_file_read_real(file, 't_progress', mc_opt%t_progress)
 
        call bin_grid_allocate(bin_grid)
-       call spec_read_bin_grid(file, bin_grid)
+       call spec_file_read_bin_grid(file, bin_grid)
 
        call gas_data_allocate(gas_data)
-       call spec_read_gas_data(file, gas_data)
+       call spec_file_read_gas_data(file, gas_data)
        call gas_state_allocate(gas_init)
-       call spec_read_gas_state(file, gas_data, 'gas_init', gas_init)
+       call spec_file_read_gas_state(file, gas_data, 'gas_init', gas_init)
 
        call aero_data_allocate(aero_data)
-       call spec_read_aero_data_filename(file, aero_data)
+       call spec_file_read_aero_data_filename(file, aero_data)
        call aero_dist_allocate(aero_dist_init)
-       call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+       call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', aero_dist_init)
 
        call env_data_allocate(env_data)
-       call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+       call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
        call env_state_allocate(env_state)
-       call spec_read_env_state(file, env_state)
+       call spec_file_read_env_state(file, env_state)
        
-       call spec_read_integer(file, 'rand_init', rand_init)
-       call spec_read_real(file, 'mix_rate', mc_opt%mix_rate)
-       call spec_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
-       call spec_read_logical(file, 'allow_doubling', mc_opt%allow_doubling)
-       call spec_read_logical(file, 'allow_halving', mc_opt%allow_halving)
-       call spec_read_logical(file, 'do_condensation', mc_opt%do_condensation)
-       call spec_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
+       call spec_file_read_integer(file, 'rand_init', rand_init)
+       call spec_file_read_real(file, 'mix_rate', mc_opt%mix_rate)
+       call spec_file_read_logical(file, 'do_coagulation', mc_opt%do_coagulation)
+       call spec_file_read_logical(file, 'allow_doubling', mc_opt%allow_doubling)
+       call spec_file_read_logical(file, 'allow_halving', mc_opt%allow_halving)
+       call spec_file_read_logical(file, 'do_condensation', mc_opt%do_condensation)
+       call spec_file_read_logical(file, 'do_mosaic', mc_opt%do_mosaic)
        if (mc_opt%do_mosaic .and. (.not. mosaic_support())) then
-          call spec_read_die_msg(230495365, file, &
+          call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
 
-       call spec_read_logical(file, 'record_removals', mc_opt%record_removals)
+       call spec_file_read_logical(file, 'record_removals', mc_opt%record_removals)
        
-       call spec_read_close(file)
+       call spec_file_close(file)
     end if
 
     ! finished reading .spec data, now broadcast data
@@ -329,34 +329,34 @@ contains
     call env_state_allocate(env_state)
     call aero_dist_allocate(exact_opt%aero_dist_init)
 
-    call spec_read_string(file, 'output_prefix', exact_opt%prefix)
-    call spec_read_real(file, 'num_conc', exact_opt%num_conc)
+    call spec_file_read_string(file, 'output_prefix', exact_opt%prefix)
+    call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
 
-    call spec_read_real(file, 't_max', exact_opt%t_max)
-    call spec_read_real(file, 't_output', exact_opt%t_output)
+    call spec_file_read_real(file, 't_max', exact_opt%t_max)
+    call spec_file_read_real(file, 't_output', exact_opt%t_output)
 
-    call spec_read_bin_grid(file, bin_grid)
-    call spec_read_gas_data(file, gas_data)
-    call spec_read_aero_data_filename(file, aero_data)
-    call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
-    call spec_read_env_state(file, env_state)
+    call spec_file_read_bin_grid(file, bin_grid)
+    call spec_file_read_gas_data(file, gas_data)
+    call spec_file_read_aero_data_filename(file, aero_data)
+    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_file_read_env_state(file, env_state)
 
-    call spec_read_string(file, 'soln', soln_name)
+    call spec_file_read_string(file, 'soln', soln_name)
 
     if (trim(soln_name) == 'golovin_exp') then
-       call spec_read_real(file, 'mean_radius', exact_opt%mean_radius)
+       call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then
-       call spec_read_real(file, 'mean_radius', exact_opt%mean_radius)
+       call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'zero') then
        call aero_dist_deallocate(exact_opt%aero_dist_init)
-       call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+       call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
             'aerosol_init', exact_opt%aero_dist_init)
     else
        call die_msg(955390033, 'unknown solution type: ' &
             // trim(soln_name))
     end if
     
-    call spec_read_close(file)
+    call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
 
@@ -415,28 +415,28 @@ contains
     call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
 
-    call spec_read_string(file, 'output_prefix', sect_opt%prefix)
-    call spec_read_string(file, 'kernel', kernel_name)
+    call spec_file_read_string(file, 'output_prefix', sect_opt%prefix)
+    call spec_file_read_string(file, 'kernel', kernel_name)
 
-    call spec_read_real(file, 't_max', sect_opt%t_max)
-    call spec_read_real(file, 'del_t', sect_opt%del_t)
-    call spec_read_real(file, 't_output', sect_opt%t_output)
-    call spec_read_real(file, 't_progress', sect_opt%t_progress)
+    call spec_file_read_real(file, 't_max', sect_opt%t_max)
+    call spec_file_read_real(file, 'del_t', sect_opt%del_t)
+    call spec_file_read_real(file, 't_output', sect_opt%t_output)
+    call spec_file_read_real(file, 't_progress', sect_opt%t_progress)
 
-    call spec_read_bin_grid(file, bin_grid)
+    call spec_file_read_bin_grid(file, bin_grid)
 
-    call spec_read_gas_data(file, gas_data)
+    call spec_file_read_gas_data(file, gas_data)
 
-    call spec_read_aero_data_filename(file, aero_data)
-    call spec_read_aero_dist_filename(file, aero_data, bin_grid, &
+    call spec_file_read_aero_data_filename(file, aero_data)
+    call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
          'aerosol_init', aero_dist_init)
 
-    call spec_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
-    call spec_read_env_state(file, env_state)
+    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, env_data)
+    call spec_file_read_env_state(file, env_state)
 
-    call spec_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
+    call spec_file_read_logical(file, 'do_coagulation', sect_opt%do_coagulation)
     
-    call spec_read_close(file)
+    call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
 

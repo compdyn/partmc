@@ -17,7 +17,7 @@ module pmc_aero_state
   use pmc_rand
   use pmc_aero_binned
   use pmc_mpi
-  use pmc_spec_read
+  use pmc_spec_file
   use pmc_aero_info
   use pmc_aero_info_array
 #ifdef PMC_USE_MPI

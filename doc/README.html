@@ -23,14 +23,14 @@ For details see the file COPYING or
 
 <ul>
 <li>Fortran 90 compiler</li>
-<li>cmake - <a href="http://www.cmake.org/">http://www.cmake.org/</a></li>
+<li>cmake version 2.6 or higher - <a href="http://www.cmake.org/">http://www.cmake.org/</a></li>
 <li>NetCDF - <a href="http://www.unidata.ucar.edu/software/netcdf/">http://www.unidata.ucar.edu/software/netcdf/</a></li>
 </ul>
 
 <p>Optional dependencies:</p>
 
 <ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;a&#105;&#x6c;&#x74;&#111;&#x3a;&#82;&#97;&#104;&#x75;&#108;&#46;&#90;&#x61;&#x76;&#101;&#114;&#105;&#64;&#x70;&#110;&#108;&#46;g&#111;&#118;">&#82;&#97;&#104;&#x75;&#108;&#46;&#90;&#x61;&#x76;&#101;&#114;&#105;&#64;&#x70;&#110;&#108;&#46;g&#111;&#118;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#x52;&#97;&#x68;&#x75;&#x6c;&#46;&#x5a;&#x61;&#x76;e&#114;&#105;&#x40;&#x70;&#x6e;&#x6c;&#x2e;&#x67;&#x6f;&#118;">&#x52;&#97;&#x68;&#x75;&#x6c;&#46;&#x5a;&#x61;&#x76;e&#114;&#105;&#x40;&#x70;&#x6e;&#x6c;&#x2e;&#x67;&#x6f;&#118;</a></li>
 </ul>
 
 <p>PartMC can be compiled out-of-the-box on Fedora 10 with all
@@ -90,28 +90,13 @@ something like <code>mosaic/libmosaic.a</code>.</p>
 <h1>Usage</h1>
 
 <p>The main <code>partmc</code> command reads <code>.spec</code> files and does the run
-specified therein. Either Monte Carlo runs, sectional code runs, or
-exact solutions can be generated. A run can produce binned summary
-data in NetCDF format, or full per-particle state data in either
-NetCDF or ASCII format. The extract_* programs in the tool/ directory
-can read either summary or full-state NetCDF files and serve as
-examples for processing the data.</p>
-
-<h1>Coding Conventions</h1>
-
-<p>The code is mainly Fortran 90, with a few parts still clearly showing
-their Fortran 77 heritage.</p>
-
-<p>Extensive use is made of Fortran 90 derived types and pointers for
-dynamic memory allocation of arrays inside derived types. Derived
-types are named <code>my_type_t</code> and are generally defined in modules named
-<code>pmc_mod_my_type</code> within files named <code>my_type.f90</code>. Each derived type
-has allocation and deallocation functions <code>my_type_alloc()</code> and
-<code>my_type_free()</code>, respectively.</p>
-
-<p>Module names are always the same as the name of the containing file,
-but prefixed with <code>pmc_mod_</code>. Thus the module <code>pmc_mod_condensation</code>
-is contained in the file <code>condensation.f90</code>.</p>
+specified therein. Either particle-resolved runs, sectional-code runs,
+or exact solutions can be generated. A run produces one NetCDF file
+per timestep, containing per-particle data (from particle-resolved
+runs) or binned data (from sectional or exact runs). The extract<em>*
+programs in the tool/ directory can read these per-timestep NetCDF
+files and output ASCII data (the extract</em>sectional_* programs are used
+for sectional and exact model output).</p>
 
 <h1>ChangeLog</h1>
 

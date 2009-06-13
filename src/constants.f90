@@ -8,7 +8,7 @@
 !> Physical constants.
 module pmc_constants
 
-  !> Useful physical constants.
+  !> Physical constants.
   !!
   !! These are all absolute constants. Environment parameters that in
   !! principle could change should go in env_data.f90.

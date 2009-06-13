@@ -87,7 +87,7 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: part_opt
 
-    ! FIXME: can we shift this to a module? pmc_kernel presumably
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, k)
@@ -110,6 +110,7 @@ contains
          real*8, intent(out) :: k_max
        end subroutine kernel_max
     end interface
+#endif
     
     real*8 time, pre_time, pre_del_t
     real*8 last_output_time, last_progress_time
@@ -285,6 +286,7 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, k)
@@ -298,6 +300,7 @@ contains
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
+#endif
     
     logical did_coag
     integer i, j, n_samp, i_samp

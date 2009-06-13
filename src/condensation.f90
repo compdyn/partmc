@@ -361,6 +361,7 @@ contains
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine func(env_state, aero_data, init, x, f, df, aero_particle)
          use pmc_env_state
@@ -382,6 +383,7 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle
        end subroutine func
     end interface
+#endif
     
     integer iter, k
     real*8 delta_f, delta_x, f, old_f, df

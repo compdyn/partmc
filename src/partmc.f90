@@ -5,15 +5,57 @@
 !> \file
 !> The partmc program.
 
-!> \mainpage
+!> \mainpage PartMC Internal Code Documentation
 !>
-!> \ref coding_style
+!> \ref coding_style - Description of code conventions and style.
 !>
 !> \dotfile partmc_modules.gv
 
 !> \page coding_style Coding Style
 !>
-!> This is the coding style page.
+!> The code is mainly Fortran 90, with a few parts still clearly
+!> showing their Fortran 77 heritage. There should not be any usage of
+!> compiler-dependent features or Fortran features from Fortran 95 or
+!> later. The code needs to be processed with \c cpp or a compatible
+!> pre-processor.
+!>
+!> \section oo_fortran Object Oriented Fortran
+!>
+!> Extensive use is made of Fortran 90 derived types and pointers for
+!> dynamic memory allocation of arrays inside derived types. Derived
+!> types are named \c my_type_t and are generally defined in modules
+!> named \c pmc_mod_my_type within files named \c my_type.f90. Each
+!> derived type has allocation and deallocation functions \c
+!> my_type_allocate() and \c my_type_deallocate(), where
+!> appropriate. Almost all subroutines and function in each \c
+!> my_type.f90 file have names of the form \c my_type_*() and take an
+!> object of type \c my_type as the first argument on which to
+!> operate.
+!>
+!> Module names are always the same as the name of the containing
+!> file, but prefixed with \c pmc_. Thus the module \c
+!> pmc_condensation is contained in the file \c condensation.f90.
+!>
+!> \section mem_manage Memory Management
+!>
+!> The memory allocation policy is that all functions must be called
+!> with an already allocated structure. That is, if a subroutine
+!> defines a variable of type \c my_type_t, then it must call \c
+!> my_type_allocate() or \c my_type_allocate_size() on it before
+!> passing it to any other subroutines or functions. The defining
+!> subroutine is also responsible for calling \c my_type_deallocate()
+!> on every variable it defines.
+!>
+!> Similarly, any subroutine that declares a pointer variable must
+!> allocate it and any data it points to before passing it to other
+!> subroutines or functions. If no specific length is known for an array
+!> pointer then it should be allocated to zero size. Any subsequent
+!> subroutines are free to deallocate and reallocate if they need to
+!> change the size.
+!>
+!> This means that every subroutine (except for alloc and free) should
+!> contain matching \c allocate()/deallocate() and
+!> <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
 
 !> Top level driver.
 program partmc

@@ -1,34 +1,4 @@
 
-Documentation for coding style -- object orientation, one file per
-type, etc, same names as files, types, modules.
-
-Documentation for coding style in doxygen, particularly memory
-allocation policy.
-
-Memory allocation policy should be that all functions must be called
-with an already allocated structure. That is, always call type_alloc()
-before calling anything else. The functions will call type_free() if
-they need to before writing new data, or will take care of
-(de)allocation internally. Currently at least the spec_read functions
-don't free before setting new values and should be fixed.
-
-The only routines to which it is allowed to pass an unallocated struct
-are struct_alloc() and struct_alloc_size() (and struct must be
-unallocated when passed to these routines). All other code must
-allocate each structure in the same subroutine where the variable is
-defined (by calling struct_alloc() or struct_alloc_size()) before
-passing the struct to any other subroutine.
-
-Similarly, any subroutine that declares a pointer variable must
-allocate it and any data it points to before passing it to other
-subroutines or functions. If no specific length is known for an array
-pointer then it should be allocated to zero size. Any subsequent
-subroutines are free to deallocate and reallocate if they need to
-change the size.
-
-This means that every subroutine (except for alloc and free) should
-contain matching allocate/deallocate and struct_alloc/struct_free
-calls.
 
 =======================================
 

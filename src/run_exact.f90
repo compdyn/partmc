@@ -67,6 +67,7 @@ contains
     type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
     
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine soln(bin_grid, aero_data, time, num_conc, mean_radius, &
             rho_p, aero_dist_init, env_state, aero_binned)
@@ -96,6 +97,7 @@ contains
          type(aero_binned_t), intent(out) :: aero_binned
        end subroutine soln
     end interface
+#endif
 
     call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
          aero_data%n_spec)

@@ -84,6 +84,7 @@ contains
     integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, k)
@@ -97,6 +98,7 @@ contains
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
+#endif
 
     ! g   : spectral mass distribution (mg/cm^3)
     ! e   : droplet mass grid (mg)

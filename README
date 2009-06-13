@@ -104,24 +104,6 @@ files and output ASCII data (the extract_sectional_* programs are used
 for sectional and exact model output).
 
 
-Coding Conventions
-==================
-
-The code is mainly Fortran 90, with a few parts still clearly showing
-their Fortran 77 heritage.
-
-Extensive use is made of Fortran 90 derived types and pointers for
-dynamic memory allocation of arrays inside derived types. Derived
-types are named `my_type_t` and are generally defined in modules named
-`pmc_mod_my_type` within files named `my_type.f90`. Each derived type
-has allocation and deallocation functions `my_type_alloc()` and
-`my_type_free()`, respectively.
-
-Module names are always the same as the name of the containing file,
-but prefixed with `pmc_mod_`. Thus the module `pmc_mod_condensation`
-is contained in the file `condensation.f90`.
-
-
 ChangeLog
 =========
 

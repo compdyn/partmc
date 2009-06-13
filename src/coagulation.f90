@@ -46,6 +46,7 @@ contains
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, k)
@@ -59,6 +60,7 @@ contains
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
+#endif
     
     integer :: s1, s2
     real*8 :: p, k

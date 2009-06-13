@@ -33,6 +33,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, k)
@@ -46,6 +47,7 @@ contains
          real*8, intent(out) :: k
        end subroutine kernel
     end interface
+#endif
     
     integer :: i, j
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
@@ -82,6 +84,7 @@ contains
     !> Max kernel vals.
     real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
@@ -93,6 +96,7 @@ contains
          real*8, intent(out) :: k_max
        end subroutine kernel_max
     end interface
+#endif
     
     integer i, j
     
@@ -130,6 +134,7 @@ contains
     !> Over-estimation scale factor parameter.
     real*8, parameter :: over_scale = 1.1d0
     
+#ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
@@ -141,6 +146,7 @@ contains
          real*8, intent(out) :: k_max
        end subroutine kernel_max
     end interface
+#endif
     
     real*8 :: v1, v2, v1_high, v1_low, v2_high, v2_low, k
     integer :: i, j

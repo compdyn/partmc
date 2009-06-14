@@ -6,7 +6,7 @@ kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 60                     # output interval (0 disables) (s)
+t_output 600                    # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

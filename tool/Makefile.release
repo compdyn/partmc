@@ -7,10 +7,12 @@ GRAPHVIZ_FILE = doc/partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = doc/html/index.html
 
-DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test tool	\
+DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test \
 	urban_plume
 
 ALL_SOURCE = src/*.f90
+
+PARTMC_SOURCE = $(filter-out extract_% numeric_%,$(ALL_SOURCE))
 
 .PHONY: all
 all: dist
@@ -41,10 +43,10 @@ doc/README.html: README tool/markdown2.py
 $(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
 	doxygen
 
-$(GRAPHVIZ_FILE): $(ALL_SOURCE) tool/f90_mod_deps.py
+$(GRAPHVIZ_FILE): $(PARTMC_SOURCE) tool/f90_mod_deps.py
 	echo "digraph partmc_modules {" > $@
 	echo "    rankdir = TB;" >> $@
-	tool/f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(ALL_SOURCE) >> $@
+	tool/f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_SOURCE) >> $@
 	echo "}" >> $@
 
 %.png: %.gv

@@ -121,14 +121,16 @@ add_test(emission_4 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_4.sh)
 add_test(emission_5 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_5.sh)
 add_test(golovin_1 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_1.sh)
 add_test(golovin_2 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_2.sh)
-add_test(mosaic_1 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_1.sh)
-add_test(mosaic_2 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_2.sh)
-add_test(mosaic_3 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_3.sh)
-add_test(mosaic_4 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_4.sh)
-add_test(mosaic_5 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_5.sh)
-add_test(mosaic_6 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_6.sh)
-add_test(mosaic_7 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_7.sh)
-add_test(mosaic_8 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_8.sh)
+if(ENABLE_MOSAIC)
+  add_test(mosaic_1 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_1.sh)
+  add_test(mosaic_2 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_2.sh)
+  add_test(mosaic_3 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_3.sh)
+  add_test(mosaic_4 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_4.sh)
+  add_test(mosaic_5 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_5.sh)
+  add_test(mosaic_6 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_6.sh)
+  add_test(mosaic_7 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_7.sh)
+  add_test(mosaic_8 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_8.sh)
+endif(ENABLE_MOSAIC)
 add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
 add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
 add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
@@ -180,53 +182,53 @@ target_link_libraries(poisson_sample)
 ######################################################################
 
 add_executable(extract_aero_particle_mass
-	tool/extract_aero_particle_mass.f90)
+	src/extract_aero_particle_mass.f90)
 target_link_libraries(extract_aero_particle_mass ${NETCDF_LIBS})
 
 add_executable(extract_aero_size_num
-	tool/extract_aero_size_num.f90)
+	src/extract_aero_size_num.f90)
 target_link_libraries(extract_aero_size_num ${NETCDF_LIBS})
 
 add_executable(extract_aero_size_mass
-	tool/extract_aero_size_mass.f90)
+	src/extract_aero_size_mass.f90)
 target_link_libraries(extract_aero_size_mass ${NETCDF_LIBS})
 
 add_executable(extract_aero_species
-	tool/extract_aero_species.f90)
+	src/extract_aero_species.f90)
 target_link_libraries(extract_aero_species ${NETCDF_LIBS})
 
 add_executable(extract_aero_total
-	tool/extract_aero_total.f90)
+	src/extract_aero_total.f90)
 target_link_libraries(extract_aero_total ${NETCDF_LIBS})
 
-add_executable(extract_gas tool/extract_gas.f90)
+add_executable(extract_gas src/extract_gas.f90)
 target_link_libraries(extract_gas ${NETCDF_LIBS})
 
-add_executable(extract_env tool/extract_env.f90)
+add_executable(extract_env src/extract_env.f90)
 target_link_libraries(extract_env ${NETCDF_LIBS})
 
 ######################################################################
 
 add_executable(extract_sectional_aero_size_num
-	tool/extract_sectional_aero_size_num.f90)
+	src/extract_sectional_aero_size_num.f90)
 target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})
 
 add_executable(extract_sectional_aero_size_mass
-	tool/extract_sectional_aero_size_mass.f90)
+	src/extract_sectional_aero_size_mass.f90)
 target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
 
 add_executable(extract_sectional_aero_species
-	tool/extract_sectional_aero_species.f90)
+	src/extract_sectional_aero_species.f90)
 target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})
 
 add_executable(extract_sectional_aero_total
-	tool/extract_sectional_aero_total.f90)
+	src/extract_sectional_aero_total.f90)
 target_link_libraries(extract_sectional_aero_total ${NETCDF_LIBS})
 
 ######################################################################
 
-add_executable(numeric_diff tool/numeric_diff.f90)
+add_executable(numeric_diff src/numeric_diff.f90)
 
-add_executable(numeric_average tool/numeric_average.f90)
+add_executable(numeric_average src/numeric_average.f90)
 
 ######################################################################

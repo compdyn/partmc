@@ -62,21 +62,29 @@ Linux are:
 5. Inside ccmake press `c`, edit the values as needed, press `c`
    again, then `g`.
 
-6. Compile PartMC and test it as follows. Some tests
-   may fail due to bad random initial conditions, so re-run the tests
-   a few times to see if failures persist.
+6. Compile PartMC and test it as follows. Some tests may fail due to
+   bad random initial conditions, so re-run the tests a few times to
+   see if failures persist.
      make
      make test
 
-7. To run just a single test do:
-     ctest -R poisson_1 # argument is a regexp for test names
+7. To run just a single test do something like:
+     ctest -R poisson # argument is a regexp for test names
 
 8. To see what make is doing run it like this:
      VERBOSE=1 make
 
-9. To make some plots from the tests run them as:
+9. To run tests with visible output or to make some plots from the
+   tests run them as:
      cd run_test/emission
-     gnuplot plot_species.gnuplot
+     ./run_test_1.sh               # similary for other tests
+     gnuplot plot_species.gnuplot  # etc...
+
+10. There is a complete scenario run under the urban_plume/
+    directory. From this directory do:
+      ./run.sh
+      gnuplot plot_aero_species_wc.gnuplot
+      # similarly for other plots
 
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
 Fortran 90 module file is required, and it must be produced by the

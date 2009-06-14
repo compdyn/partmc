@@ -12,10 +12,10 @@ ENDINFO
 sleep 1
 
 echo "../build/partmc urban_plume_with_coag.spec"
-#../build/partmc urban_plume_with_coag.spec
+../build/partmc urban_plume_with_coag.spec
 
 echo "../build/partmc urban_plume_no_coag.spec"
-#../build/partmc urban_plume_no_coag.spec
+../build/partmc urban_plume_no_coag.spec
 
 echo "../build/extract_env out/urban_plume_wc_0001_ out/urban_plume_wc_env.txt"
 ../build/extract_env out/urban_plume_wc_0001_ out/urban_plume_wc_env.txt

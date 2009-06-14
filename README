@@ -31,12 +31,13 @@ Optional dependencies:
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
    * gnuplot - <http://www.gnuplot.info/>
 
-PartMC can be compiled out-of-the-box on Fedora 10 with all
-dependencies except MOSAIC if the following packages are installed:
+PartMC can be compiled out-of-the-box on the latest releases (as of
+the time of release) of Fedora, Ubuntu, or openSUSE if the following
+packages are installed:
 
-   * gcc-gfortran-4.3.2-7
-   * cmake-2.6.2-3.fc10
-   * netcdf-4.0.0-1.fc10
+   * Fedora 11: gcc-gfortran, cmake, netcdf
+   * Ubuntu 9.04: gfortran, cmake, libnetcdf-dev
+   * openSUSE 11.1: 
 
 
 Installation

@@ -13,9 +13,9 @@ set xrange [1e-7:1e-2]
 set yrange [0:1e-2]
 
 plot "out/sedi_mc_size_mass.txt" using 1:2 title "MC single t = 0 hours"
-replot "out/sedi_mc_size_mass.txt" using 1:7 title "MC single t = 5 minutes"
-replot "out/sedi_mc_size_mass.txt" using 1:12 title "MC single t = 10 minutes"
+replot "out/sedi_mc_size_mass.txt" using 1:3 title "MC single t = 5 minutes"
+replot "out/sedi_mc_size_mass.txt" using 1:4 title "MC single t = 10 minutes"
 
 replot "out/sedi_sect_size_mass.txt" using 1:2 with lines title "sectional t = 0 hours"
-replot "out/sedi_sect_size_mass.txt" using 1:7 with lines title "sectional t = 5 minutes"
-replot "out/sedi_sect_size_mass.txt" using 1:12 with lines title "sectional t = 10 minutes"
+replot "out/sedi_sect_size_mass.txt" using 1:3 with lines title "sectional t = 5 minutes"
+replot "out/sedi_sect_size_mass.txt" using 1:4 with lines title "sectional t = 10 minutes"

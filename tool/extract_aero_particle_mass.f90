@@ -126,8 +126,14 @@ program extract_aero_particle_mass
   call nc_check(nf90_close(ncid))
   
   ! write information
-  write(*,*) "n_aero_species:", n_aero_species
-  write(*,*) "aero species densities (kg/m^3):"
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a,e10.3,a)') "  Output data is for time = ", time, " (s)"
+  write(*,'(a)') "  Each row of output is one particle."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column  1: particle ID number"
+  write(*,'(a)') "    column  2: computational volume (m^3)"
+  write(*,'(a)') "    column  3: particle radius (m)"
+  write(*,'(a)') "    column  4: particle total mass (kg)"
   remaining_species = aero_species_names
   do i_spec = 1,n_aero_species
      if (i_spec < n_aero_species) then
@@ -135,19 +141,11 @@ program extract_aero_particle_mass
      else
         i = index(remaining_species, ' ')
      end if
-     if (i <= 1) then
-        write(0,*) 'ERROR: processing aero_species_names failed'
-        call exit(1)
-     end if
-     write(*,'(a,i4,a,a,a,e20.10)') '  ', i_spec, &
+     write(*,'(a,i2,a,a,a,e10.4,a)') '    column ', i_spec + 4, &
           ': ', remaining_species(1:(i-1)), &
-          ' - ', aero_density(i_spec)
+          ' mass (kg) - density = ', aero_density(i_spec), ' (kg/m^3)'
      remaining_species = remaining_species((i+1):)
   end do
-  write(*,*) "Output file array A has:"
-  write(*,*) "  A(i, 1) = particle ID number"
-  write(*,*) "  A(i, 2) = computational volume (m^3)"
-  write(*,*) "  A(i, j+2) = mass in particle of species j (kg)"
 
   ! open output file
   open(unit=out_unit, file=out_filename, iostat=ios)
@@ -162,6 +160,12 @@ program extract_aero_particle_mass
      write(out_unit, '(i15)', advance='no') aero_id(i_part)
      write(out_unit, '(e30.15e3)', advance='no') &
           aero_comp_vol(i_part)
+     volume = sum(aero_particle_mass(i_part,:) / aero_density)
+     radius = (volume / (4d0 / 3d0 &
+          * 3.14159265358979323846d0))**(1d0/3d0)
+     write(out_unit, '(e30.15e3)', advance='no') radius
+     write(out_unit, '(e30.15e3)', advance='no') &
+          sum(aero_particle_mass(i_part,:))
      do i_spec = 1,n_aero_species
         write(out_unit, '(e30.15e3)', advance='no') &
              aero_particle_mass(i_part, i_spec)

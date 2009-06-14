@@ -118,7 +118,7 @@ contains
     integer tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
     integer progress_n_samp, progress_n_coag
     logical do_output, do_state, do_state_netcdf, do_progress, did_coag
-    real*8 t_start, t_wall_now, t_wall_est, prop_done
+    real*8 t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
     type(env_state_t) :: old_env_state
     integer n_time, i_time, i_time_start, pre_i_time
     integer i_state, i_state_netcdf, i_output
@@ -238,13 +238,17 @@ contains
                 call cpu_time(t_wall_now)
                 prop_done = (dble(part_opt%i_loop - 1) + (time - t_start) &
                      / (part_opt%t_max - t_start)) / dble(part_opt%n_loop)
-                t_wall_est = (1d0 - prop_done) / prop_done &
-                     * (t_wall_now - part_opt%t_wall_start)
-                write(*,'(a6,a9,a11,a12,a12,a12)') 'loop', 'time(s)', &
-                     'n_particle', 'n_samples', 'n_coagulate', 't_remain(s)'
-                write(*,'(i6,f9.1,i11,i12,i12,f12.0)') part_opt%i_loop, time, &
+                t_wall_elapsed = t_wall_now - part_opt%t_wall_start
+                t_wall_remain = (1d0 - prop_done) / prop_done &
+                     * t_wall_elapsed
+                write(*,'(a6,a9,a11,a12,a12,a13,a12)') 'loop', 'time(s)', &
+                     'n_particle', 'n_samples', 'n_coagulate', &
+                     't_elapsed(s)', 't_remain(s)'
+                write(*,'(i6,f9.1,i11,i12,i12,f13.0,f12.0)') &
+                     part_opt%i_loop, time, &
                      aero_state_total_particles(aero_state), &
-                     progress_n_samp, progress_n_coag, t_wall_est
+                     progress_n_samp, progress_n_coag, t_wall_elapsed, &
+                     t_wall_remain
                 ! reset counters so they show information since last
                 ! progress display
                 progress_n_samp = 0

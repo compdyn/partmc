@@ -48,7 +48,7 @@ contains
     character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     write(error_msg, *) "file ", trim(file%name), &
-         "line ", file%line_num, ": ", msg
+         " line ", file%line_num, ": ", msg
     call die_msg(code, error_msg)
 
   end subroutine spec_file_die_msg

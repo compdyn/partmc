@@ -18,14 +18,14 @@ program extract_aero_species
   integer :: varid_aero_particle_mass
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
-  character(len=1000) :: tmp_str, aero_species_names
+  character(len=1000) :: tmp_str, aero_species_names, remaining_species
   real*8 :: time
   real*8, allocatable :: aero_particle_mass(:,:)
   real*8, allocatable :: aero_comp_vol(:)
   real*8, allocatable :: aero_conc(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, i_part, status, n_time
+  integer :: ios, i_time, i_spec, i_part, status, n_time, i
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
@@ -45,10 +45,10 @@ program extract_aero_species
   end if
 
   ! write information
-  write(*,*) "Output file array A has:"
-  write(*,*) "  A(i, 1) = time(i) (s)"
-  write(*,*) "  A(i, j+1) = mass concentration at time(i) of species(j) " &
-       // "(kg/m^3)"
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one time."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column  1: time (s)"
 
   ! process NetCDF files
   i_time = 0
@@ -74,9 +74,18 @@ program extract_aero_species
      call nc_check(nf90_get_att(ncid, varid_aero_species, &
           "names", aero_species_names))
      if (i_time == 1) then
-        write(*,*) "n_aero_species:", n_aero_species
-        write(*,*) "aero_species_names: ", trim(aero_species_names)
         allocate(aero_conc(n_aero_species))
+        remaining_species = aero_species_names
+        do i_spec = 1,n_aero_species
+           if (i_spec < n_aero_species) then
+              i = index(remaining_species, ',')
+           else
+              i = index(remaining_species, ' ')
+           end if
+           write(*,'(a,i2,a,a,a)') '    column ', i_spec + 1, ': ', &
+                remaining_species(1:(i-1)), ' (kg/m^3)'
+           remaining_species = remaining_species((i+1):)
+        end do
      end if
      
      ! read aero_particle dimension

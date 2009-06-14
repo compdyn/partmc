@@ -1,6 +1,7 @@
 
+In extract_gas and extract_env output what the columns are.
 
-=======================================
+=========================================
 
 Add flag to numeric_diff to compute errors column-wise.
 

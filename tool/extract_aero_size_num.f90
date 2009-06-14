@@ -76,10 +76,6 @@ program extract_aero_size_num
      call nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
      call nc_check(nf90_get_att(ncid, varid_aero_species, &
           "names", aero_species_names))
-     if (i_time == 1) then
-        write(*,*) "n_aero_species:", n_aero_species
-        write(*,*) "aero_species_names: ", trim(aero_species_names)
-     end if
      
      ! read aero_particle dimension
      status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
@@ -160,12 +156,13 @@ program extract_aero_size_num
   end if
 
   ! write information
-  write(*,*) "Output file array A has:"
-  write(*,*) "  A(i, 1) = radius(i) (m)"
-  write(*,*) "  A(i, j+1) = number concentration at radius(i) and" &
-       // " time(j) (#/m^3)"
-  write(*,*) "Radius bins have logarithmic width:"
-  write(*,*) "  d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one size bin."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column   1: bin radius (m)"
+  write(*,'(a)') "    column j+1: number concentration at time(j) (#/m^3)"
+  write(*,'(a)') "  Radius bins have logarithmic width:"
+  write(*,'(a,e20.10)') "    d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
 
   ! open output file
   open(unit=out_unit, file=out_filename, iostat=ios)

@@ -34,6 +34,16 @@ program extract_env
      call exit(1)
   end if
 
+  ! write information
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one time."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column 1: time (s)"
+  write(*,'(a)') "    column 2: temperature (K)"
+  write(*,'(a)') "    column 3: relative_humidity (1)"
+  write(*,'(a)') "    column 4: pressure (Pa)"
+  write(*,'(a)') "    column 5: mixing height (m)"
+
   ! read NetCDF files
   i_time = 0
   n_time = 0

@@ -1,13 +1,13 @@
-run_type mc                     # Monte Carlo
-output_prefix out/emission_mc   # prefix of output files
+run_type particle               # particle-resolved run
+output_prefix out/mosaic        # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 10000                    # total number of particles
-kernel sedi                     # coagulation kernel
+n_part 3                        # total number of particles
+kernel golovin                  # coagulation kernel
 
-t_max 86400                     # total simulation time (s)
-del_t 60                        # timestep (s)
-t_output 1200                   # output interval (0 disables) (s)
-t_progress 1200                 # progress printing interval (0 disables) (s)
+t_max 129600                    # total simulation time (s)
+del_t 300                       # timestep (s)
+t_output 2400                   # output interval (0 disables) (s)
+t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)
@@ -26,19 +26,19 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
-rel_humidity 0.999              # initial relative humidity (1)
+rel_humidity 0.85               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
-latitude 40                     # latitude (degrees, -90 to 90)
+latitude 0                      # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 0                    # start time (s since 00:00 UTC)
-start_day 1                     # start day of year (UTC)
+start_time 43200                # start time (s since 00:00 UTC)
+start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to auto-generate)
-mix_rate 0.1                    # mixing rate between processes (0 to 1)
+mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation no               # whether to do coagulation (yes/no)
-allow_doubling no               # whether to allow doubling (yes/no)
-allow_halving no                # whether to allow halving (yes/no)
+allow_doubling yes              # whether to allow doubling (yes/no)
+allow_halving yes               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_mosaic yes                   # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

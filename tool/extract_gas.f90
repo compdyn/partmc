@@ -17,12 +17,12 @@ program extract_gas
   integer :: varid_time, varid_gas_species
   integer :: varid_gas_mixing_ratio
   integer :: n_gas_species
-  character(len=1000) :: tmp_str, gas_species_names
+  character(len=1000) :: tmp_str, gas_species_names, remaining_species
   real*8 :: time
   real*8, allocatable :: gas_mixing_ratio(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, status, n_time
+  integer :: ios, i_time, i_spec, status, n_time, i
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
@@ -39,6 +39,12 @@ program extract_gas
           trim(out_filename), ' for writing: ', ios
      call exit(1)
   end if
+
+  ! write information
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one time."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column  1: time (s)"
 
   ! read NetCDF files
   i_time = 0
@@ -62,8 +68,17 @@ program extract_gas
      call nc_check(nf90_get_att(ncid, varid_gas_species, &
           "names", gas_species_names))
      if (i_time == 1) then
-        write(*,*) "n_gas_species:", n_gas_species
-        write(*,*) "gas_species_names: ", trim(gas_species_names)
+        remaining_species = gas_species_names
+        do i_spec = 1,n_gas_species
+           if (i_spec < n_gas_species) then
+              i = index(remaining_species, ',')
+           else
+              i = index(remaining_species, ' ')
+           end if
+           write(*,'(a,i2,a,a,a)') '    column ', i_spec + 1, ': ', &
+                remaining_species(1:(i-1)), ' (ppb)'
+           remaining_species = remaining_species((i+1):)
+        end do
      end if
      
      call nc_check(nf90_inq_varid(ncid, "gas_mixing_ratio", &

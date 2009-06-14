@@ -18,14 +18,14 @@ program extract_aero_total
   integer :: varid_aero_particle_mass
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
-  character(len=1000) :: tmp_str, aero_species_names
+  character(len=1000) :: tmp_str, aero_species_names, remaining_species
   real*8 :: time
   real*8, allocatable :: aero_particle_mass(:,:)
   real*8, allocatable :: aero_comp_vol(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_part, status
-  integer :: n_bin, i_bin, n_time
+  integer :: n_bin, i_bin, n_time, i
   real*8 :: num_conc, mass_conc
 
   ! process commandline arguments
@@ -45,10 +45,12 @@ program extract_aero_total
   end if
 
   ! write information
-  write(*,*) "Output file array A has:"
-  write(*,*) "  A(i, 1) = time(i) (s)"
-  write(*,*) "  A(i, 2) = total number concentration at time(i) (#/m^3)"
-  write(*,*) "  A(i, 3) = total mass concentration at time(i) (kg/m^3)"
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one time."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column 1: time (s)"
+  write(*,'(a)') "    column 2 = aerosol number concentration (#/m^3)"
+  write(*,'(a)') "    column 3 = aerosol mass concentration (kg/m^3)"
 
   ! process NetCDF files
   i_time = 0
@@ -73,10 +75,6 @@ program extract_aero_total
      call nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
      call nc_check(nf90_get_att(ncid, varid_aero_species, &
           "names", aero_species_names))
-     if (i_time == 1) then
-        write(*,*) "n_aero_species:", n_aero_species
-        write(*,*) "aero_species_names: ", trim(aero_species_names)
-     end if
      
      ! read aero_particle dimension
      status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)

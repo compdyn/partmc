@@ -47,5 +47,5 @@ echo "../build/extract_aero_particle_mass out/urban_plume_nc_0001_00000145.nc ou
 ../build/extract_aero_particle_mass out/urban_plume_nc_0001_00000145.nc out/urban_plume_nc_aero_particle_mass_00000145.txt
 
 echo
-echo "Now run 'gnuplot <filename>.gnuplot' to plot the data"
+echo "Now run 'gnuplot -persist <filename>.gnuplot' to plot the data"
 echo

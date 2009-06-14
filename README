@@ -79,14 +79,14 @@ Linux are:
 9. To run tests with visible output or to make some plots from the
    tests run them as:
      cd run_test/emission
-     ./run_test_1.sh               # similary for other tests
-     gnuplot plot_species.gnuplot  # etc...
+     ./run_test_1.sh                       # similary for other tests
+     gnuplot -persist plot_species.gnuplot # etc...
 
 10. There is a complete scenario run under the urban_plume/
     directory. From this directory do:
       ./run.sh
       ./process.sh
-      gnuplot plot_aero_species_wc.gnuplot
+      gnuplot -persist plot_aero_species_wc.gnuplot
       # similarly for other plots
 
 The NetCDF libraries are required to compile PartMC. The `netcdf.mod`

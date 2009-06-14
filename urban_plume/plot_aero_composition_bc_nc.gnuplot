@@ -1,7 +1,7 @@
 # run from inside gnuplot with:
 # load "<filename>.gnuplot"
 # or from the commandline with:
-# gnuplot <filename>.gnuplot
+# gnuplot -persist <filename>.gnuplot
 
 set xrange [0.01:1]
 set yrange [0:80]

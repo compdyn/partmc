@@ -177,9 +177,9 @@ add_executable(test_bidisperse_extract
                test/bidisperse/test_bidisperse_extract.f90)
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
-add_executable(poisson_sample test/poisson/poisson_sample.f90
+add_executable(test_poisson_sample test/poisson/test_poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
-target_link_libraries(poisson_sample)
+target_link_libraries(test_poisson_sample)
 
 ######################################################################
 

@@ -1,7 +1,7 @@
 # run from inside gnuplot with:
 # load "<filename>.gnuplot"
 # or from the commandline with:
-# gnuplot <filename>.gnuplot
+# gnuplot -persist <filename>.gnuplot
 
 set key top right
 

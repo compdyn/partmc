@@ -5,7 +5,7 @@ PartMC
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.2.0  
-Released 2009-02-17
+Released 2009-06-14
 
 <http://lagrange.mechse.uiuc.edu/mwest/partmc/>
 
@@ -29,6 +29,7 @@ Required dependencies:
 Optional dependencies:
 
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
+   * gnuplot - <http://www.gnuplot.info/>
 
 PartMC can be compiled out-of-the-box on Fedora 10 with all
 dependencies except MOSAIC if the following packages are installed:
@@ -83,6 +84,7 @@ Linux are:
 10. There is a complete scenario run under the urban_plume/
     directory. From this directory do:
       ./run.sh
+      ./process.sh
       gnuplot plot_aero_species_wc.gnuplot
       # similarly for other plots
 
@@ -115,12 +117,12 @@ for sectional and exact model output).
 ChangeLog
 =========
 
-1.2.0 - XXXX-XX-XX
+1.2.0 - 2009-06-14
 
   * Output of full per-particle data in NetCDF format.
 
   * `urban_plume` test-case added, as described in the paper
-    <http://arxiv.org/abs/0809.0875>
+    <http://dx.doi.org/10.1029/2008JD011073>
 
   * Build system switched to `cmake`.
 

@@ -60,6 +60,7 @@ find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
   $ENV{HOME}/opt/include
   $ENV{HOME}/subversion/mosaic/trunk/datamodules
   $ENV{HOME}/svn/mosaic/trunk/datamodules
+  ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
   ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
 find_library(MOSAIC_LIB mosaic
   DOC "MOSAIC library"
@@ -67,6 +68,7 @@ find_library(MOSAIC_LIB mosaic
   $ENV{HOME}/opt/lib
   $ENV{HOME}/subversion/mosaic/trunk
   $ENV{HOME}/svn/mosaic/trunk
+  ${PROJECT_SOURCE_DIR}/../mosaic
   ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
 
 ######################################################################

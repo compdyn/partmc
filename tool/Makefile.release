@@ -22,7 +22,6 @@ dist: doc
 	grep -q "^Version $(VERSION)" README
 	grep -q "^Released $(DATE)" README
 	grep -q "^$(VERSION) - $(DATE)" README
-	grep -q "^DEV_BUILD = no" Makefile
 	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
 	test ! -d .svn # check this was svn exported
 	mkdir $(DIST_NAME)

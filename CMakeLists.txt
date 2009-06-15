@@ -11,7 +11,7 @@ option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 
 ######################################################################
 
-find_path(NETCDF_INCLUDE_DIR netcdf.mod
+find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
   /include
@@ -20,6 +20,9 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod
   /opt/include
   /usr/lib64/gfortran/modules
   /usr/lib/gfortran/modules
+  /sw/include
+  /sw/lib/netcdf-gfortran/include
+  /sw/lib/netcdf-g95/include
   $ENV{HOME}/include
   $ENV{HOME}/opt/include
   PATH_SUFFIXES netcdf-3)
@@ -30,6 +33,11 @@ find_library(NETCDF_C_LIB netcdf
   /usr/lib64
   /usr/local/lib
   /usr/local/lib64
+  /sw/lib
+  /sw/lib/netcdf-gfortran/lib
+  /sw/lib/netcdf-g95/lib
+  $ENV{HOME}/lib
+  $ENV{HOME}/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 find_library(NETCDF_FORTRAN_LIB netcdff
@@ -39,6 +47,11 @@ find_library(NETCDF_FORTRAN_LIB netcdff
   /usr/lib64
   /usr/local/lib
   /usr/local/lib64
+  /sw/lib
+  /sw/lib/netcdf-gfortran/lib
+  /sw/lib/netcdf-g95/lib
+  $ENV{HOME}/lib
+  $ENV{HOME}/lib64
   $ENV{HOME}/opt/lib
   $ENV{HOME}/opt/lib64)
 
@@ -65,6 +78,7 @@ find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
 find_library(MOSAIC_LIB mosaic
   DOC "MOSAIC library"
   PATHS
+  $ENV{HOME}/lib
   $ENV{HOME}/opt/lib
   $ENV{HOME}/subversion/mosaic/trunk
   $ENV{HOME}/svn/mosaic/trunk

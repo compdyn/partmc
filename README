@@ -31,13 +31,17 @@ Optional dependencies:
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
    * gnuplot - <http://www.gnuplot.info/>
 
-PartMC can be compiled out-of-the-box on the latest releases (as of
-the time of release) of Fedora, Ubuntu, or openSUSE if the following
-packages are installed:
+PartMC can be compiled out-of-the-box on Linux under the latest
+releases (as of the time of writing) of Fedora, Ubuntu, or openSUSE if
+the following packages are installed:
 
-   * Fedora 11: gcc-gfortran, cmake, netcdf
-   * Ubuntu 9.04: gfortran, cmake, libnetcdf-dev
-   * openSUSE 11.1: 
+   * Fedora 11: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
+   * Ubuntu 9.04: `gfortran`, `cmake`, `libnetcdf-dev`, `gnuplot`
+   * openSUSE 11.1: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
+
+PartMC will also compile out-of-the-box on OS X 10.5 using Fink (see
+<http://www.finkproject.org/>) if the following packages are
+installed: `gcc44`, `cmake`, `netcdf`, `netcdf-gfortran`, `gnuplot`.
 
 
 Installation
@@ -47,51 +51,52 @@ In principle PartMC should compile under any modern OS. Testing has
 mainly been under Linux and OS X. The quick-start instructions under
 Linux are:
 
-1. Unpack PartMC with something like:
+1. Install cmake and NetCDF (see above). The NetCDF libraries are
+   required to compile PartMC. The `netcdf.mod` Fortran 90 module file
+   is required, and it must be produced by the same compiler being
+   used to compile PartMC.
+
+2. Unpack PartMC:
      tar xzvf partmc-1.2.0.tar.gz
 
-2. Change into the main PartMC directory (where this README file is
-   located) with something like:
+3. Change into the main PartMC directory (where this README file is
+   located):
      cd partmc-1.2.0
 
-3. Make a directory called `build` and change into it:
+4. Make a directory called `build` and change into it:
      mkdir build
      cd build
 
-4. Run cmake with (note the double-c):
+5. Run cmake with (note the double-c):
      ccmake ..
 
-5. Inside ccmake press `c`, edit the values as needed, press `c`
+6. Inside ccmake press `c`, edit the values as needed, press `c`
    again, then `g`.
 
-6. Compile PartMC and test it as follows. Some tests may fail due to
+7. Compile PartMC and test it as follows. Some tests may fail due to
    bad random initial conditions, so re-run the tests a few times to
    see if failures persist.
      make
      make test
 
-7. To run just a single test do something like:
+8. To run just a single test do something like:
      ctest -R poisson # argument is a regexp for test names
 
-8. To see what make is doing run it like this:
+9. To see what make is doing run it like this:
      VERBOSE=1 make
 
-9. To run tests with visible output or to make some plots from the
-   tests run them as:
-     cd run_test/emission
-     ./run_test_1.sh                       # similary for other tests
-     gnuplot -persist plot_species.gnuplot # etc...
+10. To run tests with visible output or to make some plots from the
+    tests run them as:
+      cd run_test/emission
+      ./run_test_1.sh                       # similary for other tests
+      gnuplot -persist plot_species.gnuplot # etc...
 
-10. There is a complete scenario run under the urban_plume/
+11. There is a complete scenario run under the urban_plume/
     directory. From this directory do:
       ./run.sh
       ./process.sh
       gnuplot -persist plot_aero_species_wc.gnuplot
       # similarly for other plots
-
-The NetCDF libraries are required to compile PartMC. The `netcdf.mod`
-Fortran 90 module file is required, and it must be produced by the
-same compiler being used to compile PartMC.
 
 PartMC can interface to the MOSAIC chemistry code (see above for
 availability) but this is not enabled by default. To use MOSAIC, set

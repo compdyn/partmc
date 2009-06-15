@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF state files and write out the individual particle
+! Read NetCDF output files and write out the individual particle
 ! masses.
 
 program extract_aero_particle_mass

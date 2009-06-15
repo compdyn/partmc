@@ -2,8 +2,8 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF sectional files and write out the aerosol concentrations
-! in text format.
+! Read NetCDF sectional output files and write out the per-species
+! bulk aerosol concentrations in text format.
 
 program extract_sectional_aero_species
 

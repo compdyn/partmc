@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF state files and write out the gas mixing ratios in text
+! Read NetCDF output files and write out the gas mixing ratios in text
 ! format.
 
 program extract_gas

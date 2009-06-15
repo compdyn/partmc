@@ -2,7 +2,7 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
-! Read NetCDF state files and write out the total aerosol number and
+! Read NetCDF output files and write out the total aerosol number and
 ! mass concentrations in text format.
 
 program extract_aero_total
@@ -30,7 +30,7 @@ program extract_aero_total
 
   ! process commandline arguments
   if (iargc() .ne. 2) then
-     write(6,*) 'Usage: extract_total <netcdf_state_prefix> <output_filename>'
+     write(6,*) 'Usage: extract_aero_total <netcdf_state_prefix> <output_filename>'
      call exit(2)
   endif
   call getarg(1, in_prefix)

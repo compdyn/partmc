@@ -13,6 +13,6 @@ echo "../../extract_aero_size_num 1e-10 1e-4 220 out/brownian_part_0001_ out/bro
 echo "../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt"
 ../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt
 
-echo "../../numeric_diff out/brownian_part_size_num.txt out/brownian_sect_size_num.txt 0 0.5 0 0 2 0"
-../../numeric_diff out/brownian_part_size_num.txt out/brownian_sect_size_num.txt 0 0.5 0 0 2 0
+echo "../../numeric_diff out/brownian_part_size_num.txt out/brownian_sect_size_num.txt 0 0.3 0 0 2 0"
+../../numeric_diff out/brownian_part_size_num.txt out/brownian_sect_size_num.txt 0 0.3 0 0 2 0
 exit $?

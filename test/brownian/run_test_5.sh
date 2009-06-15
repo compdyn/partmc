@@ -36,10 +36,10 @@ echo "The second line below should be a factor of 3 smaller than the first line"
 echo "cat out/brownian_part_average_num_error.txt"
 cat out/brownian_part_average_num_error.txt
 
-echo "../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 1.0 1 1 2 0"
-../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 1.0 1 1 2 0
+echo "../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 0.5 1 1 2 0"
+../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 0.5 1 1 2 0
 status1=$?
-echo "../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 1.0 2 2 2 0"
-../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 1.0 2 2 2 0
+echo "../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 0.5 2 2 2 0"
+../../numeric_diff expected_error_num.txt out/brownian_part_average_num_error.txt 0 0.5 2 2 2 0
 status2=$?
 exit $(( $status1 && $status2 ))

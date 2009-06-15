@@ -10,9 +10,9 @@ set ylabel "number concentration (#/m^3)"
 set xrange [1e-7:1e-2]
 set yrange [0:1.2e9]
 
-plot "out/sedi_part_size_num.txt" using 1:2 title "MC single t = 0 hours"
-replot "out/sedi_part_size_num.txt" using 1:3 title "MC single t = 5 minutes"
-replot "out/sedi_part_size_num.txt" using 1:4 title "MC single t = 10 minutes"
+plot "out/sedi_part_size_num.txt" using 1:2 title "particle t = 0 hours"
+replot "out/sedi_part_size_num.txt" using 1:3 title "particle t = 5 minutes"
+replot "out/sedi_part_size_num.txt" using 1:4 title "particle t = 10 minutes"
 
 replot "out/sedi_sect_size_num.txt" using 1:2 with lines title "sectional t = 0 hours"
 replot "out/sedi_sect_size_num.txt" using 1:3 with lines title "sectional t = 5 minutes"

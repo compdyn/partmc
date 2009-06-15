@@ -12,9 +12,9 @@ set key left top
 set xrange [1e-7:1e-3]
 set yrange [1e-13:1e-1]
 
-plot "out/golovin_part_size_mass.txt" using 1:2 title "MC single t = 0 hours"
-replot "out/golovin_part_size_mass.txt" using 1:7 title "MC single t = 5 minutes"
-replot "out/golovin_part_size_mass.txt" using 1:12 title "MC single t = 10 minutes"
+plot "out/golovin_part_size_mass.txt" using 1:2 title "particle t = 0 hours"
+replot "out/golovin_part_size_mass.txt" using 1:7 title "particle t = 5 minutes"
+replot "out/golovin_part_size_mass.txt" using 1:12 title "particle t = 10 minutes"
 
 replot "out/golovin_exact_size_mass.txt" using 1:2 with lines title "exact t = 0 hours"
 replot "out/golovin_exact_size_mass.txt" using 1:7 with lines title "exact t = 5 minutes"

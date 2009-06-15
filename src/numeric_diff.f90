@@ -139,7 +139,7 @@ program numeric_diff
   norm1 = sqrt(norm1)
   norm2 = sqrt(norm2)
   abs_error = sqrt(abs_error)
-  rel_error = 2d0 * abs_error / (norm1 + norm2)
+  rel_error = abs_error / (norm1 + norm2)
   
   ! check equivalence
   if ((abs_tol == 0d0) .and. (rel_tol == 0d0)) then

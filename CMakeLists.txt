@@ -106,6 +106,14 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 # search it anyway (as gcc does). I reported this as a cmake bug [2].
 # [1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # [2] http://www.cmake.org/Bug/view.php?id=8408
+#
+# MW 2009-06-15: The issue is rather tricky from the gfortran side
+# (module files should not go in include directories at all). On the
+# cmake side the issue has been resolved by removing include directory
+# suppression altogether for Fortran [3]. This change apparently went
+# into cmake 2.6.4, but we'll keep the explicit include hack below for
+# a while until everyone updates.
+# [3] http://www.cmake.org/Bug/view.php?id=8598
 
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)

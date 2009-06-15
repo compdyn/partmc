@@ -1,11 +1,8 @@
 
-Use wiki page to update CMakeLists.txt for Fortran.
-
-Check README.html looks ok (especially 1. 2. section).
-
 =========================================
 
-Add flag to numeric_diff to compute errors column-wise.
+Add flag to numeric_diff to compute errors row-wise, column-wise, or
+matrix-wise.
 
 Add entrainment switch.
 
@@ -84,3 +81,6 @@ Make sure every structure has a struct_zero() and that it's called
 from struct_alloc_size() and struct_alloc().
 
 Rename spec_read_struct() to struct_read_from_spec().
+
+Use wiki page to update CMakeLists.txt for Fortran:
+http://www.cmake.org/Wiki/CMakeForFortranExample

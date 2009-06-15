@@ -9,5 +9,5 @@ echo "../../extract_sectional_aero_size_mass out/sedi_sect_ out/sedi_sect_size_m
 ../../extract_sectional_aero_size_mass out/sedi_sect_ out/sedi_sect_size_mass.txt
 
 echo "../../numeric_diff out/sedi_part_size_mass.txt out/sedi_sect_size_mass.txt 0 0.5 0 0 2 0"
-../../numeric_diff out/sedi_part_size_mass.txt out/sedi_sect_size_mass.txt 0 0.7 0 0 2 0
+../../numeric_diff out/sedi_part_size_mass.txt out/sedi_sect_size_mass.txt 0 0.5 0 0 2 0
 exit $?

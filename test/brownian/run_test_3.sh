@@ -15,6 +15,6 @@ echo "../../numeric_average out/brownian_part_size_num_average.txt out/brownian_
 echo "../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt"
 ../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt
 
-echo "../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_size_num.txt 0 0.2 0 0 2 0"
-../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_size_num.txt 0 0.2 0 0 2 0
+echo "../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_size_num.txt 0 0.1 0 0 2 0"
+../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_size_num.txt 0 0.1 0 0 2 0
 exit $?

@@ -2,12 +2,17 @@
 PartMC
 ======
 
-PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
+PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.2.0  
 Released 2009-06-14
 
-<http://lagrange.mechse.uiuc.edu/mwest/partmc/>
+<http://lagrange.mechse.illinois.edu/mwest/partmc/>
+
+Reference: N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
+Simulating the evolution of soot mixing state with a particle-resolved
+aerosol model, J. Geophys. Res., 114, D09202,
+<http://dx.doi.org/10.1029/2008JD011073>.
 
 Copyright (C) 2005-2009 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
@@ -48,8 +53,7 @@ Installation
 ============
 
 In principle PartMC should compile under any modern OS. Testing has
-mainly been under Linux and OS X. The quick-start instructions under
-Linux are:
+mainly been under Linux and OS X. The quick-start instructions are:
 
 1. Install cmake and NetCDF (see above). The NetCDF libraries are
    required to compile PartMC. The `netcdf.mod` Fortran 90 module file
@@ -57,46 +61,56 @@ Linux are:
    used to compile PartMC.
 
 2. Unpack PartMC:
-     tar xzvf partmc-1.2.0.tar.gz
+
+        tar xzvf partmc-1.2.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
-     cd partmc-1.2.0
+
+        cd partmc-1.2.0
 
 4. Make a directory called `build` and change into it:
-     mkdir build
-     cd build
 
-5. Run cmake with (note the double-c):
-     ccmake ..
+        mkdir build
+        cd build
 
-6. Inside ccmake press `c`, edit the values as needed, press `c`
-   again, then `g`.
+5. Run cmake with the main PartMC directory as an argument (note the
+   double-c):
+
+        ccmake ..
+
+6. Inside ccmake press `c` to configure, edit the values as needed,
+   press `c` again, then `g` to generate.
 
 7. Compile PartMC and test it as follows. Some tests may fail due to
    bad random initial conditions, so re-run the tests a few times to
    see if failures persist.
-     make
-     make test
+
+        make
+        make test
 
 8. To run just a single test do something like:
-     ctest -R poisson # argument is a regexp for test names
 
-9. To see what make is doing run it like this:
-     VERBOSE=1 make
+        ctest -R poisson # argument is a regexp for test names
+
+9. To see what make is doing run it like:
+
+        VERBOSE=1 make
 
 10. To run tests with visible output or to make some plots from the
     tests run them as:
-      cd run_test/emission
-      ./run_test_1.sh                       # similary for other tests
-      gnuplot -persist plot_species.gnuplot # etc...
 
-11. There is a complete scenario run under the urban_plume/
+        cd run_test/emission
+        ./run_test_1.sh                       # similary for other tests
+        gnuplot -persist plot_species.gnuplot # etc...
+
+11. There is a complete scenario run under the `urban_plume/`
     directory. From this directory do:
-      ./run.sh
-      ./process.sh
-      gnuplot -persist plot_aero_species_wc.gnuplot
-      # similarly for other plots
+
+        ./run.sh
+        ./process.sh
+        gnuplot -persist plot_aero_species_wc.gnuplot
+        # similarly for other plots
 
 PartMC can interface to the MOSAIC chemistry code (see above for
 availability) but this is not enabled by default. To use MOSAIC, set
@@ -114,10 +128,10 @@ The main `partmc` command reads `.spec` files and does the run
 specified therein. Either particle-resolved runs, sectional-code runs,
 or exact solutions can be generated. A run produces one NetCDF file
 per timestep, containing per-particle data (from particle-resolved
-runs) or binned data (from sectional or exact runs). The extract_*
-programs in the tool/ directory can read these per-timestep NetCDF
-files and output ASCII data (the extract_sectional_* programs are used
-for sectional and exact model output).
+runs) or binned data (from sectional or exact runs). The `extract_*`
+programs in the `tool/` directory can read these per-timestep NetCDF
+files and output ASCII data (the `extract_sectional_*` programs are
+used for sectional and exact model output).
 
 
 ChangeLog
@@ -128,7 +142,7 @@ ChangeLog
   * Output of full per-particle data in NetCDF format.
 
   * `urban_plume` test-case added, as described in the paper
-    <http://dx.doi.org/10.1029/2008JD011073>
+    <http://dx.doi.org/10.1029/2008JD011073>.
 
   * Build system switched to `cmake`.
 

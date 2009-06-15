@@ -148,7 +148,7 @@ program extract_aero_particle_mass
   end do
 
   ! open output file
-  open(unit=out_unit, file=out_filename, iostat=ios)
+  open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(out_filename), ' for writing: ', ios

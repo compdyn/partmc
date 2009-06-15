@@ -5,7 +5,7 @@ PartMC
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 1.2.0  
-Released 2009-06-14
+Released 2009-06-15
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -36,9 +36,8 @@ Optional dependencies:
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
    * gnuplot - <http://www.gnuplot.info/>
 
-PartMC can be compiled out-of-the-box on Linux under the latest
-releases (as of the time of writing) of Fedora, Ubuntu, or openSUSE if
-the following packages are installed:
+PartMC can be compiled out-of-the-box on Linux under Fedora, Ubuntu,
+or openSUSE if the following packages are installed:
 
    * Fedora 11: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
    * Ubuntu 9.04: `gfortran`, `cmake`, `libnetcdf-dev`, `gnuplot`
@@ -137,7 +136,7 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-1.2.0 - 2009-06-14
+1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.
 

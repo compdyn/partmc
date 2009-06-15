@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Read NetCDF output files and write out the individual particle
-! masses.
 
+!> \file
+!> The extract_aero_particle_mass program.
+
+!> Read NetCDF output files and write out the individual particle
+!> masses.
 program extract_aero_particle_mass
 
   use netcdf

@@ -1,30 +1,34 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Compare two files containing numerical arrays and check whether they
-! are the same as each other, to within the specified tolerance.
-!
-! If the arrays in the two files are of different sizes then they are
-! automatically different. Otherwise the are the same if
-!       | A_1 - A_2 |_2 < abs_tol
-! and
-!       | A_1 - A_2 |_2 / (| A_1 |_2 + | A_2 |_2) < rel_tol
-! and are otherwise different. Setting abs_tol or rel_tol to zero
-! skips the corresponding test.
-!
-! If the files are the same then nothing is printed on stdout,
-! otherwise "different" is printed, followed by the absolute and
-! relative differences, as above, or a message describing the
-! difference. The files will be reported as different if they have a
-! different pattern of end-of-lines and end-of-files, or if they have
-! whitespace in different places (amount of whitespace is irrelevant).
-!
-! The exit status of the program is:
-!   0 if the files are the same
-!   1 if the files are different
-!   2 if an error occurred
 
+!> \file
+!> The numeric_diff program.
+
+!> Compare two files containing numerical arrays and check whether they
+!> are the same as each other, to within the specified tolerance.
+!>
+!> If the arrays in the two files are of different sizes then they are
+!> automatically different. Otherwise the are the same if
+!>       \f[ | A_1 - A_2 |_2 < \verb+abs_tol+ \f]
+!> and
+!>       \f[ \frac{| A_1 - A_2 |_2}{| A_1 |_2 + | A_2 |_2} < \verb+rel_tol+ \f]
+!> and are otherwise different. Setting \c abs_tol or \c rel_tol to zero
+!> skips the corresponding test.
+!>
+!> If the files are the same then "<tt>files match within the given
+!> tolerances</tt>" is printed on stdout, otherwise "<tt>files are
+!> different</tt>" is printed, followed by the absolute and relative
+!> differences, as above, or a message describing the difference. The
+!> files will be reported as different if they have a different
+!> pattern of end-of-lines and end-of-files, or if they have
+!> whitespace in different places (amount of whitespace is
+!> irrelevant).
+!>
+!> The exit status of the program is:
+!>   \li 0 if the files are the same
+!>   \li 1 if the files are different
+!>   \li 2 if an error occurred
 program numeric_diff
 
   integer, parameter :: unit1 = 40

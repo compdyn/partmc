@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Read NetCDF sectional output files and write out the aerosol mass
-! size distributions in text format.
 
+!> \file
+!> The extract_sectional_aero_size_mass program.
+
+!> Read NetCDF sectional output files and write out the aerosol mass
+!> size distributions in text format.
 program extract_sectional_aero_size_mass
 
   use netcdf

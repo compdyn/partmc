@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Read NetCDF output files and write out the total aerosol number and
-! mass concentrations in text format.
 
+!> \file
+!> The extract_aero_total program.
+
+!> Read NetCDF output files and write out the total aerosol number and
+!> mass concentrations in text format.
 program extract_aero_total
 
   use netcdf

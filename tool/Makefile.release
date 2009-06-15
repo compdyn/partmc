@@ -10,9 +10,9 @@ DOC_INDEX = doc/html/index.html
 DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test \
 	urban_plume
 
-ALL_SOURCE = src/*.f90
+ALL_SOURCE = $(wildcard src/*.f90)
 
-PARTMC_SOURCE = $(filter-out extract_% numeric_%,$(ALL_SOURCE))
+PARTMC_SOURCE = $(filter-out src/extract_% src/numeric_%,$(ALL_SOURCE))
 
 .PHONY: all
 all: dist
@@ -46,6 +46,9 @@ $(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
 $(GRAPHVIZ_FILE): $(PARTMC_SOURCE) tool/f90_mod_deps.py
 	echo "digraph partmc_modules {" > $@
 	echo "    rankdir = TB;" >> $@
+	echo "    node [fontsize = 10, height = 0.3, width = 0.5];" >> $@
+	echo "    graph [nodesep = 0.2, ranksep = 0.3];" >> $@
+	echo "    edge [arrowsize = 0.7];" >> $@
 	tool/f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_SOURCE) >> $@
 	echo "}" >> $@
 

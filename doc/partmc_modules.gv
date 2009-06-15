@@ -1,11 +1,11 @@
 digraph partmc_modules {
     rankdir = TB;
+    node [fontsize = 10, height = 0.3, width = 0.5];
+    graph [nodesep = 0.2, ranksep = 0.3];
+    edge [arrowsize = 0.7];
     node [shape = box, peripheries = 1, href = "\ref kernel.f90"] kernel
-    node [shape = box, peripheries = 2, href = "\ref numeric_average.f90"] numeric_average
-    node [shape = box, peripheries = 2, href = "\ref extract_sectional_aero_size_num.f90"] extract_sectional_aero_size_num
     node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
     node [shape = box, peripheries = 1, href = "\ref kernel_golovin.f90"] kernel_golovin
-    node [shape = box, peripheries = 2, href = "\ref extract_sectional_aero_total.f90"] extract_sectional_aero_total
     node [shape = box, peripheries = 1, href = "\ref netcdf.f90"] netcdf
     node [shape = box, peripheries = 1, href = "\ref bin_grid.f90"] bin_grid
     node [shape = box, peripheries = 1, href = "\ref aero_dist.f90"] aero_dist
@@ -13,29 +13,20 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref kernel_constant.f90"] kernel_constant
     node [shape = box, peripheries = 1, href = "\ref kernel_zero.f90"] kernel_zero
     node [shape = box, peripheries = 1, href = "\ref kernel_brown.f90"] kernel_brown
-    node [shape = box, peripheries = 2, href = "\ref extract_sectional_aero_size_mass.f90"] extract_sectional_aero_size_mass
+    node [shape = box, peripheries = 1, href = "\ref spec_line.f90"] spec_line
     node [shape = box, peripheries = 1, href = "\ref kernel_sedi.f90"] kernel_sedi
-    node [shape = box, peripheries = 1, href = "\ref run_sect.f90"] run_sect
-    node [shape = box, peripheries = 2, href = "\ref extract_sectional_aero_species.f90"] extract_sectional_aero_species
-    node [shape = box, peripheries = 2, href = "\ref extract_aero_particle_mass.f90"] extract_aero_particle_mass
-    node [shape = box, peripheries = 2, href = "\ref extract_aero_total.f90"] extract_aero_total
-    node [shape = box, peripheries = 2, href = "\ref extract_aero_species.f90"] extract_aero_species
-    node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
-    node [shape = box, peripheries = 2, href = "\ref extract_aero_size_num.f90"] extract_aero_size_num
-    node [shape = box, peripheries = 2, href = "\ref extract_env.f90"] extract_env
-    node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
     node [shape = box, peripheries = 1, href = "\ref spec_file.f90"] spec_file
+    node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
+    node [shape = box, peripheries = 1, href = "\ref run_sect.f90"] run_sect
+    node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
     node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
     node [shape = box, peripheries = 1, href = "\ref env_state.f90"] env_state
     node [shape = box, peripheries = 1, href = "\ref gas_state.f90"] gas_state
     node [shape = box, peripheries = 1, href = "\ref aero_state.f90"] aero_state
     node [shape = box, peripheries = 1, href = "\ref aero_particle.f90"] aero_particle
-    node [shape = box, peripheries = 2, href = "\ref extract_aero_size_mass.f90"] extract_aero_size_mass
     node [shape = box, peripheries = 1, href = "\ref mpi.f90"] mpi
     node [shape = box, peripheries = 1, href = "\ref aero_info_array.f90"] aero_info_array
     node [shape = box, peripheries = 1, href = "\ref env_data.f90"] env_data
-    node [shape = box, peripheries = 1, href = "\ref spec_line.f90"] spec_line
-    node [shape = box, peripheries = 2, href = "\ref numeric_diff.f90"] numeric_diff
     node [shape = box, peripheries = 1, href = "\ref aero_mode.f90"] aero_mode
     node [shape = box, peripheries = 1, href = "\ref gas_data.f90"] gas_data
     node [shape = box, peripheries = 1, href = "\ref aero_data.f90"] aero_data
@@ -43,7 +34,6 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref util.f90"] util
     node [shape = box, peripheries = 1, href = "\ref condensation.f90"] condensation
     node [shape = box, peripheries = 1, href = "\ref run_part.f90"] run_part
-    node [shape = box, peripheries = 2, href = "\ref extract_gas.f90"] extract_gas
     node [shape = box, peripheries = 1, href = "\ref aero_particle_array.f90"] aero_particle_array
     node [shape = box, peripheries = 1, href = "\ref coagulation.f90"] coagulation
     node [shape = box, peripheries = 1, href = "\ref output.f90"] output
@@ -61,10 +51,9 @@ digraph partmc_modules {
     kernel_constant -> env_state
     kernel_zero -> env_state
     kernel_brown -> env_state
+    spec_line -> util
     kernel_sedi -> env_state
-    run_sect -> kernel
-    run_sect -> env_data
-    run_sect -> output
+    spec_file -> spec_line
     partmc -> kernel_golovin
     partmc -> run_exact
     partmc -> kernel_zero
@@ -73,8 +62,10 @@ digraph partmc_modules {
     partmc -> run_part
     partmc -> kernel_constant
     partmc -> run_sect
+    run_sect -> kernel
+    run_sect -> env_data
+    run_sect -> output
     mosaic -> env_state
-    spec_file -> spec_line
     run_exact -> env_data
     run_exact -> output
     env_state -> gas_state
@@ -88,7 +79,6 @@ digraph partmc_modules {
     mpi -> util
     aero_info_array -> aero_info
     env_data -> env_state
-    spec_line -> util
     aero_mode -> rand
     aero_mode -> bin_grid
     aero_mode -> aero_data

@@ -9,6 +9,8 @@
 !>
 !> \ref coding_style - Description of code conventions and style.
 !>
+!> <br><br>
+!>
 !> \dotfile partmc_modules.gv
 
 !> \page coding_style Coding Style

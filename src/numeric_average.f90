@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Compute the mean of a sequence of files containing numerical arrays,
-! all of the same size.
 
+!> \file
+!> The numeric_average program.
+
+!> Compute the mean of a sequence of files containing numerical arrays,
+!> all of the same size.
 program numeric_average
 
   integer, parameter :: MAX_INPUT_FILES = 10000

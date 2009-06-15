@@ -1,10 +1,12 @@
 ! Copyright (C) 2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-!
-! Read NetCDF output files and write out the gas mixing ratios in text
-! format.
 
+!> \file
+!> The extract_gas program.
+
+!> Read NetCDF output files and write out the gas mixing ratios in text
+!> format.
 program extract_gas
 
   use netcdf

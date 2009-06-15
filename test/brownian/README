@@ -2,12 +2,13 @@
 Brownian Lognormal Test-case
 ===================================
 
-The initial condition is a single species of particle with two overlapping 
-lognormal distributions and the simulation using the brownian
-kernel. No analytical solution is known for this case, so a sectional
-code is used as verification. By default this testcase uses 10^5
-particles, performing one Monte Carlo simulation
+The initial condition is a single species of particle with two
+overlapping lognormal distributions and the simulation using the
+brownian kernel. No analytical solution is known for this case, so a
+sectional code is used as verification. By default this testcase uses
+10^5 particles, performing nine particle-resolved simulations and
+averaging to acheive a better mean estimate.
 
 This test-case demonstrates the use of the sectional model and
-comparison of sectional runs with Monte Carlo runs.
+comparison of sectional runs with particle-resolved runs.
 

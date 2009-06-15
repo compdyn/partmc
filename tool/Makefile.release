@@ -24,6 +24,7 @@ dist: doc
 	grep -q "^$(VERSION) - $(DATE)" README
 	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
 	test ! -d .svn # check this was svn exported
+	test ! -d doc/condensation # no condensation notes
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

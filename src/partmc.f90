@@ -276,6 +276,13 @@ contains
 
     if (pmc_mpi_rank() /= 0) then
        ! non-root processes unpack data
+       call bin_grid_allocate(bin_grid)
+       call gas_data_allocate(gas_data)
+       call gas_state_allocate(gas_init)
+       call aero_data_allocate(aero_data)
+       call aero_dist_allocate(aero_dist_init)
+       call env_data_allocate(env_data)
+       call env_state_allocate(env_state)
        position = 0
        call pmc_mpi_unpack_part_opt(buffer, position, part_opt)
        call pmc_mpi_unpack_string(buffer, position, kernel_name)

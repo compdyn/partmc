@@ -1,5 +1,17 @@
 
-=========================================
+Use only one style of quotes: '' or "".
+
+Change cpu_time(t_wall_now) to actually get wall_time, not cpu_time.
+
+Add run_guid to netcdf output files and have extract_* programs check
+to make sure they are processing everything from a single run.
+
+Rename output_state_netcdf() to output_state().
+
+Provide *_allocate() and *_deallocate() subroutines for all
+structures, even those that don't need them. Maybe just call *_zero()
+for allocation? In any case, compiler optimization should kill these
+off.
 
 Add flag to numeric_diff to compute errors row-wise, column-wise, or
 matrix-wise.

@@ -246,6 +246,8 @@ contains
 
     integer :: i_bin, i_part
 
+    call assert(265083067, &
+         size(aero_state%bin) == size(aero_state_delta%bin))
     do i_bin = 1,size(aero_state_delta%bin)
        do i_part = 1,aero_state_delta%bin(i_bin)%n_part
           call aero_state_add_particle(aero_state, i_bin, &
@@ -253,6 +255,8 @@ contains
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
+    call aero_info_array_add(aero_state%aero_info_array, &
+         aero_state_delta%aero_info_array)
 
   end subroutine aero_state_add
 
@@ -883,6 +887,7 @@ contains
     do i = 1,size(val%bin)
        total_size = total_size + pmc_mpi_pack_size_apa(val%bin(i))
     end do
+    total_size = total_size + pmc_mpi_pack_size_aia(val%aero_info_array)
     pmc_mpi_pack_size_aero_state = total_size
 
   end function pmc_mpi_pack_size_aero_state
@@ -909,6 +914,7 @@ contains
     do i = 1,size(val%bin)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bin(i))
     end do
+    call pmc_mpi_pack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(850997402, &
          position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
@@ -930,19 +936,196 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
+    call aero_state_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
     call pmc_mpi_unpack_integer(buffer, position, n)
     allocate(val%bin(n))
     do i = 1,size(val%bin)
+       call aero_particle_array_allocate(val%bin(i))
        call pmc_mpi_unpack_aero_particle_array(buffer, position, val%bin(i))
     end do
+    call aero_info_array_allocate(val%aero_info_array)
+    call pmc_mpi_unpack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(132104747, &
          position - prev_position == pmc_mpi_pack_size_aero_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Gathers data from all processors into one aero_state on node 0.
+  subroutine aero_state_mpi_gather(aero_state, aero_state_total)
+
+    !> Local aero_state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Centralized aero_state (only on node 0.
+    type(aero_state_t), intent(inout) :: aero_state_total
+
+    integer, parameter :: tag1 = 105382873
+    integer, parameter :: tag2 = 565860636
+    integer :: rank, n_proc
+#ifdef PMC_USE_MPI
+    type(aero_state_t) :: aero_state_transfer
+    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
+    character, allocatable :: buffer(:)
+#endif
+
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+    if (pmc_mpi_rank() == 0) then
+       call aero_state_copy(aero_state, aero_state_total)
+    end if
+
+#ifdef PMC_USE_MPI
+    
+    if (rank /= 0) then
+       ! compute and send buffer_size from remote node
+       buffer_size = pmc_mpi_pack_size_aero_state(aero_state)
+       call mpi_send(buffer_size, 1, MPI_INTEGER, 0, tag1, &
+            MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+
+       ! send buffer from remote node
+       allocate(buffer(buffer_size))
+       position = 0
+       call pmc_mpi_pack_aero_state(buffer, position, aero_state)
+       call assert(542772170, position == buffer_size)
+       call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, tag2, &
+            MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       deallocate(buffer)
+    else
+       ! root node receives data
+       
+       ! transfer from other nodes
+       do i_proc = 1,(n_proc - 1)
+          ! get buffer_size at root node
+          call mpi_recv(buffer_size, 1, MPI_INTEGER, i_proc, tag1, &
+               MPI_COMM_WORLD, status, ierr)
+          call pmc_mpi_check_ierr(ierr)
+
+          ! get buffer at root node and unpack it
+          allocate(buffer(buffer_size))
+          call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, tag2, &
+               MPI_COMM_WORLD, status, ierr)
+          position = 0
+          
+          call aero_state_allocate(aero_state_transfer)
+          call pmc_mpi_unpack_aero_state(buffer, position, aero_state_transfer)
+          call assert(518174881, position == buffer_size)
+          deallocate(buffer)
+          
+          call aero_state_add(aero_state_total, aero_state_transfer)
+          
+          call aero_state_deallocate(aero_state_transfer)
+       end do
+    end if
+
+#endif
+
+  end subroutine aero_state_mpi_gather
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Scatters data from node 0 to all processors by assigning each
+  !> particle to a random node.
+  subroutine aero_state_mpi_scatter(aero_state_total, aero_state, &
+       aero_data)
+
+    !> Centralized aero_state (only on node 0.
+    type(aero_state_t), intent(in) :: aero_state_total
+    !> Local aero_state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aero_data.
+    type(aero_data_t), intent(in) :: aero_data
+
+#ifndef PMC_USE_MPI
+    call aero_state_copy(aero_state_total, aero_state)
+#else
+
+    integer, parameter :: tag1 = 137433114
+    integer, parameter :: tag2 = 384004297
+    integer :: rank, n_proc, i_bin, i_part
+    type(aero_state_t), allocatable :: aero_state_transfers(:)
+    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
+    character, allocatable :: buffer(:)
+    type(aero_particle_t), pointer :: aero_particle
+
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+
+    if (rank == 0) then
+       ! assign particles at random to other processors
+       allocate(aero_state_transfers(n_proc))
+       do i_proc = 1,n_proc
+          call aero_state_allocate_size(aero_state_transfers(i_proc), &
+               size(aero_state_total%bin), aero_data%n_spec)
+          aero_state_transfers(i_proc)%comp_vol = &
+               aero_state_total%comp_vol / n_proc
+       end do
+       do i_bin = 1,size(aero_state_total%bin)
+          do i_part = 1,aero_state_total%bin(i_bin)%n_part
+             aero_particle => aero_state_total%bin(i_bin)%particle(i_part)
+             i_proc = pmc_rand_int(n_proc)
+             call aero_state_add_particle(aero_state_transfers(i_proc), &
+                  i_bin, aero_particle)
+          end do
+       end do
+
+       ! just copy our own transfer aero_state
+       call aero_state_copy(aero_state_transfers(1), aero_state)
+
+       ! send the transfer aero_states
+       do i_proc = 1,(n_proc - 1)
+          ! compute and send buffer_size to remote node
+          buffer_size = pmc_mpi_pack_size_aero_state( &
+               aero_state_transfers(i_proc + 1))
+          call mpi_send(buffer_size, 1, MPI_INTEGER, i_proc, tag1, &
+               MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+
+          ! send buffer to remote node
+          allocate(buffer(buffer_size))
+          position = 0
+          call pmc_mpi_pack_aero_state(buffer, position, &
+               aero_state_transfers(i_proc + 1))
+          call assert(781876859, position == buffer_size)
+          call mpi_send(buffer, buffer_size, MPI_CHARACTER, i_proc, tag2, &
+               MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+          deallocate(buffer)
+       end do
+
+       ! all done, free data
+       do i_proc = 1,n_proc
+          call aero_state_deallocate(aero_state_transfers(i_proc))
+       end do
+       deallocate(aero_state_transfers)
+    else
+       ! remote nodes just receive data
+       
+       ! get buffer_size at root node
+       call mpi_recv(buffer_size, 1, MPI_INTEGER, 0, tag1, &
+            MPI_COMM_WORLD, status, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       
+       ! get buffer at root node and unpack it
+       allocate(buffer(buffer_size))
+       call mpi_recv(buffer, buffer_size, MPI_CHARACTER, 0, tag2, &
+            MPI_COMM_WORLD, status, ierr)
+       position = 0
+       
+       call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
+       call assert(492983285, position == buffer_size)
+       deallocate(buffer)
+    end if
+
+#endif
+
+  end subroutine aero_state_mpi_scatter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -269,6 +269,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Adds \c aero_info_array_delta to the end of \c aero_info_array.
+  subroutine aero_info_array_add(aero_info_array, &
+       aero_info_array_delta)
+
+    !> Array to add to.
+    type(aero_info_array_t), intent(inout) :: aero_info_array
+    !> Aero_info to add.
+    type(aero_info_array_t), intent(in) :: aero_info_array_delta
+
+    integer :: i, n, n_new
+
+    n = aero_info_array%n_item
+    n_new = n + aero_info_array_delta%n_item
+    call aero_info_array_enlarge_to(aero_info_array, n_new)
+    do i = 1,n
+       call aero_info_allocate(aero_info_array%aero_info(n + i))
+       call aero_info_copy(aero_info_array_delta%aero_info(i), &
+            aero_info_array%aero_info(n + i))
+    end do
+    aero_info_array%n_item = n_new
+
+  end subroutine aero_info_array_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aia(val)
 
@@ -308,7 +333,7 @@ contains
        call pmc_mpi_pack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(732927292, &
-         position - prev_position == pmc_mpi_pack_size_apa(val))
+         position - prev_position == pmc_mpi_pack_size_aia(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_info_array
@@ -328,14 +353,16 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
+    call aero_info_array_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_item)
     allocate(val%aero_info(val%n_item))
     do i = 1,val%n_item
+       call aero_info_allocate(val%aero_info(i))
        call pmc_mpi_unpack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(262838429, &
-         position - prev_position == pmc_mpi_pack_size_apa(val))
+         position - prev_position == pmc_mpi_pack_size_aia(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_info_array

@@ -140,7 +140,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%action)
     call pmc_mpi_pack_integer(buffer, position, val%other_id)
     call assert(842929827, &
-         position - prev_position == pmc_mpi_pack_size_apa(val))
+         position - prev_position == pmc_mpi_pack_size_aero_info(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_info
@@ -165,7 +165,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%action)
     call pmc_mpi_unpack_integer(buffer, position, val%other_id)
     call assert(841267392, &
-         position - prev_position == pmc_mpi_pack_size_apa(val))
+         position - prev_position == pmc_mpi_pack_size_aero_info(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_info

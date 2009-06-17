@@ -1,0 +1,7 @@
+
+Parallel Test-case
+==================
+
+This tests parallel execution of PartMC-MOSAIC, comparing a serial run
+against a parallel run.
+

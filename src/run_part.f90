@@ -112,18 +112,19 @@ contains
     end interface
 #endif
     
-    real*8 time, pre_time, pre_del_t
-    real*8 last_output_time, last_progress_time
-    real*8 k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
-    integer progress_n_samp, progress_n_coag
-    logical do_output, do_state, do_state_netcdf, do_progress, did_coag
-    real*8 t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
+    real*8 :: time, pre_time, pre_del_t
+    real*8 :: last_output_time, last_progress_time
+    real*8 :: k_max(bin_grid%n_bin, bin_grid%n_bin)
+    integer :: tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
+    integer :: progress_n_samp, progress_n_coag
+    integer :: global_n_part, global_n_samp, global_n_coag
+    logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
+    real*8 :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
     type(env_state_t) :: old_env_state
-    integer n_time, i_time, i_time_start, pre_i_time
-    integer i_state, i_state_netcdf, i_output
-    character*100 filename
-
+    integer :: n_time, i_time, i_time_start, pre_i_time
+    integer :: i_state, i_state_netcdf, i_output
+    character*100 :: filename
+  
     rank = pmc_mpi_rank() ! MPI process rank (0 is root)
 
     i_time = 0
@@ -164,8 +165,13 @@ contains
        call env_data_update_state(env_data, env_state, time)
 
        if (part_opt%do_coagulation) then
+#ifdef PMC_USE_MPI
+          call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
+               aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+#else
           call mc_coag(kernel, bin_grid, env_state, aero_data, &
                aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+#endif
        end if
        progress_n_samp = progress_n_samp + tot_n_samp
        progress_n_coag = progress_n_coag + tot_n_coag
@@ -230,11 +236,15 @@ contains
        end if
 
        if (part_opt%t_progress > 0d0) then
-          if (rank == 0) then
-             ! progress only printed from root process
-             call check_event(time, part_opt%del_t, part_opt%t_progress, &
-                  last_progress_time, do_progress)
-             if (do_progress) then
+          call check_event(time, part_opt%del_t, part_opt%t_progress, &
+               last_progress_time, do_progress)
+          if (do_progress) then
+             call pmc_mpi_reduce_sum_integer(aero_state_total_particles(aero_state), &
+                  global_n_part)
+             call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
+             call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
+             if (rank == 0) then
+                ! progress only printed from root process
                 call cpu_time(t_wall_now)
                 prop_done = (dble(part_opt%i_loop - 1) + (time - t_start) &
                      / (part_opt%t_max - t_start)) / dble(part_opt%n_loop)
@@ -245,15 +255,13 @@ contains
                      'n_particle', 'n_samples', 'n_coagulate', &
                      't_elapsed(s)', 't_remain(s)'
                 write(*,'(i6,f9.1,i11,i12,i12,f13.0,f12.0)') &
-                     part_opt%i_loop, time, &
-                     aero_state_total_particles(aero_state), &
-                     progress_n_samp, progress_n_coag, t_wall_elapsed, &
-                     t_wall_remain
-                ! reset counters so they show information since last
-                ! progress display
-                progress_n_samp = 0
-                progress_n_coag = 0
+                     part_opt%i_loop, time, global_n_part, global_n_samp, &
+                     global_n_coag, t_wall_elapsed, t_wall_remain
              end if
+             ! reset counters so they show information since last
+             ! progress display
+             progress_n_samp = 0
+             progress_n_coag = 0
           end if
        end if
        
@@ -276,7 +284,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
+    type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -337,6 +345,62 @@ contains
 
   end subroutine mc_coag
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do coagulation for time del_t in parallel by centralizing on node 0.
+  subroutine mc_coag_mpi_centralized(kernel, bin_grid, env_state, &
+       aero_data, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(in) :: part_opt
+    !> Maximum kernel.
+    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Total number of samples tested.
+    integer, intent(out) :: tot_n_samp
+    !> Number of coagulation events.
+    integer, intent(out) :: tot_n_coag
+
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
+            env_state, k)
+         use pmc_aero_particle
+         use pmc_aero_data
+         use pmc_env_state
+         type(aero_particle_t), intent(in) :: aero_particle_1
+         type(aero_particle_t), intent(in) :: aero_particle_2
+         type(aero_data_t), intent(in) :: aero_data
+         type(env_state_t), intent(in) :: env_state  
+         real*8, intent(out) :: k
+       end subroutine kernel
+    end interface
+#endif
+
+    type(aero_state_t) :: aero_state_total
+    
+#ifdef PMC_USE_MPI
+
+    call aero_state_allocate(aero_state_total)
+    call aero_state_mpi_gather(aero_state, aero_state_total)
+    if (pmc_mpi_rank() == 0) then
+       call mc_coag(kernel, bin_grid, env_state, aero_data, &
+            aero_state_total, part_opt, k_max, tot_n_samp, tot_n_coag)
+    end if
+    call aero_state_mpi_scatter(aero_state_total, aero_state, aero_data)
+    call aero_state_deallocate(aero_state_total)
+    
+#endif
+
+  end subroutine mc_coag_mpi_centralized
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number of samples required for the pair of bins.

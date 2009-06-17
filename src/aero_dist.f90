@@ -436,10 +436,12 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
+    call aero_dist_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_mode)
     allocate(val%mode(val%n_mode))
     do i = 1,size(val%mode)
+       call aero_mode_allocate(val%mode(i))
        call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
     end do
     call assert(742535268, &

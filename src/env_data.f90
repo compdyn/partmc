@@ -369,6 +369,8 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
+    call env_data_deallocate(val)
+    call env_data_allocate(val)
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%temp)
@@ -382,20 +384,28 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_emission_rate)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
+    deallocate(val%gas_emission)
+    deallocate(val%gas_background)
+    deallocate(val%aero_emission)
+    deallocate(val%aero_background)
     allocate(val%gas_emission(size(val%gas_emission_time)))
     allocate(val%gas_background(size(val%gas_dilution_time)))
     allocate(val%aero_emission(size(val%aero_emission_time)))
     allocate(val%aero_background(size(val%aero_dilution_time)))
     do i = 1,size(val%gas_emission)
+       call gas_state_allocate(val%gas_emission(i))
        call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
     end do
     do i = 1,size(val%gas_background)
+       call gas_state_allocate(val%gas_background(i))
        call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
     end do
     do i = 1,size(val%aero_emission)
+       call aero_dist_allocate(val%aero_emission(i))
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
     end do
     do i = 1,size(val%aero_background)
+       call aero_dist_allocate(val%aero_background(i))
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
     end do
     call assert(611542570, &

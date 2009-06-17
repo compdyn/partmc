@@ -364,11 +364,13 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
+    call aero_particle_array_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
     call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
     allocate(val%particle(val%n_part))
     do i = 1,val%n_part
+       call aero_particle_allocate(val%particle(i))
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(138783294, &

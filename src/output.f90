@@ -17,8 +17,92 @@ module pmc_output
   use pmc_util
   use pmc_gas_data
   use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
   
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the current state for a single processor. Do not call this
+  !> subroutine directly, but rather call output_state_netcdf().
+  subroutine output_state_netcdf_helper(prefix, bin_grid, aero_data, &
+       aero_state, gas_data, gas_state, env_state, index, time, &
+       del_t, i_loop, record_removals, write_rank, write_n_proc)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: prefix
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real*8, intent(in) :: time
+    !> Current timestep (s).
+    real*8, intent(in) :: del_t
+    !> Current loop number.
+    integer, intent(in) :: i_loop
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
+    !> Rank to write into file.
+    integer, intent(in) :: write_rank
+    !> Number of processors to write into file.
+    integer, intent(in) :: write_n_proc
+    
+    character(len=len(prefix)+100) :: filename
+    character(len=500) :: history
+    integer :: ncid
+
+    ! only root node actually writes to the file
+    call assert(694241847, pmc_mpi_rank() == 0)
+#ifdef PMC_USE_MPI
+    write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
+         '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
+#else
+    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+         '_', i_loop, '_', index, '.nc'
+#endif
+    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+         "opening " // trim(filename))
+    
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+         "PartMC output file"))
+    call iso8601_date_and_time(history)
+    history((len_trim(history)+1):) = " created by PartMC"
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+    
+    call pmc_nc_check(nf90_enddef(ncid))
+    
+    call pmc_nc_write_real(ncid, time, "time", "s")
+    call pmc_nc_write_real(ncid, del_t, "timestep", "s")
+    call pmc_nc_write_integer(ncid, i_loop, "loop", "1")
+    call pmc_nc_write_integer(ncid, index, "timestep_index", "1")
+#ifdef PMC_USE_MPI
+    call pmc_nc_write_integer(ncid, write_rank + 1, "processor", "1")
+    call pmc_nc_write_integer(ncid, write_n_proc, "total_processors", "1")
+#endif
+
+    call env_state_output_netcdf(env_state, ncid)
+    call gas_data_output_netcdf(gas_data, ncid)
+    call gas_state_output_netcdf(gas_state, ncid, gas_data)
+    call aero_data_output_netcdf(aero_data, ncid)
+    call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
+         aero_data, record_removals)
+
+    call pmc_nc_check(nf90_close(ncid))
+    
+  end subroutine output_state_netcdf_helper
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -52,109 +136,88 @@ contains
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
     
-    character(len=len(prefix)+100) :: filename
-    character(len=500) :: history
-    type(spec_file_t) :: file
-    type(env_state_t) :: env_write
+    integer, parameter :: tag1 = 490721113
+    integer, parameter :: tag2 = 192608100
+    integer :: rank, n_proc
+#ifdef PMC_USE_MPI
+    type(env_state_t) :: env_state_write
     type(gas_state_t) :: gas_state_write
     type(aero_state_t) :: aero_state_write
-    integer :: ierr, status, buffer_size, i_proc, position
+    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
     character, allocatable :: buffer(:)
-    integer :: ncid
+#endif
 
     ! only root node actually writes to the file
-    if (pmc_mpi_rank() == 0) then
-       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_loop, '_', index, '.nc'
-       call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
-            "opening " // trim(filename))
-       
-       call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
-            "PartMC output file"))
-       call iso8601_date_and_time(history)
-       history((len_trim(history)+1):) = " created by PartMC"
-       call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-       
-       call pmc_nc_check(nf90_enddef(ncid))
-
-       call pmc_nc_write_real(ncid, time, "time", "s")
-       call pmc_nc_write_real(ncid, del_t, "timestep", "s")
-       call pmc_nc_write_integer(ncid, i_loop, "loop", "1")
-       call pmc_nc_write_integer(ncid, index, "timestep_index", "1")
-
-       call env_state_output_netcdf(env_state, ncid)
-       call gas_data_output_netcdf(gas_data, ncid)
-       call gas_state_output_netcdf(gas_state, ncid, gas_data)
-       call aero_data_output_netcdf(aero_data, ncid)
-       call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-            aero_data, record_removals)
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+    if (rank == 0) then
+       call output_state_netcdf_helper(prefix, bin_grid, aero_data, &
+            aero_state, gas_data, gas_state, env_state, index, time, &
+            del_t, i_loop, record_removals, rank, n_proc)
     end if
 
 #ifdef PMC_USE_MPI
-    ! FIXME: old stuff from text output
-
+    
     ! write everyone else's state
-    do i_proc = 1,(pmc_mpi_size() - 1)
+    do i_proc = 1,(n_proc - 1)
        call pmc_mpi_barrier()
        ! compute and send buffer_size from remote node
-       if (pmc_mpi_rank() == i_proc) then
+       if (rank == i_proc) then
           buffer_size = 0
           buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
           buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
           buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
-          call mpi_send(buffer_size, 1, MPI_INTEGER, 0, 57, &
+          call mpi_send(buffer_size, 1, MPI_INTEGER, 0, tag1, &
                MPI_COMM_WORLD, ierr)
           call pmc_mpi_check_ierr(ierr)
        end if
        ! get buffer_size at root node
-       if (pmc_mpi_rank() == 0) then
-          call mpi_recv(buffer_size, 1, MPI_INTEGER, i_proc, 57, &
+       if (rank == 0) then
+          call mpi_recv(buffer_size, 1, MPI_INTEGER, i_proc, tag1, &
                MPI_COMM_WORLD, status, ierr)
           call pmc_mpi_check_ierr(ierr)
        end if
        ! send buffer from remote node
-       if (pmc_mpi_rank() == i_proc) then
+       if (rank == i_proc) then
           allocate(buffer(buffer_size))
           position = 0
           call pmc_mpi_pack_env_state(buffer, position, env_state)
           call pmc_mpi_pack_gas_state(buffer, position, gas_state)
           call pmc_mpi_pack_aero_state(buffer, position, aero_state)
-          call assert(542772170, position == buffer_size)
-          call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, 58, &
+          call assert(406072516, position == buffer_size)
+          call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, tag2, &
                MPI_COMM_WORLD, ierr)
           call pmc_mpi_check_ierr(ierr)
           deallocate(buffer)
        end if
-       ! get buffer at root node
-       if (pmc_mpi_rank() == 0) then
+       ! get buffer at root node and write it out
+       if (rank == 0) then
           allocate(buffer(buffer_size))
-          call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, 58, &
+          call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, tag2, &
                MPI_COMM_WORLD, status, ierr)
           position = 0
-          call pmc_mpi_unpack_env_state(buffer, position, env_write)
+
+          call env_state_allocate(env_state_write)
+          call gas_state_allocate(gas_state_write)
+          call aero_state_allocate(aero_state_write)
+          call pmc_mpi_unpack_env_state(buffer, position, env_state_write)
           call pmc_mpi_unpack_gas_state(buffer, position, gas_state_write)
           call pmc_mpi_unpack_aero_state(buffer, position, aero_state_write)
-          call assert(518174881, position == buffer_size)
+          call assert(196070093, position == buffer_size)
           deallocate(buffer)
-       end if
-       ! process state at root node
-       if (pmc_mpi_rank() == 0) then
-          !call write_integer(file, 'processor', i_proc)
-          !call write_env_state(file, env_write)
-          !call write_gas_state(file, gas_state_write)
-          !call write_aero_state(file, aero_state_write)
+
+          call output_state_netcdf_helper(prefix, bin_grid, aero_data, &
+               aero_state_write, gas_data, gas_state_write, &
+               env_state_write, index, time, del_t, i_loop, &
+               record_removals, i_proc, n_proc)
           
-          call env_state_deallocate(env_write)
+          call env_state_deallocate(env_state_write)
           call gas_state_deallocate(gas_state_write)
           call aero_state_deallocate(aero_state_write)
        end if
     end do
 #endif
        
-    if (pmc_mpi_rank() == 0) then
-       call pmc_nc_check(nf90_close(ncid))
-    end if
-    
   end subroutine output_state_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -187,12 +250,6 @@ contains
     !> Current loop number.
     integer, intent(out) :: i_loop
     
-    type(spec_file_t) :: file
-    type(env_state_t) :: env_write
-    type(gas_state_t) :: gas_state_write
-    type(aero_state_t) :: aero_state_write
-    integer :: ierr, status, buffer_size, i_proc, position
-    character, allocatable :: buffer(:)
     integer :: ncid
     character(len=1000) :: unit
 

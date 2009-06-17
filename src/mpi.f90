@@ -789,6 +789,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
+    deallocate(val)
     allocate(val(n))
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_INTEGER, &
          MPI_COMM_WORLD, ierr)
@@ -816,6 +817,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
+    deallocate(val)
     allocate(val(n))
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
@@ -843,6 +845,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
+    deallocate(val)
     allocate(val(n))
     do i = 1,n
        call pmc_mpi_unpack_string(buffer, position, val(i))
@@ -871,6 +874,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n1)
     call pmc_mpi_unpack_integer(buffer, position, n2)
+    deallocate(val)
     allocate(val(n1,n2))
     call mpi_unpack(buffer, size(buffer), position, val, n1*n2, MPI_REAL8, &
          MPI_COMM_WORLD, ierr)
@@ -906,6 +910,29 @@ contains
 #endif
 
   end subroutine pmc_mpi_reduce_avg_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the sum of \c val across all processes, storing the
+  !> result in \c val_sum on the root process.
+  subroutine pmc_mpi_reduce_sum_integer(val, val_sum)
+
+    !> Value to sum.
+    integer, intent(in) :: val
+    !> Result.
+    integer, intent(out) :: val_sum
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_reduce(val, val_sum, 1, MPI_INTEGER, MPI_SUM, 0, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_sum = val
+#endif
+
+  end subroutine pmc_mpi_reduce_sum_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

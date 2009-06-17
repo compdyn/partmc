@@ -195,7 +195,7 @@ contains
     !> Particle to set ID for.
     type(aero_particle_t), intent(inout) :: aero_particle
     
-    aero_particle%id = next_id
+    aero_particle%id = (next_id - 1) * pmc_mpi_size() + pmc_mpi_rank() + 1
     next_id = next_id + 1
 
   end subroutine aero_particle_new_id

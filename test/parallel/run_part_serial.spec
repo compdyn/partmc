@@ -5,7 +5,7 @@ n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
-del_t 300                       # timestep (s)
+del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
@@ -37,8 +37,8 @@ start_day 1                     # start day of year (UTC)
 rand_init 0                     # random initialization (0 to auto-generate)
 mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation yes              # whether to do coagulation (yes/no)
-allow_doubling yes              # whether to allow doubling (yes/no)
-allow_halving yes               # whether to allow halving (yes/no)
+allow_doubling no              # whether to allow doubling (yes/no)
+allow_halving no               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic yes                   # whether to do MOSAIC (yes/no)
+do_mosaic no                    # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

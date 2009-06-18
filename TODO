@@ -1,7 +1,26 @@
 
+Parallel options:
+    parallel yes/no -- active following options
+    output_type: per-processor writes to local NetCDF files,
+ 	         centralized writes to per-processor NetCDF files,
+ 		 centralized write to a single NetCDF file
+ 		 (averaged env_state, gas_state, all particles)
+    average_env: average the environment each timestep
+    average_gas: average the gas each timestep
+    aero_mix_rate: 0 to turn off aero mixing
+
 Use only one style of quotes: '' or "".
 
+Add --std=f90 or something to make sure we aren't using GNU
+extensions.
+
 Change cpu_time(t_wall_now) to actually get wall_time, not cpu_time.
+
+All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
+assert() that they are correct, so that we die rather than
+deadlocking.
+
+Shift rand stuff from util.f90 to rand.f90.
 
 Add run_guid to netcdf output files and have extract_* programs check
 to make sure they are processing everything from a single run.

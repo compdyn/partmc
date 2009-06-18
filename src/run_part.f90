@@ -166,8 +166,10 @@ contains
 
        if (part_opt%do_coagulation) then
 #ifdef PMC_USE_MPI
-          call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
-               aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+          !call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
+          !     aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+          call mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
+               aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
 #else
           call mc_coag(kernel, bin_grid, env_state, aero_data, &
                aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
@@ -400,42 +402,6 @@ contains
 #endif
 
   end subroutine mc_coag_mpi_centralized
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compute the number of samples required for the pair of bins.
-  subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
-       del_t, n_samp_real)
-
-    !> Number particles in first bin .
-    integer, intent(in) :: ni
-    !> Number particles in second bin.
-    integer, intent(in) :: nj
-    !> Whether first bin is second bin.
-    logical, intent(in) :: same_bin
-    !> Maximum kernel value.
-    real*8, intent(in) :: k_max
-    !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
-    !> Timestep (s).
-    real*8, intent(in) :: del_t
-    !> Number of samples per timestep.
-    real*8, intent(out) :: n_samp_real
-    
-    real*8 r_samp
-    real*8 n_possible ! use real*8 to avoid integer overflow
-    ! FIXME: should use integer*8 or integer(kind = 8)
-    
-    if (same_bin) then
-       n_possible = dble(ni) * (dble(nj) - 1d0) / 2d0
-    else
-       n_possible = dble(ni) * dble(nj) / 2d0
-    endif
-    
-    r_samp = k_max / comp_vol * del_t
-    n_samp_real = r_samp * n_possible
-    
-  end subroutine compute_n_samp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

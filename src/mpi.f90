@@ -913,6 +913,84 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Transfer the value between the given processors.
+  subroutine pmc_mpi_transfer_real(from_val, to_val, from_proc, to_proc)
+
+    !> Value to send.
+    real*8, intent(in) :: from_val
+    !> Variable to send to.
+    real*8, intent(out) :: to_val
+    !> Processor to send from.
+    integer, intent(in) :: from_proc
+    !> Processor to send to.
+    integer, intent(in) :: to_proc
+
+#ifdef PMC_USE_MPI
+    integer :: rank, ierr, status(MPI_STATUS_SIZE)
+
+    rank = pmc_mpi_rank()
+    if (from_proc == to_proc) then
+       if (rank == from_proc) then
+          to_val = from_val
+       end if
+    else
+       if (rank == from_proc) then
+          call mpi_send(from_val, 1, MPI_REAL8, to_proc, &
+               208020430, MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       elseif (rank == to_proc) then
+          call mpi_recv(to_val, 1, MPI_REAL8, from_proc, &
+               208020430, MPI_COMM_WORLD, status, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       end if
+    end if
+#else
+    to_val = from_val
+#endif
+
+  end subroutine pmc_mpi_transfer_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Transfer the value between the given processors.
+  subroutine pmc_mpi_transfer_integer(from_val, to_val, from_proc, to_proc)
+
+    !> Value to send.
+    integer, intent(in) :: from_val
+    !> Variable to send to.
+    integer, intent(out) :: to_val
+    !> Processor to send from.
+    integer, intent(in) :: from_proc
+    !> Processor to send to.
+    integer, intent(in) :: to_proc
+
+#ifdef PMC_USE_MPI
+    integer :: rank, ierr, status(MPI_STATUS_SIZE)
+    
+    rank = pmc_mpi_rank()
+    if (from_proc == to_proc) then
+       if (rank == from_proc) then
+          to_val = from_val
+       end if
+    else
+       if (rank == from_proc) then
+          call mpi_send(from_val, 1, MPI_INTEGER, to_proc, &
+               208020430, MPI_COMM_WORLD, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       elseif (rank == to_proc) then
+          call mpi_recv(to_val, 1, MPI_INTEGER, from_proc, &
+               208020430, MPI_COMM_WORLD, status, ierr)
+          call pmc_mpi_check_ierr(ierr)
+       end if
+    end if
+#else
+    to_val = from_val
+#endif
+
+  end subroutine pmc_mpi_transfer_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Computes the sum of \c val across all processes, storing the
   !> result in \c val_sum on the root process.
   subroutine pmc_mpi_reduce_sum_integer(val, val_sum)

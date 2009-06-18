@@ -1453,9 +1453,9 @@ contains
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
        aero_particle%asymmetry = aero_asymmetry(i_part)
        aero_particle%refract_shell = &
-            complex(aero_refract_shell_real(i_part), &
+            cmplx(aero_refract_shell_real(i_part), &
             aero_refract_shell_imag(i_part))
-       aero_particle%refract_core = complex(aero_refract_core_real(i_part), &
+       aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
             aero_refract_core_imag(i_part))
        aero_particle%core_vol = aero_core_vol(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)

@@ -119,7 +119,7 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
-elseif(COMPILER_NAME STREQUAL "pgf95")
+elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 

@@ -3,37 +3,16 @@
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
-# Poisson mean m, prob of k events is:
-# f(k,m) = m^k e^(-m) / k!
-# so f(3,3) = e^(-1) = 0.22
-# run below will fail if we don't generate exactly three particles
-# so prob(failure) = 1 - f(1,1) = 0.78
-# using 40 tries, prob(failure on all 40 tries) = 0.78^40 = 4e-5
+time om-mpirun -v -np 1 ../../partmc run_sect.spec
+../../extract_sectional_aero_size_num out/sect_ out/sect_aero_size_num.txt
+../../extract_sectional_aero_total out/sect_ out/sect_aero_total.txt
 
-mc_run_not_ok=1
-MAX_TRIES=40
-try_number=0
-while (( $mc_run_not_ok )) ; do
-    try_number=$(( $try_number + 1 ))
-    echo Try number $try_number
-    echo "../../partmc run_part.spec"
-    ../../partmc run_part.spec
-    echo "../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
-    ../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
-    echo "../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 1 2"
-    ../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 1 2
-    mc_run_not_ok=$?
-    if (( $mc_run_not_ok )) ; then
-	if (( $try_number > $MAX_TRIES )) ; then
-	    echo "Maximum number of tries exceeded: giving up..."
-	    exit 1
-	fi
-	echo "Retrying..."
-    fi
-done
+time om-mpirun -v -np 2 ../../partmc run_part_parallel.spec
+../../extract_aero_size_num 1e-10 1e-4 220 out/parallel_0001_0001_ out/parallel_0001_aero_size_num.txt
+../../extract_aero_size_num 1e-10 1e-4 220 out/parallel_0001_0002_ out/parallel_0002_aero_size_num.txt
+../../extract_aero_total out/parallel_0001_0001_ out/parallel_0001_aero_total.txt
+../../extract_aero_total out/parallel_0001_0002_ out/parallel_0002_aero_total.txt
 
-echo "../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt"
-../../extract_aero_size_num 1e-8 1e-3 160 out/mosaic_0001_ out/mosaic_aero_size_num.txt
-echo "../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 0 0"
-../../numeric_diff true_aero_size_num.txt out/mosaic_aero_size_num.txt 0 1e-8 0 0 0 0
-exit $?
+time om-mpirun -v -np 1 ../../partmc run_part_serial.spec
+../../extract_aero_size_num 1e-10 1e-4 220 out/serial_0001_0001_ out/serial_aero_size_num.txt
+../../extract_aero_total out/serial_0001_0001_ out/serial_aero_total.txt

@@ -3,7 +3,7 @@
 # emissions (mol m^{-2} s^{-1})
 time            0
 rate            1
-NO		31.8e-8
+NO		31.8e-9
 NO2		1.67e-9
 CO		291.3e-9
 SO2 		2.51e-9

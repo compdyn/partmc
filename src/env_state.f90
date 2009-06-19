@@ -50,11 +50,11 @@ module pmc_env_state
      real(kind=dp) :: latitude
      !> Altitude (m).
      real(kind=dp) :: altitude
-     !> Start time (s since 00:00 UTC).
+     !> Start time (s since 00:00 UTC on \c start_day).
      real(kind=dp) :: start_time
      !> Start day of year (UTC).
      integer :: start_day
-     !> Elapsed time since start_time (s).
+     !> Time since \c start_time (s).
      real(kind=dp) :: elapsed_time
      !> Box height (m).
      real(kind=dp) :: height

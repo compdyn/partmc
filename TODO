@@ -11,10 +11,17 @@ Parallel options:
 
 Use only one style of quotes: '' or "".
 
+Change times in the env_data arrays to be seconds since midnight on
+start_day, so we can easily change start_time without needing to
+rewrite all the emit/height/etc data. It just makes more sense for
+these to be absolute real times, rather than relative to start of
+simulation. Would also help with restarted simulations.
+
 Add --std=f90 or something to make sure we aren't using GNU
 extensions.
 
-Change cpu_time(t_wall_now) to actually get wall_time, not cpu_time.
+Change cpu_time(t_wall_now) to system_clock() to actually get
+wall_time, not cpu_time, to avoid issues with MPI code.
 
 All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than

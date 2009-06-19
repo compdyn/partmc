@@ -162,13 +162,15 @@ contains
 
     character(len=100) :: kernel_name
     type(gas_data_t) :: gas_data
-    type(gas_state_t) :: gas_init
     type(gas_state_t) :: gas_state
+    type(gas_state_t) :: gas_state_init
     type(aero_data_t) :: aero_data
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_state
+    type(aero_state_t) :: aero_state_init
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
+    type(env_state_t) :: env_state_init
     type(bin_grid_t) :: bin_grid
     type(run_part_opt_t) :: part_opt
     integer :: i_loop
@@ -176,6 +178,22 @@ contains
     character, allocatable :: buffer(:)
     integer :: buffer_size
     integer :: position
+    logical :: do_restart
+    character(len=3000) :: restart_filename
+    integer :: dummy_index, dummy_i_loop
+    real(kind=dp) :: dummy_time, dummy_del_t
+
+    call gas_data_allocate(gas_data)
+    call gas_state_allocate(gas_state)
+    call gas_state_allocate(gas_state_init)
+    call aero_data_allocate(aero_data)
+    call aero_dist_allocate(aero_dist_init)
+    call aero_state_allocate(aero_state)
+    call aero_state_allocate(aero_state_init)
+    call env_data_allocate(env_data)
+    call env_state_allocate(env_state)
+    call env_state_allocate(env_state_init)
+    call bin_grid_allocate(bin_grid)
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -185,31 +203,34 @@ contains
        call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
        call spec_file_read_string(file, 'kernel', kernel_name)
+       call spec_file_read_logical(file, 'restart', do_restart)
+       if (do_restart) then
+          call spec_file_read_string(file, 'restart_file', restart_filename)
+       end if
        
        call spec_file_read_real(file, 't_max', part_opt%t_max)
        call spec_file_read_real(file, 'del_t', part_opt%del_t)
        call spec_file_read_real(file, 't_output', part_opt%t_output)
        call spec_file_read_real(file, 't_progress', part_opt%t_progress)
 
-       call bin_grid_allocate(bin_grid)
        call spec_file_read_bin_grid(file, bin_grid)
 
-       call gas_data_allocate(gas_data)
        call spec_file_read_gas_data(file, gas_data)
-       call gas_state_allocate(gas_init)
-       call spec_file_read_gas_state(file, gas_data, 'gas_init', gas_init)
+       if (.not. do_restart) then
+          call spec_file_read_gas_state(file, gas_data, 'gas_init', gas_state_init)
+       end if
 
-       call aero_data_allocate(aero_data)
        call spec_file_read_aero_data_filename(file, aero_data)
-       call aero_dist_allocate(aero_dist_init)
-       call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
-            'aerosol_init', aero_dist_init)
+       if (.not. do_restart) then
+          call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
+               'aerosol_init', aero_dist_init)
+       end if
 
-       call env_data_allocate(env_data)
        call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
             env_data)
-       call env_state_allocate(env_state)
-       call spec_file_read_env_state(file, env_state)
+       if (.not. do_restart) then
+          call spec_file_read_env_state(file, env_state_init)
+       end if
        
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_real(file, 'mix_rate', part_opt%mix_rate)
@@ -231,6 +252,12 @@ contains
             part_opt%record_removals)
        
        call spec_file_close(file)
+
+       if (do_restart) then
+          call input_state_netcdf(restart_filename, bin_grid, aero_data, &
+               aero_state_init, gas_data, gas_state_init, env_state_init, &
+               dummy_index, dummy_time, dummy_del_t, dummy_i_loop)
+       end if
     end if
 
     ! finished reading .spec data, now broadcast data
@@ -243,13 +270,15 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_string(kernel_name)
        buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
-       buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_init)
+       buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_aero_data(aero_data)
        buffer_size = buffer_size &
             + pmc_mpi_pack_size_aero_dist(aero_dist_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
-       buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
+       buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
+       buffer_size = buffer_size + pmc_mpi_pack_size_logical(do_restart)
+       buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state_init)
     end if
 
     ! tell everyone the size and allocate buffer space
@@ -263,12 +292,15 @@ contains
        call pmc_mpi_pack_string(buffer, position, kernel_name)
        call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
-       call pmc_mpi_pack_gas_state(buffer, position, gas_init)
+       call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
        call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_pack_env_data(buffer, position, env_data)
-       call pmc_mpi_pack_env_state(buffer, position, env_state)
+       call pmc_mpi_pack_env_state(buffer, position, env_state_init)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
+       call pmc_mpi_pack_logical(buffer, position, do_restart)
+       call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
+       call assert(181905491, position == buffer_size)
     end if
 
     ! broadcast data to everyone
@@ -276,24 +308,20 @@ contains
 
     if (pmc_mpi_rank() /= 0) then
        ! non-root processes unpack data
-       call bin_grid_allocate(bin_grid)
-       call gas_data_allocate(gas_data)
-       call gas_state_allocate(gas_init)
-       call aero_data_allocate(aero_data)
-       call aero_dist_allocate(aero_dist_init)
-       call env_data_allocate(env_data)
-       call env_state_allocate(env_state)
        position = 0
        call pmc_mpi_unpack_part_opt(buffer, position, part_opt)
        call pmc_mpi_unpack_string(buffer, position, kernel_name)
        call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
-       call pmc_mpi_unpack_gas_state(buffer, position, gas_init)
+       call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
        call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_unpack_env_data(buffer, position, env_data)
-       call pmc_mpi_unpack_env_state(buffer, position, env_state)
+       call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
+       call pmc_mpi_unpack_logical(buffer, position, do_restart)
+       call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
+       call assert(143770146, position == buffer_size)
     end if
 
     ! free the buffer
@@ -302,23 +330,27 @@ contains
 
     call pmc_srand(rand_init + pmc_mpi_rank())
 
+    call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(part_opt%t_wall_start)
-
-    call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-         aero_data%n_spec)
+    
     do i_loop = 1,part_opt%n_loop
        part_opt%i_loop = i_loop
        
-       call gas_state_copy(gas_init, gas_state)
-       call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-            aero_data%n_spec)
-       aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
-            aero_dist_total_num_conc(aero_dist_init)
-       call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
-            aero_data, aero_dist_init, 1d0, 0d0)
-       call env_data_init_state(env_data, env_state, 0d0)
+       call gas_state_copy(gas_state_init, gas_state)
+       if (do_restart) then
+          call aero_state_copy(aero_state_init, aero_state)
+       else
+          call aero_state_deallocate(aero_state)
+          call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
+               aero_data%n_spec)
+          aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
+               aero_dist_total_num_conc(aero_dist_init)
+          call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
+               aero_data, aero_dist_init, 1d0, 0d0)
+       end if
+       call env_state_copy(env_state_init, env_state)
+       call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
 
        if (part_opt%do_condensation) then
           call aero_state_equilibriate(bin_grid, env_state, aero_data, &
@@ -356,13 +388,15 @@ contains
     end do
 
     call gas_data_deallocate(gas_data)
-    call gas_state_deallocate(gas_init)
     call gas_state_deallocate(gas_state)
+    call gas_state_deallocate(gas_state_init)
     call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)
     call aero_state_deallocate(aero_state)
+    call aero_state_deallocate(aero_state_init)
     call env_data_deallocate(env_data)
     call env_state_deallocate(env_state)
+    call env_state_deallocate(env_state_init)
     call bin_grid_deallocate(bin_grid)
 
   end subroutine partmc_part

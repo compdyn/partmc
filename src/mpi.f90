@@ -76,7 +76,7 @@ contains
 
     call mpi_abort(MPI_COMM_WORLD, status, ierr)
 #else
-    stop status
+    call die(status)
 #endif
 
   end subroutine pmc_mpi_abort

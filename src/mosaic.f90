@@ -135,7 +135,7 @@ contains
 
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state, time)
+       aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -158,15 +158,11 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    !> 24-hr UTC clock time (hr).
-    real(kind=dp) :: time_UTC
-    !> Time at noon, march 21, UTC (s).
-    real(kind=dp) :: tmar21_sec
+    real(kind=dp) :: time_UTC    ! 24-hr UTC clock time (hr).
+    real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
@@ -181,8 +177,8 @@ contains
 
     ! update time variables
     tmar21_sec = real((79*24 + 12)*3600, kind=dp)    ! noon, mar 21, UTC
-    tcur_sec = real(tbeg_sec, kind=dp) + time        ! current (old) time since
-                                            ! the beg of year 00:00, UTC (s)
+    tcur_sec = real(tbeg_sec, kind=dp) + env_state%elapsed_time
+    ! current (old) time since the beg of year 00:00, UTC (s)
 
     time_UTC = env_state%start_time/3600d0  ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0
@@ -356,7 +352,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state, time)
+       aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -374,8 +370,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -390,7 +384,7 @@ contains
     
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
-         gas_data, gas_state, time)
+         gas_data, gas_state)
 
     if (msolar == 1) then
       call SolarZenithAngle
@@ -404,7 +398,7 @@ contains
          gas_data, gas_state)
 
     call mosaic_aero_optical(bin_grid, env_state, aero_data, &
-         aero_state, gas_data, gas_state, time)
+         aero_state, gas_data, gas_state)
 #endif
 
   end subroutine mosaic_timestep
@@ -418,7 +412,7 @@ contains
   !! every timestep from withing mosaic_timestep. This decision should
   !! be re-evaluated at some point in the future.
   subroutine mosaic_aero_optical(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state, time)
+       aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
@@ -437,8 +431,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -452,7 +444,7 @@ contains
     
     ! map PartMC -> MOSAIC
 !    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
-!         gas_data, gas_state, time)
+!         gas_data, gas_state)
 
 !    call aerosol_optical
 

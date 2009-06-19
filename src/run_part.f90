@@ -151,8 +151,26 @@ contains
             time, part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
-
-    t_start = time
+    
+    ! Do an initial double/halve test. This shouldn't happen (except
+    ! for restart with inconsistent number) so issue a warning.
+    if (part_opt%allow_doubling) then
+       do while ((aero_state_total_particles(aero_state) &
+            < part_opt%n_part_max / 2) &
+            .and. (aero_state_total_particles(aero_state) > 0))
+          write(*,*) 'WARNING: doubling particles in initial condition'
+          call aero_state_double(aero_state)
+       end do
+    end if
+    if (part_opt%allow_halving) then
+       do while (aero_state_total_particles(aero_state) &
+            > part_opt%n_part_max * 2)
+          write(*,*) 'WARNING: halving particles in initial condition'
+          call aero_state_halve(aero_state, bin_grid)
+       end do
+    end if
+    
+    t_start = env_state%elapsed_time
     last_output_time = time
     last_progress_time = time
     n_time = nint(part_opt%t_max / part_opt%del_t)
@@ -162,7 +180,7 @@ contains
        time = real(i_time, kind=dp) * part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
-       call env_data_update_state(env_data, env_state, time)
+       call env_data_update_state(env_data, env_state, time + t_start)
 
        if (part_opt%do_coagulation) then
 #ifdef PMC_USE_MPI
@@ -190,7 +208,7 @@ contains
 
        if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_state, gas_data, gas_state, time)
+               aero_state, gas_data, gas_state)
        end if
 
        call mc_mix(aero_data, aero_state, gas_data, gas_state, &
@@ -241,15 +259,15 @@ contains
           call check_event(time, part_opt%del_t, part_opt%t_progress, &
                last_progress_time, do_progress)
           if (do_progress) then
-             call pmc_mpi_reduce_sum_integer(aero_state_total_particles(aero_state), &
-                  global_n_part)
+             call pmc_mpi_reduce_sum_integer(&
+                  aero_state_total_particles(aero_state), global_n_part)
              call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
              call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
              if (rank == 0) then
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
-                prop_done = (real(part_opt%i_loop - 1, kind=dp) + (time - t_start) &
-                     / (part_opt%t_max - t_start)) / real(part_opt%n_loop, kind=dp)
+                prop_done = (real(part_opt%i_loop - 1, kind=dp) &
+                     + time / part_opt%t_max) / real(part_opt%n_loop, kind=dp)
                 t_wall_elapsed = t_wall_now - part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed

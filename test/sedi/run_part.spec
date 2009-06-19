@@ -3,6 +3,7 @@ output_prefix out/sedi_part     # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 1000000                  # total number of particles
 kernel sedi                     # coagulation kernel
+restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
 del_t 0.5                       # timestep (s)

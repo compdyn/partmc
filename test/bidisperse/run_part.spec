@@ -3,6 +3,7 @@ output_prefix out/bidisperse_part # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 10001                    # number of Monte Carlo particles
 kernel sedi                     # coagulation kernel
+restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)

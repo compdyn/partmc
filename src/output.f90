@@ -273,13 +273,7 @@ contains
        call aero_data_input_netcdf(aero_data, ncid)
        call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
             aero_data)
-    end if
 
-#ifdef PMC_USE_MPI
-    call die(742912371)
-#endif
-       
-    if (pmc_mpi_rank() == 0) then
        call pmc_nc_close(ncid)
     end if
     

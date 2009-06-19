@@ -48,9 +48,9 @@ contains
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Current timestep (s).
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Current loop number.
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
@@ -67,8 +67,13 @@ contains
     ! only root node actually writes to the file
     call assert(694241847, pmc_mpi_rank() == 0)
 #ifdef PMC_USE_MPI
-    write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
-         '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
+    if (write_n_proc > 1) then
+       write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
+            '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
+    else
+       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+            '_', i_loop, '_', index, '.nc'
+    end if
 #else
     write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
          '_', i_loop, '_', index, '.nc'
@@ -128,9 +133,9 @@ contains
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Current timestep (s).
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Current loop number.
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
@@ -244,9 +249,9 @@ contains
     !> Filename index.
     integer, intent(out) :: index
     !> Current time (s).
-    real*8, intent(out) :: time
+    real(kind=dp), intent(out) :: time
     !> Current timestep (s).
-    real*8, intent(out) :: del_t
+    real(kind=dp), intent(out) :: del_t
     !> Current loop number.
     integer, intent(out) :: i_loop
     
@@ -303,9 +308,9 @@ contains
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Current output time-step (s).
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
 
     integer :: ncid
     character(len=len(prefix)+100) :: filename

@@ -122,7 +122,7 @@ contains
 
   !> Returns the total number concentration in #/m^3 of a distribution.
   !> (#/m^3)
-  real*8 function aero_dist_total_num_conc(aero_dist)
+  real(kind=dp) function aero_dist_total_num_conc(aero_dist)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist
@@ -144,10 +144,10 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Number concentration (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
 
     integer :: i_mode
-    real*8 :: mode_num_conc(size(num_conc, 1))
+    real(kind=dp) :: mode_num_conc(size(num_conc, 1))
 
     num_conc = 0d0
     do i_mode = 1,aero_dist%n_mode
@@ -172,10 +172,10 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
 
     integer :: i_mode
-    real*8 :: mode_vol_conc(size(vol_conc, 1), size(vol_conc, 2))
+    real(kind=dp) :: mode_vol_conc(size(vol_conc, 1), size(vol_conc, 2))
 
     vol_conc = 0d0
     do i_mode = 1,aero_dist%n_mode
@@ -196,18 +196,18 @@ contains
     !> Gas states.
     type(aero_dist_t), intent(in) :: aero_dist_list(:)
     !> Times (s).
-    real*8, intent(in) :: time_list(size(aero_dist_list))
+    real(kind=dp), intent(in) :: time_list(size(aero_dist_list))
     !> Rates (s^{-1}).
-    real*8, intent(in) :: rate_list(size(aero_dist_list))
+    real(kind=dp), intent(in) :: rate_list(size(aero_dist_list))
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Current gas state.
     type(aero_dist_t), intent(inout) :: aero_dist
     !> Current rate (s^{-1}).
-    real*8, intent(out) :: rate
+    real(kind=dp), intent(out) :: rate
 
     integer :: n, p, n_bin, n_spec, i, i_new
-    real*8 :: y, alpha
+    real(kind=dp) :: y, alpha
 
     n = size(aero_dist_list)
     p = find_1d(n, time_list, time)
@@ -314,9 +314,9 @@ contains
     !> Name of data line for filename.
     character(len=*), intent(in) :: name
     !> Times (s).
-    real*8, pointer :: times(:)
+    real(kind=dp), pointer :: times(:)
     !> Rates (s^{-1}).
-    real*8, pointer :: rates(:)
+    real(kind=dp), pointer :: rates(:)
     !> Aero dists.
     type(aero_dist_t), pointer :: aero_dists(:)
 
@@ -325,7 +325,7 @@ contains
     type(spec_line_t) :: aero_dist_line
     integer :: n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
-    real*8, pointer :: data(:,:)
+    real(kind=dp), pointer :: data(:,:)
 
     ! read the filename then read the data from that file
     call spec_file_read_string(file, name, read_name)

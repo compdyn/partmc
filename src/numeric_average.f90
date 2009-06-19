@@ -9,6 +9,7 @@
 !> all of the same size.
 program numeric_average
 
+  integer, parameter :: dp = kind(0.d0)
   integer, parameter :: MAX_INPUT_FILES = 10000
   integer, parameter :: out_unit = 40
   integer, parameter :: in_unit_start = 41
@@ -17,38 +18,38 @@ program numeric_average
   integer :: ios
   character(len=1000) :: word1, word2
   logical :: eol1, eol2, eof1, eof2
-  real*8 :: total
+  real(kind=dp) :: total
   integer :: row, col, i_file, n_file
   integer :: in_units(MAX_INPUT_FILES)
 
   ! process commandline arguments
-  if (iargc() < 2) then
+  if (command_argument_count() < 2) then
      write(6,*) 'Usage: numeric_average <out_filename>' &
           // ' <in_filename_1> ... <in_filename_N>'
-     call exit(2)
+     stop 2
   endif
-  n_file = iargc() - 1
+  n_file = command_argument_count() - 1
   if (n_file > MAX_INPUT_FILES) then
      write(0,*) 'ERROR: Too many input files'
-     call exit(1)
+     stop 1
   end if
-  call getarg(1, filename)
+  call get_command_argument(1, filename)
   write(*,*) "averaging output: ", trim(filename)
   open(unit=out_unit, file=filename, iostat=ios)
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(filename), ' for writing: ', ios
-     call exit(1)
+     stop 1
   end if
   do i_file = 1,n_file
-     call getarg(i_file + 1, filename)
+     call get_command_argument(i_file + 1, filename)
      in_units(i_file) = in_unit_start + i_file - 1
      write(*,*) "averaging input: ", trim(filename)
      open(unit=in_units(i_file), status='old', file=filename, iostat=ios)
      if (ios /= 0) then
         write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
              trim(filename), ' for reading: ', ios
-        call exit(2)
+        stop 2
      end if
   end do
 
@@ -72,7 +73,7 @@ program numeric_average
              .or. ((.not. eof1) .and. eof2)) then
            write(*,'(a,i8,i8,i8)') 'different shape at row/col/file:', &
                 row, col, i_file
-           call exit(1)
+           stop 1
         end if
         if (len(word1) > 0) then
            total = total + string_to_real(word2)
@@ -87,7 +88,7 @@ program numeric_average
         end if
         if (.not. eof1) then
            write(out_unit,'(e30.15e3)', advance='no') &
-                (total / dble(n_file))
+                (total / real(n_file, kind=dp))
            if (eol1) write(out_unit, '(a)') ''
         end if
      end if
@@ -103,19 +104,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
-  real*8 function string_to_real(string)
+  real(kind=dp) function string_to_real(string)
 
     !> String to convert.
     character(len=*), intent(in) :: string
     
-    real*8 :: val
+    real(kind=dp) :: val
     integer :: ios
 
     read(string, '(e40.0)', iostat=ios) val
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to real: IOSTAT = ', ios
-       call exit(2)
+       stop 2
     end if
     string_to_real = val
 
@@ -169,7 +170,7 @@ contains
          iostat=ios) read_char
     if (ios /= 0) then
        write(0,*) 'ERROR: reading file: IOSTAT = ', ios
-       call exit(2)
+       stop 2
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read

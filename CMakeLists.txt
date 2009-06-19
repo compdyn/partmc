@@ -8,6 +8,7 @@ set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "1.2.0")
 
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
+option(ENABLE_MPI "Enable MPI parallel support" OFF)
 
 ######################################################################
 
@@ -118,7 +119,10 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
+  add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
+  if(NOT ENABLE_MPI)
+    add_definitions(-Wimplicit-interface)
+  endif(NOT ENABLE_MPI)
 elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")

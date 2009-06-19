@@ -35,10 +35,10 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Total time to integrate.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     
     integer :: i_bin, j, new_bin, k
-    real*8 :: pv, pre_water, post_water
+    real(kind=dp) :: pv, pre_water, post_water
     type(aero_particle_t), pointer :: particle
 
     pre_water = 0d0
@@ -83,7 +83,7 @@ contains
        aero_particle)
 
     !> Total time to integrate.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -91,7 +91,7 @@ contains
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
-    real*8 :: time_step, time, pre_water, post_water
+    real(kind=dp) :: time_step, time, pre_water, post_water
     logical :: done
 
     time = 0d0
@@ -116,9 +116,9 @@ contains
        aero_particle)
     
     !> Maximum timestep to integrate.
-    real*8, intent(in) :: max_dt
+    real(kind=dp), intent(in) :: max_dt
     !> Actual timestep used.
-    real*8, intent(out) :: dt
+    real(kind=dp), intent(out) :: dt
     !> Did we reach the maximum timestep?.
     logical, intent(out) :: done
     !> Environment state.
@@ -128,7 +128,7 @@ contains
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
-    real*8 dvdt
+    real(kind=dp) dvdt
 
     ! get timestep
     done = .false.
@@ -162,9 +162,9 @@ contains
        dt, done, env_state, aero_data, aero_particle)
     
     !> Maximum timestep to integrate.
-    real*8, intent(in) :: max_dt
+    real(kind=dp), intent(in) :: max_dt
     !> Actual timestep used.
-    real*8, intent(out) :: dt
+    real(kind=dp), intent(out) :: dt
     !> Did we reach the maximum timestep?.
     logical, intent(out) :: done
     !> Environment state.
@@ -194,7 +194,7 @@ contains
   subroutine condense_step_rk(dt, env_state, aero_data, aero_particle)
 
     !> Timestep.
-    real*8, intent(out) :: dt
+    real(kind=dp), intent(out) :: dt
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -203,7 +203,7 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle
 
     ! local variables
-    real*8 k1, k2, k3, k4
+    real(kind=dp) k1, k2, k3, k4
     type(aero_particle_t) :: aero_particle_tmp
 
     call aero_particle_allocate_size(aero_particle_tmp, aero_data%n_spec)
@@ -250,7 +250,7 @@ contains
        aero_particle)
 
     !> Timestep to use.
-    real*8, intent(out) :: dt
+    real(kind=dp), intent(out) :: dt
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -269,7 +269,7 @@ contains
        aero_particle)
 
     !> Timestep to use.
-    real*8, intent(out) :: dt
+    real(kind=dp), intent(out) :: dt
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -278,9 +278,9 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     !> Scale factor for timestep.
-    real*8, parameter :: scale = 0.1d0
+    real(kind=dp), parameter :: scale = 0.1d0
 
-    real*8 pv, dvdt
+    real(kind=dp) pv, dvdt
 
     pv = aero_particle_volume(aero_particle)
     call cond_growth_rate(dvdt, env_state, aero_data, aero_particle)
@@ -294,7 +294,7 @@ contains
   subroutine cond_growth_rate(dvdt, env_state, aero_data, aero_particle)
 
     !> Dv/dt (m^3 s^{-1}).
-    real*8, intent(out) :: dvdt
+    real(kind=dp), intent(out) :: dvdt
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -311,7 +311,7 @@ contains
   subroutine cond_growth_rate_old(dvdt, env_state, aero_data, aero_particle)
 
     !> Dv/dt (m^3 s^{-1}).
-    real*8, intent(out) :: dvdt
+    real(kind=dp), intent(out) :: dvdt
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -320,13 +320,13 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     !> Relative dm/dt convergence tol.
-    real*8, parameter :: dmdt_rel_tol = 1d-8
+    real(kind=dp), parameter :: dmdt_rel_tol = 1d-8
     !> Function convergence tolerance.
-    real*8, parameter :: f_tol = 1d-15
+    real(kind=dp), parameter :: f_tol = 1d-15
     !> Maximum number of iterations.
     integer, parameter :: iter_max = 100
 
-    real*8 dmdt, pm, dmdt_tol
+    real(kind=dp) dmdt, pm, dmdt_tol
 
     pm = aero_particle_mass(aero_particle, aero_data)
     dmdt_tol = pm * dmdt_rel_tol
@@ -347,15 +347,15 @@ contains
        iter_max, aero_particle)
 
     !> Variable (set to init value on call).
-    real*8, intent(inout) :: x
+    real(kind=dp), intent(inout) :: x
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> X convergence tolerance.
-    real*8, intent(in) :: x_tol
+    real(kind=dp), intent(in) :: x_tol
     !> F convergence tolerance.
-    real*8, intent(in) :: f_tol
+    real(kind=dp), intent(in) :: f_tol
     !> Maximum number of iterations.
     integer, intent(in) :: iter_max
     !> Particle.
@@ -374,11 +374,11 @@ contains
          !> True if first Newton loop.
          logical, intent(in) :: init
          !> Independent variable to solve for.
-         real*8, intent(in) :: x
+         real(kind=dp), intent(in) :: x
          !> Function to solve.
-         real*8, intent(out) :: f
+         real(kind=dp), intent(out) :: f
          !> Derivative df/dx.
-         real*8, intent(out) :: df
+         real(kind=dp), intent(out) :: df
          !> Particle.
          type(aero_particle_t), intent(in) :: aero_particle
        end subroutine func
@@ -386,7 +386,7 @@ contains
 #endif
     
     integer iter, k
-    real*8 delta_f, delta_x, f, old_f, df
+    real(kind=dp) delta_f, delta_x, f, old_f, df
 
     call func(env_state, aero_data, .true., x, f, df, aero_particle)
     old_f = f
@@ -429,21 +429,21 @@ contains
     !> True if first Newton loop.
     logical, intent(in) :: init
     !> Mass growth rate dm/dt (kg s^{-1}).
-    real*8, intent(in) :: dmdt
+    real(kind=dp), intent(in) :: dmdt
     !> Error.
-    real*8, intent(out) :: f
+    real(kind=dp), intent(out) :: f
     !> Derivative of error with respect to x.
-    real*8, intent(out) :: df
+    real(kind=dp), intent(out) :: df
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
     
     ! local variables
-    real*8, save :: k_a, k_ap, k_ap_div, D_v, D_v_div, D_vp, d_p, pv
-    real*8, save :: rat, fact1, fact2, c1, c2, c3, c4, c5
-    real*8, save :: M_water, M_solute, rho_water, rho_solute
-    real*8, save :: eps, nu, g_water, g_solute
+    real(kind=dp), save :: k_a, k_ap, k_ap_div, D_v, D_v_div, D_vp, d_p, pv
+    real(kind=dp), save :: rat, fact1, fact2, c1, c2, c3, c4, c5
+    real(kind=dp), save :: M_water, M_solute, rho_water, rho_solute
+    real(kind=dp), save :: eps, nu, g_water, g_solute
 
-    real*8 T_a ! droplet temperature (K), determined as part of solve
+    real(kind=dp) T_a ! droplet temperature (K), determined as part of solve
 
     if (init) then
        ! Start of new Newton loop, compute all constants
@@ -541,16 +541,16 @@ contains
     !> Maximum iterations.
     integer, parameter :: it_max = 400
     !> Dw relative convergence tolerance.
-    real*8, parameter :: pv_rel_tol = 1d-6
+    real(kind=dp), parameter :: pv_rel_tol = 1d-6
     !> Function convergence tolerance.
-    real*8, parameter :: f_tol = 1d-15
+    real(kind=dp), parameter :: f_tol = 1d-15
     !> Maximum number of iterations.
     integer, parameter :: iter_max = 100
     !> Initial value.
-    real*8, parameter :: dw_init = 1d0
+    real(kind=dp), parameter :: dw_init = 1d0
     
-    real*8 dw ! wet diameter of particle
-    real*8 dw_tol, pv
+    real(kind=dp) dw ! wet diameter of particle
+    real(kind=dp) dw_tol, pv
 
     pv = aero_particle_volume(aero_particle)
     dw = dw_init
@@ -578,19 +578,19 @@ contains
     !> True if first Newton loop.
     logical, intent(in) :: init
     !> Wet diameter (m).
-    real*8, intent(in) :: dw
+    real(kind=dp), intent(in) :: dw
     !> Function value.
-    real*8, intent(out) :: f
+    real(kind=dp), intent(out) :: f
     !> Function derivative df/dx.
-    real*8, intent(out) :: df
+    real(kind=dp), intent(out) :: df
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
-    real*8, save :: c0, c1, c3, c4, dc0, dc2, dc3
-    real*8, save :: A, B
-    real*8, save ::  pv
-    real*8, save :: M_water, M_solute, rho_water, rho_solute
-    real*8, save :: eps, nu, g_water, g_solute
+    real(kind=dp), save :: c0, c1, c3, c4, dc0, dc2, dc3
+    real(kind=dp), save :: A, B
+    real(kind=dp), save ::  pv
+    real(kind=dp), save :: M_water, M_solute, rho_water, rho_solute
+    real(kind=dp), save :: eps, nu, g_water, g_solute
 
     if (init) then
        ! Start of new Newton loop, compute all constants

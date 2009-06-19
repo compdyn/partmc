@@ -44,7 +44,7 @@ contains
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else
-       call exit(3)
+       stop 3
 #endif
     end if
 
@@ -138,7 +138,7 @@ contains
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
     ! FIXME: HACK
-    real*8 :: r
+    real(kind=dp) :: r
     ! FIXME: end HACK
 
     call random_seed(size = n)
@@ -163,9 +163,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns a random number between 0 and 1.
-  real*8 function pmc_random()
+  real(kind=dp) function pmc_random()
 
-    real*8 rnd
+    real(kind=dp) rnd
 
     call random_number(rnd)
     pmc_random = rnd
@@ -180,7 +180,7 @@ contains
     !> Maximum random number to generate.
     integer, intent(in) :: n
 
-    pmc_rand_int = mod(int(pmc_random() * dble(n)), n) + 1
+    pmc_rand_int = mod(int(pmc_random() * real(n, kind=dp)), n) + 1
     call assert(515838689, pmc_rand_int >= 1)
     call assert(802560153, pmc_rand_int <= n)
 
@@ -194,7 +194,7 @@ contains
   integer function prob_round(val)
 
     !> Value to round.
-    real*8, intent(in) :: val
+    real(kind=dp), intent(in) :: val
     
     prob_round = int(val)
     if (pmc_random() .lt. mod(val, 1d0)) then
@@ -206,10 +206,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to radius (m).
-  real*8 function vol2rad(v)
+  real(kind=dp) function vol2rad(v)
 
     !> Volume (m^3).
-    real*8, intent(in) :: v
+    real(kind=dp), intent(in) :: v
     
     vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
     
@@ -218,10 +218,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to diameter (m).
-  real*8 function vol2diam(v)
+  real(kind=dp) function vol2diam(v)
 
     !> Volume (m^3).
-    real*8, intent(in) :: v
+    real(kind=dp), intent(in) :: v
     
     vol2diam = 2d0 * (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
     
@@ -230,10 +230,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert radius (m) to volume (m^3).
-  real*8 function rad2vol(r)
+  real(kind=dp) function rad2vol(r)
 
     !> Radius (m).
-    real*8, intent(in) :: r
+    real(kind=dp), intent(in) :: r
     
     rad2vol = 4d0 / 3d0 * const%pi * r**3d0
     
@@ -242,10 +242,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert diameter (m) to volume (m^3).
-  real*8 function diam2vol(d)
+  real(kind=dp) function diam2vol(d)
 
     !> Diameter (m).
-    real*8, intent(in) :: d
+    real(kind=dp), intent(in) :: d
     
     diam2vol = 4d0 / 3d0 * const%pi * (d / 2d0)**3d0
     
@@ -258,12 +258,12 @@ contains
   logical function almost_equal(d1, d2)
     
     !> First number to compare.
-    real*8, intent(in) :: d1
+    real(kind=dp), intent(in) :: d1
     !> Second number to compare.
-    real*8, intent(in) :: d2
+    real(kind=dp), intent(in) :: d2
     
     !> Relative tolerance.
-    real*8, parameter :: eps = 1d-8
+    real(kind=dp), parameter :: eps = 1d-8
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -285,14 +285,14 @@ contains
   logical function almost_equal_abs(d1, d2, abs_tol)
     
     !> First number to compare.
-    real*8, intent(in) :: d1
+    real(kind=dp), intent(in) :: d1
     !> Second number to compare.
-    real*8, intent(in) :: d2
+    real(kind=dp), intent(in) :: d2
     !> Tolerance for when d1 equals d2.
-    real*8, intent(in) :: abs_tol
+    real(kind=dp), intent(in) :: abs_tol
     
     !> Relative tolerance.
-    real*8, parameter :: eps = 1d-8
+    real(kind=dp), parameter :: eps = 1d-8
     
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -321,20 +321,20 @@ contains
        do_event)
     
     !> Current time.
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Estimate of the time to the next call.
-    real*8, intent(in) :: timestep
+    real(kind=dp), intent(in) :: timestep
     !> How often the event should be done.
-    real*8, intent(in) :: interval
+    real(kind=dp), intent(in) :: interval
     !> When the event was last done.
-    real*8, intent(inout) :: last_time
+    real(kind=dp), intent(inout) :: last_time
     !> Whether the event should be done.
     logical, intent(out) :: do_event
     
     !> Fuzz for event occurance.
-    real*8, parameter :: tolerance = 1d-6
+    real(kind=dp), parameter :: tolerance = 1d-6
     
-    real*8 closest_interval_time
+    real(kind=dp) closest_interval_time
     
     ! if we are at time 0 then do the event unconditionally
     if (time .eq. 0d0) then
@@ -374,19 +374,19 @@ contains
   subroutine linspace(min_x, max_x, n, x)
 
     !> Minimum array value.
-    real*8, intent(in) :: min_x
+    real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
-    real*8, intent(in) :: max_x
+    real(kind=dp), intent(in) :: max_x
     !> Number of entries.
     integer, intent(in) :: n
     !> Array.
-    real*8, intent(out) :: x(n)
+    real(kind=dp), intent(out) :: x(n)
 
     integer :: i
-    real*8 :: a
+    real(kind=dp) :: a
 
     do i = 2, (n - 1)
-       a = dble(i - 1) / dble(n - 1)
+       a = real(i - 1, kind=dp) / real(n - 1, kind=dp)
        x(i) = (1d0 - a) * min_x + a * max_x
     end do
     if (n > 0) then
@@ -403,15 +403,15 @@ contains
   subroutine logspace(min_x, max_x, n, x)
 
     !> Minimum array value.
-    real*8, intent(in) :: min_x
+    real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
-    real*8, intent(in) :: max_x
+    real(kind=dp), intent(in) :: max_x
     !> Number of entries.
     integer, intent(in) :: n
     !> Array.
-    real*8, intent(out) :: x(n)
+    real(kind=dp), intent(out) :: x(n)
 
-    real*8 :: log_x(n)
+    real(kind=dp) :: log_x(n)
 
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
@@ -440,15 +440,15 @@ contains
   integer function linspace_find(min_x, max_x, n, x)
 
     !> Minimum array value.
-    real*8, intent(in) :: min_x
+    real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
-    real*8, intent(in) :: max_x
+    real(kind=dp), intent(in) :: max_x
     !> Number of entries.
     integer, intent(in) :: n
     !> Value.
-    real*8, intent(in) :: x
+    real(kind=dp), intent(in) :: x
 
-    linspace_find = floor((x - min_x) / (max_x - min_x) * dble(n - 1)) + 1
+    linspace_find = floor((x - min_x) / (max_x - min_x) * real(n - 1, kind=dp)) + 1
     linspace_find = min(linspace_find, n - 1)
     linspace_find = max(linspace_find, 1)
     
@@ -468,13 +468,13 @@ contains
   integer function logspace_find(min_x, max_x, n, x)
 
     !> Minimum array value.
-    real*8, intent(in) :: min_x
+    real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
-    real*8, intent(in) :: max_x
+    real(kind=dp), intent(in) :: max_x
     !> Number of entries.
     integer, intent(in) :: n
     !> Value.
-    real*8, intent(in) :: x
+    real(kind=dp), intent(in) :: x
 
     logspace_find = linspace_find(log(min_x), log(max_x), n, log(x))
     
@@ -496,9 +496,9 @@ contains
     !> Number of values.
     integer, intent(in) :: n
     !> X value array, must be sorted.
-    real*8, intent(in) :: x_vals(n)
+    real(kind=dp), intent(in) :: x_vals(n)
     !> Value to interpolate at.
-    real*8, intent(in) :: x
+    real(kind=dp), intent(in) :: x
 
     integer p
 
@@ -525,17 +525,17 @@ contains
   !! Takes an array of x and y, and a single x value, and returns the
   !! corresponding y using linear interpolation. x_vals must be
   !! sorted.
-  real*8 function interp_1d(x_vals, y_vals, x)
+  real(kind=dp) function interp_1d(x_vals, y_vals, x)
 
     !> X value array, must be sorted.
-    real*8, intent(in) :: x_vals(:)
+    real(kind=dp), intent(in) :: x_vals(:)
     !> Y value array.
-    real*8, intent(in) :: y_vals(size(x_vals))
+    real(kind=dp), intent(in) :: y_vals(size(x_vals))
     !> Value to interpolate at.
-    real*8, intent(in) :: x
+    real(kind=dp), intent(in) :: x
 
     integer :: n, p
-    real*8 :: y, alpha
+    real(kind=dp) :: y, alpha
 
     n = size(x_vals)
     p = find_1d(n, x_vals, x)
@@ -576,12 +576,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
-  real*8 function string_to_real(string)
+  real(kind=dp) function string_to_real(string)
 
     !> String to convert.
     character(len=*), intent(in) :: string
     
-    real*8 :: val
+    real(kind=dp) :: val
     integer :: ios
     character(len=len(string)+300) :: error_msg
 
@@ -640,9 +640,9 @@ contains
     !> Number of entries.
     integer, intent(in) :: n
     !> Probability density function (not normalized).
-    real*8, intent(in) :: pdf(n)
+    real(kind=dp), intent(in) :: pdf(n)
 
-    real*8 :: pdf_max
+    real(kind=dp) :: pdf_max
     integer :: k
     logical :: found
 
@@ -692,7 +692,7 @@ contains
     found = .false.
     do while (.not. found)
        k = pmc_rand_int(n)
-       if (pmc_random() < dble(pdf(k)) / dble(pdf_max)) then
+       if (pmc_random() < real(pdf(k), kind=dp) / real(pdf_max, kind=dp)) then
           found = .true.
        end if
     end do
@@ -712,7 +712,7 @@ contains
     !> Number of entries in vector.
     integer, intent(in) :: n
     !> Continuous vector.
-    real*8, intent(in) :: vec_cts(n)
+    real(kind=dp), intent(in) :: vec_cts(n)
     !> Number of discrete samples to use.
     integer, intent(in) :: n_samp
     !> Discretized vector.
@@ -739,31 +739,31 @@ contains
     !> Number of entries in vectors.
     integer, intent(in) :: n
     !> Continuous vector.
-    real*8, intent(in) :: vec_cts(n)
+    real(kind=dp), intent(in) :: vec_cts(n)
     !> Number of discrete samples to use.
     integer, intent(in) :: n_samp
     !> Discretized vector.
     integer, intent(out) :: vec_disc(n)
     
     integer :: k(1)
-    real*8 :: vec_tot
+    real(kind=dp) :: vec_tot
     
     vec_tot = sum(vec_cts)
     
     ! assign a best guess for each bin independently
-    vec_disc = nint(vec_cts / vec_tot * dble(n_samp))
+    vec_disc = nint(vec_cts / vec_tot * real(n_samp, kind=dp))
     
     ! if we have too few particles then add more
     do while (sum(vec_disc) < n_samp)
-       k = minloc(abs(dble(vec_disc + 1) - vec_cts) &
-            - abs(dble(vec_disc) - vec_cts))
+       k = minloc(abs(real(vec_disc + 1, kind=dp) - vec_cts) &
+            - abs(real(vec_disc, kind=dp) - vec_cts))
        vec_disc(k) = vec_disc(k) + 1
     end do
     
     ! if we have too many particles then remove some
     do while (sum(vec_disc) > n_samp)
-       k = minloc(abs(dble(vec_disc - 1) - vec_cts) &
-            - abs(dble(vec_disc) - vec_cts))
+       k = minloc(abs(real(vec_disc - 1, kind=dp) - vec_cts) &
+            - abs(real(vec_disc, kind=dp) - vec_cts))
        vec_disc(k) = vec_disc(k) - 1
     end do
     
@@ -794,11 +794,11 @@ contains
   subroutine average_real(real_vec, real_avg)
     
     !> Array of real numbers.
-    real*8, intent(in) :: real_vec(:)
+    real(kind=dp), intent(in) :: real_vec(:)
     !> Average of real_vec.
-    real*8, intent(out) :: real_avg
+    real(kind=dp), intent(out) :: real_avg
     
-    real_avg = sum(real_vec) / dble(size(real_vec))
+    real_avg = sum(real_vec) / real(size(real_vec), kind=dp)
     
   end subroutine average_real
   
@@ -862,10 +862,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert degrees to radians.
-  real*8 function deg2rad(deg)
+  real(kind=dp) function deg2rad(deg)
 
     !> Input degrees.
-    real*8, intent(in) :: deg
+    real(kind=dp), intent(in) :: deg
 
     deg2rad = deg / 180d0 * const%pi
 
@@ -874,10 +874,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert radians to degrees.
-  real*8 function rad2deg(rad)
+  real(kind=dp) function rad2deg(rad)
 
     !> Input radians.
-    real*8, intent(in) :: rad
+    real(kind=dp), intent(in) :: rad
 
     rad2deg = rad / const%pi * 180d0
 

@@ -16,10 +16,10 @@
 !> \page coding_style Coding Style
 !>
 !> The code is mainly Fortran 90, with a few parts still clearly
-!> showing their Fortran 77 heritage. There should not be any usage of
-!> compiler-dependent features or Fortran features from Fortran 95 or
-!> later. The code needs to be processed with \c cpp or a compatible
-!> pre-processor.
+!> showing their Fortran 77 heritage. A few Fortran 95 and Fortran
+!> 2003 features are used (mainly the \c COMMAND_ARGUMENT_COUNT and \c
+!> GET_COMMAND_ARGUMENT intrinsics). The code needs to be processed
+!> with \c cpp or a compatible pre-processor.
 !>
 !> \section oo_fortran Object Oriented Fortran
 !>
@@ -91,12 +91,12 @@ program partmc
   if (pmc_mpi_rank() == 0) then
      ! only the root process accesses the commandline
 
-     if (iargc() /= 1) then
+     if (command_argument_count() /= 1) then
         call print_usage()
         call die_msg(739173192, "invalid commandline arguments")
      end if
 
-     call getarg(1, spec_name)
+     call get_command_argument(1, spec_name)
   end if
 
   call pmc_mpi_bcast_string(spec_name)
@@ -314,7 +314,7 @@ contains
        call aero_state_deallocate(aero_state)
        call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
             aero_data%n_spec)
-       aero_state%comp_vol = dble(part_opt%n_part_max) / &
+       aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
             aero_dist_total_num_conc(aero_dist_init)
        call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
             aero_data, aero_dist_init, 1d0, 0d0)

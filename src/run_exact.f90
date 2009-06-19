@@ -23,17 +23,17 @@ module pmc_run_exact
   type run_exact_opt_t
      ! FIXME: following few items depend on kernel/soln choice
      !> Particle number concentration (#/m^3).
-     real*8 :: num_conc
+     real(kind=dp) :: num_conc
      !> Mean init radius (m).
-     real*8 :: mean_radius
+     real(kind=dp) :: mean_radius
      !> Aerosol initial distribution.
      type(aero_dist_t) :: aero_dist_init
      !> Particle density (kg/m^3).
-     real*8 :: rho_p
+     real(kind=dp) :: rho_p
      !> Total simulation time.
-     real*8 :: t_max
+     real(kind=dp) :: t_max
      !> Interval to output info (s).
-     real*8 :: t_output
+     real(kind=dp) :: t_output
      !> Output prefix.
      character(len=300) :: prefix
   end type run_exact_opt_t
@@ -63,7 +63,7 @@ contains
     
     integer :: i_time, n_time, ncid
     type(aero_binned_t) :: aero_binned
-    real*8 :: time
+    real(kind=dp) :: time
     type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
     
@@ -82,13 +82,13 @@ contains
          !> Aerosol data.
          type(aero_data_t), intent(in) :: aero_data
          !> Current time.
-         real*8, intent(in) :: time
+         real(kind=dp), intent(in) :: time
          !> Particle number concentration (#/m^3).
-         real*8, intent(in) :: num_conc
+         real(kind=dp), intent(in) :: num_conc
          !> Mean init radius (m).
-         real*8, intent(in) :: mean_radius
+         real(kind=dp), intent(in) :: mean_radius
          !> Particle density (kg/m^3).
-         real*8, intent(in) :: rho_p
+         real(kind=dp), intent(in) :: rho_p
          !> Initial distribution.
          type(aero_dist_t), intent(in) :: aero_dist_init
          !> Environment state.
@@ -106,7 +106,7 @@ contains
 
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     do i_time = 0,n_time
-       time = dble(i_time) / dble(n_time) * exact_opt%t_max
+       time = real(i_time, kind=dp) / real(n_time, kind=dp) * exact_opt%t_max
        call env_data_update_state(env_data, env_state, time)
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_radius, exact_opt%rho_p, &

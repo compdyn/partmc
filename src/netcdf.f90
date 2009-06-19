@@ -80,7 +80,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to write.
-    real*8, intent(out) :: var
+    real(kind=dp), intent(out) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
@@ -124,7 +124,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to read, must be correctly sized.
-    real*8, intent(out) :: var(:)
+    real(kind=dp), intent(out) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
@@ -168,7 +168,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to read, must be correctly sized.
-    real*8, intent(out) :: var(:,:)
+    real(kind=dp), intent(out) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
@@ -212,7 +212,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to write.
-    real*8, intent(in) :: var
+    real(kind=dp), intent(in) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
@@ -262,7 +262,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to write.
-    real*8, intent(in) :: var(:)
+    real(kind=dp), intent(in) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
@@ -322,7 +322,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to write.
-    real*8, intent(in) :: var(:,:)
+    real(kind=dp), intent(in) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.

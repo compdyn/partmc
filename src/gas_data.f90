@@ -31,7 +31,7 @@ module pmc_gas_data
      !> Number of species.
      integer :: n_spec
      !> Molecular weight (kg mole^{-1}).
-     real*8, pointer :: molec_weight(:)
+     real(kind=dp), pointer :: molec_weight(:)
      !> Species name [length \c n_spec].
      character(len=GAS_NAME_LEN), pointer :: name(:)
      !> Index of the corresponding MOSAIC species [length \c
@@ -186,7 +186,7 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_data(:,:)
+    real(kind=dp), pointer :: species_data(:,:)
 
     ! read the gas data from the specified file
     call spec_file_read_string(file, 'gas_data', read_name)

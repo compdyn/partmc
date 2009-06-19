@@ -35,7 +35,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
-    real*8, intent(out) :: k
+    real(kind=dp), intent(out) :: k
     
     call kernel_constant_max(aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), aero_data, env_state, k)
@@ -48,17 +48,17 @@ contains
   subroutine kernel_constant_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle.
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Volume of second particle.
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel maximum value.
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
 
-    real*8, parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
+    real(kind=dp), parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
 
     k_max = beta_0
     
@@ -76,13 +76,13 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Current time.
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_conc
+    real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> Particle density (kg/m^3).
-    real*8, intent(in) :: rho_p
+    real(kind=dp), intent(in) :: rho_p
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.
@@ -90,10 +90,10 @@ contains
     !> Output state.
     type(aero_binned_t), intent(out) :: aero_binned
     
-    real*8 :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol
+    real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol
     integer :: k
     
-    real*8, parameter :: lambda = 1d0 ! FIXME: what is this?
+    real(kind=dp), parameter :: lambda = 1d0 ! FIXME: what is this?
 
     call kernel_constant_max(1d0, 1d0, aero_data, env_state, beta_0)
     

@@ -52,7 +52,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Timestep for coagulation.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -159,15 +159,15 @@ contains
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
     !> 24-hr UTC clock time (hr).
-    real*8 :: time_UTC
+    real(kind=dp) :: time_UTC
     !> Time at noon, march 21, UTC (s).
-    real*8 :: tmar21_sec
-    real*8 :: conv_fac(aero_data%n_spec), dum_var
+    real(kind=dp) :: tmar21_sec
+    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
 
@@ -180,8 +180,8 @@ contains
     end interface
 
     ! update time variables
-    tmar21_sec = dble((79*24 + 12)*3600)    ! noon, mar 21, UTC
-    tcur_sec = dble(tbeg_sec) + time        ! current (old) time since
+    tmar21_sec = real((79*24 + 12)*3600, kind=dp)    ! noon, mar 21, UTC
+    tcur_sec = real(tbeg_sec, kind=dp) + time        ! current (old) time since
                                             ! the beg of year 00:00, UTC (s)
 
     time_UTC = env_state%start_time/3600d0  ! 24-hr UTC clock time (hr)
@@ -291,7 +291,7 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    real*8 :: conv_fac(aero_data%n_spec), dum_var
+    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
 
@@ -375,7 +375,7 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -438,7 +438,7 @@ contains
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -466,8 +466,8 @@ contains
                - scat_cross(i_mosaic)) / 1d4                       ! (m^2)
           particle%scatter_cross_sect = scat_cross(i_mosaic) / 1d4 ! (m^2)
           particle%asymmetry = asym_particle(i_mosaic)             ! (1)
-          particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind = 8) ! (1)
-          particle%refract_core = cmplx(ri_core_a(i_mosaic), kind = 8)   ! (1)
+          particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind=dc) ! (1)
+          particle%refract_core = cmplx(ri_core_a(i_mosaic), kind=dc)   ! (1)
           ! FIXME: how do we get core_vol?
           !particle%core_vol = diam2vol(dp_core_a(i_mosaic))        ! (m^3)
           particle%core_vol = 0d0

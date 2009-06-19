@@ -31,13 +31,13 @@ module pmc_run_part
      !> Maximum number of particles.
     integer :: n_part_max
     !> Final time (s).
-    real*8 :: t_max
+    real(kind=dp) :: t_max
     !> Output interval (0 disables) (s).
-    real*8 :: t_output
+    real(kind=dp) :: t_output
     !> Progress interval (0 disables) (s).
-    real*8 :: t_progress
+    real(kind=dp) :: t_progress
     !> Timestep for coagulation.
-    real*8 :: del_t
+    real(kind=dp) :: del_t
     !> Prefix for output files.
     character(len=300) :: output_prefix
     !> Whether to do coagulation.
@@ -55,9 +55,9 @@ module pmc_run_part
     !> Total number of loops.
     integer :: n_loop
     !> Cpu_time() of start.
-    real*8 :: t_wall_start
+    real(kind=dp) :: t_wall_start
     !> Mix rate for parallel states (0 to 1).
-    real*8 :: mix_rate
+    real(kind=dp) :: mix_rate
     !> Whether to record particle removal information.
     logical :: record_removals
  end type run_part_opt_t
@@ -98,28 +98,28 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
+         real(kind=dp), intent(in) :: v1
+         real(kind=dp), intent(in) :: v2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k_max
+         real(kind=dp), intent(out) :: k_max
        end subroutine kernel_max
     end interface
 #endif
     
-    real*8 :: time, pre_time, pre_del_t
-    real*8 :: last_output_time, last_progress_time
-    real*8 :: k_max(bin_grid%n_bin, bin_grid%n_bin)
+    real(kind=dp) :: time, pre_time, pre_del_t
+    real(kind=dp) :: last_output_time, last_progress_time
+    real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer :: tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
     integer :: progress_n_samp, progress_n_coag
     integer :: global_n_part, global_n_samp, global_n_coag
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
-    real*8 :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
+    real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
@@ -159,7 +159,7 @@ contains
     i_time_start = nint(time / part_opt%del_t) + 1
     do i_time = i_time_start,n_time
 
-       time = dble(i_time) * part_opt%del_t
+       time = real(i_time, kind=dp) * part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time)
@@ -248,8 +248,8 @@ contains
              if (rank == 0) then
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
-                prop_done = (dble(part_opt%i_loop - 1) + (time - t_start) &
-                     / (part_opt%t_max - t_start)) / dble(part_opt%n_loop)
+                prop_done = (real(part_opt%i_loop - 1, kind=dp) + (time - t_start) &
+                     / (part_opt%t_max - t_start)) / real(part_opt%n_loop, kind=dp)
                 t_wall_elapsed = t_wall_now - part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed
@@ -294,7 +294,7 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: part_opt
     !> Maximum kernel.
-    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
@@ -311,14 +311,14 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
     
     logical did_coag
     integer i, j, n_samp, i_samp
-    real*8 n_samp_real
+    real(kind=dp) n_samp_real
 
     tot_n_samp = 0
     tot_n_coag = 0
@@ -364,7 +364,7 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: part_opt
     !> Maximum kernel.
-    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
@@ -381,7 +381,7 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
@@ -422,7 +422,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Amount to mix (0 to 1).
-    real*8, intent(in) :: mix_rate
+    real(kind=dp), intent(in) :: mix_rate
 
     call assert(173605827, (mix_rate >= 0d0) .and. (mix_rate <= 1d0))
     if (mix_rate == 0d0) return

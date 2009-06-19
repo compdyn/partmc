@@ -61,7 +61,7 @@ module pmc_aero_state
      !> Bin arrays.
      type(aero_particle_array_t), pointer :: bin(:)
      !> Computational volume (m^3).
-     real*8 :: comp_vol
+     real(kind=dp) :: comp_vol
      !> Total number of particles.
      integer :: n_part
      !> Information on removed particles.
@@ -277,11 +277,11 @@ contains
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
     !> Volume fraction to sample (1).
-    real*8, intent(in) :: sample_prop
+    real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
-    real*8, intent(in) :: create_time
+    real(kind=dp), intent(in) :: create_time
 
-    real*8 :: n_samp_avg, sample_vol, radius, vol
+    real(kind=dp) :: n_samp_avg, sample_vol, radius, vol
     integer :: n_samp, i_mode, i_samp, i_bin
     integer :: num_per_bin(bin_grid%n_bin)
     type(aero_mode_t), pointer :: aero_mode
@@ -342,19 +342,19 @@ contains
     !> Destination state.
     type(aero_state_t), intent(inout) :: aero_state_to
     !> Proportion to sample.
-    real*8, intent(in) :: sample_prop
+    real(kind=dp), intent(in) :: sample_prop
     !> Action for removal (see pmc_aero_info module for action
     !> parameters). Set to AERO_INFO_NONE to not log removal.
     integer, intent(in) :: removal_action
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
-    real*8 :: vol_ratio
+    real(kind=dp) :: vol_ratio
     type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
     n_transfer = rand_poisson(sample_prop &
-         * dble(aero_state_total_particles(aero_state_from)))
+         * real(aero_state_total_particles(aero_state_from), kind=dp))
     n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     i_transfer = 0
@@ -418,21 +418,21 @@ contains
     !> Destination state.
     type(aero_state_t), intent(inout) :: aero_state_to
     !> Proportion to sample.
-    real*8, intent(in) :: sample_prop
+    real(kind=dp), intent(in) :: sample_prop
     !> Action for removal (see pmc_aero_info module for action
     !> parameters). Set to AERO_INFO_NONE to not log removal.
     integer, intent(in) :: removal_action
     
     integer :: n_transfer, i_transfer, n_bin, i_bin, i_part
     logical :: do_add, do_remove
-    real*8 :: vol_ratio
+    real(kind=dp) :: vol_ratio
     type(aero_info_t) :: aero_info
 
     n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     do i_bin = 1,n_bin
        n_transfer = prob_round(sample_prop &
-            * dble(aero_state_from%bin(i_bin)%n_part))
+            * real(aero_state_from%bin(i_bin)%n_part, kind=dp))
        i_transfer = 0
        do while (i_transfer < n_transfer)
           if (aero_state_from%bin(i_bin)%n_part <= 0) exit
@@ -496,7 +496,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state_delta
     
     integer :: n_bin, i_bin, i_part, n_new_part, i_new_part
-    real*8 :: vol_ratio
+    real(kind=dp) :: vol_ratio
     
     n_bin = size(aero_state%bin)
     vol_ratio = aero_state%comp_vol / aero_state_delta%comp_vol
@@ -612,7 +612,7 @@ contains
 
     n_part_orig = aero_state%n_part
     do i_bin = 1,bin_grid%n_bin
-       n_remove = prob_round(dble(aero_state%bin(i_bin)%n_part) / 2d0)
+       n_remove = prob_round(real(aero_state%bin(i_bin)%n_part, kind=dp) / 2d0)
        do i_remove = 1,n_remove
           i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
           call aero_info_allocate(aero_info)
@@ -625,7 +625,7 @@ contains
        end do
     end do
     aero_state%comp_vol = aero_state%comp_vol &
-         * dble(aero_state%n_part) / dble(n_part_orig)
+         * real(aero_state%n_part, kind=dp) / real(n_part_orig, kind=dp)
 
   end subroutine aero_state_halve
   
@@ -691,7 +691,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Mixing rate (0 to 1).
-    real*8, intent(in) :: mix_rate
+    real(kind=dp), intent(in) :: mix_rate
     !> Process to send to.
     integer, intent(in) :: dest
     !> Aero data values.
@@ -765,7 +765,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Mixing rate (0 to 1).
-    real*8, intent(in) :: mix_rate
+    real(kind=dp), intent(in) :: mix_rate
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
@@ -810,8 +810,8 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     
-    real*8 :: check_bin_v, check_vol_conc, vol_tol
-    real*8 :: num_tol, state_num_conc
+    real(kind=dp) :: check_bin_v, check_vol_conc, vol_tol
+    real(kind=dp) :: num_tol, state_num_conc
     integer :: i, k, k_check, s, n_part_check, id, max_id
     logical :: error
     logical, allocatable :: id_present(:)
@@ -1064,7 +1064,7 @@ contains
           call aero_state_allocate_size(aero_state_transfers(i_proc), &
                size(aero_state_total%bin), aero_data%n_spec)
           aero_state_transfers(i_proc)%comp_vol = &
-               aero_state_total%comp_vol / n_proc
+               aero_state_total%comp_vol / real(n_proc, kind=dp)
        end do
        do i_bin = 1,size(aero_state_total%bin)
           do i_part = 1,aero_state_total%bin(i_bin)%n_part
@@ -1235,21 +1235,21 @@ contains
     integer :: dimid_aero_removed
     integer :: i_bin, i_part_in_bin, i_part, i_remove
     type(aero_particle_t), pointer :: particle
-    real*8 :: aero_particle_mass(aero_state%n_part, aero_data%n_spec)
+    real(kind=dp) :: aero_particle_mass(aero_state%n_part, aero_data%n_spec)
     integer :: aero_n_orig_part(aero_state%n_part)
-    real*8 :: aero_absorb_cross_sect(aero_state%n_part)
-    real*8 :: aero_scatter_cross_sect(aero_state%n_part)
-    real*8 :: aero_asymmetry(aero_state%n_part)
-    real*8 :: aero_refract_shell_real(aero_state%n_part)
-    real*8 :: aero_refract_shell_imag(aero_state%n_part)
-    real*8 :: aero_refract_core_real(aero_state%n_part)
-    real*8 :: aero_refract_core_imag(aero_state%n_part)
-    real*8 :: aero_core_vol(aero_state%n_part)
+    real(kind=dp) :: aero_absorb_cross_sect(aero_state%n_part)
+    real(kind=dp) :: aero_scatter_cross_sect(aero_state%n_part)
+    real(kind=dp) :: aero_asymmetry(aero_state%n_part)
+    real(kind=dp) :: aero_refract_shell_real(aero_state%n_part)
+    real(kind=dp) :: aero_refract_shell_imag(aero_state%n_part)
+    real(kind=dp) :: aero_refract_core_real(aero_state%n_part)
+    real(kind=dp) :: aero_refract_core_imag(aero_state%n_part)
+    real(kind=dp) :: aero_core_vol(aero_state%n_part)
     integer :: aero_water_hyst_leg(aero_state%n_part)
-    real*8 :: aero_comp_vol(aero_state%n_part)
+    real(kind=dp) :: aero_comp_vol(aero_state%n_part)
     integer :: aero_id(aero_state%n_part)
-    real*8 :: aero_least_create_time(aero_state%n_part)
-    real*8 :: aero_greatest_create_time(aero_state%n_part)
+    real(kind=dp) :: aero_least_create_time(aero_state%n_part)
+    real(kind=dp) :: aero_greatest_create_time(aero_state%n_part)
     integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
@@ -1363,21 +1363,21 @@ contains
     type(aero_particle_t) :: aero_particle
     character(len=1000) :: unit, name
 
-    real*8, allocatable :: aero_particle_mass(:,:)
+    real(kind=dp), allocatable :: aero_particle_mass(:,:)
     integer, allocatable :: aero_n_orig_part(:)
-    real*8, allocatable :: aero_absorb_cross_sect(:)
-    real*8, allocatable :: aero_scatter_cross_sect(:)
-    real*8, allocatable :: aero_asymmetry(:)
-    real*8, allocatable :: aero_refract_shell_real(:)
-    real*8, allocatable :: aero_refract_shell_imag(:)
-    real*8, allocatable :: aero_refract_core_real(:)
-    real*8, allocatable :: aero_refract_core_imag(:)
-    real*8, allocatable :: aero_core_vol(:)
+    real(kind=dp), allocatable :: aero_absorb_cross_sect(:)
+    real(kind=dp), allocatable :: aero_scatter_cross_sect(:)
+    real(kind=dp), allocatable :: aero_asymmetry(:)
+    real(kind=dp), allocatable :: aero_refract_shell_real(:)
+    real(kind=dp), allocatable :: aero_refract_shell_imag(:)
+    real(kind=dp), allocatable :: aero_refract_core_real(:)
+    real(kind=dp), allocatable :: aero_refract_core_imag(:)
+    real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
-    real*8, allocatable :: aero_comp_vol(:)
+    real(kind=dp), allocatable :: aero_comp_vol(:)
     integer, allocatable :: aero_id(:)
-    real*8, allocatable :: aero_least_create_time(:)
-    real*8, allocatable :: aero_greatest_create_time(:)
+    real(kind=dp), allocatable :: aero_least_create_time(:)
+    real(kind=dp), allocatable :: aero_greatest_create_time(:)
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
@@ -1454,9 +1454,9 @@ contains
        aero_particle%asymmetry = aero_asymmetry(i_part)
        aero_particle%refract_shell = &
             cmplx(aero_refract_shell_real(i_part), &
-            aero_refract_shell_imag(i_part))
+            aero_refract_shell_imag(i_part), kind=dc)
        aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
-            aero_refract_core_imag(i_part))
+            aero_refract_core_imag(i_part), kind=dc)
        aero_particle%core_vol = aero_core_vol(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_state%comp_vol = aero_comp_vol(i_part)

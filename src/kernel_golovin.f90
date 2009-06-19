@@ -36,7 +36,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
-    real*8, intent(out) :: k
+    real(kind=dp), intent(out) :: k
     
     call kernel_golovin_max(aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), aero_data, env_state, k)
@@ -49,17 +49,17 @@ contains
   subroutine kernel_golovin_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle.
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Volume of second particle.
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel maximum value.
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
     
-    real*8, parameter :: beta_1 = 1000d0
+    real(kind=dp), parameter :: beta_1 = 1000d0
     
     k_max = beta_1 * (v1 + v2)
     
@@ -77,13 +77,13 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Current time.
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_conc
+    real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> Particle density (kg/m^3).
-    real*8, intent(in) :: rho_p
+    real(kind=dp), intent(in) :: rho_p
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.
@@ -91,7 +91,7 @@ contains
     !> Output state.
     type(aero_binned_t), intent(out) :: aero_binned
     
-    real*8 :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
+    real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
     
     call kernel_golovin_max(1d0, 0d0, aero_data, env_state, beta_1)
@@ -146,12 +146,12 @@ contains
   subroutine bessi1(x, r)
 
     !> Function argument.
-    real*8, intent(in) :: x
+    real(kind=dp), intent(in) :: x
     !> Function value.
-    real*8, intent(out) :: r
+    real(kind=dp), intent(out) :: r
     
-    real*8 ax
-    real*8 p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y
+    real(kind=dp) ax
+    real(kind=dp) p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y
     data p1,p2,p3,p4,p5,p6,p7/0.5d0,0.87890594d0,0.51498869d0, &
          0.15084934d0,0.2658733d-1,0.301532d-2,0.32411d-3/
     data q1,q2,q3,q4,q5,q6,q7,q8,q9/0.39894228d0,-0.3988024d-1, &

@@ -58,6 +58,9 @@ also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
 etc. What about 2D arrays, is it correct to treat them as 1D as we do
 at present with mpi_pack?
 
+Use mpi_sizeof() and mpi_type_match_size() rather than hardcoding. See
+http://www.mpi-forum.org/docs/mpi21-report-bw/node347.htm
+
 Change gas mixing to be by diffusion, rather than allreduce, also env,
 but first fix weighting so it is not all equal, but weighted by
 particle numbers and comp vols or something?

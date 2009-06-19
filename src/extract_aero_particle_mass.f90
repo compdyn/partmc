@@ -12,6 +12,7 @@ program extract_aero_particle_mass
   use netcdf
 
   integer, parameter :: out_unit = 64
+  integer, parameter :: dp = kind(0.d0)
 
   character(len=1000) :: in_filename, out_filename
   integer :: ncid
@@ -22,25 +23,25 @@ program extract_aero_particle_mass
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
   character(len=1000) :: remaining_species
-  real*8 :: time
-  real*8, allocatable :: aero_particle_mass(:,:)
-  real*8, allocatable :: aero_density(:)
-  real*8, allocatable :: aero_comp_vol(:)
+  real(kind=dp) :: time
+  real(kind=dp), allocatable :: aero_particle_mass(:,:)
+  real(kind=dp), allocatable :: aero_density(:)
+  real(kind=dp), allocatable :: aero_comp_vol(:)
   integer, allocatable :: aero_id(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time, i
-  real*8 :: r_min, r_max, radius, volume, dlnr
+  real(kind=dp) :: r_min, r_max, radius, volume, dlnr
 
   ! process commandline arguments
-  if (iargc() .ne. 2) then
+  if (command_argument_count() .ne. 2) then
      write(6,*) 'Usage: extract_aero_particle_mass ' &
           // '<netcdf_state_file> <output_filename>'
-     call exit(2)
+     stop 2
   endif
-  call getarg(1, in_filename)
-  call getarg(2, out_filename)
+  call get_command_argument(1, in_filename)
+  call get_command_argument(2, out_filename)
 
   ! open NetCDF file
   call nc_check(nf90_open(in_filename, NF90_NOWRITE, ncid))
@@ -62,7 +63,7 @@ program extract_aero_particle_mass
   if (status == NF90_EBADDIM) then
      ! dimension missing ==> no particles, so skip this time
      write(0,*) 'ERROR: no particles found'
-     call exit(1)
+     stop 1
   end if
   call nc_check(status)
   call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
@@ -77,7 +78,7 @@ program extract_aero_particle_mass
        .or. (dimids(1) /= dimid_aero_particle) &
        .or. (dimids(2) /= dimid_aero_species)) then
      write(*,*) "ERROR: unexpected aero_particle_mass dimids"
-     call exit(1)
+     stop 1
   end if
   allocate(aero_particle_mass(n_aero_particle, n_aero_species))
   call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
@@ -91,7 +92,7 @@ program extract_aero_particle_mass
   if ((ndims /= 1) &
        .or. (dimids(1) /= dimid_aero_species)) then
      write(*,*) "ERROR: unexpected aero_density dimids"
-     call exit(1)
+     stop 1
   end if
   allocate(aero_density(n_aero_species))
   call nc_check(nf90_get_var(ncid, varid_aero_density, &
@@ -105,7 +106,7 @@ program extract_aero_particle_mass
   if ((ndims /= 1) &
        .or. (dimids(1) /= dimid_aero_particle)) then
      write(*,*) "ERROR: unexpected aero_comp_vol dimids"
-     call exit(1)
+     stop 1
   end if
   allocate(aero_comp_vol(n_aero_particle))
   call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
@@ -119,7 +120,7 @@ program extract_aero_particle_mass
   if ((ndims /= 1) &
        .or. (dimids(1) /= dimid_aero_particle)) then
      write(*,*) "ERROR: unexpected aero_id dimids"
-     call exit(1)
+     stop 1
   end if
   allocate(aero_id(n_aero_particle))
   call nc_check(nf90_get_var(ncid, varid_aero_id, &
@@ -154,7 +155,7 @@ program extract_aero_particle_mass
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(out_filename), ' for writing: ', ios
-     call exit(1)
+     stop 1
   end if
 
   ! output data
@@ -193,7 +194,7 @@ contains
 
     if (status /= NF90_NOERR) then
        write(0,*) nf90_strerror(status)
-       call exit(1)
+       stop 1
     end if
 
   end subroutine nc_check

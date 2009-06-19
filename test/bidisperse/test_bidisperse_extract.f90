@@ -8,13 +8,16 @@ program extract_summary
 
   use netcdf
 
+  !> Kind of a double precision real number.
+  integer, parameter :: dp = kind(0.d0)
+
   integer, parameter :: out_unit = 64
   character(len=*), parameter :: in_prefix = "out/bidisperse_part_0001_"
   character(len=*), parameter :: out_filename = "out/bidisperse_part_data.txt"
-  real*8, parameter :: radius_cutoff = 5d-5
-  real*8, parameter :: desired_small_init_num_conc = 1d9
-  real*8, parameter :: desired_large_init_num_conc = 1d5
-  real*8, parameter :: init_rel_tol = 5d-2
+  real(kind=dp), parameter :: radius_cutoff = 5d-5
+  real(kind=dp), parameter :: desired_small_init_num_conc = 1d9
+  real(kind=dp), parameter :: desired_large_init_num_conc = 1d5
+  real(kind=dp), parameter :: init_rel_tol = 5d-2
 
   character(len=1000) :: in_filename
   integer :: ncid
@@ -24,19 +27,19 @@ program extract_summary
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
-  real*8 :: time
-  real*8, allocatable :: aero_particle_mass(:,:)
-  real*8, allocatable :: aero_density(:)
-  real*8, allocatable :: aero_comp_vol(:)
-  real*8, allocatable :: aero_dist(:,:)
+  real(kind=dp) :: time
+  real(kind=dp), allocatable :: aero_particle_mass(:,:)
+  real(kind=dp), allocatable :: aero_density(:)
+  real(kind=dp), allocatable :: aero_comp_vol(:)
+  real(kind=dp), allocatable :: aero_dist(:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
-  real*8 :: val, large_init_num_conc, small_init_num_conc
-  real*8 :: large_mass_conc, small_num_conc
-  real*8 :: radius, volume
+  real(kind=dp) :: val, large_init_num_conc, small_init_num_conc
+  real(kind=dp) :: large_mass_conc, small_num_conc
+  real(kind=dp) :: radius, volume
   integer :: large_number
-  real*8 :: large_rel_error, small_rel_error
+  real(kind=dp) :: large_rel_error, small_rel_error
   logical :: bad_large_num
 
   ! open output
@@ -44,7 +47,7 @@ program extract_summary
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(out_filename), ' for writing: ', ios
-     call exit(1)
+     stop 1
   end if
 
   ! process NetCDF files
@@ -81,7 +84,7 @@ program extract_summary
           .or. (dimids(1) /= dimid_aero_particle) &
           .or. (dimids(2) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_particle_mass dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_particle_mass(n_aero_particle, n_aero_species))
      call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
@@ -95,7 +98,7 @@ program extract_summary
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_density dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_density(n_aero_species))
      call nc_check(nf90_get_var(ncid, varid_aero_density, &
@@ -109,7 +112,7 @@ program extract_summary
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_particle)) then
         write(*,*) "ERROR: unexpected aero_comp_vol dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_comp_vol(n_aero_particle))
      call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
@@ -154,7 +157,7 @@ program extract_summary
   if (bad_large_num) then
      write(*,*) "WARNING: other than one large particle found,", &
           " so results will be bad."
-     call exit(1)
+     stop 1
   end if
 
 contains
@@ -169,7 +172,7 @@ contains
 
     if (status /= NF90_NOERR) then
        write(0,*) nf90_strerror(status)
-       call exit(1)
+       stop 1
     end if
 
   end subroutine nc_check

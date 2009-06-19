@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2008 Matthew West
+! Copyright (C) 2007-2009 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -36,9 +36,9 @@ contains
   integer function rand_poisson(mean)
 
     !> Mean of the distribution.
-    real*8, intent(in) :: mean
+    real(kind=dp), intent(in) :: mean
 
-    real*8 :: L, p
+    real(kind=dp) :: L, p
     integer :: k
 
     if (mean <= 10d0) then
@@ -64,14 +64,14 @@ contains
 
   !> Generates a normally distributed random number with the given
   !> mean and standard deviation.
-  real*8 function rand_normal(mean, stddev)
+  real(kind=dp) function rand_normal(mean, stddev)
 
     !> Mean of distribution.
-    real*8, intent(in) :: mean
+    real(kind=dp), intent(in) :: mean
     !> Standard deviation of distribution.
-    real*8, intent(in) :: stddev
+    real(kind=dp), intent(in) :: stddev
 
-    real*8 :: u1, u2, r, theta, z0, z1
+    real(kind=dp) :: u1, u2, r, theta, z0, z1
 
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform

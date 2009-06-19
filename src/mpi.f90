@@ -76,7 +76,7 @@ contains
 
     call mpi_abort(MPI_COMM_WORLD, status, ierr)
 #else
-    call exit(status)
+    stop status
 #endif
 
   end subroutine pmc_mpi_abort
@@ -229,7 +229,7 @@ contains
   integer function pmc_mpi_pack_size_real(val)
 
     !> Value to pack.
-    real*8, intent(in) :: val
+    real(kind=dp), intent(in) :: val
 
     integer :: ierr
 
@@ -237,9 +237,8 @@ contains
     call mpi_pack_size(1, MPI_REAL8, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_real, ierr)
     call pmc_mpi_check_ierr(ierr)
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_real = 8
-!DEBUG
 #else
     pmc_mpi_pack_size_real = 0
 #endif
@@ -262,10 +261,9 @@ contains
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_string = pmc_mpi_pack_size_string &
          + pmc_mpi_pack_size_integer(len_trim(val))
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_string = len_trim(val) &
          + pmc_mpi_pack_size_integer(len_trim(val))
-!DEBUG
 #else
     pmc_mpi_pack_size_string = 0
 #endif
@@ -286,9 +284,8 @@ contains
     call mpi_pack_size(1, MPI_LOGICAL, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_logical, ierr)
     call pmc_mpi_check_ierr(ierr)
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_logical = 4
-!DEBUG
 #else
     pmc_mpi_pack_size_logical = 0
 #endif
@@ -301,7 +298,7 @@ contains
   integer function pmc_mpi_pack_size_complex(val)
 
     !> Value to pack.
-    complex*16, intent(in) :: val
+    complex(kind=dc), intent(in) :: val
 
     pmc_mpi_pack_size_complex = 16
 
@@ -323,10 +320,9 @@ contains
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer_array &
          + pmc_mpi_pack_size_integer(size(val))
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_integer_array = size(val) * 4 &
          + pmc_mpi_pack_size_integer(size(val))
-!DEBUG
 #else
     pmc_mpi_pack_size_integer_array = 0
 #endif
@@ -339,7 +335,7 @@ contains
   integer function pmc_mpi_pack_size_real_array(val)
 
     !> Value to pack.
-    real*8, intent(in) :: val(:)
+    real(kind=dp), intent(in) :: val(:)
 
     integer :: ierr
 
@@ -349,10 +345,9 @@ contains
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
          + pmc_mpi_pack_size_integer(size(val))
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_real_array = size(val) * 8 &
          + pmc_mpi_pack_size_integer(size(val))
-!DEBUG
 #else
     pmc_mpi_pack_size_real_array = 0
 #endif
@@ -383,7 +378,7 @@ contains
   integer function pmc_mpi_pack_size_real_array_2d(val)
 
     !> Value to pack.
-    real*8, intent(in) :: val(:,:)
+    real(kind=dp), intent(in) :: val(:,:)
 
     integer :: ierr
 
@@ -394,11 +389,10 @@ contains
     pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
          + pmc_mpi_pack_size_integer(size(val,1)) &
          + pmc_mpi_pack_size_integer(size(val,2))
-!DEBUG
+    !FIXME: HACK for now
     pmc_mpi_pack_size_real_array_2d = size(val) * 8 &
          + pmc_mpi_pack_size_integer(size(val,1)) &
          + pmc_mpi_pack_size_integer(size(val,2))
-!DEBUG
 #else
     pmc_mpi_pack_size_real_array_2d = 0
 #endif
@@ -440,7 +434,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, intent(in) :: val
+    real(kind=dp), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -517,7 +511,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    complex*16, intent(in) :: val
+    complex(kind=dc), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -569,7 +563,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, intent(in) :: val(:)
+    real(kind=dp), intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -623,7 +617,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, intent(in) :: val(:,:)
+    real(kind=dp), intent(in) :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -677,7 +671,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, intent(out) :: val
+    real(kind=dp), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -757,7 +751,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    complex*16, intent(out) :: val
+    complex(kind=dc), intent(out) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, ierr
@@ -810,7 +804,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, pointer :: val(:)
+    real(kind=dp), pointer :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -866,7 +860,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real*8, pointer :: val(:,:)
+    real(kind=dp), pointer :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -892,9 +886,9 @@ contains
   subroutine pmc_mpi_reduce_avg_real(val, val_avg)
 
     !> Value to average.
-    real*8, intent(in) :: val
+    real(kind=dp), intent(in) :: val
     !> Result.
-    real*8, intent(out) :: val_avg
+    real(kind=dp), intent(out) :: val_avg
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -903,7 +897,7 @@ contains
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
-       val_avg = val_avg / dble(pmc_mpi_size())
+       val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
     end if
 #else
     val_avg = val
@@ -917,9 +911,9 @@ contains
   subroutine pmc_mpi_transfer_real(from_val, to_val, from_proc, to_proc)
 
     !> Value to send.
-    real*8, intent(in) :: from_val
+    real(kind=dp), intent(in) :: from_val
     !> Variable to send to.
-    real*8, intent(out) :: to_val
+    real(kind=dp), intent(out) :: to_val
     !> Processor to send from.
     integer, intent(in) :: from_proc
     !> Processor to send to.
@@ -1019,9 +1013,9 @@ contains
   subroutine pmc_mpi_reduce_avg_real_array(val, val_avg)
 
     !> Value to average.
-    real*8, intent(in) :: val(:)
+    real(kind=dp), intent(in) :: val(:)
     !> Result.
-    real*8, intent(out) :: val_avg(:)
+    real(kind=dp), intent(out) :: val_avg(:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -1031,7 +1025,7 @@ contains
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
-       val_avg = val_avg / dble(pmc_mpi_size())
+       val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
     end if
 #else
     val_avg = val
@@ -1046,9 +1040,9 @@ contains
   subroutine pmc_mpi_reduce_avg_real_array_2d(val, val_avg)
 
     !> Value to average.
-    real*8, intent(in) :: val(:,:)
+    real(kind=dp), intent(in) :: val(:,:)
     !> Result.
-    real*8, intent(out) :: val_avg(:,:)
+    real(kind=dp), intent(out) :: val_avg(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -1059,7 +1053,7 @@ contains
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
-       val_avg = val_avg / dble(pmc_mpi_size())
+       val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
     end if
 #else
     val_avg = val
@@ -1074,9 +1068,9 @@ contains
   subroutine pmc_mpi_allreduce_average_real(val, val_avg)
 
     !> Value to average.
-    real*8, intent(in) :: val
+    real(kind=dp), intent(in) :: val
     !> Result.
-    real*8, intent(out) :: val_avg
+    real(kind=dp), intent(out) :: val_avg
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -1084,7 +1078,7 @@ contains
     call mpi_allreduce(val, val_avg, 1, MPI_REAL8, MPI_SUM, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    val_avg = val_avg / dble(pmc_mpi_size())
+    val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
 #else
     val_avg = val
 #endif
@@ -1098,9 +1092,9 @@ contains
   subroutine pmc_mpi_allreduce_average_real_array(val, val_avg)
 
     !> Value to average.
-    real*8, intent(in) :: val(:)
+    real(kind=dp), intent(in) :: val(:)
     !> Result.
-    real*8, intent(out) :: val_avg(:)
+    real(kind=dp), intent(out) :: val_avg(:)
 
 #ifdef PMC_USE_MPI
     integer :: ierr
@@ -1109,7 +1103,7 @@ contains
     call mpi_allreduce(val, val_avg, size(val), MPI_REAL8, MPI_SUM, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    val_avg = val_avg / dble(pmc_mpi_size())
+    val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
 #else
     val_avg = val
 #endif

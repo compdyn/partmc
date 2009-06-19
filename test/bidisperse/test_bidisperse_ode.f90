@@ -25,27 +25,27 @@ program bidisperse_ode
   use pmc_bin_grid
 
   ! Radius of one small particle (m).
-  real*8, parameter :: r_small = 1d-5
+  real(kind=dp), parameter :: r_small = 1d-5
   !> Initial radius of big particle (m^3).
-  real*8, parameter :: r_big_init = 1d-4
+  real(kind=dp), parameter :: r_big_init = 1d-4
   !> Initial number of small particles.
-  real*8, parameter :: n_small_init = 10000d0
+  real(kind=dp), parameter :: n_small_init = 10000d0
   !> Particle density (kg/m^3).
-  real*8, parameter :: density = 1000d0
+  real(kind=dp), parameter :: density = 1000d0
   !> Total simulation time.
-  real*8, parameter :: t_max = 600d0
+  real(kind=dp), parameter :: t_max = 600d0
   !> Timestep.
-  real*8, parameter :: del_t = 0.001d0
+  real(kind=dp), parameter :: del_t = 0.001d0
   !> How often to print progress.
-  real*8, parameter :: t_progress = 10d0
+  real(kind=dp), parameter :: t_progress = 10d0
   !> Particle number conc (#/m^3).
-  real*8, parameter :: num_conc_small = 1d9
+  real(kind=dp), parameter :: num_conc_small = 1d9
   !> Number of bins.
   integer, parameter :: n_bin = 250
   !> Minimum bin radius (m).
-  real*8, parameter :: bin_r_min = 1d-8
+  real(kind=dp), parameter :: bin_r_min = 1d-8
   !> Minimum bin radius (m).
-  real*8, parameter :: bin_r_max = 1d0
+  real(kind=dp), parameter :: bin_r_max = 1d0
   !> Scale factor for bins.
   integer, parameter :: scal = 3
   !> Output unit number.
@@ -55,7 +55,7 @@ program bidisperse_ode
   
   type(env_state_t) :: env_state
   integer :: i_step, n_step
-  real*8 :: comp_vol, n_small, time, v_big, num_conc, v_small, v_big_init
+  real(kind=dp) :: comp_vol, n_small, time, v_big, num_conc, v_small, v_big_init
   type(bin_grid_t) :: bin_grid
 
   v_small = rad2vol(r_small)
@@ -106,22 +106,22 @@ contains
     use pmc_env_state
 
     !> Current number of small particles.
-    real*8, intent(in) :: n_small
+    real(kind=dp), intent(in) :: n_small
     !> Volume of one small particle.
-    real*8, intent(in) :: v_small
+    real(kind=dp), intent(in) :: v_small
     !> Initial volume of the big particle.
-    real*8, intent(in) :: v_big_init
+    real(kind=dp), intent(in) :: v_big_init
     !> Initial number of small particles.
-    real*8, intent(in) :: n_small_init
+    real(kind=dp), intent(in) :: n_small_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Derivative of n_small.
-    real*8, intent(out) :: n_small_dot
+    real(kind=dp), intent(out) :: n_small_dot
 
     integer :: n_spec
-    real*8 :: v_big, k
+    real(kind=dp) :: v_big, k
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     type(aero_data_t) :: aero_data
     
@@ -149,21 +149,21 @@ contains
     use pmc_env_state
 
     !> Volume of one small particle.
-    real*8, intent(in) :: v_small
+    real(kind=dp), intent(in) :: v_small
     !> Initial volume of the big particle.
-    real*8, intent(in) :: v_big_init
+    real(kind=dp), intent(in) :: v_big_init
     !> Initial number of small particles.
-    real*8, intent(in) :: n_small_init
+    real(kind=dp), intent(in) :: n_small_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Timestep.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Current number of small particles.
-    real*8, intent(inout) :: n_small
+    real(kind=dp), intent(inout) :: n_small
     
-    real*8 n_small_dot, k1, k2, k3, k4
+    real(kind=dp) n_small_dot, k1, k2, k3, k4
     
     ! integrate ODE with Runge-Kutta-4
     

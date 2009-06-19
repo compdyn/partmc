@@ -25,11 +25,11 @@ contains
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Volume of particles in bins (m^3).
-    real*8, intent(in) :: bin_v(n_bin)
+    real(kind=dp), intent(in) :: bin_v(n_bin)
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Kernel values.
-    real*8, intent(out) :: k(n_bin,n_bin)
+    real(kind=dp), intent(out) :: k(n_bin,n_bin)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
@@ -44,7 +44,7 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
@@ -82,18 +82,18 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Max kernel vals.
-    real*8, intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     
 #ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
+         real(kind=dp), intent(in) :: v1
+         real(kind=dp), intent(in) :: v2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k_max
+         real(kind=dp), intent(out) :: k_max
        end subroutine kernel_max
     end interface
 #endif
@@ -127,28 +127,28 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Maximum kernel values.
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
     
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
     !> Over-estimation scale factor parameter.
-    real*8, parameter :: over_scale = 1.1d0
+    real(kind=dp), parameter :: over_scale = 1.1d0
     
 #ifndef DOXYGEN_SKIP_DOC
     interface
        subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
          use pmc_aero_data
          use pmc_env_state
-         real*8, intent(in) :: v1
-         real*8, intent(in) :: v2
+         real(kind=dp), intent(in) :: v1
+         real(kind=dp), intent(in) :: v2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k_max
+         real(kind=dp), intent(out) :: k_max
        end subroutine kernel_max
     end interface
 #endif
     
-    real*8 :: v1, v2, v1_high, v1_low, v2_high, v2_low, k
+    real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low, k
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
@@ -162,10 +162,10 @@ contains
     k_max = 0d0
     do i = 1,n_sample
        do j = 1,n_sample
-          v1 = v1_high * dble(n_sample - i) / dble(n_sample - 1) + &
-               v1_low * dble(i - 1) / dble(n_sample - 1)
-          v2 = v2_high * dble(n_sample - j) / dble(n_sample - 1) + &
-               v2_low * dble(j - 1) / dble(n_sample - 1)
+          v1 = v1_high * real(n_sample - i, kind=dp) / real(n_sample - 1, kind=dp) + &
+               v1_low * real(i - 1, kind=dp) / real(n_sample - 1, kind=dp)
+          v2 = v2_high * real(n_sample - j, kind=dp) / real(n_sample - 1, kind=dp) + &
+               v2_low * real(j - 1, kind=dp) / real(n_sample - 1, kind=dp)
           call kernel_max(v1, v2, aero_data, env_state, k)
           if (k .gt. k_max) k_max = k
        end do

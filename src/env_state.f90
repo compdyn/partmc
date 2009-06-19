@@ -39,41 +39,41 @@ module pmc_env_state
   !! amount per hour, etc.
   type env_state_t
      !> Temperature (K).
-     real*8 :: temp
+     real(kind=dp) :: temp
      !> Relative humidity (1).
-     real*8 :: rel_humid
+     real(kind=dp) :: rel_humid
      !> Ambient pressure (Pa).
-     real*8 :: pressure
+     real(kind=dp) :: pressure
      !> Longitude (degrees).
-     real*8 :: longitude
+     real(kind=dp) :: longitude
      !> Latitude (degrees).
-     real*8 :: latitude
+     real(kind=dp) :: latitude
      !> Altitude (m).
-     real*8 :: altitude
+     real(kind=dp) :: altitude
      !> Start time (s since 00:00 UTC).
-     real*8 :: start_time
+     real(kind=dp) :: start_time
      !> Start day of year (UTC).
      integer :: start_day
      !> Elapsed time since start_time (s).
-     real*8 :: elapsed_time
+     real(kind=dp) :: elapsed_time
      !> Box height (m).
-     real*8 :: height
+     real(kind=dp) :: height
      !> Gas emissions.
      type(gas_state_t) :: gas_emissions
      !> Gas emisssion rate (s^{-1}).
-     real*8 :: gas_emission_rate
+     real(kind=dp) :: gas_emission_rate
      !> Background gas mixing ratios.
      type(gas_state_t) :: gas_background
      !> Gas-background dilution rate (s^{-1}).
-     real*8 :: gas_dilution_rate
+     real(kind=dp) :: gas_dilution_rate
      !> Aerosol emissions.
      type(aero_dist_t) :: aero_emissions
      !> Aerosol emisssion rate (s^{-1}).
-     real*8 :: aero_emission_rate
+     real(kind=dp) :: aero_emission_rate
      !> Aerosol background.
      type(aero_dist_t) :: aero_background
      !> Aero-background dilute rate (s^{-1}).
-     real*8 :: aero_dilution_rate
+     real(kind=dp) :: aero_dilution_rate
   end type env_state_t
   
 contains
@@ -166,7 +166,7 @@ contains
     !> Environment.
     type(env_state_t), intent(inout) :: env_state
     !> Scale factor.
-    real*8, intent(in) :: alpha
+    real(kind=dp), intent(in) :: alpha
 
     env_state%temp = env_state%temp * alpha
     env_state%rel_humid = env_state%rel_humid * alpha
@@ -175,7 +175,7 @@ contains
     env_state%latitude = env_state%latitude * alpha
     env_state%altitude = env_state%altitude * alpha
     env_state%start_time = env_state%start_time * alpha
-    env_state%start_day = nint(dble(env_state%start_day) * alpha)
+    env_state%start_day = nint(real(env_state%start_day, kind=dp) * alpha)
     env_state%elapsed_time = env_state%elapsed_time * alpha
     env_state%height = env_state%height * alpha
     call gas_state_scale(env_state%gas_emissions, alpha)
@@ -227,12 +227,12 @@ contains
     !> Aero_data constants.
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration of water added (m^3/m^3).
-    real*8, intent(in) :: dv
+    real(kind=dp), intent(in) :: dv
     
-    real*8 pmv     ! ambient water vapor pressure (Pa)
-    real*8 mv      ! ambient water vapor density (kg m^{-3})
+    real(kind=dp) pmv     ! ambient water vapor pressure (Pa)
+    real(kind=dp) mv      ! ambient water vapor density (kg m^{-3})
                    ! pmv and mv are related by the factor molec_weight/(R*T)
-    real*8 dmv     ! change of water density (kg m^{-3})
+    real(kind=dp) dmv     ! change of water density (kg m^{-3})
     
     dmv = dv * aero_data%density(aero_data%i_water)
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
@@ -248,7 +248,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the current saturation vapor pressure (Pa).
-  real*8 function env_state_sat_vapor_pressure(env_state)
+  real(kind=dp) function env_state_sat_vapor_pressure(env_state)
     
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -262,7 +262,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the critical relative humidity from the kappa value (1).
-  real*8 function aero_particle_kappa_rh(aero_particle, aero_data, &
+  real(kind=dp) function aero_particle_kappa_rh(aero_particle, aero_data, &
        env_state)
 
     !> Aerosol particle.
@@ -272,7 +272,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    real*8 :: kappa, diam, C, A
+    real(kind=dp) :: kappa, diam, C, A
     
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     A = 4d0 * const%water_surf_eng * const%water_molec_weight &
@@ -286,7 +286,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air density (kg m^{-3}).
-  real*8 function env_state_air_den(env_state)
+  real(kind=dp) function env_state_air_den(env_state)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -299,7 +299,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air molar density (mole m^{-3}).
-  real*8 function env_state_air_molar_den(env_state)
+  real(kind=dp) function env_state_air_molar_den(env_state)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -334,7 +334,7 @@ contains
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
-    real*8, intent(in) :: delta_t
+    real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Gas data values.
@@ -342,7 +342,7 @@ contains
     !> Gas state to update.
     type(gas_state_t), intent(inout) :: gas_state
 
-    real*8 :: effective_dilution_rate
+    real(kind=dp) :: effective_dilution_rate
     type(gas_state_t) :: emission, dilution
 
     call gas_state_allocate_size(emission, gas_data%n_spec)
@@ -388,7 +388,7 @@ contains
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
-    real*8, intent(in) :: delta_t
+    real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
@@ -399,7 +399,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
     integer :: i
-    real*8 :: sample_prop, effective_dilution_rate
+    real(kind=dp) :: sample_prop, effective_dilution_rate
     type(aero_state_t) :: aero_state_delta
 
     call aero_state_allocate_size(aero_state_delta, bin_grid%n_bin, &
@@ -461,7 +461,7 @@ contains
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
     !> Time increment to update over.
-    real*8, intent(in) :: delta_t
+    real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
     !> Bin grid.
@@ -472,7 +472,7 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     type(aero_binned_t) :: emission, dilution
-    real*8 :: effective_dilution_rate
+    real(kind=dp) :: effective_dilution_rate
 
     call aero_binned_allocate_size(emission, bin_grid%n_bin, aero_data%n_spec)
     call aero_binned_allocate_size(dilution, bin_grid%n_bin, aero_data%n_spec)

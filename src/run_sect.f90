@@ -31,13 +31,13 @@ module pmc_run_sect
   !> Options to control the operation of run_sect().
   type run_sect_opt_t
      !> Final time (s).
-    real*8 :: t_max
+    real(kind=dp) :: t_max
     !> Timestep for coagulation (s).
-    real*8 :: del_t
+    real(kind=dp) :: del_t
     !> Output interval (0 disables) (s).
-    real*8 :: t_output
+    real(kind=dp) :: t_output
     !> Progress interval (0 disables) (s).
-    real*8 :: t_progress
+    real(kind=dp) :: t_progress
     !> Whether to do coagulation.
     logical :: do_coagulation
     !> Output prefix.
@@ -67,16 +67,16 @@ contains
     !> Options.
     type(run_sect_opt_t), intent(in) :: sect_opt
     
-    real*8 c(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp) c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
-    real*8 g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
-    real*8 k_bin(bin_grid%n_bin,bin_grid%n_bin)
-    real*8 ck(bin_grid%n_bin,bin_grid%n_bin)
-    real*8 ec(bin_grid%n_bin,bin_grid%n_bin)
-    real*8 taug(bin_grid%n_bin), taup(bin_grid%n_bin)
-    real*8 taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
-    real*8 prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
-    real*8 time, last_output_time, last_progress_time
+    real(kind=dp) g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
+    real(kind=dp) k_bin(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp) ck(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp) ec(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp) taug(bin_grid%n_bin), taup(bin_grid%n_bin)
+    real(kind=dp) taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
+    real(kind=dp) prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
+    real(kind=dp) time, last_output_time, last_progress_time
     type(env_state_t) :: old_env_state
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
@@ -95,7 +95,7 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
@@ -173,7 +173,7 @@ contains
           aero_binned%num_conc = aero_binned%vol_conc(:,1) / bin_grid%v
        end if
 
-       time = sect_opt%t_max * dble(i_time) / dble(num_t)
+       time = sect_opt%t_max * real(i_time, kind=dp) / real(num_t, kind=dp)
 
        call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time)
@@ -213,25 +213,25 @@ contains
        c, ima, g, r, e, ck, ec)
     
     integer n_bin
-    real*8 dt
-    real*8 taug(n_bin)
-    real*8 taup(n_bin)
-    real*8 taul(n_bin)
-    real*8 tauu(n_bin)
-    real*8 prod(n_bin)
-    real*8 ploss(n_bin)
-    real*8 c(n_bin,n_bin)
+    real(kind=dp) dt
+    real(kind=dp) taug(n_bin)
+    real(kind=dp) taup(n_bin)
+    real(kind=dp) taul(n_bin)
+    real(kind=dp) tauu(n_bin)
+    real(kind=dp) prod(n_bin)
+    real(kind=dp) ploss(n_bin)
+    real(kind=dp) c(n_bin,n_bin)
     integer ima(n_bin,n_bin)
-    real*8 g(n_bin)
-    real*8 r(n_bin)
-    real*8 e(n_bin)
-    real*8 ck(n_bin,n_bin)
-    real*8 ec(n_bin,n_bin)
+    real(kind=dp) g(n_bin)
+    real(kind=dp) r(n_bin)
+    real(kind=dp) e(n_bin)
+    real(kind=dp) ck(n_bin,n_bin)
+    real(kind=dp) ec(n_bin,n_bin)
     
-    real*8, parameter :: gmin = 1d-60
+    real(kind=dp), parameter :: gmin = 1d-60
     
     integer i, i0, i1, j, k, kp
-    real*8 x0, gsi, gsj, gsk, gk, x1, flux
+    real(kind=dp) x0, gsi, gsj, gsk, gk, x1, flux
 
     do i = 1,n_bin
        prod(i) = 0d0
@@ -295,16 +295,16 @@ contains
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Bin scale factor.
-    real*8, intent(in) :: dlnr
+    real(kind=dp), intent(in) :: dlnr
     !> Droplet mass grid (mg).
-    real*8, intent(in) :: e(n_bin)
+    real(kind=dp), intent(in) :: e(n_bin)
     !> i + j goes in bin ima(i,j).
     integer, intent(out) :: ima(n_bin,n_bin)
     !> Courant number for bin pairs.
-    real*8, intent(out) :: c(n_bin,n_bin)
+    real(kind=dp), intent(out) :: c(n_bin,n_bin)
     
     integer i, j, k, kk
-    real*8 x0
+    real(kind=dp) x0
 
     c = 0d0 ! added to avoid uninitialized access errors
     ima = 0 ! ima(i,j) = 0 means that particles i + j go nowhere
@@ -340,9 +340,9 @@ contains
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Kernel values.
-    real*8, intent(in) :: k(n_bin,n_bin)
+    real(kind=dp), intent(in) :: k(n_bin,n_bin)
     !> Smoothed kernel values.
-    real*8, intent(out) :: k_smooth(n_bin,n_bin)
+    real(kind=dp), intent(out) :: k_smooth(n_bin,n_bin)
     
     integer i, j, im, ip, jm, jp
     

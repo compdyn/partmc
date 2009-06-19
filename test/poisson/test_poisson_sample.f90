@@ -5,21 +5,21 @@ program poisson_sample
   use pmc_util
 
   integer :: k_max, n_samp, i_samp, k, i
-  real*8 :: lambda
-  real*8, allocatable :: count_pdf(:), pdf(:)
+  real(kind=dp) :: lambda
+  real(kind=dp), allocatable :: count_pdf(:), pdf(:)
   integer, allocatable :: count(:)
   character(len=1000) :: tmp
 
   ! process commandline arguments
-  if (iargc() .ne. 3) then
+  if (command_argument_count() .ne. 3) then
      write(6,*) 'Usage: poisson_sample <lambda> <k_max> <n_samp>'
-     call exit(2)
+     stop 2
   endif
-  call getarg(1, tmp)
+  call get_command_argument(1, tmp)
   lambda = string_to_real(tmp)
-  call getarg(2, tmp)
+  call get_command_argument(2, tmp)
   k_max = string_to_integer(tmp)
-  call getarg(3, tmp)
+  call get_command_argument(3, tmp)
   n_samp = string_to_integer(tmp)
 
   allocate(count(0:k_max), count_pdf(0:k_max), pdf(0:k_max))

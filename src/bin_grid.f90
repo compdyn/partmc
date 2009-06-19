@@ -27,9 +27,9 @@ module pmc_bin_grid
      !> Number of bins.
      integer :: n_bin
      !> Len n_bin, bin center volumes (m^3).
-     real*8, pointer :: v(:)
+     real(kind=dp), pointer :: v(:)
      !> Bin scale factor (1).
-     real*8 :: dlnr
+     real(kind=dp) :: dlnr
   end type bin_grid_t
 
 contains
@@ -81,11 +81,11 @@ contains
   subroutine vol_to_lnr(r, f_vol, f_lnr)
     
     !> Radius (m).
-    real*8, intent(in) :: r
+    real(kind=dp), intent(in) :: r
     !> Concentration as a function of volume.
-    real*8, intent(in) :: f_vol
+    real(kind=dp), intent(in) :: f_vol
     !> Concentration as a function of ln(r).
-    real*8, intent(out) :: f_lnr
+    real(kind=dp), intent(out) :: f_lnr
     
     f_lnr = f_vol * 4d0 * const%pi * r**3
     
@@ -101,15 +101,15 @@ contains
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Minimum volume (m^3).
-    real*8, intent(in) :: v_min
+    real(kind=dp), intent(in) :: v_min
     !> Minimum volume (m^3).
-    real*8, intent(in) :: v_max
+    real(kind=dp), intent(in) :: v_max
 
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
     call logspace(v_min, v_max, n_bin, bin_grid%v)
     ! dlnr = ln(r(i) / r(i-1))
-    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / dble(n_bin - 1)
+    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / real(n_bin - 1, kind=dp)
 
   end subroutine bin_grid_make
 
@@ -122,20 +122,20 @@ contains
   !! center bin_grid%v(i) is between bin edges i and (i + 1). This
   !! code currently assumes a logarithmically spaced bin grid and
   !! returns logarithmically spaced edges.
-  real*8 function bin_grid_edge(bin_grid, i)
+  real(kind=dp) function bin_grid_edge(bin_grid, i)
     
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Edge number (1 <= i <= n_bin + 1).
     integer, intent(in) :: i
 
-    real*8 :: log_v_min, log_v_max, log_delta
+    real(kind=dp) :: log_v_min, log_v_max, log_delta
 
     call assert(440393735, bin_grid%n_bin > 1)
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
-    log_delta = (log_v_max - log_v_min) / dble(bin_grid%n_bin - 1)
-    bin_grid_edge = exp(log_v_min + (dble(i) - 1.5d0) * log_delta)
+    log_delta = (log_v_max - log_v_min) / real(bin_grid%n_bin - 1, kind=dp)
+    bin_grid_edge = exp(log_v_min + (real(i, kind=dp) - 1.5d0) * log_delta)
     
   end function bin_grid_edge
   
@@ -148,26 +148,26 @@ contains
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume of particle.
-    real*8, intent(in) :: v
+    real(kind=dp), intent(in) :: v
 
-    real*8 :: log_v_min, log_v_max, log_edge_min, log_edge_max
-    real*8 :: half_log_delta
+    real(kind=dp) :: log_v_min, log_v_max, log_edge_min, log_edge_max
+    real(kind=dp) :: half_log_delta
     integer :: k
 
     call assert(448215689, bin_grid%n_bin > 2)
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
-    half_log_delta = (log_v_max - log_v_min) / dble(2 * (bin_grid%n_bin - 1))
+    half_log_delta = (log_v_max - log_v_min) / real(2 * (bin_grid%n_bin - 1), kind=dp)
     log_edge_min = log_v_min + half_log_delta
     log_edge_max = log_v_max - half_log_delta
     k = ceiling((log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
-         * dble(bin_grid%n_bin - 2)) + 1
+         * real(bin_grid%n_bin - 2, kind=dp)) + 1
     k = max(k, 1)
     k = min(k, bin_grid%n_bin)
     bin_grid_particle_in_bin = k
     !FIXME: above should be equivalent to:
     !    i_bin = ceiling((log(radius) - log(r_min)) &
-    !         / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
+    !         / (log(r_max) - log(r_min)) * real(n_bin - 1, kind=dp) + 0.5d0)
     
   end function bin_grid_particle_in_bin
   
@@ -183,7 +183,7 @@ contains
     type(bin_grid_t), intent(out) :: bin_grid
 
     integer :: n_bin
-    real*8 :: r_min, r_max
+    real(kind=dp) :: r_min, r_max
 
     call spec_file_read_integer(file, 'n_bin', n_bin)
     call spec_file_read_real(file, 'r_min', r_min)
@@ -274,9 +274,9 @@ contains
     integer :: status, i_bin, varid_aero_radius
     integer :: dimid_aero_radius_edges, varid_aero_radius_edges, &
          varid_aero_radius_widths
-    real*8 :: aero_radius_centers(bin_grid%n_bin), &
+    real(kind=dp) :: aero_radius_centers(bin_grid%n_bin), &
          aero_radius_edges(bin_grid%n_bin + 1)
-    real*8 :: aero_radius_widths(bin_grid%n_bin)
+    real(kind=dp) :: aero_radius_widths(bin_grid%n_bin)
 
     status = nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius)
     if (status == NF90_NOERR) return
@@ -352,8 +352,8 @@ contains
     integer :: dimid_aero_radius
     character(len=1000) :: unit, name
     integer :: n_bin, i_bin
-    real*8, allocatable :: aero_radius_centers(:)
-    real*8, allocatable :: aero_radius_widths(:)
+    real(kind=dp), allocatable :: aero_radius_centers(:)
+    real(kind=dp), allocatable :: aero_radius_widths(:)
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, &

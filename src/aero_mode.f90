@@ -35,14 +35,14 @@ module pmc_aero_mode
      !> Mode type ("log_normal", "exp", or "mono").
      character(len=AERO_MODE_TYPE_LEN) :: type
      !> Mean radius of mode (m).
-     real*8 :: mean_radius
+     real(kind=dp) :: mean_radius
      !> Log base 10 of geometric standard deviation of radius, if
      !> necessary (m).
-     real*8 :: log10_std_dev_radius
+     real(kind=dp) :: log10_std_dev_radius
      !> Total number concentration of mode (#/m^3).
-     real*8 :: num_conc
+     real(kind=dp) :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
-     real*8, pointer :: vol_frac(:)
+     real(kind=dp), pointer :: vol_frac(:)
   end type aero_mode_t
 
 contains
@@ -113,13 +113,13 @@ contains
   subroutine num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
     
     !> Geometric mean radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> log_10(geom. std dev) (1).
-    real*8, intent(in) :: log_sigma
+    real(kind=dp), intent(in) :: log_sigma
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
     
@@ -144,15 +144,15 @@ contains
   subroutine vol_conc_log_normal(mean_radius, log_sigma, bin_grid, vol_conc)
     
     !> Geometric mean radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> log_10(geom. std dev) (1).
-    real*8, intent(in) :: log_sigma
+    real(kind=dp), intent(in) :: log_sigma
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
     
-    real*8 :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
     vol_conc = num_conc * bin_grid%v
@@ -167,14 +167,14 @@ contains
   subroutine num_conc_exp(mean_radius, bin_grid, num_conc)
     
     !> Mean radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
-    real*8 :: mean_vol, num_conc_vol
+    real(kind=dp) :: mean_vol, num_conc_vol
     
     mean_vol = rad2vol(mean_radius)
     do k = 1,bin_grid%n_bin
@@ -190,13 +190,13 @@ contains
   subroutine vol_conc_exp(mean_radius, bin_grid, vol_conc)
     
     !> Mean radius (m).
-    real*8, intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: mean_radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
     
-    real*8 :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_exp(mean_radius, bin_grid, num_conc)
     vol_conc = num_conc * bin_grid%v
@@ -210,11 +210,11 @@ contains
   subroutine num_conc_mono(radius, bin_grid, num_conc)
     
     !> Radius of each particle (m^3).
-    real*8, intent(in) :: radius
+    real(kind=dp), intent(in) :: radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
     
     integer :: k
 
@@ -230,11 +230,11 @@ contains
   subroutine vol_conc_mono(radius, bin_grid, vol_conc)
     
     !> Radius of each particle (m^3).
-    real*8, intent(in) :: radius
+    real(kind=dp), intent(in) :: radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
     
     integer :: k
 
@@ -257,7 +257,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Number concentration (#(ln(r))d(ln(r))).
-    real*8, intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
 
     if (aero_mode%type == "log_normal") then
        call num_conc_log_normal(aero_mode%mean_radius, &
@@ -287,10 +287,10 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real*8, intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
 
     integer :: i_spec
-    real*8 :: vol_conc_total(bin_grid%n_bin)
+    real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
 
     if (aero_mode%type == "log_normal") then
        call vol_conc_log_normal(aero_mode%mean_radius, &
@@ -320,7 +320,7 @@ contains
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
     !> Sampled radius (m).
-    real*8, intent(out) :: radius
+    real(kind=dp), intent(out) :: radius
 
     if (aero_mode%type == "log_normal") then
        radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
@@ -345,14 +345,14 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
-    real*8, intent(out) :: vol_frac(:)
+    real(kind=dp), intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_data(:,:)
-    real*8 :: tot_vol_frac
+    real(kind=dp), pointer :: species_data(:,:)
+    real(kind=dp) :: tot_vol_frac
 
     ! read the aerosol data from the specified file
     call spec_file_read_string(file, 'mass_frac', read_name)

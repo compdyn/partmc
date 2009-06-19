@@ -34,9 +34,9 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Kernel k(a,b) (m^3/s).
-    real*8, intent(out) :: k
+    real(kind=dp), intent(out) :: k
 
-    real*8 :: v1, v2, d1, d2
+    real(kind=dp) :: v1, v2, d1, d2
 
     v1 = aero_particle_volume(aero_particle_1)
     v2 = aero_particle_volume(aero_particle_2)
@@ -57,20 +57,20 @@ contains
   subroutine kernel_brown_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle (m^3).
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Maximum kernel value (m^3/s).
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
 
     !> Number of density sample points.
     integer, parameter :: n_sample = 3
 
-    real*8 :: d1, d2, d_min, d_max, k
+    real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
     
     d_min = minval(aero_data%density)
@@ -79,10 +79,10 @@ contains
     k_max = 0d0
     do i = 1,n_sample
        do j = 1,n_sample
-          d1 = d_max * dble(n_sample - i) / dble(n_sample - 1) + &
-               d_min * dble(i - 1) / dble(n_sample - 1)
-          d2 = d_max * dble(n_sample - j) / dble(n_sample - 1) + &
-               d_min * dble(j - 1) / dble(n_sample - 1)
+          d1 = d_max * real(n_sample - i, kind=dp) / real(n_sample - 1, kind=dp) + &
+               d_min * real(i - 1, kind=dp) / real(n_sample - 1, kind=dp)
+          d2 = d_max * real(n_sample - j, kind=dp) / real(n_sample - 1, kind=dp) + &
+               d_min * real(j - 1, kind=dp) / real(n_sample - 1, kind=dp)
           call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
                env_state%pressure, k)
           if (k > k_max) k_max = k
@@ -102,24 +102,24 @@ contains
   subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
 
     !> Volume of first particle (m^3).
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Density of first particle (kg/m^3).
-    real*8, intent(in) :: d1
+    real(kind=dp), intent(in) :: d1
     !> Volume of second particle (m^3).
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Density of second particle (kg/m^3).
-    real*8, intent(in) :: d2
+    real(kind=dp), intent(in) :: d2
     !> Temperature (K).
-    real*8, intent(in) :: tk
+    real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
-    real*8, intent(in) :: press
+    real(kind=dp), intent(in) :: press
     !> Kernel k(a,b) (m^3/s).
-    real*8, intent(out) :: bckernel
+    real(kind=dp), intent(out) :: bckernel
 
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0
-    real*8, save :: rad_sv(nbin_maxd)
-    real*8 :: avogad, bckernel1, boltz, cunning, deltasq_i, &
+    real(kind=dp), save :: rad_sv(nbin_maxd)
+    real(kind=dp) :: avogad, bckernel1, boltz, cunning, deltasq_i, &
          deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, mwair, rad_i, rad_j, &
          rad_sum, rgas, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2008 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -38,7 +38,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Kernel \c k(a,b) (m^3/s).
-    real*8, intent(out) :: k
+    real(kind=dp), intent(out) :: k
 
     call kernel_sedi_max(aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), aero_data, env_state, k)
@@ -51,18 +51,18 @@ contains
   subroutine kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle (m^3).
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Maximum kernel \c k(a,b) (m^3/s).
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
     
-    real*8 constant, onethird
-    real*8 r1, r2, winf1, winf2, ec
+    real(kind=dp) constant, onethird
+    real(kind=dp) r1, r2, winf1, winf2, ec
     
     constant = 3d0 / (4d0 * const%pi)
     onethird  = 1d0/3d0
@@ -81,15 +81,15 @@ contains
   subroutine fall_g(r, w_inf)
     
     !> Particle radius (m).
-    real*8, intent(in) :: r
+    real(kind=dp), intent(in) :: r
     !> Terminal velocity (m/s).
-    real*8, intent(out) :: w_inf
+    real(kind=dp), intent(out) :: w_inf
     
     ! terminal velocity of falling drops
-    real*8 eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
-    real*8 stok, stb, phy, py, rr, x, y, xrey, bond
+    real(kind=dp) eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
+    real(kind=dp) stok, stb, phy, py, rr, x, y, xrey, bond
     integer i
-    real*8 b(7),c(6)
+    real(kind=dp) b(7),c(6)
     data b /-0.318657d1,0.992696d0,-0.153193d-2,-0.987059d-3, &
          -0.578878d-3,0.855176d-4,-0.327815d-5/
     data c /-0.500015d1,0.523778d1,-0.204914d1,0.475294d0, &
@@ -151,16 +151,16 @@ contains
   subroutine effic(r1, r2, ec)
 
     !> Radius of first particle (um).
-    real*8, intent(in) :: r1
+    real(kind=dp), intent(in) :: r1
     !> Radius of second particle (um).
-    real*8, intent(in) :: r2
+    real(kind=dp), intent(in) :: r2
     !> Collision efficiency (dimensionless).
-    real*8, intent(out) :: ec
+    real(kind=dp), intent(out) :: ec
     
-    real*8 r_small, r_big, rq, p, q, ek
+    real(kind=dp) r_small, r_big, rq, p, q, ek
     integer k, ir, kk, iq
     ! collision efficiencies of hall kernel
-    real*8 rat(21),r0(15),ecoll(15,21)
+    real(kind=dp) rat(21),r0(15),ecoll(15,21)
     data r0 /6.0d0,8.0d0,10.0d0,15.0d0,20.0d0,25.0d0,30.0d0,40.0d0 &
          ,50.0d0,60.0d0,70.0d0,100.0d0,150.0d0,200.0d0,300.0d0/
     data rat /0.0d0,0.05d0,0.1d0,0.15d0,0.2d0,0.25d0,0.3d0,0.35d0 &

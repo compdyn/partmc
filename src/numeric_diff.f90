@@ -31,59 +31,60 @@
 !>   \li 2 if an error occurred
 program numeric_diff
 
+  integer, parameter :: dp = kind(0.d0)
   integer, parameter :: unit1 = 40
   integer, parameter :: unit2 = 41
 
   character(len=1000) :: filename1, filename2, tmp
-  real*8 :: abs_tol, rel_tol
+  real(kind=dp) :: abs_tol, rel_tol
   integer :: ios
 
   character(len=1000) :: word1, word2
   logical :: eol1, eol2, eof1, eof2
-  real*8 :: value1, value2, norm1, norm2, abs_error, rel_error
+  real(kind=dp) :: value1, value2, norm1, norm2, abs_error, rel_error
   integer :: row, col
   integer :: min_row, max_row, min_col, max_col
 
   ! process commandline arguments
-  if ((iargc() < 2) .or. (iargc() > 8)) then
+  if ((command_argument_count() < 2) .or. (command_argument_count() > 8)) then
      write(6,*) 'Usage: numeric_diff <filename1> <filename2> [abs_tol]' &
           // ' [rel_tol] [min_row] [max_row] [min_col] [max_col]'
      write(6,*) 'Setting tolerances or min/max values to 0 disables' &
           // ' that check.'
      write(6,*) 'If both tolerances are 0 then just print the differences.'
      write(6,*) 'All parameters default to 0 if not specified.'
-     call exit(2)
+     stop 2
   endif
-  call getarg(1, filename1)
-  call getarg(2, filename2)
+  call get_command_argument(1, filename1)
+  call get_command_argument(2, filename2)
   abs_tol = 0d0
-  if (iargc() >= 3) then
-     call getarg(3, tmp)
+  if (command_argument_count() >= 3) then
+     call get_command_argument(3, tmp)
      abs_tol = string_to_real(tmp)
   end if
   rel_tol = 0d0
-  if (iargc() >= 3) then
-     call getarg(4, tmp)
+  if (command_argument_count() >= 3) then
+     call get_command_argument(4, tmp)
      rel_tol = string_to_real(tmp)
   end if
   min_row = 0
-  if (iargc() >= 5) then
-     call getarg(5, tmp)
+  if (command_argument_count() >= 5) then
+     call get_command_argument(5, tmp)
      min_row = string_to_integer(tmp)
   end if
   max_row = 0
-  if (iargc() >= 6) then
-     call getarg(6, tmp)
+  if (command_argument_count() >= 6) then
+     call get_command_argument(6, tmp)
      max_row = string_to_integer(tmp)
   end if
   min_col = 0
-  if (iargc() >= 7) then
-     call getarg(7, tmp)
+  if (command_argument_count() >= 7) then
+     call get_command_argument(7, tmp)
      min_col = string_to_integer(tmp)
   end if
   max_col = 0
-  if (iargc() >= 8) then
-     call getarg(8, tmp)
+  if (command_argument_count() >= 8) then
+     call get_command_argument(8, tmp)
      max_col = string_to_integer(tmp)
   end if
 
@@ -92,14 +93,14 @@ program numeric_diff
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(filename1), ' for reading: ', ios
-     call exit(2)
+     stop 2
   end if
 
   open(unit=unit2, status='old', file=filename2, iostat=ios)
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(filename2), ' for reading: ', ios
-     call exit(2)
+     stop 2
   end if
 
   ! read data and compute norms
@@ -119,7 +120,7 @@ program numeric_diff
           .or. (eof1 .and. (.not. eof2)) &
           .or. ((.not. eof1) .and. eof2)) then
         write(*,'(a,i8,i8)') 'different shape at', row, col
-        call exit(1)
+        stop 1
      end if
      if (len(word1) > 0) then
         value1 = string_to_real(word1)
@@ -148,34 +149,32 @@ program numeric_diff
   ! check equivalence
   if ((abs_tol == 0d0) .and. (rel_tol == 0d0)) then
      write(*,'(e12.3,e12.3)') abs_error, rel_error
-     call exit(0)
-  end if
-  if (((abs_tol == 0d0) .or. (abs_error < abs_tol)) &
+  elseif (((abs_tol == 0d0) .or. (abs_error < abs_tol)) &
        .and. ((rel_tol == 0d0) .or. (rel_error < rel_tol))) then
      write(*,*) 'files match within the given tolerances'
-     call exit(0)
+  else
+     write(*,'(a,e12.3,e12.3)') 'files are different', abs_error, rel_error
+     stop 1
   end if
-  write(*,'(a,e12.3,e12.3)') 'files are different', abs_error, rel_error
-  call exit(1)
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
-  real*8 function string_to_real(string)
+  real(kind=dp) function string_to_real(string)
 
     !> String to convert.
     character(len=*), intent(in) :: string
     
-    real*8 :: val
+    real(kind=dp) :: val
     integer :: ios
 
     read(string, '(e40.0)', iostat=ios) val
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to real: IOSTAT = ', ios
-       call exit(2)
+       stop 2
     end if
     string_to_real = val
 
@@ -196,7 +195,7 @@ contains
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to integer: IOSTAT = ', ios
-       call exit(1)
+       stop 1
     end if
     string_to_integer = val
 
@@ -250,7 +249,7 @@ contains
          iostat=ios) read_char
     if (ios /= 0) then
        write(0,*) 'ERROR: reading file: IOSTAT = ', ios
-       call exit(2)
+       stop 2
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read

@@ -11,6 +11,7 @@ program extract_sectional_aero_size_mass
 
   use netcdf
 
+  integer, parameter :: dp = kind(0.d0)
   integer, parameter :: MAX_N_TIME = 10000
   integer, parameter :: out_unit = 64
 
@@ -22,26 +23,26 @@ program extract_sectional_aero_size_mass
   integer :: varid_aero_mass_concentration
   integer :: n_aero_species, n_bin
   character(len=1000) :: tmp_str, aero_species_names
-  real*8 :: time
-  real*8, allocatable :: aero_dist(:,:)
-  real*8, allocatable :: aero_radius(:)
-  real*8, allocatable :: aero_radius_widths(:)
-  real*8, allocatable :: aero_mass_concentration(:,:)
-  real*8, allocatable :: save_aero_radius(:)
+  real(kind=dp) :: time
+  real(kind=dp), allocatable :: aero_dist(:,:)
+  real(kind=dp), allocatable :: aero_radius(:)
+  real(kind=dp), allocatable :: aero_radius_widths(:)
+  real(kind=dp), allocatable :: aero_mass_concentration(:,:)
+  real(kind=dp), allocatable :: save_aero_radius(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: i_bin, n_time, new_n_bin
-  real*8 :: dlnr
+  real(kind=dp) :: dlnr
 
   ! process commandline arguments
-  if (iargc() .ne. 2) then
+  if (command_argument_count() .ne. 2) then
      write(6,*) 'Usage: extract_sectional_aero_size_mass' &
           // ' <netcdf_state_prefix> <output_filename>'
-     call exit(2)
+     stop 2
   endif
-  call getarg(1, in_prefix)
-  call getarg(2, out_filename)
+  call get_command_argument(1, in_prefix)
+  call get_command_argument(2, out_filename)
 
   ! process NetCDF files
   i_time = 0
@@ -57,7 +58,7 @@ program extract_sectional_aero_size_mass
      if (n_time >= MAX_N_TIME) then
         write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
              MAX_N_TIME
-        call exit(1)
+        stop 1
      end if
 
      ! read time
@@ -89,7 +90,7 @@ program extract_sectional_aero_size_mass
      else
         if (new_n_bin /= n_bin) then
            write(*,*) "ERROR: n_bin changed"
-           call exit(1)
+           stop 1
         end if
      end if
         
@@ -101,7 +102,7 @@ program extract_sectional_aero_size_mass
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_radius)) then
         write(*,*) "ERROR: unexpected aero_radius dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_radius(n_bin))
      call nc_check(nf90_get_var(ncid, varid_aero_radius, &
@@ -119,7 +120,7 @@ program extract_sectional_aero_size_mass
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_radius)) then
         write(*,*) "ERROR: unexpected aero_radius_widths dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_radius_widths(n_bin))
      call nc_check(nf90_get_var(ncid, varid_aero_radius_widths, &
@@ -135,7 +136,7 @@ program extract_sectional_aero_size_mass
           .or. (dimids(1) /= dimid_aero_radius) &
           .or. (dimids(2) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_mass_concentration dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_mass_concentration(n_bin, n_aero_species))
      call nc_check(nf90_get_var(ncid, varid_aero_mass_concentration, &
@@ -158,7 +159,7 @@ program extract_sectional_aero_size_mass
   if (n_time == 0) then
      write(*,'(a,a)') 'ERROR: no input file found matching: ', &
           trim(in_filename)
-     call exit(1)
+     stop 1
   end if
 
   ! write information
@@ -174,7 +175,7 @@ program extract_sectional_aero_size_mass
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(out_filename), ' for writing: ', ios
-     call exit(1)
+     stop 1
   end if
 
   ! output data
@@ -204,7 +205,7 @@ contains
 
     if (status /= NF90_NOERR) then
        write(0,*) nf90_strerror(status)
-       call exit(1)
+       stop 1
     end if
 
   end subroutine nc_check

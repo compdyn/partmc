@@ -36,40 +36,40 @@ module pmc_env_data
   !! aero_dist_interp_1d(), respectively.
   type env_data_t
      !> Temperature set-point times (s).
-     real*8, pointer :: temp_time(:)
+     real(kind=dp), pointer :: temp_time(:)
      !> Temperatures at set-points (K).
-     real*8, pointer :: temp(:)
+     real(kind=dp), pointer :: temp(:)
 
      !> Height set-point times (s).
-     real*8, pointer :: height_time(:)
+     real(kind=dp), pointer :: height_time(:)
      !> Heights at set-points (m).
-     real*8, pointer :: height(:)
+     real(kind=dp), pointer :: height(:)
 
      !> Gas emission set-point times (s).
-     real*8, pointer :: gas_emission_time(:)
+     real(kind=dp), pointer :: gas_emission_time(:)
      !> Gas emisssion rates at set-points (s^{-1}).
-     real*8, pointer :: gas_emission_rate(:)
+     real(kind=dp), pointer :: gas_emission_rate(:)
      !> Gas emissions at set-points.
      type(gas_state_t), pointer :: gas_emission(:)
 
      !> Gas-background dilution set-point times (s).
-     real*8, pointer :: gas_dilution_time(:)
+     real(kind=dp), pointer :: gas_dilution_time(:)
      !> Gas-background dilution rates at set-points (s^{-1}).
-     real*8, pointer :: gas_dilution_rate(:)
+     real(kind=dp), pointer :: gas_dilution_rate(:)
      !> Background gas mixing ratios at set-points.
      type(gas_state_t), pointer :: gas_background(:)
 
      !> Aerosol emission set-points times (s).
-     real*8, pointer :: aero_emission_time(:)
+     real(kind=dp), pointer :: aero_emission_time(:)
      !> Aerosol emission rates at set-points (s^{-1}).
-     real*8, pointer :: aero_emission_rate(:)
+     real(kind=dp), pointer :: aero_emission_rate(:)
      !> Aerosol emissions at set-points.
      type(aero_dist_t), pointer :: aero_emission(:)
 
      !> Aerosol-background dilution set-point times (s).
-     real*8, pointer :: aero_dilution_time(:)
+     real(kind=dp), pointer :: aero_dilution_time(:)
      !> Aerosol-background dilution rates at set-points (s^{-1}).
-     real*8, pointer :: aero_dilution_rate(:)
+     real(kind=dp), pointer :: aero_dilution_rate(:)
      !> Aerosol background at set-points.
      type(aero_dist_t), pointer :: aero_background(:)
   end type env_data_t
@@ -165,7 +165,7 @@ contains
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
 
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
@@ -198,10 +198,10 @@ contains
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     
     !> Ambient water vapor pressure (Pa).
-    real*8 :: pmv
+    real(kind=dp) :: pmv
 
     ! update temperature and adjust relative humidity to maintain
     ! water mixing ratio

@@ -41,9 +41,9 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Maximum kernel.
-    real*8, intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
@@ -60,16 +60,16 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
 
     logical :: did_coag
     integer :: i, j, n_samp, i_samp, rank, i_proc, n_proc, i_bin
-    real*8 :: n_samp_real
+    real(kind=dp) :: n_samp_real
     integer, allocatable :: n_parts(:,:)
-    real*8, allocatable :: comp_vols(:)
+    real(kind=dp), allocatable :: comp_vols(:)
     
     !>DEBUG
     !call pmc_mpi_barrier()
@@ -172,22 +172,22 @@ contains
     !> Whether first bin is second bin.
     logical, intent(in) :: same_bin
     !> Maximum kernel value.
-    real*8, intent(in) :: k_max
+    real(kind=dp), intent(in) :: k_max
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Timestep (s).
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> Number of samples per timestep.
-    real*8, intent(out) :: n_samp_real
+    real(kind=dp), intent(out) :: n_samp_real
     
-    real*8 r_samp
-    real*8 n_possible ! use real*8 to avoid integer overflow
+    real(kind=dp) r_samp
+    real(kind=dp) n_possible ! use real(kind=dp) to avoid integer overflow
     ! FIXME: should use integer*8 or integer(kind = 8)
     
     if (same_bin) then
-       n_possible = dble(ni) * (dble(nj) - 1d0) / 2d0
+       n_possible = real(ni, kind=dp) * (real(nj, kind=dp) - 1d0) / 2d0
     else
-       n_possible = dble(ni) * dble(nj) / 2d0
+       n_possible = real(ni, kind=dp) * real(nj, kind=dp) / 2d0
     endif
     
     r_samp = k_max / comp_vol * del_t
@@ -524,15 +524,15 @@ contains
     !> Bin of second particle.
     integer, intent(in) :: b2
     !> Timestep.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> K_max scale factor.
-    real*8, intent(in) :: k_max
+    real(kind=dp), intent(in) :: k_max
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     !> Number of particles per-bin and per-processor.
     integer :: n_parts(:, :)
     !> Computational volumes for each processor.
-    real*8 :: comp_vols(:)
+    real(kind=dp) :: comp_vols(:)
     
 #ifndef DOXYGEN_SKIP_DOC
     interface
@@ -545,13 +545,13 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
     
     integer :: p1, p2, s1, s2
-    real*8 :: p, k
+    real(kind=dp) :: p, k
     type(aero_particle_t) :: particle_1, particle_2
     
     !>DEBUG
@@ -623,9 +623,9 @@ contains
     !> Bin of second particle.
     integer, intent(in) :: b2
     !> Timestep.
-    real*8, intent(in) :: del_t
+    real(kind=dp), intent(in) :: del_t
     !> K_max scale factor.
-    real*8, intent(in) :: k_max
+    real(kind=dp), intent(in) :: k_max
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     
@@ -640,13 +640,13 @@ contains
          type(aero_particle_t), intent(in) :: aero_particle_2
          type(aero_data_t), intent(in) :: aero_data
          type(env_state_t), intent(in) :: env_state  
-         real*8, intent(out) :: k
+         real(kind=dp), intent(out) :: k
        end subroutine kernel
     end interface
 #endif
     
     integer :: s1, s2
-    real*8 :: p, k
+    real(kind=dp) :: p, k
     
     did_coag = .false.
     
@@ -698,9 +698,9 @@ contains
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
 
-100 s1 = int(pmc_random() * dble(aero_state%bin(b1)%n_part)) + 1
+100 s1 = int(pmc_random() * real(aero_state%bin(b1)%n_part, kind=dp)) + 1
     if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bin(b1)%n_part)) goto 100
-101 s2 = int(pmc_random() * dble(aero_state%bin(b2)%n_part)) + 1
+101 s2 = int(pmc_random() * real(aero_state%bin(b2)%n_part, kind=dp)) + 1
     if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bin(b2)%n_part)) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
@@ -755,8 +755,8 @@ contains
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
     !>DEBUG
-    !write(*,*) 'find_rand_pair_mpi_controlled: s1/np1 = ', dble(s1) / dble(sum(n_parts(b1,:)))
-    !write(*,*) 'find_rand_pair_mpi_controlled: s2/np2 = ', dble(s2) / dble(sum(n_parts(b2,:)))
+    !write(*,*) 'find_rand_pair_mpi_controlled: s1/np1 = ', real(s1, kind=dp) / dble(sum(n_parts(b1,:)))
+    !write(*,*) 'find_rand_pair_mpi_controlled: s2/np2 = ', real(s2, kind=dp) / dble(sum(n_parts(b2,:)))
     !write(*,*) 'find_rand_pair_mpi_controlled: b1,np1,s1,nps1 = ', b1, sum(n_parts(b1,:)), s1, n_parts(b1,:)
     !write(*,*) 'find_rand_pair_mpi_controlled: b2,np2,s2,nps2 = ', b2, sum(n_parts(b2,:)), s2, n_parts(b2,:)
     !<DEBUG
@@ -888,7 +888,7 @@ contains
     !> Number of particles per-bin and per-processor.
     integer :: n_parts(:, :)
     !> Computational volumes for each processor.
-    real*8 :: comp_vols(:)
+    real(kind=dp) :: comp_vols(:)
     
     type(aero_particle_t) :: new_particle
     type(aero_info_t) :: aero_info

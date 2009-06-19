@@ -33,10 +33,10 @@ module pmc_aero_binned
   type aero_binned_t
      !> Number concentration per bin (#/m^3/dlnr).
      !! Array length is typically \c bin_grid\%n_bin.
-     real*8, pointer :: num_conc(:)
+     real(kind=dp), pointer :: num_conc(:)
      !> Volume concentration per bin and per species (m^3/m^3/dlnr).
      !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
-     real*8, pointer :: vol_conc(:,:)
+     real(kind=dp), pointer :: vol_conc(:,:)
   end type aero_binned_t
 
 contains
@@ -116,7 +116,7 @@ contains
     !> Bin number that new particle is in (must be correct).
     integer, intent(in) :: bin
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
 
@@ -142,7 +142,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
 
@@ -169,7 +169,7 @@ contains
     !> Bin number of the aero_particle.
     integer, intent(in) :: bin
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Particle to remove.
     type(aero_particle_t), intent(in) :: aero_particle
 
@@ -195,7 +195,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Computational volume (m^3).
-    real*8, intent(in) :: comp_vol
+    real(kind=dp), intent(in) :: comp_vol
     !> Particle to remove.
     type(aero_particle_t), intent(in) :: aero_particle
 
@@ -249,7 +249,7 @@ contains
     !> Base aero_binned to scale.
     type(aero_binned_t), intent(inout) :: aero_binned
     !> Scale factor.
-    real*8, intent(in) :: alpha
+    real(kind=dp), intent(in) :: alpha
 
     aero_binned%num_conc = aero_binned%num_conc * alpha
     aero_binned%vol_conc = aero_binned%vol_conc * alpha
@@ -296,8 +296,8 @@ contains
     !> The aero_dist_t structure to add.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    real*8 :: dist_num_conc(size(aero_binned%num_conc, 1))
-    real*8 :: dist_vol_conc(size(aero_binned%vol_conc, 1), &
+    real(kind=dp) :: dist_num_conc(size(aero_binned%num_conc, 1))
+    real(kind=dp) :: dist_vol_conc(size(aero_binned%vol_conc, 1), &
          size(aero_binned%vol_conc, 2))
 
     call aero_dist_num_conc(aero_dist, bin_grid, aero_data, &
@@ -409,7 +409,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     integer :: dimid_aero_radius, dimid_aero_species
-    real*8 :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     
     do i_bin = 1,bin_grid%n_bin
@@ -445,7 +445,7 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    real*8 :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     character(len=1000) :: unit
 

@@ -11,6 +11,7 @@ program extract_aero_size_num
 
   use netcdf
 
+  integer, parameter :: dp = kind(0.d0)
   integer, parameter :: MAX_N_TIME = 10000
   integer, parameter :: out_unit = 64
 
@@ -22,31 +23,31 @@ program extract_aero_size_num
   integer :: varid_aero_comp_vol
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
-  real*8 :: time
-  real*8, allocatable :: aero_particle_mass(:,:)
-  real*8, allocatable :: aero_density(:)
-  real*8, allocatable :: aero_comp_vol(:)
-  real*8, allocatable :: aero_dist(:,:)
+  real(kind=dp) :: time
+  real(kind=dp), allocatable :: aero_particle_mass(:,:)
+  real(kind=dp), allocatable :: aero_density(:)
+  real(kind=dp), allocatable :: aero_comp_vol(:)
+  real(kind=dp), allocatable :: aero_dist(:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time
-  real*8 :: r_min, r_max, radius, volume, dlnr
+  real(kind=dp) :: r_min, r_max, radius, volume, dlnr
 
   ! process commandline arguments
-  if (iargc() .ne. 5) then
+  if (command_argument_count() .ne. 5) then
      write(6,*) 'Usage: extract_aero_size_num <r_min> <r_max> <n_bin> ' &
           // '<netcdf_state_prefix> <output_filename>'
-     call exit(2)
+     stop 2
   endif
-  call getarg(1, tmp_str)
+  call get_command_argument(1, tmp_str)
   r_min = string_to_real(tmp_str)
-  call getarg(2, tmp_str)
+  call get_command_argument(2, tmp_str)
   r_max = string_to_real(tmp_str)
-  call getarg(3, tmp_str)
+  call get_command_argument(3, tmp_str)
   n_bin = string_to_integer(tmp_str)
-  call getarg(4, in_prefix)
-  call getarg(5, out_filename)
+  call get_command_argument(4, in_prefix)
+  call get_command_argument(5, out_filename)
 
   ! process NetCDF files
   allocate(aero_dist(n_bin, MAX_N_TIME))
@@ -64,7 +65,7 @@ program extract_aero_size_num
      if (n_time >= MAX_N_TIME) then
         write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
              MAX_N_TIME
-        call exit(1)
+        stop 1
      end if
 
      ! read time
@@ -98,7 +99,7 @@ program extract_aero_size_num
           .or. (dimids(1) /= dimid_aero_particle) &
           .or. (dimids(2) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_particle_mass dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_particle_mass(n_aero_particle, n_aero_species))
      call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
@@ -112,7 +113,7 @@ program extract_aero_size_num
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_density dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_density(n_aero_species))
      call nc_check(nf90_get_var(ncid, varid_aero_density, &
@@ -126,7 +127,7 @@ program extract_aero_size_num
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_particle)) then
         write(*,*) "ERROR: unexpected aero_comp_vol dimids"
-        call exit(1)
+        stop 1
      end if
      allocate(aero_comp_vol(n_aero_particle))
      call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
@@ -135,13 +136,13 @@ program extract_aero_size_num
      call nc_check(nf90_close(ncid))
 
      ! compute distribution
-     dlnr = log(r_max / r_min) / dble(n_bin - 1)
+     dlnr = log(r_max / r_min) / real(n_bin - 1, kind=dp)
      do i_part = 1,n_aero_particle
         volume = sum(aero_particle_mass(i_part,:) / aero_density)
         radius = (volume / (4d0 / 3d0 &
              * 3.14159265358979323846d0))**(1d0/3d0)
         i_bin = ceiling((log(radius) - log(r_min)) &
-             / (log(r_max) - log(r_min)) * dble(n_bin - 1) + 0.5d0)
+             / (log(r_max) - log(r_min)) * real(n_bin - 1, kind=dp) + 0.5d0)
         aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
              + 1d0 / aero_comp_vol(i_part) / dlnr
      end do
@@ -154,7 +155,7 @@ program extract_aero_size_num
   if (n_time == 0) then
      write(*,'(a,a)') 'ERROR: no input file found matching: ', &
           trim(in_filename)
-     call exit(1)
+     stop 1
   end if
 
   ! write information
@@ -171,12 +172,12 @@ program extract_aero_size_num
   if (ios /= 0) then
      write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
           trim(out_filename), ' for writing: ', ios
-     call exit(1)
+     stop 1
   end if
 
   ! output data
   do i_bin = 1,n_bin
-     radius = exp(dble(i_bin - 1) / dble(n_bin - 1) &
+     radius = exp(real(i_bin - 1, kind=dp) / real(n_bin - 1, kind=dp) &
           * (log(r_max) - log(r_min)) + log(r_min))
      write(out_unit, '(e30.15e3)', advance='no') radius
      do i_time = 1,n_time
@@ -201,7 +202,7 @@ contains
 
     if (status /= NF90_NOERR) then
        write(0,*) nf90_strerror(status)
-       call exit(1)
+       stop 1
     end if
 
   end subroutine nc_check
@@ -209,19 +210,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to a real.
-  real*8 function string_to_real(string)
+  real(kind=dp) function string_to_real(string)
 
     !> String to convert.
     character(len=*), intent(in) :: string
     
-    real*8 :: val
+    real(kind=dp) :: val
     integer :: ios
 
     read(string, '(e40.0)', iostat=ios) val
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to real: IOSTAT = ', ios
-       call exit(2)
+       stop 2
     end if
     string_to_real = val
 
@@ -242,7 +243,7 @@ contains
     if (ios /= 0) then
        write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
             ' to integer: IOSTAT = ', ios
-       call exit(1)
+       stop 1
     end if
     string_to_integer = val
 

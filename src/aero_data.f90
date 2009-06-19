@@ -47,15 +47,15 @@ module pmc_aero_data
      !> mosaic index of species i, or 0 if there is no match.
      integer, pointer :: mosaic_index(:)
      !> Len n_spec, densities (kg m^{-3}).
-     real*8, pointer ::  density(:)
+     real(kind=dp), pointer ::  density(:)
      !> Len n_spec, num ions in solute.
      integer, pointer :: num_ions(:)
      !> Len n_spec, solubilities (1).
-     real*8, pointer :: solubility(:)
+     real(kind=dp), pointer :: solubility(:)
      !> Len n_spec, molc wghts (kg mole^{-1}).
-     real*8, pointer :: molec_weight(:)
+     real(kind=dp), pointer :: molec_weight(:)
      !> Len n_spec, kappas (1).
-     real*8, pointer :: kappa(:)
+     real(kind=dp), pointer :: kappa(:)
   end type aero_data_t
 
 contains
@@ -213,7 +213,7 @@ contains
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_data(:,:)
+    real(kind=dp), pointer :: species_data(:,:)
 
     allocate(species_name(0))
     allocate(species_data(0,0))

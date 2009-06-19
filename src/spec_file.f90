@@ -449,14 +449,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a string to an real.
-  real*8 function spec_file_string_to_real(file, string)
+  real(kind=dp) function spec_file_string_to_real(file, string)
 
     !> Spec file.
     type(spec_file_t), intent(in) :: file
     !> String to convert.
     character(len=*), intent(in) :: string
     
-    real*8 :: val
+    real(kind=dp) :: val
     integer :: ios
 
     read(string, '(f30.0)', iostat=ios) val
@@ -532,7 +532,7 @@ contains
     !> Name.
     character(len=*), intent(in) :: name
     !> Variable to store data.
-    real*8, intent(out) :: var
+    real(kind=dp), intent(out) :: var
 
     type(spec_line_t) :: line
 
@@ -602,7 +602,7 @@ contains
     !> Name.
     character(len=*), intent(in) :: name
     !> Variable to store data.
-    complex*16, intent(out) :: var
+    complex(kind=dc), intent(out) :: var
 
     type(spec_line_t) :: line
 
@@ -611,7 +611,7 @@ contains
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 2)
     var = cmplx(spec_file_string_to_real(file, line%data(1)), &
-         spec_file_string_to_real(file, line%data(2)), 8)
+         spec_file_string_to_real(file, line%data(2)), kind=dc)
     call spec_line_deallocate(line)
 
   end subroutine spec_file_read_complex
@@ -629,7 +629,7 @@ contains
     !> Names of lines.
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
     !> Data values.
-    real*8, pointer :: vals(:,:)
+    real(kind=dp), pointer :: vals(:,:)
 
     type(spec_line_t), pointer :: line_array(:)
     integer :: num_lines, line_length, i, j
@@ -673,15 +673,15 @@ contains
     !> Variable name.
     character(len=*), intent(in) :: name
     !> Names of lines.
-    real*8, pointer :: times(:)
+    real(kind=dp), pointer :: times(:)
     !> Data values.
-    real*8, pointer :: vals(:)
+    real(kind=dp), pointer :: vals(:)
     
     integer :: n_lines, n_times
     character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
-    real*8, pointer :: read_data(:,:)
+    real(kind=dp), pointer :: read_data(:,:)
     character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     call spec_file_read_string(file, line_name, read_name)

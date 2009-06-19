@@ -24,7 +24,7 @@ module pmc_gas_state
   !! with name \c gas_data%%name(i), etc.
   type gas_state_t
      !> Length n_spec, mixing ratio (ppb).
-     real*8, pointer :: mix_rat(:)
+     real(kind=dp), pointer :: mix_rat(:)
   end type gas_state_t
 
 contains
@@ -107,7 +107,7 @@ contains
     !> Existing gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Scale factor.
-    real*8, intent(in) :: alpha
+    real(kind=dp), intent(in) :: alpha
 
     gas_state%mix_rat = gas_state%mix_rat * alpha
 
@@ -147,7 +147,7 @@ contains
   subroutine gas_state_axpy(alpha, gas_state_x, gas_state_y)
 
     !> Coefficient.
-    real*8, intent(in) :: alpha
+    real(kind=dp), intent(in) :: alpha
     !> Incremental state.
     type(gas_state_t), intent(in) :: gas_state_x
     !> Existing gas state.
@@ -167,18 +167,18 @@ contains
     !> Gas states.
     type(gas_state_t), intent(in) :: gas_state_list(:)
     !> Times (s).
-    real*8, intent(in) :: time_list(size(gas_state_list))
+    real(kind=dp), intent(in) :: time_list(size(gas_state_list))
     !> Rates (s^{-1}).
-    real*8, intent(in) :: rate_list(size(gas_state_list))
+    real(kind=dp), intent(in) :: rate_list(size(gas_state_list))
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Current gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Current rate (s^{-1}).
-    real*8, intent(out) :: rate
+    real(kind=dp), intent(out) :: rate
 
     integer :: n, p
-    real*8 :: y, alpha
+    real(kind=dp) :: y, alpha
 
     n = size(gas_state_list)
     p = find_1d(n, time_list, time)
@@ -216,7 +216,7 @@ contains
     type(spec_file_t) :: read_file
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_data(:,:)
+    real(kind=dp), pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
     call spec_file_read_string(file, name, read_name)
@@ -265,9 +265,9 @@ contains
     !> Name of data line for filename.
     character(len=*), intent(in) :: name
     !> Times (s).
-    real*8, pointer :: times(:)
+    real(kind=dp), pointer :: times(:)
     !> Rates (s^{-1}).
-    real*8, pointer :: rates(:)
+    real(kind=dp), pointer :: rates(:)
     !> Gas states.
     type(gas_state_t), pointer :: gas_states(:)
 
@@ -275,7 +275,7 @@ contains
     type(spec_file_t) :: read_file
     integer :: n_lines, species, i, n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real*8, pointer :: species_data(:,:)
+    real(kind=dp), pointer :: species_data(:,:)
 
     ! read the filename then read the data from that file
     call spec_file_read_string(file, name, read_name)

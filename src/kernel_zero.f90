@@ -38,7 +38,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
-    real*8, intent(out) :: k
+    real(kind=dp), intent(out) :: k
     
     k = 0d0
     
@@ -50,15 +50,15 @@ contains
   subroutine kernel_zero_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle.
-    real*8, intent(in) :: v1
+    real(kind=dp), intent(in) :: v1
     !> Volume of second particle.
-    real*8, intent(in) :: v2
+    real(kind=dp), intent(in) :: v2
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel maximum value.
-    real*8, intent(out) :: k_max
+    real(kind=dp), intent(out) :: k_max
     
     k_max = 0d0
     
@@ -100,13 +100,13 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Current time (s).
-    real*8, intent(in) :: time
+    real(kind=dp), intent(in) :: time
     !> Particle number concentration (#/m^3).
-    real*8, intent(in) :: num_conc
+    real(kind=dp), intent(in) :: num_conc
     !> Mean init volume (m^3).
-    real*8, intent(in) :: mean_vol
+    real(kind=dp), intent(in) :: mean_vol
     !> Particle density (kg/m^3).
-    real*8, intent(in) :: rho_p
+    real(kind=dp), intent(in) :: rho_p
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.

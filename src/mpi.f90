@@ -703,9 +703,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, length)
-    if (length > len(val)) then
-       call pmc_mpi_abort(3251)
-    end if
+    call assert(946399479, length <= len(val))
     val = ''
     call mpi_unpack(buffer, size(buffer), position, val, length, &
          MPI_CHARACTER, MPI_COMM_WORLD, ierr)

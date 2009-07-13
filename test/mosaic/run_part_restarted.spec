@@ -27,10 +27,10 @@ aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
 rand_init 0                     # random initialization (0 to auto-generate)
-mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
+do_parallel no                  # whether to run in parallel (yes/no)

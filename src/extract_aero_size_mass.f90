@@ -143,6 +143,8 @@ program extract_aero_size_mass
              * 3.14159265358979323846d0))**(1d0/3d0)
         i_bin = ceiling((log(radius) - log(r_min)) &
              / (log(r_max) - log(r_min)) * real(n_bin - 1, kind=dp) + 0.5d0)
+        i_bin = max(1, i_bin)
+        i_bin = min(n_bin, i_bin)
         aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
              + sum(aero_particle_mass(i_part,:)) / aero_comp_vol(i_part) &
              / dlnr

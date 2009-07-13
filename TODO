@@ -1,24 +1,26 @@
+Right now:
+  -- fix mixing to use buffered sends, just pack them all up and send them to all procs
+  -- implement different output models
+  -- parallel testcases
 
 Parallel options:
-    parallel yes/no -- active following options
-    output_type: per-processor writes to local NetCDF files,
- 	         centralized writes to per-processor NetCDF files,
- 		 centralized write to a single NetCDF file
- 		 (averaged env_state, gas_state, all particles)
+    parallel yes/no -- activate following options
+    output_type: dist    - per-processor writes to local NetCDF files,
+ 	         central - centralized writes to per-processor NetCDF files,
+ 		 single  - centralized write to a single NetCDF file
+ 		           (averaged env_state, gas_state, all particles)
     average_env: average the environment each timestep
     average_gas: average the gas each timestep
     aero_mix_rate: 0 to turn off aero mixing
+    coag_method: "central" or "dist"
 
-Use only one style of quotes: '' or "".
+Use only one style of quotes: '' or "" (use "").
 
 Change times in the env_data arrays to be seconds since midnight on
 start_day, so we can easily change start_time without needing to
 rewrite all the emit/height/etc data. It just makes more sense for
 these to be absolute real times, rather than relative to start of
 simulation. Would also help with restarted simulations.
-
-Add --std=f90 or something to make sure we aren't using GNU
-extensions.
 
 Change cpu_time(t_wall_now) to system_clock() to actually get
 wall_time, not cpu_time, to avoid issues with MPI code.
@@ -49,8 +51,6 @@ Change gas conc from ppb to mole proportion.
 Add implicit, adaptive timestepping for the condensation ODE solver.
 
 Make array names plural.
-
-Properly use kind() rather than real*8.
 
 Implement a better poisson distribution generator. We should probably
 generate a poisson sample per-bin, rather than doing a total sample
@@ -84,8 +84,6 @@ gas_data, gas_state) function.
 Fix calling convention for aerosol_optical from mosaic.f90. Do we do
 it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
-
-Implement parallel version with coagulation done centrally.
 
 Sometimes cmake seems to rebuild even if no source files have changed
 at all?
@@ -125,3 +123,29 @@ Rename spec_read_struct() to struct_read_from_spec().
 
 Use wiki page to update CMakeLists.txt for Fortran:
 http://www.cmake.org/Wiki/CMakeForFortranExample
+
+Have proper cmake support for debug/optimized builds.
+
+Switch MPI send to not send the size first, but just do the send. The
+receiver can do an mpi_probe() to detect the size and allocate the
+receive buffer.
+
+Standardize on "processor" or "node".
+
+Change the line "n_samp = prob_round(n_samp_real)" to be "n_samp =
+ceil(n_samp_real)" to match the paper and make convergence
+obvious.
+
+Switch to using mpi structures rather than pack/unpack.
+
+Rename part_opt to run_part_opt, and similarly for sect_opt and
+exact_opt.
+
+Don't pass unnecessary array size information (e.g. sample_cts_pdf).
+
+Add doxygen comments in partmc.f90 to produce a page describing the
+spec file formats, by having comments before each spec_file_read_*
+call.
+
+Change numeric_average.f90 to be numeric_reduce.f90 with option
+"mean", "stddev", "min", "max", "median", "prank" (percentile rank).

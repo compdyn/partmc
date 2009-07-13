@@ -233,7 +233,6 @@ contains
        end if
        
        call spec_file_read_integer(file, 'rand_init', rand_init)
-       call spec_file_read_real(file, 'mix_rate', part_opt%mix_rate)
        call spec_file_read_logical(file, 'do_coagulation', &
             part_opt%do_coagulation)
        call spec_file_read_logical(file, 'allow_doubling', &
@@ -247,9 +246,27 @@ contains
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
-
        call spec_file_read_logical(file, 'record_removals', &
             part_opt%record_removals)
+
+       call spec_file_read_logical(file, 'do_parallel', part_opt%do_parallel)
+       if (part_opt%do_parallel) then
+#ifndef PMC_USE_MPI
+          call spec_file_die_msg(929006383, file, &
+               'cannot use parallel mode, support is not compiled in')
+#endif
+          call spec_file_read_string(file, 'output_type', part_opt%output_type)
+          call spec_file_read_real(file, 'mix_timescale', part_opt%mix_timescale)
+          call spec_file_read_logical(file, 'gas_average', part_opt%gas_average)
+          call spec_file_read_logical(file, 'env_average', part_opt%env_average)
+          call spec_file_read_string(file, 'coag_method', part_opt%coag_method)
+       else
+          part_opt%output_type = "single"
+          part_opt%mix_timescale = 0d0
+          part_opt%gas_average = .false.
+          part_opt%env_average = .false.
+          part_opt%coag_method = "local"
+       end if
        
        call spec_file_close(file)
 

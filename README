@@ -136,6 +136,12 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
+1.3.0 - YYYY-MM-DD
+
+  * Scalable parallel implementation added.
+
+  * Added restart capability from NetCDF state files.
+
 1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.

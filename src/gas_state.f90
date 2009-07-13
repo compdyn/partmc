@@ -358,6 +358,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Average val over all processes, with the result only on the root
+  !> processor.
+  subroutine gas_state_reduce_avg(val)
+
+    !> Value to average.
+    type(gas_state_t), intent(inout) :: val
+
+#ifdef PMC_USE_MPI
+    type(gas_state_t) :: val_avg
+
+    call gas_state_allocate_size(val_avg, size(val%mix_rat))
+    call pmc_mpi_reduce_avg_real_array(val%mix_rat, val_avg%mix_rat)
+    if (pmc_mpi_rank() == 0) then
+       val%mix_rat = val_avg%mix_rat
+    end if
+    call gas_state_deallocate(val_avg)
+#endif
+
+  end subroutine gas_state_reduce_avg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_gas_state(val)
 

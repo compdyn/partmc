@@ -278,12 +278,13 @@ contains
     !> Aero_info to add.
     type(aero_info_array_t), intent(in) :: aero_info_array_delta
 
-    integer :: i, n, n_new
+    integer :: i, n, n_delta, n_new
 
     n = aero_info_array%n_item
-    n_new = n + aero_info_array_delta%n_item
+    n_delta = aero_info_array_delta%n_item
+    n_new = n + n_delta
     call aero_info_array_enlarge_to(aero_info_array, n_new)
-    do i = 1,n
+    do i = 1,n_delta
        call aero_info_allocate(aero_info_array%aero_info(n + i))
        call aero_info_copy(aero_info_array_delta%aero_info(i), &
             aero_info_array%aero_info(n + i))

@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
-output_prefix out/serial        # prefix of output files
+output_prefix out/parallel_central # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 10000                    # total number of particles
+n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel
 restart no                      # whether to restart from saved state (yes/no)
 
@@ -42,4 +42,10 @@ allow_halving yes               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
-do_parallel no                  # whether to run in parallel (yes/no)
+
+do_parallel yes                 # whether to run in parallel (yes/no)
+output_type dist                # parallel output type (central/dist/single)
+mix_timescale 0                 # mixing timescale between processors (s)
+gas_average yes                 # whether to average gases each timestep
+env_average yes                 # whether to average environment each timestep
+coag_method central             # parallel method (local/collect/central/dist)

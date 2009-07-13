@@ -431,6 +431,9 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, env_state%aero_background, sample_prop, &
          env_state%elapsed_time)
+    !>DEBUG
+    !write(*,*) 'env_state_update_aero_state: calling aero_state_add_particles'
+    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_delta)
     
     ! emissions
@@ -440,6 +443,9 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, env_state%aero_emissions, sample_prop, &
          env_state%elapsed_time)
+    !>DEBUG
+    !write(*,*) 'env_state_update_aero_state: calling aero_state_add_particles'
+    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_delta)
 
     ! update computational volume
@@ -549,6 +555,32 @@ contains
 #endif
 
   end subroutine env_state_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Average val over all processes, with the result only on the root
+  !> processor.
+  subroutine env_state_reduce_avg(val)
+
+    !> Value to average.
+    type(env_state_t), intent(inout) :: val
+
+#ifdef PMC_USE_MPI
+    type(env_state_t) :: val_avg
+
+    call env_state_allocate(val_avg)
+    call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
+    call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
+    call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)
+    if (pmc_mpi_rank() == 0) then
+       val%temp = val_avg%temp
+       val%rel_humid = val_avg%rel_humid
+       val%pressure = val_avg%pressure
+    end if
+    call env_state_deallocate(val_avg)
+#endif
+
+  end subroutine env_state_reduce_avg
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

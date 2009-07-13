@@ -123,6 +123,9 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   if(NOT ENABLE_MPI)
     add_definitions(-Wimplicit-interface)
   endif(NOT ENABLE_MPI)
+  if(ENABLE_MPI)
+    add_definitions(-DPMC_USE_MPI)
+  endif(ENABLE_MPI)
 elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
@@ -170,6 +173,9 @@ add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
 add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
 add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
 add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
+if(ENABLE_MPI)
+  add_test(parallel_1 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_1.sh)
+endif(ENABLE_MPI)
 
 ######################################################################
 
@@ -182,7 +188,9 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/kernel_zero.f90 src/aero_data.f90 src/run_exact.f90
                src/run_part.f90 src/util.f90 src/run_sect.f90
                src/output.f90 src/mosaic.f90 src/gas_data.f90
-               src/gas_state.f90 src/coagulation.f90 src/kernel.f90
+               src/gas_state.f90 src/coagulation.f90
+               src/coagulation_mpi_controlled.f90
+               src/coagulation_mpi_equal.f90 src/kernel.f90
                src/spec_line.f90 src/spec_file.f90 src/rand.f90
                src/aero_particle.f90 src/aero_particle_array.f90
                src/mpi.f90 src/netcdf.f90 src/aero_info.f90

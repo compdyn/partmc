@@ -20,14 +20,124 @@ module pmc_output
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+
+  integer, parameter :: TAG_OUTPUT_STATE_CENTRAL = 4341
+  integer, parameter :: TAG_OUTPUT_STATE_SINGLE  = 4342
   
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current state.
+  subroutine output_state(prefix, output_type, bin_grid, aero_data, &
+       aero_state, gas_data, gas_state, env_state, index, time, &
+       del_t, i_loop, record_removals)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: prefix
+    !> Output type for parallel runs (central/dist/single).
+    character(len=*), intent(in) :: output_type
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Current loop number.
+    integer, intent(in) :: i_loop
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
+    
+    integer :: rank, n_proc
+#ifdef PMC_USE_MPI
+    type(env_state_t) :: env_state_write
+    type(gas_state_t) :: gas_state_write
+    type(aero_state_t) :: aero_state_write
+    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
+    character, allocatable :: buffer(:)
+#endif
+
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+    if (output_type == "central") then
+       ! write per-processor data to separate files, but do it by
+       ! transferring data to processor 0 and having it do the writes
+       if (rank == 0) then
+          call output_state_to_file(prefix, bin_grid, aero_data, &
+               aero_state, gas_data, gas_state, env_state, index, time, &
+               del_t, i_loop, record_removals, rank, n_proc)
+#ifdef PMC_USE_MPI
+          do i_proc = 1,(n_proc - 1)
+             call recv_output_state_central(prefix, bin_grid, &
+                  aero_data, gas_data, index, time, del_t, i_loop, &
+                  record_removals, i_proc)
+          end do
+#endif
+       else ! rank /= 0
+          call send_output_state_central(aero_state, gas_state, env_state)
+       end if
+    elseif (output_type == "dist") then
+       ! have each processor write its own data directly
+       call output_state_to_file(prefix, bin_grid, aero_data, &
+            aero_state, gas_data, gas_state, env_state, index, time, &
+            del_t, i_loop, record_removals, rank, n_proc)
+    elseif (output_type == "single") then
+       if (n_proc == 1) then
+          call output_state_to_file(prefix, bin_grid, aero_data, &
+               aero_state, gas_data, gas_state, &
+               env_state, index, time, del_t, i_loop, &
+               record_removals, rank, n_proc)
+       else
+#ifdef PMC_USE_MPI
+          ! collect all data onto processor 0 and then write it to a single file
+          call env_state_allocate(env_state_write)
+          call gas_state_allocate(gas_state_write)
+          call env_state_copy(env_state, env_state_write)
+          call gas_state_copy(gas_state, gas_state_write)
+          call env_state_reduce_avg(env_state_write)
+          call gas_state_reduce_avg(gas_state_write)
+          !FIXME: use aero_state_mpi_gather() here.
+          if (rank == 0) then
+             call aero_state_allocate(aero_state_write)
+             call aero_state_copy(aero_state, aero_state_write)
+             do i_proc = 1,(n_proc - 1)
+                call recv_output_state_single(aero_state_write, i_proc)
+             end do
+             call output_state_to_file(prefix, bin_grid, aero_data, &
+                  aero_state_write, gas_data, gas_state_write, &
+                  env_state_write, index, time, del_t, i_loop, &
+                  record_removals, rank, 1)
+             call aero_state_deallocate(aero_state_write)
+          else ! rank /= 0
+             call send_output_state_single(aero_state)
+          end if
+          call env_state_deallocate(env_state_write)
+          call gas_state_deallocate(gas_state_write)
+#endif
+       end if
+    else
+       call die_msg(626743323, "Unknown output_type: " // trim(output_type))
+    end if
+
+  end subroutine output_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write the current state for a single processor. Do not call this
   !> subroutine directly, but rather call output_state_netcdf().
-  subroutine output_state_netcdf_helper(prefix, bin_grid, aero_data, &
+  subroutine output_state_to_file(prefix, bin_grid, aero_data, &
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop, record_removals, write_rank, write_n_proc)
 
@@ -64,14 +174,12 @@ contains
     character(len=500) :: history
     integer :: ncid
 
-    ! only root node actually writes to the file
-    call assert(694241847, pmc_mpi_rank() == 0)
 #ifdef PMC_USE_MPI
     if (write_n_proc > 1) then
        write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
             '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
     else
-       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
             '_', i_loop, '_', index, '.nc'
     end if
 #else
@@ -107,14 +215,51 @@ contains
 
     call pmc_nc_check(nf90_close(ncid))
     
-  end subroutine output_state_netcdf_helper
+  end subroutine output_state_to_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the current state.
-  subroutine output_state_netcdf(prefix, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop, record_removals)
+  !> Send the state for the "central" output method to the root processor.
+  subroutine send_output_state_central(aero_state, gas_state, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+#ifdef PMC_USE_MPI
+    integer :: buffer_size, position, ierr
+    character, allocatable :: buffer(:)
+
+    call assert(645797304, pmc_mpi_rank() /= 0)
+
+    buffer_size = 0
+    buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
+    buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
+    buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
+    allocate(buffer(buffer_size))
+    position = 0
+    call pmc_mpi_pack_env_state(buffer, position, env_state)
+    call pmc_mpi_pack_gas_state(buffer, position, gas_state)
+    call pmc_mpi_pack_aero_state(buffer, position, aero_state)
+    call assert(839343839, position == buffer_size)
+    call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
+         TAG_OUTPUT_STATE_CENTRAL, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    deallocate(buffer)
+#endif
+
+  end subroutine send_output_state_central
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Receive the state for the "central" output method on the root
+  !> processor.
+  subroutine recv_output_state_central(prefix, bin_grid, &
+       aero_data, gas_data, index, time, del_t, i_loop, &
+       record_removals, remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -122,14 +267,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
-    !> Gas state.
-    type(gas_state_t), intent(in) :: gas_state
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
@@ -140,90 +279,139 @@ contains
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
-    
-    integer, parameter :: tag1 = 490721113
-    integer, parameter :: tag2 = 192608100
-    integer :: rank, n_proc
+    !> Processor number to receive from.
+    integer, intent(in) :: remote_proc
+
 #ifdef PMC_USE_MPI
-    type(env_state_t) :: env_state_write
-    type(gas_state_t) :: gas_state_write
-    type(aero_state_t) :: aero_state_write
-    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
+    type(env_state_t) :: env_state
+    type(gas_state_t) :: gas_state
+    type(aero_state_t) :: aero_state
+    integer :: buffer_size, position, status(MPI_STATUS_SIZE)
+    integer :: n_proc, ierr
     character, allocatable :: buffer(:)
-#endif
 
-    ! only root node actually writes to the file
-    rank = pmc_mpi_rank()
+    call assert(206980035, pmc_mpi_rank() == 0)
+    call assert(291452117, remote_proc /= 0)
     n_proc = pmc_mpi_size()
-    if (rank == 0) then
-       call output_state_netcdf_helper(prefix, bin_grid, aero_data, &
-            aero_state, gas_data, gas_state, env_state, index, time, &
-            del_t, i_loop, record_removals, rank, n_proc)
-    end if
+
+    ! get buffer size
+    call mpi_probe(remote_proc, TAG_OUTPUT_STATE_CENTRAL, MPI_COMM_WORLD, &
+         status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
+
+    ! get message
+    allocate(buffer(buffer_size))
+    call mpi_recv(buffer, buffer_size, MPI_CHARACTER, remote_proc, &
+         TAG_OUTPUT_STATE_CENTRAL, MPI_COMM_WORLD, status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+
+    ! unpack message
+    position = 0
+    call env_state_allocate(env_state)
+    call gas_state_allocate(gas_state)
+    call aero_state_allocate(aero_state)
+    call pmc_mpi_unpack_env_state(buffer, position, env_state)
+    call pmc_mpi_unpack_gas_state(buffer, position, gas_state)
+    call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
+    call assert(279581330, position == buffer_size)
+    deallocate(buffer)
+    
+    call output_state_to_file(prefix, bin_grid, aero_data, &
+         aero_state, gas_data, gas_state, env_state, index, time, &
+         del_t, i_loop, record_removals, remote_proc, n_proc)
+    
+    call env_state_deallocate(env_state)
+    call gas_state_deallocate(gas_state)
+    call aero_state_deallocate(aero_state)
+#endif
+    
+  end subroutine recv_output_state_central
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Send the state for the "single" output method to the root processor.
+  subroutine send_output_state_single(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
 
 #ifdef PMC_USE_MPI
-    
-    ! write everyone else's state
-    do i_proc = 1,(n_proc - 1)
-       call pmc_mpi_barrier()
-       ! compute and send buffer_size from remote node
-       if (rank == i_proc) then
-          buffer_size = 0
-          buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
-          buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
-          buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
-          call mpi_send(buffer_size, 1, MPI_INTEGER, 0, tag1, &
-               MPI_COMM_WORLD, ierr)
-          call pmc_mpi_check_ierr(ierr)
-       end if
-       ! get buffer_size at root node
-       if (rank == 0) then
-          call mpi_recv(buffer_size, 1, MPI_INTEGER, i_proc, tag1, &
-               MPI_COMM_WORLD, status, ierr)
-          call pmc_mpi_check_ierr(ierr)
-       end if
-       ! send buffer from remote node
-       if (rank == i_proc) then
-          allocate(buffer(buffer_size))
-          position = 0
-          call pmc_mpi_pack_env_state(buffer, position, env_state)
-          call pmc_mpi_pack_gas_state(buffer, position, gas_state)
-          call pmc_mpi_pack_aero_state(buffer, position, aero_state)
-          call assert(406072516, position == buffer_size)
-          call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, tag2, &
-               MPI_COMM_WORLD, ierr)
-          call pmc_mpi_check_ierr(ierr)
-          deallocate(buffer)
-       end if
-       ! get buffer at root node and write it out
-       if (rank == 0) then
-          allocate(buffer(buffer_size))
-          call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, tag2, &
-               MPI_COMM_WORLD, status, ierr)
-          position = 0
+    integer :: buffer_size, position, ierr
+    character, allocatable :: buffer(:)
 
-          call env_state_allocate(env_state_write)
-          call gas_state_allocate(gas_state_write)
-          call aero_state_allocate(aero_state_write)
-          call pmc_mpi_unpack_env_state(buffer, position, env_state_write)
-          call pmc_mpi_unpack_gas_state(buffer, position, gas_state_write)
-          call pmc_mpi_unpack_aero_state(buffer, position, aero_state_write)
-          call assert(196070093, position == buffer_size)
-          deallocate(buffer)
+    call assert(699329210, pmc_mpi_rank() /= 0)
 
-          call output_state_netcdf_helper(prefix, bin_grid, aero_data, &
-               aero_state_write, gas_data, gas_state_write, &
-               env_state_write, index, time, del_t, i_loop, &
-               record_removals, i_proc, n_proc)
-          
-          call env_state_deallocate(env_state_write)
-          call gas_state_deallocate(gas_state_write)
-          call aero_state_deallocate(aero_state_write)
-       end if
-    end do
+    buffer_size = 0
+    buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
+    allocate(buffer(buffer_size))
+    position = 0
+    call pmc_mpi_pack_aero_state(buffer, position, aero_state)
+    call assert(269866580, position == buffer_size)
+    !>DEBUG
+    write(*,*) 'send_output_state_single: proc/n_part/bs = ', pmc_mpi_rank(), aero_state%n_part, buffer_size
+    !<DEBUG
+    call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
+         TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    deallocate(buffer)
 #endif
-       
-  end subroutine output_state_netcdf
+
+  end subroutine send_output_state_single
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Receive the state for the "central" output method on the root
+  !> processor and add it to the given \c aero_state.
+  subroutine recv_output_state_single(aero_state, remote_proc)
+
+    !> Aerosol state to add sent state to.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Remote processor to receive state from.
+    integer, intent(in) :: remote_proc
+
+#ifdef PMC_USE_MPI
+    type(aero_state_t) :: aero_state_remote
+    integer :: buffer_size, position, status(MPI_STATUS_SIZE), ierr
+    character, allocatable :: buffer(:)
+
+    call assert(206980035, pmc_mpi_rank() == 0)
+    call assert(291452117, remote_proc /= 0)
+
+    ! get buffer size
+    call mpi_probe(remote_proc, TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, &
+         status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
+
+    ! get message
+    allocate(buffer(buffer_size))
+    call mpi_recv(buffer, buffer_size, MPI_CHARACTER, remote_proc, &
+         TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    !>DEBUG
+    write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
+    write(*,*) 'recv_output_state_single: buffer_size = ', buffer_size
+    !<DEBUG
+
+    ! unpack message
+    position = 0
+    call aero_state_allocate(aero_state)
+    call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
+    call assert(466510584, position == buffer_size)
+    deallocate(buffer)
+
+    !>DEBUG
+    write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
+    write(*,*) 'recv_output_state_single: n_part_remote ', aero_state_remote%n_part
+    write(*,*) 'recv_output_state_single: calling aero_state_add'
+    !<DEBUG
+    call aero_state_add(aero_state, aero_state_remote)
+    
+    call aero_state_deallocate(aero_state)
+#endif
+
+  end subroutine recv_output_state_single
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

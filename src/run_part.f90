@@ -20,11 +20,15 @@ module pmc_run_part
   use pmc_output
   use pmc_mosaic
   use pmc_coagulation
+  use pmc_coagulation_mpi_controlled
+  use pmc_coagulation_mpi_equal
   use pmc_kernel
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+
+  integer, parameter :: RUN_PART_OPT_CHAR_LEN = 100
 
   !> Options controlling the execution of run_part().
   type run_part_opt_t
@@ -56,10 +60,20 @@ module pmc_run_part
     integer :: n_loop
     !> Cpu_time() of start.
     real(kind=dp) :: t_wall_start
-    !> Mix rate for parallel states (0 to 1).
-    real(kind=dp) :: mix_rate
     !> Whether to record particle removal information.
     logical :: record_removals
+    !> Whether to run in parallel.
+    logical :: do_parallel
+    !> Parallel output type (central/dist/single).
+    character(len=RUN_PART_OPT_CHAR_LEN) :: output_type
+    !> Mixing timescale between processes (s).
+    real(kind=dp) :: mix_timescale
+    !> Whether to average gases each timestep.
+    logical :: gas_average
+    !> Whether to average environment each timestep.
+    logical :: env_average
+    !> Parallel coagulation method (local/collect/central/dist).
+    character(len=RUN_PART_OPT_CHAR_LEN) :: coag_method
  end type run_part_opt_t
   
 contains
@@ -115,7 +129,7 @@ contains
     real(kind=dp) :: time, pre_time, pre_del_t
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer :: tot_n_samp, tot_n_coag, rank, pre_index, ncid, pre_i_loop
+    integer :: tot_n_samp, tot_n_coag, rank, n_proc, pre_index, ncid, pre_i_loop
     integer :: progress_n_samp, progress_n_coag
     integer :: global_n_part, global_n_samp, global_n_coag
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
@@ -125,7 +139,8 @@ contains
     integer :: i_state, i_state_netcdf, i_output
     character*100 :: filename
   
-    rank = pmc_mpi_rank() ! MPI process rank (0 is root)
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
 
     i_time = 0
     i_output = 1
@@ -146,9 +161,10 @@ contains
     end if
 
     if (part_opt%t_output > 0d0) then
-       call output_state_netcdf(part_opt%output_prefix, bin_grid, &
-            aero_data, aero_state, gas_data, gas_state, env_state, i_state, &
-            time, part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
+       call output_state(part_opt%output_prefix, part_opt%output_type, &
+            bin_grid, aero_data, aero_state, gas_data, gas_state, &
+            env_state, i_state, time, part_opt%del_t, part_opt%i_loop, &
+            part_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -183,18 +199,25 @@ contains
        call env_data_update_state(env_data, env_state, time + t_start)
 
        if (part_opt%do_coagulation) then
-#ifdef PMC_USE_MPI
-          !call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
-          !     aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
-          call mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
-               aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-#else
-          call mc_coag(kernel, bin_grid, env_state, aero_data, &
-               aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
-#endif
+          if (part_opt%coag_method == "local") then
+             call mc_coag(kernel, bin_grid, env_state, aero_data, &
+                  aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+          elseif (part_opt%coag_method == "collect") then
+             call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
+                  aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+          elseif (part_opt%coag_method == "central") then
+             call mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
+                  aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+          elseif (part_opt%coag_method == "dist") then
+             call mc_coag_mpi_equal(kernel, bin_grid, env_state, aero_data, &
+                  aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+          else
+             call die_msg(323011762, "unknown coag_method: " &
+                  // trim(part_opt%coag_method))
+          end if
+          progress_n_samp = progress_n_samp + tot_n_samp
+          progress_n_coag = progress_n_coag + tot_n_coag
        end if
-       progress_n_samp = progress_n_samp + tot_n_samp
-       progress_n_coag = progress_n_coag + tot_n_coag
 
        call env_state_update_gas_state(env_state, part_opt%del_t, &
             old_env_state, gas_data, gas_state)
@@ -211,9 +234,17 @@ contains
                aero_state, gas_data, gas_state)
        end if
 
-       call mc_mix(aero_data, aero_state, gas_data, gas_state, &
-            env_state, bin_grid, part_opt%mix_rate)
-       
+       if (part_opt%mix_timescale > 0d0) then
+          call aero_state_mix(aero_state, part_opt%del_t, &
+               part_opt%mix_timescale, aero_data, bin_grid)
+       end if
+       if (part_opt%gas_average) then
+          call gas_state_mix(gas_state)
+       end if
+       if (part_opt%gas_average) then
+          call env_state_mix(env_state)
+       end if
+
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array
        if (part_opt%allow_doubling) then
@@ -240,10 +271,10 @@ contains
                last_output_time, do_output)
           if (do_output) then
              i_output = i_output + 1
-             call output_state_netcdf(part_opt%output_prefix, bin_grid, &
-                  aero_data, aero_state, gas_data, gas_state, env_state, &
-                  i_output, time, part_opt%del_t, part_opt%i_loop, &
-                  part_opt%record_removals)
+             call output_state(part_opt%output_prefix, &
+                  part_opt%output_type, bin_grid, aero_data, aero_state, &
+                  gas_data, gas_state, env_state, i_output, time, &
+                  part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
@@ -423,36 +454,6 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Mix data between processes.
-  subroutine mc_mix(aero_data, aero_state, gas_data, gas_state, &
-       env_state, bin_grid, mix_rate)
-
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Gas data.
-    type(gas_data_t), intent(in) :: gas_data
-    !> Gas state.
-    type(gas_state_t), intent(inout) :: gas_state
-    !> Environment.
-    type(env_state_t), intent(inout) :: env_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Amount to mix (0 to 1).
-    real(kind=dp), intent(in) :: mix_rate
-
-    call assert(173605827, (mix_rate >= 0d0) .and. (mix_rate <= 1d0))
-    if (mix_rate == 0d0) return
-
-    call aero_state_mix(aero_state, mix_rate, aero_data, bin_grid)
-    call gas_state_mix(gas_state)
-    call env_state_mix(env_state)
-    
-  end subroutine mc_mix
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_part_opt(val)
 
@@ -473,8 +474,13 @@ contains
          + pmc_mpi_pack_size_integer(val%i_loop) &
          + pmc_mpi_pack_size_integer(val%n_loop) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
-         + pmc_mpi_pack_size_real(val%mix_rate) &
-         + pmc_mpi_pack_size_logical(val%record_removals)
+         + pmc_mpi_pack_size_logical(val%record_removals) &
+         + pmc_mpi_pack_size_logical(val%do_parallel) &
+         + pmc_mpi_pack_size_string(val%output_type) &
+         + pmc_mpi_pack_size_real(val%mix_timescale) &
+         + pmc_mpi_pack_size_logical(val%gas_average) &
+         + pmc_mpi_pack_size_logical(val%env_average) &
+         + pmc_mpi_pack_size_string(val%coag_method)
 
   end function pmc_mpi_pack_size_part_opt
 
@@ -507,8 +513,13 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
-    call pmc_mpi_pack_real(buffer, position, val%mix_rate)
     call pmc_mpi_pack_logical(buffer, position, val%record_removals)
+    call pmc_mpi_pack_logical(buffer, position, val%do_parallel)
+    call pmc_mpi_pack_string(buffer, position, val%output_type)
+    call pmc_mpi_pack_real(buffer, position, val%mix_timescale)
+    call pmc_mpi_pack_logical(buffer, position, val%gas_average)
+    call pmc_mpi_pack_logical(buffer, position, val%env_average)
+    call pmc_mpi_pack_string(buffer, position, val%coag_method)
     call assert(946070052, &
          position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif
@@ -544,8 +555,13 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
-    call pmc_mpi_unpack_real(buffer, position, val%mix_rate)
     call pmc_mpi_unpack_logical(buffer, position, val%record_removals)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_parallel)
+    call pmc_mpi_unpack_string(buffer, position, val%output_type)
+    call pmc_mpi_unpack_real(buffer, position, val%mix_timescale)
+    call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
+    call pmc_mpi_unpack_logical(buffer, position, val%env_average)
+    call pmc_mpi_unpack_string(buffer, position, val%coag_method)
     call assert(480118362, &
          position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif

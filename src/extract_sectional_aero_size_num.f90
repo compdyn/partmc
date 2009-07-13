@@ -46,6 +46,7 @@ program extract_sectional_aero_size_num
   ! process NetCDF files
   i_time = 0
   n_time = 0
+  n_bin = 0 ! HACK to shut up gfortran warning
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"

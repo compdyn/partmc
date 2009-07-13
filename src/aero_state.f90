@@ -24,6 +24,9 @@ module pmc_aero_state
   use mpi
 #endif
 
+  !> MPI tag for mixing particles between processors.
+  integer, parameter :: AERO_STATE_TAG_MIX = 4989
+
   !> The current collection of aerosol particles.
   !!
   !! The particles in aero_state_t are stored sorted per-bin, to
@@ -210,7 +213,45 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Remove the given particle.
+  !> Remove the given particle without recording it.
+  subroutine aero_state_remove_particle_no_info(aero_state, i_bin, index)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin number of particle to remove.
+    integer, intent(in) :: i_bin
+    !> Index in bin of particle to remove.
+    integer, intent(in) :: index
+
+    call aero_particle_array_remove_particle(aero_state%bin(i_bin), index)
+    aero_state%n_part = aero_state%n_part - 1
+
+  end subroutine aero_state_remove_particle_no_info
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Remove the given particle and record the removal.
+  subroutine aero_state_remove_particle_with_info(aero_state, i_bin, &
+       index, aero_info)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin number of particle to remove.
+    integer, intent(in) :: i_bin
+    !> Index in bin of particle to remove.
+    integer, intent(in) :: index
+    !> Removal info.
+    type(aero_info_t), intent(in) :: aero_info
+
+    call aero_state_remove_particle_no_info(aero_state, i_bin, index)
+    call aero_info_array_add_aero_info(aero_state%aero_info_array, &
+         aero_info)
+
+  end subroutine aero_state_remove_particle_with_info
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Remove the given particle and possibly record the removal.
   subroutine aero_state_remove_particle(aero_state, i_bin, index, &
        record_removal, aero_info)
 
@@ -225,19 +266,78 @@ contains
     !> Removal info.
     type(aero_info_t), intent(in) :: aero_info
 
-    call aero_particle_array_remove_particle(aero_state%bin(i_bin), index)
-    aero_state%n_part = aero_state%n_part - 1
     if (record_removal) then
-       call aero_info_array_add_aero_info(aero_state%aero_info_array, &
-            aero_info)
+       call aero_state_remove_particle_with_info(aero_state, i_bin, &
+            index, aero_info)
+    else
+       call aero_state_remove_particle_no_info(aero_state, i_bin, index)
     end if
 
   end subroutine aero_state_remove_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> aero_state += aero_state_delta
+  subroutine aero_state_remove_rand_particle_from_bin(aero_state, &
+       i_bin, aero_particle)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin number to remove particle from.
+    integer, intent(in) :: i_bin
+    !> Removed particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
+
+    integer :: i_part
+
+    !>DEBUG
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: entry'
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: i_bin = ', i_bin
+    !<DEBUG
+    call assert(392182617, aero_state%bin(i_bin)%n_part > 0)
+    i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
+    !>DEBUG
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: n_part = ', &
+    !     aero_state%bin(i_bin)%n_part
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: i_part = ', i_part
+    !<DEBUG
+    call aero_particle_copy(aero_state%bin(i_bin)%particle(i_part), &
+         aero_particle)
+    !>DEBUG
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: done copy'
+    !<DEBUG
+    call aero_state_remove_particle_no_info(aero_state, i_bin, i_part)
+    !>DEBUG
+    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: done remove'
+    !<DEBUG
+
+  end subroutine aero_state_remove_rand_particle_from_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> <tt>aero_state += aero_state_delta</tt>, with adding the computational
+  !> volumes, so the new concentration is the (volume-weighted)
+  !> average of the two concentration.
   subroutine aero_state_add(aero_state, aero_state_delta)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Increment.
+    type(aero_state_t), intent(in) :: aero_state_delta
+
+    !>DEBUG
+    !write(*,*) 'aero_state_add: entry'
+    !<DEBUG
+    call aero_state_add_particles(aero_state, aero_state_delta)
+    aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
+
+  end subroutine aero_state_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> <tt>aero_state += aero_state_delta</tt>, with the computational
+  !> volume of \c aero_state left unchanged, so the new concentration is the
+  !> sum of the two concentrations, computed with \c aero_state%comp_vol.
+  subroutine aero_state_add_particles(aero_state, aero_state_delta)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -246,6 +346,9 @@ contains
 
     integer :: i_bin, i_part
 
+    !>DEBUG
+    !write(*,*) 'aero_state_add_particles: entry'
+    !<DEBUG
     call assert(265083067, &
          size(aero_state%bin) == size(aero_state_delta%bin))
     do i_bin = 1,size(aero_state_delta%bin)
@@ -254,11 +357,10 @@ contains
                aero_state_delta%bin(i_bin)%particle(i_part))
        end do
     end do
-    aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
     call aero_info_array_add(aero_state%aero_info_array, &
          aero_state_delta%aero_info_array)
-
-  end subroutine aero_state_add
+    
+  end subroutine aero_state_add_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -361,21 +463,21 @@ contains
     do while (i_transfer < n_transfer)
        if (aero_state_total_particles(aero_state_from) <= 0) exit
        call aero_state_rand_particle(aero_state_from, i_bin, i_part)
-       if (vol_ratio == 1d0) then
+       if (aero_state_to%comp_vol == aero_state_from%comp_vol) then
           ! to_comp_vol == from_comp_vol so just move the particle
           do_add = .true.
           do_remove = .true.
-       elseif (vol_ratio > 1d0) then
+       elseif (aero_state_to%comp_vol > aero_state_from%comp_vol) then
           ! to_comp_vol is bigger than from_comp_vol, so only maybe
-          ! remove the particle but always add it
+          ! remove the particle but always add it (vol_ratio > 1)
           do_add = .true.
           do_remove = .false.
           if (pmc_random() < 1d0 / vol_ratio) then
              do_remove = .true.
           end if
-       else ! vol_ratio < 1d0
+       else ! aero_state_to%comp_vol < aero_state_from%comp_vol
           ! to_comp_vol is smaller than from_comp_vol, so always
-          ! remove the particle but only maybe add it
+          ! remove the particle but only maybe add it (vol_ratio < 1)
           do_add = .false.
           if (pmc_random() < vol_ratio) then
              do_add = .true.
@@ -437,21 +539,21 @@ contains
        do while (i_transfer < n_transfer)
           if (aero_state_from%bin(i_bin)%n_part <= 0) exit
           i_part = pmc_rand_int(aero_state_from%bin(i_bin)%n_part)
-          if (vol_ratio == 1d0) then
+          if (aero_state_to%comp_vol == aero_state_from%comp_vol) then
              ! to_comp_vol == from_comp_vol so just move the particle
              do_add = .true.
              do_remove = .true.
-          elseif (vol_ratio > 1d0) then
+          elseif (aero_state_to%comp_vol > aero_state_from%comp_vol) then
              ! to_comp_vol is bigger than from_comp_vol, so only maybe
-             ! remove the particle but always add it
+             ! remove the particle but always add it (vol_ratio > 1)
              do_add = .true.
              do_remove = .false.
              if (pmc_random() < 1d0 / vol_ratio) then
                 do_remove = .true.
              end if
-          else ! vol_ratio < 1d0
+          else ! aero_state_to%comp_vol < aero_state_from%comp_vol
              ! to_comp_vol is smaller than from_comp_vol, so always
-             ! remove the particle but only maybe add it
+             ! remove the particle but only maybe add it (vol_ratio < 1)
              do_add = .false.
              if (pmc_random() < vol_ratio) then
                 do_add = .true.
@@ -481,36 +583,6 @@ contains
     end do
     
   end subroutine aero_state_sample_rough
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Adds aero_state_delta particles to aero_state. The number of
-  !> particles added depends on the computational volume ratio, so
-  !> either more or less particles might be added than are actually
-  !> in aero_state_delta.
-  subroutine aero_state_add_particles(aero_state, aero_state_delta)
-
-    !> Base state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> State to add.
-    type(aero_state_t), intent(in) :: aero_state_delta
-    
-    integer :: n_bin, i_bin, i_part, n_new_part, i_new_part
-    real(kind=dp) :: vol_ratio
-    
-    n_bin = size(aero_state%bin)
-    vol_ratio = aero_state%comp_vol / aero_state_delta%comp_vol
-    do i_bin = 1,n_bin
-       do i_part = 1,aero_state_delta%bin(i_bin)%n_part
-          n_new_part = prob_round(vol_ratio)
-          do i_new_part = 1,n_new_part
-             call aero_state_add_particle(aero_state, i_bin, &
-                  aero_state_delta%bin(i_bin)%particle(i_part))
-          end do
-       end do
-    end do
-    
-  end subroutine aero_state_add_particles
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -683,119 +755,176 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Send a sample to the given process, and receive exactly one
-  !> sample from an unspecified source.
-  subroutine aero_state_mix_to(aero_state, mix_rate, dest, &
+  !> Mix the aero_states between all processes. Currently uses a
+  !> simple all-to-all diffusion.
+  subroutine aero_state_mix(aero_state, del_t, mix_timescale, &
        aero_data, bin_grid)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Mixing rate (0 to 1).
-    real(kind=dp), intent(in) :: mix_rate
-    !> Process to send to.
-    integer, intent(in) :: dest
+    !> Timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Mixing timescale (s).
+    real(kind=dp), intent(in) :: mix_timescale
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
 
 #ifdef PMC_USE_MPI
-    integer :: ierr, status(MPI_STATUS_SIZE)
-    type(aero_state_t) :: aero_state_send, aero_state_recv
-    character, allocatable :: buffer_send(:), buffer_recv(:)
-    integer :: buffer_size_send, buffer_size_recv, position
+    integer :: rank, n_proc, dest_proc, ierr
+    integer :: buffer_size, buffer_size_check
+    character, allocatable :: buffer(:)
+    type(aero_state_t), allocatable :: aero_state_sends(:)
+    real(kind=dp) :: prob_transfer, prob_not_transferred
+    real(kind=dp) :: prob_transfer_given_not_transferred
+    real(kind=dp), allocatable :: comp_vols(:)
 
-    if (pmc_mpi_rank() == dest) then
-       return
-    end if
+    ! processor information
+    rank = pmc_mpi_rank()
+    n_proc = pmc_mpi_size()
+    allocate(comp_vols(n_proc))
+    call mpi_allgather(aero_state%comp_vol, 1, MPI_REAL8, &
+         comp_vols, 1, MPI_REAL8, MPI_COMM_WORLD, ierr)
 
     ! extract particles to send
-    call aero_state_allocate_size(aero_state_send, bin_grid%n_bin, &
-         aero_data%n_spec)
-    aero_state_send%comp_vol = aero_state%comp_vol
-    ! FIXME: would probably be slightly better for sampling purposes
-    ! to use the destination comp_vol here
-    call aero_state_sample_rough(aero_state, aero_state_send, &
-         mix_rate, AERO_INFO_NONE)
+    allocate(aero_state_sends(n_proc))
+    prob_not_transferred = 1d0
+    do dest_proc = 0,(n_proc - 1)
+       if (dest_proc /= rank) then
+          call aero_state_allocate_size(aero_state_sends(dest_proc + 1), &
+               bin_grid%n_bin, aero_data%n_spec)
+          aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
+          prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
+               / real(n_proc, kind=dp) &
+               * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+          ! because we are doing sequential sampling from the aero_state
+          ! we need to scale up the later transfer probabilities, because
+          ! the later particles are being transferred conditioned on the
+          ! fact that they did not transfer already
+          prob_transfer_given_not_transferred = prob_transfer &
+               / prob_not_transferred
+          call aero_state_sample(aero_state, aero_state_sends(dest_proc + 1), &
+               prob_transfer_given_not_transferred, AERO_INFO_NONE)
+          prob_not_transferred = prob_not_transferred - prob_transfer
+       end if
+    end do
 
-    ! pack up data to send
-    buffer_size_send = pmc_mpi_pack_size_aero_state(aero_state_send)
-    allocate(buffer_send(buffer_size_send))
-    position = 0
-    call pmc_mpi_pack_aero_state(buffer_send, position, &
-         aero_state_send)
-    call assert(420102502, position == buffer_size_send)
-
-    ! transfer buffer size info and allocate receive buffers
-    call mpi_sendrecv(buffer_size_send, 1, MPI_INTEGER, dest, 0, &
-         buffer_size_recv, 1, MPI_INTEGER, MPI_ANY_SOURCE, &
-         MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+    ! send the particles
+    buffer_size = 0
+    do dest_proc = 0,(n_proc - 1)
+       if (dest_proc /= rank) then
+          buffer_size = buffer_size &
+               + pmc_mpi_pack_size_aero_state(aero_state_sends(dest_proc + 1))
+          buffer_size = buffer_size + MPI_BSEND_OVERHEAD + 1024
+       end if
+    end do
+    allocate(buffer(buffer_size))
+    call mpi_buffer_attach(buffer, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    allocate(buffer_recv(buffer_size_recv))
+    do dest_proc = 0,(n_proc - 1)
+       if (dest_proc /= rank) then
+          call send_aero_state_mix(dest_proc, aero_state_sends(dest_proc + 1))
+          call aero_state_deallocate(aero_state_sends(dest_proc + 1))
+       end if
+    end do
+    deallocate(aero_state_sends)
 
-    ! do data transfer
-    call mpi_sendrecv(buffer_send, buffer_size_send, MPI_PACKED, &
-         dest, 0, buffer_recv, buffer_size_recv, MPI_PACKED, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+    ! receive the particles
+    do dest_proc = 0,(n_proc - 1)
+       if (dest_proc /= rank) then
+          call recv_aero_state_mix(aero_state)
+       end if
+    end do
+
+    ! clean up
+    call pmc_mpi_barrier() ! syncronize to make sure all buffers are done
+    call mpi_buffer_detach(buffer, buffer_size_check, ierr)
     call pmc_mpi_check_ierr(ierr)
-
-    ! unpack received data and process it
-    position = 0
-    call pmc_mpi_unpack_aero_state(buffer_recv, position, &
-         aero_state_recv)
-    call assert(593694264, position == buffer_size_recv)
-    call aero_state_add_particles(aero_state, aero_state_recv)
-
-    ! cleanup
-    call aero_state_deallocate(aero_state_send)
-    call aero_state_deallocate(aero_state_recv)
-    deallocate(buffer_send)
-    deallocate(buffer_recv)
+    call assert(995066222, buffer_size == buffer_size_check)
+    deallocate(comp_vols)
 #endif
 
-  end subroutine aero_state_mix_to
+  end subroutine aero_state_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  !> Send the given \c aero_state to the destination processor for
+  !> mixing.
+  subroutine send_aero_state_mix(dest_proc, aero_state)
+
+    !> Destination processor number.
+    integer, intent(in) :: dest_proc
+    !> Aero_state to send.
+    type(aero_state_t), intent(in) :: aero_state
+
+#ifdef PMC_USE_MPI
+    character, allocatable :: buffer(:)
+    integer :: buffer_size, position, ierr
+
+    buffer_size = 0
+    buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
+    allocate(buffer(buffer_size))
+    position = 0
+    call pmc_mpi_pack_aero_state(buffer, position, aero_state)
+    call assert(311031745, buffer_size == position)
+    call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
+         AERO_STATE_TAG_MIX, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    deallocate(buffer)
+#endif
+
+  end subroutine send_aero_state_mix
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Mix the aero_states between all processes. Currently uses a
-  !> simple periodic-1D diffusion.
-  subroutine aero_state_mix(aero_state, mix_rate, &
-       aero_data, bin_grid)
+  !> Receive exactly one \c aero_state for mixing and add it on to the
+  !> given \c aero_state.
+  subroutine recv_aero_state_mix(aero_state)
 
-    !> Aerosol state.
+    !> Base \c aero_state to add new particles to.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Mixing rate (0 to 1).
-    real(kind=dp), intent(in) :: mix_rate
-    !> Aero data values.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
 
-    integer :: rank, n_proc, dest
+#ifdef PMC_USE_MPI
+    integer :: buffer_size, check_buffer_size, position, sent_proc, ierr
+    integer :: status(MPI_STATUS_SIZE)
+    character, allocatable :: buffer(:)
+    type(aero_state_t) :: aero_state_mix
 
-    rank = pmc_mpi_rank()
-    n_proc = pmc_mpi_size()
-    
-    ! mix up
-    dest = rank + 1
-    if (dest == n_proc) then
-       dest = 0
-    end if
-    call aero_state_mix_to(aero_state, mix_rate, dest, &
-       aero_data, bin_grid)
+    ! get the message size
+    call mpi_probe(MPI_ANY_SOURCE, AERO_STATE_TAG_MIX, MPI_COMM_WORLD, &
+         status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    sent_proc = status(MPI_SOURCE)
+    call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    allocate(buffer(buffer_size))
 
-    ! synchronize
-    call pmc_mpi_barrier()
+    ! get the message
+    call mpi_recv(buffer, buffer_size, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, AERO_STATE_TAG_MIX, MPI_COMM_WORLD, status, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call mpi_get_count(status, MPI_CHARACTER, check_buffer_size, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(967116476, buffer_size == check_buffer_size)
+    call assert(377784810, sent_proc == status(MPI_SOURCE))
 
-    ! mix down
-    dest = rank - 1
-    if (dest == -1) then
-       dest = n_proc - 1
-    end if
-    call aero_state_mix_to(aero_state, mix_rate, dest, &
-       aero_data, bin_grid)
+    ! unpack it
+    position = 0
+    call aero_state_allocate(aero_state_mix)
+    call pmc_mpi_unpack_aero_state(buffer, position, aero_state_mix)
+    call assert(908434410, position == buffer_size)
+    deallocate(buffer)
 
-  end subroutine aero_state_mix
+    ! add the particles
+    !>DEBUG
+    !write(*,*) 'recv_aero_state_mix: calling aero_state_add_particles'
+    !<DEBUG
+    call aero_state_add_particles(aero_state, aero_state_mix)
+    call aero_state_deallocate(aero_state_mix)
+#endif
+
+  end subroutine recv_aero_state_mix
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -819,6 +948,7 @@ contains
     error = .false.
 
     ! check that the total number of particles is correct
+    i = 0 ! HACK to shut up gfortran warning
     n_part_check = sum((/(aero_state%bin(i)%n_part, i = 1,bin_grid%n_bin)/))
     if (aero_state%n_part /= n_part_check) then
        write(0,'(a20,a20)') 'aero_state%n_part', 'n_part_check'
@@ -961,11 +1091,11 @@ contains
 
     !> Local aero_state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Centralized aero_state (only on node 0.
+    !> Centralized aero_state (only on node 0).
     type(aero_state_t), intent(inout) :: aero_state_total
 
-    integer, parameter :: tag1 = 105382873
-    integer, parameter :: tag2 = 565860636
+    integer, parameter :: tag1 = 1053
+    integer, parameter :: tag2 = 5658
     integer :: rank, n_proc
 #ifdef PMC_USE_MPI
     type(aero_state_t) :: aero_state_transfer
@@ -1017,8 +1147,14 @@ contains
           call pmc_mpi_unpack_aero_state(buffer, position, aero_state_transfer)
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
-          
+
+          !>DEBUG
+          !write(*,*) 'aero_state_mpi_gather: about to call aero_state_add'
+          !<DEBUG
           call aero_state_add(aero_state_total, aero_state_transfer)
+          !>DEBUG
+          !write(*,*) 'aero_state_mpi_gather: returned from aero_state_add'
+          !<DEBUG
           
           call aero_state_deallocate(aero_state_transfer)
        end do

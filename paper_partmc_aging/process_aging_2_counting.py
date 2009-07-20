@@ -10,8 +10,6 @@ from numpy import *
 sys.path.append("../tool")
 from pmc_data_nc import *
 
-data_prefix = "out"
-
 def delta(arr):
     return (arr[1:] - arr[:-1])
 
@@ -25,7 +23,7 @@ for coag_suffix in ["wc", "nc"]:
 
         filename_pattern = "aging_%s_([0-9]{8})_time.txt" % coag_suffix
         filename_re = re.compile(filename_pattern)
-        filename_list = get_filename_list(data_prefix, filename_pattern)
+        filename_list = get_filename_list(aging_data_dir, filename_pattern)
         n_time = len(filename_list)
         print "Found %d times" % n_time
 
@@ -37,8 +35,10 @@ for coag_suffix in ["wc", "nc"]:
                 raise Exception()
             key = match.group(1)
 
-            filename_base = "%s/aging_%s_%s" % (data_prefix, coag_suffix, key)
-            filename_base_type = "%s/aging_%s_%s_%s" % (data_prefix, coag_suffix, key, type_suffix)
+            filename_base = os.path.join(aging_data_dir,
+                                         "aging_%s_%s" % (coag_suffix, key))
+            filename_base_type = os.path.join(aging_data_dir,
+                                              "aging_%s_%s_%s" % (coag_suffix, key, type_suffix))
 
             time_array = loadtxt("%s_time.txt" % filename_base, float)
             height_array = loadtxt("%s_height.txt" % filename_base, float)
@@ -138,7 +138,8 @@ for coag_suffix in ["wc", "nc"]:
             else:
                 max_error_mass = max(max_error_mass, max_error)
 
-        filename = "%s/aging_%s_%s_%%s.txt" % (data_prefix, coag_suffix, type_suffix)
+        filename = os.path.join(aging_data_dir,
+                                "aging_%s_%s_%%s.txt" % (coag_suffix, type_suffix)
         if type_suffix == "num":
             fmt = "%d"
         else:

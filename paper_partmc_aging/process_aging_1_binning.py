@@ -171,7 +171,8 @@ for coag in [True, False]:
         height_array = array([env_state.height])
         comp_vol_array = array([particles.comp_vol[0]])
 
-        filename = "out/aging_%s_%s_%%s.txt" % (coag_suffix, key)
+        filename = os.path.join(aging_data_dir,
+                                "aging_%s_%s_%%s.txt" % (coag_suffix, key))
 
         savetxt(filename % "time", time_array)
         savetxt(filename % "height", height_array)

@@ -19,8 +19,6 @@ def mean_night(time, data):
 
 dilution_rate = 1.5e-5 # s^{-1}
 
-data_prefix = "out"
-
 smooth_window_len = 60
 
 grey_level = 0.2
@@ -36,7 +34,8 @@ for coag_suffix in ["wc", "nc"]:
                                 ("mass", float)]:
         print "Reading data %s %s..." % (coag_suffix, type_suffix)
 
-        filename = "%s/aging_%s_%s_%%s.txt" % (data_prefix, coag_suffix, type_suffix)
+        filename = os.path.join(aging_data_dir,
+                                "aging_%s_%s_%%s.txt" % (coag_suffix, type_suffix))
         if type_suffix == "num":
             type = int
         else:
@@ -305,7 +304,8 @@ for coag_suffix in ["wc", "nc"]:
             tau_night_cond[level] = mean_night(time[1:], tau_transfer_cond_smooth[:,level])
 
         print "Writing data %s %s..." % (coag_suffix, type_suffix)
-        filename = "%s/aging_%s_%s_%%s.txt" % (data_prefix, coag_suffix, type_suffix)
+        filename = os.path.join(aging_data_dir,
+                                "aging_%s_%s_%%s.txt" % (coag_suffix, type_suffix))
 
         savetxt(filename % "a_conc_smooth", data_a_conc_smooth, fmt = "%.20e")
         savetxt(filename % "f_conc_smooth", data_f_conc_smooth, fmt = "%.20e")

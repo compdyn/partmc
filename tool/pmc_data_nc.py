@@ -812,13 +812,44 @@ class aero_particle_array_t:
         return solute_volume_kappa / solute_volume
 
     def kappa_rh(self, env_state, const):
-        A = 4.0 * const["water_surf_eng"] * const["water_molec_weight"] \
-            / (const["univ_gas_const"] * env_state.temperature \
-               * const["water_density"])
+        A = env_state.A(const)
         C = sqrt(4.0 * A**3 / 27.0)
         diam = self.diameter()
         kappa = self.solute_kappa()
         return C / sqrt(kappa * diam**3) + 1.0
+
+    def kappa_rh_new(self, env_state, const):
+        A = env_state.A(const)
+        kappa = self.solute_kappa()
+        dry_diam = self.dry_diameter()
+        crit_diam = self.critical_diameter(env_state, const)
+        return (crit_diam**3 - dry_diam**3) \
+               / (crit_diam**3 - dry_diam**3 * (1 - kappa)) \
+               * exp(A / D) + 1.0
+
+    def critical_diameter(self, env_state, const):
+        A = env_state.A(const)
+        kappa = self.solute_kappa()
+        dry_diam = self.dry_diameter()
+        c6 = 1.0
+        c5 = 0.0
+        c4 = 3.0 * dry_diam * kappa / A
+        c3 = dry_diam**3 * (kappa - 2.0)
+        c2 = 0.0
+        c1 = 0.0
+        c0 = dry_diam**6 * (1.0 - kappa)
+        dc = self.dry_diameter()
+        while True:
+            f = c6 * dc**6 + c5 * dc**5 + c4 * dc**4 \
+                + c3 * dc**3 + c2 * dc**2 + c1 * dc**1 + c0
+            df = 6.0 * c6 * dc**5 + 5.0 * c5 * dc**4 \
+                 + 4.0 * c4 * dc**3 + 3.0 * c3 * dc**2 \
+                 + 2.0 * c2 * dc + c1
+            ddc = - f / df
+            dc += ddc
+            if abs(ddc / dc) < 1e-12:
+                break
+        return dc
 
     def bin_average(self, diameter_axis):
         averaged_particles = aero_particle_array_t(n_particles = diameter_axis.n_bin,
@@ -876,6 +907,11 @@ class env_state_t:
         if "height" not in ncf.variables.keys():
             raise Exception("height variable not found in NetCDF file")
         self.height = float(ncf.variables["height"].getValue())
+
+    def A(self, const):
+        return 4.0 * const["water_surf_eng"] * const["water_molec_weight"] \
+               / (const["univ_gas_const"] * self.temperature \
+                  * const["water_density"])
 
 class gas_data_t:
 

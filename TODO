@@ -149,3 +149,8 @@ call.
 
 Change numeric_average.f90 to be numeric_reduce.f90 with option
 "mean", "stddev", "min", "max", "median", "prank" (percentile rank).
+
+Add integer_to_string, real_to_string, etc, that return trimmed
+strings so in error messages we can do things like die_msg(xxx, "Line
+" // integer_to_string(line_num) // ": unknown variable: " //
+var_name)

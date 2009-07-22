@@ -995,7 +995,7 @@ def load_constants(filename):
     found_const_t = False
     start_re = re.compile("^ *type const_t *$")
     end_re = re.compile("^ *end type const_t *$")
-    const_re = re.compile("^ *real[*]8 :: ([^ ]+) = ([-0-9.]+)d([-0-9]+) *$")
+    const_re = re.compile("^ *real[(]kind=dp[)] :: ([^ ]+) = ([-0-9.]+)d([-0-9]+) *$")
     for line in consts_file:
         if in_const_t:
             match = const_re.search(line)

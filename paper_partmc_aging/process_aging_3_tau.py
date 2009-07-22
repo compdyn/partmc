@@ -6,6 +6,7 @@
 import os, sys, pyx
 sys.path.append("../tool")
 from pmc_data_nc import *
+from fig_helper import *
 from pmc_pyx import *
 from numpy import *
 

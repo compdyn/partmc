@@ -9,6 +9,7 @@ from pmc_pyx import *
 from numpy import *
 sys.path.append("../tool")
 from pmc_data_nc import *
+from fig_helper import *
 
 def delta(arr):
     return (arr[1:] - arr[:-1])
@@ -139,7 +140,7 @@ for coag_suffix in ["wc", "nc"]:
                 max_error_mass = max(max_error_mass, max_error)
 
         filename = os.path.join(aging_data_dir,
-                                "aging_%s_%s_%%s.txt" % (coag_suffix, type_suffix)
+                                "aging_%s_%s_%%s.txt" % (coag_suffix, type_suffix))
         if type_suffix == "num":
             fmt = "%d"
         else:

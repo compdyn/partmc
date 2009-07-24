@@ -585,7 +585,7 @@ class pmc_linear_axis(pmc_axis):
         return (float(index) + 0.5) / float(self.n_bin) \
                * (self.max - self.min) + self.min
         
-class pmc_log_axis:
+class pmc_log_axis(pmc_axis):
 
     def __init__(self, min, max, n_bin):
         self.min = float(min)

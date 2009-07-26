@@ -7,6 +7,7 @@ import os, sys, re, textwrap
 import copy as module_copy
 import numpy, math
 from numpy import *
+import scipy.optimize
 from Scientific.IO.NetCDF import *
 
 class reducer:
@@ -803,6 +804,12 @@ class aero_particle_array_t:
     def dry_diameter(self):
         return 2.0 * self.dry_radius()
 
+    def surface_area(self):
+        return 4.0 * math.pi * self.radius()**2
+
+    def dry_surface_area(self):
+        return 4.0 * math.pi * self.dry_radius()**2
+
     def solute_kappa(self):
         species_weights = array(self.aero_data.kappa) \
             / array(self.aero_data.density)
@@ -811,44 +818,58 @@ class aero_particle_array_t:
         solute_volume = self.volume(exclude = ["H2O"])
         return solute_volume_kappa / solute_volume
 
-    def kappa_rh(self, env_state, const):
+    def kappa_rh_approx(self, env_state, const):
         A = env_state.A(const)
         C = sqrt(4.0 * A**3 / 27.0)
-        diam = self.diameter()
+        diam = self.dry_diameter()
         kappa = self.solute_kappa()
-        return C / sqrt(kappa * diam**3) + 1.0
+        S = C / sqrt(kappa * diam**3) + 1.0
+        return S
 
-    def kappa_rh_new(self, env_state, const):
+    def kappa_rh(self, env_state, const):
         A = env_state.A(const)
         kappa = self.solute_kappa()
         dry_diam = self.dry_diameter()
         crit_diam = self.critical_diameter(env_state, const)
-        return (crit_diam**3 - dry_diam**3) \
-               / (crit_diam**3 - dry_diam**3 * (1 - kappa)) \
-               * exp(A / D) + 1.0
+        S = (crit_diam**3 - dry_diam**3) \
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) \
+            * exp(A / crit_diam)
+        return S
 
     def critical_diameter(self, env_state, const):
         A = env_state.A(const)
         kappa = self.solute_kappa()
         dry_diam = self.dry_diameter()
-        c6 = 1.0
-        c5 = 0.0
-        c4 = 3.0 * dry_diam * kappa / A
-        c3 = dry_diam**3 * (kappa - 2.0)
-        c2 = 0.0
-        c1 = 0.0
+        c6 = ones_like(dry_diam)
+        c5 = zeros_like(dry_diam)
+        c4 = - 3.0 * dry_diam**3 * kappa / A
+        c3 = - dry_diam**3 * (2.0 - kappa)
+        c2 = zeros_like(dry_diam)
+        c1 = zeros_like(dry_diam)
         c0 = dry_diam**6 * (1.0 - kappa)
-        dc = self.dry_diameter()
-        while True:
-            f = c6 * dc**6 + c5 * dc**5 + c4 * dc**4 \
-                + c3 * dc**3 + c2 * dc**2 + c1 * dc**1 + c0
-            df = 6.0 * c6 * dc**5 + 5.0 * c5 * dc**4 \
-                 + 4.0 * c4 * dc**3 + 3.0 * c3 * dc**2 \
-                 + 2.0 * c2 * dc + c1
-            ddc = - f / df
-            dc += ddc
-            if abs(ddc / dc) < 1e-12:
+        def f(d):
+            return c6 * d**6 + c5 * d**5 + c4 * d**4 \
+                + c3 * d**3 + c2 * d**2 + c1 * d + c0
+
+        d1 = self.dry_diameter()
+        f1 = f(d1)
+        if any(f1 >= 0.0):
+            raise Exception("initialization failure for d1")
+        d2 = 2.0 * d1
+        f2 = f(d2)
+        for iteration in range(100):
+            if all(f2 >= 0.0):
                 break
+            d2 = where(f2 <= 0, 2.0 * d2, d2)
+            f2 = f(d2)
+        else:
+            raise Exception("initialization failure for d2")
+        dc = zeros_like(d1)
+        for i in range(len(kappa)):
+            def fi(d):
+                return c6[i] * d**6 + c5[i] * d**5 + c4[i] * d**4 \
+                    + c3[i] * d**3 + c2[i] * d**2 + c1[i] * d + c0[i]
+            dc[i] = scipy.optimize.brentq(fi, d1[i], d2[i])
         return dc
 
     def bin_average(self, diameter_axis):
@@ -1076,12 +1097,12 @@ def mid(arr):
 def filter_inf(plot_data):
     return [[x, y] for [x, y] in plot_data if isfinite(y)]
 
-def sign(x):
-    if x > 0:
-        return 1
-    elif x < 0:
-        return -1
-    return 0
+#def sign(x):
+#    if x > 0:
+#        return 1
+#    elif x < 0:
+#        return -1
+#    return 0
 
 def mean(x):
     return float(sum(x)) / len(x)

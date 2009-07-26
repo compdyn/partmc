@@ -28,11 +28,11 @@ netcdf_dir_nc = "../urban_plume/out"
 netcdf_pattern_nc = r"^urban_plume_nc_state_0001_([0-9]{8})\.nc$"
 
 aging_data_dir = "out"
-n_level_bin = 450
-ss_active_axis = pmc_linear_axis(0.001, 0.01, n_level_bin)
+n_level_bin = 100
+ss_active_axis = pmc_log_axis(0.0001, 0.1, n_level_bin)
 level_low = int(ss_active_axis.closest_edge(array(0.001)))
-level_mid = int(ss_active_axis.closest_edge(array(0.006)))
-level_high = int(ss_active_axis.closest_edge(array(0.01)))
+level_mid = int(ss_active_axis.closest_edge(array(0.003)))
+level_high = int(ss_active_axis.closest_edge(array(0.006)))
 level_low_value = ss_active_axis.edge(level_low)
 level_mid_value = ss_active_axis.edge(level_mid)
 level_high_value = ss_active_axis.edge(level_high)

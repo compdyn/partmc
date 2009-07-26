@@ -110,6 +110,15 @@ print "low level %d = %f%%" % (level_low, level_low_value * 100)
 print "mid level %d = %f%%" % (level_mid, level_mid_value * 100)
 print "high level %d = %f%%" % (level_high, level_high_value * 100)
 
+print ss_active_axis.edge(level_low-1), ss_active_axis.edge(level_low), ss_active_axis.edge(level_low+1)
+print ss_active_axis.edge(level_mid-1), ss_active_axis.edge(level_mid), ss_active_axis.edge(level_mid+1)
+print ss_active_axis.edge(level_high-1), ss_active_axis.edge(level_high), ss_active_axis.edge(level_high+1)
+
+
+print ss_active_axis.edge(level_low-1) / ss_active_axis.edge(level_low), ss_active_axis.edge(level_low) / ss_active_axis.edge(level_low+1)
+print ss_active_axis.edge(level_mid-1) / ss_active_axis.edge(level_mid), ss_active_axis.edge(level_mid) / ss_active_axis.edge(level_mid+1)
+print ss_active_axis.edge(level_high-1) / ss_active_axis.edge(level_high), ss_active_axis.edge(level_high) / ss_active_axis.edge(level_high+1)
+
 num_low = num_tau_transfer[:,level_low] / 3600 # s to hour
 num_mid = num_tau_transfer[:,level_mid] / 3600 # s to hour
 num_high = num_tau_transfer[:,level_high] / 3600 # s to hour
@@ -289,8 +298,8 @@ for use_color in [True, False]:
         title = "local standard time (LST) (hours:minutes)")
 
     y_axis = graph.axis.log(
-        min = 1e-2,
-        max = 1e3,
+        min = 1e-1,
+        max = 1e4,
         title = r"aging timescale $\tau$ (hours)")
 
     g31 = c.insert(graph.graphxy(
@@ -336,18 +345,18 @@ for use_color in [True, False]:
               "g12": g12, "g22": g22, "g32": g32}
 
     for (key, y_data) \
-            in [("num_low", num_low),
-                ("num_low_cond", num_low_cond),
-                ("num_mid", num_mid),
+            in [("num_low_cond", num_low_cond),
+                ("num_low", num_low),
                 ("num_mid_cond", num_mid_cond),
-                ("num_high", num_high),
+                ("num_mid", num_mid),
                 ("num_high_cond", num_high_cond),
-                ("mass_low", mass_low),
+                ("num_high", num_high),
                 ("mass_low_cond", mass_low_cond),
-                ("mass_mid", mass_mid),
+                ("mass_low", mass_low),
                 ("mass_mid_cond", mass_mid_cond),
-                ("mass_high", mass_high),
-                ("mass_high_cond", mass_high_cond)]:
+                ("mass_mid", mass_mid),
+                ("mass_high_cond", mass_high_cond),
+                ("mass_high", mass_high)]:
         g = graphs[plot_info[key]["graph"]]
         if use_color:
             grey_color = color.hsb(plot_info[key]["color"].hsb().color["h"], grey_level, 1)
@@ -363,18 +372,18 @@ for use_color in [True, False]:
             styles = [graph.style.line(lineattrs = style_attrs)])
 
     for (key, y_data) \
-            in [("num_low", num_low_smooth),
-                ("num_low_cond", num_low_cond_smooth),
-                ("num_mid", num_mid_smooth),
+            in [("num_low_cond", num_low_cond_smooth),
+                ("num_low", num_low_smooth),
                 ("num_mid_cond", num_mid_cond_smooth),
-                ("num_high", num_high_smooth),
+                ("num_mid", num_mid_smooth),
                 ("num_high_cond", num_high_cond_smooth),
-                ("mass_low", mass_low_smooth),
+                ("num_high", num_high_smooth),
                 ("mass_low_cond", mass_low_cond_smooth),
-                ("mass_mid", mass_mid_smooth),
+                ("mass_low", mass_low_smooth),
                 ("mass_mid_cond", mass_mid_cond_smooth),
-                ("mass_high", mass_high_smooth),
-                ("mass_high_cond", mass_high_cond_smooth)]:
+                ("mass_mid", mass_mid_smooth),
+                ("mass_high_cond", mass_high_cond_smooth),
+                ("mass_high", mass_high_smooth)]:
         g = graphs[plot_info[key]["graph"]]
         if use_color:
             style_attrs = [plot_info[key]["linewidth"],
@@ -401,18 +410,18 @@ for use_color in [True, False]:
                              [style.linestyle.dotted])
 
     for (key, y_data) \
-            in [("num_low", num_low_smooth),
-                ("num_low_cond", num_low_cond_smooth),
-                ("num_mid", num_mid_smooth),
+            in [("num_low_cond", num_low_cond_smooth),
+                ("num_low", num_low_smooth),
                 ("num_mid_cond", num_mid_cond_smooth),
-                ("num_high", num_high_smooth),
+                ("num_mid", num_mid_smooth),
                 ("num_high_cond", num_high_cond_smooth),
-                ("mass_low", mass_low_smooth),
+                ("num_high", num_high_smooth),
                 ("mass_low_cond", mass_low_cond_smooth),
-                ("mass_mid", mass_mid_smooth),
+                ("mass_low", mass_low_smooth),
                 ("mass_mid_cond", mass_mid_cond_smooth),
-                ("mass_high", mass_high_smooth),
-                ("mass_high_cond", mass_high_cond_smooth)]:
+                ("mass_mid", mass_mid_smooth),
+                ("mass_high_cond", mass_high_cond_smooth),
+                ("mass_high", mass_high_smooth)]:
         g = graphs[plot_info[key]["graph"]]
         plot_data = zip(time[1:] / 60, y_data)
         label_plot_line_boxed(g, plot_data,
@@ -427,18 +436,18 @@ for use_color in [True, False]:
         g.doaxes()
 
     for (key, y_data) \
-            in [("num_low", num_low_smooth),
-                ("num_low_cond", num_low_cond_smooth),
-                ("num_mid", num_mid_smooth),
+            in [("num_low_cond", num_low_cond_smooth),
+                ("num_low", num_low_smooth),
                 ("num_mid_cond", num_mid_cond_smooth),
-                ("num_high", num_high_smooth),
+                ("num_mid", num_mid_smooth),
                 ("num_high_cond", num_high_cond_smooth),
-                ("mass_low", mass_low_smooth),
+                ("num_high", num_high_smooth),
                 ("mass_low_cond", mass_low_cond_smooth),
-                ("mass_mid", mass_mid_smooth),
+                ("mass_low", mass_low_smooth),
                 ("mass_mid_cond", mass_mid_cond_smooth),
-                ("mass_high", mass_high_smooth),
-                ("mass_high_cond", mass_high_cond_smooth)]:
+                ("mass_mid", mass_mid_smooth),
+                ("mass_high_cond", mass_high_cond_smooth),
+                ("mass_high", mass_high_smooth)]:
         g = graphs[plot_info[key]["graph"]]
         plot_data = zip(time[1:] / 60, y_data)
         label_plot_line_boxed(g, plot_data,

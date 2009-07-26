@@ -13,9 +13,6 @@ from numpy import *
 
 const = load_constants("../src/constants.f90")
 
-n_bin = 450
-ss_active_axis = pmc_linear_axis(0.001, 0.01, n_bin)
-
 for coag in [True, False]:
     if coag:
         time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
@@ -48,21 +45,21 @@ for coag in [True, False]:
         id_set = set([particles.id[i] for i in range(particles.n_particles)])
         particle_index_by_id = dict([[particles.id[i], i] for i in range(particles.n_particles)])
 
-        num = zeros(n_bin + 2, int)
-        num_emit = zeros(n_bin + 2, int)
-        num_dilution = zeros(n_bin + 2, int)
-        num_halving = zeros(n_bin + 2, int)
-        num_cond = zeros([n_bin + 2, n_bin + 2], int)
-        num_coag_gain = zeros(n_bin + 2, int)
-        num_coag_loss = zeros([n_bin + 2, n_bin + 2], int)
+        num = zeros(n_level_bin + 2, int)
+        num_emit = zeros(n_level_bin + 2, int)
+        num_dilution = zeros(n_level_bin + 2, int)
+        num_halving = zeros(n_level_bin + 2, int)
+        num_cond = zeros([n_level_bin + 2, n_level_bin + 2], int)
+        num_coag_gain = zeros(n_level_bin + 2, int)
+        num_coag_loss = zeros([n_level_bin + 2, n_level_bin + 2], int)
 
-        mass = zeros(n_bin + 2, float)
-        mass_emit = zeros(n_bin + 2, float)
-        mass_dilution = zeros(n_bin + 2, float)
-        mass_halving = zeros(n_bin + 2, float)
-        mass_cond = zeros([n_bin + 2, n_bin + 2], float)
-        mass_coag_gain = zeros(n_bin + 2, float)
-        mass_coag_loss = zeros([n_bin + 2, n_bin + 2], float)
+        mass = zeros(n_level_bin + 2, float)
+        mass_emit = zeros(n_level_bin + 2, float)
+        mass_dilution = zeros(n_level_bin + 2, float)
+        mass_halving = zeros(n_level_bin + 2, float)
+        mass_cond = zeros([n_level_bin + 2, n_level_bin + 2], float)
+        mass_coag_gain = zeros(n_level_bin + 2, float)
+        mass_coag_loss = zeros([n_level_bin + 2, n_level_bin + 2], float)
 
         if any(array(particles.aero_removed_action) == AERO_INFO_HALVED):
             halving_occured = True

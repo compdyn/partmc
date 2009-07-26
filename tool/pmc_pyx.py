@@ -615,6 +615,8 @@ def label_plot_line(g, plot_data, label_time, label, label_pos = [0, 1],
 
 def label_plot_line_boxed(g, plot_data, label_time, label, label_pos = [0, 1],
                           label_offset = 0 * unit.v_mm,
+                          label_xoffset = 0 * unit.v_mm,
+                          label_yoffset = 0 * unit.v_mm,
                           xaxis = None, yaxis = None,
                           flip_xy = False, border = 1 * unit.v_mm,
                           draw_text = True, draw_box = True):
@@ -624,8 +626,8 @@ def label_plot_line_boxed(g, plot_data, label_time, label, label_pos = [0, 1],
         [label_y, label_x] = [label_x, label_y]
     [label_pos_h, label_pos_v] = label_pos
     [label_vx, label_vy] = g.pos(label_x, label_y, xaxis, yaxis)
-    label_vx += 2.0 * (0.5 - label_pos_h) * label_offset
-    label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset
+    label_vx += 2.0 * (0.5 - label_pos_h) * label_offset + label_xoffset
+    label_vy -= 2.0 * (0.5 - label_pos_v) * label_offset + label_yoffset
     c = text.text(0, 0, label)
     bb = c.bbox().enlarged(all = border)
     current_x = (1.0 - label_pos[0]) * bb.left() \

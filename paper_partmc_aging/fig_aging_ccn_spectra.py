@@ -14,10 +14,10 @@ sys.path.append(".")
 from fig_helper import *
 
 plot_info_list = [
-    {"time_hour": 1, "label_x": 1.2, "label_pos": [0, 0],
+    {"time_hour": 1, "label_x": 1.5, "label_pos": [0, 0],
      "linewidth": style.linewidth.Thick,
      "color": color_list[0], "pattern": line_style_list[0]},
-    {"time_hour": 24, "label_x": 0.18, "label_pos": [1, 1],
+    {"time_hour": 24, "label_x": 0.22, "label_pos": [1, 1],
      "linewidth": style.linewidth.Thick,
      "color": color_list[2], "pattern": line_style_list[1]},
     ]
@@ -49,9 +49,9 @@ def get_plot_data(filename):
 
 for use_color in [True, False]:
     g = graph.graphxy(
-        width = 6.8,
+        width = 7.48,
         x = graph.axis.log(min = 0.01,
-                           max = 100,
+                           max = 10,
                            title = r"critical supersaturation $S_{\rm c}$ (\%)",
                            painter = grid_painter),
         y = graph.axis.linear(min = 0.0,
@@ -91,5 +91,5 @@ for use_color in [True, False]:
         out_filename = "%s_bw.pdf" % out_prefix
     g.writePDFfile(out_filename)
     if not use_color:
-        print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
-        print "figure width = %.1f cm" % unit.tocm(g.bbox().width())
+        print "figure height = %.1f mm" % unit.tomm(g.bbox().height())
+        print "figure width = %.1f mm" % unit.tomm(g.bbox().width())

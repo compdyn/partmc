@@ -27,12 +27,12 @@ plot_info = {
 #                 "color": color_list[1], "pattern": line_style_list[1],
 #                 "graph": "g1"},
     "night_num": {"label": r"$\tau_{\rm N,night}$",
-                 "label_time": 0.35, "label_pos": [1, 0],
+                 "label_time": 0.065, "label_pos": [1, 0],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[0], "pattern": line_style_list[0],
                  "graph": "g2"},
     "night_num_cond": {"label": r"$\tau^{\rm cond}_{\rm N,night}$",
-                 "label_time": 0.78, "label_pos": [0, 1],
+                 "label_time": 0.65, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[1], "pattern": line_style_list[2],
                  "graph": "g2"},
@@ -47,12 +47,12 @@ plot_info = {
 #                 "color": color_list[3], "pattern": line_style_list[3],
 #                 "graph": "g1"},
     "night_mass": {"label": r"$\tau_{\rm M,night}$",
-                 "label_time": 0.25, "label_pos": [0, 1],
+                 "label_time": 0.065, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[2], "pattern": line_style_list[1],
                  "graph": "g2"},
     "night_mass_cond": {"label": r"$\tau^{\rm cond}_{\rm M,night}$",
-                 "label_time": 0.85, "label_pos": [0, 1],
+                 "label_time": 0.065, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
                  "color": color_list[3], "pattern": line_style_list[3],
                  "graph": "g2"},
@@ -97,27 +97,28 @@ max_time_min = max(time) / 60
 for use_color in [True, False]:
     c = canvas.canvas()
     g1 = c.insert(graph.graphxy(
-        width = 6.8,
-        x = graph.axis.linear(min = 0,
-                              max = 1,
+        width = 8.39,
+        x = graph.axis.log(min = 0.01,
+                              max = 10,
                               title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
         y = graph.axis.log(min = 1e-2,
-                           max = 1e2,
+                           max = 1e5,
                            title = r"aging timescale $\tau$ (hours)",
                            painter = major_grid_painter)))
     g2 = c.insert(graph.graphxy(
-        width = 6.8,
+        width = g1.width,
         xpos = g1.xpos + g1.width + grid_h_space,
-        x = graph.axis.linear(min = 0,
-                              max = 1,
+        x = graph.axis.log(min = 0.01,
+                              max = 10,
                               title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
         y = graph.axis.linkedaxis(g1.axes["y"],
                                   painter = linked_major_grid_painter),
-        key = graph.key.key(pos = "br", columns = 2,
-                            keyattrs = [deco.stroked,
-                                        deco.filled([color.rgb.white])])))
+))
+#        key = graph.key.key(pos = "br", columns = 2,
+#                            keyattrs = [deco.stroked,
+#                                        deco.filled([color.rgb.white])])))
 
     graphs = {"g1": g1, "g2": g2}
 
@@ -182,11 +183,10 @@ for use_color in [True, False]:
                 ("night_mass_cond", night_mass_cond)]:
         g = graphs[plot_info[key]["graph"]]
         plot_data = zip(x_data, y_data)
-        if g != g2:
-            label_plot_line_boxed(g, plot_data,
-                                  plot_info[key]["label_time"],
-                                  plot_info[key]["label"],
-                                  plot_info[key]["label_pos"])
+        label_plot_line_boxed(g, plot_data,
+                              plot_info[key]["label_time"],
+                              plot_info[key]["label"],
+                              plot_info[key]["label_pos"])
 
     write_text_outside(g1, "day (12:00 LST to 15:00 LST)")
     write_text_outside(g2, "night (18:00 LST to 04:00 LST)")
@@ -197,5 +197,5 @@ for use_color in [True, False]:
         out_filename = "%s_bw.pdf" % out_prefix
     c.writePDFfile(out_filename)
     if not use_color:
-        print "figure height = %.1f cm" % unit.tocm(c.bbox().height())
-        print "figure width = %.1f cm" % unit.tocm(c.bbox().width())
+        print "figure height = %.1f mm" % unit.tomm(c.bbox().height())
+        print "figure width = %.1f mm" % unit.tomm(c.bbox().width())

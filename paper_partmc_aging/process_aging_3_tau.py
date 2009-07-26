@@ -352,6 +352,7 @@ for coag_suffix in ["wc", "nc"]:
         savetxt(filename % "tau_night", tau_night, fmt = "%.20e")
         savetxt(filename % "tau_night_cond", tau_night_cond, fmt = "%.20e")
 
+print "*********************************************"
 print "max_error_num: ", max_error_num
 print "max_error_mass: ", max_error_mass
 

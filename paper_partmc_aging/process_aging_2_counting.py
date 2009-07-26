@@ -168,5 +168,6 @@ for coag_suffix in ["wc", "nc"]:
         savetxt(filename % "coag_loss_f_a", data_coag_loss_f_a, fmt = fmt)
         savetxt(filename % "coag_loss_f_f", data_coag_loss_f_f, fmt = fmt)
 
+print "*********************************************"
 print "max_error_num: ", max_error_num
 print "max_error_mass: ", max_error_mass

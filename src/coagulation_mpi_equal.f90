@@ -162,7 +162,7 @@ contains
     call sync_info(aero_state%bin(:)%n_part, aero_state%comp_vol, &
          n_parts, comp_vols)
     !>DEBUG
-    call sleep(rank * 2)
+    !call sleep(rank * 2)
     !<DEBUG
 
     call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
@@ -199,7 +199,7 @@ contains
        end if
 
        !>DEBUG
-       call sleep(1 + rank * 2)
+       !call sleep(1 + rank * 2)
        !<DEBUG
        ! receive exactly one message
        call coag_equal_recv(requests, bin_grid, &
@@ -274,7 +274,7 @@ contains
     !<DEBUG
 
     !>DEBUG
-    write(*,*) pmc_mpi_rank(), 'coag_equal_recv: entry'
+    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: entry'
     !do i_req = 1,COAG_EQUAL_MAX_REQUESTS
     !   if (request_is_active(requests(i_req))) then
     !      write(*,*) pmc_mpi_rank(), ' request/active/remote = ', i_req, &
@@ -290,8 +290,8 @@ contains
          status, ierr)
     call pmc_mpi_check_ierr(ierr)
     !>DEBUG
-    write(*,*) pmc_mpi_rank(), 'coag_equal_recv: tag = ', status(MPI_TAG)
-    write(*,*) pmc_mpi_rank(), 'coag_equal_recv: from = ', status(MPI_SOURCE)
+    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: tag = ', status(MPI_TAG)
+    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: from = ', status(MPI_SOURCE)
     !<DEBUG
     if (status(MPI_TAG) == COAG_EQUAL_TAG_REQUEST_PARTICLE) then
        call recv_request_particle(aero_state)
@@ -510,7 +510,8 @@ contains
     !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+         MPI_ANY_SOURCE, COAG_EQUAL_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, &
+         status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(920139874, status(MPI_TAG) &
          == COAG_EQUAL_TAG_REQUEST_PARTICLE)
@@ -595,7 +596,8 @@ contains
     !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_NO_PARTICLE, &
+         MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(918153221, status(MPI_TAG) &
          == COAG_EQUAL_TAG_RETURN_NO_PARTICLE)
@@ -713,15 +715,16 @@ contains
     real(kind=dp) :: k, p
 
     !>DEBUG
-    write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: entry'
+    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: entry'
     !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_REQ_PARTICLE, &
+         MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     !>DEBUG
-    write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: tag/from = ', &
-         status(MPI_TAG), status(MPI_SOURCE)
+    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: tag/from = ', &
+    !     status(MPI_TAG), status(MPI_SOURCE)
     !<DEBUG
     call assert(133285061, status(MPI_TAG) &
          == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE)
@@ -835,7 +838,8 @@ contains
     !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE, &
+         MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(496247788, status(MPI_TAG) &
          == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE)
@@ -904,7 +908,8 @@ contains
     !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+         MPI_ANY_SOURCE, COAG_EQUAL_TAG_DONE, MPI_COMM_WORLD, &
+         status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(348737947, status(MPI_TAG) &
          == COAG_EQUAL_TAG_DONE)

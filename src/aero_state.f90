@@ -902,7 +902,7 @@ contains
 
     ! get the message
     call mpi_recv(buffer, buffer_size, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, AERO_STATE_TAG_MIX, MPI_COMM_WORLD, status, ierr)
+         sent_proc, AERO_STATE_TAG_MIX, MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call mpi_get_count(status, MPI_CHARACTER, check_buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -1037,9 +1037,31 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
+    !>DEBUG
+    !if (pmc_mpi_rank() == 1) then
+    !   write(*,*) 'pmc_mpi_pack_aero_state: entry'
+    !end if
+    !<DEBUG
     prev_position = position
+    !>DEBUG
+    !if (pmc_mpi_rank() == 1) then
+    !   write(*,*) 'pmc_mpi_pack_aero_state: start position = ', position
+    !end if
+    !<DEBUG
     call pmc_mpi_pack_real(buffer, position, val%comp_vol)
+    !>DEBUG
+    !if (pmc_mpi_rank() == 1) then
+    !   write(*,*) 'pmc_mpi_pack_aero_state: packed comp_vol position = ', position
+    !   write(*,*) 'pmc_mpi_pack_aero_state: comp_vol = ', val%comp_vol
+    !end if
+    !<DEBUG
     call pmc_mpi_pack_integer(buffer, position, val%n_part)
+    !>DEBUG
+    !if (pmc_mpi_rank() == 1) then
+    !   write(*,*) 'pmc_mpi_pack_aero_state: packed n_part position = ', position
+    !   write(*,*) 'pmc_mpi_pack_aero_state: n_part = ', val%n_part
+    !end if
+    !<DEBUG
     call pmc_mpi_pack_integer(buffer, position, size(val%bin))
     do i = 1,size(val%bin)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bin(i))
@@ -1066,10 +1088,32 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
+    !>DEBUG
+    !if (pmc_mpi_rank() == 0) then
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: entry'
+    !end if
+    !<DEBUG
     call aero_state_deallocate(val)
     prev_position = position
+    !>DEBUG
+    !if (pmc_mpi_rank() == 0) then
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: start position = ', position
+    !end if
+    !<DEBUG
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
+    !>DEBUG
+    !if (pmc_mpi_rank() == 0) then
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: unpacked comp_vol position = ', position
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: comp_vol = ', val%comp_vol
+    !end if
+    !<DEBUG
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
+    !>DEBUG
+    !if (pmc_mpi_rank() == 0) then
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: unpacked n_part position = ', position
+    !   write(*,*) 'pmc_mpi_unpack_aero_state: n_part = ', val%n_part
+    !end if
+    !<DEBUG
     call pmc_mpi_unpack_integer(buffer, position, n)
     allocate(val%bin(n))
     do i = 1,size(val%bin)

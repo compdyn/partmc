@@ -349,7 +349,21 @@ contains
     call pmc_mpi_pack_aero_state(buffer, position, aero_state)
     call assert(269866580, position == buffer_size)
     !>DEBUG
-    write(*,*) 'send_output_state_single: proc/n_part/bs = ', pmc_mpi_rank(), aero_state%n_part, buffer_size
+    !write(*,*) 'send_output_state_single: proc/n_part/bs = ', pmc_mpi_rank(), aero_state%n_part, buffer_size
+    !if (pmc_mpi_rank() == 1) then
+    !   write(*,*) 'proc 1, send buffer(01) = ', ichar(buffer(01))
+    !   write(*,*) 'proc 1, send buffer(02) = ', ichar(buffer(02))
+    !   write(*,*) 'proc 1, send buffer(03) = ', ichar(buffer(03))
+    !   write(*,*) 'proc 1, send buffer(04) = ', ichar(buffer(04))
+    !   write(*,*) 'proc 1, send buffer(05) = ', ichar(buffer(05))
+    !   write(*,*) 'proc 1, send buffer(06) = ', ichar(buffer(06))
+    !   write(*,*) 'proc 1, send buffer(07) = ', ichar(buffer(07))
+    !   write(*,*) 'proc 1, send buffer(08) = ', ichar(buffer(08))
+    !   write(*,*) 'proc 1, send buffer(09) = ', ichar(buffer(09))
+    !   write(*,*) 'proc 1, send buffer(10) = ', ichar(buffer(10))
+    !   write(*,*) 'proc 1, send buffer(11) = ', ichar(buffer(11))
+    !   write(*,*) 'proc 1, send buffer(12) = ', ichar(buffer(12))
+    !end if
     !<DEBUG
     call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
          TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, ierr)
@@ -390,25 +404,37 @@ contains
          TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     !>DEBUG
-    write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
-    write(*,*) 'recv_output_state_single: buffer_size = ', buffer_size
+    !write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
+    !write(*,*) 'recv_output_state_single: buffer_size = ', buffer_size
+    !write(*,*) 'proc 0, recv buffer(01) = ', ichar(buffer(01))
+    !write(*,*) 'proc 0, recv buffer(02) = ', ichar(buffer(02))
+    !write(*,*) 'proc 0, recv buffer(03) = ', ichar(buffer(03))
+    !write(*,*) 'proc 0, recv buffer(04) = ', ichar(buffer(04))
+    !write(*,*) 'proc 0, recv buffer(05) = ', ichar(buffer(05))
+    !write(*,*) 'proc 0, recv buffer(06) = ', ichar(buffer(06))
+    !write(*,*) 'proc 0, recv buffer(07) = ', ichar(buffer(07))
+    !write(*,*) 'proc 0, recv buffer(08) = ', ichar(buffer(08))
+    !write(*,*) 'proc 0, recv buffer(09) = ', ichar(buffer(09))
+    !write(*,*) 'proc 0, recv buffer(10) = ', ichar(buffer(10))
+    !write(*,*) 'proc 0, recv buffer(11) = ', ichar(buffer(11))
+    !write(*,*) 'proc 0, recv buffer(12) = ', ichar(buffer(12))
     !<DEBUG
 
     ! unpack message
     position = 0
-    call aero_state_allocate(aero_state)
-    call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
+    call aero_state_allocate(aero_state_remote)
+    call pmc_mpi_unpack_aero_state(buffer, position, aero_state_remote)
     call assert(466510584, position == buffer_size)
     deallocate(buffer)
 
     !>DEBUG
-    write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
-    write(*,*) 'recv_output_state_single: n_part_remote ', aero_state_remote%n_part
-    write(*,*) 'recv_output_state_single: calling aero_state_add'
+    !write(*,*) 'recv_output_state_single: received from proc ', status(MPI_SOURCE)
+    !write(*,*) 'recv_output_state_single: n_part_remote ', aero_state_remote%n_part
+    !write(*,*) 'recv_output_state_single: calling aero_state_add'
     !<DEBUG
     call aero_state_add(aero_state, aero_state_remote)
     
-    call aero_state_deallocate(aero_state)
+    call aero_state_deallocate(aero_state_remote)
 #endif
 
   end subroutine recv_output_state_single

@@ -175,6 +175,11 @@ add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
 add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 if(ENABLE_MPI)
   add_test(parallel_1 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_1.sh)
+  add_test(parallel_2 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_2.sh)
+  add_test(parallel_3 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_3.sh)
+  add_test(parallel_4 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_4.sh)
+  add_test(parallel_5 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_5.sh)
+  add_test(parallel_6 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_6.sh)
 endif(ENABLE_MPI)
 
 ######################################################################

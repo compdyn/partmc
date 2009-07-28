@@ -159,6 +159,12 @@ for use_color in [True, False]:
 #                ("day_mass_cond", day_mass_cond),
                 ("night_mass", night_mass),
                 ("night_mass_cond", night_mass_cond)]:
+        if not use_color:
+            for supersat in [0.1, 0.3, 0.6, 1.0]:
+                i = ss_active_axis.closest_edge(supersat / 100.0)
+                timescale = y_data[i]
+                print "timescale %s at %f%% supersat = %f h" \
+                    % (key, supersat, timescale)
         g = graphs[plot_info[key]["graph"]]
         if use_color:
             style_attrs = [plot_info[key]["linewidth"],

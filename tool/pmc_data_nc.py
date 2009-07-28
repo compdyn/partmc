@@ -404,49 +404,49 @@ class aero_particle_t:
         self.aero_data = aero_data
         if "aero_comp_mass" not in ncf.variables.keys():
             raise Exception("aero_comp_mass variable not found in NetCDF file")
-        self.masses = ncf.variables["aero_comp_mass"][:,index]
+        self.masses = array(ncf.variables["aero_comp_mass"])[:,index]
         if "aero_n_orig_part" not in ncf.variables.keys():
             raise Exception("aero_n_orig_part variable not found in NetCDF file")
-	self.n_orig_part = ncf.variables["aero_n_orig_part"][index]
+	self.n_orig_part = array(ncf.variables["aero_n_orig_part"])[index]
         if "aero_absorb_cross_sect" not in ncf.variables.keys():
             raise Exception("aero_absorb_cross_sect variable not found in NetCDF file")
-	self.absorb_cross_sect = ncf.variables["aero_absorb_cross_sect"][index]
+	self.absorb_cross_sect = array(ncf.variables["aero_absorb_cross_sect"])[index]
         if "aero_scatter_cross_sect" not in ncf.variables.keys():
             raise Exception("aero_scatter_cross_sect variable not found in NetCDF file")
-	self.scatter_cross_sect = ncf.variables["aero_scatter_cross_sect"][index]
+	self.scatter_cross_sect = array(ncf.variables["aero_scatter_cross_sect"])[index]
         if "aero_asymmetry" not in ncf.variables.keys():
             raise Exception("aero_asymmetry variable not found in NetCDF file")
-	self.asymmetry = ncf.variables["aero_asymmetry"][index]
+	self.asymmetry = array(ncf.variables["aero_asymmetry"])[index]
         if "aero_refract_shell_real" not in ncf.variables.keys():
             raise Exception("aero_refract_shell_real variable not found in NetCDF file")
-	self.refract_shell_real = ncf.variables["aero_refract_shell_real"][index]
+	self.refract_shell_real = array(ncf.variables["aero_refract_shell_real"])[index]
         if "aero_refract_shell_imag" not in ncf.variables.keys():
             raise Exception("aero_refract_shell_imag variable not found in NetCDF file")
-	self.refract_shell_imag = ncf.variables["aero_refract_shell_imag"][index]
+	self.refract_shell_imag = array(ncf.variables["aero_refract_shell_imag"])[index]
         if "aero_refract_core_real" not in ncf.variables.keys():
             raise Exception("aero_refract_core_real variable not found in NetCDF file")
-	self.refract_core_real = ncf.variables["aero_refract_core_real"][index]
+	self.refract_core_real = array(ncf.variables["aero_refract_core_real"])[index]
         if "aero_refract_core_imag" not in ncf.variables.keys():
             raise Exception("aero_refract_core_imag variable not found in NetCDF file")
-	self.refract_core_imag = ncf.variables["aero_refract_core_imag"][index]
+	self.refract_core_imag = array(ncf.variables["aero_refract_core_imag"])[index]
         if "aero_core_vol" not in ncf.variables.keys():
             raise Exception("aero_core_vol variable not found in NetCDF file")
-	self.core_vol = ncf.variables["aero_core_vol"][index]
+	self.core_vol = array(ncf.variables["aero_core_vol"])[index]
         if "aero_water_hyst_leg" not in ncf.variables.keys():
             raise Exception("aero_water_hyst_leg variable not found in NetCDF file")
-	self.water_hyst_leg = ncf.variables["aero_water_hyst_leg"][index]
+	self.water_hyst_leg = array(ncf.variables["aero_water_hyst_leg"])[index]
         if "aero_comp_vol" not in ncf.variables.keys():
             raise Exception("aero_comp_vol variable not found in NetCDF file")
-	self.comp_vol = ncf.variables["aero_comp_vol"][index]
+	self.comp_vol = array(ncf.variables["aero_comp_vol"])[index]
         if "aero_id" not in ncf.variables.keys():
             raise Exception("aero_id variable not found in NetCDF file")
-	self.id = int(ncf.variables["aero_id"][index])
+	self.id = int(array(ncf.variables["aero_id"])[index])
         if "aero_least_create_time" not in ncf.variables.keys():
             raise Exception("aero_least_create_time variable not found in NetCDF file")
-	self.least_create_time = ncf.variables["aero_least_create_time"][index]
+	self.least_create_time = array(ncf.variables["aero_least_create_time"])[index]
         if "aero_greatest_create_time" not in ncf.variables.keys():
             raise Exception("aero_greatest_create_time variable not found in NetCDF file")
-	self.greatest_create_time = ncf.variables["aero_greatest_create_time"][index]
+	self.greatest_create_time = array(ncf.variables["aero_greatest_create_time"])[index]
 
     def sum_by_species(self, array, include = None, exclude = None):
         if include:

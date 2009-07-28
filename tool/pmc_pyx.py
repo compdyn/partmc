@@ -87,6 +87,10 @@ rainbow_palette = listpalette([[0.0, color.rgb(0, 0, 1)],   # blue
 gray_palette = listpalette([[0, color.gray(0.8)],
                             [1, color.gray(0)]])
 
+nonlinear_gray_palette = listpalette([[0, color.gray(0.8)],
+                                      [0.5, color.gray(0.6)],
+                                      [1, color.gray(0)]])
+
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 major_grid_painter = graph.axis.painter.regular(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
 linked_grid_painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])
@@ -354,6 +358,7 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
                          min_palette_index = 0.0,
                          density = 1.0,
                          max_palette_index = 1.0, texter = None,
+                         parter = None,
                          extra_box_value = None, extra_box_label = None,
                          extra_box_pattern = None, extra_box_color = None):
     colorbar_steps = 1000
@@ -366,19 +371,17 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
 	v1 = x1 * (max - min) + min
         pi = (1 - xh) * min_palette_index + xh * max_palette_index
 	color_d.append([0, 1, v0, v1, pi])
+    extra_y_args = {}
     if texter:
-        y2axis = graph.axis.linear(
-            min = min,
-            max = max,
-            density = density,
-            title = title,
-            texter = texter)
-    else:
-        y2axis = graph.axis.linear(
-            min = min,
-            max = max,
-            density = density,
-            title = title)
+        extra_y_args["texter"] = texter
+    if parter:
+        extra_y_args["parter"] = parter
+    y2axis = graph.axis.linear(
+        min = min,
+        max = max,
+        density = density,
+        title = title,
+        **extra_y_args)
     ypos = (1.0 - bar_height_ratio) / 2.0 * (ytop - ybottom) + ybottom
     gc = c.insert(
 	graph.graphxy(

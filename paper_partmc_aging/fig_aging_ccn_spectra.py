@@ -64,6 +64,12 @@ for use_color in [True, False]:
         time = plot_info["time_hour"] * 3600.0
         filename = file_filename_at_time(time_filename_list, time)
         (plot_data, env_state) = get_plot_data(filename)
+        if not use_color:
+            rev_plot_data = [(v,t) for (t,v) in plot_data]
+            i = find_nearest_time(rev_plot_data, 50.0)
+            print "at %f h, supersat for %f%% = %f%%" \
+                % (plot_info["time_hour"], rev_plot_data[i][0],
+                   rev_plot_data[i][1])
         plot_data_list.append(plot_data)
         if use_color:
             style_attrs = [plot_info["linewidth"],

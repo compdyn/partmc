@@ -63,12 +63,10 @@ grid_h_space = 0.5
 grid_graph_width = 6.45
 
 show_particles = [
-    {"id": 104382, "suffix": "1", "label": "P1",
+    {"id": 467312, "suffix": "1", "label": "P1",
      "label pos": [0.9, 0.4], "box label": "particle P1"},
-    {"id": 194297, "suffix": "2", "label": "P2",
+    {"id": 467197, "suffix": "2", "label": "P2",
      "label pos": [0.1, 0.5], "box label": "particle P2"},
-    {"id": 552857, "suffix": "3", "label": "P3",
-     "label pos": [0.9, 0.7], "box label": "particle P3"},
     ]
 
 def make_2x2_graph_grid(y_axis_label, y_min = bc_axis_min, y_max = bc_axis_max,

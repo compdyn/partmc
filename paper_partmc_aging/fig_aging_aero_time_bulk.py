@@ -65,6 +65,9 @@ env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time_min = max(data[:,0]) / 60.0
 
+num_values = [n for [t,n] in plot_data["num"]]
+print "max number density = %f cm^{-3}" % max(num_values)
+
 for use_color in [True, False]:
     g = graph.graphxy(
         width = 6.8,

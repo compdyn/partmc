@@ -98,8 +98,8 @@ for use_color in [True, False]:
     c = canvas.canvas()
     g1 = c.insert(graph.graphxy(
         width = 8.39,
-        x = graph.axis.log(min = 0.01,
-                              max = 10,
+        x = graph.axis.log(min = 0.02,
+                              max = 5,
                               title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
         y = graph.axis.log(min = 1e-2,
@@ -109,8 +109,8 @@ for use_color in [True, False]:
     g2 = c.insert(graph.graphxy(
         width = g1.width,
         xpos = g1.xpos + g1.width + grid_h_space,
-        x = graph.axis.log(min = 0.01,
-                              max = 10,
+        x = graph.axis.log(min = 0.02,
+                              max = 5,
                               title = r"critical supersaturation $S_{\rm c}$ (\%)",
                               painter = grid_painter),
         y = graph.axis.linkedaxis(g1.axes["y"],

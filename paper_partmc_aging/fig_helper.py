@@ -11,10 +11,12 @@ sys.path.append("../tool")
 from pmc_data_nc import *
 
 text.set(mode="latex")
+#text.set(fontmaps="download35.map") # embed times in the pdfs
 #text.set(mode="latex",usefiles=["spam.aux"],texdebug="spam.debug")
 from pmc_pyx import *
 
 text.preamble(r"""\usepackage{times}
+%\usepackage{mathptmx} % symbol math
 \renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}""")
 
 #text.preamble(r"""\renewcommand{\sfdefault}{phv}

@@ -33,7 +33,7 @@ for coag in [True, False]:
     for [time, filename, key] in time_filename_list:
         #DEBUG
         if time > 121:
-            sys.exit(0)
+            break
         #DEBUG
         print time, filename
         ncf = NetCDFFile(filename)

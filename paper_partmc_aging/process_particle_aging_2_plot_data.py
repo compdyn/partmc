@@ -13,17 +13,18 @@ from numpy import *
 
 const = load_constants("../src/constants.f90")
 
+bin = level_mid + 1
+
 for coag in [True, False]:
     if coag:
-        time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
-        env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
         coag_suffix = "wc"
     else:
-        time_filename_list = get_time_filename_list(netcdf_dir_nc, netcdf_pattern_nc)
-        env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
         coag_suffix = "nc"
-    start_time_of_day_min = env_state.start_time_of_day / 60
-    max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
+
+
+
+
+
 
     time_emitted = {}
     time_entered_bins = [{} for i in range(n_level_bin + 2)]

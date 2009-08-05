@@ -26,6 +26,7 @@ for coag in [True, False]:
     max_time_min = max([time for [time, filename, key] in time_filename_list]) / 60
 
     time_emitted = {}
+    mass_emitted = {}
     time_entered_bins = [{} for i in range(n_level_bin + 2)]
 
     first_time = True
@@ -40,6 +41,9 @@ for coag in [True, False]:
         particles.id = [int(i) for i in particles.id]
         env_state = env_state_t(ncf)
         ncf.close()
+        if first_time:
+            aero_data = particles.aero_data
+            n_spec = len(aero_data.name)
         num_den = 1.0 / array(particles.comp_vol)
         total_num_den = num_den.sum()
         soot_mass = particles.mass(include = ["BC"])
@@ -52,6 +56,7 @@ for coag in [True, False]:
             id = particles.id[i]
             if id not in time_emitted:
                 time_emitted[id] = time
+                mass_emitted[id] = [particles.masses[s, i] for s in range(size(particles.masses, 0))]
             bin = ss_bin[i]
             if id not in time_entered_bins[bin]:
                 time_entered_bins[bin][id] = time
@@ -62,10 +67,15 @@ for coag in [True, False]:
                             "particle_aging_%s_%%s.txt" % coag_suffix)
 
     time_emitted_array = zeros(max_id)
+    mass_emitted_array = zeros([max_id, n_spec])
     time_emitted_array = -1.0
+    mass_emitted_array = -1.0
     for (id, time) in time_emitted.iteritems():
         time_emitted_array[id] = time
+        for s in range(n_spec):
+            mass_emitted_array[id, s] = mass_emitted[id][s]
     savetxt(filename % "time_emitted", time_emitted_array)
+    savetxt(filename % "mass_emitted", mass_emitted_array)
 
     for bin in range(n_level_bin + 2):
         print "bin", bin

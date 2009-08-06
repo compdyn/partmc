@@ -13,7 +13,7 @@ from numpy import *
 
 const = load_constants("../src/constants.f90")
 
-for coag in [True, False]:
+for coag in [True]:
     if coag:
         time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
         env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)

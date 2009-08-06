@@ -15,7 +15,7 @@ const = load_constants("../src/constants.f90")
 
 bin = level_mid + 1
 
-for coag in [True, False]:
+for coag in [True]:
     if coag:
         coag_suffix = "wc"
     else:
@@ -27,7 +27,12 @@ for coag in [True, False]:
     time_emitted_array = loadtxt(filename % "time_emitted")
     mass_emitted_array = loadtxt(filename % "mass_emitted")
     time_aging_array = loadtxt(filename_bin % "time_aging")
-    
+
+    n_particles = 0
+    for id in range(size(time_emitted_array)):
+        if time_emitted_array[id] >= 0.0:
+            n_particles += 1
+    particles = aero_particle_array_t(
 
 
 

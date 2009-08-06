@@ -43,6 +43,8 @@ movie_stroke_width = 0.01
 
 smooth_window_len = 60
 grey_level = 0.2
+grey_level_dark = 0.2
+grey_level_light = 0.1
 
 max_val = 4.0
 

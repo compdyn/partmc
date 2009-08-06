@@ -19,21 +19,25 @@ plot_info = {
     "cond_a_f": {"label": r"$\dot{N}^{\rm cond}_{\rm a \to f}$",
                  "label_time": 14, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
+                 "grey_level": grey_level_light,
                  "color": color_list[0], "pattern": line_style_list[1],
                  "graph": "g1"},
     "cond_f_a": {"label": r"$\dot{N}^{\rm cond}_{\rm f \to a}$",
                  "label_time": 7, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
+                 "grey_level": grey_level_dark,
                  "color": color_list[2], "pattern": line_style_list[0],
                  "graph": "g1"},
     "coag_loss_a_f": {"label": r"$\dot{N}^{\rm coag}_{\rm a \to f}$",
                  "label_time": 8.5, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
+                 "grey_level": grey_level_light,
                  "color": color_list[0], "pattern": line_style_list[1],
                  "graph": "g2"},
     "coag_loss_f_a": {"label": r"$\dot{N}^{\rm coag}_{\rm f \to a}$",
                  "label_time": 13, "label_pos": [0, 1],
                  "linewidth": style.linewidth.Thick,
+                 "grey_level": grey_level_dark,
                  "color": color_list[2], "pattern": line_style_list[0],
                  "graph": "g2"},
     }
@@ -98,11 +102,11 @@ for use_color in [True, False]:
                 ("coag_loss_f_a", coag_loss_f_a_conc)]:
         g = graphs[plot_info[key]["graph"]]
         if use_color:
-            grey_color = color.hsb(plot_info[key]["color"].hsb().color["h"], grey_level, 1)
+            grey_color = color.hsb(plot_info[key]["color"].hsb().color["h"], plot_info[key]["grey_level"], 1)
             style_attrs = [plot_info[key]["linewidth"],
                            grey_color]
         else:
-            grey_color = color.grey(1 - grey_level)
+            grey_color = color.grey(1 - plot_info[key]["grey_level"])
             style_attrs = [plot_info[key]["linewidth"],
                            grey_color]
         plot_data = zip(time[1:] / 60, y_data)

@@ -34,8 +34,8 @@ for coag in [True]:
     first_time = True
     for [time, filename, key] in time_filename_list:
         #DEBUG
-        if time > 121:
-            break
+        #if time > 121:
+        #    break
         #DEBUG
         print time, filename
         ncf = NetCDFFile(filename)

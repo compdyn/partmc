@@ -38,7 +38,25 @@ for coag in [True]:
             n_particles += 1
     particles = aero_particle_array_t(n_particles = n_particles,
                                       aero_data = aero_data)
+    i = 0
+    particle_index_by_id = {}
+    for id in range(size(time_emitted_array)):
+        if time_emitted_array[id] >= 0.0:
+            particle_index_by_id[id] = i
+            for s in range(len(aero_data.name)):
+                particles.masses[s,i] = mass_emitted_array[id,s]
+            i += 1
 
+    diameter = particles.diameter()
+    bc_mass = particles.mass(include = ["BC"])
+
+    num_den_array = numpy.zeros([diameter_axis.n_bin, aging_time_axis.n_bin])
+
+    for id in range(size(time_emitted_array)):
+        if time_aging_array[id] >= 0.0:
+            i = particle_index_by_id[id]
+            if bc_mass[i] > 0.0:
+                
 
 
 

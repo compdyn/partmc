@@ -17,8 +17,12 @@ bin = level_mid + 1
 
 for coag in [True]:
     if coag:
+        env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
+        aero_data = read_any(aero_data_t, netcdf_dir_wc, netcdf_pattern_wc)
         coag_suffix = "wc"
     else:
+        env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
+        aero_data = read_any(aero_data_t, netcdf_dir_nc, netcdf_pattern_nc)
         coag_suffix = "nc"
 
     filename = os.path.join(aging_data_dir,
@@ -32,7 +36,8 @@ for coag in [True]:
     for id in range(size(time_emitted_array)):
         if time_emitted_array[id] >= 0.0:
             n_particles += 1
-    particles = aero_particle_array_t(
+    particles = aero_particle_array_t(n_particles = n_particles,
+                                      aero_data = aero_data)
 
 
 

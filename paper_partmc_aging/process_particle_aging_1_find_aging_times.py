@@ -70,16 +70,18 @@ for coag in [True]:
                 time_emitted[id] = time
                 mass_emitted[id] = [particles.masses[s, i] for s in range(size(particles.masses, 0))]
             bin = ss_bin[i]
-            if id not in time_entered_bins[bin]:
-                time_entered_bins[bin][id] = time
+            for b in range(bin, n_level_bin + 2):
+                if id not in time_entered_bins[b]:
+                    time_entered_bins[b][id] = time
         for (id, other_id) in particles_coagulated_to.iteritems():
             final_id = other_id
             while final_id in particles_coagulated_to:
                 final_id = particles_coagulated_to[final_id]
             if final_id in particle_index_by_id:
                 bin = ss_bin[particle_index_by_id[final_id]]
-                if id not in time_entered_bins[bin]:
-                    time_entered_bins[bin][id] = time
+                for b in range(bin, n_level_bin + 2):
+                    if id not in time_entered_bins[b]:
+                        time_entered_bins[b][id] = time
                     
         first_time = False
 

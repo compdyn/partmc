@@ -52,10 +52,17 @@ diameter_axis_min = 0.01
 diameter_axis_max = 1.0
 num_diameter_bins = 70
 diameter_axis_label = r'dry diameter $D\ (\rm\mu m)$'
+diameter_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+                             n_bin = num_diameter_bins)
 
 bc_axis_min = 0
 bc_axis_max = 80
 num_bc_bins = 40
+
+aging_time_axis = pmc_linear_axis(min = 0,
+                                  max = 24,
+                                  n_bin = 48)
+aging_time_axis_label = r'aging time $t_{\rm age}\rm\ (h)$'
 
 times_hour = {"g11": 1,
               "g12" : 5,

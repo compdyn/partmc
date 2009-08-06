@@ -21,7 +21,13 @@ for coag in [True, False]:
     else:
         coag_suffix = "nc"
 
-
+    filename = os.path.join(aging_data_dir,
+                            "particle_aging_%s_%%s.txt" % coag_suffix)
+    filename_bin = filename % ("%08d_%%s" % bin)
+    time_emitted_array = loadtxt(filename % "time_emitted")
+    mass_emitted_array = loadtxt(filename % "mass_emitted")
+    time_aging_array = loadtxt(filename_bin % "time_aging")
+    
 
 
 
@@ -84,5 +90,3 @@ for coag in [True, False]:
                 raise Exception("ID %d entered bin %d at time %f but was never emitted" % id, bin, time)
             time_aging_array[id] = time - time_emitted_array[id]
 
-        savetxt(filename_bin % "time_entered_bins", time_entered_bins_array)
-        savetxt(filename_bin % "time_aging", time_aging_array)

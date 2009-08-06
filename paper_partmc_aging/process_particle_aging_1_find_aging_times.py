@@ -29,10 +29,12 @@ for coag in [True, False]:
     mass_emitted = {}
     time_entered_bins = [{} for i in range(n_level_bin + 2)]
 
+    particles_coagulated_to = {}
+
     first_time = True
     for [time, filename, key] in time_filename_list:
         #DEBUG
-        if time > 1:
+        if time > 121:
             break
         #DEBUG
         print time, filename
@@ -52,6 +54,16 @@ for coag in [True, False]:
         id_set = set([particles.id[i] for i in range(particles.n_particles)])
         particle_index_by_id = dict([[particles.id[i], i] for i in range(particles.n_particles)])
 
+        if not first_time:
+            for i in range(len(particles.aero_removed_id)):
+                id = particles.aero_removed_id[i]
+                if particles.aero_removed_action[i] == AERO_INFO_COAG:
+                    other_id = particles.aero_removed_other_id[i]
+                    if id in particles_coagulated_to:
+                        raise Exception("particle with ID %d coagulated twice to %d and %d (latter at %f s)"
+                                        % (id, particles_coagulated_to[id], other_id, time))
+                    particles_coagulated_to[id] = other_id
+
         for i in range(particles.n_particles):
             id = particles.id[i]
             if id not in time_emitted:
@@ -60,6 +72,16 @@ for coag in [True, False]:
             bin = ss_bin[i]
             if id not in time_entered_bins[bin]:
                 time_entered_bins[bin][id] = time
+        for (id, other_id) in particles_coagulated_to.iteritems():
+            final_id = other_id
+            while final_id in particles_coagulated_to:
+                final_id = particles_coagulated_to[final_id]
+            if final_id in particle_index_by_id:
+                bin = ss_bin[particle_index_by_id[final_id]]
+                if id not in time_entered_bins[bin]:
+                    time_entered_bins[bin][id] = time
+                    
+        first_time = False
 
     num_id = max(time_emitted.keys()) + 1
 

@@ -16,8 +16,6 @@ from pmc_pyx import *
 
 out_prefix = "figs_aging/aging_aero_2d_aging_time"
 
-#max_val = 10.0
-
 const = load_constants("../src/constants.f90")
 
 coag_suffix = "wc"
@@ -26,14 +24,16 @@ bin = level_mid + 1
 filename = os.path.join(aging_data_dir,
                         "particle_aging_%s_plot_data_%08d.txt" % (coag_suffix, bin))
 value = loadtxt(filename)
+mask = where(value > 0.0, 1.0, 0.0)
 max_val = value.max()
 value_zero_to_max = where(value > 0.0, value, max_val)
 min_val = value_zero_to_max.min()
 log_value = where(value > 0.0, log(value), 0.0)
-value = value / value.max()
+value = log_value
+value = (value - log(min_val)) / (log(max_val) - log(min_val))
 value = value.clip(0.0, 1.0)
 
-plot_data = pmc_histogram_2d(value, diameter_axis, aging_time_axis)
+plot_data = pmc_histogram_2d(value, diameter_axis, aging_time_axis, mask = mask)
 
 for color in [True, False]:
     g = graph.graphxy(
@@ -49,7 +49,7 @@ for color in [True, False]:
     if color:
         palette = rainbow_palette
     else:
-        palette = nonlinear_gray_palette
+        palette = gray_palette
 
     g.dolayout()
 
@@ -66,6 +66,8 @@ for color in [True, False]:
 
     g.dodata()
     g.doaxes()
+
+    write_text_outside(g, r"critical supersaturation $S_{\rm c} = %.1f\%%$" % (level_mid_value * 100))
 
     add_canvas_color_bar(
         g,

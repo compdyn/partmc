@@ -60,8 +60,8 @@ bc_axis_max = 80
 num_bc_bins = 40
 
 aging_time_axis = pmc_linear_axis(min = 0,
-                                  max = 24,
-                                  n_bin = 48)
+                                  max = 18,
+                                  n_bin = 36)
 aging_time_axis_label = r'aging time $t_{\rm age}\rm\ (h)$'
 
 times_hour = {"g11": 1,

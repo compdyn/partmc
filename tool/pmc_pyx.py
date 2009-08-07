@@ -91,6 +91,10 @@ nonlinear_gray_palette = listpalette([[0, color.gray(0.8)],
                                       [0.5, color.gray(0.6)],
                                       [1, color.gray(0)]])
 
+nonlinear2_gray_palette = listpalette([[0, color.gray(0.8)],
+                                      [0.5, color.gray(0.2)],
+                                      [1, color.gray(0)]])
+
 grid_painter = graph.axis.painter.regular(gridattrs = [style.linestyle.dotted])
 major_grid_painter = graph.axis.painter.regular(gridattrs = [attr.changelist([style.linestyle.dotted, None])])
 linked_grid_painter = graph.axis.painter.linked(gridattrs = [style.linestyle.dotted])
@@ -367,8 +371,8 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
         xh = (float(i) + 0.5) / float(colorbar_steps)
         x1 = float(i + 1) / float(colorbar_steps)
         if log_scale:
-            v0 = exp(x0 * (log(max) - log(min)) + log(min))
-            v1 = exp(x1 * (log(max) - log(min)) + log(min))
+            v0 = math.exp(x0 * (math.log(max) - math.log(min)) + math.log(min))
+            v1 = math.exp(x1 * (math.log(max) - math.log(min)) + math.log(min))
         else:
             v0 = x0 * (max - min) + min
             v1 = x1 * (max - min) + min

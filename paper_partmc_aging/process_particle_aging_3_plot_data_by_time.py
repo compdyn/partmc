@@ -25,6 +25,7 @@ for time_type in ["emission", "aging"]:
             env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
             aero_data = read_any(aero_data_t, netcdf_dir_nc, netcdf_pattern_nc)
             coag_suffix = "nc"
+        print time_type, coag_suffix
 
         filename = os.path.join(aging_data_dir,
                                 "particle_aging_%s_%%s.txt" % coag_suffix)

@@ -25,6 +25,7 @@ for plot_info in aging_time_infos:
             env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
             aero_data = read_any(aero_data_t, netcdf_dir_nc, netcdf_pattern_nc)
             coag_suffix = "nc"
+        print plot_info["name"], coag_suffix
 
         filename = os.path.join(aging_data_dir,
                                 "particle_aging_%s_%%s.txt" % coag_suffix)

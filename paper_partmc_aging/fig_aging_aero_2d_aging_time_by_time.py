@@ -22,6 +22,7 @@ coag_suffix = "wc"
 bin = level_mid + 1
 
 for time_type in ["emission", "aging"]:
+    print time_type, coag_suffix
     filename = os.path.join(aging_data_dir,
                             "particle_aging_by_time_%s_%s_plot_data_%08d.txt" % (time_type, coag_suffix, bin))
 
@@ -74,7 +75,7 @@ for time_type in ["emission", "aging"]:
         add_canvas_color_bar(
             g,
             min = 0,
-            max = z_time_max / 3600.0,
+            max = z_time_max,
             xpos = g.xpos + g.width + grid_h_space,
             ybottom = g.ypos,
             ytop = g.ypos + g.height,

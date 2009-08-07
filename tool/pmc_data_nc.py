@@ -6,6 +6,7 @@
 import os, sys, re, textwrap
 import copy as module_copy
 import numpy, math
+import random as py_random
 from numpy import *
 import scipy.optimize
 from Scientific.IO.NetCDF import *

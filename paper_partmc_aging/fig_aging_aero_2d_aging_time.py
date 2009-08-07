@@ -28,6 +28,7 @@ for plot_info in aging_time_infos:
     else:
         env_state = read_any(env_state_t, netcdf_dir_nc, netcdf_pattern_nc)
         coag_suffix = "nc"
+    print plot_info["name"], coag_suffix
     filename = os.path.join(aging_data_dir,
                             "particle_aging_%s_%s_plot_data_%08d.txt" % (plot_info["name"], coag_suffix, bin))
     value = loadtxt(filename)
@@ -94,7 +95,7 @@ for plot_info in aging_time_infos:
                                          + plot_info["time_end"],
                                          separator = ":")
             plot_info_text = "particles that aged between %s LST and %s LST" % (start_lst, end_lst)
-        (x_g, y_g) = g.vpos(0, 1.1)
+        (x_g, y_g) = g.vpos(0, 1.2)
         boxed_text_g(g, plot_info_text, x_g, y_g, anchor_point_rel = [0, 1])
 
         add_canvas_color_bar(

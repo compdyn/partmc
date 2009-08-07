@@ -16,7 +16,7 @@ from pmc_pyx import *
 
 out_prefix = "figs_aging/aging_aero_2d_aging_time"
 
-max_val = 4.0
+max_val = 10.0
 
 const = load_constants("../src/constants.f90")
 
@@ -36,9 +36,10 @@ for color in [True, False]:
         width = grid_graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
-                           title = diameter_axis_label),
-        y = graph.axis.log(min = aging_time_axis.min,
+                           title = r"dry diameter at emission $D\ (\rm\mu m)$"),
+        y = graph.axis.linear(min = aging_time_axis.min,
                               max = aging_time_axis.max,
+                              parter = graph.axis.parter.linear(tickdists = [6, 3]),
                               title = r"aging time $t_{\rm aging}\ (\rm h)$"))
 
     if color:

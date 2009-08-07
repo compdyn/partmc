@@ -47,27 +47,31 @@ for coag in [True]:
                 particles.masses[s,i] = mass_emitted_array[id,s]
             i += 1
 
-    diameter = particles.diameter()
+    diameter = particles.dry_diameter() * 1e6
     bc_mass = particles.mass(include = ["BC"])
 
     num_den_array = numpy.zeros([diameter_axis.n_bin, aging_time_axis.n_bin])
 
-    time_aging = zeros_like(diameter)
-    time_aging[:] = -1.0
+    aging_time = zeros_like(diameter)
+    aging_time[:] = -1.0
     for id in range(size(time_emitted_array)):
         if time_aging_array[id] >= 0.0:
             i = particle_index_by_id[id]
-            time_aging[i] = time_aging_array[id]
+            aging_time[i] = time_aging_array[id]
+    aging_time /= 3600.0
 
     diameter_bin = diameter_axis.find(diameter)
-    time_aging_bin = time_aging_axis.find(time_aging)
+    aging_time_bin = aging_time_axis.find(aging_time)
 
     for i in range(size(diameter)):
         if bc_mass[i] > 0.0:
-            num_den_array[diameter_bin[i], time_aging_bin[i]] += 1.0
+            if diameter_axis.valid_bin(diameter_bin[i]) \
+                    and aging_time_axis.valid_bin(aging_time_bin[i]):
+                num_den_array[diameter_bin[i], aging_time_bin[i]] += 1.0
 
     value = num_den_array / num_den_array.sum() \
-            / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
+            / diameter_axis.grid_size(0) \
+            / (aging_time_axis.grid_size(0) / 100.0)
 
     filename = os.path.join(aging_data_dir,
                             "particle_aging_%s_plot_data_%08d.txt" % (coag_suffix, bin))

@@ -78,7 +78,7 @@ for time_type in ["emission", "aging"]:
             xpos = g.xpos + g.width + grid_h_space,
             ybottom = g.ypos,
             ytop = g.ypos + g.height,
-            title = r"%s time $(h)$" % time_type,
+            title = r"elapsed time at %s $(h)$" % time_type,
             palette = palette)
 
         if color:

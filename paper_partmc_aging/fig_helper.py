@@ -218,7 +218,7 @@ def write_time(g, env_state, extra_text = "", text_vpos = [0, 1],
                with_hours = True):
     time_lst = time_of_day_string(env_state.start_time_of_day
                                   + env_state.elapsed_time,
-                                  separator = "")
+                                  separator = ":")
     time_hour = int(env_state.elapsed_time / 3600.0)
     suffix = "s"
     if time_hour == 1:

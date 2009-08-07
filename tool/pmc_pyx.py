@@ -356,32 +356,43 @@ def add_canvas_color_bar(c, min, max, title, palette, bar_width = 0.5,
                          bar_height_ratio = 0.7,
                          xpos = 0, ybottom = 0, ytop = 1,
                          min_palette_index = 0.0,
-                         density = 1.0,
                          max_palette_index = 1.0, texter = None,
-                         parter = None,
+                         density = 1.0, parter = None,
+                         log_scale = False, colorbar_steps = 1000,
                          extra_box_value = None, extra_box_label = None,
                          extra_box_pattern = None, extra_box_color = None):
-    colorbar_steps = 1000
     color_d = []
     for i in range(colorbar_steps):
-	x0 = float(i) / float(colorbar_steps)
-	xh = (float(i) + 0.5) / float(colorbar_steps)
-	x1 = float(i + 1) / float(colorbar_steps)
-	v0 = x0 * (max - min) + min
-	v1 = x1 * (max - min) + min
+        x0 = float(i) / float(colorbar_steps)
+        xh = (float(i) + 0.5) / float(colorbar_steps)
+        x1 = float(i + 1) / float(colorbar_steps)
+        if log_scale:
+            v0 = exp(x0 * (log(max) - log(min)) + log(min))
+            v1 = exp(x1 * (log(max) - log(min)) + log(min))
+        else:
+            v0 = x0 * (max - min) + min
+            v1 = x1 * (max - min) + min
         pi = (1 - xh) * min_palette_index + xh * max_palette_index
-	color_d.append([0, 1, v0, v1, pi])
+        color_d.append([0, 1, v0, v1, pi])
     extra_y_args = {}
     if texter:
         extra_y_args["texter"] = texter
     if parter:
         extra_y_args["parter"] = parter
-    y2axis = graph.axis.linear(
-        min = min,
-        max = max,
-        density = density,
-        title = title,
-        **extra_y_args)
+    if log_scale:
+        y2axis = graph.axis.log(
+            min = min,
+            max = max,
+            density = density,
+            title = title,
+            **extra_y_args)
+    else:
+        y2axis = graph.axis.linear(
+            min = min,
+            max = max,
+            density = density,
+            title = title,
+            **extra_y_args)
     ypos = (1.0 - bar_height_ratio) / 2.0 * (ytop - ybottom) + ybottom
     gc = c.insert(
 	graph.graphxy(

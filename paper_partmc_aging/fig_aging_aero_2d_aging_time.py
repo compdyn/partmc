@@ -16,7 +16,7 @@ from pmc_pyx import *
 
 out_prefix = "figs_aging/aging_aero_2d_aging_time"
 
-max_val = 10.0
+#max_val = 10.0
 
 const = load_constants("../src/constants.f90")
 
@@ -26,7 +26,11 @@ bin = level_mid + 1
 filename = os.path.join(aging_data_dir,
                         "particle_aging_%s_plot_data_%08d.txt" % (coag_suffix, bin))
 value = loadtxt(filename)
-value = value / max_val
+max_val = value.max()
+value_zero_to_max = where(value > 0.0, value, max_val)
+min_val = value_zero_to_max.min()
+log_value = where(value > 0.0, log(value), 0.0)
+value = value / value.max()
 value = value.clip(0.0, 1.0)
 
 plot_data = pmc_histogram_2d(value, diameter_axis, aging_time_axis)
@@ -65,7 +69,8 @@ for color in [True, False]:
 
     add_canvas_color_bar(
         g,
-        min = 0.0,
+        log_scale = True,
+        min = min_val,
         max = max_val,
         xpos = g.xpos + g.width + grid_h_space,
         ybottom = g.ypos,

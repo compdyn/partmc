@@ -64,6 +64,29 @@ aging_time_axis = pmc_linear_axis(min = 0,
                                   n_bin = 36)
 aging_time_axis_label = r'aging time $t_{\rm age}\rm\ (h)$'
 
+aging_time_infos = [
+    {"name": "all",
+     "criterion": "none", "time_start" = -1, "time_end" = -1,
+     "title": "all particles",
+     },
+    {"name": "emit_morning",
+     "criterion": "emission_time", "time_start" = 5 * 3600.0, "time_end" = 6 * 3600.0,
+     "title": None,
+     },
+    {"name": "emit_evening",
+     "criterion": "emission_time", "time_start" = 11 * 3600.0, "time_end" = 12 * 3600.0,
+     "title": None,
+     },
+    {"name": "age_day",
+     "criterion": "aging_time", "time_start" = 6 * 3600.0, "time_end" = 9 * 3600.0,
+     "title": None,
+     },
+    {"name": "age_night",
+     "criterion": "aging_time", "time_start" = 12 * 3600.0, "time_end" = 22 * 3600.0,
+     "title": None,
+     },
+    ]
+
 times_hour = {"g11": 1,
               "g12" : 5,
               "g21" : 7,

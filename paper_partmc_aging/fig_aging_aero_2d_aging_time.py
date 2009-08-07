@@ -21,70 +21,71 @@ const = load_constants("../src/constants.f90")
 coag_suffix = "wc"
 bin = level_mid + 1
 
-filename = os.path.join(aging_data_dir,
-                        "particle_aging_%s_plot_data_%08d.txt" % (coag_suffix, bin))
-value = loadtxt(filename)
-mask = where(value > 0.0, 1.0, 0.0)
-max_val = value.max()
-value_zero_to_max = where(value > 0.0, value, max_val)
-min_val = value_zero_to_max.min()
-log_value = where(value > 0.0, log(value), 0.0)
-value = log_value
-value = (value - log(min_val)) / (log(max_val) - log(min_val))
-value = value.clip(0.0, 1.0)
+for plot_info in aging_time_infos:
+    filename = os.path.join(aging_data_dir,
+                            "particle_aging_%s_%s_plot_data_%08d.txt" % (plot_info["name"], coag_suffix, bin))
+    value = loadtxt(filename)
+    mask = where(value > 0.0, 1.0, 0.0)
+    max_val = value.max()
+    value_zero_to_max = where(value > 0.0, value, max_val)
+    min_val = value_zero_to_max.min()
+    log_value = where(value > 0.0, log(value), 0.0)
+    value = log_value
+    value = (value - log(min_val)) / (log(max_val) - log(min_val))
+    value = value.clip(0.0, 1.0)
 
-plot_data = pmc_histogram_2d(value, diameter_axis, aging_time_axis, mask = mask)
+    plot_data = pmc_histogram_2d(value, diameter_axis, aging_time_axis, mask = mask)
 
-for color in [True, False]:
-    g = graph.graphxy(
-        width = grid_graph_width,
-        x = graph.axis.log(min = diameter_axis_min,
-                           max = diameter_axis_max,
-                           title = r"dry diameter at emission $D\ (\rm\mu m)$"),
-        y = graph.axis.linear(min = aging_time_axis.min,
-                              max = aging_time_axis.max,
-                              parter = graph.axis.parter.linear(tickdists = [6, 3]),
-                              title = r"aging time $t_{\rm aging}\ (\rm h)$"))
+    for color in [True, False]:
+        g = graph.graphxy(
+            width = grid_graph_width,
+            x = graph.axis.log(min = diameter_axis_min,
+                               max = diameter_axis_max,
+                               title = r"dry diameter at emission $D\ (\rm\mu m)$"),
+            y = graph.axis.linear(min = aging_time_axis.min,
+                                  max = aging_time_axis.max,
+                                  parter = graph.axis.parter.linear(tickdists = [6, 3]),
+                                  title = r"aging time $t_{\rm aging}\ (\rm h)$"))
 
-    if color:
-        palette = rainbow_palette
-    else:
-        palette = gray_palette
+        if color:
+            palette = rainbow_palette
+        else:
+            palette = gray_palette
 
-    g.dolayout()
+        g.dolayout()
 
-    for axisname in ["x", "y"]:
-        for t in g.axes[axisname].data.ticks:
-            if t.ticklevel is not None:
-                g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
-                         [style.linestyle.dotted])
-                    
-    g.plot(graph.data.points(plot_data,
-                             xmin = 1, xmax = 2, ymin = 3, ymax = 4,
-                             color = 5),
-           styles = [hsb_rect(palette)])
+        for axisname in ["x", "y"]:
+            for t in g.axes[axisname].data.ticks:
+                if t.ticklevel is not None:
+                    g.stroke(g.axes[axisname].positioner.vgridpath(t.temp_v),
+                             [style.linestyle.dotted])
 
-    g.dodata()
-    g.doaxes()
+        g.plot(graph.data.points(plot_data,
+                                 xmin = 1, xmax = 2, ymin = 3, ymax = 4,
+                                 color = 5),
+               styles = [hsb_rect(palette)])
 
-    write_text_outside(g, r"critical supersaturation $S_{\rm c} = %.1f\%%$" % (level_mid_value * 100))
+        g.dodata()
+        g.doaxes()
 
-    add_canvas_color_bar(
-        g,
-        log_scale = True,
-        min = min_val,
-        max = max_val,
-        xpos = g.xpos + g.width + grid_h_space,
-        ybottom = g.ypos,
-        ytop = g.ypos + g.height,
-        title = r"normalized number conc.",
-        palette = palette)
+        write_text_outside(g, r"critical supersaturation $S_{\rm c} = %.1f\%%$" % (level_mid_value * 100))
 
-    if color:
-        out_filename = "%s_color.pdf" % out_prefix
-    else:
-        out_filename = "%s_bw.pdf" % out_prefix
-    g.writePDFfile(out_filename)
-    if not color:
-        print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
-        print "figure width = %.1f cm" % unit.tocm(g.bbox().width())
+        add_canvas_color_bar(
+            g,
+            log_scale = True,
+            min = min_val,
+            max = max_val,
+            xpos = g.xpos + g.width + grid_h_space,
+            ybottom = g.ypos,
+            ytop = g.ypos + g.height,
+            title = r"normalized number conc.",
+            palette = palette)
+
+        if color:
+            out_filename = "%s_%s_%s_color.pdf" % (out_prefix, plot_info["name"], coag_suffix)
+        else:
+            out_filename = "%s_%s_%s_bw.pdf" % (out_prefix, plot_info["name"], coag_suffix)
+        g.writePDFfile(out_filename)
+        if not color:
+            print "figure height = %.1f cm" % unit.tocm(g.bbox().height())
+            print "figure width = %.1f cm" % unit.tocm(g.bbox().width())

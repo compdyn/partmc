@@ -54,6 +54,9 @@ num_diameter_bins = 70
 diameter_axis_label = r'dry diameter $D\ (\rm\mu m)$'
 diameter_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
                              n_bin = num_diameter_bins)
+diameter_axis_hi = pmc_log_axis(min = diameter_axis.min,
+                                max = diameter_axis.max,
+                                n_bin = diameter_axis.n_bin * 2)
 
 bc_axis_min = 0
 bc_axis_max = 80
@@ -62,6 +65,9 @@ num_bc_bins = 40
 aging_time_axis = pmc_linear_axis(min = 0,
                                   max = 18,
                                   n_bin = 36)
+aging_time_axis_hi = pmc_linear_axis(min = aging_time_axis.min,
+                                     max = aging_time_axis.max,
+                                     n_bin = aging_time_axis.n_bin * 2)
 aging_time_axis_label = r'aging time $t_{\rm age}\rm\ (h)$'
 
 aging_time_infos = [

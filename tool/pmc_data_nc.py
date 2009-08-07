@@ -1222,3 +1222,44 @@ def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
             last_x = x[i]
             last_y = y
     return plot_data
+
+def percentile(data, p):
+    # p in [0,1]
+    # data must be sorted
+    i = int(floor((len(data) - 1) * p + 0.5))
+    return data[i]
+
+def grid_plot_data(x, y, z, x_axis, y_axis, hi_x_axis, hi_y_axis):
+    x_bin = x_axis.find(x)
+    y_bin = y_axis.find(y)
+    values = [[[] for j in range(y_axis.n_bin)]
+              for i in range(x_axis.n_bin)]
+    for i in range(len(x)):
+        if x_axis.valid_bin(x_bin[i]) and y_axis.valid_bin(y_bin[i]):
+            values[x_bin[i]][y_bin[i]].append(z[i])
+    for x_bin in range(x_axis.n_bin):
+        for y_bin in range(y_axis.n_bin):
+            values[x_bin][y_bin].sort()
+    grid = numpy.zeros([hi_x_axis.n_bin, hi_y_axis.n_bin])
+    mask = numpy.zeros([hi_x_axis.n_bin, hi_y_axis.n_bin], int)
+    for x_bin in range(x_axis.n_bin):
+        for y_bin in range(y_axis.n_bin):
+            if len(values[x_bin][y_bin]) > 0:
+                subs = [(0,0),(0,1),(1,0),(1,1)]
+                py_random.shuffle(subs)
+                (sub_min, sub_max, sub_low, sub_high) = subs
+                val_min = min(values[x_bin][y_bin])
+                val_max = max(values[x_bin][y_bin])
+                val_low = percentile(values[x_bin][y_bin], 0.3333)
+                val_high = percentile(values[x_bin][y_bin], 0.6666)
+                for (sub, val) in [(sub_min, val_min),
+                                   (sub_max, val_max),
+                                   (sub_low, val_low),
+                                   (sub_high, val_high)]:
+                    sub_i, sub_j = sub
+                    i = x_bin * 2 + sub_i
+                    j = y_bin * 2 + sub_j
+                    grid[i,j] = val
+                    mask[i,j] = 1
+    plot_data = pmc_histogram_2d(grid, hi_x_axis, hi_y_axis, mask = mask)
+    return plot_data

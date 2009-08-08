@@ -21,12 +21,23 @@ ss_axis_min = 1e-2
 ss_axis_max = 1e2
 num_ss_bins = 40
 
-bc_max_val = 4.0
-ss_max_val = 100.0
+log_scale = True
+
+if log_scale:
+    bc_min_val = None
+    bc_max_val = None
+    ss_min_val = None
+    ss_max_val = None
+else:
+    bc_min_val = 0.0
+    bc_max_val = 4.0
+    ss_min_val = 0.0
+    ss_max_val = 100.0
 
 const = load_constants("../src/constants.f90")
 
-def get_plot_data_bc(filename, value_max = None):
+def get_plot_data_bc(filename, value_min = None, value_max = None,
+                     log_scale = False):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
     env_state = env_state_t(ncf)
@@ -57,15 +68,26 @@ def get_plot_data_bc(filename, value_max = None):
             / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
     if value_max == None:
         value_max = value.max()
+    if value_min == None:
+        if log_scale:
+            maxed_value = where(value > 0.0, value, value_max)
+            value_min = maxed_value.min()
+        else:
+            value_min = 0.0
     if value_max > 0.0:
-        value = value / value_max
+        if log_scale:
+            value = (log(value) - log(value_min)) \
+                / (log(value_max) - log(value_min))
+        else:
+            value = (value - value_min) / (value_max - value_min)
     value = value.clip(0.0, 1.0)
 
     rects = pmc_histogram_2d_multi([value],
                                     x_axis, y_axis)
-    return (rects, env_state)
+    return (rects, env_state, value_min, value_max)
 
-def get_plot_data_ss(filename, value_max = None):
+def get_plot_data_ss(filename, value_min = None, value_max = None,
+                     log_scale = False):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
     env_state = env_state_t(ncf)
@@ -95,13 +117,23 @@ def get_plot_data_ss(filename, value_max = None):
             / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
     if value_max == None:
         value_max = value.max()
+    if value_min == None:
+        if log_scale:
+            maxed_value = where(value > 0.0, value, value_max)
+            value_min = maxed_value.min()
+        else:
+            value_min = 0.0
     if value_max > 0.0:
-        value = value / value_max
+        if log_scale:
+            value = (log(value) - log(value_min)) \
+                / (log(value_max) - log(value_min))
+        else:
+            value = (value - value_min) / (value_max - value_min)
     value = value.clip(0.0, 1.0)
 
     rects = pmc_histogram_2d_multi([value],
                                     x_axis, y_axis)
-    return (rects, env_state)
+    return (rects, env_state, value_min, value_max)
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for color in [True, False]:
@@ -152,14 +184,35 @@ for color in [True, False]:
         time = plot_info["time_hour"] * 3600.0
         filename = file_filename_at_time(time_filename_list, time)
         if plot_info["y_axis"] == "bc":
-            (rects, env_state) = get_plot_data_bc(filename, bc_max_val)
+            (rects, env_state, bc_min_val_new, bc_max_val_new) \
+                = get_plot_data_bc(filename, log_scale = True)
+            if bc_min_val:
+                bc_min_val = min(bc_min_val, bc_min_val_new)
+            else:
+                bc_min_val = bc_min_val_new
+            if bc_max_val:
+                bc_max_val = max(bc_max_val, bc_max_val_new)
+            else:
+                bc_max_val = bc_max_val_new
         else:
-            (rects, env_state) = get_plot_data_ss(filename, ss_max_val)
+            (rects, env_state, ss_min_val_new, ss_max_val_new) \
+                = get_plot_data_ss(filename, log_scale = True)
+            if ss_min_val:
+                ss_min_val = min(ss_min_val, ss_min_val_new)
+            else:
+                ss_min_val = ss_min_val_new
+            if ss_max_val:
+                ss_max_val = max(ss_max_val, ss_max_val_new)
+            else:
+                ss_max_val = ss_max_val_new
         g = graphs[plot_info["graph"]]
         if color:
             palette = rainbow_palette
         else:
-            palette = gray_palette
+            if log_scale:
+                palette = nonlinear_gray_palette
+            else:
+                palette = gray_palette
         g.plot(graph.data.points(rects,
                                  xmin = 1, xmax = 2, ymin = 3, ymax = 4,
                                  color = 5),
@@ -177,17 +230,21 @@ for color in [True, False]:
         g.doaxes()
 
     c = graphs["c"]
+    print bc_min_val, bc_max_val
+    print ss_min_val, ss_max_val
     add_canvas_color_bar(c,
-                         min = 0.0,
+                         min = bc_min_val,
                          max = bc_max_val,
+                         log_scale = True,
                          xpos = graphs["g12"].xpos + graphs["g12"].width + grid_h_space,
                          ybottom = graphs["g12"].ypos,
                          ytop = graphs["g12"].ypos + graphs["g12"].height,
                          title = r"normalized number conc.",
                          palette = palette)
     add_canvas_color_bar(c,
-                         min = 0.0,
+                         min = ss_min_val,
                          max = ss_max_val,
+                         log_scale = True,
                          xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
                          ybottom = graphs["g22"].ypos,
                          ytop = graphs["g22"].ypos + graphs["g22"].height,

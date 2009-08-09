@@ -127,7 +127,7 @@ for coag in [True]:
             write_block_size = num_id - i_start
         write_full_ss = zeros([write_block_size, n_time])
         for i in range(write_block_size):
-            write_full_ss[i,:] = full_ss[shuffle_index[i + start_i], :]
+            write_full_ss[i,:] = full_ss[shuffle_index[i + i_start], :]
         savetxt(filename % ("block_%08d" % n_blocks), write_full_ss)
         i_start += block_size
         n_blocks += 1

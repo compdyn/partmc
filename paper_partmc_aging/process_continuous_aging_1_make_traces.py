@@ -36,8 +36,8 @@ for coag in [True]:
     n_time = len(time_filename_list)
     for (i_time, [time, filename, key]) in enumerate(time_filename_list):
         #DEBUG
-        if time > 121:
-            break
+        #if time > 121:
+        #    break
         #DEBUG
         print time, filename
         ncf = NetCDFFile(filename)

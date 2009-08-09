@@ -116,7 +116,7 @@ for coag in [True]:
     shuffle_array = zeros(num_id, 'int32')
     for i in range(num_id):
         shuffle_array[i] = shuffle_index[i]
-    savetxt(filename % "shuffle_index", shuffle_array)
+    savetxt(filename % "shuffle_index", shuffle_array, fmt = "%9d")
 
     i_start = 0
     n_blocks = 0
@@ -135,4 +135,4 @@ for coag in [True]:
     block_info = zeros(2, 'int32')
     block_info[0] = block_size
     block_info[1] = n_blocks
-    savetxt(filename % "block_info", block_info)
+    savetxt(filename % "block_info", block_info, fmt = "%9d")

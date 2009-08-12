@@ -64,7 +64,7 @@ def get_plot_data_bc(filename, value_min = None, value_max = None,
                     * (y_axis.grid_size(y_bin[i]) / 100)
             num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
 
-    value = num_den_array * 1e6
+    value = num_den_array / 1e6
     #value = num_den_array / num_den_array.sum() \
     #        / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
     if value_max == None:
@@ -114,7 +114,7 @@ def get_plot_data_ss(filename, value_min = None, value_max = None,
                     * (y_axis.grid_size(y_bin[i]) / 100)
             num_den_array[x_bin[i], y_bin[i]] += 1.0 / scale
 
-    value = num_den_array * 1e6
+    value = num_den_array / 1e6
     #value = num_den_array / num_den_array.sum() \
     #        / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
     if value_max == None:

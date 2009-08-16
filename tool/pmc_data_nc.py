@@ -499,12 +499,14 @@ def time_of_day_string(time_seconds, separator = ":"):
     seconds = int(time_of_day) % 60
     return "%02d%s%02d" % (hours, separator, minutes)
 
-def read_history(constructor, directory, filename_pattern):
+def read_history(constructor, directory, filename_pattern, print_progress = False):
     filenames = os.listdir(directory)
     data = []
     filename_re = re.compile(filename_pattern)
     for filename in filenames:
         if filename_re.search(filename):
+            if print_progress:
+                print filename
             netcdf_filename = os.path.join(directory, filename)
             ncf = NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)

@@ -42,8 +42,6 @@ movie_stroke_width = 0.01
 smooth_window_len = 60
 grey_level = 0.2
 
-max_val = 4.0
-
 diameter_axis_min = 0.01
 diameter_axis_max = 1.0
 num_diameter_bins = 70

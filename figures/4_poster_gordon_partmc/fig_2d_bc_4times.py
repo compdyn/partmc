@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2008 Matthew West
+# Copyright (C) 2007-2009 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -16,6 +16,11 @@ from pmc_pyx import *
 out_prefix = "figs/aero_2d_all"
 
 y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
+
+bc_min_val = None
+bc_max_val = None
+ss_min_val = None
+ss_max_val = None
 
 def get_plot_data(filename, value_max = None):
     ncf = NetCDFFile(filename)
@@ -47,17 +52,20 @@ def get_plot_data(filename, value_max = None):
                 if int(particles.id[i]) == show_particles[j]["id"]:
                     show_coords[j] = [diameter[i], comp_frac[i]]
 
-    value = num_den_array / num_den_array.sum() \
-            / x_axis.grid_size(0) / (y_axis.grid_size(0) / 100.0)
+    value = num_den_array / 1e6 # m^{-3} to cm^{-3}
     if value_max == None:
         value_max = value.max()
+    if value_min == None:
+        maxed_value = where(value > 0.0, value, value_max)
+        value_min = maxed_value.min()
     if value_max > 0.0:
-        value = value / value_max
+        value = (log(value) - log(value_min)) \
+                / (log(value_max) - log(value_min))
     value = value.clip(0.0, 1.0)
 
     rects = pmc_histogram_2d_multi([value],
                                     x_axis, y_axis)
-    return (rects, show_coords, env_state)
+    return (rects, show_coords, env_state, value_min, value_max)
 
 time_filename_list = get_time_filename_list(netcdf_dir_wc, netcdf_pattern_wc)
 for color in [True, False]:
@@ -65,7 +73,16 @@ for color in [True, False]:
     for (graph_name, time_hour) in times_hour.iteritems():
         time = time_hour * 3600.0
         filename = file_filename_at_time(time_filename_list, time)
-        (rects, show_coords, env_state) = get_plot_data(filename, max_val)
+        (rects, show_coords, env_state, bc_min_val_new, bc_max_val_new) \
+                = get_plot_data(filename)
+        if bc_min_val:
+            bc_min_val = min(bc_min_val, bc_min_val_new)
+        else:
+            bc_min_val = bc_min_val_new
+        if bc_max_val:
+            bc_max_val = max(bc_max_val, bc_max_val_new)
+        else:
+            bc_max_val = bc_max_val_new
         g = graphs[graph_name]
         if color:
             palette = rainbow_palette
@@ -96,12 +113,13 @@ for color in [True, False]:
 
     c = graphs["c"]
     add_canvas_color_bar(c,
-                         min = 0.0,
-                         max = max_val,
+                         min = bc_min_val,
+                         max = bc_max_val,
+                         log_scale = True,
                          xpos = graphs["g22"].xpos + graphs["g22"].width + grid_h_space,
                          ybottom = graphs["g22"].ypos,
                          ytop = graphs["g12"].ypos + graphs["g12"].height,
-                         title = r"normalized number conc. $\hat{n}_{\rm BC,dry}(D,w)$",
+                         title = r"number conc. $n_{\rm BC,dry}(D,w)\ (\rm cm^{-3})$",
                          palette = palette)
 
     if color:

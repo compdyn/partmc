@@ -31,7 +31,7 @@ for id in particle_ids:
     data = array([len(particle_history),
                   len(aero_data.name) + 2])
     for (i, (time, particles)) in enumerate(particle_history):
-        index = particles.id.index(id)
+        index = nonzero(particles.id == id)[0][0]
         data[i, 0] = time
         data[i, 1] = particles.comp_vol[index]
         for s in range(len(aero_data.name)):

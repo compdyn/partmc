@@ -9,11 +9,11 @@ from Scientific.IO.NetCDF import *
 from pyx import *
 sys.path.append(".")
 from fig_helper import *
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 
-out_prefix = "figs/aero_2d_all"
+out_prefix = "figs/2d_bc_4times"
 
 y_axis_label = r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$"
 
@@ -22,7 +22,7 @@ bc_max_val = None
 ss_min_val = None
 ss_max_val = None
 
-def get_plot_data(filename, value_max = None):
+def get_plot_data(filename, value_min = None, value_max = None):
     ncf = NetCDFFile(filename)
     particles = aero_particle_array_t(ncf)
     env_state = env_state_t(ncf)

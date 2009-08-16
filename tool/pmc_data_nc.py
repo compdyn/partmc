@@ -154,7 +154,7 @@ class aero_particle_array_t:
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__(self_var) = asarray(ncf.variables[ncf_var].getValue())
+            self.__dict__[self_var] = asarray(ncf.variables[ncf_var].getValue())
 
         if include_ids != None or exclude_ids != None:
             keep_indexes = [i for i in range(size(self.id)) \
@@ -337,7 +337,7 @@ class aero_removed_info_t:
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__(self_var) = asarray(ncf.variables[ncf_var].getValue())
+            self.__dict__[self_var] = asarray(ncf.variables[ncf_var].getValue())
 
         #self.aero_removed_id = [int(i) for i in self.aero_removed_id]
         #self.aero_removed_action = [int(i) for i in self.aero_removed_action]
@@ -501,6 +501,7 @@ def time_of_day_string(time_seconds, separator = ":"):
 
 def read_history(constructor, directory, filename_pattern, print_progress = False):
     filenames = os.listdir(directory)
+    filenames.sort()
     data = []
     filename_re = re.compile(filename_pattern)
     for filename in filenames:

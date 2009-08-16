@@ -7,7 +7,7 @@ import os, sys, math
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 
 text.set(mode="latex")

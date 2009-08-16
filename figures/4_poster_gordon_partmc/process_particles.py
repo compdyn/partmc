@@ -7,7 +7,7 @@ import os, sys, math, re
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 import numpy
@@ -20,6 +20,7 @@ particle_ids = [p["id"] for p in show_particles]
 particle_histories = read_history(lambda ncf:
                                   aero_particle_array_t(ncf, include_ids = particle_ids),
                                   netcdf_dir_wc, netcdf_pattern_wc, print_progress = True)
+particle_histories.sort()
 
 for id in particle_ids:
     print id
@@ -28,7 +29,8 @@ for id in particle_ids:
                         if id in p.id]
     if len(particle_history) == 0:
         print "WARNING: particle ID %d not found" % id
-    data = array([len(particle_history),
+        continue
+    data = zeros([len(particle_history),
                   len(aero_data.name) + 2])
     for (i, (time, particles)) in enumerate(particle_history):
         index = nonzero(particles.id == id)[0][0]

@@ -7,14 +7,14 @@ import os, sys, math, re
 import copy as module_copy
 from Scientific.IO.NetCDF import *
 from pyx import *
-sys.path.append("../tool")
+sys.path.append("../../tool")
 from pmc_data_nc import *
 from pmc_pyx import *
 import numpy
 sys.path.append(".")
 from fig_helper import *
 
-out_prefix = "figs/aero_particles"
+out_prefix = "figs/particles"
 data_prefix = "data/particles"
 
 aero_species = [
@@ -41,10 +41,6 @@ aero_species = [
      "color": color.gray.black},
     ]
 
-env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
-start_time_of_day_min = env_state.start_time_of_day / 60
-max_time_min = max([time for [time, x] in particle_history]) / 60
-
 aero_data = read_any(aero_data_t, netcdf_dir_wc, netcdf_pattern_wc)
 
 particle_ids = [p["id"] for p in show_particles]
@@ -61,15 +57,15 @@ for id in particle_ids:
         mass = zeros(size(masses,0))
         for s in line["species"]:
             mass += masses[:, aero_data.name.index(s)]
-        mass *= 1e9
+        mass *= 1e21
         pd.append(zip(times, mass))
     plot_data_list[id] = pd
 
-def particle_by_id(particle_list, id):
-    for particle in particle_list:
-        if particle.id == id:
-            return particle
-    return None
+env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
+start_time_of_day_min = env_state.start_time_of_day / 60
+max_time_min = max([max([max([time for (time, vaue) in line])
+                          for line in pd])
+                    for (id, pd) in plot_data_list.iteritems()])
 
 for use_color in [True, False]:
     c = canvas.canvas()
@@ -80,42 +76,47 @@ for use_color in [True, False]:
         width = 6.4,
         x = graph.axis.linear(min = 0,
                               max = max_time_min,
-                              title = r'local standard time (LST) (hours and minutes)',
+                              title = r'local standard time (LST) (hours:minutes)',
                               parter = graph.axis.parter.linear(tickdists
                                                                 = [6 * 60,
                                                                    3 * 60]),
                               texter = time_of_day(base_time
-                                                   = start_time_of_day_min,
-                                                   separator = ""),
+                                                   = start_time_of_day_min),
                               painter = grid_painter),
-        y = graph.axis.log(min = 1e-14,
-                           max = 1e-8,
-                           title = r"mass ($\rm\mu g$)",
+        y = graph.axis.log(min = 1e-2,
+                           max = 1e4,
+                           title = r"mass ($\rm ag$)",
                            painter = grid_painter)))
 
     for i in range(1, len(show_particles)):
-        if i == len(show_particles) - 1:
-            key = graph.key.key(pos = "tc", vinside = 0, columns = 4)
+        if i == len(show_particles) / 2:
+            key = graph.key.key(pos = "tc", vinside = 0,
+                                columns = len(aero_species))
             #symbolwidth = unit.v_cm)
         else:
             key = None
         graphs[i] = c.insert(graph.graphxy(
             width = 6.4,
-            ypos = graphs[i-1].ypos + graphs[i-1].height + 0.5,
-            x = graph.axis.linkedaxis(graphs[i-1].axes["x"],
+            xpos = graphs[i-1].xpos + graphs[i-1].width + 1.0,
+            x = graph.axis.linear(min = 0,
+                                  max = max_time_min,
+                                  title = r'local standard time (LST) (hours:minutes)',
+                                  parter = graph.axis.parter.linear(tickdists
+                                                                    = [6 * 60,
+                                                                       3 * 60]),
+                                  texter = time_of_day(base_time
+                                                       = start_time_of_day_min),
+                                  painter = grid_painter),
+            y = graph.axis.linkedaxis(graphs[i-1].axes["y"],
                                       painter = linked_grid_painter),
-            y = graph.axis.log(min = 1e-14,
-                               max = 1e-8,
-                               title = r"mass ($\rm\mu g$)",
-                               painter = grid_painter),
             key = key))
 
     for i in range(len(show_particles)):
-        g = graphs[len(show_particles) - i - 1]
+        #g = graphs[len(show_particles) - i - 1]
+        g = graphs[i]
 
         plot_data = plot_data_list[show_particles[i]["id"]]
         for s in range(len(aero_species)):
-            plot_data[s].sort()
             plot_data[s] = [[time, value] for [time, value] in plot_data[s]
                             if value > 0.0]
             if aero_species[s]["label"] == "":

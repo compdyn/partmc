@@ -16,6 +16,11 @@ from fig_helper import *
 out_prefix = "figs_prop/ssa_ccn"
 
 ssa_array = loadtxt("SSA output.txt", float)
+# columns are:
+#   time (hr)
+#   SSA/particle-resolved/coag
+#   SSA/coarse-bins/coag
+#   SSA/particle-resolved/no-coag
 plot_data_ssa_resolved = []
 plot_data_ssa_binned = []
 plot_data_ssa_resolved.append([0, 1])

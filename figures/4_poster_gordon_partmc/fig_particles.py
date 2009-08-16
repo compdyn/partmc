@@ -15,6 +15,7 @@ sys.path.append(".")
 from fig_helper import *
 
 out_prefix = "figs/aero_particles"
+data_prefix = "data/particles"
 
 aero_species = [
     {"label": "", "species": ["BC"],
@@ -40,13 +41,29 @@ aero_species = [
      "color": color.gray.black},
     ]
 
-particle_ids = [p["id"] for p in show_particles]
-particle_history = read_history(lambda ncf:
-                                read_particles(ncf, ids = particle_ids),
-                                netcdf_dir_wc, netcdf_pattern_wc)
 env_state = read_any(env_state_t, netcdf_dir_wc, netcdf_pattern_wc)
 start_time_of_day_min = env_state.start_time_of_day / 60
 max_time_min = max([time for [time, x] in particle_history]) / 60
+
+aero_data = read_any(aero_data_t, netcdf_dir_wc, netcdf_pattern_wc)
+
+particle_ids = [p["id"] for p in show_particles]
+
+plot_data_list = {}
+for id in particle_ids:
+    filename = "%s_%d.txt" % (data_prefix, id)
+    data = loadtxt(filename)
+    times = data[:,0] / 60.0
+    comp_vols = data[:,1]
+    masses = data[:,2:]
+    pd = []
+    for line in aero_species:
+        mass = zeros(size(masses,0))
+        for s in line["species"]:
+            mass += masses[:, aero_data.name.index(s)]
+        mass *= 1e9
+        pd.append(zip(times, mass))
+    plot_data_list[id] = pd
 
 def particle_by_id(particle_list, id):
     for particle in particle_list:
@@ -96,17 +113,7 @@ for use_color in [True, False]:
     for i in range(len(show_particles)):
         g = graphs[len(show_particles) - i - 1]
 
-        plot_data = [[] for s in aero_species]
-        for [time, particle_list] in particle_history:
-            particle = particle_by_id(particle_list, show_particles[i]["id"])
-            if particle == None:
-                continue
-            for s in range(len(aero_species)):
-                spec_mass = particle.mass(include = aero_species[s]["species"]) * 1e9 # kg to ug
-                plot_data[s].append([time / 60, spec_mass])
-        if max([len(d) for d in plot_data]) == 0:
-            raise Exception("Particle ID not found: %d" % show_particles[i]["id"])
-
+        plot_data = plot_data_list[show_particles[i]["id"]]
         for s in range(len(aero_species)):
             plot_data[s].sort()
             plot_data[s] = [[time, value] for [time, value] in plot_data[s]

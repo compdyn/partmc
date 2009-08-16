@@ -21,10 +21,10 @@ text.preamble(r"""\usepackage{times}
 #\renewcommand{\familydefault}{\sfdefault}
 #\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}""")
 
-netcdf_dir_wc = "out"
+netcdf_dir_wc = os.path.join(os.environ["HOME"], "partmc_data_paper1_4_final")
 netcdf_pattern_wc = r"^urban_plume_wc_state_0001_([0-9]{8})\.nc$"
 
-netcdf_dir_nc = "out"
+netcdf_dir_wc = os.path.join(os.environ["HOME"], "partmc_data_paper1_4_final")
 netcdf_pattern_nc = r"^urban_plume_nc_state_0001_([0-9]{8})\.nc$"
 
 aging_data_dir = "out"

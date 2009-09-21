@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=2cm]{geometry}
+
+\begin{document}
+
+\begin{align}
+A(D) &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 k_{\rm a}'(D) T_{\infty}} \\
+B(D) &= \frac{4 D_{\rm v}'(D) M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}} \\
+C &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \\
+E(D) &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w} D} \\
+\delta &= A D \frac{d D}{dt} \\
+k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + \frac{2 k_{\rm a}}{\alpha D \rho_{\rm air} c_{\rm p,w}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}}} \\
+D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + \frac{2 D_{\rm v}}{\alpha D} \sqrt{\frac{2 \pi M_{\rm w}}{R T}}} \\
+a_{\rm w}(D) &= \frac{\frac{\pi}{6}(D)^{3}-V_{\rm s}}{\frac{\pi}{6}(D)^{3}+(\kappa-1)V_{\rm s}}
+\end{align}
+
+\begin{equation}
+  f(\delta, D) = \frac{\delta}{A(D)}
+  - B(D) \Bigg(S-\left(\frac{\delta}{1+\delta}\right)
+  a_{\rm w}(D)
+  \exp{\left(C \frac{\delta}{1+\delta} + E(D) \frac{1}{1+\delta}\right)} \Bigg)
+\end{equation}
+
+\begin{align}
+  0 &= f(\delta^*(D), D) \\
+  0 &= \frac{d}{d D} f(\delta^*(D), D) \\
+  &= \frac{\partial f}{\partial \delta}(\delta^*(D), D)
+  \frac{\partial \delta^*}{\partial D}(D)
+  + \frac{\partial f}{\partial D}(\delta^*(D), D) \\
+  \frac{\partial \delta^*}{\partial D}(D)
+  &= - \frac{\frac{\partial f}{\partial D}(\delta^*(D), D)}{\frac{\partial f}{\partial \delta}(\delta^*(D), D)}
+\end{align}
+
+\end{document}

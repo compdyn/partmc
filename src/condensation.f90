@@ -995,7 +995,7 @@ contains
     real(kind=dp), save :: k_a, k_ap, k_ap_div, D_v, D_v_div, D_vp, d_p, pv
     real(kind=dp), save :: A, B, C, delta, dw 
     real(kind=dp), save :: M_water, M_solute, rho_water, rho_solute
-    real(kind=dp), save :: eps, nu, g_water, g_solute
+    real(kind=dp), save :: eps, nu, g_water, g_solute, df_ddelta
 
     real(kind=dp) T_a ! droplet temperature (K), determined as part of solve
     real(kind=dp) sat ! environmental saturation 
@@ -1097,11 +1097,12 @@ contains
             * (1d0 / (1d0+delta)) + & 
             C * (delta / (1d0+delta))))
 
-       df = 1d0 / A - B * (aw(aero_data, aero_particle, dw) &
+       df_ddelta = 1d0 / A - B * (aw(aero_data, aero_particle, dw) &
             * (1d0 / ((1d0 + delta)**2d0))   &
             * exp( C * (delta/(1d0+delta)) + kelvin_argu(aero_particle, aero_data, env_state, dw) &
             *(1d0 / (1d0 + delta))) * (1d0 - (1d0/(1d0 + delta))*(C & 
             - kelvin_argu (aero_particle, aero_data, env_state, dw))))  
+       df = df_ddelta * A * dw
        
 !       write(*,*) 'f= ', f
 !       write(*,*) 'df= ', df 
@@ -1547,7 +1548,7 @@ contains
 
   !> Call equilibriate_particle() on each particle in the aerosol.
   subroutine aero_state_equilibriate(bin_grid, env_state, aero_data, &
-       aero_state, aero_particle)
+       aero_state)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -1557,14 +1558,12 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
  
     integer :: i_bin, i
     
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
-         write(*,*) 'hello id =', aero_particle%id
+         !write(*,*) 'hello id =', aero_particle%id
          env_state%rel_humid=9.50d-1
          write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
           call equilibriate_particle(env_state, aero_data, &

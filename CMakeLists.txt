@@ -10,6 +10,10 @@ set(PACKAGE_VERSION "1.2.0")
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 
+include(FindBLAS)
+
+
+
 ######################################################################
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
@@ -89,6 +93,8 @@ find_library(MOSAIC_LIB mosaic
 ######################################################################
 
 set(EXTRA_LIBS)
+
+set(EXTRA_LIBS ${BLAS_LIBRARIES})
 
 include_directories(${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIBS})
@@ -199,7 +205,9 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/spec_line.f90 src/spec_file.f90 src/rand.f90
                src/aero_particle.f90 src/aero_particle_array.f90
                src/mpi.f90 src/netcdf.f90 src/aero_info.f90
-               src/aero_info_array.f90)
+               src/aero_info_array.f90 src/vode.f
+	       linpack/dgesl.f linpack/dgbsl.f linpack/dgefa.f
+	       linpack/dgbfa.f)
 target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################

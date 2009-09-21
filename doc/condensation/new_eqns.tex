@@ -5,31 +5,50 @@
 \begin{document}
 
 \begin{align}
-A(D) &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 k_{\rm a}'(D) T_{\infty}} \\
-B(D) &= \frac{4 D_{\rm v}'(D) M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}} \\
-C &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \\
-E(D) &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w} D} \\
-\delta &= A D \frac{d D}{dt} \\
-k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + \frac{2 k_{\rm a}}{\alpha D \rho_{\rm air} c_{\rm p,w}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}}} \\
-D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + \frac{2 D_{\rm v}}{\alpha D} \sqrt{\frac{2 \pi M_{\rm w}}{R T}}} \\
-a_{\rm w}(D) &= \frac{\frac{\pi}{6}(D)^{3}-V_{\rm s}}{\frac{\pi}{6}(D)^{3}+(\kappa-1)V_{\rm s}}
-\end{align}
-
-\begin{equation}
-  f(\delta, D) = \frac{\delta}{A(D)}
-  - B(D) \Bigg(S-\left(\frac{\delta}{1+\delta}\right)
+  U &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T_{\infty}} \\
+  V &= \frac{4 M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}} \\
+  W &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \\
+  X &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w}} \\
+  Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p,w}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \\
+  Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \\
+  k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \\
+  D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \\
+  a_{\rm w}(D) &= \frac{\frac{\pi}{6}D^3 - V_{\rm s}}{\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s}} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+  f(\delta, D) &= k_{\rm a}'(D) \delta
+  - U V D_{\rm v}'(D) \Biggl(S - \biggl(\frac{\delta}{1+\delta}\biggr)
   a_{\rm w}(D)
-  \exp{\left(C \frac{\delta}{1+\delta} + E(D) \frac{1}{1+\delta}\right)} \Bigg)
-\end{equation}
-
-\begin{align}
+  \exp\biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\biggr) \Biggr) \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   0 &= f(\delta^*(D), D) \\
-  0 &= \frac{d}{d D} f(\delta^*(D), D) \\
-  &= \frac{\partial f}{\partial \delta}(\delta^*(D), D)
+  0 &= \frac{d}{d D} f(\delta^*(D), D)
+  = \frac{\partial f}{\partial \delta}(\delta^*(D), D)
   \frac{\partial \delta^*}{\partial D}(D)
   + \frac{\partial f}{\partial D}(\delta^*(D), D) \\
   \frac{\partial \delta^*}{\partial D}(D)
-  &= - \frac{\frac{\partial f}{\partial D}(\delta^*(D), D)}{\frac{\partial f}{\partial \delta}(\delta^*(D), D)}
+  &= - \frac{\frac{\partial f}{\partial D}(\delta^*(D), D)}{\frac{\partial f}{\partial \delta}(\delta^*(D), D)} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \frac{\partial f}{\partial \delta}(\delta, D) &= k_{\rm a}'(D) +
+  \frac{U V D_{\rm v}'(D) a_{\rm w}(D)}{(1 + \delta)^2} \Biggl( 1 + W
+  - \frac{X}{D} \Biggr) \exp{\Biggl(W \frac{\delta}{1+\delta} +
+      \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \\
+  \frac{\partial f}{\partial D}(\delta, D) &=
+  \frac{\partial k_{\rm a}'}{\partial D}(D) \delta
+  - U V \frac{\partial D_{\rm v}'}{\partial D}(D) S \nonumber \\
+  &\quad + U V \Biggl( a_{\rm w}(D) + D_{\rm v}'(D) \frac{\partial a_{\rm w}}{\partial D}(D)
+  - D_{\rm v}'(D) a_{\rm w}(D) \frac{X}{D^2} \frac{\delta}{1 + \delta} \Biggr)
+  \Biggl(\frac{\delta}{1+\delta}\Biggr)
+  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \\
+  \frac{\partial k_{\rm a}'}{\partial D}(D) &= \frac{k_{\rm a} Y}{D^2 + Y D} \\
+  \frac{\partial D_{\rm v}'}{\partial D}(D) &= \frac{D_{\rm v} Z}{D^2 + Z D} \\
+  \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{\frac{\pi}{2}D^2 \kappa V_{\rm s}}{(\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s})^2} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \dot{D}(D) &= \frac{k_{\rm a}'(D) \delta^*(D)}{U D} \\
+  \frac{\partial \dot{D}}{\partial D}(D) &=
+\frac{1}{U D} 
+\frac{\partial k_{\rm a}'}{\partial D}(D) \delta^*(D)
++ \frac{1}{U D} k_{\rm a}'(D) \frac{\partial \delta^*}{\partial D}(D)
+- \frac{1}{U D^2} k_{\rm a}'(D) \delta^*(D)
 \end{align}
 
 \end{document}

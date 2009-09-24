@@ -244,7 +244,7 @@ D_{\rm p}\frac{dD_{\rm p}}{dt}=4 \frac{D_{\rm v}} {\rho_{\rm w}} \frac{M_{\rm w}
 By the definition of $a_{\rm w}$, we have
 
 \begin{equation}\label{eqn:2.3}
-\frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}.
+S_{\rm v, \infty}= \frac{P_{\rm w}(D_{\rm p}, T_{\rm a})}{P^{\rm 0}(T_{\rm a})}=a_{\rm w}\exp{(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w}D_{\rm p}})}.
 \end{equation}
 
 And same as section 1.1, assuming the ratio of the equilibrium vapor pressure at droplet surface temperature, $T_{\rm a}$ to that at the environmental temperature, $T_{\infty}$ is given by the Clausius-Clapeyron equation as follows,
@@ -521,6 +521,17 @@ f(D_{\rm p})=S_{\rm v, \infty}-\left(\frac{\frac{\pi}{6}(D_{\rm p})^{3}-V_{\rm s
 \exp{\left(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}}\right)}
 \end{equation}
 
+In PARTMC, we use Newton iteration method to solve the equation eqn(\ref{eqn:5.2}). For this to be done, we need to compute the derivative of the eqn(\ref{eqn:5.2}) with respect to $D_{\rm p}$.
+
+\begin{equation}\label{eqn:5.2a}
+\frac{\partial{f(D_{\rm p})}}     {\partial{D_{\rm p} } } = 
+\exp{\left(\frac{4 M_{\rm w} \sigma_{\rm w}}{R T_{\rm a} \rho_{\rm w} D_{\rm p}}\right)} 
+\left( \left(\frac{\frac{\pi} {6}(D_{\rm p})^{3}-V_{\rm s}} {\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s}}\right)
+\left(\frac{4 M_{\rm w} \sigma_{\rm w} } { R T_{\rm a} \rho_{\rm w} D_{\rm p}^{2} } \right) - 
+\left(\frac{ \kappa V_{\rm s} \frac{\pi}{2}D_{\rm p}^{2} } {(\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s} )^{2}} \right) 
+\right)
+\end{equation}  
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Growth equation as function of $\kappa$}
 
@@ -549,20 +560,37 @@ E=\frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w} D_{\rm p}}
 Then eqn(\ref{eqn:3.12}) can be written in terms of the variables above as follows,
 
 \begin{equation}\label{eqn:5.8}
-\frac{\delta}{A}=B \left(S-\left(\frac{\delta}{1+\delta}\right) \left(\frac{V_{\rm w}}{V_{\rm w}+\kappa V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)}\right)
+\frac{\delta}{A}=B \left(S-\left(\frac{1}{1+\delta}\right) \left(\frac{V_{\rm w}}{V_{\rm w}+\kappa V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)}\right)
 \end{equation}
 
 To further express $V_{\rm w}$ in terms of $V_{\rm s}$ and $ D_{\rm p}$, we have the following growth equation in terms of the variable $D_{\rm p}$,
 
 \begin{equation}\label{eqn:5.9}
-\frac{\delta}{A}=B \Bigg(S-\left(\frac{\delta}{1+\delta}\right) \left(\frac{\frac{\pi}{6}(D_{\rm p})^{3}-V_{\rm s}} {\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)} \Bigg)
+\frac{\delta}{A}=B \Bigg(S-\left(\frac{1}{1+\delta}\right) \left(\frac{\frac{\pi}{6}(D_{\rm p})^{3}-V_{\rm s}} {\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)} \Bigg)
 \end{equation}
 
 In PARTMC, the following equation, $f$, is the one actually being solved,
 
 \begin{equation}\label{eqn:5.10}
-f(\delta)=\frac{\delta}{A}-B \Bigg(S-\left(\frac{\delta}{1+\delta}\right) \left(\frac{\frac{\pi}{6}(D_{\rm p})^{3}-V_{\rm s}} {\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)} \Bigg)
+f(\delta)=\frac{\delta}{A}-B \Bigg(S-\left(\frac{1}{1+\delta}\right) \left(\frac{\frac{\pi}{6}(D_{\rm p})^{3}-V_{\rm s}} {\frac{\pi}{6}(D_{\rm p})^{3}+(\kappa-1)V_{\rm s}}\right)\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)} \Bigg)
 \end{equation}
+
+Using the notation of $a_{\rm w}$,
+
+\begin{equation}\label{eqn:5.11}
+f(\delta)=\frac{\delta}{A}-B \Bigg(S-\left(\frac{1}{1+\delta}\right) (a_{\rm w}) \exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)} \Bigg)
+\end{equation}
+
+In PARTMC, we use Newton iteration method to solve the equation eqn(\ref{eqn:5.2}). For this to be done, we need to compute the derivative of the eqn(\ref{eqn:5.11}) with respect to $\delta$.
+
+\begin{equation}\label{eqn:5.12}
+\frac{\partial{f( \delta)} } {\partial{\delta}} =
+\frac{1}{A} -B \left((a_{\rm w}\exp{\left(C \frac{\delta}{1+\delta} +E \frac{1}{1+\delta}\right)}   
+\left(\frac{1}{(1+\delta)^{2}}\right)
+\left(1-(\frac{1}{1+\delta})(C-E) \right)
+\right)
+\end{equation}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Relationship between $\kappa$ of individual component and overall $\kappa$}
 
@@ -1037,7 +1065,7 @@ The third and fourth schemes are actually newton iterations repeating twice and 
 The above accuracy of aforementioned schemes are compared. It is found that the T2, N2 and N3 have reasonably high accuracies. T1 accuracy is far off from the other three schemes.
 
 
-\section{Equivalence of the equations governing critical diameter $D_{\rm p}^{*}$ in traditional framework and $\kappa$ framework}
+\section{The equations governing critical diameter $D_{\rm p}^{*}$ in traditional framework, $a_{\rm w}$ framework and $\kappa$ framework}
 
 Rewrite the eqn(\ref{eqn:1.27}), the equation for critical diameter $D_{\rm p}^{*}$ in traditional framework with the assumption that $B$ is independent of $D_{\rm p}$,
 
@@ -1070,6 +1098,24 @@ A(D_{\rm p}^{*})^{6}+
 
 From the above four equations, two main points can be observed, when the assumptions of independence of $\kappa$ and $B$ on $D_{\rm p}$ are removed, fifth and second order terms emerge. Besides, in both frameworks, 
 the new terms emerged are in the same order (i.e. second and fifth order). One remark for the derivation of all the above four equations is no assumption of $d_{\rm u}$ is made.
+
+In $a_{\rm w}$ framework, from eqn(\ref{eqn:2.3}), differentiating with respect to $D_{\rm p}$, 
+
+\begin{equation}\label{eqn:12.5.1}
+\frac{\partial S_{\rm v, \infty}}{\partial D_{\rm p}}=a_{\rm w}\exp{(\frac{A}{D_{\rm p}})}(\frac{-A}{D_{\rm p}^{2}})+\exp{(\frac{A}{D_{\rm p}})} \frac{\partial a_{\rm w}}{\partial D_{\rm p}}
+\end{equation}
+
+Critical diameter $(D_{\rm p})^{*}$ can be obtained by equating the above to $0$ and solve it.
+
+\begin{equation}\label{eqn:12.5.2}
+\frac{\partial a_{\rm w}}{\partial D_{\rm p}}=\frac{A a_{\rm w}}{(D_{\rm p}^{*})^{2}}
+\end{equation} 
+
+\begin{equation}\label{eqn:12.5.3}
+D_{\rm p}^{*}=\sqrt{A a_{\rm w} \left(\frac{\partial a_{\rm w}}{\partial D_{\rm p}}\right)^{-1}} 
+\end{equation} 
+
+
 
 \subsection{Equivalence of eqn(\ref{eqn:12.1}) and eqn(\ref{eqn:12.3})}
 
@@ -1143,7 +1189,7 @@ Then we now have 3 contraints eqn({\ref{eqn:12.46}),  eqn({\ref{eqn:12.410}) and
 
 \subsection{Interpretation of the constraints} 
 
-First it should be noticed that when we write the Kohler equation in the form of eqn(\ref{eqn:1.24}), where B is written as eqn{\ref{eqn:1.19}, it is assumed $\gamma_{\rm w}$=$1$. In other words, When deriving equations (\ref{eqn:12.1}) to (\ref{eqn:12.2}), in traditional framework (A$\&$B), it is assumed that $\gamma_{\rm w}$=$1$. However, in $\kappa$ framework, there is no such assumption. So for the equations in the 2 frameworks to be mathematically equivalent, there should be a constraint requiring $\gamma_{\rm w}$=$1$. In fact eqn(\ref{eqn:12.41}) and eqn(\ref{eqn:12.46}) are that constraint. It can be shown as the followings,
+First it should be noticed that when we write the Kohler equation in the form of eqn(\ref{eqn:1.24}), where B is written as eqn({\ref{eqn:1.19}), it is assumed $\gamma_{\rm w}$=$1$. In other words, When deriving equations (\ref{eqn:12.1}) and (\ref{eqn:12.2}), in traditional framework (A$\&$B), it is assumed that $\gamma_{\rm w}$=$1$. However, in $\kappa$ framework, there is no such assumption. So for the equations in the 2 frameworks to be mathematically equivalent, there should be a constraint requiring $\gamma_{\rm w}$=$1$. In fact eqn(\ref{eqn:12.41}) and eqn(\ref{eqn:12.46}) are that constraint. It can be shown as the followings,
 
 
 From S$\&$P, assuming the solution is dilute, then $\gamma_{\rm w}$=$1$, $B$ can be written as follows, 

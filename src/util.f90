@@ -631,6 +631,58 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert an integer to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function integer_to_string(val)
+
+    !> Value to convert.
+    integer, intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    write(ret_val, '(i20)') val
+    integer_to_string = ret_val
+
+  end function integer_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an real to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_to_string(val)
+
+    !> Value to convert.
+    real(kind=dp), intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    write(ret_val, '(g30.20)') val
+    real_to_string = ret_val
+
+  end function real_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an logical to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function logical_to_string(val)
+
+    !> Value to convert.
+    logical, intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    if (val) then
+       ret_val = "TRUE"
+    else
+       ret_val = "FALSE"
+    end if
+    logical_to_string = ret_val
+
+  end function logical_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Sample the given continuous probability density function.
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /

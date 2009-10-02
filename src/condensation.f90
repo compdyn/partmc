@@ -17,6 +17,30 @@ module pmc_condensation
   use pmc_aero_particle
   use pmc_constants
   
+  logical, parameter :: PMC_COND_CHECK_DERIVS = .false.
+  real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
+  real(kind=dp), parameter :: PMC_COND_CHECK_REL_TOL = 5d-2
+
+  integer, parameter :: PMC_COND_N_REAL_PARAMS = 11
+  integer, parameter :: PMC_COND_N_INTEGER_PARAMS = 0
+
+  real(kind=dp), parameter :: PMC_COND_U = 1
+  real(kind=dp), parameter :: PMC_COND_V = 2
+  real(kind=dp), parameter :: PMC_COND_W = 3
+  real(kind=dp), parameter :: PMC_COND_X = 4
+  real(kind=dp), parameter :: PMC_COND_Y = 5
+  real(kind=dp), parameter :: PMC_COND_Z = 6
+  real(kind=dp), parameter :: PMC_COND_K_A = 7
+  real(kind=dp), parameter :: PMC_COND_D_V = 8
+  real(kind=dp), parameter :: PMC_COND_KAPPA = 9
+  real(kind=dp), parameter :: PMC_COND_V_S = 10
+  real(kind=dp), parameter :: PMC_COND_S = 11
+
+  !> Diameter at which the pmc_cond_saved_delta_star was evaluated.
+  real, save :: pmc_cond_saved_diameter
+  !> Saved value of delta_star evaluated at pmc_cond_saved_diameter.
+  real, save :: pmc_cond_saved_delta_star
+  
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -187,6 +211,246 @@ contains
     end do
     
   end subroutine condense_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Integrate the condensation growth or decay ODE for total time
+  !> del_t for a single particle.
+  subroutine condense_particle_vode(del_t, env_state, aero_data, &
+       aero_particle)
+
+    !> Total time to integrate.
+    real(kind=dp), intent(in) :: del_t
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
+
+    integer, parameter :: real_work_len = 33 ! for scalar equation
+    integer, parameter :: integer_work_len = 31 ! for scalar equation
+
+    integer :: n_eqn, tol_types, itask, istate, iopt, method_flag
+    real(kind=dp) :: val, init_time, final_time, rel_tol(1), abs_tol(1)
+    real(kind=dp) :: real_work(real_work_len)
+    integer :: integer_work(integer_work_len)
+    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
+    real(kind=dp) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+    real(kind=dp) :: rho_water, M_water
+    real(kind=dp) :: thermal_conductivity, molecular_diffusion
+
+    thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
+         * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
+    molecular_diffusion = 0.211d-4 / (env_state%pressure / const%air_std_press) &
+         * (env_state%temp / 273d0)**1.94d0 ! FIXME: supposedly in m^2 s^{-1}
+    rho_water = aero_particle_water_density(aero_data)
+    M_water = aero_particle_water_molec_weight(aero_data)
+
+    real_params(PMC_COND_U) = const%water_latent_heat * rho_water &
+         / (4d0 * env_state%temp)
+    real_params(PMC_COND_V) = 4d0 * M_water * env_state_sat_vapor_pressure(env_state) &
+         / (rho_water * const%univ_gas_const * env_state%temp)
+    real_params(PMC_COND_W) = const%water_latent_heat * M_water &
+         / (const%univ_gas_const * env_state%temp)
+    real_params(PMC_COND_X) = 4d0 * M_water * const%water_surf_eng &
+         / (const%univ_gas_const * env_state%temp * rho_water) 
+    real_params(PMC_COND_Y) = 2d0 * k_a &
+         / (const%accom_coeff * env_state_air_den(env_state) &
+         * const%water_spec_heat) &
+         * sqrt(2d0 * const%pi * const%air_molec_weight &
+         / (const%univ_gas_const * env_state%temp))
+    real_params(PMC_COND_Z) = 2d0 * D_v / const%accom_coeff &
+         * sqrt(2d0 * const%pi * M_water &
+         / (const%univ_gas_const * env_state%temp))
+    real_params(PMC_COND_K_A) = thermal_conductivity
+    real_params(PMC_COND_D_V) = molecular_diffusion
+    real_params(PMC_COND_KAPPA) = aero_particle_solute_kappa(aero_particle, aero_data)
+    real_params(PMC_COND_V_S) = aero_particle_solute_volume(aero_particle, aero_data)
+    real_params(PMC_COND_S) = env_state%rel_humid - 1d0
+
+    ! set VODE inputs
+    n_eqn = 1
+    val = vol2diam()
+    init_time = 0d0
+    final_time = del_t
+    tol_types = 1 ! both rel_tol and abs_tol are scalars
+    rel_tol(1) = 
+    abs_tol(1) = 
+    itask = 1 ! just output val at final_time
+    istate = 1 ! first call for this ODE
+    iopt = 0 ! no optional inputs
+    real_work = 0d0
+    integer_work = 0
+    method_flag = 21 ! stiff (BDF) method, user-supplied full Jacobian
+
+    ! call ODE integrator
+    call dvode(condense_vode_f, n_eqn, val, init_time, &
+         final_time, tol_types, rel_tol, abs_tol, itask, istate, &
+         iopt, real_work, real_work_len, integer_work, integer_work_len, &
+         condense_vode_jac, method_flag, real_params, integer_params)
+    if (istate /= 2) then
+       die_msg(982335370, "DVODE error code: " &
+            // trim(integer_to_string(istate)))
+    end if
+
+    ! translate output back to particle
+    aero_particle%vol(aero_data%i_water) = diam2vol(val) &
+         - aero_particle_solute_volume(aero_particle, aero_data)
+
+    ! ensure volumes stay positive
+    aero_particle%vol(aero_data%i_water) = max(0d0, &
+         aero_particle%vol(aero_data%i_water))
+    
+  end subroutine condense_particle_vode
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Time derivative of particle diameter, used by the VODE
+  !> integrator.
+  subroutine condense_vode_f(n_eqn, time, state, state_dot, real_params, &
+       integer_params)
+
+    !> Length of state vector.
+    integer, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+    !> Time derivative of state vector.
+    real(kind=dp), intent(out) :: state_dot(n_eqn)
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: delta, diameter, k_ap
+
+    call assert(383442283, n_eqn == 1)
+    delta = 0d0
+    diameter = state(1)
+    call condense_vode_delta_star_newton(delta, diameter, real_params, &
+         integer_params)
+    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+         integer_params)
+    state_dot(1) = k_ap * delta / (real_params(PMC_COND_U) * diameter)
+
+    ! save value of delta to be used by condense_vode_jac
+    pmc_cond_saved_diameter = diameter
+    pmc_cond_saved_delta_star = delta
+
+  end subroutine condense_vode_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Jacobian of time derivative of particle diameter, used by the
+  !> VODE integrator.
+  subroutine condense_vode_jac(n_eqn, time, state, lower_band_width, &
+       upper_band_width, state_jac, n_row_jac, real_params, integer_params)
+
+    !> Length of state vector.
+    integer, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+    !> Lower band width for banded Jacobian (unused).
+    integer, intent(in) :: lower_band_width
+    !> Upper band width for banded Jacobian (unused).
+    integer, intent(in) :: upper_band_width
+    !> Jacobian of time derivative of state vector.
+    real(kind=dp), intent(out) :: state_jac(n_row_jac, n_eqn)
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: delta_star, D, U, k_ap, dkap_dD
+    real(kind=dp) :: dh_dD, dh_ddelta, ddeltastar_dD
+
+    call assert(973429886, n_eqn == 1)
+    call assert(230741766, n_row_jac == 1)
+
+    U = real_params(PMC_COND_U)
+    D = state(1)
+    call assert_msg(232625737, D == pmc_cond_saved_diameter, &
+         "state diameter does not match pmc_cond_saved_diameter")
+    delta_star = pmc_cond_saved_delta_star
+    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+         integer_params)
+    D_vp = corrected_molecular_diffusion(diameter, real_params, &
+         integer_params)
+    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
+         integer_params)
+    dh_dD = condense_vode_implicit_dh_dD(delta_star, D, real_params, &
+         integer_params)
+    dh_ddelta = condense_vode_implicit_dh_ddelta(delta_star, D, &
+         real_params, integer_params)
+    ddeltastar_dD = - dh_dD / dh_ddelta
+    jac(1,1) = dkap_dD * delta_star / (U * D) &
+         + k_ap * ddeltastar_dD / (U * D) &
+         - k_ap * delta_star / (U * D**2)
+
+  end subroutine condense_vode_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Scalar Newton's method for solving the implicit delta_star
+  !> function.
+  subroutine condense_vode_delta_star_newton(delta, diameter, real_params, &
+       integer_params)
+    
+    !> Variable that we are solving for.
+    real(kind=dp), intent(inout) :: delta
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    !> Delta convergence tolerance.
+    real(kind=dp), parameter :: delta_tol = 1e-16
+    !> Function convergence tolerance.
+    real(kind=dp), parameter :: h_tol = 1e-10
+    !> Maximum number of iterations.
+    integer, parameter :: iter_max = 100
+
+    integer :: iter
+    real(kinp=dp) :: h, dh_ddelta, old_h, delta_step, h_step
+
+    h = condense_vode_implicit_h(delta, diameter, real_params, &
+         integer_params)
+    dh_ddelta = condense_vode_implicit_dh_ddelta(delta, diameter, &
+         real_params, integer_params)
+    old_h = h
+
+    iter = 0
+    do
+       iter = iter + 1
+       delta_step = - h / dh_ddelta
+       
+       delta = delta + delta_step
+       h = condense_vode_implicit_h(delta, diameter, real_params, &
+            integer_params)
+       dh_ddelta = condense_vode_implicit_dh_ddelta(delta, diameter, &
+            real_params, integer_params)
+       h_step = h - old_h
+       old_h = h
+
+       if (iter .ge. iter_max) then
+          call die_msg(136296873, 'Newton iteration failed to terminate')
+       end if
+       
+       ! FIXME: gfortran 4.1.1 requires the "then" in the following
+       ! statement, rather than using a single-line "if" statement.
+       if ((abs(delta_step) .lt. delta_tol) &
+            .and. (abs(h_step) .lt. h_tol)) then
+          exit
+       end if
+    end do
+ 
+  end subroutine condense_vode_delta_star_newton
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -606,6 +870,7 @@ contains
     
     integer iter, k
     real(kind=dp) delta_f, delta_x, f, old_f, df
+    real(kind=dp) :: check_x, check_f, check_df, finite_diff_df, rel_error
 
     call func(env_state, aero_data, .true., x, f, df, aero_particle)
     old_f = f
@@ -617,6 +882,26 @@ contains
        delta_x = f / df
        write(*,*) 'old x =' , x , 'old f=' ,old_f
        
+       if (PMC_COND_CHECK_DERIVS) then
+          check_x = x * (1d0 + PMC_COND_CHECK_EPS)
+          call func(env_state, aero_data, .false., check_x, check_f, &
+               check_df, aero_particle)
+          finite_diff_df = (check_f - f) / (check_x - x)
+          rel_error = abs(finite_diff_df - df) / (abs(finite_diff_df) + abs(df))
+          if (rel_error > PMC_COND_CHECK_REL_TOL) then
+             write(0,*) "ERROR: cond_newt: incorrect derivative"
+             write(0,*) "x ", x
+             write(0,*) "check_x ", check_x
+             write(0,*) "delta_x ", (check_x - x)
+             write(0,*) "f ", f
+             write(0,*) "check_f ", check_f
+             write(0,*) "delta_f ", (check_f - f)
+             write(0,*) "df ", df
+             write(0,*) "finite_diff_df ", finite_diff_df
+             write(0,*) "rel_error ", rel_error
+          end if
+       end if
+
        x = x - delta_x
        call func(env_state, aero_data, .false., x, f, df, aero_particle)
        delta_f = f - old_f

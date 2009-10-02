@@ -543,9 +543,26 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
+    real(kind=dp) :: kappa(aero_data%n_spec)
+    integer :: i_spec
+
+    do i_spec = 1,aero_data%n_spec
+       if (aero_data%num_ions(i_spec) > 0) then
+          call assert_msg(123681459, aero_data%kappa(i_spec) == 0d0, &
+               "species has nonzero num_ions and kappa: " &
+               // trim(aero_data%name(i_spec)))
+          M_water = aero_particle_water_molec_weight(aero_data)
+          rho_water = aero_particle_water_density(aero_data)
+          V_s = aero_particle_solute_volume(aero_particle, aero_data)
+          kappa(i_spec) = M_water / (V_s * rho_water) * num_ions(i_spec)
+          call die_msg(335740834, "This is wrong")
+       else
+          kappa(i_spec) = aero_data%kappa(i_spec)
+       end if
+    end do
     aero_particle_solute_kappa &
          = aero_particle_average_solute_quantity(aero_particle, &
-         aero_data, aero_data%kappa)
+         aero_data, kappa)
 
   end function aero_particle_solute_kappa
 

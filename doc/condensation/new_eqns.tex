@@ -1,69 +1,26 @@
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{lscape}
 \usepackage[margin=2cm]{geometry}
 
 \begin{document}
 
 \begin{align}
   U &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T_{\infty}} \\
-  V &= \frac{4 M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}} \\
+  V &= \frac{4 M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_{\rm w} R T_{\infty}} \\
   W &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \\
   X &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w}} \\
-  Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p,w}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \\
-  Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \\
+  Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T_{\infty}}} \\
+  Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T_{\infty}}} \\
   k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \\
+  k_{\rm a} &= 10^{-3} (4.39 + 0.071  T_{\infty}); \qquad \text{$k_{\rm a}$ in $\rm J\,m^{-1}\, s^{-1} \, K^{-1}$, $T_{\infty}$ in K, }  \\
   D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \\
-  a_{\rm w}(D) &= \frac{\frac{\pi}{6}D^3 - V_{\rm s}}{\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s}} \\
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-  h(\delta, D) &= k_{\rm a}'(D) \delta
-  - U V D_{\rm v}'(D) \Biggl(S - \biggl(\frac{\delta}{1+\delta}\biggr)
-  a_{\rm w}(D)
-  \exp\biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\biggr) \Biggr) \\
+  D_{\rm v} &= \frac{0.211}{p} \left(\frac{T_{\infty}}{273}\right)^{1.94} \qquad \text{$D_{\rm v}$ in $\rm cm^2\, s^{-1}$, $T_{\infty}$ in K, $p$ in atm.}\\
+  a_{\rm w}(D) &= \frac{\frac{\pi}{6}D^3 - V_{\rm dry}}{\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm dry}} \label{eq:aw}\\
+   \kappa_i &= \frac{M_{\rm w} \rho_{i}}{M_{i}  \rho_{\rm w}}; \qquad \text{assuming number of ions per dissociation is 1.} \label{eq:kappa_indiv}\\
+   \kappa &= \sum_i \kappa_i \frac{V_i}{V_{\rm dry}} \label{eq:kappa}\\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  0 &= h(\delta^*(D), D) \\
-  0 &= \frac{d}{d D} h(\delta^*(D), D)
-  = \frac{\partial h}{\partial \delta}(\delta^*(D), D)
-  \frac{\partial \delta^*}{\partial D}(D)
-  + \frac{\partial h}{\partial D}(\delta^*(D), D) \\
-  \frac{\partial \delta^*}{\partial D}(D)
-  &= - \frac{\frac{\partial h}{\partial D}(\delta^*(D), D)}{\frac{\partial h}{\partial \delta}(\delta^*(D), D)} \\
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \frac{\partial h}{\partial \delta}(\delta, D) &= k_{\rm a}'(D) +
-  \frac{U V D_{\rm v}'(D) a_{\rm w}(D)}{(1 + \delta)^2} \Biggl( 1 + W
-  - \frac{X}{D} \Biggr) \exp{\Biggl(W \frac{\delta}{1+\delta} +
-      \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \\
-  \frac{\partial h}{\partial D}(\delta, D) &=
-  \frac{\partial k_{\rm a}'}{\partial D}(D) \delta
-  - U V \frac{\partial D_{\rm v}'}{\partial D}(D) S \nonumber \\
-  &\quad + U V \Biggl( a_{\rm w}(D) + D_{\rm v}'(D) \frac{\partial a_{\rm w}}{\partial D}(D)
-  - D_{\rm v}'(D) a_{\rm w}(D) \frac{X}{D^2} \frac{\delta}{1 + \delta} \Biggr)
-  \Biggl(\frac{\delta}{1+\delta}\Biggr)
-  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \\
-  \frac{\partial k_{\rm a}'}{\partial D}(D) &= \frac{k_{\rm a} Y}{D^2 + Y D} \\
-  \frac{\partial D_{\rm v}'}{\partial D}(D) &= \frac{D_{\rm v} Z}{D^2 + Z D} \\
-  \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{\frac{\pi}{2}D^2 \kappa V_{\rm s}}{(\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s})^2} \\
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{D}(D) &= \frac{k_{\rm a}'(D) \delta^*(D)}{U D} \\
-  \frac{\partial \dot{D}}{\partial D}(D) &=
-\frac{1}{U D} 
-\frac{\partial k_{\rm a}'}{\partial D}(D) \delta^*(D)
-+ \frac{1}{U D} k_{\rm a}'(D) \frac{\partial \delta^*}{\partial D}(D)
-- \frac{1}{U D^2} k_{\rm a}'(D) \delta^*(D)
-\end{align}
-
-\newpage
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{align}
-  U &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T_{\infty}} \\
-  V &= \frac{4 M_{\rm w} P^{\rm 0}(T_{\infty})}{\rho_w R T_{\infty}} \\
-  W &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T_{\infty}} \\
-  X &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T_{\infty} \rho_{\rm w}} \\
-  Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p,w}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \\
-  Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \\
-  k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \\
-  D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \\
-  a_{\rm w}(D) &= \frac{\frac{\pi}{6}D^3 - V_{\rm s}}{\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s}} \\
+  \delta &=\frac{U}{k_{\rm a}'} D \dot{D}(D) \label{eq:delta}\\ 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
   h(\delta, D) &= k_{\rm a}'(D) \delta
   - U V D_{\rm v}'(D) \Biggl(S - \biggl(\frac{1}{1+\delta}\biggr)
@@ -88,10 +45,12 @@
   &\quad + U V \Biggl( a_{\rm w}(D) \frac{\partial D_{\rm v}'(D)}{\partial D}+ D_{\rm v}'(D) \frac{\partial a_{\rm w}}{\partial D}(D)
   - D_{\rm v}'(D) a_{\rm w}(D) \frac{X}{D^2} \frac{1}{1 + \delta} \Biggr)
   \Biggl(\frac{1}{1+\delta}\Biggr)
-  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \\
+  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\Biggr)}
+\end{align}
+\begin{align}
   \frac{\partial k_{\rm a}'}{\partial D}(D) &= \frac{k_{\rm a} Y}{(D+Y)^2} \\
   \frac{\partial D_{\rm v}'}{\partial D}(D) &= \frac{D_{\rm v} Z}{(D+Z)^2} \\
-  \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{\frac{\pi}{2}D^2 \kappa V_{\rm s}}{(\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm s})^2} \\
+  \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{\frac{\pi}{2}D^2 \kappa V_{\rm dry}}{(\frac{\pi}{6}D^3 + (\kappa - 1) V_{\rm dry})^2} \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \dot{D}(D) &= \frac{k_{\rm a}'(D) \delta^*(D)}{U D} \\
   \frac{\partial \dot{D}}{\partial D}(D) &=
@@ -100,4 +59,41 @@
 + \frac{1}{U D} k_{\rm a}'(D) \frac{\partial \delta^*}{\partial D}(D)
 - \frac{1}{U D^2} k_{\rm a}'(D) \delta^*(D)
 \end{align}
+
+%%%%%%%%%%%%%%%
+
+\vspace{2cm}
+\begin{tabular}{p{1cm} p{4cm} p{1.5cm} l l} 
+\hline Symbol & Meaning  &  Attribute  & Numerical value &  Reference    \\
+\hline             
+$\alpha$   &  thermal accommodation coefficient   & constant   & 1.0 & S$\&$P 15.76  const$\%$accom$\_$coeff \\
+$M_{\rm air} $      &  molecular weight of air  &   constant  & $2.89644 \times 10^{-2} $  $\rm{kg \,mol^{-1}}$ &  air$\_$molec$\_$weight   \\
+$M_{\rm w} $    &  molecular weight of water  &  constant & $18\times10^{-3}$ $\rm{kg \, mol^{-1}}  $  &  aero$\_$particle$\_$water$\_$molec$\_$weight    \\
+$M_i $      &  molecular weight of aerosol species $i$  &   constant  & species dependent &    \\
+$c_{\rm p}$       &  specific heat capacity of air at constant pressure  & constant & 1004 $\rm{J \, kg^{-1}}$ & -     \\
+$\rho_{\rm w}$ &  density of water & constant  & $1\times10^{3}$ $\rm{kg \, m^{-3}}  $ &   aero$\_$particle$\_$water$\_$density \\ 
+$ \rho_i$    &  aerosol density  &  constant  & species dependent  &     \\
+$\kappa_i$      &  hygroscopicity of component $i$   &  constant & species dependent  &  eq.~\ref{eq:kappa_indiv}   \\
+$R$     &  universal gas constant  &  constant   & 8.314 $\rm{J \, mol^{-1}\, K^{-1}}$   &  const$\%$univ$\_$gas$\_$const \\
+$\sigma_{\rm w}$     &  surface tension (or surface energy) of water  &  constant  & 0.073 $\rm{J \, m^{-2}}$ & S$\&$P 15.5  const$\%$water$\_$surf$\_$eng  \\                                        
+$\Delta H_{\rm  v}$  & latent heat of vaporization of water   &  constant  & $2.272\times10^{6}$ $\rm{J \, kg^{-1}}$ &  S$\&$P 15.3 const$\%$water$\_$latent$\_$heat \\ 
+
+\hline
+$D_{\rm v}$     & diffusivity coefficient   &  variable & local &  S$\&$P 15.65  \\
+$\delta$  & growth parameter &  variable & output & eq.~\ref{eq:delta}\\
+$D$     &  droplet wet diameter  & variable  & input/output &   -   \\
+$a_{\rm w}$  & water activity  &variable & input/output & eq.~\ref{eq:aw},  function aw  \\
+$\kappa$      &  overall hygroscopicity   &  variable & input/output  &  eq.~\ref{eq:kappa}, subrountine compute$\_$kappa   \\
+$ \rho_{\rm air}$    &  air density   &  variable  & input  &   env$\_$state.f90   \\
+$k_{\rm a} $     & thermal conductivity of air    &  variable & local &   S$\&$P 15.75   \\
+$ p $     &  environmental air pressure &  variable  & input  &  env$\_$state$\%$pressure  \\
+$ P^{0}  $   & saturation vapor pressure &  variable & input  &  function env$\_$state$\_$sat$\_$vapor$\_$pressure  \\
+$S $     &  environmental humidity  &  variable  & input  &  env$\_$state$\%$rel$\_$humid  \\
+$ T_{\infty}$     &  environmental temperature  &  variable  & input  &  env$\_$state$\%$temp  \\
+$ V_{\rm dry}$       & dry volume of the aerosol particle   &  variable  & input  &    \\
+
+\hline 
+\end{tabular}
+
+
 \end{document}

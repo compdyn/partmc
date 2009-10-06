@@ -24,22 +24,22 @@ module pmc_condensation
   integer, parameter :: PMC_COND_N_REAL_PARAMS = 11
   integer, parameter :: PMC_COND_N_INTEGER_PARAMS = 0
 
-  real(kind=dp), parameter :: PMC_COND_U = 1
-  real(kind=dp), parameter :: PMC_COND_V = 2
-  real(kind=dp), parameter :: PMC_COND_W = 3
-  real(kind=dp), parameter :: PMC_COND_X = 4
-  real(kind=dp), parameter :: PMC_COND_Y = 5
-  real(kind=dp), parameter :: PMC_COND_Z = 6
-  real(kind=dp), parameter :: PMC_COND_K_A = 7
-  real(kind=dp), parameter :: PMC_COND_D_V = 8
-  real(kind=dp), parameter :: PMC_COND_KAPPA = 9
-  real(kind=dp), parameter :: PMC_COND_V_S = 10
-  real(kind=dp), parameter :: PMC_COND_S = 11
+  integer, parameter :: PMC_COND_U = 1
+  integer, parameter :: PMC_COND_V = 2
+  integer, parameter :: PMC_COND_W = 3
+  integer, parameter :: PMC_COND_X = 4
+  integer, parameter :: PMC_COND_Y = 5
+  integer, parameter :: PMC_COND_Z = 6
+  integer, parameter :: PMC_COND_K_A = 7
+  integer, parameter :: PMC_COND_D_V = 8
+  integer, parameter :: PMC_COND_KAPPA = 9
+  integer, parameter :: PMC_COND_V_DRY = 10
+  integer, parameter :: PMC_COND_S = 11
 
   !> Diameter at which the pmc_cond_saved_delta_star was evaluated.
-  real, save :: pmc_cond_saved_diameter
+  real(kind=dp), save :: pmc_cond_saved_diameter
   !> Saved value of delta_star evaluated at pmc_cond_saved_diameter.
-  real, save :: pmc_cond_saved_delta_star
+  real(kind=dp), save :: pmc_cond_saved_delta_star
   
 contains
   
@@ -135,7 +135,7 @@ contains
     real(kind=dp) :: tot_vol, vol_frac, tot_vol_frac
     real(kind=dp) :: water_vol,other_vol
     integer :: j, k
-
+    
        M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
        M_solute = aero_particle_solute_molec_weight(aero_particle, aero_data)
        ! (kg/mole)
@@ -232,51 +232,80 @@ contains
     integer, parameter :: integer_work_len = 31 ! for scalar equation
 
     integer :: n_eqn, tol_types, itask, istate, iopt, method_flag
-    real(kind=dp) :: val, init_time, final_time, rel_tol(1), abs_tol(1)
-    real(kind=dp) :: real_work(real_work_len)
+    real(kind=dp) :: val(1), init_time, final_time, rel_tol(1)
+    real(kind=dp) :: abs_tol(1), real_work(real_work_len)
     integer :: integer_work(integer_work_len)
     real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    real(kind=dp) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
     real(kind=dp) :: rho_water, M_water
     real(kind=dp) :: thermal_conductivity, molecular_diffusion
 
+    interface
+       ! interfaces copied by hand from vode.f
+       subroutine dvode(F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, &
+            ITASK, ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, &
+            MF, RPAR, IPAR)
+         integer :: LRW, LIW
+         double precision :: Y(:), T, TOUT, RTOL(:), ATOL(:), &
+              RWORK(LRW), RPAR(:)
+         integer :: NEQ, ITOL, ITASK, ISTATE, IOPT, IWORK(LIW), &
+              MF, IPAR(:)
+         interface
+            subroutine F(NEQ, T, Y, YDOT, RPAR, IPAR)
+              integer :: NEQ
+              double precision :: T, Y(NEQ), YDOT(NEQ), RPAR(:)
+              integer :: IPAR(:)
+            end subroutine F
+            subroutine JAC(NEQ, T, Y, ML, MU, PD, NROWPD, RPAR, IPAR)
+              integer :: NEQ, NROWPD
+              double precision :: T, Y(NEQ), PD(NROWPD,NEQ), RPAR(:)
+              integer :: ML, MU, IPAR(:)
+            end subroutine JAC
+         end interface
+       end subroutine dvode
+    end interface
+
     thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
          * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
-    molecular_diffusion = 0.211d-4 / (env_state%pressure / const%air_std_press) &
+    molecular_diffusion = 0.211d-4 &
+         / (env_state%pressure / const%air_std_press) &
          * (env_state%temp / 273d0)**1.94d0 ! FIXME: supposedly in m^2 s^{-1}
     rho_water = aero_particle_water_density(aero_data)
     M_water = aero_particle_water_molec_weight(aero_data)
 
     real_params(PMC_COND_U) = const%water_latent_heat * rho_water &
          / (4d0 * env_state%temp)
-    real_params(PMC_COND_V) = 4d0 * M_water * env_state_sat_vapor_pressure(env_state) &
+    real_params(PMC_COND_V) = 4d0 * M_water &
+         * env_state_sat_vapor_pressure(env_state) &
          / (rho_water * const%univ_gas_const * env_state%temp)
     real_params(PMC_COND_W) = const%water_latent_heat * M_water &
          / (const%univ_gas_const * env_state%temp)
     real_params(PMC_COND_X) = 4d0 * M_water * const%water_surf_eng &
          / (const%univ_gas_const * env_state%temp * rho_water) 
-    real_params(PMC_COND_Y) = 2d0 * k_a &
+    real_params(PMC_COND_Y) = 2d0 * thermal_conductivity &
          / (const%accom_coeff * env_state_air_den(env_state) &
          * const%water_spec_heat) &
          * sqrt(2d0 * const%pi * const%air_molec_weight &
          / (const%univ_gas_const * env_state%temp))
-    real_params(PMC_COND_Z) = 2d0 * D_v / const%accom_coeff &
-         * sqrt(2d0 * const%pi * M_water &
+    real_params(PMC_COND_Z) = 2d0 * molecular_diffusion &
+         / const%accom_coeff * sqrt(2d0 * const%pi * M_water &
          / (const%univ_gas_const * env_state%temp))
     real_params(PMC_COND_K_A) = thermal_conductivity
     real_params(PMC_COND_D_V) = molecular_diffusion
-    real_params(PMC_COND_KAPPA) = aero_particle_solute_kappa(aero_particle, aero_data)
-    real_params(PMC_COND_V_S) = aero_particle_solute_volume(aero_particle, aero_data)
+    real_params(PMC_COND_KAPPA) &
+         = aero_particle_solute_kappa(aero_particle, aero_data)
+    real_params(PMC_COND_V_DRY) &
+         = aero_particle_solute_volume(aero_particle, aero_data)
     real_params(PMC_COND_S) = env_state%rel_humid - 1d0
 
     ! set VODE inputs
     n_eqn = 1
-    val = vol2diam()
+    val(1) = vol2diam(aero_particle_volume(aero_particle))
     init_time = 0d0
     final_time = del_t
     tol_types = 1 ! both rel_tol and abs_tol are scalars
-    rel_tol(1) = 
-    abs_tol(1) = 
+    rel_tol(1) = 1d-6
+    abs_tol(1) = val(1) * 1d-6
     itask = 1 ! just output val at final_time
     istate = 1 ! first call for this ODE
     iopt = 0 ! no optional inputs
@@ -290,12 +319,12 @@ contains
          iopt, real_work, real_work_len, integer_work, integer_work_len, &
          condense_vode_jac, method_flag, real_params, integer_params)
     if (istate /= 2) then
-       die_msg(982335370, "DVODE error code: " &
+       call die_msg(982335370, "DVODE error code: " &
             // trim(integer_to_string(istate)))
     end if
 
     ! translate output back to particle
-    aero_particle%vol(aero_data%i_water) = diam2vol(val) &
+    aero_particle%vol(aero_data%i_water) = diam2vol(val(1)) &
          - aero_particle_solute_volume(aero_particle, aero_data)
 
     ! ensure volumes stay positive
@@ -306,8 +335,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Time derivative of particle diameter, used by the VODE
-  !> integrator.
+  !> Function \$ \dot{D} (D) \$.
   subroutine condense_vode_f(n_eqn, time, state, state_dot, real_params, &
        integer_params)
 
@@ -343,8 +371,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Jacobian of time derivative of particle diameter, used by the
-  !> VODE integrator.
+  !> Derivative \$ \partial \dot{D}(D) / \partial D \$.
   subroutine condense_vode_jac(n_eqn, time, state, lower_band_width, &
        upper_band_width, state_jac, n_row_jac, real_params, integer_params)
 
@@ -358,6 +385,8 @@ contains
     integer, intent(in) :: lower_band_width
     !> Upper band width for banded Jacobian (unused).
     integer, intent(in) :: upper_band_width
+    !> Number of rows in the Jacobian.
+    integer, intent(in) :: n_row_jac
     !> Jacobian of time derivative of state vector.
     real(kind=dp), intent(out) :: state_jac(n_row_jac, n_eqn)
     !> Real parameters.
@@ -376,22 +405,20 @@ contains
     call assert_msg(232625737, D == pmc_cond_saved_diameter, &
          "state diameter does not match pmc_cond_saved_diameter")
     delta_star = pmc_cond_saved_delta_star
-    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+    k_ap = corrected_thermal_conductivity(D, real_params, &
          integer_params)
-    D_vp = corrected_molecular_diffusion(diameter, real_params, &
-         integer_params)
-    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
+    dkap_dD = corrected_thermal_conductivity_deriv(D, real_params, &
          integer_params)
     dh_dD = condense_vode_implicit_dh_dD(delta_star, D, real_params, &
          integer_params)
     dh_ddelta = condense_vode_implicit_dh_ddelta(delta_star, D, &
          real_params, integer_params)
     ddeltastar_dD = - dh_dD / dh_ddelta
-    jac(1,1) = dkap_dD * delta_star / (U * D) &
+    state_jac(1,1) = dkap_dD * delta_star / (U * D) &
          + k_ap * ddeltastar_dD / (U * D) &
          - k_ap * delta_star / (U * D**2)
 
-  end subroutine condense_vode_f
+  end subroutine condense_vode_jac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -410,14 +437,14 @@ contains
     integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
 
     !> Delta convergence tolerance.
-    real(kind=dp), parameter :: delta_tol = 1e-16
+    real(kind=dp), parameter :: delta_tol = 1d-16
     !> Function convergence tolerance.
-    real(kind=dp), parameter :: h_tol = 1e-10
+    real(kind=dp), parameter :: h_tol = 1d-10
     !> Maximum number of iterations.
     integer, parameter :: iter_max = 100
 
     integer :: iter
-    real(kinp=dp) :: h, dh_ddelta, old_h, delta_step, h_step
+    real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
 
     h = condense_vode_implicit_h(delta, diameter, real_params, &
          integer_params)
@@ -451,6 +478,265 @@ contains
     end do
  
   end subroutine condense_vode_delta_star_newton
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Function \$ h(\delta,D) \$.
+  real(kind=dp) function condense_vode_implicit_h(delta, diameter, &
+       real_params, integer_params)
+
+    !> Growth parameter (units???).
+    real(kind=dp), intent(in) :: delta
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
+
+    D = diameter
+    U = real_params(PMC_COND_U)
+    V = real_params(PMC_COND_V)
+    W = real_params(PMC_COND_W)
+    X = real_params(PMC_COND_X)
+    S = real_params(PMC_COND_S)
+    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+         integer_params)
+    D_vp = corrected_molecular_diffusion(diameter, real_params, &
+         integer_params)
+    a_w = water_activity(diameter, real_params, integer_params)
+
+    condense_vode_implicit_h = k_ap * delta - U * V * D_vp &
+         * (S - a_w / (1d0 + delta) * exp(W * delta / (1d0 + delta) &
+         + (X / D) / (1d0 + delta)))
+
+  end function condense_vode_implicit_h
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Derivative \$ \partial h(\delta,D) / \partial \delta \$.
+  real(kind=dp) function condense_vode_implicit_dh_ddelta(delta, diameter, &
+       real_params, integer_params)
+
+    !> Growth parameter (units???).
+    real(kind=dp), intent(in) :: delta
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
+    real(kind=dp) :: dkap_dD, DDvp_dD, daw_dD
+
+    D = diameter
+    U = real_params(PMC_COND_U)
+    V = real_params(PMC_COND_V)
+    W = real_params(PMC_COND_W)
+    X = real_params(PMC_COND_X)
+    S = real_params(PMC_COND_S)
+    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+         integer_params)
+    D_vp = corrected_molecular_diffusion(diameter, real_params, &
+         integer_params)
+    a_w = water_activity(diameter, real_params, integer_params)
+    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
+         integer_params)
+    dDvp_dD = corrected_molecular_diffusion_deriv(diameter, real_params, &
+         integer_params)
+    daw_dD = water_activity_deriv(diameter, real_params, integer_params)
+
+    condense_vode_implicit_dh_ddelta = &
+         k_ap - U * V * D_vp * a_w / (1d0 + delta)**2 &
+         * (1d0 - W / (1d0 + delta) + (X / D) / (1d0 + delta)) &
+         * exp(W * delta / (1d0 + delta) + (X / D) / (1d0 + delta))
+    
+  end function condense_vode_implicit_dh_ddelta
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Derivative \$ \partial h(\delta,D) / \partial D \$.
+  real(kind=dp) function condense_vode_implicit_dh_dD(delta, diameter, &
+       real_params, integer_params)
+
+    !> Growth parameter (units???).
+    real(kind=dp), intent(in) :: delta
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
+    real(kind=dp) :: dkap_dD, DDvp_dD, daw_dD
+
+    D = diameter
+    U = real_params(PMC_COND_U)
+    V = real_params(PMC_COND_V)
+    W = real_params(PMC_COND_W)
+    X = real_params(PMC_COND_X)
+    S = real_params(PMC_COND_S)
+    k_ap = corrected_thermal_conductivity(diameter, real_params, &
+         integer_params)
+    D_vp = corrected_molecular_diffusion(diameter, real_params, &
+         integer_params)
+    a_w = water_activity(diameter, real_params, integer_params)
+    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
+         integer_params)
+    dDvp_dD = corrected_molecular_diffusion_deriv(diameter, real_params, &
+         integer_params)
+    daw_dD = water_activity_deriv(diameter, real_params, integer_params)
+
+    condense_vode_implicit_dh_dD = dkap_dD * delta &
+         - U * V * dDvp_dD * S + U * V * (a_w * dDvp_dD + D_vp * daw_dD &
+         - D_vp * a_w * (X / D**2) / (1d0 + delta)) * (1d0 / (1d0 + delta)) &
+         * exp((W * delta) / (1d0 + delta) + (X / D) / (1d0 + delta))
+    
+  end function condense_vode_implicit_dh_dD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Function \$ k_{\rm a}'(D) \$.
+  real(kind=dp) function corrected_thermal_conductivity(diameter, &
+       real_params, integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: k_a, Y, D
+
+    k_a = real_params(PMC_COND_K_A)
+    Y = real_params(PMC_COND_Y)
+    D = diameter
+
+    corrected_thermal_conductivity = k_a / (1d0 + Y / D)
+
+  end function corrected_thermal_conductivity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Derivative \$ \partial k_{\rm a}'(D) / \partial D \$.
+  real(kind=dp) function corrected_thermal_conductivity_deriv(diameter, &
+       real_params, integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: k_a, Y, D
+
+    k_a = real_params(PMC_COND_K_A)
+    Y = real_params(PMC_COND_Y)
+    D = diameter
+
+    corrected_thermal_conductivity_deriv = k_a * Y / (D + Y)**2
+
+  end function corrected_thermal_conductivity_deriv
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Function \$ D_{\rm v}'(D) \$.
+  real(kind=dp) function corrected_molecular_diffusion(diameter, &
+       real_params, integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D_v, Z, D
+
+    D_v = real_params(PMC_COND_D_V)
+    Z = real_params(PMC_COND_Z)
+    D = diameter
+
+    corrected_molecular_diffusion = D_v / (1d0 + Z / D)
+
+  end function corrected_molecular_diffusion
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Derivative \$ \partial D_{\rm v}'(D) / \partial D \$.
+  real(kind=dp) function corrected_molecular_diffusion_deriv(diameter, &
+       real_params, integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D_v, Z, D
+
+    D_v = real_params(PMC_COND_D_V)
+    Z = real_params(PMC_COND_Z)
+    D = diameter
+
+    corrected_molecular_diffusion_deriv = D_v * Z / (D + Z)**2
+
+  end function corrected_molecular_diffusion_deriv
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Function \$ a_{\rm w}(D) \$.
+  real(kind=dp) function water_activity(diameter, real_params, &
+       integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D, kappa, V_dry
+
+    D = diameter
+    kappa = real_params(PMC_COND_KAPPA)
+    V_dry = real_params(PMC_COND_V_DRY)
+
+    water_activity = (const%pi / 6d0 * D**3 - V_dry) &
+         / (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)
+
+  end function water_activity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Derivative \$ \partial a_{\rm w}(D) / \partial D \$.
+  real(kind=dp) function water_activity_deriv(diameter, real_params, &
+       integer_params)
+
+    !> Current diameter (m)
+    real(kind=dp), intent(in) :: diameter
+    !> Real parameters.
+    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !> Integer parameters.
+    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: D, kappa, V_dry
+
+    D = diameter
+    kappa = real_params(PMC_COND_KAPPA)
+    V_dry = real_params(PMC_COND_V_DRY)
+
+    water_activity_deriv = const%pi / 2d0 * D**2 * kappa * V_dry &
+         / (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)**2
+
+  end function water_activity_deriv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

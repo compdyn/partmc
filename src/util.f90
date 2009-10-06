@@ -20,6 +20,9 @@ module pmc_util
   !> Table of unit numbers storing allocation status.
   logical, save :: unit_used(max_units) = .false.
 
+  !> Length of string for converting numbers.
+  integer, parameter :: PMC_UTIL_CONVERT_STRING_LEN = 100
+
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

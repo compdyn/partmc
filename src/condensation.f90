@@ -75,12 +75,12 @@ contains
        end do
     end do
 
-    write(*,*) 'RH (before condense) =', env_state%rel_humid
+    !write(*,*) 'RH (before condense) =', env_state%rel_humid
 
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
-          write(*,*) 'i_bin= ', i_bin, 'j =',  j
-          call condense_particle(del_t, env_state, aero_data, &
+          !write(*,*) 'i_bin= ', i_bin, 'j =',  j
+          call condense_particle_vode(del_t, env_state, aero_data, &
                aero_state%bin(i_bin)%particle(j))
 !          write(*,*) 'stop after the first particle'
 !          STOP
@@ -100,16 +100,16 @@ contains
        end do
     end do
 
-    write(*,*) 'pre_water (BF cond) =', pre_water
-    write(*,*) 'post_water (AF cond) =', post_water
+    !write(*,*) 'pre_water (BF cond) =', pre_water
+    !write(*,*) 'post_water (AF cond) =', post_water
 
-    write(*,*) 'RH (before update due to cond. ) =', env_state%rel_humid
+    !write(*,*) 'RH (before update due to cond. ) =', env_state%rel_humid
 
     ! update the environment due to condensation of water
     call env_state_change_water_volume(env_state, aero_data, &
          (post_water - pre_water) / aero_state%comp_vol)
 
-    write(*,*) 'RH (after update due to cond. ) =', env_state%rel_humid 
+    !write(*,*) 'RH (after update due to cond. ) =', env_state%rel_humid 
 
   end subroutine condense_particles
 
@@ -198,13 +198,13 @@ contains
     real(kind=dp) :: time_step, time, pre_water, post_water
     logical :: done
 
-    write(*,*) 'in condense_particle '
+    !write(*,*) 'in condense_particle '
 
     time = 0d0
     done = .false.
     do while (.not. done)
-       write(*,*) 'in do loop in condense_particle', 'del_t=', del_t , 'time=', time 
-       write(*,*)  'time_step=', time_step, 'done=', done
+       !write(*,*) 'in do loop in condense_particle', 'del_t=', del_t , 'time=', time 
+       !write(*,*)  'time_step=', time_step, 'done=', done
        call condense_step_euler(del_t - time, time_step, done, env_state, &
             aero_data, aero_particle)
        time = time + time_step
@@ -764,19 +764,19 @@ contains
 
     real(kind=dp) dvdt
 
-     write(*,*) 'do euler integration' 
+    !write(*,*) 'do euler integration' 
 
     ! get timestep
     done = .false.
 
     call find_condense_timestep_variable(dt, env_state, aero_data, &
          aero_particle)
-    write(*,*) 'after find_condense_timestep_variable', 'dt=',dt,'max_dt=',max_dt
+    !write(*,*) 'after find_condense_timestep_variable', 'dt=',dt,'max_dt=',max_dt
     if (dt .ge. max_dt) then
        dt = max_dt
        done = .true.
     end if
-    write(*,*) 'usig ', ' dt=',dt
+    !write(*,*) 'usig ', ' dt=',dt
 
     ! do condensation
       
@@ -926,10 +926,10 @@ contains
     pv = aero_particle_volume(aero_particle)
     call cond_growth_rate(dvdt, env_state, aero_data, aero_particle)
     dt = abs(scale * pv / dvdt)
-    write(*,*) 'in find condense timestep variable pv =' , pv
+    !write(*,*) 'in find condense timestep variable pv =' , pv
 !
     di=vol2diam(pv)
-    write(*,*) 'di =' , di
+    !write(*,*) 'di =' , di
 !
   end subroutine find_condense_timestep_variable
   
@@ -977,7 +977,7 @@ contains
 
     real(kind=dp) dmdt, pm, dmdt_tol
 
-    write(6,*) 'i am in scheme 1'
+    !write(6,*) 'i am in scheme 1'
 
     pm = aero_particle_mass(aero_particle, aero_data)
     dmdt_tol = pm * dmdt_rel_tol
@@ -1007,7 +1007,7 @@ contains
 
     real(kind=dp) dmdt
 
-    write(6,*) 'i am in scheme 2'
+    !write(6,*) 'i am in scheme 2'
 
     dmdt = 0d0
     call cond_taylor_quad(env_state, aero_data, dmdt, &
@@ -1034,7 +1034,7 @@ contains
 
     real(kind=dp) dmdt
 
-    write(6,*) 'i am in scheme 3'
+    !write(6,*) 'i am in scheme 3'
 
     dmdt = 0d0
     call cond_seinfeld(env_state, aero_data, dmdt, &
@@ -1076,14 +1076,14 @@ contains
     dw = vol2diam(pv)
 
     dwdt_init = 0d0
-    write(*,*) 'id =', aero_particle%id, 'part. growth rate (before iteration) =', dwdt_init
+    !write(*,*) 'id =', aero_particle%id, 'part. growth rate (before iteration) =', dwdt_init
     dwdt = dwdt_init
 !    write(*,*) 'in cond growth rate four', 'pv =', pv , 'dw =', dw
   
     ! convert volume relative tolerance to diameter absolute tolerance
     dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)
     
-    write(*,*) 'dw_tol=',dw_tol
+    !write(*,*) 'dw_tol=',dw_tol
     call cond_newt(dwdt, env_state, aero_data, cond_growth_rate_aw, &
          dw_tol, f_tol, iter_max, aero_particle)
    
@@ -1105,7 +1105,7 @@ contains
     dwdt= dwdt / A/ dw      ! dwdt = delta
 
     dvdt = dwdt * (dw **2d0) * (const%pi /2d0)
-    write(*,*) 'end of cond four, dvdt= ', dvdt
+    !write(*,*) 'end of cond four, dvdt= ', dvdt
   end subroutine cond_growth_rate_four
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1163,10 +1163,10 @@ contains
 
     iter = 0
     do
-       write(*,*) 'no. of iteration', iter
+       !write(*,*) 'no. of iteration', iter
        iter = iter + 1
        delta_x = f / df
-       write(*,*) 'old x =' , x , 'old f=' ,old_f
+       !write(*,*) 'old x =' , x , 'old f=' ,old_f
        
        if (PMC_COND_CHECK_DERIVS) then
           check_x = x * (1d0 + PMC_COND_CHECK_EPS)
@@ -1193,8 +1193,8 @@ contains
        delta_f = f - old_f
        old_f = f
 
-       write(*,*) 'new x =' , x , 'new f=' , f
-       write(*,*) 'delta x =', delta_x , 'delta_f=', delta_f
+       !write(*,*) 'new x =' , x , 'new f=' , f
+       !write(*,*) 'delta x =', delta_x , 'delta_f=', delta_f
        if (iter .ge. iter_max) then
           call die_msg(449343787, 'Newton iteration failed to terminate')
        end if
@@ -1207,7 +1207,7 @@ contains
        end if
     end do
  
-      write(*,*) 'id =', aero_particle%id, 'finish using', iter ,'iteration(s)'
+    !write(*,*) 'id =', aero_particle%id, 'finish using', iter ,'iteration(s)'
   end subroutine cond_newt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1713,22 +1713,22 @@ contains
     !> total volume of the particle before equilibriation
     pv = aero_particle_volume(aero_particle)
     di = vol2diam(pv)
-    write(*,*) 'id =', aero_particle%id, 'wet diam (before equilibriation)', di  
+    !write(*,*) 'id =', aero_particle%id, 'wet diam (before equilibriation)', di  
     !> dry diameter of the particle
     dw_init = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
-    write(*,*) 'id =', aero_particle%id, 'dry diam (before iteration) =', dw_init
+    !write(*,*) 'id =', aero_particle%id, 'dry diam (before iteration) =', dw_init
     dw = dw_init
 
     ! convert volume relative tolerance to diameter absolute tolerance
     dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)
-    write(*,*) 'sat (in equilibriate_particle) BF newton =' , env_state%rel_humid
+    !write(*,*) 'sat (in equilibriate_particle) BF newton =' , env_state%rel_humid
 !    write(*,*) 'dw_tol = ', dw_tol
 !    write(*,*) 'id =', aero_particle%id 
 
     call cond_newt(dw, env_state, aero_data, equilibriate_func, &
          dw_tol, f_tol, iter_max, aero_particle)
 
-    write(*,*) 'sat (in equilibriate_particle) AF newton =' , env_state%rel_humid
+    !write(*,*) 'sat (in equilibriate_particle) AF newton =' , env_state%rel_humid
 !    aero_particle%vol(aero_data%i_water) = diam2vol(dw) - pv
     !> the amount of water after equilibriation
     !> dw is the wet diameter after equilibriation 
@@ -1736,7 +1736,7 @@ contains
     aero_particle%vol(aero_data%i_water) = diam2vol(dw) - diam2vol(dw_init)
     di=vol2diam(pv)
 
-    write(*,*)  'id = ', aero_particle%id, 'wet diam (after iteration) = ', dw
+    !write(*,*)  'id = ', aero_particle%id, 'wet diam (after iteration) = ', dw
   end subroutine equilibriate_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2136,11 +2136,11 @@ contains
        do i = 1,aero_state%bin(i_bin)%n_part
          !write(*,*) 'hello id =', aero_particle%id
          env_state%rel_humid=9.50d-1
-         write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
+         !write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
           call equilibriate_particle(env_state, aero_data, &
                aero_state%bin(i_bin)%particle(i))
 !     temporary stop statement
-      write(*,*) 'stop at particle i', i
+          !write(*,*) 'stop at particle i', i
 !        STOP
        end do
     end do

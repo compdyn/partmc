@@ -134,6 +134,8 @@ elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
+
 ######################################################################
 
 enable_testing()
@@ -207,6 +209,7 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/linpack/dgbsl.f src/linpack/dgefa.f
                src/linpack/dgesl.f)
 target_link_libraries(partmc ${EXTRA_LIBS})
+set_target_properties(partmc PROPERTIES LINK_FLAGS_Debug "-g")
 
 ######################################################################
 

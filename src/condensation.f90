@@ -17,7 +17,7 @@ module pmc_condensation
   use pmc_aero_particle
   use pmc_constants
   
-  logical, parameter :: PMC_COND_CHECK_DERIVS = .false.
+  logical, parameter :: PMC_COND_CHECK_DERIVS = .true.
   real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
   real(kind=dp), parameter :: PMC_COND_CHECK_REL_TOL = 5d-2
 
@@ -445,6 +445,7 @@ contains
 
     integer :: iter
     real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
+    real(kind=dp) :: check_delta, check_h, finite_diff_dh, rel_error
 
     h = condense_vode_implicit_h(delta, diameter, real_params, &
          integer_params)
@@ -464,6 +465,28 @@ contains
             real_params, integer_params)
        h_step = h - old_h
        old_h = h
+
+       if (PMC_COND_CHECK_DERIVS) then
+          check_delta = delta * (1d0 + PMC_COND_CHECK_EPS)
+          check_h = condense_vode_implicit_h(check_delta, diameter, real_params, &
+               integer_params)
+          finite_diff_dh = (check_h - h) / (check_delta - delta)
+          rel_error = abs(finite_diff_dh - dh_ddelta) &
+               / (abs(finite_diff_dh) + abs(dh_ddelta))
+          write(*,*) 'rel_error ', rel_error
+          if (rel_error > PMC_COND_CHECK_REL_TOL) then
+             write(0,*) "ERROR: cond_newt: incorrect derivative"
+             write(0,*) "delta ", delta
+             write(0,*) "check_delta ", check_delta
+             write(0,*) "delta_delta ", (check_delta - delta)
+             write(0,*) "h ", h
+             write(0,*) "check_h ", check_h
+             write(0,*) "delta_h ", (check_h - h)
+             write(0,*) "dh_ddelta ", dh_ddelta
+             write(0,*) "finite_diff_dh ", finite_diff_dh
+             write(0,*) "rel_error ", rel_error
+          end if
+       end if
 
        if (iter .ge. iter_max) then
           call die_msg(136296873, 'Newton iteration failed to terminate')

@@ -16,6 +16,7 @@ module pmc_condensation
   use pmc_util
   use pmc_aero_particle
   use pmc_constants
+  use dvode_f90_m
   
   logical, parameter :: PMC_COND_CHECK_DERIVS = .true.
   real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
@@ -40,6 +41,8 @@ module pmc_condensation
   real(kind=dp), save :: pmc_cond_saved_diameter
   !> Saved value of delta_star evaluated at pmc_cond_saved_diameter.
   real(kind=dp), save :: pmc_cond_saved_delta_star
+
+  real(kind=dp), save :: save_real_params(PMC_COND_N_REAL_PARAMS)
   
 contains
   
@@ -239,31 +242,32 @@ contains
     integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
     real(kind=dp) :: rho_water, M_water
     real(kind=dp) :: thermal_conductivity, molecular_diffusion
+    type(vode_opts) :: options
 
-    interface
-       ! interfaces copied by hand from vode.f
-       subroutine dvode(F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, &
-            ITASK, ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, &
-            MF, RPAR, IPAR)
-         integer :: LRW, LIW
-         double precision :: Y(:), T, TOUT, RTOL(:), ATOL(:), &
-              RWORK(LRW), RPAR(:)
-         integer :: NEQ, ITOL, ITASK, ISTATE, IOPT, IWORK(LIW), &
-              MF, IPAR(:)
-         interface
-            subroutine F(NEQ, T, Y, YDOT, RPAR, IPAR)
-              integer :: NEQ
-              double precision :: T, Y(NEQ), YDOT(NEQ), RPAR(:)
-              integer :: IPAR(:)
-            end subroutine F
-            subroutine JAC(NEQ, T, Y, ML, MU, PD, NROWPD, RPAR, IPAR)
-              integer :: NEQ, NROWPD
-              double precision :: T, Y(NEQ), PD(NROWPD,NEQ), RPAR(:)
-              integer :: ML, MU, IPAR(:)
-            end subroutine JAC
-         end interface
-       end subroutine dvode
-    end interface
+!    interface
+!       ! interfaces copied by hand from vode.f
+!       subroutine dvode(F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, &
+!            ITASK, ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, &
+!            MF, RPAR, IPAR)
+!         integer :: LRW, LIW
+!         double precision :: Y(:), T, TOUT, RTOL(:), ATOL(:), &
+!              RWORK(LRW), RPAR(:)
+!         integer :: NEQ, ITOL, ITASK, ISTATE, IOPT, IWORK(LIW), &
+!              MF, IPAR(:)
+!         interface
+!            subroutine F(NEQ, T, Y, YDOT, RPAR, IPAR)
+!              integer :: NEQ
+!              double precision :: T, Y(NEQ), YDOT(NEQ), RPAR(:)
+!              integer :: IPAR(:)
+!            end subroutine F
+!            subroutine JAC(NEQ, T, Y, ML, MU, PD, NROWPD, RPAR, IPAR)
+!              integer :: NEQ, NROWPD
+!              double precision :: T, Y(NEQ), PD(NROWPD,NEQ), RPAR(:)
+!              integer :: ML, MU, IPAR(:)
+!            end subroutine JAC
+!         end interface
+!       end subroutine dvode
+!    end interface
 
     thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
          * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
@@ -314,14 +318,20 @@ contains
     method_flag = 21 ! stiff (BDF) method, user-supplied full Jacobian
 
     ! call ODE integrator
-    call dvode(condense_vode_f, n_eqn, val, init_time, &
-         final_time, tol_types, rel_tol, abs_tol, itask, istate, &
-         iopt, real_work, real_work_len, integer_work, integer_work_len, &
-         condense_vode_jac, method_flag, real_params, integer_params)
-    if (istate /= 2) then
-       call die_msg(982335370, "DVODE error code: " &
-            // trim(integer_to_string(istate)))
-    end if
+    !call dvode(condense_vode_f, n_eqn, val, init_time, &
+    !     final_time, tol_types, rel_tol, abs_tol, itask, istate, &
+    !     iopt, real_work, real_work_len, integer_work, integer_work_len, &
+    !     condense_vode_jac, method_flag, real_params, integer_params)
+    !if (istate /= 2) then
+    !   call die_msg(982335370, "DVODE error code: " &
+    !        // trim(integer_to_string(istate)))
+    !end if
+
+    options = set_opts(dense_j = .true., abserr = abs_tol(1), relerr = rel_tol(1), &
+         user_supplied_jacobian = .true.)
+    save_real_params = real_params
+    call dvode_f90(condense_vode_f, n_eqn, val, init_time, final_time, &
+         itask, istate, options, j_fcn = condense_vode_jac)
 
     ! translate output back to particle
     aero_particle%vol(aero_data%i_water) = diam2vol(val(1)) &
@@ -336,8 +346,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Function \$ \dot{D} (D) \$.
-  subroutine condense_vode_f(n_eqn, time, state, state_dot, real_params, &
-       integer_params)
+  subroutine condense_vode_f(n_eqn, time, state, state_dot)
+    !, real_params, &
+    !   integer_params)
 
     !> Length of state vector.
     integer, intent(in) :: n_eqn
@@ -348,15 +359,21 @@ contains
     !> Time derivative of state vector.
     real(kind=dp), intent(out) :: state_dot(n_eqn)
     !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
     !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+    !integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
+    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
 
     real(kind=dp) :: delta, diameter, k_ap
+
+    real_params = save_real_params
 
     call assert(383442283, n_eqn == 1)
     delta = 0d0
     diameter = state(1)
+    write(*,*) 'condense_vode_f: t,D = ', time, diameter
     call condense_vode_delta_star_newton(delta, diameter, real_params, &
          integer_params)
     k_ap = corrected_thermal_conductivity(diameter, real_params, &
@@ -373,7 +390,8 @@ contains
 
   !> Derivative \$ \partial \dot{D}(D) / \partial D \$.
   subroutine condense_vode_jac(n_eqn, time, state, lower_band_width, &
-       upper_band_width, state_jac, n_row_jac, real_params, integer_params)
+       upper_band_width, state_jac, n_row_jac)
+    !, real_params, integer_params)
 
     !> Length of state vector.
     integer, intent(in) :: n_eqn
@@ -390,12 +408,17 @@ contains
     !> Jacobian of time derivative of state vector.
     real(kind=dp), intent(out) :: state_jac(n_row_jac, n_eqn)
     !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
+    !real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
     !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+    !integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
+
+    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
+    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
 
     real(kind=dp) :: delta_star, D, U, k_ap, dkap_dD
     real(kind=dp) :: dh_dD, dh_ddelta, ddeltastar_dD
+
+    real_params = save_real_params
 
     call assert(973429886, n_eqn == 1)
     call assert(230741766, n_row_jac == 1)
@@ -457,6 +480,8 @@ contains
     do
        iter = iter + 1
        delta_step = - h / dh_ddelta
+       write(*,'(a5,a15,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta', 'delta_step'
+       write(*,'(i5,e15.5,e15.5,e15.5,e15.5)') iter, delta, h, dh_ddelta, delta_step
        
        delta = delta + delta_step
        h = condense_vode_implicit_h(delta, diameter, real_params, &
@@ -473,7 +498,6 @@ contains
           finite_diff_dh = (check_h - h) / (check_delta - delta)
           rel_error = abs(finite_diff_dh - dh_ddelta) &
                / (abs(finite_diff_dh) + abs(dh_ddelta))
-          write(*,*) 'rel_error ', rel_error
           if (rel_error > PMC_COND_CHECK_REL_TOL) then
              write(0,*) "ERROR: cond_newt: incorrect derivative"
              write(0,*) "delta ", delta

@@ -10,7 +10,7 @@ set(PACKAGE_VERSION "1.2.0")
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 
-include(FindBLAS)
+#include(FindBLAS)
 
 ######################################################################
 
@@ -92,7 +92,7 @@ find_library(MOSAIC_LIB mosaic
 
 set(EXTRA_LIBS)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} ${BLAS_LIBRARIES})
+#set(EXTRA_LIBS ${EXTRA_LIBS} ${BLAS_LIBRARIES})
 
 include_directories(${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIBS})
@@ -123,7 +123,8 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
+  #add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
+  add_definitions(-g -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
   if(NOT ENABLE_MPI)
     add_definitions(-Wimplicit-interface)
   endif(NOT ENABLE_MPI)
@@ -205,9 +206,10 @@ add_executable(partmc src/partmc.f90 src/aero_state.f90
                src/spec_line.f90 src/spec_file.f90 src/rand.f90
                src/aero_particle.f90 src/aero_particle_array.f90
                src/mpi.f90 src/netcdf.f90 src/aero_info.f90
-               src/aero_info_array.f90 src/vode.f src/linpack/dgbfa.f
-               src/linpack/dgbsl.f src/linpack/dgefa.f
-               src/linpack/dgesl.f)
+               src/aero_info_array.f90 src/dvode_f90_m.f90)
+#src/vode.f src/linpack/dgbfa.f
+#               src/linpack/dgbsl.f src/linpack/dgefa.f
+#               src/linpack/dgesl.f)
 target_link_libraries(partmc ${EXTRA_LIBS})
 set_target_properties(partmc PROPERTIES LINK_FLAGS_Debug "-g")
 

@@ -243,6 +243,8 @@ contains
     real(kind=dp) :: rho_water, M_water
     real(kind=dp) :: thermal_conductivity, molecular_diffusion
     type(vode_opts) :: options
+    integer :: constraint_indices(1)
+    real(kind=dp) :: constraint_lower(1), constraint_upper(1)
 
 !    interface
 !       ! interfaces copied by hand from vode.f
@@ -269,6 +271,11 @@ contains
 !       end subroutine dvode
 !    end interface
 
+    !>DEBUG
+    write(*,*) '*******************************************************'
+    write(*,*) 'time ', env_state%elapsed_time
+    write(*,*) 'id ', aero_particle%id
+    !<DEBUG
     thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
          * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
     molecular_diffusion = 0.211d-4 &
@@ -316,6 +323,9 @@ contains
     real_work = 0d0
     integer_work = 0
     method_flag = 21 ! stiff (BDF) method, user-supplied full Jacobian
+    constraint_indices(1) = 1 ! constrain element 1 of the state
+    constraint_lower(1) = vol2diam(real_params(PMC_COND_V_DRY)) ! lower bound
+    constraint_upper(1) = 1d0 ! upper bound
 
     ! call ODE integrator
     !call dvode(condense_vode_f, n_eqn, val, init_time, &
@@ -327,8 +337,15 @@ contains
     !        // trim(integer_to_string(istate)))
     !end if
 
-    options = set_opts(dense_j = .true., abserr = abs_tol(1), relerr = rel_tol(1), &
-         user_supplied_jacobian = .true.)
+    !dense_j = .true., &
+    !>DEBUG
+    write(*,*) 'clower ', constraint_lower(1)
+    write(*,*) 'cupper ', constraint_upper(1)
+    !<DEBUG
+    options = set_opts(method_flag = method_flag, &
+         abserr = abs_tol(1), relerr = rel_tol(1), &
+         user_supplied_jacobian = .true., constrained = constraint_indices, &
+         clower = constraint_lower, cupper = constraint_upper)
     save_real_params = real_params
     call dvode_f90(condense_vode_f, n_eqn, val, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
@@ -470,6 +487,33 @@ contains
     real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
     real(kind=dp) :: check_delta, check_h, finite_diff_dh, rel_error
 
+    !>DEBUG
+    !write(*,*) 'PMC_COND_U ', real_params(PMC_COND_U)
+    !write(*,*) 'PMC_COND_V ', real_params(PMC_COND_V)
+    !write(*,*) 'PMC_COND_W ', real_params(PMC_COND_W)
+    !write(*,*) 'PMC_COND_X ', real_params(PMC_COND_X)
+    !write(*,*) 'PMC_COND_Y ', real_params(PMC_COND_Y)
+    !write(*,*) 'PMC_COND_Z ', real_params(PMC_COND_Z)
+    !write(*,*) 'PMC_COND_K_A ', real_params(PMC_COND_K_A)
+    !write(*,*) 'PMC_COND_D_V ', real_params(PMC_COND_D_V)
+    !write(*,*) 'PMC_COND_KAPPA ', real_params(PMC_COND_KAPPA)
+    !write(*,*) 'PMC_COND_V_DRY ', real_params(PMC_COND_V_DRY)
+    !write(*,*) 'PMC_COND_S ', real_params(PMC_COND_S)
+    !write(*,*) 'a_w ', water_activity(diameter, real_params, integer_params)
+    !write(*,*) 'k_ap ', corrected_thermal_conductivity(diameter, real_params, integer_params)
+    !write(*,*) 'D_vp ', corrected_molecular_diffusion(diameter, real_params, integer_params)
+    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
+    !write(*,'(a5,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta'
+    !do iter = -100,100
+    !   check_delta = real(iter, kind=dp) / 100d0
+    !   h = condense_vode_implicit_h(check_delta, diameter, real_params, &
+    !        integer_params)
+    !   dh_ddelta = condense_vode_implicit_dh_ddelta(check_delta, diameter, &
+    !        real_params, integer_params)
+    !   write(*,'(i5,e15.5,e15.5,e15.5)') iter, check_delta, h, dh_ddelta
+    !end do
+    !<DEBUG
+
     h = condense_vode_implicit_h(delta, diameter, real_params, &
          integer_params)
     dh_ddelta = condense_vode_implicit_dh_ddelta(delta, diameter, &
@@ -480,8 +524,10 @@ contains
     do
        iter = iter + 1
        delta_step = - h / dh_ddelta
-       write(*,'(a5,a15,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta', 'delta_step'
-       write(*,'(i5,e15.5,e15.5,e15.5,e15.5)') iter, delta, h, dh_ddelta, delta_step
+       !>DEBUG
+       !write(*,'(a5,a15,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta', 'delta_step'
+       !write(*,'(i5,e15.5,e15.5,e15.5,e15.5)') iter, delta, h, dh_ddelta, delta_step
+       !<DEBUG
        
        delta = delta + delta_step
        h = condense_vode_implicit_h(delta, diameter, real_params, &

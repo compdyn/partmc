@@ -83,13 +83,13 @@ $\Delta H_{\rm  v}$  & latent heat of vaporization of water   &  constant  & $2.
 $D_{\rm v}$     & diffusivity coefficient   &  variable & local &  S$\&$P 15.65  \\
 $\delta$  & growth parameter &  variable & output & eq.~\ref{eq:delta}\\
 $D$     &  droplet wet diameter  & variable  & input/output &   -   \\
-$a_{\rm w}$  & water activity  &variable & input/output & eq.~\ref{eq:aw},  function aw  \\
+$a_{\rm w}$  & water activity  &variable & local & eq.~\ref{eq:aw},  function aw  \\
 $\kappa$      &  overall hygroscopicity   &  variable & input/output  &  eq.~\ref{eq:kappa}, subrountine compute$\_$kappa   \\
 $ \rho_{\rm air}$    &  air density   &  variable  & input  &   env$\_$state.f90   \\
 $k_{\rm a} $     & thermal conductivity of air    &  variable & local &   S$\&$P 15.75   \\
 $ p $     &  environmental air pressure &  variable  & input  &  env$\_$state$\%$pressure  \\
-$ P^{0}  $   & saturation vapor pressure &  variable & input  &  function env$\_$state$\_$sat$\_$vapor$\_$pressure  \\
-$S $     &  environmental humidity  &  variable  & input  &  env$\_$state$\%$rel$\_$humid  \\
+$ P^{0}  $   & saturation vapor pressure &  variable & local &  function env$\_$state$\_$sat$\_$vapor$\_$pressure  \\
+$S $     &  environmental relative humidity  &  variable  & input  &  env$\_$state$\%$rel$\_$humid  \\
 $ T_{\infty}$     &  environmental temperature  &  variable  & input  &  env$\_$state$\%$temp  \\
 $ V_{\rm dry}$       & dry volume of the aerosol particle   &  variable  & input  &    \\
 

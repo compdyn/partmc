@@ -18,7 +18,7 @@ module pmc_condensation
   use pmc_constants
   use dvode_f90_m
   
-  logical, parameter :: PMC_COND_CHECK_DERIVS = .true.
+  logical, parameter :: PMC_COND_CHECK_DERIVS = .false.
   real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
   real(kind=dp), parameter :: PMC_COND_CHECK_REL_TOL = 5d-2
 
@@ -272,9 +272,9 @@ contains
 !    end interface
 
     !>DEBUG
-    write(*,*) '*******************************************************'
-    write(*,*) 'time ', env_state%elapsed_time
-    write(*,*) 'id ', aero_particle%id
+    !write(*,*) '*******************************************************'
+    !write(*,*) 'time ', env_state%elapsed_time
+    !write(*,*) 'id ', aero_particle%id
     !<DEBUG
     thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
          * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
@@ -307,7 +307,7 @@ contains
          = aero_particle_solute_kappa(aero_particle, aero_data)
     real_params(PMC_COND_V_DRY) &
          = aero_particle_solute_volume(aero_particle, aero_data)
-    real_params(PMC_COND_S) = env_state%rel_humid - 1d0
+    real_params(PMC_COND_S) = env_state%rel_humid
 
     ! set VODE inputs
     n_eqn = 1
@@ -339,13 +339,14 @@ contains
 
     !dense_j = .true., &
     !>DEBUG
-    write(*,*) 'clower ', constraint_lower(1)
-    write(*,*) 'cupper ', constraint_upper(1)
+    !write(*,*) 'clower ', constraint_lower(1)
+    !write(*,*) 'cupper ', constraint_upper(1)
     !<DEBUG
     options = set_opts(method_flag = method_flag, &
          abserr = abs_tol(1), relerr = rel_tol(1), &
-         user_supplied_jacobian = .true., constrained = constraint_indices, &
-         clower = constraint_lower, cupper = constraint_upper)
+         user_supplied_jacobian = .true.)
+    !, constrained = constraint_indices, &
+    !     clower = constraint_lower, cupper = constraint_upper)
     save_real_params = real_params
     call dvode_f90(condense_vode_f, n_eqn, val, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
@@ -390,12 +391,16 @@ contains
     call assert(383442283, n_eqn == 1)
     delta = 0d0
     diameter = state(1)
-    write(*,*) 'condense_vode_f: t,D = ', time, diameter
     call condense_vode_delta_star_newton(delta, diameter, real_params, &
          integer_params)
     k_ap = corrected_thermal_conductivity(diameter, real_params, &
          integer_params)
     state_dot(1) = k_ap * delta / (real_params(PMC_COND_U) * diameter)
+    !>DEBUG
+    !write(*,*) 'condense_vode_f: t,D,De,Dd = ', time, diameter, &
+    !     (diameter - vol2diam(real_params(PMC_COND_V_DRY))), state_dot(1)
+    !write(*,*) 'condense_vode_f: t,D = ', time, diameter
+    !<DEBUG
 
     ! save value of delta to be used by condense_vode_jac
     pmc_cond_saved_diameter = diameter
@@ -545,16 +550,17 @@ contains
           rel_error = abs(finite_diff_dh - dh_ddelta) &
                / (abs(finite_diff_dh) + abs(dh_ddelta))
           if (rel_error > PMC_COND_CHECK_REL_TOL) then
-             write(0,*) "ERROR: cond_newt: incorrect derivative"
-             write(0,*) "delta ", delta
-             write(0,*) "check_delta ", check_delta
-             write(0,*) "delta_delta ", (check_delta - delta)
-             write(0,*) "h ", h
-             write(0,*) "check_h ", check_h
-             write(0,*) "delta_h ", (check_h - h)
-             write(0,*) "dh_ddelta ", dh_ddelta
-             write(0,*) "finite_diff_dh ", finite_diff_dh
-             write(0,*) "rel_error ", rel_error
+             !write(0,*) "ERROR: cond_newt: incorrect derivative"
+             !write(0,*) "delta ", delta
+             !write(0,*) "check_delta ", check_delta
+             !write(0,*) "delta_delta ", (check_delta - delta)
+             !write(0,*) "h ", h
+             !write(0,*) "check_h ", check_h
+             !write(0,*) "delta_h ", (check_h - h)
+             !write(0,*) "dh_ddelta ", dh_ddelta
+             !write(0,*) "finite_diff_dh ", finite_diff_dh
+             !write(0,*) "rel_error ", rel_error
+             write(0,*) 'ERROR: deriv rel_error = ', rel_error
           end if
        end if
 

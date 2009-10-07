@@ -43,7 +43,10 @@ module pmc_condensation
   real(kind=dp), save :: pmc_cond_saved_delta_star
 
   real(kind=dp), save :: save_real_params(PMC_COND_N_REAL_PARAMS)
-  
+
+  !>DEBUG
+  !logical, save :: kill_flag = .false.
+  !<DEBUG
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -210,6 +213,26 @@ contains
          = aero_particle_solute_volume(aero_particle, aero_data)
     real_params(PMC_COND_S) = env_state%rel_humid
 
+    !>DEBUG
+    !write(*,*) '************************************************************'
+    !write(*,*) 'id ', aero_particle%id
+    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
+    !write(*,*) 'time ', env_state%elapsed_time
+    !write(*,*) 'RH ', env_state%rel_humid
+    !write(*,*) 'temp ', env_state%temp
+    !write(*,*) 'PMC_COND_U ', real_params(PMC_COND_U)
+    !write(*,*) 'PMC_COND_V ', real_params(PMC_COND_V)
+    !write(*,*) 'PMC_COND_W ', real_params(PMC_COND_W)
+    !write(*,*) 'PMC_COND_X ', real_params(PMC_COND_X)
+    !write(*,*) 'PMC_COND_Y ', real_params(PMC_COND_Y)
+    !write(*,*) 'PMC_COND_Z ', real_params(PMC_COND_Z)
+    !write(*,*) 'PMC_COND_K_A ', real_params(PMC_COND_K_A)
+    !write(*,*) 'PMC_COND_D_V ', real_params(PMC_COND_D_V)
+    !write(*,*) 'PMC_COND_KAPPA ', real_params(PMC_COND_KAPPA)
+    !write(*,*) 'PMC_COND_V_DRY ', real_params(PMC_COND_V_DRY)
+    !write(*,*) 'PMC_COND_S ', real_params(PMC_COND_S)
+    !<DEBUG
+
     ! set VODE inputs
     n_eqn = 1
     val(1) = vol2diam(aero_particle_volume(aero_particle))
@@ -259,6 +282,12 @@ contains
     ! ensure volumes stay positive
     aero_particle%vol(aero_data%i_water) = max(0d0, &
          aero_particle%vol(aero_data%i_water))
+
+    !>DEBUG
+    !if (kill_flag) then
+    !   stop
+    !end if
+    !<DEBUG
     
   end subroutine condense_particle_vode
 
@@ -286,12 +315,31 @@ contains
     integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
 
     real(kind=dp) :: delta, diameter, k_ap
+    !>DEBUG
+    real(kind=dp) :: D, kappa, V_dry
+    !<DEBUG
 
     real_params = save_real_params
 
     call assert(383442283, n_eqn == 1)
     delta = 0d0
     diameter = state(1)
+    !>DEBUG
+    !write(*,*) 'condense_vode_f: t,D,De =    ', time, diameter, &
+    !     (diameter - vol2diam(real_params(PMC_COND_V_DRY)))
+    !D = diameter
+    !kappa = real_params(PMC_COND_KAPPA)
+    !V_dry = real_params(PMC_COND_V_DRY)
+    !write(*,*) 'const%pi / 6d0 * D**3 = ', (const%pi / 6d0 * D**3)
+    !write(*,*) 'V_dry = ', (V_dry)
+    !write(*,*) '(kappa - 1d0) = ', ((kappa - 1d0))
+    !write(*,*) '(kappa - 1d0) * V_dry = ', ((kappa - 1d0) * V_dry)
+    !write(*,*) 'const%pi / 6d0 * D**3 - V_dry = ', (const%pi / 6d0 * D**3 - V_dry)
+    !write(*,*) 'const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry = ', (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)
+    !write(*,*) 'a_w ', water_activity(diameter, real_params, integer_params)
+    !write(*,*) 'k_ap ', corrected_thermal_conductivity(diameter, real_params, integer_params)
+    !write(*,*) 'D_vp ', corrected_molecular_diffusion(diameter, real_params, integer_params)
+    !<DEBUG
     call condense_vode_delta_star_newton(delta, diameter, real_params, &
          integer_params)
     k_ap = corrected_thermal_conductivity(diameter, real_params, &
@@ -301,6 +349,7 @@ contains
     !write(*,*) 'condense_vode_f: t,D,De,Dd = ', time, diameter, &
     !     (diameter - vol2diam(real_params(PMC_COND_V_DRY))), state_dot(1)
     !write(*,*) 'condense_vode_f: t,D = ', time, diameter
+    !write(*,*) 'condense_vode_f: delta, Ddot = ', delta, state_dot(1)
     !<DEBUG
 
     ! save value of delta to be used by condense_vode_jac
@@ -451,16 +500,17 @@ contains
           rel_error = abs(finite_diff_dh - dh_ddelta) &
                / (abs(finite_diff_dh) + abs(dh_ddelta))
           if (rel_error > PMC_COND_CHECK_REL_TOL) then
-             !write(0,*) "ERROR: cond_newt: incorrect derivative"
-             !write(0,*) "delta ", delta
-             !write(0,*) "check_delta ", check_delta
-             !write(0,*) "delta_delta ", (check_delta - delta)
-             !write(0,*) "h ", h
-             !write(0,*) "check_h ", check_h
-             !write(0,*) "delta_h ", (check_h - h)
-             !write(0,*) "dh_ddelta ", dh_ddelta
-             !write(0,*) "finite_diff_dh ", finite_diff_dh
-             !write(0,*) "rel_error ", rel_error
+             write(0,*) "ERROR: cond_newt: incorrect derivative"
+             write(0,*) "delta ", delta
+             write(0,*) "check_delta ", check_delta
+             write(0,*) "delta_delta ", (check_delta - delta)
+             write(0,*) "h ", h
+             write(0,*) "check_h ", check_h
+             write(0,*) "delta_h ", (check_h - h)
+             write(0,*) "dh_ddelta ", dh_ddelta
+             write(0,*) "finite_diff_dh ", finite_diff_dh
+             write(0,*) "rel_error ", rel_error
+
              write(0,*) 'ERROR: deriv rel_error = ', rel_error
           end if
        end if
@@ -711,6 +761,13 @@ contains
 
     water_activity = (const%pi / 6d0 * D**3 - V_dry) &
          / (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)
+
+    if (const%pi / 6d0 * D**3 <= V_dry) then
+       water_activity = 0d0
+       !>DEBUG
+       !kill_flag = .true.
+       !<DEBUG
+    end if
 
   end function water_activity
 
@@ -1295,7 +1352,7 @@ contains
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
          !write(*,*) 'hello id =', aero_particle%id
-         env_state%rel_humid=9.50d-1
+         !env_state%rel_humid=9.50d-1
          !write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
           call equilibriate_particle(env_state, aero_data, &
                aero_state%bin(i_bin)%particle(i))

@@ -370,8 +370,11 @@ contains
        call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
 
        if (part_opt%do_condensation) then
-          call aero_state_equilibriate(bin_grid, env_state, aero_data, &
-               aero_state)
+          !<DEBUG
+          write(*,*) 'WARNING: not running aero_state_equilibriate()'
+          !call aero_state_equilibriate(bin_grid, env_state, aero_data, &
+          !     aero_state)
+          !<DEBUG
        end if
        
        if (trim(kernel_name) == 'sedi') then

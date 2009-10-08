@@ -371,9 +371,9 @@ contains
 
        if (part_opt%do_condensation) then
           !<DEBUG
-          write(*,*) 'WARNING: not running aero_state_equilibriate()'
-          !call aero_state_equilibriate(bin_grid, env_state, aero_data, &
-          !     aero_state)
+          !write(*,*) 'WARNING: not running aero_state_equilibriate()'
+          call aero_state_equilibriate(bin_grid, env_state, aero_data, &
+               aero_state)
           !<DEBUG
        end if
        

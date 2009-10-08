@@ -27,6 +27,24 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Prints a warning message.
+  subroutine warn_msg(code, msg)
+
+    !> Status code to use.
+    integer, intent(in) :: code
+    !> Message to display.
+    character(len=*), intent(in) :: msg
+
+    character(len=100) :: code_str
+
+    write(code_str,*) code
+    code_str = adjustl(code_str)
+    write(0,*) 'WARNING (PartMC-', trim(code_str), '): ', trim(msg)
+
+  end subroutine warn_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Errors unless condition_ok is true.
   subroutine assert_msg(code, condition_ok, error_msg)
 

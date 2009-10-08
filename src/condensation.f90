@@ -114,6 +114,9 @@ contains
     ! update the environment due to condensation of water
     call env_state_change_water_volume(env_state, aero_data, &
          (post_water - pre_water) / aero_state%comp_vol)
+    !>DEBUG
+    write(*,*) 'RH post cond = ', env_state%rel_humid
+    !<DEBUG
 
     !write(*,*) 'RH (after update due to cond. ) =', env_state%rel_humid 
 
@@ -1352,7 +1355,7 @@ contains
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
          !write(*,*) 'hello id =', aero_particle%id
-         !env_state%rel_humid=9.50d-1
+         env_state%rel_humid=9.50d-1
          !write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
           call equilibriate_particle(env_state, aero_data, &
                aero_state%bin(i_bin)%particle(i))

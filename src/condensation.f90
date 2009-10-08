@@ -199,7 +199,7 @@ contains
          / (const%univ_gas_const * env_state%temp * rho_water) 
     real_params(PMC_COND_Y) = 2d0 * thermal_conductivity &
          / (const%accom_coeff * env_state_air_den(env_state) &
-         * const%water_spec_heat) &
+         * const%air_spec_heat) &
          * sqrt(2d0 * const%pi * const%air_molec_weight &
          / (const%univ_gas_const * env_state%temp))
     real_params(PMC_COND_Z) = 2d0 * molecular_diffusion &

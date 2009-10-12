@@ -7,22 +7,22 @@
 
 \begin{align}
   U &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T}\\
-  V &= \frac{4 M_{\rm w} P^{\rm 0}}{\rho_{\rm w} R T} \displaybreak[0] \\
+  V &= \frac{4 M_{\rm w} P^{\rm 0}(T)}{\rho_{\rm w} R T} \displaybreak[0] \\
   W &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T} \displaybreak[0] \\
   X &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T \rho_{\rm w}} \displaybreak[0] \\
   Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \displaybreak[0] \\
   Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \displaybreak[0] \\
-  k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \displaybreak[0] \\
-  k_{\rm a} &= 10^{-3} (4.39 + 0.071  T); \qquad \text{$k_{\rm a}$ in $\rm J\,m^{-1}\, s^{-1} \, K^{-1}$, $T$ in K, }  \displaybreak[0] \\
-  D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \displaybreak[0] \\
-  D_{\rm v} &= \frac{0.211 \cdot 10^{-4}}{p / p_0} \left(\frac{T}{273}\right)^{1.94} \qquad \text{$D_{\rm v}$ in $\rm m^2\, s^{-1}$, $T$ in K, $p$ in Pa.}\displaybreak[0] \\
+  \rho_{\rm  air} & = \frac{M_{\rm air} p}{R T}\label{eq:rho_air} \displaybreak[0] \\
+  P^0(T) & = 611.2 10^{7.45(T-273.15)/(T-38)} \label{eq:sat_vap} \displaybreak[0] \\
+  k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \label{eq:therm_cond_corr}\displaybreak[0] \\
+  k_{\rm a} &= 10^{-3} (4.39 + 0.071  T); \qquad \text{$k_{\rm a}$ in $\rm J\,m^{-1}\, s^{-1} \, K^{-1}$, $T$ in K, } \label{eq:therm_cond} \displaybreak[0] \\
+  D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \label{eq:diff_ko_corr} \displaybreak[0] \\
+  D_{\rm v} &= \frac{0.211 \cdot 10^{-4}}{p / p_0} \left(\frac{T}{273}\right)^{1.94} \qquad \text{$D_{\rm v}$ in $\rm m^2\, s^{-1}$, $T$ in K, $p$ in Pa.} \label{eq:diff_ko}\displaybreak[0] \\
   a_{\rm w}(D) &= \frac{D^3 - D_{\rm dry}^3}{D^3 + (\kappa - 1) D_{\rm dry}^3} \label{eq:aw}\displaybreak[0] \\
    \kappa_i &= \frac{M_{\rm w} \rho_{i}}{M_{i}  \rho_{\rm w}}; \qquad \text{assuming number of ions per dissociation is 1.} \label{eq:kappa_indiv}\displaybreak[0] \\
    \kappa &= \sum_i \kappa_i \frac{D_i^3}{D_{\rm dry}^3} \label{eq:kappa}\displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \delta &=\frac{U}{k_{\rm a}'} D \dot{D}(D,H) \label{eq:delta}\displaybreak[0] \\ 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-  h(\delta, D, H) &= k_{\rm a}'(D) \delta
+    h(\delta, D, H) &= k_{\rm a}'(D) \delta
   - U V D_{\rm v}'(D) \Biggl(H - \biggl(\frac{1}{1+\delta}\biggr)
   a_{\rm w}(D)
   \exp\biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\biggr) \Biggr) \displaybreak[0] \\
@@ -57,7 +57,7 @@
   \frac{\partial D_{\rm v}'}{\partial D}(D) &= \frac{D_{\rm v} Z}{(D+Z)^2} \displaybreak[0] \\
   \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{3 D^2 \kappa D_{\rm dry}}{(D^3 + (\kappa - 1) D_{\rm dry}^3)^2} \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{D}(D, H) &= \frac{k_{\rm a}'(D) \delta^*(D,H)}{U D} \displaybreak[0] \\
+  \dot{D}(D, H) &= \frac{k_{\rm a}'(D) \delta^*(D,H)}{U D} \label{eq:delta_star} \displaybreak[0] \\
   \frac{\partial \dot{D}}{\partial D}(D, H) &=
   \frac{1}{U D} 
   \frac{\partial k_{\rm a}'}{\partial D}(D) \delta^*(D, H)
@@ -76,34 +76,37 @@
 
 \vspace{2cm}
 \begin{tabular}{lp{4cm}clp{3cm}}
-\hline Symbol & Meaning  &  Attribute  & Numerical value &  Reference    \\
+\hline Symbol & Meaning  & Numerical value &  Reference    \\
 \hline             
-$\alpha$   &  thermal accommodation coefficient   & constant   & 1.0 & S\&P 15.76  \verb+const%accom_coeff+ \\
-$M_{\rm air} $      &  molecular weight of air  &   constant  & $2.89644 \times 10^{-2} $  $\rm{kg \,mol^{-1}}$ &  \verb+air_molec_weight+   \\
-$M_{\rm w} $    &  molecular weight of water  &  constant & $18\times10^{-3}$ $\rm{kg \, mol^{-1}}  $  &  \verb+aero_particle_water_molec_weight+    \\
-$M_i $      &  molecular weight of aerosol species $i$  &   constant  & species dependent &    \\
-$c_{\rm p}$       &  specific heat capacity of air at constant pressure  & constant & 1004 $\rm{J \, kg^{-1}}$ & -     \\
-$\rho_{\rm w}$ &  density of water & constant  & $1\times10^{3}$ $\rm{kg \, m^{-3}}  $ &   \verb+aero_particle_water_density+ \\ 
-$ \rho_i$    &  aerosol density  &  constant  & species dependent  &     \\
-$\kappa_i$      &  hygroscopicity of component $i$   &  constant & species dependent  &  eq.~\ref{eq:kappa_indiv}   \\
-$R$     &  universal gas constant  &  constant   & 8.314 $\rm{J \, mol^{-1}\, K^{-1}}$   &  \verb+const%univ_gas_const+ \\
-$\sigma_{\rm w}$     &  surface tension (or surface energy) of water  &  constant  & 0.073 $\rm{J \, m^{-2}}$ & S\&P 15.5  \verb+const%water_surf_eng+  \\
-$\Delta H_{\rm  v}$  & latent heat of vaporization of water   &  constant  & $2.272\times10^{6}$ $\rm{J \, kg^{-1}}$ &  S\&P 15.3 \verb+const%water_latent_heat+ \\ 
-
+$\alpha$   &  thermal accommodation coefficient    & 1.0 & S\&P 15.76  \verb+const%accom_coeff+ \\
+$M_{\rm air} $      &  molecular weight of air      & $2.89644 \times 10^{-2} $  $\rm{kg \,mol^{-1}}$ &  \verb+const%air_molec_weight+   \\
+$M_{\rm w} $    &  molecular weight of water        & $18\times10^{-3}$ $\rm{kg \, mol^{-1}}  $  &  \verb+const%water_molec_weight+    \\
+$M_i $      &  molecular weight of aerosol species $i$  & species dependent &    \\
+$c_{\rm p}$       &  specific heat capacity of air at constant pressure  & 1004 $\rm{J \, kg^{-1}}$ & \verb+const%air_spec_heat+     \\
+$\rho_{\rm w}$ &  density of water & $1\times10^{3}$ $\rm{kg \, m^{-3}}  $ &   \verb+const%water_density+ \\ 
+$ \rho_i$    &  aerosol density   & species dependent  &     \\
+$\kappa_i$      &  hygroscopicity of component $i$   & species dependent  &  eq.~\ref{eq:kappa_indiv}   \\
+$R$     &  universal gas constant  & 8.314 $\rm{J \, mol^{-1}\, K^{-1}}$   &  \verb+const%univ_gas_const+ \\
+$\sigma_{\rm w}$     &  surface tension (or surface energy) of water  & 0.073 $\rm{J \, m^{-2}}$ & S\&P 15.5  \verb+const%water_surf_eng+  \\
+$\Delta H_{\rm  v}$  & latent heat of vaporization of water   & $2.272\times10^{6}$ $\rm{J \, kg^{-1}}$ &  S\&P 15.3 \verb+const%water_latent_heat+ \\ 
+$p_0$ & standard surface pressure &  101300 Pa & \verb+const%air_std_press+ \\
+$p$     &  environmental air pressure & input  (Pa) &  \verb+env_state%pressure+ \\
+$T$     &  environmental temperature  & input  (K) &  \verb+env_state%temp+  \\
+$D_{\rm dry}$       & dry diameter of the aerosol particle   & input ($\rm m$) &    \\
+$V_{\rm comp}$ & computational volume & input ($\rm m^3$) & \verb+env_state%comp_vol+\\
 \hline
-$D_{\rm v}$     & diffusivity coefficient   &  variable & local &  S\&P 15.65  \\
-$\delta$  & growth parameter &  variable & output & eq.~\ref{eq:delta}\\
-$D$     &  droplet wet diameter  & variable  & input/output &   -   \\
-$a_{\rm w}$  & water activity  &variable & local & eq.~\ref{eq:aw},  function aw  \\
-$\kappa$      &  overall hygroscopicity   &  variable & input/output  &  eq.~\ref{eq:kappa}, subrountine \verb+compute_kappa()+   \\
-$ \rho_{\rm air}$    &  air density   &  variable  & input  &  \verb+env_state.f90+   \\
-$k_{\rm a} $     & thermal conductivity of air    &  variable & local &   S\&P 15.75   \\
-$p$     &  environmental air pressure &  variable  & input  &  \verb+env_state%pressure+ \\
-$P^0$   & saturation vapor pressure &  variable & local &  function \verb+env_state_sat_vapor_pressure+  \\
-$H$     &  environmental relative humidity  &  variable  & input  &  \verb+env_state%rel_humid+  \\
-$T$     &  environmental temperature  &  variable  & input  &  \verb+env_state%temp+  \\
-$D_{\rm dry}$       & dry diameter of the aerosol particle   &  variable  & input ($\rm m$) &    \\
-$V_{\rm comp}$ & computational volume & variable & input ($\rm m^3$) & \\
+$D_{\rm v}$     & diffusivity coefficient   &  function &eq.~\ref{eq:diff_ko}, S\&P 15.65  \\
+$D_{\rm v}'$     & corrected diffusivity coefficient   &  function & eq.~\ref{eq:diff_ko_corr}, S\&P 15.xx  \\
+$\delta^*$  & growth parameter &  & eq.~\ref{eq:delta_star}\\
+$a_{\rm w}$  & water activity  & function & eq.~\ref{eq:aw}   \\
+$\kappa$      &  overall hygroscopicity   &  function &  eq.~\ref{eq:kappa}  \\
+$ \rho_{\rm air}$    &  air density   &  function &  eq.~\ref{eq:rho_air}  \\
+$k_{\rm a} $     & thermal conductivity of air    &  function&  eq.~\ref{eq:therm_cond} S\&P 15.75   \\
+$k_{\rm a}' $    & corrected thermal conductivity of air    &  function &  eq.~\ref{eq:therm_cond_corr} S\&P 15.xx   \\
+$P^0$   & saturation vapor pressure &  function & eq.~\ref{eq:sat_vap}  \\
+$D$     &  droplet wet diameter  & dynamical variable  &     \\
+$H$     &  environmental relative humidity  &  dynamical variable &  \\
+
 \hline 
 \end{tabular}
 

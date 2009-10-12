@@ -63,6 +63,9 @@
   \frac{\partial k_{\rm a}'}{\partial D}(D) \delta^*(D, H)
   + \frac{1}{U D} k_{\rm a}'(D) \frac{\partial \delta^*}{\partial D}(D, H)
   - \frac{1}{U D^2} k_{\rm a}'(D) \delta^*(D, H) \displaybreak[0] \\
+  \frac{\partial \dot{D}}{\partial H}(D, H) &=
+  \frac{k_{\rm a}'(D)}{U D} 
+  \frac{\partial \delta^*}{\partial H}(D, H) \displaybreak[0] \\
   \dot{H}(D,H) &= - \frac{2 \pi D^2}{V V_{\rm comp}} \dot{D}(D,H) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial D}(D,H) &=
   - \frac{2 \pi}{V V_{\rm comp}}
@@ -97,7 +100,7 @@ $V_{\rm comp}$ & computational volume & input ($\rm m^3$) & \verb+env_state%comp
 \hline
 $D_{\rm v}$     & diffusivity coefficient   &  function &eq.~\ref{eq:diff_ko}, S\&P 15.65  \\
 $D_{\rm v}'$     & corrected diffusivity coefficient   &  function & eq.~\ref{eq:diff_ko_corr}, S\&P 15.66  \\
-$\delta^*$  & growth parameter &  & eq.~\ref{eq:delta_star}\\
+$\delta^*$  & growth parameter & function & eq.~\ref{eq:delta_star}\\
 $a_{\rm w}$  & water activity  & function & eq.~\ref{eq:aw}   \\
 $\kappa$      &  overall hygroscopicity   &  function &  eq.~\ref{eq:kappa}  \\
 $ \rho_{\rm air}$    &  air density   &  function &  eq.~\ref{eq:rho_air}  \\

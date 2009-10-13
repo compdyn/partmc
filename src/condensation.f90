@@ -52,8 +52,8 @@ module pmc_condensation
 
   !>DEBUG
   !logical, save :: kill_flag = .false.
-  integer, save :: i_call_f
-  integer, pointer, save :: n_call_f(:)
+  !integer, save :: i_call_f
+  !integer, pointer, save :: n_call_f(:)
   !<DEBUG
 contains
   
@@ -173,9 +173,9 @@ contains
     end if
 
     !>DEBUG
-    allocate(n_call_f(aero_state%n_part))
-    n_call_f = 0
-    i_call_f = 0
+    !allocate(n_call_f(aero_state%n_part))
+    !n_call_f = 0
+    !i_call_f = 0
     !<DEBUG
 
     ! set VODE inputs
@@ -190,12 +190,12 @@ contains
     iopt = 0 ! no optional inputs
     method_flag = 26 ! stiff (BDF) method, user-supplied sparse Jacobian
 
-    options = set_normal_opts(sparse_j = .true., &
+    options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
          abserr = abs_tol(1), relerr = rel_tol(1))
     save_real_params = real_params
     call dvode_f90(condense_vode_unified_f, n_eqn, state, init_time, final_time, &
-         itask, istate, options, j_fcn = condense_vode_jac)
+         itask, istate, options, j_fcn = condense_vode_unified_jac)
 
     if (rh_first) then
        env_state%rel_humid = state(1)
@@ -234,8 +234,8 @@ contains
 
     !>DEBUG
     write(*,*) 'RH post cond = ', env_state%rel_humid
-    write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
-         minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
+    !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
+    !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
     !<DEBUG
 
     deallocate(cond_kappa)
@@ -284,7 +284,7 @@ contains
        do j = 1,aero_state%bin(i_bin)%n_part
           !write(*,*) 'i_bin= ', i_bin, 'j =',  j
           !>DEBUG
-          i_call_f = i_call_f + 1
+          !i_call_f = i_call_f + 1
           !<DEBUG
           call condense_particle_vode(del_t, env_state, aero_data, &
                aero_state%bin(i_bin)%particle(j))
@@ -577,7 +577,7 @@ contains
     delta = 0d0
     diameter = state(1)
     !>DEBUG
-    n_call_f(i_call_f) = n_call_f(i_call_f) + 1
+    !n_call_f(i_call_f) = n_call_f(i_call_f) + 1
     !write(*,*) 'condense_vode_f: t,D,De =    ', time, diameter, &
     !     (diameter - vol2diam(real_params(PMC_COND_V_DRY)))
     !D = diameter

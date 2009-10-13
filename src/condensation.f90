@@ -105,7 +105,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     integer :: n_eqn, tol_types, itask, istate, iopt, method_flag
     real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time, rel_tol(1)
-    real(kind=dp) :: abs_tol(1)
+    real(kind=dp) :: abs_tol(1), abs_tol_vector(aero_state%n_part + 1)
     real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
     integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
     real(kind=dp) :: rho_water, M_water
@@ -164,12 +164,16 @@ contains
           cond_kappa(i_part) = aero_particle_solute_kappa(aero_particle, aero_data)
           cond_D_dry(i_part) = aero_particle_solute_volume(aero_particle, aero_data)
           state(i_part + d_offset) = aero_particle_diameter(aero_particle)
+          abs_tol_vector(i_part + d_offset) = max(1d-12, &
+               1d-8 * (state(i_part + d_offset) - cond_D_dry(i_part)))
        end do
     end do
     if (rh_first) then
        state(1) = env_state%rel_humid
+       abs_tol_vector(1) = 1d-10
     else
        state(aero_state%n_part + 1) = env_state%rel_humid
+       abs_tol_vector(aero_state%n_part + 1) = 1d-10
     end if
 
     !>DEBUG
@@ -182,9 +186,8 @@ contains
     n_eqn = aero_state%n_part + 1
     init_time = 0d0
     final_time = del_t
-    tol_types = 1 ! both rel_tol and abs_tol are scalars
-    rel_tol(1) = 1d-6
-    abs_tol(1) = 1d-10
+    rel_tol(1) = 1d-8
+    !abs_tol(1) = 1d-10
     itask = 1 ! just output val at final_time
     istate = 1 ! first call for this ODE
     iopt = 0 ! no optional inputs
@@ -192,7 +195,7 @@ contains
 
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
-         abserr = abs_tol(1), relerr = rel_tol(1))
+         abserr_vector = abs_tol_vector, relerr = rel_tol(1))
     save_real_params = real_params
     call dvode_f90(condense_vode_unified_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_unified_jac)

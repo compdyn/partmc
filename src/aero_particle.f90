@@ -272,6 +272,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total diameter of the particle (m).
+  real(kind=dp) function aero_particle_diameter(aero_particle)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
+    aero_particle_diameter = vol2diam(sum(aero_particle%vol))
+
+  end function aero_particle_diameter
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Average density of the particle (kg/m^3).
   real(kind=dp) function aero_particle_density(aero_particle, aero_data)
 
@@ -547,6 +559,10 @@ contains
     integer :: i_spec
 
     do i_spec = 1,aero_data%n_spec
+       !>DEBUG
+       !write(*,*) 'i_spec,num_ions,kappa ', &
+       !     i_spec, aero_data%num_ions(i_spec), aero_data%kappa(i_spec)
+       !<DEBUG
        if (aero_data%num_ions(i_spec) > 0) then
           call assert_msg(123681459, aero_data%kappa(i_spec) == 0d0, &
                "species has nonzero num_ions and kappa: " &
@@ -564,7 +580,10 @@ contains
     aero_particle_solute_kappa &
          = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, kappa)
-
+    !>DEBUG
+    !stop
+    !<DEBUG
+    
   end function aero_particle_solute_kappa
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

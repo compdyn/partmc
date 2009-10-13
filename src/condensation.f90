@@ -613,7 +613,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!                SUBROUTINE JAC (N, T, Y, IA, JA, NZ, PD)
   subroutine condense_vode_unified_jac(n_eqn, time, state, ia, ja, &
        n_non_zero, state_jac)
 
@@ -624,13 +623,13 @@ contains
     !> Current state vector.
     real(kind=dp), intent(in) :: state(n_eqn)
     !> Non-zero column offsets.
-    integer, intent(out) :: ia(:)
+    integer, intent(out) :: ia(*)
     !> Non-zero row locations.
-    integer, intent(out) :: ja(:)
+    integer, intent(out) :: ja(*)
     !> Number of non-zero elements in the Jacobian.
     integer, intent(inout) :: n_non_zero
     !> Sparse Jacobian of time derivative of state vector.
-    real(kind=dp), intent(out) :: state_jac(:)
+    real(kind=dp), intent(out) :: state_jac(*)
 
     real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
@@ -649,9 +648,9 @@ contains
     end if
     
     call assert(746653549, n_non_zero == 3 * n_eqn - 2)
-    call assert(118353281, size(ia) == n_eqn + 1)
-    call assert(796050890, size(ja) == n_non_zero)
-    call assert(622939472, size(state_jac) == n_non_zero)
+    !call assert(118353281, size(ia) == n_eqn + 1)
+    !call assert(796050890, size(ja) == n_non_zero)
+    !call assert(622939472, size(state_jac) == n_non_zero)
 
     if (rh_first) then
        rel_humid = state(1)

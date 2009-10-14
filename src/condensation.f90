@@ -63,17 +63,20 @@ module pmc_condensation
   type(env_data_t) :: condense_saved_env_data
   type(env_state_t) :: condense_saved_env_state
   real(kind=dp) :: condense_saved_V_comp
+  real(kind=dp) :: condense_saved_Tdot
   real(kind=dp), pointer, save :: cond_kappa(:) ! FIXME: rename to saved_kappa, make allocatable, no save
   real(kind=dp), pointer, save :: cond_D_dry(:) ! FIXME: rename to saved_D_dry, make allocatable, no save
 
   type condense_params_t
      real(kind=dp) :: T
+     real(kind=dp) :: Tdot
      real(kind=dp) :: H
      real(kind=dp) :: p
      real(kind=dp) :: V_comp
      real(kind=dp) :: rho_w
      real(kind=dp) :: M_w
      real(kind=dp) :: P_0
+     real(kind=dp) :: dP0_dT
      real(kind=dp) :: rho_air
      real(kind=dp) :: k_a
      real(kind=dp) :: D_v
@@ -162,6 +165,7 @@ contains
     real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
     type(vode_opts) :: options
+    type(env_state_t) :: env_state_final
 
     pre_water = 0d0
     do i_bin = 1,bin_grid%n_bin
@@ -178,7 +182,15 @@ contains
     call aero_data_copy(aero_data, condense_saved_aero_data)
     call env_data_copy(env_data, condense_saved_env_data)
     call env_state_copy(env_state, condense_saved_env_state)
+
     condense_saved_V_comp = aero_state%comp_vol
+    
+    call env_state_allocate(env_state_final)
+    call env_state_copy(env_state, env_state_final)
+    call env_data_update_state(env_data, env_state_final, &
+         env_state_final%elapsed_time + del_t)
+    condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
+    call env_state_deallocate(env_state_final)
 
     allocate(cond_kappa(aero_state%n_part))
     allocate(cond_D_dry(aero_state%n_part))
@@ -190,7 +202,7 @@ contains
           cond_kappa(i_part) = aero_particle_solute_kappa(aero_particle, aero_data)
           cond_D_dry(i_part) = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
           state(i_part + d_offset) = aero_particle_diameter(aero_particle)
-          abs_tol_vector(i_part + d_offset) = max(1d-12, &
+          abs_tol_vector(i_part + d_offset) = max(1d-30, &
                1d-8 * (state(i_part + d_offset) - cond_D_dry(i_part)))
        end do
     end do
@@ -724,6 +736,10 @@ contains
        rel_humid_dot = rel_humid_dot - 2d0 * const%pi * diameter(1)**2 &
             / (save_real_params(PMC_COND_V) * save_real_params(PMC_COND_V_COMP)) &
             * diameter_dot(1)
+       !>DEBUG
+       !write(*,*) 'Hdot ', rel_humid_dot
+       !stop
+       !<DEBUG
     end do
 
     if (rh_first) then
@@ -763,7 +779,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_params_global(p, env_state, aero_data, V_comp)
+  subroutine condense_params_global(p, env_state, aero_data, V_comp, Tdot)
 
     !> Condensation parameters.
     type(condense_params_t), intent(out) :: p
@@ -773,6 +789,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: V_comp
+    !> Temperature rate of change (K/s).
+    real(kind=dp), intent(in) :: Tdot
 
     p%T = env_state%temp
     p%H = env_state%rel_humid
@@ -782,6 +800,7 @@ contains
     p%rho_w = aero_particle_water_density(aero_data)
     p%M_w = aero_particle_water_molec_weight(aero_data)
     p%P_0 = env_state_sat_vapor_pressure(env_state)
+    p%dP0_dT = p%P_0 * 7.45d0 * log(10d0) * (273.15d0 - 38d0) / (p%T - 38d0)**2
     p%rho_air = env_state_air_den(env_state)
 
     p%k_a = 1d-3 * (4.39d0 + 0.071d0 * p%T)
@@ -819,17 +838,41 @@ contains
     p%kappa = kappa
     p%D_dry = D_dry
 
+    if (D <= D_dry) then
+       p%k_ap = p%k_a / (1d0 + p%Y / p%D_dry)
+       p%dkap_dD = 0d0
+       p%D_vp = p%D_v / (1d0 + p%Z / p%D_dry)
+       p%dDvp_dD = 0d0
+       p%a_w = 0d0
+       p%daw_dD = 0d0
+
+       p%delta_star = p%U * p%V * p%D_vp * p%H / p%k_ap
+       
+       p%Ddot = p%k_ap * p%delta_star / (p%U * p%D_dry)
+       p%Hdot = - 2d0 * const%pi * p%D_dry**2 / (p%V * p%V_comp) * p%Ddot
+       
+       p%dh_ddelta = p%k_ap
+       p%dh_dD = 0d0
+       p%dh_dH = - p%U * p%V * p%D_vp
+
+       p%ddeltastar_dD = - p%dh_dD / p%dh_ddelta
+       p%ddeltastar_dH = - p%dh_dH / p%dh_ddelta
+       
+       p%dDdot_dD = 0d0
+       p%dDdot_dH = p%k_ap / (p%U * p%D_dry) * p%ddeltastar_dH
+       p%dHdot_dD = 0d0
+       p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D_dry**2 * p%dDdot_dH
+
+       return
+    end if
+
     p%k_ap = p%k_a / (1d0 + p%Y / p%D)
     p%dkap_dD = p%k_a * p%Y / (p%D + p%Y)**2
     p%D_vp = p%D_v / (1d0 + p%Z / p%D)
     p%dDvp_dD = p%D_v * p%Z / (p%D + p%Z)**2
-    if (p%D > p%D_dry) then
-       p%a_w = (p%D**3 - p%D_dry**3) &
-            / (p%D**3 + (p%kappa - 1d0) * p%D_dry**3)
-    else
-       p%a_w = 0d0
-    end if
-    p%daw_dD = 3d0 * p%D**2 * p%kappa * p%D_dry &
+    p%a_w = (p%D**3 - p%D_dry**3) &
+         / (p%D**3 + (p%kappa - 1d0) * p%D_dry**3)
+    p%daw_dD = 3d0 * p%D**2 * p%kappa * p%D_dry**3 &
          / (p%D**3 + (p%kappa - 1d0) * p%D_dry**3)**2
 
     delta = 0d0
@@ -859,6 +902,47 @@ contains
     p%dHdot_dD = - 2d0 * const%pi / (p%V * p%V_comp) &
          * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
     p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D**2 * p%dDdot_dH
+
+    !>DEBUG
+    !write(*,*) 'T ', p%T
+    !write(*,*) 'H ', p%H
+    !write(*,*) 'p ', p%p
+    !write(*,*) 'V_comp ', p%V_comp
+    !write(*,*) 'rho_w ', p%rho_w
+    !write(*,*) 'M_w ', p%M_w
+    !write(*,*) 'P_0 ', p%P_0
+    !write(*,*) 'rho_air ', p%rho_air
+    !write(*,*) 'k_a ', p%k_a
+    !write(*,*) 'D_v ', p%D_v
+    !write(*,*) 'U ', p%U
+    !write(*,*) 'V ', p%V
+    !write(*,*) 'W ', p%W
+    !write(*,*) 'X ', p%X
+    !write(*,*) 'Y ', p%Y
+    !write(*,*) 'Z ', p%Z
+    !write(*,*) 'D ', p%D
+    !write(*,*) 'kappa ', p%kappa
+    !write(*,*) 'D_dry ', p%D_dry
+    !write(*,*) 'k_ap ', p%k_ap
+    !write(*,*) 'dkap_dD ', p%dkap_dD
+    !write(*,*) 'D_vp ', p%D_vp
+    !write(*,*) 'dDvp_dD ', p%dDvp_dD
+    !write(*,*) 'a_w ', p%a_w
+    !write(*,*) 'daw_dD ', p%daw_dD
+    !write(*,*) 'delta_star ', p%delta_star
+    !write(*,*) 'Ddot ', p%Ddot
+    !write(*,*) 'Hdot ', p%Hdot
+    !write(*,*) 'dh_ddelta ', p%dh_ddelta
+    !write(*,*) 'dh_dD ', p%dh_dD
+    !write(*,*) 'dh_dH ', p%dh_dH
+    !write(*,*) 'ddeltastar_dD ', p%ddeltastar_dD
+    !write(*,*) 'ddeltastar_dH ', p%ddeltastar_dH
+    !write(*,*) 'dDdot_dD ', p%dDdot_dD
+    !write(*,*) 'dDdot_dH ', p%dDdot_dH
+    !write(*,*) 'dHdot_dD ', p%dHdot_dD
+    !write(*,*) 'dHdot_dH ', p%dHdot_dH
+    !stop
+    !<DEBUG
 
   end subroutine condense_params_per_particle
 
@@ -909,7 +993,6 @@ contains
     real(kind=dp), intent(out) :: state_dot(n_eqn)
 
     real(kind=dp) :: D, kappa, D_dry, Hdot
-    real(kind=dp) :: rel_humid, rel_humid_dot
     integer :: i_part
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
@@ -917,8 +1000,11 @@ contains
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         condense_saved_V_comp)
+         condense_saved_V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
+    !>DEBUG
+    write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
+    !<DEBUG
 
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
@@ -929,6 +1015,7 @@ contains
        state_dot(i_part + d_offset) = p%Ddot
        Hdot = Hdot + p%Hdot
     end do
+    Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
 
     if (rh_first) then
        state_dot(1) = Hdot
@@ -994,6 +1081,22 @@ contains
          integer_params)
     state_dot(1) = k_ap * delta / (real_params(PMC_COND_U) * diameter)
     !>DEBUG
+    !write(*,*) 'U ', real_params(PMC_COND_U)
+    !write(*,*) 'V ', real_params(PMC_COND_V)
+    !write(*,*) 'W ', real_params(PMC_COND_W)
+    !write(*,*) 'X ', real_params(PMC_COND_X)
+    !write(*,*) 'Y ', real_params(PMC_COND_Y)
+    !write(*,*) 'Z ', real_params(PMC_COND_Z)
+    !write(*,*) 'k_a ', real_params(PMC_COND_K_A)
+    !write(*,*) 'D_v ', real_params(PMC_COND_D_V)
+    !write(*,*) 'kappa ', real_params(PMC_COND_KAPPA)
+    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
+    !write(*,*) 'H ', real_params(PMC_COND_S)
+    !write(*,*) 'V_comp ', real_params(PMC_COND_V_COMP)
+    !write(*,*) 'k_ap ', k_ap
+    !write(*,*) 'Ddot ', state_dot(1)
+    !<DEBUG
+    !>DEBUG
     !write(*,*) 'condense_vode_f: t,D,De,Dd = ', time, diameter, &
     !     (diameter - vol2diam(real_params(PMC_COND_V_DRY))), state_dot(1)
     !write(*,*) 'condense_vode_f: t,D = ', time, diameter
@@ -1045,7 +1148,7 @@ contains
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         condense_saved_V_comp)
+         condense_saved_V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
 
     dHdot_dH = 0d0
@@ -1059,6 +1162,7 @@ contains
        dHdot_dD(i_part) = p%dHdot_dD
        dHdot_dH = dHdot_dH + p%dHdot_dH
     end do
+    dHdot_dH = dHdot_dH - (1d0 / p%P_0) * p%dP0_dT * p%Tdot
 
     ! Copied from dvode_f90_m documentation:
     !
@@ -1216,6 +1320,21 @@ contains
             + diameter(1)**2 * dDdot_dD(i_part))
        dHdot_dH = dHdot_dH - 2d0 * const%pi / (V * V_comp) &
             * diameter(1)**2 * dDdot_dH(i_part)
+       !>DEBUG
+       !write(*,*) 'dDdot_dD ', dDdot_dD(i_part)
+       !write(*,*) 'D ', D
+       !write(*,*) 'delta_star ', delta_star
+       !write(*,*) 'k_ap ', k_ap
+       !write(*,*) 'D_vp ', D_vp
+       !write(*,*) 'dkap_dD ', dkap_dD
+       !write(*,*) 'dh_dH ', dh_dH
+       !write(*,*) 'dh_ddelta ', dh_ddelta
+       !write(*,*) 'ddeltastar_dH ', ddeltastar_dH
+       !write(*,*) 'dDdot_dH ', dDdot_dH(i_part)
+       !write(*,*) 'dHdot_dD ', dHdot_dD(i_part)
+       !write(*,*) 'dHdot_dH ', dHdot_dH
+       !stop
+       !<DEBUG
     end do
 
     ! Copied from dvode_f90_m documentation:
@@ -1344,6 +1463,27 @@ contains
     state_jac(1,1) = dkap_dD * delta_star / (U * D) &
          + k_ap * ddeltastar_dD / (U * D) &
          - k_ap * delta_star / (U * D**2)
+    !>DEBUG
+    !write(*,*) 'U ', real_params(PMC_COND_U)
+    !write(*,*) 'V ', real_params(PMC_COND_V)
+    !write(*,*) 'W ', real_params(PMC_COND_W)
+    !write(*,*) 'X ', real_params(PMC_COND_X)
+    !write(*,*) 'Y ', real_params(PMC_COND_Y)
+    !write(*,*) 'Z ', real_params(PMC_COND_Z)
+    !write(*,*) 'k_a ', real_params(PMC_COND_K_A)
+    !write(*,*) 'D_v ', real_params(PMC_COND_D_V)
+    !write(*,*) 'kappa ', real_params(PMC_COND_KAPPA)
+    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
+    !write(*,*) 'H ', real_params(PMC_COND_S)
+    !write(*,*) 'V_comp ', real_params(PMC_COND_V_COMP)
+    !write(*,*) 'k_ap ', k_ap
+    !write(*,*) 'dkap_dD ', dkap_dD
+    !write(*,*) 'dh_dD ', dh_dD
+    !write(*,*) 'dh_ddelta ', dh_ddelta
+    !write(*,*) 'ddeltastar_dD ', ddeltastar_dD
+    !write(*,*) 'dDdot_dD ', state_jac(1,1)
+    !write(*,*) 'D ', D
+    !<DEBUG
 
   end subroutine condense_vode_jac
 

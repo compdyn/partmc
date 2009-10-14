@@ -1406,7 +1406,7 @@ contains
        end if
 
        if (iter .ge. iter_max) then
-          call die_msg(136296873, 'Newton iteration failed to terminate')
+          call die_msg(720859756, 'Newton iteration failed to terminate')
        end if
        
        ! FIXME: gfortran 4.1.1 requires the "then" in the following

@@ -14,65 +14,66 @@
   Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \displaybreak[0] \\
   \rho_{\rm  air} & = M_{\rm air} \frac{p}{R T}\label{eq:rho_air} \displaybreak[0] \\
   P^0(T) & = 611.2 \times 10^{7.45(T-273.15)/(T-38)} \qquad \text{$T$ in K, $P^0$ in Pa.} \label{eq:sat_vap} \displaybreak[0] \\
-  k_{\rm a}'(D) &= \frac{k_{\rm a}}{1 + Y / D} \label{eq:therm_cond_corr}\displaybreak[0] \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  k_{\rm a}'(D_i) &= \frac{k_{\rm a}}{1 + Y / D_i} \label{eq:therm_cond_corr}\displaybreak[0] \\
   k_{\rm a} &= 10^{-3} (4.39 + 0.071  T); \qquad \text{$k_{\rm a}$ in $\rm J\,m^{-1}\, s^{-1} \, K^{-1}$, $T$ in K. } \label{eq:therm_cond} \displaybreak[0] \\
-  D_{\rm v}'(D) &= \frac{D_{\rm v}}{1 + Z / D} \label{eq:diff_ko_corr} \displaybreak[0] \\
+  D_{\rm v}'(D_i) &= \frac{D_{\rm v}}{1 + Z / D_i} \label{eq:diff_ko_corr} \displaybreak[0] \\
   D_{\rm v} &= \frac{0.211 \cdot 10^{-4}}{p / p_0} \left(\frac{T}{273}\right)^{1.94} \qquad \text{$D_{\rm v}$ in $\rm m^2\, s^{-1}$, $T$ in K, $p$ in Pa.} \label{eq:diff_ko}\displaybreak[0] \\
-  a_{\rm w}(D) &= \frac{D^3 - D_{\rm dry}^3}{D^3 + (\kappa - 1) D_{\rm dry}^3} \label{eq:aw}\displaybreak[0] \\
-   \kappa_i &= \frac{M_{\rm w} \rho_{i}}{M_{i}  \rho_{\rm w}}; \qquad \text{assuming number of ions per dissociation is 1.} \label{eq:kappa_indiv}\displaybreak[0] \\
-   \kappa &= \sum_i \kappa_i \frac{D_i^3}{D_{\rm dry}^3} \label{eq:kappa}\displaybreak[0] \\
+  a_{\rm w}(D_i) &= \frac{D_i^3 - D_{i, \rm dry}^3}{D_i^3 + (\kappa - 1) D_{i, \rm dry}^3} \label{eq:aw}\displaybreak[0] \\
+   \kappa^a &= \frac{M_{\rm w} \rho_{a}}{M_{a}  \rho_{\rm w}}; \qquad \text{assuming number of ions per dissociation is 1.} \label{eq:kappa_indiv}\displaybreak[0] \\
+   \kappa_i &= \sum_a \kappa^a \frac{V_{\rm dry}^a}{V_{\rm dry}} \label{eq:kappa}\displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    h(\delta, D, H) &= k_{\rm a}'(D) \delta
-  - U V D_{\rm v}'(D) \Biggl(H - \biggl(\frac{1}{1+\delta}\biggr)
-  a_{\rm w}(D)
-  \exp\biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\biggr) \Biggr) \displaybreak[0] \\
+    h(\delta, D_i, H) &= k_{\rm a}'(D_i) \delta
+  - U V D_{\rm v}'(D_i) \Biggl(H - \biggl(\frac{1}{1+\delta}\biggr)
+  a_{\rm w}(D_i)
+  \exp\biggl(W \frac{\delta}{1+\delta} + \frac{X}{D_i} \frac{1}{1+\delta}\biggr) \Biggr) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  0 &= h(\delta^*(D,H), D, H) \displaybreak[0] \\
-  0 &= \frac{d}{d D} h(\delta^*(D,H), D, H)
-  = \frac{\partial h}{\partial \delta}(\delta^*(D,H), D, H)
-  \frac{\partial \delta^*}{\partial D}(D,H)
-  + \frac{\partial h}{\partial D}(\delta^*(D,H), D, H) \displaybreak[0] \\
-  0 &= \frac{d}{d H} h(\delta^*(D,H), D, H)
-  = \frac{\partial h}{\partial \delta}(\delta^*(D,H), D, H)
-  \frac{\partial \delta^*}{\partial H}(D,H)
-  + \frac{\partial h}{\partial H}(\delta^*(D,H), D, H) \displaybreak[0] \\
-  \frac{\partial \delta^*}{\partial D}(D,H)
-  &= - \frac{\frac{\partial h}{\partial D}(\delta^*(D,H), D, H)}{\frac{\partial h}{\partial \delta}(\delta^*(D,H), D, H)} \displaybreak[0] \\
-  \frac{\partial \delta^*}{\partial H}(D,H)
-  &= - \frac{\frac{\partial h}{\partial H}(\delta^*(D,H), D, H)}{\frac{\partial h}{\partial \delta}(\delta^*(D,H), D, H)} \displaybreak[0] \\
+  0 &= h(\delta^*(D_i,H), D_i, H) \displaybreak[0] \\
+  0 &= \frac{d}{d D_i} h(\delta^*(D_i,H), D_i, H)
+  = \frac{\partial h}{\partial \delta}(\delta^*(D_i,H), D_i, H)
+  \frac{\partial \delta^*}{\partial D_i}(D_i,H)
+  + \frac{\partial h}{\partial D_i}(\delta^*(D_i,H), D_i, H) \displaybreak[0] \\
+  0 &= \frac{d}{d H} h(\delta^*(D_i,H), D_i, H)
+  = \frac{\partial h}{\partial \delta}(\delta^*(D_i,H), D_i, H)
+  \frac{\partial \delta^*}{\partial H}(D_i,H)
+  + \frac{\partial h}{\partial H}(\delta^*(D_i,H), D_i, H) \displaybreak[0] \\
+  \frac{\partial \delta^*}{\partial D_i}(D_i,H)
+  &= - \frac{\frac{\partial h}{\partial D_i}(\delta^*(D_i,H), D_i, H)}{\frac{\partial h}{\partial \delta}(\delta^*(D_i,H), D_i, H)} \displaybreak[0] \\
+  \frac{\partial \delta^*}{\partial H}(D_i,H)
+  &= - \frac{\frac{\partial h}{\partial H}(\delta^*(D_i,H), D_i, H)}{\frac{\partial h}{\partial \delta}(\delta^*(D_i,H), D_i, H)} \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \frac{\partial h}{\partial \delta}(\delta, D, H) &= k_{\rm a}'(D) -
-  \frac{U V D_{\rm v}'(D) a_{\rm w}(D)}{(1 + \delta)^2} \Biggl( 1 - W \frac{1}{1+\delta}
-  + \frac{X}{D} \frac{1}{1+\delta} \Biggr) \exp{\Biggl(W \frac{\delta}{1+\delta} +
-      \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \displaybreak[0] \\
-  \frac{\partial h}{\partial D}(\delta, D, H) &=
-  \frac{\partial k_{\rm a}'}{\partial D}(D) \delta
-  - U V \frac{\partial D_{\rm v}'}{\partial D}(D) H \nonumber \\
-  &\quad + U V \Biggl( a_{\rm w}(D) \frac{\partial D_{\rm v}'(D)}{\partial D}+ D_{\rm v}'(D) \frac{\partial a_{\rm w}}{\partial D}(D)
-  - D_{\rm v}'(D) a_{\rm w}(D) \frac{X}{D^2} \frac{1}{1 + \delta} \Biggr)
+  \frac{\partial h}{\partial \delta}(\delta, D_i, H) &= k_{\rm a}'(D_i) -
+  \frac{U V D_{\rm v}'(D_i) a_{\rm w}(D_i)}{(1 + \delta)^2} \Biggl( 1 - W \frac{1}{1+\delta}
+  + \frac{X}{D_i} \frac{1}{1+\delta} \Biggr) \exp{\Biggl(W \frac{\delta}{1+\delta} +
+      \frac{X}{D_i} \frac{1}{1+\delta}\Biggr)} \displaybreak[0] \\
+  \frac{\partial h}{\partial D_i}(\delta, D_i, H) &=
+  \frac{\partial k_{\rm a}'}{\partial D_i}(D_i) \delta
+  - U V \frac{\partial D_{\rm v}'}{\partial D_i}(D_i) H \nonumber \\
+  &\quad + U V \Biggl( a_{\rm w}(D_i) \frac{\partial D_{\rm v}'(D_i)}{\partial D_i}+ D_{\rm v}'(D_i) \frac{\partial a_{\rm w}}{\partial D_i}(D_i)
+  - D_{\rm v}'(D_i) a_{\rm w}(D_i) \frac{X}{D_i^2} \frac{1}{1 + \delta} \Biggr)
   \Biggl(\frac{1}{1+\delta}\Biggr)
-  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D} \frac{1}{1+\delta}\Biggr)} \displaybreak[0] \\
-  \frac{\partial h}{\partial H}(\delta, D, H) &= - U V D_{\rm v}'(D) \displaybreak[0] \\
-  \frac{\partial k_{\rm a}'}{\partial D}(D) &= \frac{k_{\rm a} Y}{(D+Y)^2} \displaybreak[0] \\
-  \frac{\partial D_{\rm v}'}{\partial D}(D) &= \frac{D_{\rm v} Z}{(D+Z)^2} \displaybreak[0] \\
-  \frac{\partial a_{\rm w}}{\partial D}(D) &= \frac{3 D^2 \kappa D_{\rm dry}}{(D^3 + (\kappa - 1) D_{\rm dry}^3)^2} \displaybreak[0] \\
+  \exp{\Biggl(W \frac{\delta}{1+\delta} + \frac{X}{D_i} \frac{1}{1+\delta}\Biggr)} \displaybreak[0] \\
+  \frac{\partial h}{\partial H}(\delta, D_i, H) &= - U V D_{\rm v}'(D_i) \displaybreak[0] \\
+  \frac{\partial k_{\rm a}'}{\partial D_i}(D_i) &= \frac{k_{\rm a} Y}{(D_i+Y)^2} \displaybreak[0] \\
+  \frac{\partial D_{\rm v}'}{\partial D_i}(D_i) &= \frac{D_{\rm v} Z}{(D_i+Z)^2} \displaybreak[0] \\
+  \frac{\partial a_{\rm w}}{\partial D_i}(D_i) &= \frac{3 D_i^2 \kappa D_{i,\rm dry}}{(D_i^3 + (\kappa - 1) D_{i,\rm dry}^3)^2} \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{D}(D, H) &= \frac{k_{\rm a}'(D) \delta^*(D,H)}{U D} \label{eq:delta_star} \displaybreak[0] \\
-  \frac{\partial \dot{D}}{\partial D}(D, H) &=
-  \frac{1}{U D} 
-  \frac{\partial k_{\rm a}'}{\partial D}(D) \delta^*(D, H)
-  + \frac{1}{U D} k_{\rm a}'(D) \frac{\partial \delta^*}{\partial D}(D, H)
-  - \frac{1}{U D^2} k_{\rm a}'(D) \delta^*(D, H) \displaybreak[0] \\
-  \frac{\partial \dot{D}}{\partial H}(D, H) &=
-  \frac{k_{\rm a}'(D)}{U D} 
-  \frac{\partial \delta^*}{\partial H}(D, H) \displaybreak[0] \\
-  \dot{H}(D,H) &= - \frac{2 \pi D^2}{V V_{\rm comp}} \dot{D}(D,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}}{\partial D}(D,H) &=
+  \dot{D_i}(D_i, H) &= \frac{k_{\rm a}'(D_i) \delta^*(D_i,H)}{U D_i} \label{eq:delta_star} \displaybreak[0] \\
+  \frac{\partial \dot{D_i}}{\partial D_i}(D_i, H) &=
+  \frac{1}{U D_i} 
+  \frac{\partial k_{\rm a}'}{\partial D_i}(D_i) \delta^*(D_i, H)
+  + \frac{1}{U D_i} k_{\rm a}'(D_i) \frac{\partial \delta^*}{\partial D_i}(D_i, H)
+  - \frac{1}{U D_i^2} k_{\rm a}'(D_i) \delta^*(D_i, H) \displaybreak[0] \\
+  \frac{\partial \dot{D_i}}{\partial H}(D_i, H) &=
+  \frac{k_{\rm a}'(D_i)}{U D_i} 
+  \frac{\partial \delta^*}{\partial H}(D_i, H) \displaybreak[0] \\
+  \dot{H}(D_i,H) &= - \frac{2 \pi}{V V_{\rm comp}} \sum_i D_i^2 \dot{D_i}(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{H}}{\partial D_i}(D_i,H) &=
   - \frac{2 \pi}{V V_{\rm comp}}
-  \biggl( 2 D \dot{D}(D,H) + D^2 \frac{\partial \dot{D}}{\partial D}(D,H) \biggr) \displaybreak[0] \\
-  \frac{\partial \dot{H}}{\partial H}(D,H) &=
-  - \frac{2 \pi D^2}{V V_{\rm comp}}
-  \frac{\partial \dot{D}}{\partial H}(D,H)
+  \biggl( 2 D_i \dot{D_i}(D_i,H) + D_i^2 \frac{\partial \dot{D_i}}{\partial D_i}(D_i,H) \biggr) \displaybreak[0] \\
+  \frac{\partial \dot{H}}{\partial H}(D_i,H) &=
+  - \frac{2 \pi}{V V_{\rm comp}} \sum_i D_i^2
+  \frac{\partial \dot{D_i}}{\partial H}(D_i,H)
 \end{align}
 
 %%%%%%%%%%%%%%%
@@ -96,6 +97,8 @@ $p_0$ & standard surface pressure &  101300 Pa & \verb+const%air_std_press+ \\
 $p$     &  environmental air pressure & input  (Pa) &  \verb+env_state%pressure+ \\
 $T$     &  environmental temperature  & input  (K) &  \verb+env_state%temp+  \\
 $D_{\rm dry}$       & dry diameter of the aerosol particle   & input ($\rm m$) &    \\
+$V_{\rm dry}$       & dry volume of the aerosol particle   & input ($\rm m^3$) &    \\
+$V^a_{\rm dry}$       & dry volume of species $a$ the aerosol particle   & input ($\rm m^3$) &    \\
 $V_{\rm comp}$ & computational volume & input ($\rm m^3$) & \verb+env_state%comp_vol+\\
 \hline
 $D_{\rm v}$     & diffusivity coefficient   &  function &eq.~\ref{eq:diff_ko}, S\&P 15.65  \\
@@ -107,7 +110,7 @@ $ \rho_{\rm air}$    &  air density   &  function &  eq.~\ref{eq:rho_air}  \\
 $k_{\rm a} $     & thermal conductivity of air    &  function&  eq.~\ref{eq:therm_cond}, S\&P 15.75   \\
 $k_{\rm a}' $    & corrected thermal conductivity of air    &  function &  eq.~\ref{eq:therm_cond_corr}, S\&P 15.76   \\
 $P^0$   & saturation vapor pressure &  function & eq.~\ref{eq:sat_vap}  \\
-$D$     &  droplet wet diameter  & dynamical variable  &     \\
+$D_i$     &  droplet wet diameter  & dynamical variable  &     \\
 $H$     &  environmental relative humidity  &  dynamical variable &  \\
 
 \hline 

@@ -291,9 +291,11 @@ contains
 
     ! update temperature and adjust relative humidity to maintain
     ! water mixing ratio
-    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    !>DEBUG
+    !pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
-    env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+    !env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+    !<DEBUG
 
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
     env_state%elapsed_time = time

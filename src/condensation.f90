@@ -61,8 +61,8 @@ module pmc_condensation
 
   type(aero_data_t) :: condense_saved_aero_data
   type(env_data_t) :: condense_saved_env_data
-  type(env_state_t) :: condense_saved_env_state
-  real(kind=dp) :: condense_saved_V_comp
+  type(env_state_t) :: condense_saved_env_state_initial
+  real(kind=dp) :: condense_saved_V_comp_initial
   real(kind=dp) :: condense_saved_Tdot
   real(kind=dp), pointer, save :: cond_kappa(:) ! FIXME: rename to saved_kappa, make allocatable, no save
   real(kind=dp), pointer, save :: cond_D_dry(:) ! FIXME: rename to saved_D_dry, make allocatable, no save
@@ -166,6 +166,9 @@ contains
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
     type(vode_opts) :: options
     type(env_state_t) :: env_state_final
+    !>DEBUG
+    real(kind=dp) :: V_comp_final, water_vol_initial, water_vol_final
+    !<DEBUG
 
     pre_water = 0d0
     do i_bin = 1,bin_grid%n_bin
@@ -177,20 +180,19 @@ contains
 
     call aero_data_allocate(condense_saved_aero_data)
     call env_data_allocate(condense_saved_env_data)
-    call env_state_allocate(condense_saved_env_state)
+    call env_state_allocate(condense_saved_env_state_initial)
 
     call aero_data_copy(aero_data, condense_saved_aero_data)
     call env_data_copy(env_data, condense_saved_env_data)
-    call env_state_copy(env_state, condense_saved_env_state)
+    call env_state_copy(env_state, condense_saved_env_state_initial)
 
-    condense_saved_V_comp = aero_state%comp_vol
+    condense_saved_V_comp_initial = aero_state%comp_vol
     
     call env_state_allocate(env_state_final)
     call env_state_copy(env_state, env_state_final)
     call env_data_update_state(env_data, env_state_final, &
          env_state_final%elapsed_time + del_t)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
-    call env_state_deallocate(env_state_final)
 
     allocate(cond_kappa(aero_state%n_part))
     allocate(cond_D_dry(aero_state%n_part))
@@ -263,7 +265,18 @@ contains
     end do
 
     !>DEBUG
-    write(*,*) 'RH post cond = ', env_state%rel_humid
+    V_comp_final = condense_saved_V_comp_initial * env_state_final%temp / condense_saved_env_state_initial%temp
+    water_vol_initial = aero_data%molec_weight(aero_data%i_water) &
+         / (const%univ_gas_const * condense_saved_env_state_initial%temp) &
+         * env_state_sat_vapor_pressure(condense_saved_env_state_initial) &
+         * condense_saved_env_state_initial%rel_humid &
+         * condense_saved_V_comp_initial / aero_particle_water_density(aero_data)
+    water_vol_final = aero_data%molec_weight(aero_data%i_water) &
+         / (const%univ_gas_const * env_state_final%temp) &
+         * env_state_sat_vapor_pressure(env_state_final) &
+         * env_state%rel_humid &
+         * V_comp_final / aero_particle_water_density(aero_data)
+    write(*,*) 'rh,dpmv,dwater ', env_state%rel_humid, (water_vol_final - water_vol_initial), (post_water - pre_water)
     !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
     !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
     !<DEBUG
@@ -271,9 +284,10 @@ contains
     deallocate(cond_kappa)
     deallocate(cond_D_dry)
 
+    call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
     call env_data_deallocate(condense_saved_env_data)
-    call env_state_deallocate(condense_saved_env_state)
+    call env_state_deallocate(condense_saved_env_state_initial)
 
   end subroutine condense_particles_new_unified
 
@@ -765,7 +779,7 @@ contains
     !> Current environment state.
     type(env_state_t), intent(inout) :: env_state
 
-    call env_state_copy(condense_saved_env_state, env_state)
+    call env_state_copy(condense_saved_env_state_initial, env_state)
     call env_data_update_state(condense_saved_env_data, &
          env_state, env_state%elapsed_time + time)
 
@@ -992,15 +1006,20 @@ contains
     !> Time derivative of state vector.
     real(kind=dp), intent(out) :: state_dot(n_eqn)
 
-    real(kind=dp) :: D, kappa, D_dry, Hdot
+    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp
     integer :: i_part
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
+    !>DEBUG
+    real(kind=dp) :: Hdotp
+    !<DEBUG
 
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
+    V_comp = condense_saved_V_comp_initial &
+         * env_state%temp / condense_saved_env_state_initial%temp
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         condense_saved_V_comp, condense_saved_Tdot)
+         V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
     !>DEBUG
     write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
@@ -1015,7 +1034,13 @@ contains
        state_dot(i_part + d_offset) = p%Ddot
        Hdot = Hdot + p%Hdot
     end do
+    !>DEBUG
+    Hdotp = Hdot
+    !<DEBUG
     Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
+    !>DEBUG
+    write(*,*) 'f: time,H,Hdot,Hdotp = ', env_state%elapsed_time, p%H, Hdot, Hdotp
+    !<DEBUG
 
     if (rh_first) then
        state_dot(1) = Hdot
@@ -1132,7 +1157,7 @@ contains
     real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     integer :: i_nz, i_part
-    real(kind=dp) :: D, kappa, D_dry
+    real(kind=dp) :: D, kappa, D_dry, V_comp
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
 
@@ -1147,8 +1172,10 @@ contains
 
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
+    V_comp = condense_saved_V_comp_initial &
+         * env_state%temp / condense_saved_env_state_initial%temp
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         condense_saved_V_comp, condense_saved_Tdot)
+         V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
 
     dHdot_dH = 0d0

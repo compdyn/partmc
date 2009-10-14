@@ -226,7 +226,7 @@ contains
 
        if (part_opt%do_condensation) then
           call condense_particles(bin_grid, env_state, &
-               aero_data, aero_state, part_opt%del_t)
+               env_data, aero_data, aero_state, part_opt%del_t)
        end if
 
        if (part_opt%do_mosaic) then

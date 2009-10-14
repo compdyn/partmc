@@ -6,15 +6,18 @@
 \begin{document}
 
 \begin{align}
-  U &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T}\\
-  V &= \frac{4 M_{\rm w} P^{\rm 0}(T)}{\rho_{\rm w} R T} \displaybreak[0] \\
-  W &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T} \displaybreak[0] \\
-  X &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T \rho_{\rm w}} \displaybreak[0] \\
-  Y &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \displaybreak[0] \\
-  Z &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \displaybreak[0] \\
+  U(T) &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T} \displaybreak[0] \\
+  V(T) &= \frac{4 M_{\rm w} P^{\rm 0}(T)}{\rho_{\rm w} R T} \displaybreak[0] \\
+  \frac{\partial V}{\partial T}(T) &= \frac{4 M_{\rm w}}{\rho_{\rm w} R}
+  \biggl( \frac{1}{T} \frac{\partial P^{\rm 0}}{\partial T}(T)
+  - \frac{1}{T^2} P^{\rm 0}(T) \biggr) \displaybreak[0] \\
+  W(T) &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T} \displaybreak[0] \\
+  X(T) &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T \rho_{\rm w}} \displaybreak[0] \\
+  Y(T) &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \displaybreak[0] \\
+  Z(T) &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \displaybreak[0] \\
   \rho_{\rm  air} &= M_{\rm air} \frac{p}{R T}\label{eq:rho_air} \displaybreak[0] \\
   P^0(T) &= 611.2 \times 10^{7.45(T-273.15)/(T-38)} \displaybreak[0] \\
-  P^0(T) &= 611.2 \exp\Biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\Biggr) \label{eq:sat_vap} \displaybreak[0] \\
+  P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
   \frac{\partial P^0}{\partial T}(T) &= P^0(T) 7.45 \ln(10)\frac{273.15 - 38}{(T-38)^2} \displaybreak[0] \\
   V_{\rm comp}(T) &= \frac{T}{T_0} V_{\rm comp,0} \qquad \text{$V_{\rm comp,0}$ is the computational volume at temperature $T_0$} \displaybreak[0] \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,7 +73,8 @@
   \frac{k_{\rm a}'(D_i)}{U D_i} 
   \frac{\partial \delta_i^*}{\partial H}(D_i, H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  V_{\rm w} &= \frac{M_w P^0(T) V_{\rm comp}(T) H}{R T \rho_{\rm w}} = \frac{1}{4} V V_{\rm comp}(T) H \displaybreak[0] \\
+  V_{\rm w} &= \frac{M_w P^0(T) V_{\rm comp}(T) H}{R T \rho_{\rm w}} = \frac{1}{4} V(T) V_{\rm comp}(T) H \displaybreak[0] \\
+  0 &= \biggl( \frac{\partial V}{\partial T}(T) V_{\rm comp}(T) + V(T) \frac{\partial V_{\rm comp}}{\partial T}(T)\biggr) \dot{T} H + V(T) V_{\rm comp}(T) \dot{H} \displaybreak[0] \\
   \dot{H}_i(D_i,H) &= - \frac{2 \pi}{V V_{\rm comp}(T)} D_i^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
   \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &=
   - \frac{2 \pi}{V V_{\rm comp}(T)}

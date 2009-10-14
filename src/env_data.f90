@@ -191,6 +191,7 @@ contains
     allocate(env_data_to%gas_emission( &
          size(env_data_from%gas_emission)))
     do i = 1,size(env_data_from%gas_emission)
+       call gas_state_allocate(env_data_to%gas_emission(i))
        call gas_state_copy(env_data_from%gas_emission(i), &
             env_data_to%gas_emission(i))
     end do
@@ -204,6 +205,7 @@ contains
     allocate(env_data_to%gas_background( &
          size(env_data_from%gas_background)))
     do i = 1,size(env_data_from%gas_background)
+       call gas_state_allocate(env_data_to%gas_background(i))
        call gas_state_copy(env_data_from%gas_background(i), &
             env_data_to%gas_background(i))
     end do
@@ -217,6 +219,7 @@ contains
     allocate(env_data_to%aero_emission( &
          size(env_data_from%aero_emission)))
     do i = 1,size(env_data_from%aero_emission)
+       call aero_dist_allocate(env_data_to%aero_emission(i))
        call aero_dist_copy(env_data_from%aero_emission(i), &
             env_data_to%aero_emission(i))
     end do
@@ -230,6 +233,7 @@ contains
     allocate(env_data_to%aero_background( &
          size(env_data_from%aero_background)))
     do i = 1,size(env_data_from%aero_background)
+       call aero_dist_allocate(env_data_to%aero_background(i))
        call aero_dist_copy(env_data_from%aero_background(i), &
             env_data_to%aero_background(i))
     end do

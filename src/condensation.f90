@@ -178,6 +178,7 @@ contains
     call aero_data_copy(aero_data, condense_saved_aero_data)
     call env_data_copy(env_data, condense_saved_env_data)
     call env_state_copy(env_state, condense_saved_env_state)
+    condense_saved_V_comp = aero_state%comp_vol
 
     allocate(cond_kappa(aero_state%n_part))
     allocate(cond_D_dry(aero_state%n_part))

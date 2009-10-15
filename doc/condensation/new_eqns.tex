@@ -83,10 +83,10 @@
   - \frac{2 \pi}{V V_{\rm comp}(T)} D_i^2
   \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \dot{H}_i(D_i,H) - \frac{H}{P^0(T)} \frac{\partial P^0}{\partial T}(T) \dot{T} \displaybreak[0] \\
+  \dot{H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \dot{H}_i(D_i,H) - \frac{\dot{T}H}{V(T)V_{\rm comp}(T)}\left(\frac{\partial V(T)}{\partial T}V_{\rm  comp}(T) + \frac{\partial V_{\rm comp}(T)}{\partial T} V(T)\right) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &=
-  \sum_{i=1}^N \frac{\partial \dot{H}_i}{\partial H}(D_i,H) - \frac{1}{P^0(T)} \frac{\partial P^0}{\partial T}(T) \dot{T}
+  \sum_{i=1}^N \frac{\partial \dot{H}_i}{\partial H}(D_i,H) - \frac{\dot{T}}{V(T)V_{\rm comp}(T)}\left(\frac{\partial V(T)}{\partial T}V_{\rm  comp}(T) + \frac{\partial V_{\rm comp}(T)}{\partial T} V(T)\right) 
 \end{align}
 
 If $D_i < D_{i,\rm dry}$ then we take
@@ -150,6 +150,8 @@ $k_{\rm a}$     & thermal conductivity of air   &  function ($\rm J\,m^{-1}\, s^
 $k_{\rm a}'$    & corrected thermal conductivity of air   &  function ($\rm J\,m^{-1}\, s^{-1} \, K^{-1}$) &  eq.~\ref{eq:therm_cond_corr}, S\&P 15.76   \\
 $P^0$   & saturation vapor pressure &  function ($\rm Pa$) & eq.~\ref{eq:sat_vap}  \\
 $D_i$     &  droplet wet diameter  & dynamical variable  &     \\
+$m_{\rm w}$ & mass of water vapor in &  \\
+$V_{\rm  w}$ & liquid-equivalent volume of water vapor; & \\
 $H$     &  environmental relative humidity  &  dynamical variable &  \\
 $\dot{H_i}$    & change of $H$ due to one particle & & \\
 \hline 

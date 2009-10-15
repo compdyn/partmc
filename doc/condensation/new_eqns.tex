@@ -6,20 +6,23 @@
 \begin{document}
 
 \begin{align}
+  P^0(T) &= 611.2 \times 10^{7.45(T-273.15)/(T-38)} \displaybreak[0] \\
+  P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
+  \frac{\partial P^0}{\partial T}(T) &= P^0(T) 7.45 \ln(10)\frac{273.15 - 38}{(T-38)^2} \displaybreak[0] \\
+  \rho_{\rm  air} &= M_{\rm air} \frac{p}{R T}\label{eq:rho_air} \displaybreak[0] \\
   U(T) &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T} \displaybreak[0] \\
   V(T) &= \frac{4 M_{\rm w} P^{\rm 0}(T)}{\rho_{\rm w} R T} \displaybreak[0] \\
   \frac{\partial V}{\partial T}(T) &= \frac{4 M_{\rm w}}{\rho_{\rm w} R}
   \biggl( \frac{1}{T} \frac{\partial P^{\rm 0}}{\partial T}(T)
   - \frac{1}{T^2} P^{\rm 0}(T) \biggr) \displaybreak[0] \\
+  &= \biggl( \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T)
+  - \frac{1}{T} \biggr) V \displaybreak[0] \\
   W(T) &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T} \displaybreak[0] \\
   X(T) &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T \rho_{\rm w}} \displaybreak[0] \\
   Y(T) &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \displaybreak[0] \\
   Z(T) &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \displaybreak[0] \\
-  \rho_{\rm  air} &= M_{\rm air} \frac{p}{R T}\label{eq:rho_air} \displaybreak[0] \\
-  P^0(T) &= 611.2 \times 10^{7.45(T-273.15)/(T-38)} \displaybreak[0] \\
-  P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
-  \frac{\partial P^0}{\partial T}(T) &= P^0(T) 7.45 \ln(10)\frac{273.15 - 38}{(T-38)^2} \displaybreak[0] \\
   V_{\rm comp}(T) &= \frac{T}{T_0} V_{\rm comp,0} \qquad \text{$V_{\rm comp,0}$ is the computational volume at temperature $T_0$} \displaybreak[0] \\
+  \frac{\partial V_{\rm comp}}{\partial T}(T) &= \frac{V_{\rm comp,0}}{T_0} \displaybreak[0] \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   k_{\rm a} &= 10^{-3} (4.39 + 0.071  T) \label{eq:therm_cond} \displaybreak[0] \\
   k_{\rm a}'(D_i) &= \frac{k_{\rm a}}{1 + Y / D_i} \label{eq:therm_cond_corr}\displaybreak[0] \\
@@ -73,8 +76,24 @@
   \frac{k_{\rm a}'(D_i)}{U D_i} 
   \frac{\partial \delta_i^*}{\partial H}(D_i, H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  V_{\rm w} &= \frac{M_w P^0(T) V_{\rm comp}(T) H}{R T \rho_{\rm w}} = \frac{1}{4} V(T) V_{\rm comp}(T) H \displaybreak[0] \\
-  4 \dot{V}_{\rm w}&= \biggl( \frac{\partial V}{\partial T}(T) V_{\rm comp}(T) + V(T) \frac{\partial V_{\rm comp}}{\partial T}(T)\biggr) \dot{T} H + V(T) V_{\rm comp}(T) \dot{H} \displaybreak[0] \\
+  m_i(D_i) &= \rho_{\rm w} \frac{\pi}{6} (D_i^3 - D_{i,\rm dry}^3) + m_{i,\rm dry} \displaybreak[0] \\
+  \dot{m}_i(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} D_i^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{m}_i}{\partial D_i}(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} \biggl(2 D_i \dot{D}_i(D_i,H) + D_i^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H)\biggr) \displaybreak[0] \\
+  \frac{\partial \dot{m}_i}{\partial H}(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} D_i^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \dot{m}_{\rm w}(D_1,\ldots,D_N,H) &= - \sum_{i=1}^N \dot{m}_i(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{m}_{\rm w}}{\partial D_i}(D_1,\ldots,D_N,H) &= - \frac{\partial \dot{m}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{m}_{\rm w}}{\partial H}(D_1,\ldots,D_N,H) &= - \sum_{i=1}^N \frac{\partial \dot{m}_i}{\partial H}(D_i,H) \displaybreak[0] \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \displaybreak[0] \\
+  \dot{H}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \dot{m}_{\rm w}(D_1,\ldots,D_N,H) - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} H - \frac{1}{V_{\rm comp}(T)} \frac{\partial V_{\rm comp}}{\partial T}(T) \dot{T} H \displaybreak[0] \\
+  \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_{\rm w}}{\partial D_i}(D_1,\ldots,D_N,H) \displaybreak[0] \\
+  \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_{\rm w}}{\partial H}(D_1,\ldots,D_N,H) - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} - \frac{1}{V_{\rm comp}(T)} \frac{\partial V_{\rm comp}}{\partial T}(T) \dot{T}
+\end{align}
+
+Old stuff:
+\begin{align}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \dot{H}_i(D_i,H) &= - \frac{2 \pi}{V V_{\rm comp}(T)} D_i^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
   \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &=
   - \frac{2 \pi}{V V_{\rm comp}(T)}
@@ -82,6 +101,9 @@
   \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &=
   - \frac{2 \pi}{V V_{\rm comp}(T)} D_i^2
   \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  V_{\rm w} &= \frac{M_w P^0(T) V_{\rm comp}(T) H}{R T \rho_{\rm w}} = \frac{1}{4} V(T) V_{\rm comp}(T) H \displaybreak[0] \\
+  4 \dot{V}_{\rm w}&= \biggl( \frac{\partial V}{\partial T}(T) V_{\rm comp}(T) + V(T) \frac{\partial V_{\rm comp}}{\partial T}(T)\biggr) \dot{T} H + V(T) V_{\rm comp}(T) \dot{H} \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \dot{H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \dot{H}_i(D_i,H) - \frac{\dot{T}H}{V(T)V_{\rm comp}(T)}\left(\frac{\partial V(T)}{\partial T}V_{\rm  comp}(T) + \frac{\partial V_{\rm comp}(T)}{\partial T} V(T)\right) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\

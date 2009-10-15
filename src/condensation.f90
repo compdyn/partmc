@@ -821,6 +821,8 @@ contains
     p%D_v = 0.211d-4 / (p%p / const%air_std_press) * (p%T / 273d0)**1.94d0
     p%U = const%water_latent_heat * p%rho_w / (4d0 * p%T)
     p%V = 4d0 * p%M_w * p%P_0 / (p%rho_w * const%univ_gas_const * p%T)
+    p%dV_dT = 
+
     p%W = const%water_latent_heat * p%M_w / (const%univ_gas_const * p%T)
     p%X = 4d0 * p%M_w * const%water_surf_eng &
          / (const%univ_gas_const * p%T * p%rho_w) 
@@ -894,7 +896,8 @@ contains
     p%delta_star = delta
     
     p%Ddot = p%k_ap * p%delta_star / (p%U * p%D)
-    p%Hdot = - 2d0 * const%pi * p%D**2 / (p%V * p%V_comp) * p%Ddot
+    !p%Hdot = - 2d0 * const%pi * p%D**2 / (p%V * p%V_comp) * p%Ddot
+    p%mdot = const%water_density * const%pi / 2d0 * p%D**2 * p%Ddot
 
     p%dh_ddelta = condense_vode_implicit_dh_ddelta_new(p%delta_star, p)
     p%dh_dD = p%dkap_dD * p%delta_star &
@@ -913,9 +916,12 @@ contains
          + p%k_ap * p%ddeltastar_dD / (p%U * p%D) &
          - p%k_ap * p%delta_star / (p%U * p%D**2)
     p%dDdot_dH = p%k_ap / (p%U * p%D) * p%ddeltastar_dH
-    p%dHdot_dD = - 2d0 * const%pi / (p%V * p%V_comp) &
+    !p%dHdot_dD = - 2d0 * const%pi / (p%V * p%V_comp) &
+    !     * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
+    !p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D**2 * p%dDdot_dH
+    p%dmdot_dD = const%water_density * const%pi / 2d0 &
          * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
-    p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D**2 * p%dDdot_dH
+    p%dmdot_dH = const%water_density * const%pi / 2d0 * p%dDdot_dH
 
     !>DEBUG
     !write(*,*) 'T ', p%T
@@ -1006,13 +1012,10 @@ contains
     !> Time derivative of state vector.
     real(kind=dp), intent(out) :: state_dot(n_eqn)
 
-    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp
+    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp, mw_dot
     integer :: i_part
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
-    !>DEBUG
-    real(kind=dp) :: Hdotp
-    !<DEBUG
 
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
@@ -1022,24 +1025,30 @@ contains
          V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
     !>DEBUG
-    write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
+    !write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
     !<DEBUG
 
-    Hdot = 0d0
+    !Hdot = 0d0
+    mw_dot = 0d0
     do i_part = 1,(n_eqn - 1)
        D = state(i_part + d_offset)
        kappa = cond_kappa(i_part)
        D_dry = cond_D_dry(i_part)
        call condense_params_per_particle(D, kappa, D_dry, p)
        state_dot(i_part + d_offset) = p%Ddot
-       Hdot = Hdot + p%Hdot
+       mw_dot = mw_dot - p%mdot
+       !Hdot = Hdot + p%Hdot
     end do
+    Hdot = 4d0 / (const%water_density * p%V * p%V_comp) * mw_dot &
+         - p%dV_dT * p%Tdot * p%H / p%V &
+         - p%dVcomp_dT * p%Tdot * p%H / p%V_comp
+    !Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
     !>DEBUG
-    Hdotp = Hdot
-    !<DEBUG
-    Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
-    !>DEBUG
-    write(*,*) 'f: time,H,Hdot,Hdotp = ', env_state%elapsed_time, p%H, Hdot, Hdotp
+    write(*,*) 'f: time,Hdot ', env_state%elapsed_time, p%H, Hdot, &
+         (4d0 / (const%water_density * p%V * p%V_comp) * mw_dot), &
+         (p%dV_dT * p%Tdot * p%H / p%V), &
+         (p%dVcomp_dT * p%Tdot * p%H / p%V_comp)
+    !write(*,*) 'f: time,H,Hdot,Hdotp = ', env_state%elapsed_time, p%H, Hdot, Hdotp
     !<DEBUG
 
     if (rh_first) then
@@ -1156,6 +1165,7 @@ contains
 
     real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    real(kind=dp) :: dmwdot_dD(n_eqn - 1), dmwdot_dH
     integer :: i_nz, i_part
     real(kind=dp) :: D, kappa, D_dry, V_comp
     type(env_state_t) :: env_state
@@ -1178,7 +1188,8 @@ contains
          V_comp, condense_saved_Tdot)
     call env_state_deallocate(env_state)
 
-    dHdot_dH = 0d0
+    !dHdot_dH = 0d0
+    dmwdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        D = state(i_part + d_offset)
        kappa = cond_kappa(i_part)
@@ -1186,10 +1197,15 @@ contains
        call condense_params_per_particle(D, kappa, D_dry, p)
        dDdot_dD(i_part) = p%dDdot_dD
        dDdot_dH(i_part) = p%dDdot_dH
-       dHdot_dD(i_part) = p%dHdot_dD
-       dHdot_dH = dHdot_dH + p%dHdot_dH
+       dmwdot_dD(i_part) = - p%dmdot_dD
+       dmwdot_dH = dmwdot_dH - p%dmdot_dH
+       !dHdot_dD(i_part) = p%dHdot_dD
+       !dHdot_dH = dHdot_dH + p%dHdot_dH
     end do
-    dHdot_dH = dHdot_dH - (1d0 / p%P_0) * p%dP0_dT * p%Tdot
+    !dHdot_dH = dHdot_dH - (1d0 / p%P_0) * p%dP0_dT * p%Tdot
+    dHdot_dD = 4d0 / (const%water_density * p%V * p%V_comp) * dmwdot_dD
+    dHdot_dH = 4d0 / (const%water_density * p%V * p%V_comp) * dmwdot_dH &
+         - p%dV_dT * p%Tdot / p%V - p%dVcomp_dT * p%Tdot / p%V_comp
 
     ! Copied from dvode_f90_m documentation:
     !

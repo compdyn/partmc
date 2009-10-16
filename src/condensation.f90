@@ -73,6 +73,7 @@ module pmc_condensation
      real(kind=dp) :: H
      real(kind=dp) :: p
      real(kind=dp) :: V_comp
+     real(kind=dp) :: dVcomp_dT
      real(kind=dp) :: rho_w
      real(kind=dp) :: M_w
      real(kind=dp) :: P_0
@@ -82,6 +83,7 @@ module pmc_condensation
      real(kind=dp) :: D_v
      real(kind=dp) :: U
      real(kind=dp) :: V
+     real(kind=dp) :: dV_dT
      real(kind=dp) :: W
      real(kind=dp) :: X
      real(kind=dp) :: Y
@@ -97,7 +99,7 @@ module pmc_condensation
      real(kind=dp) :: daw_dD
      real(kind=dp) :: delta_star
      real(kind=dp) :: Ddot
-     real(kind=dp) :: Hdot
+     real(kind=dp) :: mdot
      real(kind=dp) :: dh_ddelta
      real(kind=dp) :: dh_dD
      real(kind=dp) :: dh_dH
@@ -105,8 +107,8 @@ module pmc_condensation
      real(kind=dp) :: ddeltastar_dH
      real(kind=dp) :: dDdot_dD
      real(kind=dp) :: dDdot_dH
-     real(kind=dp) :: dHdot_dD
-     real(kind=dp) :: dHdot_dH
+     real(kind=dp) :: dmdot_dD
+     real(kind=dp) :: dmdot_dH
   end type condense_params_t
 
 contains
@@ -793,7 +795,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_params_global(p, env_state, aero_data, V_comp, Tdot)
+  subroutine condense_params_global(p, env_state, aero_data, V_comp, dVcomp_dT, Tdot)
 
     !> Condensation parameters.
     type(condense_params_t), intent(out) :: p
@@ -803,13 +805,17 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: V_comp
+    !> Derivative of computational volume with respect to temperature (m^3/K).
+    real(kind=dp), intent(in) :: dVcomp_dT
     !> Temperature rate of change (K/s).
     real(kind=dp), intent(in) :: Tdot
 
     p%T = env_state%temp
+    d%Tdot = Tdot
     p%H = env_state%rel_humid
     p%p = env_state%pressure
     p%V_comp = V_comp
+    p%dVcomp_dT = dVcomp_dT
 
     p%rho_w = aero_particle_water_density(aero_data)
     p%M_w = aero_particle_water_molec_weight(aero_data)
@@ -821,7 +827,7 @@ contains
     p%D_v = 0.211d-4 / (p%p / const%air_std_press) * (p%T / 273d0)**1.94d0
     p%U = const%water_latent_heat * p%rho_w / (4d0 * p%T)
     p%V = 4d0 * p%M_w * p%P_0 / (p%rho_w * const%univ_gas_const * p%T)
-    p%dV_dT = 
+    p%dV_dT = (p%dP0_dT / p%p_0 - 1d0 / p%T) * p%V
 
     p%W = const%water_latent_heat * p%M_w / (const%univ_gas_const * p%T)
     p%X = 4d0 * p%M_w * const%water_surf_eng &
@@ -923,47 +929,6 @@ contains
          * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
     p%dmdot_dH = const%water_density * const%pi / 2d0 * p%dDdot_dH
 
-    !>DEBUG
-    !write(*,*) 'T ', p%T
-    !write(*,*) 'H ', p%H
-    !write(*,*) 'p ', p%p
-    !write(*,*) 'V_comp ', p%V_comp
-    !write(*,*) 'rho_w ', p%rho_w
-    !write(*,*) 'M_w ', p%M_w
-    !write(*,*) 'P_0 ', p%P_0
-    !write(*,*) 'rho_air ', p%rho_air
-    !write(*,*) 'k_a ', p%k_a
-    !write(*,*) 'D_v ', p%D_v
-    !write(*,*) 'U ', p%U
-    !write(*,*) 'V ', p%V
-    !write(*,*) 'W ', p%W
-    !write(*,*) 'X ', p%X
-    !write(*,*) 'Y ', p%Y
-    !write(*,*) 'Z ', p%Z
-    !write(*,*) 'D ', p%D
-    !write(*,*) 'kappa ', p%kappa
-    !write(*,*) 'D_dry ', p%D_dry
-    !write(*,*) 'k_ap ', p%k_ap
-    !write(*,*) 'dkap_dD ', p%dkap_dD
-    !write(*,*) 'D_vp ', p%D_vp
-    !write(*,*) 'dDvp_dD ', p%dDvp_dD
-    !write(*,*) 'a_w ', p%a_w
-    !write(*,*) 'daw_dD ', p%daw_dD
-    !write(*,*) 'delta_star ', p%delta_star
-    !write(*,*) 'Ddot ', p%Ddot
-    !write(*,*) 'Hdot ', p%Hdot
-    !write(*,*) 'dh_ddelta ', p%dh_ddelta
-    !write(*,*) 'dh_dD ', p%dh_dD
-    !write(*,*) 'dh_dH ', p%dh_dH
-    !write(*,*) 'ddeltastar_dD ', p%ddeltastar_dD
-    !write(*,*) 'ddeltastar_dH ', p%ddeltastar_dH
-    !write(*,*) 'dDdot_dD ', p%dDdot_dD
-    !write(*,*) 'dDdot_dH ', p%dDdot_dH
-    !write(*,*) 'dHdot_dD ', p%dHdot_dD
-    !write(*,*) 'dHdot_dH ', p%dHdot_dH
-    !stop
-    !<DEBUG
-
   end subroutine condense_params_per_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1012,7 +977,7 @@ contains
     !> Time derivative of state vector.
     real(kind=dp), intent(out) :: state_dot(n_eqn)
 
-    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp, mw_dot
+    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp, dVcomp_dT, mw_dot
     integer :: i_part
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
@@ -1021,8 +986,10 @@ contains
     call condense_current_env_state(n_eqn, time, state, env_state)
     V_comp = condense_saved_V_comp_initial &
          * env_state%temp / condense_saved_env_state_initial%temp
+    dVcomp_dT = condense_saved_V_comp_initial &
+         / condense_saved_env_state_initial%temp
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         V_comp, condense_saved_Tdot)
+         V_comp, dVcomp_dT, condense_saved_Tdot)
     call env_state_deallocate(env_state)
     !>DEBUG
     !write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
@@ -1167,7 +1134,7 @@ contains
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     real(kind=dp) :: dmwdot_dD(n_eqn - 1), dmwdot_dH
     integer :: i_nz, i_part
-    real(kind=dp) :: D, kappa, D_dry, V_comp
+    real(kind=dp) :: D, kappa, D_dry, V_comp, dVcomp_dT
     type(env_state_t) :: env_state
     type(condense_params_t) :: p
 
@@ -1184,8 +1151,10 @@ contains
     call condense_current_env_state(n_eqn, time, state, env_state)
     V_comp = condense_saved_V_comp_initial &
          * env_state%temp / condense_saved_env_state_initial%temp
+    dVcomp_dT = condense_saved_V_comp_initial &
+         / condense_saved_env_state_initial%temp
     call condense_params_global(p, env_state, condense_saved_aero_data, &
-         V_comp, condense_saved_Tdot)
+         V_comp, dVcomp_dT, condense_saved_Tdot)
     call env_state_deallocate(env_state)
 
     !dHdot_dH = 0d0

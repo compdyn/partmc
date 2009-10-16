@@ -78,6 +78,48 @@ module pmc_condensation
   real(kind=dp), pointer, save :: cond_kappa(:) ! FIXME: rename to saved_kappa, make allocatable, no save
   real(kind=dp), pointer, save :: cond_D_dry(:) ! FIXME: rename to saved_D_dry, make allocatable, no save
 
+  type condense_inputs_t
+     !> Temperature (K).
+     real(kind=dp) :: T
+     !> Relative humidity (1).
+     real(kind=dp) :: H
+     !> Pressure (Pa).
+     real(kind=dp) :: p
+     !> Particle diameter (m).
+     real(kind=dp) :: D
+     !> Particle dry diameter (m).
+     real(kind=dp) :: D_dry
+     !> Kappa parameter (1).
+     real(kind=dp) :: kappa
+  end type condense_inputs_t
+
+  type condense_outputs_t
+     !> Change rate of diameter (m s^{-1}).
+     real(kind=dp) :: Ddot
+     !> Change rate of particle mass (kg s^{-1}).
+     real(kind=dp) :: mdot
+     !> Sensitivity of \c Ddot to input \c D (m s^{-1} m^{-1}).
+     real(kind=dp) :: dDdot_dD
+     !> Sensitivity of \c Ddot to input \c H (m s^{-1}).
+     real(kind=dp) :: dDdot_dH
+     !> Sensitivity of \c mdot to input \c D (kg s^{-1} m^{-1}).
+     real(kind=dp) :: dmdot_dD
+     !> Sensitivity of \c mdot to input \c D (kg s^{-1}).
+     real(kind=dp) :: dmdot_dH
+  end type condense_outputs_t
+
+  type condense_newton_args_t
+     real(kind=dp) :: k_ap
+     real(kind=dp) :: U
+     real(kind=dp) :: V
+     real(kind=dp) :: D_vp
+     real(kind=dp) :: H
+     real(kind=dp) :: a_w
+     real(kind=dp) :: W
+     real(kind=dp) :: X
+     real(kind=dp) :: D
+ end type condense_newton_args_t
+
   type condense_params_t
      real(kind=dp) :: T
      real(kind=dp) :: Tdot
@@ -984,6 +1026,134 @@ contains
          * exp(p%W * delta / (1d0 + delta) + (p%X / p%D) / (1d0 + delta))
     
   end function condense_vode_implicit_dh_ddelta_new
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the rate of change of particle diameter and relative
+  !> humidity for a single particle.
+  subroutine condense_vector_field_per_particle(inputs, outputs)
+
+    !> Inputs to vector field.
+    type(condense_inputs_t), intent(in) :: inputs
+    !> Outputs of vector field.
+    type(condense_outputs_t), intent(out) :: outputs
+
+    real(kind=dp) :: rho_w, M_w, P_0, dP0_dT, rho_air, k_a, D_v, U, V
+    real(kind=dp) :: dV_dT, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
+    real(kind=dp) :: a_w, daw_dD, delta, delta_star, dh_ddelta, dh_dD
+    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, dVcomp_dT
+
+    rho_w = const%water_density
+    M_w = const%water_molec_weight
+    P_0 = const%water_eq_vap_press &
+         * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
+         / (inputs%T - 38d0))
+    dP0_dT = P_0 * 7.45d0 * log(10d0) * (const%water_freeze_temp - 38d0) &
+         / (inputs%T - 38d0)**2
+    rho_air = const%air_molec_weight * inputs%p &
+         / (const%univ_gas_const * inputs%T)
+    dVcomp_dT = inputs%V_comp / inputs%temp
+
+    k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
+    D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
+         * (inputs%T / 273d0)**1.94d0
+    U = const%water_latent_heat * rho_w / (4d0 * inputs%T)
+    V = 4d0 * M_w * P_0 / (rho_w * const%univ_gas_const * inputs%T)
+    dV_dT = (dP0_dT / P_0 - 1d0 / inputs%T) * V
+    W = const%water_latent_heat * M_w / (const%univ_gas_const * inputs%T)
+    X = 4d0 * M_w * const%water_surf_eng &
+         / (const%univ_gas_const * inputs%T * rho_w) 
+    Y = 2d0 * k_a / (const%accom_coeff * rho_air &
+         * const%air_spec_heat) &
+         * sqrt(2d0 * const%pi * const%air_molec_weight &
+         / (const%univ_gas_const * inputs%T))
+    Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
+         / (const%univ_gas_const * inputs%T))
+
+    if (inputs%D <= inputs%D_dry) then
+       k_ap = k_a / (1d0 + Y / inputs%D_dry)
+       dkap_dD = 0d0
+       D_vp = D_v / (1d0 + Z / inputs%D_dry)
+       dDvp_dD = 0d0
+       a_w = 0d0
+       daw_dD = 0d0
+
+       delta_star = U * V * D_vp * inputs%H / k_ap
+       
+       outputs%Ddot = k_ap * delta_star / (U * inputs%D_dry)
+       mdot = const%water_density * const%pi / 2d0 &
+            * inputs%D_dry**2 * outputs%Ddot
+       
+       dh_ddelta = k_ap
+       dh_dD = 0d0
+       dh_dH = - U * V * D_vp
+
+       ddeltastar_dD = - dh_dD / dh_ddelta
+       ddeltastar_dH = - dh_dH / dh_ddelta
+       
+       outputs%dDdot_dD = 0d0
+       outputs%dDdot_dH = k_ap / (U * inputs%D_dry) * ddeltastar_dH
+       outputs%dmdot_dD = const%water_density * const%pi / 2d0 &
+            * inputs%D_dry**2 * outputs%dDdot_dD
+       outputs%dmdot_dH = const%water_density * const%pi / 2d0 &
+            * inputs%D_dry**2 * outputs%dDdot_dH
+
+       return
+    end if
+
+    k_ap = k_a / (1d0 + Y / inputs%D)
+    dkap_dD = k_a * Y / (inputs%D + Y)**2
+    D_vp = D_v / (1d0 + Z / inputs%D)
+    dDvp_dD = D_v * Z / (inputs%D + Z)**2
+    a_w = (inputs%D**3 - inputs%D_dry**3) &
+         / (inputs%D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)
+    daw_dD = 3d0 * inputs%D**2 * inputs%kappa * inputs%D_dry**3 &
+         / (inputs%D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)**2
+
+    newton_args%k_ap = k_ap
+    newton_args%U = U
+    newton_args%V = V
+    newton_args%D_vp = D_vp
+    newton_args%H = H
+    newton_args%a_w = a_w
+    newton_args%W = W
+    newton_args%X = X
+    newton_args%D = inputs%D
+    delta = 0d0
+    call condense_vode_delta_star_newton_new(delta, newton_args)
+    delta_star = delta
+
+    mdot = const%water_density * const%pi / 2d0 &
+         * inputs%D**2 * outputs%Ddot
+    
+    outputs%Ddot = k_ap * delta_star / (U * inputs%D)
+    outputs%Hdot_i = - 4d0 / (const%water_density * p%V * p%V_comp) * mdot
+    outputs%Hdot_env = - p%dV_dT * p%Tdot * p%H / p%V &
+         - p%dVcomp_dT * p%Tdot * p%H / p%V_comp
+
+    dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta_star, p)
+    dh_dD = dkap_dD * delta_star &
+         - U * V * dDvp_dD * inputs%H + U * V &
+         * (a_w * dDvp_dD + D_vp * daw_dD &
+         - D_vp * a_w * (X / inputs%D**2) / (1d0 + delta_star)) &
+         * (1d0 / (1d0 + delta_star)) &
+         * exp((W * delta_star) / (1d0 + delta_star) &
+         + (X / inputs%D) / (1d0 + delta_star))
+    dh_dH = - U * V * D_vp
+
+    ddeltastar_dD = - dh_dD / dh_ddelta
+    ddeltastar_dH = - dh_dH / dh_ddelta
+
+    outputs%dDdot_dD = dkap_dD * delta_star / (U * inputs%D) &
+         + k_ap * ddeltastar_dD / (U * inputs%D) &
+         - k_ap * delta_star / (U * inputs%D**2)
+    outputs%dDdot_dH = k_ap / (U * inputs%D) * ddeltastar_dH
+    outputs%dmdot_dD = const%water_density * const%pi / 2d0 &
+         * (2d0 * inputs%D * outputs%Ddot + inputs%D**2 * outputs%dDdot_dD)
+    outputs%dmdot_dH = const%water_density * const%pi / 2d0 &
+         * inputs%D**2 * outputs%dDdot_dH
+
+  end subroutine condense_vector_field
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

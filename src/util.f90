@@ -28,20 +28,38 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Prints a warning message.
-  subroutine warn_msg(code, msg)
+  subroutine warn_msg(code, warning_msg)
 
     !> Status code to use.
     integer, intent(in) :: code
     !> Message to display.
-    character(len=*), intent(in) :: msg
+    character(len=*), intent(in) :: warning_msg
 
     character(len=100) :: code_str
 
     write(code_str,*) code
     code_str = adjustl(code_str)
-    write(0,*) 'WARNING (PartMC-', trim(code_str), '): ', trim(msg)
+    write(0,*) 'WARNING (PartMC-', trim(code_str), '): ', trim(warning_msg)
 
   end subroutine warn_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Prints a warning message if condition_ok is false.
+  subroutine warn_assert_msg(code, condition_ok, warning_msg)
+
+    !> Status code to use.
+    integer, intent(in) :: code
+    !> Whether the assertion is ok.
+    logical, intent(in) :: condition_ok
+    !> Message to display.
+    character(len=*), intent(in) :: warning_msg
+
+    if (.not. condition_ok) then
+       call warn_msg(code, warning_msg)
+    end if
+
+  end subroutine warn_assert_msg
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

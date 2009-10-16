@@ -168,9 +168,8 @@ contains
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
     type(vode_opts) :: options
     type(env_state_t) :: env_state_final
-    !>DEBUG
     real(kind=dp) :: V_comp_final, water_vol_initial, water_vol_final
-    !<DEBUG
+    real(kind=dp) :: d_water_vol_rh, d_water_vol_particles, water_rel_err
 
     pre_water = 0d0
     do i_bin = 1,bin_grid%n_bin
@@ -278,7 +277,15 @@ contains
          * env_state_sat_vapor_pressure(env_state_final) &
          * env_state%rel_humid &
          * V_comp_final / aero_particle_water_density(aero_data)
-    write(*,*) 'rh,dpmv,dwater ', env_state%rel_humid, (water_vol_final - water_vol_initial), (post_water - pre_water)
+    d_water_vol_rh = water_vol_final - water_vol_initial
+    d_water_vol_particles = post_water - pre_water
+    water_rel_err = (d_water_vol_rh + d_water_vol_particles) / water_vol_final
+    call warn_assert_msg(477865387, water_rel_err < 1d-6, &
+         "condensation water balance error exceeded bounds")
+    !write(*,*) 'rh,wv,dpmv,dwater,e,pe ', env_state%rel_humid, water_vol_final, &
+    !     (water_vol_final - water_vol_initial), &
+    !     (post_water - pre_water), (water_vol_final - water_vol_initial + post_water - pre_water), &
+    !     (water_vol_final - water_vol_initial + post_water - pre_water) / water_vol_final
     !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
     !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
     !<DEBUG
@@ -1013,10 +1020,10 @@ contains
          - p%dVcomp_dT * p%Tdot * p%H / p%V_comp
     !Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
     !>DEBUG
-    write(*,*) 'f: time,Hdot ', env_state%elapsed_time, p%H, Hdot, &
-         (4d0 / (const%water_density * p%V * p%V_comp) * mw_dot), &
-         (p%dV_dT * p%Tdot * p%H / p%V), &
-         (p%dVcomp_dT * p%Tdot * p%H / p%V_comp)
+    !write(*,*) 'f: time,Hdot ', env_state%elapsed_time, p%H, Hdot, &
+    !     (4d0 / (const%water_density * p%V * p%V_comp) * mw_dot), &
+    !     (p%dV_dT * p%Tdot * p%H / p%V), &
+    !     (p%dVcomp_dT * p%Tdot * p%H / p%V_comp)
     !write(*,*) 'f: time,H,Hdot,Hdotp = ', env_state%elapsed_time, p%H, Hdot, Hdotp
     !<DEBUG
 

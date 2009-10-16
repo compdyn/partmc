@@ -260,9 +260,6 @@ contains
        end if
        aero_data%density(i) = species_data(i,1)
        aero_data%num_ions(i) = nint(species_data(i,2))
-       !>DEBUG
-       write(*,*) 'i, num_ions(i) = ', i, aero_data%num_ions(i)
-       !<DEBUG
        aero_data%solubility(i) = species_data(i,3)
        aero_data%molec_weight(i) = species_data(i,4)
        aero_data%kappa(i) = species_data(i,5)

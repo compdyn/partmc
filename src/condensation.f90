@@ -811,7 +811,7 @@ contains
     real(kind=dp), intent(in) :: Tdot
 
     p%T = env_state%temp
-    d%Tdot = Tdot
+    p%Tdot = Tdot
     p%H = env_state%rel_humid
     p%p = env_state%pressure
     p%V_comp = V_comp
@@ -871,7 +871,7 @@ contains
        p%delta_star = p%U * p%V * p%D_vp * p%H / p%k_ap
        
        p%Ddot = p%k_ap * p%delta_star / (p%U * p%D_dry)
-       p%Hdot = - 2d0 * const%pi * p%D_dry**2 / (p%V * p%V_comp) * p%Ddot
+       p%mdot = const%water_density * const%pi / 2d0 * p%D_dry**2 * p%Ddot
        
        p%dh_ddelta = p%k_ap
        p%dh_dD = 0d0
@@ -882,8 +882,10 @@ contains
        
        p%dDdot_dD = 0d0
        p%dDdot_dH = p%k_ap / (p%U * p%D_dry) * p%ddeltastar_dH
-       p%dHdot_dD = 0d0
-       p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D_dry**2 * p%dDdot_dH
+       p%dmdot_dD = const%water_density * const%pi / 2d0 &
+            * p%D_dry**2 * p%dDdot_dD
+       p%dmdot_dH = const%water_density * const%pi / 2d0 &
+            * p%D_dry**2 * p%dDdot_dH
 
        return
     end if
@@ -927,7 +929,7 @@ contains
     !p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D**2 * p%dDdot_dH
     p%dmdot_dD = const%water_density * const%pi / 2d0 &
          * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
-    p%dmdot_dH = const%water_density * const%pi / 2d0 * p%dDdot_dH
+    p%dmdot_dH = const%water_density * const%pi / 2d0 * p%D**2 * p%dDdot_dH
 
   end subroutine condense_params_per_particle
 

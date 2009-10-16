@@ -23,6 +23,17 @@ module pmc_condensation
   real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
   real(kind=dp), parameter :: PMC_COND_CHECK_REL_TOL = 5d-2
 
+  !> Relative error tolerance (scalar) for all solution components.
+  real(kind=dp), parameter :: CONDENSE_REL_TOL = 1d-8
+  !> Lower bound on the absolute error tolerance for particle diameters (m).
+  real(kind=dp), parameter :: CONDENSE_D_ABS_TOL_MIN = 1d-30
+  !> Scale factor \$ \gamma \$ to determine per-particle tolerance \$ \Delta D = \gamma (D - D_{\rm dry}) \$.
+  real(kind=dp), parameter :: CONDENSE_D_ABS_TOL_FACTOR = 1d-8
+  !> Absolute error tolerance for relative humidity.
+  real(kind=dp), parameter :: CONDENSE_RH_ABS_TOL = 1d-10
+  !> Characteristic time to maintain error control (s).
+  real(kind=dp), parameter :: CONDENSE_ERROR_CHAR_TIME = 1000d0
+
   integer, parameter :: PMC_COND_N_REAL_PARAMS = 16
   integer, parameter :: PMC_COND_N_INTEGER_PARAMS = 0
 
@@ -205,16 +216,17 @@ contains
           cond_kappa(i_part) = aero_particle_solute_kappa(aero_particle, aero_data)
           cond_D_dry(i_part) = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
           state(i_part + d_offset) = aero_particle_diameter(aero_particle)
-          abs_tol_vector(i_part + d_offset) = max(1d-30, &
-               1d-8 * (state(i_part + d_offset) - cond_D_dry(i_part)))
+          abs_tol_vector(i_part + d_offset) = max(CONDENSE_D_ABS_TOL_MIN, &
+                CONDENSE_D_ABS_TOL_FACTOR &
+                * (state(i_part + d_offset) - cond_D_dry(i_part)))
        end do
     end do
     if (rh_first) then
        state(1) = env_state%rel_humid
-       abs_tol_vector(1) = 1d-10
+       abs_tol_vector(1) = CONDENSE_RH_ABS_TOL
     else
        state(aero_state%n_part + 1) = env_state%rel_humid
-       abs_tol_vector(aero_state%n_part + 1) = 1d-10
+       abs_tol_vector(aero_state%n_part + 1) = CONDENSE_RH_ABS_TOL
     end if
 
     ! set VODE inputs
@@ -226,7 +238,7 @@ contains
 
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
-         abserr_vector = abs_tol_vector, relerr = 1d-8)
+         abserr_vector = abs_tol_vector, relerr = CONDENSE_REL_TOL)
     call dvode_f90(condense_vode_new_unified_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_new_unified_jac)
 
@@ -1519,16 +1531,22 @@ contains
     !> Condensation parameters.
     type(condense_params_t), intent(in) :: p
 
-    !> Delta convergence tolerance.
-    real(kind=dp), parameter :: delta_tol = 1d-16
-    !> Function convergence tolerance.
-    real(kind=dp), parameter :: h_tol = 1d-10
+    !> Minimum number of iterations.
+    integer, parameter :: iter_min = 3
     !> Maximum number of iterations.
     integer, parameter :: iter_max = 100
 
+    real(kind=dp) :: h_abs_tol
     integer :: iter
     real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
     real(kind=dp) :: check_delta, check_h, finite_diff_dh, rel_error
+
+    ! set tolerance to be scaled by one of the large terms in h
+    h_abs_tol = 1d3 * epsilon(1d0) * abs(p%U * p%V * p%D_vp * p%H)
+    !>DEBUG
+    !write(*,*) 'delta_abs_tol ', delta_abs_tol
+    !write(*,*) 'h_abs_tol ', h_abs_tol
+    !<DEBUG
 
     h = condense_vode_implicit_h_new(delta, p)
     dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta, p)
@@ -1544,6 +1562,9 @@ contains
        dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta, p)
        h_step = h - old_h
        old_h = h
+       !>DEBUG
+       !write(*,*) 'delta,step,h,dh_delta,h_step ', delta, delta_step, h, dh_ddelta, h_step
+       !<DEBUG
 
        if (PMC_COND_CHECK_DERIVS) then
           check_delta = delta * (1d0 + PMC_COND_CHECK_EPS)
@@ -1573,11 +1594,19 @@ contains
        
        ! FIXME: gfortran 4.1.1 requires the "then" in the following
        ! statement, rather than using a single-line "if" statement.
-       if ((abs(delta_step) .lt. delta_tol) &
-            .and. (abs(h_step) .lt. h_tol)) then
-          exit
+       !if ((abs(delta_step) .lt. delta_abs_tol) &
+       !     .and. (abs(h_step) .lt. h_abs_tol)) then
+       !   exit
+       !end if
+       if (iter >= iter_min) then
+          if (abs(h_step) .lt. h_abs_tol) then
+             exit
+          end if
        end if
     end do
+    !>DEBUG
+    !write(*,*) 'newton iter ', iter
+    !<DEBUG
  
   end subroutine condense_vode_delta_star_newton_new
 

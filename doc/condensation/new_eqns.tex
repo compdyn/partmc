@@ -87,32 +87,6 @@
   \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \frac{\partial \dot{H}_i}{\partial H}(D_i,H) + \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H)
 \end{align}
 
-Newer old stuff:
-\begin{align}
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  m_i(D_i) &= \rho_{\rm w} \frac{\pi}{6} (D_i^3 - D_{i,\rm dry}^3) + m_{i,\rm dry} \displaybreak[0] \\
-  \dot{m}_i(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} D_i^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{m}_i}{\partial D_i}(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} \biggl(2 D_i \dot{D}_i(D_i,H) + D_i^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H)\biggr) \displaybreak[0] \\
-  \frac{\partial \dot{m}_i}{\partial H}(D_i,H) &= \rho_{\rm w} \frac{\pi}{2} D_i^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{H}_i(D_i,H) &= - \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \dot{m}_i(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &= - \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_i}{\partial H}(D_i,H)
-\end{align}
-
-Old stuff:
-\begin{align}
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{m}_{\rm w}(D_1,\ldots,D_N,H) &= - \sum_{i=1}^N \dot{m}_i(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{m}_{\rm w}}{\partial D_i}(D_1,\ldots,D_N,H) &= - \frac{\partial \dot{m}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{m}_{\rm w}}{\partial H}(D_1,\ldots,D_N,H) &= - \sum_{i=1}^N \frac{\partial \dot{m}_i}{\partial H}(D_i,H) \displaybreak[0] \\
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \displaybreak[0] \\
-  \dot{H}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \dot{m}_{\rm w}(D_1,\ldots,D_N,H) - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} H - \frac{1}{V_{\rm comp}(T)} \frac{\partial V_{\rm comp}}{\partial T}(T) \dot{T} H \displaybreak[0] \\
-  \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_{\rm w}}{\partial D_i}(D_1,\ldots,D_N,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &= \frac{4}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \frac{\partial \dot{m}_{\rm w}}{\partial H}(D_1,\ldots,D_N,H) - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} - \frac{1}{V_{\rm comp}(T)} \frac{\partial V_{\rm comp}}{\partial T}(T) \dot{T}
-\end{align}
-
 If $D_i < D_{i,\rm dry}$ then we take
 \begin{align}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -175,6 +149,8 @@ $D_i$     &  droplet wet diameter  & dynamical variable  &     \\
 $m_{\rm  w}$ & mass of water vapor & \\
 $m_{i}$ & total mass of particle & \\
 $H$     &  environmental relative humidity  &  dynamical variable &  \\
+$\dot{H}_i$    & relative humidity change due to particle $i$ &  &  \\
+$\dot{H}_{\rm env}$     & relative humidity change due to environment &  &  \\
 \hline 
 \end{tabular}
 

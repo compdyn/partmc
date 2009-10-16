@@ -81,10 +81,14 @@ module pmc_condensation
   type condense_inputs_t
      !> Temperature (K).
      real(kind=dp) :: T
+     !> Rate of change of temperature (K s^{-1}).
+     real(kind=dp) :: Tdot
      !> Relative humidity (1).
      real(kind=dp) :: H
      !> Pressure (Pa).
      real(kind=dp) :: p
+     !> Computational volume (m^3).
+     real(kind=dp) :: V_comp
      !> Particle diameter (m).
      real(kind=dp) :: D
      !> Particle dry diameter (m).
@@ -96,29 +100,23 @@ module pmc_condensation
   type condense_outputs_t
      !> Change rate of diameter (m s^{-1}).
      real(kind=dp) :: Ddot
-     !> Change rate of particle mass (kg s^{-1}).
-     real(kind=dp) :: mdot
+     !> Change rate of relative humidity due to this particle (s^{-1}).
+     real(kind=dp) :: Hdot_i
+     !> Change rate of relative humidity due to environment changes (s^{-1}).
+     real(kind=dp) :: Hdot_env
      !> Sensitivity of \c Ddot to input \c D (m s^{-1} m^{-1}).
      real(kind=dp) :: dDdot_dD
      !> Sensitivity of \c Ddot to input \c H (m s^{-1}).
      real(kind=dp) :: dDdot_dH
-     !> Sensitivity of \c mdot to input \c D (kg s^{-1} m^{-1}).
-     real(kind=dp) :: dmdot_dD
-     !> Sensitivity of \c mdot to input \c D (kg s^{-1}).
-     real(kind=dp) :: dmdot_dH
+     !> Sensitivity of \c Hdot_i to input \c D (s^{-1} m^{-1}).
+     real(kind=dp) :: dHdoti_dD
+     !> Sensitivity of \c Hdot_i to input \c D (s^{-1}).
+     real(kind=dp) :: dHdoti_dH
+     !> Sensitivity of \c Hdot_env to input \c D (s^{-1} m^{-1}).
+     real(kind=dp) :: dHdotenv_dD
+     !> Sensitivity of \c Hdot_env to input \c D (s^{-1}).
+     real(kind=dp) :: dHdotenv_dH
   end type condense_outputs_t
-
-  type condense_newton_args_t
-     real(kind=dp) :: k_ap
-     real(kind=dp) :: U
-     real(kind=dp) :: V
-     real(kind=dp) :: D_vp
-     real(kind=dp) :: H
-     real(kind=dp) :: a_w
-     real(kind=dp) :: W
-     real(kind=dp) :: X
-     real(kind=dp) :: D
- end type condense_newton_args_t
 
   type condense_params_t
      real(kind=dp) :: T
@@ -281,8 +279,8 @@ contains
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
          abserr_vector = abs_tol_vector, relerr = CONDENSE_REL_TOL)
-    call dvode_f90(condense_vode_new_unified_f, n_eqn, state, init_time, final_time, &
-         itask, istate, options, j_fcn = condense_vode_new_unified_jac)
+    call dvode_f90(condense_vode_newer_unified_f, n_eqn, state, init_time, final_time, &
+         itask, istate, options, j_fcn = condense_vode_newer_unified_jac)
 
     if (rh_first) then
        env_state%rel_humid = state(1)
@@ -1031,7 +1029,7 @@ contains
 
   !> Compute the rate of change of particle diameter and relative
   !> humidity for a single particle.
-  subroutine condense_vector_field_per_particle(inputs, outputs)
+  subroutine condense_vector_field(inputs, outputs)
 
     !> Inputs to vector field.
     type(condense_inputs_t), intent(in) :: inputs
@@ -1040,7 +1038,7 @@ contains
 
     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT, rho_air, k_a, D_v, U, V
     real(kind=dp) :: dV_dT, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
-    real(kind=dp) :: a_w, daw_dD, delta, delta_star, dh_ddelta, dh_dD
+    real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
     real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, dVcomp_dT
 
     rho_w = const%water_density
@@ -1070,6 +1068,12 @@ contains
     Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
          / (const%univ_gas_const * inputs%T))
 
+    outputs%Hdot_env = - dV_dT * inputs%Tdot * inputs%H / V &
+         - dVcomp_dT * inputs%Tdot * inputs%H / inputs%V_comp
+    outputs%dHdotenv_dD = 0d0
+    outputs%dHdotenv_dH = - dV_dT * inputs%Tdot / V &
+         - dVcomp_dT * inputs%Tdot / inputs%V_comp
+
     if (inputs%D <= inputs%D_dry) then
        k_ap = k_a / (1d0 + Y / inputs%D_dry)
        dkap_dD = 0d0
@@ -1081,7 +1085,7 @@ contains
        delta_star = U * V * D_vp * inputs%H / k_ap
        
        outputs%Ddot = k_ap * delta_star / (U * inputs%D_dry)
-       mdot = const%water_density * const%pi / 2d0 &
+       outputs%Hdot_i = - 2d0 * const%pi / (V * inputs%V_comp) &
             * inputs%D_dry**2 * outputs%Ddot
        
        dh_ddelta = k_ap
@@ -1093,9 +1097,9 @@ contains
        
        outputs%dDdot_dD = 0d0
        outputs%dDdot_dH = k_ap / (U * inputs%D_dry) * ddeltastar_dH
-       outputs%dmdot_dD = const%water_density * const%pi / 2d0 &
+       outputs%dHdoti_dD = - 2d0 * const%pi / (V * inputs%V_comp) &
             * inputs%D_dry**2 * outputs%dDdot_dD
-       outputs%dmdot_dH = const%water_density * const%pi / 2d0 &
+       outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
             * inputs%D_dry**2 * outputs%dDdot_dH
 
        return
@@ -1110,26 +1114,28 @@ contains
     daw_dD = 3d0 * inputs%D**2 * inputs%kappa * inputs%D_dry**3 &
          / (inputs%D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)**2
 
-    newton_args%k_ap = k_ap
-    newton_args%U = U
-    newton_args%V = V
-    newton_args%D_vp = D_vp
-    newton_args%H = H
-    newton_args%a_w = a_w
-    newton_args%W = W
-    newton_args%X = X
-    newton_args%D = inputs%D
-    delta = 0d0
-    call condense_vode_delta_star_newton_new(delta, newton_args)
-    delta_star = delta
+    delta_star = 0d0
+    h = 0d0
+    dh_ddelta = 1d0
+    do newton_step = 1,5
+       ! update delta_star first so when the newton loop ends we have
+       ! h and dh_ddelta evaluated at the final delta_star value
+       delta_star = delta_star - h / dh_ddelta
+       h = k_ap * delta_star - U * V * D_vp &
+            * (H - a_w / (1d0 + delta_star) * exp(W * delta_star / (1d0 + delta_star) &
+            + (X / D) / (1d0 + delta_star)))
+       dh_ddelta = &
+            k_ap - U * V * D_vp * a_w / (1d0 + delta_star)**2 &
+            * (1d0 - W / (1d0 + delta_star) + (X / D) / (1d0 + delta_star)) &
+            * exp(W * delta / (1d0 + delta_star) + (X / D) / (1d0 + delta_star))
+    end do
+    call warn_assert_msg(387362320, &
+         abs(h) < 1d3 * epsilon(1d0) * abs(p%U * p%V * p%D_vp * p%H), &
+         "condensation newton loop did not satisfy convergence tolerance")
 
-    mdot = const%water_density * const%pi / 2d0 &
-         * inputs%D**2 * outputs%Ddot
-    
     outputs%Ddot = k_ap * delta_star / (U * inputs%D)
-    outputs%Hdot_i = - 4d0 / (const%water_density * p%V * p%V_comp) * mdot
-    outputs%Hdot_env = - p%dV_dT * p%Tdot * p%H / p%V &
-         - p%dVcomp_dT * p%Tdot * p%H / p%V_comp
+    outputs%Hdot_i = - 2d0 * const%pi / (V * inputs%V_comp) &
+         * inputs%D**2 * outputs%Ddot
 
     dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta_star, p)
     dh_dD = dkap_dD * delta_star &
@@ -1148,12 +1154,196 @@ contains
          + k_ap * ddeltastar_dD / (U * inputs%D) &
          - k_ap * delta_star / (U * inputs%D**2)
     outputs%dDdot_dH = k_ap / (U * inputs%D) * ddeltastar_dH
-    outputs%dmdot_dD = const%water_density * const%pi / 2d0 &
+    outputs%dHdoti_dD = - 2d0 * const%pi / (V * inputs%V_comp) &
          * (2d0 * inputs%D * outputs%Ddot + inputs%D**2 * outputs%dDdot_dD)
-    outputs%dmdot_dH = const%water_density * const%pi / 2d0 &
+    outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%dDdot_dH
 
   end subroutine condense_vector_field
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine condense_vode_newer_unified_f(n_eqn, time, state, state_dot)
+
+    !> Length of state vector.
+    integer, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+    !> Time derivative of state vector.
+    real(kind=dp), intent(out) :: state_dot(n_eqn)
+
+    real(kind=dp) :: Hdot
+    integer :: i_part
+    type(env_state_t) :: env_state
+    type(condense_inputs_t) :: inputs
+    type(condense_outputs_t) :: outputs
+
+    call env_state_allocate(env_state)
+    call condense_current_env_state(n_eqn, time, state, env_state)
+
+    inputs%T = env_state%T
+    inputs%Tdot = condense_saved_Tdot
+    inputs%H = env_state%rel_humid
+    inputs%p = env_state%pressure
+    inputs%V_comp = condense_saved_V_comp_initial &
+         * env_state%temp / condense_saved_env_state_initial%temp
+
+    Hdot = 0d0
+    do i_part = 1,(n_eqn - 1)
+       inputs%D = state(i_part + d_offset)
+       inputs%D_dry = cond_D_dry(i_part)
+       inputs%kappa = cond_kappa(i_part)
+       call condense_vector_field(inputs, outputs)
+       state_dot(i_part + d_offset) = outputs%Ddot
+       Hdot = Hdot + outputs%Hdot_i
+    end do
+    Hdot = Hdot + outputs%Hdot_env
+
+    if (rh_first) then
+       state_dot(1) = Hdot
+    else
+       state_dot(n_eqn) = Hdot
+    end if
+
+    call env_state_deallocate(env_state)
+
+  end subroutine condense_vode_newer_unified_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine condense_vode_newer_unified_jac(n_eqn, time, state, ia, ja, &
+       n_non_zero, state_jac)
+
+    !> Length of state vector.
+    integer, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+    !> Non-zero column offsets.
+    integer, intent(out) :: ia(*)
+    !> Non-zero row locations.
+    integer, intent(out) :: ja(*)
+    !> Number of non-zero elements in the Jacobian.
+    integer, intent(inout) :: n_non_zero
+    !> Sparse Jacobian of time derivative of state vector.
+    real(kind=dp), intent(out) :: state_jac(*)
+
+    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
+    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    integer :: i_nz, i_part
+    type(env_state_t) :: env_state
+
+    ! signal from vode to initialize number of non-zeros
+    if (n_non_zero == 0) then
+       n_non_zero = 3 * n_eqn - 2
+       return
+    end if
+
+    ! if not initializing, this should be correct
+    call assert(395158320, n_non_zero == 3 * n_eqn - 2)
+
+    type(condense_inputs_t) :: inputs
+    type(condense_outputs_t) :: outputs
+
+    call env_state_allocate(env_state)
+    call condense_current_env_state(n_eqn, time, state, env_state)
+
+    inputs%T = env_state%T
+    inputs%Tdot = condense_saved_Tdot
+    inputs%H = env_state%rel_humid
+    inputs%p = env_state%pressure
+    inputs%V_comp = condense_saved_V_comp_initial &
+         * env_state%temp / condense_saved_env_state_initial%temp
+
+    dHdot_dH = 0d0
+    do i_part = 1,(n_eqn - 1)
+       inputs%D = state(i_part + d_offset)
+       inputs%D_dry = cond_D_dry(i_part)
+       inputs%kappa = cond_kappa(i_part)
+       call condense_vector_field(inputs, outputs)
+       dDdot_dD(i_part) = outputs%dDdot_dD
+       dDdot_dH(i_part) = outputs%dDdot_dH
+       dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
+       dHdot_dH = dHdot_dH + outputs%dHdoti_dH
+    end do
+    dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
+
+    ! Copied from dvode_f90_m documentation:
+    !
+    ! IA defines the number of nonzeros including the
+    ! diagonal in each column of the Jacobian. Define
+    ! IA(1) = 1 and for J = 1,..., N,
+    ! IA(J+1) = IA(J) + number of nonzeros in column J.
+    ! Diagonal elements must be included even if they are
+    ! zero. You should check to ensure that IA(N+1)-1 = NZ.
+    ! JA defines the rows in which the nonzeros occur.
+    ! For I = 1,...,NZ, JA(I) is the row in which the Ith
+    ! element of the Jacobian occurs. JA must also include
+    ! the diagonal elements of the Jacobian.
+    ! PD defines the numerical value of the Jacobian
+    ! elements. For I = 1,...,NZ, PD(I) is the numerical
+    ! value of the Ith element in the Jacobian. PD must
+    ! also include the diagonal elements of the Jacobian.
+    if (rh_first) then
+       ia(1) = 1
+       ia(2) = ia(1) + n_eqn
+       do i_part = 1,(n_eqn - 1)
+          ia(2 + i_part) = ia(1 + i_part) + 2
+       end do
+       call assert(351522940, ia(n_eqn + 1) - 1 == n_non_zero)
+
+       i_nz = 0
+       i_nz = i_nz + 1
+       ja(i_nz) = 1
+       state_jac(i_nz) = dHdot_dH
+       do i_part = 1,(n_eqn - 1)
+          i_nz = i_nz + 1
+          ja(i_nz) = 1 + i_part
+          state_jac(i_nz) = dDdot_dH(i_part)
+       end do
+       do i_part = 1,(n_eqn - 1)
+          i_nz = i_nz + 1
+          ja(i_nz) = 1
+          state_jac(i_nz) = dHdot_dD(i_part)
+          i_nz = i_nz + 1
+          ja(i_nz) = i_part + 1
+          state_jac(i_nz) = dDdot_dD(i_part)
+       end do
+       call assert(260941580, i_nz == n_non_zero)
+    else
+       ia(1) = 1
+       do i_part = 1,(n_eqn - 1)
+          ia(1 + i_part) = ia(i_part) + 2
+       end do
+       ia(n_eqn + 1) = ia(n_eqn) + n_eqn
+       call assert(824345254, ia(n_eqn + 1) - 1 == n_non_zero)
+
+       i_nz = 0
+       do i_part = 1,(n_eqn - 1)
+          i_nz = i_nz + 1
+          ja(i_nz) = i_part
+          state_jac(i_nz) = dDdot_dD(i_part)
+          i_nz = i_nz + 1
+          ja(i_nz) = n_eqn
+          state_jac(i_nz) = dHdot_dD(i_part)
+       end do
+       do i_part = 1,(n_eqn - 1)
+          i_nz = i_nz + 1
+          ja(i_nz) = i_part
+          state_jac(i_nz) = dDdot_dH(i_part)
+       end do
+       i_nz = i_nz + 1
+       ja(i_nz) = n_eqn
+       state_jac(i_nz) = dHdot_dH
+       call assert(901219708, i_nz == n_non_zero)
+    end if
+
+    call env_state_deallocate(env_state)
+
+  end subroutine condense_vode_newer_unified_jac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

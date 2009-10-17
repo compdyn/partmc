@@ -18,25 +18,6 @@ module pmc_condensation
   use pmc_aero_particle
   use pmc_constants
   use dvode_f90_m
-  
-  !> Relative error tolerance (scalar) for all solution components.
-  real(kind=dp), parameter :: CONDENSE_REL_TOL = 1d-8
-  !> Lower bound on the absolute error tolerance for particle diameters (m).
-  real(kind=dp), parameter :: CONDENSE_D_ABS_TOL_MIN = 1d-30
-  !> Scale factor \$ \gamma \$ to determine per-particle tolerance \$ \Delta D = \gamma (D - D_{\rm dry}) \$.
-  real(kind=dp), parameter :: CONDENSE_D_ABS_TOL_FACTOR = 1d-8
-  !> Absolute error tolerance for relative humidity.
-  real(kind=dp), parameter :: CONDENSE_RH_ABS_TOL = 1d-10
-  !> Characteristic time to maintain error control (s).
-  real(kind=dp), parameter :: CONDENSE_ERROR_CHAR_TIME = 1000d0
-
-  type(aero_data_t) :: condense_saved_aero_data
-  type(env_data_t) :: condense_saved_env_data
-  type(env_state_t) :: condense_saved_env_state_initial
-  real(kind=dp) :: condense_saved_V_comp_initial
-  real(kind=dp) :: condense_saved_Tdot
-  real(kind=dp), pointer, save :: condense_saved_kappa(:) ! FIXME: change to allocatable, no save
-  real(kind=dp), pointer, save :: condense_saved_D_dry(:) ! FIXME: change to allocatable, no save
 
   type condense_rates_inputs_t
      !> Temperature (K).
@@ -77,6 +58,14 @@ module pmc_condensation
      !> Sensitivity of \c Hdot_env to input \c D (s^{-1}).
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
+
+  type(aero_data_t) :: condense_saved_aero_data
+  type(env_data_t) :: condense_saved_env_data
+  type(env_state_t) :: condense_saved_env_state_initial
+  real(kind=dp) :: condense_saved_V_comp_initial
+  real(kind=dp) :: condense_saved_Tdot
+  real(kind=dp), allocatable :: condense_saved_kappa(:)
+  real(kind=dp), allocatable :: condense_saved_D_dry(:)
 
 contains
   
@@ -148,13 +137,12 @@ contains
           condense_saved_D_dry(i_part) = vol2diam(&
                aero_particle_solute_volume(aero_particle, aero_data))
           state(i_part) = aero_particle_diameter(aero_particle)
-          abs_tol_vector(i_part) = max(CONDENSE_D_ABS_TOL_MIN, &
-                CONDENSE_D_ABS_TOL_FACTOR &
-                * (state(i_part) - condense_saved_D_dry(i_part)))
+          abs_tol_vector(i_part) = max(1d-30, &
+                1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
        end do
     end do
     state(aero_state%n_part + 1) = env_state%rel_humid
-    abs_tol_vector(aero_state%n_part + 1) = CONDENSE_RH_ABS_TOL
+    abs_tol_vector(aero_state%n_part + 1) = 1d-10
 
     ! set VODE inputs
     n_eqn = aero_state%n_part + 1
@@ -165,7 +153,7 @@ contains
 
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
-         abserr_vector = abs_tol_vector, relerr = CONDENSE_REL_TOL)
+         abserr_vector = abs_tol_vector, relerr = 1d-8)
     call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
 

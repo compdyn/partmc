@@ -154,3 +154,14 @@ Add integer_to_string, real_to_string, etc, that return trimmed
 strings so in error messages we can do things like die_msg(xxx, "Line
 " // integer_to_string(line_num) // ": unknown variable: " //
 var_name)
+
+Delete all files in the output directory that have the current prefix,
+before running, to avoid the problem where we reduce the timestep but
+then there are extra old output files left for later timesteps.
+
+Fix up time handling. At the moment we have times from midnight, times
+from start of run, times from time of restarted run, time within
+condensation timestep, etc.
+
+When inputting aero_data, warn if water density is not
+const%water_density (also const%water_molec_weight).

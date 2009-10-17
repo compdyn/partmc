@@ -90,25 +90,27 @@ contains
     !> Total time to integrate.
     real(kind=dp), intent(in) :: del_t
     
-    integer :: i_bin, j, new_bin, k, i_part
-    real(kind=dp) :: pre_water, post_water
+    integer :: i_bin, j, new_bin, k, i_part, n_eqn, itask, istate
     type(aero_particle_t), pointer :: aero_particle
-    integer :: n_eqn, itask, istate
     real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
     type(vode_opts) :: options
     type(env_state_t) :: env_state_final
-    real(kind=dp) :: V_comp_final, water_vol_initial, water_vol_final
-    real(kind=dp) :: d_water_vol_rh, d_water_vol_particles, water_rel_err
+    real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
+    real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
+    real(kind=dp) :: V_comp_final, water_rel_error
 
-    pre_water = 0d0
+    ! initial water volume in the aerosol particles
+    water_vol_initial = 0d0
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(j)
-          pre_water = pre_water + aero_particle%vol(aero_data%i_water)
+          water_vol_initial = water_vol_initial &
+               + aero_particle%vol(aero_data%i_water)
        end do
     end do
 
+    ! save data for use within the timestepper
     call aero_data_allocate(condense_saved_aero_data)
     call env_data_allocate(condense_saved_env_data)
     call env_state_allocate(condense_saved_env_state_initial)
@@ -125,6 +127,7 @@ contains
          env_state_final%elapsed_time + del_t)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
+    ! construct initial state vector from aero_state and env_state
     allocate(condense_saved_kappa(aero_state%n_part))
     allocate(condense_saved_D_dry(aero_state%n_part))
     i_part = 0
@@ -144,21 +147,19 @@ contains
     state(aero_state%n_part + 1) = env_state%rel_humid
     abs_tol_vector(aero_state%n_part + 1) = 1d-10
 
-    ! set VODE inputs
+    ! call VODE solver
     n_eqn = aero_state%n_part + 1
     init_time = 0d0
     final_time = del_t
     itask = 1 ! just output val at final_time
     istate = 1 ! first call for this ODE
-
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
          abserr_vector = abs_tol_vector, relerr = 1d-8)
     call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
 
-    env_state%rel_humid = state(aero_state%n_part + 1)
-
+    ! unpack result state vector into aero_state and env_state
     i_part = 0
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
@@ -174,42 +175,45 @@ contains
                aero_particle%vol(aero_data%i_water))
        end do
     end do
-
-    ! We resort the particles in the bins after only all particles
-    ! have condensation done, otherwise we will lose track of which
-    ! ones have had condensation and which have not.
+    ! We've modified particle diameters, so we need to update which
+    ! bins they are in.
     call aero_state_resort(bin_grid, aero_state)
+    env_state%rel_humid = state(aero_state%n_part + 1)
 
-    post_water = 0d0
+    ! final water volume in the aerosol particles and in the vapor
+    water_vol_final = 0d0
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(j)
-          post_water = post_water + aero_particle%vol(aero_data%i_water)
+          water_vol_final = water_vol_final &
+               + aero_particle%vol(aero_data%i_water)
        end do
     end do
 
-    !>DEBUG
-    V_comp_final = condense_saved_V_comp_initial * env_state_final%temp / condense_saved_env_state_initial%temp
-    water_vol_initial = aero_data%molec_weight(aero_data%i_water) &
+    ! check that water removed from particles equals water added to vapor
+    V_comp_final = condense_saved_V_comp_initial &
+         * env_state_final%temp / condense_saved_env_state_initial%temp
+    vapor_vol_initial = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * condense_saved_env_state_initial%temp) &
          * env_state_sat_vapor_pressure(condense_saved_env_state_initial) &
          * condense_saved_env_state_initial%rel_humid &
-         * condense_saved_V_comp_initial / aero_particle_water_density(aero_data)
-    water_vol_final = aero_data%molec_weight(aero_data%i_water) &
+         * condense_saved_V_comp_initial &
+         / aero_particle_water_density(aero_data)
+    vapor_vol_final = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * env_state_final%temp) &
          * env_state_sat_vapor_pressure(env_state_final) &
          * env_state%rel_humid &
          * V_comp_final / aero_particle_water_density(aero_data)
-    d_water_vol_rh = water_vol_final - water_vol_initial
-    d_water_vol_particles = post_water - pre_water
-    water_rel_err = (d_water_vol_rh + d_water_vol_particles) / water_vol_final
-    call warn_assert_msg(477865387, water_rel_err < 1d-6, &
-         "condensation water balance error exceeded bounds")
-    !<DEBUG
+    d_vapor_vol = vapor_vol_final - vapor_vol_initial
+    d_water_vol = water_vol_final - water_vol_initial
+    water_rel_error = (d_vapor_vol + d_water_vol) &
+         / (vapor_vol_final + water_vol_final)
+    call warn_assert_msg(477865387, abs(water_rel_error) < 1d-6, &
+         "condensation water imbalance too high: " &
+         // real_to_string(water_rel_error))
 
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
-
     call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
     call env_data_deallocate(condense_saved_env_data)
@@ -235,7 +239,6 @@ contains
     call env_state_copy(condense_saved_env_state_initial, env_state)
     call env_data_update_state(condense_saved_env_data, &
          env_state, env_state%elapsed_time + time)
-
     env_state%rel_humid = state(n_eqn)
 
   end subroutine condense_current_env_state
@@ -500,6 +503,7 @@ contains
     ! elements. For I = 1,...,NZ, PD(I) is the numerical
     ! value of the Ith element in the Jacobian. PD must
     ! also include the diagonal elements of the Jacobian.
+
     ia(1) = 1
     do i_part = 1,(n_eqn - 1)
        ia(1 + i_part) = ia(i_part) + 2

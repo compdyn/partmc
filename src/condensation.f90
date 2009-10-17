@@ -990,6 +990,53 @@ contains
          * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
     p%dmdot_dH = const%water_density * const%pi / 2d0 * p%D**2 * p%dDdot_dH
 
+
+
+    !write(*,*) 'T ', p%T
+    !write(*,*) 'Tdot ', p%Tdot
+    !write(*,*) 'H ', p%H
+    !write(*,*) 'p ', p%p
+    !write(*,*) 'V_comp ', p%V_comp
+    !write(*,*) 'dVcomp_dT ', p%dVcomp_dT
+    !write(*,*) 'rho_w ', p%rho_w
+    !write(*,*) 'M_w ', p%M_w
+    !write(*,*) 'P_0 ', p%P_0
+    !write(*,*) 'dP0_dT ', p%dP0_dT
+    !write(*,*) 'rho_air ', p%rho_air
+    !write(*,*) 'k_a ', p%k_a
+    !write(*,*) 'D_v ', p%D_v
+    !write(*,*) 'U ', p%U
+    !write(*,*) 'V ', p%V
+    !write(*,*) 'dV_dT ', p%dV_dT
+    !write(*,*) 'W ', p%W
+    !write(*,*) 'X ', p%X
+    !write(*,*) 'Y ', p%Y
+    !write(*,*) 'Z ', p%Z
+    !write(*,*) 'D ', p%D
+    !write(*,*) 'kappa ', p%kappa
+    !write(*,*) 'D_dry ', p%D_dry
+    !write(*,*) 'k_ap ', p%k_ap
+    !write(*,*) 'dkap_dD ', p%dkap_dD
+    !write(*,*) 'D_vp ', p%D_vp
+    !write(*,*) 'dDvp_dD ', p%dDvp_dD
+    !write(*,*) 'a_w ', p%a_w
+    !write(*,*) 'daw_dD ', p%daw_dD
+    !write(*,*) 'delta_star ', p%delta_star
+    !write(*,*) 'Ddot ', p%Ddot
+    !write(*,*) 'mdot ', p%mdot
+    !write(*,*) 'dh_ddelta ', p%dh_ddelta
+    !write(*,*) 'dh_dD ', p%dh_dD
+    !write(*,*) 'dh_dH ', p%dh_dH
+    !write(*,*) 'ddeltastar_dD ', p%ddeltastar_dD
+    !write(*,*) 'ddeltastar_dH ', p%ddeltastar_dH
+    !write(*,*) 'dDdot_dD ', p%dDdot_dD
+    !write(*,*) 'dDdot_dH ', p%dDdot_dH
+    !write(*,*) 'dmdot_dD ', p%dmdot_dD
+    !write(*,*) 'dmdot_dH ', p%dmdot_dH
+    !stop
+
+
+
   end subroutine condense_params_per_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1040,6 +1087,7 @@ contains
     real(kind=dp) :: dV_dT, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
     real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
     real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, dVcomp_dT
+    integer :: newton_step
 
     rho_w = const%water_density
     M_w = const%water_molec_weight
@@ -1050,7 +1098,7 @@ contains
          / (inputs%T - 38d0)**2
     rho_air = const%air_molec_weight * inputs%p &
          / (const%univ_gas_const * inputs%T)
-    dVcomp_dT = inputs%V_comp / inputs%temp
+    dVcomp_dT = inputs%V_comp / inputs%T
 
     k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
     D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
@@ -1122,22 +1170,27 @@ contains
        ! h and dh_ddelta evaluated at the final delta_star value
        delta_star = delta_star - h / dh_ddelta
        h = k_ap * delta_star - U * V * D_vp &
-            * (H - a_w / (1d0 + delta_star) * exp(W * delta_star / (1d0 + delta_star) &
-            + (X / D) / (1d0 + delta_star)))
+            * (inputs%H - a_w / (1d0 + delta_star) &
+            * exp(W * delta_star / (1d0 + delta_star) &
+            + (X / inputs%D) / (1d0 + delta_star)))
        dh_ddelta = &
             k_ap - U * V * D_vp * a_w / (1d0 + delta_star)**2 &
-            * (1d0 - W / (1d0 + delta_star) + (X / D) / (1d0 + delta_star)) &
-            * exp(W * delta / (1d0 + delta_star) + (X / D) / (1d0 + delta_star))
+            * (1d0 - W / (1d0 + delta_star) &
+            + (X / inputs%D) / (1d0 + delta_star)) &
+            * exp(W * delta_star / (1d0 + delta_star) &
+            + (X / inputs%D) / (1d0 + delta_star))
+       !>DEBUG
+       !write(*,*) 'i,delta,h,dhdd ', newton_step, delta_star, h, dh_ddelta
+       !<DEBUG
     end do
     call warn_assert_msg(387362320, &
-         abs(h) < 1d3 * epsilon(1d0) * abs(p%U * p%V * p%D_vp * p%H), &
+         abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
          "condensation newton loop did not satisfy convergence tolerance")
 
     outputs%Ddot = k_ap * delta_star / (U * inputs%D)
     outputs%Hdot_i = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%Ddot
 
-    dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta_star, p)
     dh_dD = dkap_dD * delta_star &
          - U * V * dDvp_dD * inputs%H + U * V &
          * (a_w * dDvp_dD + D_vp * daw_dD &
@@ -1158,6 +1211,54 @@ contains
          * (2d0 * inputs%D * outputs%Ddot + inputs%D**2 * outputs%dDdot_dD)
     outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%dDdot_dH
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    !write(*,*) 'T ', inputs%T
+    !write(*,*) 'Tdot ', inputs%Tdot
+    !write(*,*) 'H ', inputs%H
+    !write(*,*) 'p ', inputs%p
+    !write(*,*) 'V_comp ', inputs%V_comp
+    !write(*,*) 'D ', inputs%D
+    !write(*,*) 'D_dry ', inputs%D_dry
+    !write(*,*) 'kappa ', inputs%kappa
+    !write(*,*) 'rho_w ', rho_w
+    !write(*,*) 'M_w ', M_w
+    !write(*,*) 'P_0 ', P_0
+    !write(*,*) 'dP0_dT ', dP0_dT
+    !write(*,*) 'rho_air ', rho_air
+    !write(*,*) 'dVcomp_dT ', dVcomp_dT
+    !write(*,*) 'k_a ', k_a
+    !write(*,*) 'D_v ', D_v
+    !write(*,*) 'U ', U
+    !write(*,*) 'V ', V
+    !write(*,*) 'dV_dT ', dV_dT
+    !write(*,*) 'W ', W
+    !write(*,*) 'X ', X
+    !write(*,*) 'Y ', Y
+    !write(*,*) 'Z ', Z
+    !write(*,*) 'Hdot_env ', outputs%Hdot_env
+    !write(*,*) 'dHdotenv_dD ', outputs%dHdotenv_dD
+    !write(*,*) 'dHdotenv_dH ', outputs%dHdotenv_dH
+    !write(*,*) 'k_ap ', k_ap
+    !write(*,*) 'dkap_dD ', dkap_dD
+    !write(*,*) 'D_vp ', D_vp
+    !write(*,*) 'dDvp_dD ', dDvp_dD
+    !write(*,*) 'a_w ', a_w
+    !write(*,*) 'daw_dD ', daw_dD
+    !write(*,*) 'delta_star ', delta_star
+    !write(*,*) 'dh_ddelta ', dh_ddelta
+    !write(*,*) 'Ddot ', outputs%Ddot
+    !write(*,*) 'Hdot_i ', outputs%Hdot_i
+    !write(*,*) 'dh_dD ', dh_dD
+    !write(*,*) 'dh_dH ', dh_dH
+    !write(*,*) 'ddeltastar_dD ', ddeltastar_dD
+    !write(*,*) 'ddeltastar_dH ', ddeltastar_dH
+    !write(*,*) 'dDdot_dD ', outputs%dDdot_dD
+    !write(*,*) 'dDdot_dH ', outputs%dDdot_dH
+    !write(*,*) 'dHdoti_dD ', outputs%dHdoti_dD
+    !write(*,*) 'dHdoti_dH ', outputs%dHdoti_dH
+    !stop
 
   end subroutine condense_vector_field
 
@@ -1183,7 +1284,7 @@ contains
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
 
-    inputs%T = env_state%T
+    inputs%T = env_state%temp
     inputs%Tdot = condense_saved_Tdot
     inputs%H = env_state%rel_humid
     inputs%p = env_state%pressure
@@ -1235,6 +1336,8 @@ contains
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     integer :: i_nz, i_part
     type(env_state_t) :: env_state
+    type(condense_inputs_t) :: inputs
+    type(condense_outputs_t) :: outputs
 
     ! signal from vode to initialize number of non-zeros
     if (n_non_zero == 0) then
@@ -1245,13 +1348,10 @@ contains
     ! if not initializing, this should be correct
     call assert(395158320, n_non_zero == 3 * n_eqn - 2)
 
-    type(condense_inputs_t) :: inputs
-    type(condense_outputs_t) :: outputs
-
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
 
-    inputs%T = env_state%T
+    inputs%T = env_state%temp
     inputs%Tdot = condense_saved_Tdot
     inputs%H = env_state%rel_humid
     inputs%p = env_state%pressure
@@ -1913,6 +2013,9 @@ contains
     old_h = h
 
     iter = 0
+    !>DEBUG
+    !write(*,*) 'i,delta,h,dhdd ', iter+1, delta, h, dh_ddelta
+    !<DEBUG
     do
        iter = iter + 1
        delta_step = - h / dh_ddelta
@@ -1920,6 +2023,9 @@ contains
        delta = delta + delta_step
        h = condense_vode_implicit_h_new(delta, p)
        dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta, p)
+       !>DEBUG
+       !write(*,*) 'i,delta,h,dhdd ', iter+1, delta, h, dh_ddelta
+       !<DEBUG
        h_step = h - old_h
        old_h = h
        !>DEBUG

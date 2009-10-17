@@ -19,10 +19,6 @@ module pmc_condensation
   use pmc_constants
   use dvode_f90_m
   
-  logical, parameter :: PMC_COND_CHECK_DERIVS = .false.
-  real(kind=dp), parameter :: PMC_COND_CHECK_EPS = 1d-8
-  real(kind=dp), parameter :: PMC_COND_CHECK_REL_TOL = 5d-2
-
   !> Relative error tolerance (scalar) for all solution components.
   real(kind=dp), parameter :: CONDENSE_REL_TOL = 1d-8
   !> Lower bound on the absolute error tolerance for particle diameters (m).
@@ -34,51 +30,18 @@ module pmc_condensation
   !> Characteristic time to maintain error control (s).
   real(kind=dp), parameter :: CONDENSE_ERROR_CHAR_TIME = 1000d0
 
-  integer, parameter :: PMC_COND_N_REAL_PARAMS = 16
-  integer, parameter :: PMC_COND_N_INTEGER_PARAMS = 0
-
-  integer, parameter :: PMC_COND_U = 1
-  integer, parameter :: PMC_COND_V = 2
-  integer, parameter :: PMC_COND_W = 3
-  integer, parameter :: PMC_COND_X = 4
-  integer, parameter :: PMC_COND_Y = 5
-  integer, parameter :: PMC_COND_Z = 6
-  integer, parameter :: PMC_COND_K_A = 7
-  integer, parameter :: PMC_COND_D_V = 8
-  integer, parameter :: PMC_COND_KAPPA = 9
-  integer, parameter :: PMC_COND_V_DRY = 10
-  integer, parameter :: PMC_COND_S = 11
-  integer, parameter :: PMC_COND_V_COMP = 12
-  integer, parameter :: PMC_COND_TIME_0 = 13
-  integer, parameter :: PMC_COND_TIME_1 = 14
-  integer, parameter :: PMC_COND_TEMP_0 = 15
-  integer, parameter :: PMC_COND_TEMP_1 = 16
-
-  !> Diameter at which the pmc_cond_saved_delta_star was evaluated.
-  real(kind=dp), save :: pmc_cond_saved_diameter
-  !> Saved value of delta_star evaluated at pmc_cond_saved_diameter.
-  real(kind=dp), save :: pmc_cond_saved_delta_star
-
-  real(kind=dp), save :: save_real_params(PMC_COND_N_REAL_PARAMS)
-
   logical, save :: rh_first = .true.
   integer, save :: d_offset = 1 ! 1 if rh_first, otherwise 0
-
-  !>DEBUG
-  !logical, save :: kill_flag = .false.
-  !integer, save :: i_call_f
-  !integer, pointer, save :: n_call_f(:)
-  !<DEBUG
 
   type(aero_data_t) :: condense_saved_aero_data
   type(env_data_t) :: condense_saved_env_data
   type(env_state_t) :: condense_saved_env_state_initial
   real(kind=dp) :: condense_saved_V_comp_initial
   real(kind=dp) :: condense_saved_Tdot
-  real(kind=dp), pointer, save :: cond_kappa(:) ! FIXME: rename to saved_kappa, make allocatable, no save
-  real(kind=dp), pointer, save :: cond_D_dry(:) ! FIXME: rename to saved_D_dry, make allocatable, no save
+  real(kind=dp), pointer, save :: condense_saved_kappa(:)
+  real(kind=dp), pointer, save :: condense_saved_D_dry(:)
 
-  type condense_inputs_t
+  type condense_rates_inputs_t
      !> Temperature (K).
      real(kind=dp) :: T
      !> Rate of change of temperature (K s^{-1}).
@@ -95,9 +58,9 @@ module pmc_condensation
      real(kind=dp) :: D_dry
      !> Kappa parameter (1).
      real(kind=dp) :: kappa
-  end type condense_inputs_t
+  end type condense_rates_inputs_t
 
-  type condense_outputs_t
+  type condense_rates_outputs_t
      !> Change rate of diameter (m s^{-1}).
      real(kind=dp) :: Ddot
      !> Change rate of relative humidity due to this particle (s^{-1}).
@@ -116,51 +79,25 @@ module pmc_condensation
      real(kind=dp) :: dHdotenv_dD
      !> Sensitivity of \c Hdot_env to input \c D (s^{-1}).
      real(kind=dp) :: dHdotenv_dH
-  end type condense_outputs_t
+  end type condense_rates_outputs_t
 
-  type condense_params_t
+  type condense_equilib_inputs_t
+     !> Temperature (K).
      real(kind=dp) :: T
-     real(kind=dp) :: Tdot
+     !> Relative humidity (1).
      real(kind=dp) :: H
+     !> Pressure (Pa).
      real(kind=dp) :: p
-     real(kind=dp) :: V_comp
-     real(kind=dp) :: dVcomp_dT
-     real(kind=dp) :: rho_w
-     real(kind=dp) :: M_w
-     real(kind=dp) :: P_0
-     real(kind=dp) :: dP0_dT
-     real(kind=dp) :: rho_air
-     real(kind=dp) :: k_a
-     real(kind=dp) :: D_v
-     real(kind=dp) :: U
-     real(kind=dp) :: V
-     real(kind=dp) :: dV_dT
-     real(kind=dp) :: W
-     real(kind=dp) :: X
-     real(kind=dp) :: Y
-     real(kind=dp) :: Z
-     real(kind=dp) :: D
-     real(kind=dp) :: kappa
+     !> Particle dry diameter (m).
      real(kind=dp) :: D_dry
-     real(kind=dp) :: k_ap
-     real(kind=dp) :: dkap_dD
-     real(kind=dp) :: D_vp
-     real(kind=dp) :: dDvp_dD
-     real(kind=dp) :: a_w
-     real(kind=dp) :: daw_dD
-     real(kind=dp) :: delta_star
-     real(kind=dp) :: Ddot
-     real(kind=dp) :: mdot
-     real(kind=dp) :: dh_ddelta
-     real(kind=dp) :: dh_dD
-     real(kind=dp) :: dh_dH
-     real(kind=dp) :: ddeltastar_dD
-     real(kind=dp) :: ddeltastar_dH
-     real(kind=dp) :: dDdot_dD
-     real(kind=dp) :: dDdot_dH
-     real(kind=dp) :: dmdot_dD
-     real(kind=dp) :: dmdot_dH
-  end type condense_params_t
+     !> Kappa parameter (1).
+     real(kind=dp) :: kappa
+  end type condense_equilib_inputs_t
+
+  type condense_equilib_outputs_t
+     !> Partial diameter (m).
+     real(kind=dp) :: D
+  end type condense_equilib_outputs_t
 
 contains
   
@@ -169,33 +106,7 @@ contains
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
   !> vapor.
-  subroutine condense_particles(bin_grid, env_state, env_data, aero_data, &
-       aero_state, del_t)
-
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
-    !> Environment data.
-    type(env_data_t), intent(in) :: env_data
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Total time to integrate.
-    real(kind=dp), intent(in) :: del_t
-
-    call condense_particles_new_unified(bin_grid, env_state, env_data, &
-         aero_data, aero_state, del_t)
-
-  end subroutine condense_particles
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do condensation to all the particles for a given time interval,
-  !> including updating the environment to account for the lost
-  !> vapor.
-  subroutine condense_particles_new_unified(bin_grid, env_state, env_data, &
+  subroutine condense_particles(bin_grid, env_state, env_data, &
        aero_data, aero_state, del_t)
 
     !> Bin grid.
@@ -246,19 +157,21 @@ contains
          env_state_final%elapsed_time + del_t)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
-    allocate(cond_kappa(aero_state%n_part))
-    allocate(cond_D_dry(aero_state%n_part))
+    allocate(condense_saved_kappa(aero_state%n_part))
+    allocate(condense_saved_D_dry(aero_state%n_part))
     i_part = 0
     do i_bin = 1,bin_grid%n_bin
        do j = 1,aero_state%bin(i_bin)%n_part
           i_part = i_part + 1
           aero_particle => aero_state%bin(i_bin)%particle(j)
-          cond_kappa(i_part) = aero_particle_solute_kappa(aero_particle, aero_data)
-          cond_D_dry(i_part) = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
+          condense_saved_kappa(i_part) &
+               = aero_particle_solute_kappa(aero_particle, aero_data)
+          condense_saved_D_dry(i_part) = vol2diam(&
+               aero_particle_solute_volume(aero_particle, aero_data))
           state(i_part + d_offset) = aero_particle_diameter(aero_particle)
           abs_tol_vector(i_part + d_offset) = max(CONDENSE_D_ABS_TOL_MIN, &
                 CONDENSE_D_ABS_TOL_FACTOR &
-                * (state(i_part + d_offset) - cond_D_dry(i_part)))
+                * (state(i_part + d_offset) - condense_saved_D_dry(i_part)))
        end do
     end do
     if (rh_first) then
@@ -279,8 +192,8 @@ contains
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
          abserr_vector = abs_tol_vector, relerr = CONDENSE_REL_TOL)
-    call dvode_f90(condense_vode_newer_unified_f, n_eqn, state, init_time, final_time, &
-         itask, istate, options, j_fcn = condense_vode_newer_unified_jac)
+    call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
+         itask, istate, options, j_fcn = condense_vode_jac)
 
     if (rh_first) then
        env_state%rel_humid = state(1)
@@ -334,496 +247,17 @@ contains
     water_rel_err = (d_water_vol_rh + d_water_vol_particles) / water_vol_final
     call warn_assert_msg(477865387, water_rel_err < 1d-6, &
          "condensation water balance error exceeded bounds")
-    !write(*,*) 'rh,wv,dpmv,dwater,e,pe ', env_state%rel_humid, water_vol_final, &
-    !     (water_vol_final - water_vol_initial), &
-    !     (post_water - pre_water), (water_vol_final - water_vol_initial + post_water - pre_water), &
-    !     (water_vol_final - water_vol_initial + post_water - pre_water) / water_vol_final
-    !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
-    !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
     !<DEBUG
 
-    deallocate(cond_kappa)
-    deallocate(cond_D_dry)
+    deallocate(condense_saved_kappa)
+    deallocate(condense_saved_D_dry)
 
     call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
     call env_data_deallocate(condense_saved_env_data)
     call env_state_deallocate(condense_saved_env_state_initial)
 
-  end subroutine condense_particles_new_unified
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do condensation to all the particles for a given time interval,
-  !> including updating the environment to account for the lost
-  !> vapor.
-  subroutine condense_particles_unified(bin_grid, env_state, env_data, &
-       aero_data, aero_state, del_t)
-
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
-    !> Environment data.
-    type(env_data_t), intent(in) :: env_data
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Total time to integrate.
-    real(kind=dp), intent(in) :: del_t
-    
-    integer :: i_bin, j, new_bin, k, i_part
-    real(kind=dp) :: pv, pre_water, post_water
-    type(aero_particle_t), pointer :: aero_particle
-    integer :: n_eqn, tol_types, itask, istate, iopt, method_flag
-    real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time, rel_tol(1)
-    real(kind=dp) :: abs_tol(1), abs_tol_vector(aero_state%n_part + 1)
-    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-    real(kind=dp) :: rho_water, M_water
-    real(kind=dp) :: thermal_conductivity, molecular_diffusion
-    type(vode_opts) :: options
-
-    pre_water = 0d0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          aero_particle => aero_state%bin(i_bin)%particle(j)
-          pre_water = pre_water + aero_particle%vol(aero_data%i_water)
-       end do
-    end do
-
-    !>DEBUG
-    !write(*,*) '*******************************************************'
-    !write(*,*) 'time ', env_state%elapsed_time
-    !write(*,*) 'id ', aero_particle%id
-    !<DEBUG
-    thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
-         * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
-    molecular_diffusion = 0.211d-4 &
-         / (env_state%pressure / const%air_std_press) &
-         * (env_state%temp / 273d0)**1.94d0 ! FIXME: supposedly in m^2 s^{-1}
-    rho_water = aero_particle_water_density(aero_data)
-    M_water = aero_particle_water_molec_weight(aero_data)
-
-    real_params(PMC_COND_U) = const%water_latent_heat * rho_water &
-         / (4d0 * env_state%temp)
-    real_params(PMC_COND_V) = 4d0 * M_water &
-         * env_state_sat_vapor_pressure(env_state) &
-         / (rho_water * const%univ_gas_const * env_state%temp)
-    real_params(PMC_COND_W) = const%water_latent_heat * M_water &
-         / (const%univ_gas_const * env_state%temp)
-    real_params(PMC_COND_X) = 4d0 * M_water * const%water_surf_eng &
-         / (const%univ_gas_const * env_state%temp * rho_water) 
-    real_params(PMC_COND_Y) = 2d0 * thermal_conductivity &
-         / (const%accom_coeff * env_state_air_den(env_state) &
-         * const%air_spec_heat) &
-         * sqrt(2d0 * const%pi * const%air_molec_weight &
-         / (const%univ_gas_const * env_state%temp))
-    real_params(PMC_COND_Z) = 2d0 * molecular_diffusion &
-         / const%accom_coeff * sqrt(2d0 * const%pi * M_water &
-         / (const%univ_gas_const * env_state%temp))
-    real_params(PMC_COND_K_A) = thermal_conductivity
-    real_params(PMC_COND_D_V) = molecular_diffusion
-    real_params(PMC_COND_V_COMP) = aero_state%comp_vol
-
-    allocate(cond_kappa(aero_state%n_part))
-    allocate(cond_D_dry(aero_state%n_part))
-    i_part = 0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          i_part = i_part + 1
-          aero_particle => aero_state%bin(i_bin)%particle(j)
-          cond_kappa(i_part) = aero_particle_solute_kappa(aero_particle, aero_data)
-          cond_D_dry(i_part) = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
-          state(i_part + d_offset) = aero_particle_diameter(aero_particle)
-          abs_tol_vector(i_part + d_offset) = max(1d-12, &
-               1d-8 * (state(i_part + d_offset) - cond_D_dry(i_part)))
-       end do
-    end do
-    if (rh_first) then
-       state(1) = env_state%rel_humid
-       abs_tol_vector(1) = 1d-10
-    else
-       state(aero_state%n_part + 1) = env_state%rel_humid
-       abs_tol_vector(aero_state%n_part + 1) = 1d-10
-    end if
-
-    !>DEBUG
-    !allocate(n_call_f(aero_state%n_part))
-    !n_call_f = 0
-    !i_call_f = 0
-    !<DEBUG
-
-    ! set VODE inputs
-    n_eqn = aero_state%n_part + 1
-    init_time = 0d0
-    final_time = del_t
-    rel_tol(1) = 1d-8
-    !abs_tol(1) = 1d-10
-    itask = 1 ! just output val at final_time
-    istate = 1 ! first call for this ODE
-    iopt = 0 ! no optional inputs
-    method_flag = 26 ! stiff (BDF) method, user-supplied sparse Jacobian
-
-    options = set_opts(sparse_j = .true., &
-         user_supplied_jacobian = .true., &
-         abserr_vector = abs_tol_vector, relerr = rel_tol(1))
-    save_real_params = real_params
-    call dvode_f90(condense_vode_unified_f, n_eqn, state, init_time, final_time, &
-         itask, istate, options, j_fcn = condense_vode_unified_jac)
-
-    if (rh_first) then
-       env_state%rel_humid = state(1)
-    else
-       env_state%rel_humid = state(aero_state%n_part + 1)
-    end if
-
-    i_part = 0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          i_part = i_part + 1
-          aero_particle => aero_state%bin(i_bin)%particle(j)
-
-          ! translate output back to particle
-          aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part + d_offset)) &
-               - aero_particle_solute_volume(aero_particle, aero_data)
-
-          ! ensure volumes stay positive
-          aero_particle%vol(aero_data%i_water) = max(0d0, &
-               aero_particle%vol(aero_data%i_water))
-       end do
-    end do
-
-    ! We resort the particles in the bins after only all particles
-    ! have condensation done, otherwise we will lose track of which
-    ! ones have had condensation and which have not.
-    call aero_state_resort(bin_grid, aero_state)
-
-    post_water = 0d0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          aero_particle => aero_state%bin(i_bin)%particle(j)
-          post_water = post_water + aero_particle%vol(aero_data%i_water)
-       end do
-    end do
-
-    !>DEBUG
-    write(*,*) 'RH post cond = ', env_state%rel_humid
-    !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
-    !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
-    !<DEBUG
-
-    deallocate(cond_kappa)
-    deallocate(cond_D_dry)
-
-  end subroutine condense_particles_unified
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do condensation to all the particles for a given time interval,
-  !> including updating the environment to account for the lost
-  !> vapor.
-  subroutine condense_particles_individual(bin_grid, env_state, env_data, aero_data, &
-       aero_state, del_t)
-
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
-    !> Environment data.
-    type(env_data_t), intent(inout) :: env_data
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Total time to integrate.
-    real(kind=dp), intent(in) :: del_t
-    
-    integer :: i_bin, j, new_bin, k
-    real(kind=dp) :: pv, pre_water, post_water
-    type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: kappa
-
-    pre_water = 0d0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          particle => aero_state%bin(i_bin)%particle(j)
-          pre_water = pre_water + particle%vol(aero_data%i_water)
-       end do
-    end do
-
-    !write(*,*) 'RH (before condense) =', env_state%rel_humid
-    !>DEBUG
-    write(*,*) 'condense_particles A: ', aero_data%num_ions(1)
-    !<DEBUG
-
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          !write(*,*) 'i_bin= ', i_bin, 'j =',  j
-          !>DEBUG
-          !i_call_f = i_call_f + 1
-          !<DEBUG
-          call condense_particle_vode(del_t, env_state, aero_data, &
-               aero_state%bin(i_bin)%particle(j))
-!          write(*,*) 'stop after the first particle'
-!          STOP
-       end do
-    end do
-
-    ! We resort the particles in the bins after only all particles
-    ! have condensation done, otherwise we will lose track of which
-    ! ones have had condensation and which have not.
-    call aero_state_resort(bin_grid, aero_state)
-
-    post_water = 0d0
-    do i_bin = 1,bin_grid%n_bin
-       do j = 1,aero_state%bin(i_bin)%n_part
-          particle => aero_state%bin(i_bin)%particle(j)
-          post_water = post_water + particle%vol(aero_data%i_water)
-       end do
-    end do
-
-    !write(*,*) 'pre_water (BF cond) =', pre_water
-    !write(*,*) 'post_water (AF cond) =', post_water
-
-    !write(*,*) 'RH (before update due to cond. ) =', env_state%rel_humid
-
-    ! update the environment due to condensation of water
-    call env_state_change_water_volume(env_state, aero_data, &
-         (post_water - pre_water) / aero_state%comp_vol)
-    !>DEBUG
-    write(*,*) 'RH post cond = ', env_state%rel_humid
-    !write(*,*) 'time,min_call_f,max_call_f,mean_call_f = ', env_state%elapsed_time, &
-    !     minval(n_call_f), maxval(n_call_f), (real(sum(n_call_f),kind=dp) / real(aero_state%n_part,kind=dp))
-    !<DEBUG
-
-    !write(*,*) 'RH (after update due to cond. ) =', env_state%rel_humid 
-
-  end subroutine condense_particles_individual
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Integrate the condensation growth or decay ODE for total time
-  !> del_t for a single particle.
-  subroutine condense_particle_vode(del_t, env_state, aero_data, &
-       aero_particle)
-
-    !> Total time to integrate.
-    real(kind=dp), intent(in) :: del_t
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    integer, parameter :: real_work_len = 33 ! for scalar equation
-    integer, parameter :: integer_work_len = 31 ! for scalar equation
-
-    integer :: n_eqn, tol_types, itask, istate, iopt, method_flag
-    real(kind=dp) :: val(1), init_time, final_time, rel_tol(1)
-    real(kind=dp) :: abs_tol(1), real_work(real_work_len)
-    integer :: integer_work(integer_work_len)
-    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-    real(kind=dp) :: rho_water, M_water
-    real(kind=dp) :: thermal_conductivity, molecular_diffusion
-    type(vode_opts) :: options
-    integer :: constraint_indices(1)
-    real(kind=dp) :: constraint_lower(1), constraint_upper(1)
-
-!    interface
-!       ! interfaces copied by hand from vode.f
-!       subroutine dvode(F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, &
-!            ITASK, ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, &
-!            MF, RPAR, IPAR)
-!         integer :: LRW, LIW
-!         double precision :: Y(:), T, TOUT, RTOL(:), ATOL(:), &
-!              RWORK(LRW), RPAR(:)
-!         integer :: NEQ, ITOL, ITASK, ISTATE, IOPT, IWORK(LIW), &
-!              MF, IPAR(:)
-!         interface
-!            subroutine F(NEQ, T, Y, YDOT, RPAR, IPAR)
-!              integer :: NEQ
-!              double precision :: T, Y(NEQ), YDOT(NEQ), RPAR(:)
-!              integer :: IPAR(:)
-!            end subroutine F
-!            subroutine JAC(NEQ, T, Y, ML, MU, PD, NROWPD, RPAR, IPAR)
-!              integer :: NEQ, NROWPD
-!              double precision :: T, Y(NEQ), PD(NROWPD,NEQ), RPAR(:)
-!              integer :: ML, MU, IPAR(:)
-!            end subroutine JAC
-!         end interface
-!       end subroutine dvode
-!    end interface
-
-    !>DEBUG
-    !write(*,*) '*******************************************************'
-    !write(*,*) 'time ', env_state%elapsed_time
-    !write(*,*) 'id ', aero_particle%id
-    !<DEBUG
-    thermal_conductivity = 1d-3 * (4.39d0 + 0.071d0 &
-         * env_state%temp) ! FIXME: supposedly in J m^{-1} s^{-1} K^{-1}
-    molecular_diffusion = 0.211d-4 &
-         / (env_state%pressure / const%air_std_press) &
-         * (env_state%temp / 273d0)**1.94d0 ! FIXME: supposedly in m^2 s^{-1}
-    rho_water = aero_particle_water_density(aero_data)
-    M_water = aero_particle_water_molec_weight(aero_data)
-
-    real_params(PMC_COND_U) = const%water_latent_heat * rho_water &
-         / (4d0 * env_state%temp)
-    real_params(PMC_COND_V) = 4d0 * M_water &
-         * env_state_sat_vapor_pressure(env_state) &
-         / (rho_water * const%univ_gas_const * env_state%temp)
-    real_params(PMC_COND_W) = const%water_latent_heat * M_water &
-         / (const%univ_gas_const * env_state%temp)
-    real_params(PMC_COND_X) = 4d0 * M_water * const%water_surf_eng &
-         / (const%univ_gas_const * env_state%temp * rho_water) 
-    real_params(PMC_COND_Y) = 2d0 * thermal_conductivity &
-         / (const%accom_coeff * env_state_air_den(env_state) &
-         * const%air_spec_heat) &
-         * sqrt(2d0 * const%pi * const%air_molec_weight &
-         / (const%univ_gas_const * env_state%temp))
-    real_params(PMC_COND_Z) = 2d0 * molecular_diffusion &
-         / const%accom_coeff * sqrt(2d0 * const%pi * M_water &
-         / (const%univ_gas_const * env_state%temp))
-    real_params(PMC_COND_K_A) = thermal_conductivity
-    real_params(PMC_COND_D_V) = molecular_diffusion
-    real_params(PMC_COND_KAPPA) &
-         = aero_particle_solute_kappa(aero_particle, aero_data)
-    real_params(PMC_COND_V_DRY) &
-         = aero_particle_solute_volume(aero_particle, aero_data)
-    real_params(PMC_COND_S) = env_state%rel_humid
-
-    !>DEBUG
-    !write(*,*) '************************************************************'
-    !write(*,*) 'id ', aero_particle%id
-    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
-    !write(*,*) 'time ', env_state%elapsed_time
-    !write(*,*) 'RH ', env_state%rel_humid
-    !write(*,*) 'temp ', env_state%temp
-    !write(*,*) 'PMC_COND_U ', real_params(PMC_COND_U)
-    !write(*,*) 'PMC_COND_V ', real_params(PMC_COND_V)
-    !write(*,*) 'PMC_COND_W ', real_params(PMC_COND_W)
-    !write(*,*) 'PMC_COND_X ', real_params(PMC_COND_X)
-    !write(*,*) 'PMC_COND_Y ', real_params(PMC_COND_Y)
-    !write(*,*) 'PMC_COND_Z ', real_params(PMC_COND_Z)
-    !write(*,*) 'PMC_COND_K_A ', real_params(PMC_COND_K_A)
-    !write(*,*) 'PMC_COND_D_V ', real_params(PMC_COND_D_V)
-    !write(*,*) 'PMC_COND_KAPPA ', real_params(PMC_COND_KAPPA)
-    !write(*,*) 'PMC_COND_V_DRY ', real_params(PMC_COND_V_DRY)
-    !write(*,*) 'PMC_COND_S ', real_params(PMC_COND_S)
-    !<DEBUG
-
-    ! set VODE inputs
-    n_eqn = 1
-    val(1) = vol2diam(aero_particle_volume(aero_particle))
-    init_time = 0d0
-    final_time = del_t
-    tol_types = 1 ! both rel_tol and abs_tol are scalars
-    rel_tol(1) = 1d-6
-    abs_tol(1) = val(1) * 1d-6
-    itask = 1 ! just output val at final_time
-    istate = 1 ! first call for this ODE
-    iopt = 0 ! no optional inputs
-    real_work = 0d0
-    integer_work = 0
-    method_flag = 21 ! stiff (BDF) method, user-supplied full Jacobian
-    constraint_indices(1) = 1 ! constrain element 1 of the state
-    constraint_lower(1) = vol2diam(real_params(PMC_COND_V_DRY)) ! lower bound
-    constraint_upper(1) = 1d0 ! upper bound
-
-    ! call ODE integrator
-    !call dvode(condense_vode_f, n_eqn, val, init_time, &
-    !     final_time, tol_types, rel_tol, abs_tol, itask, istate, &
-    !     iopt, real_work, real_work_len, integer_work, integer_work_len, &
-    !     condense_vode_jac, method_flag, real_params, integer_params)
-    !if (istate /= 2) then
-    !   call die_msg(982335370, "DVODE error code: " &
-    !        // trim(integer_to_string(istate)))
-    !end if
-
-    !dense_j = .true., &
-    !>DEBUG
-    !write(*,*) 'clower ', constraint_lower(1)
-    !write(*,*) 'cupper ', constraint_upper(1)
-    !n_call_f = 0
-    !<DEBUG
-    options = set_opts(method_flag = method_flag, &
-         abserr = abs_tol(1), relerr = rel_tol(1), &
-         user_supplied_jacobian = .true.)
-    !, constrained = constraint_indices, &
-    !     clower = constraint_lower, cupper = constraint_upper)
-    save_real_params = real_params
-    call dvode_f90(condense_vode_f, n_eqn, val, init_time, final_time, &
-         itask, istate, options, j_fcn = condense_vode_jac)
-
-    ! translate output back to particle
-    aero_particle%vol(aero_data%i_water) = diam2vol(val(1)) &
-         - aero_particle_solute_volume(aero_particle, aero_data)
-
-    ! ensure volumes stay positive
-    aero_particle%vol(aero_data%i_water) = max(0d0, &
-         aero_particle%vol(aero_data%i_water))
-
-    !>DEBUG
-    !write(*,*) 'condense_particle_vode: time, id, n_call_f = ', &
-    !     env_state%elapsed_time, aero_particle%id, n_call_f
-    !if (kill_flag) then
-    !   stop
-    !end if
-    !<DEBUG
-    
-  end subroutine condense_particle_vode
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_vode_unified_f(n_eqn, time, state, state_dot)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Time derivative of state vector.
-    real(kind=dp), intent(out) :: state_dot(n_eqn)
-
-    real(kind=dp) :: diameter(1), diameter_dot(1)
-    real(kind=dp) :: rel_humid, rel_humid_dot
-    integer :: i_part
-
-    if (rh_first) then
-       rel_humid = state(1)
-    else
-       rel_humid = state(n_eqn)
-    end if
-
-    rel_humid_dot = 0d0
-    do i_part = 1,(n_eqn - 1)
-       diameter(1) = state(i_part + d_offset)
-       save_real_params(PMC_COND_KAPPA) = cond_kappa(i_part)
-       save_real_params(PMC_COND_V_DRY) = diam2vol(cond_D_dry(i_part))
-       save_real_params(PMC_COND_S) = rel_humid
-       call condense_vode_f(1, time, diameter, diameter_dot)
-       state_dot(i_part + d_offset) = diameter_dot(1)
-       rel_humid_dot = rel_humid_dot - 2d0 * const%pi * diameter(1)**2 &
-            / (save_real_params(PMC_COND_V) * save_real_params(PMC_COND_V_COMP)) &
-            * diameter_dot(1)
-       !>DEBUG
-       !write(*,*) 'Hdot ', rel_humid_dot
-       !stop
-       !<DEBUG
-    end do
-
-    if (rh_first) then
-       state_dot(1) = rel_humid_dot
-    else
-       state_dot(n_eqn) = rel_humid_dot
-    end if
-
-  end subroutine condense_vode_unified_f
+  end subroutine condense_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -854,234 +288,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_params_global(p, env_state, aero_data, V_comp, dVcomp_dT, Tdot)
-
-    !> Condensation parameters.
-    type(condense_params_t), intent(out) :: p
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Computational volume (m^3).
-    real(kind=dp), intent(in) :: V_comp
-    !> Derivative of computational volume with respect to temperature (m^3/K).
-    real(kind=dp), intent(in) :: dVcomp_dT
-    !> Temperature rate of change (K/s).
-    real(kind=dp), intent(in) :: Tdot
-
-    p%T = env_state%temp
-    p%Tdot = Tdot
-    p%H = env_state%rel_humid
-    p%p = env_state%pressure
-    p%V_comp = V_comp
-    p%dVcomp_dT = dVcomp_dT
-
-    p%rho_w = aero_particle_water_density(aero_data)
-    p%M_w = aero_particle_water_molec_weight(aero_data)
-    p%P_0 = env_state_sat_vapor_pressure(env_state)
-    p%dP0_dT = p%P_0 * 7.45d0 * log(10d0) * (273.15d0 - 38d0) / (p%T - 38d0)**2
-    p%rho_air = env_state_air_den(env_state)
-
-    p%k_a = 1d-3 * (4.39d0 + 0.071d0 * p%T)
-    p%D_v = 0.211d-4 / (p%p / const%air_std_press) * (p%T / 273d0)**1.94d0
-    p%U = const%water_latent_heat * p%rho_w / (4d0 * p%T)
-    p%V = 4d0 * p%M_w * p%P_0 / (p%rho_w * const%univ_gas_const * p%T)
-    p%dV_dT = (p%dP0_dT / p%p_0 - 1d0 / p%T) * p%V
-
-    p%W = const%water_latent_heat * p%M_w / (const%univ_gas_const * p%T)
-    p%X = 4d0 * p%M_w * const%water_surf_eng &
-         / (const%univ_gas_const * p%T * p%rho_w) 
-    p%Y = 2d0 * p%k_a / (const%accom_coeff * p%rho_air &
-         * const%air_spec_heat) &
-         * sqrt(2d0 * const%pi * const%air_molec_weight &
-         / (const%univ_gas_const * p%T))
-    p%Z = 2d0 * p%D_v / const%accom_coeff * sqrt(2d0 * const%pi * p%M_w &
-         / (const%univ_gas_const * p%T))
-
-  end subroutine condense_params_global
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_params_per_particle(D, kappa, D_dry, p)
-
-    !> Particle diameter (m).
-    real(kind=dp), intent(in) :: D
-    !> Kappa (1).
-    real(kind=dp), intent(in) :: kappa
-    !> Dry particle diameter (m).
-    real(kind=dp), intent(in) :: D_dry
-    !> Condensation parameters.
-    type(condense_params_t), intent(inout) :: p
-
-    real(kind=dp) :: delta
-
-    p%D = D
-    p%kappa = kappa
-    p%D_dry = D_dry
-
-    if (D <= D_dry) then
-       p%k_ap = p%k_a / (1d0 + p%Y / p%D_dry)
-       p%dkap_dD = 0d0
-       p%D_vp = p%D_v / (1d0 + p%Z / p%D_dry)
-       p%dDvp_dD = 0d0
-       p%a_w = 0d0
-       p%daw_dD = 0d0
-
-       p%delta_star = p%U * p%V * p%D_vp * p%H / p%k_ap
-       
-       p%Ddot = p%k_ap * p%delta_star / (p%U * p%D_dry)
-       p%mdot = const%water_density * const%pi / 2d0 * p%D_dry**2 * p%Ddot
-       
-       p%dh_ddelta = p%k_ap
-       p%dh_dD = 0d0
-       p%dh_dH = - p%U * p%V * p%D_vp
-
-       p%ddeltastar_dD = - p%dh_dD / p%dh_ddelta
-       p%ddeltastar_dH = - p%dh_dH / p%dh_ddelta
-       
-       p%dDdot_dD = 0d0
-       p%dDdot_dH = p%k_ap / (p%U * p%D_dry) * p%ddeltastar_dH
-       p%dmdot_dD = const%water_density * const%pi / 2d0 &
-            * p%D_dry**2 * p%dDdot_dD
-       p%dmdot_dH = const%water_density * const%pi / 2d0 &
-            * p%D_dry**2 * p%dDdot_dH
-
-       return
-    end if
-
-    p%k_ap = p%k_a / (1d0 + p%Y / p%D)
-    p%dkap_dD = p%k_a * p%Y / (p%D + p%Y)**2
-    p%D_vp = p%D_v / (1d0 + p%Z / p%D)
-    p%dDvp_dD = p%D_v * p%Z / (p%D + p%Z)**2
-    p%a_w = (p%D**3 - p%D_dry**3) &
-         / (p%D**3 + (p%kappa - 1d0) * p%D_dry**3)
-    p%daw_dD = 3d0 * p%D**2 * p%kappa * p%D_dry**3 &
-         / (p%D**3 + (p%kappa - 1d0) * p%D_dry**3)**2
-
-    delta = 0d0
-    call condense_vode_delta_star_newton_new(delta, p)
-    p%delta_star = delta
-    
-    p%Ddot = p%k_ap * p%delta_star / (p%U * p%D)
-    !p%Hdot = - 2d0 * const%pi * p%D**2 / (p%V * p%V_comp) * p%Ddot
-    p%mdot = const%water_density * const%pi / 2d0 * p%D**2 * p%Ddot
-
-    p%dh_ddelta = condense_vode_implicit_dh_ddelta_new(p%delta_star, p)
-    p%dh_dD = p%dkap_dD * p%delta_star &
-         - p%U * p%V * p%dDvp_dD * p%H + p%U * p%V &
-         * (p%a_w * p%dDvp_dD + p%D_vp * p%daw_dD &
-         - p%D_vp * p%a_w * (p%X / p%D**2) / (1d0 + p%delta_star)) &
-         * (1d0 / (1d0 + p%delta_star)) &
-         * exp((p%W * p%delta_star) / (1d0 + p%delta_star) &
-         + (p%X / p%D) / (1d0 + p%delta_star))
-    p%dh_dH = - p%U * p%V * p%D_vp
-
-    p%ddeltastar_dD = - p%dh_dD / p%dh_ddelta
-    p%ddeltastar_dH = - p%dh_dH / p%dh_ddelta
-
-    p%dDdot_dD = p%dkap_dD * p%delta_star / (p%U * p%D) &
-         + p%k_ap * p%ddeltastar_dD / (p%U * p%D) &
-         - p%k_ap * p%delta_star / (p%U * p%D**2)
-    p%dDdot_dH = p%k_ap / (p%U * p%D) * p%ddeltastar_dH
-    !p%dHdot_dD = - 2d0 * const%pi / (p%V * p%V_comp) &
-    !     * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
-    !p%dHdot_dH = - 2d0 * const%pi / (p%V * p%V_comp) * p%D**2 * p%dDdot_dH
-    p%dmdot_dD = const%water_density * const%pi / 2d0 &
-         * (2d0 * p%D * p%Ddot + p%D**2 * p%dDdot_dD)
-    p%dmdot_dH = const%water_density * const%pi / 2d0 * p%D**2 * p%dDdot_dH
-
-
-
-    !write(*,*) 'T ', p%T
-    !write(*,*) 'Tdot ', p%Tdot
-    !write(*,*) 'H ', p%H
-    !write(*,*) 'p ', p%p
-    !write(*,*) 'V_comp ', p%V_comp
-    !write(*,*) 'dVcomp_dT ', p%dVcomp_dT
-    !write(*,*) 'rho_w ', p%rho_w
-    !write(*,*) 'M_w ', p%M_w
-    !write(*,*) 'P_0 ', p%P_0
-    !write(*,*) 'dP0_dT ', p%dP0_dT
-    !write(*,*) 'rho_air ', p%rho_air
-    !write(*,*) 'k_a ', p%k_a
-    !write(*,*) 'D_v ', p%D_v
-    !write(*,*) 'U ', p%U
-    !write(*,*) 'V ', p%V
-    !write(*,*) 'dV_dT ', p%dV_dT
-    !write(*,*) 'W ', p%W
-    !write(*,*) 'X ', p%X
-    !write(*,*) 'Y ', p%Y
-    !write(*,*) 'Z ', p%Z
-    !write(*,*) 'D ', p%D
-    !write(*,*) 'kappa ', p%kappa
-    !write(*,*) 'D_dry ', p%D_dry
-    !write(*,*) 'k_ap ', p%k_ap
-    !write(*,*) 'dkap_dD ', p%dkap_dD
-    !write(*,*) 'D_vp ', p%D_vp
-    !write(*,*) 'dDvp_dD ', p%dDvp_dD
-    !write(*,*) 'a_w ', p%a_w
-    !write(*,*) 'daw_dD ', p%daw_dD
-    !write(*,*) 'delta_star ', p%delta_star
-    !write(*,*) 'Ddot ', p%Ddot
-    !write(*,*) 'mdot ', p%mdot
-    !write(*,*) 'dh_ddelta ', p%dh_ddelta
-    !write(*,*) 'dh_dD ', p%dh_dD
-    !write(*,*) 'dh_dH ', p%dh_dH
-    !write(*,*) 'ddeltastar_dD ', p%ddeltastar_dD
-    !write(*,*) 'ddeltastar_dH ', p%ddeltastar_dH
-    !write(*,*) 'dDdot_dD ', p%dDdot_dD
-    !write(*,*) 'dDdot_dH ', p%dDdot_dH
-    !write(*,*) 'dmdot_dD ', p%dmdot_dD
-    !write(*,*) 'dmdot_dH ', p%dmdot_dH
-    !stop
-
-
-
-  end subroutine condense_params_per_particle
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Function \$ h(\delta,D) \$.
-  real(kind=dp) function condense_vode_implicit_h_new(delta, p)
-
-    !> Growth parameter (units???).
-    real(kind=dp), intent(in) :: delta
-    !> Condensation parameters.
-    type(condense_params_t), intent(in) :: p
-
-    condense_vode_implicit_h_new = p%k_ap * delta - p%U * p%V * p%D_vp &
-         * (p%H - p%a_w / (1d0 + delta) * exp(p%W * delta / (1d0 + delta) &
-         + (p%X / p%D) / (1d0 + delta)))
-
-  end function condense_vode_implicit_h_new
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial h(\delta,D) / \partial \delta \$.
-  real(kind=dp) function condense_vode_implicit_dh_ddelta_new(delta, p)
-
-    !> Growth parameter (units???).
-    real(kind=dp), intent(in) :: delta
-    !> Condensation parameters.
-    type(condense_params_t), intent(in) :: p
-
-    condense_vode_implicit_dh_ddelta_new = &
-         p%k_ap - p%U * p%V * p%D_vp * p%a_w / (1d0 + delta)**2 &
-         * (1d0 - p%W / (1d0 + delta) + (p%X / p%D) / (1d0 + delta)) &
-         * exp(p%W * delta / (1d0 + delta) + (p%X / p%D) / (1d0 + delta))
-    
-  end function condense_vode_implicit_dh_ddelta_new
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Compute the rate of change of particle diameter and relative
   !> humidity for a single particle.
-  subroutine condense_vector_field(inputs, outputs)
+  subroutine condense_rates(inputs, outputs)
 
-    !> Inputs to vector field.
-    type(condense_inputs_t), intent(in) :: inputs
-    !> Outputs of vector field.
-    type(condense_outputs_t), intent(out) :: outputs
+    !> Inputs to rates.
+    type(condense_rates_inputs_t), intent(in) :: inputs
+    !> Outputs rates.
+    type(condense_rates_outputs_t), intent(out) :: outputs
 
     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT, rho_air, k_a, D_v, U, V
     real(kind=dp) :: dV_dT, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
@@ -1179,9 +393,6 @@ contains
             + (X / inputs%D) / (1d0 + delta_star)) &
             * exp(W * delta_star / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star))
-       !>DEBUG
-       !write(*,*) 'i,delta,h,dhdd ', newton_step, delta_star, h, dh_ddelta
-       !<DEBUG
     end do
     call warn_assert_msg(387362320, &
          abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
@@ -1212,59 +423,11 @@ contains
     outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%dDdot_dH
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    !write(*,*) 'T ', inputs%T
-    !write(*,*) 'Tdot ', inputs%Tdot
-    !write(*,*) 'H ', inputs%H
-    !write(*,*) 'p ', inputs%p
-    !write(*,*) 'V_comp ', inputs%V_comp
-    !write(*,*) 'D ', inputs%D
-    !write(*,*) 'D_dry ', inputs%D_dry
-    !write(*,*) 'kappa ', inputs%kappa
-    !write(*,*) 'rho_w ', rho_w
-    !write(*,*) 'M_w ', M_w
-    !write(*,*) 'P_0 ', P_0
-    !write(*,*) 'dP0_dT ', dP0_dT
-    !write(*,*) 'rho_air ', rho_air
-    !write(*,*) 'dVcomp_dT ', dVcomp_dT
-    !write(*,*) 'k_a ', k_a
-    !write(*,*) 'D_v ', D_v
-    !write(*,*) 'U ', U
-    !write(*,*) 'V ', V
-    !write(*,*) 'dV_dT ', dV_dT
-    !write(*,*) 'W ', W
-    !write(*,*) 'X ', X
-    !write(*,*) 'Y ', Y
-    !write(*,*) 'Z ', Z
-    !write(*,*) 'Hdot_env ', outputs%Hdot_env
-    !write(*,*) 'dHdotenv_dD ', outputs%dHdotenv_dD
-    !write(*,*) 'dHdotenv_dH ', outputs%dHdotenv_dH
-    !write(*,*) 'k_ap ', k_ap
-    !write(*,*) 'dkap_dD ', dkap_dD
-    !write(*,*) 'D_vp ', D_vp
-    !write(*,*) 'dDvp_dD ', dDvp_dD
-    !write(*,*) 'a_w ', a_w
-    !write(*,*) 'daw_dD ', daw_dD
-    !write(*,*) 'delta_star ', delta_star
-    !write(*,*) 'dh_ddelta ', dh_ddelta
-    !write(*,*) 'Ddot ', outputs%Ddot
-    !write(*,*) 'Hdot_i ', outputs%Hdot_i
-    !write(*,*) 'dh_dD ', dh_dD
-    !write(*,*) 'dh_dH ', dh_dH
-    !write(*,*) 'ddeltastar_dD ', ddeltastar_dD
-    !write(*,*) 'ddeltastar_dH ', ddeltastar_dH
-    !write(*,*) 'dDdot_dD ', outputs%dDdot_dD
-    !write(*,*) 'dDdot_dH ', outputs%dDdot_dH
-    !write(*,*) 'dHdoti_dD ', outputs%dHdoti_dD
-    !write(*,*) 'dHdoti_dH ', outputs%dHdoti_dH
-    !stop
-
-  end subroutine condense_vector_field
+  end subroutine condense_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_vode_newer_unified_f(n_eqn, time, state, state_dot)
+  subroutine condense_vode_f(n_eqn, time, state, state_dot)
 
     !> Length of state vector.
     integer, intent(in) :: n_eqn
@@ -1278,8 +441,8 @@ contains
     real(kind=dp) :: Hdot
     integer :: i_part
     type(env_state_t) :: env_state
-    type(condense_inputs_t) :: inputs
-    type(condense_outputs_t) :: outputs
+    type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_outputs_t) :: outputs
 
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
@@ -1294,9 +457,9 @@ contains
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part + d_offset)
-       inputs%D_dry = cond_D_dry(i_part)
-       inputs%kappa = cond_kappa(i_part)
-       call condense_vector_field(inputs, outputs)
+       inputs%D_dry = condense_saved_D_dry(i_part)
+       inputs%kappa = condense_saved_kappa(i_part)
+       call condense_rates(inputs, outputs)
        state_dot(i_part + d_offset) = outputs%Ddot
        Hdot = Hdot + outputs%Hdot_i
     end do
@@ -1310,11 +473,11 @@ contains
 
     call env_state_deallocate(env_state)
 
-  end subroutine condense_vode_newer_unified_f
+  end subroutine condense_vode_f
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_vode_newer_unified_jac(n_eqn, time, state, ia, ja, &
+  subroutine condense_vode_jac(n_eqn, time, state, ia, ja, &
        n_non_zero, state_jac)
 
     !> Length of state vector.
@@ -1336,8 +499,8 @@ contains
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     integer :: i_nz, i_part
     type(env_state_t) :: env_state
-    type(condense_inputs_t) :: inputs
-    type(condense_outputs_t) :: outputs
+    type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_outputs_t) :: outputs
 
     ! signal from vode to initialize number of non-zeros
     if (n_non_zero == 0) then
@@ -1361,9 +524,9 @@ contains
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part + d_offset)
-       inputs%D_dry = cond_D_dry(i_part)
-       inputs%kappa = cond_kappa(i_part)
-       call condense_vector_field(inputs, outputs)
+       inputs%D_dry = condense_saved_D_dry(i_part)
+       inputs%kappa = condense_saved_kappa(i_part)
+       call condense_rates(inputs, outputs)
        dDdot_dD(i_part) = outputs%dDdot_dD
        dDdot_dH(i_part) = outputs%dDdot_dH
        dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
@@ -1443,1018 +606,49 @@ contains
 
     call env_state_deallocate(env_state)
 
-  end subroutine condense_vode_newer_unified_jac
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_vode_new_unified_f(n_eqn, time, state, state_dot)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Time derivative of state vector.
-    real(kind=dp), intent(out) :: state_dot(n_eqn)
-
-    real(kind=dp) :: D, kappa, D_dry, Hdot, V_comp, dVcomp_dT, mw_dot
-    integer :: i_part
-    type(env_state_t) :: env_state
-    type(condense_params_t) :: p
-
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-    V_comp = condense_saved_V_comp_initial &
-         * env_state%temp / condense_saved_env_state_initial%temp
-    dVcomp_dT = condense_saved_V_comp_initial &
-         / condense_saved_env_state_initial%temp
-    call condense_params_global(p, env_state, condense_saved_aero_data, &
-         V_comp, dVcomp_dT, condense_saved_Tdot)
-    call env_state_deallocate(env_state)
-    !>DEBUG
-    !write(*,*) 'f: time,temp = ', env_state%elapsed_time, env_state%temp
-    !<DEBUG
-
-    !Hdot = 0d0
-    mw_dot = 0d0
-    do i_part = 1,(n_eqn - 1)
-       D = state(i_part + d_offset)
-       kappa = cond_kappa(i_part)
-       D_dry = cond_D_dry(i_part)
-       call condense_params_per_particle(D, kappa, D_dry, p)
-       state_dot(i_part + d_offset) = p%Ddot
-       mw_dot = mw_dot - p%mdot
-       !Hdot = Hdot + p%Hdot
-    end do
-    Hdot = 4d0 / (const%water_density * p%V * p%V_comp) * mw_dot &
-         - p%dV_dT * p%Tdot * p%H / p%V &
-         - p%dVcomp_dT * p%Tdot * p%H / p%V_comp
-    !Hdot = Hdot - (p%H / p%P_0) * p%dP0_dT * p%Tdot
-    !>DEBUG
-    !write(*,*) 'f: time,Hdot ', env_state%elapsed_time, p%H, Hdot, &
-    !     (4d0 / (const%water_density * p%V * p%V_comp) * mw_dot), &
-    !     (p%dV_dT * p%Tdot * p%H / p%V), &
-    !     (p%dVcomp_dT * p%Tdot * p%H / p%V_comp)
-    !write(*,*) 'f: time,H,Hdot,Hdotp = ', env_state%elapsed_time, p%H, Hdot, Hdotp
-    !<DEBUG
-
-    if (rh_first) then
-       state_dot(1) = Hdot
-    else
-       state_dot(n_eqn) = Hdot
-    end if
-
-  end subroutine condense_vode_new_unified_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Function \$ \dot{D} (D) \$.
-  subroutine condense_vode_f(n_eqn, time, state, state_dot)
-    !, real_params, &
-    !   integer_params)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Time derivative of state vector.
-    real(kind=dp), intent(out) :: state_dot(n_eqn)
-    !> Real parameters.
-    !real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    !integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: delta, diameter, k_ap
-    !>DEBUG
-    real(kind=dp) :: D, kappa, V_dry
-    !<DEBUG
-
-    real_params = save_real_params
-
-    call assert(383442283, n_eqn == 1)
-    delta = 0d0
-    diameter = state(1)
-    !>DEBUG
-    !n_call_f(i_call_f) = n_call_f(i_call_f) + 1
-    !write(*,*) 'condense_vode_f: t,D,De =    ', time, diameter, &
-    !     (diameter - vol2diam(real_params(PMC_COND_V_DRY)))
-    !D = diameter
-    !kappa = real_params(PMC_COND_KAPPA)
-    !V_dry = real_params(PMC_COND_V_DRY)
-    !write(*,*) 'const%pi / 6d0 * D**3 = ', (const%pi / 6d0 * D**3)
-    !write(*,*) 'V_dry = ', (V_dry)
-    !write(*,*) '(kappa - 1d0) = ', ((kappa - 1d0))
-    !write(*,*) '(kappa - 1d0) * V_dry = ', ((kappa - 1d0) * V_dry)
-    !write(*,*) 'const%pi / 6d0 * D**3 - V_dry = ', (const%pi / 6d0 * D**3 - V_dry)
-    !write(*,*) 'const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry = ', (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)
-    !write(*,*) 'a_w ', water_activity(diameter, real_params, integer_params)
-    !write(*,*) 'k_ap ', corrected_thermal_conductivity(diameter, real_params, integer_params)
-    !write(*,*) 'D_vp ', corrected_molecular_diffusion(diameter, real_params, integer_params)
-    !<DEBUG
-    call condense_vode_delta_star_newton(delta, diameter, real_params, &
-         integer_params)
-    k_ap = corrected_thermal_conductivity(diameter, real_params, &
-         integer_params)
-    state_dot(1) = k_ap * delta / (real_params(PMC_COND_U) * diameter)
-    !>DEBUG
-    !write(*,*) 'U ', real_params(PMC_COND_U)
-    !write(*,*) 'V ', real_params(PMC_COND_V)
-    !write(*,*) 'W ', real_params(PMC_COND_W)
-    !write(*,*) 'X ', real_params(PMC_COND_X)
-    !write(*,*) 'Y ', real_params(PMC_COND_Y)
-    !write(*,*) 'Z ', real_params(PMC_COND_Z)
-    !write(*,*) 'k_a ', real_params(PMC_COND_K_A)
-    !write(*,*) 'D_v ', real_params(PMC_COND_D_V)
-    !write(*,*) 'kappa ', real_params(PMC_COND_KAPPA)
-    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
-    !write(*,*) 'H ', real_params(PMC_COND_S)
-    !write(*,*) 'V_comp ', real_params(PMC_COND_V_COMP)
-    !write(*,*) 'k_ap ', k_ap
-    !write(*,*) 'Ddot ', state_dot(1)
-    !<DEBUG
-    !>DEBUG
-    !write(*,*) 'condense_vode_f: t,D,De,Dd = ', time, diameter, &
-    !     (diameter - vol2diam(real_params(PMC_COND_V_DRY))), state_dot(1)
-    !write(*,*) 'condense_vode_f: t,D = ', time, diameter
-    !write(*,*) 'condense_vode_f: delta, Ddot = ', delta, state_dot(1)
-    !<DEBUG
-
-    ! save value of delta to be used by condense_vode_jac
-    pmc_cond_saved_diameter = diameter
-    pmc_cond_saved_delta_star = delta
-
-  end subroutine condense_vode_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_vode_new_unified_jac(n_eqn, time, state, ia, ja, &
-       n_non_zero, state_jac)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Non-zero column offsets.
-    integer, intent(out) :: ia(*)
-    !> Non-zero row locations.
-    integer, intent(out) :: ja(*)
-    !> Number of non-zero elements in the Jacobian.
-    integer, intent(inout) :: n_non_zero
-    !> Sparse Jacobian of time derivative of state vector.
-    real(kind=dp), intent(out) :: state_jac(*)
-
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    real(kind=dp) :: dmwdot_dD(n_eqn - 1), dmwdot_dH
-    integer :: i_nz, i_part
-    real(kind=dp) :: D, kappa, D_dry, V_comp, dVcomp_dT
-    type(env_state_t) :: env_state
-    type(condense_params_t) :: p
-
-    ! signal from vode to initialize number of non-zeros
-    if (n_non_zero == 0) then
-       n_non_zero = 3 * n_eqn - 2
-       return
-    end if
-
-    ! if not initializing, this should be correct
-    call assert(395158320, n_non_zero == 3 * n_eqn - 2)
-
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-    V_comp = condense_saved_V_comp_initial &
-         * env_state%temp / condense_saved_env_state_initial%temp
-    dVcomp_dT = condense_saved_V_comp_initial &
-         / condense_saved_env_state_initial%temp
-    call condense_params_global(p, env_state, condense_saved_aero_data, &
-         V_comp, dVcomp_dT, condense_saved_Tdot)
-    call env_state_deallocate(env_state)
-
-    !dHdot_dH = 0d0
-    dmwdot_dH = 0d0
-    do i_part = 1,(n_eqn - 1)
-       D = state(i_part + d_offset)
-       kappa = cond_kappa(i_part)
-       D_dry = cond_D_dry(i_part)
-       call condense_params_per_particle(D, kappa, D_dry, p)
-       dDdot_dD(i_part) = p%dDdot_dD
-       dDdot_dH(i_part) = p%dDdot_dH
-       dmwdot_dD(i_part) = - p%dmdot_dD
-       dmwdot_dH = dmwdot_dH - p%dmdot_dH
-       !dHdot_dD(i_part) = p%dHdot_dD
-       !dHdot_dH = dHdot_dH + p%dHdot_dH
-    end do
-    !dHdot_dH = dHdot_dH - (1d0 / p%P_0) * p%dP0_dT * p%Tdot
-    dHdot_dD = 4d0 / (const%water_density * p%V * p%V_comp) * dmwdot_dD
-    dHdot_dH = 4d0 / (const%water_density * p%V * p%V_comp) * dmwdot_dH &
-         - p%dV_dT * p%Tdot / p%V - p%dVcomp_dT * p%Tdot / p%V_comp
-
-    ! Copied from dvode_f90_m documentation:
-    !
-    ! IA defines the number of nonzeros including the
-    ! diagonal in each column of the Jacobian. Define
-    ! IA(1) = 1 and for J = 1,..., N,
-    ! IA(J+1) = IA(J) + number of nonzeros in column J.
-    ! Diagonal elements must be included even if they are
-    ! zero. You should check to ensure that IA(N+1)-1 = NZ.
-    ! JA defines the rows in which the nonzeros occur.
-    ! For I = 1,...,NZ, JA(I) is the row in which the Ith
-    ! element of the Jacobian occurs. JA must also include
-    ! the diagonal elements of the Jacobian.
-    ! PD defines the numerical value of the Jacobian
-    ! elements. For I = 1,...,NZ, PD(I) is the numerical
-    ! value of the Ith element in the Jacobian. PD must
-    ! also include the diagonal elements of the Jacobian.
-    if (rh_first) then
-       ia(1) = 1
-       ia(2) = ia(1) + n_eqn
-       do i_part = 1,(n_eqn - 1)
-          ia(2 + i_part) = ia(1 + i_part) + 2
-       end do
-       call assert(351522940, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
-       i_nz = i_nz + 1
-       ja(i_nz) = 1
-       state_jac(i_nz) = dHdot_dH
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1 + i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1
-          state_jac(i_nz) = dHdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part + 1
-          state_jac(i_nz) = dDdot_dD(i_part)
-       end do
-       call assert(260941580, i_nz == n_non_zero)
-    else
-       ia(1) = 1
-       do i_part = 1,(n_eqn - 1)
-          ia(1 + i_part) = ia(i_part) + 2
-       end do
-       ia(n_eqn + 1) = ia(n_eqn) + n_eqn
-       call assert(824345254, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = n_eqn
-          state_jac(i_nz) = dHdot_dD(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
-       i_nz = i_nz + 1
-       ja(i_nz) = n_eqn
-       state_jac(i_nz) = dHdot_dH
-       call assert(901219708, i_nz == n_non_zero)
-    end if
-
-  end subroutine condense_vode_new_unified_jac
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_vode_unified_jac(n_eqn, time, state, ia, ja, &
-       n_non_zero, state_jac)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Non-zero column offsets.
-    integer, intent(out) :: ia(*)
-    !> Non-zero row locations.
-    integer, intent(out) :: ja(*)
-    !> Number of non-zero elements in the Jacobian.
-    integer, intent(inout) :: n_non_zero
-    !> Sparse Jacobian of time derivative of state vector.
-    real(kind=dp), intent(out) :: state_jac(*)
-
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    real(kind=dp) :: diameter(1), diameter_dot(1), dDdot_dD_single(1)
-    real(kind=dp) :: delta_star, D, U, k_ap, dkap_dD, D_vp
-    real(kind=dp) :: dh_dH, dh_ddelta, ddeltastar_dH
-    real(kind=dp) :: rel_humid, V, V_comp
-    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-    integer :: i_nz, i_part
-
-    if (n_non_zero == 0) then
-       ! initialization
-       n_non_zero = 3 * n_eqn - 2
-       return
-    end if
-    
-    call assert(746653549, n_non_zero == 3 * n_eqn - 2)
-    !call assert(118353281, size(ia) == n_eqn + 1)
-    !call assert(796050890, size(ja) == n_non_zero)
-    !call assert(622939472, size(state_jac) == n_non_zero)
-
-    if (rh_first) then
-       rel_humid = state(1)
-    else
-       rel_humid = state(n_eqn)
-    end if
-
-    U = save_real_params(PMC_COND_U)
-    V = save_real_params(PMC_COND_V)
-    V_comp = save_real_params(PMC_COND_V_COMP)
-
-    dHdot_dH = 0d0
-    do i_part = 1,(n_eqn - 1)
-       diameter(1) = state(i_part + d_offset)
-       save_real_params(PMC_COND_KAPPA) = cond_kappa(i_part)
-       save_real_params(PMC_COND_V_DRY) = diam2vol(cond_D_dry(i_part))
-       save_real_params(PMC_COND_S) = rel_humid
-       ! call f to set up saved paramters
-       call condense_vode_f(1, time, diameter, diameter_dot)
-       call condense_vode_jac(1, time, diameter, 0, 0, dDdot_dD_single, 1)
-       dDdot_dD(i_part) = dDdot_dD_single(1)
-
-       real_params = save_real_params
-       D = diameter(1)
-       call assert_msg(168527146, D == pmc_cond_saved_diameter, &
-            "state diameter does not match pmc_cond_saved_diameter")
-       delta_star = pmc_cond_saved_delta_star
-       k_ap = corrected_thermal_conductivity(D, real_params, &
-            integer_params)
-       D_vp = corrected_molecular_diffusion(D, real_params, &
-            integer_params)
-       dkap_dD = corrected_thermal_conductivity_deriv(D, real_params, &
-            integer_params)
-       dh_dH = - U * V * D_vp
-       dh_ddelta = condense_vode_implicit_dh_ddelta(delta_star, D, &
-            real_params, integer_params)
-       ddeltastar_dH = - dh_dH / dh_ddelta
-
-       dDdot_dH(i_part) = k_ap / (U * D) * ddeltastar_dH
-       dHdot_dD(i_part) = - 2d0 * const%pi / (V * V_comp) &
-            * (2d0 * diameter(1) * diameter_dot(1) &
-            + diameter(1)**2 * dDdot_dD(i_part))
-       dHdot_dH = dHdot_dH - 2d0 * const%pi / (V * V_comp) &
-            * diameter(1)**2 * dDdot_dH(i_part)
-       !>DEBUG
-       !write(*,*) 'dDdot_dD ', dDdot_dD(i_part)
-       !write(*,*) 'D ', D
-       !write(*,*) 'delta_star ', delta_star
-       !write(*,*) 'k_ap ', k_ap
-       !write(*,*) 'D_vp ', D_vp
-       !write(*,*) 'dkap_dD ', dkap_dD
-       !write(*,*) 'dh_dH ', dh_dH
-       !write(*,*) 'dh_ddelta ', dh_ddelta
-       !write(*,*) 'ddeltastar_dH ', ddeltastar_dH
-       !write(*,*) 'dDdot_dH ', dDdot_dH(i_part)
-       !write(*,*) 'dHdot_dD ', dHdot_dD(i_part)
-       !write(*,*) 'dHdot_dH ', dHdot_dH
-       !stop
-       !<DEBUG
-    end do
-
-    ! Copied from dvode_f90_m documentation:
-    !
-    ! IA defines the number of nonzeros including the
-    ! diagonal in each column of the Jacobian. Define
-    ! IA(1) = 1 and for J = 1,..., N,
-    ! IA(J+1) = IA(J) + number of nonzeros in column J.
-    ! Diagonal elements must be included even if they are
-    ! zero. You should check to ensure that IA(N+1)-1 = NZ.
-    ! JA defines the rows in which the nonzeros occur.
-    ! For I = 1,...,NZ, JA(I) is the row in which the Ith
-    ! element of the Jacobian occurs. JA must also include
-    ! the diagonal elements of the Jacobian.
-    ! PD defines the numerical value of the Jacobian
-    ! elements. For I = 1,...,NZ, PD(I) is the numerical
-    ! value of the Ith element in the Jacobian. PD must
-    ! also include the diagonal elements of the Jacobian.
-    if (rh_first) then
-       ia(1) = 1
-       ia(2) = ia(1) + n_eqn
-       do i_part = 1,(n_eqn - 1)
-          ia(2 + i_part) = ia(1 + i_part) + 2
-       end do
-       call assert(742852055, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
-       i_nz = i_nz + 1
-       ja(i_nz) = 1
-       state_jac(i_nz) = dHdot_dH
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1 + i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1
-          state_jac(i_nz) = dHdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part + 1
-          state_jac(i_nz) = dDdot_dD(i_part)
-       end do
-       call assert(885711184, i_nz == n_non_zero)
-    else
-       ia(1) = 1
-       do i_part = 1,(n_eqn - 1)
-          ia(1 + i_part) = ia(i_part) + 2
-       end do
-       ia(n_eqn + 1) = ia(n_eqn) + n_eqn
-       call assert(915113988, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = n_eqn
-          state_jac(i_nz) = dHdot_dD(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
-       i_nz = i_nz + 1
-       ja(i_nz) = n_eqn
-       state_jac(i_nz) = dHdot_dH
-       call assert(723317905, i_nz == n_non_zero)
-    end if
-
-  end subroutine condense_vode_unified_jac
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial \dot{D}(D) / \partial D \$.
-  subroutine condense_vode_jac(n_eqn, time, state, lower_band_width, &
-       upper_band_width, state_jac, n_row_jac)
-    !, real_params, integer_params)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Lower band width for banded Jacobian (unused).
-    integer, intent(in) :: lower_band_width
-    !> Upper band width for banded Jacobian (unused).
-    integer, intent(in) :: upper_band_width
-    !> Number of rows in the Jacobian.
-    integer, intent(in) :: n_row_jac
-    !> Jacobian of time derivative of state vector.
-    real(kind=dp), intent(out) :: state_jac(n_row_jac, n_eqn)
-    !> Real parameters.
-    !real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    !integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: real_params(PMC_COND_N_REAL_PARAMS)
-    integer :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: delta_star, D, U, k_ap, dkap_dD
-    real(kind=dp) :: dh_dD, dh_ddelta, ddeltastar_dD
-
-    real_params = save_real_params
-
-    call assert(973429886, n_eqn == 1)
-    call assert(230741766, n_row_jac == 1)
-
-    U = real_params(PMC_COND_U)
-    D = state(1)
-    call assert_msg(232625737, D == pmc_cond_saved_diameter, &
-         "state diameter does not match pmc_cond_saved_diameter")
-    delta_star = pmc_cond_saved_delta_star
-    k_ap = corrected_thermal_conductivity(D, real_params, &
-         integer_params)
-    dkap_dD = corrected_thermal_conductivity_deriv(D, real_params, &
-         integer_params)
-    dh_dD = condense_vode_implicit_dh_dD(delta_star, D, real_params, &
-         integer_params)
-    dh_ddelta = condense_vode_implicit_dh_ddelta(delta_star, D, &
-         real_params, integer_params)
-    ddeltastar_dD = - dh_dD / dh_ddelta
-    state_jac(1,1) = dkap_dD * delta_star / (U * D) &
-         + k_ap * ddeltastar_dD / (U * D) &
-         - k_ap * delta_star / (U * D**2)
-    !>DEBUG
-    !write(*,*) 'U ', real_params(PMC_COND_U)
-    !write(*,*) 'V ', real_params(PMC_COND_V)
-    !write(*,*) 'W ', real_params(PMC_COND_W)
-    !write(*,*) 'X ', real_params(PMC_COND_X)
-    !write(*,*) 'Y ', real_params(PMC_COND_Y)
-    !write(*,*) 'Z ', real_params(PMC_COND_Z)
-    !write(*,*) 'k_a ', real_params(PMC_COND_K_A)
-    !write(*,*) 'D_v ', real_params(PMC_COND_D_V)
-    !write(*,*) 'kappa ', real_params(PMC_COND_KAPPA)
-    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
-    !write(*,*) 'H ', real_params(PMC_COND_S)
-    !write(*,*) 'V_comp ', real_params(PMC_COND_V_COMP)
-    !write(*,*) 'k_ap ', k_ap
-    !write(*,*) 'dkap_dD ', dkap_dD
-    !write(*,*) 'dh_dD ', dh_dD
-    !write(*,*) 'dh_ddelta ', dh_ddelta
-    !write(*,*) 'ddeltastar_dD ', ddeltastar_dD
-    !write(*,*) 'dDdot_dD ', state_jac(1,1)
-    !write(*,*) 'D ', D
-    !<DEBUG
-
   end subroutine condense_vode_jac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scalar Newton's method for solving the implicit delta_star
-  !> function.
-  subroutine condense_vode_delta_star_newton_new(delta, p)
-    
-    !> Variable that we are solving for.
-    real(kind=dp), intent(inout) :: delta
-    !> Condensation parameters.
-    type(condense_params_t), intent(in) :: p
+  !> Determine the equilibrium state of a single particle.
+  subroutine condense_equilib_particle(inputs, outputs)
 
-    !> Minimum number of iterations.
-    integer, parameter :: iter_min = 3
-    !> Maximum number of iterations.
-    integer, parameter :: iter_max = 100
+    !> Inputs to equilibriation.
+    type(condense_equilib_inputs_t), intent(in) :: inputs
+    !> Outputs equilibrium.
+    type(condense_equilib_outputs_t), intent(out) :: outputs
 
-    real(kind=dp) :: h_abs_tol
-    integer :: iter
-    real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
-    real(kind=dp) :: check_delta, check_h, finite_diff_dh, rel_error
+    real(kind=dp) :: X, D, g, dg_dD, a_w, daw_dD
+    integer :: newton_step
 
-    ! set tolerance to be scaled by one of the large terms in h
-    h_abs_tol = 1d3 * epsilon(1d0) * abs(p%U * p%V * p%D_vp * p%H)
-    !>DEBUG
-    !write(*,*) 'delta_abs_tol ', delta_abs_tol
-    !write(*,*) 'h_abs_tol ', h_abs_tol
-    !<DEBUG
+    X = 4d0 * const%water_molec_weight * const%water_surf_eng &
+         / (const%univ_gas_const * inputs%T * const%water_density)
 
-    h = condense_vode_implicit_h_new(delta, p)
-    dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta, p)
-    old_h = h
-
-    iter = 0
-    !>DEBUG
-    !write(*,*) 'i,delta,h,dhdd ', iter+1, delta, h, dh_ddelta
-    !<DEBUG
-    do
-       iter = iter + 1
-       delta_step = - h / dh_ddelta
-       
-       delta = delta + delta_step
-       h = condense_vode_implicit_h_new(delta, p)
-       dh_ddelta = condense_vode_implicit_dh_ddelta_new(delta, p)
-       !>DEBUG
-       !write(*,*) 'i,delta,h,dhdd ', iter+1, delta, h, dh_ddelta
-       !<DEBUG
-       h_step = h - old_h
-       old_h = h
-       !>DEBUG
-       !write(*,*) 'delta,step,h,dh_delta,h_step ', delta, delta_step, h, dh_ddelta, h_step
-       !<DEBUG
-
-       if (PMC_COND_CHECK_DERIVS) then
-          check_delta = delta * (1d0 + PMC_COND_CHECK_EPS)
-          check_h = condense_vode_implicit_h_new(check_delta, p)
-          finite_diff_dh = (check_h - h) / (check_delta - delta)
-          rel_error = abs(finite_diff_dh - dh_ddelta) &
-               / (abs(finite_diff_dh) + abs(dh_ddelta))
-          if (rel_error > PMC_COND_CHECK_REL_TOL) then
-             write(0,*) "ERROR: cond_newt: incorrect derivative"
-             write(0,*) "delta ", delta
-             write(0,*) "check_delta ", check_delta
-             write(0,*) "delta_delta ", (check_delta - delta)
-             write(0,*) "h ", h
-             write(0,*) "check_h ", check_h
-             write(0,*) "delta_h ", (check_h - h)
-             write(0,*) "dh_ddelta ", dh_ddelta
-             write(0,*) "finite_diff_dh ", finite_diff_dh
-             write(0,*) "rel_error ", rel_error
-
-             write(0,*) 'ERROR: deriv rel_error = ', rel_error
-          end if
+    D = inputs%D_dry
+    newton_step = 0
+    g = 0d0
+    dg_dD = 1d0
+    do while (.true.)
+       newton_step = newton_step + 1
+       D = D - g / dg_dD
+       a_w = (D**3 - inputs%D_dry**3) &
+            / (D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)
+       daw_dD = 3d0 * D**2 * inputs%kappa * inputs%D_dry**3 &
+            / (D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)**2
+       g = inputs%H - a_w * exp(X / D)
+       dg_dD = - daw_dD * exp(X / D) + a_w * exp(X / D) * (X / D**2)
+       if (abs(g) < 1d3 * epsilon(1d0)) then
+          exit
        end if
-
-       if (iter .ge. iter_max) then
-          call die_msg(720859756, 'Newton iteration failed to terminate')
-       end if
-       
-       ! FIXME: gfortran 4.1.1 requires the "then" in the following
-       ! statement, rather than using a single-line "if" statement.
-       !if ((abs(delta_step) .lt. delta_abs_tol) &
-       !     .and. (abs(h_step) .lt. h_abs_tol)) then
-       !   exit
-       !end if
-       if (iter >= iter_min) then
-          if (abs(h_step) .lt. h_abs_tol) then
-             exit
-          end if
-       end if
-    end do
-    !>DEBUG
-    !write(*,*) 'newton iter ', iter
-    !<DEBUG
- 
-  end subroutine condense_vode_delta_star_newton_new
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Scalar Newton's method for solving the implicit delta_star
-  !> function.
-  subroutine condense_vode_delta_star_newton(delta, diameter, real_params, &
-       integer_params)
-    
-    !> Variable that we are solving for.
-    real(kind=dp), intent(inout) :: delta
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    !> Delta convergence tolerance.
-    real(kind=dp), parameter :: delta_tol = 1d-16
-    !> Function convergence tolerance.
-    real(kind=dp), parameter :: h_tol = 1d-10
-    !> Maximum number of iterations.
-    integer, parameter :: iter_max = 100
-
-    integer :: iter
-    real(kind=dp) :: h, dh_ddelta, old_h, delta_step, h_step
-    real(kind=dp) :: check_delta, check_h, finite_diff_dh, rel_error
-
-    !>DEBUG
-    !write(*,*) 'PMC_COND_U ', real_params(PMC_COND_U)
-    !write(*,*) 'PMC_COND_V ', real_params(PMC_COND_V)
-    !write(*,*) 'PMC_COND_W ', real_params(PMC_COND_W)
-    !write(*,*) 'PMC_COND_X ', real_params(PMC_COND_X)
-    !write(*,*) 'PMC_COND_Y ', real_params(PMC_COND_Y)
-    !write(*,*) 'PMC_COND_Z ', real_params(PMC_COND_Z)
-    !write(*,*) 'PMC_COND_K_A ', real_params(PMC_COND_K_A)
-    !write(*,*) 'PMC_COND_D_V ', real_params(PMC_COND_D_V)
-    !write(*,*) 'PMC_COND_KAPPA ', real_params(PMC_COND_KAPPA)
-    !write(*,*) 'PMC_COND_V_DRY ', real_params(PMC_COND_V_DRY)
-    !write(*,*) 'PMC_COND_S ', real_params(PMC_COND_S)
-    !write(*,*) 'a_w ', water_activity(diameter, real_params, integer_params)
-    !write(*,*) 'k_ap ', corrected_thermal_conductivity(diameter, real_params, integer_params)
-    !write(*,*) 'D_vp ', corrected_molecular_diffusion(diameter, real_params, integer_params)
-    !write(*,*) 'D_dry ', vol2diam(real_params(PMC_COND_V_DRY))
-    !write(*,'(a5,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta'
-    !do iter = -100,100
-    !   check_delta = real(iter, kind=dp) / 100d0
-    !   h = condense_vode_implicit_h(check_delta, diameter, real_params, &
-    !        integer_params)
-    !   dh_ddelta = condense_vode_implicit_dh_ddelta(check_delta, diameter, &
-    !        real_params, integer_params)
-    !   write(*,'(i5,e15.5,e15.5,e15.5)') iter, check_delta, h, dh_ddelta
-    !end do
-    !<DEBUG
-
-    h = condense_vode_implicit_h(delta, diameter, real_params, &
-         integer_params)
-    dh_ddelta = condense_vode_implicit_dh_ddelta(delta, diameter, &
-         real_params, integer_params)
-    old_h = h
-
-    iter = 0
-    do
-       iter = iter + 1
-       delta_step = - h / dh_ddelta
-       !>DEBUG
-       !write(*,'(a5,a15,a15,a15,a15)') 'iter', 'delta', 'h', 'dh_ddelta', 'delta_step'
-       !write(*,'(i5,e15.5,e15.5,e15.5,e15.5)') iter, delta, h, dh_ddelta, delta_step
-       !<DEBUG
-       
-       delta = delta + delta_step
-       h = condense_vode_implicit_h(delta, diameter, real_params, &
-            integer_params)
-       dh_ddelta = condense_vode_implicit_dh_ddelta(delta, diameter, &
-            real_params, integer_params)
-       h_step = h - old_h
-       old_h = h
-
-       if (PMC_COND_CHECK_DERIVS) then
-          check_delta = delta * (1d0 + PMC_COND_CHECK_EPS)
-          check_h = condense_vode_implicit_h(check_delta, diameter, real_params, &
-               integer_params)
-          finite_diff_dh = (check_h - h) / (check_delta - delta)
-          rel_error = abs(finite_diff_dh - dh_ddelta) &
-               / (abs(finite_diff_dh) + abs(dh_ddelta))
-          if (rel_error > PMC_COND_CHECK_REL_TOL) then
-             write(0,*) "ERROR: cond_newt: incorrect derivative"
-             write(0,*) "delta ", delta
-             write(0,*) "check_delta ", check_delta
-             write(0,*) "delta_delta ", (check_delta - delta)
-             write(0,*) "h ", h
-             write(0,*) "check_h ", check_h
-             write(0,*) "delta_h ", (check_h - h)
-             write(0,*) "dh_ddelta ", dh_ddelta
-             write(0,*) "finite_diff_dh ", finite_diff_dh
-             write(0,*) "rel_error ", rel_error
-
-             write(0,*) 'ERROR: deriv rel_error = ', rel_error
-          end if
-       end if
-
-       if (iter .ge. iter_max) then
-          call die_msg(136296873, 'Newton iteration failed to terminate')
-       end if
-       
-       ! FIXME: gfortran 4.1.1 requires the "then" in the following
-       ! statement, rather than using a single-line "if" statement.
-       if ((abs(delta_step) .lt. delta_tol) &
-            .and. (abs(h_step) .lt. h_tol)) then
+       if (newton_step > 100) then
           exit
        end if
     end do
- 
-  end subroutine condense_vode_delta_star_newton
+    write(*,*) 'newton_step ', newton_step
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    outputs%D = D
 
-  !> Function \$ h(\delta,D) \$.
-  real(kind=dp) function condense_vode_implicit_h(delta, diameter, &
-       real_params, integer_params)
-
-    !> Growth parameter (units???).
-    real(kind=dp), intent(in) :: delta
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
-
-    D = diameter
-    U = real_params(PMC_COND_U)
-    V = real_params(PMC_COND_V)
-    W = real_params(PMC_COND_W)
-    X = real_params(PMC_COND_X)
-    S = real_params(PMC_COND_S)
-    k_ap = corrected_thermal_conductivity(diameter, real_params, &
-         integer_params)
-    D_vp = corrected_molecular_diffusion(diameter, real_params, &
-         integer_params)
-    a_w = water_activity(diameter, real_params, integer_params)
-
-    condense_vode_implicit_h = k_ap * delta - U * V * D_vp &
-         * (S - a_w / (1d0 + delta) * exp(W * delta / (1d0 + delta) &
-         + (X / D) / (1d0 + delta)))
-
-  end function condense_vode_implicit_h
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial h(\delta,D) / \partial \delta \$.
-  real(kind=dp) function condense_vode_implicit_dh_ddelta(delta, diameter, &
-       real_params, integer_params)
-
-    !> Growth parameter (units???).
-    real(kind=dp), intent(in) :: delta
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
-    real(kind=dp) :: dkap_dD, DDvp_dD, daw_dD
-
-    D = diameter
-    U = real_params(PMC_COND_U)
-    V = real_params(PMC_COND_V)
-    W = real_params(PMC_COND_W)
-    X = real_params(PMC_COND_X)
-    S = real_params(PMC_COND_S)
-    k_ap = corrected_thermal_conductivity(diameter, real_params, &
-         integer_params)
-    D_vp = corrected_molecular_diffusion(diameter, real_params, &
-         integer_params)
-    a_w = water_activity(diameter, real_params, integer_params)
-    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
-         integer_params)
-    dDvp_dD = corrected_molecular_diffusion_deriv(diameter, real_params, &
-         integer_params)
-    daw_dD = water_activity_deriv(diameter, real_params, integer_params)
-
-    condense_vode_implicit_dh_ddelta = &
-         k_ap - U * V * D_vp * a_w / (1d0 + delta)**2 &
-         * (1d0 - W / (1d0 + delta) + (X / D) / (1d0 + delta)) &
-         * exp(W * delta / (1d0 + delta) + (X / D) / (1d0 + delta))
-    
-  end function condense_vode_implicit_dh_ddelta
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial h(\delta,D) / \partial D \$.
-  real(kind=dp) function condense_vode_implicit_dh_dD(delta, diameter, &
-       real_params, integer_params)
-
-    !> Growth parameter (units???).
-    real(kind=dp), intent(in) :: delta
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D, U, V, W, X, S, k_ap, D_vp, a_w
-    real(kind=dp) :: dkap_dD, DDvp_dD, daw_dD
-
-    D = diameter
-    U = real_params(PMC_COND_U)
-    V = real_params(PMC_COND_V)
-    W = real_params(PMC_COND_W)
-    X = real_params(PMC_COND_X)
-    S = real_params(PMC_COND_S)
-    k_ap = corrected_thermal_conductivity(diameter, real_params, &
-         integer_params)
-    D_vp = corrected_molecular_diffusion(diameter, real_params, &
-         integer_params)
-    a_w = water_activity(diameter, real_params, integer_params)
-    dkap_dD = corrected_thermal_conductivity_deriv(diameter, real_params, &
-         integer_params)
-    dDvp_dD = corrected_molecular_diffusion_deriv(diameter, real_params, &
-         integer_params)
-    daw_dD = water_activity_deriv(diameter, real_params, integer_params)
-
-    condense_vode_implicit_dh_dD = dkap_dD * delta &
-         - U * V * dDvp_dD * S + U * V * (a_w * dDvp_dD + D_vp * daw_dD &
-         - D_vp * a_w * (X / D**2) / (1d0 + delta)) * (1d0 / (1d0 + delta)) &
-         * exp((W * delta) / (1d0 + delta) + (X / D) / (1d0 + delta))
-    
-  end function condense_vode_implicit_dh_dD
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Function \$ k_{\rm a}'(D) \$.
-  real(kind=dp) function corrected_thermal_conductivity(diameter, &
-       real_params, integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: k_a, Y, D
-
-    k_a = real_params(PMC_COND_K_A)
-    Y = real_params(PMC_COND_Y)
-    D = diameter
-
-    corrected_thermal_conductivity = k_a / (1d0 + Y / D)
-
-  end function corrected_thermal_conductivity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial k_{\rm a}'(D) / \partial D \$.
-  real(kind=dp) function corrected_thermal_conductivity_deriv(diameter, &
-       real_params, integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: k_a, Y, D
-
-    k_a = real_params(PMC_COND_K_A)
-    Y = real_params(PMC_COND_Y)
-    D = diameter
-
-    corrected_thermal_conductivity_deriv = k_a * Y / (D + Y)**2
-
-  end function corrected_thermal_conductivity_deriv
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Function \$ D_{\rm v}'(D) \$.
-  real(kind=dp) function corrected_molecular_diffusion(diameter, &
-       real_params, integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D_v, Z, D
-
-    D_v = real_params(PMC_COND_D_V)
-    Z = real_params(PMC_COND_Z)
-    D = diameter
-
-    corrected_molecular_diffusion = D_v / (1d0 + Z / D)
-
-  end function corrected_molecular_diffusion
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial D_{\rm v}'(D) / \partial D \$.
-  real(kind=dp) function corrected_molecular_diffusion_deriv(diameter, &
-       real_params, integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D_v, Z, D
-
-    D_v = real_params(PMC_COND_D_V)
-    Z = real_params(PMC_COND_Z)
-    D = diameter
-
-    corrected_molecular_diffusion_deriv = D_v * Z / (D + Z)**2
-
-  end function corrected_molecular_diffusion_deriv
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Function \$ a_{\rm w}(D) \$.
-  real(kind=dp) function water_activity(diameter, real_params, &
-       integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D, kappa, V_dry
-
-    D = diameter
-    kappa = real_params(PMC_COND_KAPPA)
-    V_dry = real_params(PMC_COND_V_DRY)
-
-    water_activity = (const%pi / 6d0 * D**3 - V_dry) &
-         / (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)
-
-    if (const%pi / 6d0 * D**3 <= V_dry) then
-       water_activity = 0d0
-       !>DEBUG
-       !kill_flag = .true.
-       !<DEBUG
-    end if
-
-  end function water_activity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Derivative \$ \partial a_{\rm w}(D) / \partial D \$.
-  real(kind=dp) function water_activity_deriv(diameter, real_params, &
-       integer_params)
-
-    !> Current diameter (m)
-    real(kind=dp), intent(in) :: diameter
-    !> Real parameters.
-    real(kind=dp), intent(in) :: real_params(PMC_COND_N_REAL_PARAMS)
-    !> Integer parameters.
-    integer, intent(in) :: integer_params(PMC_COND_N_INTEGER_PARAMS)
-
-    real(kind=dp) :: D, kappa, V_dry
-
-    D = diameter
-    kappa = real_params(PMC_COND_KAPPA)
-    V_dry = real_params(PMC_COND_V_DRY)
-
-    water_activity_deriv = const%pi / 2d0 * D**2 * kappa * V_dry &
-         / (const%pi / 6d0 * D**3 + (kappa - 1d0) * V_dry)**2
-
-  end function water_activity_deriv
+  end subroutine condense_equilib_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -2516,26 +710,6 @@ contains
        delta_x = f / df
        !write(*,*) 'old x =' , x , 'old f=' ,old_f
        
-       if (PMC_COND_CHECK_DERIVS) then
-          check_x = x * (1d0 + PMC_COND_CHECK_EPS)
-          call func(env_state, aero_data, .false., check_x, check_f, &
-               check_df, aero_particle)
-          finite_diff_df = (check_f - f) / (check_x - x)
-          rel_error = abs(finite_diff_df - df) / (abs(finite_diff_df) + abs(df))
-          if (rel_error > PMC_COND_CHECK_REL_TOL) then
-             write(0,*) "ERROR: cond_newt: incorrect derivative"
-             write(0,*) "x ", x
-             write(0,*) "check_x ", check_x
-             write(0,*) "delta_x ", (check_x - x)
-             write(0,*) "f ", f
-             write(0,*) "check_f ", check_f
-             write(0,*) "delta_f ", (check_f - f)
-             write(0,*) "df ", df
-             write(0,*) "finite_diff_df ", finite_diff_df
-             write(0,*) "rel_error ", rel_error
-          end if
-       end if
-
        x = x - delta_x
        call func(env_state, aero_data, .false., x, f, df, aero_particle)
        delta_f = f - old_f
@@ -2587,6 +761,9 @@ contains
     real(kind=dp) dw ! wet diameter of particle
     real(kind=dp) dw_tol, pv, di
     real(kind=dp) dw_init     
+    real(kind=dp) :: D_init, D_final, D_final_new, kappa
+    type(condense_equilib_inputs_t) :: inputs
+    type(condense_equilib_outputs_t) :: outputs
 
     !> total volume of the particle before equilibriation
     pv = aero_particle_volume(aero_particle)
@@ -2594,6 +771,7 @@ contains
     !write(*,*) 'id =', aero_particle%id, 'wet diam (before equilibriation)', di  
     !> dry diameter of the particle
     dw_init = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
+    D_init = dw_init
     !write(*,*) 'id =', aero_particle%id, 'dry diam (before iteration) =', dw_init
     dw = dw_init
 
@@ -2613,6 +791,21 @@ contains
     !> dw_init is the dry diameter before equilibriation
     aero_particle%vol(aero_data%i_water) = diam2vol(dw) - diam2vol(dw_init)
     di=vol2diam(pv)
+
+    D_final = vol2diam(aero_particle_volume(aero_particle))
+
+    inputs%T = env_state%temp
+    inputs%H = env_state%rel_humid
+    inputs%p = env_state%pressure
+    inputs%D_dry = D_init
+    inputs%kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+
+    call condense_equilib_particle(inputs, outputs)
+    D_final_new = outputs%D
+
+    call compute_kappa(aero_data, aero_particle, kappa)
+    write(*,*) 'D_dry,D,D_new,kappa,kappa_new ', D_init, D_final, D_final_new, &
+         kappa, inputs%kappa
 
     !write(*,*)  'id = ', aero_particle%id, 'wet diam (after iteration) = ', dw
   end subroutine equilibriate_particle
@@ -3022,6 +1215,7 @@ contains
 !        STOP
        end do
     end do
+    stop
 
   end subroutine aero_state_equilibriate
 
@@ -3084,9 +1278,11 @@ contains
 !          write(*,*) 'vol= ', vol_frac, 'kappa= ', indiv_kappa
           tot_kappa=tot_kappa+vol_frac*indiv_kappa
           tot_vol_frac=tot_vol_frac+vol_frac
+          write(*,*) 'k,vol_frac,indiv_kappa ', k, vol_frac, indiv_kappa
+          write(*,*) 'aero_data%kappa(k) ', aero_data%kappa(k)
           endif
        enddo
-     
+       stop
 !       write(*,*) 'total vol frac=', tot_vol_frac
  
   end subroutine compute_kappa

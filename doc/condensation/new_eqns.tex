@@ -111,6 +111,13 @@ If $D_i < D_{i,\rm dry}$ then we take
   \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{\rm comp}(T)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H)
 \end{align}
 
+For equilibriation:
+\begin{align}
+  g_i(D_i, H) &= h_i(0, D_i, H) \\
+  &= H - a_{{\rm w}i}(D_i) \exp\biggl(\frac{X}{D_i}\biggr) \displaybreak[0] \\
+  \frac{\partial g_i}{\partial D_i}(D_i, H) &= - \frac{\partial a_{{\rm w}i}}{\partial D_i} (D_i) \exp\biggl(\frac{X}{D_i}\biggr) + a_{{\rm w}i}(D_i) \exp\biggl(\frac{X}{D_i}\biggr) \frac{X}{D_i^2}
+\end{align}
+
 %%%%%%%%%%%%%%%
 
 \vspace{2cm}

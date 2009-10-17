@@ -81,24 +81,6 @@ module pmc_condensation
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
 
-  type condense_equilib_inputs_t
-     !> Temperature (K).
-     real(kind=dp) :: T
-     !> Relative humidity (1).
-     real(kind=dp) :: H
-     !> Pressure (Pa).
-     real(kind=dp) :: p
-     !> Particle dry diameter (m).
-     real(kind=dp) :: D_dry
-     !> Kappa parameter (1).
-     real(kind=dp) :: kappa
-  end type condense_equilib_inputs_t
-
-  type condense_equilib_outputs_t
-     !> Partial diameter (m).
-     real(kind=dp) :: D
-  end type condense_equilib_outputs_t
-
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -611,585 +593,47 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the equilibrium state of a single particle.
-  subroutine condense_equilib_particle(inputs, outputs)
+  subroutine condense_equilib_particle(env_state, aero_data, &
+       aero_particle)
 
-    !> Inputs to equilibriation.
-    type(condense_equilib_inputs_t), intent(in) :: inputs
-    !> Outputs equilibrium.
-    type(condense_equilib_outputs_t), intent(out) :: outputs
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
 
-    real(kind=dp) :: X, D, g, dg_dD, a_w, daw_dD
+    real(kind=dp) :: X, kappa, D_dry, D, g, dg_dD, a_w, daw_dD
     integer :: newton_step
 
     X = 4d0 * const%water_molec_weight * const%water_surf_eng &
-         / (const%univ_gas_const * inputs%T * const%water_density)
+         / (const%univ_gas_const * env_state%temp &
+         * const%water_density)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
 
-    D = inputs%D_dry
-    newton_step = 0
+    D = D_dry
     g = 0d0
     dg_dD = 1d0
-    do while (.true.)
-       newton_step = newton_step + 1
+    do newton_step = 1,20
        D = D - g / dg_dD
-       a_w = (D**3 - inputs%D_dry**3) &
-            / (D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)
-       daw_dD = 3d0 * D**2 * inputs%kappa * inputs%D_dry**3 &
-            / (D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)**2
-       g = inputs%H - a_w * exp(X / D)
+       a_w = (D**3 - D_dry**3) / (D**3 + (kappa - 1d0) * D_dry**3)
+       daw_dD = 3d0 * D**2 * kappa * D_dry**3 &
+            / (D**3 + (kappa - 1d0) * D_dry**3)**2
+       g = env_state%rel_humid - a_w * exp(X / D)
        dg_dD = - daw_dD * exp(X / D) + a_w * exp(X / D) * (X / D**2)
-       if (abs(g) < 1d3 * epsilon(1d0)) then
-          exit
-       end if
-       if (newton_step > 100) then
-          exit
-       end if
     end do
-    write(*,*) 'newton_step ', newton_step
+    call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
+         "convergence problem in equilibriation")
 
-    outputs%D = D
+    aero_particle%vol(aero_data%i_water) = diam2vol(D) - diam2vol(D_dry)
 
   end subroutine condense_equilib_particle
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Scalar Newton's method for solving the implicit condensation
-  !> functions.
-  subroutine cond_newt(x, env_state, aero_data, func, x_tol, f_tol, &
-       iter_max, aero_particle)
-
-    !> Variable (set to init value on call).
-    real(kind=dp), intent(inout) :: x
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> X convergence tolerance.
-    real(kind=dp), intent(in) :: x_tol
-    !> F convergence tolerance.
-    real(kind=dp), intent(in) :: f_tol
-    !> Maximum number of iterations.
-    integer, intent(in) :: iter_max
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine func(env_state, aero_data, init, x, f, df, aero_particle)
-         use pmc_env_state
-         use pmc_aero_data
-         use pmc_aero_particle
-         !> Environment state.
-         type(env_state_t), intent(in) :: env_state
-         !> Aerosol data.
-         type(aero_data_t), intent(in) :: aero_data
-         !> True if first Newton loop.
-         logical, intent(in) :: init
-         !> Independent variable to solve for.
-         real(kind=dp), intent(in) :: x
-         !> Function to solve.
-         real(kind=dp), intent(out) :: f
-         !> Derivative df/dx.
-         real(kind=dp), intent(out) :: df
-         !> Particle.
-         type(aero_particle_t), intent(in) :: aero_particle
-       end subroutine func
-    end interface
-#endif
-    
-    integer iter, k
-    real(kind=dp) delta_f, delta_x, f, old_f, df
-    real(kind=dp) :: check_x, check_f, check_df, finite_diff_df, rel_error
-
-    call func(env_state, aero_data, .true., x, f, df, aero_particle)
-    old_f = f
-
-    iter = 0
-    do
-       !write(*,*) 'no. of iteration', iter
-       iter = iter + 1
-       delta_x = f / df
-       !write(*,*) 'old x =' , x , 'old f=' ,old_f
-       
-       x = x - delta_x
-       call func(env_state, aero_data, .false., x, f, df, aero_particle)
-       delta_f = f - old_f
-       old_f = f
-
-       !write(*,*) 'new x =' , x , 'new f=' , f
-       !write(*,*) 'delta x =', delta_x , 'delta_f=', delta_f
-       if (iter .ge. iter_max) then
-          call die_msg(449343787, 'Newton iteration failed to terminate')
-       end if
-       
-       ! FIXME: gfortran 4.1.1 requires the "then" in the following
-       ! statement, rather than using a single-line "if" statement.
-       if ((abs(delta_x) .lt. x_tol) &
-            .and. (abs(delta_f) .lt. f_tol)) then
-          exit
-       end if
-    end do
- 
-    !write(*,*) 'id =', aero_particle%id, 'finish using', iter ,'iteration(s)'
-  end subroutine cond_newt
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Add water to the particle until it is in equilibrium.
-  subroutine equilibriate_particle(env_state, aero_data, aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    ! parameters
-    !> Maximum iterations.
-    integer, parameter :: it_max = 400
-    !> Volume relative convergence tolerance.
-!    real(kind=dp), parameter :: pv_rel_tol = 1d-6
-    real(kind=dp), parameter :: pv_rel_tol = 1d-3
-    !> Function convergence tolerance.
-    real(kind=dp), parameter :: f_tol = 1d-15
-    !> Maximum number of iterations.
-    integer, parameter :: iter_max = 100
-    !> Initial value.
-    !> want to get variable initial guess as the dry diameter
-!    real(kind=dp), parameter :: dw_init = 1d-6
-    
-    real(kind=dp) dw ! wet diameter of particle
-    real(kind=dp) dw_tol, pv, di
-    real(kind=dp) dw_init     
-    real(kind=dp) :: D_init, D_final, D_final_new, kappa
-    type(condense_equilib_inputs_t) :: inputs
-    type(condense_equilib_outputs_t) :: outputs
-
-    !> total volume of the particle before equilibriation
-    pv = aero_particle_volume(aero_particle)
-    di = vol2diam(pv)
-    !write(*,*) 'id =', aero_particle%id, 'wet diam (before equilibriation)', di  
-    !> dry diameter of the particle
-    dw_init = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
-    D_init = dw_init
-    !write(*,*) 'id =', aero_particle%id, 'dry diam (before iteration) =', dw_init
-    dw = dw_init
-
-    ! convert volume relative tolerance to diameter absolute tolerance
-    dw_tol = vol2diam(pv * (1d0 + pv_rel_tol)) - vol2diam(pv)
-    !write(*,*) 'sat (in equilibriate_particle) BF newton =' , env_state%rel_humid
-!    write(*,*) 'dw_tol = ', dw_tol
-!    write(*,*) 'id =', aero_particle%id 
-
-    call cond_newt(dw, env_state, aero_data, equilibriate_func, &
-         dw_tol, f_tol, iter_max, aero_particle)
-
-    !write(*,*) 'sat (in equilibriate_particle) AF newton =' , env_state%rel_humid
-!    aero_particle%vol(aero_data%i_water) = diam2vol(dw) - pv
-    !> the amount of water after equilibriation
-    !> dw is the wet diameter after equilibriation 
-    !> dw_init is the dry diameter before equilibriation
-    aero_particle%vol(aero_data%i_water) = diam2vol(dw) - diam2vol(dw_init)
-    di=vol2diam(pv)
-
-    D_final = vol2diam(aero_particle_volume(aero_particle))
-
-    inputs%T = env_state%temp
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
-    inputs%D_dry = D_init
-    inputs%kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-
-    call condense_equilib_particle(inputs, outputs)
-    D_final_new = outputs%D
-
-    call compute_kappa(aero_data, aero_particle, kappa)
-    write(*,*) 'D_dry,D,D_new,kappa,kappa_new ', D_init, D_final, D_final_new, &
-         kappa, inputs%kappa
-
-    !write(*,*)  'id = ', aero_particle%id, 'wet diam (after iteration) = ', dw
-  end subroutine equilibriate_particle
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Return the error function value and its derivative for the
-  !> implicit function that determines the equilibrium state of a
-  !> particle.
-  subroutine equilibriate_func(env_state, aero_data, init, dw, f, df, &
-       aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> True if first Newton loop.
-    logical, intent(in) :: init
-    !> Wet diameter (m).
-    real(kind=dp), intent(in) :: dw
-    !> Function value.
-    real(kind=dp), intent(out) :: f
-    !> Function derivative df/dx.
-    real(kind=dp), intent(out) :: df
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-!    call equilibriate_func_old(env_state, aero_data, init, dw, f, df, &
-!       aero_particle)
-
-!    call equilibriate_func_new(env_state, aero_data, init, dw, f, df, &
-!       aero_particle)
-
-!     write(*,*) 'sat (in equilibriate_func) 1 =', env_state%rel_humid
-    call equilibriate_func_aw(env_state, aero_data, init, dw, f, df, &
-       aero_particle)
-    
-!     write(*,*) 'sat (in equiliraiate_func) 2 =', env_state%rel_humid
-!    write(*,*) 'dw = ', dw
-!    write(*,*) 'f = ', f
-!    write(*,*) 'df = ', df
-!    write(*,*) 'id = ', aero_particle%id
-
-    end subroutine equilibriate_func
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Return the error function value and its derivative for the
-  !> implicit function that determines the equilibrium state of a
-  !> particle.
-  subroutine equilibriate_func_old(env_state, aero_data, init, dw, f, df, &
-       aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> True if first Newton loop.
-    logical, intent(in) :: init
-    !> Wet diameter (m).
-    real(kind=dp), intent(in) :: dw
-    !> Function value.
-    real(kind=dp), intent(out) :: f
-    !> Function derivative df/dx.
-    real(kind=dp), intent(out) :: df
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    real(kind=dp), save :: c0, c1, c3, c4, dc0, dc2, dc3
-    real(kind=dp), save :: A, B
-    real(kind=dp), save ::  pv
-    real(kind=dp), save :: M_water, M_solute, rho_water, rho_solute
-    real(kind=dp), save :: eps, nu, g_water, g_solute
-
-    if (init) then
-       ! Start of new Newton loop, compute all constants
-
-       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
-       M_solute = aero_particle_solute_molec_weight(aero_particle, aero_data)
-       ! (kg/mole)
-       nu = aero_particle_solute_num_ions(aero_particle, aero_data) ! (1)
-       eps = aero_particle_solute_solubility(aero_particle, aero_data) ! (1)
-       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
-       rho_solute = aero_particle_solute_density(aero_particle, aero_data)
-       ! (kg/m^3)
-       g_water = aero_particle_water_mass(aero_particle, aero_data) ! (kg)
-       g_solute = aero_particle_solute_mass(aero_particle, aero_data) ! (kg)
-
-       pv = aero_particle_volume(aero_particle) ! (m^3)
-    
-       A = 4d0 * M_water * const%water_surf_eng &
-            / (const%univ_gas_const * env_state%temp * rho_water)
-       
-       B = nu * eps * M_water * rho_solute &
-            * vol2rad(pv)**3.d0 / (M_solute * rho_water)
-       
-       c4 = log(env_state%rel_humid) / 8d0
-       c3 = A / 8d0
-       
-       dc3 = log(env_state%rel_humid) / 2d0
-       dc2 = 3d0 * A / 8d0
-       
-       c1 = B - log(env_state%rel_humid) * vol2rad(pv)**3d0
-       c0 = A * vol2rad(pv)**3d0
-       dc0 = c1
-
-    endif
-    
-    f = c4 * dw**4d0 - c3 * dw**3d0 + c1 * dw + c0
-    df = dc3 * dw**3d0 -dc2 * dw**2d0 + dc0
-
-  end subroutine equilibriate_func_old
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Return the error function value and its derivative for the
-  !> implicit function that determines the equilibrium state of a
-  !> particle.
-  subroutine equilibriate_func_new(env_state, aero_data, init, dw, f, df, &
-       aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> True if first Newton loop.
-    logical, intent(in) :: init
-    !> Wet diameter (m).
-    real(kind=dp), intent(in) :: dw
-    !> Function value.
-    real(kind=dp), intent(out) :: f
-    !> Function derivative df/dx.
-    real(kind=dp), intent(out) :: df
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    real(kind=dp), save :: c1, c2, c3, c4, c5, c6
-    real(kind=dp), save :: A, B
-    real(kind=dp), save ::  pv
-    real(kind=dp), save :: M_water, M_solute, rho_water, rho_solute
-    real(kind=dp), save :: eps, nu, g_water, g_solute
-
-    if (init) then
-       ! Start of new Newton loop, compute all constants
-
-       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
-       M_solute = aero_particle_solute_molec_weight(aero_particle, aero_data)
-       ! (kg/mole)
-       nu = aero_particle_solute_num_ions(aero_particle, aero_data) ! (1)
-       eps = aero_particle_solute_solubility(aero_particle, aero_data) ! (1)
-       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
-       rho_solute = aero_particle_solute_density(aero_particle, aero_data)
-       ! (kg/m^3)
-       g_water = aero_particle_water_mass(aero_particle, aero_data) ! (kg)
-       g_solute = aero_particle_solute_mass(aero_particle, aero_data) ! (kg)
-
-       pv = aero_particle_volume(aero_particle) ! (m^3)
-
-       c1=log(env_state%rel_humid)
-       c2 = 4d0 * M_water &
-            * const%water_surf_eng / (env_state%temp * const%univ_gas_const * rho_water)
-       c3=(6d0*nu*M_water) / (const%pi*rho_water*M_solute) * g_solute 
-       
-!       c4=1d-9                   ! hardcode insoluble diameter
-        c4=0d0
-       c5=c2*(c4**3d0)
-       c6=c1*(c4**3d0) 
-      
-      endif
-    
-    f = c1*dw**4d0-c2*dw**3d0+(c3-c6)*dw+c5     
-    df= 4d0*c1*dw**3d0 - 3d0*c2*dw**2d0 + (c3-c6) 
-
-    ! NOTE: we could return T_a (the droplet temperature) if we have
-    ! any need for it.
-
-
-  end subroutine equilibriate_func_new
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Return the error function value and its derivative for the
-  !> implicit function that determines the equilibrium state of a
-  !> particle.
-  subroutine equilibriate_func_aw(env_state, aero_data, init, dw, f, df, &
-       aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> True if first Newton loop.
-    logical, intent(in) :: init
-    !> Wet diameter (m).
-    real(kind=dp), intent(in) :: dw
-    !> Function value.
-    real(kind=dp), intent(out) :: f
-    !> Function derivative df/dx.
-    real(kind=dp), intent(out) :: df
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    real(kind=dp) :: sat, tot_kappa, kappa
-    
-    integer :: k
- 
-!       write(*,*) 'sat (in equilibriate_func_aw) 0 = ', env_state%rel_humid
-!       write(*,*) 'init =', init
-    if (init) then
-          
-       ! Start of new Newton loop, compute all constants
-
-       call compute_kappa(aero_data, aero_particle, tot_kappa)   
-       kappa=tot_kappa
-!       write(*,*) ' id = ', aero_particle%id, 'kappa = ' , kappa       
-
-       sat = env_state%rel_humid
-!       write(*,*) 'sat (in equilibriate_func_aw) 1 = ', sat
-   
-    endif
-         
-!       write(*,*) 'now start to calculate f and df in equilibration'
-!       write(*,*) ' id = ', aero_particle%id, 'kappa = ', kappa
-
-       sat = env_state%rel_humid
-       
-        f= sat - aw(aero_data, aero_particle, dw) & 
-              * exp(kelvin_argu(aero_particle, aero_data, env_state, dw))
-       df= -  aw_deri(aero_data, aero_particle, dw) & 
-              * exp(kelvin_argu(aero_particle, aero_data, env_state, dw)) &
-              + kelvin_deri(aero_particle, aero_data, env_state, dw) &
-              * aw(aero_data, aero_particle, dw)
-
-!       write(*,*) 'f = ', f 
-!       write(*,*) 'df = ', df
-!       write(*,*)  'wet diam (after iteration) = ', dw
-!       write(*,*) 'sat (in equilibriate_func_aw) 2 = ', sat
-    
-   end subroutine equilibriate_func_aw
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> calculate the argument of the Kelvin term.
-  real(kind=dp) function kelvin_argu(aero_particle, aero_data, env_state, dw)
-
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol Particle.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Wet diameter
-    real(kind=dp), intent(in) :: dw
-
-    real(kind=dp), save :: M_water, rho_water
-
-!      write(*,*) 'now in function kelvin_term'
-!      write(*,*) 'input dw to the funtion kelvin_argu = ', dw
-
-       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
-       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
-
-    kelvin_argu= 4d0 * M_water * const%water_surf_eng &
-         / (env_state%temp * const%univ_gas_const * rho_water * dw) 
-    
-!    write(*,*) 'input dw to the funtion aw = ', dw
-!    write(*,*) 'mole weight of h20 =', M_water
-!    write(*,*) 'temp =', env_state%temp
-!    write(*,*) 'gas const =', const%univ_gas_const
-!    write(*,*) 'rho water =', rho_water 
-!    write(*,*) 'surface tension =', const%water_surf_eng
-!    write(*,*) aero_particle%id, 'kelvin argu= ', kelvin_argu
-
-  end function kelvin_argu
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> calculate the derivative of the Kelvin term.
-  real(kind=dp) function kelvin_deri(aero_particle, aero_data, env_state, dw)
-
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol Particle.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Wet diameter.
-    real(kind=dp), intent(in) :: dw
-
-!      write(*,*) 'now in function kelvin_deri'      
-!      write(*,*) 'input dw to the funtion aw = ', dw
-
-    kelvin_deri=exp(kelvin_argu(aero_particle, aero_Data, env_state, dw)) & 
-             *kelvin_argu(aero_particle, aero_data, env_state, dw) / dw
-
-!    write(*,*) aero_particle%id, 'kelvin deri= ', kelvin_deri
-  end function kelvin_deri
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> calculate the water activity.
-  real(kind=dp) function aw(aero_data, aero_particle, dw)
-
-    !> Particle.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle
-
-    real(kind=dp), intent(in) :: dw
-    
-    real(kind=dp) :: vs, vt, kappa, tot_kappa
-
-    integer :: k
-
-!       write(*,*) 'now in function aw' 
-
-       vs=0d0
-       vt=0d0
-!   vs is the dry particle volume (non-water components)
-       do k=1,aero_data%n_spec 
-          if (k /= aero_data%i_water) then
-          vs=vs+aero_particle%vol(k)
-          endif
-          vt=vt+aero_particle%vol(k)
-       enddo
-    
-       call compute_kappa(aero_data, aero_particle, tot_kappa)   
-       kappa=tot_kappa
-
-!      write(*,*) aero_particle%id, 'kappa = ', kappa
-!      write(*,*) 'input dw to the funtion aw = ', dw
-!      write(*,*) 'dry salt volume in the function aw = ', vs
-!      write(*,*) 'wet salt volume (dw^3) ', const%pi/6d0*(dw**3d0)     
-       
-      aw=(const%pi/6d0*(dw**3d0)-vs)/(const%pi/6d0*(dw**3d0)+(kappa-1d0)*vs)
-  
-!      write(*,*) 'kappa =', kappa   
-!      write(*,*) aero_particle%id, 'aw= ', aw
-  end function aw
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> calculate the derivative of the water activity.
-  real(kind=dp) function aw_deri(aero_data, aero_particle, dw)
-
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data
-    type(aero_data_t), intent(in) :: aero_data
-
-    real(kind=dp), intent(in) :: dw
-    
-    real(kind=dp) :: vs, vt, kappa, tot_kappa
-    
-    integer :: k
-
-!       write(*,*) 'now in function aw_deri'
-
-       vs=0d0
-       vt=0d0
-!   vs is the dry particle volume (non-water components)
-       do k=1,aero_data%n_spec 
-          if (k /= aero_data%i_water) then
-          vs=vs+aero_particle%vol(k)
-          endif
-          vt=vt+aero_particle%vol(k)
-       enddo
-    
-       call compute_kappa(aero_data, aero_particle, tot_kappa)   
-       kappa=tot_kappa
-      
-!      write(*,*) 'input dw to the funtion aw = ', dw
-!      write(*,*) 'dry salt volume in the function aw = ', vs
-
-       aw_deri= (kappa*vs*const%pi/2d0*(dw**2d0))   &
-       /((const%pi/6d0*(dw**3d0)+(kappa-1d0)*vs)**2d0)
-
-!    write(*,*) aero_particle%id, 'aw_deri= ', aw_deri
-  end function aw_deri
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Call equilibriate_particle() on each particle in the aerosol.
-  subroutine aero_state_equilibriate(bin_grid, env_state, aero_data, &
+  !> Call condense_equilib_particle() on each particle in the aerosol.
+  subroutine condense_equilib_particles(bin_grid, env_state, aero_data, &
        aero_state)
 
     !> Bin grid.
@@ -1203,89 +647,18 @@ contains
  
     integer :: i_bin, i
     
+    !>DEBUG
+    env_state%rel_humid=9.50d-1
+    call warn_msg(842966545, "reseting rel_humid")
+    !>DEBUG
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
-         !write(*,*) 'hello id =', aero_particle%id
-         env_state%rel_humid=9.50d-1
-         !write(*,*) 'RH (in aero_state_equi) =', env_state%rel_humid
-          call equilibriate_particle(env_state, aero_data, &
+          call condense_equilib_particle(env_state, aero_data, &
                aero_state%bin(i_bin)%particle(i))
-!     temporary stop statement
-          !write(*,*) 'stop at particle i', i
-!        STOP
        end do
     end do
-    stop
 
-  end subroutine aero_state_equilibriate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compute the Kappa value of individual particle based on volume
-  !> fractions
-  subroutine compute_kappa(aero_data, aero_particle, tot_kappa)
-
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Kappa values for individual particle. 
-    real(kind=dp), intent(out) :: tot_kappa
-    !> Quantity to total. 
-!    real(kind=dp), intent(in) :: quantity(:)
-
-    ! local variables
-    real(kind=dp) :: M_water, M_solute, rho_water, rho_solute
-    real(kind=dp) :: g_water, g_solute
-    real(kind=dp) :: indiv_kappa
-    real(kind=dp) :: tot_vol, vol_frac, tot_vol_frac
-    real(kind=dp) :: water_vol,other_vol
-    integer :: j, k
-    
-       M_water = aero_particle_water_molec_weight(aero_data) ! (kg/mole)
-       M_solute = aero_particle_solute_molec_weight(aero_particle, aero_data)
-       ! (kg/mole)
-       rho_water = aero_particle_water_density(aero_data) ! (kg/m^3)
-       rho_solute = aero_particle_solute_density(aero_particle, aero_data)
-       ! (kg/m^3)
-       g_water = aero_particle_water_mass(aero_particle, aero_data) ! (kg)
-       g_solute = aero_particle_solute_mass(aero_particle, aero_data) ! (kg)
-
-       tot_kappa=0d0
-       tot_vol=0d0
-       tot_vol_frac=0d0
-
-       do k=1,aero_data%n_spec 
-          if (k /= aero_data%i_water) then
-          ! total volume of solute (non-water components)
-          tot_vol=tot_vol+aero_particle%vol(k)
-!          write(*,*) 'k=',k ,'vol= ', aero_particle%vol(k)
-          endif
-       enddo
-       do k=1,aero_data%n_spec 
-          if (k /= aero_data%i_water) then
-              if(aero_data%kappa(k) > 500d0) then
-          indiv_kappa=(M_water/rho_water)*(aero_data%density(k)/aero_data%molec_weight(k))    !volume fraction
-!          write(*,*) 'k=', k, 'mole weight =', M_water, 'den =', rho_water
-!          write(*,*) 'k=', k, 'aero den =', aero_data%density(k), 'aero weight=', aero_data%molec_weight(k)   
-!          write(*,*) 'inorganic', k, indiv_kappa
-              else
-          indiv_kappa=aero_data%kappa(k)
-!          write(*,*) 'organic', k, indiv_kappa
-              endif
-
-          vol_frac=aero_particle%vol(k)/tot_vol
-!          write(*,*) 'vol= ', vol_frac, 'kappa= ', indiv_kappa
-          tot_kappa=tot_kappa+vol_frac*indiv_kappa
-          tot_vol_frac=tot_vol_frac+vol_frac
-          write(*,*) 'k,vol_frac,indiv_kappa ', k, vol_frac, indiv_kappa
-          write(*,*) 'aero_data%kappa(k) ', aero_data%kappa(k)
-          endif
-       enddo
-       stop
-!       write(*,*) 'total vol frac=', tot_vol_frac
- 
-  end subroutine compute_kappa
+  end subroutine condense_equilib_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

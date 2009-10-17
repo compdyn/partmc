@@ -30,16 +30,13 @@ module pmc_condensation
   !> Characteristic time to maintain error control (s).
   real(kind=dp), parameter :: CONDENSE_ERROR_CHAR_TIME = 1000d0
 
-  logical, save :: rh_first = .true.
-  integer, save :: d_offset = 1 ! 1 if rh_first, otherwise 0
-
   type(aero_data_t) :: condense_saved_aero_data
   type(env_data_t) :: condense_saved_env_data
   type(env_state_t) :: condense_saved_env_state_initial
   real(kind=dp) :: condense_saved_V_comp_initial
   real(kind=dp) :: condense_saved_Tdot
-  real(kind=dp), pointer, save :: condense_saved_kappa(:)
-  real(kind=dp), pointer, save :: condense_saved_D_dry(:)
+  real(kind=dp), pointer, save :: condense_saved_kappa(:) ! FIXME: change to allocatable, no save
+  real(kind=dp), pointer, save :: condense_saved_D_dry(:) ! FIXME: change to allocatable, no save
 
   type condense_rates_inputs_t
      !> Temperature (K).
@@ -150,19 +147,14 @@ contains
                = aero_particle_solute_kappa(aero_particle, aero_data)
           condense_saved_D_dry(i_part) = vol2diam(&
                aero_particle_solute_volume(aero_particle, aero_data))
-          state(i_part + d_offset) = aero_particle_diameter(aero_particle)
-          abs_tol_vector(i_part + d_offset) = max(CONDENSE_D_ABS_TOL_MIN, &
+          state(i_part) = aero_particle_diameter(aero_particle)
+          abs_tol_vector(i_part) = max(CONDENSE_D_ABS_TOL_MIN, &
                 CONDENSE_D_ABS_TOL_FACTOR &
-                * (state(i_part + d_offset) - condense_saved_D_dry(i_part)))
+                * (state(i_part) - condense_saved_D_dry(i_part)))
        end do
     end do
-    if (rh_first) then
-       state(1) = env_state%rel_humid
-       abs_tol_vector(1) = CONDENSE_RH_ABS_TOL
-    else
-       state(aero_state%n_part + 1) = env_state%rel_humid
-       abs_tol_vector(aero_state%n_part + 1) = CONDENSE_RH_ABS_TOL
-    end if
+    state(aero_state%n_part + 1) = env_state%rel_humid
+    abs_tol_vector(aero_state%n_part + 1) = CONDENSE_RH_ABS_TOL
 
     ! set VODE inputs
     n_eqn = aero_state%n_part + 1
@@ -177,11 +169,7 @@ contains
     call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
 
-    if (rh_first) then
-       env_state%rel_humid = state(1)
-    else
-       env_state%rel_humid = state(aero_state%n_part + 1)
-    end if
+    env_state%rel_humid = state(aero_state%n_part + 1)
 
     i_part = 0
     do i_bin = 1,bin_grid%n_bin
@@ -190,7 +178,7 @@ contains
           aero_particle => aero_state%bin(i_bin)%particle(j)
 
           ! translate output back to particle
-          aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part + d_offset)) &
+          aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part)) &
                - aero_particle_solute_volume(aero_particle, aero_data)
 
           ! ensure volumes stay positive
@@ -260,11 +248,7 @@ contains
     call env_data_update_state(condense_saved_env_data, &
          env_state, env_state%elapsed_time + time)
 
-    if (rh_first) then
-       env_state%rel_humid = state(1)
-    else
-       env_state%rel_humid = state(n_eqn)
-    end if
+    env_state%rel_humid = state(n_eqn)
 
   end subroutine condense_current_env_state
 
@@ -438,20 +422,16 @@ contains
 
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
-       inputs%D = state(i_part + d_offset)
+       inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
-       state_dot(i_part + d_offset) = outputs%Ddot
+       state_dot(i_part) = outputs%Ddot
        Hdot = Hdot + outputs%Hdot_i
     end do
     Hdot = Hdot + outputs%Hdot_env
 
-    if (rh_first) then
-       state_dot(1) = Hdot
-    else
-       state_dot(n_eqn) = Hdot
-    end if
+    state_dot(n_eqn) = Hdot
 
     call env_state_deallocate(env_state)
 
@@ -505,7 +485,7 @@ contains
 
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
-       inputs%D = state(i_part + d_offset)
+       inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
@@ -532,59 +512,31 @@ contains
     ! elements. For I = 1,...,NZ, PD(I) is the numerical
     ! value of the Ith element in the Jacobian. PD must
     ! also include the diagonal elements of the Jacobian.
-    if (rh_first) then
-       ia(1) = 1
-       ia(2) = ia(1) + n_eqn
-       do i_part = 1,(n_eqn - 1)
-          ia(2 + i_part) = ia(1 + i_part) + 2
-       end do
-       call assert(351522940, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
+    ia(1) = 1
+    do i_part = 1,(n_eqn - 1)
+       ia(1 + i_part) = ia(i_part) + 2
+    end do
+    ia(n_eqn + 1) = ia(n_eqn) + n_eqn
+    call assert(824345254, ia(n_eqn + 1) - 1 == n_non_zero)
+    
+    i_nz = 0
+    do i_part = 1,(n_eqn - 1)
        i_nz = i_nz + 1
-       ja(i_nz) = 1
-       state_jac(i_nz) = dHdot_dH
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1 + i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = 1
-          state_jac(i_nz) = dHdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part + 1
-          state_jac(i_nz) = dDdot_dD(i_part)
-       end do
-       call assert(260941580, i_nz == n_non_zero)
-    else
-       ia(1) = 1
-       do i_part = 1,(n_eqn - 1)
-          ia(1 + i_part) = ia(i_part) + 2
-       end do
-       ia(n_eqn + 1) = ia(n_eqn) + n_eqn
-       call assert(824345254, ia(n_eqn + 1) - 1 == n_non_zero)
-
-       i_nz = 0
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dD(i_part)
-          i_nz = i_nz + 1
-          ja(i_nz) = n_eqn
-          state_jac(i_nz) = dHdot_dD(i_part)
-       end do
-       do i_part = 1,(n_eqn - 1)
-          i_nz = i_nz + 1
-          ja(i_nz) = i_part
-          state_jac(i_nz) = dDdot_dH(i_part)
-       end do
+       ja(i_nz) = i_part
+       state_jac(i_nz) = dDdot_dD(i_part)
        i_nz = i_nz + 1
        ja(i_nz) = n_eqn
-       state_jac(i_nz) = dHdot_dH
-       call assert(901219708, i_nz == n_non_zero)
-    end if
+       state_jac(i_nz) = dHdot_dD(i_part)
+    end do
+    do i_part = 1,(n_eqn - 1)
+       i_nz = i_nz + 1
+       ja(i_nz) = i_part
+       state_jac(i_nz) = dDdot_dH(i_part)
+    end do
+    i_nz = i_nz + 1
+    ja(i_nz) = n_eqn
+    state_jac(i_nz) = dHdot_dH
+    call assert(901219708, i_nz == n_non_zero)
 
     call env_state_deallocate(env_state)
 
@@ -649,7 +601,7 @@ contains
     
     !>DEBUG
     env_state%rel_humid=9.50d-1
-    call warn_msg(842966545, "reseting rel_humid")
+    call warn_msg(842966545, "resetting rel_humid")
     !>DEBUG
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part

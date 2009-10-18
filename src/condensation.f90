@@ -124,7 +124,7 @@ contains
     call env_state_allocate(env_state_final)
     call env_state_copy(env_state, env_state_final)
     call env_data_update_state(env_data, env_state_final, &
-         env_state_final%elapsed_time + del_t)
+         env_state_final%elapsed_time + del_t, update_rel_humid = .false.)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
     ! construct initial state vector from aero_state and env_state
@@ -238,7 +238,8 @@ contains
 
     call env_state_copy(condense_saved_env_state_initial, env_state)
     call env_data_update_state(condense_saved_env_data, &
-         env_state, env_state%elapsed_time + time)
+         env_state, env_state%elapsed_time + time, &
+         update_rel_humid = .false.)
     env_state%rel_humid = state(n_eqn)
 
   end subroutine condense_current_env_state

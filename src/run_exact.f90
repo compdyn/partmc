@@ -107,7 +107,8 @@ contains
     n_time = nint(exact_opt%t_max / exact_opt%t_output)
     do i_time = 0,n_time
        time = real(i_time, kind=dp) / real(n_time, kind=dp) * exact_opt%t_max
-       call env_data_update_state(env_data, env_state, time)
+       call env_data_update_state(env_data, env_state, time, &
+            update_rel_humid = .true.)
        call soln(bin_grid, aero_data, time, exact_opt%num_conc, &
             exact_opt%mean_radius, exact_opt%rho_p, &
             exact_opt%aero_dist_init, env_state, aero_binned)

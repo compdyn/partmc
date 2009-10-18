@@ -277,7 +277,8 @@ contains
 
   !> Update time-dependent contents of the environment.
   !> env_data_init_state() should have been called at the start.
-  subroutine env_data_update_state(env_data, env_state, time)
+  subroutine env_data_update_state(env_data, env_state, time, &
+       update_rel_humid)
 
     !> Environment data.
     type(env_data_t), intent(in) :: env_data
@@ -285,17 +286,19 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
     real(kind=dp), intent(in) :: time
+    !> Whether to update the relative humidity.
+    logical, intent(in) :: update_rel_humid
     
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv
 
     ! update temperature and adjust relative humidity to maintain
     ! water mixing ratio
-    !>DEBUG
-    !pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
-    !env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
-    !<DEBUG
+    if (update_rel_humid) then
+       env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+    end if
 
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
     env_state%elapsed_time = time

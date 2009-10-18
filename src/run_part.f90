@@ -133,6 +133,7 @@ contains
     integer :: progress_n_samp, progress_n_coag
     integer :: global_n_part, global_n_samp, global_n_coag
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
+    logical :: update_rel_humid
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
@@ -196,7 +197,9 @@ contains
        time = real(i_time, kind=dp) * part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
-       call env_data_update_state(env_data, env_state, time + t_start)
+       update_rel_humid = .not. part_opt%do_condensation
+       call env_data_update_state(env_data, env_state, time + t_start, &
+            update_rel_humid)
 
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then

@@ -176,7 +176,8 @@ contains
        time = sect_opt%t_max * real(i_time, kind=dp) / real(num_t, kind=dp)
 
        call env_state_copy(env_state, old_env_state)
-       call env_data_update_state(env_data, env_state, time)
+       call env_data_update_state(env_data, env_state, time, &
+            update_rel_humid = .true.)
        call env_state_update_gas_state(env_state, sect_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_binned(env_state, sect_opt%del_t, &

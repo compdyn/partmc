@@ -8,6 +8,6 @@ echo "../../partmc run_part.spec"
 
 echo "../../extract_env out/condense_0001_ out/condense_env.txt"
 ../../extract_env out/condense_0001_ out/condense_env.txt
-echo "../../numeric_diff true_env.txt out/condense_env.txt 0 1e-10"
-../../numeric_diff true_env.txt out/condense_env.txt 0 1e-10
+echo "../../numeric_diff true_env.txt out/condense_env.txt 0 1e-8"
+../../numeric_diff true_env.txt out/condense_env.txt 0 1e-8
 exit $?

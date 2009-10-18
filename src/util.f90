@@ -20,8 +20,47 @@ module pmc_util
   !> Table of unit numbers storing allocation status.
   logical, save :: unit_used(max_units) = .false.
 
+  !> Length of string for converting numbers.
+  integer, parameter :: PMC_UTIL_CONVERT_STRING_LEN = 100
+
 contains
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Prints a warning message.
+  subroutine warn_msg(code, warning_msg)
+
+    !> Status code to use.
+    integer, intent(in) :: code
+    !> Message to display.
+    character(len=*), intent(in) :: warning_msg
+
+    character(len=100) :: code_str
+
+    write(code_str,*) code
+    code_str = adjustl(code_str)
+    write(0,*) 'WARNING (PartMC-', trim(code_str), '): ', trim(warning_msg)
+
+  end subroutine warn_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Prints a warning message if condition_ok is false.
+  subroutine warn_assert_msg(code, condition_ok, warning_msg)
+
+    !> Status code to use.
+    integer, intent(in) :: code
+    !> Whether the assertion is ok.
+    logical, intent(in) :: condition_ok
+    !> Message to display.
+    character(len=*), intent(in) :: warning_msg
+
+    if (.not. condition_ok) then
+       call warn_msg(code, warning_msg)
+    end if
+
+  end subroutine warn_assert_msg
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Errors unless condition_ok is true.
@@ -628,6 +667,58 @@ contains
     string_to_logical = val
 
   end function string_to_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an integer to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function integer_to_string(val)
+
+    !> Value to convert.
+    integer, intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    write(ret_val, '(i20)') val
+    integer_to_string = ret_val
+
+  end function integer_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an real to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_to_string(val)
+
+    !> Value to convert.
+    real(kind=dp), intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    write(ret_val, '(g30.20)') val
+    real_to_string = ret_val
+
+  end function real_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an logical to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function logical_to_string(val)
+
+    !> Value to convert.
+    logical, intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    
+    ret_val = ""
+    if (val) then
+       ret_val = "TRUE"
+    else
+       ret_val = "FALSE"
+    end if
+    logical_to_string = ret_val
+
+  end function logical_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

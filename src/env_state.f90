@@ -238,7 +238,11 @@ contains
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     mv = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const*env_state%temp) * pmv
-    mv = mv - dmv    
+    mv = mv - dmv
+    if (mv < 0d0) then
+       call warn_msg(980320483, "relative humidity tried to go negative")
+       mv = 0d0
+    end if
     env_state%rel_humid = const%univ_gas_const * env_state%temp &
          / aero_data%molec_weight(aero_data%i_water) * mv &
          / env_state_sat_vapor_pressure(env_state)

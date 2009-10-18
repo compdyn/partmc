@@ -156,6 +156,92 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy structure.
+  subroutine env_data_copy(env_data_from, env_data_to)
+
+    !> Source environment data.
+    type(env_data_t), intent(in) :: env_data_from
+    !> Destination environment data.
+    type(env_data_t), intent(inout) :: env_data_to
+
+    integer :: i
+
+    call env_data_deallocate(env_data_to)
+
+    allocate(env_data_to%temp_time( &
+         size(env_data_from%temp_time)))
+    env_data_to%temp_time = env_data_from%temp_time
+    allocate(env_data_to%temp( &
+         size(env_data_from%temp)))
+    env_data_to%temp = env_data_from%temp
+
+    allocate(env_data_to%height_time( &
+         size(env_data_from%height_time)))
+    env_data_to%height_time = env_data_from%height_time
+    allocate(env_data_to%height( &
+         size(env_data_from%height)))
+    env_data_to%height = env_data_from%height
+
+    allocate(env_data_to%gas_emission_time( &
+         size(env_data_from%gas_emission_time)))
+    env_data_to%gas_emission_time = env_data_from%gas_emission_time
+    allocate(env_data_to%gas_emission_rate( &
+         size(env_data_from%gas_emission_rate)))
+    env_data_to%gas_emission_rate = env_data_from%gas_emission_rate
+    allocate(env_data_to%gas_emission( &
+         size(env_data_from%gas_emission)))
+    do i = 1,size(env_data_from%gas_emission)
+       call gas_state_allocate(env_data_to%gas_emission(i))
+       call gas_state_copy(env_data_from%gas_emission(i), &
+            env_data_to%gas_emission(i))
+    end do
+
+    allocate(env_data_to%gas_dilution_time( &
+         size(env_data_from%gas_dilution_time)))
+    env_data_to%gas_dilution_time = env_data_from%gas_dilution_time
+    allocate(env_data_to%gas_dilution_rate( &
+         size(env_data_from%gas_dilution_rate)))
+    env_data_to%gas_dilution_rate = env_data_from%gas_dilution_rate
+    allocate(env_data_to%gas_background( &
+         size(env_data_from%gas_background)))
+    do i = 1,size(env_data_from%gas_background)
+       call gas_state_allocate(env_data_to%gas_background(i))
+       call gas_state_copy(env_data_from%gas_background(i), &
+            env_data_to%gas_background(i))
+    end do
+
+    allocate(env_data_to%aero_emission_time( &
+         size(env_data_from%aero_emission_time)))
+    env_data_to%aero_emission_time = env_data_from%aero_emission_time
+    allocate(env_data_to%aero_emission_rate( &
+         size(env_data_from%aero_emission_rate)))
+    env_data_to%aero_emission_rate = env_data_from%aero_emission_rate
+    allocate(env_data_to%aero_emission( &
+         size(env_data_from%aero_emission)))
+    do i = 1,size(env_data_from%aero_emission)
+       call aero_dist_allocate(env_data_to%aero_emission(i))
+       call aero_dist_copy(env_data_from%aero_emission(i), &
+            env_data_to%aero_emission(i))
+    end do
+
+    allocate(env_data_to%aero_dilution_time( &
+         size(env_data_from%aero_dilution_time)))
+    env_data_to%aero_dilution_time = env_data_from%aero_dilution_time
+    allocate(env_data_to%aero_dilution_rate( &
+         size(env_data_from%aero_dilution_rate)))
+    env_data_to%aero_dilution_rate = env_data_from%aero_dilution_rate
+    allocate(env_data_to%aero_background( &
+         size(env_data_from%aero_background)))
+    do i = 1,size(env_data_from%aero_background)
+       call aero_dist_allocate(env_data_to%aero_background(i))
+       call aero_dist_copy(env_data_from%aero_background(i), &
+            env_data_to%aero_background(i))
+    end do
+
+  end subroutine env_data_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Initialize the time-dependent contents of the
   !> environment. Thereafter env_data_update_state() should be used.
   subroutine env_data_init_state(env_data, env_state, time)
@@ -191,7 +277,8 @@ contains
 
   !> Update time-dependent contents of the environment.
   !> env_data_init_state() should have been called at the start.
-  subroutine env_data_update_state(env_data, env_state, time)
+  subroutine env_data_update_state(env_data, env_state, time, &
+       update_rel_humid)
 
     !> Environment data.
     type(env_data_t), intent(in) :: env_data
@@ -199,6 +286,8 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
     real(kind=dp), intent(in) :: time
+    !> Whether to update the relative humidity.
+    logical, intent(in) :: update_rel_humid
     
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv
@@ -207,7 +296,9 @@ contains
     ! water mixing ratio
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
-    env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+    if (update_rel_humid) then
+       env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+    end if
 
     env_state%height = interp_1d(env_data%height_time, env_data%height, time)
     env_state%elapsed_time = time

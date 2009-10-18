@@ -1,0 +1,8 @@
+
+Condense Test-case
+==================
+
+This tests the water condensation code. There is no good analytical
+solution to test against, and the code is internally testing the water
+balance already, so we simply test against a saved known-good solution
+for the relative humidity.

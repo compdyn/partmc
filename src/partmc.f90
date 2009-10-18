@@ -36,7 +36,7 @@
 !>
 !> Module names are always the same as the name of the containing
 !> file, but prefixed with \c pmc_. Thus the module \c
-!> pmc_condensation is contained in the file \c condensation.f90.
+!> pmc_condense is contained in the file \c condense.f90.
 !>
 !> \section mem_manage Memory Management
 !>
@@ -67,7 +67,7 @@ program partmc
   use pmc_aero_state
   use pmc_aero_dist
   use pmc_aero_binned
-  use pmc_condensation
+  use pmc_condense
   use pmc_kernel_sedi
   use pmc_kernel_golovin
   use pmc_kernel_constant
@@ -215,6 +215,12 @@ contains
 
        call spec_file_read_bin_grid(file, bin_grid)
 
+       if (do_restart) then
+          call input_state_netcdf(restart_filename, bin_grid, aero_data, &
+               aero_state_init, gas_data, gas_state_init, env_state_init, &
+               dummy_index, dummy_time, dummy_del_t, dummy_i_loop)
+       end if
+
        call spec_file_read_gas_data(file, gas_data)
        if (.not. do_restart) then
           call spec_file_read_gas_state(file, gas_data, 'gas_init', gas_state_init)
@@ -228,9 +234,7 @@ contains
 
        call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
             env_data)
-       if (.not. do_restart) then
-          call spec_file_read_env_state(file, env_state_init)
-       end if
+       call spec_file_read_env_state(file, env_state_init)
        
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'do_coagulation', &
@@ -269,12 +273,6 @@ contains
        end if
        
        call spec_file_close(file)
-
-       if (do_restart) then
-          call input_state_netcdf(restart_filename, bin_grid, aero_data, &
-               aero_state_init, gas_data, gas_state_init, env_state_init, &
-               dummy_index, dummy_time, dummy_del_t, dummy_i_loop)
-       end if
     end if
 
     ! finished reading .spec data, now broadcast data
@@ -370,7 +368,7 @@ contains
        call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
 
        if (part_opt%do_condensation) then
-          call aero_state_equilibriate(bin_grid, env_state, aero_data, &
+          call condense_equilib_particles(bin_grid, env_state, aero_data, &
                aero_state)
        end if
        

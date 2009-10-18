@@ -26,6 +26,14 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
+rel_humidity 0.85               # initial relative humidity (1)
+pressure 1e5                    # initial pressure (Pa)
+latitude 0                      # latitude (degrees, -90 to 90)
+longitude 0                     # longitude (degrees, -180 to 180)
+altitude 0                      # altitude (m)
+start_time 43200                # start time (s since 00:00 UTC)
+start_day 200                   # start day of year (UTC)
+
 rand_init 0                     # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_doubling yes              # whether to allow doubling (yes/no)

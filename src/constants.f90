@@ -43,8 +43,8 @@ module pmc_constants
      real(kind=dp) :: water_surf_eng = 0.073d0
      !> Latent heat of water (J kg^{-1}).
      real(kind=dp) :: water_latent_heat = 2.272d6
-     !> Specific heat of water (J kg^{-1} K^{-1}).
-     real(kind=dp) :: water_spec_heat = 1005d0
+     !> Specific heat of air (J kg^{-1} K^{-1}).
+     real(kind=dp) :: air_spec_heat = 1005d0
      !> Molecular weight of water (kg mole^{-1}).
      real(kind=dp) :: water_molec_weight = 18d-3
      !> Density of water (kg m^{-3}).

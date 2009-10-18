@@ -165,3 +165,6 @@ condensation timestep, etc.
 
 When inputting aero_data, warn if water density is not
 const%water_density (also const%water_molec_weight).
+
+env_data_update_state() should take into account V_comp changes due to
+temp when updating rel_humid.

@@ -4,10 +4,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_condensation module.
+!> The pmc_condense module.
 
-!> Water condensation onto aerosol particles.
-module pmc_condensation
+!> Water condense onto aerosol particles.
+module pmc_condense
 
   use pmc_aero_state
   use pmc_bin_grid
@@ -603,4 +603,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_condensation
+end module pmc_condense

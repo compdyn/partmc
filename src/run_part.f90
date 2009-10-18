@@ -11,7 +11,7 @@ module pmc_run_part
   use pmc_util
   use pmc_aero_state
   use pmc_bin_grid 
-  use pmc_condensation
+  use pmc_condense
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data

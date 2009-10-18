@@ -36,7 +36,7 @@
 !>
 !> Module names are always the same as the name of the containing
 !> file, but prefixed with \c pmc_. Thus the module \c
-!> pmc_condensation is contained in the file \c condensation.f90.
+!> pmc_condense is contained in the file \c condense.f90.
 !>
 !> \section mem_manage Memory Management
 !>
@@ -67,7 +67,7 @@ program partmc
   use pmc_aero_state
   use pmc_aero_dist
   use pmc_aero_binned
-  use pmc_condensation
+  use pmc_condense
   use pmc_kernel_sedi
   use pmc_kernel_golovin
   use pmc_kernel_constant

@@ -591,10 +591,6 @@ contains
  
     integer :: i_bin, i
     
-    !>DEBUG
-    env_state%rel_humid=9.50d-1
-    call warn_msg(842966545, "resetting rel_humid")
-    !>DEBUG
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
           call condense_equilib_particle(env_state, aero_data, &

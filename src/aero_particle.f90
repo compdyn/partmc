@@ -555,24 +555,23 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    real(kind=dp) :: kappa(aero_data%n_spec), M_water, rho_water, V_dry
+    real(kind=dp) :: kappa(aero_data%n_spec), M_w, rho_w, M_a, rho_a
     integer :: i_spec
 
+    M_w = aero_particle_water_molec_weight(aero_data)
+    rho_w = aero_particle_water_density(aero_data)
     do i_spec = 1,aero_data%n_spec
-       !>DEBUG
-       !write(*,*) 'i_spec,num_ions,kappa ', &
-       !     i_spec, aero_data%num_ions(i_spec), aero_data%kappa(i_spec)
-       !<DEBUG
+       if (i_spec == aero_data%i_water) then
+          continue
+       end if
        if (aero_data%num_ions(i_spec) > 0) then
           call assert_msg(123681459, aero_data%kappa(i_spec) == 0d0, &
                "species has nonzero num_ions and kappa: " &
                // trim(aero_data%name(i_spec)))
-          M_water = aero_particle_water_molec_weight(aero_data)
-          rho_water = aero_particle_water_density(aero_data)
-          V_dry = aero_particle_solute_volume(aero_particle, aero_data)
-          kappa(i_spec) = M_water / (V_dry * rho_water) &
+          M_a = aero_data%molec_weight(i_spec)
+          rho_a = aero_data%density(i_spec)
+          kappa(i_spec) = M_w * rho_a / (M_a * rho_w) &
                * real(aero_data%num_ions(i_spec), kind=dp)
-          call die_msg(335740834, "This is wrong")
        else
           kappa(i_spec) = aero_data%kappa(i_spec)
        end if
@@ -580,9 +579,6 @@ contains
     aero_particle_solute_kappa &
          = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, kappa)
-    !>DEBUG
-    !stop
-    !<DEBUG
     
   end function aero_particle_solute_kappa
 

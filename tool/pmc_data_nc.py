@@ -133,7 +133,7 @@ class aero_particle_array_t:
         self.aero_data = aero_data_t(ncf)
 
         for (ncf_var, self_var) in [
-            ("aero_comp_mass", "masses"),
+            ("aero_particle_mass", "masses"),
             ("aero_n_orig_part", "n_orig_part"),
             ("aero_absorb_cross_sect", "absorb_cross_sect"),
             ("aero_scatter_cross_sect", "scatter_cross_sect"),
@@ -148,9 +148,6 @@ class aero_particle_array_t:
             ("aero_id", "id"),
             ("aero_least_create_time", "least_create_time"),
             ("aero_greatest_create_time", "greatest_create_time"),
-            ("aero_removed_id", "aero_removed_id"),
-            ("aero_removed_action", "aero_removed_action"),
-            ("aero_removed_other_id", "aero_removed_other_id"),
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)

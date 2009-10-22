@@ -237,9 +237,32 @@ class aero_particle_array_t:
     def dry_surface_area(self):
         return 4.0 * math.pi * self.dry_radius()**2
 
-    def solute_kappa(self):
+    def solute_kappa_simple(self):
         species_weights = array(self.aero_data.kappa) \
             / array(self.aero_data.density)
+        solute_volume_kappa = self.sum_mass_by_species(exclude = ["H2O"],
+                                                       species_weights = species_weights)
+        solute_volume = self.volume(exclude = ["H2O"])
+        return solute_volume_kappa / solute_volume
+
+    def solute_kappa(self):
+        i_water = self.aero_data.name.index("H2O")
+        M_w = self.aero_data.molec_weight[i_water]
+        rho_w = self.aero_data.density[i_water]
+        species_weights = zeros([len(self.aero_data.name)])
+        for i_spec in range(size(species_weights)):
+            if i_spec == self.aero_data.name == "H2O":
+                continue
+            if self.aero_data.num_ions[i_spec] > 0:
+                if self.aero_data.kappa[i_spec] != 0:
+                    raise Exception("species has nonzero num_ions and kappa: %s" % self.name[i_spec])
+                M_a = self.aero_data.molec_weight[i_spec]
+                rho_a = self.aero_data.density[i_spec]
+                species_weights[i_spec] = M_w * rho_a / (M_a * rho_w) \
+                                          * self.aero_data.num_ions[i_spec]
+            else:
+                species_weights[i_spec] = self.aero_data.kappa[i_spec]
+        species_weights /= array(self.aero_data.density)
         solute_volume_kappa = self.sum_mass_by_species(exclude = ["H2O"],
                                                        species_weights = species_weights)
         solute_volume = self.volume(exclude = ["H2O"])

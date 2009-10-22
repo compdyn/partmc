@@ -289,6 +289,19 @@ set_source_files_properties(src/extract_env.f90
 
 ######################################################################
 
+add_executable(bin_average src/bin_average.f90 src/bin_grid.f90
+  src/gas_state.f90 src/gas_data.f90 src/util.f90 src/env_state.f90
+  src/output.f90 src/aero_state.f90 src/aero_data.f90 src/netcdf.f90
+  src/mpi.f90 src/spec_file.f90 src/aero_binned.f90
+  src/aero_particle.f90 src/aero_particle_array.f90 src/aero_info.f90
+  src/aero_info_array.f90 src/aero_dist.f90 src/constants.f90
+  src/spec_line.f90 src/aero_mode.f90 src/rand.f90)
+target_link_libraries(bin_average ${NETCDF_LIBS})
+set_source_files_properties(src/bin_average.f90 PROPERTIES
+COMPILE_FLAGS ${STD_COMPILER_FLAGS})
+
+######################################################################
+
 add_executable(extract_sectional_aero_size_num
 	src/extract_sectional_aero_size_num.f90)
 target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})

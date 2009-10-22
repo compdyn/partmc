@@ -34,7 +34,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     min_time_min = data[:,0].min()
     max_time_min = data[:,0].max()
     g = graph.graphxy(
-        width = 6.4,
+        width = graph_width,
         x = graph.axis.linear(min = 0,
                               max = max_time_min - min_time_min,
                               title = r'time (min)',

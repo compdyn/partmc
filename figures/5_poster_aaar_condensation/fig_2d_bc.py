@@ -68,7 +68,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     print out_filename
 
     g = graph.graphxy(
-        width = grid_graph_width,
+        width = graph_width,
         x = graph.axis.log(min = diameter_axis_min,
                            max = diameter_axis_max,
                            title = diameter_axis_label),
@@ -89,7 +89,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
                              color = 5),
            styles = [hsb_rect(palette)])
 
-    write_time(g, env_state)
+    #write_time(g, env_state)
 
     g.dolayout()
     for axisname in ["x", "y"]:
@@ -104,7 +104,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
                          min = bc_min_val,
                          max = bc_max_val,
                          log_scale = True,
-                         xpos = g.xpos + g.width + grid_h_space,
+                         xpos = g.xpos + g.width + color_bar_offset,
                          ybottom = g.ypos,
                          ytop = g.ypos + g.height,
                          title = r"number conc. $(\rm cm^{-3})$",

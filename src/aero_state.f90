@@ -1002,6 +1002,43 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Set each aerosol particle to have its original total volume, but
+  !> species volume ratios given by the total species volume ratio
+  !> within each bin. This preserves the total species volume per bin
+  !> as well as per-particle total volumes.
+  subroutine aero_state_bin_average(aero_state, bin_grid, aero_data)
+
+    !> Aerosol state to average.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin grid to average within.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real(kind=dp) :: species_volumes(aero_data%n_spec)
+    real(kind=dp) :: total_volume, particle_volume
+    integer :: i_bin, i_part
+    type(aero_particle_t), pointer :: aero_particle
+
+    do i_bin = 1,bin_grid%n_bin
+       species_volumes = 0d0
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          aero_particle => aero_state%bin(i_bin)%particle(i_part)
+          species_volumes = species_volumes + aero_particle%vol
+       end do
+       total_volume = sum(species_volumes)
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          aero_particle => aero_state%bin(i_bin)%particle(i_part)
+          particle_volume = sum(aero_particle%vol)
+          aero_particle%vol = particle_volume &
+               * (species_volumes / total_volume)
+       end do
+    end do
+
+  end subroutine aero_state_bin_average
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_state(val)
 

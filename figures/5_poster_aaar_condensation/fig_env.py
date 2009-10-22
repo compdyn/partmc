@@ -25,19 +25,20 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     max_time_min = max([time for [time, env_state] in env_state_history]) / 60
 
     g = graph.graphxy(
-        width = 10,
-        height = 4,
+        width = graph_width,
         x = graph.axis.linear(min = 0,
                               max = max_time_min - min_time_min,
                               title = "time (min)",
                               painter = grid_painter),
         y = graph.axis.linear(min = 285,
-                              max = 291,
+                              max = 290,
                               title = "temperature (K)",
                               painter = grid_painter),
-        y2 = graph.axis.linear(min = 95,
-                               max = 101,
-                               title = "relative humidity ($\%$)"))
+        y2 = graph.axis.linear(min = 0,
+                               max = 0.2,
+                               title = "supersaturation ($\%$)",
+                               parter = graph.axis.parter.linear(tickdists
+                                                                = [0.04, 0.02])))
 
     g.doaxes()
 
@@ -45,7 +46,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     rh_plot_data = []
     for [time, env_state] in env_state_history:
         temp_plot_data.append([time / 60 - min_time_min, env_state.temperature])
-        rh_plot_data.append([time / 60 - min_time_min, env_state.relative_humidity * 100])
+        rh_plot_data.append([time / 60 - min_time_min, (env_state.relative_humidity - 1) * 100])
 
     use_line_style_list = color_list
     g.plot(graph.data.points(temp_plot_data, x = 1, y = 2),
@@ -55,14 +56,14 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
            styles = [graph.style.line(lineattrs = [use_line_style_list[1],
                                                    style.linewidth.Thick])])
 
-    #label_plot_line_boxed(g, temp_plot_data, 9.7 * 60.0, "temperature", [0, 1])
-    #label_plot_line_boxed(g, rh_plot_data, 4 * 60.0, "relative humidity", [0, 1],
-    #                yaxis = g.axes["y2"])
+    label_plot_line_boxed(g, temp_plot_data, 4.5, "temperature", [0, 1])
+    label_plot_line_boxed(g, rh_plot_data, 5.5, "supersaturation", [1, 0],
+                          yaxis = g.axes["y2"])
 
-    print "init RH = %g%%" % rh_plot_data[0][1]
-    print "max RH = %.10g%%" % max([v for [t,v] in rh_plot_data])
+    print "init supersat = %g%%" % rh_plot_data[0][1]
+    print "max supersat = %.10g%%" % max([v for [t,v] in rh_plot_data])
 
-    write_time(g, env_state_history[0][1])
+    #write_time(g, env_state_history[0][1])
 
     g.writePDFfile(out_filename)
     print "figure height = %.1f cm" % unit.tocm(g.bbox().height())

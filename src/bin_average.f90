@@ -10,6 +10,11 @@
 program bin_average
 
   use pmc_aero_state
+  use pmc_gas_data
+  use pmc_gas_state
+  use pmc_env_state
+  use pmc_aero_data
+  use pmc_output
   use netcdf
 
   character(len=1000) :: in_filename, out_prefix
@@ -21,7 +26,7 @@ program bin_average
   type(env_state_t) :: env_state
   integer :: n_bin, index, i_loop
   real(kind=dp) :: r_min, r_max, time, del_t
-  character(len=1000) :: output_type
+  character(len=1000) :: output_type, tmp_str
   logical :: record_removals
 
   ! process commandline arguments
@@ -39,7 +44,7 @@ program bin_average
   call get_command_argument(4, in_filename)
   call get_command_argument(5, out_prefix)
 
-  call bin_grid_allocate(env_state)
+  call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
   call gas_data_allocate(gas_data)
@@ -52,7 +57,7 @@ program bin_average
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
-  call aero_state_bin_average(aero_state, bin_grid)
+  call aero_state_bin_average(aero_state, bin_grid, aero_data)
 
   output_type = "central"
   record_removals = .false.
@@ -60,7 +65,7 @@ program bin_average
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop, record_removals)
 
-  call bin_grid_deallocate(env_state)
+  call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
   call gas_data_deallocate(gas_data)

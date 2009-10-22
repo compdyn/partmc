@@ -49,7 +49,7 @@ def get_plot_data(filename):
 
 for use_color in [True, False]:
     g = graph.graphxy(
-        width = 7.48,
+        width = graph_width,
         x = graph.axis.log(min = 0.01,
                            max = 10,
                            title = r"critical supersaturation $S_{\rm c}$ (\%)",

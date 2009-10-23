@@ -1031,20 +1031,23 @@ contains
        end do
        total_volume = 0d0
        do i_spec = 1,aero_data%n_spec
-          if (dry_volume .and. i_spec == aero_data%i_water) continue
-          total_volume = total_volume + species_volumes(i_spec)
+          if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+             total_volume = total_volume + species_volumes(i_spec)
+          end if
        end do
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
           particle_volume = 0d0
           do i_spec = 1,aero_data%n_spec
-             if (dry_volume .and. i_spec == aero_data%i_water) continue
-             particle_volume = particle_volume + species_volumes(i_spec)
+             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                particle_volume = particle_volume + species_volumes(i_spec)
+             end if
           end do
           do i_spec = 1,aero_data%n_spec
-             if (dry_volume .and. i_spec == aero_data%i_water) continue
-             aero_particle%vol(i_spec) = particle_volume &
-                  * species_volumes(i_spec) / total_volume
+             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                aero_particle%vol(i_spec) = particle_volume &
+                     * species_volumes(i_spec) / total_volume
+             end if
           end do
        end do
     end do
@@ -1078,22 +1081,25 @@ contains
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
           do i_spec = 1,aero_data%n_spec
-             if (dry_volume .and. i_spec == aero_data%i_water) continue
-             total_volume = total_volume + aero_particle%vol(i_spec)
+             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                total_volume = total_volume + aero_particle%vol(i_spec)
+             end if
           end do
        end do
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
           particle_volume = 0d0
           do i_spec = 1,aero_data%n_spec
-             if (dry_volume .and. i_spec == aero_data%i_water) continue
-             particle_volume = particle_volume + aero_particle%vol(i_spec)
+             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                particle_volume = particle_volume + aero_particle%vol(i_spec)
+             end if
           end do
           do i_spec = 1,aero_data%n_spec
-             if (dry_volume .and. i_spec == aero_data%i_water) continue
-             aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                  / particle_volume &
-                  * total_volume / real(aero_state%n_part, kind=dp)
+             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
+                     / particle_volume &
+                     * total_volume / real(aero_state%n_part, kind=dp)
+             end if
           end do
        end do
     end do

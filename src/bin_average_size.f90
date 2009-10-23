@@ -30,7 +30,7 @@ program bin_average_size
   logical :: record_removals, dry_volume
 
   ! process commandline arguments
-  if (command_argument_count() .ne. 5) then
+  if (command_argument_count() .ne. 6) then
      write(6,*) 'Usage: bin_average_size <r_min> <r_max> <n_bin> ' &
           // '<"wet" or "dry"> <input_filename> <output_prefix>'
      stop 2

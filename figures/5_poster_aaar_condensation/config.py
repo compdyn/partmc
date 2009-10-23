@@ -21,7 +21,7 @@ from pmc_pyx import *
 #\renewcommand{\familydefault}{\sfdefault}
 #\renewcommand{\normalsize}{\fontsize{9}{11}\selectfont}""")
 
-netcdf_dir = os.path.join("../../new_cond/out_10k_avg")
+netcdf_dir = os.path.join("../../new_cond/out")
 netcdf_indexed_patterns = [
     [1, r"^cond_1_0001_([0-9]{8})\.nc$"],
     [2, r"^cond_2_0001_([0-9]{8})\.nc$"],

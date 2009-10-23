@@ -161,5 +161,25 @@ $\dot{H}_{\rm env}$     & relative humidity change due to environment &  &  \\
 \hline 
 \end{tabular}
 
+\newpage
+
+\begin{align*}
+  m_i^a &= \text{mass of species $a = 1,\ldots,A$ in particle $i = 1,\ldots,N$} \\
+  m^a &= \sum_i v_i^a = \text{total mass of species $a$} \\
+  m_i &= \sum_a v_i^a = \text{total mass of particle $i$} \\
+  m &= \sum_i \sum_a m_i^a = \sum_i m_i = \sum_a m^a = \text{total mass} \\
+  \intertext{average composition:}
+  \bar{m}_i^a &= \frac{m^a m_i}{m} \\
+  \bar{m}^a &= \sum_i \bar{m}_i^a = \sum_i \frac{m^a m_i}{m} = m^a \\
+  \bar{m}_i &= \sum_a \bar{m}_i^a = \sum_a \frac{m^a m_i}{m} = m_i \\
+  \bar{m} &= \sum_i \sum_a \bar{m}_i^a = m \\
+  \frac{\bar{m}_i^a}{\bar{m}_i} &= \frac{m^a m_i}{m} \frac{1}{m_i} = \frac{m^a}{m} \\
+  \intertext{average size:}
+  \hat{m}_i^a &= \frac{m_i^a}{m_i} \frac{m}{N} \\
+  \hat{m}_i &= \sum_a \frac{m_i^a}{m_i} \frac{m}{N} = \frac{m}{N} \\
+  \hat{m}^a &= \sum_i \frac{m_i^a}{m_i} \frac{m}{N} \ne m^a \\
+  \hat{m} &= \sum_i \sum_a \hat{m}_i^a = m \\
+  \frac{\hat{m}_i^a}{\hat{m}_i} &= \frac{\frac{m_i^a}{m_i} \frac{m}{N}}{\frac{m}{N}} = \frac{m_i^a}{m_i}
+\end{align*}
 
 \end{document}

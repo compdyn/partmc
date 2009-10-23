@@ -3,11 +3,11 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The bin_average program.
+!> The bin_average_comp program.
 
-!> Read a NetCDF file, average all particles within each bin, and
-!> write the data out as another NetCDF file.
-program bin_average
+!> Read a NetCDF file, average the composition of all particles within
+!> each bin, and write the data out as another NetCDF file.
+program bin_average_comp
 
   use pmc_aero_state
   use pmc_gas_data
@@ -31,7 +31,7 @@ program bin_average
 
   ! process commandline arguments
   if (command_argument_count() .ne. 5) then
-     write(6,*) 'Usage: bin_average <r_min> <r_max> <n_bin> ' &
+     write(6,*) 'Usage: bin_average_comp <r_min> <r_max> <n_bin> ' &
           // '<input_filename> <output_prefix>'
      stop 2
   endif
@@ -57,7 +57,7 @@ program bin_average
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
-  call aero_state_bin_average(aero_state, bin_grid, aero_data)
+  call aero_state_bin_average_comp(aero_state, bin_grid, aero_data)
 
   output_type = "central"
   record_removals = .false.
@@ -72,4 +72,4 @@ program bin_average
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
 
-end program bin_average
+end program bin_average_comp

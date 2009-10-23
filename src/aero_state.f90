@@ -1096,9 +1096,11 @@ contains
           end do
           do i_spec = 1,aero_data%n_spec
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
+                !aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
+                !     / particle_volume * total_volume &
+                !     / real(aero_state%bin(i_bin)%n_part, kind=dp)
                 aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                     / particle_volume &
-                     * total_volume / real(aero_state%n_part, kind=dp)
+                     / particle_volume * bin_grid%v(i_bin)
              end if
           end do
        end do

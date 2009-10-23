@@ -27,12 +27,12 @@ program bin_average_size
   integer :: n_bin, index, i_loop
   real(kind=dp) :: r_min, r_max, time, del_t
   character(len=1000) :: output_type, tmp_str
-  logical :: record_removals
+  logical :: record_removals, dry_volume
 
   ! process commandline arguments
   if (command_argument_count() .ne. 5) then
      write(6,*) 'Usage: bin_average_size <r_min> <r_max> <n_bin> ' &
-          // '<input_filename> <output_prefix>'
+          // '<"wet" or "dry"> <input_filename> <output_prefix>'
      stop 2
   endif
   call get_command_argument(1, tmp_str)
@@ -41,8 +41,18 @@ program bin_average_size
   r_max = string_to_real(tmp_str)
   call get_command_argument(3, tmp_str)
   n_bin = string_to_integer(tmp_str)
-  call get_command_argument(4, in_filename)
-  call get_command_argument(5, out_prefix)
+  call get_command_argument(4, tmp_str)
+  if (trim(tmp_str) == "wet") then
+     dry_volume = .false.
+  elseif (trim(tmp_str) == "dry") then
+     dry_volume = .true.
+  else
+     write(6,*) 'Argument 4 must be "wet" or "dry", not ' &
+          // trim(tmp_str)
+     stop 1
+  end if
+  call get_command_argument(5, in_filename)
+  call get_command_argument(6, out_prefix)
 
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
@@ -57,7 +67,7 @@ program bin_average_size
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
-  call aero_state_bin_average_size(aero_state, bin_grid, aero_data)
+  call aero_state_bin_average_size(aero_state, bin_grid, aero_data, dry_volume)
 
   output_type = "central"
   record_removals = .false.

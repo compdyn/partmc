@@ -1006,7 +1006,8 @@ contains
   !> species volume ratios given by the total species volume ratio
   !> within each bin. This preserves the total species volume per bin
   !> as well as per-particle total volumes.
-  subroutine aero_state_bin_average_comp(aero_state, bin_grid, aero_data)
+  subroutine aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
+       dry_volume)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1014,10 +1015,12 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to use dry volume (rather than wet).
+    logical, intent(in) :: dry_volume
 
     real(kind=dp) :: species_volumes(aero_data%n_spec)
     real(kind=dp) :: total_volume, particle_volume
-    integer :: i_bin, i_part
+    integer :: i_bin, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
     do i_bin = 1,bin_grid%n_bin
@@ -1026,12 +1029,23 @@ contains
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
           species_volumes = species_volumes + aero_particle%vol
        end do
-       total_volume = sum(species_volumes)
+       total_volume = 0d0
+       do i_spec = 1,aero_data%n_spec
+          if (dry_volume .and. i_spec == aero_data%i_water) continue
+          total_volume = total_volume + species_volumes(i_spec)
+       end do
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          particle_volume = sum(aero_particle%vol)
-          aero_particle%vol = particle_volume &
-               * (species_volumes / total_volume)
+          particle_volume = 0d0
+          do i_spec = 1,aero_data%n_spec
+             if (dry_volume .and. i_spec == aero_data%i_water) continue
+             particle_volume = particle_volume + species_volumes(i_spec)
+          end do
+          do i_spec = 1,aero_data%n_spec
+             if (dry_volume .and. i_spec == aero_data%i_water) continue
+             aero_particle%vol(i_spec) = particle_volume &
+                  * species_volumes(i_spec) / total_volume
+          end do
        end do
     end do
 
@@ -1043,7 +1057,8 @@ contains
   !> but total volume given by the average volume of all particles
   !> within each bin. This does not preserve the total species volume
   !> per bin.
-  subroutine aero_state_bin_average_size(aero_state, bin_grid, aero_data)
+  subroutine aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
+       dry_volume)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1051,22 +1066,35 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to use dry volume (rather than wet).
+    logical, intent(in) :: dry_volume
 
-    real(kind=dp) :: total_volume
-    integer :: i_bin, i_part
+    real(kind=dp) :: total_volume, particle_volume
+    integer :: i_bin, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
     do i_bin = 1,bin_grid%n_bin
        total_volume = 0d0
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          total_volume = total_volume + sum(aero_particle%vol)
+          do i_spec = 1,aero_data%n_spec
+             if (dry_volume .and. i_spec == aero_data%i_water) continue
+             total_volume = total_volume + aero_particle%vol(i_spec)
+          end do
        end do
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          aero_particle%vol = aero_particle%vol &
-               / sum(aero_particle%vol) &
-               * total_volume / real(aero_state%n_part, kind=dp)
+          particle_volume = 0d0
+          do i_spec = 1,aero_data%n_spec
+             if (dry_volume .and. i_spec == aero_data%i_water) continue
+             particle_volume = particle_volume + aero_particle%vol(i_spec)
+          end do
+          do i_spec = 1,aero_data%n_spec
+             if (dry_volume .and. i_spec == aero_data%i_water) continue
+             aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
+                  / particle_volume &
+                  * total_volume / real(aero_state%n_part, kind=dp)
+          end do
        end do
     end do
 

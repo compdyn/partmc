@@ -39,7 +39,7 @@ module pmc_aero_data
   type aero_data_t
      !> Number of species.
      integer :: n_spec
-     !> Water species number.
+     !> Water species number (0 if water is not a species).
      integer :: i_water
      !> Len n_spec, species.
      character(len=AERO_NAME_LEN), pointer :: name(:)

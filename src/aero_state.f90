@@ -1040,7 +1040,7 @@ contains
           particle_volume = 0d0
           do i_spec = 1,aero_data%n_spec
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                particle_volume = particle_volume + species_volumes(i_spec)
+                particle_volume = particle_volume + aero_particle%vol(i_spec)
              end if
           end do
           do i_spec = 1,aero_data%n_spec
@@ -1094,6 +1094,9 @@ contains
                 particle_volume = particle_volume + aero_particle%vol(i_spec)
              end if
           end do
+          !>DEBUG
+          write(*,*) i_bin, i_part, vol2diam(particle_volume)
+          !<DEBUG
           do i_spec = 1,aero_data%n_spec
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
                 !aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
@@ -1107,6 +1110,31 @@ contains
     end do
 
   end subroutine aero_state_bin_average_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Make all particles dry (water set to zero).
+  subroutine aero_state_make_dry(aero_state, bin_grid, aero_data)
+
+    !> Aerosol state to make dry.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: i_bin, i_part
+
+    if (aero_data%i_water > 0) then
+       do i_bin = 1,bin_grid%n_bin
+          do i_part = 1,aero_state%bin(i_bin)%n_part
+             aero_state%bin(i_bin)%particle(i_part)%vol(aero_data%i_water) = 0d0
+          end do
+       end do
+       call aero_state_resort(bin_grid, aero_state)
+    end if
+
+   end subroutine aero_state_make_dry
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -67,6 +67,10 @@ program bin_average_comp
        aero_state, gas_data, gas_state, env_state, index, time, &
        del_t, i_loop)
 
+  if (dry_volume) then
+     call aero_state_make_dry(aero_state, bin_grid, aero_data)
+  end if
+
   call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, dry_volume)
 
   output_type = "central"

@@ -23,19 +23,19 @@ particle_data = [
     ]
 
 size_avg_data = [
-    [1,  0.1525054598,  47.6125],
-    [7,  0.08602255906, 37.1262],
-    [15, 0.04186271645, 58.8006],
-    [24, 0.05368977188, 62.2821],
+    [1,  0.1714984925,  40.7481],
+    [7,  0.08763639475, 36.49  ],
+    [15, 0.06879674967, 37.5584],
+    [24, 0.09493217247, 57.6948],
     ]
 
 comp_avg_data = [
-    [1,  ],
-    [7,  ],
-    [15, ],
-    [24, ],
+    [1,  0.1422643991,  50.6337],
+    [7,  0.07910420296, 45.3604],
+    [15, 0.06421621256, 51.6355],
+    [24, 0.08472553843, 65.4554],
     ]
-     
+
 g_max_ss = graph.graphxy(
     width = graph_width,
     x = graph.axis.linear(min = 0,
@@ -47,7 +47,13 @@ g_max_ss = graph.graphxy(
     y = graph.axis.linear(min = 0,
                           max = 0.2,
                           title = "maximum supersaturation ($\%$)",
-                          painter = grid_painter))
+                          painter = grid_painter),
+    key = graph.key.key(pos = "tr",
+                        keyattrs = [deco.stroked,
+                                    deco.filled([color.rgb.white])],
+                        #hdist = 0.3 * unit.v_cm,
+                        #vdist = 0.2 * unit.v_cm,
+                        ))
 
 g_active = graph.graphxy(
     width = graph_width,
@@ -60,21 +66,27 @@ g_active = graph.graphxy(
     y = graph.axis.linear(min = 0,
                           max = 100,
                           title = "activated fraction ($\%$)",
-                          painter = grid_painter))
+                          painter = grid_painter),
+    key = graph.key.key(pos = "tl",
+                        keyattrs = [deco.stroked,
+                                    deco.filled([color.rgb.white])],
+                        #hdist = 0.3 * unit.v_cm,
+                        #vdist = 0.2 * unit.v_cm,
+                        ))
 
 g_max_ss.doaxes()
 g_active.doaxes()
 
-for (i_data, (data, name)) in enumerate(zip([particle_data, size_avg_data],
-                                            ["particle", "size-avg"])):
+for (i_data, (data, name)) in enumerate(zip([particle_data, size_avg_data, comp_avg_data],
+                                            ["particle", "size-avg", "comp-avg"])):
     max_ss_data = [[d[0], d[1]] for d in data]
     active_data = [[d[0], d[2]] for d in data]
-    g_max_ss.plot(graph.data.points(max_ss_data, x = 1, y = 2),
+    g_max_ss.plot(graph.data.points(max_ss_data, x = 1, y = 2, title = name),
                   styles = [graph.style.line(lineattrs = [color_list[i_data]])])
-    g_active.plot(graph.data.points(active_data, x = 1, y = 2),
+    g_active.plot(graph.data.points(active_data, x = 1, y = 2, title = name),
                   styles = [graph.style.line(lineattrs = [color_list[i_data]])])
-    label_plot_line_boxed(g_max_ss, max_ss_data, 15, name, [1, 1])
-    label_plot_line_boxed(g_active, active_data, 15, name, [1, 1])
+    #label_plot_line_boxed(g_max_ss, max_ss_data, 15, name, [1, 1])
+    #label_plot_line_boxed(g_active, active_data, 15, name, [1, 1])
 
 g_max_ss.writePDFfile(out_filename_max_ss)
 g_active.writePDFfile(out_filename_active)

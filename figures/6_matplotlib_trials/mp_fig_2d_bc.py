@@ -7,6 +7,7 @@ import os, sys, math
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
+import matplotlib.path as mpath
 import numpy as np
 sys.path.append("../../tool")
 from pmc_data_nc import *
@@ -17,7 +18,8 @@ matplotlib.rc('xtick.major', pad = 8)
 matplotlib.rc('ytick.major', pad = 8)
 matplotlib.rc('xtick', labelsize = 10)
 matplotlib.rc('legend', fontsize = 10, borderpad = 0.7, borderaxespad = 1)
-matplotlib.rc('font', size = 10, family = "serif", serif = ["Computer Modern Roman"])
+matplotlib.rc('font', size = 10, family = "serif",
+              serif = ["Computer Modern Roman"])
 matplotlib.rc('lines', linewidth = 0.5)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
@@ -25,6 +27,45 @@ matplotlib.rc('axes', linewidth = 0.5)
 const = load_constants("../../src/constants.f90")
 
 out_prefix = "figs/mp_2d_bc"
+
+
+
+
+
+
+def new_set_verts(self, verts, closed=True):
+    '''This allows one to delay initialization of the vertices.'''
+    if np.ma.isMaskedArray(verts):
+        verts = verts.astype(np.float_).filled(np.nan)
+        # This is much faster than having Path do it one at a time.
+    if closed:
+        self._paths = []
+        for xy in verts:
+            if len(xy):
+                if np.ma.isMaskedArray(xy):
+                    xy = np.ma.concatenate([xy, np.zeros((1,2))])
+                else:
+                    xy = np.asarray(xy)
+                    xy = np.concatenate([xy, np.zeros((1,2))])
+                codes = np.empty(size(xy, 0), dtype='uint8')
+                codes[:] = mpath.Path.LINETO
+                codes[0] = mpath.Path.MOVETO
+                codes[-1] = mpath.Path.CLOSEPOLY
+                self._paths.append(mpath.Path(xy, codes))
+            else:
+                self._paths.append(mpath.Path(xy))
+    else:
+        self._paths = [mpath.Path(xy) for xy in verts]
+
+#set_paths = set_verts
+
+matplotlib.collections.PolyCollection.set_verts = new_set_verts
+matplotlib.collections.PolyCollection.set_paths = new_set_verts
+
+
+
+
+
 
 def get_plot_data_bc(filename, value_min = None, value_max = None):
     ncf = NetCDFFile(filename)
@@ -133,13 +174,48 @@ def make_2d_plot(in_filename, out_filename):
     axes.set_ylabel(r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$")
 
     (value, x_edges, y_edges, env_state, value_min, value_max) = get_plot_data_bc(in_filename)
+
+    verts = zeros((4,2))
+    verts[0,0] = 0.1
+    verts[0,1] = 40
+    verts[1,0] = 0.1
+    verts[1,1] = 60
+    verts[2,0] = 0.2
+    verts[2,1] = 60
+    verts[3,0] = 0.2
+    verts[3,1] = 40
+    #verts[4,0] = 0.1
+    #verts[4,1] = 40
+    c = matplotlib.collections.PolyCollection([verts],
+                                              linewidths = 10, edgecolors = (1,0,0,0))
+    axes.add_collection(c)
+
+    #r = matplotlib.patches.Rectangle((0.02,20), 0.02, 20, linestyle = 'solid',
+    #                                 color = (0,1,0,0), facecolor = (0,0,1,0),
+    #                                 linewidth = 10, edgecolor = (1,0,0,0))
+    #axes.add_patch(r)
+
+    vertices = []
+    codes = []
     
-    p = axes.pcolor(x_edges, y_edges, value.transpose(), norm = matplotlib.colors.LogNorm(),
-                    cmap=matplotlib.cm.jet)
-    #cbar_axes = figure.add_axes([0.7, 0.2, 0.05, 0.6])
-    figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
-    cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")
-    cbar_yaxis = cbar_axes.get_yaxis()
+    codes = [matplotlib.path.Path.MOVETO] + [matplotlib.path.Path.LINETO]*3 + [matplotlib.path.Path.CLOSEPOLY]
+    vertices = [(0.02,20), (0.02,40), (0.04, 40), (0.04, 20), (0,0)]
+    
+    vertices = np.array(vertices, float)
+    path = matplotlib.path.Path(vertices, codes)
+    
+    pathpatch = matplotlib.patches.PathPatch(path, facecolor='red', edgecolor='blue', linewidth=10)
+    axes.add_patch(pathpatch)
+
+    
+    axes.set_xbound(diameter_axis_min, diameter_axis_max)
+    axes.set_ybound(bc_axis_min, bc_axis_max)
+    
+    #p = axes.pcolor(x_edges, y_edges, value.transpose(), norm = matplotlib.colors.LogNorm(),
+    #                cmap=matplotlib.cm.jet, linewidths = 1, edgecolors = (1,0,0,0))
+    #figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
+    #cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")
+    #cbar_yaxis = cbar_axes.get_yaxis()
 
     figure.savefig(out_filename)
 

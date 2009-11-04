@@ -86,4 +86,18 @@ program bin_average_comp
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
 
+contains
+
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT_COUNT
+  integer function command_argument_count()
+    command_argument_count = iargc()
+  end function command_argument_count
+#endif
+#ifdef DEFINE_LOCAL_GET_COMMAND_ARGUMENT
+  subroutine get_command_argument(i, arg)
+    call getarg(i, arg)
+  end subroutine get_command_argument
+#endif
+
+
 end program bin_average_comp

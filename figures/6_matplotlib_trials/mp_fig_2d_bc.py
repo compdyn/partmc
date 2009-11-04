@@ -114,6 +114,7 @@ def make_2d_plot(in_filename, out_filename):
     axes.grid(True)
     axes.grid(True, which = 'minor')
     axes.minorticks_on()
+    axes.set_xscale('log')
 
     #axes.set_xticks([0, 6, 12, 18, 24])
     #axes.set_xticks([3, 9, 15, 21], minor = True)
@@ -126,10 +127,9 @@ def make_2d_plot(in_filename, out_filename):
     yaxis = axes.get_yaxis()
     xaxis.labelpad = 8
     yaxis.labelpad = 8
-    xaxis.set_major_formatter(matplotlib.ticker.LogFormatter())
+    #xaxis.set_major_formatter(matplotlib.ticker.LogFormatter())
     yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
     yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
-    axes.set_xscale('log')
 
     axes.set_xlabel(r"dry diameter $D\ (\rm\mu m)$")
     axes.set_ylabel(r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$")

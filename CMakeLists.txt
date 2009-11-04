@@ -139,13 +139,7 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   #endif(NOT ENABLE_MPI)
 elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
-  add_definitions(-DDEFINE_LOCAL_COMMAND_ARGUMENT_COUNT)
-  add_definitions(-DDEFINE_LOCAL_GET_COMMAND_ARGUMENT)
-  # We could write a CheckFortranIntrinsicExists cmake module to test
-  # for the above functions, modeled on the built-in
-  # CheckFortranFunctionExists module, if we can figure out a way to
-  # actually test for a generic intrinsic. Alternatively, we could
-  # write a module to just check for these specific intrinsics.
+  add_definitions(-DDEFINE_LOCAL_COMMAND_ARGUMENT)
 endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 ######################################################################

@@ -983,7 +983,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT_COUNT
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   !> Hack for compilers that don't support the Fortran2003 standard
   !> command_argument_count() function.
   integer function command_argument_count()
@@ -995,7 +995,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef DEFINE_LOCAL_GET_COMMAND_ARGUMENT
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   !> Hack for compilers that don't support the Fortran2003 standard
   !> get_command_argument() subroutine.
   subroutine get_command_argument(i, arg)

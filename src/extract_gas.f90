@@ -132,12 +132,10 @@ contains
 
   end subroutine nc_check
 
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT_COUNT
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   integer function command_argument_count()
     command_argument_count = iargc()
   end function command_argument_count
-#endif
-#ifdef DEFINE_LOCAL_GET_COMMAND_ARGUMENT
   subroutine get_command_argument(i, arg)
     integer, intent(in) :: i
     character(len=*), intent(out) :: arg

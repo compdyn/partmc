@@ -85,5 +85,20 @@ program bin_average_size
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
-
+  
+contains
+  
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT_COUNT
+  integer function command_argument_count()
+    command_argument_count = iargc()
+  end function command_argument_count
+#endif
+#ifdef DEFINE_LOCAL_GET_COMMAND_ARGUMENT
+  subroutine get_command_argument(i, arg)
+    integer, intent(in) :: i
+    character(len=*), intent(out) :: arg
+    call getarg(i, arg)
+  end subroutine get_command_argument
+#endif
+  
 end program bin_average_size

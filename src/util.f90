@@ -137,18 +137,23 @@ contains
     integer i
     logical found_unit
 
+    write(*,*) '*************************************************'
     found_unit = .false.
     do i = 1,max_units
+       write(*,*) 'i,unit_used(i),max_units ', i, unit_used(i), max_units
        if (.not. unit_used(i)) then
           found_unit = .true.
           exit
        end if
     end do
+    write(*,*) 'i,found_unit ', i, found_unit
     if (.not. found_unit) then
        call die_msg(690355443, &
             'no more units available - need to free_unit()')
     end if
     unit_used(i) = .true.
+    write(*,*) 'unit_used(i) ', unit_used(i)
+    write(*,*) 'i + unit_offset ', (i + unit_offset)
     get_unit = i + unit_offset
 
   end function get_unit
@@ -160,6 +165,8 @@ contains
 
     integer, intent(in) :: unit
 
+    write(*,*) 'unit ', unit
+    write(*,*) 'unit_offset ', unit_offset
     unit_used(unit - unit_offset) = .false.
 
   end subroutine free_unit
@@ -976,4 +983,30 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT_COUNT
+  !> Hack for compilers that don't support the Fortran2003 standard
+  !> command_argument_count() function.
+  integer function command_argument_count()
+
+    command_argument_count = iargc()
+
+  end function command_argument_count
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef DEFINE_LOCAL_GET_COMMAND_ARGUMENT
+  !> Hack for compilers that don't support the Fortran2003 standard
+  !> get_command_argument() subroutine.
+  subroutine get_command_argument(i, arg)
+    integer, intent(in) :: i
+    character(len=*), intent(out) :: arg
+
+    call getarg(i, arg)
+
+  end subroutine get_command_argument
+#endif
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_util

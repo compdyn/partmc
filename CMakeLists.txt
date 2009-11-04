@@ -24,6 +24,7 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   /sw/include
   /sw/lib/netcdf-gfortran/include
   /sw/lib/netcdf-g95/include
+  /usr/include/netcdf
   $ENV{HOME}/include
   $ENV{HOME}/opt/include
   PATH_SUFFIXES netcdf-3)
@@ -120,8 +121,8 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 # a while until everyone updates.
 # [3] http://www.cmake.org/Bug/view.php?id=8598
 
-set(STD_COMPILER_FLAGS)
-set(LEGACY_COMPILER_FLAGS)
+set(STD_COMPILER_FLAGS "-DTESTING")
+set(LEGACY_COMPILER_FLAGS "-DTESTING")
 
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)

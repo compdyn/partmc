@@ -35,10 +35,10 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
                               title = "temperature (K)",
                               painter = grid_painter),
         y2 = graph.axis.linear(min = 0,
-                               max = 0.2,
+                               max = 0.30,
                                title = "supersaturation ($\%$)",
                                parter = graph.axis.parter.linear(tickdists
-                                                                = [0.04, 0.02])))
+                                                                = [0.06, 0.03])))
 
     g.doaxes()
 

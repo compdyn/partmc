@@ -67,7 +67,6 @@ contains
     character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     file%name = trim(filename)
-    write(*,*) 'opening: ', trim(file%name)
     file%unit = get_unit()
     open(unit=file%unit, status='old', file=file%name, iostat=ios)
     if (ios /= 0) then
@@ -87,7 +86,6 @@ contains
     !> Spec file.
     type(spec_file_t), intent(in) :: file
 
-    write(*,*) 'closing: ', trim(file%name)
     close(file%unit)
     call free_unit(file%unit)
 

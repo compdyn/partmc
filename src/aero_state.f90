@@ -1094,9 +1094,6 @@ contains
                 particle_volume = particle_volume + aero_particle%vol(i_spec)
              end if
           end do
-          !>DEBUG
-          write(*,*) i_bin, i_part, vol2diam(particle_volume)
-          !<DEBUG
           do i_spec = 1,aero_data%n_spec
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
                 !aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &

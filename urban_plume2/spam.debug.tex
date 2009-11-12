@@ -1,0 +1,55 @@
+% PyX 0.10 texdebug file
+% mode: latex
+% date: Tue Aug 26 10:37:49 2008
+\scrollmode
+\raiseerror%
+\def\PyX{P\kern-.3em\lower.5ex\hbox{Y}\kern-.18em X}%
+\gdef\PyXBoxHAlign{0}%
+\newbox\PyXBox%
+\newbox\PyXBoxHAligned%
+\newdimen\PyXDimenHAlignLT%
+\newdimen\PyXDimenHAlignRT%
+\gdef\PyXFlushHAlign{0}%
+\def\PyXragged{%
+\leftskip=0pt plus \PyXFlushHAlign fil%
+\rightskip=0pt plus 1fil%
+\advance\rightskip0pt plus -\PyXFlushHAlign fil%
+\parfillskip=0pt%
+\pretolerance=9999%
+\tolerance=9999%
+\parindent=0pt%
+\hyphenpenalty=9999%
+\exhyphenpenalty=9999}%
+\newbox\PyXBoxVBox%
+\newdimen\PyXDimenVBox%
+\newbox\PyXBoxVAlign%
+\newdimen\PyXDimenVAlign%
+\newdimen\PyXDimenVShift%
+\long\def\ProcessPyXBox#1#2{%
+\setbox\PyXBox=\hbox{{#1}}%
+\PyXDimenHAlignLT=\PyXBoxHAlign\wd\PyXBox%
+\PyXDimenHAlignRT=\wd\PyXBox%
+\advance\PyXDimenHAlignRT by -\PyXDimenHAlignLT%
+\gdef\PyXBoxHAlign{0}%
+\immediate\write16{PyXBox:page=#2,lt=\the\PyXDimenHAlignLT,rt=\the\PyXDimenHAlignRT,ht=\the\ht\PyXBox,dp=\the\dp\PyXBox:}%
+\setbox\PyXBoxHAligned=\hbox{\kern-\PyXDimenHAlignLT\box\PyXBox}%
+\ht\PyXBoxHAligned0pt%
+{\count0=80\count1=121\count2=88\count3=#2\shipout\box\PyXBoxHAligned}}%
+\def\PyXInput#1{\immediate\write16{PyXInputMarker:executeid=#1:}}%
+\def\PyXMarker#1{\hskip0pt\special{PyX:marker #1}}%%
+\PyXInput{1}%
+\makeatletter%
+\let\saveProcessOptions=\ProcessOptions%
+\def\ProcessOptions{%
+\def\Gin@driver{/usr/share/pyx/pyx.def}%
+\def\c@lor@namefile{dvipsnam.def}%
+\saveProcessOptions}%
+\makeatother%
+\PyXInput{2}%
+\documentclass{article}%
+\PyXInput{3}%
+\renewcommand{\sfdefault}{phv}
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\normalsize}{\fontsize{9}{9}\selectfont}
+\usepackage{sfmath}%
+\PyXInput{4}%

@@ -1,0 +1,17 @@
+# page 430 Seinfeld & Pandis: remote continental
+mode_name init_small
+frac_type mass                    # composition type ("volume", "mass", "mole")
+frac aero_init_comp.dat           # composition proportions of species
+num_den 1.8e9                     # particle number density (#/m^3)
+mode_type log_normal              # type of distribution
+mean_radius 1e-8                  # mean radius (m)
+log_std_dev 0.161                 # log_10 of geometric standard deviation
+
+# page 430 Seinfeld & Pandis: remote continental
+mode_name init_large
+frac_type mass                    # composition type ("volume", "mass", "mole")
+frac aero_init_comp.dat           # composition proportions of species
+num_den 1.5e9                     # particle number density (#/m^3)
+mode_type log_normal              # type of distribution
+mean_radius 5.8e-8                # mean radius (m)
+log_std_dev 0.217                 # log_10 of geometric standard deviation

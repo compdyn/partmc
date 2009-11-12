@@ -1,0 +1,195 @@
+GNUPLOT(1)                                                          GNUPLOT(1)
+
+
+
+NNAAMMEE
+       gnuplot - an interactive plotting program
+
+SSYYNNOOPPSSIISS
+       ggnnuupplloott [ X11 options ] [file ...]
+
+DDEESSCCRRIIPPTTIIOONN
+       _G_n_u_p_l_o_t is a command-driven interactive function plotting program.
+
+       If  files  are given, _g_n_u_p_l_o_t loads each file with the _l_o_a_d command, in
+       the order specified.  _G_n_u_p_l_o_t exits after the last file is processed.
+
+       Here are some of its features:
+
+       Plots any number of functions, built up of C operators, C library func-
+       tions,  and  some things C doesn’t have like **, sgn(), etc.  Also sup-
+       port for plotting data files, to compare  actual  data  to  theoretical
+       curves.
+
+       User-defined  X  and Y ranges (optional auto-ranging), smart axes scal-
+       ing, smart tic marks.
+
+       Labelling of X and Y axes.
+
+       User-defined constants and functions.
+
+       Support through a generalized graphics driver for AED 512, AED 767, BBN
+       BitGraph, Commodore Amiga, Roland DXY800A, EEPIC, TeXDraw, EmTeX, Epson
+       60dpi printers, Epson LX-800, Fig, HP2623,  HP2648,  HP75xx,  HPGL,  HP
+       LaserJet  II,  Imagen,  Iris  4D,  Linux,  MS-DOS Kermit, Kyocera laser
+       printer, LaTeX, NEC CP6 pinwriter, PostScript, QMS QUIC,  ReGis  (VT125
+       and  VT2xx),  SCO Xenix CGI, Selanar, Star color printer, Tandy DMP-130
+       printer, Tek 401x, Tek 410x, Vectrix 384, VT like  Tektronix  emulator,
+       Unix  PC (ATT 3b1 or ATT 7300), unixplot, and X11.  The PC version com-
+       piled by Microsoft C supports IBM CGA, EGA, VGA,  Hercules,  ATT  6300,
+       and  Corona  325 graphics.  The PC version compiled by Borland C++ sup-
+       ports IBM CGA, EGA, MCGA, VGA, Hercules and ATT 6300  graphics.   Other
+       devices can be added simply, but will require recompiling.
+
+       Shell escapes and command line substitution.
+
+       Load and save capability.
+
+       Output redirection.
+
+       All  computations  performed in the complex domain.  Just the real part
+       is plotted by default, but functions like imag() and  abs()  and  arg()
+       are available to override this.
+
+XX1111 OOPPTTIIOONNSS
+       _G_n_u_p_l_o_t  provides  the  _x_1_1  terminal type for use with X servers. This
+       terminal type is set automatically at startup if the  DDIISSPPLLAAYY  environ-
+       ment variable is set, if the TTEERRMM environment variable is set to xxtteerrmm,
+       or if the --ddiissppllaayy command line option is used.  For terminal type _x_1_1,
+       _g_n_u_p_l_o_t  accepts  the  standard X Toolkit options and resources such as
+       geometry, font, and background. See the X(1) man page for a description
+       of the options.  In addition to the X Toolkit options:
+
+       --cclleeaarr  requests  that  the  window be cleared momentarily before a new
+       plot is displayed.
+
+       --ggrraayy requests grayscale rendering  on  grayscale  or  color  displays.
+       (Grayscale displays receive monochrome rendering by default.)
+
+       --mmoonnoo forces monochrome rendering on color displays.
+
+       --ppeerrssiisstt lets plot windows survive after main gnuplot program exits.
+
+       --rraaiissee raises the plot window after each plot.
+
+       --nnoorraaiissee ddooeess nnoott rraaiissee tthhee pplloott wwiinnddooww aafftteerr eeaacchh pplloott..
+
+       --ttvvttwwmm requests that geometry specifications for position of the window
+       be made relative to the currently  displayed  portion  of  the  virtual
+       root.
+
+       These  options may also be controlled with resources in your ..XXddeeffaauullttss
+       file.  For example: ggnnuupplloott**ggrraayy:: oonn .
+
+       _G_n_u_p_l_o_t provides a command line option (--ppooiinnttssiizzee _v)  and  a  resource
+       (ggnnuupplloott**ppooiinnttssiizzee::  _v)  to control the size of points plotted with the
+       "points" plotting style. The value _v is a real number (greater  than  0
+       and  less  than  or  equal  to  ten) used as a scaling factor for point
+       sizes. For example, --ppooiinnttssiizzee 22 uses points twice  the  default  size,
+       and --ppooiinnttssiizzee 00..55 uses points half the normal size.
+
+       For  monochrome  displays,  _g_n_u_p_l_o_t  does not honor foreground or back-
+       ground colors. The default is black-on-white. --rrvv or  ggnnuupplloott**rreevveerrsseeVV--
+       iiddeeoo:: oonn requests white-on-black.
+
+       For  color  displays _g_n_u_p_l_o_t honors the following resources (shown here
+       with default values). The values may be color names in the X11  rgb.txt
+       file on your system, hexadecimal RGB color specifications (see X11 doc-
+       umentation), or a color name followed by a comma and an _i_n_t_e_n_s_i_t_y value
+       from 0 to 1. For example, bblluuee,,..55 means a half intensity blue.
+
+       ggnnuupplloott**bbaacckkggrroouunndd:: wwhhiittee
+       ggnnuupplloott**tteexxttCCoolloorr:: bbllaacckk
+       ggnnuupplloott**bboorrddeerrCCoolloorr:: bbllaacckk
+       ggnnuupplloott**aaxxiissCCoolloorr:: bbllaacckk
+       ggnnuupplloott**lliinnee11CCoolloorr:: rreedd
+       ggnnuupplloott**lliinnee22CCoolloorr:: ggrreeeenn
+       ggnnuupplloott**lliinnee33CCoolloorr:: bblluuee
+       ggnnuupplloott**lliinnee44CCoolloorr:: mmaaggeennttaa
+       ggnnuupplloott**lliinnee55CCoolloorr:: ccyyaann
+       ggnnuupplloott**lliinnee66CCoolloorr:: ssiieennnnaa
+       ggnnuupplloott**lliinnee77CCoolloorr:: oorraannggee
+       ggnnuupplloott**lliinnee88CCoolloorr:: ccoorraall
+
+       When  --ggrraayy  is  selected,  _g_n_u_p_l_o_t  honors the following resources for
+       grayscale or color displays (shown here with default values). Note that
+       the default background is black.
+
+       ggnnuupplloott**bbaacckkggrroouunndd:: bbllaacckk
+       ggnnuupplloott**tteexxttGGrraayy:: wwhhiittee
+       ggnnuupplloott**bboorrddeerrGGrraayy:: ggrraayy5500
+       ggnnuupplloott**aaxxiissGGrraayy:: ggrraayy5500
+       ggnnuupplloott**lliinnee11GGrraayy:: ggrraayy110000
+       ggnnuupplloott**lliinnee22GGrraayy:: ggrraayy6600
+       ggnnuupplloott**lliinnee33GGrraayy:: ggrraayy8800
+       ggnnuupplloott**lliinnee44GGrraayy:: ggrraayy4400
+       ggnnuupplloott**lliinnee55GGrraayy:: ggrraayy9900
+       ggnnuupplloott**lliinnee66GGrraayy:: ggrraayy5500
+       ggnnuupplloott**lliinnee77GGrraayy:: ggrraayy7700
+       ggnnuupplloott**lliinnee88GGrraayy:: ggrraayy3300
+
+       _G_n_u_p_l_o_t  honors the following resources for setting the width in pixels
+       of plot lines (shown here with default values.) 0 or 1 means a  minimal
+       width line of 1 pixel width. A value of 2 or 3 may improve the  appear-
+       ance of some plots.
+
+       ggnnuupplloott**bboorrddeerrWWiiddtthh:: 22
+       ggnnuupplloott**aaxxiissWWiiddtthh:: 00
+       ggnnuupplloott**lliinnee11WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee22WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee33WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee44WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee55WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee66WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee77WWiiddtthh:: 00
+       ggnnuupplloott**lliinnee88WWiiddtthh:: 00
+
+       _G_n_u_p_l_o_t honors the following resources for setting the dash style  used
+       for plotting lines.  0 means a solid line. A 2 digit number _j_k (_j and _k
+       are >= 1  and <= 9) means a dashed line with a repeated  pattern  of  _j
+       pixels  on  followed  by _k pixels off.  For example, ’16’ is a "dotted"
+       line with 1 pixel on followed by 6 pixels off.  More  elaborate  on/off
+       patterns can be specified with a 4 digit value.  For example, ’4441’ is
+       4 on, 4 off, 4 on, 1 off.  The  default  values  shown  below  are  for
+       monochrome  displays or monochrome rendering on color or grayscale dis-
+       plays. For color displays, the defaults for  all  are  0  (solid  line)
+       except for aaxxiissDDaasshheess which defaults to a ’16’ dotted line.
+
+       ggnnuupplloott**bboorrddeerrDDaasshheess:: 00
+       ggnnuupplloott**aaxxiissDDaasshheess:: 1166
+       ggnnuupplloott**lliinnee11DDaasshheess:: 00
+       ggnnuupplloott**lliinnee22DDaasshheess:: 4422
+       ggnnuupplloott**lliinnee33DDaasshheess:: 1133
+       ggnnuupplloott**lliinnee44DDaasshheess:: 4444
+       ggnnuupplloott**lliinnee55DDaasshheess:: 1155
+       ggnnuupplloott**lliinnee66DDaasshheess:: 44444411
+       ggnnuupplloott**lliinnee77DDaasshheess:: 4422
+       ggnnuupplloott**lliinnee88DDaasshheess:: 1133
+
+       The  size or aspect ratio of a plot may be changed by resizing the _g_n_u_-
+       _p_l_o_t window.
+
+AAUUTTHHOORRSS
+       Thomas Williams, Pixar Corporation,
+       (info-gnuplot@dartmouth.edu)
+       and Colin Kelley.
+
+       Additions for labelling by Russell Lang, Monash University,  Australia.
+       (rjl@monu1.cc.monash.edu.au)
+       Further  additions by David Kotz, Dartmouth College, New Hampshire, USA
+       (formerly of Duke University, North Carolina, USA).
+       (David.Kotz@Dartmouth.edu)
+
+BBUUGGSS
+       The atan() function does not work correctly for complex arguments.
+       The bessel functions do not work for complex arguments.
+       See the _h_e_l_p _b_u_g_s command in gnuplot.
+
+SSEEEE AALLSSOO
+       See the printed manual or the on-line help for details on specific com-
+       mands.
+       X(1).
+
+
+
+4th Berkeley Distribution       31 August 1990                      GNUPLOT(1)

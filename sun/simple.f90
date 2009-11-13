@@ -74,4 +74,24 @@ end program simple
 
   end subroutine jac_f
 
+  subroutine jtimes_f(neq, t_f, y_f, v_f, Jv_f) bind(c)
+    use iso_c_binding
+    integer(kind=c_int), value :: neq
+    real(kind=c_double), value :: t_f
+    type(c_ptr), value :: y_f
+    type(c_ptr), value :: v_f
+    type(c_ptr), value :: Jv_f
 
+    real(kind=c_double), pointer :: y(:)
+    real(kind=c_double), pointer :: v(:)
+    real(kind=c_double), pointer :: Jv(:)
+
+    call c_f_pointer(y_f, y, (/ 1 /))
+    call c_f_pointer(v_f, v, (/ 1 /))
+    call c_f_pointer(Jv_f, Jv, (/ 1 /))
+
+    Jv(1) = real(-1d0, kind=c_double) * v(1)
+
+    write(*,*) 'jtimes_f: t, y, v, Jv = ', t_f, y(1), v(1), Jv(1)
+
+  end subroutine jtimes_f

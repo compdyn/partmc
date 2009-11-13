@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
-#include <cvode/cvode_dense.h>
+//#include <cvode/cvode_dense.h>
+#include <cvode/cvode_sptfqmr.h>
 #include <sundials/sundials_dense.h>
 #include <sundials/sundials_types.h>
 
@@ -12,6 +13,10 @@ static int vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 static int jac(int N, realtype t,
                N_Vector y, N_Vector fy, DlsMat J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+
+static int jtimes(N_Vector v, N_Vector Jv,
+		  realtype t, N_Vector y, N_Vector fy,
+		  void *user_data, N_Vector tmp);
 
 void vf_f(int neq, double t_f, double *y_f, double *ydot_f);
 
@@ -25,15 +30,17 @@ int do_run(int neq, double *x_f, double *abstol_f, double reltol_f,
 	realtype reltol, t_initial, t_final, t, tout;
 	N_Vector y, abstol;
 	void *cvode_mem;
-	int flag, i;
+	int flag, i, pretype, maxl;
 	realtype *y_data, *abstol_data;
 	
 	y = abstol = NULL;
 	cvode_mem = NULL;
 
 	printf("neq = %d\n", neq);
+
 	y = N_VNew_Serial(neq);
 	if (check_flag((void *)y, "N_VNew_Serial", 0)) return(1);
+
 	abstol = N_VNew_Serial(neq); 
 	if (check_flag((void *)abstol, "N_VNew_Serial", 0)) return(1);
 	
@@ -52,14 +59,25 @@ int do_run(int neq, double *x_f, double *abstol_f, double reltol_f,
 
 	cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
 	if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
+
 	flag = CVodeInit(cvode_mem, vf, t_initial, y);
 	if (check_flag(&flag, "CVodeInit", 1)) return(1);
+
 	flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
 	if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
-	flag = CVDense(cvode_mem, neq);
-	if (check_flag(&flag, "CVDense", 1)) return(1);
-	flag = CVDlsSetDenseJacFn(cvode_mem, jac);
-	if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return(1);
+
+	//flag = CVDense(cvode_mem, neq);
+	//if (check_flag(&flag, "CVDense", 1)) return(1);
+	//flag = CVDlsSetDenseJacFn(cvode_mem, jac);
+	//if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return(1);
+
+	pretype = PREC_NONE;
+	maxl = 0;
+	flag = CVSptfqmr(cvode_mem, pretype, maxl); 
+	if (check_flag(&flag, "CVSptfqmr", 1)) return(1);
+
+	flag = CVSpilsSetJacTimesVecFn(cvode_mem, jtimes); 
+	if (check_flag(&flag, "CVSpilsSetJacTimesVecFn", 1)) return(1);
 
 	t = t_initial;
 	flag = CVode(cvode_mem, t_final, y, &t, CV_NORMAL);
@@ -137,6 +155,39 @@ static int jac(int N, realtype t,
 	
 	free(y_f);
 	free(df_f);
+	return(0);
+}
+
+
+static int jtimes(N_Vector v, N_Vector Jv,
+		  realtype t, N_Vector y, N_Vector fy,
+		  void *user_data, N_Vector tmp)
+{
+	realtype *y_data, *v_data, *Jv_data;
+	int i, neq;
+	double *y_f, *v_f, *Jv_f;
+
+	neq = NV_LENGTH_S(y);
+	y_data = NV_DATA_S(y);
+	v_data = NV_DATA_S(v);
+	Jv_data = NV_DATA_S(Jv);
+
+	y_f = malloc(neq * sizeof(double));
+	v_f = malloc(neq * sizeof(double));
+	Jv_f = malloc(neq * sizeof(double));
+
+	for (i = 0; i < neq; i++) {
+		y_f[i] = y_data[i];
+		v_f[i] = v_data[i];
+	}
+	jtimes_f(neq, t, y_f, v_f, Jv_f);
+	for (i = 0; i < neq; i++) {
+		Jv_data[i] = Jv_f[i];
+	}
+	
+	free(y_f);
+	free(v_f);
+	free(Jv_f);
 	return(0);
 }
 

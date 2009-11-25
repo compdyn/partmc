@@ -442,6 +442,12 @@ class pmc_linear_axis(pmc_axis):
             raise Exception("index out of range: %d" % index)
         return (float(index) + 0.5) / float(self.n_bin) \
                * (self.max - self.min) + self.min
+
+    def half_sample(self):
+        if self.n_bin % 2 != 0:
+            raise Exception("n_bin must be an even number")
+        return pmc_linear_axis(min = self.min, max = self.max,
+                               n_bin = self.n_bin / 2)
         
 class pmc_log_axis(pmc_axis):
 
@@ -487,6 +493,34 @@ class pmc_log_axis(pmc_axis):
                         * (log(self.max) - log(self.min))
                         + log(self.min))
 
+    def half_sample(self):
+        if self.n_bin % 2 != 0:
+            raise Exception("n_bin must be an even number")
+        return pmc_log_axis(min = self.min, max = self.max,
+                            n_bin = self.n_bin / 2)
+
+def histogram_1d(x_values, x_axis, weights = None):
+    """Make a 1D histogram.
+
+    The histogram is of points at positions x_values[i] for each i.
+    Example:
+    >>> x_axis = pmc_data_nc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> hist = histogram_1d(diam, x_axis, weights = 1 / comp_vol)
+    >>> semilogx(x_axis.centers(), hist)
+    """
+    if weights is not None:
+        if len(x_values) != len(weights):
+            raise Exception("x_values and weights have different lengths")
+    x_bins = x_axis.find(x_values)
+    hist = numpy.zeros([x_axis.n_bin])
+    for i in range(len(x_values)):
+        if x_axis.valid_bin(x_bins[i]):
+            value = 1.0 / x_axis.grid_size(x_bins[i])
+            if weights is not None:
+                value *= weights[i]
+            hist[x_bins[i]] += value
+    return hist
+
 def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positive = True):
     """Make a 2D histogram.
 
@@ -517,27 +551,59 @@ def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positi
         hist = numpy.ma.array(hist, mask = mask)
     return hist
 
-def histogram_1d(x_values, x_axis, weights = None):
-    """Make a 1D histogram.
+def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = True):
+    """Make a 2D matrix with 0%/33%/66%/100% percentile values.
 
-    The histogram is of points at positions x_values[i] for each i.
-    Example:
-    >>> x_axis = pmc_data_nc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> hist = histogram_1d(diam, x_axis, weights = 1 / comp_vol)
-    >>> semilogx(x_axis.centers(), hist)
+    The returned matrix represents z_values[i] at position
+    (x_values[i], y_values[i]) for each i. Example:
+    >>> x_axis = pmc_data_nc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 140)
+    >>> y_axis = pmc_data_nc.pmc_linear_axis(min = 0, max = 1, n_bin = 100)
+    >>> vals = multival_2d(diam, bc_frac, h2o, x_axis, y_axis)
+    >>> pcolor(x_axis.edges(), y_axis.edges(), vals.transpose(),
+               norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
     """
-    if weights is not None:
-        if len(x_values) != len(weights):
-            raise Exception("x_values and weights have different lengths")
-    x_bins = x_axis.find(x_values)
-    hist = numpy.zeros([x_axis.n_bin])
+    if len(x_values) != len(y_values):
+        raise Exception("x_values and y_values have different lengths")
+    if len(x_values) != len(z_values):
+        raise Exception("x_values and z_values have different lengths")
+
+    low_x_axis = x_axis.half_sample()
+    low_y_axis = y_axis.half_sample()
+    x_bins = low_x_axis.find(x_values)
+    y_bins = low_y_axis.find(y_values)
+    z = [[[] for j in range(low_y_axis.n_bin)]
+         for i in range(low_x_axis.n_bin)]
     for i in range(len(x_values)):
-        if x_axis.valid_bin(x_bins[i]):
-            value = 1.0 / x_axis.grid_size(x_bins[i])
-            if weights is not None:
-                value *= weights[i]
-            hist[x_bins[i]] += value
-    return hist
+        if low_x_axis.valid_bin(x_bins[i]) and low_y_axis.valid_bin(y_bins[i]):
+            z[x_bins[i]][y_bins[i]].append(z_values[i])
+    for x_bin in range(low_x_axis.n_bin):
+        for y_bin in range(low_y_axis.n_bin):
+            z[x_bin][y_bin].sort()
+    grid = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    mask = numpy.zeros([x_axis.n_bin, y_axis.n_bin], bool)
+    for x_bin in range(low_x_axis.n_bin):
+        for y_bin in range(low_y_axis.n_bin):
+            if len(z[x_bin][y_bin]) > 0:
+                subs = [(0,0),(0,1),(1,0),(1,1)]
+                if rand_arrange:
+                    py_random.shuffle(subs)
+                (sub_min, sub_max, sub_low, sub_high) = subs
+                val_min = min(z[x_bin][y_bin])
+                val_max = max(z[x_bin][y_bin])
+                val_low = percentile(z[x_bin][y_bin], 0.3333)
+                val_high = percentile(z[x_bin][y_bin], 0.6666)
+                for (sub, val) in [(sub_min, val_min),
+                                   (sub_max, val_max),
+                                   (sub_low, val_low),
+                                   (sub_high, val_high)]:
+                    sub_i, sub_j = sub
+                    i = x_bin * 2 + sub_i
+                    j = y_bin * 2 + sub_j
+                    grid[i,j] = val
+                    mask[i,j] = True
+    mask = logical_not(mask)
+    vals = numpy.ma.array(grid, mask = mask)
+    return vals
 
 def pmc_histogram_2d(array, x_axis, y_axis, mask = None, inv_mask = None):
     data = []

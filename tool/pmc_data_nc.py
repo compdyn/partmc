@@ -398,6 +398,9 @@ class pmc_axis:
     def edges(self):
         return array([self.edge(i) for i in range(self.n_bin + 1)])
 
+    def centers(self):
+        return array([self.center(i) for i in range(self.n_bin)])
+
 class pmc_linear_axis(pmc_axis):
 
     def __init__(self, min, max, n_bin):
@@ -483,6 +486,58 @@ class pmc_log_axis(pmc_axis):
         return math.exp((float(index) + 0.5) / float(self.n_bin)
                         * (log(self.max) - log(self.min))
                         + log(self.min))
+
+def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positive = True):
+    """Make a 2D histogram.
+
+    The histogram is of points at positions (x_values[i], y_values[i])
+    for each i. Example:
+    >>> x_axis = pmc_data_nc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> y_axis = pmc_data_nc.pmc_linear_axis(min = 0, max = 1, n_bin = 50)
+    >>> hist = histogram_2d(diam, bc_frac, x_axis, y_axis, weights = 1 / comp_vol)
+    >>> pcolor(x_axis.edges(), y_axis.edges(), hist.transpose(),
+               norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+    """
+    if len(x_values) != len(y_values):
+        raise Exception("x_values and y_values have different lengths")
+    if weights is not None:
+        if len(x_values) != len(weights):
+            raise Exception("x_values and weights have different lengths")
+    x_bins = x_axis.find(x_values)
+    y_bins = y_axis.find(y_values)
+    hist = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    for i in range(len(x_values)):
+        if x_axis.valid_bin(x_bins[i]) and y_axis.valid_bin(y_bins[i]):
+            value = 1.0 / (x_axis.grid_size(x_bins[i]) * y_axis.grid_size(y_bins[i]))
+            if weights is not None:
+                value *= weights[i]
+            hist[x_bins[i], y_bins[i]] += value
+    if only_positive:
+        mask = numpy.ma.make_mask(hist <= 0.0)
+        hist = numpy.ma.array(hist, mask = mask)
+    return hist
+
+def histogram_1d(x_values, x_axis, weights = None):
+    """Make a 1D histogram.
+
+    The histogram is of points at positions x_values[i] for each i.
+    Example:
+    >>> x_axis = pmc_data_nc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> hist = histogram_1d(diam, x_axis, weights = 1 / comp_vol)
+    >>> semilogx(x_axis.centers(), hist)
+    """
+    if weights is not None:
+        if len(x_values) != len(weights):
+            raise Exception("x_values and weights have different lengths")
+    x_bins = x_axis.find(x_values)
+    hist = numpy.zeros([x_axis.n_bin])
+    for i in range(len(x_values)):
+        if x_axis.valid_bin(x_bins[i]):
+            value = 1.0 / x_axis.grid_size(x_bins[i])
+            if weights is not None:
+                value *= weights[i]
+            hist[x_bins[i]] += value
+    return hist
 
 def pmc_histogram_2d(array, x_axis, y_axis, mask = None, inv_mask = None):
     data = []

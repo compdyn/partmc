@@ -31,6 +31,13 @@ def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename,tit
     hist1 = pmc_data_nc.histogram_1d(wet_diameter1, x_axis, weights = 1 / particles1.comp_vol)
     hist2 = pmc_data_nc.histogram_1d(wet_diameter2, x_axis, weights = 1 / particles2.comp_vol)
     hist3 = pmc_data_nc.histogram_1d(wet_diameter3, x_axis, weights = 1 / particles3.comp_vol)
+ 
+    is_activated = (wet_diameter3 > 2e-6)
+    sum_tot = sum(1/particles3.comp_vol) * 1e-6
+    num_act = sum(1/particles3.comp_vol[is_activated]) * 1e-6
+    print title, num_act, sum_tot, num_act/sum_tot * 100
+#    print particles1.id.shape, particles2.id.shape, particles3.id.shape
+#    print sum(1/particles1.comp_vol), sum(1/particles2.comp_vol), sum(1/particles3.comp_vol)
 
     plt.clf()
     plt.semilogx(x_axis.centers(), hist1, label = '0 min')

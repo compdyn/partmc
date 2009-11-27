@@ -17,6 +17,8 @@ def make_plot(in_dir, in_file_pattern, out_filename,title):
     rh = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
     temp = [env_state_history[i][1].temperature for i in range(len(env_state_history))]
     
+    print title, (max(rh) - 1)*100.
+
     plt.clf()
     plt.plot(time,rh,'r')
     ax1 = plt.gca()

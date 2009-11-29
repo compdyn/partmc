@@ -4,7 +4,7 @@ n_loop 1                        # number of Monte Carlo loops
 n_part 1                        # total number of particles
 kernel brown                    # coagulation kernel
 restart yes                     # whether to restart from saved state (yes/no)
-restart_file start/urban_plume_wc_0001_00000043.nc # saved state file to restart from
+restart_file start/urban_plume_wc_0001_00000008.nc # saved state file to restart from
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)

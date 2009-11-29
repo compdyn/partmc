@@ -96,15 +96,15 @@ class gas_state_t:
 
     def __init__(self, ncf):
         self.gas_data = gas_data_t(ncf)
-        if "gas_concentration" not in ncf.variables.keys():
-            raise Exception("gas_concentration variable not found in NetCDF file")
-        self.concentration = ncf.variables["gas_concentration"][:]
+        if "gas_mixing_ratio" not in ncf.variables.keys():
+            raise Exception("gas_mixing_ratio variable not found in NetCDF file")
+        self.mixing_ratio = ncf.variables["gas_mixing_ratio"][:]
 
-    def concentration_by_species(self, species):
+    def mixing_ratio_by_species(self, species):
         if species not in self.gas_data.name:
             raise Exception("unknown species: %s" % species)
         index = self.gas_data.name.index(species)
-        return self.concentration[index]
+        return self.mixing_ratio[index]
 
 class aero_particle_array_t:
 
@@ -268,7 +268,7 @@ class aero_particle_array_t:
         solute_volume = self.volume(exclude = ["H2O"])
         return solute_volume_kappa / solute_volume
 
-    def kappa_rh_approx(self, env_state, const):
+    def critical_rh_approx(self, env_state, const):
         A = env_state.A(const)
         C = sqrt(4.0 * A**3 / 27.0)
         diam = self.dry_diameter()
@@ -276,51 +276,15 @@ class aero_particle_array_t:
         S = C / sqrt(kappa * diam**3) + 1.0
         return S
 
-    def kappa_rh(self, env_state, const):
-        A = env_state.A(const)
+    def critical_rh(self, env_state, const):
         kappa = self.solute_kappa()
         dry_diam = self.dry_diameter()
-        crit_diam = self.critical_diameter(env_state, const)
-        S = (crit_diam**3 - dry_diam**3) \
-            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) \
-            * exp(A / crit_diam)
-        return S
+        return critical_rh(env_state, const, kappa, dry_diam)
 
     def critical_diameter(self, env_state, const):
-        A = env_state.A(const)
         kappa = self.solute_kappa()
         dry_diam = self.dry_diameter()
-        c6 = ones_like(dry_diam)
-        c5 = zeros_like(dry_diam)
-        c4 = - 3.0 * dry_diam**3 * kappa / A
-        c3 = - dry_diam**3 * (2.0 - kappa)
-        c2 = zeros_like(dry_diam)
-        c1 = zeros_like(dry_diam)
-        c0 = dry_diam**6 * (1.0 - kappa)
-        def f(d):
-            return c6 * d**6 + c5 * d**5 + c4 * d**4 \
-                + c3 * d**3 + c2 * d**2 + c1 * d + c0
-
-        d1 = self.dry_diameter()
-        f1 = f(d1)
-        if any(f1 >= 0.0):
-            raise Exception("initialization failure for d1")
-        d2 = 2.0 * d1
-        f2 = f(d2)
-        for iteration in range(100):
-            if all(f2 >= 0.0):
-                break
-            d2 = where(f2 <= 0, 2.0 * d2, d2)
-            f2 = f(d2)
-        else:
-            raise Exception("initialization failure for d2")
-        dc = zeros_like(d1)
-        for i in range(len(kappa)):
-            def fi(d):
-                return c6[i] * d**6 + c5[i] * d**5 + c4[i] * d**4 \
-                    + c3[i] * d**3 + c2[i] * d**2 + c1[i] * d + c0[i]
-            dc[i] = scipy.optimize.brentq(fi, d1[i], d2[i])
-        return dc
+        return critical_diameter(env_state, const, kappa, dry_diam)
 
     def bin_average(self, diameter_axis, dry_diameter = True):
         averaged_particles = aero_particle_array_t(n_particles = diameter_axis.n_bin,
@@ -341,6 +305,47 @@ class aero_particle_array_t:
             averaged_particles.comp_vol[b] = 1.0 / num_conc[b]
             averaged_particles.masses[:,b] = masses_conc[:,b] * averaged_particles.comp_vol[b]
         return averaged_particles
+
+def critical_rh(env_state, const, kappa, dry_diam):
+    A = env_state.A(const)
+    crit_diam = critical_diameter(env_state, const, kappa, dry_diam)
+    return (crit_diam**3 - dry_diam**3) \
+        / (crit_diam**3 - dry_diam**3 * (1 - kappa)) \
+        * exp(A / crit_diam)
+
+def critical_diameter(env_state, const, kappa, dry_diam):
+    A = env_state.A(const)
+    c6 = ones_like(dry_diam)
+    c5 = zeros_like(dry_diam)
+    c4 = - 3.0 * dry_diam**3 * kappa / A
+    c3 = - dry_diam**3 * (2.0 - kappa)
+    c2 = zeros_like(dry_diam)
+    c1 = zeros_like(dry_diam)
+    c0 = dry_diam**6 * (1.0 - kappa)
+    def f(d):
+        return c6 * d**6 + c5 * d**5 + c4 * d**4 \
+            + c3 * d**3 + c2 * d**2 + c1 * d + c0
+
+    d1 = dry_diam
+    f1 = f(d1)
+    if any(f1 >= 0.0):
+        raise Exception("initialization failure for d1")
+    d2 = 2.0 * d1
+    f2 = f(d2)
+    for iteration in range(100):
+        if all(f2 >= 0.0):
+            break
+        d2 = where(f2 <= 0, 2.0 * d2, d2)
+        f2 = f(d2)
+    else:
+        raise Exception("initialization failure for d2")
+    dc = zeros_like(d1)
+    for i in range(len(kappa)):
+        def fi(d):
+            return c6[i] * d**6 + c5[i] * d**5 + c4[i] * d**4 \
+                + c3[i] * d**3 + c2[i] * d**2 + c1[i] * d + c0[i]
+        dc[i] = scipy.optimize.brentq(fi, d1[i], d2[i])
+    return dc
 
 class aero_removed_info_t:
 

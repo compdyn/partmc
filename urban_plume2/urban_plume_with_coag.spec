@@ -1,16 +1,13 @@
-run_type mc                     # Monte Carlo run
+run_type particle                # particle-resolved run
 output_prefix out/urban_plume_wc # prefix of output files
-state_prefix out/urban_plume_wc_state # prefix of state files
-process_spec process.dat        # processing specification
 n_loop 1                        # number of Monte Carlo loops
 n_part 100000                   # total number of particles
 kernel brown                    # coagulation kernel
+restart no                      # whether to restart from saved state (yes/no)
 
 t_max 172800                    # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_state 0                       # state output interval (0 disables) (s)
-t_state_netcdf 3600             # NetCDF state output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -39,11 +36,11 @@ start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 rand_init 7                     # random initialization (0 to use time)
-mix_rate 0                      # mixing rate between processes (0 to 1)
 do_coagulation yes              # whether to do coagulation (yes/no)
-allow_double yes                # whether to allow doubling (yes/no)
+allow_doubling yes              # whether to allow doubling (yes/no)
+allow_halving yes               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
-do_restart no                   # whether to restart from stored state (yes/no)
-restart_name XXXX.dat           # filename to restart from
 record_removals yes             # whether to record particle removals (yes/no)
+do_parallel no                  # whether to run in parallel (yes/no)
+

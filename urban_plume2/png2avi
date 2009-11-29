@@ -1,1 +1,0 @@
-~/t/MPlayer-1.0rc2/mencoder mf://comp_2d_all_000*.png -mf w=761:h=366:fps=25:type=png -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o comp_2d_all.avi

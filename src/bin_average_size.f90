@@ -27,12 +27,13 @@ program bin_average_size
   integer :: n_bin, index, i_loop
   real(kind=dp) :: r_min, r_max, time, del_t
   character(len=1000) :: output_type, tmp_str
-  logical :: record_removals, dry_volume
+  logical :: record_removals, dry_volume, bin_center
 
   ! process commandline arguments
-  if (command_argument_count() .ne. 6) then
+  if (command_argument_count() .ne. 7) then
      write(6,*) 'Usage: bin_average_size <r_min> <r_max> <n_bin> ' &
-          // '<"wet" or "dry"> <input_filename> <output_prefix>'
+          // '<"wet" or "dry"> <"center" or "average"> ' &
+          // '<input_filename> <output_prefix>'
      stop 2
   endif
   call get_command_argument(1, tmp_str)
@@ -51,8 +52,18 @@ program bin_average_size
           // trim(tmp_str)
      stop 1
   end if
-  call get_command_argument(5, in_filename)
-  call get_command_argument(6, out_prefix)
+  call get_command_argument(5, tmp_str)
+  if (trim(tmp_str) == "center") then
+     bin_center = .true.
+  elseif (trim(tmp_str) == "average") then
+     bin_center = .false.
+  else
+     write(6,*) 'Argument 5 must be "center" or "average", not ' &
+          // trim(tmp_str)
+     stop 1
+  end if
+  call get_command_argument(6, in_filename)
+  call get_command_argument(7, out_prefix)
 
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
@@ -71,7 +82,8 @@ program bin_average_size
      call aero_state_make_dry(aero_state, bin_grid, aero_data)
   end if
 
-  call aero_state_bin_average_size(aero_state, bin_grid, aero_data, dry_volume)
+  call aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
+       dry_volume, bin_center)
 
   output_type = "central"
   record_removals = .false.

@@ -1047,6 +1047,9 @@ contains
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
                 aero_particle%vol(i_spec) = particle_volume &
                      * species_volumes(i_spec) / total_volume
+             else
+                ! water species for dry_volume
+                aero_particle%vol(i_spec) = 0d0
              end if
           end do
        end do
@@ -1059,9 +1062,11 @@ contains
   !> Set each aerosol particle to have its original species ratios,
   !> but total volume given by the average volume of all particles
   !> within each bin. This does not preserve the total species volume
-  !> per bin.
+  !> per bin. If the \c bin_center parameter is \c .true. then the
+  !> particles in each bin are set to have the bin center volume,
+  !> rather than the average volume of the particles in that bin.
   subroutine aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
-       dry_volume)
+       dry_volume, bin_center)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1071,6 +1076,9 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Whether to use dry volume (rather than wet).
     logical, intent(in) :: dry_volume
+    !> Whether to assign the bin center volume (rather than the average
+    !> volume).
+    logical, intent(in) :: bin_center
 
     real(kind=dp) :: total_volume, particle_volume
     integer :: i_bin, i_part, i_spec
@@ -1096,11 +1104,17 @@ contains
           end do
           do i_spec = 1,aero_data%n_spec
              if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                !aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                !     / particle_volume * total_volume &
-                !     / real(aero_state%bin(i_bin)%n_part, kind=dp)
-                aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                     / particle_volume * bin_grid%v(i_bin)
+                if (bin_center) then
+                   aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
+                        / particle_volume * bin_grid%v(i_bin)
+                else
+                   aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
+                        / particle_volume * total_volume &
+                        / real(aero_state%bin(i_bin)%n_part, kind=dp)
+                end if
+             else
+                ! water species for dry_volume
+                aero_particle%vol(i_spec) = 0d0
              end if
           end do
        end do

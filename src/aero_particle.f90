@@ -272,15 +272,52 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total dry volume of the particle (m^3).
+  real(kind=dp) function aero_particle_dry_volume(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: i_spec
+
+    aero_particle_dry_volume = 0d0
+    do i_spec = 1,aero_data%n_spec
+       if (i_spec /= aero_data%i_water) then
+          aero_particle_dry_volume = aero_particle_dry_volume &
+               + aero_particle%vol(i_spec)
+       end if
+    end do
+
+  end function aero_particle_dry_volume
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total diameter of the particle (m).
   real(kind=dp) function aero_particle_diameter(aero_particle)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    aero_particle_diameter = vol2diam(sum(aero_particle%vol))
+    aero_particle_diameter = vol2diam(aero_particle_volume(aero_particle))
 
   end function aero_particle_diameter
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Total dry diameter of the particle (m).
+  real(kind=dp) function aero_particle_dry_diameter(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    aero_particle_dry_diameter = vol2diam( &
+         aero_particle_dry_volume(aero_particle, aero_data))
+
+  end function aero_particle_dry_diameter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

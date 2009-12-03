@@ -44,3 +44,17 @@ make_plot("../../new_cond/start/urban_plume_wc_0001_00000008.nc","figs/2d_bc_07.
 make_plot("../../new_cond/start/urban_plume_wc_0001_00000016.nc","figs/2d_bc_15.pdf","15 hours")
 make_plot("../../new_cond/start/urban_plume_wc_0001_00000025.nc","figs/2d_bc_24.pdf","24 hours")
 
+make_plot("../../new_cond/start_comp/urban_plume_wc_0001_00000002.nc","figs/2d_bc_comp_01.pdf","1 hours")
+make_plot("../../new_cond/start_comp/urban_plume_wc_0001_00000008.nc","figs/2d_bc_comp_07.pdf","7 hours")
+make_plot("../../new_cond/start_comp/urban_plume_wc_0001_00000016.nc","figs/2d_bc_comp_15.pdf","15 hours")
+make_plot("../../new_cond/start_comp/urban_plume_wc_0001_00000025.nc","figs/2d_bc_comp_24.pdf","24 hours")
+
+make_plot("../../new_cond/start_size/urban_plume_wc_0001_00000002.nc","figs/2d_bc_size_01.pdf","1 hours")
+make_plot("../../new_cond/start_size/urban_plume_wc_0001_00000008.nc","figs/2d_bc_size_07.pdf","7 hours")
+make_plot("../../new_cond/start_size/urban_plume_wc_0001_00000016.nc","figs/2d_bc_size_15.pdf","15 hours")
+make_plot("../../new_cond/start_size/urban_plume_wc_0001_00000025.nc","figs/2d_bc_size_24.pdf","24 hours")
+
+make_plot("../../new_cond/start_both/urban_plume_wc_0001_00000002.nc","figs/2d_bc_both_01.pdf","1 hours")
+make_plot("../../new_cond/start_both/urban_plume_wc_0001_00000008.nc","figs/2d_bc_both_07.pdf","7 hours")
+make_plot("../../new_cond/start_both/urban_plume_wc_0001_00000016.nc","figs/2d_bc_both_15.pdf","15 hours")
+make_plot("../../new_cond/start_both/urban_plume_wc_0001_00000025.nc","figs/2d_bc_both_24.pdf","24 hours")

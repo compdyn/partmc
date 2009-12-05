@@ -142,6 +142,12 @@ ChangeLog
 
   * Added restart capability from NetCDF state files.
 
+  * Added partmc.py library for python-based analysis of PartMC output
+    files.
+
+  * Reimplemented water condensation to be much faster and also
+    correct.
+
 1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.

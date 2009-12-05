@@ -698,7 +698,6 @@ def critical_diameters(env_state, constants, kappas, dry_diameters):
 
 class aero_removed_info_t(object):
 
-
     """Stores information about the particles removed from the aerosol
     particle population at a single point in time and space. All data
     attributes are arrays with one entry per removed aerosol
@@ -747,6 +746,14 @@ class aero_removed_info_t(object):
     AERO_INFO_HALVED = 3
 
     def __init__(self, ncf):
+
+        """Creates an aero_remove_info_t object by reading data from a
+        NetCDF file output from PartMC.
+        
+        For example:
+        >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
+        >>> aero_removed_info = partmc.aero_removed_info_t(ncf)"""
+        
         for (ncf_var, self_var) in [
             ("aero_removed_id", "ids"),
             ("aero_removed_action", "actions"),
@@ -761,25 +768,58 @@ class aero_removed_info_t(object):
             self.action = array([],'int32')
             self.other_id = array([],'int32')
 
-class pmc_axis(object):
+class grid(object):
 
-    def __init__(self, min, max, n_bin):
-        self.min = float(min)
-        self.max = float(max)
-        self.n_bin = n_bin
+    """Base class for 1D grids. See linear_grid and log_grid for
+    specific grid types."""
+
+    def __init__(self):
+
+        """Do not call this. Instead call linear_grid() or log_grid()
+        to make a specific type of grid."""
+        
+        raise NotImplementedError()
 
     def find_clipped(self, values):
+
+        """Find the bins for each entry of values, clipped to
+        [0, n_bin - 1].
+
+        The parameter values should be a 1D array of values to locate
+        within the grid, and the return value is a 1D array of
+        integers between 0 (the first bin) and n_bin - 1 (the last
+        bin). If a value is below the first bin then 0 is returned
+        while if it is above the last bin then n_bin - 1 is
+        returned."""
+        
         indices = self.find(values)
         indices = indices.clip(0, self.n_bin - 1)
         return indices
 
     def find_clipped_outer(self, values):
+
+        """Find the bins for each entry of values, clipped to
+        [-1, n_bin].
+
+        The parameter values should be a 1D array of values to locate
+        within the grid, and the return value is a 1D array of
+        integers between -1 and n_bin. If each value is within a bin
+        then a number within [0, n_bin - 1] is returned. If a value is
+        below the first bin then -1 is returned while if it is above
+        the last bin then n_bin is returned."""
+        
         indices = self.find(values)
-        indices += 1
-        indices = indices.clip(0, self.n_bin + 1)
+        indices = indices.clip(-1, self.n_bin)
         return indices
 
     def closest_edge(self, value):
+
+        """Find the closest bin edge to the given value.
+
+        Value should be a single scalar and the return value is an
+        integer between 0 and n_bin giving the number of the edge
+        closest to value."""
+        
         i = self.find_clipped(value)
         lower_edge = self.edge(i)
         upper_edge = self.edge(i + 1)
@@ -789,12 +829,20 @@ class pmc_axis(object):
             return i + 1
 
     def edges(self):
+
+        """Return a length (n_bin + 1) array of the bin edges in the
+        grid."""
+        
         return array([self.edge(i) for i in range(self.n_bin + 1)])
 
     def centers(self):
+
+        """Return a length n_bin array of the bin centers in the
+        grid."""
+        
         return array([self.center(i) for i in range(self.n_bin)])
 
-class pmc_linear_axis(pmc_axis):
+class linear_grid(grid):
 
     def __init__(self, min, max, n_bin):
         self.min = float(min)
@@ -838,10 +886,10 @@ class pmc_linear_axis(pmc_axis):
     def half_sample(self):
         if self.n_bin % 2 != 0:
             raise Exception("n_bin must be an even number")
-        return pmc_linear_axis(min = self.min, max = self.max,
+        return linear_grid(min = self.min, max = self.max,
                                n_bin = self.n_bin / 2)
         
-class pmc_log_axis(pmc_axis):
+class log_grid(grid):
 
     def __init__(self, min, max, n_bin):
         self.min = float(min)
@@ -887,7 +935,7 @@ class pmc_log_axis(pmc_axis):
     def half_sample(self):
         if self.n_bin % 2 != 0:
             raise Exception("n_bin must be an even number")
-        return pmc_log_axis(min = self.min, max = self.max,
+        return log_grid(min = self.min, max = self.max,
                             n_bin = self.n_bin / 2)
 
 def histogram_1d(x_values, x_axis, weights = None):
@@ -895,7 +943,7 @@ def histogram_1d(x_values, x_axis, weights = None):
 
     The histogram is of points at positions x_values[i] for each i.
     Example:
-    >>> x_axis = partmc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
     >>> hist = partmc.histogram_1d(diam, x_axis, weights = 1 / particles.comp_vols)
     >>> plt.semilogx(x_axis.centers(), hist)
     """
@@ -917,8 +965,8 @@ def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positi
 
     The histogram is of points at positions (x_values[i], y_values[i])
     for each i. Example:
-    >>> x_axis = partmc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> y_axis = partmc.pmc_linear_axis(min = 0, max = 1, n_bin = 50)
+    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> y_axis = partmc.linear_grid(min = 0, max = 1, n_bin = 50)
     >>> hist = partmc.histogram_2d(diam, bc_frac, x_axis, y_axis, weights = 1 / particles.comp_vols)
     >>> plt.pcolor(x_axis.edges(), y_axis.edges(), hist.transpose(),
                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
@@ -947,8 +995,8 @@ def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = Tru
 
     The returned matrix represents z_values[i] at position
     (x_values[i], y_values[i]) for each i. Example:
-    >>> x_axis = partmc.pmc_log_axis(min = 1e-8, max = 1e-5, n_bin = 140)
-    >>> y_axis = partmc.pmc_linear_axis(min = 0, max = 1, n_bin = 100)
+    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
+    >>> y_axis = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
     >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_axis, y_axis)
     >>> plt.pcolor(x_axis.edges(), y_axis.edges(), vals.transpose(),
                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)

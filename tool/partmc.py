@@ -1044,34 +1044,6 @@ def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = Tru
     vals = numpy.ma.array(grid, mask = mask)
     return vals
 
-def pmc_histogram_2d(array, x_axis, y_axis, mask = None, inv_mask = None):
-    data = []
-    for i in range(x_axis.n_bin):
-        for j in range(y_axis.n_bin):
-            if ((mask == None) and (inv_mask == None) and (array[i,j] > 0.0)) \
-                   or ((mask != None) and (mask[i,j] != 0)) \
-                   or ((inv_mask != None) and (inv_mask[i,j] == 0)):
-                data.append([x_axis.edge(i), x_axis.edge(i + 1),
-                             y_axis.edge(j), y_axis.edge(j + 1),
-                             array[i,j]])
-    return data
-
-def pmc_histogram_2d_multi(array_list, x_axis, y_axis, mask = None,
-                           inv_mask = None):
-    data = []
-    for i in range(x_axis.n_bin):
-        for j in range(y_axis.n_bin):
-            if ((mask == None) and (inv_mask == None)
-                and (array_list[0][i,j] > 0.0)) \
-                or ((mask != None) and (mask[i,j] != 0)) \
-                or ((inv_mask != None) and (inv_mask[i,j] == 0)):
-                data_item = [x_axis.edge(i), x_axis.edge(i + 1),
-                             y_axis.edge(j), y_axis.edge(j + 1)]
-                for array in array_list:
-                    data_item.append(array[i,j])
-                data.append(data_item)
-    return data
-
 def time_of_day_string(time_seconds, separator = ":"):
     time_of_day = time_seconds % (24 * 3600.0)
     hours = int(time_of_day / 3600.0)
@@ -1192,66 +1164,6 @@ def load_constants(filename):
         raise Exception("constants.f90 ended without finding end of const_t")
     return constants
 
-def nan_to_value(x, value):
-    values = x.copy()
-    values.fill(value)
-    return where(isnan(x), values, x)
-
-def inf_to_value(x, value):
-    values = x.copy()
-    values.fill(value)
-    return where(isinf(x), values, x)
-
-def delta(arr):
-    return (arr[1:] - arr[:-1])
-
-def mid(arr):
-    return (arr[1:] + arr[:-1]) / 2.0
-
-def filter_inf(plot_data):
-    return [[x, y] for [x, y] in plot_data if isfinite(y)]
-
-#def sign(x):
-#    if x > 0:
-#        return 1
-#    elif x < 0:
-#        return -1
-#    return 0
-
-def mean(x):
-    return float(sum(x)) / len(x)
-
-def chop_sign_data_helper(plot_data, chopped_data):
-    if len(plot_data) == 0:
-        return chopped_data
-    if sign(plot_data[0][1]) == 0:
-        return chop_sign_data_helper(plot_data[1:], chopped_data)
-    i = 0
-    while (i < len(plot_data)) \
-              and (sign(plot_data[i][1]) == sign(plot_data[0][1])):
-        i += 1
-    chopped_data.append(plot_data[0:i])
-    return chop_sign_data_helper(plot_data[i:], chopped_data)
-
-def chop_sign_data(plot_data):
-    return chop_sign_data_helper(plot_data, [])
-
-def chop_sign_data_iterative(plot_data):
-    chopped_data = []
-    start = 0
-    while start < len(plot_data):
-        while (start < len(plot_data)) and (sign(plot_data[start][1]) == 0):
-            start += 1
-        i = 0
-        while (start + i < len(plot_data)) \
-                and (sign(plot_data[start + i][1])
-                     == sign(plot_data[start][1])):
-            i += 1
-        if i > 0:
-            chopped_data.append(plot_data[start:(start + i)])
-        start += i
-    return chopped_data
-
 def smooth(x,window_len=10,window='hanning'):
     """smooth the data using a window with requested size.
     
@@ -1342,38 +1254,3 @@ def percentile(data, p):
     # data must be sorted
     i = int(floor((len(data) - 1) * p + 0.5))
     return data[i]
-
-def grid_plot_data(x, y, z, x_axis, y_axis, hi_x_axis, hi_y_axis):
-    x_bin = x_axis.find(x)
-    y_bin = y_axis.find(y)
-    values = [[[] for j in range(y_axis.n_bin)]
-              for i in range(x_axis.n_bin)]
-    for i in range(len(x)):
-        if x_axis.valid_bin(x_bin[i]) and y_axis.valid_bin(y_bin[i]):
-            values[x_bin[i]][y_bin[i]].append(z[i])
-    for x_bin in range(x_axis.n_bin):
-        for y_bin in range(y_axis.n_bin):
-            values[x_bin][y_bin].sort()
-    grid = numpy.zeros([hi_x_axis.n_bin, hi_y_axis.n_bin])
-    mask = numpy.zeros([hi_x_axis.n_bin, hi_y_axis.n_bin], int)
-    for x_bin in range(x_axis.n_bin):
-        for y_bin in range(y_axis.n_bin):
-            if len(values[x_bin][y_bin]) > 0:
-                subs = [(0,0),(0,1),(1,0),(1,1)]
-                random.shuffle(subs)
-                (sub_min, sub_max, sub_low, sub_high) = subs
-                val_min = min(values[x_bin][y_bin])
-                val_max = max(values[x_bin][y_bin])
-                val_low = percentile(values[x_bin][y_bin], 0.3333)
-                val_high = percentile(values[x_bin][y_bin], 0.6666)
-                for (sub, val) in [(sub_min, val_min),
-                                   (sub_max, val_max),
-                                   (sub_low, val_low),
-                                   (sub_high, val_high)]:
-                    sub_i, sub_j = sub
-                    i = x_bin * 2 + sub_i
-                    j = y_bin * 2 + sub_j
-                    grid[i,j] = val
-                    mask[i,j] = 1
-    plot_data = pmc_histogram_2d(grid, hi_x_axis, hi_y_axis, mask = mask)
-    return plot_data

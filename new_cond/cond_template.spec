@@ -1,10 +1,10 @@
 run_type particle               # Monte Carlo run
-output_prefix out_both/cond_3        # prefix of output files
+output_prefix %%OUTPUT_PREFIX%% # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 1                        # total number of particles
 kernel brown                    # coagulation kernel
 restart yes                     # whether to restart from saved state (yes/no)
-restart_file start_both/urban_plume_wc_0001_00000016.nc # saved state file to restart from
+restart_file %%RESTART_FILE%%   # saved state file to restart from
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
@@ -19,7 +19,7 @@ gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data
 
-temp_profile temp_3.dat         # temperature profile file
+temp_profile %%TEMP_PROFILE%%   # temperature profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file

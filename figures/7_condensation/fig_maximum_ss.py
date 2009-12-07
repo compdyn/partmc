@@ -12,7 +12,7 @@ import pmc_data_nc
 a = np.loadtxt("data/maximum_ss.txt")
 b = np.loadtxt("data/ccn_cn_ratio.txt")
 
-time = [1, 7, 15, 24]
+time = [1, 7, 15, 24, 30, 36, 42, 48]
 
 plt.clf()
 plt.plot(time,a[0,:], "*", label = "ref")

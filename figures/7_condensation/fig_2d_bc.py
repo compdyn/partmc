@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -10,7 +10,6 @@ sys.path.append("../../tool")
 import pmc_data_nc
 
 def make_plot(in_filename,out_filename,title):
-    print in_filename
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
     particles = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
@@ -39,22 +38,38 @@ def make_plot(in_filename,out_filename,title):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-make_plot("../../new_cond/start_up2/urban_plume_wc_0001_00000031.nc","figs/2d_bc_30.pdf","30 hours")
-make_plot("../../new_cond/start_up2/urban_plume_wc_0001_00000037.nc","figs/2d_bc_36.pdf","36 hours")
-make_plot("../../new_cond/start_up2/urban_plume_wc_0001_00000043.nc","figs/2d_bc_42.pdf","42 hours")
-make_plot("../../new_cond/start_up2/urban_plume_wc_0001_00000049.nc","figs/2d_bc_48.pdf","48 hours")
+for hour in range(1, 50):
+    print "hour = ", hour
+    
+    filename_in1 = "../../new_cond/start/urban_plume_wc_0001_000000%02d.nc" % hour
+    filename_in2 = "../../new_cond/start/urban_plume_comp_wc_0001_000000%02d.nc" % hour
+    filename_in3 = "../../new_cond/start/urban_plume_size_wc_0001_000000%02d.nc" % hour
+    filename_in4 = "../../new_cond/start/urban_plume_both_wc_0001_000000%02d.nc" % hour
+    filename_out1 = "figs/2d_bc_ref_%02d.pdf" % (hour-1)
+    filename_out2 = "figs/2d_bc_comp_%02d.pdf" % (hour-1)
+    filename_out3 = "figs/2d_bc_size_%02d.pdf" % (hour-1)
+    filename_out4 = "figs/2d_bc_both_%02d.pdf" % (hour-1)
+    titel = "%02d hours" % (hour-1)
+    print filename_in1
+    print filename_out1
+    print titel
 
-make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000031.nc","figs/2d_bc_comp_30.pdf","30 hours")
-make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000037.nc","figs/2d_bc_comp_36.pdf","36 hours")
-make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000043.nc","figs/2d_bc_comp_42.pdf","42 hours")
-make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000049.nc","figs/2d_bc_comp_48.pdf","48 hours")
+    make_plot(filename_in1, filename_out1, titel)
+    make_plot(filename_in2, filename_out2, titel)
+    make_plot(filename_in3, filename_out3, titel)
+    make_plot(filename_in4, filename_out4, titel)
 
-make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000031.nc","figs/2d_bc_size_30.pdf","30 hours")
-make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000037.nc","figs/2d_bc_size_36.pdf","36 hours")
-make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000043.nc","figs/2d_bc_size_42.pdf","42 hours")
-make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000049.nc","figs/2d_bc_size_48.pdf","48 hours")
+#make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000031.nc","figs/2d_bc_comp_30.pdf","30 hours")
+#make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000037.nc","figs/2d_bc_comp_36.pdf","36 hours")
+#make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000043.nc","figs/2d_bc_comp_42.pdf","42 hours")
+#make_plot("../../new_cond/start_up2_comp/urban_plume_wc_0001_00000049.nc","figs/2d_bc_comp_48.pdf","48 hours")
 
-make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000031.nc","figs/2d_bc_both_30.pdf","30 hours")
-make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000037.nc","figs/2d_bc_both_36.pdf","36 hours")
-make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000043.nc","figs/2d_bc_both_42.pdf","42 hours")
-make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000049.nc","figs/2d_bc_both_48.pdf","48 hours")
+#make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000031.nc","figs/2d_bc_size_30.pdf","30 hours")
+#make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000037.nc","figs/2d_bc_size_36.pdf","36 hours")
+#make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000043.nc","figs/2d_bc_size_42.pdf","42 hours")
+#make_plot("../../new_cond/start_up2_size/urban_plume_wc_0001_00000049.nc","figs/2d_bc_size_48.pdf","48 hours")
+
+#make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000031.nc","figs/2d_bc_both_30.pdf","30 hours")
+#make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000037.nc","figs/2d_bc_both_36.pdf","36 hours")
+#make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000043.nc","figs/2d_bc_both_42.pdf","42 hours")
+#make_plot("../../new_cond/start_up2_both/urban_plume_wc_0001_00000049.nc","figs/2d_bc_both_48.pdf","48 hours")

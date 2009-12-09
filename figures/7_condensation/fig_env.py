@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-maximum_ss = np.zeros([4,8])
+maximum_ss = np.zeros([4,48])
  
 def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     print in_dir, in_file_pattern
@@ -19,7 +19,7 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     rh = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
     temp = [env_state_history[i][1].temperature for i in range(len(env_state_history))]
     
-    print title, (max(rh) - 1)*100.
+    print title, temp, rh, (max(rh) - 1)*100.
     
     maximum_ss[max_ss_i, max_ss_j] = (max(rh) - 1)*100.
 
@@ -33,41 +33,31 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
+for counter in range(1,50):
+    print "counter = ", counter
+    
+    dir_name = "../../new_cond/out"
+    filename_in1 = "cond_%02d_ref_0001_.*.nc" % counter
+    filename_in2 = "cond_%02d_comp_0001_.*.nc" % counter
+    filename_in3 = "cond_%02d_size_0001_.*.nc" % counter
+    filename_in4 = "cond_%02d_both_0001_.*.nc" % counter
 
-make_plot("../../new_cond/out_up2","cond_1_0001_.*.nc","figs/env_01.pdf","1 hours", 0, 0)
-make_plot("../../new_cond/out_up2","cond_2_0001_.*.nc","figs/env_07.pdf","7 hours", 0, 1)
-make_plot("../../new_cond/out_up2","cond_3_0001_.*.nc","figs/env_15.pdf","15 hours", 0, 2)
-make_plot("../../new_cond/out_up2","cond_4_0001_.*.nc","figs/env_24.pdf","24 hours", 0, 3)
-make_plot("../../new_cond/out_up2","cond_5_0001_.*.nc","figs/env_30.pdf","30 hours", 0, 4)
-make_plot("../../new_cond/out_up2","cond_6_0001_.*.nc","figs/env_36.pdf","36 hours", 0, 5)
-make_plot("../../new_cond/out_up2","cond_7_0001_.*.nc","figs/env_42.pdf","42 hours", 0, 6)
-make_plot("../../new_cond/out_up2","cond_8_0001_.*.nc","figs/env_48.pdf","48 hours", 0, 7)
+    filename_out1 = "figs/env_ref_%02d.pdf" % (counter-1)
+    filename_out2 = "figs/env_comp_%02d.pdf" % (counter-1)
+    filename_out3 = "figs/env_size_%02d.pdf" % (counter-1)
+    filename_out4 = "figs/env_both_%02d.pdf" % (counter-1)
 
-make_plot("../../new_cond/out_up2_comp","cond_1_0001_.*.nc","figs/env_comp_01.pdf","1 hours", 1, 0)
-make_plot("../../new_cond/out_up2_comp","cond_2_0001_.*.nc","figs/env_comp_07.pdf","7 hours", 1, 1)
-make_plot("../../new_cond/out_up2_comp","cond_3_0001_.*.nc","figs/env_comp_15.pdf","15 hours", 1, 2)
-make_plot("../../new_cond/out_up2_comp","cond_4_0001_.*.nc","figs/env_comp_24.pdf","24 hours", 1, 3)
-make_plot("../../new_cond/out_up2_comp","cond_5_0001_.*.nc","figs/env_comp_30.pdf","30 hours", 1, 4)
-make_plot("../../new_cond/out_up2_comp","cond_6_0001_.*.nc","figs/env_comp_36.pdf","36 hours", 1, 5)
-make_plot("../../new_cond/out_up2_comp","cond_7_0001_.*.nc","figs/env_comp_42.pdf","42 hours", 1, 6)
-make_plot("../../new_cond/out_up2_comp","cond_8_0001_.*.nc","figs/env_comp_48.pdf","48 hours", 1, 7)
+    title = " %02d hours" % (counter-1)
 
-make_plot("../../new_cond/out_up2_size","cond_1_0001_.*.nc","figs/env_size_01.pdf","1 hours", 2, 0)
-make_plot("../../new_cond/out_up2_size","cond_2_0001_.*.nc","figs/env_size_07.pdf","7 hours", 2, 1)
-make_plot("../../new_cond/out_up2_size","cond_3_0001_.*.nc","figs/env_size_15.pdf","15 hours", 2, 2)
-make_plot("../../new_cond/out_up2_size","cond_4_0001_.*.nc","figs/env_size_24.pdf","24 hours", 2, 3)
-make_plot("../../new_cond/out_up2_size","cond_5_0001_.*.nc","figs/env_size_30.pdf","30 hours", 2, 4)
-make_plot("../../new_cond/out_up2_size","cond_6_0001_.*.nc","figs/env_size_36.pdf","36 hours", 2, 5)
-make_plot("../../new_cond/out_up2_size","cond_7_0001_.*.nc","figs/env_size_42.pdf","42 hours", 2, 6)
-make_plot("../../new_cond/out_up2_size","cond_8_0001_.*.nc","figs/env_size_48.pdf","48 hours", 2, 7)
+    print dir_name, title
+    print filename_in1, filename_out1
+    print filename_in2, filename_out2
+    print filename_in3, filename_out3
+    print filename_in4, filename_out4
 
-make_plot("../../new_cond/out_up2_both","cond_1_0001_.*.nc","figs/env_both_01.pdf","1 hours", 3, 0)
-make_plot("../../new_cond/out_up2_both","cond_2_0001_.*.nc","figs/env_both_07.pdf","7 hours", 3, 1)
-make_plot("../../new_cond/out_up2_both","cond_3_0001_.*.nc","figs/env_both_15.pdf","15 hours", 3, 2)
-make_plot("../../new_cond/out_up2_both","cond_4_0001_.*.nc","figs/env_both_24.pdf","24 hours", 3, 3)
-make_plot("../../new_cond/out_up2_both","cond_5_0001_.*.nc","figs/env_both_30.pdf","30 hours", 3, 4)
-make_plot("../../new_cond/out_up2_both","cond_6_0001_.*.nc","figs/env_both_36.pdf","36 hours", 3, 5)
-make_plot("../../new_cond/out_up2_both","cond_7_0001_.*.nc","figs/env_both_42.pdf","42 hours", 3, 6)
-make_plot("../../new_cond/out_up2_both","cond_8_0001_.*.nc","figs/env_both_48.pdf","48 hours", 3, 7)
+    make_plot(dir_name,filename_in1, filename_out1, title, 0, counter-1)
+    make_plot(dir_name,filename_in2, filename_out2, title, 1, counter-1)
+    make_plot(dir_name,filename_in3, filename_out3, title, 2, counter-1)
+    make_plot(dir_name,filename_in4, filename_out4, title, 3, counter-1)
 
 np.savetxt("data/maximum_ss.txt", maximum_ss)

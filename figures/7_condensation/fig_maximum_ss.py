@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -12,14 +12,18 @@ import pmc_data_nc
 a = np.loadtxt("data/maximum_ss.txt")
 b = np.loadtxt("data/ccn_cn_ratio.txt")
 
-time = [1, 7, 15, 24, 30, 36, 42, 48]
+print a
+
+time = range(0,49)
+
+print time
 
 plt.clf()
 plt.plot(time,a[0,:], "*", label = "ref")
 plt.plot(time,a[1,:], "*", label = "comp")
 plt.plot(time,a[2,:], "*", label = "size")
 plt.plot(time,a[3,:], "*", label = "both")
-plt.legend(loc = 'upper right')
+plt.legend(loc = 'lower right')
 fig = plt.gcf()
 plt.xlabel("time (hour)")
 plt.ylabel("maximum supersaturation (%)")

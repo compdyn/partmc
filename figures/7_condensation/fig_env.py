@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-maximum_ss = np.zeros([4,48])
+maximum_ss = np.zeros([4,49])
  
 def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     print in_dir, in_file_pattern
@@ -19,7 +19,7 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     rh = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
     temp = [env_state_history[i][1].temperature for i in range(len(env_state_history))]
     
-    print title, temp, rh, (max(rh) - 1)*100.
+    print title, (max(rh) - 1)*100.
     
     maximum_ss[max_ss_i, max_ss_j] = (max(rh) - 1)*100.
 
@@ -33,7 +33,7 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for counter in range(1,50):
+for counter in range(1,49):
     print "counter = ", counter
     
     dir_name = "../../new_cond/out"

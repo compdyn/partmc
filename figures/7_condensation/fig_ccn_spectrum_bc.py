@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -17,7 +17,7 @@ particles = pmc_data_nc.aero_particle_array_t(ncf)
 env_state = pmc_data_nc.env_state_t(ncf)
 ncf.close()
 
-s_crit = (particles.kappa_rh(env_state, const) - 1)*100
+s_crit = (particles.critical_rh(env_state, const) - 1)*100
 bc = particles.mass(include = ["BC"])
 total_bc = sum(bc)
 ss_array = np.logspace(-2,1,100)

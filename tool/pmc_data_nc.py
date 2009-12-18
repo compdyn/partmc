@@ -726,7 +726,7 @@ def find_nearest_time(time_indexed_data, search_time):
             min_i = i
     return min_i
 
-def file_filename_at_time(time_filename_list, search_time):
+def find_filename_at_time(time_filename_list, search_time):
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
 

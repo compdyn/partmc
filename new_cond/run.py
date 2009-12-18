@@ -3,7 +3,7 @@ import subprocess
 
 str_exec = "../build/partmc"
 
-for hour in range(1, 49):
+for hour in range(1, 50):
     print "hour = ", hour
     
     spec_file_ref = "spec/cond_%02d_ref.spec" % hour

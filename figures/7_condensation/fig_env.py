@@ -33,19 +33,19 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for counter in range(1,49):
+for counter in range(1,41):
     print "counter = ", counter
     
     dir_name = "../../new_cond/out"
-    filename_in1 = "cond_%02d_ref_0001_.*.nc" % counter
-    filename_in2 = "cond_%02d_comp_0001_.*.nc" % counter
-    filename_in3 = "cond_%02d_size_0001_.*.nc" % counter
-    filename_in4 = "cond_%02d_both_0001_.*.nc" % counter
+    filename_in1 = "cond_wc_%02d_ref_0001_.*.nc" % counter
+    filename_in2 = "cond_wc_%02d_comp_0001_.*.nc" % counter
+    filename_in3 = "cond_wc_%02d_size_0001_.*.nc" % counter
+    filename_in4 = "cond_wc_%02d_both_0001_.*.nc" % counter
 
-    filename_out1 = "figs/env_ref_%02d.pdf" % (counter-1)
-    filename_out2 = "figs/env_comp_%02d.pdf" % (counter-1)
-    filename_out3 = "figs/env_size_%02d.pdf" % (counter-1)
-    filename_out4 = "figs/env_both_%02d.pdf" % (counter-1)
+    filename_out1 = "figs/env_wc_ref_%02d.pdf" % (counter-1)
+    filename_out2 = "figs/env_wc_comp_%02d.pdf" % (counter-1)
+    filename_out3 = "figs/env_wc_size_%02d.pdf" % (counter-1)
+    filename_out4 = "figs/env_wc_both_%02d.pdf" % (counter-1)
 
     title = " %02d hours" % (counter-1)
 

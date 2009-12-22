@@ -9,10 +9,8 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-a = np.loadtxt("data/maximum_ss.txt")
-b = np.loadtxt("data/ccn_cn_ratio.txt")
-
-print a
+a = np.loadtxt("data/maximum_ss_wc.txt")
+b = np.loadtxt("data/ccn_cn_ratio_wc.txt")
 
 time = range(0,49)
 
@@ -27,7 +25,7 @@ plt.legend(loc = 'lower right')
 fig = plt.gcf()
 plt.xlabel("time (hour)")
 plt.ylabel("maximum supersaturation (%)")
-fig.savefig("figs/maximum_ss.pdf")
+fig.savefig("figs/maximum_ss_wc.pdf")
 
 plt.clf()
 plt.plot(time,b[0,:], label = "ref")
@@ -38,7 +36,7 @@ plt.legend(loc = 'upper left')
 fig = plt.gcf()
 plt.xlabel("time (hour)")
 plt.ylabel("ccn/cn")
-fig.savefig("figs/ccn_cn_ratio.pdf")
+fig.savefig("figs/ccn_cn_ratio_wc.pdf")
 
 
 

@@ -51,16 +51,16 @@ def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename, ti
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for counter in range(1,49):
+for counter in range(1,41):
     print "counter = ", counter
 
     dir_name = "../../new_cond/out/"
 
-    filename_in1 = "cond_%02d_ref_0001_00000001.nc" % counter
-    filename_in2 = "cond_%02d_ref_0001_00000121.nc" % counter
-    filename_in3 = "cond_%02d_ref_0001_00000601.nc" % counter
+    filename_in1 = "cond_wc_%02d_ref_0001_00000001.nc" % counter
+    filename_in2 = "cond_wc_%02d_ref_0001_00000121.nc" % counter
+    filename_in3 = "cond_wc_%02d_ref_0001_00000601.nc" % counter
 
-    filename_out = "figs/1d_num_%02d_ref.pdf" % (counter - 1)
+    filename_out = "figs/1d_wc_num_%02d_ref.pdf" % (counter - 1)
     title = "%02d hours" % (counter - 1)
 
     print dir_name, title
@@ -68,11 +68,11 @@ for counter in range(1,49):
     print filename_out
 
     make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out, title, 0, counter-1)
-    filename_in1 = "cond_%02d_comp_0001_00000001.nc" % counter
-    filename_in2 = "cond_%02d_comp_0001_00000121.nc" % counter
-    filename_in3 = "cond_%02d_comp_0001_00000601.nc" % counter
+    filename_in1 = "cond_wc_%02d_comp_0001_00000001.nc" % counter
+    filename_in2 = "cond_wc_%02d_comp_0001_00000121.nc" % counter
+    filename_in3 = "cond_wc_%02d_comp_0001_00000601.nc" % counter
 
-    filename_out = "figs/1d_num_%02d_comp.pdf" % (counter - 1)
+    filename_out = "figs/1d_wc_num_%02d_comp.pdf" % (counter - 1)
     title = "%02d hours" % (counter - 1)
 
     print dir_name, title
@@ -81,11 +81,11 @@ for counter in range(1,49):
 
     make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out, title, 1, counter-1)
 
-    filename_in1 = "cond_%02d_size_0001_00000001.nc" % counter
-    filename_in2 = "cond_%02d_size_0001_00000121.nc" % counter
-    filename_in3 = "cond_%02d_size_0001_00000601.nc" % counter
+    filename_in1 = "cond_wc_%02d_size_0001_00000001.nc" % counter
+    filename_in2 = "cond_wc_%02d_size_0001_00000121.nc" % counter
+    filename_in3 = "cond_wc_%02d_size_0001_00000601.nc" % counter
 
-    filename_out = "figs/1d_num_%02d_size.pdf" % (counter - 1)
+    filename_out = "figs/1d_wc_num_%02d_size.pdf" % (counter - 1)
     title = "%02d hours" % (counter - 1)
 
     print dir_name, title
@@ -94,11 +94,11 @@ for counter in range(1,49):
 
     make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out, title, 2, counter-1)
     
-    filename_in1 = "cond_%02d_both_0001_00000001.nc" % counter
-    filename_in2 = "cond_%02d_both_0001_00000121.nc" % counter
-    filename_in3 = "cond_%02d_both_0001_00000601.nc" % counter
+    filename_in1 = "cond_wc_%02d_both_0001_00000001.nc" % counter
+    filename_in2 = "cond_wc_%02d_both_0001_00000121.nc" % counter
+    filename_in3 = "cond_wc_%02d_both_0001_00000601.nc" % counter
 
-    filename_out = "figs/1d_num_%02d_both.pdf" % (counter - 1)
+    filename_out = "figs/1d_wc_num_%02d_both.pdf" % (counter - 1)
     title = "%02d hours" % (counter - 1)
 
     print dir_name, title
@@ -107,4 +107,4 @@ for counter in range(1,49):
 
     make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out, title, 3, counter-1)
 
-np.savetxt("data/ccn_cn_ratio.txt", ccn_cn_ratio)
+np.savetxt("data/ccn_cn_ratio_wc.txt", ccn_cn_ratio)

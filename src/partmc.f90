@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -203,6 +203,7 @@ contains
        call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
        call spec_file_read_string(file, 'kernel', kernel_name)
+       call spec_file_read_string(file, 'nucleate', part_opt%nucleate_type)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -97,14 +97,14 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Name of species to find.
-    character(len=GAS_NAME_LEN), intent(in) :: name
+    character(len=*), intent(in) :: name
 
     integer i
     logical found
 
     found = .false.
     do i = 1,gas_data%n_spec
-       if (index(name, gas_data%name(i)) == 1) then
+       if (name == gas_data%name(i)) then
           found = .true.
           exit
        end if

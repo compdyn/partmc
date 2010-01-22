@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -41,18 +41,18 @@ module pmc_aero_data
      integer :: n_spec
      !> Water species number (0 if water is not a species).
      integer :: i_water
-     !> Len n_spec, species.
+     !> Len n_spec, species names.
      character(len=AERO_NAME_LEN), pointer :: name(:)
      !> Length n_spec, mosaic_index(i) a positive integer giving the
      !> mosaic index of species i, or 0 if there is no match.
      integer, pointer :: mosaic_index(:)
      !> Len n_spec, densities (kg m^{-3}).
      real(kind=dp), pointer ::  density(:)
-     !> Len n_spec, num ions in solute.
+     !> Len n_spec, number of ions in solute.
      integer, pointer :: num_ions(:)
      !> Len n_spec, solubilities (1).
      real(kind=dp), pointer :: solubility(:)
-     !> Len n_spec, molc wghts (kg mole^{-1}).
+     !> Len n_spec, molecular weights (kg mol^{-1}).
      real(kind=dp), pointer :: molec_weight(:)
      !> Len n_spec, kappas (1).
      real(kind=dp), pointer :: kappa(:)
@@ -154,14 +154,14 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Name of species to find.
-    character(len=AERO_NAME_LEN), intent(in) :: name
+    character(len=*), intent(in) :: name
 
     integer i
     logical found
 
     found = .false.
     do i = 1,aero_data%n_spec
-       if (index(name, aero_data%name(i)) == 1) then
+       if (name == aero_data%name(i)) then
           found = .true.
           exit
        end if

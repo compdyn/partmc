@@ -3,6 +3,7 @@ output_prefix out/golovin_part  # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 100000                   # number of Monte Carlo particles
 kernel golovin                  # coagulation kernel
+nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)

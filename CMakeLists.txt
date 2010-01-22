@@ -209,7 +209,7 @@ set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/coagulation_mpi_equal.f90 src/kernel.f90 src/spec_line.f90
   src/spec_file.f90 src/rand.f90 src/aero_particle.f90
   src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-  src/aero_info.f90 src/aero_info_array.f90)
+  src/aero_info.f90 src/aero_info_array.f90 src/nucleate.f90)
 
 set_source_files_properties(${PARTMC_SRC}
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})

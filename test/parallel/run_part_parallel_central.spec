@@ -3,6 +3,7 @@ output_prefix out/parallel_central # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel
+nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)

@@ -59,8 +59,9 @@ program test_nucleate_ode
   n_step = nint(t_max / del_t) + 1
   aero_conc = 0d0
   write(*,'(a8,a14,a14)') 'time', 'aero_conc', 'h2so4_conc'
-  write(*,'(f8.1,e14.5,e14.5)') time, aero_conc, h2so4_conc * conc_to_ppb
-  write(out_unit,'(e20.10,e20.10,e20.10)') time, aero_conc, h2so4_conc
+  write(*,'(f8.1,e14.5,e14.5)') time, aero_conc, h2so4_conc
+  write(out_unit,'(e20.10,e20.10,e20.10)') &
+       time, aero_conc, h2so4_conc * conc_to_ppb
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call nucleate_step(h2so4_conc, del_t)

@@ -241,6 +241,12 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 set_source_files_properties(test/bidisperse/test_bidisperse_extract.f90
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
 
+add_executable(test_nucleate_ode
+               test/nucleate/test_nucleate_ode.f90 src/util.f90
+	       src/constants.f90)
+set_source_files_properties(test/nucleate/test_nucleate_ode.f90
+  PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
+
 add_executable(test_poisson_sample test/poisson/test_poisson_sample.f90
                src/util.f90 src/rand.f90 src/constants.f90)
 target_link_libraries(test_poisson_sample)

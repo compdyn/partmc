@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(PARTMC Fortran)
+project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -64,6 +64,54 @@ endif(NETCDF_FORTRAN_LIB)
 
 ######################################################################
 
+find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
+  DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
+  PATHS
+  /include
+  /usr/include
+  /usr/local/include
+  /opt/include
+  /usr/lib64/gfortran/modules
+  /usr/lib/gfortran/modules
+  /sw/include
+  /sw/lib/netcdf-gfortran/include
+  /sw/lib/netcdf-g95/include
+  /usr/include/netcdf
+  $ENV{HOME}/include
+  $ENV{HOME}/opt/include)
+find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
+  DOC "SUNDIALS serial vector library"
+  PATHS
+  /usr/lib
+  /usr/lib64
+  /usr/local/lib
+  /usr/local/lib64
+  /sw/lib
+  /sw/lib/netcdf-gfortran/lib
+  /sw/lib/netcdf-g95/lib
+  $ENV{HOME}/lib
+  $ENV{HOME}/lib64
+  $ENV{HOME}/opt/lib
+  $ENV{HOME}/opt/lib64)
+find_library(SUNDIALS_CVODE_LIB sundials_cvode
+  DOC "SUNDIALS CVODE library"
+  PATHS
+  /usr/lib
+  /usr/lib64
+  /usr/local/lib
+  /usr/local/lib64
+  /sw/lib
+  /sw/lib/netcdf-gfortran/lib
+  /sw/lib/netcdf-g95/lib
+  $ENV{HOME}/lib
+  $ENV{HOME}/lib64
+  $ENV{HOME}/opt/lib
+  $ENV{HOME}/opt/lib64)
+
+set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
+
+######################################################################
+
 find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
   DOC "MOSAIC include directory"
   PATHS
@@ -93,6 +141,9 @@ set(EXTRA_LIBS)
 
 include_directories(${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIBS})
+
+include_directories(${SUNDIALS_INCLUDE_DIR})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${SUNDIALS_LIBS})
 
 if(ENABLE_MOSAIC)
   include_directories(${MOSAIC_INCLUDE_DIR})
@@ -216,7 +267,8 @@ set_source_files_properties(${PARTMC_SRC}
 set_source_files_properties(src/dvode_f90_m.f90
   PROPERTIES COMPILE_FLAGS ${LEGACY_COMPILER_FLAGS})
 
-add_executable(partmc ${PARTMC_SRC} src/dvode_f90_m.f90)
+add_executable(partmc ${PARTMC_SRC} src/dvode_f90_m.f90
+  src/condense_solver.c)
 target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################

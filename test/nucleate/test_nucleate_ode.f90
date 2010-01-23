@@ -44,10 +44,14 @@ program test_nucleate_ode
   real(kind=dp), parameter :: del_t = 1d0
   !> How often to print progress (s).
   real(kind=dp), parameter :: t_progress = 60d0
-  !> Output unit number.
-  integer, parameter :: out_unit = 33
-  !> Output filename.
-  character(len=*), parameter :: out_name = "out/nucleate_ode.txt"
+  !> Output unit number for gas mixing ratio.
+  integer, parameter :: unit_gas = 33
+  !> Output unit number for aerosol mass.
+  integer, parameter :: unit_aero = 34
+  !> Output filename for gas mixing ratio.
+  character(len=*), parameter :: name_gas = "out/nucleate_ode_gas.txt"
+  !> Output filename for aerosol mass.
+  character(len=*), parameter :: name_aero = "out/nucleate_ode_aero.txt"
 
   real(kind=dp) :: init_h2so4_conc ! molecules / m^3
   real(kind=dp) :: nucleate_vol    ! m^3
@@ -63,7 +67,8 @@ program test_nucleate_ode
   nucleate_vol = const%pi / 6d0 * nucleate_diam**3
   so4_molec_dens = so4_dens / so4_molar_weight * const%avagadro
 
-  open(unit=out_unit, file=out_name)
+  open(unit=unit_gas, file=name_gas)
+  open(unit=unit_aero, file=name_aero)
   time = 0d0
   h2so4_conc = init_h2so4_conc
   n_step = nint(t_max / del_t) + 1
@@ -75,8 +80,10 @@ program test_nucleate_ode
        'time', 'aero_mass_conc', 'h2so4_mix_rat'
   write(*,'(e20.10,e20.10,e20.10)') &
        time, aero_mass_conc, h2so4_mix_rat
-  write(out_unit,'(e20.10,e20.10,e20.10)') &
-       time, aero_mass_conc, h2so4_mix_rat
+  write(unit_gas,'(e20.10,e20.10)') &
+       time, h2so4_mix_rat
+  write(unit_aero,'(e20.10,e20.10,e20.10)') &
+       time, aero_mass_conc, 0d0
 
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
@@ -90,12 +97,15 @@ program test_nucleate_ode
              'time', 'aero_mass_conc', 'h2so4_mix_rat'
         write(*,'(e20.10,e20.10,e20.10)') &
              time, aero_mass_conc, h2so4_mix_rat
-        write(out_unit,'(e20.10,e20.10,e20.10)') &
-             time, aero_mass_conc, h2so4_mix_rat
+        write(unit_gas,'(e20.10,e20.10)') &
+             time, h2so4_mix_rat
+        write(unit_aero,'(e20.10,e20.10,e20.10)') &
+             time, aero_mass_conc, 0d0
      end if
   end do
 
-  close(out_unit)
+  close(unit_gas)
+  close(unit_aero)
   
 contains
   

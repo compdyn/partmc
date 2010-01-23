@@ -24,9 +24,12 @@ program test_nucleate_ode
   use pmc_constants
 
   !> Conversion from (molecules m^{-3}) to (ppb).
-  real(kind=dp), parameter :: conc_to_ppb = 3.977d-5
-  !> Sulfate molecular density (molecules m^{-3}).
-  real(kind=dp), parameter :: so4_molec_dens = 1.129151585625d28
+  real(kind=dp), parameter :: conc_to_ppb = 3.977d-17
+
+  !> Sulfate density (kg m^{-3}).
+  real(kind=dp), parameter :: so4_dens = 1800d0
+  !> Sulfate molar weight (kg mol^{-1}).
+  real(kind=dp), parameter :: so4_molar_weight = 96d-3
 
   !> Coefficent for nucleation rate (m^3 s^{-1}).
   real(kind=dp), parameter :: nucleate_coeff = 1d-18
@@ -46,32 +49,49 @@ program test_nucleate_ode
   !> Output filename.
   character(len=*), parameter :: out_name = "out/nucleate_ode.txt"
 
-  real(kind=dp) :: init_h2so4_conc, nucleate_vol
-  real(kind=dp) :: time, h2so4_conc, aero_conc
+  real(kind=dp) :: init_h2so4_conc ! molecules / m^3
+  real(kind=dp) :: nucleate_vol    ! m^3
+  real(kind=dp) :: time            ! s
+  real(kind=dp) :: h2so4_conc      ! molecules / m^3
+  real(kind=dp) :: h2so4_mix_rat   ! ppb
+  real(kind=dp) :: aero_conc       ! particles / m^3
+  real(kind=dp) :: aero_mass_conc  ! kg / m^3
+  real(kind=dp) :: so4_molec_dens  ! molecules m^{-3}
   integer :: n_step, i_step
 
   init_h2so4_conc = init_h2so4_mix_rat / conc_to_ppb
   nucleate_vol = const%pi / 6d0 * nucleate_diam**3
+  so4_molec_dens = so4_dens / so4_molar_weight * const%avagadro
 
   open(unit=out_unit, file=out_name)
   time = 0d0
   h2so4_conc = init_h2so4_conc
   n_step = nint(t_max / del_t) + 1
   aero_conc = 0d0
-  write(*,'(a8,a14,a14)') 'time', 'aero_conc', 'h2so4_conc'
-  write(*,'(f8.1,e14.5,e14.5)') time, aero_conc, h2so4_conc
+
+  h2so4_mix_rat = h2so4_conc * conc_to_ppb
+  aero_mass_conc = aero_conc * nucleate_vol * so4_dens
+  write(*,'(a20,a20,a20)') &
+       'time', 'aero_mass_conc', 'h2so4_mix_rat'
+  write(*,'(e20.10,e20.10,e20.10)') &
+       time, aero_mass_conc, h2so4_mix_rat
   write(out_unit,'(e20.10,e20.10,e20.10)') &
-       time, aero_conc, h2so4_conc * conc_to_ppb
+       time, aero_mass_conc, h2so4_mix_rat
+
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call nucleate_step(h2so4_conc, del_t)
      aero_conc = (init_h2so4_conc - h2so4_conc) / nucleate_vol &
           / so4_molec_dens
      if (mod(i_step - 1, nint(t_progress / del_t)) .eq. 0) then
-        write(*,'(a8,a14,a14)') 'time', 'aero_conc', 'h2so4_conc'
-        write(*,'(f8.1,e14.5,e14.5)') time, aero_conc, h2so4_conc
+        h2so4_mix_rat = h2so4_conc * conc_to_ppb
+        aero_mass_conc = aero_conc * nucleate_vol * so4_dens
+        write(*,'(a20,a20,a20)') &
+             'time', 'aero_mass_conc', 'h2so4_mix_rat'
+        write(*,'(e20.10,e20.10,e20.10)') &
+             time, aero_mass_conc, h2so4_mix_rat
         write(out_unit,'(e20.10,e20.10,e20.10)') &
-             time, aero_conc, h2so4_conc * conc_to_ppb
+             time, aero_mass_conc, h2so4_mix_rat
      end if
   end do
 

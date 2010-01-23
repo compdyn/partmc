@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -302,7 +302,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Air molar density (mole m^{-3}).
+  !> Air molar density (mol m^{-3}).
   real(kind=dp) function env_state_air_molar_den(env_state)
 
     !> Environment state.
@@ -315,7 +315,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert (mole m^{-3}) to (ppb).
+  !> Convert (mol m^{-3}) to (ppb).
   subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
 
     !> Gas state.
@@ -327,6 +327,36 @@ contains
          / env_state_air_molar_den(env_state) * 1d9
     
   end subroutine gas_state_mole_dens_to_ppb
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert (ppb) to (molecules m^{-3}).
+  real(kind=dp) function env_state_ppb_to_conc(env_state, ppb)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Mixing ratio (ppb).
+    real(kind=dp), intent(in) :: ppb
+
+    env_state_ppb_to_conc = ppb / 1d9 * env_state_air_molar_den(env_state) &
+         * const%avagadro
+
+  end function env_state_ppb_to_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert (molecules m^{-3}) to (ppb).
+  real(kind=dp) function env_state_conc_to_ppb(env_state, conc)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Concentration (molecules m^{-3}).
+    real(kind=dp), intent(in) :: conc
+
+    env_state_conc_to_ppb = conc * 1d9 / env_state_air_molar_den(env_state) &
+         / const%avagadro
+
+  end function env_state_conc_to_ppb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -361,7 +391,7 @@ contains
     end if
 
     ! emission = delta_t * gas_emission_rate * gas_emissions
-    ! but emissions are in (mole m^{-2} s^{-1})
+    ! but emissions are in (mol m^{-2} s^{-1})
     call gas_state_copy(env_state%gas_emissions, emission)
     call gas_state_scale(emission, 1d0 / env_state%height)
     call gas_state_mole_dens_to_ppb(emission, env_state)

@@ -1,0 +1,6 @@
+mode_name back1                 # name of mode source
+mass_frac aero_back_comp.dat    # species mass fractions
+num_conc 1e9                    # particle number concentration (#/m^3)
+mode_type mono                  # type of distribution
+radius 5e-5                     # radius (m)
+

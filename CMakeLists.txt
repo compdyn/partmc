@@ -166,6 +166,8 @@ add_test(golovin_1 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_1.sh)
 add_test(golovin_2 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_2.sh)
 add_test(condense_1 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_1.sh)
 add_test(condense_2 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_2.sh)
+add_test(nucleate_1 ${CMAKE_BINARY_DIR}/run_test/nucleate/run_test_1.sh)
+add_test(nucleate_2 ${CMAKE_BINARY_DIR}/run_test/nucleate/run_test_2.sh)
 if(ENABLE_MOSAIC)
   add_test(mosaic_01 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_01.sh)
   add_test(mosaic_02 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_02.sh)
@@ -209,7 +211,7 @@ set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/coagulation_mpi_equal.f90 src/kernel.f90 src/spec_line.f90
   src/spec_file.f90 src/rand.f90 src/aero_particle.f90
   src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-  src/aero_info.f90 src/aero_info_array.f90)
+  src/aero_info.f90 src/aero_info_array.f90 src/nucleate.f90)
 
 set_source_files_properties(${PARTMC_SRC}
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
@@ -239,6 +241,12 @@ add_executable(test_bidisperse_extract
                test/bidisperse/test_bidisperse_extract.f90)
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 set_source_files_properties(test/bidisperse/test_bidisperse_extract.f90
+  PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
+
+add_executable(test_nucleate_ode
+               test/nucleate/test_nucleate_ode.f90 src/util.f90
+	       src/constants.f90)
+set_source_files_properties(test/nucleate/test_nucleate_ode.f90
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
 
 add_executable(test_poisson_sample test/poisson/test_poisson_sample.f90

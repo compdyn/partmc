@@ -1,0 +1,5 @@
+mode_name emit1                 # name of mode source
+mass_frac aero_emit_comp.dat    # species mass fractions
+num_conc 1e12                   # particle number concentration (#/m^2)
+mode_type mono                  # type of distribution
+radius 1e-7                     # radius (m)

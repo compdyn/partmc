@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -23,6 +23,7 @@ module pmc_run_part
   use pmc_coagulation_mpi_controlled
   use pmc_coagulation_mpi_equal
   use pmc_kernel
+  use pmc_nucleate
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -44,6 +45,8 @@ module pmc_run_part
     real(kind=dp) :: del_t
     !> Prefix for output files.
     character(len=300) :: output_prefix
+    !> Type of nucleation.
+    character(len=300) :: nucleate_type
     !> Whether to do coagulation.
     logical :: do_coagulation
     !> Allow doubling if needed.
@@ -200,6 +203,8 @@ contains
        update_rel_humid = .not. part_opt%do_condensation
        call env_data_update_state(env_data, env_state, time + t_start, &
             update_rel_humid)
+       call nucleate(part_opt%nucleate_type, bin_grid, env_state, gas_data, &
+            aero_data, aero_state, gas_state, part_opt%del_t)
 
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then

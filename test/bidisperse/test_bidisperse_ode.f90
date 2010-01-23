@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -17,14 +17,14 @@
 ! a one-dimensional ODE which we treat as being defined in terms of
 ! the current number of small particles.
 
-program bidisperse_ode
+program test_bidisperse_ode
   
   use pmc_kernel_sedi
   use pmc_env_state
   use pmc_util
   use pmc_bin_grid
 
-  ! Radius of one small particle (m).
+  !> Radius of one small particle (m).
   real(kind=dp), parameter :: r_small = 1d-5
   !> Initial radius of big particle (m^3).
   real(kind=dp), parameter :: r_big_init = 1d-4
@@ -32,11 +32,11 @@ program bidisperse_ode
   real(kind=dp), parameter :: n_small_init = 10000d0
   !> Particle density (kg/m^3).
   real(kind=dp), parameter :: density = 1000d0
-  !> Total simulation time.
+  !> Total simulation time (s).
   real(kind=dp), parameter :: t_max = 600d0
-  !> Timestep.
+  !> Timestep (s).
   real(kind=dp), parameter :: del_t = 0.001d0
-  !> How often to print progress.
+  !> How often to print progress (s).
   real(kind=dp), parameter :: t_progress = 10d0
   !> Particle number conc (#/m^3).
   real(kind=dp), parameter :: num_conc_small = 1d9
@@ -189,4 +189,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end program bidisperse_ode
+end program test_bidisperse_ode

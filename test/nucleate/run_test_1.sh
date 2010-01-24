@@ -6,12 +6,12 @@ cd ${0%/*}
 echo "../../partmc run_part.spec"
 ../../partmc run_part.spec
 
-echo "../../extract_aero_species out/nucleate_part_0001_ out/aero_species.txt"
-../../extract_aero_species out/nucleate_part_0001_ out/aero_species.txt
+echo "../../extract_aero_total out/nucleate_part_0001_ out/aero_total.txt"
+../../extract_aero_total out/nucleate_part_0001_ out/aero_total.txt
 
 echo "../../test_nucleate_ode"
 ../../test_nucleate_ode
 
-echo "../../numeric_diff out/aero_species.txt out/nucleate_ode_aero.txt 0 5e-2 0 0 2 0"
-../../numeric_diff out/aero_species.txt out/nucleate_ode_aero.txt 0 5e-2 0 0 2 0
+echo "../../numeric_diff out/aero_total.txt out/nucleate_ode_aero_number.txt 0 5e-2 0 0 2 0"
+../../numeric_diff out/aero_total.txt out/nucleate_ode_aero_number.txt 0 5e-2 0 0 2 0
 exit $?

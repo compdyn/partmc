@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -294,13 +294,40 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total radius of the particle (m).
+  real(kind=dp) function aero_particle_radius(aero_particle)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
+    aero_particle_radius = vol2rad(aero_particle_volume(aero_particle))
+
+  end function aero_particle_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Total dry radius of the particle (m).
+  real(kind=dp) function aero_particle_dry_radius(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    aero_particle_dry_radius = vol2rad( &
+         aero_particle_dry_volume(aero_particle, aero_data))
+
+  end function aero_particle_dry_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total diameter of the particle (m).
   real(kind=dp) function aero_particle_diameter(aero_particle)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    aero_particle_diameter = vol2diam(aero_particle_volume(aero_particle))
+    aero_particle_diameter = 2d0 * aero_particle_radius(aero_particle)
 
   end function aero_particle_diameter
 
@@ -314,8 +341,8 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    aero_particle_dry_diameter = vol2diam( &
-         aero_particle_dry_volume(aero_particle, aero_data))
+    aero_particle_dry_diameter &
+         = 2d0 * aero_particle_dry_radius(aero_particle)
 
   end function aero_particle_dry_diameter
 

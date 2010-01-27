@@ -34,12 +34,16 @@ Shift rand stuff from util.f90 to rand.f90.
 Add run_guid to netcdf output files and have extract_* programs check
 to make sure they are processing everything from a single run.
 
-Rename output_state_netcdf() to output_state().
+Rename output_state_netcdf() to output_state(). Also
+input_state_netcdf() to input_state()?
 
 Provide *_allocate() and *_deallocate() subroutines for all
 structures, even those that don't need them. Maybe just call *_zero()
 for allocation? In any case, compiler optimization should kill these
 off.
+
+Make all *_allocate() subroutines call *_zero() internally, and check
+that callers are not doing this themselves.
 
 Add flag to numeric_diff to compute errors row-wise, column-wise, or
 matrix-wise.
@@ -88,7 +92,7 @@ coagulation? Does this come in the right order?
 Sometimes cmake seems to rebuild even if no source files have changed
 at all?
 
-Change bins to have r_min, r_max as edges, not centers?
+Change bins to have r_min, r_max as edges, not centers.
 
 Document interpolation strategies. Emissions and background all use
 piecewise constant: for data d_1, d_2, ..., d_n at times t_1, t_2,
@@ -116,15 +120,10 @@ this out of aero_dist_init if they need it.
 soln_* should check that aero_dist_init and emissions, etc, are
 correct for the given analytic solution.
 
-Make sure every structure has a struct_zero() and that it's called
-from struct_alloc_size() and struct_alloc().
-
-Rename spec_read_struct() to struct_read_from_spec().
-
 Use wiki page to update CMakeLists.txt for Fortran:
 http://www.cmake.org/Wiki/CMakeForFortranExample
 
-Have proper cmake support for debug/optimized builds.
+Add proper cmake support for debug/optimized builds.
 
 Switch MPI send to not send the size first, but just do the send. The
 receiver can do an mpi_probe() to detect the size and allocate the
@@ -145,7 +144,7 @@ Don't pass unnecessary array size information (e.g. sample_cts_pdf).
 
 Add doxygen comments in partmc.f90 to produce a page describing the
 spec file formats, by having comments before each spec_file_read_*
-call.
+call. This may not be possible?
 
 Change numeric_average.f90 to be numeric_reduce.f90 with option
 "mean", "stddev", "min", "max", "median", "prank" (percentile rank).
@@ -168,3 +167,27 @@ const%water_density (also const%water_molec_weight).
 
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
+
+aero_weight needed by:
+aero_state_to_binned
+aero_state_to_binned_dry
+aero_state_output_netcdf <- output_state_* <- run_part, bin_average_*.f90
+aero_state_input_netcdf <- input_state_netcdf <- partmc, bin_average_*.f90
+aero_state_add_aero_dist_sample <- partmc, env_state_update_aero_state <- run_part
+
+Bin averaging should take aero_weight into account.
+
+Restart has to deal with aero_weight in some way. Just require
+aero_weight is the same as output? Can we check somehow?
+
+Don't store paricles as ragged array, but just as a flat list. For
+coagulation, pre-compute the bin structures as needed on every
+timestep, which we have to do if we are using chemistry or
+condensation anyway.
+
+Separate out everything from env_state, aero_state, etc, down into
+libpartmc, and have the top-level programs just as drivers.
+
+Separate out conensation into libcondense, using sundials as the
+solver and taking n_particle arrays of kappas, dry_diameters,
+water_mass, and returning new water_mass array.

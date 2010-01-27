@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 
 import Scientific.IO.NetCDF
 import sys
@@ -14,54 +14,58 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-def make_plot(in_dir, in_filename_wc, in_filename_nc, out_filename, title):
-    print in_dir
+def make_plot(in_dir, in_filename_wc, in_filename_nc, title, out_filename_wc, out_filename_nc):
+    print 'file ', in_dir+in_filename_wc
     
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename_wc)
+    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename_wc)
     particles_wc = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
     
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename_nc)
+    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename_nc)
     particles_nc = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
 
-    so4_wc =  particles_wc.mass(include = ["SO4"])
-    nh4_wc =  particles_wc.mass(include = ["NH4"]) 
-    scatter(so4_wc,nh4_wc) # colorscale log
-    a = gca() # gets the axis
+#    so4_wc =  particles_wc.mass(include = ["SO4"])/particles_wc.aero_data.molec_weight[0]
+#    nh4_wc =  particles_wc.mass(include = ["NH4"])/particles_wc.aero_data.molec_weight[3] 
+#    no3_wc =  particles_wc.mass(include = ["NO3"])/particles_wc.aero_data.molec_weight[1]
+
+    so4_nc =  particles_nc.mass(include = ["SO4"])/particles_nc.aero_data.molec_weight[0]
+    nh4_nc =  particles_nc.mass(include = ["NH4"])/particles_nc.aero_data.molec_weight[3] 
+    no3_nc =  particles_nc.mass(include = ["NO3"])/particles_nc.aero_data.molec_weight[1]  
+
+#    plt.scatter(nh4_wc, 2*so4_wc+no3_wc)
+    
+#    a = plt.gca() # gets the axis
+#    a.set_xscale("log") # x axis log
+#    a.set_yscale("log") # y axis log
+#    plt.axis([1e-25, 1e-15, 1e-25, 1e-15]) # axis limit
+
+#    plt.title(title)
+#    fig = plt.gcf()
+#    fig.savefig(out_filename_wc)
+
+    plt.scatter(nh4_nc, 2*so4_nc+no3_nc)
+    
+    a = plt.gca() # gets the axis
     a.set_xscale("log") # x axis log
     a.set_yscale("log") # y axis log
-    axis([1e-25, 1e-15, 1e-25, 1e-15]) # axis limit
+    plt.axis([1e-25, 1e-15, 1e-25, 1e-15]) # axis limit
 
     plt.title(title)
     fig = plt.gcf()
-    fig.savefig(out_filename)
+    fig.savefig(out_filename_nc)
 
-for counter in range(1,49):
+for counter in range(10,11):
     print "counter = ", counter
     
-    dir_name = "../../urban_plume2/out"
-    filename_in1 = "cond_%02d_ref_0001_.*.nc" % counter
-    filename_in2 = "cond_%02d_comp_0001_.*.nc" % counter
-    filename_in3 = "cond_%02d_size_0001_.*.nc" % counter
-    filename_in4 = "cond_%02d_both_0001_.*.nc" % counter
-
-    filename_out1 = "figs/env_ref_%02d.png" % (counter-1)
-    filename_out2 = "figs/env_comp_%02d.png" % (counter-1)
-    filename_out3 = "figs/env_size_%02d.png" % (counter-1)
-    filename_out4 = "figs/env_both_%02d.png" % (counter-1)
-
+    in_dir = "../../urban_plume2/out_no_nh3/"
+    in_filename_wc = "urban_plume_wc_0001_000000%02d.nc" % counter
+    in_filename_nc = "urban_plume_nc_0001_000000%02d.nc" % counter
     title = " %02d hours" % (counter-1)
+    out_filename_wc = "figs/scatter_mass_wc_%02d.pdf" % counter
+    out_filename_nc = "figs/scatter_mass_nc_%02d.pdf" % counter
 
-    print dir_name, title
-    print filename_in1, filename_out1
-    print filename_in2, filename_out2
-    print filename_in3, filename_out3
-    print filename_in4, filename_out4
+    print title
 
-    make_plot(dir_name,filename_in1, filename_out1, title, 0, counter-1)
-    make_plot(dir_name,filename_in2, filename_out2, title, 1, counter-1)
-    make_plot(dir_name,filename_in3, filename_out3, title, 2, counter-1)
-    make_plot(dir_name,filename_in4, filename_out4, title, 3, counter-1)
+    make_plot(in_dir, in_filename_wc, in_filename_nc, title, out_filename_wc, out_filename_nc)
 
-np.savetxt("data/maximum_ss.txt", maximum_ss)

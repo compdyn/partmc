@@ -14,16 +14,29 @@ def make_plot(in_filename,out_filename,title):
     particles = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
 
-    bc = particles.mass(include = ["NH4"])
+    so4 = particles.mass(include = ["SO4"])/particles.aero_data.molec_weight[0]
+    nh4 =  particles.mass(include = ["NH4"])/particles.aero_data.molec_weight[3]
+    no3 =  particles.mass(include = ["NO3"])/particles.aero_data.molec_weight[1]
+
     dry_mass = particles.mass(exclude = ["H2O"])
-    bc_frac = bc / dry_mass
+    so4_frac = so4 / dry_mass
+    ion_ratio = (2*so4 + no3) / nh4
+
+    is_neutral = (ion_ratio < 2)
+    print 'neutral ', sum(is_neutral), ion_ratio[is_neutral]
 
     dry_diameter = particles.dry_diameter()
 
     x_axis = pmc_data_nc.pmc_log_axis(min=1e-8,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=0.8,n_bin=40)
+    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=1.0,n_bin=50)
 
-    hist2d = pmc_data_nc.histogram_2d(dry_diameter, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = pmc_data_nc.histogram_2d(dry_diameter, so4_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
+
+    plt.clf()
+    plt.semilogx(dry_diameter, ion_ratio, 'rx')
+    fig = plt.gcf()
+    fig.savefig('figs/t.pdf')
+
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
     a = plt.gca()
@@ -31,32 +44,23 @@ def make_plot(in_filename,out_filename,title):
     a.set_yscale("linear")
     plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
     plt.xlabel("dry diameter (m)")
-    plt.ylabel("NH4 mass fraction")
+    plt.ylabel("SO4 mass fraction")
     cbar = plt.colorbar()
     cbar.set_label("number density (m^{-3})")
     plt.title(title)
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for hour in range(1, 50):
+for hour in range(2, 3):
     print "hour = ", hour
     
-    filename_in1 = "../../urban_plume2/out_no_nh3/urban_plume_wc_0001_000000%02d.nc" % hour
-    filename_in2 = "../../new_cond/start/urban_plume_comp_wc_0001_000000%02d.nc" % hour
-    filename_in3 = "../../new_cond/start/urban_plume_size_wc_0001_000000%02d.nc" % hour
-    filename_in4 = "../../new_cond/start/urban_plume_both_wc_0001_000000%02d.nc" % hour
-    filename_out1 = "figs/2d_nh4_no_nh3_%02d.pdf" % (hour-1)
-    filename_out2 = "figs/2d_bc_comp_%02d.pdf" % (hour-1)
-    filename_out3 = "figs/2d_bc_size_%02d.pdf" % (hour-1)
-    filename_out4 = "figs/2d_bc_both_%02d.pdf" % (hour-1)
+    filename_in1 = "../../urban_plume2/out_no_nh3/urban_plume_nc_0001_000000%02d.nc" % hour
+    filename_out1 = "figs/2d_so4_no_nh3_nc_%02d.pdf" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1
     print filename_out1
     print titel
 
     make_plot(filename_in1, filename_out1, titel)
-#    make_plot(filename_in2, filename_out2, titel)
-#    make_plot(filename_in3, filename_out3, titel)
-#    make_plot(filename_in4, filename_out4, titel)
 
 

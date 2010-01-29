@@ -243,13 +243,7 @@ contains
 
     integer :: n
 
-    !>DEBUG
-    write(*,*) 'Adding particle'
-    !<DEBUG
     n = aero_particle_array%n_part + 1
-    !>DEBUG
-    write(*,*) 'n_part ', aero_particle_array%n_part
-    !<DEBUG
     call aero_particle_array_enlarge_to(aero_particle_array, n)
     call aero_particle_allocate(aero_particle_array%particle(n))
     call aero_particle_copy(aero_particle, &

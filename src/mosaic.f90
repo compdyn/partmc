@@ -220,6 +220,12 @@ contains
     
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
+    !>DEBUG
+    write(*,*) '*****************************************************************'
+    write(*,*) '*****************************************************************'
+    write(*,*) 'nbin_a ', nbin_a
+    write(*,*) 'naerbin ', naerbin
+    !<DEBUG
     if (nbin_a > naerbin) then
        call DeallocateMemory()
        naerbin = nbin_a
@@ -251,6 +257,14 @@ contains
           num_a(i_mosaic) = 1d-6 &
                / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
           jhyst_leg(i_mosaic) = particle%water_hyst_leg
+          !>DEBUG
+          write(*,*) '*****************************'
+          write(*,*) 'i_mosaic ', i_mosaic
+          write(*,*) 'aer ', aer(:,3,i_mosaic)
+          write(*,*) 'water_a ', water_a(i_mosaic)
+          write(*,*) 'num_a ', num_a(i_mosaic)
+          write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
+          !<DEBUG
        end do
     end do
 
@@ -327,8 +341,8 @@ contains
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       ! work backwards so any removals will only affect particles
-       ! that we've already dealt with
+       ! work backwards so any additions and removals will only affect
+       ! particles that we've already dealt with
        do i_part = aero_state%bin(i_bin)%n_part,1,-1
           i_mosaic = i_mosaic + 1
           particle => aero_state%bin(i_bin)%particle(i_part)
@@ -355,11 +369,6 @@ contains
              new_weight = aero_weight_value(aero_weight, &
                   aero_particle_radius(particle))
              n_copies = prob_round(old_weight / new_weight)
-             !> DEBUG
-             write(*,*) '******************************************************************'
-             write(*,*) 'weight old/new ', old_weight, new_weight
-             write(*,*) 'n_copies ', n_copies
-             !> DEBUG
              if (n_copies == 0) then
                 aero_info%id = particle%id
                 aero_info%action = AERO_INFO_WEIGHT
@@ -368,32 +377,13 @@ contains
                      i_bin, i_part, aero_info)
              elseif (n_copies > 1) then
                 do i_dup = 1,(n_copies - 1)
-                   !> DEBUG
-                   write(*,*) 'i_dup ', i_dup
-                   write(*,*) 'copy ID ', particle%id
-                   write(*,*) 'particle%vol shape ', shape(particle%vol)
-                   !< DEBUG
                    call aero_particle_copy(particle, new_particle)
-                   !> DEBUG
-                   write(*,*) 'copy ID ', particle%id
-                   write(*,*) 'particle%vol shape ', shape(particle%vol)
-                   !< DEBUG
                    call aero_particle_new_id(new_particle)
-                   !> DEBUG
-                   write(*,*) 'new ID ', new_particle%id
-                   write(*,*) 'particle%vol shape ', shape(particle%vol)
-                   !< DEBUG
                    call aero_state_add_particle(aero_state, i_bin, &
                         new_particle)
-                   !>DEBUG
-                   write(*,*) 'about to deallocate'
-                   write(*,*) 'particle%vol shape ', shape(particle%vol)
-                   !<DEBUG
-                   call aero_particle_deallocate(new_particle)
-                   !>DEBUG
-                   write(*,*) 'about to allocate'
-                   !<DEBUG
-                   call aero_particle_allocate(new_particle)
+                   ! re-get the particle pointer, which may have
+                   ! changed due to reallocations caused by adding
+                   particle => aero_state%bin(i_bin)%particle(i_part)
                 end do
              end if
           end if
@@ -470,10 +460,11 @@ contains
     call aerosol_optical
 
     ! map MOSAIC -> PartMC
-    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_weight, &
-         aero_state, gas_data, gas_state)
-
+    ! must do optical properties first, as mosaic_to_partmc() may
+    ! change the number of particles
     call mosaic_aero_optical(bin_grid, env_state, aero_data, &
+         aero_state, gas_data, gas_state)
+    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_weight, &
          aero_state, gas_data, gas_state)
 #endif
 
@@ -527,7 +518,9 @@ contains
     ! map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bin(i_bin)%n_part
+       ! work backwards for consistency with mosaic_to_partmc(), which
+       ! has specific ordering requirements
+       do i_part = aero_state%bin(i_bin)%n_part,1,-1
           i_mosaic = i_mosaic + 1
           particle => aero_state%bin(i_bin)%particle(i_part)
           particle%absorb_cross_sect = (ext_cross(i_mosaic) &

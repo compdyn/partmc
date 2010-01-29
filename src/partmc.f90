@@ -377,7 +377,7 @@ contains
 
        if (part_opt%do_condensation) then
           call condense_equilib_particles(bin_grid, env_state, aero_data, &
-               aero_state)
+               aero_weight, aero_state)
        end if
        
        if (trim(kernel_name) == 'sedi') then

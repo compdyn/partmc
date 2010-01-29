@@ -15,7 +15,6 @@ n_bin 220                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e-2                      # maximum radius (m)
 
-#weight none                    # weighting function
 weight power                    # weighting function
 ref_radius 1e-5                 # radius at which weight is 1
 exponent -1                     # weighting exponent

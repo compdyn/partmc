@@ -15,6 +15,8 @@ n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
 
+weight none                     # weighting function
+
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 

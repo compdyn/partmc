@@ -108,24 +108,63 @@ contains
     integer :: n_spec
 
     n_spec = size(aero_particle_from%vol)
+    !> DEBUG
+    write(*,*) 'n_spec ', n_spec
+    !< DEBUG
     if (n_spec /= size(aero_particle_to%vol)) then
        call aero_particle_deallocate(aero_particle_to)
        call aero_particle_allocate_size(aero_particle_to, n_spec)
     end if
     call assert(651178226, size(aero_particle_from%vol) &
          == size(aero_particle_to%vol))
+    !>DEBUG
+    write(*,*) 'copy vol'
+    !<DEBUG
     aero_particle_to%vol = aero_particle_from%vol
+    !>DEBUG
+    write(*,*) 'copy n_orig_part'
+    !<DEBUG
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
+    !>DEBUG
+    write(*,*) 'copy absorb_cross_sect'
+    !<DEBUG
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
+    !>DEBUG
+    write(*,*) 'copy scatter_cross_sect'
+    !<DEBUG
     aero_particle_to%scatter_cross_sect = &
          aero_particle_from%scatter_cross_sect
+    !>DEBUG
+    write(*,*) 'copy asymmetry'
+    !<DEBUG
     aero_particle_to%asymmetry = aero_particle_from%asymmetry
+    !>DEBUG
+    write(*,*) 'copy refract_shell'
+    !<DEBUG
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
+    !>DEBUG
+    write(*,*) 'copy refract_core'
+    !<DEBUG
     aero_particle_to%refract_core = aero_particle_from%refract_core
+    !>DEBUG
+    write(*,*) 'copy core_vol'
+    !<DEBUG
     aero_particle_to%core_vol = aero_particle_from%core_vol
+    !>DEBUG
+    write(*,*) 'copy water_hyst_leg'
+    !<DEBUG
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
+    !>DEBUG
+    write(*,*) 'copy id'
+    !<DEBUG
     aero_particle_to%id = aero_particle_from%id
+    !>DEBUG
+    write(*,*) 'copy least_create_time'
+    !<DEBUG
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
+    !>DEBUG
+    write(*,*) 'copy greatest_create_time'
+    !<DEBUG
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
 

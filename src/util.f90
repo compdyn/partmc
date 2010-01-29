@@ -235,8 +235,8 @@ contains
     !> Value to round.
     real(kind=dp), intent(in) :: val
     
-    prob_round = int(val)
-    if (pmc_random() .lt. mod(val, 1d0)) then
+    prob_round = floor(val)
+    if (pmc_random() .lt. real(ceiling(val), kind=dp) - val) then
        prob_round = prob_round + 1
     endif
 

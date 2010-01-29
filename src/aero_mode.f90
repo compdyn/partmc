@@ -268,7 +268,8 @@ contains
     elseif (aero_mode%type == "mono") then
        call num_conc_mono(aero_mode%mean_radius, bin_grid, num_conc)
     else
-       call die_msg(719625922, "Unknown aero_mode type")
+       call die_msg(719625922, "unknown aero_mode type: " &
+            // trim(aero_mode%type))
     end if
     num_conc = num_conc * aero_mode%num_conc
 
@@ -336,10 +337,11 @@ contains
                * aero_weight%ref_radius**aero_weight%exponent &
                * exp((x_mean_prime**2 - log10(aero_mode%mean_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
-       elseif (aero_mode%type == "log_normal") then
-          call die_msg(822252601, "unimplemented")
-       elseif (aero_mode%type == "log_normal") then
-          call die_msg(700771434, "unimplemented")
+       elseif (aero_mode%type == "exp") then
+          call die_msg(822252601, "exp/power unimplemented")
+       elseif (aero_mode%type == "mono") then
+          aero_mode_weighted_num_conc = aero_mode%num_conc &
+               / aero_weight_value(aero_weight, aero_mode%mean_radius)
        else
           call die_msg(901140225, "unknown aero_mode type: " &
                // aero_mode%type)
@@ -385,9 +387,9 @@ contains
           radius = 10d0**rand_normal(x_mean_prime, &
                aero_mode%log10_std_dev_radius)
        elseif (aero_mode%type == "exp") then
-          call die_msg(111024862, "unimplemented")
+          call die_msg(111024862, "exp/power unimplemented")
        elseif (aero_mode%type == "mono") then
-          call die_msg(290522962, "unimplemented")
+          radius = aero_mode%mean_radius
        else
           call die_msg(886417976, "unknown aero_mode type: " &
                // aero_mode%type)

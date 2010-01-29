@@ -238,12 +238,12 @@ contains
 
        if (part_opt%do_condensation) then
           call condense_particles(bin_grid, env_state, &
-               env_data, aero_data, aero_state, part_opt%del_t)
+               env_data, aero_data, aero_weight, aero_state, part_opt%del_t)
        end if
 
        if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_state, gas_data, gas_state)
+               aero_weight, aero_state, gas_data, gas_state)
        end if
 
        if (part_opt%mix_timescale > 0d0) then

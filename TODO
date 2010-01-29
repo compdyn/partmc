@@ -198,3 +198,6 @@ function to take care of evaluating it. The functions should be
 kernel(type, ...) and kernel_max(type, ...).
 
 Replace aero_mode types by integers, like for aero_weight.
+
+Make weighted coagulation work for increasing weight
+functions. Presumably we always remove, but sometimes don't add?

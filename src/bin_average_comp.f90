@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -14,12 +14,14 @@ program bin_average_comp
   use pmc_gas_state
   use pmc_env_state
   use pmc_aero_data
+  use pmc_aero_weight
   use pmc_output
   use netcdf
 
   character(len=1000) :: in_filename, out_prefix
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
+  type(aero_weight_t) :: aero_weight
   type(aero_state_t) :: aero_state
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
@@ -56,6 +58,7 @@ program bin_average_comp
 
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
+  call aero_weight_allocate(aero_weight)
   call aero_state_allocate(aero_state)
   call gas_data_allocate(gas_data)
   call gas_state_allocate(gas_state)
@@ -76,11 +79,12 @@ program bin_average_comp
   output_type = "central"
   record_removals = .false.
   call output_state(out_prefix, output_type, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop, record_removals)
+       aero_weight, aero_state, gas_data, gas_state, env_state, &
+       index, time, del_t, i_loop, record_removals)
 
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)
+  call aero_weight_deallocate(aero_weight)
   call aero_state_deallocate(aero_state)
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)

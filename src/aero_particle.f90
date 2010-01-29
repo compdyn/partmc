@@ -342,7 +342,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_dry_diameter &
-         = 2d0 * aero_particle_dry_radius(aero_particle)
+         = 2d0 * aero_particle_dry_radius(aero_particle, aero_data)
 
   end function aero_particle_dry_diameter
 
@@ -648,7 +648,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Coagulate two particles together to make a new one.
+  !> Coagulate two particles together to make a new one. The new
+  !> particle will not have its ID set.
   subroutine aero_particle_coagulate(aero_particle_1, &
        aero_particle_2, aero_particle_new)
 
@@ -678,12 +679,7 @@ contains
     else
        aero_particle_new%water_hyst_leg = 0
     end if
-    if (aero_particle_volume(aero_particle_1) &
-         > aero_particle_volume(aero_particle_2)) then
-       aero_particle_new%id = aero_particle_1%id
-    else
-       aero_particle_new%id = aero_particle_2%id
-    end if
+    aero_particle_new%id = 0
     aero_particle_new%least_create_time = &
          min(aero_particle_1%least_create_time, &
          aero_particle_2%least_create_time)

@@ -191,3 +191,10 @@ libpartmc, and have the top-level programs just as drivers.
 Separate out conensation into libcondense, using sundials as the
 solver and taking n_particle arrays of kappas, dry_diameters,
 water_mass, and returning new water_mass array.
+
+Don't pass the kernel function around. Just pass an integer that
+determines which one it is, like aero_weight, and have a multiplexing
+function to take care of evaluating it. The functions should be
+kernel(type, ...) and kernel_max(type, ...).
+
+Replace aero_mode types by integers, like for aero_weight.

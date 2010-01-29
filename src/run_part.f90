@@ -84,8 +84,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_part(kernel, kernel_max, bin_grid, env_data, &
-       env_state, aero_data, aero_state, gas_data, gas_state, part_opt)
+  subroutine run_part(kernel, kernel_max, bin_grid, env_data, env_state, &
+       aero_data, aero_weight, aero_state, gas_data, gas_state, part_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -95,6 +95,8 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -158,7 +160,8 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    call est_k_max_binned(bin_grid, kernel_max, aero_data, env_state, k_max)
+    call est_k_max_binned(bin_grid, kernel_max, aero_data, aero_weight, &
+         env_state, k_max)
 
     if (part_opt%do_mosaic) then
        call mosaic_init(bin_grid, env_state, part_opt%del_t)
@@ -166,9 +169,9 @@ contains
 
     if (part_opt%t_output > 0d0) then
        call output_state(part_opt%output_prefix, part_opt%output_type, &
-            bin_grid, aero_data, aero_state, gas_data, gas_state, &
-            env_state, i_state, time, part_opt%del_t, part_opt%i_loop, &
-            part_opt%record_removals)
+            bin_grid, aero_data, aero_weight, aero_state, gas_data, &
+            gas_state, env_state, i_state, time, part_opt%del_t, &
+            part_opt%i_loop, part_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -209,7 +212,8 @@ contains
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then
              call mc_coag(kernel, bin_grid, env_state, aero_data, &
-                  aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+                  aero_weight, aero_state, part_opt, k_max, tot_n_samp, &
+                  tot_n_coag)
           elseif (part_opt%coag_method == "collect") then
              call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
                   aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
@@ -230,7 +234,7 @@ contains
        call env_state_update_gas_state(env_state, part_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, part_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_state)
+            old_env_state, bin_grid, aero_data, aero_weight, aero_state)
 
        if (part_opt%do_condensation) then
           call condense_particles(bin_grid, env_state, &
@@ -280,9 +284,10 @@ contains
           if (do_output) then
              i_output = i_output + 1
              call output_state(part_opt%output_prefix, &
-                  part_opt%output_type, bin_grid, aero_data, aero_state, &
-                  gas_data, gas_state, env_state, i_output, time, &
-                  part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
+                  part_opt%output_type, bin_grid, aero_data, aero_weight, &
+                  aero_state, gas_data, gas_state, env_state, i_output, &
+                  time, part_opt%del_t, part_opt%i_loop, &
+                  part_opt%record_removals)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
@@ -338,7 +343,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag(kernel, bin_grid, env_state, aero_data, &
-       aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+       aero_weight, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -346,6 +351,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Monte Carlo options.
@@ -395,8 +402,8 @@ contains
                 exit
              end if
              call maybe_coag_pair(bin_grid, env_state, &
-                  aero_data, aero_state, i, j, part_opt%del_t, k_max(i,j), &
-                  kernel, did_coag)
+                  aero_data, aero_weight, aero_state, i, j, part_opt%del_t, &
+                  k_max(i,j), kernel, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
        enddo

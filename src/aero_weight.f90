@@ -11,17 +11,23 @@ module pmc_aero_weight
   use pmc_util
   use pmc_constants
   use pmc_rand
+  use pmc_spec_file
+  use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
 #endif
 
-  !> Maximum length of an aero_weight type.
-  integer, parameter :: AERO_WEIGHT_TYPE_LEN = 300
+  !> Type code for an undefined or invalid weighting.
+  integer, parameter :: AERO_WEIGHT_TYPE_INVALID  = 0
+  !> Type code for no (or flat) weighting.
+  integer, parameter :: AERO_WEIGHT_TYPE_NONE     = 1
+  !> Type code for power function weighting.
+  integer, parameter :: AERO_WEIGHT_TYPE_POWER    = 2
 
   !> An aerosol size distribution weighting function.
   type aero_weight_t
-     !> Weight type ("none", "power").
-     character(len=AERO_WEIGHT_TYPE_LEN) :: type
+     !> Weight type (given by module constants).
+     integer :: type
      !> Reference radius at which the weight is 1.
      real(kind=dp) :: ref_radius
      !> Exponent for "power" weight.
@@ -45,7 +51,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_weight of the given size.
-  subroutine aero_weight_allocate_size(aero_weight, n_spec)
+  subroutine aero_weight_allocate_size(aero_weight)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(out) :: aero_weight
@@ -63,6 +69,20 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
 
   end subroutine aero_weight_deallocate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Zeros the contents of the \c aero_weight.
+  subroutine aero_weight_zero(aero_weight)
+
+    !> Aerosol weight.
+    type(aero_weight_t), intent(out) :: aero_weight
+
+    aero_weight%type = AERO_WEIGHT_TYPE_INVALID
+    aero_weight%ref_radius = 0d0
+    aero_weight%exponent = 0d0
+
+  end subroutine aero_weight_zero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -90,14 +110,14 @@ contains
     !> Radius to compute weight at (m).
     real(kind=dp), intent(in) :: radius
 
-    if (aero_weight%type == "none") then
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        aero_weight_value = 1d0
-    elseif (aero_weight%type == "power") then
+    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
        aero_weight_value &
             = (radius / aero_weight%ref_radius)**aero_weight%exponent
     else
        call die_msg(700421478, "unknown aero_weight type: " &
-            // trim(aero_weight%type))
+            // integer_to_string(aero_weight%type))
     end if
 
   end function aero_weight_value
@@ -114,15 +134,11 @@ contains
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_type
 
-    call spec_file_read_string(file, 'weight_type', weight_type)
-    if (len_trim(weight_type) < AERO_WEIGHT_TYPE_LEN) then
-       aero_weight%type = weight_type(1:AERO_WEIGHT_TYPE_LEN)
-    else
-       call spec_file_die_msg(733236366, file, "weight_type string too long")
-    end if
+    call spec_file_read_string(file, 'weight', weight_type)
     if (trim(weight_type) == 'none') then
-       ! nothing to do here
+       aero_weight%type = AERO_WEIGHT_TYPE_NONE
     elseif (trim(weight_type) == 'power') then
+       aero_weight%type = AERO_WEIGHT_TYPE_POWER
        call spec_file_read_real(file, 'ref_radius', aero_weight%ref_radius)
        call spec_file_read_real(file, 'exponent', aero_weight%exponent)
     else
@@ -141,7 +157,7 @@ contains
     type(aero_weight_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_weight = &
-         pmc_mpi_pack_size_string(val%type) &
+         pmc_mpi_pack_size_integer(val%type) &
          + pmc_mpi_pack_size_real(val%ref_radius) &
          + pmc_mpi_pack_size_real(val%exponent)
 
@@ -163,7 +179,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_string(buffer, position, val%type)
+    call pmc_mpi_pack_integer(buffer, position, val%type)
     call pmc_mpi_pack_real(buffer, position, val%ref_radius)
     call pmc_mpi_pack_real(buffer, position, val%exponent)
     call assert(579699255, &
@@ -188,7 +204,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_string(buffer, position, val%type)
+    call pmc_mpi_unpack_integer(buffer, position, val%type)
     call pmc_mpi_unpack_real(buffer, position, val%ref_radius)
     call pmc_mpi_unpack_real(buffer, position, val%exponent)
     call assert(874467577, &

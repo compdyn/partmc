@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -589,6 +589,31 @@ contains
     interp_1d = y
 
   end function interp_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Linear interpolation over discrete indices.
+  !!
+  !! Takes real values \c x_1 and \c x_n and integers \c n and \c i
+  !! and returns the linear interpolation so that \c x_1 is returned
+  !! when \c i = 1 and \c x_n is returned when \c i = \c n.
+  real(kind=dp) function interp_linear_disc(x_1, x_n, n, i)
+
+    !> Value of \c x when \c i = 1.
+    real(kind=dp), intent(in) :: x_1
+    !> Value of \c x when \c i = n.
+    real(kind=dp), intent(in) :: x_n
+    !> Number of points to interpolate over.
+    integer, intent(in) :: n
+    !> Index to interpolate at.
+    integer, intent(in) :: i
+
+    real(kind=dp) :: alpha
+
+    alpha = real(i - 1, kind=dp) / real(n - 1, kind=dp)
+    interp_linear_disc = (1d0 - alpha) * x_1 + alpha * x_n
+
+  end function interp_linear_disc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

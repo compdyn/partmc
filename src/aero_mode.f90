@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -13,6 +13,7 @@ module pmc_aero_mode
   use pmc_constants
   use pmc_spec_file
   use pmc_aero_data
+  use pmc_aero_weight
   use pmc_mpi
   use pmc_rand
 #ifdef PMC_USE_MPI
@@ -162,7 +163,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume
-  !> n(v) = 1 / mean_vol * exp(- v / mean_vol)
+  !> \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
   !> Normalized so that sum(num_conc(k) * dlnr) = 1
   subroutine num_conc_exp(mean_radius, bin_grid, num_conc)
     
@@ -314,23 +315,86 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Return a radius randomly sampled from the mode distribution.
-  subroutine aero_mode_sample_radius(aero_mode, radius)
+  !> Return the weighted number concentration for an \c aero_mode.
+  real(kind=dp) function aero_mode_weighted_num_conc(aero_mode, aero_weight)
 
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
+    !> Aero weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+
+    real(kind=dp) :: x_mean_prime
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       aero_mode_weighted_num_conc = aero_mode%num_conc
+    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+       if (aero_mode%type == "log_normal") then
+          x_mean_prime = log10(aero_mode%mean_radius) &
+               - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
+               * log(10d0)
+          aero_mode_weighted_num_conc = aero_mode%num_conc &
+               * aero_weight%ref_radius**aero_weight%exponent &
+               * exp((x_mean_prime**2 - log10(aero_mode%mean_radius)**2) &
+               / (2d0 * aero_mode%log10_std_dev_radius**2))
+       elseif (aero_mode%type == "log_normal") then
+          call die_msg(822252601, "unimplemented")
+       elseif (aero_mode%type == "log_normal") then
+          call die_msg(700771434, "unimplemented")
+       else
+          call die_msg(901140225, "unknown aero_mode type: " &
+               // aero_mode%type)
+       end if
+    else
+       call die_msg(742383510, "unknown aero_weight type: " &
+            // integer_to_string(aero_weight%type))
+    end if
+
+  end function aero_mode_weighted_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a radius randomly sampled from the mode distribution.
+  subroutine aero_mode_sample_radius(aero_mode, aero_weight, radius)
+
+    !> Aero_mode to sample radius from.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Aero weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
 
-    if (aero_mode%type == "log_normal") then
-       radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
-            aero_mode%log10_std_dev_radius)
-    elseif (aero_mode%type == "exp") then
-       radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_random()))
-    elseif (aero_mode%type == "mono") then
-       radius = aero_mode%mean_radius
+    real(kind=dp) :: x_mean_prime
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       if (aero_mode%type == "log_normal") then
+          radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
+               aero_mode%log10_std_dev_radius)
+       elseif (aero_mode%type == "exp") then
+          radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_random()))
+       elseif (aero_mode%type == "mono") then
+          radius = aero_mode%mean_radius
+       else
+          call die_msg(749122931, "Unknown aero_mode type: " &
+               // aero_mode%type)
+       end if
+    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+       if (aero_mode%type == "log_normal") then
+          x_mean_prime = log10(aero_mode%mean_radius) &
+               - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
+               * log(10d0)
+          radius = 10d0**rand_normal(x_mean_prime, &
+               aero_mode%log10_std_dev_radius)
+       elseif (aero_mode%type == "exp") then
+          call die_msg(111024862, "unimplemented")
+       elseif (aero_mode%type == "mono") then
+          call die_msg(290522962, "unimplemented")
+       else
+          call die_msg(886417976, "unknown aero_mode type: " &
+               // aero_mode%type)
+       end if
     else
-       call die_msg(749122931, "Unknown aero_mode type")
+       call die_msg(863127819, "unknown aero_weight type: " &
+            // integer_to_string(aero_weight%type))
     end if
 
   end subroutine aero_mode_sample_radius

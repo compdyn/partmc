@@ -74,6 +74,7 @@ program partmc
   use pmc_kernel_brown
   use pmc_kernel_zero
   use pmc_aero_data
+  use pmc_aero_weight
   use pmc_env_data
   use pmc_env_state
   use pmc_run_part
@@ -165,6 +166,7 @@ contains
     type(gas_state_t) :: gas_state
     type(gas_state_t) :: gas_state_init
     type(aero_data_t) :: aero_data
+    type(aero_weight_t) :: aero_weight
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_state
     type(aero_state_t) :: aero_state_init
@@ -187,6 +189,7 @@ contains
     call gas_state_allocate(gas_state)
     call gas_state_allocate(gas_state_init)
     call aero_data_allocate(aero_data)
+    call aero_weight_allocate(aero_weight)
     call aero_dist_allocate(aero_dist_init)
     call aero_state_allocate(aero_state)
     call aero_state_allocate(aero_state_init)
@@ -215,6 +218,7 @@ contains
        call spec_file_read_real(file, 't_progress', part_opt%t_progress)
 
        call spec_file_read_bin_grid(file, bin_grid)
+       call spec_file_read_aero_weight(file, aero_weight)
 
        if (do_restart) then
           call input_state_netcdf(restart_filename, bin_grid, aero_data, &
@@ -288,6 +292,7 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_aero_data(aero_data)
+       buffer_size = buffer_size + pmc_mpi_pack_size_aero_weight(aero_weight)
        buffer_size = buffer_size &
             + pmc_mpi_pack_size_aero_dist(aero_dist_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
@@ -310,6 +315,7 @@ contains
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_pack_aero_weight(buffer, position, aero_weight)
        call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_pack_env_data(buffer, position, env_data)
        call pmc_mpi_pack_env_state(buffer, position, env_state_init)
@@ -331,6 +337,7 @@ contains
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_unpack_aero_weight(buffer, position, aero_weight)
        call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_unpack_env_data(buffer, position, env_data)
        call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
@@ -363,7 +370,7 @@ contains
           aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
                aero_dist_total_num_conc(aero_dist_init)
           call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
-               aero_data, aero_dist_init, 1d0, 0d0)
+               aero_data, aero_weight, aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
        call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
@@ -375,23 +382,23 @@ contains
        
        if (trim(kernel_name) == 'sedi') then
           call run_part(kernel_sedi, kernel_sedi_max, bin_grid, &
-               env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, aero_weight, &
                aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'golovin') then
           call run_part(kernel_golovin, kernel_golovin_max, bin_grid, &
-               env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, aero_weight, &
                aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'constant') then
           call run_part(kernel_constant, kernel_constant_max, bin_grid, &
-               env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, aero_weight, &
                aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'brown') then
           call run_part(kernel_brown, kernel_brown_max, bin_grid, &
-               env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, aero_weight, &
                aero_state, gas_data, gas_state, part_opt)
        elseif (trim(kernel_name) == 'zero') then
           call run_part(kernel_zero, kernel_zero_max, bin_grid, &
-               env_data, env_state, aero_data, &
+               env_data, env_state, aero_data, aero_weight, &
                aero_state, gas_data, gas_state, part_opt)
        else
           if (pmc_mpi_rank() == 0) then
@@ -407,6 +414,7 @@ contains
     call gas_state_deallocate(gas_state)
     call gas_state_deallocate(gas_state_init)
     call aero_data_deallocate(aero_data)
+    call aero_weight_deallocate(aero_weight)
     call aero_dist_deallocate(aero_dist_init)
     call aero_state_deallocate(aero_state)
     call aero_state_deallocate(aero_state_init)

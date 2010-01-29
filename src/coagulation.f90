@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -14,6 +14,7 @@ module pmc_coagulation
   use pmc_env_state
   use pmc_aero_state
   use pmc_mpi
+  use pmc_kernel
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -67,7 +68,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(bin_grid, env_state, aero_data, &
-       aero_state, b1, b2, del_t, k_max, kernel, did_coag)
+       aero_weight, aero_state, b1, b2, del_t, k_max, kernel, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -75,6 +76,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin of first particle.
@@ -116,12 +119,13 @@ contains
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    call kernel(aero_state%bin(b1)%particle(s1), &
-         aero_state%bin(b2)%particle(s2), aero_data, env_state, k)
+    call weighted_kernel(kernel, aero_state%bin(b1)%particle(s1), &
+         aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
+         env_state, k)
     p = k / k_max
     
     if (pmc_random() .lt. p) then
-       call coagulate(bin_grid, aero_data, aero_state, &
+       call coagulate(bin_grid, aero_data, aero_weight, aero_state, &
             b1, s1, b2, s2)
        did_coag = .true.
     end if
@@ -168,6 +172,7 @@ contains
 !       s1 = pmc_rand_int(aero_state%bin(b1)%n_part)
 !       s2 = pmc_rand_int(aero_state%bin(b2)%n_part)
 !       if (.not. ((b1 .eq. b2) .and. (s1 .eq. s2))) then
+!          ! stop generating if we have two distinct particles
 !          exit
 !       end if
 !    end do
@@ -178,12 +183,15 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_data, aero_state, b1, s1, b2, s2)
+  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, &
+       b1, s1, b2, s2)
  
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> First particle (bin number).
@@ -196,58 +204,101 @@ contains
     integer, intent(in) :: s2
     
     type(aero_particle_t), pointer :: particle_1, particle_2
-    type(aero_particle_t) :: new_particle
+    type(aero_particle_t) :: particle_new
     integer :: bn
-    type(aero_info_t) :: aero_info
-    logical :: p1_removed, p2_removed
+    type(aero_info_t) :: aero_info_1, aero_info_2
+    real(kind=dp) :: weight_1, weight_2, weight_new
+    real(kind=dp) :: prob_remove_1, prob_remove_2
+    logical :: remove_1, remove_2, id_1_lost, id_2_lost
 
-    call aero_particle_allocate_size(new_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(particle_new, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
     particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)
 
     ! coagulate particles
-    call aero_particle_coagulate(particle_1, particle_2, new_particle)
-    bn = aero_particle_in_bin(new_particle, bin_grid)
+    call aero_particle_coagulate(particle_1, particle_2, particle_new)
+    bn = aero_particle_in_bin(particle_new, bin_grid)
+
+    ! decide which old particles are to be removed
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       remove_1 = .true.
+       remove_2 = .true.
+    else
+       weight_1 = aero_weight_value(aero_weight, &
+            aero_particle_radius(particle_1))
+       weight_2 = aero_weight_value(aero_weight, &
+            aero_particle_radius(particle_2))
+       weight_new = aero_weight_value(aero_weight, &
+            aero_particle_radius(particle_new))
+       prob_remove_1 = weight_new / weight_1
+       prob_remove_2 = weight_new / weight_2
+       remove_1 = (pmc_random() < prob_remove_1)
+       remove_2 = (pmc_random() < prob_remove_2)
+    end if
+
+    if (remove_1 .and. remove_2) then
+       if (aero_particle_volume(particle_1) &
+            > aero_particle_volume(particle_2)) then
+          particle_new%id = particle_1%id
+          id_1_lost = .false.
+          id_2_lost = .true.
+       else
+          particle_new%id = particle_2%id
+          id_1_lost = .true.
+          id_2_lost = .false.
+       end if
+    elseif (remove_1 .and. (.not. remove_2)) then
+       particle_new%id = particle_1%id
+       id_1_lost = .false.
+       id_2_lost = .false.
+    elseif ((.not. remove_1) .and. remove_2) then
+       particle_new%id = particle_2%id
+       id_1_lost = .false.
+       id_2_lost = .false.
+    else ! ((.not. remove_1) .and. (.not. remove_2))
+       call aero_particle_new_id(particle_new)
+       id_1_lost = .false.
+       id_2_lost = .false.
+    end if
 
     ! remove old particles
-    call aero_info_allocate(aero_info)
-    if (new_particle%id /= particle_1%id) then
-       ! particle_1 is the removed particle
-       call assert(361912382, new_particle%id == particle_2%id)
-       aero_info%id = particle_1%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = particle_2%id
-       p1_removed = .true.
-       p2_removed = .false.
-    else
-       ! particle_2 is the removed particle
-       call assert(742917292, new_particle%id /= particle_2%id)
-       aero_info%id = particle_2%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = particle_1%id
-       p1_removed = .false.
-       p2_removed = .true.
-    end if
+    call aero_info_allocate(aero_info_1)
+    aero_info_1%id = particle_1%id
+    aero_info_1%action = AERO_INFO_COAG
+    aero_info_1%other_id = particle_new%id
+    call aero_info_allocate(aero_info_2)
+    aero_info_2%id = particle_2%id
+    aero_info_2%action = AERO_INFO_COAG
+    aero_info_2%other_id = particle_new%id
     if ((b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
-       call aero_state_remove_particle(aero_state, b2, s2, &
-            p2_removed, aero_info)
-       call aero_state_remove_particle(aero_state, b1, s1, &
-            p1_removed, aero_info)
+       if (remove_2) then
+          call aero_state_remove_particle(aero_state, b2, s2, &
+               id_2_lost, aero_info_2)
+       end if
+       if (remove_1) then
+          call aero_state_remove_particle(aero_state, b1, s1, &
+               id_1_lost, aero_info_1)
+       end if
     else
-       call aero_state_remove_particle(aero_state, b1, s1, &
-            p1_removed, aero_info)
-       call aero_state_remove_particle(aero_state, b2, s2, &
-            p2_removed, aero_info)
+       if (remove_1) then
+          call aero_state_remove_particle(aero_state, b1, s1, &
+               id_1_lost, aero_info_1)
+       end if
+       if (remove_2) then
+          call aero_state_remove_particle(aero_state, b2, s2, &
+               id_2_lost, aero_info_2)
+       end if
     end if
-    call aero_info_deallocate(aero_info)
+    call aero_info_deallocate(aero_info_1)
+    call aero_info_deallocate(aero_info_2)
 
     ! add new particle
-    call aero_state_add_particle(aero_state, bn, new_particle)
-    call aero_particle_deallocate(new_particle)
+    call aero_state_add_particle(aero_state, bn, particle_new)
+    call aero_particle_deallocate(particle_new)
     
   end subroutine coagulate
 

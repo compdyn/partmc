@@ -36,18 +36,18 @@ filename_in = "urban_plume_wc_0001_00000001.nc"
 filename_out = "figs/1d_wc_num_01.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000006.nc"
-filename_out = "figs/1d_wc_num_06.pdf"
+filename_in = "urban_plume_wc_0001_00000037.nc"
+filename_out = "figs/1d_wc_num_37.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000012.nc"
-filename_out = "figs/1d_wc_num_12.pdf"
+filename_in = "urban_plume_wc_0001_00000073.nc"
+filename_out = "figs/1d_wc_num_73.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000018.nc"
-filename_out = "figs/1d_wc_num_18.pdf"
+filename_in = "urban_plume_wc_0001_00000109.nc"
+filename_out = "figs/1d_wc_num_109.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000024.nc"
-filename_out = "figs/1d_wc_num_24.pdf"
+filename_in = "urban_plume_wc_0001_00000145.nc"
+filename_out = "figs/1d_wc_num_145.pdf"
 make_plot(dir_name, filename_in, filename_out)

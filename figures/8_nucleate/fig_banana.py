@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-size_dist_array = np.loadtxt("data/banana_size_dist.txt")
-times = np.loadtxt("data/banana_times.txt")
-diam = np.loadtxt("data/banana_diam.txt")
+size_dist_array = np.loadtxt("data/banana_size_dist_wc.txt")
+times = np.loadtxt("data/banana_times_wc.txt")
+diam = np.loadtxt("data/banana_diam_wc.txt")
 
 mask = np.ma.make_mask(size_dist_array <= 0.0)
 size_dist_array = np.ma.array(size_dist_array, mask = mask)
@@ -28,7 +28,7 @@ plt.ylabel("dry diameter (m)")
 cbar = plt.colorbar()
 cbar.set_label("number density (m^{-3})")
 fig = plt.gcf()
-fig.savefig("figs/banana_nc.pdf")
+fig.savefig("figs/banana_wc.pdf")
 
 
 

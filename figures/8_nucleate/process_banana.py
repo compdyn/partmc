@@ -11,7 +11,8 @@ import pmc_data_nc
 const = pmc_data_nc.load_constants("../../src/constants.f90")
 
 netcdf_dir = "../../urban_plume_nucleate/out/"
-netcdf_pattern = "urban_plume_nc_0001_(.*).nc"
+netcdf_pattern = "urban_plume_wc_0001_(.*).nc"
+
 time_filename_list = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 
 size_dist_array = np.zeros([len(time_filename_list),100])
@@ -32,9 +33,9 @@ for [time, filename, key] in time_filename_list:
     times[i_counter] = time
     i_counter += 1
 
-np.savetxt("data/banana_size_dist.txt", size_dist_array)
-np.savetxt("data/banana_diam.txt", diam_axis_edges)
-np.savetxt("data/banana_times.txt", times)
+np.savetxt("data/banana_size_dist_wc.txt", size_dist_array)
+np.savetxt("data/banana_diam_wc.txt", diam_axis_edges)
+np.savetxt("data/banana_times_wc.txt", times)
     
 
 

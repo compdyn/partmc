@@ -10,7 +10,8 @@ sys.path.append("../../tool")
 import pmc_data_nc
 const = pmc_data_nc.load_constants("../../src/constants.f90")
 
-netcdf_dir = "/home/mwest/svn/partmc/trunk/urban_plume_nucleate/out/"
+netcdf_dir = "../../urban_plume_nucleate/out/"
+
 netcdf_pattern = "urban_plume_wc_0001_(.*).nc"
 time_filename_list = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 

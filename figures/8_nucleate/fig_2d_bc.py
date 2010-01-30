@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import pmc_data_nc
 
-def make_plot(in_filename,out_filename):
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
+def make_plot(dir_name,in_filename,out_filename):
+    ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+in_filename)
     particles = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
 
@@ -37,14 +37,26 @@ def make_plot(in_filename,out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-filename_in1 = "../../urban_plume_nucleate/out/urban_plume_wc_0001_00000025.nc"
-filename_out1 = "figs/2d_bc.pdf"
-print filename_in1
-print filename_out1
+dir_name = "../../urban_plume_nucleate/out/"
 
-make_plot(filename_in1, filename_out1)
-#    make_plot(filename_in2, filename_out2, titel)
-#    make_plot(filename_in3, filename_out3, titel)
-#    make_plot(filename_in4, filename_out4, titel)
+filename_in = "urban_plume_wc_0001_00000001.nc"
+filename_out = "figs/2d_wc_bc_01.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000037.nc"
+filename_out = "figs/2d_wc_bc_37.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000073.nc"
+filename_out = "figs/2d_wc_bc_73.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000109.nc"
+filename_out = "figs/2d_wc_bc_109.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000145.nc"
+filename_out = "figs/2d_wc_bc_145.pdf"
+make_plot(dir_name, filename_in, filename_out)
 
 

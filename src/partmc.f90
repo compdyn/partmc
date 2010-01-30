@@ -206,7 +206,7 @@ contains
        call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
        call spec_file_read_string(file, 'kernel', kernel_name)
-       call spec_file_read_string(file, 'nucleate', part_opt%nucleate_type)
+       call spec_file_read_nucleate(file, part_opt%nucleate_type)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -370,7 +370,7 @@ contains
           call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
                aero_data%n_spec)
           aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
-               aero_dist_total_num_conc(aero_dist_init)
+               aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
           call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
                aero_data, aero_weight, aero_dist_init, 1d0, 0d0)
        end if

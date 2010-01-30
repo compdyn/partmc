@@ -46,7 +46,7 @@ module pmc_run_part
     !> Prefix for output files.
     character(len=300) :: output_prefix
     !> Type of nucleation.
-    character(len=300) :: nucleate_type
+    integer :: nucleate_type
     !> Whether to do coagulation.
     logical :: do_coagulation
     !> Allow doubling if needed.
@@ -181,14 +181,14 @@ contains
        do while ((aero_state_total_particles(aero_state) &
             < part_opt%n_part_max / 2) &
             .and. (aero_state_total_particles(aero_state) > 0))
-          write(*,*) 'WARNING: doubling particles in initial condition'
+          call warn_msg(716882783, "doubling particles in initial condition")
           call aero_state_double(aero_state)
        end do
     end if
     if (part_opt%allow_halving) then
        do while (aero_state_total_particles(aero_state) &
             > part_opt%n_part_max * 2)
-          write(*,*) 'WARNING: halving particles in initial condition'
+          call warn_msg(661936373, "halving particles in initial condition")
           call aero_state_halve(aero_state, bin_grid)
        end do
     end if
@@ -207,7 +207,7 @@ contains
        call env_data_update_state(env_data, env_state, time + t_start, &
             update_rel_humid)
        call nucleate(part_opt%nucleate_type, bin_grid, env_state, gas_data, &
-            aero_data, aero_state, gas_state, part_opt%del_t)
+            aero_data, aero_weight, aero_state, gas_state, part_opt%del_t)
 
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then

@@ -222,13 +222,15 @@ contains
 
        if (do_restart) then
           call input_state_netcdf(restart_filename, bin_grid, aero_data, &
-               aero_state_init, gas_data, gas_state_init, env_state_init, &
-               dummy_index, dummy_time, dummy_del_t, dummy_i_loop)
+               aero_weight, aero_state_init, gas_data, gas_state_init, &
+               env_state_init, dummy_index, dummy_time, dummy_del_t, &
+               dummy_i_loop)
        end if
 
        call spec_file_read_gas_data(file, gas_data)
        if (.not. do_restart) then
-          call spec_file_read_gas_state(file, gas_data, 'gas_init', gas_state_init)
+          call spec_file_read_gas_state(file, gas_data, 'gas_init', &
+               gas_state_init)
        end if
 
        call spec_file_read_aero_data_filename(file, aero_data)

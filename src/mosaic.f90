@@ -169,6 +169,10 @@ contains
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: weight
+    !>DEBUG
+    real(kind=dp) :: debug_num_conc, debug_mass_conc(aero_data%n_spec)
+    real(kind=dp) :: debug_r, debug_min_r, debug_max_r, debug_min_w, debug_max_w
+    !<DEBUG
 
     ! MOSAIC function interfaces
     interface
@@ -278,6 +282,34 @@ contains
           cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
+    !>DEBUG
+    !debug_num_conc = 0d0
+    !debug_mass_conc = 0d0
+    !debug_min_r = 1d20
+    !debug_max_r = 0d0
+    !do i_bin = 1,bin_grid%n_bin
+    !   do i_part = 1,aero_state%bin(i_bin)%n_part
+    !      particle => aero_state%bin(i_bin)%particle(i_part)
+    !      debug_r = aero_particle_radius(particle)
+    !      debug_min_r = min(debug_min_r, debug_r)
+    !      debug_max_r = max(debug_max_r, debug_r)
+    !      weight = aero_weight_value(aero_weight, debug_r)
+    !      debug_num_conc = debug_num_conc &
+    !           + 1d0 / (aero_state%comp_vol / weight)
+    !      debug_mass_conc = debug_mass_conc &
+    !           + particle%vol * aero_data%density &
+    !           / (aero_state%comp_vol / weight)
+    !   end do
+    !end do
+    !write(*,*) '<<<<<<<<<<<<<<<<<<<<<<<<<<'
+    !write(*,*) 'mosaic_from_partmc'
+    !write(*,*) 'n_part ', aero_state%n_part
+    !write(*,*) 'min_r, weight ', debug_min_r, aero_weight_value(aero_weight, debug_min_r)
+    !write(*,*) 'max_r, weight ', debug_max_r, aero_weight_value(aero_weight, debug_max_r)
+    !write(*,*) 'num_conc ', debug_num_conc
+    !write(*,*) 'mass_conc ', debug_mass_conc
+    !write(*,*) 'gas ', gas_state%mix_rat
+    !<DEBUG
 #endif
 
   end subroutine mosaic_from_partmc
@@ -320,6 +352,12 @@ contains
     type(aero_info_t) :: aero_info
     real(kind=dp) :: old_weight, new_weight
     integer :: n_copies, i_dup
+    !>DEBUG
+    real(kind=dp) :: weight, debug_num_conc, debug_mass_conc(aero_data%n_spec)
+    real(kind=dp) :: debug_r, debug_min_r, debug_max_r, debug_min_w, debug_max_w
+    !write(*,*) '>>>>>>>>>>>>>>>>>>>>>>>>>>'
+    !write(*,*) 'mosaic_to_partmc'
+    !<DEBUG
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -379,6 +417,13 @@ contains
              new_weight = aero_weight_value(aero_weight, &
                   aero_particle_radius(particle))
              n_copies = prob_round(old_weight / new_weight)
+             !>DEBUG
+             !if (i_mosaic == 1) then
+             !   write(*,*) 'i_mosaic ', i_mosaic
+             !   write(*,*) 'weight old, new, frac ', old_weight, new_weight, old_weight / new_weight
+             !   write(*,*) 'n_copies ', n_copies
+             !end if
+             !<DEBUG
              if (n_copies == 0) then
                 aero_info%id = particle%id
                 aero_info%action = AERO_INFO_WEIGHT
@@ -412,6 +457,32 @@ contains
 
     call aero_particle_deallocate(new_particle)
     call aero_info_deallocate(aero_info)
+    !>DEBUG
+    !debug_num_conc = 0d0
+    !debug_mass_conc = 0d0
+    !debug_min_r = 1d20
+    !debug_max_r = 0d0
+    !do i_bin = 1,bin_grid%n_bin
+    !   do i_part = 1,aero_state%bin(i_bin)%n_part
+    !      particle => aero_state%bin(i_bin)%particle(i_part)
+    !      debug_r = aero_particle_radius(particle)
+    !      debug_min_r = min(debug_min_r, debug_r)
+    !      debug_max_r = max(debug_max_r, debug_r)
+    !      weight = aero_weight_value(aero_weight, debug_r)
+    !      debug_num_conc = debug_num_conc &
+    !           + 1d0 / (aero_state%comp_vol / weight)
+    !      debug_mass_conc = debug_mass_conc &
+    !           + particle%vol * aero_data%density &
+    !           / (aero_state%comp_vol / weight)
+    !   end do
+    !end do
+    !write(*,*) 'n_part ', aero_state%n_part
+    !write(*,*) 'min_r, weight ', debug_min_r, aero_weight_value(aero_weight, debug_min_r)
+    !write(*,*) 'max_r, weight ', debug_max_r, aero_weight_value(aero_weight, debug_max_r)
+    !write(*,*) 'num_conc ', debug_num_conc
+    !write(*,*) 'mass_conc ', debug_mass_conc
+    !write(*,*) 'gas ', gas_state%mix_rat
+    !<DEBUG
 #endif
 
   end subroutine mosaic_to_partmc

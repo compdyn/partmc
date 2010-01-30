@@ -1700,7 +1700,7 @@ contains
 
   !> Read full state.
   subroutine aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-       aero_data)
+       aero_data, aero_weight)
     
     !> aero_state to read.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1710,6 +1710,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
+    !> aero_weight structure.
+    type(aero_weight_t), intent(in) :: aero_weight
 
     integer :: dimid_aero_particle, dimid_aero_removed, n_info_item, n_part
     integer :: i_bin, i_part_in_bin, i_part, i_remove, status
@@ -1735,9 +1737,8 @@ contains
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
 
-    ! FIXME:
     call warn_msg(519710312, &
-         "state input is not yet compatible with weighting functions")
+         "state input must use same weighting as original output")
 
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then
@@ -1816,7 +1817,9 @@ contains
             aero_refract_core_imag(i_part), kind=dc)
        aero_particle%core_vol = aero_core_vol(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
-       aero_state%comp_vol = aero_comp_vol(i_part)
+       aero_state%comp_vol = aero_comp_vol(i_part) &
+            * aero_weight_value(aero_weight, &
+            aero_particle_radius(aero_particle))
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)

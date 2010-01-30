@@ -227,17 +227,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Round val to floor(val) or ceil(val) with probability
-  !> proportional to the relative distance from val. That is,
+  !> Round val to \c floor(val) or \c ceiling(val) with probability
+  !> proportional to the relative distance from \c val. That is,
   !> Prob(prob_round(val) == floor(val)) = ceil(val) - val.
   integer function prob_round(val)
 
     !> Value to round.
     real(kind=dp), intent(in) :: val
     
-    prob_round = floor(val)
-    if (pmc_random() .lt. real(ceiling(val), kind=dp) - val) then
-       prob_round = prob_round + 1
+    if (pmc_random() < real(ceiling(val), kind=dp) - val) then
+       prob_round = floor(val)
+    else
+       prob_round = ceiling(val)
     endif
 
   end function prob_round

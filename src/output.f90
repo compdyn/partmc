@@ -449,8 +449,8 @@ contains
 
   !> Read the current state.
   subroutine input_state_netcdf(filename, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop)
+       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
+       time, del_t, i_loop)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
@@ -458,6 +458,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(out) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(out) :: aero_state
     !> Gas data.
@@ -492,7 +494,7 @@ contains
        call gas_state_input_netcdf(gas_state, ncid, gas_data)
        call aero_data_input_netcdf(aero_data, ncid)
        call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-            aero_data)
+            aero_data, aero_weight)
 
        call pmc_nc_close(ncid)
     end if

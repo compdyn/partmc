@@ -24,14 +24,30 @@ def make_plot(in_dir, in_filename, out_filename):
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
-    plt.legend(loc = 'upper left')
+    plt.axis([1e-10, 1e-5, 1e9, 1e13])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("number density (m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename)
 
 dir_name = "../../urban_plume_nucleate/out/"
-filename_in = "urban_plume_wc_0001_00000013.nc"
-filename_out = "figs/1d_wc_num.pdf"
 
+filename_in = "urban_plume_wc_0001_00000001.nc"
+filename_out = "figs/1d_wc_num_01.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000006.nc"
+filename_out = "figs/1d_wc_num_06.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000012.nc"
+filename_out = "figs/1d_wc_num_12.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000018.nc"
+filename_out = "figs/1d_wc_num_18.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000024.nc"
+filename_out = "figs/1d_wc_num_24.pdf"
 make_plot(dir_name, filename_in, filename_out)

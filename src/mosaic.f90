@@ -221,10 +221,10 @@ contains
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
     !>DEBUG
-    write(*,*) '*****************************************************************'
-    write(*,*) '*****************************************************************'
-    write(*,*) 'nbin_a ', nbin_a
-    write(*,*) 'naerbin ', naerbin
+    !write(*,*) '*****************************************************************'
+    !write(*,*) '*****************************************************************'
+    !write(*,*) 'nbin_a ', nbin_a
+    !write(*,*) 'naerbin ', naerbin
     !<DEBUG
     if (nbin_a > naerbin) then
        call DeallocateMemory()
@@ -246,7 +246,7 @@ contains
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vol(i_spec) * conv_fac(i_spec) / weight
+                     = particle%vol(i_spec) * conv_fac(i_spec) * weight
              end if
           end do
           ! handle water specially
@@ -258,12 +258,13 @@ contains
                / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
           jhyst_leg(i_mosaic) = particle%water_hyst_leg
           !>DEBUG
-          write(*,*) '*****************************'
-          write(*,*) 'i_mosaic ', i_mosaic
-          write(*,*) 'aer ', aer(:,3,i_mosaic)
-          write(*,*) 'water_a ', water_a(i_mosaic)
-          write(*,*) 'num_a ', num_a(i_mosaic)
-          write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
+          !write(*,*) '<<<<<<<<<<<<<<<<<<<<<<<<<<'
+          !write(*,*) 'mosaic_from_partmc'
+          !write(*,*) 'i_mosaic ', i_mosaic
+          !write(*,*) 'aer ', aer(:,3,i_mosaic)
+          !write(*,*) 'water_a ', water_a(i_mosaic)
+          !write(*,*) 'num_a ', num_a(i_mosaic)
+          !write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
           !<DEBUG
        end do
     end do
@@ -345,6 +346,15 @@ contains
        ! particles that we've already dealt with
        do i_part = aero_state%bin(i_bin)%n_part,1,-1
           i_mosaic = i_mosaic + 1
+          !>DEBUG
+          !write(*,*) '>>>>>>>>>>>>>>>>>>>>>>>>>>'
+          !write(*,*) 'mosaic_to_partmc'
+          !write(*,*) 'i_mosaic ', i_mosaic
+          !write(*,*) 'aer ', aer(:,3,i_mosaic)
+          !write(*,*) 'water_a ', water_a(i_mosaic)
+          !write(*,*) 'num_a ', num_a(i_mosaic)
+          !write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
+          !<DEBUG
           particle => aero_state%bin(i_bin)%particle(i_part)
           old_weight = aero_weight_value(aero_weight, &
                aero_particle_radius(particle))
@@ -354,7 +364,7 @@ contains
                 particle%vol(i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
                      aer(i_spec_mosaic, 3, i_mosaic) &
-                     / (conv_fac(i_spec) / old_weight)
+                     / (conv_fac(i_spec) * old_weight)
              end if
           end do
           particle%water_hyst_leg = jhyst_leg(i_mosaic)

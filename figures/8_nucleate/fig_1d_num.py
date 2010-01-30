@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -15,7 +15,7 @@ def make_plot(in_dir, in_filename, out_filename):
     particles = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-10,max=1e-4,n_bin=30)
+    x_axis = pmc_data_nc.pmc_log_axis(min=1e-10,max=1e-4,n_bin=100)
     x_centers = x_axis.centers() 
 
     dry_diameter = particles.dry_diameter()
@@ -24,7 +24,7 @@ def make_plot(in_dir, in_filename, out_filename):
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
-    plt.axis([1e-10, 1e-5, 1e9, 1e13])
+    plt.axis([1e-10, 1e-5, 1e7, 1e15])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("number density (m^{-3})")
     fig = plt.gcf()
@@ -34,6 +34,10 @@ dir_name = "../../urban_plume_nucleate/out/"
 
 filename_in = "urban_plume_wc_0001_00000001.nc"
 filename_out = "figs/1d_wc_num_01.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000031.nc"
+filename_out = "figs/1d_wc_num_31.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000037.nc"

@@ -14,7 +14,7 @@ Simulating the evolution of soot mixing state with a particle-resolved
 aerosol model, J. Geophys. Res., 114, D09202,
 <http://dx.doi.org/10.1029/2008JD011073>.
 
-Copyright (C) 2005-2009 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2010 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
@@ -136,7 +136,7 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-1.3.0 - YYYY-MM-DD
+2.0.0 - YYYY-MM-DD
 
   * Scalable parallel implementation added.
 
@@ -147,6 +147,9 @@ ChangeLog
 
   * Reimplemented water condensation to be much faster and also
     correct.
+
+  * Nucleation added with parameterization due to Kuang, McMurray, et
+    al.
 
 1.2.0 - 2009-06-15
 

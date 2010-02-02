@@ -151,6 +151,8 @@ ChangeLog
   * Nucleation added with parameterization due to Kuang, McMurray, et
     al.
 
+  * Weighted particles, with full support for coagulation and MOSAIC.
+
 1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.

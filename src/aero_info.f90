@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Nicole Riemer and Matthew West
+! Copyright (C) 2009-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -15,34 +15,42 @@ module pmc_aero_info
   use mpi
 #endif
 
+  !> No information.
   integer, parameter :: AERO_INFO_NONE = 0
+  !> Particle was removed due to dilution with outside air.
   integer, parameter :: AERO_INFO_DILUTION = 1
+  !> Particle was removed due to coagulation.
   integer, parameter :: AERO_INFO_COAG = 2
+  !> Particle was removed due to halving of the aerosol population.
   integer, parameter :: AERO_INFO_HALVED = 3
+  !> Particle was removed due to adjustments in the particle's
+  !> weighting function.
+  integer, parameter :: AERO_INFO_WEIGHT = 4
 
-  !> Information about added or removed particles describing the
-  !> source or sink.
+  !> Information about removed particles describing the sink.
   !!
-  !! For each particle that is added or removed from the particle
-  !! population the aero_info_t structure gives the ID of the
-  !! added/removed particle and the action (dilution, coagulation,
-  !! emission, etc) that caused the addition/removal. The action must
-  !! be one of the AERO_INFO_* parameters in the pmc_aero_info
-  !! module. If the action is AERO_INFO_COAG then the other_id field
-  !! will store the ID of the particle that was coagulated with.
+  !! For each particle that is removed from the particle population
+  !! the aero_info_t structure gives the ID of the removed particle
+  !! and the action (dilution, coagulation, emission, etc) that caused
+  !! the removal. The action must be one of the AERO_INFO_* parameters
+  !! in the pmc_aero_info module. If the action is AERO_INFO_COAG then
+  !! the other_id field will store the ID of the particle that was
+  !! produced by the coagulation.
   !!
   !! Coagulation always occurs between two particles and the resulting
-  !! particle takes the ID of one of the two original particles. In
-  !! this case we say that one particle has survived the coagulation
-  !! and now has increased mass, while the other particle was
-  !! removed. Only the removed particle (the one whose ID was lost)
-  !! will be recorded in an aero_info_t structure.
+  !! particle takes the ID of one of the two original particles, or a
+  !! new ID. If either of the coagulating particles does not have its
+  !! ID inherited by the new particle then it will be recorded in an
+  !! \c aero_info_t structure. If the ID of the new coagulated
+  !! particle is the same as one of the coagulating particles then it
+  !! is not considered to have been lost and is not recorded in an
+  !! aero_info_t structure.
   type aero_info_t
      !> Particle ID number.
      integer :: id
      !> Action on this particle (from AERO_INFO_* parameters).
      integer :: action
-     !> Other particle ID for coagulation events, or 0 if not needed.
+     !> ID number of the new coagulated particle.
      integer :: other_id
   end type aero_info_t
 

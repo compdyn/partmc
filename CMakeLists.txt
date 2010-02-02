@@ -180,8 +180,6 @@ if(ENABLE_MOSAIC)
   add_test(mosaic_08 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_08.sh)
   add_test(mosaic_09 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_09.sh)
   add_test(mosaic_10 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_10.sh)
-  add_test(mosaic_11 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_11.sh)
-  add_test(mosaic_12 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_12.sh)
 endif(ENABLE_MOSAIC)
 add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
 add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
@@ -204,15 +202,16 @@ endif(ENABLE_MPI)
 set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/bin_grid.f90 src/condense.f90 src/constants.f90 src/env_data.f90
   src/env_state.f90 src/aero_mode.f90 src/aero_dist.f90
-  src/kernel_golovin.f90 src/kernel_sedi.f90 src/kernel_constant.f90
-  src/kernel_brown.f90 src/kernel_zero.f90 src/aero_data.f90
-  src/run_exact.f90 src/run_part.f90 src/util.f90 src/run_sect.f90
-  src/output.f90 src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
-  src/coagulation.f90 src/coagulation_mpi_controlled.f90
-  src/coagulation_mpi_equal.f90 src/kernel.f90 src/spec_line.f90
-  src/spec_file.f90 src/rand.f90 src/aero_particle.f90
-  src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-  src/aero_info.f90 src/aero_info_array.f90 src/nucleate.f90)
+  src/aero_weight.f90 src/kernel_golovin.f90 src/kernel_sedi.f90
+  src/kernel_constant.f90 src/kernel_brown.f90 src/kernel_zero.f90
+  src/aero_data.f90 src/run_exact.f90 src/run_part.f90 src/util.f90
+  src/run_sect.f90 src/output.f90 src/mosaic.f90 src/gas_data.f90
+  src/gas_state.f90 src/coagulation.f90
+  src/coagulation_mpi_controlled.f90 src/coagulation_mpi_equal.f90
+  src/kernel.f90 src/spec_line.f90 src/spec_file.f90 src/rand.f90
+  src/aero_particle.f90 src/aero_particle_array.f90 src/mpi.f90
+  src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90
+  src/nucleate.f90)
 
 set_source_files_properties(${PARTMC_SRC}
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
@@ -231,9 +230,10 @@ add_executable(test_bidisperse_ode
 	       src/gas_data.f90 src/gas_state.f90 src/aero_state.f90
 	       src/output.f90 src/bin_grid.f90 src/spec_line.f90
 	       src/spec_file.f90 src/aero_mode.f90 src/aero_dist.f90
-	       src/aero_binned.f90 src/rand.f90 src/aero_particle.f90
-	       src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
-	       src/aero_info.f90 src/aero_info_array.f90)
+	       src/aero_weight.f90 src/aero_binned.f90 src/rand.f90
+	       src/aero_particle.f90 src/aero_particle_array.f90
+	       src/mpi.f90 src/netcdf.f90 src/aero_info.f90
+	       src/aero_info_array.f90)
 target_link_libraries(test_bidisperse_ode ${EXTRA_LIBS})
 set_source_files_properties(test/bidisperse/test_bidisperse_ode.f90
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
@@ -307,7 +307,8 @@ add_executable(bin_average_comp src/bin_average_comp.f90
   src/aero_binned.f90 src/aero_particle.f90
   src/aero_particle_array.f90 src/aero_info.f90
   src/aero_info_array.f90 src/aero_dist.f90 src/constants.f90
-  src/spec_line.f90 src/aero_mode.f90 src/rand.f90)
+  src/spec_line.f90 src/aero_mode.f90 src/aero_weight.f90
+  src/rand.f90)
 target_link_libraries(bin_average_comp ${NETCDF_LIBS})
 set_source_files_properties(src/bin_average_comp.f90 PROPERTIES
 COMPILE_FLAGS ${STD_COMPILER_FLAGS})
@@ -319,7 +320,8 @@ add_executable(bin_average_size src/bin_average_size.f90
   src/aero_binned.f90 src/aero_particle.f90
   src/aero_particle_array.f90 src/aero_info.f90
   src/aero_info_array.f90 src/aero_dist.f90 src/constants.f90
-  src/spec_line.f90 src/aero_mode.f90 src/rand.f90)
+  src/spec_line.f90 src/aero_mode.f90 src/rand.f90
+  src/aero_weight.f90)
 target_link_libraries(bin_average_size ${NETCDF_LIBS})
 set_source_files_properties(src/bin_average_size.f90 PROPERTIES
 COMPILE_FLAGS ${STD_COMPILER_FLAGS})

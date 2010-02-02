@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -20,6 +20,7 @@ module pmc_aero_state
   use pmc_spec_file
   use pmc_aero_info
   use pmc_aero_info_array
+  use pmc_aero_weight
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -368,7 +369,7 @@ contains
   !> aero_state. The sampled amount is sample_prop *
   !> aero_state%comp_vol.
   subroutine aero_state_add_aero_dist_sample(aero_state, bin_grid, &
-       aero_data, aero_dist, sample_prop, create_time)
+       aero_data, aero_weight, aero_dist, sample_prop, create_time)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -376,6 +377,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
     !> Volume fraction to sample (1).
@@ -393,10 +396,11 @@ contains
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
-       n_samp_avg = sample_vol * aero_mode%num_conc
+       n_samp_avg = sample_vol &
+            * aero_mode_weighted_num_conc(aero_mode, aero_weight)
        n_samp = rand_poisson(n_samp_avg)
        do i_samp = 1,n_samp
-          call aero_mode_sample_radius(aero_mode, radius)
+          call aero_mode_sample_radius(aero_mode, aero_weight, radius)
           vol = rad2vol(radius)
           call aero_particle_set_vols(aero_particle, aero_mode%vol_frac * vol)
           call aero_particle_new_id(aero_particle)
@@ -587,13 +591,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create the bin number and mass arrays from aero_state%v.
-  subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
-       aero_binned)
+  subroutine aero_state_to_binned(bin_grid, aero_data, aero_weight, &
+       aero_state, aero_binned)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
@@ -608,9 +614,13 @@ contains
        do j = 1,aero_state%bin(b)%n_part
           aero_particle => aero_state%bin(b)%particle(j)
           aero_binned%vol_conc(b,:) = aero_binned%vol_conc(b,:) &
-               + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
+               + aero_particle%vol / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%dlnr
           aero_binned%num_conc(b) = aero_binned%num_conc(b) &
-               + 1d0 / aero_state%comp_vol / bin_grid%dlnr
+               + 1d0 / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%dlnr
        end do
     end do
     
@@ -619,13 +629,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
-  subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
-       aero_binned)
+  subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_weight, &
+       aero_state, aero_binned)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
@@ -642,9 +654,13 @@ contains
           b_dry = bin_grid_particle_in_bin(bin_grid, &
                aero_particle_solute_volume(aero_particle, aero_data))
           aero_binned%vol_conc(b_dry,:) = aero_binned%vol_conc(b_dry,:) &
-               + aero_particle%vol / aero_state%comp_vol / bin_grid%dlnr
+               + aero_particle%vol / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%dlnr
           aero_binned%num_conc(b_dry) = aero_binned%num_conc(b_dry) &
-               + 1d0 / aero_state%comp_vol / bin_grid%dlnr
+               + 1d0 / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%dlnr
        end do
     end do
     
@@ -1023,6 +1039,9 @@ contains
     integer :: i_bin, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
+    ! FIXME:
+    call warn_msg(516672698, &
+         "averaging is not yet compatible with weighting functions")
     do i_bin = 1,bin_grid%n_bin
        species_volumes = 0d0
        do i_part = 1,aero_state%bin(i_bin)%n_part
@@ -1084,6 +1103,9 @@ contains
     integer :: i_bin, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
+    ! FIXME:
+    call warn_msg(705987134, &
+         "averaging is not yet compatible with weighting functions")
     do i_bin = 1,bin_grid%n_bin
        total_volume = 0d0
        do i_part = 1,aero_state%bin(i_bin)%n_part
@@ -1545,7 +1567,7 @@ contains
 
   !> Write full state.
   subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-       aero_data, record_removals)
+       aero_data, aero_weight, record_removals)
     
     !> aero_state to write.
     type(aero_state_t), intent(in) :: aero_state
@@ -1555,6 +1577,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
+    !> aero_weight structure.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
 
@@ -1604,7 +1628,9 @@ contains
              aero_refract_core_imag(i_part) = aimag(particle%refract_core)
              aero_core_vol(i_part) = particle%core_vol
              aero_water_hyst_leg(i_part) = particle%water_hyst_leg
-             aero_comp_vol(i_part) = aero_state%comp_vol
+             aero_comp_vol(i_part) = aero_state%comp_vol &
+                  / aero_weight_value(aero_weight, &
+                  aero_particle_radius(particle))
              aero_id(i_part) = particle%id
              aero_least_create_time(i_part) = particle%least_create_time
              aero_greatest_create_time(i_part) = particle%greatest_create_time
@@ -1674,7 +1700,7 @@ contains
 
   !> Read full state.
   subroutine aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-       aero_data)
+       aero_data, aero_weight)
     
     !> aero_state to read.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1684,6 +1710,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
+    !> aero_weight structure.
+    type(aero_weight_t), intent(in) :: aero_weight
 
     integer :: dimid_aero_particle, dimid_aero_removed, n_info_item, n_part
     integer :: i_bin, i_part_in_bin, i_part, i_remove, status
@@ -1708,6 +1736,9 @@ contains
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
+
+    call warn_msg(519710312, &
+         "state input must use same weighting as original output")
 
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then
@@ -1786,7 +1817,9 @@ contains
             aero_refract_core_imag(i_part), kind=dc)
        aero_particle%core_vol = aero_core_vol(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
-       aero_state%comp_vol = aero_comp_vol(i_part)
+       aero_state%comp_vol = aero_comp_vol(i_part) &
+            * aero_weight_value(aero_weight, &
+            aero_particle_radius(aero_particle))
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)

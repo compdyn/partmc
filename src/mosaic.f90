@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -135,7 +135,7 @@ contains
 
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+       aero_weight, aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -152,6 +152,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
@@ -166,6 +168,11 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
+    real(kind=dp) :: weight
+    !>DEBUG
+    real(kind=dp) :: debug_num_conc, debug_mass_conc(aero_data%n_spec)
+    real(kind=dp) :: debug_r, debug_min_r, debug_max_r, debug_min_w, debug_max_w
+    !<DEBUG
 
     ! MOSAIC function interfaces
     interface
@@ -217,6 +224,12 @@ contains
     
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
+    !>DEBUG
+    !write(*,*) '*****************************************************************'
+    !write(*,*) '*****************************************************************'
+    !write(*,*) 'nbin_a ', nbin_a
+    !write(*,*) 'naerbin ', naerbin
+    !<DEBUG
     if (nbin_a > naerbin) then
        call DeallocateMemory()
        naerbin = nbin_a
@@ -225,23 +238,38 @@ contains
     i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bin(i_bin)%n_part
+       ! work backwards for consistency with mosaic_to_partmc(), which
+       ! has specific ordering requirements
+       do i_part = aero_state%bin(i_bin)%n_part,1,-1
           particle => aero_state%bin(i_bin)%particle(i_part)
+          weight = aero_weight_value(aero_weight, &
+               aero_particle_radius(particle))
           i_mosaic = i_mosaic + 1
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 ! convert m^3(species) to nmol(species)/m^3(air)
                 aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vol(i_spec) * conv_fac(i_spec)
+                     = particle%vol(i_spec) * conv_fac(i_spec) * weight
              end if
           end do
           ! handle water specially
           ! convert m^3(water) to kg(water)/m^3(air)
           water_a(i_mosaic) = particle%vol(aero_data%i_water) &
-               * aero_data%density(aero_data%i_water) / aero_state%comp_vol
-          num_a(i_mosaic) = 1d-6 / aero_state%comp_vol ! num conc (#/cc(air))
+               * aero_data%density(aero_data%i_water) &
+               / (aero_state%comp_vol / weight)
+          num_a(i_mosaic) = 1d-6 &
+               / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
           jhyst_leg(i_mosaic) = particle%water_hyst_leg
+          !>DEBUG
+          !write(*,*) '<<<<<<<<<<<<<<<<<<<<<<<<<<'
+          !write(*,*) 'mosaic_from_partmc'
+          !write(*,*) 'i_mosaic ', i_mosaic
+          !write(*,*) 'aer ', aer(:,3,i_mosaic)
+          !write(*,*) 'water_a ', water_a(i_mosaic)
+          !write(*,*) 'num_a ', num_a(i_mosaic)
+          !write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
+          !<DEBUG
        end do
     end do
 
@@ -254,6 +282,34 @@ contains
           cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
+    !>DEBUG
+    !debug_num_conc = 0d0
+    !debug_mass_conc = 0d0
+    !debug_min_r = 1d20
+    !debug_max_r = 0d0
+    !do i_bin = 1,bin_grid%n_bin
+    !   do i_part = 1,aero_state%bin(i_bin)%n_part
+    !      particle => aero_state%bin(i_bin)%particle(i_part)
+    !      debug_r = aero_particle_radius(particle)
+    !      debug_min_r = min(debug_min_r, debug_r)
+    !      debug_max_r = max(debug_max_r, debug_r)
+    !      weight = aero_weight_value(aero_weight, debug_r)
+    !      debug_num_conc = debug_num_conc &
+    !           + 1d0 / (aero_state%comp_vol / weight)
+    !      debug_mass_conc = debug_mass_conc &
+    !           + particle%vol * aero_data%density &
+    !           / (aero_state%comp_vol / weight)
+    !   end do
+    !end do
+    !write(*,*) '<<<<<<<<<<<<<<<<<<<<<<<<<<'
+    !write(*,*) 'mosaic_from_partmc'
+    !write(*,*) 'n_part ', aero_state%n_part
+    !write(*,*) 'min_r, weight ', debug_min_r, aero_weight_value(aero_weight, debug_min_r)
+    !write(*,*) 'max_r, weight ', debug_max_r, aero_weight_value(aero_weight, debug_max_r)
+    !write(*,*) 'num_conc ', debug_num_conc
+    !write(*,*) 'mass_conc ', debug_mass_conc
+    !write(*,*) 'gas ', gas_state%mix_rat
+    !<DEBUG
 #endif
 
   end subroutine mosaic_from_partmc
@@ -261,7 +317,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+       aero_weight, aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -278,6 +334,8 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -290,6 +348,16 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
+    type(aero_particle_t) :: new_particle
+    type(aero_info_t) :: aero_info
+    real(kind=dp) :: old_weight, new_weight
+    integer :: n_copies, i_dup
+    !>DEBUG
+    real(kind=dp) :: weight, debug_num_conc, debug_mass_conc(aero_data%n_spec)
+    real(kind=dp) :: debug_r, debug_min_r, debug_max_r, debug_min_w, debug_max_w
+    !write(*,*) '>>>>>>>>>>>>>>>>>>>>>>>>>>'
+    !write(*,*) 'mosaic_to_partmc'
+    !<DEBUG
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -306,26 +374,74 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
+    call aero_particle_allocate(new_particle)
+    call aero_info_allocate(aero_info)
+
     ! aerosol data: map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bin(i_bin)%n_part
+       ! work backwards so any additions and removals will only affect
+       ! particles that we've already dealt with
+       do i_part = aero_state%bin(i_bin)%n_part,1,-1
           i_mosaic = i_mosaic + 1
+          !>DEBUG
+          !write(*,*) '>>>>>>>>>>>>>>>>>>>>>>>>>>'
+          !write(*,*) 'mosaic_to_partmc'
+          !write(*,*) 'i_mosaic ', i_mosaic
+          !write(*,*) 'aer ', aer(:,3,i_mosaic)
+          !write(*,*) 'water_a ', water_a(i_mosaic)
+          !write(*,*) 'num_a ', num_a(i_mosaic)
+          !write(*,*) 'jhyst_leg ', jhyst_leg(i_mosaic)
+          !<DEBUG
           particle => aero_state%bin(i_bin)%particle(i_part)
+          old_weight = aero_weight_value(aero_weight, &
+               aero_particle_radius(particle))
           do i_spec = 1,aero_data%n_spec
              i_spec_mosaic = aero_data%mosaic_index(i_spec)
              if (i_spec_mosaic > 0) then
                 particle%vol(i_spec) = &
                      ! convert nmol(species)/m^3(air) to m^3(species)
                      aer(i_spec_mosaic, 3, i_mosaic) &
-                     / conv_fac(i_spec)
+                     / (conv_fac(i_spec) * old_weight)
              end if
           end do
           particle%water_hyst_leg = jhyst_leg(i_mosaic)
           ! handle water specially
           ! convert kg(water)/m^3(air) to m^3(water)
           particle%vol(aero_data%i_water) = water_a(i_mosaic) &
-               / aero_data%density(aero_data%i_water) * aero_state%comp_vol
+               / aero_data%density(aero_data%i_water) &
+               * (aero_state%comp_vol / old_weight)
+
+          ! adjust particle number to account for weight changes
+          if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
+             new_weight = aero_weight_value(aero_weight, &
+                  aero_particle_radius(particle))
+             n_copies = prob_round(old_weight / new_weight)
+             !>DEBUG
+             !if (i_mosaic == 1) then
+             !   write(*,*) 'i_mosaic ', i_mosaic
+             !   write(*,*) 'weight old, new, frac ', old_weight, new_weight, old_weight / new_weight
+             !   write(*,*) 'n_copies ', n_copies
+             !end if
+             !<DEBUG
+             if (n_copies == 0) then
+                aero_info%id = particle%id
+                aero_info%action = AERO_INFO_WEIGHT
+                aero_info%other_id = 0
+                call aero_state_remove_particle_with_info(aero_state, &
+                     i_bin, i_part, aero_info)
+             elseif (n_copies > 1) then
+                do i_dup = 1,(n_copies - 1)
+                   call aero_particle_copy(particle, new_particle)
+                   call aero_particle_new_id(new_particle)
+                   call aero_state_add_particle(aero_state, i_bin, &
+                        new_particle)
+                   ! re-get the particle pointer, which may have
+                   ! changed due to reallocations caused by adding
+                   particle => aero_state%bin(i_bin)%particle(i_part)
+                end do
+             end if
+          end if
        end do
     end do
     call aero_state_resort(bin_grid, aero_state)
@@ -338,6 +454,35 @@ contains
           gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
        end if
     end do
+
+    call aero_particle_deallocate(new_particle)
+    call aero_info_deallocate(aero_info)
+    !>DEBUG
+    !debug_num_conc = 0d0
+    !debug_mass_conc = 0d0
+    !debug_min_r = 1d20
+    !debug_max_r = 0d0
+    !do i_bin = 1,bin_grid%n_bin
+    !   do i_part = 1,aero_state%bin(i_bin)%n_part
+    !      particle => aero_state%bin(i_bin)%particle(i_part)
+    !      debug_r = aero_particle_radius(particle)
+    !      debug_min_r = min(debug_min_r, debug_r)
+    !      debug_max_r = max(debug_max_r, debug_r)
+    !      weight = aero_weight_value(aero_weight, debug_r)
+    !      debug_num_conc = debug_num_conc &
+    !           + 1d0 / (aero_state%comp_vol / weight)
+    !      debug_mass_conc = debug_mass_conc &
+    !           + particle%vol * aero_data%density &
+    !           / (aero_state%comp_vol / weight)
+    !   end do
+    !end do
+    !write(*,*) 'n_part ', aero_state%n_part
+    !write(*,*) 'min_r, weight ', debug_min_r, aero_weight_value(aero_weight, debug_min_r)
+    !write(*,*) 'max_r, weight ', debug_max_r, aero_weight_value(aero_weight, debug_max_r)
+    !write(*,*) 'num_conc ', debug_num_conc
+    !write(*,*) 'mass_conc ', debug_mass_conc
+    !write(*,*) 'gas ', gas_state%mix_rat
+    !<DEBUG
 #endif
 
   end subroutine mosaic_to_partmc
@@ -352,7 +497,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+       aero_weight, aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -364,6 +509,8 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -383,8 +530,8 @@ contains
     end interface
     
     ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
-         gas_data, gas_state)
+    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_weight, &
+         aero_state, gas_data, gas_state)
 
     if (msolar == 1) then
       call SolarZenithAngle
@@ -394,10 +541,11 @@ contains
     call aerosol_optical
 
     ! map MOSAIC -> PartMC
-    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_state, &
-         gas_data, gas_state)
-
+    ! must do optical properties first, as mosaic_to_partmc() may
+    ! change the number of particles
     call mosaic_aero_optical(bin_grid, env_state, aero_data, &
+         aero_state, gas_data, gas_state)
+    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_weight, &
          aero_state, gas_data, gas_state)
 #endif
 
@@ -451,7 +599,9 @@ contains
     ! map MOSAIC -> PartMC
     i_mosaic = 0 ! MOSAIC bin number
     do i_bin = 1,bin_grid%n_bin
-       do i_part = 1,aero_state%bin(i_bin)%n_part
+       ! work backwards for consistency with mosaic_to_partmc(), which
+       ! has specific ordering requirements
+       do i_part = aero_state%bin(i_bin)%n_part,1,-1
           i_mosaic = i_mosaic + 1
           particle => aero_state%bin(i_bin)%particle(i_part)
           particle%absorb_cross_sect = (ext_cross(i_mosaic) &

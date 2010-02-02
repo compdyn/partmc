@@ -14,6 +14,13 @@ module pmc_nucleate
   use pmc_aero_data
   use pmc_gas_data
   use pmc_gas_state
+
+  !> Type code for unknown or invalid nucleation type.
+  integer, parameter :: NUCLEATE_TYPE_INVALID   = 0
+  !> Type code for no nucleation.
+  integer, parameter :: NUCLEATE_TYPE_NONE      = 1
+  !> Type code for H2SO4 to SO4 nucleation with quadratic rate.
+  integer, parameter :: NUCLEATE_TYPE_SULF_ACID = 2
   
 contains
 
@@ -21,10 +28,10 @@ contains
 
   !> Do nucleation of the type given by the first argument.
   subroutine nucleate(nucleate_type, bin_grid, env_state, gas_data, &
-       aero_data, aero_state, gas_state, del_t)
+       aero_data, aero_weight, aero_state, gas_state, del_t)
 
     !> Type of nucleation.
-    character(len=*), intent(in) :: nucleate_type
+    integer, intent(in) :: nucleate_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -33,6 +40,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas state.
@@ -40,14 +49,14 @@ contains
     !> Time to perform nucleation for.
     real(kind=dp), intent(in) :: del_t
 
-    if (nucleate_type == "sulf_acid") then
+    if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
        call nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
-            aero_state, gas_state, del_t)
-    elseif (nucleate_type == "none") then
+            aero_weight, aero_state, gas_state, del_t)
+    elseif (nucleate_type == NUCLEATE_TYPE_NONE) then
        ! do nothing
     else
        call die_msg(983831728, &
-            "unknown nucleation type: " // trim(nucleate_type))
+            "unknown nucleation type: " // integer_to_string(nucleate_type))
     end if
 
   end subroutine nucleate
@@ -66,7 +75,7 @@ contains
   !! concentration in diverse atmospheric locations, J. Geophys. Res.,
   !! 113, D10209, doi:10.1029/2007JD009253.
   subroutine nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
-       aero_state, gas_state, del_t)
+       aero_weight, aero_state, gas_state, del_t)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -76,6 +85,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas state.
@@ -89,6 +100,7 @@ contains
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, vol, h2so4_removed_conc
+    real(kind=dp) :: nucleate_comp_vol
     type(aero_particle_t) :: aero_particle
 
     ! look up the species numbers
@@ -106,8 +118,13 @@ contains
     ! particle nucleation rate in (particles m^{-3} s^{-1})
     nucleate_rate = nucleate_coeff * sulf_acid_conc**2
 
+    ! computational volume at the size of nucleated particles (only
+    ! valid for mono-disperse nucleation)
+    nucleate_comp_vol = aero_state%comp_vol &
+         / aero_weight_value(aero_weight, nucleate_diam / 2d0)
+
     ! determine number of nucleated particles
-    n_samp_avg = nucleate_rate * aero_state%comp_vol * del_t
+    n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
     n_samp = rand_poisson(n_samp_avg)
 
     ! create the particles
@@ -131,7 +148,7 @@ contains
          total_so4_vol * aero_data%density(i_aero_so4) &
          / aero_data%molec_weight(i_aero_so4) & ! moles of SO4
          * const%avagadro &                     ! molecules of SO4
-         / aero_state%comp_vol                  ! molecules / m^3
+         / nucleate_comp_vol                    ! molecules / m^3
     gas_state%mix_rat(i_gas_h2so4) = gas_state%mix_rat(i_gas_h2so4) &
          - env_state_conc_to_ppb(env_state, h2so4_removed_conc)
     if (gas_state%mix_rat(i_gas_h2so4) < 0d0) then
@@ -139,6 +156,29 @@ contains
     end if
 
   end subroutine nucleate_sulf_acid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine spec_file_read_nucleate(file, nucleate_type)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Aerosol weight.
+    integer, intent(out) :: nucleate_type
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: nucleate_type_name
+
+    call spec_file_read_string(file, 'nucleate', nucleate_type_name)
+    if (nucleate_type_name == 'none') then
+       nucleate_type = NUCLEATE_TYPE_NONE
+    elseif (nucleate_type_name == 'sulf_acid') then
+       nucleate_type = NUCLEATE_TYPE_SULF_ACID
+    else
+       call spec_file_die_msg(707263678, file, "unknown nucleate type: " &
+            // trim(nucleate_type_name))
+    end if
+
+  end subroutine spec_file_read_nucleate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

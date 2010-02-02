@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/mosaic_restarted # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 2                        # total number of particles
+n_part 20                       # total number of particles
 kernel golovin                  # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart yes                     # whether to restart from saved state (yes/no)
@@ -15,6 +15,10 @@ t_progress 600                  # progress printing interval (0 disables) (s)
 n_bin 160                       # number of bins
 r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
+
+weight power                    # weighting function
+ref_radius 1e-7                 # radius at which weight is 1
+exponent -1                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 

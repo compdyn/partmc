@@ -8,7 +8,7 @@ set xlabel "radius (m)"
 set ylabel "number concentration (#/m^3)"
 
 set xrange [1e-7:1e-2]
-set yrange [1e3:1e10]
+set yrange [1e-3:1e10]
 
 plot "out/sedi_part_size_num.txt" using 1:2 title "particle t = 0 hours"
 replot "out/sedi_part_size_num.txt" using 1:3 title "particle t = 5 minutes"

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -120,8 +120,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the total number concentration in #/m^3 of a distribution.
-  !> (#/m^3)
+  !> Returns the total number concentration of a distribution. (#/m^3)
   real(kind=dp) function aero_dist_total_num_conc(aero_dist)
 
     !> Aerosol distribution.
@@ -130,6 +129,29 @@ contains
     aero_dist_total_num_conc = sum(aero_dist%mode%num_conc)
 
   end function aero_dist_total_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the total weighted number concentration of a
+  !> distribution. (#/m^3)
+  real(kind=dp) function aero_dist_weighted_num_conc(aero_dist, &
+       aero_weight)
+
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+
+    integer :: i_mode
+
+    aero_dist_weighted_num_conc = 0d0
+    do i_mode = 1,aero_dist%n_mode
+       aero_dist_weighted_num_conc = aero_dist_weighted_num_conc &
+            + aero_mode_weighted_num_conc(aero_dist%mode(i_mode), &
+            aero_weight)
+    end do
+
+  end function aero_dist_weighted_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

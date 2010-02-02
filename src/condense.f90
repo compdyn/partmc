@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -75,7 +75,7 @@ contains
   !> including updating the environment to account for the lost
   !> vapor.
   subroutine condense_particles(bin_grid, env_state, env_data, &
-       aero_data, aero_state, del_t)
+       aero_data, aero_weight, aero_state, del_t)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -85,6 +85,8 @@ contains
     type(env_data_t), intent(in) :: env_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Total time to integrate.
@@ -99,6 +101,9 @@ contains
     real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
     real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
     real(kind=dp) :: V_comp_final, water_rel_error
+
+    call assert_msg(324771387, aero_weight%type == AERO_WEIGHT_TYPE_NONE, &
+         "condensation can only be used with weight type none")
 
     ! initial water volume in the aerosol particles
     water_vol_initial = 0d0
@@ -579,7 +584,7 @@ contains
 
   !> Call condense_equilib_particle() on each particle in the aerosol.
   subroutine condense_equilib_particles(bin_grid, env_state, aero_data, &
-       aero_state)
+       aero_weight, aero_state)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -587,11 +592,16 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
  
     integer :: i_bin, i
     
+    call assert_msg(472551937, aero_weight%type == AERO_WEIGHT_TYPE_NONE, &
+         "equilibriation can only be used with weight type none")
+
     do i_bin = 1,bin_grid%n_bin
        do i = 1,aero_state%bin(i_bin)%n_part
           call condense_equilib_particle(env_state, aero_data, &

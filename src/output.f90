@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -30,8 +30,8 @@ contains
 
   !> Write the current state.
   subroutine output_state(prefix, output_type, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop, record_removals)
+       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
+       time, del_t, i_loop, record_removals)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -41,6 +41,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
@@ -76,13 +78,13 @@ contains
        ! transferring data to processor 0 and having it do the writes
        if (rank == 0) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
-               aero_state, gas_data, gas_state, env_state, index, time, &
-               del_t, i_loop, record_removals, rank, n_proc)
+               aero_weight, aero_state, gas_data, gas_state, env_state, &
+               index, time, del_t, i_loop, record_removals, rank, n_proc)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, bin_grid, &
-                  aero_data, gas_data, index, time, del_t, i_loop, &
-                  record_removals, i_proc)
+                  aero_data, aero_weight, gas_data, index, time, del_t, &
+                  i_loop, record_removals, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -91,12 +93,12 @@ contains
     elseif (output_type == "dist") then
        ! have each processor write its own data directly
        call output_state_to_file(prefix, bin_grid, aero_data, &
-            aero_state, gas_data, gas_state, env_state, index, time, &
-            del_t, i_loop, record_removals, rank, n_proc)
+            aero_weight, aero_state, gas_data, gas_state, env_state, &
+            index, time, del_t, i_loop, record_removals, rank, n_proc)
     elseif (output_type == "single") then
        if (n_proc == 1) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
-               aero_state, gas_data, gas_state, &
+               aero_weight, aero_state, gas_data, gas_state, &
                env_state, index, time, del_t, i_loop, &
                record_removals, rank, n_proc)
        else
@@ -116,7 +118,7 @@ contains
                 call recv_output_state_single(aero_state_write, i_proc)
              end do
              call output_state_to_file(prefix, bin_grid, aero_data, &
-                  aero_state_write, gas_data, gas_state_write, &
+                  aero_weight, aero_state_write, gas_data, gas_state_write, &
                   env_state_write, index, time, del_t, i_loop, &
                   record_removals, rank, 1)
              call aero_state_deallocate(aero_state_write)
@@ -138,8 +140,8 @@ contains
   !> Write the current state for a single processor. Do not call this
   !> subroutine directly, but rather call output_state_netcdf().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop, record_removals, write_rank, write_n_proc)
+       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
+       time, del_t, i_loop, record_removals, write_rank, write_n_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -147,6 +149,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
@@ -211,7 +215,7 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-         aero_data, record_removals)
+         aero_data, aero_weight, record_removals)
 
     call pmc_nc_check(nf90_close(ncid))
     
@@ -257,9 +261,9 @@ contains
 
   !> Receive the state for the "central" output method on the root
   !> processor.
-  subroutine recv_output_state_central(prefix, bin_grid, &
-       aero_data, gas_data, index, time, del_t, i_loop, &
-       record_removals, remote_proc)
+  subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
+       aero_weight, gas_data, index, time, del_t, i_loop, record_removals, &
+       remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -267,6 +271,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Filename index.
@@ -318,8 +324,8 @@ contains
     deallocate(buffer)
     
     call output_state_to_file(prefix, bin_grid, aero_data, &
-         aero_state, gas_data, gas_state, env_state, index, time, &
-         del_t, i_loop, record_removals, remote_proc, n_proc)
+         aero_weight, aero_state, gas_data, gas_state, env_state, &
+         index, time, del_t, i_loop, record_removals, remote_proc, n_proc)
     
     call env_state_deallocate(env_state)
     call gas_state_deallocate(gas_state)
@@ -443,8 +449,8 @@ contains
 
   !> Read the current state.
   subroutine input_state_netcdf(filename, bin_grid, aero_data, &
-       aero_state, gas_data, gas_state, env_state, index, time, &
-       del_t, i_loop)
+       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
+       time, del_t, i_loop)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
@@ -452,6 +458,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(out) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(out) :: aero_state
     !> Gas data.
@@ -486,7 +494,7 @@ contains
        call gas_state_input_netcdf(gas_state, ncid, gas_data)
        call aero_data_input_netcdf(aero_data, ncid)
        call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-            aero_data)
+            aero_data, aero_weight)
 
        call pmc_nc_close(ncid)
     end if

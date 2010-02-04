@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Matthew West
+// Copyright (C) 2009, 2010 Matthew West
 // Licensed under the GNU General Public License version 2 or (at your
 // option) any later version. See the file COPYING for details.
 
@@ -17,6 +17,11 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
 static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y,
 			   N_Vector fy, void *user_data, N_Vector tmp);
+
+static int condense_prec(realtype t, N_Vector y, N_Vector fy,
+			 N_Vector r, N_Vector z,
+			 realtype gamma, realtype delta,
+			 int lr, void *user_data, N_Vector tmp);
 
 //static void (*condense_vf_f)(int neq, double t, double *y_f, double *ydot_f);
 
@@ -77,13 +82,19 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	flag = CVodeSetMaxNumSteps(cvode_mem, 100000);
 	if (condense_check_flag(&flag, "CVodeSetMaxNumSteps", 1)) return(1);
 
-	pretype = PREC_NONE;
+	pretype = PREC_LEFT;
 	maxl = 0;
 	flag = CVSptfqmr(cvode_mem, pretype, maxl); 
 	if (condense_check_flag(&flag, "CVSptfqmr", 1)) return(1);
 
+	//flag = CVDense(cvode_mem, neq);
+	//if (condense_check_flag(&flag, "CVDense", 1)) return(1);
+
 	flag = CVSpilsSetJacTimesVecFn(cvode_mem, condense_jtimes); 
 	if (condense_check_flag(&flag, "CVSpilsSetJacTimesVecFn", 1)) return(1);
+
+	flag = CVSpilsSetPreconditioner(cvode_mem, NULL, condense_prec);
+	if (condense_check_flag(&flag, "CVSpilsSetPreconditioner", 1)) return(1);
 
 	t = t_initial;
 	flag = CVode(cvode_mem, t_final, y, &t, CV_NORMAL);
@@ -104,6 +115,8 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	realtype *y_data, *ydot_data;
 	int i, neq;
 	double *y_f, *ydot_f;
+
+	//printf("condense_vf: t %e\n", t);
 
 	neq = NV_LENGTH_S(y);
 	y_data = NV_DATA_S(y);
@@ -132,6 +145,8 @@ static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y,
 	int i, neq;
 	double *y_f, *v_f, *Jv_f;
 
+	//printf("condense_jtimes: t %e\n", t);
+
 	neq = NV_LENGTH_S(y);
 	y_data = NV_DATA_S(y);
 	v_data = NV_DATA_S(v);
@@ -153,6 +168,49 @@ static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y,
 	free(y_f);
 	free(v_f);
 	free(Jv_f);
+	return(0);
+}
+
+static int condense_prec(realtype t, N_Vector y, N_Vector fy,
+			 N_Vector r, N_Vector z,
+			 realtype gamma, realtype delta,
+			 int lr, void *user_data, N_Vector tmp)
+{
+	// solve Pz = r
+	// P \approx M = I - \gamma J
+	// J = \partial f / \partial y
+
+	realtype *y_data, *fy_data, *r_data, *z_data;
+	int i, neq;
+	double *y_f, *fy_f, *r_f, *z_f;
+
+	//printf("condense_prec: t %e\n", t);
+
+	neq = NV_LENGTH_S(y);
+	y_data = NV_DATA_S(y);
+	fy_data = NV_DATA_S(fy);
+	r_data = NV_DATA_S(r);
+	z_data = NV_DATA_S(z);
+
+	y_f = malloc(neq * sizeof(double));
+	fy_f = malloc(neq * sizeof(double));
+	r_f = malloc(neq * sizeof(double));
+	z_f = malloc(neq * sizeof(double));
+
+	for (i = 0; i < neq; i++) {
+		y_f[i] = y_data[i];
+		fy_f[i] = fy_data[i];
+		r_f[i] = r_data[i];
+	}
+	condense_prec_exact_f(neq, t, y_f, fy_f, r_f, z_f, gamma, delta, lr);
+	for (i = 0; i < neq; i++) {
+		z_data[i] = z_f[i];
+	}
+	
+	free(y_f);
+	free(fy_f);
+	free(r_f);
+	free(z_f);
 	return(0);
 }
 

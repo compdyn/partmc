@@ -174,12 +174,14 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 set(STD_COMPILER_FLAGS "-DTESTING")
 set(LEGACY_COMPILER_FLAGS "-DTESTING")
+set(C_COMPILER_FLAGS "-DTESTING")
 
 #if(COMPILER_NAME STREQUAL "gfortran")
 #if(CMAKE_COMPILER_IS_GNUG77)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(STD_COMPILER_FLAGS "${STD_COMPILER_FLAGS} -g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include")
   set(LEGACY_COMPILER_FLAGS "${LEGACY_COMPILER_FLAGS} -g -std=legacy -I/include -I/usr/include -I/usr/local/include")
+  set(C_COMPILER_FLAGS "${C_COMPILER_FLAGS} -arch i386")
   #add_definitions(-g -x f95-cpp-input -std=legacy -fimplicit-none -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
 
   #add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
@@ -266,6 +268,8 @@ set_source_files_properties(${PARTMC_SRC}
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
 set_source_files_properties(src/dvode_f90_m.f90
   PROPERTIES COMPILE_FLAGS ${LEGACY_COMPILER_FLAGS})
+set_source_files_properties(src/condense_solver.c
+  PROPERTIES COMPILE_FLAGS ${C_COMPILER_FLAGS})
 
 add_executable(partmc ${PARTMC_SRC} src/dvode_f90_m.f90
   src/condense_solver.c)

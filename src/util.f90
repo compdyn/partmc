@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -137,23 +137,31 @@ contains
     integer i
     logical found_unit
 
-    write(*,*) '*************************************************'
+    !>DEBUG
+    !write(*,*) '*************************************************'
+    !<DEBUG
     found_unit = .false.
     do i = 1,max_units
-       write(*,*) 'i,unit_used(i),max_units ', i, unit_used(i), max_units
+       !>DEBUG
+       !write(*,*) 'i,unit_used(i),max_units ', i, unit_used(i), max_units
+       !<DEBUG
        if (.not. unit_used(i)) then
           found_unit = .true.
           exit
        end if
     end do
-    write(*,*) 'i,found_unit ', i, found_unit
+    !>DEBUG
+    !write(*,*) 'i,found_unit ', i, found_unit
+    !<DEBUG
     if (.not. found_unit) then
        call die_msg(690355443, &
             'no more units available - need to free_unit()')
     end if
     unit_used(i) = .true.
-    write(*,*) 'unit_used(i) ', unit_used(i)
-    write(*,*) 'i + unit_offset ', (i + unit_offset)
+    !>DEBUG
+    !write(*,*) 'unit_used(i) ', unit_used(i)
+    !write(*,*) 'i + unit_offset ', (i + unit_offset)
+    !<DEBUG
     get_unit = i + unit_offset
 
   end function get_unit
@@ -165,8 +173,10 @@ contains
 
     integer, intent(in) :: unit
 
-    write(*,*) 'unit ', unit
-    write(*,*) 'unit_offset ', unit_offset
+    !>DEBUG
+    !write(*,*) 'unit ', unit
+    !write(*,*) 'unit_offset ', unit_offset
+    !<DEBUG
     unit_used(unit - unit_offset) = .false.
 
   end subroutine free_unit

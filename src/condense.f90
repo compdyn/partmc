@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -17,9 +17,17 @@ module pmc_condense
   use pmc_util
   use pmc_aero_particle
   use pmc_constants
+  !>DEBUG
   !use dvode_f90_m
+  !<DEBUG
   use iso_c_binding
 
+  !> Whether to numerically test the Jacobian-times-vector function
+  !> during execution (for debugging only).
+  logical, parameter :: CONDENSE_DO_TEST_JTIMES = .false.
+
+  !> Internal-use structure for storing the inputs for the
+  !> rate-calculation function.
   type condense_rates_inputs_t
      !> Temperature (K).
      real(kind=dp) :: T
@@ -39,6 +47,8 @@ module pmc_condense
      real(kind=dp) :: kappa
   end type condense_rates_inputs_t
 
+  !> Internal-use structure for storing the outputs from the
+  !> rate-calculation function.
   type condense_rates_outputs_t
      !> Change rate of diameter (m s^{-1}).
      real(kind=dp) :: Ddot
@@ -60,13 +70,32 @@ module pmc_condense
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
 
+  !> Internal-use variable for storing the aerosol data during calls
+  !> to the ODE solver.
   type(aero_data_t) :: condense_saved_aero_data
+  !> Internal-use variable for storing the environment data during
+  !> calls to the ODE solver.
   type(env_data_t) :: condense_saved_env_data
+  !> Internal-use variable for storing the initial environment state
+  !> during calls to the ODE solver.
   type(env_state_t) :: condense_saved_env_state_initial
+  !> Internal-use variable for storing the inital computational volume
+  !> during calls to the ODE solver.
   real(kind=dp) :: condense_saved_V_comp_initial
+  !> Internal-use variable for storing the rate of change of the
+  !> temperature during calls to the ODE solver.
   real(kind=dp) :: condense_saved_Tdot
+  !> Internal-use variable for storing the per-particle kappa values
+  !> during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_kappa(:)
+  !> Internal-use variable for storing the per-particle dry diameters
+  !> during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_D_dry(:)
+  !>DEBUG
+  integer, save :: condense_n_vf
+  integer, save :: condense_n_jtimes
+  integer, save :: condense_n_prec
+  !<DEBUG
 
 contains
   
@@ -195,8 +224,21 @@ contains
     abstol_f_p = c_loc(abstol_f)
     !condense_vf_f_p = c_funloc(condense_vf_f)
     !condense_jtimes_f_p = c_funloc(condense_jtimes_f)
+    if (CONDENSE_DO_TEST_JTIMES) then
+       call condense_test_jtimes(n_eqn, 0d0, state)
+    end if
+    !>DEBUG
+    condense_n_vf = 0
+    condense_n_jtimes = 0
+    condense_n_prec = 0
+    !<DEBUG
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f) !, condense_vf_f_p, condense_jtimes_f_p)
+    !>DEBUG
+    write(*,*) 'condense_n_vf ', condense_n_vf
+    write(*,*) 'condense_n_jtimes ', condense_n_jtimes
+    write(*,*) 'condense_n_prec ', condense_n_prec
+    !<DEBUG
     !>DEBUG
     !stop
     !<DEBUG
@@ -667,6 +709,9 @@ contains
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
+    !>DEBUG
+    condense_n_vf = condense_n_vf + 1
+    !<DEBUG
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
     
@@ -705,34 +750,32 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine condense_jtimes_f(n_eqn, time, state_p, vec_p, &
-       jac_times_vec_p) bind(c)
-    
-    !> Length of state vector.
-    integer(kind=c_int), value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=c_double), value, intent(in) :: time
-    !> Pointer to current state vector.
-    type(c_ptr), value, intent(in) :: state_p
-    !> Pointer to vector to multiply by the Jacobian.
-    type(c_ptr), value, intent(in) :: vec_p
-    !> Pointer to jacobian multiplied by the input vector \c vec.
-    type(c_ptr), value, intent(in) :: jac_times_vec_p
+  subroutine condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
+       dHdot_dD, dHdot_dH)
 
-    real(kind=dp), pointer :: state(:)
-    real(kind=dp), pointer :: vec(:)
-    real(kind=dp), pointer :: jac_times_vec(:)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    !> Length of state vector.
+    integer(kind=c_int), intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), intent(in) :: state_p
+    !> Derivative of Ddot with respect to D.
+    real(kind=dp), intent(out) :: dDdot_dD(n_eqn - 1)
+    !> Derivative of Ddot with respect to H.
+    real(kind=dp), intent(out) :: dDdot_dH(n_eqn - 1)
+    !> Derivative of Hdot with respect to D.
+    real(kind=dp), intent(out) :: dHdot_dD(n_eqn - 1)
+    !> Derivative of Hdot with respect to H.
+    real(kind=dp), intent(out) :: dHdot_dH
+
+    real(kind=c_double), pointer :: state(:)
     integer :: i_part
     type(env_state_t) :: env_state
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
     call c_f_pointer(state_p, state, (/ n_eqn /))
-    call c_f_pointer(vec_p, vec, (/ n_eqn /))
-    call c_f_pointer(jac_times_vec_p, jac_times_vec, (/ n_eqn /))
-    
+
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
     
@@ -756,25 +799,272 @@ contains
     end do
     dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
     
-    jac_times_vec(n_eqn) = dHdot_dH * vec(1)
+    call env_state_deallocate(env_state)
+    
+  end subroutine condense_jac
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine condense_jtimes_f(n_eqn, time, state_p, vec_p, &
+       jac_times_vec_p) bind(c)
+    
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+    !> Pointer to vector to multiply by the Jacobian.
+    type(c_ptr), value, intent(in) :: vec_p
+    !> Pointer to jacobian multiplied by the input vector \c vec.
+    type(c_ptr), value, intent(in) :: jac_times_vec_p
+
+    real(kind=c_double), pointer :: vec(:)
+    real(kind=c_double), pointer :: jac_times_vec(:)
+    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
+    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    integer :: i_part
+
+    !>DEBUG
+    condense_n_jtimes = condense_n_jtimes + 1
+    !<DEBUG
+    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
+         dHdot_dD, dHdot_dH)
+
+    call c_f_pointer(vec_p, vec, (/ n_eqn /))
+    call c_f_pointer(jac_times_vec_p, jac_times_vec, (/ n_eqn /))
+    
+    jac_times_vec(n_eqn) = dHdot_dH * vec(n_eqn)
     do i_part = 1,(n_eqn - 1)
        jac_times_vec(i_part) = dDdot_dD(i_part) * vec(i_part) &
             + dDdot_dH(i_part) * vec(n_eqn)
        jac_times_vec(n_eqn) = jac_times_vec(n_eqn) &
             + dHdot_dD(i_part) * vec(i_part)
     end do
-    
-    call env_state_deallocate(env_state)
-    
-    !>DEBUG
-    !write(*,*) 'condense_jtimes_f: time = ', time
-    !write(*,*) 'condense_jtimes_f: state(1), state(n_eqn) = ', state(1), state(n_eqn)
-    !write(*,*) 'condense_jtimes_f: vec(1), vec(n_eqn) = ', vec(1), vec(n_eqn)
-    !write(*,*) 'condense_jtimes_f: jac_times_vec(1), jac_times_vec(n_eqn) = ', jac_times_vec(1), jac_times_vec(n_eqn)
-    !<DEBUG
-    
+
   end subroutine condense_jtimes_f
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P
+  !> \approx M = I - \gamma J \f$ and \f$ J = \partial f / \partial y
+  !> \f$.
+  subroutine condense_prec_diag_f(n_eqn, time, state_p, state_dot_p, rhs_p, &
+       soln_p, gamma, delta, left_or_right) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+    !> Pointer to current state derivative vector.
+    type(c_ptr), value, intent(in) :: state_dot_p
+    !> Pointer to right-hand-side vector.
+    type(c_ptr), value, intent(in) :: rhs_p
+    !> Pointer to solution vector.
+    type(c_ptr), value, intent(in) :: soln_p
+    !> Value of \f$ \gamma \f$ parameter.
+    real(kind=c_double), value, intent(in) :: gamma
+    !> Input tolerance.
+    real(kind=c_double), value, intent(in) :: delta
+    !> Whether to use the left (1) or right (2) preconditioner.
+    integer(kind=c_int), value, intent(in) :: left_or_right
+
+    real(kind=c_double), pointer :: rhs(:), soln(:)
+    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
+    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    integer :: i_part
+
+    !>DEBUG
+    condense_n_prec = condense_n_prec + 1
+    !<DEBUG
+    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
+         dHdot_dD, dHdot_dH)
+
+    call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
+    call c_f_pointer(soln_p, soln, (/ n_eqn /))
+    
+    do i_part = 1,(n_eqn - 1)
+       soln(i_part) = rhs(i_part) / (real(1d0, kind=c_double) &
+            - gamma * real(dDdot_dD(i_part), kind=c_double))
+    end do
+    soln(n_eqn) = rhs(n_eqn) / (real(1d0, kind=c_double) &
+         - gamma * real(dHdot_dH, kind=c_double))
+
+  end subroutine condense_prec_diag_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P
+  !> \approx M = I - \gamma J \f$ and \f$ J = \partial f / \partial y
+  !> \f$.
+  subroutine condense_prec_exact_f(n_eqn, time, state_p, state_dot_p, rhs_p, &
+       soln_p, gamma, delta, left_or_right) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+    !> Pointer to current state derivative vector.
+    type(c_ptr), value, intent(in) :: state_dot_p
+    !> Pointer to right-hand-side vector.
+    type(c_ptr), value, intent(in) :: rhs_p
+    !> Pointer to solution vector.
+    type(c_ptr), value, intent(in) :: soln_p
+    !> Value of \f$ \gamma \f$ parameter.
+    real(kind=c_double), value, intent(in) :: gamma
+    !> Input tolerance.
+    real(kind=c_double), value, intent(in) :: delta
+    !> Whether to use the left (1) or right (2) preconditioner.
+    integer(kind=c_int), value, intent(in) :: left_or_right
+
+    real(kind=c_double), pointer :: rhs(:), soln(:)
+    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
+    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    real(kind=dp) :: lhs_n, rhs_n
+    integer :: i_part
+
+    !>DEBUG
+    condense_n_prec = condense_n_prec + 1
+    !<DEBUG
+    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
+         dHdot_dD, dHdot_dH)
+
+    call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
+    call c_f_pointer(soln_p, soln, (/ n_eqn /))
+
+    lhs_n = 1d0 - gamma * dHdot_dH
+    rhs_n = rhs(n_eqn)
+    do i_part = 1,(n_eqn - 1)
+       lhs_n = lhs_n - (- gamma * dDdot_dH(i_part)) &
+            * (- gamma * dHdot_dD(i_part)) / (1d0 - gamma * dDdot_dD(i_part))
+       rhs_n = rhs_n - (- gamma * dHdot_dD(i_part)) * rhs(i_part) &
+            / (1d0 - gamma * dDdot_dD(i_part))
+    end do
+    soln(n_eqn) = rhs_n / lhs_n
+
+    do i_part = 1,(n_eqn - 1)
+       soln(i_part) = (rhs(i_part) &
+            - (- gamma * dDdot_dH(i_part)) * soln(n_eqn)) &
+            / (1d0 - gamma * dDdot_dD(i_part))
+    end do
+
+  end subroutine condense_prec_exact_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine condense_compare_jtimes(n_eqn, time, state, i_col, eps, &
+       jac_col, fd_jac_col)
+
+    !> Length of state vector.
+    integer, value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), value, intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+    !> Column of the jacobian to compute.
+    integer, intent(in) :: i_col
+    !> Scaling for finite difference approximation.
+    real(kind=dp), intent(in) :: eps
+    !> Exact column of the jacobian.
+    real(kind=dp), intent(out) :: jac_col(n_eqn)
+    !> Finite difference column of the jacobian.
+    real(kind=dp), intent(out) :: fd_jac_col(n_eqn)
+
+    real(kind=c_double), target :: state_f(n_eqn)
+    real(kind=c_double), target :: state_plus_eps_f(n_eqn)
+    real(kind=c_double), target :: state_dot_f(n_eqn)
+    real(kind=c_double), target :: state_plus_eps_dot_f(n_eqn)
+    real(kind=c_double), target :: vec_f(n_eqn)
+    real(kind=c_double), target :: jac_times_vec_f(n_eqn)
+    integer :: i
+
+    do i = 1,n_eqn
+       state_f(i) = real(state(i), kind=c_double)
+    end do
+    state_plus_eps_f = state_f
+    state_plus_eps_f(i_col) = state_plus_eps_f(i_col) &
+         + real(eps, kind=c_double)
+    vec_f = real(0d0, kind=c_double)
+    vec_f(i_col) = real(1d0, kind=c_double)
+
+    call condense_vf_f(int(n_eqn, kind=c_int), real(time, kind=c_double), &
+         c_loc(state_f), c_loc(state_dot_f))
+    call condense_vf_f(int(n_eqn, kind=c_int), real(time, kind=c_double), &
+         c_loc(state_plus_eps_f), c_loc(state_plus_eps_dot_f))
+    call condense_jtimes_f(int(n_eqn, kind=c_int), &
+         real(time, kind=c_double), &
+         c_loc(state_f), c_loc(vec_f), c_loc(jac_times_vec_f))
+
+    do i = 1,n_eqn
+       jac_col(i) = real(jac_times_vec_f(i), kind=dp)
+       fd_jac_col(i) = real(state_plus_eps_dot_f(i) - state_dot_f(i), &
+            kind=dp) / eps
+    end do
+
+  end subroutine condense_compare_jtimes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine condense_test_jtimes(n_eqn, time, state)
+
+    !> Length of state vector.
+    integer, value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=dp), value, intent(in) :: time
+    !> Current state vector.
+    real(kind=dp), intent(in) :: state(n_eqn)
+
+    real(kind=dp), parameter :: eps_big = 1d-6
+    real(kind=dp), parameter :: eps_small = 1d-12
+    real(kind=dp), parameter :: error_factor = 10d0
+
+    real(kind=dp) :: jac_col(n_eqn), fd_jac_col(n_eqn)
+    real(kind=dp) :: fd_jac_col_small(n_eqn), fd_jac_col_big(n_eqn)
+    real(kind=dp) :: error_big, error_small, error, alpha, eps
+    integer :: i_col, i_row, i_eps
+    real(kind=dp) :: error_ratio, expected_error_ratio
+
+    do i_col = 1,n_eqn
+       call condense_compare_jtimes(n_eqn, time, state, i_col, eps_big, &
+            jac_col, fd_jac_col_big)
+       call condense_compare_jtimes(n_eqn, time, state, i_col, eps_small, &
+            jac_col, fd_jac_col_small)
+       do i_row = 1,n_eqn
+          error_big = abs(fd_jac_col_big(i_row) - jac_col(i_row))
+          error_small = abs(fd_jac_col_small(i_row) - jac_col(i_row))
+          error_ratio = error_small / error_big
+          expected_error_ratio = eps_small / eps_big * error_factor
+          if (error_ratio > expected_error_ratio) then
+             write(0,*) '***********************************************'
+             write(0,*) 'row,col = ', i_row, i_col
+             write(0,*) 'jac, fd_jac_small, fd_jac_big = ', &
+                  jac_col(i_row), fd_jac_col_small(i_row), &
+                  fd_jac_col_big(i_row)
+             write(0,*) 'error_small, error_big = ', error_small, error_big
+             write(0,*) 'error_ratio, expected = ', &
+                  error_ratio, expected_error_ratio
+
+             do i_eps = 1,101
+                alpha = real(i_eps - 1, kind=dp) / 100d0
+                eps = exp((1d0 - alpha) * log(eps_big) &
+                     + alpha * log(eps_small))
+                call condense_compare_jtimes(n_eqn, time, state, i_col, eps, &
+                     jac_col, fd_jac_col)
+                error = abs(fd_jac_col(i_row) - jac_col(i_row))
+                write(0,*) 'eps, error, rel_error = ', &
+                     eps, error, error / jac_col(i_row)
+             end do
+          end if
+       end do
+    end do
+    stop
+  
+  end subroutine condense_test_jtimes
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_condense

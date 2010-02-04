@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -67,7 +67,9 @@ contains
     character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     file%name = trim(filename)
-    write(*,*) 'opening: ', trim(file%name)
+    !>DEBUG
+    !write(*,*) 'opening: ', trim(file%name)
+    !<DEBUG
     file%unit = get_unit()
     open(unit=file%unit, status='old', file=file%name, iostat=ios)
     if (ios /= 0) then
@@ -87,7 +89,9 @@ contains
     !> Spec file.
     type(spec_file_t), intent(in) :: file
 
-    write(*,*) 'closing: ', trim(file%name)
+    !>DEBUG
+    !write(*,*) 'closing: ', trim(file%name)
+    !<DEBUG
     close(file%unit)
     call free_unit(file%unit)
 

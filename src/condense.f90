@@ -67,6 +67,11 @@ module pmc_condense
   real(kind=dp), allocatable :: condense_saved_kappa(:)
   real(kind=dp), allocatable :: condense_saved_D_dry(:)
 
+  !>DEBUG
+  integer, save :: condense_n_vf
+  integer, save :: condense_n_jac
+  !<DEBUG
+
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,6 +106,9 @@ contains
     real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
     real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
     real(kind=dp) :: V_comp_final, water_rel_error
+    !>DEBUG
+    integer :: debug_i
+    !<DEBUG
 
     call assert_msg(324771387, aero_weight%type == AERO_WEIGHT_TYPE_NONE, &
          "condensation can only be used with weight type none")
@@ -161,8 +169,16 @@ contains
     options = set_opts(sparse_j = .true., &
          user_supplied_jacobian = .true., &
          abserr_vector = abs_tol_vector, relerr = 1d-8)
+    !>DEBUG
+    condense_n_vf = 0
+    condense_n_jac = 0
+    !<DEBUG
     call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
          itask, istate, options, j_fcn = condense_vode_jac)
+    !>DEBUG
+    write(*,*) 'condense_n_vf ', condense_n_vf
+    write(*,*) 'condense_n_jac ', condense_n_jac
+    !<DEBUG
 
     ! unpack result state vector into aero_state and env_state
     i_part = 0
@@ -407,6 +423,12 @@ contains
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
+    !>DEBUG
+    condense_n_vf = condense_n_vf + 1
+    !<DEBUG
+    !>DEBUG
+    !write(*,*) 'condense_vode_f: time ', time
+    !<DEBUG
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
 
@@ -467,6 +489,9 @@ contains
        return
     end if
 
+    !>DEBUG
+    condense_n_jac = condense_n_jac + 1
+    !<DEBUG
     ! if not initializing, this should be correct
     call assert(395158320, n_non_zero == 3 * n_eqn - 2)
 

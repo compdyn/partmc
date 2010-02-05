@@ -201,3 +201,11 @@ Replace aero_mode types by integers, like for aero_weight.
 
 Make weighted coagulation work for increasing weight
 functions. Presumably we always remove, but sometimes don't add?
+
+Change mean_radius to median_radius for log_normal distributions in
+input files. What about exponential distributions?
+
+Change real(kind=dp) to real(dp), etc. Only for real() and integer().
+
+Copy urban_plume/aero_data.dat to all other aero_data.dat files in
+cond/, new_cond/, test/*/, etc, to fix BC kappa/num_ions.

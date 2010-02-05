@@ -25,6 +25,9 @@ module pmc_condense
   !> Whether to numerically test the Jacobian-times-vector function
   !> during execution (for debugging only).
   logical, parameter :: CONDENSE_DO_TEST_JTIMES = .false.
+  !> Whether to numerically test the Jacobian-solve function during
+  !> execution (for debugging only).
+  logical, parameter :: CONDENSE_DO_TEST_JAC_SOLVE = .false.
 
   !> Internal-use structure for storing the inputs for the
   !> rate-calculation function.
@@ -95,6 +98,7 @@ module pmc_condense
   integer, save :: condense_n_vf
   integer, save :: condense_n_jtimes
   integer, save :: condense_n_prec
+  integer, save :: condense_n_solve
   !<DEBUG
 
 contains
@@ -231,6 +235,7 @@ contains
     condense_n_vf = 0
     condense_n_jtimes = 0
     condense_n_prec = 0
+    condense_n_solve = 0
     !<DEBUG
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f) !, condense_vf_f_p, condense_jtimes_f_p)
@@ -238,6 +243,7 @@ contains
     write(*,*) 'condense_n_vf ', condense_n_vf
     write(*,*) 'condense_n_jtimes ', condense_n_jtimes
     write(*,*) 'condense_n_prec ', condense_n_prec
+    write(*,*) 'condense_n_solve ', condense_n_solve
     !<DEBUG
     !>DEBUG
     !stop
@@ -953,6 +959,79 @@ contains
     end do
 
   end subroutine condense_prec_exact_f
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P = I
+  !> - \gamma J \f$ and \f$ J = \partial f / \partial y \f$. The
+  !> solution is returned in the \f$ r \f$ vector.
+  subroutine condense_jac_solve_f(n_eqn, time, state_p, state_dot_p, &
+       rhs_p, gamma) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+    !> Pointer to current state derivative vector.
+    type(c_ptr), value, intent(in) :: state_dot_p
+    !> Pointer to right-hand-side vector.
+    type(c_ptr), value, intent(in) :: rhs_p
+    !> Value of \f$ \gamma \f$ parameter.
+    real(kind=c_double), value, intent(in) :: gamma
+
+    real(kind=c_double), pointer :: state(:), state_dot(:), rhs(:)
+    real(kind=c_double), target :: soln(n_eqn)
+    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
+    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
+    real(kind=dp) :: lhs_n, rhs_n
+    real(kind=c_double), target :: residual(n_eqn)
+    real(kind=dp) :: rhs_norm, soln_norm, residual_norm
+    integer :: i_part
+
+    !>DEBUG
+    condense_n_solve = condense_n_solve + 1
+    !<DEBUG
+    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
+         dHdot_dD, dHdot_dH)
+
+    call c_f_pointer(state_p, state, (/ n_eqn /))
+    call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
+    call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
+
+    !FIXME: write this all in matrix-vector notation, no i_part looping
+    lhs_n = 1d0 - gamma * dHdot_dH
+    rhs_n = rhs(n_eqn)
+    do i_part = 1,(n_eqn - 1)
+       lhs_n = lhs_n - (- gamma * dDdot_dH(i_part)) &
+            * (- gamma * dHdot_dD(i_part)) / (1d0 - gamma * dDdot_dD(i_part))
+       rhs_n = rhs_n - (- gamma * dHdot_dD(i_part)) * rhs(i_part) &
+            / (1d0 - gamma * dDdot_dD(i_part))
+    end do
+    soln(n_eqn) = rhs_n / lhs_n
+
+    do i_part = 1,(n_eqn - 1)
+       soln(i_part) = (rhs(i_part) &
+            - (- gamma * dDdot_dH(i_part)) * soln(n_eqn)) &
+            / (1d0 - gamma * dDdot_dD(i_part))
+    end do
+
+    if (CONDENSE_DO_TEST_JAC_SOLVE) then
+       ! (I - g J) soln = rhs
+       call condense_jtimes_f(n_eqn, time, state_p, c_loc(soln), &
+            c_loc(residual))
+       residual = rhs - (soln - gamma * residual)
+       rhs_norm = sqrt(sum(rhs**2))
+       soln_norm = sqrt(sum(soln**2))
+       residual_norm = sqrt(sum(residual**2))
+       write(0,*) 'rhs, soln, residual, residual/rhs = ', &
+            rhs_norm, soln_norm, residual_norm, residual_norm / rhs_norm
+    end if
+
+    rhs = soln
+
+  end subroutine condense_jac_solve_f
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

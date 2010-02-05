@@ -1,9 +1,9 @@
 mode_name paved_road
 mass_frac aero_emit_comp_pavedrd.dat # composition proportions of species
-num_conc 5.03E+03               # particle number concentration (#/m^2)
+num_conc 5.03E+05               # particle number concentration (#/m^2)
 mode_type log_normal            # type of distribution
 mean_radius 7.1e-7              # mean radius (m)
-log_std_dev 0.11                # log_10 of geometric standard deviation
+log_std_dev 0.30                # log_10 of geometric standard deviation
 
 mode_name cooking
 mass_frac aero_emit_comp_cooking.dat # composition proportions of species

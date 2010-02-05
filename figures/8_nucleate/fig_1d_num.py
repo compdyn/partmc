@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 
 import Scientific.IO.NetCDF
 import sys
@@ -24,34 +24,34 @@ def make_plot(in_dir, in_filename, out_filename):
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
-    plt.axis([1e-10, 1e-5, 1e7, 1e15])
+    plt.axis([1e-10, 1e-4, 1e7, 1e15])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("number density (m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../urban_plume_nucleate/out/"
+dir_name = "../../urban_plume/out/"
 
 filename_in = "urban_plume_wc_0001_00000001.nc"
-filename_out = "figs/1d_wc_num_01.pdf"
+filename_out = "figs/1d_wc_num_001.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000031.nc"
-filename_out = "figs/1d_wc_num_31.pdf"
+filename_in = "urban_plume_wc_0001_00000005.nc"
+filename_out = "figs/1d_wc_num_005.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000037.nc"
-filename_out = "figs/1d_wc_num_37.pdf"
+filename_in = "urban_plume_wc_0001_00000013.nc"
+filename_out = "figs/1d_wc_num_013.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000073.nc"
-filename_out = "figs/1d_wc_num_73.pdf"
+filename_in = "urban_plume_wc_0001_00000016.nc"
+filename_out = "figs/1d_wc_num_016.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000109.nc"
-filename_out = "figs/1d_wc_num_109.pdf"
+filename_in = "urban_plume_wc_0001_00000018.nc"
+filename_out = "figs/1d_wc_num_018.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000145.nc"
-filename_out = "figs/1d_wc_num_145.pdf"
+filename_in = "urban_plume_wc_0001_00000024.nc"
+filename_out = "figs/1d_wc_num_024.pdf"
 make_plot(dir_name, filename_in, filename_out)

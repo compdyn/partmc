@@ -118,7 +118,29 @@ For equilibriation:
   \frac{\partial g_i}{\partial D_i}(D_i, H) &= - \frac{\partial a_{{\rm w}i}}{\partial D_i} (D_i) \exp\biggl(\frac{X}{D_i}\biggr) + a_{{\rm w}i}(D_i) \exp\biggl(\frac{X}{D_i}\biggr) \frac{X}{D_i^2}
 \end{align}
 
-%%%%%%%%%%%%%%%
+\newpage
+
+To solve $P X = R$ for $P = I - \gamma J$, with $J$ the Jacobian, we use:
+\begin{align}
+  \begin{bmatrix} A & B \\ C & D \end{bmatrix}
+  \begin{bmatrix} x \\ y \end{bmatrix}
+  &=
+  \begin{bmatrix} q \\ r \end{bmatrix} \\
+  A x + B y &= q \\
+  C x + D y &= r \\
+  x &= A^{-1} q - A^{-1} B y \label{eq:solve_x} \\
+  y &= D^{-1} r - D^{-1} C x \label{eq:solve_y} \\
+  (A - B D^{-1} C) x &= q - B D^{-1} r \label{eq:reduced_x} \\
+  (D - C A^{-1} B) y &= r - C A^{-1} q \label{eq:reduced_y} \\
+  A_{ii} &= 1 - \gamma \frac{\partial \dot{D}_i}{\partial D_i} \\
+  B_i &= - \gamma \frac{\partial \dot{D}_i}{\partial H} \\
+  C_i &= - \gamma \frac{\partial \dot{H}}{\partial D_i} \\
+  D &= 1 - \gamma \frac{\partial \dot{H}}{\partial H}
+\end{align}
+We use equation~(\ref{eq:reduced_y}) to solve for $y$, then solve for
+$x$ with~(\ref{eq:solve_x}).
+
+\newpage
 
 \vspace{2cm}
 \begin{tabular}{lp{4cm}clp{3cm}}

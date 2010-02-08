@@ -20,38 +20,38 @@ def make_plot(in_dir, in_filename, out_filename):
 
     dry_diameter = particles.dry_diameter()
 
-    hist = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = 1 / particles.comp_vol)
+    hist = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = particles.mass() / particles.comp_vol)
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
-    plt.axis([1e-10, 1e-4, 1e7, 1e15])
+#    plt.axis([1e-10, 1e-4, 1e7, 1e15])
     plt.xlabel("dry diameter (m)")
-    plt.ylabel("number density (m^{-3})")
+    plt.ylabel("mass density (kg m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename)
 
 dir_name = "../../scenarios/5_coarse/out/"
 
-filename_in = "urban_plume_wc_0001_00000001.nc"
-filename_out = "figs/1d_wc_num_001_w.pdf"
-make_plot(dir_name, filename_in, filename_out)
+#filename_in = "urban_plume_wc_0001_00000001.nc"
+#filename_out = "figs/1d_wc_mass_001.pdf"
+#make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000005.nc"
-filename_out = "figs/1d_wc_num_005_w.pdf"
+filename_out = "figs/1d_wc_mass_005_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000013.nc"
-filename_out = "figs/1d_wc_num_013_w.pdf"
+filename_out = "figs/1d_wc_mass_013_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000016.nc"
-filename_out = "figs/1d_wc_num_016_w.pdf"
+filename_out = "figs/1d_wc_mass_016_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000018.nc"
-filename_out = "figs/1d_wc_num_018_w.pdf"
+filename_out = "figs/1d_wc_mass_018_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000024.nc"
-filename_out = "figs/1d_wc_num_024_w.pdf"
+filename_out = "figs/1d_wc_mass_024_w.pdf"
 make_plot(dir_name, filename_in, filename_out)

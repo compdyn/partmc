@@ -1,6 +1,0 @@
-# time (s)
-# rate (s^{-1})
-# aerosol distribution filename
-time    0
-rate    0
-dist    aero_emit_dist.dat

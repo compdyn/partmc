@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2008, 2009 Matthew West
+# Copyright (C) 2008-2010 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -24,9 +24,9 @@ from pmc_pyx import *
 netcdf_dir = os.path.join("../../new_cond/out")
 netcdf_indexed_patterns = [
     [1, r"^cond_1_0001_([0-9]{8})\.nc$"],
-#    [2, r"^cond_2_0001_([0-9]{8})\.nc$"],
-#    [3, r"^cond_3_0001_([0-9]{8})\.nc$"],
-#    [4, r"^cond_4_0001_([0-9]{8})\.nc$"],
+    [2, r"^cond_2_0001_([0-9]{8})\.nc$"],
+    [3, r"^cond_3_0001_([0-9]{8})\.nc$"],
+    [4, r"^cond_4_0001_([0-9]{8})\.nc$"],
     ]
 
 graph_width = 8

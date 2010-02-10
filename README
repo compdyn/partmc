@@ -34,8 +34,8 @@ Required dependencies:
 Optional dependencies:
 
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
-   * MPI - <www.open-mpi.org/>
-   * SUNDIALS - <www.llnl.gov/casc/sundials/>
+   * MPI - <http://www.open-mpi.org/>
+   * SUNDIALS - <http://www.llnl.gov/casc/sundials/>
    * gnuplot - <http://www.gnuplot.info/>
 
 PartMC can be compiled out-of-the-box on Linux under Fedora, Ubuntu,

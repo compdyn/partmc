@@ -15,7 +15,7 @@ Simulating the evolution of soot mixing state with a particle-resolved
 aerosol model, J. Geophys. Res., 114, D09202,
 <a href="http://dx.doi.org/10.1029/2008JD011073">http://dx.doi.org/10.1029/2008JD011073</a>.</p>
 
-<p>Copyright (C) 2005-2009 Nicole Riemer and Matthew West <br />
+<p>Copyright (C) 2005-2010 Nicole Riemer and Matthew West <br />
 Portions copyright (C) Andreas Bott and Richard Easter <br />
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version. <br />
@@ -35,7 +35,9 @@ For details see the file COPYING or
 <p>Optional dependencies:</p>
 
 <ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;a&#105;&#x6c;&#116;&#111;:&#x52;&#97;&#104;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#64;&#x70;n&#x6c;&#x2e;&#103;&#x6f;&#118;">&#x52;&#97;&#104;&#x75;&#108;&#x2e;&#90;&#97;&#118;&#x65;&#114;&#105;&#64;&#x70;n&#x6c;&#x2e;&#103;&#x6f;&#118;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#x3a;&#x52;&#97;&#x68;&#x75;&#x6c;&#46;&#x5a;a&#x76;e&#x72;&#105;&#x40;p&#x6e;&#108;&#46;&#x67;&#x6f;&#118;">&#x52;&#97;&#x68;&#x75;&#x6c;&#46;&#x5a;a&#x76;e&#x72;&#105;&#x40;p&#x6e;&#108;&#46;&#x67;&#x6f;&#118;</a></li>
+<li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
+<li>SUNDIALS - <a href="http://www.llnl.gov/casc/sundials/">http://www.llnl.gov/casc/sundials/</a></li>
 <li>gnuplot - <a href="http://www.gnuplot.info/">http://www.gnuplot.info/</a></li>
 </ul>
 
@@ -135,6 +137,20 @@ files and output ASCII data (the <code>extract_sectional_*</code> programs are
 used for sectional and exact model output).</p>
 
 <h1>ChangeLog</h1>
+
+<p>2.0.0 - YYYY-MM-DD</p>
+
+<ul>
+<li><p>Scalable parallel implementation added.</p></li>
+<li><p>Added restart capability from NetCDF state files.</p></li>
+<li><p>Added partmc.py library for python-based analysis of PartMC output
+files.</p></li>
+<li><p>Reimplemented water condensation to be much faster and also
+correct.</p></li>
+<li><p>Nucleation added with parameterization due to Kuang, McMurray, et
+al.</p></li>
+<li><p>Weighted particles, with full support for coagulation and MOSAIC.</p></li>
+</ul>
 
 <p>1.2.0 - 2009-06-15</p>
 

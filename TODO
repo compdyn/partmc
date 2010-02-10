@@ -209,3 +209,5 @@ Change real(kind=dp) to real(dp), etc. Only for real() and integer().
 
 Copy urban_plume/aero_data.dat to all other aero_data.dat files in
 cond/, new_cond/, test/*/, etc, to fix BC kappa/num_ions.
+
+Move doc/condensation/new_eqns.tex to doc/condense.tex.

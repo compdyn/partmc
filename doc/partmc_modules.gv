@@ -3,10 +3,12 @@ digraph partmc_modules {
     node [fontsize = 10, height = 0.3, width = 0.5];
     graph [nodesep = 0.2, ranksep = 0.3];
     edge [arrowsize = 0.7];
+    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_controlled.f90"] coagulation_mpi_controlled
+    node [shape = box, peripheries = 1, href = "\ref aero_weight.f90"] aero_weight
+    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_equal.f90"] coagulation_mpi_equal
     node [shape = box, peripheries = 1, href = "\ref kernel.f90"] kernel
-    node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
-    node [shape = box, peripheries = 1, href = "\ref kernel_golovin.f90"] kernel_golovin
     node [shape = box, peripheries = 1, href = "\ref netcdf.f90"] netcdf
+    node [shape = box, peripheries = 1, href = "\ref nucleate.f90"] nucleate
     node [shape = box, peripheries = 1, href = "\ref bin_grid.f90"] bin_grid
     node [shape = box, peripheries = 1, href = "\ref aero_dist.f90"] aero_dist
     node [shape = box, peripheries = 1, href = "\ref aero_binned.f90"] aero_binned
@@ -15,11 +17,14 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref kernel_brown.f90"] kernel_brown
     node [shape = box, peripheries = 1, href = "\ref spec_line.f90"] spec_line
     node [shape = box, peripheries = 1, href = "\ref kernel_sedi.f90"] kernel_sedi
-    node [shape = box, peripheries = 1, href = "\ref spec_file.f90"] spec_file
-    node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
     node [shape = box, peripheries = 1, href = "\ref run_sect.f90"] run_sect
+    node [shape = box, peripheries = 1, href = "\ref spec_file.f90"] spec_file
+    node [shape = box, peripheries = 1, href = "\ref condense.f90"] condense
+    node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
+    node [shape = box, peripheries = 1, href = "\ref kernel_golovin.f90"] kernel_golovin
+    node [shape = box, peripheries = 2, href = "\ref bin_average_comp.f90"] bin_average_comp
     node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
-    node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
+    node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
     node [shape = box, peripheries = 1, href = "\ref env_state.f90"] env_state
     node [shape = box, peripheries = 1, href = "\ref gas_state.f90"] gas_state
     node [shape = box, peripheries = 1, href = "\ref aero_state.f90"] aero_state
@@ -31,17 +36,22 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref gas_data.f90"] gas_data
     node [shape = box, peripheries = 1, href = "\ref aero_data.f90"] aero_data
     node [shape = box, peripheries = 1, href = "\ref constants.f90"] constants
-    node [shape = box, peripheries = 1, href = "\ref util.f90"] util
-    node [shape = box, peripheries = 1, href = "\ref condensation.f90"] condensation
+    node [shape = box, peripheries = 2, href = "\ref bin_average_size.f90"] bin_average_size
     node [shape = box, peripheries = 1, href = "\ref run_part.f90"] run_part
+    node [shape = box, peripheries = 1, href = "\ref util.f90"] util
     node [shape = box, peripheries = 1, href = "\ref aero_particle_array.f90"] aero_particle_array
     node [shape = box, peripheries = 1, href = "\ref coagulation.f90"] coagulation
     node [shape = box, peripheries = 1, href = "\ref output.f90"] output
+    node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
     node [shape = box, peripheries = 1, href = "\ref aero_info.f90"] aero_info
+    coagulation_mpi_controlled -> coagulation
+    aero_weight -> rand
+    aero_weight -> spec_file
+    aero_weight -> mpi
+    coagulation_mpi_equal -> coagulation
     kernel -> env_state
-    rand -> util
-    kernel_golovin -> env_state
     netcdf -> util
+    nucleate -> env_state
     bin_grid -> netcdf
     bin_grid -> spec_file
     bin_grid -> mpi
@@ -53,24 +63,27 @@ digraph partmc_modules {
     kernel_brown -> env_state
     spec_line -> util
     kernel_sedi -> env_state
-    spec_file -> spec_line
-    partmc -> kernel_golovin
-    partmc -> run_exact
-    partmc -> kernel_zero
-    partmc -> kernel_brown
-    partmc -> kernel_sedi
-    partmc -> run_part
-    partmc -> kernel_constant
-    partmc -> run_sect
     run_sect -> kernel
     run_sect -> env_data
     run_sect -> output
+    spec_file -> spec_line
+    condense -> env_data
+    partmc -> kernel_golovin
+    partmc -> kernel_zero
+    partmc -> kernel_brown
+    partmc -> kernel_sedi
+    partmc -> kernel_constant
+    partmc -> run_sect
+    partmc -> run_exact
+    partmc -> run_part
+    kernel_golovin -> env_state
+    bin_average_comp -> output
     mosaic -> env_state
-    run_exact -> env_data
-    run_exact -> output
+    rand -> util
     env_state -> gas_state
     env_state -> aero_state
     gas_state -> gas_data
+    aero_state -> aero_weight
     aero_state -> aero_info_array
     aero_state -> aero_particle_array
     aero_state -> aero_binned
@@ -79,7 +92,7 @@ digraph partmc_modules {
     mpi -> util
     aero_info_array -> aero_info
     env_data -> env_state
-    aero_mode -> rand
+    aero_mode -> aero_weight
     aero_mode -> bin_grid
     aero_mode -> aero_data
     gas_data -> mpi
@@ -88,17 +101,19 @@ digraph partmc_modules {
     aero_data -> mpi
     aero_data -> netcdf
     aero_data -> spec_file
-    util -> constants
-    condensation -> env_state
-    run_part -> kernel
-    run_part -> env_data
+    bin_average_size -> output
+    run_part -> coagulation_mpi_equal
+    run_part -> nucleate
     run_part -> mosaic
-    run_part -> condensation
-    run_part -> coagulation
+    run_part -> condense
+    run_part -> coagulation_mpi_controlled
     run_part -> output
+    util -> constants
     aero_particle_array -> aero_particle
-    coagulation -> env_state
+    coagulation -> kernel
     output -> env_state
+    run_exact -> env_data
+    run_exact -> output
     aero_info -> mpi
     aero_info -> spec_file
 }

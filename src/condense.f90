@@ -6,7 +6,26 @@
 !> \file
 !> The pmc_condense module.
 
-!> Water condense onto aerosol particles.
+!> Water condensation onto aerosol particles.
+!!
+!! The model here assumes that the temperature \f$ T \f$ and pressure
+!! \f$ p \f$ are prescribed as functions of time, while water content
+!! per-particle and relative humidity are to be calculated by
+!! integrating their rates of change.
+!!
+!! The state of the system is defined by the per-particle wet
+!! diameters \f$ D_i \f$ and the relative humidity \f$ H \f$. The
+!! state vector stores these in the order \f$ (D_1,\ldots,D_n,H)
+!! \f$. The time-derivative of the state vector and the Jacobian
+!! (derivative of the time-derivative with repsect to the state) all
+!! conform to this ordering.
+!!
+!! The SUNDIALS ODE solver is used to compute the system evolution
+!! using an implicit method. The system Jacobian is explicitly
+!! inverveted as its structure is very simple.
+!!
+!! All equations used in this file are written in detail in the file
+!! \c doc/condense.tex.
 module pmc_condense
 
   use pmc_aero_state
@@ -17,17 +36,14 @@ module pmc_condense
   use pmc_util
   use pmc_aero_particle
   use pmc_constants
-  !>DEBUG
-  !use dvode_f90_m
-  !<DEBUG
   use iso_c_binding
 
-  !> Whether to numerically test the Jacobian-times-vector function
-  !> during execution (for debugging only).
-  logical, parameter :: CONDENSE_DO_TEST_JTIMES = .false.
   !> Whether to numerically test the Jacobian-solve function during
   !> execution (for debugging only).
   logical, parameter :: CONDENSE_DO_TEST_JAC_SOLVE = .false.
+  !> Whether to print call-counts for helper routines during execution
+  !> (for debugging only).
+  logical, parameter :: CONDENSE_DO_TEST_COUNTS = .false.
 
   !> Internal-use structure for storing the inputs for the
   !> rate-calculation function.
@@ -94,12 +110,13 @@ module pmc_condense
   !> Internal-use variable for storing the per-particle dry diameters
   !> during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_D_dry(:)
-  !>DEBUG
-  integer, save :: condense_n_vf
-  integer, save :: condense_n_jtimes
-  integer, save :: condense_n_prec
-  integer, save :: condense_n_solve
-  !<DEBUG
+
+  !> Internal-use variable for counting calls to the vector field
+  !> subroutine.
+  integer, save :: condense_count_vf
+  !> Internal-use variable for counting calls to the Jacobian-solving
+  !> subroutine.
+  integer, save :: condense_count_solve
 
 contains
   
@@ -107,7 +124,7 @@ contains
 
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
-  !> vapor.
+  !> water vapor.
   subroutine condense_particles(bin_grid, env_state, env_data, &
        aero_data, aero_state, del_t)
 
@@ -128,7 +145,6 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
-    !type(vode_opts) :: options
     type(env_state_t) :: env_state_final
     real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
     real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
@@ -136,13 +152,12 @@ contains
     real(kind=c_double), target :: state_f(aero_state%n_part + 1)
     real(kind=c_double), target :: abstol_f(aero_state%n_part + 1)
     type(c_ptr) :: state_f_p, abstol_f_p
-    !type(c_funptr) :: condense_vf_f_p, condense_jtimes_f_p
     integer(kind=c_int) :: n_eqn_f
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
 
     interface
-       integer(kind=c_int) function condense_solver(neq, x_f, abstol_f, reltol_f, &
-            t_initial_f, t_final_f) bind(c)
+       integer(kind=c_int) function condense_solver(neq, x_f, abstol_f, &
+            reltol_f, t_initial_f, t_final_f) bind(c)
          use iso_c_binding
          integer(kind=c_int), value :: neq
          type(c_ptr), value :: x_f
@@ -150,8 +165,6 @@ contains
          real(kind=c_double), value :: reltol_f
          real(kind=c_double), value :: t_initial_f
          real(kind=c_double), value :: t_final_f
-         !type(c_funptr) :: condense_vf_f_p
-         !type(c_funptr) :: condense_jtimes_f_p
        end function condense_solver
     end interface
 
@@ -202,18 +215,6 @@ contains
     state(aero_state%n_part + 1) = env_state%rel_humid
     abs_tol_vector(aero_state%n_part + 1) = 1d-10
 
-    ! call VODE solver
-    !n_eqn = aero_state%n_part + 1
-    !init_time = 0d0
-    !final_time = del_t
-    !itask = 1 ! just output val at final_time
-    !istate = 1 ! first call for this ODE
-    !options = set_opts(sparse_j = .true., &
-    !     user_supplied_jacobian = .true., &
-    !     abserr_vector = abs_tol_vector, relerr = 1d-8)
-    !call dvode_f90(condense_vode_f, n_eqn, state, init_time, final_time, &
-    !     itask, istate, options, j_fcn = condense_vode_jac)
-
     ! call SUNDIALS solver
     n_eqn = aero_state%n_part + 1
     n_eqn_f = int(n_eqn, kind=c_int)
@@ -226,28 +227,14 @@ contains
     end do
     state_f_p = c_loc(state_f)
     abstol_f_p = c_loc(abstol_f)
-    !condense_vf_f_p = c_funloc(condense_vf_f)
-    !condense_jtimes_f_p = c_funloc(condense_jtimes_f)
-    if (CONDENSE_DO_TEST_JTIMES) then
-       call condense_test_jtimes(n_eqn, 0d0, state)
-    end if
-    !>DEBUG
-    condense_n_vf = 0
-    condense_n_jtimes = 0
-    condense_n_prec = 0
-    condense_n_solve = 0
-    !<DEBUG
+    condense_count_vf = 0
+    condense_count_solve = 0
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
-         t_initial_f, t_final_f) !, condense_vf_f_p, condense_jtimes_f_p)
-    !>DEBUG
-    write(*,*) 'condense_n_vf ', condense_n_vf
-    write(*,*) 'condense_n_jtimes ', condense_n_jtimes
-    write(*,*) 'condense_n_prec ', condense_n_prec
-    write(*,*) 'condense_n_solve ', condense_n_solve
-    !<DEBUG
-    !>DEBUG
-    !stop
-    !<DEBUG
+         t_initial_f, t_final_f)
+    if (CONDENSE_DO_TEST_COUNTS) then
+       write(0,*) 'condense_count_vf ', condense_count_vf
+       write(0,*) 'condense_count_solve ', condense_count_solve
+    end if
     do i_eqn = 1,n_eqn
        state(i_eqn) = real(state_f(i_eqn), kind=dp)
     end do
@@ -340,7 +327,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the rate of change of particle diameter and relative
-  !> humidity for a single particle.
+  !> humidity for a single particle, together with the derivatives of
+  !> the rates with respect to the input variables.
   subroutine condense_rates(inputs, outputs)
 
     !> Inputs to rates.
@@ -478,224 +466,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_vode_f(n_eqn, time, state, state_dot)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Time derivative of state vector.
-    real(kind=dp), intent(out) :: state_dot(n_eqn)
-
-    real(kind=dp) :: Hdot
-    integer :: i_part
-    type(env_state_t) :: env_state
-    type(condense_rates_inputs_t) :: inputs
-    type(condense_rates_outputs_t) :: outputs
-
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-
-    inputs%T = env_state%temp
-    inputs%Tdot = condense_saved_Tdot
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
-    inputs%V_comp = condense_saved_V_comp_initial &
-         * env_state%temp / condense_saved_env_state_initial%temp
-
-    Hdot = 0d0
-    do i_part = 1,(n_eqn - 1)
-       inputs%D = state(i_part)
-       inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
-       state_dot(i_part) = outputs%Ddot
-       Hdot = Hdot + outputs%Hdot_i
-    end do
-    Hdot = Hdot + outputs%Hdot_env
-
-    state_dot(n_eqn) = Hdot
-
-    call env_state_deallocate(env_state)
-
-  end subroutine condense_vode_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine condense_vode_jac(n_eqn, time, state, ia, ja, &
-       n_non_zero, state_jac)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Non-zero column offsets.
-    integer, intent(out) :: ia(*)
-    !> Non-zero row locations.
-    integer, intent(out) :: ja(*)
-    !> Number of non-zero elements in the Jacobian.
-    integer, intent(inout) :: n_non_zero
-    !> Sparse Jacobian of time derivative of state vector.
-    real(kind=dp), intent(out) :: state_jac(*)
-
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    integer :: i_nz, i_part
-    type(env_state_t) :: env_state
-    type(condense_rates_inputs_t) :: inputs
-    type(condense_rates_outputs_t) :: outputs
-
-    ! signal from vode to initialize number of non-zeros
-    if (n_non_zero == 0) then
-       n_non_zero = 3 * n_eqn - 2
-       return
-    end if
-
-    ! if not initializing, this should be correct
-    call assert(395158320, n_non_zero == 3 * n_eqn - 2)
-
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-
-    inputs%T = env_state%temp
-    inputs%Tdot = condense_saved_Tdot
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
-    inputs%V_comp = condense_saved_V_comp_initial &
-         * env_state%temp / condense_saved_env_state_initial%temp
-
-    dHdot_dH = 0d0
-    do i_part = 1,(n_eqn - 1)
-       inputs%D = state(i_part)
-       inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
-       dDdot_dD(i_part) = outputs%dDdot_dD
-       dDdot_dH(i_part) = outputs%dDdot_dH
-       dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
-       dHdot_dH = dHdot_dH + outputs%dHdoti_dH
-    end do
-    dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
-
-    ! Copied from dvode_f90_m documentation:
-    !
-    ! IA defines the number of nonzeros including the
-    ! diagonal in each column of the Jacobian. Define
-    ! IA(1) = 1 and for J = 1,..., N,
-    ! IA(J+1) = IA(J) + number of nonzeros in column J.
-    ! Diagonal elements must be included even if they are
-    ! zero. You should check to ensure that IA(N+1)-1 = NZ.
-    ! JA defines the rows in which the nonzeros occur.
-    ! For I = 1,...,NZ, JA(I) is the row in which the Ith
-    ! element of the Jacobian occurs. JA must also include
-    ! the diagonal elements of the Jacobian.
-    ! PD defines the numerical value of the Jacobian
-    ! elements. For I = 1,...,NZ, PD(I) is the numerical
-    ! value of the Ith element in the Jacobian. PD must
-    ! also include the diagonal elements of the Jacobian.
-
-    ia(1) = 1
-    do i_part = 1,(n_eqn - 1)
-       ia(1 + i_part) = ia(i_part) + 2
-    end do
-    ia(n_eqn + 1) = ia(n_eqn) + n_eqn
-    call assert(824345254, ia(n_eqn + 1) - 1 == n_non_zero)
-    
-    i_nz = 0
-    do i_part = 1,(n_eqn - 1)
-       i_nz = i_nz + 1
-       ja(i_nz) = i_part
-       state_jac(i_nz) = dDdot_dD(i_part)
-       i_nz = i_nz + 1
-       ja(i_nz) = n_eqn
-       state_jac(i_nz) = dHdot_dD(i_part)
-    end do
-    do i_part = 1,(n_eqn - 1)
-       i_nz = i_nz + 1
-       ja(i_nz) = i_part
-       state_jac(i_nz) = dDdot_dH(i_part)
-    end do
-    i_nz = i_nz + 1
-    ja(i_nz) = n_eqn
-    state_jac(i_nz) = dHdot_dH
-    call assert(901219708, i_nz == n_non_zero)
-
-    call env_state_deallocate(env_state)
-
-  end subroutine condense_vode_jac
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Determine the equilibrium state of a single particle.
-  subroutine condense_equilib_particle(env_state, aero_data, &
-       aero_particle)
-
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Particle.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    real(kind=dp) :: X, kappa, D_dry, D, g, dg_dD, a_w, daw_dD
-    integer :: newton_step
-
-    X = 4d0 * const%water_molec_weight * const%water_surf_eng &
-         / (const%univ_gas_const * env_state%temp &
-         * const%water_density)
-    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
-
-    D = D_dry
-    g = 0d0
-    dg_dD = 1d0
-    do newton_step = 1,20
-       D = D - g / dg_dD
-       a_w = (D**3 - D_dry**3) / (D**3 + (kappa - 1d0) * D_dry**3)
-       daw_dD = 3d0 * D**2 * kappa * D_dry**3 &
-            / (D**3 + (kappa - 1d0) * D_dry**3)**2
-       g = env_state%rel_humid - a_w * exp(X / D)
-       dg_dD = - daw_dD * exp(X / D) + a_w * exp(X / D) * (X / D**2)
-    end do
-    call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
-         "convergence problem in equilibriation")
-
-    aero_particle%vol(aero_data%i_water) = diam2vol(D) - diam2vol(D_dry)
-
-  end subroutine condense_equilib_particle
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Call condense_equilib_particle() on each particle in the aerosol.
-  subroutine condense_equilib_particles(bin_grid, env_state, aero_data, &
-       aero_state)
-
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
- 
-    integer :: i_bin, i
-    
-    do i_bin = 1,bin_grid%n_bin
-       do i = 1,aero_state%bin(i_bin)%n_part
-          call condense_equilib_particle(env_state, aero_data, &
-               aero_state%bin(i_bin)%particle(i))
-       end do
-    end do
-
-  end subroutine condense_equilib_particles
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  !> Compute the condensation rates (Ddot and Hdot) at the current
+  !> value of the state (D and H).
   subroutine condense_vf_f(n_eqn, time, state_p, state_dot_p) bind(c)
     
     !> Length of state vector.
@@ -715,9 +487,8 @@ contains
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
-    !>DEBUG
-    condense_n_vf = condense_n_vf + 1
-    !<DEBUG
+    condense_count_vf = condense_count_vf + 1
+
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
     
@@ -746,16 +517,13 @@ contains
     
     call env_state_deallocate(env_state)
     
-    !>DEBUG
-    !write(*,*) 'condense_jtimes_f: time = ', time
-    !write(*,*) 'condense_vf_f: state(1), state(n_eqn) = ', state(1), state(n_eqn)
-    !write(*,*) 'condense_vf_f: state_dot(1), state_dot(n_eqn) = ', state_dot(1), state_dot(n_eqn)
-    !<DEBUG
-    
   end subroutine condense_vf_f
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Compute the Jacobian given by the derivatives of the condensation
+  !> rates (Ddot and Hdot) with respect to the input variables (D and
+  !> H).
   subroutine condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
        dHdot_dD, dHdot_dH)
 
@@ -810,161 +578,10 @@ contains
   end subroutine condense_jac
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  subroutine condense_jtimes_f(n_eqn, time, state_p, vec_p, &
-       jac_times_vec_p) bind(c)
-    
-    !> Length of state vector.
-    integer(kind=c_int), value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=c_double), value, intent(in) :: time
-    !> Pointer to current state vector.
-    type(c_ptr), value, intent(in) :: state_p
-    !> Pointer to vector to multiply by the Jacobian.
-    type(c_ptr), value, intent(in) :: vec_p
-    !> Pointer to jacobian multiplied by the input vector \c vec.
-    type(c_ptr), value, intent(in) :: jac_times_vec_p
 
-    real(kind=c_double), pointer :: vec(:)
-    real(kind=c_double), pointer :: jac_times_vec(:)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    integer :: i_part
-
-    !>DEBUG
-    condense_n_jtimes = condense_n_jtimes + 1
-    !<DEBUG
-    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
-         dHdot_dD, dHdot_dH)
-
-    call c_f_pointer(vec_p, vec, (/ n_eqn /))
-    call c_f_pointer(jac_times_vec_p, jac_times_vec, (/ n_eqn /))
-    
-    jac_times_vec(n_eqn) = dHdot_dH * vec(n_eqn)
-    do i_part = 1,(n_eqn - 1)
-       jac_times_vec(i_part) = dDdot_dD(i_part) * vec(i_part) &
-            + dDdot_dH(i_part) * vec(n_eqn)
-       jac_times_vec(n_eqn) = jac_times_vec(n_eqn) &
-            + dHdot_dD(i_part) * vec(i_part)
-    end do
-
-  end subroutine condense_jtimes_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P
-  !> \approx M = I - \gamma J \f$ and \f$ J = \partial f / \partial y
-  !> \f$.
-  subroutine condense_prec_diag_f(n_eqn, time, state_p, state_dot_p, rhs_p, &
-       soln_p, gamma, delta, left_or_right) bind(c)
-
-    !> Length of state vector.
-    integer(kind=c_int), value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=c_double), value, intent(in) :: time
-    !> Pointer to current state vector.
-    type(c_ptr), value, intent(in) :: state_p
-    !> Pointer to current state derivative vector.
-    type(c_ptr), value, intent(in) :: state_dot_p
-    !> Pointer to right-hand-side vector.
-    type(c_ptr), value, intent(in) :: rhs_p
-    !> Pointer to solution vector.
-    type(c_ptr), value, intent(in) :: soln_p
-    !> Value of \f$ \gamma \f$ parameter.
-    real(kind=c_double), value, intent(in) :: gamma
-    !> Input tolerance.
-    real(kind=c_double), value, intent(in) :: delta
-    !> Whether to use the left (1) or right (2) preconditioner.
-    integer(kind=c_int), value, intent(in) :: left_or_right
-
-    real(kind=c_double), pointer :: rhs(:), soln(:)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    integer :: i_part
-
-    !>DEBUG
-    condense_n_prec = condense_n_prec + 1
-    !<DEBUG
-    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
-         dHdot_dD, dHdot_dH)
-
-    call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
-    call c_f_pointer(soln_p, soln, (/ n_eqn /))
-    
-    do i_part = 1,(n_eqn - 1)
-       soln(i_part) = rhs(i_part) / (real(1d0, kind=c_double) &
-            - gamma * real(dDdot_dD(i_part), kind=c_double))
-    end do
-    soln(n_eqn) = rhs(n_eqn) / (real(1d0, kind=c_double) &
-         - gamma * real(dHdot_dH, kind=c_double))
-
-  end subroutine condense_prec_diag_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P
-  !> \approx M = I - \gamma J \f$ and \f$ J = \partial f / \partial y
-  !> \f$.
-  subroutine condense_prec_exact_f(n_eqn, time, state_p, state_dot_p, rhs_p, &
-       soln_p, gamma, delta, left_or_right) bind(c)
-
-    !> Length of state vector.
-    integer(kind=c_int), value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=c_double), value, intent(in) :: time
-    !> Pointer to current state vector.
-    type(c_ptr), value, intent(in) :: state_p
-    !> Pointer to current state derivative vector.
-    type(c_ptr), value, intent(in) :: state_dot_p
-    !> Pointer to right-hand-side vector.
-    type(c_ptr), value, intent(in) :: rhs_p
-    !> Pointer to solution vector.
-    type(c_ptr), value, intent(in) :: soln_p
-    !> Value of \f$ \gamma \f$ parameter.
-    real(kind=c_double), value, intent(in) :: gamma
-    !> Input tolerance.
-    real(kind=c_double), value, intent(in) :: delta
-    !> Whether to use the left (1) or right (2) preconditioner.
-    integer(kind=c_int), value, intent(in) :: left_or_right
-
-    real(kind=c_double), pointer :: rhs(:), soln(:)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
-    real(kind=dp) :: lhs_n, rhs_n
-    integer :: i_part
-
-    !>DEBUG
-    condense_n_prec = condense_n_prec + 1
-    !<DEBUG
-    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
-         dHdot_dD, dHdot_dH)
-
-    call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
-    call c_f_pointer(soln_p, soln, (/ n_eqn /))
-
-    lhs_n = 1d0 - gamma * dHdot_dH
-    rhs_n = rhs(n_eqn)
-    do i_part = 1,(n_eqn - 1)
-       lhs_n = lhs_n - (- gamma * dDdot_dH(i_part)) &
-            * (- gamma * dHdot_dD(i_part)) / (1d0 - gamma * dDdot_dD(i_part))
-       rhs_n = rhs_n - (- gamma * dHdot_dD(i_part)) * rhs(i_part) &
-            / (1d0 - gamma * dDdot_dD(i_part))
-    end do
-    soln(n_eqn) = rhs_n / lhs_n
-
-    do i_part = 1,(n_eqn - 1)
-       soln(i_part) = (rhs(i_part) &
-            - (- gamma * dDdot_dH(i_part)) * soln(n_eqn)) &
-            / (1d0 - gamma * dDdot_dD(i_part))
-    end do
-
-  end subroutine condense_prec_exact_f
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Precondition by solving the system \f$ Pz = r \f$ where \f$ P = I
-  !> - \gamma J \f$ and \f$ J = \partial f / \partial y \f$. The
-  !> solution is returned in the \f$ r \f$ vector.
+  !> Solve the system \f$ Pz = r \f$ where \f$ P = I - \gamma J \f$
+  !> and \f$ J = \partial f / \partial y \f$. The solution is returned
+  !> in the \f$ r \f$ vector.
   subroutine condense_jac_solve_f(n_eqn, time, state_p, state_dot_p, &
        rhs_p, gamma) bind(c)
 
@@ -982,17 +599,16 @@ contains
     real(kind=c_double), value, intent(in) :: gamma
 
     real(kind=c_double), pointer :: state(:), state_dot(:), rhs(:)
-    real(kind=c_double), target :: soln(n_eqn)
+    real(kind=c_double) :: soln(n_eqn)
     real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
     real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     real(kind=dp) :: lhs_n, rhs_n
-    real(kind=c_double), target :: residual(n_eqn)
+    real(kind=c_double) :: residual(n_eqn)
     real(kind=dp) :: rhs_norm, soln_norm, residual_norm
     integer :: i_part
 
-    !>DEBUG
-    condense_n_solve = condense_n_solve + 1
-    !<DEBUG
+    condense_count_solve = condense_count_solve + 1
+
     call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
          dHdot_dD, dHdot_dH)
 
@@ -1019,8 +635,11 @@ contains
 
     if (CONDENSE_DO_TEST_JAC_SOLVE) then
        ! (I - g J) soln = rhs
-       call condense_jtimes_f(n_eqn, time, state_p, c_loc(soln), &
-            c_loc(residual))
+
+       ! residual = J soln
+       residual(n_eqn) = sum(dHdot_dD * soln(1:(n_eqn-1))) + dHdot_dH * soln(n_eqn)
+       residual(1:(n_eqn-1)) = dDdot_dD * soln(1:(n_eqn-1)) + dDdot_dH * soln(n_eqn)
+
        residual = rhs - (soln - gamma * residual)
        rhs_norm = sqrt(sum(rhs**2))
        soln_norm = sqrt(sum(soln**2))
@@ -1033,117 +652,74 @@ contains
 
   end subroutine condense_jac_solve_f
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_compare_jtimes(n_eqn, time, state, i_col, eps, &
-       jac_col, fd_jac_col)
+  !> Determine the water equilibrium state of a single particle.
+  subroutine condense_equilib_particle(env_state, aero_data, &
+       aero_particle)
 
-    !> Length of state vector.
-    integer, value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), value, intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Column of the jacobian to compute.
-    integer, intent(in) :: i_col
-    !> Scaling for finite difference approximation.
-    real(kind=dp), intent(in) :: eps
-    !> Exact column of the jacobian.
-    real(kind=dp), intent(out) :: jac_col(n_eqn)
-    !> Finite difference column of the jacobian.
-    real(kind=dp), intent(out) :: fd_jac_col(n_eqn)
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
 
-    real(kind=c_double), target :: state_f(n_eqn)
-    real(kind=c_double), target :: state_plus_eps_f(n_eqn)
-    real(kind=c_double), target :: state_dot_f(n_eqn)
-    real(kind=c_double), target :: state_plus_eps_dot_f(n_eqn)
-    real(kind=c_double), target :: vec_f(n_eqn)
-    real(kind=c_double), target :: jac_times_vec_f(n_eqn)
-    integer :: i
+    real(kind=dp) :: X, kappa, D_dry, D, g, dg_dD, a_w, daw_dD
+    integer :: newton_step
 
-    do i = 1,n_eqn
-       state_f(i) = real(state(i), kind=c_double)
+    X = 4d0 * const%water_molec_weight * const%water_surf_eng &
+         / (const%univ_gas_const * env_state%temp &
+         * const%water_density)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
+
+    D = D_dry
+    g = 0d0
+    dg_dD = 1d0
+    do newton_step = 1,20
+       D = D - g / dg_dD
+       a_w = (D**3 - D_dry**3) / (D**3 + (kappa - 1d0) * D_dry**3)
+       daw_dD = 3d0 * D**2 * kappa * D_dry**3 &
+            / (D**3 + (kappa - 1d0) * D_dry**3)**2
+       g = env_state%rel_humid - a_w * exp(X / D)
+       dg_dD = - daw_dD * exp(X / D) + a_w * exp(X / D) * (X / D**2)
     end do
-    state_plus_eps_f = state_f
-    state_plus_eps_f(i_col) = state_plus_eps_f(i_col) &
-         + real(eps, kind=c_double)
-    vec_f = real(0d0, kind=c_double)
-    vec_f(i_col) = real(1d0, kind=c_double)
+    call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
+         "convergence problem in equilibriation")
 
-    call condense_vf_f(int(n_eqn, kind=c_int), real(time, kind=c_double), &
-         c_loc(state_f), c_loc(state_dot_f))
-    call condense_vf_f(int(n_eqn, kind=c_int), real(time, kind=c_double), &
-         c_loc(state_plus_eps_f), c_loc(state_plus_eps_dot_f))
-    call condense_jtimes_f(int(n_eqn, kind=c_int), &
-         real(time, kind=c_double), &
-         c_loc(state_f), c_loc(vec_f), c_loc(jac_times_vec_f))
+    aero_particle%vol(aero_data%i_water) = diam2vol(D) - diam2vol(D_dry)
 
-    do i = 1,n_eqn
-       jac_col(i) = real(jac_times_vec_f(i), kind=dp)
-       fd_jac_col(i) = real(state_plus_eps_dot_f(i) - state_dot_f(i), &
-            kind=dp) / eps
-    end do
-
-  end subroutine condense_compare_jtimes
+  end subroutine condense_equilib_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine condense_test_jtimes(n_eqn, time, state)
+  !> Call condense_equilib_particle() on each particle in the aerosol
+  !> to ensure that every particle has its water content in
+  !> equilibrium.
+  subroutine condense_equilib_particles(bin_grid, env_state, aero_data, &
+       aero_state)
 
-    !> Length of state vector.
-    integer, value, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), value, intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-
-    real(kind=dp), parameter :: eps_big = 1d-6
-    real(kind=dp), parameter :: eps_small = 1d-12
-    real(kind=dp), parameter :: error_factor = 10d0
-
-    real(kind=dp) :: jac_col(n_eqn), fd_jac_col(n_eqn)
-    real(kind=dp) :: fd_jac_col_small(n_eqn), fd_jac_col_big(n_eqn)
-    real(kind=dp) :: error_big, error_small, error, alpha, eps
-    integer :: i_col, i_row, i_eps
-    real(kind=dp) :: error_ratio, expected_error_ratio
-
-    do i_col = 1,n_eqn
-       call condense_compare_jtimes(n_eqn, time, state, i_col, eps_big, &
-            jac_col, fd_jac_col_big)
-       call condense_compare_jtimes(n_eqn, time, state, i_col, eps_small, &
-            jac_col, fd_jac_col_small)
-       do i_row = 1,n_eqn
-          error_big = abs(fd_jac_col_big(i_row) - jac_col(i_row))
-          error_small = abs(fd_jac_col_small(i_row) - jac_col(i_row))
-          error_ratio = error_small / error_big
-          expected_error_ratio = eps_small / eps_big * error_factor
-          if (error_ratio > expected_error_ratio) then
-             write(0,*) '***********************************************'
-             write(0,*) 'row,col = ', i_row, i_col
-             write(0,*) 'jac, fd_jac_small, fd_jac_big = ', &
-                  jac_col(i_row), fd_jac_col_small(i_row), &
-                  fd_jac_col_big(i_row)
-             write(0,*) 'error_small, error_big = ', error_small, error_big
-             write(0,*) 'error_ratio, expected = ', &
-                  error_ratio, expected_error_ratio
-
-             do i_eps = 1,101
-                alpha = real(i_eps - 1, kind=dp) / 100d0
-                eps = exp((1d0 - alpha) * log(eps_big) &
-                     + alpha * log(eps_small))
-                call condense_compare_jtimes(n_eqn, time, state, i_col, eps, &
-                     jac_col, fd_jac_col)
-                error = abs(fd_jac_col(i_row) - jac_col(i_row))
-                write(0,*) 'eps, error, rel_error = ', &
-                     eps, error, error / jac_col(i_row)
-             end do
-          end if
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+ 
+    integer :: i_bin, i
+    
+    do i_bin = 1,bin_grid%n_bin
+       do i = 1,aero_state%bin(i_bin)%n_part
+          call condense_equilib_particle(env_state, aero_data, &
+               aero_state%bin(i_bin)%particle(i))
        end do
     end do
-    stop
-  
-  end subroutine condense_test_jtimes
-  
+
+  end subroutine condense_equilib_particles
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_condense

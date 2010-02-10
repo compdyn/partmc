@@ -9,30 +9,15 @@
 #include <stdio.h>
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
-#include <cvode/cvode_sptfqmr.h>
-#include <sundials/sundials_dense.h>
 #include <sundials/sundials_types.h>
 #include <cvode/cvode_impl.h>
 
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
-static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y,
-			   N_Vector fy, void *user_data, N_Vector tmp);
-
-static int condense_prec(realtype t, N_Vector y, N_Vector fy,
-			 N_Vector r, N_Vector z,
-			 realtype gamma, realtype delta,
-			 int lr, void *user_data, N_Vector tmp);
-
-//static void (*condense_vf_f)(int neq, double t, double *y_f, double *ydot_f);
-
-//static void (*condense_jtimes_f)(int neq, double t, double *y_f, double *v_f, double *Jv_f);
-
 static int condense_check_flag(void *flagvalue, char *funcname, int opt);
 
 /*******************************************************/
 // solver block
-
 static int condense_solver_Init(CVodeMem cv_mem);
 
 static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
@@ -43,13 +28,10 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 				 N_Vector ycur, N_Vector fcur);
 
 static void condense_solver_Free(CVodeMem cv_mem);
-
 /*******************************************************/
 
 int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 		    double t_initial_f, double t_final_f)
-//		    void (*condense_vf_f_p)(int neq, double t, double *y_f, double *ydot_f),
-//		    void (*condense_jtimes_f_p)(int neq, double t, double *y_f, double *v_f, double *Jv_f))
 {
 	realtype reltol, t_initial, t_final, t, tout;
 	N_Vector y, abstol;
@@ -60,11 +42,6 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 
 	y = abstol = NULL;
 	cvode_mem = NULL;
-
-	//condense_vf_f = condense_vf_f_p;
-	//condense_jtimes_f = condense_jtimes_f_p;
-
-	//printf("neq = %d\n", neq);
 
 	y = N_VNew_Serial(neq);
 	if (condense_check_flag((void *)y, "N_VNew_Serial", 0)) return(1);
@@ -78,15 +55,10 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 		y_data[i] = x_f[i];
 		abstol_data[i] = abstol_f[i];
 	}
-	//i = 0;
-	//printf("condense_solver: i %d, x %g, abstol %g\n", i, x_f[i], abstol_f[i]);
-	//i = neq - 1;
-	//printf("condense_solver: i %d, x %g, abstol %g\n", i, x_f[i], abstol_f[i]);
 	
 	reltol = reltol_f;
 	t_initial = t_initial_f;
 	t_final = t_final_f;
-	printf("condense_solver: t_initial = %f, t_final = %f\n", t_initial, t_final);
 
 	cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
 	if (condense_check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
@@ -149,8 +121,6 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	int i, neq;
 	double *y_f, *ydot_f;
 
-	//printf("condense_vf: t %e\n", t);
-
 	neq = NV_LENGTH_S(y);
 	y_data = NV_DATA_S(y);
 	ydot_data = NV_DATA_S(ydot);
@@ -171,82 +141,6 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	return(0);
 }
 
-static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y,
-			   N_Vector fy, void *user_data, N_Vector tmp)
-{
-	realtype *y_data, *v_data, *Jv_data;
-	int i, neq;
-	double *y_f, *v_f, *Jv_f;
-
-	//printf("condense_jtimes: t %e\n", t);
-
-	neq = NV_LENGTH_S(y);
-	y_data = NV_DATA_S(y);
-	v_data = NV_DATA_S(v);
-	Jv_data = NV_DATA_S(Jv);
-
-	y_f = malloc(neq * sizeof(double));
-	v_f = malloc(neq * sizeof(double));
-	Jv_f = malloc(neq * sizeof(double));
-
-	for (i = 0; i < neq; i++) {
-		y_f[i] = y_data[i];
-		v_f[i] = v_data[i];
-	}
-	condense_jtimes_f(neq, t, y_f, v_f, Jv_f);
-	for (i = 0; i < neq; i++) {
-		Jv_data[i] = Jv_f[i];
-	}
-	
-	free(y_f);
-	free(v_f);
-	free(Jv_f);
-	return(0);
-}
-
-static int condense_prec(realtype t, N_Vector y, N_Vector fy,
-			 N_Vector r, N_Vector z,
-			 realtype gamma, realtype delta,
-			 int lr, void *user_data, N_Vector tmp)
-{
-	// solve Pz = r
-	// P \approx M = I - \gamma J
-	// J = \partial f / \partial y
-
-	realtype *y_data, *fy_data, *r_data, *z_data;
-	int i, neq;
-	double *y_f, *fy_f, *r_f, *z_f;
-
-	//printf("condense_prec: t %e\n", t);
-
-	neq = NV_LENGTH_S(y);
-	y_data = NV_DATA_S(y);
-	fy_data = NV_DATA_S(fy);
-	r_data = NV_DATA_S(r);
-	z_data = NV_DATA_S(z);
-
-	y_f = malloc(neq * sizeof(double));
-	fy_f = malloc(neq * sizeof(double));
-	r_f = malloc(neq * sizeof(double));
-	z_f = malloc(neq * sizeof(double));
-
-	for (i = 0; i < neq; i++) {
-		y_f[i] = y_data[i];
-		fy_f[i] = fy_data[i];
-		r_f[i] = r_data[i];
-	}
-	condense_prec_exact_f(neq, t, y_f, fy_f, r_f, z_f, gamma, delta, lr);
-	for (i = 0; i < neq; i++) {
-		z_data[i] = z_f[i];
-	}
-	
-	free(y_f);
-	free(fy_f);
-	free(r_f);
-	free(z_f);
-	return(0);
-}
-
 /*
  * Check function return value...
  *   opt == 0 means SUNDIALS function allocates memory so check if
@@ -256,7 +150,6 @@ static int condense_prec(realtype t, N_Vector y, N_Vector fy,
  *   opt == 2 means function allocates memory so check if returned
  *            NULL pointer 
  */
-
 static int condense_check_flag(void *flagvalue, char *funcname, int opt)
 {
   int *errflag;
@@ -315,8 +208,6 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 
 	t = cv_mem->cv_tn;
 	gamma = cv_mem->cv_gamma;
-
-	//printf("condense_solver_Solve: t %e\n", t);
 
 	for (i = 0; i < neq; i++) {
 		b_f[i] = b_data[i];

@@ -9,6 +9,7 @@ set(PACKAGE_VERSION "1.2.0")
 
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
+option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 
 ######################################################################
 
@@ -64,76 +65,80 @@ endif(NETCDF_FORTRAN_LIB)
 
 ######################################################################
 
-find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
-  DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
-  PATHS
-  /include
-  /usr/include
-  /usr/local/include
-  /opt/include
-  /usr/lib64/gfortran/modules
-  /usr/lib/gfortran/modules
-  /sw/include
-  /sw/lib/netcdf-gfortran/include
-  /sw/lib/netcdf-g95/include
-  /usr/include/netcdf
-  $ENV{HOME}/include
-  $ENV{HOME}/opt/include)
-find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
-  DOC "SUNDIALS serial vector library"
-  PATHS
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /usr/local/lib64
-  /sw/lib
-  /sw/lib/netcdf-gfortran/lib
-  /sw/lib/netcdf-g95/lib
-  $ENV{HOME}/lib
-  $ENV{HOME}/lib64
-  $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64)
-find_library(SUNDIALS_CVODE_LIB sundials_cvode
-  DOC "SUNDIALS CVODE library"
-  PATHS
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /usr/local/lib64
-  /sw/lib
-  /sw/lib/netcdf-gfortran/lib
-  /sw/lib/netcdf-g95/lib
-  $ENV{HOME}/lib
-  $ENV{HOME}/lib64
-  $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64)
-
-set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
+if(ENABLE_SUNDIALS)
+  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
+    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
+    PATHS
+    /include
+    /usr/include
+    /usr/local/include
+    /opt/include
+    /usr/lib64/gfortran/modules
+    /usr/lib/gfortran/modules
+    /sw/include
+    /sw/lib/netcdf-gfortran/include
+    /sw/lib/netcdf-g95/include
+    /usr/include/netcdf
+    $ENV{HOME}/include
+    $ENV{HOME}/opt/include)
+  find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
+    DOC "SUNDIALS serial vector library"
+    PATHS
+    /usr/lib
+    /usr/lib64
+    /usr/local/lib
+    /usr/local/lib64
+    /sw/lib
+    /sw/lib/netcdf-gfortran/lib
+    /sw/lib/netcdf-g95/lib
+    $ENV{HOME}/lib
+    $ENV{HOME}/lib64
+    $ENV{HOME}/opt/lib
+    $ENV{HOME}/opt/lib64)
+  find_library(SUNDIALS_CVODE_LIB sundials_cvode
+    DOC "SUNDIALS CVODE library"
+    PATHS
+    /usr/lib
+    /usr/lib64
+    /usr/local/lib
+    /usr/local/lib64
+    /sw/lib
+    /sw/lib/netcdf-gfortran/lib
+    /sw/lib/netcdf-g95/lib
+    $ENV{HOME}/lib
+    $ENV{HOME}/lib64
+    $ENV{HOME}/opt/lib
+    $ENV{HOME}/opt/lib64)
+  
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
+endif(ENABLE_SUNDIALS)
 
 ######################################################################
 
-find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
-  DOC "MOSAIC include directory"
-  PATHS
-  /include
-  /usr/include
-  /usr/local/include
-  /opt/include
-  $ENV{HOME}/include
-  $ENV{HOME}/opt/include
-  $ENV{HOME}/subversion/mosaic/trunk/datamodules
-  $ENV{HOME}/svn/mosaic/trunk/datamodules
-  ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
-  ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
-find_library(MOSAIC_LIB mosaic
-  DOC "MOSAIC library"
-  PATHS
-  $ENV{HOME}/lib
-  $ENV{HOME}/opt/lib
-  $ENV{HOME}/subversion/mosaic/trunk
-  $ENV{HOME}/svn/mosaic/trunk
-  ${PROJECT_SOURCE_DIR}/../mosaic
-  ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
+if(ENABLE_MOSAIC)
+  find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
+    DOC "MOSAIC include directory"
+    PATHS
+    /include
+    /usr/include
+    /usr/local/include
+    /opt/include
+    $ENV{HOME}/include
+    $ENV{HOME}/opt/include
+    $ENV{HOME}/subversion/mosaic/trunk/datamodules
+    $ENV{HOME}/svn/mosaic/trunk/datamodules
+    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
+  find_library(MOSAIC_LIB mosaic
+    DOC "MOSAIC library"
+    PATHS
+    $ENV{HOME}/lib
+    $ENV{HOME}/opt/lib
+    $ENV{HOME}/subversion/mosaic/trunk
+    $ENV{HOME}/svn/mosaic/trunk
+    ${PROJECT_SOURCE_DIR}/../mosaic
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
+endif(ENABLE_MOSAIC)
 
 ######################################################################
 
@@ -141,9 +146,6 @@ set(EXTRA_LIBS)
 
 include_directories(${NETCDF_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${NETCDF_LIBS})
-
-include_directories(${SUNDIALS_INCLUDE_DIR})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${SUNDIALS_LIBS})
 
 if(ENABLE_MOSAIC)
   include_directories(${MOSAIC_INCLUDE_DIR})
@@ -154,6 +156,12 @@ endif(ENABLE_MOSAIC)
 if(ENABLE_MPI)
   add_definitions(-DPMC_USE_MPI)
 endif(ENABLE_MPI)
+
+if(ENABLE_SUNDIALS)
+  include_directories(${SUNDIALS_INCLUDE_DIR})
+  set(EXTRA_LIBS ${EXTRA_LIBS} ${SUNDIALS_LIBS})
+  add_definitions(-DPMC_USE_SUNDIALS)
+endif(ENABLE_SUNDIALS)
 
 get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
@@ -181,7 +189,9 @@ set(C_COMPILER_FLAGS "-DTESTING")
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(STD_COMPILER_FLAGS "${STD_COMPILER_FLAGS} -g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include")
   set(LEGACY_COMPILER_FLAGS "${LEGACY_COMPILER_FLAGS} -g -std=legacy -I/include -I/usr/include -I/usr/local/include")
-  set(C_COMPILER_FLAGS "${C_COMPILER_FLAGS} -arch i386")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(C_COMPILER_FLAGS "${C_COMPILER_FLAGS} -arch i386")
+  endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   #add_definitions(-g -x f95-cpp-input -std=legacy -fimplicit-none -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
 
   #add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
@@ -210,6 +220,10 @@ add_test(brownian_3 ${CMAKE_BINARY_DIR}/run_test/brownian/run_test_3.sh)
 add_test(brownian_4 ${CMAKE_BINARY_DIR}/run_test/brownian/run_test_4.sh)
 add_test(brownian_5 ${CMAKE_BINARY_DIR}/run_test/brownian/run_test_5.sh)
 add_test(brownian_6 ${CMAKE_BINARY_DIR}/run_test/brownian/run_test_6.sh)
+if(ENABLE_SUNDIALS)
+  add_test(condense_1 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_1.sh)
+  add_test(condense_2 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_2.sh)
+endif(ENABLE_SUNDIALS)
 add_test(emission_1 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_1.sh)
 add_test(emission_2 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_2.sh)
 add_test(emission_3 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_3.sh)
@@ -217,8 +231,6 @@ add_test(emission_4 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_4.sh)
 add_test(emission_5 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_5.sh)
 add_test(golovin_1 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_1.sh)
 add_test(golovin_2 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_2.sh)
-add_test(condense_1 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_1.sh)
-add_test(condense_2 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_2.sh)
 if(ENABLE_MOSAIC)
   add_test(mosaic_01 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_01.sh)
   add_test(mosaic_02 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_02.sh)
@@ -233,13 +245,6 @@ if(ENABLE_MOSAIC)
   add_test(mosaic_11 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_11.sh)
   add_test(mosaic_12 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_12.sh)
 endif(ENABLE_MOSAIC)
-add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
-add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
-add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
-add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
-add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
-add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
-add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 if(ENABLE_MPI)
   add_test(parallel_1 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_1.sh)
   add_test(parallel_2 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_2.sh)
@@ -248,6 +253,13 @@ if(ENABLE_MPI)
   add_test(parallel_5 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_5.sh)
   add_test(parallel_6 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_6.sh)
 endif(ENABLE_MPI)
+add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
+add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
+add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
+add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
+add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
+add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
+add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 
 ######################################################################
 
@@ -266,13 +278,14 @@ set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
 
 set_source_files_properties(${PARTMC_SRC}
   PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
-set_source_files_properties(src/dvode_f90_m.f90
-  PROPERTIES COMPILE_FLAGS ${LEGACY_COMPILER_FLAGS})
-set_source_files_properties(src/condense_solver.c
-  PROPERTIES COMPILE_FLAGS ${C_COMPILER_FLAGS})
 
-add_executable(partmc ${PARTMC_SRC} src/dvode_f90_m.f90
-  src/condense_solver.c)
+if(ENABLE_SUNDIALS)
+  set_source_files_properties(src/condense_solver.c
+    PROPERTIES COMPILE_FLAGS ${C_COMPILER_FLAGS})
+  set(PARTMC_SRC ${PARTMC_SRC} src/condense_solver.c)
+endif(ENABLE_SUNDIALS)
+
+add_executable(partmc ${PARTMC_SRC})
 target_link_libraries(partmc ${EXTRA_LIBS})
 
 ######################################################################

@@ -155,6 +155,8 @@ contains
     integer(kind=c_int) :: n_eqn_f
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
 
+#ifdef PMC_USE_SUNDIALS
+#ifndef DOXYGEN_SKIP_DOC
     interface
        integer(kind=c_int) function condense_solver(neq, x_f, abstol_f, &
             reltol_f, t_initial_f, t_final_f) bind(c)
@@ -167,6 +169,8 @@ contains
          real(kind=c_double), value :: t_final_f
        end function condense_solver
     end interface
+#endif
+#endif
 
     ! initial water volume in the aerosol particles
     water_vol_initial = 0d0
@@ -229,8 +233,10 @@ contains
     abstol_f_p = c_loc(abstol_f)
     condense_count_vf = 0
     condense_count_solve = 0
+#ifdef PMC_USE_SUNDIALS
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f)
+#endif
     if (CONDENSE_DO_TEST_COUNTS) then
        write(0,*) 'condense_count_vf ', condense_count_vf
        write(0,*) 'condense_count_solve ', condense_count_solve

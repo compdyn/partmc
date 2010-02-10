@@ -52,8 +52,6 @@ Add entrainment switch.
 
 Change gas conc from ppb to mole proportion.
 
-Add implicit, adaptive timestepping for the condensation ODE solver.
-
 Make array names plural.
 
 Implement a better poisson distribution generator. We should probably
@@ -211,3 +209,5 @@ Copy urban_plume/aero_data.dat to all other aero_data.dat files in
 cond/, new_cond/, test/*/, etc, to fix BC kappa/num_ions.
 
 Move doc/condensation/new_eqns.tex to doc/condense.tex.
+
+Add weight support to condensation.

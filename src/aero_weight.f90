@@ -141,6 +141,8 @@ contains
        aero_weight%type = AERO_WEIGHT_TYPE_POWER
        call spec_file_read_real(file, 'ref_radius', aero_weight%ref_radius)
        call spec_file_read_real(file, 'exponent', aero_weight%exponent)
+       call assert_msg(671074841, aero_weight%exponent <= 0d0, &
+            "can currently only handle negative weighting exponents")
     else
        call spec_file_die_msg(456342050, file, "unknown weight_type: " &
             // trim(weight_type))

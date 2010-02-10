@@ -133,7 +133,7 @@ Change the line "n_samp = prob_round(n_samp_real)" to be "n_samp =
 ceil(n_samp_real)" to match the paper and make convergence
 obvious.
 
-Switch to using mpi structures rather than pack/unpack.
+Switch to using mpi structures rather than pack/unpack?
 
 Rename part_opt to run_part_opt, and similarly for sect_opt and
 exact_opt.
@@ -147,14 +147,10 @@ call. This may not be possible?
 Change numeric_average.f90 to be numeric_reduce.f90 with option
 "mean", "stddev", "min", "max", "median", "prank" (percentile rank).
 
-Add integer_to_string, real_to_string, etc, that return trimmed
-strings so in error messages we can do things like die_msg(xxx, "Line
-" // integer_to_string(line_num) // ": unknown variable: " //
-var_name)
-
 Delete all files in the output directory that have the current prefix,
 before running, to avoid the problem where we reduce the timestep but
-then there are extra old output files left for later timesteps.
+then there are extra old output files left for later timesteps. Would
+also be addressed by the GUID idea above.
 
 Fix up time handling. At the moment we have times from midnight, times
 from start of run, times from time of restarted run, time within
@@ -165,13 +161,6 @@ const%water_density (also const%water_molec_weight).
 
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
-
-aero_weight needed by:
-aero_state_to_binned
-aero_state_to_binned_dry
-aero_state_output_netcdf <- output_state_* <- run_part, bin_average_*.f90
-aero_state_input_netcdf <- input_state_netcdf <- partmc, bin_average_*.f90
-aero_state_add_aero_dist_sample <- partmc, env_state_update_aero_state <- run_part
 
 Bin averaging should take aero_weight into account.
 
@@ -184,7 +173,8 @@ timestep, which we have to do if we are using chemistry or
 condensation anyway.
 
 Separate out everything from env_state, aero_state, etc, down into
-libpartmc, and have the top-level programs just as drivers.
+libpartmc, and have the top-level programs just as drivers. Even
+better would be libcoagulate, etc.
 
 Separate out conensation into libcondense, using sundials as the
 solver and taking n_particle arrays of kappas, dry_diameters,

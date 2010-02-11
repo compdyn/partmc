@@ -31,7 +31,7 @@ dist: doc
 	rm -r $(DIST_NAME)
 
 .PHONY: doc
-doc: doc/README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
+doc: doc/README.html doc/partmc.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
 
 doc/README.html: README tool/markdown2.py
 	echo "<html>" > $@
@@ -39,6 +39,9 @@ doc/README.html: README tool/markdown2.py
 	echo "<body bgcolor=\"#ffffff\">" >> $@
 	tool/markdown2.py README >> $@
 	echo "</body></html>" >> $@
+
+doc/partmc.html: tool/partmc.py
+	cd doc; pydoc -w ../tool/partmc.py
 
 $(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
 	doxygen

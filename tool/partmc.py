@@ -893,14 +893,14 @@ class grid(object):
         grid.
 
         """
-        return array([self.edge(i) for i in range(self.n_bin + 1)])
+        return numpy.array([self.edge(i) for i in range(self.n_bin + 1)])
 
     def centers(self):
         """Return a length n_bin array of the bin centers in the
         grid.
 
         """
-        return array([self.center(i) for i in range(self.n_bin)])
+        return numpy.array([self.center(i) for i in range(self.n_bin)])
 
 class linear_grid(grid):
 
@@ -923,13 +923,15 @@ class linear_grid(grid):
         Example:
         >>> x_grid = partmc.linear_grid(0, 4, 2)
         >>> x_grid.edges()
-        array([0, 2, 4])
+        array([0.0, 2.0, 4.0])
         >>> x_grid.centers():
-        array([1, 3])
+        array([1.0, 3.0])
 
         """
         self.min = float(min)
         self.max = float(max)
+        if n_bin <= 0:
+            raise Exception("n_bin must be positive for linear_grid")
         self.n_bin = n_bin
 
     def scale(self, factor):
@@ -950,6 +952,11 @@ class linear_grid(grid):
         """Return the size of the grid bin at the given index.
 
         For a linear grid this will be the same for all bins.
+
+        Example:
+        >>> x_grid = partmc.linear_grid(0, 10, 5)
+        >>> x_grid.grid_size(0)
+        2.0
 
         """
         return (self.max - self.min) / float(self.n_bin)
@@ -975,11 +982,11 @@ class linear_grid(grid):
         array of values.
 
         Note that invalid bin indices will be returned if any of the
-        values are outside of [min.max] for the grid.
+        values are outside of [min, max] for the grid.
 
         Example:
         >>> x_grid = partmc.linear_grid(0, 10, 5)
-        >>> x_grid.find(numpy.array([-5, 3, 6.5, 13])
+        >>> x_grid.find(numpy.array([-5, 3, 6.5, 13]))
         array([-3, 1, 3, 6])
 
         """
@@ -1046,29 +1053,122 @@ class linear_grid(grid):
         
 class log_grid(grid):
 
+    """Logarithmic 1D grid.
+
+    Example:
+    >>> x_grid = partmc.log_grid(1, 5, 100)
+    >>> x = 1.83
+    >>> print 'value %f' % x
+    >>> print 'is in bin number %d' % x_grid.find(x)
+
+    """
+    
     def __init__(self, min, max, n_bin):
+        """Create a logarithmically spaced grid.
+
+        The minimum and maximum edges are at min and max and the grid
+        will have n_bin grid bins.
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 16, 2)
+        >>> x_grid.edges()
+        array([1.0, 4.0, 16.0])
+        >>> x_grid.centers():
+        array([2.0, 8.0])
+
+        """
+        if min <= 0 or max <= 0:
+            raise Exception("min and max must both be positive for log_grid")
         self.min = float(min)
         self.max = float(max)
+        if n_bin <= 0:
+            raise Exception("n_bin must be positive for log_grid")
         self.n_bin = n_bin
 
     def scale(self, factor):
+        """Scale the grid by the given factor.
+
+        For example, the two grids below are the same:
+
+        >>> grid_1 = partmc.log_grid(5, 10, 100)
+        >>> grid_1.scale(3)
+        
+        >>> grid_2 = partmc.log_grid(15, 30, 100)
+
+        """
         self.min = self.min * factor
         self.max = self.max * factor
 
-    def grid_size(self, index):
-        return (log10(self.max) - log10(self.min)) / float(self.n_bin)
+    def grid_size(self, index, base = 10):
+        """Return the logarithmic size of the grid bin at the given
+        index.
+
+        For a logarithmic grid this will be the same for all bins, and
+        is given by the difference of the logarithm of the two bin
+        edges in the given base (default base-10).
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 100, 10)
+        >>> x_grid.grid_size(0)
+        0.2
+
+        """
+        return (math.log(self.max) / math.log(base)
+                - math.log(self.min) / math.log(base)) \
+                / float(self.n_bin)
 
     def valid_bin(self, bin):
+        """Whether the given bin number is indeed a valid bin number
+        for the grid.
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 5, 100)
+        >>> x_grid.valid_bin(30)
+        True
+        >>> x_grid.valid_bin(120)
+        False
+
+        """
         if (bin >= 0) and (bin < self.n_bin):
             return True
         return False
 
-    def find(self, value):
-        indices = (floor((log(value) - log(self.min)) * self.n_bin
-                   / (log(self.max) - log(self.min)))).astype(int)
+    def find(self, values):
+        """Return an array of bin indices corresponding to the given
+        array of values.
+
+        All of the entries of values must be postive. Note that
+        invalid bin indices will be returned if any of the values are
+        outside of [min, max] for the grid.
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 16, 4)
+        >>> x_grid.find(numpy.array([0.3, 3, 8.5, 40]))
+        array([-2, 1, 3, 5])
+
+        """
+        indices = (numpy.floor((numpy.log(numpy.asarray(values))
+                          - math.log(self.min)) * self.n_bin
+                         / (math.log(self.max) - math.log(self.min)))
+                   ).astype(int)
         return indices
 
     def edge(self, index):
+        """Return the location of the bin edge at the given index.
+
+        The index must be in the range 0 to n_bin, as a grid with
+        n_bin grid cells will have (n_bin + 1) edges.
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 16, 4)
+        >>> x_grid.edge(0)
+        1.0
+        >>> x_grid.edge(2)
+        4.0
+        >>> x_grid.edge(4)
+        16.0
+
+        """
         if (index < 0) or (index > self.n_bin):
             raise Exception("index out of range: %d" % index)
         if index == self.n_bin:
@@ -1077,17 +1177,36 @@ class log_grid(grid):
             return self.min
         else:
             return math.exp(float(index) / float(self.n_bin)
-                            * (log(self.max) - log(self.min))
-                            + log(self.min))
+                            * (math.log(self.max) - math.log(self.min))
+                            + math.log(self.min))
         
     def center(self, index):
+        """Return the location of the bin center at the given
+        index.
+
+        The index must be in the range 0 to (n_bin - 1).
+
+        Example:
+        >>> x_grid = partmc.log_grid(1, 64, 3)
+        >>> x_grid.center(0)
+        2.0
+        >>> x_grid.center(1)
+        8.0
+        >>> x_grid.center(2)
+        32.0
+
+        """
         if (index < 0) or (index >= self.n_bin):
             raise Exception("index out of range: %d" % index)
         return math.exp((float(index) + 0.5) / float(self.n_bin)
-                        * (log(self.max) - log(self.min))
-                        + log(self.min))
+                        * (math.log(self.max) - math.log(self.min))
+                        + math.log(self.min))
 
     def half_sample(self):
+        """Return a new log_grid object with the same limits but
+        half the number of bins as the current grid.
+
+        """
         if self.n_bin % 2 != 0:
             raise Exception("n_bin must be an even number")
         return log_grid(min = self.min, max = self.max,
@@ -1207,14 +1326,53 @@ def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = Tru
     vals = numpy.ma.array(grid, mask = mask)
     return vals
 
-def time_of_day_string(time_seconds, separator = ":"):
+def time_of_day_string(time_seconds, separator = ":", resolution = "minutes"):
+    """Convert a time-of-day in seconds-past-midnight to a 24-hour
+    string representation.
+
+    The optional resolution parameter can be 'hours', 'minutes', or
+    'seconds', to indicate the granularity of the result.
+
+    Example:
+    >>> time_of_day_string(51858.6)
+    '14:24'
+    >>> time_of_day_string(51858.6, resolution = 'seconds')
+    '14:24:18'
+    
+    """
     time_of_day = time_seconds % (24 * 3600.0)
     hours = int(time_of_day / 3600.0)
     minutes = int(time_of_day / 60.0) % 60
     seconds = int(time_of_day) % 60
-    return "%02d%s%02d" % (hours, separator, minutes)
+    if resolution == "hours":
+        return "%02d" % hours
+    if resolution == "minutes":
+        return "%02d%s%02d" % (hours, separator, minutes)
+    if resolution == "seconds":
+        return "%02d%s%02d%s%02d" % (hours, separator, minutes,
+                                     separator, seconds)
+    else:
+        raise Exception("unknown resolution: %s" % resolution)
 
-def read_history(constructor, directory, filename_pattern, print_progress = False):
+def read_history(constructor, directory, filename_pattern,
+                 print_progress = False):
+    """Read a sequence of NetCDF files, extracting data from each one.
+
+    Each file in the given directory whose name matches the
+    regular-expression filename_pattern is opened as a NetCDF
+    file. Then the given constructor function is applied to read an
+    object from the file. The elapsed_time is also read from the file,
+    and a list of pairs [time, object] is returned, sorted by the
+    times.
+
+    Example:
+    >>> gas_state_history = partmc.read_history(gas_state_t,
+                                      'out/', 'data_0001_[0-9]{8}.nc')
+    >>> time = [t for [t, gs] in gas_state_history]
+    >>> o3 = [gs.mixing_ratio('O3') for [t, gs] in gas_state_history]
+    >>> plt.plot(time, o3)
+
+    """
     filenames = os.listdir(directory)
     filenames.sort()
     data = []
@@ -1232,6 +1390,20 @@ def read_history(constructor, directory, filename_pattern, print_progress = Fals
     return data
 
 def read_any(constructor, directory, filename_pattern):
+
+    """Read any of a set of NetCDF files, extracting data from it.
+
+    A single one of the NetCDF files in the given directory matching
+    the regular-expression filename_pattern is opened as a NetCDF
+    file. Then the given constructor is applied to read an object from
+    the file, which is returned.
+
+    Example:
+    >>> aero_data = partmc.read_history(aero_data_t,
+                                        'out/', 'data_0001_[0-9]{8}.nc')
+    >>> print 'species names: ', aero_data.names
+
+    """
     filenames = os.listdir(directory)
     filename_re = re.compile(filename_pattern)
     for filename in filenames:
@@ -1244,25 +1416,51 @@ def read_any(constructor, directory, filename_pattern):
     raise Exception("no NetCDF file found in %s matching %s"
                     % (directory, filename_pattern))
 
-def get_filename_list(dir, file_pattern):
+def get_filename_list(directory, filename_pattern):
+    """Return a list of files in a directory matching a given pattern.
+
+    The filename_pattern is a regular expression. All filenames in the
+    given directory that match the pattern are returned in a sorted
+    list.
+
+    Example:
+    >>> netcdf_files = partmc.get_filename_list('out/', r'data_.*\.nc')
+
+    """
     filename_list = []
-    filenames = os.listdir(dir)
+    filenames = os.listdir(director)
     if len(filenames)  == 0:
-        raise Exception("No files in %s match %s" % (dir, file_pattern))
-    file_re = re.compile(file_pattern)
+        raise Exception("No files in %s match %s"
+                        % (directory, filename_pattern))
+    file_re = re.compile(filename_pattern)
     for filename in filenames:
         match = file_re.search(filename)
         if match:
             output_key = match.group(1)
-            full_filename = os.path.join(dir, filename)
+            full_filename = os.path.join(directory, filename)
             filename_list.append(full_filename)
     filename_list.sort()
     if len(filename_list) == 0:
         raise Exception("No files found in %s matching %s"
-                        % (dir, file_pattern))
+                        % (directory, filename_pattern))
     return filename_list
 
 def get_time_filename_list(dir, file_pattern):
+    """Return a list of files in a directory matching a given pattern
+    with times and keys.
+
+    The filename_pattern is a regular expression. All filenames in the
+    given directory that match the pattern are returned in a list
+    where each entry is of the form [time, filename, key]. The time is
+    determined by opening each file as a NetCDF file and reading the
+    elapsed_time from it. If the file_pattern contains a regular
+    expression group then the key is the value of that group after the
+    match, otherwise it is None.
+
+    Example:
+    >>> netcdf_files = partmc.get_filename_list('out/', r'data_(.*)\.nc')
+
+    """
     time_filename_list = []
     filenames = os.listdir(dir)
     if len(filenames) == 0:
@@ -1271,7 +1469,11 @@ def get_time_filename_list(dir, file_pattern):
     for filename in filenames:
         match = file_re.search(filename)
         if match:
-            output_key = match.group(1)
+            groups = match.groups()
+            if len(groups) > 0:
+                output_key = groups[0]
+            else:
+                output_key = None
             netcdf_filename = os.path.join(dir, filename)
             ncf = NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)
@@ -1295,7 +1497,7 @@ def find_nearest_time(time_indexed_data, search_time):
             min_i = i
     return min_i
 
-def file_filename_at_time(time_filename_list, search_time):
+def find_filename_at_time(time_filename_list, search_time):
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
 

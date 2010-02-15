@@ -3,6 +3,7 @@ output_prefix %%OUTPUT_PREFIX%% # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 1                        # total number of particles
 kernel brown                    # coagulation kernel
+nucleate none                   # nucleation function
 restart yes                     # whether to restart from saved state (yes/no)
 restart_file %%RESTART_FILE%%   # saved state file to restart from
 
@@ -14,6 +15,8 @@ t_progress 1                    # progress printing interval (0 disables) (s)
 n_bin 160                       # number of bins
 r_min 1e-10                     # minimum radius (m)
 r_max 1e-1                      # maximum radius (m)
+
+weight none                     # unweighted particles
 
 gas_data gas_data.dat           # file containing gas data
 

@@ -8,31 +8,31 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+const = partmc.constants_t("../../src/constants.f90")
 
 def effective_diam(env_state, const, kappa, s_crit):
     def f(dry_diam):
-        return pmc_data_nc.critical_rh(env_state, const, np.array([kappa]), np.array([dry_diam]))[0] - (s_crit + 1)
+        return partmc.critical_rel_humids(env_state, const, np.array([kappa]), np.array([dry_diam]))[0] - (s_crit + 1)
     return scipy.optimize.brentq(f, 1e-10, 1)
 
-in_filename = "../../urban_plume/out/urban_plume_wc_0001_00000013.nc"
+in_filename = "../../scenarios/1_urban_plume/out/urban_plume_wc_0001_00000013.nc"
 out_filename = "figs/ccn_spectrum_diam.pdf"
 ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
-particles = pmc_data_nc.aero_particle_array_t(ncf)
-env_state = pmc_data_nc.env_state_t(ncf)
+particles = partmc.aero_particle_array_t(ncf)
+env_state = partmc.env_state_t(ncf)
 ncf.close()
 
-s_crit = (particles.critical_rh(env_state, const) - 1)*100
-bc = particles.mass(include = ["BC"])
+s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+bc = particles.masses(include = ["BC"])
 total_bc = sum(bc)
 
-kappa = particles.solute_kappa()
-dry_volumes = particles.volume(exclude = ["H2O"]) 
+kappa = particles.kappas()
+dry_volumes = particles.volumes(exclude = ["H2O"]) 
 average_kappa = 1/sum(dry_volumes) * sum(kappa * dry_volumes)
 print average_kappa
-dry_diameter = particles.dry_diameter()
-total_number = len(particles.id)
+dry_diameters = particles.dry_diameters()
+total_number = len(particles.ids)
 ss_array = np.logspace(-2,1,100)
 frac_array_true = np.zeros_like(ss_array)
 frac_array_diam = np.zeros_like(ss_array)
@@ -43,7 +43,7 @@ for i in range(len(ss_array)):
     bc_mass_act_true = sum(bc[activated_true])
     frac_array_true[i] = bc_mass_act_true / total_bc
 
-    activated_diam = (dry_diameter > d_eff)
+    activated_diam = (dry_diameters > d_eff)
     bc_mass_act_diam = sum(bc[activated_diam])
     frac_array_diam[i] = bc_mass_act_diam/ total_bc
 

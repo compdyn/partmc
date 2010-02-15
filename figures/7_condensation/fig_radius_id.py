@@ -7,11 +7,11 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+const = partmc.constants_t("../../src/constants.f90")
 
 def check_num(in_dir, in_filename, in_file_pattern, out_filename, counter):
-    time_filename_list = pmc_data_nc.get_time_filename_list(in_dir, in_file_pattern)
+    time_filename_list = partmc.get_time_filename_list(in_dir, in_file_pattern)
 
     id_p_array = np.array([16388, 10, 33311, 9212, 451, 11769])
     d = np.zeros((len(id_p_array),len(time_filename_list)))
@@ -21,14 +21,14 @@ def check_num(in_dir, in_filename, in_file_pattern, out_filename, counter):
     for [time, filename, key] in time_filename_list:
 	print time, filename, key
         ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-        particles = pmc_data_nc.aero_particle_array_t(ncf) 
+        particles = partmc.aero_particle_array_t(ncf) 
         ncf.close()
-        wet_diameter = particles.diameter()
-        id_list = list(particles.id)
+        wet_diameters = particles.diameters()
+        id_list = list(particles.ids)
         for i in range(0,6):
              i_index = id_list.index(id_p_array[i])
              
-             d[i,i_count] = wet_diameter[i_index]
+             d[i,i_count] = wet_diameters[i_index]
         seconds[i_count] = i_count
         i_count = i_count + 1
 
@@ -47,7 +47,7 @@ def check_num(in_dir, in_filename, in_file_pattern, out_filename, counter):
 
 for counter in range(5,6):
 
-    in_dir = "../../new_cond/out/"
+    in_dir = "../../scenarios/3_condense/out/"
     filename_in = "cond_%02d_ref_0001_00000601.nc" % counter
     in_file_pattern = "cond_%02d_ref_0001_(.*).nc" % counter
     out_filename = "figs/radius_id_%02d.pdf" % counter

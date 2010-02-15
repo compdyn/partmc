@@ -8,33 +8,33 @@ matplotlib.use("PDF")
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_filename,out_filename,title):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    so4 = particles.mass(include = ["SO4"])/particles.aero_data.molec_weight[0]
-    nh4 =  particles.mass(include = ["NH4"])/particles.aero_data.molec_weight[3]
-    no3 =  particles.mass(include = ["NO3"])/particles.aero_data.molec_weight[1]
-    bc =  particles.mass(include = ["BC"])/particles.aero_data.molec_weight[18]
-    oc =  particles.mass(include = ["OC"])/particles.aero_data.molec_weight[17]
+    so4 = particles.masses(include = ["SO4"])/particles.aero_data.molec_weights[0]
+    nh4 =  particles.masses(include = ["NH4"])/particles.aero_data.molec_weights[3]
+    no3 =  particles.masses(include = ["NO3"])/particles.aero_data.molec_weights[1]
+    bc =  particles.masses(include = ["BC"])/particles.aero_data.molec_weights[18]
+    oc =  particles.masses(include = ["OC"])/particles.aero_data.molec_weights[17]
 
-    print 'min nh4 ', min(particles.mass(include = ["NH4"])), max(nh4), min(no3), max(no3)
+    print 'min nh4 ', min(particles.masses(include = ["NH4"])), max(nh4), min(no3), max(no3)
 
     ion_ratio = (2*so4 + no3) / nh4
 
     is_neutral = (ion_ratio < 2)
-    dry_diameter = particles.dry_diameter()
+    dry_diameters = particles.dry_diameters()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-8,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=30.0,n_bin=100)
+    x_axis = partmc.log_grid(min=1e-8,max=1e-6,n_bin=70)
+    y_axis = partmc.linear_grid(min=0,max=30.0,n_bin=100)
     x_centers = x_axis.centers()
 
-    bin_so4 = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = so4)
-    bin_nh4 = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = nh4)
-    bin_no3 = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = no3)
+    bin_so4 = partmc.histogram_1d(dry_diameters, x_axis, weights = so4)
+    bin_nh4 = partmc.histogram_1d(dry_diameters, x_axis, weights = nh4)
+    bin_no3 = partmc.histogram_1d(dry_diameters, x_axis, weights = no3)
     
     print 'bin_so4 ', bin_so4[40]
     print 'bin_nh4 ', bin_nh4[40]
@@ -45,10 +45,10 @@ def make_plot(in_filename,out_filename,title):
     bin_ratio[np.isnan(bin_ratio)] = 0 # replaces NaN with 0. useful for plotting
     print 'bin_ratio ', bin_ratio[40]
 
-    diameter_bins = x_axis.find(dry_diameter)
+    diameter_bins = x_axis.find(dry_diameters)
     print 'diameter_bins ', diameter_bins
     is_40 = (diameter_bins == 40)
-#    for i in range(len(dry_diameter)):
+#    for i in range(len(dry_diameters)):
 #        if diameter_bins[i] == 40:
 #            print 'particle info', so4[i], nh4[i], no3[i], ion_ratio[i]
     so4_40 = so4[is_40]
@@ -68,7 +68,7 @@ def make_plot(in_filename,out_filename,title):
     print 'sums/number ',  sum(so4[is_40])/len(so4_40), sum(nh4[is_40])/len(nh4_40), sum(no3[is_40])/len(no3_40)
     
     
-    hist2d = pmc_data_nc.histogram_2d(dry_diameter, ion_ratio, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = partmc.histogram_2d(dry_diameters, ion_ratio, x_axis, y_axis, weights = 1/particles.comp_vols)
 
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
@@ -89,8 +89,8 @@ def make_plot(in_filename,out_filename,title):
 for hour in range(13, 14):
     print "hour = ", hour
     
-    filename_in1 = "../../urban_plume2/out_no_nh3/urban_plume_wc_0001_000000%02d.nc" % hour
-    filename_out1 = "figs/2d_neutral_no_nh3_wc_%02d.png" % (hour-1)
+    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_wc_0001_000000%02d.nc" % hour
+    filename_out1 = "figs/2d_neutral_wc_%02d.png" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1
     print filename_out1

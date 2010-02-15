@@ -7,10 +7,10 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+const = partmc.constants_t("../../src/constants.f90")
 
-in_dir = "../../new_cond/out/"
+in_dir = "../../scenarios/3_condense/out/"
 out_filename1 = "figs/scavenged_bcwc.pdf" 
 out_filename2 = "figs/scavenged_oc_wc.pdf" 
 out_filename3 = "figs/scavenged_so4_wc.pdf" 
@@ -24,19 +24,19 @@ run_list = ["ref", "comp", "size", "both"]
 for k in range(0,4):
     run = run_list[k]
     for counter in range(1,41):
-        in_filename = "cond_wc_%02d_%s_0001_00000601.nc" % (counter, run)
+        in_filename = "cond_%02d_%s_0001_00000601.nc" % (counter, run)
         ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename)
-        particles = pmc_data_nc.aero_particle_array_t(ncf)
+        particles = partmc.aero_particle_array_t(ncf)
         ncf.close()
 
-        final_wet_diameter = particles.diameter()
-        is_activated = (final_wet_diameter > 3e-6)
+        final_wet_diameters = particles.diameters()
+        is_activated = (final_wet_diameters > 3e-6)
 
-        bc = particles.mass(include = ["BC"]) 
-        oc = particles.mass(include = ["OC"])
-        so4 = particles.mass(include = ["SO4"])
-        no3 = particles.mass(include = ["NO3"])
-        nh4 = particles.mass(include = ["NH4"])
+        bc = particles.masses(include = ["BC"]) 
+        oc = particles.masses(include = ["OC"])
+        so4 = particles.masses(include = ["SO4"])
+        no3 = particles.masses(include = ["NO3"])
+        nh4 = particles.masses(include = ["NH4"])
 
         total_bc = sum(bc)
         total_oc = sum(oc)

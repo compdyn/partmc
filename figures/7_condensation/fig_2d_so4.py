@@ -7,33 +7,33 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_filename,out_filename,title):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    so4 = particles.mass(include = ["SO4"])/particles.aero_data.molec_weight[0]
-    nh4 =  particles.mass(include = ["NH4"])/particles.aero_data.molec_weight[3]
-    no3 =  particles.mass(include = ["NO3"])/particles.aero_data.molec_weight[1]
+    so4 = particles.masses(include = ["SO4"])/particles.aero_data.molec_weights[0]
+    nh4 =  particles.masses(include = ["NH4"])/particles.aero_data.molec_weights[3]
+    no3 =  particles.masses(include = ["NO3"])/particles.aero_data.molec_weights[1]
 
-    dry_mass = particles.mass(exclude = ["H2O"])
+    dry_mass = particles.masses(exclude = ["H2O"])
     so4_frac = so4 / dry_mass
     ion_ratio = (2*so4 + no3) / nh4
 
     is_neutral = (ion_ratio < 2)
     print 'neutral ', sum(is_neutral), ion_ratio[is_neutral]
 
-    dry_diameter = particles.dry_diameter()
+    dry_diameters = particles.dry_diameters()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-8,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=1.0,n_bin=50)
+    x_axis = partmc.log_grid(min=1e-8,max=1e-6,n_bin=70)
+    y_axis = partmc.linear_grid(min=0,max=1.0,n_bin=50)
 
-    hist2d = pmc_data_nc.histogram_2d(dry_diameter, so4_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = partmc.histogram_2d(dry_diameters, so4_frac, x_axis, y_axis, weights = 1/particles.comp_vols)
 
     plt.clf()
-    plt.semilogx(dry_diameter, ion_ratio, 'rx')
+    plt.semilogx(dry_diameters, ion_ratio, 'rx')
     fig = plt.gcf()
     fig.savefig('figs/t.pdf')
 
@@ -54,8 +54,8 @@ def make_plot(in_filename,out_filename,title):
 for hour in range(2, 3):
     print "hour = ", hour
     
-    filename_in1 = "../../urban_plume2/out_no_nh3/urban_plume_nc_0001_000000%02d.nc" % hour
-    filename_out1 = "figs/2d_so4_no_nh3_nc_%02d.pdf" % (hour-1)
+    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_nc_0001_000000%02d.nc" % hour
+    filename_out1 = "figs/2d_so4_nc_%02d.pdf" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1
     print filename_out1

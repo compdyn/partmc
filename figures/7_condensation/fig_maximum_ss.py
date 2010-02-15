@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 a = np.loadtxt("data/maximum_ss_wc.txt")
 b = np.loadtxt("data/ccn_cn_ratio_wc.txt")

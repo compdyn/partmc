@@ -9,23 +9,23 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_filename,out_filename,title):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    bc = particles.mass(include = ["BC"])
-    dry_mass = particles.mass(exclude = ["H2O"])
+    bc = particles.masses(include = ["BC"])
+    dry_mass = particles.masses(exclude = ["H2O"])
     bc_frac = bc / dry_mass
 
-    wet_diameter = particles.diameter()
+    wet_diameters = particles.diameters()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-8,max=1e-4,n_bin=90)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=0.8,n_bin=40)
+    x_axis = partmc.log_grid(min=1e-8,max=1e-4,n_bin=90)
+    y_axis = partmc.linear_grid(min=0,max=0.8,n_bin=40)
 
-    hist2d = pmc_data_nc.histogram_2d(wet_diameter, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = partmc.histogram_2d(wet_diameters, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vols)
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
     a = plt.gca()
@@ -44,7 +44,7 @@ def make_plot(in_filename,out_filename,title):
 for counter in range(1, 600):
     print "counter = ",  counter
     
-    filename_in1 = "../../new_cond/out/cond_07_ref_0001_00000%03d.nc" % counter
+    filename_in1 = "../../scenarios/3_condense/out/cond_07_ref_0001_00000%03d.nc" % counter
     filename_out1 = "figs/2d_bc_ref_%03d.png" % (counter-1)
     titel = "%02d seconds" % (counter-1)
     print filename_in1

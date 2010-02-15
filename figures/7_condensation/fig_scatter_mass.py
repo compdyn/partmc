@@ -12,26 +12,26 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_dir, in_filename_wc, in_filename_nc, title, out_filename_wc, out_filename_nc):
     print 'file ', in_dir+in_filename_wc
     
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename_wc)
-    particles_wc = pmc_data_nc.aero_particle_array_t(ncf)
+    particles_wc = partmc.aero_particle_array_t(ncf)
     ncf.close()
     
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename_nc)
-    particles_nc = pmc_data_nc.aero_particle_array_t(ncf)
+    particles_nc = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-#    so4_wc =  particles_wc.mass(include = ["SO4"])/particles_wc.aero_data.molec_weight[0]
-#    nh4_wc =  particles_wc.mass(include = ["NH4"])/particles_wc.aero_data.molec_weight[3] 
-#    no3_wc =  particles_wc.mass(include = ["NO3"])/particles_wc.aero_data.molec_weight[1]
+#    so4_wc =  particles_wc.masses(include = ["SO4"])/particles_wc.aero_data.molec_weights[0]
+#    nh4_wc =  particles_wc.masses(include = ["NH4"])/particles_wc.aero_data.molec_weights[3] 
+#    no3_wc =  particles_wc.masses(include = ["NO3"])/particles_wc.aero_data.molec_weights[1]
 
-    so4_nc =  particles_nc.mass(include = ["SO4"])/particles_nc.aero_data.molec_weight[0]
-    nh4_nc =  particles_nc.mass(include = ["NH4"])/particles_nc.aero_data.molec_weight[3] 
-    no3_nc =  particles_nc.mass(include = ["NO3"])/particles_nc.aero_data.molec_weight[1]  
+    so4_nc =  particles_nc.masses(include = ["SO4"])/particles_nc.aero_data.molec_weights[0]
+    nh4_nc =  particles_nc.masses(include = ["NH4"])/particles_nc.aero_data.molec_weights[3] 
+    no3_nc =  particles_nc.masses(include = ["NO3"])/particles_nc.aero_data.molec_weights[1]  
 
 #    plt.scatter(nh4_wc, 2*so4_wc+no3_wc)
     
@@ -58,7 +58,7 @@ def make_plot(in_dir, in_filename_wc, in_filename_nc, title, out_filename_wc, ou
 for counter in range(10,11):
     print "counter = ", counter
     
-    in_dir = "../../urban_plume2/out_no_nh3/"
+    in_dir = "../../scenarios/2_urban_plume2/out/"
     in_filename_wc = "urban_plume_wc_0001_000000%02d.nc" % counter
     in_filename_nc = "urban_plume_nc_0001_000000%02d.nc" % counter
     title = " %02d hours" % (counter-1)

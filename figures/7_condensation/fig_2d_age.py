@@ -7,20 +7,20 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_filename,out_filename,time,title):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    age = abs(particles.least_create_time / 3600. - time)
-    dry_diameter = particles.dry_diameter()
+    age = abs(particles.least_create_times / 3600. - time)
+    dry_diameters = particles.dry_diameters()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-8,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0, max = 48, n_bin=49)
+    x_axis = partmc.log_grid(min=1e-8,max=1e-6,n_bin=70)
+    y_axis = partmc.linear_grid(min=0, max = 48, n_bin=49)
 
-    hist2d = pmc_data_nc.histogram_2d(dry_diameter, age, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = partmc.histogram_2d(dry_diameters, age, x_axis, y_axis, weights = 1/particles.comp_vols)
 
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
@@ -39,8 +39,8 @@ def make_plot(in_filename,out_filename,time,title):
 for hour in range(49, 50):
     print "hour = ", hour
     time = hour - 1
-    filename_in1 = "../../urban_plume2/out_no_nh3/urban_plume_nc_0001_000000%02d.nc" % hour
-    filename_out1 = "figs/2d_age_no_nh3_nc_%02d.pdf" % (hour-1)
+    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_nc_0001_000000%02d.nc" % hour
+    filename_out1 = "figs/2d_age_nc_%02d.pdf" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1
     print filename_out1

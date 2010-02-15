@@ -7,67 +7,67 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+const = partmc.constants_t("../../src/constants.f90")
 
 def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_filename1, out_filename2, out_filename3, counter):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir1+in_filename1)
-    particles1 = pmc_data_nc.aero_particle_array_t(ncf)
+    particles1 = partmc.aero_particle_array_t(ncf)
     ncf.close()
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir2+in_filename2)
-    particles2 = pmc_data_nc.aero_particle_array_t(ncf)
+    particles2 = partmc.aero_particle_array_t(ncf)
     particles2.aero_data.kappa[17] = 0.1
     particles2.aero_data = particles1.aero_data
     ncf.close()
 
-    final_wet_diameter = particles1.diameter()
-    is_activated1 = (final_wet_diameter > 3e-6)
-    sum_tot1 = sum(1/particles1.comp_vol) * particles1.comp_vol[0]
-    num_act1 = sum(1/particles1.comp_vol[is_activated1]) * particles1.comp_vol[0] 
-    id_list_act1 = particles1.id[is_activated1]
+    final_wet_diameters = particles1.diameters()
+    is_activated1 = (final_wet_diameters > 3e-6)
+    sum_tot1 = sum(1/particles1.comp_vols) * particles1.comp_vols[0]
+    num_act1 = sum(1/particles1.comp_vols[is_activated1]) * particles1.comp_vols[0] 
+    id_list_act1 = particles1.ids[is_activated1]
     is_not_activated1 = np.logical_not(is_activated1)
-    id_list_not_act1 = particles1.id[is_not_activated1] 
+    id_list_not_act1 = particles1.ids[is_not_activated1] 
     ccn_cn_ratio1 = num_act1 / sum_tot1
 
-    env_state_history = pmc_data_nc.read_history(pmc_data_nc.env_state_t, in_dir1, in_file_pattern)
+    env_state_history = partmc.read_history(partmc.env_state_t, in_dir1, in_file_pattern)
     time = [env_state_history[i][0] for i in range(len(env_state_history))]
     rh = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
     maximum_ss = (max(rh) - 1)*100.
     max_index = np.argmax(np.array(rh))
     time_index = time[max_index]    
-    time_filename_list = pmc_data_nc.get_time_filename_list(in_dir1, in_file_pattern)
-    max_filename = pmc_data_nc.find_filename_at_time(time_filename_list, time_index)
+    time_filename_list = partmc.get_time_filename_list(in_dir1, in_file_pattern)
+    max_filename = partmc.find_filename_at_time(time_filename_list, time_index)
     ncf = Scientific.IO.NetCDF.NetCDFFile(max_filename)
-    max_env_state = pmc_data_nc.env_state_t(ncf)
+    max_env_state = partmc.env_state_t(ncf)
     ncf.close()
 
 
-    max_wet_diameter = np.zeros_like(final_wet_diameter)
-    max_critical_ratio = np.zeros_like(final_wet_diameter)
+    max_wet_diameters = np.zeros_like(final_wet_diameters)
+    max_critical_ratio = np.zeros_like(final_wet_diameters)
     
     for [time, filename, key] in time_filename_list:
         print 'time filename key ', time, filename, key
         ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-        particles = pmc_data_nc.aero_particle_array_t(ncf) 
-        env_state = pmc_data_nc.env_state_t(ncf)
+        particles = partmc.aero_particle_array_t(ncf) 
+        env_state = partmc.env_state_t(ncf)
         ncf.close()
         
-        wet_diameter = particles.diameter()
-        max_wet_diameter = np.maximum(max_wet_diameter, wet_diameter)
-        critical_diameter = particles.critical_diameter(env_state, const)
-        critical_ratio = wet_diameter / critical_diameter
+        wet_diameters = particles.diameters()
+        max_wet_diameters = np.maximum(max_wet_diameters, wet_diameters)
+        critical_diameters = particles.critical_diameters(env_state, const)
+        critical_ratio = wet_diameters / critical_diameters
         max_critical_ratio = np.maximum(max_critical_ratio, critical_ratio)
 
-    max_wet_ratio = max_wet_diameter / final_wet_diameter
+    max_wet_ratio = max_wet_diameters / final_wet_diameters
     
-    s_crit = (particles2.critical_rh(max_env_state, const) - 1)*100
+    s_crit = (particles2.critical_rel_humids(max_env_state, const) - 1)*100
     is_activated2 = (s_crit <= maximum_ss)
-    id_list_act2 = particles2.id[is_activated2]
+    id_list_act2 = particles2.ids[is_activated2]
     is_not_activated2 = np.logical_not(is_activated2)
-    id_list_not_act2 = particles2.id[is_not_activated2]
+    id_list_not_act2 = particles2.ids[is_not_activated2]
 
-    sum_tot2 = sum(1/particles2.comp_vol) * particles2.comp_vol[0]
-    num_act2 = sum(1/particles2.comp_vol[is_activated2]) * particles2.comp_vol[0]
+    sum_tot2 = sum(1/particles2.comp_vols) * particles2.comp_vols[0]
+    num_act2 = sum(1/particles2.comp_vols[is_activated2]) * particles2.comp_vols[0]
     ccn_cn_ratio2 = num_act2 / sum_tot2
 
     set_act1 = set(id_list_act1)
@@ -85,14 +85,14 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
     print 'act1_not_act2 ', act1_not_act2
     print 'act2_not_act1 ', act2_not_act1
 
-    diam_by_id1 = dict(zip(particles1.id, particles1.dry_diameter()))
-    diam_by_id2 = dict(zip(particles2.id, particles2.dry_diameter()))
-    scrit_by_id1 = dict(zip(particles1.id, (particles1.critical_rh(max_env_state,const) - 1)*100))
-    scrit_by_id2 = dict(zip(particles2.id, (particles2.critical_rh(max_env_state,const) - 1)*100))
-    oc_by_id1 = dict(zip(particles1.id, particles1.mass(include = ["BC"])/particles1.mass(exclude=["H2O"])))
-    oc_by_id2 = dict(zip(particles2.id, particles2.mass(include = ["BC"])/particles2.mass(exclude=["H2O"])))
-    wet_ratio_by_id1 = dict(zip(particles1.id, max_wet_ratio)) 
-    critical_ratio_by_id1 = dict(zip(particles1.id, max_critical_ratio))
+    diam_by_id1 = dict(zip(particles1.ids, particles1.dry_diameters()))
+    diam_by_id2 = dict(zip(particles2.ids, particles2.dry_diameters()))
+    scrit_by_id1 = dict(zip(particles1.ids, (particles1.critical_rel_humids(max_env_state,const) - 1)*100))
+    scrit_by_id2 = dict(zip(particles2.ids, (particles2.critical_rel_humids(max_env_state,const) - 1)*100))
+    oc_by_id1 = dict(zip(particles1.ids, particles1.masses(include = ["BC"])/particles1.masses(exclude=["H2O"])))
+    oc_by_id2 = dict(zip(particles2.ids, particles2.masses(include = ["BC"])/particles2.masses(exclude=["H2O"])))
+    wet_ratio_by_id1 = dict(zip(particles1.ids, max_wet_ratio)) 
+    critical_ratio_by_id1 = dict(zip(particles1.ids, max_critical_ratio))
 
     diam_act_1_2 = [diam_by_id2[id] for id in act_1_2]
     scrit_act_1_2 = [scrit_by_id2[id] for id in act_1_2]
@@ -164,8 +164,8 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
 
 for counter in range(5,6):
 
-    in_dir1 = "../../new_cond/out/"
-    in_dir2 = "../../new_cond/start/"
+    in_dir1 = "../../scenarios/3_condense/out/"
+    in_dir2 = "../../scenarios/3_condense/start/"
     filename_in1 = "cond_%02d_ref_0001_00000601.nc" % counter
     filename_in2 = "urban_plume_wc_0001_000000%02d.nc" % counter
     in_file_pattern = "cond_%02d_ref_0001_(.*).nc" % counter

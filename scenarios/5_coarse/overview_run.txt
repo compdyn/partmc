@@ -1,0 +1,19 @@
+Without coarse mode:
+24h urban_plume2 100K flat ?
+24h urban_plume2 100K weighted ? 
+(how big should i_loop be, and how many different weightings should one use?)
+
+24h urban_plume2 10K flat,        i_loop = 10
+24h urban_plume2 10K weighted -1, i_loop = 10
+24h urban_plume2 10K weighted -2, i_loop = 10
+24h urban_plume2 10K weighted -3, i_loop = 10
+
+With coarse mode:
+24h urban_plume2 10K flat,        i_loop = 10
+24h urban_plume2 10K weighted -1, i_loop = 10
+24h urban_plume2 10K weighted -2, i_loop = 10
+24h urban_plume2 10K weighted -3, i_loop = 10
+
+
+
+

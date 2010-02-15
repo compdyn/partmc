@@ -28,6 +28,7 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   /usr/include/netcdf
   $ENV{HOME}/include
   $ENV{HOME}/opt/include
+  $ENV{HOME}/netcdf/include
   PATH_SUFFIXES netcdf-3)
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
@@ -42,7 +43,9 @@ find_library(NETCDF_C_LIB netcdf
   $ENV{HOME}/lib
   $ENV{HOME}/lib64
   $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64)
+  $ENV{HOME}/opt/lib64
+  $ENV{HOME}/netcdf/lib
+  $ENV{HOME}/netcdf/lib64)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
   PATHS
@@ -56,7 +59,9 @@ find_library(NETCDF_FORTRAN_LIB netcdff
   $ENV{HOME}/lib
   $ENV{HOME}/lib64
   $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64)
+  $ENV{HOME}/opt/lib64
+  $ENV{HOME}/netcdf/lib
+  $ENV{HOME}/netcdf/lib64)
 
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
@@ -80,7 +85,8 @@ if(ENABLE_SUNDIALS)
     /sw/lib/netcdf-g95/include
     /usr/include/netcdf
     $ENV{HOME}/include
-    $ENV{HOME}/opt/include)
+    $ENV{HOME}/opt/include
+    $ENV{HOME}/sundials/include)
   find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
     DOC "SUNDIALS serial vector library"
     PATHS
@@ -94,7 +100,9 @@ if(ENABLE_SUNDIALS)
     $ENV{HOME}/lib
     $ENV{HOME}/lib64
     $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64)
+    $ENV{HOME}/opt/lib64
+    $ENV{HOME}/sundials/lib
+    $ENV{HOME}/sundials/lib64)
   find_library(SUNDIALS_CVODE_LIB sundials_cvode
     DOC "SUNDIALS CVODE library"
     PATHS
@@ -108,7 +116,9 @@ if(ENABLE_SUNDIALS)
     $ENV{HOME}/lib
     $ENV{HOME}/lib64
     $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64)
+    $ENV{HOME}/opt/lib64
+    $ENV{HOME}/sundials/lib
+    $ENV{HOME}/sundials/lib64)
   
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
 endif(ENABLE_SUNDIALS)
@@ -125,6 +135,7 @@ if(ENABLE_MOSAIC)
     /opt/include
     $ENV{HOME}/include
     $ENV{HOME}/opt/include
+    $ENV{HOME}/mosaic/include
     $ENV{HOME}/subversion/mosaic/trunk/datamodules
     $ENV{HOME}/svn/mosaic/trunk/datamodules
     ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
@@ -133,7 +144,11 @@ if(ENABLE_MOSAIC)
     DOC "MOSAIC library"
     PATHS
     $ENV{HOME}/lib
+    $ENV{HOME}/lib64
     $ENV{HOME}/opt/lib
+    $ENV{HOME}/opt/lib64
+    $ENV{HOME}/mosaic/lib
+    $ENV{HOME}/mosaic/lib64
     $ENV{HOME}/subversion/mosaic/trunk
     $ENV{HOME}/svn/mosaic/trunk
     ${PROJECT_SOURCE_DIR}/../mosaic

@@ -42,6 +42,7 @@
 <dt><font face="helvetica, arial"><a href="partmc.html#aero_data_t">aero_data_t</a>
 </font></dt><dt><font face="helvetica, arial"><a href="partmc.html#aero_particle_array_t">aero_particle_array_t</a>
 </font></dt><dt><font face="helvetica, arial"><a href="partmc.html#aero_removed_info_t">aero_removed_info_t</a>
+</font></dt><dt><font face="helvetica, arial"><a href="partmc.html#constants_t">constants_t</a>
 </font></dt><dt><font face="helvetica, arial"><a href="partmc.html#env_state_t">env_state_t</a>
 </font></dt><dt><font face="helvetica, arial"><a href="partmc.html#gas_data_t">gas_data_t</a>
 </font></dt><dt><font face="helvetica, arial"><a href="partmc.html#gas_state_t">gas_state_t</a>
@@ -330,6 +331,37 @@ Data and other attributes defined here:<br>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="constants_t">class <strong>constants_t</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Stores&nbsp;physical&nbsp;constants.&nbsp;A&nbsp;constants&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;must&nbsp;be<br>
+initialized&nbsp;from&nbsp;the&nbsp;constants.f90&nbsp;file&nbsp;from&nbsp;the&nbsp;PartMC&nbsp;source<br>
+code.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.<a href="#constants_t">constants_t</a>('path_to_src/constants.f90')<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;'pi&nbsp;=&nbsp;%f'&nbsp;%&nbsp;constants.pi<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="constants_t-__init__"><strong>__init__</strong></a>(self, constants_f90_filename)</dt><dd><tt>Creates&nbsp;a&nbsp;<a href="#constants_t">constants_t</a>&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;by&nbsp;reading&nbsp;the&nbsp;constants.f90<br>
+file&nbsp;from&nbsp;the&nbsp;PartMC&nbsp;source&nbsp;from&nbsp;the&nbsp;given&nbsp;filename.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.<a href="#constants_t">constants_t</a>('path_to_src/constants.f90')<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;'pi&nbsp;=&nbsp;%f'&nbsp;%&nbsp;constants.pi</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#000000" face="helvetica, arial"><a name="env_state_t">class <strong>env_state_t</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
@@ -353,7 +385,7 @@ height&nbsp;-&nbsp;mixing&nbsp;layer&nbsp;height&nbsp;(m)<br>&nbsp;</tt></td></t
 <dl><dt><a name="env_state_t-A"><strong>A</strong></a>(self, constants)</dt><dd><tt>Computes&nbsp;the&nbsp;A&nbsp;parameter&nbsp;(for&nbsp;condensation<br>
 calculations).&nbsp;For&nbsp;example:<br>
 &nbsp;<br>
-&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.constants_t('path_to_src/constants.f90')<br>
+&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.<a href="#constants_t">constants_t</a>('path_to_src/constants.f90')<br>
 &gt;&gt;&gt;&nbsp;A&nbsp;=&nbsp;env_state.<a href="#env_state_t-A">A</a>(constants)</tt></dd></dl>
 
 <dl><dt><a name="env_state_t-__init__"><strong>__init__</strong></a>(self, ncf<font color="#909090">=None</font>)</dt><dd><tt>Creates&nbsp;an&nbsp;<a href="#env_state_t">env_state_t</a>&nbsp;<a href="__builtin__.html#object">object</a>.&nbsp;If&nbsp;the&nbsp;ncf&nbsp;parameter&nbsp;is<br>
@@ -538,7 +570,7 @@ Example:<br>
 &gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;5,&nbsp;100)<br>
 &gt;&gt;&gt;&nbsp;x&nbsp;=&nbsp;1.83<br>
 &gt;&gt;&gt;&nbsp;print&nbsp;'value&nbsp;%f'&nbsp;%&nbsp;x<br>
-&gt;&gt;&gt;&nbsp;print&nbsp;'is&nbsp;in&nbsp;bin&nbsp;number&nbsp;%d'&nbsp;%&nbsp;(x,&nbsp;x_grid.<a href="#linear_grid-find">find</a>([x])[0])<br>&nbsp;</tt></td></tr>
+&gt;&gt;&gt;&nbsp;print&nbsp;'is&nbsp;in&nbsp;bin&nbsp;number&nbsp;%d'&nbsp;%&nbsp;x_grid.<a href="#linear_grid-find">find</a>(x)<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="partmc.html#linear_grid">linear_grid</a></dd>
@@ -547,29 +579,87 @@ Example:<br>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="linear_grid-__init__"><strong>__init__</strong></a>(self, min, max, n_bin)</dt><dd><tt>Create&nbsp;a&nbsp;linearly&nbsp;spaced&nbsp;<a href="#grid">grid</a>&nbsp;with&nbsp;the&nbsp;minimum&nbsp;and&nbsp;maximum<br>
-edges&nbsp;at&nbsp;min&nbsp;and&nbsp;max&nbsp;and&nbsp;n_bin&nbsp;<a href="#grid">grid</a>&nbsp;bins.<br>
+<dl><dt><a name="linear_grid-__init__"><strong>__init__</strong></a>(self, min, max, n_bin)</dt><dd><tt>Create&nbsp;a&nbsp;linearly&nbsp;spaced&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+The&nbsp;minimum&nbsp;and&nbsp;maximum&nbsp;edges&nbsp;are&nbsp;at&nbsp;min&nbsp;and&nbsp;max&nbsp;and&nbsp;the&nbsp;<a href="#grid">grid</a><br>
+will&nbsp;have&nbsp;n_bin&nbsp;<a href="#grid">grid</a>&nbsp;bins.<br>
 &nbsp;<br>
 Example:<br>
 &gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;4,&nbsp;2)<br>
 &gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-edges">edges</a>()<br>
-array([0,&nbsp;2,&nbsp;4])<br>
+array([0.0,&nbsp;2.0,&nbsp;4.0])<br>
 &gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-centers">centers</a>():<br>
-array([1,&nbsp;3])</tt></dd></dl>
+array([1.0,&nbsp;3.0])</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-center"><strong>center</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="linear_grid-center"><strong>center</strong></a>(self, index)</dt><dd><tt>Return&nbsp;the&nbsp;location&nbsp;of&nbsp;the&nbsp;bin&nbsp;center&nbsp;at&nbsp;the&nbsp;given<br>
+index.<br>
+&nbsp;<br>
+The&nbsp;index&nbsp;must&nbsp;be&nbsp;in&nbsp;the&nbsp;range&nbsp;0&nbsp;to&nbsp;(n_bin&nbsp;-&nbsp;1).<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;10,&nbsp;5)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-center">center</a>(0)<br>
+1.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-center">center</a>(2)<br>
+5.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-center">center</a>(4)<br>
+9.0</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-edge"><strong>edge</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="linear_grid-edge"><strong>edge</strong></a>(self, index)</dt><dd><tt>Return&nbsp;the&nbsp;location&nbsp;of&nbsp;the&nbsp;bin&nbsp;edge&nbsp;at&nbsp;the&nbsp;given&nbsp;index.<br>
+&nbsp;<br>
+The&nbsp;index&nbsp;must&nbsp;be&nbsp;in&nbsp;the&nbsp;range&nbsp;0&nbsp;to&nbsp;n_bin,&nbsp;as&nbsp;a&nbsp;<a href="#grid">grid</a>&nbsp;with<br>
+n_bin&nbsp;<a href="#grid">grid</a>&nbsp;cells&nbsp;will&nbsp;have&nbsp;(n_bin&nbsp;+&nbsp;1)&nbsp;edges.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;10,&nbsp;5)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-edge">edge</a>(0)<br>
+0.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-edge">edge</a>(2)<br>
+4.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-edge">edge</a>(5)<br>
+10.0</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-find"><strong>find</strong></a>(self, values)</dt></dl>
+<dl><dt><a name="linear_grid-find"><strong>find</strong></a>(self, values)</dt><dd><tt>Return&nbsp;an&nbsp;array&nbsp;of&nbsp;bin&nbsp;indices&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;given<br>
+array&nbsp;of&nbsp;values.<br>
+&nbsp;<br>
+Note&nbsp;that&nbsp;invalid&nbsp;bin&nbsp;indices&nbsp;will&nbsp;be&nbsp;returned&nbsp;if&nbsp;any&nbsp;of&nbsp;the<br>
+values&nbsp;are&nbsp;outside&nbsp;of&nbsp;[min,&nbsp;max]&nbsp;for&nbsp;the&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;10,&nbsp;5)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-find">find</a>(numpy.array([-5,&nbsp;3,&nbsp;6.5,&nbsp;13]))<br>
+array([-3,&nbsp;1,&nbsp;3,&nbsp;6])</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-grid_size"><strong>grid_size</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="linear_grid-grid_size"><strong>grid_size</strong></a>(self, index)</dt><dd><tt>Return&nbsp;the&nbsp;size&nbsp;of&nbsp;the&nbsp;<a href="#grid">grid</a>&nbsp;bin&nbsp;at&nbsp;the&nbsp;given&nbsp;index.<br>
+&nbsp;<br>
+For&nbsp;a&nbsp;linear&nbsp;<a href="#grid">grid</a>&nbsp;this&nbsp;will&nbsp;be&nbsp;the&nbsp;same&nbsp;for&nbsp;all&nbsp;bins.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;10,&nbsp;5)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-grid_size">grid_size</a>(0)<br>
+2.0</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-half_sample"><strong>half_sample</strong></a>(self)</dt></dl>
+<dl><dt><a name="linear_grid-half_sample"><strong>half_sample</strong></a>(self)</dt><dd><tt>Return&nbsp;a&nbsp;new&nbsp;<a href="#linear_grid">linear_grid</a>&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;the&nbsp;same&nbsp;limits&nbsp;but<br>
+half&nbsp;the&nbsp;number&nbsp;of&nbsp;bins&nbsp;as&nbsp;the&nbsp;current&nbsp;<a href="#grid">grid</a>.</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-scale"><strong>scale</strong></a>(self, factor)</dt></dl>
+<dl><dt><a name="linear_grid-scale"><strong>scale</strong></a>(self, factor)</dt><dd><tt>Scale&nbsp;the&nbsp;<a href="#grid">grid</a>&nbsp;by&nbsp;the&nbsp;given&nbsp;factor.<br>
+&nbsp;<br>
+For&nbsp;example,&nbsp;the&nbsp;two&nbsp;grids&nbsp;below&nbsp;are&nbsp;the&nbsp;same:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;grid_1&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(5,&nbsp;10,&nbsp;100)<br>
+&gt;&gt;&gt;&nbsp;grid_1.<a href="#linear_grid-scale">scale</a>(3)<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;grid_2&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(15,&nbsp;30,&nbsp;100)</tt></dd></dl>
 
-<dl><dt><a name="linear_grid-valid_bin"><strong>valid_bin</strong></a>(self, bin)</dt></dl>
+<dl><dt><a name="linear_grid-valid_bin"><strong>valid_bin</strong></a>(self, bin)</dt><dd><tt>Whether&nbsp;the&nbsp;given&nbsp;bin&nbsp;number&nbsp;is&nbsp;indeed&nbsp;a&nbsp;valid&nbsp;bin&nbsp;number<br>
+for&nbsp;the&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(0,&nbsp;5,&nbsp;100)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-valid_bin">valid_bin</a>(30)<br>
+True<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#linear_grid-valid_bin">valid_bin</a>(120)<br>
+False</tt></dd></dl>
 
 <hr>
 Methods inherited from <a href="partmc.html#grid">grid</a>:<br>
@@ -619,7 +709,15 @@ Data descriptors inherited from <a href="partmc.html#grid">grid</a>:<br>
 <td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#000000" face="helvetica, arial"><a name="log_grid">class <strong>log_grid</strong></a>(<a href="partmc.html#grid">grid</a>)</font></td></tr>
     
-<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Logarithmic&nbsp;1D&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;5,&nbsp;100)<br>
+&gt;&gt;&gt;&nbsp;x&nbsp;=&nbsp;1.83<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;'value&nbsp;%f'&nbsp;%&nbsp;x<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;'is&nbsp;in&nbsp;bin&nbsp;number&nbsp;%d'&nbsp;%&nbsp;x_grid.<a href="#log_grid-find">find</a>(x)<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="partmc.html#log_grid">log_grid</a></dd>
 <dd><a href="partmc.html#grid">grid</a></dd>
@@ -627,21 +725,91 @@ Data descriptors inherited from <a href="partmc.html#grid">grid</a>:<br>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="log_grid-__init__"><strong>__init__</strong></a>(self, min, max, n_bin)</dt></dl>
+<dl><dt><a name="log_grid-__init__"><strong>__init__</strong></a>(self, min, max, n_bin)</dt><dd><tt>Create&nbsp;a&nbsp;logarithmically&nbsp;spaced&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+The&nbsp;minimum&nbsp;and&nbsp;maximum&nbsp;edges&nbsp;are&nbsp;at&nbsp;min&nbsp;and&nbsp;max&nbsp;and&nbsp;the&nbsp;<a href="#grid">grid</a><br>
+will&nbsp;have&nbsp;n_bin&nbsp;<a href="#grid">grid</a>&nbsp;bins.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;16,&nbsp;2)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-edges">edges</a>()<br>
+array([1.0,&nbsp;4.0,&nbsp;16.0])<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-centers">centers</a>():<br>
+array([2.0,&nbsp;8.0])</tt></dd></dl>
 
-<dl><dt><a name="log_grid-center"><strong>center</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="log_grid-center"><strong>center</strong></a>(self, index)</dt><dd><tt>Return&nbsp;the&nbsp;location&nbsp;of&nbsp;the&nbsp;bin&nbsp;center&nbsp;at&nbsp;the&nbsp;given<br>
+index.<br>
+&nbsp;<br>
+The&nbsp;index&nbsp;must&nbsp;be&nbsp;in&nbsp;the&nbsp;range&nbsp;0&nbsp;to&nbsp;(n_bin&nbsp;-&nbsp;1).<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;64,&nbsp;3)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-center">center</a>(0)<br>
+2.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-center">center</a>(1)<br>
+8.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-center">center</a>(2)<br>
+32.0</tt></dd></dl>
 
-<dl><dt><a name="log_grid-edge"><strong>edge</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="log_grid-edge"><strong>edge</strong></a>(self, index)</dt><dd><tt>Return&nbsp;the&nbsp;location&nbsp;of&nbsp;the&nbsp;bin&nbsp;edge&nbsp;at&nbsp;the&nbsp;given&nbsp;index.<br>
+&nbsp;<br>
+The&nbsp;index&nbsp;must&nbsp;be&nbsp;in&nbsp;the&nbsp;range&nbsp;0&nbsp;to&nbsp;n_bin,&nbsp;as&nbsp;a&nbsp;<a href="#grid">grid</a>&nbsp;with<br>
+n_bin&nbsp;<a href="#grid">grid</a>&nbsp;cells&nbsp;will&nbsp;have&nbsp;(n_bin&nbsp;+&nbsp;1)&nbsp;edges.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;16,&nbsp;4)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-edge">edge</a>(0)<br>
+1.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-edge">edge</a>(2)<br>
+4.0<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-edge">edge</a>(4)<br>
+16.0</tt></dd></dl>
 
-<dl><dt><a name="log_grid-find"><strong>find</strong></a>(self, value)</dt></dl>
+<dl><dt><a name="log_grid-find"><strong>find</strong></a>(self, values)</dt><dd><tt>Return&nbsp;an&nbsp;array&nbsp;of&nbsp;bin&nbsp;indices&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;given<br>
+array&nbsp;of&nbsp;values.<br>
+&nbsp;<br>
+All&nbsp;of&nbsp;the&nbsp;entries&nbsp;of&nbsp;values&nbsp;must&nbsp;be&nbsp;postive.&nbsp;Note&nbsp;that<br>
+invalid&nbsp;bin&nbsp;indices&nbsp;will&nbsp;be&nbsp;returned&nbsp;if&nbsp;any&nbsp;of&nbsp;the&nbsp;values&nbsp;are<br>
+outside&nbsp;of&nbsp;[min,&nbsp;max]&nbsp;for&nbsp;the&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;16,&nbsp;4)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-find">find</a>(numpy.array([0.3,&nbsp;3,&nbsp;8.5,&nbsp;40]))<br>
+array([-2,&nbsp;1,&nbsp;3,&nbsp;5])</tt></dd></dl>
 
-<dl><dt><a name="log_grid-grid_size"><strong>grid_size</strong></a>(self, index)</dt></dl>
+<dl><dt><a name="log_grid-grid_size"><strong>grid_size</strong></a>(self, index, base<font color="#909090">=10</font>)</dt><dd><tt>Return&nbsp;the&nbsp;logarithmic&nbsp;size&nbsp;of&nbsp;the&nbsp;<a href="#grid">grid</a>&nbsp;bin&nbsp;at&nbsp;the&nbsp;given<br>
+index.<br>
+&nbsp;<br>
+For&nbsp;a&nbsp;logarithmic&nbsp;<a href="#grid">grid</a>&nbsp;this&nbsp;will&nbsp;be&nbsp;the&nbsp;same&nbsp;for&nbsp;all&nbsp;bins,&nbsp;and<br>
+is&nbsp;given&nbsp;by&nbsp;the&nbsp;difference&nbsp;of&nbsp;the&nbsp;logarithm&nbsp;of&nbsp;the&nbsp;two&nbsp;bin<br>
+edges&nbsp;in&nbsp;the&nbsp;given&nbsp;base&nbsp;(default&nbsp;base-10).<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;100,&nbsp;10)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-grid_size">grid_size</a>(0)<br>
+0.2</tt></dd></dl>
 
-<dl><dt><a name="log_grid-half_sample"><strong>half_sample</strong></a>(self)</dt></dl>
+<dl><dt><a name="log_grid-half_sample"><strong>half_sample</strong></a>(self)</dt><dd><tt>Return&nbsp;a&nbsp;new&nbsp;<a href="#log_grid">log_grid</a>&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;the&nbsp;same&nbsp;limits&nbsp;but<br>
+half&nbsp;the&nbsp;number&nbsp;of&nbsp;bins&nbsp;as&nbsp;the&nbsp;current&nbsp;<a href="#grid">grid</a>.</tt></dd></dl>
 
-<dl><dt><a name="log_grid-scale"><strong>scale</strong></a>(self, factor)</dt></dl>
+<dl><dt><a name="log_grid-scale"><strong>scale</strong></a>(self, factor)</dt><dd><tt>Scale&nbsp;the&nbsp;<a href="#grid">grid</a>&nbsp;by&nbsp;the&nbsp;given&nbsp;factor.<br>
+&nbsp;<br>
+For&nbsp;example,&nbsp;the&nbsp;two&nbsp;grids&nbsp;below&nbsp;are&nbsp;the&nbsp;same:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;grid_1&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(5,&nbsp;10,&nbsp;100)<br>
+&gt;&gt;&gt;&nbsp;grid_1.<a href="#log_grid-scale">scale</a>(3)<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;grid_2&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(15,&nbsp;30,&nbsp;100)</tt></dd></dl>
 
-<dl><dt><a name="log_grid-valid_bin"><strong>valid_bin</strong></a>(self, bin)</dt></dl>
+<dl><dt><a name="log_grid-valid_bin"><strong>valid_bin</strong></a>(self, bin)</dt><dd><tt>Whether&nbsp;the&nbsp;given&nbsp;bin&nbsp;number&nbsp;is&nbsp;indeed&nbsp;a&nbsp;valid&nbsp;bin&nbsp;number<br>
+for&nbsp;the&nbsp;<a href="#grid">grid</a>.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;x_grid&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(1,&nbsp;5,&nbsp;100)<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-valid_bin">valid_bin</a>(30)<br>
+True<br>
+&gt;&gt;&gt;&nbsp;x_grid.<a href="#log_grid-valid_bin">valid_bin</a>(120)<br>
+False</tt></dd></dl>
 
 <hr>
 Methods inherited from <a href="partmc.html#grid">grid</a>:<br>
@@ -702,12 +870,12 @@ average&nbsp;kappa&nbsp;given&nbsp;by&nbsp;kappas[i]&nbsp;and&nbsp;a&nbsp;dry&nb
 dry_diameters[i].<br>
 &nbsp;<br>
 The&nbsp;env_state&nbsp;and&nbsp;constants&nbsp;parameters&nbsp;should&nbsp;be&nbsp;objects&nbsp;of&nbsp;type<br>
-<a href="#env_state_t">env_state_t</a>&nbsp;and&nbsp;constants_t,&nbsp;respectively.<br>
+<a href="#env_state_t">env_state_t</a>&nbsp;and&nbsp;<a href="#constants_t">constants_t</a>,&nbsp;respectively.<br>
 &nbsp;<br>
 Example:<br>
 &gt;&gt;&gt;&nbsp;ncf&nbsp;=&nbsp;Scientific.IO.NetCDF.NetCDFFile('filename.nc')<br>
 &gt;&gt;&gt;&nbsp;env_state&nbsp;=&nbsp;partmc.<a href="#env_state_t">env_state_t</a>(ncf)<br>
-&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.constants_t(ncf)<br>
+&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.<a href="#constants_t">constants_t</a>('path_to_src/constants.f90')<br>
 &gt;&gt;&gt;&nbsp;kappas&nbsp;=&nbsp;numpy.array([0.5,&nbsp;0.2])<br>
 &gt;&gt;&gt;&nbsp;dry_diameters&nbsp;=&nbsp;numpy.array([1e-8,&nbsp;5e-8])<br>
 &gt;&gt;&gt;&nbsp;crit_diams&nbsp;=&nbsp;partmc.<a href="#-critical_diameters">critical_diameters</a>(env_state,&nbsp;constants,<br>
@@ -722,25 +890,111 @@ average&nbsp;kappa&nbsp;given&nbsp;by&nbsp;kappas[i]&nbsp;and&nbsp;a&nbsp;dry&nb
 dry_diameters[i].<br>
 &nbsp;<br>
 The&nbsp;env_state&nbsp;and&nbsp;constants&nbsp;parameters&nbsp;should&nbsp;be&nbsp;objects&nbsp;of&nbsp;type<br>
-<a href="#env_state_t">env_state_t</a>&nbsp;and&nbsp;constants_t,&nbsp;respectively.<br>
+<a href="#env_state_t">env_state_t</a>&nbsp;and&nbsp;<a href="#constants_t">constants_t</a>,&nbsp;respectively.<br>
 &nbsp;<br>
 Example:<br>
 &gt;&gt;&gt;&nbsp;ncf&nbsp;=&nbsp;Scientific.IO.NetCDF.NetCDFFile('filename.nc')<br>
 &gt;&gt;&gt;&nbsp;env_state&nbsp;=&nbsp;partmc.<a href="#env_state_t">env_state_t</a>(ncf)<br>
-&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.constants_t(ncf)<br>
+&gt;&gt;&gt;&nbsp;constants&nbsp;=&nbsp;partmc.<a href="#constants_t">constants_t</a>('path_to_src/constants.f90')<br>
 &gt;&gt;&gt;&nbsp;kappas&nbsp;=&nbsp;numpy.array([0.5,&nbsp;0.2])<br>
 &gt;&gt;&gt;&nbsp;dry_diameters&nbsp;=&nbsp;numpy.array([1e-8,&nbsp;5e-8])<br>
 &gt;&gt;&gt;&nbsp;crit_rhs&nbsp;=&nbsp;partmc.<a href="#-critical_rel_humids">critical_rel_humids</a>(env_state,&nbsp;constants,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kappas,&nbsp;dry_diameters)</tt></dd></dl>
- <dl><dt><a name="-cumulative_hi_res"><strong>cumulative_hi_res</strong></a>(x, y_inc, start<font color="#909090">=0.0</font>, final<font color="#909090">=None</font>, min_x_step<font color="#909090">=None</font>, min_y_step<font color="#909090">=None</font>, min_x_factor<font color="#909090">=None</font>, min_y_factor<font color="#909090">=None</font>)</dt></dl>
- <dl><dt><a name="-cumulative_plot_data"><strong>cumulative_plot_data</strong></a>(x, y_inc, start<font color="#909090">=0.0</font>, final<font color="#909090">=None</font>)</dt></dl>
- <dl><dt><a name="-file_filename_at_time"><strong>file_filename_at_time</strong></a>(time_filename_list, search_time)</dt></dl>
- <dl><dt><a name="-find_nearest_time"><strong>find_nearest_time</strong></a>(time_indexed_data, search_time)</dt></dl>
- <dl><dt><a name="-get_filename_list"><strong>get_filename_list</strong></a>(dir, file_pattern)</dt></dl>
- <dl><dt><a name="-get_time_filename_list"><strong>get_time_filename_list</strong></a>(dir, file_pattern)</dt></dl>
+ <dl><dt><a name="-cumulative_hi_res"><strong>cumulative_hi_res</strong></a>(x, y_inc, start<font color="#909090">=0.0</font>, final<font color="#909090">=None</font>, min_x_step<font color="#909090">=None</font>, min_y_step<font color="#909090">=None</font>, min_x_factor<font color="#909090">=None</font>, min_y_factor<font color="#909090">=None</font>)</dt><dd><tt>Transform&nbsp;density&nbsp;data&nbsp;to&nbsp;cumulative&nbsp;data.<br>
+&nbsp;<br>
+The&nbsp;x&nbsp;and&nbsp;y_inc&nbsp;arguments&nbsp;should&nbsp;be&nbsp;lists&nbsp;of&nbsp;the&nbsp;same&nbsp;length&nbsp;so<br>
+that&nbsp;(x[i],&nbsp;y_inc[i])&nbsp;are&nbsp;density&nbsp;points.&nbsp;The&nbsp;return&nbsp;value&nbsp;will&nbsp;be<br>
+two&nbsp;lists&nbsp;(x,&nbsp;y)&nbsp;which&nbsp;are&nbsp;the&nbsp;coordinate&nbsp;of&nbsp;the&nbsp;corresponding<br>
+cumulative&nbsp;distribution.<br>
+&nbsp;<br>
+The&nbsp;optional&nbsp;argument&nbsp;start&nbsp;can&nbsp;be&nbsp;given&nbsp;to&nbsp;start&nbsp;the&nbsp;plot&nbsp;at&nbsp;a<br>
+non-zero&nbsp;y&nbsp;value.&nbsp;If&nbsp;the&nbsp;optional&nbsp;argument&nbsp;final&nbsp;is&nbsp;not&nbsp;None&nbsp;then<br>
+it&nbsp;specifies&nbsp;the&nbsp;final&nbsp;y&nbsp;value.<br>
+&nbsp;<br>
+The&nbsp;optional&nbsp;arguments&nbsp;min_x_step,&nbsp;min_y_step,&nbsp;min_x_factor,&nbsp;and<br>
+max_x_factor&nbsp;can&nbsp;be&nbsp;provided&nbsp;for&nbsp;high-resolution&nbsp;original&nbsp;data&nbsp;to<br>
+reduced&nbsp;the&nbsp;number&nbsp;of&nbsp;data-points&nbsp;in&nbsp;the&nbsp;computed&nbsp;comulative<br>
+distribution.<br>
+&nbsp;<br>
+If&nbsp;the&nbsp;optional&nbsp;arguments&nbsp;min_x_step&nbsp;or&nbsp;min_y_step&nbsp;are&nbsp;provided<br>
+then&nbsp;they&nbsp;determine&nbsp;sufficient&nbsp;minimum&nbsp;x&nbsp;and&nbsp;y&nbsp;steps&nbsp;for&nbsp;points&nbsp;to<br>
+be&nbsp;included&nbsp;on&nbsp;the&nbsp;cumulative&nbsp;distribution.&nbsp;Similarly,<br>
+min_x_factor&nbsp;and&nbsp;min_y_factor&nbsp;are&nbsp;sufficient&nbsp;minimum&nbsp;ratios&nbsp;of<br>
+successive&nbsp;x&nbsp;or&nbsp;y&nbsp;values&nbsp;in&nbsp;the&nbsp;cumulative&nbsp;distribution.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;(x,&nbsp;y)&nbsp;=&nbsp;partmc.<a href="#-cumulative_hi_res">cumulative_hi_res</a>(diameter,&nbsp;bc_mass,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;min_x_factor&nbsp;=&nbsp;10**0.01)<br>
+&gt;&gt;&gt;&nbsp;plt.plot(x,&nbsp;y)<br>
+&nbsp;<br>
+plots&nbsp;the&nbsp;cumulative&nbsp;distribution&nbsp;of&nbsp;BC&nbsp;mass&nbsp;versus&nbsp;diameter,&nbsp;with<br>
+100&nbsp;steps&nbsp;per&nbsp;decade&nbsp;on&nbsp;a&nbsp;logarithmic&nbsp;x&nbsp;scale.</tt></dd></dl>
+ <dl><dt><a name="-cumulative_plot_data"><strong>cumulative_plot_data</strong></a>(x, y_inc, start<font color="#909090">=0.0</font>, final<font color="#909090">=None</font>)</dt><dd><tt>Transform&nbsp;density&nbsp;data&nbsp;to&nbsp;cumulative&nbsp;data.<br>
+&nbsp;<br>
+The&nbsp;x&nbsp;and&nbsp;y_inc&nbsp;arguments&nbsp;should&nbsp;be&nbsp;lists&nbsp;of&nbsp;the&nbsp;same&nbsp;length&nbsp;so<br>
+that&nbsp;(x[i],&nbsp;y_inc[i])&nbsp;are&nbsp;density&nbsp;points.&nbsp;The&nbsp;return&nbsp;value&nbsp;will&nbsp;be<br>
+two&nbsp;lists&nbsp;(x,&nbsp;y)&nbsp;which&nbsp;are&nbsp;the&nbsp;coordinate&nbsp;of&nbsp;the&nbsp;corresponding<br>
+cumulative&nbsp;distribution.<br>
+&nbsp;<br>
+The&nbsp;optional&nbsp;argument&nbsp;start&nbsp;can&nbsp;be&nbsp;given&nbsp;to&nbsp;start&nbsp;the&nbsp;plot&nbsp;at&nbsp;a<br>
+non-zero&nbsp;y&nbsp;value.&nbsp;If&nbsp;the&nbsp;optional&nbsp;argument&nbsp;final&nbsp;is&nbsp;not&nbsp;None&nbsp;then<br>
+it&nbsp;specifies&nbsp;the&nbsp;final&nbsp;y&nbsp;value.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;(x,&nbsp;y)&nbsp;=&nbsp;partmc.<a href="#-cumulative_plot_data">cumulative_plot_data</a>(diameter,&nbsp;bc_mass)<br>
+&gt;&gt;&gt;&nbsp;plt.plot(x,&nbsp;y)<br>
+plots&nbsp;the&nbsp;cumulative&nbsp;distribution&nbsp;of&nbsp;BC&nbsp;mass&nbsp;versus&nbsp;diameter.</tt></dd></dl>
+ <dl><dt><a name="-find_filename_at_time"><strong>find_filename_at_time</strong></a>(time_filename_list, search_time)</dt><dd><tt>Given&nbsp;a&nbsp;time-indexed&nbsp;list&nbsp;of&nbsp;filenames,&nbsp;find&nbsp;the&nbsp;filename<br>
+closest&nbsp;to&nbsp;the&nbsp;given&nbsp;time.<br>
+&nbsp;<br>
+The&nbsp;argument&nbsp;time_filename_list&nbsp;should&nbsp;be&nbsp;a&nbsp;list&nbsp;of&nbsp;of&nbsp;the&nbsp;form<br>
+[[t_0,&nbsp;f_0,&nbsp;...],&nbsp;[t_1,&nbsp;f_1,&nbsp;...],&nbsp;...]&nbsp;where&nbsp;the&nbsp;t_i&nbsp;are&nbsp;times<br>
+and&nbsp;the&nbsp;f_i&nbsp;are&nbsp;filenames.&nbsp;The&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;filename&nbsp;f_i<br>
+for&nbsp;which&nbsp;the&nbsp;corresponding&nbsp;time&nbsp;t_i&nbsp;is&nbsp;closest&nbsp;to&nbsp;the&nbsp;search_time<br>
+argument.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;netcdf_files&nbsp;=&nbsp;partmc.<a href="#-get_filename_list">get_filename_list</a>('out/',&nbsp;r'data_(.*)\.nc')<br>
+&gt;&gt;&gt;&nbsp;input_file&nbsp;=&nbsp;partmc.<a href="#-find_filename_at_time">find_filename_at_time</a>(netcdf_files,&nbsp;12&nbsp;*&nbsp;3600)<br>
+returns&nbsp;the&nbsp;filename&nbsp;closest&nbsp;to&nbsp;12&nbsp;hours&nbsp;elapsed&nbsp;time.</tt></dd></dl>
+ <dl><dt><a name="-find_nearest_time"><strong>find_nearest_time</strong></a>(time_indexed_data, search_time)</dt><dd><tt>Find&nbsp;the&nbsp;closest&nbsp;data-point&nbsp;in&nbsp;a&nbsp;time-sequenced&nbsp;data-set&nbsp;to&nbsp;a<br>
+given&nbsp;time.<br>
+&nbsp;<br>
+The&nbsp;time_indexed_data&nbsp;argument&nbsp;should&nbsp;be&nbsp;a&nbsp;list&nbsp;of&nbsp;lists&nbsp;of&nbsp;the<br>
+form&nbsp;[[t_0,&nbsp;...],&nbsp;[t_1,&nbsp;...],&nbsp;[t_2,&nbsp;...],&nbsp;...]&nbsp;where&nbsp;the&nbsp;t_i&nbsp;are<br>
+times.&nbsp;The&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;index&nbsp;i&nbsp;such&nbsp;that&nbsp;t_i&nbsp;is&nbsp;the<br>
+closest&nbsp;time&nbsp;to&nbsp;search_time.&nbsp;It&nbsp;is&nbsp;not&nbsp;necessary&nbsp;for<br>
+time_indexed_data&nbsp;to&nbsp;be&nbsp;sorted&nbsp;by&nbsp;time.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;data&nbsp;=&nbsp;[[0,&nbsp;50],&nbsp;[3,&nbsp;45],&nbsp;[5,&nbsp;40]]<br>
+&gt;&gt;&gt;&nbsp;i&nbsp;=&nbsp;partmc.<a href="#-find_nearest_time">find_nearest_time</a>(data,&nbsp;3.4)<br>
+returns&nbsp;i&nbsp;=&nbsp;1</tt></dd></dl>
+ <dl><dt><a name="-get_filename_list"><strong>get_filename_list</strong></a>(directory, filename_pattern)</dt><dd><tt>Return&nbsp;a&nbsp;list&nbsp;of&nbsp;files&nbsp;in&nbsp;a&nbsp;directory&nbsp;matching&nbsp;a&nbsp;given&nbsp;pattern.<br>
+&nbsp;<br>
+The&nbsp;filename_pattern&nbsp;is&nbsp;a&nbsp;regular&nbsp;expression.&nbsp;All&nbsp;filenames&nbsp;in&nbsp;the<br>
+given&nbsp;directory&nbsp;that&nbsp;match&nbsp;the&nbsp;pattern&nbsp;are&nbsp;returned&nbsp;in&nbsp;a&nbsp;sorted<br>
+list.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;netcdf_files&nbsp;=&nbsp;partmc.<a href="#-get_filename_list">get_filename_list</a>('out/',&nbsp;r'data_.*\.nc')</tt></dd></dl>
+ <dl><dt><a name="-get_time_filename_list"><strong>get_time_filename_list</strong></a>(dir, file_pattern)</dt><dd><tt>Return&nbsp;a&nbsp;list&nbsp;of&nbsp;files&nbsp;in&nbsp;a&nbsp;directory&nbsp;matching&nbsp;a&nbsp;given&nbsp;pattern<br>
+with&nbsp;times&nbsp;and&nbsp;keys.<br>
+&nbsp;<br>
+The&nbsp;filename_pattern&nbsp;is&nbsp;a&nbsp;regular&nbsp;expression.&nbsp;All&nbsp;filenames&nbsp;in&nbsp;the<br>
+given&nbsp;directory&nbsp;that&nbsp;match&nbsp;the&nbsp;pattern&nbsp;are&nbsp;returned&nbsp;in&nbsp;a&nbsp;list<br>
+where&nbsp;each&nbsp;entry&nbsp;is&nbsp;of&nbsp;the&nbsp;form&nbsp;[time,&nbsp;filename,&nbsp;key].&nbsp;The&nbsp;time&nbsp;is<br>
+determined&nbsp;by&nbsp;opening&nbsp;each&nbsp;file&nbsp;as&nbsp;a&nbsp;NetCDF&nbsp;file&nbsp;and&nbsp;reading&nbsp;the<br>
+elapsed_time&nbsp;from&nbsp;it.&nbsp;If&nbsp;the&nbsp;file_pattern&nbsp;contains&nbsp;a&nbsp;regular<br>
+expression&nbsp;group&nbsp;then&nbsp;the&nbsp;key&nbsp;is&nbsp;the&nbsp;value&nbsp;of&nbsp;that&nbsp;group&nbsp;after&nbsp;the<br>
+match,&nbsp;otherwise&nbsp;it&nbsp;is&nbsp;None.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;netcdf_files&nbsp;=&nbsp;partmc.<a href="#-get_filename_list">get_filename_list</a>('out/',&nbsp;r'data_(.*)\.nc')</tt></dd></dl>
  <dl><dt><a name="-histogram_1d"><strong>histogram_1d</strong></a>(x_values, x_axis, weights<font color="#909090">=None</font>)</dt><dd><tt>Make&nbsp;a&nbsp;1D&nbsp;histogram.<br>
 &nbsp;<br>
 The&nbsp;histogram&nbsp;is&nbsp;of&nbsp;points&nbsp;at&nbsp;positions&nbsp;x_values[i]&nbsp;for&nbsp;each&nbsp;i.<br>
+&nbsp;<br>
 Example:<br>
 &gt;&gt;&gt;&nbsp;x_axis&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(min&nbsp;=&nbsp;1e-8,&nbsp;max&nbsp;=&nbsp;1e-5,&nbsp;n_bin&nbsp;=&nbsp;70)<br>
 &gt;&gt;&gt;&nbsp;hist&nbsp;=&nbsp;partmc.<a href="#-histogram_1d">histogram_1d</a>(diam,&nbsp;x_axis,&nbsp;weights&nbsp;=&nbsp;1&nbsp;/&nbsp;particles.comp_vols)<br>
@@ -748,25 +1002,70 @@ Example:<br>
  <dl><dt><a name="-histogram_2d"><strong>histogram_2d</strong></a>(x_values, y_values, x_axis, y_axis, weights<font color="#909090">=None</font>, only_positive<font color="#909090">=True</font>)</dt><dd><tt>Make&nbsp;a&nbsp;2D&nbsp;histogram.<br>
 &nbsp;<br>
 The&nbsp;histogram&nbsp;is&nbsp;of&nbsp;points&nbsp;at&nbsp;positions&nbsp;(x_values[i],&nbsp;y_values[i])<br>
-for&nbsp;each&nbsp;i.&nbsp;Example:<br>
+for&nbsp;each&nbsp;i.<br>
+&nbsp;<br>
+Example:<br>
 &gt;&gt;&gt;&nbsp;x_axis&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(min&nbsp;=&nbsp;1e-8,&nbsp;max&nbsp;=&nbsp;1e-5,&nbsp;n_bin&nbsp;=&nbsp;70)<br>
 &gt;&gt;&gt;&nbsp;y_axis&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(min&nbsp;=&nbsp;0,&nbsp;max&nbsp;=&nbsp;1,&nbsp;n_bin&nbsp;=&nbsp;50)<br>
 &gt;&gt;&gt;&nbsp;hist&nbsp;=&nbsp;partmc.<a href="#-histogram_2d">histogram_2d</a>(diam,&nbsp;bc_frac,&nbsp;x_axis,&nbsp;y_axis,&nbsp;weights&nbsp;=&nbsp;1&nbsp;/&nbsp;particles.comp_vols)<br>
 &gt;&gt;&gt;&nbsp;plt.pcolor(x_axis.edges(),&nbsp;y_axis.edges(),&nbsp;hist.transpose(),<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;norm&nbsp;=&nbsp;matplotlib.colors.LogNorm(),&nbsp;linewidths&nbsp;=&nbsp;0.1)</tt></dd></dl>
- <dl><dt><a name="-load_constants"><strong>load_constants</strong></a>(filename)</dt></dl>
  <dl><dt><a name="-multival_2d"><strong>multival_2d</strong></a>(x_values, y_values, z_values, x_axis, y_axis, rand_arrange<font color="#909090">=True</font>)</dt><dd><tt>Make&nbsp;a&nbsp;2D&nbsp;matrix&nbsp;with&nbsp;0%/33%/66%/100%&nbsp;percentile&nbsp;values.<br>
 &nbsp;<br>
 The&nbsp;returned&nbsp;matrix&nbsp;represents&nbsp;z_values[i]&nbsp;at&nbsp;position<br>
-(x_values[i],&nbsp;y_values[i])&nbsp;for&nbsp;each&nbsp;i.&nbsp;Example:<br>
+(x_values[i],&nbsp;y_values[i])&nbsp;for&nbsp;each&nbsp;i.<br>
+&nbsp;<br>
+Example:<br>
 &gt;&gt;&gt;&nbsp;x_axis&nbsp;=&nbsp;partmc.<a href="#log_grid">log_grid</a>(min&nbsp;=&nbsp;1e-8,&nbsp;max&nbsp;=&nbsp;1e-5,&nbsp;n_bin&nbsp;=&nbsp;140)<br>
 &gt;&gt;&gt;&nbsp;y_axis&nbsp;=&nbsp;partmc.<a href="#linear_grid">linear_grid</a>(min&nbsp;=&nbsp;0,&nbsp;max&nbsp;=&nbsp;1,&nbsp;n_bin&nbsp;=&nbsp;100)<br>
 &gt;&gt;&gt;&nbsp;vals&nbsp;=&nbsp;partmc.<a href="#-multival_2d">multival_2d</a>(diam,&nbsp;bc_frac,&nbsp;h2o,&nbsp;x_axis,&nbsp;y_axis)<br>
 &gt;&gt;&gt;&nbsp;plt.pcolor(x_axis.edges(),&nbsp;y_axis.edges(),&nbsp;vals.transpose(),<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;norm&nbsp;=&nbsp;matplotlib.colors.LogNorm(),&nbsp;linewidths&nbsp;=&nbsp;0.1)</tt></dd></dl>
- <dl><dt><a name="-percentile"><strong>percentile</strong></a>(data, p)</dt></dl>
- <dl><dt><a name="-read_any"><strong>read_any</strong></a>(constructor, directory, filename_pattern)</dt></dl>
- <dl><dt><a name="-read_history"><strong>read_history</strong></a>(constructor, directory, filename_pattern, print_progress<font color="#909090">=False</font>)</dt></dl>
- <dl><dt><a name="-time_of_day_string"><strong>time_of_day_string</strong></a>(time_seconds, separator<font color="#909090">=':'</font>)</dt></dl>
+ <dl><dt><a name="-percentile"><strong>percentile</strong></a>(data, p)</dt><dd><tt>Return&nbsp;the&nbsp;data&nbsp;element&nbsp;closest&nbsp;to&nbsp;the&nbsp;given&nbsp;percentile.<br>
+&nbsp;<br>
+The&nbsp;data&nbsp;argument&nbsp;must&nbsp;be&nbsp;a&nbsp;sorted&nbsp;list.&nbsp;The&nbsp;p&nbsp;argument&nbsp;should&nbsp;be<br>
+in&nbsp;[0,&nbsp;1]&nbsp;and&nbsp;specifies&nbsp;the&nbsp;percentile&nbsp;rank&nbsp;of&nbsp;the&nbsp;data&nbsp;item&nbsp;to<br>
+return.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;partmc.<a href="#-percentile">percentile</a>([0,&nbsp;1,&nbsp;2,&nbsp;3,&nbsp;4,&nbsp;5,&nbsp;6,&nbsp;6.1,&nbsp;6.2,&nbsp;6.3],&nbsp;0.9)<br>
+returns&nbsp;6.2&nbsp;as&nbsp;being&nbsp;the&nbsp;90%&nbsp;percentile&nbsp;value&nbsp;in&nbsp;the&nbsp;given&nbsp;data.</tt></dd></dl>
+ <dl><dt><a name="-read_any"><strong>read_any</strong></a>(constructor, directory, filename_pattern)</dt><dd><tt>Read&nbsp;any&nbsp;of&nbsp;a&nbsp;set&nbsp;of&nbsp;NetCDF&nbsp;files,&nbsp;extracting&nbsp;data&nbsp;from&nbsp;it.<br>
+&nbsp;<br>
+A&nbsp;single&nbsp;one&nbsp;of&nbsp;the&nbsp;NetCDF&nbsp;files&nbsp;in&nbsp;the&nbsp;given&nbsp;directory&nbsp;matching<br>
+the&nbsp;regular-expression&nbsp;filename_pattern&nbsp;is&nbsp;opened&nbsp;as&nbsp;a&nbsp;NetCDF<br>
+file.&nbsp;Then&nbsp;the&nbsp;given&nbsp;constructor&nbsp;is&nbsp;applied&nbsp;to&nbsp;read&nbsp;an&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;from<br>
+the&nbsp;file,&nbsp;which&nbsp;is&nbsp;returned.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;aero_data&nbsp;=&nbsp;partmc.<a href="#-read_history">read_history</a>(<a href="#aero_data_t">aero_data_t</a>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'out/',&nbsp;'data_0001_[0-9]{8}.nc')<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;'species&nbsp;names:&nbsp;',&nbsp;aero_data.names</tt></dd></dl>
+ <dl><dt><a name="-read_history"><strong>read_history</strong></a>(constructor, directory, filename_pattern, print_progress<font color="#909090">=False</font>)</dt><dd><tt>Read&nbsp;a&nbsp;sequence&nbsp;of&nbsp;NetCDF&nbsp;files,&nbsp;extracting&nbsp;data&nbsp;from&nbsp;each&nbsp;one.<br>
+&nbsp;<br>
+Each&nbsp;file&nbsp;in&nbsp;the&nbsp;given&nbsp;directory&nbsp;whose&nbsp;name&nbsp;matches&nbsp;the<br>
+regular-expression&nbsp;filename_pattern&nbsp;is&nbsp;opened&nbsp;as&nbsp;a&nbsp;NetCDF<br>
+file.&nbsp;Then&nbsp;the&nbsp;given&nbsp;constructor&nbsp;function&nbsp;is&nbsp;applied&nbsp;to&nbsp;read&nbsp;an<br>
+<a href="__builtin__.html#object">object</a>&nbsp;from&nbsp;the&nbsp;file.&nbsp;The&nbsp;elapsed_time&nbsp;is&nbsp;also&nbsp;read&nbsp;from&nbsp;the&nbsp;file,<br>
+and&nbsp;a&nbsp;list&nbsp;of&nbsp;pairs&nbsp;[time,&nbsp;<a href="__builtin__.html#object">object</a>]&nbsp;is&nbsp;returned,&nbsp;sorted&nbsp;by&nbsp;the<br>
+times.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;gas_state_history&nbsp;=&nbsp;partmc.<a href="#-read_history">read_history</a>(<a href="#gas_state_t">gas_state_t</a>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'out/',&nbsp;'data_0001_[0-9]{8}.nc')<br>
+&gt;&gt;&gt;&nbsp;time&nbsp;=&nbsp;[t&nbsp;for&nbsp;[t,&nbsp;gs]&nbsp;in&nbsp;gas_state_history]<br>
+&gt;&gt;&gt;&nbsp;o3&nbsp;=&nbsp;[gs.mixing_ratio('O3')&nbsp;for&nbsp;[t,&nbsp;gs]&nbsp;in&nbsp;gas_state_history]<br>
+&gt;&gt;&gt;&nbsp;plt.plot(time,&nbsp;o3)</tt></dd></dl>
+ <dl><dt><a name="-time_of_day_string"><strong>time_of_day_string</strong></a>(time_seconds, separator<font color="#909090">=':'</font>, resolution<font color="#909090">='minutes'</font>)</dt><dd><tt>Convert&nbsp;a&nbsp;time-of-day&nbsp;in&nbsp;seconds-past-midnight&nbsp;to&nbsp;a&nbsp;24-hour<br>
+string&nbsp;representation.<br>
+&nbsp;<br>
+The&nbsp;optional&nbsp;resolution&nbsp;parameter&nbsp;can&nbsp;be&nbsp;'hours',&nbsp;'minutes',&nbsp;or<br>
+'seconds',&nbsp;to&nbsp;indicate&nbsp;the&nbsp;granularity&nbsp;of&nbsp;the&nbsp;result.<br>
+&nbsp;<br>
+Example:<br>
+&gt;&gt;&gt;&nbsp;<a href="#-time_of_day_string">time_of_day_string</a>(51858.6)<br>
+'14:24'<br>
+&gt;&gt;&gt;&nbsp;<a href="#-time_of_day_string">time_of_day_string</a>(51858.6,&nbsp;resolution&nbsp;=&nbsp;'seconds')<br>
+'14:24:18'</tt></dd></dl>
 </td></tr></table>
 </body></html>

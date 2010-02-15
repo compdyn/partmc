@@ -1488,6 +1488,21 @@ def get_time_filename_list(dir, file_pattern):
     return time_filename_list
 
 def find_nearest_time(time_indexed_data, search_time):
+    """Find the closest data-point in a time-sequenced data-set to a
+    given time.
+
+    The time_indexed_data argument should be a list of lists of the
+    form [[t_0, ...], [t_1, ...], [t_2, ...], ...] where the t_i are
+    times. The return value is the index i such that t_i is the
+    closest time to search_time. It is not necessary for
+    time_indexed_data to be sorted by time.
+
+    Example:
+    >>> data = [[0, 50], [3, 45], [5, 40]]
+    >>> i = partmc.find_nearest_time(data, 3.4)
+    returns i = 1
+    
+    """
     min_diff = abs(search_time - time_indexed_data[0][0])
     min_i = 0
     for i in range(1,len(time_indexed_data)):
@@ -1498,27 +1513,95 @@ def find_nearest_time(time_indexed_data, search_time):
     return min_i
 
 def find_filename_at_time(time_filename_list, search_time):
+    """Given a time-indexed list of filenames, find the filename
+    closest to the given time.
+
+    The argument time_filename_list should be a list of of the form
+    [[t_0, f_0, ...], [t_1, f_1, ...], ...] where the t_i are times
+    and the f_i are filenames. The return value is the filename f_i
+    for which the corresponding time t_i is closest to the search_time
+    argument.
+
+    Example:
+    >>> netcdf_files = partmc.get_filename_list('out/', r'data_(.*)\.nc')
+    >>> input_file = partmc.find_filename_at_time(netcdf_files, 12 * 3600)
+    returns the filename closest to 12 hours elapsed time.
+
+    """
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
 
 def cumulative_plot_data(x, y_inc, start = 0.0, final = None):
-    plot_data = []
+    """Transform density data to cumulative data.
+
+    The x and y_inc arguments should be lists of the same length so
+    that (x[i], y_inc[i]) are density points. The return value will be
+    two lists (x, y) which are the coordinate of the corresponding
+    cumulative distribution.
+
+    The optional argument start can be given to start the plot at a
+    non-zero y value. If the optional argument final is not None then
+    it specifies the final y value.
+
+    Example:
+    >>> (x, y) = partmc.cumulative_plot_data(diameter, bc_mass)
+    >>> plt.plot(x, y)
+    plots the cumulative distribution of BC mass versus diameter.
+
+    """
+    plot_data_x = []
+    plot_data_y = []
     y = start
     for i in range(x.size):
-        plot_data.append([x[i], y])
+        plot_data_x.append(x[i])
+        plot_data_y.append(y)
         y += y_inc[i]
         if (i == x.size - 1) and (final != None):
             y = final
-        plot_data.append([x[i], y])
-    return plot_data
+        plot_data_x.append(x[i])
+        plot_data_y.append(y)
+    return (plot_data_x, plot_data_y)
 
 def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
                       min_x_step = None, min_y_step = None,
                       min_x_factor = None, min_y_factor = None):
-    plot_data = []
+    """Transform density data to cumulative data.
+
+    The x and y_inc arguments should be lists of the same length so
+    that (x[i], y_inc[i]) are density points. The return value will be
+    two lists (x, y) which are the coordinate of the corresponding
+    cumulative distribution.
+
+    The optional argument start can be given to start the plot at a
+    non-zero y value. If the optional argument final is not None then
+    it specifies the final y value.
+
+    The optional arguments min_x_step, min_y_step, min_x_factor, and
+    max_x_factor can be provided for high-resolution original data to
+    reduced the number of data-points in the computed comulative
+    distribution.
+
+    If the optional arguments min_x_step or min_y_step are provided
+    then they determine sufficient minimum x and y steps for points to
+    be included on the cumulative distribution. Similarly,
+    min_x_factor and min_y_factor are sufficient minimum ratios of
+    successive x or y values in the cumulative distribution.
+
+    Example:
+    >>> (x, y) = partmc.cumulative_hi_res(diameter, bc_mass,
+                                          min_x_factor = 10**0.01)
+    >>> plt.plot(x, y)
+    
+    plots the cumulative distribution of BC mass versus diameter, with
+    100 steps per decade on a logarithmic x scale.
+
+    """
+    plot_data_x = []
+    plot_data_y = []
     i = 0
     y = start
-    plot_data.append([x[i], y])
+    plot_data_x.append(x[i])
+    plot_data_y.append(y)
     last_x, last_y = x[i], y
     for i in range(1,x.size):
         y += y_inc[i]
@@ -1529,13 +1612,23 @@ def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
                 or ((min_x_factor != None) and (x[i]/last_x > min_x_factor)) \
                 or ((min_y_factor != None) and (y/last_y > min_y_factor)) \
                 or (i == x.size - 1):
-            plot_data.append([x[i], y])
+            plot_data_x.append(x[i])
+            plot_data_y.append(y)
             last_x = x[i]
             last_y = y
-    return plot_data
+    return (plot_data_x, plot_data_y)
 
 def percentile(data, p):
-    # p in [0,1]
-    # data must be sorted
-    i = int(floor((len(data) - 1) * p + 0.5))
+    """Return the data element closest to the given percentile.
+
+    The data argument must be a sorted list. The p argument should be
+    in [0, 1] and specifies the percentile rank of the data item to
+    return.
+
+    Example:
+    >>> partmc.percentile([0, 1, 2, 3, 4, 5, 6, 6.1, 6.2, 6.3], 0.9)
+    returns 6.2 as being the 90% percentile value in the given data.
+
+    """
+    i = int(math.floor((len(data) - 1) * p + 0.5))
     return data[i]

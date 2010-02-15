@@ -10,8 +10,7 @@ module pmc_run_part
 
   use pmc_util
   use pmc_aero_state
-  use pmc_bin_grid 
-  use pmc_condense
+  use pmc_bin_grid
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data
@@ -25,6 +24,9 @@ module pmc_run_part
   use pmc_kernel
   use pmc_nucleate
   use pmc_mpi
+#ifdef PMC_USE_SUNDIALS
+  use pmc_condense
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -236,10 +238,12 @@ contains
        call env_state_update_aero_state(env_state, part_opt%del_t, &
             old_env_state, bin_grid, aero_data, aero_weight, aero_state)
 
+#ifdef PMC_USE_SUNDIALS
        if (part_opt%do_condensation) then
           call condense_particles(bin_grid, env_state, &
                env_data, aero_data, aero_weight, aero_state, part_opt%del_t)
        end if
+#endif
 
        if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &

@@ -280,7 +280,7 @@ add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 ######################################################################
 
 set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
-  src/bin_grid.f90 src/condense.f90 src/constants.f90 src/env_data.f90
+  src/bin_grid.f90 src/constants.f90 src/env_data.f90
   src/env_state.f90 src/aero_mode.f90 src/aero_dist.f90
   src/aero_weight.f90 src/kernel_golovin.f90 src/kernel_sedi.f90
   src/kernel_constant.f90 src/kernel_brown.f90 src/kernel_zero.f90
@@ -299,7 +299,9 @@ set_source_files_properties(${PARTMC_SRC}
 if(ENABLE_SUNDIALS)
   set_source_files_properties(src/condense_solver.c
     PROPERTIES COMPILE_FLAGS ${C_COMPILER_FLAGS})
-  set(PARTMC_SRC ${PARTMC_SRC} src/condense_solver.c)
+  set_source_files_properties(src/condense.f90
+    PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
+  set(PARTMC_SRC ${PARTMC_SRC} src/condense.f90 src/condense_solver.c)
 endif(ENABLE_SUNDIALS)
 
 add_executable(partmc ${PARTMC_SRC})

@@ -67,7 +67,6 @@ program partmc
   use pmc_aero_state
   use pmc_aero_dist
   use pmc_aero_binned
-  use pmc_condense
   use pmc_kernel_sedi
   use pmc_kernel_golovin
   use pmc_kernel_constant
@@ -84,6 +83,9 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
+#ifdef PMC_USE_SUNDIALS
+  use pmc_condense
+#endif
 
   character(len=300) :: spec_name
   
@@ -252,6 +254,10 @@ contains
             part_opt%allow_halving)
        call spec_file_read_logical(file, 'do_condensation', &
             part_opt%do_condensation)
+#ifndef PMC_USE_SUNDIALS
+       call assert_msg(121370218, part_opt%do_condensation .eqv. .false., &
+            "cannot use condensation, SUNDIALS support is not compiled in")
+#endif
        call spec_file_read_logical(file, 'do_mosaic', part_opt%do_mosaic)
        if (part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
@@ -377,10 +383,12 @@ contains
        call env_state_copy(env_state_init, env_state)
        call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
 
+#ifdef PMC_USE_SUNDIALS
        if (part_opt%do_condensation) then
           call condense_equilib_particles(bin_grid, env_state, aero_data, &
                aero_weight, aero_state)
        end if
+#endif
        
        if (trim(kernel_name) == 'sedi') then
           call run_part(kernel_sedi, kernel_sedi_max, bin_grid, &

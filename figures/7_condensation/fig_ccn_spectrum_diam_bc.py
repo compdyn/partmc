@@ -9,11 +9,10 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
-def effective_diam(env_state, const, kappa, s_crit):
+def effective_diam(env_state, kappa, s_crit):
     def f(dry_diam):
-        return partmc.critical_rel_humids(env_state, const, np.array([kappa]), np.array([dry_diam]))[0] - (s_crit + 1)
+        return partmc.critical_rel_humids(env_state, np.array([kappa]), np.array([dry_diam]))[0] - (s_crit + 1)
     return scipy.optimize.brentq(f, 1e-10, 1)
 
 in_filename = "../../scenarios/1_urban_plume/out/urban_plume_wc_0001_00000013.nc"
@@ -23,7 +22,7 @@ particles = partmc.aero_particle_array_t(ncf)
 env_state = partmc.env_state_t(ncf)
 ncf.close()
 
-s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+s_crit = (particles.critical_rel_humids(env_state) - 1)*100
 bc = particles.masses(include = ["BC"])
 total_bc = sum(bc)
 
@@ -37,7 +36,7 @@ ss_array = np.logspace(-2,1,100)
 frac_array_true = np.zeros_like(ss_array)
 frac_array_diam = np.zeros_like(ss_array)
 for i in range(len(ss_array)):
-    d_eff = effective_diam(env_state, const, average_kappa, ss_array[i]/100)
+    d_eff = effective_diam(env_state, average_kappa, ss_array[i]/100)
     print ss_array[i], d_eff
     activated_true = (s_crit < ss_array[i])
     bc_mass_act_true = sum(bc[activated_true])

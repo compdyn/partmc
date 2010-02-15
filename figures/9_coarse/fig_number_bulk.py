@@ -8,8 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-#import config
-const = partmc.constants_t("../../src/constants.f90")
 
 netcdf_dir = "../../scenarios/5_weighted/out"
 netcdf_pattern = "urban_plume_wc_0001_(.*).nc"

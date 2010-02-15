@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 in_dir = "../../scenarios/3_condense/out/"
 out_filename1 = "figs/scavenged_bcwc.pdf" 

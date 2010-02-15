@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 def make_plot(in_filename,out_filename,time,title):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
@@ -18,7 +17,7 @@ def make_plot(in_filename,out_filename,time,title):
 
     age = abs(particles.least_create_times / 3600. - time)
     dry_diameters = particles.dry_diameters()
-    s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+    s_crit = (particles.critical_rel_humids(env_state) - 1)*100
 
     x_axis = partmc.log_grid(min=1e-8,max=1e-6,n_bin=140)
     y_axis = partmc.linear_grid(min=0, max = 48, n_bin=96)

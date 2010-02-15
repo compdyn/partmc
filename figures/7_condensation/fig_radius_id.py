@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 def check_num(in_dir, in_filename, in_file_pattern, out_filename, counter):
     time_filename_list = partmc.get_time_filename_list(in_dir, in_file_pattern)

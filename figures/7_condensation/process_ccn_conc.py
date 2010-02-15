@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
 import config
-const = partmc.constants_t("../../src/constants.f90")
 
 def make_plot(netcdf_dir, netcdf_pattern, out_filename):
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
@@ -22,7 +21,7 @@ def make_plot(netcdf_dir, netcdf_pattern, out_filename):
         env_state = partmc.env_state_t(ncf)
         ncf.close()
 
-        s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+        s_crit = (particles.critical_rel_humids(env_state) - 1)*100
 
         activated_1 = (s_crit < config.s_crit_1)
         number_act_1 = sum(1/particles.comp_vols[activated_1])

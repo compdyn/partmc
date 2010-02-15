@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 in_filename = "../../scenarios/1_urban_plume/out/urban_plume_wc_0001_00000025.nc"
 out_filename = "figs/ccn_spectrum_bc_wc_24.pdf"
@@ -17,7 +16,7 @@ particles = partmc.aero_particle_array_t(ncf)
 env_state = partmc.env_state_t(ncf)
 ncf.close()
 
-s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+s_crit = (particles.critical_rel_humids(env_state) - 1)*100
 bc = particles.masses(include = ["BC"])
 total_bc = sum(bc)
 ss_array = np.logspace(-2,1,100)

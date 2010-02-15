@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
 import config
-const = partmc.constants_t("../../src/constants.f90")
 
 netcdf_dir = "../../scenarios/2_urban_plume2/out/"
 netcdf_pattern = "urban_plume_nc_0001_(.*).nc"
@@ -25,7 +24,7 @@ for [time, filename, key] in time_filename_list:
     env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+    s_crit = (particles.critical_rel_humids(env_state) - 1)*100
     
     activated_1 = (s_crit < config.s_crit_1)
     activated_id_set = set(particles.ids[activated_1])

@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 def make_plot(in_filename,out_filename,title):
     print in_filename
@@ -18,7 +17,7 @@ def make_plot(in_filename,out_filename,title):
     ncf.close()
 
     dry_diameters = particles.dry_diameters()
-    s_crit = (particles.critical_rel_humids(env_state, const) - 1)*100
+    s_crit = (particles.critical_rel_humids(env_state) - 1)*100
     x_axis = partmc.log_grid(min=1e-8,max=1e-6,n_bin=70)
     y_axis = partmc.log_grid(min=1e-3,max=1e2,n_bin=50)
 

@@ -8,7 +8,6 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
-const = partmc.constants_t("../../src/constants.f90")
 
 def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_filename1, out_filename2, out_filename3, counter):
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir1+in_filename1)
@@ -54,13 +53,13 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
         
         wet_diameters = particles.diameters()
         max_wet_diameters = np.maximum(max_wet_diameters, wet_diameters)
-        critical_diameters = particles.critical_diameters(env_state, const)
+        critical_diameters = particles.critical_diameters(env_state)
         critical_ratio = wet_diameters / critical_diameters
         max_critical_ratio = np.maximum(max_critical_ratio, critical_ratio)
 
     max_wet_ratio = max_wet_diameters / final_wet_diameters
     
-    s_crit = (particles2.critical_rel_humids(max_env_state, const) - 1)*100
+    s_crit = (particles2.critical_rel_humids(max_env_state) - 1)*100
     is_activated2 = (s_crit <= maximum_ss)
     id_list_act2 = particles2.ids[is_activated2]
     is_not_activated2 = np.logical_not(is_activated2)
@@ -87,8 +86,8 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
 
     diam_by_id1 = dict(zip(particles1.ids, particles1.dry_diameters()))
     diam_by_id2 = dict(zip(particles2.ids, particles2.dry_diameters()))
-    scrit_by_id1 = dict(zip(particles1.ids, (particles1.critical_rel_humids(max_env_state,const) - 1)*100))
-    scrit_by_id2 = dict(zip(particles2.ids, (particles2.critical_rel_humids(max_env_state,const) - 1)*100))
+    scrit_by_id1 = dict(zip(particles1.ids, (particles1.critical_rel_humids(max_env_state) - 1)*100))
+    scrit_by_id2 = dict(zip(particles2.ids, (particles2.critical_rel_humids(max_env_state) - 1)*100))
     oc_by_id1 = dict(zip(particles1.ids, particles1.masses(include = ["BC"])/particles1.masses(exclude=["H2O"])))
     oc_by_id2 = dict(zip(particles2.ids, particles2.masses(include = ["BC"])/particles2.masses(exclude=["H2O"])))
     wet_ratio_by_id1 = dict(zip(particles1.ids, max_wet_ratio)) 

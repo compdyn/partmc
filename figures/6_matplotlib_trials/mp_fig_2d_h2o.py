@@ -25,8 +25,6 @@ matplotlib.rc('lines', linewidth = 0.5)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
-const = partmc.constants_t("../../src/constants.f90")
-
 out_prefix = "figs/mp_2d_h2o"
 
 def get_plot_data_bc(filename, value_min = None, value_max = None):

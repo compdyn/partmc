@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2009 Matthew West
+# Copyright (C) 2007-2010 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
+import Scientific.IO.NetCDF
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt

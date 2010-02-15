@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2009 Matthew West
+# Copyright (C) 2007-2010 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
+import Scientific.IO.NetCDF
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import numpy as np
 sys.path.append("../../tool")
-from pmc_data_nc import *
+import partmc
 from config import *
 
 matplotlib.rc('text', usetex = True)
@@ -24,22 +25,22 @@ matplotlib.rc('lines', linewidth = 0.5)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
-const = load_constants("../../src/constants.f90")
+const = partmc.constants_t("../../src/constants.f90")
 
 out_prefix = "figs/mp_num_spectra"
 
 def get_plot_data_bc(filename, value_min = None, value_max = None):
-    ncf = NetCDFFile(filename)
-    particles = aero_particle_array_t(ncf)
-    env_state = env_state_t(ncf)
+    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    diameter = particles.dry_diameter() * 1e6
+    diameters = particles.dry_diameters() * 1e6
 
-    x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+    x_axis = partmc.log_grid(min = diameter_axis_min, max = diameter_axis_max,
                           n_bin = num_diameter_bins)
 
-    value = histogram_1d(diameter, x_axis, weights = 1 / particles.comp_vol)
+    value = partmc.histogram_1d(diameters, x_axis, weights = 1 / particles.comp_vols)
     value /= 1e6
 
     return (value, x_axis.centers())
@@ -117,7 +118,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     out_filename = "%s_%d.pdf" % (out_prefix, i_run)
     print out_filename
 
-    filename_list = get_filename_list(netcdf_dir, netcdf_pattern)
+    filename_list = partmc.get_filename_list(netcdf_dir, netcdf_pattern)
     in_filename = filename_list[0]
     make_1d_plot(in_filename, out_filename)
     

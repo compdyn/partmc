@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2009 Matthew West
+# Copyright (C) 2007-2010 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
+import Scientific.IO.NetCDF
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import numpy as np
 sys.path.append("../../tool")
-from pmc_data_nc import *
+import partmc
 from config import *
 
 matplotlib.rc('text', usetex = True)
@@ -24,33 +25,33 @@ matplotlib.rc('lines', linewidth = 0.5)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
-const = load_constants("../../src/constants.f90")
+const = partmc.constants_t("../../src/constants.f90")
 
 out_prefix = "figs/mp_2d_h2o"
 
 def get_plot_data_bc(filename, value_min = None, value_max = None):
-    ncf = NetCDFFile(filename)
-    particles = aero_particle_array_t(ncf)
-    env_state = env_state_t(ncf)
+    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    diameter = particles.dry_diameter() * 1e6
-    comp_frac = particles.mass(include = ["BC"]) \
-                / particles.mass(exclude = ["H2O"]) * 100
+    diameters = particles.dry_diameters() * 1e6
+    comp_frac = particles.masses(include = ["BC"]) \
+                / particles.masses(exclude = ["H2O"]) * 100
     # hack to avoid landing just around the integer boundaries
     comp_frac *= (1.0 + 1e-12)
-    h2o = particles.mass(include = ["H2O"])
+    h2o = particles.masses(include = ["H2O"])
 
-    x_axis = pmc_log_axis(min = diameter_axis_min, max = diameter_axis_max,
+    x_axis = partmc.log_grid(min = diameter_axis_min, max = diameter_axis_max,
                           n_bin = num_diameter_bins * 2)
-    y_axis = pmc_linear_axis(min = bc_axis_min, max = bc_axis_max,
+    y_axis = partmc.linear_grid(min = bc_axis_min, max = bc_axis_max,
                              n_bin = num_bc_bins * 2)
 
-    value = multival_2d(diameter, comp_frac, h2o, x_axis, y_axis)
+    value = partmc.multival_2d(diameters, comp_frac, h2o, x_axis, y_axis)
     if value_max == None:
         value_max = value.max()
     if value_min == None:
-        maxed_value = where(value > 0.0, value, value_max)
+        maxed_value = np.where(value > 0.0, value, value_max)
         value_min = maxed_value.min()
     #if value_max > 0.0:
     #    value = (log(value) - log(value_min)) \
@@ -141,7 +142,7 @@ for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
     out_filename = "%s_%d.pdf" % (out_prefix, i_run)
     print out_filename
 
-    filename_list = get_filename_list(netcdf_dir, netcdf_pattern)
+    filename_list = partmc.get_filename_list(netcdf_dir, netcdf_pattern)
     in_filename = filename_list[0]
     make_2d_plot(in_filename, out_filename)
     

@@ -14,14 +14,14 @@ def make_plot(dir_name,in_filename,out_filename):
     particles = pmc_data_nc.aero_particle_array_t(ncf)
     ncf.close()
 
-    bc = particles.mass(include = ["BC"])
+    bc = particles.mass(include = ["H2O"])
     dry_mass = particles.mass(exclude = ["H2O"])
     bc_frac = bc / dry_mass
 
     dry_diameter = particles.dry_diameter()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-10,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=0.8,n_bin=40)
+    x_axis = pmc_data_nc.pmc_log_axis(min=1e-9,max=1e-5,n_bin=70)
+    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=1.,n_bin=50)
 
     hist2d = pmc_data_nc.histogram_2d(dry_diameter, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
     plt.clf()
@@ -37,26 +37,37 @@ def make_plot(dir_name,in_filename,out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../urban_plume_nucleate/out/"
+dir_name = "../../scenarios/5_coarse/out/"
+
+filename_in = "urban_plume_nc_0001_00000001.nc"
+filename_out = "figs/2d_nc_h2o_01.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_nc_0001_00000012.nc"
+filename_out = "figs/2d_nc_h2o_12.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_nc_0001_00000018.nc"
+filename_out = "figs/2d_nc_h2o_18.pdf"
+make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_nc_0001_00000024.nc"
+filename_out = "figs/2d_nc_h2o_24.pdf"
+make_plot(dir_name, filename_in, filename_out)
 
 filename_in = "urban_plume_wc_0001_00000001.nc"
-filename_out = "figs/2d_wc_bc_01.pdf"
+filename_out = "figs/2d_wc_h2o_01.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000037.nc"
-filename_out = "figs/2d_wc_bc_37.pdf"
+filename_in = "urban_plume_wc_0001_00000012.nc"
+filename_out = "figs/2d_wc_h2o_12.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000073.nc"
-filename_out = "figs/2d_wc_bc_73.pdf"
+filename_in = "urban_plume_wc_0001_00000018.nc"
+filename_out = "figs/2d_wc_h2o_18.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "urban_plume_wc_0001_00000109.nc"
-filename_out = "figs/2d_wc_bc_109.pdf"
+filename_in = "urban_plume_wc_0001_00000024.nc"
+filename_out = "figs/2d_wc_h2o_24.pdf"
 make_plot(dir_name, filename_in, filename_out)
-
-filename_in = "urban_plume_wc_0001_00000145.nc"
-filename_out = "figs/2d_wc_bc_145.pdf"
-make_plot(dir_name, filename_in, filename_out)
-
 

@@ -15,6 +15,11 @@ Without coarse mode:
 
 With coarse mode:
 
+24h urban_plume2 100K flat, i_loop = 10
+24h urban_plume2 100K weighted -1, i_loop = 10
+24h urban_plume2 100K weighted -2, i_loop = 10
+24h urban_plume2 100K weighted -3, i_loop = 10
+
 24h urban_plume2 10K flat,        i_loop = 10, out_10K_c_flat
 24h urban_plume2 10K weighted -1, i_loop = 10, out_10K_c_weighted-1
 24h urban_plume2 10K weighted -2, i_loop = 10, out_10K_c_weighted-2

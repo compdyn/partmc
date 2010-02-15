@@ -11,6 +11,7 @@ import math
 import numpy
 import random
 import scipy
+import scipy.optimize
 import Scientific.IO.NetCDF
 
 class constants_t(object):
@@ -203,7 +204,7 @@ class env_state_t(object):
         
         """
         return (4.0 * constants.water_surf_eng * constants.water_molec_weight
-                / (constants.univ_gas_constants * self.temperature *
+                / (constants.univ_gas_const * self.temperature *
                    constants.water_density))
 
 class gas_data_t(object):
@@ -551,7 +552,7 @@ class aero_particle_array_t(object):
         name. See the masses() method for examples of usage.
 
         """
-        species_weights = self.aero_data.molec_weight \
+        species_weights = self.aero_data.molec_weights \
                           / self.aero_data.densities
         return self.sum_masses_weighted(include = include, exclude = exclude,
                                         species_weights = species_weights)
@@ -572,7 +573,7 @@ class aero_particle_array_t(object):
         """Return the diameter (m) of each particle as an array.
 
         """
-        return 2.0 * self.radius()
+        return 2.0 * self.radii()
 
     def dry_diameters(self):
         """Return the dry diameter (m) of each particle as an array.
@@ -603,26 +604,26 @@ class aero_particle_array_t(object):
         if "H2O" not in self.aero_data.names:
             raise Exception("unable to find water species index by name 'H2O'")
         i_water = self.aero_data.names.index("H2O")
-        M_w = self.aero_data.molec_weight[i_water]
+        M_w = self.aero_data.molec_weights[i_water]
         rho_w = self.aero_data.densities[i_water]
-        species_weights = zeros([len(self.aero_data.names)])
-        for i_spec in range(size(species_weights)):
+        species_weights = numpy.zeros([len(self.aero_data.names)])
+        for i_spec in range(len(species_weights)):
             if i_spec == self.aero_data.names == "H2O":
                 continue
             if self.aero_data.num_ions[i_spec] > 0:
-                if self.aero_data.kappa[i_spec] != 0:
+                if self.aero_data.kappas[i_spec] != 0:
                     raise Exception("species has nonzero num_ions and kappa: %s" % self.names[i_spec])
-                M_a = self.aero_data.molec_weight[i_spec]
+                M_a = self.aero_data.molec_weights[i_spec]
                 rho_a = self.aero_data.densities[i_spec]
                 species_weights[i_spec] = M_w * rho_a / (M_a * rho_w) \
                                           * self.aero_data.num_ions[i_spec]
             else:
-                species_weights[i_spec] = self.aero_data.kappa[i_spec]
+                species_weights[i_spec] = self.aero_data.kappas[i_spec]
         species_weights /= self.aero_data.densities
-        volume_kappa = self.sum_masses_weighted(exclude = ["H2O"],
-                                                species_weights = species_weights)
-        dry_volume = self.volume(exclude = ["H2O"])
-        return volume_kappa / dry_volume
+        volume_kappas = self.sum_masses_weighted(exclude = ["H2O"],
+                                                 species_weights = species_weights)
+        dry_volumes = self.volumes(exclude = ["H2O"])
+        return volume_kappas / dry_volumes
 
     def critical_rel_humids_approx(self, env_state, constants):
         """Compute the critical relative humidities (dimensionless) of
@@ -632,7 +633,7 @@ class aero_particle_array_t(object):
         A = env_state.A(constants)
         C = sqrt(4.0 * A**3 / 27.0)
         dry_diameters = self.dry_diameters()
-        kappas = self.solute_kappas()
+        kappas = self.kappas()
         S = C / sqrt(kappas * dry_diameters**3) + 1.0
         return S
 
@@ -641,7 +642,7 @@ class aero_particle_array_t(object):
         each particle as an array.
 
         """
-        kappas = self.solute_kappas()
+        kappas = self.kappas()
         dry_diameters = self.dry_diameters()
         return critical_rel_humids(env_state, constants, kappas, dry_diameters)
 
@@ -650,7 +651,7 @@ class aero_particle_array_t(object):
         array.
 
         """
-        kappas = self.solute_kappas()
+        kappas = self.kappas()
         dry_diameters = self.dry_diameters()
         return critical_diameters(env_state, constants, kappas, dry_diameters)
 
@@ -703,10 +704,10 @@ def critical_rel_humids(env_state, constants, kappas, dry_diameters):
 
     """
     A = env_state.A(constants)
-    critical_diameters = critical_diameters(env_state, constants, kappas, dry_diameters)
-    return (critical_diameters**3 - dry_diameters**3) \
-        / (critical_diameters**3 - dry_diameters**3 * (1 - kappas)) \
-        * exp(A / critical_diameters)
+    c_diams = critical_diameters(env_state, constants, kappas, dry_diameters)
+    return (c_diams**3 - dry_diameters**3) \
+        / (c_diams**3 - dry_diameters**3 * (1 - kappas)) \
+        * numpy.exp(A / c_diams)
 
 def critical_diameters(env_state, constants, kappas, dry_diameters):
     """Compute the critical diameters (m) for each kappa and
@@ -735,7 +736,7 @@ def critical_diameters(env_state, constants, kappas, dry_diameters):
     c4 = - 3.0 * dry_diameters**3 * kappas / A
     c3 = - dry_diameters**3 * (2.0 - kappas)
     c0 = dry_diameters**6 * (1.0 - kappas)
-    dc = zeros_like(d1)
+    dc = numpy.zeros_like(dry_diameters)
     for i in range(len(kappas)):
         def f(d):
             return d**6 + c4[i] * d**4 + c3[i] * d**3 + c0[i]

@@ -1382,7 +1382,7 @@ def read_history(constructor, directory, filename_pattern,
             if print_progress:
                 print filename
             netcdf_filename = os.path.join(directory, filename)
-            ncf = NetCDFFile(netcdf_filename)
+            ncf = Scientific.IO.NetCDF.NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)
             data.append([env_state.elapsed_time, constructor(ncf)])
             ncf.close()
@@ -1409,7 +1409,7 @@ def read_any(constructor, directory, filename_pattern):
     for filename in filenames:
         if filename_re.search(filename):
             netcdf_filename = os.path.join(directory, filename)
-            ncf = NetCDFFile(netcdf_filename)
+            ncf = Scientific.IO.NetCDF.NetCDFFile(netcdf_filename)
             data = constructor(ncf)
             ncf.close()
             return data
@@ -1475,7 +1475,7 @@ def get_time_filename_list(dir, file_pattern):
             else:
                 output_key = None
             netcdf_filename = os.path.join(dir, filename)
-            ncf = NetCDFFile(netcdf_filename)
+            ncf = Scientific.IO.NetCDF.NetCDFFile(netcdf_filename)
             env_state = env_state_t(ncf)
             time_filename_list.append([env_state.elapsed_time,
                                        netcdf_filename,

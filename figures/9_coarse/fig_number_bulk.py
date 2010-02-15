@@ -7,13 +7,13 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-import config
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+#import config
+const = partmc.constants_t("../../src/constants.f90")
 
-netcdf_dir = "../../scenarios/5_coarse/out"
+netcdf_dir = "../../scenarios/5_weighted/out"
 netcdf_pattern = "urban_plume_wc_0001_(.*).nc"
-time_filename_list = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 
 array_wc = np.zeros([len(time_filename_list),10])
 array_nc = np.zeros([len(time_filename_list),10])
@@ -22,19 +22,19 @@ i_counter = 0
 for [time, filename, key] in time_filename_list:
     print time, filename, key
     ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
-    env_state = pmc_data_nc.env_state_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    total_number = sum(1/particles.comp_vol)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vol)
-    total_mass = sum(particles.mass()/particles.comp_vol)
-    bc = sum(particles.mass(include = ["BC"])/particles.comp_vol)
-    oc = sum(particles.mass(include = ["OC"])/particles.comp_vol)
-    so4 = sum(particles.mass(include = ["SO4"])/particles.comp_vol)
-    nh4 = sum(particles.mass(include = ["NH4"])/particles.comp_vol)
-    no3 = sum(particles.mass(include = ["NO3"])/particles.comp_vol)
-    oin = sum(particles.mass(include = ["OIN"])/particles.comp_vol)
+    total_number = sum(1/particles.comp_vols)
+    total_dry_mass = sum(particles.masses(exclude = ["H2O"])/particles.comp_vols)
+    total_mass = sum(particles.masses()/particles.comp_vols)
+    bc = sum(particles.masses(include = ["BC"])/particles.comp_vols)
+    oc = sum(particles.masses(include = ["OC"])/particles.comp_vols)
+    so4 = sum(particles.masses(include = ["SO4"])/particles.comp_vols)
+    nh4 = sum(particles.masses(include = ["NH4"])/particles.comp_vols)
+    no3 = sum(particles.masses(include = ["NO3"])/particles.comp_vols)
+    oin = sum(particles.masses(include = ["OIN"])/particles.comp_vols)
 
     array_wc[i_counter,0]= time / 3600.
     array_wc[i_counter,1]= total_number
@@ -49,27 +49,27 @@ for [time, filename, key] in time_filename_list:
     
     i_counter += 1
 
-netcdf_dir = "../../scenarios/5_coarse/out/"
+netcdf_dir = "../../scenarios/5_weighted/out/"
 netcdf_pattern = "urban_plume_nc_0001_(.*).nc"
-time_filename_list = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 
 i_counter = 0
 for [time, filename, key] in time_filename_list:
     print time, filename, key
     ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
-    env_state = pmc_data_nc.env_state_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    total_number = sum(1/particles.comp_vol)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vol)
-    total_mass = sum(particles.mass()/particles.comp_vol)
-    bc = sum(particles.mass(include = ["BC"])/particles.comp_vol)
-    oc = sum(particles.mass(include = ["OC"])/particles.comp_vol)
-    so4 = sum(particles.mass(include = ["SO4"])/particles.comp_vol)
-    nh4 = sum(particles.mass(include = ["NH4"])/particles.comp_vol)
-    no3 = sum(particles.mass(include = ["NO3"])/particles.comp_vol)
-    oin = sum(particles.mass(include = ["OIN"])/particles.comp_vol)
+    total_number = sum(1/particles.comp_vols)
+    total_dry_mass = sum(particles.masses(exclude = ["H2O"])/particles.comp_vols)
+    total_mass = sum(particles.masses()/particles.comp_vols)
+    bc = sum(particles.masses(include = ["BC"])/particles.comp_vols)
+    oc = sum(particles.masses(include = ["OC"])/particles.comp_vols)
+    so4 = sum(particles.masses(include = ["SO4"])/particles.comp_vols)
+    nh4 = sum(particles.masses(include = ["NH4"])/particles.comp_vols)
+    no3 = sum(particles.masses(include = ["NO3"])/particles.comp_vols)
+    oin = sum(particles.masses(include = ["OIN"])/particles.comp_vols)
 
     array_nc[i_counter,0]= time / 3600.
     array_nc[i_counter,1]= total_number

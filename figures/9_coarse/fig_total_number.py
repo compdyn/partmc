@@ -7,17 +7,17 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
-const = pmc_data_nc.load_constants("../../src/constants.f90")
+import partmc
+const = partmc.constants_t("../../src/constants.f90")
 
-netcdf_dir = "../../scenarios/5_coarse/out"
+netcdf_dir = "../../scenarios/5_weighted/out"
 netcdf_pattern1 = "urban_plume_wc_0001_(.*).nc"
 netcdf_pattern2 = "urban_plume_wc_0002_(.*).nc"
 netcdf_pattern3 = "urban_plume_wc_0003_(.*).nc"
 
-time_filename_list1 = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern1)
-time_filename_list2 = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern2)
-time_filename_list3 = pmc_data_nc.get_time_filename_list(netcdf_dir, netcdf_pattern3)
+time_filename_list1 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern1)
+time_filename_list2 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern2)
+time_filename_list3 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern3)
 
 time_array = np.zeros([len(time_filename_list1)])
 
@@ -31,12 +31,12 @@ i_counter = 0
 for [time, filename, key] in time_filename_list1:
     print time, filename, key
     ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
-    env_state = pmc_data_nc.env_state_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    total_number = sum(1/particles.comp_vol)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vol)
+    total_number = sum(1/particles.comp_vols)
+    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
     time_array[i_counter]= time / 3600.
     array_num[i_counter,0]= total_number
     array_mass[i_counter,0]= total_dry_mass * 1e9
@@ -46,12 +46,12 @@ i_counter = 0
 for [time, filename, key] in time_filename_list2:
     print time, filename, key
     ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
-    env_state = pmc_data_nc.env_state_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    total_number = sum(1/particles.comp_vol)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vol)
+    total_number = sum(1/particles.comp_vols)
+    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
 
     array_num[i_counter,1]= total_number
     array_mass[i_counter,1]= total_dry_mass * 1e9
@@ -61,12 +61,12 @@ i_counter = 0
 for [time, filename, key] in time_filename_list3:
     print time, filename, key
     ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
-    env_state = pmc_data_nc.env_state_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
+    env_state = partmc.env_state_t(ncf)
     ncf.close()
 
-    total_number = sum(1/particles.comp_vol)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vol)
+    total_number = sum(1/particles.comp_vols)
+    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
 
     array_num[i_counter,2]= total_number
     array_mass[i_counter,2]= total_dry_mass * 1e9

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import subprocess
 
-str_exec_size = "../build/bin_average_size"
-str_exec_comp = "../build/bin_average_comp"
+str_exec_size = "../../build/bin_average_size"
+str_exec_comp = "../../build/bin_average_comp"
 
 bin_start = "1e-10"
 bin_end = "1e-5"
@@ -23,9 +23,10 @@ for hour in range(1, 50):
     command_2 = [str_exec_comp, bin_start, bin_end, bin_n, flag_dry_wet, file_in, file_out_comp]
     command_3 = [str_exec_size, bin_start, bin_end, bin_n, flag_dry_wet, flag_position, file_in_comp, file_out_both]
     print command_1
-    print command_2
-    print command_3
-
     subprocess.check_call(command_1)
+    
+    print command_2
     subprocess.check_call(command_2)
+
+    print command_3
     subprocess.check_call(command_3)

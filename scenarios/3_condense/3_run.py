@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import subprocess
 
-str_exec = "../build/partmc"
+str_exec = "../../build/partmc"
 
 for hour in range(1, 50):
     print "hour = ", hour
@@ -15,12 +15,15 @@ for hour in range(1, 50):
     command_2 = [str_exec, spec_file_comp]
     command_3 = [str_exec, spec_file_size]
     command_4 = [str_exec, spec_file_both]
-    print command_1
-    print command_2
-    print command_3
-    print command_4
 
+    print command_1
     subprocess.check_call(command_1)
+
+    print command_2
     subprocess.check_call(command_2)
+
+    print command_3
     subprocess.check_call(command_3)
+
+    print command_4
     subprocess.check_call(command_4)

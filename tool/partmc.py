@@ -321,9 +321,9 @@ class gas_state_t(object):
         >>> ozone = gas_state.mixing_ratio('O3')
 
         """        
-        if species not in self.gas_data.name:
+        if species not in self.gas_data.names:
             raise Exception("unknown species: %s" % species)
-        index = self.gas_data.name.index(species)
+        index = self.gas_data.names.index(species)
         return self.raw_mixing_ratio[index]
 
 class aero_particle_array_t(object):
@@ -415,7 +415,7 @@ class aero_particle_array_t(object):
             if exclude_ids is not None:
                 raise Exception("cannot provide include_ids without the ncf parameter")
             self.aero_data = aero_data
-            self.raw_masses = zeros([len(aero_data.name), n_particles])
+            self.raw_masses = zeros([len(aero_data.names), n_particles])
             self.n_orig_parts = zeros(n_particles, int)
             self.absorb_cross_sects = zeros(n_particles)
             self.scatter_cross_sects = zeros(n_particles)
@@ -458,13 +458,13 @@ class aero_particle_array_t(object):
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__[self_var] = asarray(ncf.variables[ncf_var].getValue())
+            self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var].getValue())
 
         if include_ids != None or exclude_ids != None:
             keep_indexes = [i for i in range(size(self.ids)) \
                             if (include_ids != None and self.ids[i] in include_ids) \
                             or (exclude_ids != None and self.ids[i] not in exclude_ids)]
-            self.masses = self.masses[:, keep_indexes]
+            self.raw_masses = self.raw_masses[:, keep_indexes]
             self.n_orig_parts = self.n_orig_parts[keep_indexes]
             self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
             self.scatter_cross_sects = self.scatter_cross_sects[keep_indexes]
@@ -491,35 +491,35 @@ class aero_particle_array_t(object):
         Example usage:
         >>> dry_volumes = aero_particle_array.sum_masses_weighted(
                 exclude = ['H2O'], species_weights
-                = 1 / aero_particle_array.aero_data.density)
+                = 1 / aero_particle_array.aero_data.densities)
 
         """
         if include != None:
             for species in include:
-                if species not in self.aero_data.name:
+                if species not in self.aero_data.names:
                     raise Exception("unknown species: %s" % species)
             species_list = set(include)
         else:
-            species_list = set(self.aero_data.name)
+            species_list = set(self.aero_data.names)
         if exclude != None:
             for species in exclude:
-                if species not in self.aero_data.name:
+                if species not in self.aero_data.names:
                     raise Exception("unknown species: %s" % species)
             species_list -= set(exclude)
         species_list = list(species_list)
         if len(species_list) == 0:
             raise Exception("no species left to sum over")
-        index = self.aero_data.name.index(species_list[0])
+        index = self.aero_data.names.index(species_list[0])
         if species_weights != None:
-            val = self.masses[index,:].copy() * species_weights[index]
+            val = self.raw_masses[index,:].copy() * species_weights[index]
         else:
-            val = array(self.masses[index,:].copy())
+            val = self.raw_masses[index,:].copy()
         for i in range(len(species_list) - 1):
-            index = self.aero_data.name.index(species_list[i + 1])
+            index = self.aero_data.names.index(species_list[i + 1])
             if species_weights != None:
-                val += self.masses[index,:] * species_weights[index]
+                val += self.raw_masses[index,:] * species_weights[index]
             else:
-                val += array(self.masses[index,:])
+                val += self.raw_masses[index,:]
         return val
     
     def masses(self, include = None, exclude = None):
@@ -541,7 +541,7 @@ class aero_particle_array_t(object):
         masses() method for examples of usage.
 
         """
-        species_weights = 1.0 / array(self.aero_data.density)
+        species_weights = 1.0 / self.aero_data.densities
         return self.sum_masses_weighted(include = include, exclude = exclude,
                                         species_weights = species_weights)
 
@@ -552,7 +552,7 @@ class aero_particle_array_t(object):
 
         """
         species_weights = self.aero_data.molec_weight \
-                          / self.aero_data.density
+                          / self.aero_data.densities
         return self.sum_masses_weighted(include = include, exclude = exclude,
                                         species_weights = species_weights)
 
@@ -560,13 +560,13 @@ class aero_particle_array_t(object):
         """Return the radius (m) of each particle as an array.
 
         """
-        return (self.volume() * 3.0/4.0 / math.pi)**(1.0/3.0)
+        return (self.volumes() * 3.0/4.0 / math.pi)**(1.0/3.0)
 
     def dry_radii(self):
         """Return the dry radius (m) of each particle as an array.
 
         """
-        return (self.volume(exclude = ["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
+        return (self.volumes(exclude = ["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
 
     def diameters(self):
         """Return the diameter (m) of each particle as an array.
@@ -578,19 +578,19 @@ class aero_particle_array_t(object):
         """Return the dry diameter (m) of each particle as an array.
 
         """
-        return 2.0 * self.dry_radius()
+        return 2.0 * self.dry_radii()
 
     def surface_areas(self):
         """Return the surface area (m^2) of each particle as an array.
 
         """
-        return 4.0 * math.pi * self.radius()**2
+        return 4.0 * math.pi * self.radii()**2
 
     def dry_surface_areas(self):
         """Return the dry surface area (m^2) of each particle as an array.
 
         """
-        return 4.0 * math.pi * self.dry_radius()**2
+        return 4.0 * math.pi * self.dry_radii()**2
 
     def kappas(self):
         """Return the total kappa (dimensionless hydroscopicity
@@ -602,23 +602,23 @@ class aero_particle_array_t(object):
         """
         if "H2O" not in self.aero_data.names:
             raise Exception("unable to find water species index by name 'H2O'")
-        i_water = self.aero_data.name.index("H2O")
+        i_water = self.aero_data.names.index("H2O")
         M_w = self.aero_data.molec_weight[i_water]
-        rho_w = self.aero_data.density[i_water]
-        species_weights = zeros([len(self.aero_data.name)])
+        rho_w = self.aero_data.densities[i_water]
+        species_weights = zeros([len(self.aero_data.names)])
         for i_spec in range(size(species_weights)):
-            if i_spec == self.aero_data.name == "H2O":
+            if i_spec == self.aero_data.names == "H2O":
                 continue
             if self.aero_data.num_ions[i_spec] > 0:
                 if self.aero_data.kappa[i_spec] != 0:
-                    raise Exception("species has nonzero num_ions and kappa: %s" % self.name[i_spec])
+                    raise Exception("species has nonzero num_ions and kappa: %s" % self.names[i_spec])
                 M_a = self.aero_data.molec_weight[i_spec]
-                rho_a = self.aero_data.density[i_spec]
+                rho_a = self.aero_data.densities[i_spec]
                 species_weights[i_spec] = M_w * rho_a / (M_a * rho_w) \
                                           * self.aero_data.num_ions[i_spec]
             else:
                 species_weights[i_spec] = self.aero_data.kappa[i_spec]
-        species_weights /= self.aero_data.density
+        species_weights /= self.aero_data.densities
         volume_kappa = self.sum_masses_weighted(exclude = ["H2O"],
                                                 species_weights = species_weights)
         dry_volume = self.volume(exclude = ["H2O"])
@@ -819,12 +819,12 @@ class aero_removed_info_t(object):
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__[self_var] = asarray(ncf.variables[ncf_var].getValue())
+            self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var].getValue())
 
         if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
-            self.id = array([],'int32')
-            self.action = array([],'int32')
-            self.other_id = array([],'int32')
+            self.id = numpy.array([],'int32')
+            self.action = numpy.array([],'int32')
+            self.other_id = numpy.array([],'int32')
 
 class grid(object):
 
@@ -1322,7 +1322,7 @@ def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = Tru
                     j = y_bin * 2 + sub_j
                     grid[i,j] = val
                     mask[i,j] = True
-    mask = logical_not(mask)
+    mask = numpy.logical_not(mask)
     vals = numpy.ma.array(grid, mask = mask)
     return vals
 
@@ -1428,7 +1428,7 @@ def get_filename_list(directory, filename_pattern):
 
     """
     filename_list = []
-    filenames = os.listdir(director)
+    filenames = os.listdir(directory)
     if len(filenames)  == 0:
         raise Exception("No files in %s match %s"
                         % (directory, filename_pattern))

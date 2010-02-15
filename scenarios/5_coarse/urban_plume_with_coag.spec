@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume_wc # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
+n_loop 3                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
 nucleate none                   # nucleation parameterization
@@ -15,7 +15,9 @@ n_bin 160                       # number of bins
 r_min 1e-10                     # minimum radius (m)
 r_max 1e-5                      # maximum radius (m)
 
-weight none                     # weighting function
+weight power                     # weighting function
+ref_radius 5e-8                 # radius at which weight is 1
+exponent -2                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations
@@ -38,7 +40,7 @@ altitude 0                      # altitude (m)
 start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
-rand_init 8                     # random initialization (0 to use time)
+rand_init 0                     # random initialization (0 to use time)
 do_coagulation yes              # whether to do coagulation (yes/no)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)

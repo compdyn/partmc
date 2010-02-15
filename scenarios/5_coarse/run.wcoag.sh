@@ -13,5 +13,4 @@ sleep 1
 
 echo ../../build/partmc urban_plume_with_coag.spec
 ../../build/partmc urban_plume_with_coag.spec
-echo ../../build/partmc urban_plume_no_coag.spec
-../../build/partmc urban_plume_no_coag.spec
+

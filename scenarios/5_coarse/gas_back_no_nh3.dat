@@ -1,4 +1,8 @@
-# species    initial concentration (ppb)
+# time (s)
+# rate (s^{-1})
+# concentrations (ppb)
+time            0
+rate         1.5e-5
 NO           0.1E+00
 NO2          1.0E+00
 NO3          0.0E+00
@@ -12,10 +16,9 @@ O3P          0.0E+00
 OH           0.0E+00
 HO2          0.0E+00
 H2O2         1.1E+00
-CO           8.0E+01
+CO           2.1E+02
 SO2          0.8E+00
 H2SO4        0.0E+00
-NH3          0.5E+00
 HCl          0.7E+00
 CH4          2.2E+03
 C2H6         1.0E+00

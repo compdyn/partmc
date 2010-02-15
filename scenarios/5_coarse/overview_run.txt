@@ -1,18 +1,24 @@
-Without coarse mode:
-24h urban_plume2 100K flat ?
-24h urban_plume2 100K weighted ? 
-(how big should i_loop be, and how many different weightings should one use?)
+All runs are with coagulation.
 
-24h urban_plume2 10K flat,        i_loop = 10
-24h urban_plume2 10K weighted -1, i_loop = 10
-24h urban_plume2 10K weighted -2, i_loop = 10
-24h urban_plume2 10K weighted -3, i_loop = 10
+Without coarse mode:
+
+24h urban_plume2 100K flat, i_loop = 10 
+24h urban_plume2 100K weighted -1, i_loop = 10
+24h urban_plume2 100K weighted -2, i_loop = 10
+24h urban_plume2 100K weighted -3, i_loop = 10
+
+24h urban_plume2 10K flat,        i_loop = 10, out_10K_flat  --- running
+24h urban_plume2 10K weighted -1, i_loop = 10, out_10K_weighted-1
+24h urban_plume2 10K weighted -2, i_loop = 10, out_10K_weighted-2
+24h urban_plume2 10K weighted -3, i_loop = 10, out_10K_weighted-3
+
 
 With coarse mode:
-24h urban_plume2 10K flat,        i_loop = 10
-24h urban_plume2 10K weighted -1, i_loop = 10
-24h urban_plume2 10K weighted -2, i_loop = 10
-24h urban_plume2 10K weighted -3, i_loop = 10
+
+24h urban_plume2 10K flat,        i_loop = 10, out_10K_c_flat
+24h urban_plume2 10K weighted -1, i_loop = 10, out_10K_c_weighted-1
+24h urban_plume2 10K weighted -2, i_loop = 10, out_10K_c_weighted-2
+24h urban_plume2 10K weighted -3, i_loop = 10, out_10K_c_weighted-3
 
 
 

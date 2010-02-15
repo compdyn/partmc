@@ -1213,41 +1213,41 @@ class log_grid(grid):
         return log_grid(min = self.min, max = self.max,
                             n_bin = self.n_bin / 2)
 
-def histogram_1d(x_values, x_axis, weights = None):
+def histogram_1d(x_values, x_grid, weights = None):
     """Make a 1D histogram.
 
     The histogram is of points at positions x_values[i] for each i.
 
     Example:
-    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> hist = partmc.histogram_1d(diam, x_axis, weights = 1 / particles.comp_vols)
-    >>> plt.semilogx(x_axis.centers(), hist)
+    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> hist = partmc.histogram_1d(diam, x_grid, weights = 1 / particles.comp_vols)
+    >>> plt.semilogx(x_grid.centers(), hist)
     
     """
     if weights is not None:
         if len(x_values) != len(weights):
             raise Exception("x_values and weights have different lengths")
-    x_bins = x_axis.find(x_values)
-    hist = numpy.zeros([x_axis.n_bin])
+    x_bins = x_grid.find(x_values)
+    hist = numpy.zeros([x_grid.n_bin])
     for i in range(len(x_values)):
-        if x_axis.valid_bin(x_bins[i]):
-            value = 1.0 / x_axis.grid_size(x_bins[i])
+        if x_grid.valid_bin(x_bins[i]):
+            value = 1.0 / x_grid.grid_size(x_bins[i])
             if weights is not None:
                 value *= weights[i]
             hist[x_bins[i]] += value
     return hist
 
-def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positive = True):
+def histogram_2d(x_values, y_values, x_grid, y_grid, weights = None, only_positive = True):
     """Make a 2D histogram.
 
     The histogram is of points at positions (x_values[i], y_values[i])
     for each i.
 
     Example:
-    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> y_axis = partmc.linear_grid(min = 0, max = 1, n_bin = 50)
-    >>> hist = partmc.histogram_2d(diam, bc_frac, x_axis, y_axis, weights = 1 / particles.comp_vols)
-    >>> plt.pcolor(x_axis.edges(), y_axis.edges(), hist.transpose(),
+    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
+    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 50)
+    >>> hist = partmc.histogram_2d(diam, bc_frac, x_grid, y_grid, weights = 1 / particles.comp_vols)
+    >>> plt.pcolor(x_grid.edges(), y_grid.edges(), hist.transpose(),
                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
     """
@@ -1256,12 +1256,12 @@ def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positi
     if weights is not None:
         if len(x_values) != len(weights):
             raise Exception("x_values and weights have different lengths")
-    x_bins = x_axis.find(x_values)
-    y_bins = y_axis.find(y_values)
-    hist = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
+    x_bins = x_grid.find(x_values)
+    y_bins = y_grid.find(y_values)
+    hist = numpy.zeros([x_grid.n_bin, y_grid.n_bin])
     for i in range(len(x_values)):
-        if x_axis.valid_bin(x_bins[i]) and y_axis.valid_bin(y_bins[i]):
-            value = 1.0 / (x_axis.grid_size(x_bins[i]) * y_axis.grid_size(y_bins[i]))
+        if x_grid.valid_bin(x_bins[i]) and y_grid.valid_bin(y_bins[i]):
+            value = 1.0 / (x_grid.grid_size(x_bins[i]) * y_grid.grid_size(y_bins[i]))
             if weights is not None:
                 value *= weights[i]
             hist[x_bins[i], y_bins[i]] += value
@@ -1270,17 +1270,17 @@ def histogram_2d(x_values, y_values, x_axis, y_axis, weights = None, only_positi
         hist = numpy.ma.array(hist, mask = mask)
     return hist
 
-def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = True):
+def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange = True):
     """Make a 2D matrix with 0%/33%/66%/100% percentile values.
 
     The returned matrix represents z_values[i] at position
     (x_values[i], y_values[i]) for each i.
 
     Example:
-    >>> x_axis = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
-    >>> y_axis = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
-    >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_axis, y_axis)
-    >>> plt.pcolor(x_axis.edges(), y_axis.edges(), vals.transpose(),
+    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
+    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
+    >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_grid, y_grid)
+    >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals.transpose(),
                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
     """
@@ -1289,22 +1289,22 @@ def multival_2d(x_values, y_values, z_values, x_axis, y_axis, rand_arrange = Tru
     if len(x_values) != len(z_values):
         raise Exception("x_values and z_values have different lengths")
 
-    low_x_axis = x_axis.half_sample()
-    low_y_axis = y_axis.half_sample()
-    x_bins = low_x_axis.find(x_values)
-    y_bins = low_y_axis.find(y_values)
-    z = [[[] for j in range(low_y_axis.n_bin)]
-         for i in range(low_x_axis.n_bin)]
+    low_x_grid = x_grid.half_sample()
+    low_y_grid = y_grid.half_sample()
+    x_bins = low_x_grid.find(x_values)
+    y_bins = low_y_grid.find(y_values)
+    z = [[[] for j in range(low_y_grid.n_bin)]
+         for i in range(low_x_grid.n_bin)]
     for i in range(len(x_values)):
-        if low_x_axis.valid_bin(x_bins[i]) and low_y_axis.valid_bin(y_bins[i]):
+        if low_x_grid.valid_bin(x_bins[i]) and low_y_grid.valid_bin(y_bins[i]):
             z[x_bins[i]][y_bins[i]].append(z_values[i])
-    for x_bin in range(low_x_axis.n_bin):
-        for y_bin in range(low_y_axis.n_bin):
+    for x_bin in range(low_x_grid.n_bin):
+        for y_bin in range(low_y_grid.n_bin):
             z[x_bin][y_bin].sort()
-    grid = numpy.zeros([x_axis.n_bin, y_axis.n_bin])
-    mask = numpy.zeros([x_axis.n_bin, y_axis.n_bin], bool)
-    for x_bin in range(low_x_axis.n_bin):
-        for y_bin in range(low_y_axis.n_bin):
+    grid = numpy.zeros([x_grid.n_bin, y_grid.n_bin])
+    mask = numpy.zeros([x_grid.n_bin, y_grid.n_bin], bool)
+    for x_bin in range(low_x_grid.n_bin):
+        for y_bin in range(low_y_grid.n_bin):
             if len(z[x_bin][y_bin]) > 0:
                 subs = [(0,0),(0,1),(1,0),(1,1)]
                 if rand_arrange:

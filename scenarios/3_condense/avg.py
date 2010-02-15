@@ -10,7 +10,7 @@ bin_n ="25"
 flag_dry_wet = "dry"
 flag_position = "average"
 
-for hour in range(1, 49):
+for hour in range(1, 50):
     print "hour = ", hour
     
     file_in = "start/urban_plume_wc_0001_000000%02d.nc" % hour

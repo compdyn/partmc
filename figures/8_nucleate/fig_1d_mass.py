@@ -7,20 +7,20 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(in_dir, in_filename, out_filename):
     print in_filename
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-10,max=1e-4,n_bin=100)
+    x_axis = partmc.log_grid(min=1e-10,max=1e-4,n_bin=100)
     x_centers = x_axis.centers() 
 
-    dry_diameter = particles.dry_diameter()
+    dry_diameters = particles.dry_diameters()
 
-    hist = pmc_data_nc.histogram_1d(dry_diameter, x_axis, weights = particles.mass() / particles.comp_vol)
+    hist = partmc.histogram_1d(dry_diameters, x_axis, weights = particles.masses() / particles.comp_vols)
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
@@ -30,7 +30,7 @@ def make_plot(in_dir, in_filename, out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../scenarios/5_coarse/out/"
+dir_name = "../../scenarios/4_nucleate/out/"
 
 #filename_in = "urban_plume_wc_0001_00000001.nc"
 #filename_out = "figs/1d_wc_mass_001.pdf"

@@ -7,23 +7,23 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
-import pmc_data_nc
+import partmc
 
 def make_plot(dir_name,in_filename,out_filename):
     ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+in_filename)
-    particles = pmc_data_nc.aero_particle_array_t(ncf)
+    particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    bc = particles.mass(include = ["BC"])
-    dry_mass = particles.mass(exclude = ["H2O"])
+    bc = particles.masses(include = ["BC"])
+    dry_mass = particles.masses(exclude = ["H2O"])
     bc_frac = bc / dry_mass
 
-    dry_diameter = particles.dry_diameter()
+    dry_diameters = particles.dry_diameters()
 
-    x_axis = pmc_data_nc.pmc_log_axis(min=1e-10,max=1e-6,n_bin=70)
-    y_axis = pmc_data_nc.pmc_linear_axis(min=0,max=0.8,n_bin=40)
+    x_axis = partmc.log_grid(min=1e-10,max=1e-6,n_bin=70)
+    y_axis = partmc.linear_grid(min=0,max=0.8,n_bin=40)
 
-    hist2d = pmc_data_nc.histogram_2d(dry_diameter, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vol)
+    hist2d = partmc.histogram_2d(dry_diameters, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vols)
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
     a = plt.gca()
@@ -37,7 +37,7 @@ def make_plot(dir_name,in_filename,out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../urban_plume_nucleate/out/"
+dir_name = "../../scenarios/4_nucleate/out/"
 
 filename_in = "urban_plume_wc_0001_00000001.nc"
 filename_out = "figs/2d_wc_bc_01.pdf"

@@ -18,14 +18,14 @@ num_avg = np.zeros([len(time_filename_list)])
 mass_avg = np.zeros([len(time_filename_list)])
 
 
-for i_loop in range (0, i_loop_max):
+for i_loop in range (0, config.i_loop_max):
 
     netcdf_pattern = "urban_plume_wc_10K_flat_00%02d_(.*).nc"  % i_loop
     print netcdf_pattern
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
     
-    array_num = np.zeros([len(time_filename_list),i_loop_max])
-    array_mass = np.zeros([len(time_filename_list),i_loop_max])
+    array_num = np.zeros([len(time_filename_list),config.i_loop_max])
+    array_mass = np.zeros([len(time_filename_list),config.i_loop_max])
 
     i_counter = 0
     for [time, filename, key] in time_filename_list:

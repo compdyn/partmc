@@ -36,7 +36,7 @@ for i_loop in range (0, config.i_loop_max):
         ncf.close()
 
         total_number = sum(1/particles.comp_vols)
-        total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
+        total_dry_mass = sum(particles.masses(exclude = ["H2O"])/particles.comp_vols)
         time_array[i_counter]= time / 3600.
         array_num[i_counter,i_loop]= total_number
         array_mass[i_counter,i_loop]= total_dry_mass * 1e9

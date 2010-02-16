@@ -60,8 +60,8 @@ fig.savefig("figs/number_10K_flat.pdf")
 
 plt.clf()
 for i_loop in range(0,config.i_loop_max):
-    plt.plot(time_array[:], array_mass[:,i_loop])
-plt.plot(time_array[:], mass_avg[:], 'k')
+    plt.plot(time_array[:], array_mass[:,i_loop], 'k')
+plt.plot(time_array[:], mass_avg[:], 'r')
 plt.xlabel("time ")
 plt.ylabel("mass concentration in \mu g m^{-3}")
 plt.title("10K flat")

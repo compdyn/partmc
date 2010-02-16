@@ -45,13 +45,15 @@ for i_loop in range (0, config.i_loop_max):
 
 print array_num.shape, array_mass.shape, time_array.shape
 num_avg = np.average(array_num, axis = 1)
+num_std = np.std(array_num, axis = 1)
 mass_avg = np.average(array_mass, axis = 1)
+mass_std = np.std(array_mass, axis = 1)
 
 print 'numbers ', array_num[:,0]
 plt.clf()
 for i_loop in range(0,config.i_loop_max):
     plt.plot(time_array[:], array_num[:,i_loop], 'k')
-plt.plot(time_array[:], num_avg[:], 'r')
+plt.errorbar(time_array[:], num_avg[:], num_std)
 plt.xlabel("time ")
 plt.ylabel("number concentration in m^{-3}")
 plt.title("10K flat")

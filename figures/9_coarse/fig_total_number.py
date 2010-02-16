@@ -39,7 +39,7 @@ for i_loop in range (0, config.i_loop_max):
         total_dry_mass = sum(particles.masses(exclude = ["H2O"])/particles.comp_vols)
         time_array[i_counter]= time / 3600.
         array_num[i_counter,i_loop]= total_number
-        print 'total_number ', i_counter, i_loop, total_number
+        print 'total_number ', i_counter, i_loop, total_number, array_num[i_counter,i_loop]
         array_mass[i_counter,i_loop]= total_dry_mass * 1e9
         i_counter += 1
 
@@ -47,11 +47,11 @@ print array_num.shape, array_mass.shape, time_array.shape
 num_avg = np.average(array_num, axis = 1)
 mass_avg = np.average(array_mass, axis = 1)
 
+print 'numbers ', array_num[:,0]
 plt.clf()
-plt.plot(time_array[:], array_num[:,0], 'r')
-plt.plot(time_array[:], array_num[:,1], 'b')
-plt.plot(time_array[:], array_num[:,2], 'g')
-#plt.plot(time_array[:], num_avg[:], 'k')
+for i_loop in range(0,config.i_loop_max):
+    plt.plot(time_array[:], array_num[:,i_loop], 'k')
+plt.plot(time_array[:], num_avg[:], 'r')
 plt.xlabel("time ")
 plt.ylabel("number concentration in m^{-3}")
 plt.title("10K flat")
@@ -59,10 +59,9 @@ fig = plt.gcf()
 fig.savefig("figs/number_10K_flat.pdf")
 
 plt.clf()
-plt.plot(time_array[:], array_mass[:,0], 'r')
-plt.plot(time_array[:], array_mass[:,1], 'b')
-plt.plot(time_array[:], array_mass[:,2], 'g')
-#plt.plot(time_array[:], mass_avg[:], 'k')
+for i_loop in range(0,config.i_loop_max):
+    plt.plot(time_array[:], array_mass[:,i_loop])
+plt.plot(time_array[:], mass_avg[:], 'k')
 plt.xlabel("time ")
 plt.ylabel("mass concentration in \mu g m^{-3}")
 plt.title("10K flat")

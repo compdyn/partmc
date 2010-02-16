@@ -39,6 +39,7 @@ for i_loop in range (0, config.i_loop_max):
         total_dry_mass = sum(particles.masses(exclude = ["H2O"])/particles.comp_vols)
         time_array[i_counter]= time / 3600.
         array_num[i_counter,i_loop]= total_number
+        print 'total_number ', i_counter, i_loop, total_number
         array_mass[i_counter,i_loop]= total_dry_mass * 1e9
         i_counter += 1
 

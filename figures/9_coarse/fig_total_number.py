@@ -8,68 +8,39 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
+import config
 
 netcdf_dir = "../../scenarios/5_weighted/out"
-netcdf_pattern1 = "urban_plume_wc_0001_(.*).nc"
-netcdf_pattern2 = "urban_plume_wc_0002_(.*).nc"
-netcdf_pattern3 = "urban_plume_wc_0003_(.*).nc"
+netcdf_pattern = "urban_plume_wc_10K_flat_0001_(.*).nc"
+time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
+time_array = np.zeros([len(time_filename_list)])
+num_avg = np.zeros([len(time_filename_list)])
+mass_avg = np.zeros([len(time_filename_list)])
 
-time_filename_list1 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern1)
-time_filename_list2 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern2)
-time_filename_list3 = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern3)
 
-time_array = np.zeros([len(time_filename_list1)])
+for i_loop in range (0, i_loop_max):
 
-array_num = np.zeros([len(time_filename_list1),3])
-array_mass = np.zeros([len(time_filename_list1),3])
+    netcdf_pattern = "urban_plume_wc_10K_flat_00%02d_(.*).nc"  % i_loop
+    print netcdf_pattern
+    time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
+    
+    array_num = np.zeros([len(time_filename_list),i_loop_max])
+    array_mass = np.zeros([len(time_filename_list),i_loop_max])
 
-num_avg = np.zeros([len(time_filename_list1)])
-mass_avg = np.zeros([len(time_filename_list1)])
+    i_counter = 0
+    for [time, filename, key] in time_filename_list:
+        print time, filename, key
+        ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+        particles = partmc.aero_particle_array_t(ncf)
+        env_state = partmc.env_state_t(ncf)
+        ncf.close()
 
-i_counter = 0
-for [time, filename, key] in time_filename_list1:
-    print time, filename, key
-    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = partmc.aero_particle_array_t(ncf)
-    env_state = partmc.env_state_t(ncf)
-    ncf.close()
-
-    total_number = sum(1/particles.comp_vols)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
-    time_array[i_counter]= time / 3600.
-    array_num[i_counter,0]= total_number
-    array_mass[i_counter,0]= total_dry_mass * 1e9
-    i_counter += 1
-
-i_counter = 0
-for [time, filename, key] in time_filename_list2:
-    print time, filename, key
-    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = partmc.aero_particle_array_t(ncf)
-    env_state = partmc.env_state_t(ncf)
-    ncf.close()
-
-    total_number = sum(1/particles.comp_vols)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
-
-    array_num[i_counter,1]= total_number
-    array_mass[i_counter,1]= total_dry_mass * 1e9
-    i_counter += 1
-
-i_counter = 0
-for [time, filename, key] in time_filename_list3:
-    print time, filename, key
-    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
-    particles = partmc.aero_particle_array_t(ncf)
-    env_state = partmc.env_state_t(ncf)
-    ncf.close()
-
-    total_number = sum(1/particles.comp_vols)
-    total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
-
-    array_num[i_counter,2]= total_number
-    array_mass[i_counter,2]= total_dry_mass * 1e9
-    i_counter += 1
+        total_number = sum(1/particles.comp_vols)
+        total_dry_mass = sum(particles.mass(exclude = ["H2O"])/particles.comp_vols)
+        time_array[i_counter]= time / 3600.
+        array_num[i_counter,i_loop]= total_number
+        array_mass[i_counter,i_loop]= total_dry_mass * 1e9
+        i_counter += 1
 
 print array_num.shape, array_mass.shape, time_array.shape
 num_avg = np.average(array_num, axis = 1)
@@ -82,9 +53,9 @@ plt.plot(time_array[:], array_num[:,2], 'g')
 plt.plot(time_array[:], num_avg[:], 'k')
 plt.xlabel("time ")
 plt.ylabel("number concentration in m^{-3}")
-plt.title("weighted -2")
+plt.title("10K flat")
 fig = plt.gcf()
-fig.savefig("figs/number_coarse_w-2.pdf")
+fig.savefig("figs/number_10K_flat.pdf")
 
 plt.clf()
 plt.plot(time_array[:], array_mass[:,0], 'r')
@@ -93,9 +64,9 @@ plt.plot(time_array[:], array_mass[:,2], 'g')
 plt.plot(time_array[:], mass_avg[:], 'k')
 plt.xlabel("time ")
 plt.ylabel("mass concentration in \mu g m^{-3}")
-plt.title("weighted -2")
+plt.title("10K flat")
 fig = plt.gcf()
-fig.savefig("figs/mass_coarse_w-2.pdf")
+fig.savefig("figs/mass_10K_flat.pdf")
 
 
 

@@ -1,5 +1,5 @@
 run_type particle                # particle-resolved run
-output_prefix out/urban_plume_wc # prefix of output files
+output_prefix %%OUTPUT_PREFIX%%  # prefix of output files
 n_loop 10                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
@@ -15,7 +15,9 @@ n_bin 160                       # number of bins
 r_min 1e-10                     # minimum radius (m)
 r_max 1e-5                      # maximum radius (m)
 
-weight none                     # weighting function
+weight %%WEIGHTING_FUNC%%       # weighting function
+ref_radius %%REF_RADIUS%%       # radius at which weight is 1
+exponent %%EXPONENT%%           # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations

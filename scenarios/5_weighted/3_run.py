@@ -3,27 +3,27 @@ import subprocess
 
 str_exec = "../../build/partmc"
 
-for hour in range(1, 50):
-    print "hour = ", hour
+for counter in ["10K", "100K"]:
+    print "counter = ", counter
     
-    spec_file_ref = "spec/cond_%02d_ref.spec" % hour
-    spec_file_comp = "spec/cond_%02d_comp.spec" % hour 
-    spec_file_size = "spec/cond_%02d_size.spec" % hour
-    spec_file_both = "spec/cond_%02d_both.spec" % hour
+    spec_file_flat = "spec/urban_plume_wc_%s_flat.spec" % (counter)
+    spec_file_wei1 = "spec/urban_plume_wc_%s_wei-1.spec" % (counter) 
+    spec_file_wei2 = "spec/urban_plume_wc_%s_wei-2.spec" % (counter)
+    spec_file_wei3 = "spec/urban_plume_wc_%s_wei-3.spec" % (counter)
 
-    command_1 = [str_exec, spec_file_ref]
-    command_2 = [str_exec, spec_file_comp]
-    command_3 = [str_exec, spec_file_size]
-    command_4 = [str_exec, spec_file_both]
+    command_1 = [str_exec, spec_file_flat]
+    command_2 = [str_exec, spec_file_wei1]
+    command_3 = [str_exec, spec_file_wei2]
+    command_4 = [str_exec, spec_file_wei3]
 
     print command_1
-    subprocess.check_call(command_1)
+#    subprocess.check_call(command_1)
 
     print command_2
-    subprocess.check_call(command_2)
+#    subprocess.check_call(command_2)
 
     print command_3
-    subprocess.check_call(command_3)
+#    subprocess.check_call(command_3)
 
     print command_4
-    subprocess.check_call(command_4)
+#    subprocess.check_call(command_4)

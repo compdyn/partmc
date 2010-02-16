@@ -31,13 +31,5 @@ for counter in ["10K", "100K"]:
         f_in.close()
         f_out.close()
 
-#    filename_out_temp = "temp/temp_%02d.dat" % counter
-#    print "filename_out_temp", filename_out_temp
-#    f_out = open(filename_out_temp, 'w')
 
-#    f_out.write("# time (s)\n")
-#    f_out.write("# temp (K)\n")
-#    f_out.write("time  %.2f %.2f\n" % ((counter-1) * 3600.0, (counter-1) * 3600.0 + 1200))
-#    f_out.write("temp  290   280\n")   
-#    f_out.close()
 

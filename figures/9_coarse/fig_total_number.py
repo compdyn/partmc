@@ -20,7 +20,7 @@ mass_avg = np.zeros([len(time_filename_list)])
 
 for i_loop in range (0, config.i_loop_max):
 
-    netcdf_pattern = "urban_plume_wc_10K_flat_00%02d_(.*).nc"  % i_loop
+    netcdf_pattern = "urban_plume_wc_10K_flat_00%02d_(.*).nc"  % (i_loop+1)
     print netcdf_pattern
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
     

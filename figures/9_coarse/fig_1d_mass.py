@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import Scientific.IO.NetCDF
 import sys
@@ -8,50 +8,44 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
+import config
 
-#def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename):
-def make_plot(in_dir, in_filename1, out_filename):
-    print in_filename1
-    ncf1 = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename1)
-    particles1 = partmc.aero_particle_array_t(ncf1)
-    ncf1.close()
-
-#    ncf2 = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename2)
-#    particles2 = partmc.aero_particle_array_t(ncf2)
-#    ncf2.close()
-
-#    ncf3 = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename3)
-#    particles3 = partmc.aero_particle_array_t(ncf3)
-#    ncf3.close()
-
+def make_plot(in_dir, in_files, title, out_filename):
     x_axis = partmc.log_grid(min=1e-10,max=1e-4,n_bin=100)
-    x_centers = x_axis.centers() 
+    x_centers = x_axis.centers()
+    counter = 0
+    hist_array = np.zeros([len(x_centers),config.i_loop_max])
+    for file in in_files:
+        ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+file)
+        particles = partmc.aero_particle_array_t(ncf)
+        ncf.close() 
 
-    dry_diameters1 = particles1.dry_diameters()
-#    dry_diameters2 = particles2.dry_diameters()
-#    dry_diameters3 = particles3.dry_diameters()
-
-    hist1 = partmc.histogram_1d(dry_diameters1, x_axis, weights = particles1.masses() / particles1.comp_vols)
-#    hist2 = partmc.histogram_1d(dry_diameters2, x_axis, weights = particles2.masses() / particles2.comp_vols)
-#    hist3 = partmc.histogram_1d(dry_diameters3, x_axis, weights = particles3.masses() / particles3.comp_vols)
-
+        dry_diameters = particles.dry_diameters()
+        hist = partmc.histogram_1d(dry_diameters, x_axis, weights = particles.masses(exclude=["H2O"]) / particles.comp_vols)
+        hist_array[:,counter] = hist
+        counter = counter+1
     plt.clf()
-    plt.loglog(x_axis.centers(), hist1, 'r')
-#    plt.loglog(x_axis.centers(), hist2, 'b')
-#    plt.loglog(x_axis.centers(), hist3, 'g')
-#    plt.axis([1e-10, 1e-4, 1e7, 1e15])
+    for i_loop in range(0,config.i_loop_max):
+        plt.loglog(x_axis.centers(), hist_array[:,i_loop], 'k')
+        plt.errorbar(x_axis.centers(), np.average(hist_array,axis = 1), np.std(hist_array, axis = 1))
+#    plt.axis([1e-10, 1e-4, 1e4, 1e11])
     plt.xlabel("dry diameter (m)")
-    plt.ylabel("mass density (kg m^{-3})")
-    plt.title("100K flat")
+    plt.ylabel(" mass concentration (kg m^{-3})")
+    plt.title(title)
     fig = plt.gcf()
     fig.savefig(out_filename)
 
 dir_name = "../../scenarios/5_weighted/out/"
 for hour in range(1, 26):
     print "hour = ", hour
-    filename_in1 = "urban_plume_wc_0001_000000%02d.nc" % hour
-#    filename_in2 = "urban_plume_wc_0002_000000%02d.nc" % hour
-#    filename_in3 = "urban_plume_wc_0003_000000%02d.nc" % hour
-    filename_out = "figs/1d_wc_mass_%02d.pdf" % hour
-#    make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out)
-    make_plot(dir_name, filename_in1, filename_out)
+    files = []
+    print 'files ', files
+    for i_loop in range (0, config.i_loop_max):
+        filename_in = "urban_plume_wc_10K_wei-3_00%02d_000000%02d.nc" % ((i_loop+1), hour)
+        print i_loop, filename_in
+        files.append(filename_in)
+    print files
+    filename_out = "figs/1d_mass_10K_wei-3_%02d.pdf" % hour
+    title = '10K wei-3, %02d hour' % (hour-1)
+    print filename_out
+    make_plot(dir_name, files, title, filename_out)

@@ -5,6 +5,8 @@
 
 \begin{document}
 
+\section{Condensation}
+
 \begin{align}
   P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
   \frac{\partial P^0}{\partial T}(T) &= P^0(T) 7.45 \ln(10)\frac{273.15 - 38}{(T-38)^2} \displaybreak[0] \\
@@ -120,6 +122,8 @@ For equilibriation:
 
 \newpage
 
+\section{Jacobian inverse}
+
 To solve $P X = R$ for $P = I - \gamma J$, with $J$ the Jacobian, we use:
 \begin{align}
   \begin{bmatrix} A & B \\ C & D \end{bmatrix}
@@ -142,7 +146,8 @@ $x$ with~(\ref{eq:solve_x}).
 
 \newpage
 
-\vspace{2cm}
+\section{Condensation variables}
+
 \begin{tabular}{lp{4cm}clp{3cm}}
 \hline Symbol & Meaning  & Numerical value &  Reference    \\
 \hline             
@@ -185,23 +190,46 @@ $\dot{H}_{\rm env}$     & relative humidity change due to environment &  &  \\
 
 \newpage
 
+\section{Averaging}
+
+Here everything is written as if we are averaging all particles. In
+reality, we first organize the particles into size bins and then only
+average within each bin.
+
 \begin{align*}
-  m_i^a &= \text{mass of species $a = 1,\ldots,A$ in particle $i = 1,\ldots,N$} \\
-  m^a &= \sum_i m_i^a = \text{total mass of species $a$} \\
-  m_i &= \sum_a m_i^a = \text{total mass of particle $i$} \\
-  m &= \sum_i \sum_a m_i^a = \sum_i m_i = \sum_a m^a = \text{total mass} \\
-  \intertext{average composition:}
-  \bar{m}_i^a &= \frac{m^a m_i}{m} \\
-  \bar{m}^a &= \sum_i \bar{m}_i^a = \sum_i \frac{m^a m_i}{m} = m^a \\
-  \bar{m}_i &= \sum_a \bar{m}_i^a = \sum_a \frac{m^a m_i}{m} = m_i \\
-  \bar{m} &= \sum_i \sum_a \bar{m}_i^a = m \\
-  \frac{\bar{m}_i^a}{\bar{m}_i} &= \frac{m^a m_i}{m} \frac{1}{m_i} = \frac{m^a}{m} \\
-  \intertext{average size:}
-  \hat{m}_i^a &= \frac{m_i^a}{m_i} \frac{m}{N} \\
-  \hat{m}_i &= \sum_a \frac{m_i^a}{m_i} \frac{m}{N} = \frac{m}{N} \\
-  \hat{m}^a &= \sum_i \frac{m_i^a}{m_i} \frac{m}{N} \ne m^a \\
-  \hat{m} &= \sum_i \sum_a \hat{m}_i^a = m \\
-  \frac{\hat{m}_i^a}{\hat{m}_i} &= \frac{\frac{m_i^a}{m_i} \frac{m}{N}}{\frac{m}{N}} = \frac{m_i^a}{m_i}
+  \intertext{Given:}
+  v_i^a &= \text{volume of species $a = 1,\ldots,A$ in particle $i = 1,\ldots,N$} \\
+  \intertext{Define:}
+  v^a &= \sum_{i=1}^N v_i^a = \text{total volume of species $a$ in all particles} \\
+  v_i &= \sum_{a=1}^A v_i^a = \text{total volume of particle $i$} \\
+  v &= \sum_{i=1}^N \sum_{a=1}^A v_i^a = \sum_{i=1}^N v_i = \sum_{a=1}^A v^a = \text{total volume of all particles} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{composition averaging defined by:}
+  \bar{v}_i^a &= \frac{v^a v_i}{v} \\
+  \intertext{properties of composition averaging:}
+  \bar{v}^a &= \sum_{i=1}^N \bar{v}_i^a = \sum_{i=1}^N \frac{v^a v_i}{v} = v^a \text{ (total species volumes are preserved)} \\
+  \bar{v}_i &= \sum_{a=1}^A \bar{v}_i^a = \sum_{a=1}^A \frac{v^a v_i}{v} = v_i \text{ (particle volumes are preserved)} \\
+  \bar{v} &= \sum_{i=1}^N \sum_{a=1}^A \bar{v}_i^a = \sum_{i=1}^N \sum_{a=1}^A \frac{v^a v_i}{v} = \sum_{i=1}^N v_i = v \text{ (total volume is preserved)} \\
+  \frac{\bar{v}_i^a}{\bar{v}_i} &= \frac{v^a v_i}{v} \frac{1}{v_i} = \frac{v^a}{v} \text{ (per-particle species ratios are all equal and the same as the total species ratios)} \\
+  \frac{\bar{v}_i}{\bar{v}} &= \frac{v_i}{v} \text{ (particle volume ratios of total volume are preserved)}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{size averaging defined by:}
+  \hat{v}_i^a &= \frac{v_i^a}{v_i} \frac{v}{N} \\
+  \intertext{properties of size averaging:}
+  \hat{v}_i &= \sum_{a=1}^A \hat{v}_i^a = \sum_{a=1}^A \frac{v_i^a}{v_i} \frac{v}{N} = \frac{v}{N} \text{ (particle volumes are average volume)} \\
+  \hat{v}^a &= \sum_{i=1}^N \hat{v}_i^a = \sum_{i=1}^N \frac{v_i^a}{v_i} \frac{v}{N} \ne v^a \text{ (total species volumes are not preserved)} \\
+  \hat{v} &= \sum_{i=1}^N \sum_{a=1}^A \hat{v}_i^a = \sum_{i=1}^N \sum_{a=1}^A \frac{v_i^a}{v_i} \frac{v}{N} = \sum_{i=1}^N \frac{v}{N} = v \text{ (total volume is preserved)} \\
+  \frac{\hat{v}_i^a}{\hat{v}_i} &= \frac{\frac{v_i^a}{v_i} \frac{v}{N}}{\frac{v}{N}} = \frac{v_i^a}{v_i} \text{ (per-particle species ratios are preserved)} \\
+  \frac{\hat{v}_i}{\hat{v}} &= \frac{v/N}{v} = \frac{1}{N} \text{ (particle volume ratios of total volume are all equal)}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{if size averaging is done after composition averaging then:}
+  \hat{\bar{v}}^a_i &= \frac{\bar{v}_i^a}{\bar{v}_i} \frac{\bar{v}}{N} = \frac{v^a}{N} \\
+  \intertext{properties of size averaging after composition averaging:}
+  \hat{\bar{v}}_i &= \sum_{a=1}^A \hat{\bar{v}}_i^a = \sum_{a=1}^A \frac{v^a}{N} = \frac{v}{N} \text{ (particle volumes are average volume)} \\
+  \hat{\bar{v}}^a &= \sum_{i=1}^N \hat{\bar{v}}_i^a = \sum_{i=1}^N \frac{v^a}{N} = v^a \text{ (total species volumes are preserved)} \\
+  \hat{\bar{v}} &= \sum_{i=1}^N \sum_{a=1}^A \hat{\bar{v}}_i^a = \sum_{i=1}^N \sum_{a=1}^A \frac{v^a}{N} = \sum_{i=1}^N \frac{v}{N} = v \text{ (total volume is preserved)} \\
+  \frac{\hat{\bar{v}}_i^a}{\hat{\bar{v}}_i} &= \frac{\frac{v^a}{N}}{\frac{v}{N}} = \frac{v^a}{v} \text{ (per-particle species ratios are all equal and the same as the total species ratios)} \\
+  \frac{\hat{\bar{v}}_i}{\hat{\bar{v}}} &= \frac{\frac{v}{N}}{v} = \frac{1}{N} \text{ (particle volume ratios of total volume are all equal)}
 \end{align*}
 
 \end{document}

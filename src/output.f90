@@ -5,6 +5,26 @@
 !> \file
 !> The pmc_output module.
 
+!> \page output_format Output NetCDF File Format
+!!
+!! PartMC output files are in the <a
+!! href="http://www.unidata.ucar.edu/software/netcdf/">NetCDF Classic
+!! Format</a> (also known as NetCDF-3 format). The dimensions and
+!! variables in the files come in several different groups, as
+!! follows:
+!!
+!! \subpage output_format_general "General Variables"
+!!
+!! \subpage output_format_env_state "Environment State"
+!!
+!! \subpage output_format_gas_data "Gas Material Data"
+!!
+!! \subpage output_format_gas_state "Gas State"
+!!
+!! \subpage output_format_aero_data "Aerosol Material Data"
+!!
+!! \subpage output_format_aero_state "Aerosol State"
+
 !> Write data in NetCDF format.
 module pmc_output
 
@@ -193,21 +213,68 @@ contains
     call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
          "opening " // trim(filename))
     
+    !> \page output_format_general Output NetCDF File Format: General Variables
+    !!
+    !! The general global attributes are:
+    !!   - \b title: always set to the string "PartMC output file"
+    !!   - \b version: set to the string "PartMC version V.V.V" where V.V.V
+    !!     is the PartMC version that created the file
+    !!   - \b history: set to the string
+    !!     "YYYY-MM-DDThh:mm:ss[+-]ZZ:zz created by PartMC" where the first
+    !!     term is the file creation time in the
+    !!     <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601
+    !!     format</a>. For example, noon Pacific Standard Time (PST) on
+    !!     February 1st, 2000 would be written 2000-02-01T12:00:00-08:00.
+    !!     The date and time variables are:
+    !!     - YYYY: four-digit year
+    !!     - MM: two-digit month number
+    !!     - DD: two-digit day within month
+    !!     - T: literal "T" character
+    !!     - hh: two-digit hour in 24-hour format
+    !!     - mm: two-digit minute
+    !!     - ss: two-digit second
+    !!     - [+-]: a literal "+" or "-" character giving the time zone
+    !!       offset sign
+    !!     - ZZ: two-digit hours of the time zone offset from UTC
+    !!     - zz: two-digit minutes of the time zone offset from UTC
+    !!
+    !! The general variables are:
+    !!   - \b time (s): time elapsed since the simulation start time, as
+    !!     specified in the \ref output_format_env_state section
+    !!   - \b timestep (s): the current timestep size
+    !!   - \b loop: the loop number of this simulation (starting from 1)
+    !!   - \b timestep_index: an integer that is 1 on the first timestep, 2
+    !!     on the second timestep, etc.
+    !!   - \b processor (MPI only): the processor number (starting from 1)
+    !!     that output this data file
+    !!   - \b total_processors (MPI only): the total number of processors
+
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
          "PartMC output file"))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
+         "PartMC version 2.0.0"))
     call iso8601_date_and_time(history)
     history((len_trim(history)+1):) = " created by PartMC"
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
     
     call pmc_nc_check(nf90_enddef(ncid))
     
-    call pmc_nc_write_real(ncid, time, "time", "s")
-    call pmc_nc_write_real(ncid, del_t, "timestep", "s")
-    call pmc_nc_write_integer(ncid, i_loop, "loop", "1")
-    call pmc_nc_write_integer(ncid, index, "timestep_index", "1")
+    call pmc_nc_write_real(ncid, time, "time", unit="s", &
+         description="time elapsed since simulation start")
+    call pmc_nc_write_real(ncid, del_t, "timestep", unit="s", &
+         description="current timestep size")
+    call pmc_nc_write_integer(ncid, i_loop, "loop", &
+         description="loop repeat number of this simulation " &
+         // "(starting from 1)")
+    call pmc_nc_write_integer(ncid, index, "timestep_index", &
+         description="an integer that is 1 on the first timestep, " &
+         // "2 on the second timestep, etc.")
 #ifdef PMC_USE_MPI
-    call pmc_nc_write_integer(ncid, write_rank + 1, "processor", "1")
-    call pmc_nc_write_integer(ncid, write_n_proc, "total_processors", "1")
+    call pmc_nc_write_integer(ncid, write_rank + 1, "processor", &
+         description="the processor number (starting from 1) " &
+         "that output this data file")
+    call pmc_nc_write_integer(ncid, write_n_proc, "total_processors", &
+         description="total number of processors")
 #endif
 
     call env_state_output_netcdf(env_state, ncid)

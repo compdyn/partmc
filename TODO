@@ -198,3 +198,6 @@ Change real(kind=dp) to real(dp), etc. Only for real() and integer().
 Move doc/condensation/new_eqns.tex to doc/condense.tex.
 
 Add weight support to condensation.
+
+Add title parameter as the first line in .spec files and write this as
+the title attribute in the output files.

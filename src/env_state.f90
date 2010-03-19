@@ -758,19 +758,44 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    call pmc_nc_write_real(ncid, env_state%temp, "temperature", "K")
+    !> \page output_format_env_state Output NetCDF File Format: Environment State
+    !!
+    !! The environment state variables are:
+    !!   - \b temperature (K): current air temperature
+    !!   - \b relative_humidity (dimensionless): current air
+    !!     relative humidity (value of 1 means completely saturated)
+    !!   - \b pressure (Pa): current air pressure
+    !!   - \b longitude (degrees): longitude of simulation location
+    !!   - \b latitude (degrees): latitude of simulation location
+    !!   - \b altitude (m): altitude of simulation location
+    !!   - \b start_time_of_day (s): time-of-day of the simulation start
+    !!     measured in seconds after midnight
+    !!   - \b start_day_of_year: day-in-year number of the simulation start
+    !!   - \b elapsed_time (s): elapsed time since the simulation start
+    !!   - \b height (m): current boundary layer mixing height
+
+    call pmc_nc_write_real(ncid, env_state%temp, "temperature", unit="K", &
+         standard_name="air_temperature")
     call pmc_nc_write_real(ncid, env_state%rel_humid, &
-         "relative_humidity", "1")
-    call pmc_nc_write_real(ncid, env_state%pressure, "pressure", "Pa")
-    call pmc_nc_write_real(ncid, env_state%longitude, "longitude", "degrees")
-    call pmc_nc_write_real(ncid, env_state%latitude, "latitude", "degrees")
-    call pmc_nc_write_real(ncid, env_state%altitude, "altitude", "m")
+         "relative_humidity", unit="1", standard_name="relative_humidity")
+    call pmc_nc_write_real(ncid, env_state%pressure, "pressure", unit="Pa", &
+         standard_name="air_pressure")
+    call pmc_nc_write_real(ncid, env_state%longitude, "longitude", &
+         unit="degree_east", standard_name="longitude")
+    call pmc_nc_write_real(ncid, env_state%latitude, "latitude", &
+         unit="degree_north", standard_name="latitude")
+    call pmc_nc_write_real(ncid, env_state%altitude, "altitude", unit="m", &
+         standard_name="altitude")
     call pmc_nc_write_real(ncid, env_state%start_time, &
-         "start_time_of_day", "s")
+         "start_time_of_day", unit="s", description="time-of-day of " &
+         // "simulation start in seconds since midnight")
     call pmc_nc_write_integer(ncid, env_state%start_day, &
-         "start_day_of_year", "1")
-    call pmc_nc_write_real(ncid, env_state%elapsed_time, "elapsed_time", "s")
-    call pmc_nc_write_real(ncid, env_state%height, "height", "m")
+         "start_day_of_year", &
+         description="day-of-year number of simulation start")
+    call pmc_nc_write_real(ncid, env_state%elapsed_time, "elapsed_time", &
+         unit="s", description="elapsed time since simulation start")
+    call pmc_nc_write_real(ncid, env_state%height, "height", unit="m", &
+         long_name="boundary layer mixing height")
 
   end subroutine env_state_output_netcdf
 

@@ -447,9 +447,11 @@ contains
     end do
     call pmc_nc_check(nf90_def_var(ncid, "aero_species", NF90_INT, &
          dimid_aero_species, varid_aero_species))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_species, "unit", "1"))
     call pmc_nc_check(nf90_put_att(ncid, varid_aero_species, "names", &
          aero_species_names))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_species, "description", &
+         "dummy dimension variable (no useful value) - read species names " &
+         // "as comma-separated values from the 'names' attribute"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
@@ -473,21 +475,49 @@ contains
 
     integer :: dimid_aero_species
 
+    !> \page output_format_aero_data Output NetCDF File Format: Aerosol Material Data
+    !!
+    !! The aerosol material data dimensions are:
+    !!   - \b aero_species: number of aerosol species
+    !!
+    !! The aerosol material data variables are:
+    !!   - \b aero_species (dim \c aero_species): dummy dimension variable
+    !!     (no useful value) - read species names as comma-separated values
+    !!     from the 'names' attribute
+    !!   - \b aero_mosaic_index (dim \c aero_species): indices of species
+    !!     in MOSAIC
+    !!   - \b aero_density (kg/m^3, dim \c aero_species): densities
+    !!     of aerosol species
+    !!   - \b aero_num_ions (dim \c aero_species): number of ions produced
+    !!     when one molecule of each species fully dissociates in water
+    !!   - \b aero_solubility (dimensionless, dim \c aero_species):
+    !!     solubilities of aerosol species
+    !!   - \b aero_molec_weight (kg/mol, dim \c aero_species): molecular
+    !!     weights of aerosol species
+    !!   - \b aero_kappa (kg/mol, dim \c aero_species): hygroscopicity
+    !!     parameters of aerosol species
+
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
 
     call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
-         "aero_mosaic_index", "1", (/ dimid_aero_species /))
+         "aero_mosaic_index", (/ dimid_aero_species /), &
+         long_name="MOSAIC indices of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%density, &
-         "aero_density", "kg/m^3", (/ dimid_aero_species /))
+         "aero_density", (/ dimid_aero_species /), unit="kg/m^3", &
+         long_name="densities of aerosol species")
     call pmc_nc_write_integer_1d(ncid, aero_data%num_ions, &
-         "aero_num_ions", "1", (/ dimid_aero_species /))
+         "aero_num_ions", (/ dimid_aero_species /), &
+         long_name="number of ions after dissociation of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%solubility, &
-         "aero_solubility", "1", (/ dimid_aero_species /))
+         "aero_solubility", (/ dimid_aero_species /), unit="1", &
+         long_name="solubilities of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%molec_weight, &
-         "aero_molec_weight", "kg/mole", (/ dimid_aero_species /))
+         "aero_molec_weight", (/ dimid_aero_species /), unit="kg/mol", &
+         long_name="molecular weights of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
-         "aero_kappa", "1", (/ dimid_aero_species /))
+         "aero_kappa", (/ dimid_aero_species /), unit="1", &
+         long_name="hygroscopicity parameters (kappas) of aerosol species")
 
   end subroutine aero_data_output_netcdf
 

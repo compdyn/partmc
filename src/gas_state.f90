@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -466,11 +466,21 @@ contains
 
     integer :: dimid_gas_species
 
+    !> \page output_format_gas_state Output NetCDF File Format: Gas State
+    !!
+    !! The gas state uses the \c gas_species dimension as specified in the
+    !! \ref output_format_gas_data section.
+    !!
+    !! The gas state variables are:
+    !!   - \b gas_mixing_ratio (ppb, dim \c gas_species): current mixing
+    !!     ratios of each gas species
+
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)
 
     call pmc_nc_write_real_1d(ncid, gas_state%mix_rat, &
-         "gas_mixing_ratio", "ppb", (/ dimid_gas_species /))
+         "gas_mixing_ratio", (/ dimid_gas_species /), unit="ppb", &
+         long_name="mixing ratios of gas species")
 
   end subroutine gas_state_output_netcdf
 

@@ -5,9 +5,11 @@
 !> \file
 !> The partmc program.
 
-!> \mainpage PartMC Internal Code Documentation
+!> \mainpage PartMC Code Documentation
 !>
-!> \ref coding_style - Description of code conventions and style.
+!> \subpage output_format - Description of variables in the output files.
+!>
+!> \subpage coding_style - Description of code conventions and style.
 !>
 !> <br><br>
 !>

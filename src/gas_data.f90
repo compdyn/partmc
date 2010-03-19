@@ -326,9 +326,11 @@ contains
     end do
     call pmc_nc_check(nf90_def_var(ncid, "gas_species", NF90_INT, &
          dimid_gas_species, varid_gas_species))
-    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species, "unit", "1"))
     call pmc_nc_check(nf90_put_att(ncid, varid_gas_species, "names", &
          gas_species_names))
+    call pmc_nc_check(nf90_put_att(ncid, varid_gas_species, "description", &
+         "dummy dimension variable (no useful value) - read species names " &
+         // "as comma-separated values from the 'names' attribute"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
@@ -352,13 +354,29 @@ contains
 
     integer :: dimid_gas_species
 
+    !> \page output_format_gas_data Output NetCDF File Format: Gas Material Data
+    !!
+    !! The gas material data dimensions are:
+    !!   - \b gas_species: number of gas species
+    !!
+    !! The gas material data variables are:
+    !!   - \b gas_species (dim \c gas_species): dummy dimension variable
+    !!     (no useful value) - read species names as comma-separated values
+    !!     from the 'names' attribute
+    !!   - \b gas_mosaic_index (dim \c gas_species): MOSAIC indices of
+    !!     gas species
+    !!   - \b gas_molec_weight (kg/mol, dim \c gas_species): molecular
+    !!     weights of gas species
+
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)
 
     call pmc_nc_write_integer_1d(ncid, gas_data%mosaic_index, &
-         "gas_mosaic_index", "1", (/ dimid_gas_species /))
+         "gas_mosaic_index", (/ dimid_gas_species /), &
+         long_name="MOSAIC indices of gas species")
     call pmc_nc_write_real_1d(ncid, gas_data%molec_weight, &
-         "gas_molec_weight", "kg/mole", (/ dimid_gas_species /))
+         "gas_molec_weight", (/ dimid_gas_species /), unit="kg/mol", &
+         long_name="molecular weights of gas species")
 
   end subroutine gas_data_output_netcdf
 

@@ -1,5 +1,5 @@
 
-VERSION = 1.2.0
+VERSION = 2.0.0
 DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 
@@ -23,6 +23,7 @@ dist: doc
 	grep -q "^Released $(DATE)" README
 	grep -q "^$(VERSION) - $(DATE)" README
 	grep -q "^PROJECT_NUMBER         = $(VERSION)" Doxyfile
+        grep -q "^ *PartMC version $(VERSION)" src/output.f90
 	test ! -d .svn # check this was svn exported
 	test ! -d doc/condensation # no condensation notes
 	mkdir $(DIST_NAME)

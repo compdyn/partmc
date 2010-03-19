@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for the.
 
@@ -423,10 +423,10 @@ contains
          dimid_aero_species)
 
     call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &
-         "aero_number_concentration", "1/m^3", (/ dimid_aero_radius /))
+         "aero_number_concentration", (/ dimid_aero_radius /), unit="1/m^3")
     call pmc_nc_write_real_2d(ncid, mass_den, &
-         "aero_mass_concentration", "kg/m^3", &
-         (/ dimid_aero_radius, dimid_aero_species /))
+         "aero_mass_concentration", &
+         (/ dimid_aero_radius, dimid_aero_species /), unit="kg/m^3")
 
   end subroutine aero_binned_output_netcdf
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -206,8 +206,45 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write attributes for a variable to a NetCDF file.
+  subroutine pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+       description)
+
+    !> NetCDF file ID, in define mode.
+    integer, intent(in) :: ncid
+    !> Variable ID to write attributes for.
+    integer, intent(in) :: varid
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    if (present(unit)) then
+       call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    end if
+    if (present(long_name)) then
+       call pmc_nc_check(nf90_put_att(ncid, varid, "long_name", long_name))
+    end if
+    if (present(standard_name)) then
+       call pmc_nc_check(nf90_put_att(ncid, varid, "standard_name", &
+            standard_name))
+    end if
+    if (present(description)) then
+       call pmc_nc_check(nf90_put_att(ncid, varid, "description", &
+            description))
+    end if
+    
+  end subroutine pmc_nc_write_atts
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write a single real to a NetCDF file.
-  subroutine pmc_nc_write_real(ncid, var, name, unit)
+  subroutine pmc_nc_write_real(ncid, var, name, unit, long_name, &
+       standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -216,13 +253,20 @@ contains
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
-    character(len=*), intent(in) :: unit
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, dimids(0)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     call pmc_nc_check(nf90_put_var(ncid, varid, var))
@@ -232,7 +276,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a single integer to a NetCDF file.
-  subroutine pmc_nc_write_integer(ncid, var, name, unit)
+  subroutine pmc_nc_write_integer(ncid, var, name, unit, long_name, &
+       standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -241,13 +286,20 @@ contains
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Unit of variable.
-    character(len=*), intent(in) :: unit
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, dimids(0)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     call pmc_nc_check(nf90_put_var(ncid, varid, var))
@@ -257,7 +309,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple real array to a NetCDF file.
-  subroutine pmc_nc_write_real_1d(ncid, var, name, unit, dimids)
+  subroutine pmc_nc_write_real_1d(ncid, var, name, dimids, unit, long_name, &
+       standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -265,16 +318,23 @@ contains
     real(kind=dp), intent(in) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(in) :: unit
     !> NetCDF dimension IDs of the variable
     integer, intent(in) :: dimids(1)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, start(1), count(1)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     start = (/ 1 /)
@@ -287,7 +347,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer array to a NetCDF file.
-  subroutine pmc_nc_write_integer_1d(ncid, var, name, unit, dimids)
+  subroutine pmc_nc_write_integer_1d(ncid, var, name, dimids, unit, &
+       long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -295,16 +356,23 @@ contains
     integer, intent(in) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(in) :: unit
     !> NetCDF dimension IDs of the variable
     integer, intent(in) :: dimids(1)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, start(1), count(1)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     start = (/ 1 /)
@@ -317,7 +385,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple real 2D array to a NetCDF file.
-  subroutine pmc_nc_write_real_2d(ncid, var, name, unit, dimids)
+  subroutine pmc_nc_write_real_2d(ncid, var, name, dimids, unit, long_name, &
+       standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -325,16 +394,23 @@ contains
     real(kind=dp), intent(in) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(in) :: unit
     !> NetCDF dimension IDs of the variable
     integer, intent(in) :: dimids(2)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, start(2), count(2)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     start = (/ 1, 1 /)
@@ -347,7 +423,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer 2D array to a NetCDF file.
-  subroutine pmc_nc_write_integer_2d(ncid, var, name, unit, dimids)
+  subroutine pmc_nc_write_integer_2d(ncid, var, name, dimids, unit, &
+       long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -355,16 +432,23 @@ contains
     integer, intent(in) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(in) :: unit
     !> NetCDF dimension IDs of the variable
     integer, intent(in) :: dimids(2)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
 
     integer :: varid, start(2), count(2)
 
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, dimids, varid))
-    call pmc_nc_check(nf90_put_att(ncid, varid, "unit", unit))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
     call pmc_nc_check(nf90_enddef(ncid))
 
     start = (/ 1, 1 /)

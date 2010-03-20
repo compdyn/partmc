@@ -25,9 +25,13 @@
 !!
 !! \subpage output_format_aero_data "Aerosol Material Data"
 !!
-!! \subpage output_format_aero_state "Aerosol State"
+!! \subpage output_format_aero_state "Aerosol Particle State"
 !!
-!! \subpage output_format_aero_removed "Aerosol Removal Information"
+!! \subpage output_format_aero_removed "Aerosol Particle Removal Information"
+!!
+!! \subpage output_format_bin_grid "Bin Grid Data"
+!!
+!! \subpage output_format_aero_binned "Aerosol Binned Sectional State"
 
 !> Write data in NetCDF format.
 module pmc_output
@@ -161,6 +165,44 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Helper routine to write various global attributes. Do not call
+  !> directly.
+  subroutine write_header_and_time(ncid, time, del_t, index)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Filename index.
+    integer, intent(in) :: index
+
+    character(len=500) :: history
+
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
+         "PartMC version 2.0.0"))
+    call iso8601_date_and_time(history)
+    history((len_trim(history)+1):) = " created by PartMC"
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "Conventions", "CF-1.4"))
+    
+    call pmc_nc_check(nf90_enddef(ncid))
+    
+    call pmc_nc_write_real(ncid, time, "time", unit="s", &
+         description="time elapsed since simulation start")
+    call pmc_nc_write_real(ncid, del_t, "timestep", unit="s", &
+         description="current timestep size")
+    call pmc_nc_write_integer(ncid, index, "timestep_index", &
+         description="an integer that is 1 on the first timestep, " &
+         // "2 on the second timestep, etc.")
+
+  end subroutine write_header_and_time
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write the current state for a single processor. Do not call this
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
@@ -199,7 +241,6 @@ contains
     integer, intent(in) :: write_n_proc
     
     character(len=len(prefix)+100) :: filename
-    character(len=500) :: history
     integer :: ncid
 
 #ifdef PMC_USE_MPI
@@ -221,8 +262,12 @@ contains
     !!
     !! The general global attributes are:
     !!   - \b title: always set to the string "PartMC output file"
-    !!   - \b version: set to the string "PartMC version V.V.V" where V.V.V
+    !!   - \b source: set to the string "PartMC version V.V.V" where V.V.V
     !!     is the PartMC version that created the file
+    !!   - \b Conventions: set to the string "CF-1.4", indicating
+    !!     compliance with the <a
+    !!     href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4">CF
+    !!     convention format</a>
     !!   - \b history: set to the string
     !!     "YYYY-MM-DDThh:mm:ss[+-]ZZ:zz created by PartMC" where the first
     !!     term is the file creation time in the
@@ -255,24 +300,12 @@ contains
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
          "PartMC output file"))
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
-         "PartMC version 2.0.0"))
-    call iso8601_date_and_time(history)
-    history((len_trim(history)+1):) = " created by PartMC"
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-    
     call pmc_nc_check(nf90_enddef(ncid))
-    
-    call pmc_nc_write_real(ncid, time, "time", unit="s", &
-         description="time elapsed since simulation start")
-    call pmc_nc_write_real(ncid, del_t, "timestep", unit="s", &
-         description="current timestep size")
+
+    call write_header_and_time(ncid, time, del_t, index)
     call pmc_nc_write_integer(ncid, i_loop, "loop", &
          description="loop repeat number of this simulation " &
          // "(starting from 1)")
-    call pmc_nc_write_integer(ncid, index, "timestep_index", &
-         description="an integer that is 1 on the first timestep, " &
-         // "2 on the second timestep, etc.")
 #ifdef PMC_USE_MPI
     call pmc_nc_write_integer(ncid, write_rank + 1, "processor", &
          description="the processor number (starting from 1) " &
@@ -601,7 +634,6 @@ contains
 
     integer :: ncid
     character(len=len(prefix)+100) :: filename
-    character(len=500) :: history
 
     write(filename, '(a,a,i8.8,a)') trim(prefix), &
          '_', index, '.nc'
@@ -611,17 +643,11 @@ contains
     ! write header attributes
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
          "PartMC sectional output file"))
-    call iso8601_date_and_time(history)
-    history((len_trim(history)+1):) = " created by PartMC"
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-
     call pmc_nc_check(nf90_enddef(ncid))
 
+    call write_header_and_time(ncid, time, del_t, index)
+
     ! write data
-    call pmc_nc_write_real(ncid, time, "time", "s")
-    call pmc_nc_write_real(ncid, del_t, "timestep", "s")
-    call pmc_nc_write_integer(ncid, index, "timestep_index", "1")
-    
     call env_state_output_netcdf(env_state, ncid)
     call gas_data_output_netcdf(gas_data, ncid)
     call gas_state_output_netcdf(gas_state, ncid, gas_data)

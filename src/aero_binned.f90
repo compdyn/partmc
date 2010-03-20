@@ -412,6 +412,28 @@ contains
     real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     
+    !> \page output_format_aero_binned Output NetCDF File Format: Aerosol Binned Sectional State
+    !!
+    !! The aerosol size distributions (number and mass) are stored on
+    !! a logarmithmic grid (see the \ref output_format_bin_grid
+    !! section). To compute the total number or mass concentration,
+    !! compute the sum over \c i of <tt>aero_number_concentration(i) *
+    !! aero_radius_widths(i)</tt>, for example.
+    !!
+    !! The aerosol binned sectional state uses the \c aero_species
+    !! dimension as specified in the \ref output_format_aero_data
+    !! section, as well as the \c aero_radius dimension specified in
+    !! the \ref output_format_bin_grid section.
+    !!
+    !! The aerosol binned sectional state variables are:
+    !!   - \b aero_number_concentration (#/m^3, dim \c aero_radius): the
+    !!     number size distribution for the aerosol population,
+    !!     \f$ dN(r)/d\ln r \f$, per bin
+    !!   - \b aero_mass_concentration (kg/m^3, dim
+    !!     <tt>dimid_aero_radius x dimid_aero_species</tt>): the mass size
+    !!     distribution for the aerosol population,
+    !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species
+    
     do i_bin = 1,bin_grid%n_bin
        mass_den(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
             * aero_data%density
@@ -423,10 +445,20 @@ contains
          dimid_aero_species)
 
     call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &
-         "aero_number_concentration", (/ dimid_aero_radius /), unit="1/m^3")
+         "aero_number_concentration", (/ dimid_aero_radius /), &
+         unit="1/m^3", &
+         long_name="aerosol number size concentration distribution", &
+         description="logarithmic number size concentration, " &
+         // "d N(r)/d ln r --- multiply by aero_radius_widths(i) " &
+         // "and sum over i to compute the total number concentration")
     call pmc_nc_write_real_2d(ncid, mass_den, &
          "aero_mass_concentration", &
-         (/ dimid_aero_radius, dimid_aero_species /), unit="kg/m^3")
+         (/ dimid_aero_radius, dimid_aero_species /), unit="kg/m^3", &
+         long_name="aerosol number size concentration distribution", &
+         description="logarithmic mass size concentration per species, " &
+         // "d M(r,s)/d ln r --- multiply by aero_radius_widths(i) " &
+         // "and sum over i to compute the total mass concentration of " &
+         // "species s")
 
   end subroutine aero_binned_output_netcdf
 

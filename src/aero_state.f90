@@ -1607,7 +1607,7 @@ contains
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
 
-    !> \page output_format_aero_state Output NetCDF File Format: Aerosol State
+    !> \page output_format_aero_state Output NetCDF File Format: Aerosol Particle State
     !!
     !! The aerosol state consists of a set of individual aerosol
     !! particles, each with its own individual properties. The
@@ -1777,7 +1777,7 @@ contains
             // "measured from the start of the simulation")
     end if
 
-    !> \page output_format_aero_removed Output NetCDF File Format: Aerosol Removal Information
+    !> \page output_format_aero_removed Output NetCDF File Format: Aerosol Particle Removal Information
     !!
     !! When an aerosol particle is introduced into the simulation it
     !! is assigned a unique ID number. This ID number will persist

@@ -1777,6 +1777,63 @@ contains
             // "measured from the start of the simulation")
     end if
 
+    !> \page output_format_aero_removed Output NetCDF File Format: Aerosol Removal Information
+    !!
+    !! When an aerosol particle is introduced into the simulation it
+    !! is assigned a unique ID number. This ID number will persist
+    !! over time, allowing tracking of a paticular particle's
+    !! evolution. If the \c record_removals variable in the input spec
+    !! file is \c yes, then the every time a particle is removed from
+    !! the simulation its removal will be recorded in the removal
+    !! information.
+    !!
+    !! The removal information written at timestep \i n contains
+    !! information about every particle ID that is present at time (\i
+    !! n - 1) but not present at time \i n.
+    !!
+    !! The removal information is always written in the output files,
+    !! even if no particles were removed in the previous
+    !! timestep. Unfortunately, NetCDF files cannot contain arrays of
+    !! length 0. In the case of no particles being removed, the \c
+    !! aero_removed dimension will be set to 1 and
+    !! <tt>aero_removed_action(1)</tt> will be 0 (\c AERO_INFO_NONE).
+    !!
+    !! When two particles coagulate, the ID number of the combined
+    !! particle will be the ID particle of the largest constituent, if
+    !! possible (weighting functions can make this impossible to
+    !! achieve). A given particle ID may thus be lost due to
+    !! coagulation (if the resulting combined particle has a different
+    !! ID), or the ID may be preserved (as the ID of the combined
+    !! particle). Only if the ID is lost will the particle be recorded
+    !! in the removal information, and in this case
+    !! <tt>aero_removed_action(i)</tt> will be 2 (\c AERO_INFO_COAG)
+    !! and <tt>aero_removed_other_id(i)</tt> will be the ID number of
+    !! the combined particle.
+    !!
+    !! The aerosol removal information uses the dimension:
+    !!   - \b aero_removed: number of aerosol particles removed from the
+    !!     simulation during the previous timestep (or 1, as described
+    !!     above)
+    !!
+    !! The aerosol removal information variables are:
+    !!   - \b aero_removed (dim \c aero_removed): dummy dimension variable
+    !!     (no useful value)
+    !!   - \b aero_removed_id (dim \c aero_removed): the ID number of each
+    !!     removed particle
+    !!   - \b aero_removed_action (dim \c aero_removed): the reasons for
+    !!     removal for each particle, with values:
+    !!     - 0 (\c AERO_INFO_NONE): no information (invalid entry)
+    !!     - 1 (\c AERO_INFO_DILUTION): particle was removed due to dilution
+    !!       with outside air
+    !!     - 2 (\c AERO_INFO_COAG): particle was removed due to coagulation
+    !!     - 3 (\c AERO_INFO_HALVED): particle was removed due to halving of
+    !!       the aerosol population
+    !!     - 4 (\c AERO_INFO_WEIGHT): particle was removed due to adjustments
+    !!       in the particle's weighting function
+    !!   - \b aero_removed_other_id (dim \c aero_removed): the ID number of
+    !!     the combined particle formed by coagulation, if the removal reason
+    !!     was coagulation (2, \c AERO_INFO_COAG).
+
     if (record_removals) then
        call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
             dimid_aero_removed)
@@ -1795,11 +1852,23 @@ contains
           aero_removed_other_id(1) = 0
        end if
        call pmc_nc_write_integer_1d(ncid, aero_removed_id, &
-            "aero_removed_id", (/ dimid_aero_removed /))
+            "aero_removed_id", (/ dimid_aero_removed /), &
+            long_name="ID of removed particles")
        call pmc_nc_write_integer_1d(ncid, aero_removed_action, &
-            "aero_removed_action", (/ dimid_aero_removed /))
+            "aero_removed_action", (/ dimid_aero_removed /), &
+            long_name="reason for particle removal", &
+            description="valid is 0 (invalid entry), 1 (removed due to " &
+            // "dilution), 2 (removed due to coagulation -- combined " &
+            // "particle ID is in \c aero_removed_other_id), 3 (removed " &
+            // "due to populating halving), or 4 (removed due to " &
+            // "weighting changes")
        call pmc_nc_write_integer_1d(ncid, aero_removed_other_id, &
-            "aero_removed_other_id", (/ dimid_aero_removed /))
+            "aero_removed_other_id", (/ dimid_aero_removed /), &
+            long_name="ID of other particle involved in removal", &
+            description="if <tt>aero_removed_action(i)</tt> is 2 " &
+            // "(due to coagulation), then " &
+            // "<tt>aero_removed_other_id(i)</tt> is the ID of the " &
+            // "resulting combined particle")
     end if
 
   end subroutine aero_state_output_netcdf

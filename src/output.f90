@@ -10,8 +10,10 @@
 !! PartMC output files are in the <a
 !! href="http://www.unidata.ucar.edu/software/netcdf/">NetCDF Classic
 !! Format</a> (also known as NetCDF-3 format). The dimensions and
-!! variables in the files come in several different groups, as
-!! follows:
+!! variables in the files will depend on the type of run (particle,
+!! analytical solution, etc), and options in the spec file (e.g. \c
+!! record_removals). The output data comes in several different
+!! groups, as follows:
 !!
 !! \subpage output_format_general "General Variables"
 !!
@@ -24,6 +26,8 @@
 !! \subpage output_format_aero_data "Aerosol Material Data"
 !!
 !! \subpage output_format_aero_state "Aerosol State"
+!!
+!! \subpage output_format_aero_removed "Aerosol Removal Information"
 
 !> Write data in NetCDF format.
 module pmc_output
@@ -158,7 +162,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the current state for a single processor. Do not call this
-  !> subroutine directly, but rather call output_state_netcdf().
+  !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
        time, del_t, i_loop, record_removals, write_rank, write_n_proc)
@@ -515,7 +519,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the current state.
-  subroutine input_state_netcdf(filename, bin_grid, aero_data, &
+  subroutine input_state(filename, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
        time, del_t, i_loop)
 
@@ -566,7 +570,7 @@ contains
        call pmc_nc_close(ncid)
     end if
     
-  end subroutine input_state_netcdf
+  end subroutine input_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

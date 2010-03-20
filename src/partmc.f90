@@ -225,7 +225,7 @@ contains
        call spec_file_read_aero_weight(file, aero_weight)
 
        if (do_restart) then
-          call input_state_netcdf(restart_filename, bin_grid, aero_data, &
+          call input_state(restart_filename, bin_grid, aero_data, &
                aero_weight, aero_state_init, gas_data, gas_state_init, &
                env_state_init, dummy_index, dummy_time, dummy_del_t, &
                dummy_i_loop)

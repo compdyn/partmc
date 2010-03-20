@@ -69,7 +69,7 @@ program bin_average_comp
   aero_weight%type = AERO_WEIGHT_TYPE_NONE
   call warn_msg(318013836, "averaging with flat weighting")
   
-  call input_state_netcdf(in_filename, bin_grid, aero_data, &
+  call input_state(in_filename, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, &
        index, time, del_t, i_loop)
 

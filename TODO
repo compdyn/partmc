@@ -201,3 +201,5 @@ Add weight support to condensation.
 
 Add title parameter as the first line in .spec files and write this as
 the title attribute in the output files.
+
+Add separate option controlling whether to equilibriate if doing cond.

@@ -226,7 +226,90 @@ contains
 
     !> \page input_format_particle Particle-Resolved Simulation
     !!
-    !! Under construction...
+    !!   - \b output_prefix (string): prefix of the output filenames
+    !!     --- see \ref output_format for the full name format
+    !!   - \b n_loop (integer): number of loops
+    !!   - \b n_part (integer): number of computational particles to
+    !!     simulate (actual number used will vary between <tt>n_part /
+    !!     2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
+    !!     allow_halving are \c yes)
+    !!   - \b kernel (string): 
+    !!   - \ref input_format_nucleate_type
+    !!   - \b restart
+    !!   - \b restart_file (string): name of file from which to load
+    !!     restart data, which must be a PartMC output NetCDF file
+    !!     (only provide option if \c restart is \yes)
+    !!   - \b t_max (float, unit s): total simulation time
+    !!   - \b del_t (float, unit s): timestep size
+    !!   - \b t_output (float, unit s): the interval on which to
+    !!     output data to disk (see \ref output_format)
+    !!   - \b t_progress (float, unit s): the interval on which to
+    !!     write summary information to the screen while running
+    !!   - \ref input_format_bin_grid --- only used for efficiency
+    !!     gains during coagulation
+    !!   - \ref input_format_aero_weight
+    !!   - \ref input_format_gas_data
+    !!   - \ref input_format_gas_state (only provide option if \c
+    !!     restart is \c no)
+    !!   - \ref input_format_aero_data
+    !!   - \b aerosol_init (string): filename containing the aerosol
+    !!     initial state, in the format of \ref input_format_aero_dist
+    !!     (only provide option if \c restart is \c no)
+    !!   - \ref input_format_env_data
+    !!   - \ref input_format_env_state
+    !!   - \b rand_init (integer): if greater than zero then use as
+    !!     the seed for the random number generator, or if zero then
+    !!     generate a random seed for the random number generator ---
+    !!     two simulations on the same machine with the same seed
+    !!     (greater than 0) will produce identical output
+    !!   - \b do_coagulation (logical): whether to perform particle
+    !!     coagulation
+    !!   - \b allow_doubling (logical): if \c yes, then whenever the
+    !!     number of simulated particles falls below <tt>n_part /
+    !!     2</tt>, every particle is duplicated to give better
+    !!     statistics
+    !!   - \b allow_halving (logical): if \c yes, then whenever the
+    !!     number of simulated particles rises above <tt>n_part *
+    !!     2</tt>, half of the particles are removed (chosen randomly)
+    !!     to reduce the computational expense
+    !!   - \b do_condensation (logical): whether to perform explicit
+    !!     water condensation (requires SUNDIALS support to be
+    !!     compiled in; cannot be used simultaneously with MOSAIC)
+    !!   - \b do_mosaic (logical): whether to use the MOSAIC
+    !!     chemistry code (requires support to be compiled in; cannot
+    !!     be used simultaneously with condensation)
+    !!   - \b do_optical (logical): whether to compute optical
+    !!     properties of the aersol particles for the output files ---
+    !!     see output_format_aero_state (only provide option if \c
+    !!     do_mosaic is \c yes)
+    !!   - \b record_removals (logical): whether to record information
+    !!     about aerosol particles removed from the simulation --- see
+    !!     \ref output_format_aero_removed
+    !!   - \b do_parallel (logical): whether to run in parallel mode
+    !!     (requires MPI support to be compiled in)
+    !!   - \b output_type (string): type of parallel disk output ---
+    !!     must be one of: "central" to write one file per processor,
+    !!     but all written by processor 0; "dist" for every processor
+    !!     to write its own state file; or "single" to transfer all
+    !!     data to processor 0 and write a single unified output file
+    !!   - \b mix_timescale (float, unit s): timescale on which to mix
+    !!     simulation state information amongst processors in an
+    !!     attempt to keep them consistent (the mixing rate is inverse
+    !!     to \c mix_timescale)
+    !!   - \b gas_average (logical): whether to average the gas state
+    !!     amongst processors each timestep, to ensure uniform gas
+    !!     concentrations
+    !!   - \b env_average (logical): whether to average the
+    !!     environment state amongst processors each timestep, to
+    !!     ensure a uniform environment
+    !!   - \b coag_method (logical): type of parallel coagulation ---
+    !!     must be one of: "local" for only within-processor
+    !!     coagulation; "collect" to transfer all particles to
+    !!     processor 0 each timestep and coagulate there; "central" to
+    !!     have processor 0 do all coagulation by requesting
+    !!     individual particles as needed; or "dist" to have all
+    !!     processors perform coagulation globally, requesting
+    !!     particles from other processors as needed
 
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)

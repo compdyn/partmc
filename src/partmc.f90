@@ -67,8 +67,9 @@
 !> subroutines are free to deallocate and reallocate if they need to
 !> change the size.
 !>
-!> This means that every subroutine (except for alloc and free) should
-!> contain matching \c allocate()/deallocate() and
+!> This means that every subroutine (except for allocate and
+!> deallocate routines) should contain matching \c
+!> allocate()/deallocate() and
 !> <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -224,8 +225,12 @@ contains
     integer :: dummy_index, dummy_i_loop
     real(kind=dp) :: dummy_time, dummy_del_t
 
-    !> \page input_format_particle Particle-Resolved Simulation
+    !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
+    !! See \ref spec_file_format for the input file text format.
+    !!
+    !! A particle-resolved simulation spec file has the parameters:
+    !!   - \b run_type (string): must be "particle"
     !!   - \b output_prefix (string): prefix of the output filenames
     !!     --- see \ref output_format for the full name format
     !!   - \b n_loop (integer): number of loops
@@ -239,11 +244,11 @@ contains
     !!   - \b restart_file (string): name of file from which to load
     !!     restart data, which must be a PartMC output NetCDF file
     !!     (only provide option if \c restart is \yes)
-    !!   - \b t_max (float, unit s): total simulation time
-    !!   - \b del_t (float, unit s): timestep size
-    !!   - \b t_output (float, unit s): the interval on which to
+    !!   - \b t_max (real, unit s): total simulation time
+    !!   - \b del_t (real, unit s): timestep size
+    !!   - \b t_output (real, unit s): the interval on which to
     !!     output data to disk (see \ref output_format)
-    !!   - \b t_progress (float, unit s): the interval on which to
+    !!   - \b t_progress (real, unit s): the interval on which to
     !!     write summary information to the screen while running
     !!   - \ref input_format_bin_grid --- only used for efficiency
     !!     gains during coagulation
@@ -292,7 +297,7 @@ contains
     !!     but all written by processor 0; "dist" for every processor
     !!     to write its own state file; or "single" to transfer all
     !!     data to processor 0 and write a single unified output file
-    !!   - \b mix_timescale (float, unit s): timescale on which to mix
+    !!   - \b mix_timescale (real, unit s): timescale on which to mix
     !!     simulation state information amongst processors in an
     !!     attempt to keep them consistent (the mixing rate is inverse
     !!     to \c mix_timescale)

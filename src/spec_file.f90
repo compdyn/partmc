@@ -7,9 +7,34 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> \page spec_file_format Spec Input File Format
+!> \page spec_file_format Input File Format: Spec File Format
 !!
-!! Under construction...
+!! All PartMC input files are in a text format. Each line consists of
+!! a <b>parameter name</b>, followed by the <b>parameter value</b>,
+!! and an optional comment starting with the # character. Blank lines
+!! and comment-only lines are permitted, and everything on a line
+!! after a # is completely ignored.
+!!
+!! Parameter names are strings (normally lowercase) without spaces,
+!! such as \c output_prefix or \c del_t. The case of parameter names
+!! is significant. The order of parameters in a file is not
+!! arbitrary. Instead, they must come in the prescribed order.
+!!
+!! The parameter types are:
+!!   - \b string: a single string without spaces (case is significant)
+!!   - \b logical: a true/false value that can be the exact values
+!!     "yes", "y", "true", "t", or "1" (for true values), or "no",
+!!     "n", "false", "f", or "0" (for false values
+!!   - \b integer: a positive or negative integer (depending on
+!!     whether PartMC was compiled as 32bit or 64bit the maximum size
+!!     will vary)
+!!   - \b real: a floating point real number in Fortran syntax,
+!!     e.g. -1.45, 5.27e10 (the available precision and range is that
+!!     of whatever double precision meant during the compilation)
+!!   - \b complex: two real numbers separated by a space, giving the
+!!     real and imaginary parts of a complex number, respectively
+!!   - <b>real array</b>: a list of real numbers separated by spaces,
+!!     giving the entries of the array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

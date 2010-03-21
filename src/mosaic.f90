@@ -35,7 +35,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize all MOSAIC data-structures.
-  subroutine mosaic_init(bin_grid, env_state, del_t)
+  subroutine mosaic_init(bin_grid, env_state, del_t, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -53,6 +53,8 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Timestep for coagulation.
     real(kind=dp), intent(in) :: del_t
+    !> Whether to compute optical properties.
+    logical, intent(in) :: do_optical
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -76,7 +78,11 @@ contains
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
     maer = 1                ! 1 = aer chem on, 0 = aer chem off
     mcld = 0                ! 1 = cld chem on, 0 = cld chem off
-    maeroptic = 1           ! 1 = aer_optical on, 0 = aer_optical off
+    if (do_optical) then
+       maeroptic = 1        ! 1 = aer_optical on, 0 = aer_optical off
+    else
+       maeroptic = 0
+    end if
     mshellcore = 1          ! 0 = no shellcore, 1 = core is BC only
                             ! 2 = core is BC and DUST
     msolar = 1              ! 1 = diurnally varying phot, 2 = fixed phot
@@ -497,7 +503,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state)
+       aero_weight, aero_state, gas_data, gas_state, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -517,6 +523,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !> Whether to compute optical properties.
+    logical, intent(in) :: do_optical
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -538,13 +546,16 @@ contains
     end if
 
     call IntegrateChemistry
-    call aerosol_optical
 
     ! map MOSAIC -> PartMC
-    ! must do optical properties first, as mosaic_to_partmc() may
-    ! change the number of particles
-    call mosaic_aero_optical(bin_grid, env_state, aero_data, &
-         aero_state, gas_data, gas_state)
+    if (do_optical) then
+       ! must do optical properties first, as mosaic_to_partmc() may
+       ! change the number of particles
+       call aerosol_optical
+       call mosaic_aero_optical(bin_grid, env_state, aero_data, &
+            aero_state, gas_data, gas_state)
+    end if
+
     call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_weight, &
          aero_state, gas_data, gas_state)
 #endif

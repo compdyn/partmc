@@ -17,13 +17,13 @@ for counter in ["10K", "100K"]:
     command_4 = [str_exec, spec_file_wei3]
 
     print command_1
-#    subprocess.check_call(command_1)
+    subprocess.check_call(command_1)
 
     print command_2
-#    subprocess.check_call(command_2)
+    subprocess.check_call(command_2)
 
     print command_3
-#    subprocess.check_call(command_3)
+    subprocess.check_call(command_3)
 
     print command_4
-#    subprocess.check_call(command_4)
+    subprocess.check_call(command_4)

@@ -14,7 +14,7 @@
 !! Format</a> (also known as NetCDF-3 format). The dimensions and
 !! variables in the files will depend on the type of run (particle,
 !! analytical solution, etc), and options in the spec file (e.g. \c
-!! record_removals).
+!! record_removals and \c do_optical).
 !!
 !! The state of the simulation is periodically output during the run,
 !! with frequency determined by the \c t_output input parameter. Each
@@ -77,7 +77,7 @@ contains
   !> Write the current state.
   subroutine output_state(prefix, output_type, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_loop, record_removals)
+       time, del_t, i_loop, record_removals, record_optical)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -107,6 +107,8 @@ contains
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
+    !> Whether to output aerosol optical properties.
+    logical, intent(in) :: record_optical
     
     integer :: rank, n_proc
 #ifdef PMC_USE_MPI
@@ -125,12 +127,13 @@ contains
        if (rank == 0) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, env_state, &
-               index, time, del_t, i_loop, record_removals, rank, n_proc)
+               index, time, del_t, i_loop, record_removals, record_optical, &
+               rank, n_proc)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, bin_grid, &
                   aero_data, aero_weight, gas_data, index, time, del_t, &
-                  i_loop, record_removals, i_proc)
+                  i_loop, record_removals, record_optical, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -140,13 +143,14 @@ contains
        ! have each processor write its own data directly
        call output_state_to_file(prefix, bin_grid, aero_data, &
             aero_weight, aero_state, gas_data, gas_state, env_state, &
-            index, time, del_t, i_loop, record_removals, rank, n_proc)
+            index, time, del_t, i_loop, record_removals, record_optical, &
+            rank, n_proc)
     elseif (output_type == "single") then
        if (n_proc == 1) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, &
                env_state, index, time, del_t, i_loop, &
-               record_removals, rank, n_proc)
+               record_removals, record_optical, rank, n_proc)
        else
 #ifdef PMC_USE_MPI
           ! collect all data onto processor 0 and then write it to a single file
@@ -166,7 +170,7 @@ contains
              call output_state_to_file(prefix, bin_grid, aero_data, &
                   aero_weight, aero_state_write, gas_data, gas_state_write, &
                   env_state_write, index, time, del_t, i_loop, &
-                  record_removals, rank, 1)
+                  record_removals, record_optical, rank, 1)
              call aero_state_deallocate(aero_state_write)
           else ! rank /= 0
              call send_output_state_single(aero_state)
@@ -201,7 +205,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
-         "PartMC version 2.0.0"))
+         "PartMC version 2.0.0 alpha"))
     call iso8601_date_and_time(history)
     history((len_trim(history)+1):) = " created by PartMC"
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
@@ -225,7 +229,8 @@ contains
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_loop, record_removals, write_rank, write_n_proc)
+       time, del_t, i_loop, record_removals, record_optical, write_rank, &
+       write_n_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -253,6 +258,8 @@ contains
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
+    !> Whether to output aerosol optical properties.
+    logical, intent(in) :: record_optical
     !> Rank to write into file.
     integer, intent(in) :: write_rank
     !> Number of processors to write into file.
@@ -337,7 +344,7 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-         aero_data, aero_weight, record_removals)
+         aero_data, aero_weight, record_removals, record_optical)
 
     call pmc_nc_check(nf90_close(ncid))
     
@@ -385,7 +392,7 @@ contains
   !> processor.
   subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
        aero_weight, gas_data, index, time, del_t, i_loop, record_removals, &
-       remote_proc)
+       record_optical, remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -407,6 +414,8 @@ contains
     integer, intent(in) :: i_loop
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
+    !> Whether to output aerosol_optical_properties.
+    logical, intent(in) :: record_optical
     !> Processor number to receive from.
     integer, intent(in) :: remote_proc
 
@@ -447,7 +456,8 @@ contains
     
     call output_state_to_file(prefix, bin_grid, aero_data, &
          aero_weight, aero_state, gas_data, gas_state, env_state, &
-         index, time, del_t, i_loop, record_removals, remote_proc, n_proc)
+         index, time, del_t, i_loop, record_removals, record_optical, &
+         remote_proc, n_proc)
     
     call env_state_deallocate(env_state)
     call gas_state_deallocate(gas_state)

@@ -304,7 +304,7 @@ contains
          "aero_radius", (/ dimid_aero_radius /), unit="m", &
          long_name="aerosol radius axis bin centers", &
          description="logarithmically spaced centers of radius axis grid, " &
-         // "so that aero_radius(i) / aero_radius_edges(i) = "
+         // "so that aero_radius(i) / aero_radius_edges(i) = " &
          // "0.5 * aero_radius_edges(i+1) / aero_radius_edges(i)")
     call pmc_nc_write_real_1d(ncid, aero_radius_edges, &
          "aero_radius_edges", (/ dimid_aero_radius_edges /), unit="m", &

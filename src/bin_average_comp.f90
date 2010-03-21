@@ -29,7 +29,7 @@ program bin_average_comp
   integer :: n_bin, index, i_loop
   real(kind=dp) :: r_min, r_max, time, del_t
   character(len=1000) :: output_type, tmp_str
-  logical :: record_removals, dry_volume
+  logical :: record_removals, dry_volume, record_optical
 
   ! process commandline arguments
   if (command_argument_count() .ne. 6) then
@@ -81,9 +81,10 @@ program bin_average_comp
 
   output_type = "central"
   record_removals = .false.
+  record_optical = .true.
   call output_state(out_prefix, output_type, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, &
-       index, time, del_t, i_loop, record_removals)
+       index, time, del_t, i_loop, record_removals, record_optical)
 
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)

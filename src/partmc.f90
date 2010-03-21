@@ -304,6 +304,11 @@ contains
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
+       if (part_opt%do_mosaic) then
+          call spec_file_read_logical(file, 'do_optical', part_opt%do_optical)
+       else
+          part_opt%do_optical = .false.
+       end if
        call spec_file_read_logical(file, 'record_removals', &
             part_opt%record_removals)
 

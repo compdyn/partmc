@@ -59,6 +59,8 @@ module pmc_run_part
     logical :: do_condensation
     !> Whether to do MOSAIC.
     logical :: do_mosaic
+    !> Whether to compute optical properties.
+    logical :: do_optical
     !> Loop number of run.
     integer :: i_loop
     !> Total number of loops.
@@ -166,14 +168,15 @@ contains
          env_state, k_max)
 
     if (part_opt%do_mosaic) then
-       call mosaic_init(bin_grid, env_state, part_opt%del_t)
+       call mosaic_init(bin_grid, env_state, part_opt%del_t, &
+            part_opt%do_optical)
     end if
 
     if (part_opt%t_output > 0d0) then
        call output_state(part_opt%output_prefix, part_opt%output_type, &
             bin_grid, aero_data, aero_weight, aero_state, gas_data, &
             gas_state, env_state, i_state, time, part_opt%del_t, &
-            part_opt%i_loop, part_opt%record_removals)
+            part_opt%i_loop, part_opt%record_removals, part_opt%do_optical)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -247,7 +250,8 @@ contains
 
        if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_weight, aero_state, gas_data, gas_state)
+               aero_weight, aero_state, gas_data, gas_state, &
+               part_opt%do_optical)
        end if
 
        if (part_opt%mix_timescale > 0d0) then
@@ -291,7 +295,7 @@ contains
                   part_opt%output_type, bin_grid, aero_data, aero_weight, &
                   aero_state, gas_data, gas_state, env_state, i_output, &
                   time, part_opt%del_t, part_opt%i_loop, &
-                  part_opt%record_removals)
+                  part_opt%record_removals, part_opt%do_optical)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
@@ -490,6 +494,7 @@ contains
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
+         + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_integer(val%i_loop) &
          + pmc_mpi_pack_size_integer(val%n_loop) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
@@ -529,6 +534,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_pack_logical(buffer, position, val%do_optical)
     call pmc_mpi_pack_integer(buffer, position, val%i_loop)
     call pmc_mpi_pack_integer(buffer, position, val%n_loop)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
@@ -571,6 +577,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
     call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)

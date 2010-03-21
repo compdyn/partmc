@@ -1563,7 +1563,7 @@ contains
 
   !> Write full state.
   subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-       aero_data, aero_weight, record_removals)
+       aero_data, aero_weight, record_removals, record_optical)
     
     !> aero_state to write.
     type(aero_state_t), intent(in) :: aero_state
@@ -1577,6 +1577,8 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
+    !> Whether to output aerosol optical properties.
+    logical, intent(in) :: record_optical
 
     integer :: dimid_aero_particle, dimid_aero_species
     integer :: dimid_aero_removed
@@ -1674,11 +1676,12 @@ contains
     !!     that coagulated to form each particle, measured from the start
     !!     of the simulation - a particle is said to be created when it
     !!     first enters the simulation (by emissions, dilution, etc.)
-    !!   - \b aero_greatest_create_time (unit s, dim \c aero_particle):
-    !!     greatest (latest) creation time of any original constituent
-    !!     particles that coagulated to form each particle, measured from
-    !!     the start of the simulation - a particle is said to be created
-    !!     when it first enters the simulation (by emissions, dilution, etc.)
+    !!   - \b aero_greatest_create_time (unit s, dim \c
+    !!     aero_particle): greatest (latest) creation time of any
+    !!     original constituent particles that coagulated to form each
+    !!     particle, measured from the start of the simulation - a
+    !!     particle is said to be created when it first enters the
+    !!     simulation (by emissions, dilution, etc.)
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
@@ -1694,14 +1697,6 @@ contains
              particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
              aero_particle_mass(i_part, :) = particle%vol * aero_data%density
              aero_n_orig_part(i_part) = particle%n_orig_part
-             aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
-             aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
-             aero_asymmetry(i_part) = particle%asymmetry
-             aero_refract_shell_real(i_part) = real(particle%refract_shell)
-             aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
-             aero_refract_core_real(i_part) = real(particle%refract_core)
-             aero_refract_core_imag(i_part) = aimag(particle%refract_core)
-             aero_core_vol(i_part) = particle%core_vol
              aero_water_hyst_leg(i_part) = particle%water_hyst_leg
              aero_comp_vol(i_part) = aero_state%comp_vol &
                   / aero_weight_value(aero_weight, &
@@ -1709,6 +1704,16 @@ contains
              aero_id(i_part) = particle%id
              aero_least_create_time(i_part) = particle%least_create_time
              aero_greatest_create_time(i_part) = particle%greatest_create_time
+             if (record_optical) then
+                aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
+                aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
+                aero_asymmetry(i_part) = particle%asymmetry
+                aero_refract_shell_real(i_part) = real(particle%refract_shell)
+                aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
+                aero_refract_core_real(i_part) = real(particle%refract_core)
+                aero_refract_core_imag(i_part) = aimag(particle%refract_core)
+                aero_core_vol(i_part) = particle%core_vol
+             end if
           end do
        end do
        call pmc_nc_write_real_2d(ncid, aero_particle_mass, &
@@ -1719,34 +1724,6 @@ contains
             "aero_n_orig_part", (/ dimid_aero_particle /), &
             long_name="number of original constituent particles that " &
             // "coagulated to form each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
-            "aero_absorb_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
-            long_name="optical absorption cross sections of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
-            "aero_scatter_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
-            long_name="optical scattering cross sections of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
-            "aero_asymmetry", (/ dimid_aero_particle /), unit="1", &
-            long_name="optical asymmetry parameters of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
-            "aero_refract_shell_real", (/ dimid_aero_particle /), unit="1", &
-            long_name="real part of the refractive indices of the shell " &
-            // "of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
-            "aero_refract_shell_imag", (/ dimid_aero_particle /), unit="1", &
-            long_name="imaginary part of the refractive indices of the shell " &
-            // "of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
-            "aero_refract_core_real", (/ dimid_aero_particle /), unit="1", &
-            long_name="real part of the refractive indices of the core " &
-            // "of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
-            "aero_refract_core_imag", (/ dimid_aero_particle /), unit="1", &
-            long_name="imaginary part of the refractive indices of the core " &
-            // "of each aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_core_vol, &
-            "aero_core_vol", (/ dimid_aero_particle /), unit="m^3", &
-            long_name="volume of the optical cores of each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
@@ -1769,6 +1746,36 @@ contains
             description="greatest (latest) creation time of any original " &
             // "constituent particles that coagulated to form each particle, " &
             // "measured from the start of the simulation")
+       if (record_optical) then
+          call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
+               "aero_absorb_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
+               long_name="optical absorption cross sections of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
+               "aero_scatter_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
+               long_name="optical scattering cross sections of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
+               "aero_asymmetry", (/ dimid_aero_particle /), unit="1", &
+               long_name="optical asymmetry parameters of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
+               "aero_refract_shell_real", (/ dimid_aero_particle /), unit="1", &
+               long_name="real part of the refractive indices of the shell " &
+               // "of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
+               "aero_refract_shell_imag", (/ dimid_aero_particle /), unit="1", &
+               long_name="imaginary part of the refractive indices of the shell " &
+               // "of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
+               "aero_refract_core_real", (/ dimid_aero_particle /), unit="1", &
+               long_name="real part of the refractive indices of the core " &
+               // "of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
+               "aero_refract_core_imag", (/ dimid_aero_particle /), unit="1", &
+               long_name="imaginary part of the refractive indices of the core " &
+               // "of each aerosol particle")
+          call pmc_nc_write_real_1d(ncid, aero_core_vol, &
+               "aero_core_vol", (/ dimid_aero_particle /), unit="m^3", &
+               long_name="volume of the optical cores of each aerosol particle")
+       end if
     end if
 
     !> \page output_format_aero_removed Output File Format: Aerosol Particle Removal Information

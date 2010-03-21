@@ -290,18 +290,6 @@ contains
     call pmc_nc_check(nf90_def_dim(ncid, "aero_radius_edges", &
          bin_grid%n_bin + 1, dimid_aero_radius_edges))
 
-    call pmc_nc_check(nf90_def_var(ncid, "aero_radius", NF90_DOUBLE, &
-         dimid_aero_radius, varid_aero_radius))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius, "unit", "m"))
-    call pmc_nc_check(nf90_def_var(ncid, "aero_radius_edges", NF90_DOUBLE, &
-         dimid_aero_radius_edges, varid_aero_radius_edges))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_edges, &
-         "unit", "m"))
-    call pmc_nc_check(nf90_def_var(ncid, "aero_radius_widths", NF90_DOUBLE, &
-         dimid_aero_radius, varid_aero_radius_widths))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_radius_widths, &
-         "unit", "1"))
-
     call pmc_nc_check(nf90_enddef(ncid))
 
     do i_bin = 1,bin_grid%n_bin
@@ -311,12 +299,25 @@ contains
     do i_bin = 1,(bin_grid%n_bin + 1)
        aero_radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
     end do
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius, &
-         aero_radius_centers))
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_edges, &
-         aero_radius_edges))
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_radius_widths, &
-         aero_radius_widths))
+
+    call pmc_nc_write_real_1d(ncid, aero_radius_centers, &
+         "aero_radius", (/ dimid_aero_radius /), unit="m", &
+         long_name="aerosol radius axis bin centers", &
+         description="logarithmically spaced centers of radius axis grid, " &
+         // "so that aero_radius(i) / aero_radius_edges(i) = "
+         // "0.5 * aero_radius_edges(i+1) / aero_radius_edges(i)")
+    call pmc_nc_write_real_1d(ncid, aero_radius_edges, &
+         "aero_radius_edges", (/ dimid_aero_radius_edges /), unit="m", &
+         long_name="aerosol radius axis bin edges", &
+         description="logarithmically spaced edges of radius axis grid, " &
+         // "with one more edge than center")
+    call pmc_nc_write_real_1d(ncid, aero_radius_widths, &
+         "aero_radius_widths", (/ dimid_aero_radius /), unit="m", &
+         long_name="aerosol radius axis bin widths", &
+         description="base-e logarithmic widths of radius axis grid, " &
+         // "so that aero_radius_widths(i)" &
+         // "= ln(aero_radius_edges(i+1) / aero_radius_edges(i)) and " &
+         // "all bins have the same width")
 
   end subroutine bin_grid_netcdf_dim_aero_radius
 
@@ -332,23 +333,24 @@ contains
 
     integer :: dimid_aero_radius
 
-    !> \page output_format_bin_grid Output NetCDF File Format: Bin Grid Data
+    !> \page output_format_bin_grid Output File Format: Bin Grid Data
     !!
-    !! The bin grid data uses the dimensions:
+    !! The bin grid data NetCDF dimensions are:
     !!   - \b aero_radius: number of bins (grid cells) on the radius axis
     !!   - \b aero_radius_edges: number of bin edges (grid cell edges) on
     !!     the radius axis --- always equal to <tt>aero_radius + 1</tt>
     !!
-    !! The bin grid data variables are:
-    !!   - \b aero_radius (m, dim \c aero_radius): aerosol radius axis bin
-    !!     centers --- centered on a logarithmic scale from the edges, so
+    !! The bin grid data NetCDF variables are:
+    !!   - \b aero_radius (unit m, dim \c aero_radius): aerosol radius axis
+    !!     bin centers --- centered on a logarithmic scale from the edges, so
     !!     that <tt>aero_radius(i) / aero_radius_edges(i) =
     !!     0.5 * aero_radius_edges(i+1) / aero_radius_edges(i)</tt>
-    !!   - \b aero_radius_edges (m, dim \c aero_radius_edges): aersol radius
-    !!     axis bin edges (there is one more edge than center)
+    !!   - \b aero_radius_edges (unit m, dim \c aero_radius_edges): aersol
+    !!     radius axis bin edges (there is one more edge than center)
     !!   - \b aero_radius_widths (dimensionless, dim \c aero_radius):
     !!     the base-e logarithmic bin widths --- <tt>aero_radius_widths(i)
-    !!     = ln(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>
+    !!     = ln(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>, so
+    !!     all bins have the same width
 
     call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
          dimid_aero_radius)

@@ -5,17 +5,29 @@
 !> \file
 !> The pmc_output module.
 
-!> \page output_format Output NetCDF File Format
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page output_format Output File Format
 !!
 !! PartMC output files are in the <a
 !! href="http://www.unidata.ucar.edu/software/netcdf/">NetCDF Classic
 !! Format</a> (also known as NetCDF-3 format). The dimensions and
 !! variables in the files will depend on the type of run (particle,
 !! analytical solution, etc), and options in the spec file (e.g. \c
-!! record_removals). The output data comes in several different
-!! groups, as follows:
+!! record_removals).
 !!
-!! \subpage output_format_general "General Variables"
+!! The state of the simulation is periodically output during the run,
+!! with frequency determined by the \c t_output input parameter. Each
+!! output file has a filename of the form \c PREFIX_LLLL_SSSSSSSS.nc,
+!! where \c PREFIX is given by the \c output_prefix input parameter,
+!! \c LLLL is the four-digit loop number (repeats of the simulation,
+!! starting from 1), and \c SSSSSSSS is the eight-digit output index
+!! (starting at 1 and incremented each time the state is output).
+!!
+!! The data in each output file comes in several different groups, as
+!! follows:
+!!
+!! \subpage output_format_general "General Information"
 !!
 !! \subpage output_format_env_state "Environment State"
 !!
@@ -26,12 +38,18 @@
 !! \subpage output_format_aero_data "Aerosol Material Data"
 !!
 !! \subpage output_format_aero_state "Aerosol Particle State"
+!! (only for particle-resolved simulations)
 !!
 !! \subpage output_format_aero_removed "Aerosol Particle Removal Information"
+!! (only for particle-resolved simulations, if \c record_removals is \c yes)
 !!
 !! \subpage output_format_bin_grid "Bin Grid Data"
+!! (only for exact and sectional simulations)
 !!
 !! \subpage output_format_aero_binned "Aerosol Binned Sectional State"
+!! (only for exact and sectional simulations)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Write data in NetCDF format.
 module pmc_output
@@ -258,9 +276,9 @@ contains
     call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
          "opening " // trim(filename))
     
-    !> \page output_format_general Output NetCDF File Format: General Variables
+    !> \page output_format_general Output File Format: General Information
     !!
-    !! The general global attributes are:
+    !! The general information global NetCDF attributes are:
     !!   - \b title: always set to the string "PartMC output file"
     !!   - \b source: set to the string "PartMC version V.V.V" where V.V.V
     !!     is the PartMC version that created the file
@@ -287,10 +305,10 @@ contains
     !!     - ZZ: two-digit hours of the time zone offset from UTC
     !!     - zz: two-digit minutes of the time zone offset from UTC
     !!
-    !! The general variables are:
-    !!   - \b time (s): time elapsed since the simulation start time, as
-    !!     specified in the \ref output_format_env_state section
-    !!   - \b timestep (s): the current timestep size
+    !! The general information NetCDF variables are:
+    !!   - \b time (unit s): time elapsed since the simulation start time,
+    !!     as specified in the \ref output_format_env_state section
+    !!   - \b timestep (unit s): the current timestep size
     !!   - \b loop: the loop number of this simulation (starting from 1)
     !!   - \b timestep_index: an integer that is 1 on the first timestep, 2
     !!     on the second timestep, etc.

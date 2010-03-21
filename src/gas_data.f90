@@ -354,18 +354,18 @@ contains
 
     integer :: dimid_gas_species
 
-    !> \page output_format_gas_data Output NetCDF File Format: Gas Material Data
+    !> \page output_format_gas_data Output File Format: Gas Material Data
     !!
-    !! The gas material data dimensions are:
+    !! The gas material data NetCDF dimensions are:
     !!   - \b gas_species: number of gas species
     !!
-    !! The gas material data variables are:
+    !! The gas material data NetCDF variables are:
     !!   - \b gas_species (dim \c gas_species): dummy dimension variable
     !!     (no useful value) - read species names as comma-separated values
     !!     from the 'names' attribute
     !!   - \b gas_mosaic_index (dim \c gas_species): MOSAIC indices of
     !!     gas species
-    !!   - \b gas_molec_weight (kg/mol, dim \c gas_species): molecular
+    !!   - \b gas_molec_weight (unit kg/mol, dim \c gas_species): molecular
     !!     weights of gas species
 
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &

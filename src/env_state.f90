@@ -758,21 +758,21 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    !> \page output_format_env_state Output NetCDF File Format: Environment State
+    !> \page output_format_env_state Output File Format: Environment State
     !!
-    !! The environment state variables are:
-    !!   - \b temperature (K): current air temperature
+    !! The environment state NetCDF variables are:
+    !!   - \b temperature (unit K): current air temperature
     !!   - \b relative_humidity (dimensionless): current air
     !!     relative humidity (value of 1 means completely saturated)
-    !!   - \b pressure (Pa): current air pressure
-    !!   - \b longitude (degrees): longitude of simulation location
-    !!   - \b latitude (degrees): latitude of simulation location
-    !!   - \b altitude (m): altitude of simulation location
-    !!   - \b start_time_of_day (s): time-of-day of the simulation start
+    !!   - \b pressure (unit Pa): current air pressure
+    !!   - \b longitude (unit degrees_east): longitude of simulation location
+    !!   - \b latitude (unit degrees_north): latitude of simulation location
+    !!   - \b altitude (unit m): altitude of simulation location
+    !!   - \b start_time_of_day (unit s): time-of-day of the simulation start
     !!     measured in seconds after midnight
     !!   - \b start_day_of_year: day-in-year number of the simulation start
-    !!   - \b elapsed_time (s): elapsed time since the simulation start
-    !!   - \b height (m): current boundary layer mixing height
+    !!   - \b elapsed_time (unit s): elapsed time since the simulation start
+    !!   - \b height (unit m): current boundary layer mixing height
 
     call pmc_nc_write_real(ncid, env_state%temp, "temperature", unit="K", &
          standard_name="air_temperature")

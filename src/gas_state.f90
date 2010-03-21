@@ -466,13 +466,13 @@ contains
 
     integer :: dimid_gas_species
 
-    !> \page output_format_gas_state Output NetCDF File Format: Gas State
+    !> \page output_format_gas_state Output File Format: Gas State
     !!
-    !! The gas state uses the \c gas_species dimension as specified in the
-    !! \ref output_format_gas_data section.
+    !! The gas state uses the \c gas_species NetCDF dimension as specified
+    !! in the \ref output_format_gas_data section.
     !!
-    !! The gas state variables are:
-    !!   - \b gas_mixing_ratio (ppb, dim \c gas_species): current mixing
+    !! The gas state NetCDF variables are:
+    !!   - \b gas_mixing_ratio (unit ppb, dim \c gas_species): current mixing
     !!     ratios of each gas species
 
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &

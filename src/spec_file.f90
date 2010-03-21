@@ -5,6 +5,14 @@
 !> \file
 !> The pmc_spec_file module.
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page spec_file_format Spec Input File Format
+!!
+!! Under construction...
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !> Reading formatted text input.
 module pmc_spec_file
 

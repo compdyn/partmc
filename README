@@ -63,12 +63,12 @@ mainly been under Linux and OS X. The quick-start instructions are:
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-1.2.0.tar.gz
+        tar xzvf partmc-2.0.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-1.2.0
+        cd partmc-2.0.0
 
 4. Make a directory called `build` and change into it:
 

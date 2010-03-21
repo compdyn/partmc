@@ -1505,18 +1505,15 @@ contains
 
     call pmc_nc_check(nf90_def_dim(ncid, "aero_particle", &
          aero_state%n_part, dimid_aero_particle))
-    call pmc_nc_check(nf90_def_var(ncid, "aero_particle", NF90_INT, &
-         dimid_aero_particle, varid_aero_particle))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_particle, &
-         "description", "dummy dimension variable (no useful value)"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
     do i_part = 1,aero_state%n_part
        aero_particle_centers(i_part) = i_part
     end do
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_particle, &
-         aero_particle_centers))
+    call pmc_nc_write_integer_1d(ncid, aero_particle_centers, &
+         "aero_particle", (/ dimid_aero_particle /), &
+         description="dummy dimension variable (no useful value)")
 
   end subroutine aero_state_netcdf_dim_aero_particle
 
@@ -1550,18 +1547,15 @@ contains
     dim_size = max(aero_state%aero_info_array%n_item, 1)
     call pmc_nc_check(nf90_def_dim(ncid, "aero_removed", &
          dim_size, dimid_aero_removed))
-    call pmc_nc_check(nf90_def_var(ncid, "aero_removed", NF90_INT, &
-         dimid_aero_removed, varid_aero_removed))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_removed, &
-         "description", "dummy dimension variable (no useful value)"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
     do i_remove = 1,dim_size
        aero_removed_centers(i_remove) = i_remove
     end do
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_removed, &
-         aero_removed_centers))
+    call pmc_nc_write_integer_1d(ncid, aero_removed_centers, &
+         "aero_removed", (/ dimid_aero_removed /), &
+         description="dummy dimension variable (no useful value)")
 
   end subroutine aero_state_netcdf_dim_aero_removed
 
@@ -1607,7 +1601,7 @@ contains
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
 
-    !> \page output_format_aero_state Output NetCDF File Format: Aerosol Particle State
+    !> \page output_format_aero_state Output File Format: Aerosol Particle State
     !!
     !! The aerosol state consists of a set of individual aerosol
     !! particles, each with its own individual properties. The
@@ -1629,15 +1623,15 @@ contains
     !! aero_comp_vol(i)</tt> over all \c i will give the concentration
     !! of scattering cross section in m^2/m^3.
     !!
-    !! The aerosol state uses the \c aero_species dimension as
+    !! The aerosol state uses the \c aero_species NetCDF dimension as
     !! specified in the \ref output_format_aero_data section, as well
-    !! as the dimension:
+    !! as the NetCDF dimension:
     !!   - \b aero_particle: number of aerosol particles
     !!
-    !! The aerosol state variables are:
+    !! The aerosol state NetCDF variables are:
     !!   - \b aero_particle (dim \c aero_particle): dummy dimension variable
     !!     (no useful value)
-    !!   - \b aero_particle_mass (kg,
+    !!   - \b aero_particle_mass (unit kg,
     !!     dim <tt>aero_particle x aero_species</tt>): constituent masses of
     !!     each aerosol particle - <tt>aero_particle_mass(i,s)</tt> gives the
     !!     mass of species \c s in particle \c i
@@ -1648,10 +1642,10 @@ contains
     !!     particles coagulate, their values of \c aero_n_orig_part are
     !!     added (the number of coagulation events that formed each particle
     !!     is thus <tt>aero_n_orig_part - 1</tt>)
-    !!   - \b aero_absorb_cross_sect (m^2, dim \c aero_particle): optical
-    !!     absorption cross sections of each aerosol particle
-    !!   - \b aero_scatter_cross_sect (m^2, dim \c aero_particle): optical
-    !!     scattering cross sections of each aerosol particle
+    !!   - \b aero_absorb_cross_sect (unit m^2, dim \c aero_particle):
+    !!     optical absorption cross sections of each aerosol particle
+    !!   - \b aero_scatter_cross_sect (unit m^2, dim \c aero_particle):
+    !!     optical scattering cross sections of each aerosol particle
     !!   - \b aero_asymmetry (dimensionless, dim \c aero_particle): optical
     !!     asymmetry parameters of each aerosol particle
     !!   - \b aero_refract_shell_real (dimensionless, dim \c aero_particle):
@@ -1666,25 +1660,25 @@ contains
     !!   - \b aero_refract_core_imag (dimensionless, dim \c aero_particle):
     !!     imaginary part of the refractive indices of the core of each
     !!     aerosol particle
-    !!   - \b aero_core_vol (m^3, dim \c aero_particle): volume of the
+    !!   - \b aero_core_vol (unit m^3, dim \c aero_particle): volume of the
     !!     optical cores of each aerosol particle
     !!   - \b aero_water_hyst_leg (dim \c aero_particle): integers
     !!     specifying which leg of the water hysteresis curve each
     !!     particle is on, using the MOSAIC numbering convention
-    !!   - \b aero_comp_vol (m^3, dim \c aero_particle): computational
+    !!   - \b aero_comp_vol (unit m^3, dim \c aero_particle): computational
     !!     volume containing each particle
     !!   - \b aero_id (dim \c aero_particle): unique ID number of each
     !!     aerosol particle
-    !!   - \b aero_least_create_time (s, dim \c aero_particle): least
+    !!   - \b aero_least_create_time (unit s, dim \c aero_particle): least
     !!     (earliest) creation time of any original constituent particles
     !!     that coagulated to form each particle, measured from the start
     !!     of the simulation - a particle is said to be created when it
     !!     first enters the simulation (by emissions, dilution, etc.)
-    !!   - \b aero_greatest_create_time (s, dim \c aero_particle): greatest
-    !!     (latest) creation time of any original constituent particles
-    !!     that coagulated to form each particle, measured from the start
-    !!     of the simulation - a particle is said to be created when it
-    !!     first enters the simulation (by emissions, dilution, etc.)
+    !!   - \b aero_greatest_create_time (unit s, dim \c aero_particle):
+    !!     greatest (latest) creation time of any original constituent
+    !!     particles that coagulated to form each particle, measured from
+    !!     the start of the simulation - a particle is said to be created
+    !!     when it first enters the simulation (by emissions, dilution, etc.)
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
@@ -1777,7 +1771,7 @@ contains
             // "measured from the start of the simulation")
     end if
 
-    !> \page output_format_aero_removed Output NetCDF File Format: Aerosol Particle Removal Information
+    !> \page output_format_aero_removed Output File Format: Aerosol Particle Removal Information
     !!
     !! When an aerosol particle is introduced into the simulation it
     !! is assigned a unique ID number. This ID number will persist
@@ -1787,9 +1781,9 @@ contains
     !! the simulation its removal will be recorded in the removal
     !! information.
     !!
-    !! The removal information written at timestep \i n contains
-    !! information about every particle ID that is present at time (\i
-    !! n - 1) but not present at time \i n.
+    !! The removal information written at timestep \c n contains
+    !! information about every particle ID that is present at time
+    !! <tt>(n - 1)</tt> but not present at time \c n.
     !!
     !! The removal information is always written in the output files,
     !! even if no particles were removed in the previous
@@ -1810,12 +1804,12 @@ contains
     !! and <tt>aero_removed_other_id(i)</tt> will be the ID number of
     !! the combined particle.
     !!
-    !! The aerosol removal information uses the dimension:
+    !! The aerosol removal information NetCDF dimensions are:
     !!   - \b aero_removed: number of aerosol particles removed from the
     !!     simulation during the previous timestep (or 1, as described
     !!     above)
     !!
-    !! The aerosol removal information variables are:
+    !! The aerosol removal information NetCDF variables are:
     !!   - \b aero_removed (dim \c aero_removed): dummy dimension variable
     !!     (no useful value)
     !!   - \b aero_removed_id (dim \c aero_removed): the ID number of each

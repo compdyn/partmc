@@ -412,7 +412,7 @@ contains
     real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     
-    !> \page output_format_aero_binned Output NetCDF File Format: Aerosol Binned Sectional State
+    !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
     !!
     !! The aerosol size distributions (number and mass) are stored on
     !! a logarmithmic grid (see the \ref output_format_bin_grid
@@ -421,15 +421,16 @@ contains
     !! aero_radius_widths(i)</tt>, for example.
     !!
     !! The aerosol binned sectional state uses the \c aero_species
-    !! dimension as specified in the \ref output_format_aero_data
-    !! section, as well as the \c aero_radius dimension specified in
-    !! the \ref output_format_bin_grid section.
+    !! NetCDF dimension as specified in the \ref
+    !! output_format_aero_data section, as well as the \c aero_radius
+    !! NetCDF dimension specified in the \ref output_format_bin_grid
+    !! section.
     !!
-    !! The aerosol binned sectional state variables are:
-    !!   - \b aero_number_concentration (#/m^3, dim \c aero_radius): the
+    !! The aerosol binned sectional state NetCDF variables are:
+    !!   - \b aero_number_concentration (unit 1/m^3, dim \c aero_radius): the
     !!     number size distribution for the aerosol population,
     !!     \f$ dN(r)/d\ln r \f$, per bin
-    !!   - \b aero_mass_concentration (kg/m^3, dim
+    !!   - \b aero_mass_concentration (unit kg/m^3, dim
     !!     <tt>dimid_aero_radius x dimid_aero_species</tt>): the mass size
     !!     distribution for the aerosol population,
     !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species

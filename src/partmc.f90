@@ -5,15 +5,25 @@
 !> \file
 !> The partmc program.
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !> \mainpage PartMC Code Documentation
 !>
-!> \subpage output_format - Description of variables in the output files.
+!> \subpage input_format - Input file format description.
+!>
+!> \subpage output_format - Output file format description.
 !>
 !> \subpage coding_style - Description of code conventions and style.
 !>
-!> <br><br>
+!> \subpage module_diagram - Diagram of modules and dependencies.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page module_diagram Module Diagram
 !>
 !> \dotfile partmc_modules.gv
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> \page coding_style Coding Style
 !>
@@ -60,6 +70,31 @@
 !> This means that every subroutine (except for alloc and free) should
 !> contain matching \c allocate()/deallocate() and
 !> <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page input_format Input File Format
+!!
+!! The input file format is plain text. See \ref spec_file_format for
+!! a description of the file format.
+!!
+!! When running PartMC with the command <tt>partmc input.spec</tt> the
+!! first line of the <tt>input.spec</tt> file must define the \c
+!! run_type with:
+!! <pre>
+!! run_type &lt;type&gt;
+!! </pre>
+!! where <tt>&lt;type&gt;</tt> is one of \c particle, \c exact, or \c
+!! sectional. This determines the type of run as well as the format of the
+!! remainder of the spec file:
+!!
+!! \subpage input_format_particle "Particle-resolved simulation"
+!!
+!! \subpage input_format_exact "Exact (analytical) solution"
+!!
+!! \subpage input_format_sectional "Sectional model simulation"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Top level driver.
 program partmc
@@ -188,6 +223,10 @@ contains
     character(len=3000) :: restart_filename
     integer :: dummy_index, dummy_i_loop
     real(kind=dp) :: dummy_time, dummy_del_t
+
+    !> \page input_format_particle Particle-Resolved Simulation
+    !!
+    !! Under construction...
 
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
@@ -453,6 +492,10 @@ contains
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
 
+    !> \page input_format_exact Exact (Analytical) Solution
+    !!
+    !! Under construction...
+
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
        return
@@ -539,6 +582,10 @@ contains
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
+
+    !> \page input_format_sectional Sectional Model Simulation
+    !!
+    !! Under construction...
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then

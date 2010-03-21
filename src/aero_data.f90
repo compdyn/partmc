@@ -475,26 +475,26 @@ contains
 
     integer :: dimid_aero_species
 
-    !> \page output_format_aero_data Output NetCDF File Format: Aerosol Material Data
+    !> \page output_format_aero_data Output File Format: Aerosol Material Data
     !!
-    !! The aerosol material data dimensions are:
+    !! The aerosol material data NetCDF dimensions are:
     !!   - \b aero_species: number of aerosol species
     !!
-    !! The aerosol material data variables are:
+    !! The aerosol material data NetCDF variables are:
     !!   - \b aero_species (dim \c aero_species): dummy dimension variable
     !!     (no useful value) - read species names as comma-separated values
     !!     from the 'names' attribute
     !!   - \b aero_mosaic_index (dim \c aero_species): indices of species
     !!     in MOSAIC
-    !!   - \b aero_density (kg/m^3, dim \c aero_species): densities
+    !!   - \b aero_density (unit kg/m^3, dim \c aero_species): densities
     !!     of aerosol species
     !!   - \b aero_num_ions (dim \c aero_species): number of ions produced
     !!     when one molecule of each species fully dissociates in water
     !!   - \b aero_solubility (dimensionless, dim \c aero_species):
     !!     solubilities of aerosol species
-    !!   - \b aero_molec_weight (kg/mol, dim \c aero_species): molecular
+    !!   - \b aero_molec_weight (unit kg/mol, dim \c aero_species): molecular
     !!     weights of aerosol species
-    !!   - \b aero_kappa (kg/mol, dim \c aero_species): hygroscopicity
+    !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
     !!     parameters of aerosol species
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &

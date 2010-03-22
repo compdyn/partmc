@@ -134,6 +134,39 @@ contains
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_type
 
+    !> \page input_format_aero_weight Input File Format: Aerosol Weighting Function
+    !!
+    !! For efficiency the aerosol population can be weighted so that
+    !! the true number distribution \f$n(D)\f$ is given by
+    !! \f[ n(D) = w(D) c(D) \f]
+    !! where \f$w(D)\f$ is a fixed weighting function, \f$c(D)\f$ is
+    !! the computational (simulated) number distribution, and \f$D\f$
+    !! is the diameter. Thus a large value of \f$w(D)\f$ means that
+    !! relatively few computational particles are used at diameter
+    !! \f$D\f$, while a small value of \f$w(D)\f$ means that
+    !! relatively many computational particles will be used at that
+    !! diameter.
+    !!
+    !! The aerosol weighting function is specified by the parameters:
+    !!   - \b weight (string): the type of weighting function --- must
+    !!     be one of: "none" for no weighting (\f$w(D) = 1\f$); or
+    !!     "power" for a power-law weighting (\f$w(D) =
+    !!     (D/D_0)^\alpha\f$)
+    !!   - if the \c weight is \c power then the next parameters are:
+    !!     - \b ref_radius (real, unit m): the reference radius
+    !!       \f$R_0\f$ (corresponding to \f$D_0 = 2R_0\f$)
+    !!     - \b exponent (real, dimensionless): the exponent
+    !!       \f$\alpha\f$ in the power law relationship --- setting
+    !!       the \c exponent to 0 is equivalent to no weighting, while
+    !!       setting the exponent negative uses more computational
+    !!       particles at larger diameters and setting the exponent
+    !!       positive uses more computational particles at smaller
+    !!       diameters; in practice exponents between 0 and -3 are
+    !!       most useful
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
     call spec_file_read_string(file, 'weight', weight_type)
     if (trim(weight_type) == 'none') then
        aero_weight%type = AERO_WEIGHT_TYPE_NONE

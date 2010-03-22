@@ -77,7 +77,8 @@ particle numbers and comp vols or something?
 Add env%day_of_year (days since jan 1) and env%time_of_day (secs since
 midnight) and shift info on start day, start time, etc to
 env_data. Change mosaic_timestep() to just read time/day info out of
-env directly. Update this info in env_data_update_state().
+env directly. Update this info in env_data_update_state(). Should
+probably store full date/time info, with timezone as +-HH:MM, etc.
 
 Add H2O as a gas species and just track it as a regular gas, getting
 rid of relative humidity in env. add a relative_humidity(env,
@@ -90,7 +91,8 @@ coagulation? Does this come in the right order?
 Sometimes cmake seems to rebuild even if no source files have changed
 at all?
 
-Change bins to have r_min, r_max as edges, not centers.
+Change bins to have r_min, r_max as edges, not centers. Would be even
+better to switch to d_min, d_max for diameter.
 
 Document interpolation strategies. Emissions and background all use
 piecewise constant: for data d_1, d_2, ..., d_n at times t_1, t_2,
@@ -145,7 +147,7 @@ spec file formats, by having comments before each spec_file_read_*
 call. This may not be possible?
 
 Change numeric_average.f90 to be numeric_reduce.f90 with option
-"mean", "stddev", "min", "max", "median", "prank" (percentile rank).
+"mean", "stddev", "min", "max", "median", "perc_rank" (percentile rank).
 
 Delete all files in the output directory that have the current prefix,
 before running, to avoid the problem where we reduce the timestep but
@@ -162,7 +164,8 @@ const%water_density (also const%water_molec_weight).
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
 
-Bin averaging should take aero_weight into account.
+Bin averaging should take aero_weight into account. Will require
+storing weightings in the output file in some way.
 
 Restart has to deal with aero_weight in some way. Just require
 aero_weight is the same as output? Can we check somehow?

@@ -66,14 +66,17 @@ contains
   !> Nucleate sulfuric acid into aerosol particles, using a power-law
   !> dependence, for time \c del_t.
   !!
-  !! The modeled emission rate is \f$ J = K H^2 \f$.
+  !! The modeled emission rate is \f$ J = K H^2 \f$, where \f$H\f$ is
+  !! the concentration of \f$ \rm H_2SO_4 \f$ and \f$K\f$ is a
+  !! constant coefficient.
   !!
   !! The reference is:
   !!
   !! C. Kuang, P. H. McMurry, A. V. McCormick, and F. L. Eisele
   !! (2008), Dependence of nucleation rates on sulfuric acid vapor
-  !! concentration in diverse atmospheric locations, J. Geophys. Res.,
-  !! 113, D10209, doi:10.1029/2007JD009253.
+  !! concentration in diverse atmospheric locations,
+  !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
+  !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
   subroutine nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
        aero_weight, aero_state, gas_state, del_t)
 
@@ -167,6 +170,17 @@ contains
     integer, intent(out) :: nucleate_type
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: nucleate_type_name
+
+    !> \page input_format_nucleate Input File Format: Nucleation Parameterization
+    !!
+    !! The nucleation parameterization is specified by the parameters:
+    !!   - \b nucleate (string): the type of nucleation
+    !!     parameterization --- must be one of: "none" for no
+    !!     nucleation; or "sulf_acid" for the nucleate_sulf_acid()
+    !!     parameterization
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
 
     call spec_file_read_string(file, 'nucleate', nucleate_type_name)
     if (nucleate_type_name == 'none') then

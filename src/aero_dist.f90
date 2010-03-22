@@ -252,10 +252,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read continuous aerosol distribution composed of several modes.
-  subroutine spec_file_read_aero_dist(file, aero_data, aero_dist)
+  subroutine spec_file_read_aero_dist(filename, aero_data, aero_dist)
 
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
+    !> Spec filename to read data from.
+    character(len=*), intent(in) :: filename
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol dist.
@@ -265,7 +265,17 @@ contains
     type(aero_mode_t) :: aero_mode
     integer :: i, j
     logical :: eof
+    type(spec_file_t) :: file
     
+    !> \page input_format_aero_dist Input File Format: Aerosol Distribution
+    !!
+    !! An aerosol distribution file consists of zero or more modes,
+    !! each in the format described by \subpage input_format_aero_mode
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_open(filename, file)
     aero_dist%n_mode = 0
     allocate(aero_dist%mode(0))
     call aero_mode_allocate(aero_mode)
@@ -289,37 +299,10 @@ contains
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
     call aero_mode_deallocate(aero_mode)
+    call spec_file_close(file)
 
   end subroutine spec_file_read_aero_dist
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read aerosol distribution from filename on line in file.
-  subroutine spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
-       name, aero_dist)
-
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
-    !> Aero_data data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Name of data line for filename.
-    character(len=*), intent(in) :: name
-    !> Aerosol distribution.
-    type(aero_dist_t), intent(inout) :: aero_dist
-
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
-    type(spec_file_t) :: read_file
-
-    ! read the aerosol data from the specified file
-    call spec_file_read_string(file, name, read_name)
-    call spec_file_open(read_name, read_file)
-    call spec_file_read_aero_dist(read_file, aero_data, aero_dist)
-    call spec_file_close(read_file)
-
-  end subroutine spec_file_read_aero_dist_filename
-    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of aero_dists with associated times and rates from

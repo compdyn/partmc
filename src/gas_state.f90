@@ -201,26 +201,43 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas state from the file named on the line read from file.
-  subroutine spec_file_read_gas_state(file, gas_data, name, gas_state)
+  subroutine spec_file_read_gas_state(filename, gas_data, name, gas_state)
 
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
+    !> Filename to read gas state from.
+    character(len=*), intent(in) :: filename
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
-    !> Name of data line for filename.
-    character(len=*), intent(in) :: name
-    !> Gas data.
+    !> Gas data to read.
     type(gas_state_t), intent(out) :: gas_state
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
 
-    ! read the filename then read the data from that file
-    call spec_file_read_string(file, name, read_name)
-    call spec_file_open(read_name, read_file)
+    !> \page input_format_gas_state Input File Format: Gas State
+    !!
+    !! A gas state input file must consist of one line per gas
+    !! species, with each line having the species name followed by the
+    !! species mixing ratio in ppb (parts per billion). The valid
+    !! species names are those specfied by the \ref
+    !! input_format_gas_data file. For example, a gas state file could
+    !! contain:
+    !! <pre>
+    !! # gas  mixing ratio (ppb)
+    !! H2SO4  0
+    !! HNO3   1
+    !! HCl    0.7
+    !! NH3    0.5
+    !! </pre>
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_gas_state --- the corresponding output format
+    !!   - \ref input_format_gas_data --- the gas species list and
+    !!     material data
+
+    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(read_file, 0, species_name, &
@@ -230,7 +247,7 @@ contains
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 1) .or. (n_species == 0))) then
-       call die_msg(686719840, 'each line in ' // trim(read_name) &
+       call die_msg(686719840, 'each line in ' // trim(filename) &
             // ' must contain exactly one data value')
     end if
 
@@ -474,6 +491,11 @@ contains
     !! The gas state NetCDF variables are:
     !!   - \b gas_mixing_ratio (unit ppb, dim \c gas_species): current mixing
     !!     ratios of each gas species
+    !!
+    !! See also:
+    !!   - \ref output_format_gas_data --- the gas species list and material
+    !!     data output format
+    !!   - \ref input_format_gas_state --- the corresponding input format
 
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)

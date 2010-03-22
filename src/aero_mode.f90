@@ -519,6 +519,47 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str
     type(spec_line_t) :: line
 
+    !> \page input_format_aero_mode Input File Format: Aerosol Distribution Mode
+    !!
+    !! An aerosol distribution mode has the parameters:
+    !!   - \b mode_name (string): the name of the mode (for
+    !!     informational purposes only)
+    !!   - \subpage input_format_mass_frac
+    !!   - \b num_conc (real, unit 1/m^3): the total number
+    !!     concentration of the mode
+    !!   - \b mode_type (string): the functional form of the mode ---
+    !!     must be one of: "log_normal" for a log-normal distribution;
+    !!     "exp" for an exponential distribution; or "mono" for a
+    !!     mono-disperse distribution
+    !!   - if \c mode_type is \c log_normal then the mode distribution shape is
+    !!     \f[ n(\ln D) {\rm d}\ln D = \frac{1}{\sqrt{2\pi} \sigma_{\rm g}}
+    !!     \exp\left(\frac{(\ln D - \ln D_{\rm \mu g})^2}{\sigma_{\rm g}^2}\right)
+    !!     {\rm d}\ln D \f]
+    !!     and the following parameters are:
+    !!     - \b mean_radius (real, unit m): the geometric mean radius
+    !!       \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
+    !!       \mu g}\f$
+    !!     - \b log_std_dev (real, dimensionless): the geometric
+    !!       standard deviation \f$\sigma_{\rm g}\f$
+    !!   - if \c mode_type is \c exp then the mode distribution shape is
+    !!     \f[ n(\ln D) {\rm d}\ln D = \frac{1}{D_{\rm \mu}}
+    !!     \exp\left(- \frac{D}{D_{\rm \mu}}\right)
+    !!     {\rm d}\ln D \f]
+    !!     and the following parameters are:
+    !!     - \b mean_radius (real, unit m): the mean radius
+    !!       \f$R_{\rm \mu}\f$ such that \f$D_{\rm \mu} = 2 R_{\rm
+    !!       \mu}\f$
+    !!   - if \c mode_type is \c mono then the mode distribution shape
+    !!     is a delta distribution at diameter \f$D_0\f$ and the
+    !!     following parameters are:
+    !!     - \b radius (real, unit m): the radius \f$R_0\f$ of the
+    !!       particles, so that \f$D_0 = 2 R_0\f$
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_aero_dist --- the format for a complete
+    !!     aerosol distribution with several modes
+
     call spec_line_allocate(line)
     call spec_file_read_line(file, line, eof)
     if (.not. eof) then

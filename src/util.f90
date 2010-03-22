@@ -22,6 +22,8 @@ module pmc_util
 
   !> Length of string for converting numbers.
   integer, parameter :: PMC_UTIL_CONVERT_STRING_LEN = 100
+  !> Maximum length of filenames.
+  integer, parameter :: PMC_MAX_FILENAME_LEN = 300
 
 contains
   

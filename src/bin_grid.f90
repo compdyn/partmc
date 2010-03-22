@@ -185,6 +185,26 @@ contains
     integer :: n_bin
     real(kind=dp) :: r_min, r_max
 
+    !> \page input_format_bin_grid Input File Format: Diameter Axis Bin Grid
+    !!
+    !! The bin grid is logarithmic in diameter, consisting of \c n_bin
+    !! bins with centers \f$c_i\f$ (\f$i = 1,\ldots,n_{\rm bin}\f$)
+    !! and edges \f$e_i\f$ (\f$i = 1,\ldots,(n_{\rm bin} + 1)\f$) such
+    !! that \f$e_{i+1}/e_i\f$ is a constant and \f$c_i/e_i =
+    !! \sqrt{e_{i+1}/e_i}\f$. That is, \f$\ln(e_i)\f$ are uniformly
+    !! spaced and \f$\ln(c_i)\f$ are the arithmetic centers.
+    !!
+    !! The diameter axis bin grid is specified by the parameters:
+    !!   - \b n_bin (integer): the number of bins
+    !!   - \b r_min (real, unit m): the center of the left-most bin
+    !!     \f$c_1\f$, given as a radius
+    !!   - \b r_max (real, unit m): the center of the right-most bin
+    !!     \f$c_{n_{\rm bin}}\f$, given as a radius
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_bin_grid --- the corresponding output format
+
     call spec_file_read_integer(file, 'n_bin', n_bin)
     call spec_file_read_real(file, 'r_min', r_min)
     call spec_file_read_real(file, 'r_max', r_max)
@@ -344,13 +364,16 @@ contains
     !!   - \b aero_radius (unit m, dim \c aero_radius): aerosol radius axis
     !!     bin centers --- centered on a logarithmic scale from the edges, so
     !!     that <tt>aero_radius(i) / aero_radius_edges(i) =
-    !!     0.5 * aero_radius_edges(i+1) / aero_radius_edges(i)</tt>
+    !!     sqrt(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>
     !!   - \b aero_radius_edges (unit m, dim \c aero_radius_edges): aersol
     !!     radius axis bin edges (there is one more edge than center)
     !!   - \b aero_radius_widths (dimensionless, dim \c aero_radius):
     !!     the base-e logarithmic bin widths --- <tt>aero_radius_widths(i)
     !!     = ln(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>, so
     !!     all bins have the same width
+    !!
+    !! See also:
+    !!   - \ref input_format_bin_grid --- the corresponding input format
 
     call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
          dimid_aero_radius)

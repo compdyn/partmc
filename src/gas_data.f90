@@ -175,22 +175,40 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas data from a .spec file.
-  subroutine spec_file_read_gas_data(file, gas_data)
+  subroutine spec_file_read_gas_data(filename, gas_data)
 
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
+    !> Spec filename to read data from.
+    character(len=*), intent(in) :: filename
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
 
+    !> \page input_format_gas_data Input File Format: Gas Material Data
+    !!
+    !! A gas material data file must consist of one line per gas
+    !! species, with each line having the species name followed by the
+    !! species molecular weight in kg/mol, separated by spaces. This
+    !! specifies both which species are to be recognized as gases, as
+    !! well as their physical properties. For example, a \c gas_data
+    !! file could contain:
+    !! <pre>
+    !! # gas  molec weight (kg/mol)
+    !! H2SO4  18d-3
+    !! HNO3   18d-3
+    !! HCl    18d-3
+    !! NH3    18d-3
+    !! </pre>
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_gas_data --- the corresponding output format
+
     ! read the gas data from the specified file
-    call spec_file_read_string(file, 'gas_data', read_name)
-    call spec_file_open(read_name, read_file)
+    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(read_file, 0, species_name, &
@@ -199,7 +217,7 @@ contains
 
     ! check the data size
     if (size(species_data, 2) /= 1) then
-       call die_msg(614290516, 'each line in ' // trim(read_name) &
+       call die_msg(614290516, 'each line in ' // trim(filename) &
             // ' must only contain one value')
     end if
 
@@ -367,6 +385,9 @@ contains
     !!     gas species
     !!   - \b gas_molec_weight (unit kg/mol, dim \c gas_species): molecular
     !!     weights of gas species
+    !!
+    !! See also:
+    !!   - \ref input_format_gas_data --- the corresponding input format
 
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)

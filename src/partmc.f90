@@ -8,69 +8,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> \mainpage PartMC Code Documentation
-!>
-!> \subpage input_format - Input file format description.
-!>
-!> \subpage output_format - Output file format description.
-!>
-!> \subpage coding_style - Description of code conventions and style.
-!>
-!> \subpage module_diagram - Diagram of modules and dependencies.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!> \page module_diagram Module Diagram
-!>
-!> \dotfile partmc_modules.gv
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!> \page coding_style Coding Style
-!>
-!> The code is mainly Fortran 90, with a few parts still clearly
-!> showing their Fortran 77 heritage. A few Fortran 95 and Fortran
-!> 2003 features are used (mainly the \c COMMAND_ARGUMENT_COUNT and \c
-!> GET_COMMAND_ARGUMENT intrinsics). The code needs to be processed
-!> with \c cpp or a compatible pre-processor.
-!>
-!> \section oo_fortran Object Oriented Fortran
-!>
-!> Extensive use is made of Fortran 90 derived types and pointers for
-!> dynamic memory allocation of arrays inside derived types. Derived
-!> types are named \c my_type_t and are generally defined in modules
-!> named \c pmc_mod_my_type within files named \c my_type.f90. Each
-!> derived type has allocation and deallocation functions \c
-!> my_type_allocate() and \c my_type_deallocate(), where
-!> appropriate. Almost all subroutines and function in each \c
-!> my_type.f90 file have names of the form \c my_type_*() and take an
-!> object of type \c my_type as the first argument on which to
-!> operate.
-!>
-!> Module names are always the same as the name of the containing
-!> file, but prefixed with \c pmc_. Thus the module \c
-!> pmc_condense is contained in the file \c condense.f90.
-!>
-!> \section mem_manage Memory Management
-!>
-!> The memory allocation policy is that all functions must be called
-!> with an already allocated structure. That is, if a subroutine
-!> defines a variable of type \c my_type_t, then it must call \c
-!> my_type_allocate() or \c my_type_allocate_size() on it before
-!> passing it to any other subroutines or functions. The defining
-!> subroutine is also responsible for calling \c my_type_deallocate()
-!> on every variable it defines.
-!>
-!> Similarly, any subroutine that declares a pointer variable must
-!> allocate it and any data it points to before passing it to other
-!> subroutines or functions. If no specific length is known for an array
-!> pointer then it should be allocated to zero size. Any subsequent
-!> subroutines are free to deallocate and reallocate if they need to
-!> change the size.
-!>
-!> This means that every subroutine (except for allocate and
-!> deallocate routines) should contain matching \c
-!> allocate()/deallocate() and
-!> <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
+!!
+!! \subpage input_format - Input file format description.
+!!
+!! \subpage output_format - Output file format description.
+!!
+!! \subpage module_diagram - Diagram of modules and dependencies.
+!!
+!! \subpage coding_style - Description of code conventions and style.
+!!
+!! \subpage publications - Publications about PartMC.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,6 +41,82 @@
 !! \subpage input_format_exact "Exact (analytical) solution"
 !!
 !! \subpage input_format_sectional "Sectional model simulation"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page module_diagram Module Diagram
+!!
+!! \dotfile partmc_modules.gv
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page coding_style Coding Style
+!!
+!! The code is mainly Fortran 90, with a few parts still clearly
+!! showing their Fortran 77 heritage. A few Fortran 95 and Fortran
+!! 2003 features are used (mainly the \c COMMAND_ARGUMENT_COUNT and \c
+!! GET_COMMAND_ARGUMENT intrinsics). The code needs to be processed
+!! with \c cpp or a compatible pre-processor.
+!!
+!! \section oo_fortran Object Oriented Fortran
+!!
+!! Extensive use is made of Fortran 90 derived types and pointers for
+!! dynamic memory allocation of arrays inside derived types. Derived
+!! types are named \c my_type_t and are generally defined in modules
+!! named \c pmc_mod_my_type within files named \c my_type.f90. Each
+!! derived type has allocation and deallocation functions \c
+!! my_type_allocate() and \c my_type_deallocate(), where
+!! appropriate. Almost all subroutines and function in each \c
+!! my_type.f90 file have names of the form \c my_type_*() and take an
+!! object of type \c my_type as the first argument on which to
+!! operate.
+!!
+!! Module names are always the same as the name of the containing
+!! file, but prefixed with \c pmc_. Thus the module \c
+!! pmc_condense is contained in the file \c condense.f90.
+!!
+!! \section mem_manage Memory Management
+!!
+!! The memory allocation policy is that all functions must be called
+!! with an already allocated structure. That is, if a subroutine
+!! defines a variable of type \c my_type_t, then it must call \c
+!! my_type_allocate() or \c my_type_allocate_size() on it before
+!! passing it to any other subroutines or functions. The defining
+!! subroutine is also responsible for calling \c my_type_deallocate()
+!! on every variable it defines.
+!!
+!! Similarly, any subroutine that declares a pointer variable must
+!! allocate it and any data it points to before passing it to other
+!! subroutines or functions. If no specific length is known for an array
+!! pointer then it should be allocated to zero size. Any subsequent
+!! subroutines are free to deallocate and reallocate if they need to
+!! change the size.
+!!
+!! This means that every subroutine (except for allocate and
+!! deallocate routines) should contain matching \c
+!! allocate()/deallocate() and
+!! <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> \page publications PartMC Publications
+!!
+!!   - N.&nbsp;Riemer, M.&nbsp;West, R.&nbsp;A.&nbsp;Zaveri, and
+!!     R.&nbsp;C.&nbsp;Easter (2010) Estimating black carbon aging
+!!     time-scales with a particle-resolved aerosol model, <i>Journal
+!!     of Aerosol Science</i> 41(1), 143-158, DOI: <a
+!!     href="http://dx.doi.org/10.1016/j.jaerosci.2009.08.009">10.1016/j.jaerosci.2009.08.009</a>
+!!   - N.&nbsp;Riemer, M.&nbsp;West, R.&nbsp;A.&nbsp;Zaveri, and
+!!     R.&nbsp;C.&nbsp;Easter (2009) Simulating the evolution of soot
+!!     mixing state with a particle-resolved aerosol model, <i>Journal
+!!     of Geophysical Research</i> 114(D09202), DOI: <a
+!!     href="http://dx.doi.org/10.1029/2008JD011073">10.1029/2008JD011073</a>
+!!   - R.&nbsp;McGraw, L.&nbsp;Leng, W.&nbsp;Zhu, N.&nbsp;Riemer, and
+!!     M.&nbsp;West (2008) Aerosol dynamics using the quadrature
+!!     method of moments: Comparing several quadrature schemes with
+!!     particle-resolved simulation, <i>Journal of Physics: Conference
+!!     Series</i> 125(012020), DOI: <a
+!!     href="http://dx.doi.org/10.1088/1742-6596/125/1/012020">10.1088/1742-6596/125/1/012020</a>
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -221,7 +244,7 @@ contains
     integer :: buffer_size
     integer :: position
     logical :: do_restart
-    character(len=3000) :: restart_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_loop
     real(kind=dp) :: dummy_time, dummy_del_t
 
@@ -238,9 +261,14 @@ contains
     !!     simulate (actual number used will vary between <tt>n_part /
     !!     2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
     !!     allow_halving are \c yes)
-    !!   - \b kernel (string): 
-    !!   - \ref input_format_nucleate_type
-    !!   - \b restart
+    !!   - \b kernel (string): the type of coagulation kernel --- must
+    !!     be one of: "sedi" for the gravitational sedimentation
+    !!     kernel; "golovin" for the additive Golovin kernel;
+    !!     "constant" for the constant kernel; "brown" for the
+    !!     Brownian kernel, or "zero" for no coagulation
+    !!   - \subpage input_format_nucleate
+    !!   - \b restart (logical): whether to restart the simulation
+    !!     from a saved output data file
     !!   - \b restart_file (string): name of file from which to load
     !!     restart data, which must be a PartMC output NetCDF file
     !!     (only provide option if \c restart is \yes)
@@ -250,16 +278,23 @@ contains
     !!     output data to disk (see \ref output_format)
     !!   - \b t_progress (real, unit s): the interval on which to
     !!     write summary information to the screen while running
-    !!   - \ref input_format_bin_grid --- only used for efficiency
+    !!   - \subpage input_format_bin_grid --- only used for efficiency
     !!     gains during coagulation
-    !!   - \ref input_format_aero_weight
-    !!   - \ref input_format_gas_data
-    !!   - \ref input_format_gas_state (only provide option if \c
-    !!     restart is \c no)
-    !!   - \ref input_format_aero_data
-    !!   - \b aerosol_init (string): filename containing the aerosol
-    !!     initial state, in the format of \ref input_format_aero_dist
-    !!     (only provide option if \c restart is \c no)
+    !!   - \subpage input_format_aero_weight
+    !!   - \b gas_data (string): name of file from which to read the
+    !!     gas material data --- the file format should be
+    !!     \subpage input_format_gas_data
+    !!   - \b gas_init (string): name of file from which to read the
+    !!     initial gas state at the start of the simulation (only
+    !!     provide option if \c restart is \c no) --- the file format
+    !!     should be \subpage input_format_gas_state
+    !!   - \b aero_data (string): name of file from which to read the
+    !!     aerosol material data --- the file format should be
+    !!     \subpage input_format_aero_data
+    !!   - \b aerosol_init (string): filename containing the initial
+    !!     aerosol state at the start of the simulation (only provide
+    !!     option if \c restart is \c no) --- the file format should
+    !!     be \subpage input_format_aero_dist
     !!   - \ref input_format_env_data
     !!   - \ref input_format_env_state
     !!   - \b rand_init (integer): if greater than zero then use as
@@ -358,16 +393,22 @@ contains
                dummy_i_loop)
        end if
 
-       call spec_file_read_gas_data(file, gas_data)
+       call spec_file_read_string(file, 'gas_data', tmp_filename)
+       call spec_file_read_gas_data(tmp_filename, gas_data)
+
        if (.not. do_restart) then
-          call spec_file_read_gas_state(file, gas_data, 'gas_init', &
+          call spec_file_read_string(file, 'gas_init', tmp_filename)
+          call spec_file_read_gas_state(tmp_filename, gas_data, &
                gas_state_init)
        end if
 
-       call spec_file_read_aero_data_filename(file, aero_data)
+       call spec_file_read_string(file, 'aero_data', tmp_filename)
+       call spec_file_read_aero_data(tmp_filename, aero_data)
+
        if (.not. do_restart) then
-          call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
-               'aerosol_init', aero_dist_init)
+          call spec_file_read_string(file, 'aerosol_init', tmp_filename)
+          call spec_file_read_aero_dist(tmp_filename, aero_data, &
+               bin_grid, aero_dist_init)
        end if
 
        call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &

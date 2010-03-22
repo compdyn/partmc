@@ -228,25 +228,54 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
-  subroutine spec_file_read_aero_data(file, aero_data)
+  subroutine spec_file_read_aero_data(filename, aero_data)
 
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
+    !> Spec filename to read data from.
+    character(len=*), intent(in) :: filename
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
+    type(spec_file_t) :: file
 
+    !> \page input_format_aero_data Input File Format: Aerosol Material Data
+    !!
+    !! A aerosol material data file must consist of one line per
+    !! aerosol species, with each line having:
+    !!   - species name (string)
+    !!   - density (real, unit kg/m^3)
+    !!   - ions per fully dissociated molecule (integer)
+    !!   - solubility (real, dimensionless)
+    !!   - molecular weight (real, unit kg/mol)
+    !!   - kappa hygroscopicity parameter (real, dimensionless)
+    !!
+    !! This specifies both which species are to be recognized as
+    !! aerosol consituents, as well as their physical properties. For
+    !! example, an aerosol material data file could contain:
+    !! <pre>
+    !! # species  dens (kg/m^3)   ions (1)    solubty (1)   molec wght (kg/mole)   kappa (1)
+    !! SO4        1800            0           0             96e-3                  0.65
+    !! NO3        1800            0           0             62e-3                  0.65
+    !! Cl         2200            0           0             35.5e-3                0.53
+    !! NH4        1800            0           0             18e-3                  0.65
+    !! </pre>
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_aero_data --- the corresponding output format
+
+    call spec_file_open(filename, file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, species_data)
+    call spec_file_close(file)
 
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 5) .or. (n_species == 0))) then
-       call die_msg(428926381, 'each line in ' // trim(file%name) &
+       call die_msg(428926381, 'each line in ' // trim(filename) &
             // ' should contain exactly 5 values')
     end if
 
@@ -270,27 +299,6 @@ contains
     call aero_data_set_mosaic_map(aero_data)
 
   end subroutine spec_file_read_aero_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read aero_data specification from a spec file.
-  subroutine spec_file_read_aero_data_filename(file, aero_data)
-
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
-    !> Aero_data data.
-    type(aero_data_t), intent(out) :: aero_data
-
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
-    type(spec_file_t) :: read_file
-
-    ! read the aerosol data from the specified file
-    call spec_file_read_string(file, 'aerosol_data', read_name)
-    call spec_file_open(read_name, read_file)
-    call spec_file_read_aero_data(read_file, aero_data)
-    call spec_file_close(read_file)
-
-  end subroutine spec_file_read_aero_data_filename
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -496,6 +504,9 @@ contains
     !!     weights of aerosol species
     !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
     !!     parameters of aerosol species
+    !!
+    !! See also:
+    !!   - \ref input_format_aero_data --- the corresponding input format
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)

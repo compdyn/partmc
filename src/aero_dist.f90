@@ -266,14 +266,19 @@ contains
     integer :: i, j
     logical :: eof
     type(spec_file_t) :: file
+
+    ! note that the <p> is needed below to force correct paragraph
+    ! breaking by doxygen
     
     !> \page input_format_aero_dist Input File Format: Aerosol Distribution
     !!
-    !! An aerosol distribution file consists of zero or more modes,
+    !! <p>An aerosol distribution file consists of zero or more modes,
     !! each in the format described by \subpage input_format_aero_mode
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_aero_mode --- the format for each mode
+    !!     of an aerosol distribution
 
     call spec_file_open(filename, file)
     aero_dist%n_mode = 0
@@ -331,6 +336,62 @@ contains
     integer :: n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
     real(kind=dp), pointer :: data(:,:)
+
+    !> \page input_format_aero_dist_profile Input File Format: Aerosol Distribution Profile
+    !!
+    !! An aerosol distribution profile input file must consist of
+    !! three lines:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the aerosol
+    !!   distrbution set points --- the times must be in increasing
+    !!   order
+    !! - the second line must begin with \c rate and should be
+    !!   followed by \f$N\f$ space-separated real scalars, giving the
+    !!   scalings at the corresponding times
+    !! - the third line must begin with \c dist and should be followed
+    !!   by \f$N\f$ space-separated filenames, each specifying an
+    !!   aerosol distribution in the format \c input_format_aero_dist
+    !!   at the corresponding time
+    !!
+    !! The units of the \c rate line depend on the type of aerosol
+    !! distribution profile:
+    !! - emissions aerosol profiles have rates with units 1/(m s) ---
+    !!   the aerosol distribution number concentrations are multiplied
+    !!   by the rate to give an emission rate with unit #/(m^2 s)
+    !!   which is then multiplied with the current mixing layer height
+    !!   to give a per-volume emission rate
+    !! - background aerosol profiles have dimensionless rates that
+    !! - simply scale the number concentrations
+    !!
+    !! Between the specified times the aerosol profile is interpolated
+    !! step-wise and kept constant at its last value. That is, if the
+    !! times are \f$t_i\f$, the rates are \f$r_i\f$, and the aerosol
+    !! distributions are \f$a_i\f$ (all with \f$i = 1,\ldots,n\f$),
+    !! then between times \f$t_i\f$ and \f$t_{i+1}\f$ the aerosol
+    !! state is constant at \f$r_i a_i\f$. Before time \f$t_1\f$ the
+    !! aerosol state is \f$r_1 a_1\f$, while after time \f$t_n\f$ it
+    !! is \f$r_n a_n\f$.
+    !!
+    !! Example: an emissions aerosol profile could be:
+    !! <pre>
+    !! time  0          600        1800       # time (in s) after simulation start
+    !! rate  1          0.5        1          # scaling factor in 1/(m s)
+    !! dist  dist1.dat  dist2.dat  dist3.dat  # aerosol distribution files
+    !! </pre>
+    !! Here the emissions between 0&nbsp;min and 10&nbsp;min are given
+    !! by <tt>dist1.dat</tt> (with the number concentration
+    !! interpreted as having units 1/(m^2 s)), the emissions between
+    !! 10&nbsp;min and 30&nbsp;min are given by <tt>dist2.dat</tt>
+    !! (scaled by 0.5), while the emissions after 30&nbsp;min are
+    !! given by <tt>dist3.dat</tt>.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_aero_data --- the aerosol species list
+    !!     and material data
+    !!   - \ref input_format_aero_dist --- the format of the
+    !!     instantaneous aerosol distribution files
 
     ! read the filename then read the data from that file
     call spec_file_read_string(file, name, read_name)

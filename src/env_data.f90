@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -335,6 +335,107 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
+
+    ! note that we have to hard-code the list for doxygen below
+
+    !> \page input_format_env_data Input File Format: Environment Data
+    !!
+    !! The environment parameters are divided into those specified at
+    !! the start of the simulation and then either held constant or
+    !! computed for the rest of the simulation, and those parameters
+    !! given as proscribed profiles for the entire simulation
+    !! duration. The variables below are for the second type --- for
+    !! the computed values see \ref input_format_env_state.
+    !!
+    !! The environment data parameters are:
+    !! <ul>
+    !! <li> \b temp_profile (string): the name of the file from which to
+    !!      read the temperature profile --- the file format should be
+    !!      \subpage input_format_temp_profile
+    !! <li> \b height_profile (string): the name of the file from which
+    !!      to read the mixing layer height profile --- the file format
+    !!      should be \subpage input_format_height_profile
+    !! <li> \b gas_emissions (string): the name of the file from which to
+    !!      read the gas emissions profile --- the file format should be
+    !!      \subpage input_format_gas_profile
+    !! <li> \b gas_background (string): the name of the file from which
+    !!      to read the gas background profile --- the file format should
+    !!      be \subpage input_format_gas_profile
+    !! <li> \b aero_emissions (string): the name of the file from which
+    !!      to read the aerosol emissions profile --- the file format
+    !!      should be \subpage input_format_aero_dist_profile
+    !! <li> \b aero_background (string): the name of the file from which
+    !!      to read the aerosol background profile --- the file format
+    !!      should be \subpage input_format_aero_dist_profile
+    !! </ul>
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    !> \page input_format_temp_profile Input File Format: Temperature Profile
+    !!
+    !! A temperature profile input file must consist of two lines:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the temperature set
+    !!   points --- the times must be in increasing order
+    !! - the second line must begin with \c temp and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the
+    !!   temperatures (in K) at the corresponding times
+    !!
+    !! The temperature profile is linearly interpolated between the
+    !! specified times, while before the first time it takes the first
+    !! temperature value and after the last time it takes the last
+    !! temperature value.
+    !!
+    !! Example:
+    !! <pre>
+    !! time  0    600  1800  # time (in s) after simulation start
+    !! temp  270  290  280   # temperature (in K)
+    !! </pre>
+    !! Here the temperature starts at 270&nbsp;K at the start of the
+    !! simulation, rises to 290&nbsp;K after 10&nbsp;min, and then
+    !! falls again to 280&nbsp;K at 30&nbsp;min. Beween these times
+    !! the temperature is linearly interpolated, while after
+    !! 30&nbsp;min it is held constant at 280&nbsp;K.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_env_data --- the environment data
+    !!     containing the temperature profile
+
+    !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
+    !!
+    !! A mixing layer height profile input file must consist of two
+    !! lines:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the height set
+    !!   points --- the times must be in increasing order
+    !! - the second line must begin with \c height and should be
+    !!   followed by \f$N\f$ space-separated real scalars, giving the
+    !!   mixing layer heights (in m) at the corresponding times
+    !!
+    !! The mixing layer height profile is linearly interpolated
+    !! between the specified times, while before the first time it
+    !! takes the first height value and after the last time it takes
+    !! the last height value.
+    !!
+    !! Example:
+    !! <pre>
+    !! time    0    600   1800  # time (in s) after simulation start
+    !! height  500  1000  800   # mixing layer height (in m)
+    !! </pre>
+    !! Here the mixing layer height starts at 500&nbsp;m at the start
+    !! of the simulation, rises to 1000&nbsp;m after 10&nbsp;min, and
+    !! then falls again to 800&nbsp;m at 30&nbsp;min. Beween these
+    !! times the mixing layer height is linearly interpolated, while
+    !! after 30&nbsp;min it is held constant at 800&nbsp;m.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_env_data --- the environment data
+    !!     containing the mixing layer height profile
 
     call spec_file_read_timed_real_array(file, "temp_profile", "temp", &
          env_data%temp_time, env_data%temp)

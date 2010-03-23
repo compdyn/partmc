@@ -560,6 +560,37 @@ contains
     !> Environment data.
     type(env_state_t), intent(out) :: env_state
 
+    !> \page input_format_env_state Input File Format: Environment State
+    !!
+    !! The environment parameters are divided into those specified at
+    !! the start of the simulation and then either held constant or
+    !! computed for the rest of the simulation, and those parameters
+    !! given as proscribed profiles for the entire simulation
+    !! duration. The variables below are for the first type --- for
+    !! the proscribed profiles see \ref input_format_env_data.
+    !!
+    !! The environment state is specified by the parameters:
+    !! - \b rel_humidity (real, dimensionless): the relative humidity
+    !!   (0 is completely unsaturated and 1 is fully saturated)
+    !! - \b pressure (real, unit Pa): the atmospheric pressure
+    !! - \b latitude (real, unit degrees_north): the latitude of the
+    !!   simulation location
+    !! - \b longitude (real, unit degrees_east): the longitude of the
+    !!   simulation location
+    !! - \b altitude (real, unit m): the altitude of the simulation
+    !!   location
+    !! - \b start_time (real, unit s): the time-of-day of the start of
+    !!   the simulation (in seconds past midnight)
+    !! - \b start_day (integer): the day-of-year of the start of the
+    !!   simulation (starting from 1 on the first day of the year)
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_env_state --- the corresponding output
+    !!     format
+    !!   - \ref input_format_env_data --- the prescribed profiles of
+    !!     other environment data
+
     call spec_file_read_real(file, 'rel_humidity', env_state%rel_humid)
     call spec_file_read_real(file, 'pressure', env_state%pressure)
     call spec_file_read_real(file, 'latitude', env_state%latitude)
@@ -771,8 +802,13 @@ contains
     !!   - \b start_time_of_day (unit s): time-of-day of the simulation start
     !!     measured in seconds after midnight
     !!   - \b start_day_of_year: day-in-year number of the simulation start
+    !!     (starting from 1 on the first day of the year)
     !!   - \b elapsed_time (unit s): elapsed time since the simulation start
     !!   - \b height (unit m): current boundary layer mixing height
+    !!
+    !! See also:
+    !!   - \ref input_format_env_state and \ref input_format_env_data
+    !!     --- the corresponding input formats
 
     call pmc_nc_write_real(ncid, env_state%temp, "temperature", unit="K", &
          standard_name="air_temperature")

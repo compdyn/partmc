@@ -404,9 +404,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read volume fractions from a data file.
-  subroutine spec_file_read_vol_frac(file, aero_data, vol_frac)
+  subroutine spec_file_read_vol_frac(filename, aero_data, vol_frac)
 
-    !> Spec file.
+    !> Spec filename to read mass fractions from.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
@@ -414,15 +414,39 @@ contains
     real(kind=dp), intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
     type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
     real(kind=dp) :: tot_vol_frac
 
+    !> \page input_format_mass_frac Input File Format: Aerosol Mass Fractions
+    !!
+    !! An aerosol mass fractions file must consist of one line per
+    !! aerosol species, with each line having the species name
+    !! followed by the species mass fraction in each aerosol
+    !! particle. The valid species names are those specfied by the
+    !! \ref input_format_aero_data file, but not all species have to
+    !! be listed. Any missing species will have proportions of
+    !! zero. If the proportions do not sum to 1 then they will be
+    !! normalized before use. For example, a mass fractions file file
+    !! could contain:
+    !! <pre>
+    !! # species   proportion
+    !! OC          0.3
+    !! BC          0.7
+    !! </pre>
+    !! indicating that the diesel particles are 30% organic carbon and
+    !! 70% black carbon.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_aero_dist --- the format for a complete
+    !!     aerosol distribution with several modes
+    !!   - \ref input_format_aero_mode --- the format for each mode
+    !!     of an aerosol distribution
+
     ! read the aerosol data from the specified file
-    call spec_file_read_string(file, 'mass_frac', read_name)
-    call spec_file_open(read_name, read_file)
+    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(read_file, 0, species_name, &
@@ -469,42 +493,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read the shape (number concentration profile) of one mode of an aerosol
-  !> distribution.
-  subroutine spec_file_read_aero_mode_shape(file, aero_mode)
-
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
-    !> Aerosol mode.
-    type(aero_mode_t), intent(inout) :: aero_mode
-
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: mode_type
-
-    call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
-    call spec_file_read_string(file, 'mode_type', mode_type)
-    if (len_trim(mode_type) < AERO_MODE_TYPE_LEN) then
-       aero_mode%type = mode_type(1:AERO_MODE_TYPE_LEN)
-    else
-       call spec_file_die_msg(284789262, file, "mode_type string too long")
-    end if
-    if (trim(mode_type) == 'log_normal') then
-       call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
-       call spec_file_read_real(file, 'log_std_dev', &
-            aero_mode%log10_std_dev_radius)
-    elseif (trim(mode_type) == 'exp') then
-       call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
-    elseif (trim(mode_type) == 'mono') then
-       call spec_file_read_real(file, 'radius', aero_mode%mean_radius)
-    else
-       call spec_file_die_msg(729472928, file, "Unknown distribution type")
-    end if
-
-  end subroutine spec_file_read_aero_mode_shape
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read one mode of an aerosol distribution (number concentration and
-  !> volume fractions).
+  !> Read one mode of an aerosol distribution (number concentration,
+  !> volume fractions, and mode shape).
   subroutine spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
 
     !> Spec file.
@@ -516,49 +506,76 @@ contains
     !> If eof instead of reading data.
     logical :: eof
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type
     type(spec_line_t) :: line
+
+    ! note that doxygen's automatic list creation breaks on the list
+    ! below for some reason, so we just use html format
 
     !> \page input_format_aero_mode Input File Format: Aerosol Distribution Mode
     !!
     !! An aerosol distribution mode has the parameters:
-    !!   - \b mode_name (string): the name of the mode (for
-    !!     informational purposes only)
-    !!   - \subpage input_format_mass_frac
-    !!   - \b num_conc (real, unit 1/m^3): the total number
-    !!     concentration of the mode
-    !!   - \b mode_type (string): the functional form of the mode ---
-    !!     must be one of: "log_normal" for a log-normal distribution;
-    !!     "exp" for an exponential distribution; or "mono" for a
-    !!     mono-disperse distribution
-    !!   - if \c mode_type is \c log_normal then the mode distribution shape is
-    !!     \f[ n(\ln D) {\rm d}\ln D = \frac{1}{\sqrt{2\pi} \sigma_{\rm g}}
-    !!     \exp\left(\frac{(\ln D - \ln D_{\rm \mu g})^2}{\sigma_{\rm g}^2}\right)
-    !!     {\rm d}\ln D \f]
-    !!     and the following parameters are:
-    !!     - \b mean_radius (real, unit m): the geometric mean radius
-    !!       \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
-    !!       \mu g}\f$
-    !!     - \b log_std_dev (real, dimensionless): the geometric
-    !!       standard deviation \f$\sigma_{\rm g}\f$
-    !!   - if \c mode_type is \c exp then the mode distribution shape is
-    !!     \f[ n(\ln D) {\rm d}\ln D = \frac{1}{D_{\rm \mu}}
-    !!     \exp\left(- \frac{D}{D_{\rm \mu}}\right)
-    !!     {\rm d}\ln D \f]
-    !!     and the following parameters are:
-    !!     - \b mean_radius (real, unit m): the mean radius
-    !!       \f$R_{\rm \mu}\f$ such that \f$D_{\rm \mu} = 2 R_{\rm
-    !!       \mu}\f$
-    !!   - if \c mode_type is \c mono then the mode distribution shape
-    !!     is a delta distribution at diameter \f$D_0\f$ and the
-    !!     following parameters are:
-    !!     - \b radius (real, unit m): the radius \f$R_0\f$ of the
-    !!       particles, so that \f$D_0 = 2 R_0\f$
+    !! <ul>
+    !! <li> \b mode_name (string): the name of the mode (for
+    !!      informational purposes only)
+    !! <li> \b mass_frac (string): name of file from which to read the
+    !!      species mass fractions --- the file format should
+    !!      be \subpage input_format_mass_frac
+    !! <li> \b num_conc (real, unit 1/m^3): the total number
+    !!      concentration \f$N_{\rm total}\f$ of the mode
+    !! <li> \b mode_type (string): the functional form of the mode ---
+    !!      must be one of: \c log_normal for a log-normal distribution;
+    !!      \c exp for an exponential distribution; or \c mono for a
+    !!      mono-disperse distribution
+    !! <li> if \c mode_type is \c log_normal then the mode distribution
+    !!      shape is
+    !!      \f[ n(\ln D) {\rm d}\ln D
+    !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \sigma_{\rm g}}
+    !!      \exp\left(\frac{(\ln D - \ln D_{\rm \mu g})^2}{\sigma_{\rm g}^2}\right)
+    !!      {\rm d}\ln D \f]
+    !!      and the following parameters are:
+    !!      <ul>
+    !!      <li> \b mean_radius (real, unit m): the geometric mean radius
+    !!           \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
+    !!           \mu g}\f$
+    !!      <li> \b log_std_dev (real, dimensionless): the geometric
+    !!           standard deviation \f$\sigma_{\rm g}\f$
+    !!      </ul>
+    !! <li> if \c mode_type is \c exp then the mode distribution shape is
+    !!      \f[ n(\ln D) {\rm d}\ln D = \frac{N_{\rm total}}{D_{\rm \mu}}
+    !!      \exp\left(- \frac{D}{D_{\rm \mu}}\right)
+    !!      {\rm d}\ln D \f]
+    !!      and the following parameters are:
+    !!      <ul>
+    !!      <li> \b mean_radius (real, unit m): the mean radius
+    !!           \f$R_{\rm \mu}\f$ such that \f$D_{\rm \mu} = 2 R_{\rm
+    !!           \mu}\f$
+    !!      </ul>
+    !! <li> if \c mode_type is \c mono then the mode distribution shape
+    !!      is a delta distribution at diameter \f$D_0\f$ and the
+    !!      following parameters are:
+    !!      <ul>
+    !!      <li> \b radius (real, unit m): the radius \f$R_0\f$ of the
+    !!           particles, so that \f$D_0 = 2 R_0\f$
+    !!      </ul>
+    !! </ul>
+    !!
+    !! Example:
+    !! <pre>
+    !! mode_name diesel          # mode name (descriptive only)
+    !! mass_frac comp_diesel.dat # mass fractions in each aerosol particle
+    !! num_conc 1.6e8            # particle number density (#/m^3)
+    !! mode_type log_normal      # type of distribution
+    !! mean_radius 2.5e-08       # mean radius (m)
+    !! log_std_dev 0.24          # log_10 of geometric standard deviation
+    !! </pre>
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref input_format_aero_dist --- the format for a complete
     !!     aerosol distribution with several modes
+    !!   - \ref input_format_mass_frac --- the format for the mass
+    !!     fractions file
 
     call spec_line_allocate(line)
     call spec_file_read_line(file, line, eof)
@@ -569,9 +586,26 @@ contains
        call aero_mode_allocate_size(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
-       allocate(aero_mode%vol_frac(aero_data%n_spec))
-       call spec_file_read_vol_frac(file, aero_data, aero_mode%vol_frac)
-       call spec_file_read_aero_mode_shape(file, aero_mode)
+       call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
+       call spec_file_read_vol_frac(mass_frac_filename, aero_data, aero_mode%vol_frac)
+       call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
+       call spec_file_read_string(file, 'mode_type', mode_type)
+       if (len_trim(mode_type) < AERO_MODE_TYPE_LEN) then
+          aero_mode%type = mode_type(1:AERO_MODE_TYPE_LEN)
+       else
+          call spec_file_die_msg(284789262, file, "mode_type string too long")
+       end if
+       if (trim(mode_type) == 'log_normal') then
+          call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
+          call spec_file_read_real(file, 'log_std_dev', &
+               aero_mode%log10_std_dev_radius)
+       elseif (trim(mode_type) == 'exp') then
+          call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
+       elseif (trim(mode_type) == 'mono') then
+          call spec_file_read_real(file, 'radius', aero_mode%mean_radius)
+       else
+          call spec_file_die_msg(729472928, file, "Unknown distribution type")
+       end if
     end if
     call spec_line_deallocate(line)
 

@@ -253,84 +253,86 @@ contains
     !! See \ref spec_file_format for the input file text format.
     !!
     !! A particle-resolved simulation spec file has the parameters:
-    !!   - \b run_type (string): must be "particle"
-    !!   - \b output_prefix (string): prefix of the output filenames
-    !!     --- see \ref output_format for the full name format
-    !!   - \b n_loop (integer): number of loops
-    !!   - \b n_part (integer): number of computational particles to
-    !!     simulate (actual number used will vary between <tt>n_part /
-    !!     2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
-    !!     allow_halving are \c yes)
-    !!   - \b kernel (string): the type of coagulation kernel --- must
-    !!     be one of: "sedi" for the gravitational sedimentation
-    !!     kernel; "golovin" for the additive Golovin kernel;
-    !!     "constant" for the constant kernel; "brown" for the
-    !!     Brownian kernel, or "zero" for no coagulation
-    !!   - \subpage input_format_nucleate
-    !!   - \b restart (logical): whether to restart the simulation
-    !!     from a saved output data file
-    !!   - \b restart_file (string): name of file from which to load
-    !!     restart data, which must be a PartMC output NetCDF file
-    !!     (only provide option if \c restart is \yes)
-    !!   - \b t_max (real, unit s): total simulation time
-    !!   - \b del_t (real, unit s): timestep size
-    !!   - \b t_output (real, unit s): the interval on which to
-    !!     output data to disk (see \ref output_format)
-    !!   - \b t_progress (real, unit s): the interval on which to
-    !!     write summary information to the screen while running
-    !!   - \subpage input_format_bin_grid --- only used for efficiency
-    !!     gains during coagulation
-    !!   - \subpage input_format_aero_weight
-    !!   - \b gas_data (string): name of file from which to read the
-    !!     gas material data --- the file format should be
-    !!     \subpage input_format_gas_data
-    !!   - \b gas_init (string): name of file from which to read the
-    !!     initial gas state at the start of the simulation (only
-    !!     provide option if \c restart is \c no) --- the file format
-    !!     should be \subpage input_format_gas_state
-    !!   - \b aero_data (string): name of file from which to read the
-    !!     aerosol material data --- the file format should be
-    !!     \subpage input_format_aero_data
-    !!   - \b aerosol_init (string): filename containing the initial
-    !!     aerosol state at the start of the simulation (only provide
-    !!     option if \c restart is \c no) --- the file format should
-    !!     be \subpage input_format_aero_dist
-    !!   - \ref input_format_env_data
-    !!   - \ref input_format_env_state
-    !!   - \b rand_init (integer): if greater than zero then use as
-    !!     the seed for the random number generator, or if zero then
-    !!     generate a random seed for the random number generator ---
-    !!     two simulations on the same machine with the same seed
-    !!     (greater than 0) will produce identical output
-    !!   - \b do_coagulation (logical): whether to perform particle
-    !!     coagulation
-    !!   - \b allow_doubling (logical): if \c yes, then whenever the
-    !!     number of simulated particles falls below <tt>n_part /
-    !!     2</tt>, every particle is duplicated to give better
-    !!     statistics
-    !!   - \b allow_halving (logical): if \c yes, then whenever the
-    !!     number of simulated particles rises above <tt>n_part *
-    !!     2</tt>, half of the particles are removed (chosen randomly)
-    !!     to reduce the computational expense
-    !!   - \b do_condensation (logical): whether to perform explicit
-    !!     water condensation (requires SUNDIALS support to be
-    !!     compiled in; cannot be used simultaneously with MOSAIC)
-    !!   - \b do_mosaic (logical): whether to use the MOSAIC
-    !!     chemistry code (requires support to be compiled in; cannot
-    !!     be used simultaneously with condensation)
-    !!   - \b do_optical (logical): whether to compute optical
-    !!     properties of the aersol particles for the output files ---
-    !!     see output_format_aero_state (only provide option if \c
-    !!     do_mosaic is \c yes)
-    !!   - \b record_removals (logical): whether to record information
-    !!     about aerosol particles removed from the simulation --- see
-    !!     \ref output_format_aero_removed
-    !!   - \b do_parallel (logical): whether to run in parallel mode
-    !!     (requires MPI support to be compiled in)
+    !! - \b run_type (string): must be \c particle
+    !! - \b output_prefix (string): prefix of the output filenames
+    !!   --- see \ref output_format for the full name format
+    !! - \b n_loop (integer): number of loops
+    !! - \b n_part (integer): number of computational particles to
+    !!   simulate (actual number used will vary between <tt>n_part /
+    !!   2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
+    !!   allow_halving are \c yes)
+    !! - \b kernel (string): the type of coagulation kernel --- must
+    !!   be one of: \c sedi for the gravitational sedimentation
+    !!   kernel; \c golovin for the additive Golovin kernel;
+    !!   \c constant for the constant kernel; \c brown for the
+    !!   Brownian kernel, or \c zero for no coagulation
+    !! - \subpage input_format_nucleate
+    !! - \b restart (logical): whether to restart the simulation
+    !!   from a saved output data file
+    !! - \b restart_file (string): name of file from which to load
+    !!   restart data, which must be a PartMC output NetCDF file
+    !!   (only provide option if \c restart is \yes)
+    !! - \b t_max (real, unit s): total simulation time
+    !! - \b del_t (real, unit s): timestep size
+    !! - \b t_output (real, unit s): the interval on which to
+    !!   output data to disk (see \ref output_format)
+    !! - \b t_progress (real, unit s): the interval on which to
+    !!   write summary information to the screen while running
+    !! - \subpage input_format_bin_grid --- only used for efficiency
+    !!   gains during coagulation
+    !! - \subpage input_format_aero_weight
+    !! - \b gas_data (string): name of file from which to read the
+    !!   gas material data --- the file format should be
+    !!   \subpage input_format_gas_data
+    !! - \b gas_init (string): name of file from which to read the
+    !!   initial gas state at the start of the simulation (only
+    !!   provide option if \c restart is \c no) --- the file format
+    !!   should be \subpage input_format_gas_state
+    !! - \b aero_data (string): name of file from which to read the
+    !!   aerosol material data --- the file format should be
+    !!   \subpage input_format_aero_data
+    !! - \b aerosol_init (string): filename containing the initial
+    !!   aerosol state at the start of the simulation (only provide
+    !!   option if \c restart is \c no) --- the file format should
+    !!   be \subpage input_format_aero_dist
+    !! - \subpage input_format_env_data
+    !! - \subpage input_format_env_state
+    !! - \b rand_init (integer): if greater than zero then use as
+    !!   the seed for the random number generator, or if zero then
+    !!   generate a random seed for the random number generator ---
+    !!   two simulations on the same machine with the same seed
+    !!   (greater than 0) will produce identical output
+    !! - \b do_coagulation (logical): whether to perform particle
+    !!   coagulation
+    !! - \b allow_doubling (logical): if \c yes, then whenever the
+    !!   number of simulated particles falls below <tt>n_part /
+    !!   2</tt>, every particle is duplicated to give better
+    !!   statistics
+    !! - \b allow_halving (logical): if \c yes, then whenever the
+    !!   number of simulated particles rises above <tt>n_part *
+    !!   2</tt>, half of the particles are removed (chosen randomly)
+    !!   to reduce the computational expense
+    !! - \b do_condensation (logical): whether to perform explicit
+    !!   water condensation (requires SUNDIALS support to be
+    !!   compiled in; cannot be used simultaneously with MOSAIC)
+    !! - \b do_mosaic (logical): whether to use the MOSAIC
+    !!   chemistry code (requires support to be compiled in; cannot
+    !!   be used simultaneously with condensation)
+    !! - \b do_optical (logical): whether to compute optical
+    !!   properties of the aersol particles for the output files ---
+    !!   see output_format_aero_state (only provide option if \c
+    !!   do_mosaic is \c yes)
+    !! - \b record_removals (logical): whether to record information
+    !!   about aerosol particles removed from the simulation --- see
+    !!   \ref output_format_aero_removed
+    !! - \b do_parallel (logical): whether to run in parallel mode
+    !!   (requires MPI support to be compiled in)
+    !! - if \c do_parallel is \c yes, then the following parameters
+    !!     must also be provided:
     !!   - \b output_type (string): type of parallel disk output ---
-    !!     must be one of: "central" to write one file per processor,
-    !!     but all written by processor 0; "dist" for every processor
-    !!     to write its own state file; or "single" to transfer all
+    !!     must be one of: \c central to write one file per processor,
+    !!     but all written by processor 0; \c dist for every processor
+    !!     to write its own state file; or \c single to transfer all
     !!     data to processor 0 and write a single unified output file
     !!   - \b mix_timescale (real, unit s): timescale on which to mix
     !!     simulation state information amongst processors in an
@@ -343,11 +345,11 @@ contains
     !!     environment state amongst processors each timestep, to
     !!     ensure a uniform environment
     !!   - \b coag_method (logical): type of parallel coagulation ---
-    !!     must be one of: "local" for only within-processor
-    !!     coagulation; "collect" to transfer all particles to
-    !!     processor 0 each timestep and coagulate there; "central" to
+    !!     must be one of: \c local for only within-processor
+    !!     coagulation; \c collect to transfer all particles to
+    !!     processor 0 each timestep and coagulate there; \c central to
     !!     have processor 0 do all coagulation by requesting
-    !!     individual particles as needed; or "dist" to have all
+    !!     individual particles as needed; or \c dist to have all
     !!     processors perform coagulation globally, requesting
     !!     particles from other processors as needed
 

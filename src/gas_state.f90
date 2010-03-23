@@ -221,8 +221,9 @@ contains
     !! species, with each line having the species name followed by the
     !! species mixing ratio in ppb (parts per billion). The valid
     !! species names are those specfied by the \ref
-    !! input_format_gas_data file. For example, a gas state file could
-    !! contain:
+    !! input_format_gas_data file, but not all species have to be
+    !! listed. Any missing species will have mixing ratios of
+    !! zero. For example, a gas state file could contain:
     !! <pre>
     !! # gas  mixing ratio (ppb)
     !! H2SO4  0
@@ -293,6 +294,70 @@ contains
     integer :: n_lines, species, i, n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
+
+    !> \page input_format_gas_profile Input File Format: Gas Profile
+    !!
+    !! A gas profile input file must consist of three or more
+    !! lines, consisting of:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the gas set
+    !!   points --- the times must be in increasing order
+    !! - the second line must begin with \c rate and should be
+    !!   followed by \f$N\f$ space-separated real scalars, giving the
+    !!   scalings (dimensionless) at the corresponding times
+    !! - the third and subsequent lines specify gas species, one
+    !!   species per line, with each line beginning with the species
+    !!   name and followed by \f$N\f$ space-separated scalars giving
+    !!   the gas state of that species at the corresponding times
+    !!
+    !! The units of the species lines depends on the type of gas
+    !! profile:
+    !! - emissions gas profiles have units of mol/(m^2 s) --- the
+    !!   emission rate is divided by the current mixing layer
+    !!   height to give a per-volume emission rate
+    !! - background gas profiles have units of ppb (parts per billion)
+    !!
+    !! The species names must be those specified by the \ref
+    !! input_format_gas_data. Any species not listed are taken to be
+    !! zero.
+    !!
+    !! The scaling parameter is used to multiply all the gas state
+    !! values at the corresponding time, giving a simple way of
+    !! scaling the overall gas state.
+    !!
+    !! Between the specified times the gas profile is interpolated
+    !! step-wise and kept constant at its last value. That is, if the
+    !! times are \f$t_i\f$, the rates are \f$r_i\f$, and the gas
+    !! states are \f$g_i\f$ (all with \f$i = 1,\ldots,n\f$), then
+    !! between times \f$t_i\f$ and \f$t_{i+1}\f$ the gas state is
+    !! constant at \f$r_i g_i\f$. Before time \f$t_1\f$ the gas state
+    !! is \f$r_1 g_1\f$, while after time \f$t_n\f$ it is \f$r_n
+    !! g_n\f$.
+    !!
+    !! Example: an emissions gas profile could be:
+    !! <pre>
+    !! time   0       600     1800    # time (in s) after simulation start
+    !! rate   1       0.5     1       # scaling factor
+    !! H2SO4  0       0       0       # emission rate in mol/(m^2 s)
+    !! SO2    4e-9    5.6e-9  5e-9    # emission rate in mol/(m^2 s)
+    !! </pre>
+    !! Here there are no emissions of \f$\rm H_2SO_4\f$, while \f$\rm
+    !! SO_2\f$ starts out being emitted at \f$4\times 10^{-9}\rm\ mol\ 
+    !! m^{-2}\ s^{-1}\f$ at the start of the simulation, before
+    !! falling to a rate of \f$2.8\times 10^{-9}\rm\ mol\ m^{-2}\ 
+    !! s^{-1}\f$ at 10&nbsp;min (note the scaling of 0.5), and then
+    !! rising again to \f$5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$
+    !! after 30&nbsp;min. Between 0&nbsp;min and 10&nbsp;min the
+    !! emissions are the same as at 0&nbsp;min, while between
+    !! 10&nbsp;min and 30&nbsp;min they are the same as at
+    !! 10&nbsp;min. After 30&nbsp;min they are held constant at their
+    !! final value.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_gas_data --- the gas species list and
+    !!     material data
 
     ! read the filename then read the data from that file
     call spec_file_read_string(file, name, read_name)

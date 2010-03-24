@@ -351,15 +351,15 @@ contains
     !!   scalings at the corresponding times
     !! - the third line must begin with \c dist and should be followed
     !!   by \f$N\f$ space-separated filenames, each specifying an
-    !!   aerosol distribution in the format \c input_format_aero_dist
+    !!   aerosol distribution in the format \ref input_format_aero_dist
     !!   at the corresponding time
     !!
     !! The units of the \c rate line depend on the type of aerosol
     !! distribution profile:
-    !! - emissions aerosol profiles have rates with units 1/(m s) ---
+    !! - emissions aerosol profiles have rates with units m/s ---
     !!   the aerosol distribution number concentrations are multiplied
     !!   by the rate to give an emission rate with unit #/(m^2 s)
-    !!   which is then multiplied with the current mixing layer height
+    !!   which is then divided by the current mixing layer height
     !!   to give a per-volume emission rate
     !! - background aerosol profiles have dimensionless rates that
     !! - simply scale the number concentrations
@@ -376,7 +376,7 @@ contains
     !! Example: an emissions aerosol profile could be:
     !! <pre>
     !! time  0          600        1800       # time (in s) after simulation start
-    !! rate  1          0.5        1          # scaling factor in 1/(m s)
+    !! rate  1          0.5        1          # scaling factor in m/s
     !! dist  dist1.dat  dist2.dat  dist3.dat  # aerosol distribution files
     !! </pre>
     !! Here the emissions between 0&nbsp;min and 10&nbsp;min are given

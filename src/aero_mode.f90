@@ -537,7 +537,7 @@ contains
     !!      <li> \b mean_radius (real, unit m): the geometric mean radius
     !!           \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
     !!           \mu g}\f$
-    !!      <li> \b log_std_dev (real, dimensionless): \f$\log_10\f$ of the geometric
+    !!      <li> \b log_std_dev (real, dimensionless): \f$\log_{10}\f$ of the geometric
     !!           standard deviation \f$\sigma_{\rm g}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c exp then the mode distribution shape is

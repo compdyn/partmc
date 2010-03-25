@@ -530,7 +530,7 @@ contains
     !!      shape is
     !!      \f[ n(\log D) {\rm d}\log D
     !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}}
-    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{\log ^2 \sigma_{\rm g}}\right)
+    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{2 \log ^2 \sigma_{\rm g}}\right)
     !!      {\rm d}\log D \f]
     !!      and the following parameters are:
     !!      <ul>

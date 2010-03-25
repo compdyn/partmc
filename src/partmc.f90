@@ -273,7 +273,7 @@ contains
     !!   from a saved output data file
     !! - \b restart_file (string): name of file from which to load
     !!   restart data, which must be a PartMC output NetCDF file
-    !!   (only provide option if \c restart is \yes)
+    !!   (only provide option if \c restart is \c yes)
     !! - \b t_max (real, unit s): total simulation time
     !! - \b del_t (real, unit s): timestep size
     !! - \b t_output (real, unit s): the interval on which to
@@ -641,7 +641,39 @@ contains
 
     !> \page input_format_exact Exact (Analytical) Solution
     !!
-    !! Under construction...
+    !! See \ref spec_file_format for the input file text format.
+    !!
+    !! An exact (analytical) simulation spec file has the parameters:
+    !! - \b run_type (string): must be \c exact
+    !! - \b output_prefix (string): prefix of the output filenames ---
+    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
+    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
+    !!   and incremented each time the state is output)
+    !! - \b num_conc (real, unit 1/m^3): the total number
+    !!   concentration \f$N_0\f$ of the solution to be generated
+    !! - \b t_max (real, unit s): total simulation time
+    !! - \b t_output (real, unit s): the interval on which to output
+    !!   data to disk and to print progress information to the screen
+    !! - \subpage input_format_bin_grid
+    !! - \b gas_data (string): name of file from which to read the
+    !!   gas material data --- the file format should be
+    !!   \subpage input_format_gas_data
+    !! - \b aero_data (string): name of file from which to read the
+    !!   aerosol material data --- the file format should be
+    !!   \subpage input_format_aero_data
+    !! - \subpage input_format_env_data
+    !! - \subpage input_format_env_state
+    !! - \b soln (string): the type of exact solution to generate ---
+    !!   must be one of \c golovin_exp, \c constant_exp_cond, or \c
+    !!   zero.
+    !! - if \c soln is \c golovin_exp then the number concentration is
+    !!   given by:
+    !!   \f[ n(D) {\rm d}\ln D = \f]
+    !!   - \b mean_radius (real, unit m):
+    !! - if \c soln is \c constant_exp_cond then the 
+    !!   - \b mean_radius (real, unit m):
+    !! - if \c soln is \c zero then the 
+    !!   - \b aerosol_init (string):
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then

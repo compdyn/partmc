@@ -208,4 +208,8 @@ the title attribute in the output files.
 Add separate option controlling whether to equilibriate if doing cond.
 
 Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
-makes sense for background as well), or just delete it.
+makes sense for background as well), or just delete it. Will need to
+add a dilution rate profile somewhere --- better anyway to unify it.
+
+Add docs to say that rate for background is dilution rate (in and
+out).

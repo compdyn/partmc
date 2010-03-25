@@ -528,26 +528,26 @@ contains
     !!      mono-disperse distribution
     !! <li> if \c mode_type is \c log_normal then the mode distribution
     !!      shape is
-    !!      \f[ n(\ln D) {\rm d}\ln D
-    !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \sigma_{\rm g}}
-    !!      \exp\left(\frac{(\ln D - \ln D_{\rm \mu g})^2}{\sigma_{\rm g}^2}\right)
-    !!      {\rm d}\ln D \f]
+    !!      \f[ n(\log D) {\rm d}\log D
+    !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}}
+    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{\log ^2 \sigma_{\rm g}}\right)
+    !!      {\rm d}\log D \f]
     !!      and the following parameters are:
     !!      <ul>
     !!      <li> \b mean_radius (real, unit m): the geometric mean radius
     !!           \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
     !!           \mu g}\f$
-    !!      <li> \b log_std_dev (real, dimensionless): the geometric
+    !!      <li> \b log_std_dev (real, dimensionless): $\log_10$ of the geometric
     !!           standard deviation \f$\sigma_{\rm g}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c exp then the mode distribution shape is
-    !!      \f[ n(\ln D) {\rm d}\ln D = \frac{N_{\rm total}}{D_{\rm \mu}}
-    !!      \exp\left(- \frac{D}{D_{\rm \mu}}\right)
-    !!      {\rm d}\ln D \f]
+    !!      \f[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}}
+    !!      \exp\left(- \frac{v}{v_{\rm \mu}}\right)
+    !!      {\rm d}v \f]
     !!      and the following parameters are:
     !!      <ul>
     !!      <li> \b mean_radius (real, unit m): the mean radius
-    !!           \f$R_{\rm \mu}\f$ such that \f$D_{\rm \mu} = 2 R_{\rm
+    !!           \f$R_{\rm \mu}\f$ such that \f$v_{\rm \mu} = \frac{4}{3} \pi R^3_{\rm
     !!           \mu}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c mono then the mode distribution shape

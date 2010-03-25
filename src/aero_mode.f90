@@ -404,9 +404,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read volume fractions from a data file.
-  subroutine spec_file_read_vol_frac(filename, aero_data, vol_frac)
+  subroutine spec_file_read_vol_frac(file, aero_data, vol_frac)
 
-    !> Spec filename to read mass fractions from.
+    !> Spec file to read mass fractions from.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
@@ -414,7 +414,6 @@ contains
     real(kind=dp), intent(out) :: vol_frac(:)
 
     integer :: n_species, species, i
-    type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
     real(kind=dp) :: tot_vol_frac
@@ -446,22 +445,20 @@ contains
     !!     of an aerosol distribution
 
     ! read the aerosol data from the specified file
-    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, &
+    call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
-    call spec_file_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
     if (n_species < 1) then
-       call die_msg(427666881, 'file ' // trim(read_name) &
+       call die_msg(427666881, 'file ' // trim(file%name) &
             // ' must contain at least one line of data')
     end if
     if (size(species_data, 2) /= 1) then
        call die_msg(427666881, 'each line in file ' &
-            // trim(read_name) // ' must contain exactly one data value')
+            // trim(file%name) // ' must contain exactly one data value')
     end if
 
     ! copy over the data
@@ -471,7 +468,7 @@ contains
        if (species == 0) then
           call die_msg(775942501, 'unknown species ' &
                // trim(species_name(i)) // ' in file ' &
-               // trim(read_name))
+               // trim(file%name))
        end if
        vol_frac(species) = species_data(i,1)
     end do
@@ -484,7 +481,7 @@ contains
     ! normalize
     tot_vol_frac = sum(vol_frac)
     if ((minval(vol_frac) < 0d0) .or. (tot_vol_frac <= 0d0)) then
-       call die_msg(356648030, 'vol_frac in ' // trim(read_name) &
+       call die_msg(356648030, 'vol_frac in ' // trim(file%name) &
             // ' is not positive')
     end if
     vol_frac = vol_frac / tot_vol_frac
@@ -507,7 +504,9 @@ contains
     logical :: eof
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     type(spec_line_t) :: line
+    type(spec_file_t) :: mass_frac_file
 
     ! note that doxygen's automatic list creation breaks on the list
     ! below for some reason, so we just use html format
@@ -587,7 +586,10 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
-       call spec_file_read_vol_frac(mass_frac_filename, aero_data, aero_mode%vol_frac)
+       call spec_file_open(mass_frac_filename, mass_frac_file)
+       call spec_file_read_vol_frac(mass_frac_file, aero_data, &
+            aero_mode%vol_frac)
+       call spec_file_close(mass_frac_file)
        call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
        call spec_file_read_string(file, 'mode_type', mode_type)
        if (len_trim(mode_type) < AERO_MODE_TYPE_LEN) then

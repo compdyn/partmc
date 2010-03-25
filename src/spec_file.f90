@@ -696,13 +696,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an a time-indexed array of real data.
-  subroutine spec_file_read_timed_real_array(file, line_name, name, times, &
-       vals)
+  subroutine spec_file_read_timed_real_array(file, name, times, vals)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Name of line for filename.
-    character(len=*), intent(in) :: line_name
     !> Variable name.
     character(len=*), intent(in) :: name
     !> Names of lines.
@@ -711,35 +708,30 @@ contains
     real(kind=dp), pointer :: vals(:)
     
     integer :: n_lines, n_times
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
-    type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
     real(kind=dp), pointer :: read_data(:,:)
     character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
-    call spec_file_read_string(file, line_name, read_name)
-    call spec_file_open(read_name, read_file)
     allocate(read_names(0))
     allocate(read_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, read_names, read_data)
-    call spec_file_close(read_file)
+    call spec_file_read_real_named_array(file, 0, read_names, read_data)
 
     n_lines = size(read_names)
     if (n_lines /= 2) then
        call die_msg(694159200, 'must have exactly two data lines in file ' &
-            // trim(read_name))
+            // trim(file%name))
     end if
     n_times = size(read_data,2)
     if (n_times < 1) then
        call die_msg(925956383, 'must have at least one data poin in file ' &
-            // trim(read_name))
+            // trim(file%name))
     end if
     if (trim(read_names(1)) /= "time") then
-       call die_msg(692842968, 'first data line in ' // trim(read_name) &
+       call die_msg(692842968, 'first data line in ' // trim(file%name) &
             // ' must start with: time not: ' // trim(read_names(1)))
     end if
     if (trim(read_names(2)) /= name) then
-       call die_msg(692842968, 'second data line in ' // trim(read_name) &
+       call die_msg(692842968, 'second data line in ' // trim(file%name) &
             // ' must start with: ' // trim(name) &
             // ' not: ' // trim(read_names(2)))
     end if

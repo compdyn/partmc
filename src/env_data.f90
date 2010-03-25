@@ -336,6 +336,9 @@ contains
     !> Environment data.
     type(env_data_t), intent(out) :: env_data
 
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+
     ! note that we have to hard-code the list for doxygen below
 
     !> \page input_format_env_data Input File Format: Environment Data
@@ -437,22 +440,51 @@ contains
     !!   - \ref output_format_env_data --- the environment data
     !!     containing the mixing layer height profile
 
-    call spec_file_read_timed_real_array(file, "temp_profile", "temp", &
+    ! temperature profile
+    call spec_file_read_string(file, "temp_profile", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_timed_real_array(sub_file, "temp", &
          env_data%temp_time, env_data%temp)
-    call spec_file_read_timed_real_array(file, "height_profile", "height", &
+    call spec_file_close(sub_file)
+
+    ! height profile
+    call spec_file_read_string(file, "height_profile", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_timed_real_array(sub_file, "height", &
          env_data%height_time, env_data%height)
-    call spec_file_read_gas_states_times_rates(file, gas_data, &
-         'gas_emissions', env_data%gas_emission_time, &
-         env_data%gas_emission_rate, env_data%gas_emission)
-    call spec_file_read_gas_states_times_rates(file, gas_data, &
-         'gas_background', env_data%gas_dilution_time, &
-         env_data%gas_dilution_rate, env_data%gas_background)
-    call spec_file_read_aero_dists_times_rates(file, aero_data, bin_grid, &
-         'aero_emissions', env_data%aero_emission_time, &
+    call spec_file_close(sub_file)
+
+    ! gas emissions profile
+    call spec_file_read_string(file, "gas_emissions", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_states_times_rates(sub_file, gas_data, &
+         env_data%gas_emission_time, env_data%gas_emission_rate, &
+         env_data%gas_emission)
+    call spec_file_close(sub_file)
+
+    ! gas background profile
+    call spec_file_read_string(file, "gas_background", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_states_times_rates(sub_file, gas_data, &
+         env_data%gas_dilution_time, env_data%gas_dilution_rate, &
+         env_data%gas_background)
+    call spec_file_close(sub_file)
+
+    ! aerosol emissions profile
+    call spec_file_read_string(file, "aero_emissions", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
+         bin_grid, env_data%aero_emission_time, &
          env_data%aero_emission_rate, env_data%aero_emission)
-    call spec_file_read_aero_dists_times_rates(file, aero_data, bin_grid, &
-         'aero_background', env_data%aero_dilution_time, &
+    call spec_file_close(sub_file)
+
+    ! aerosol background profile
+    call spec_file_read_string(file, "aero_background", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
+         bin_grid, env_data%aero_dilution_time, &
          env_data%aero_dilution_rate, env_data%aero_background)
+    call spec_file_close(sub_file)
 
   end subroutine spec_file_read_env_data
 

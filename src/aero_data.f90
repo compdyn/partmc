@@ -228,17 +228,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read aero_data specification from a spec file.
-  subroutine spec_file_read_aero_data(filename, aero_data)
+  subroutine spec_file_read_aero_data(file, aero_data)
 
-    !> Spec filename to read data from.
-    character(len=*), intent(in) :: filename
+    !> Spec file to read data from.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(out) :: aero_data
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
-    type(spec_file_t) :: file
 
     !> \page input_format_aero_data Input File Format: Aerosol Material Data
     !!
@@ -266,16 +265,14 @@ contains
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref output_format_aero_data --- the corresponding output format
 
-    call spec_file_open(filename, file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, species_data)
-    call spec_file_close(file)
 
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 5) .or. (n_species == 0))) then
-       call die_msg(428926381, 'each line in ' // trim(filename) &
+       call die_msg(428926381, 'each line in ' // trim(file%name) &
             // ' should contain exactly 5 values')
     end if
 

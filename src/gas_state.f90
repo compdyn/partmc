@@ -201,16 +201,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas state from the file named on the line read from file.
-  subroutine spec_file_read_gas_state(filename, gas_data, name, gas_state)
+  subroutine spec_file_read_gas_state(file, gas_data, gas_state)
 
-    !> Filename to read gas state from.
-    character(len=*), intent(in) :: filename
+    !> File to read gas state from.
+    type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas data to read.
     type(gas_state_t), intent(out) :: gas_state
 
-    type(spec_file_t) :: read_file
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
@@ -238,17 +237,15 @@ contains
     !!   - \ref input_format_gas_data --- the gas species list and
     !!     material data
 
-    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, &
+    call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
-    call spec_file_close(read_file)
 
     ! check the data size
     n_species = size(species_data, 1)
     if (.not. ((size(species_data, 2) == 1) .or. (n_species == 0))) then
-       call die_msg(686719840, 'each line in ' // trim(filename) &
+       call die_msg(686719840, 'each line in ' // trim(file%name) &
             // ' must contain exactly one data value')
     end if
 
@@ -260,7 +257,7 @@ contains
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
           call die_msg(129794076, 'unknown species ' // &
-               trim(species_name(i)) // ' in file ' // trim(read_name))
+               trim(species_name(i)) // ' in file ' // trim(file%name))
        end if
        gas_state%mix_rat(species) = species_data(i,1)
     end do
@@ -273,15 +270,13 @@ contains
 
   !> Read an array of gas states with associated times and rates from
   !> the file named on the line read from the given file.
-  subroutine spec_file_read_gas_states_times_rates(file, gas_data, name, &
+  subroutine spec_file_read_gas_states_times_rates(file, gas_data, &
        times, rates, gas_states)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
-    !> Name of data line for filename.
-    character(len=*), intent(in) :: name
     !> Times (s).
     real(kind=dp), pointer :: times(:)
     !> Rates (s^{-1}).
@@ -289,8 +284,6 @@ contains
     !> Gas states.
     type(gas_state_t), pointer :: gas_states(:)
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
-    type(spec_file_t) :: read_file
     integer :: n_lines, species, i, n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
@@ -343,49 +336,46 @@ contains
     !! SO2    4e-9    5.6e-9  5e-9    # emission rate in mol/(m^2 s)
     !! </pre>
     !! Here there are no emissions of \f$\rm H_2SO_4\f$, while \f$\rm
-    !! SO_2\f$ starts out being emitted at \f$4\times 10^{-9}\rm\ mol\ 
-    !! m^{-2}\ s^{-1}\f$ at the start of the simulation, before
-    !! falling to a rate of \f$2.8\times 10^{-9}\rm\ mol\ m^{-2}\ 
-    !! s^{-1}\f$ at 10&nbsp;min (note the scaling of 0.5), and then
-    !! rising again to \f$5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$
-    !! after 30&nbsp;min. Between 0&nbsp;min and 10&nbsp;min the
-    !! emissions are the same as at 0&nbsp;min, while between
-    !! 10&nbsp;min and 30&nbsp;min they are the same as at
-    !! 10&nbsp;min. After 30&nbsp;min they are held constant at their
-    !! final value.
+    !! SO_2\f$ starts out being emitted at \f$4\times
+    !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ at the start of the simulation,
+    !! before falling to a rate of \f$2.8\times 
+    !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ at 10&nbsp;min (note the scaling
+    !! of 0.5), and then rising again to \f$5\times
+    !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ after 30&nbsp;min. Between
+    !! 0&nbsp;min and 10&nbsp;min the emissions are the same as at
+    !! 0&nbsp;min, while between 10&nbsp;min and 30&nbsp;min they are
+    !! the same as at 10&nbsp;min. After 30&nbsp;min they are held
+    !! constant at their final value.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref input_format_gas_data --- the gas species list and
     !!     material data
 
-    ! read the filename then read the data from that file
-    call spec_file_read_string(file, name, read_name)
-    call spec_file_open(read_name, read_file)
+    ! read the data from the file
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, &
+    call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
-    call spec_file_close(read_file)
 
     ! check the data size
     n_lines = size(species_data, 1)
     if (n_lines < 2) then
        call die_msg(291542946, 'insufficient data lines in file ' &
-            // trim(read_name))
+            // trim(file%name))
     end if
     if (trim(species_name(1)) /= 'time') then
        call die_msg(398532628, 'row 1 in file ' &
-            // trim(read_name) // ' must start with: time')
+            // trim(file%name) // ' must start with: time')
     end if
     if (trim(species_name(2)) /= 'rate') then
        call die_msg(398532628, 'row 2 in file ' &
-            // trim(read_name) // ' must start with: rate')
+            // trim(file%name) // ' must start with: rate')
     end if
     n_time = size(species_data, 2)
     if (n_time < 1) then
        call die_msg(398532628, 'each line in file ' &
-            // trim(read_name) // ' must contain at least one data value')
+            // trim(file%name) // ' must contain at least one data value')
     end if
 
     ! copy over the data
@@ -408,7 +398,7 @@ contains
        if (species == 0) then
           call die_msg(806500079, 'unknown species ' &
                // trim(species_name(i)) // ' in file ' &
-               // trim(read_name))
+               // trim(file%name))
        end if
        do i_time = 1,n_time
           gas_states(i_time)%mix_rat(species) = species_data(i,i_time)

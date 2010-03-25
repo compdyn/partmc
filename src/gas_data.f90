@@ -175,10 +175,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read gas data from a .spec file.
-  subroutine spec_file_read_gas_data(filename, gas_data)
+  subroutine spec_file_read_gas_data(file, gas_data)
 
-    !> Spec filename to read data from.
-    character(len=*), intent(in) :: filename
+    !> Spec file to read data from.
+    type(spec_file_t), intent(inout) :: file
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
 
@@ -208,16 +208,14 @@ contains
     !!   - \ref output_format_gas_data --- the corresponding output format
 
     ! read the gas data from the specified file
-    call spec_file_open(filename, read_file)
     allocate(species_name(0))
     allocate(species_data(0,0))
     call spec_file_read_real_named_array(read_file, 0, species_name, &
          species_data)
-    call spec_file_close(read_file)
 
     ! check the data size
     if (size(species_data, 2) /= 1) then
-       call die_msg(614290516, 'each line in ' // trim(filename) &
+       call die_msg(614290516, 'each line in ' // trim(file%name) &
             // ' must only contain one value')
     end if
 

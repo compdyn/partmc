@@ -247,6 +247,8 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_loop
     real(kind=dp) :: dummy_time, dummy_del_t
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -395,24 +397,31 @@ contains
                dummy_i_loop)
        end if
 
-       call spec_file_read_string(file, 'gas_data', tmp_filename)
-       call spec_file_read_gas_data(tmp_filename, gas_data)
+       call spec_file_read_string(file, 'gas_data', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_gas_data(sub_file, gas_data)
+       call spec_file_close(sub_file)
 
        if (.not. do_restart) then
-          call spec_file_read_string(file, 'gas_init', tmp_filename)
-          call spec_file_read_gas_state(tmp_filename, gas_data, &
+          call spec_file_read_string(file, 'gas_init', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_gas_state(sub_file, gas_data, &
                gas_state_init)
+          call spec_file_close(sub_file)
        end if
-
-       call spec_file_read_string(file, 'aero_data', tmp_filename)
-       call spec_file_read_aero_data(tmp_filename, aero_data)
-
+       
+       call spec_file_read_string(file, 'aero_data', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_aero_data(sub_file, aero_data)
+       call spec_file_close(sub_file)
+       
        if (.not. do_restart) then
-          call spec_file_read_string(file, 'aerosol_init', tmp_filename)
-          call spec_file_read_aero_dist(tmp_filename, aero_data, &
-               bin_grid, aero_dist_init)
+          call spec_file_read_string(file, 'aerosol_init', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+          call spec_file_close(sub_file)
        end if
-
+       
        call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
             env_data)
        call spec_file_read_env_state(file, env_state_init)
@@ -627,6 +636,8 @@ contains
     type(run_exact_opt_t) :: exact_opt
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
 
     !> \page input_format_exact Exact (Analytical) Solution
     !!
@@ -651,8 +662,17 @@ contains
     call spec_file_read_real(file, 't_output', exact_opt%t_output)
 
     call spec_file_read_bin_grid(file, bin_grid)
-    call spec_file_read_gas_data(file, gas_data)
-    call spec_file_read_aero_data_filename(file, aero_data)
+
+    call spec_file_read_string(file, 'gas_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_data(sub_file, gas_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_string(file, 'aero_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_data(sub_file, aero_data)
+    call spec_file_close(sub_file)
+
     call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
          env_data)
     call spec_file_read_env_state(file, env_state)
@@ -664,9 +684,11 @@ contains
     elseif (trim(soln_name) == 'constant_exp_cond') then
        call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'zero') then
-       call aero_dist_deallocate(exact_opt%aero_dist_init)
-       call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
-            'aerosol_init', exact_opt%aero_dist_init)
+       call spec_file_read_string(file, 'aerosol_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_aero_dist(sub_file, aero_data, &
+            exact_opt%aero_dist_init)
+       call spec_file_close(sub_file)
     else
        call die_msg(955390033, 'unknown solution type: ' &
             // trim(soln_name))
@@ -718,6 +740,8 @@ contains
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
 
     !> \page input_format_sectional Sectional Model Simulation
     !!
@@ -745,11 +769,20 @@ contains
 
     call spec_file_read_bin_grid(file, bin_grid)
 
-    call spec_file_read_gas_data(file, gas_data)
+    call spec_file_read_string(file, 'gas_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_data(sub_file, gas_data)
+    call spec_file_close(sub_file)
+    
+    call spec_file_read_string(file, 'aero_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_data(sub_file, aero_data)
+    call spec_file_close(sub_file)
 
-    call spec_file_read_aero_data_filename(file, aero_data)
-    call spec_file_read_aero_dist_filename(file, aero_data, bin_grid, &
-         'aerosol_init', aero_dist_init)
+    call spec_file_read_string(file, 'aerosol_init', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_close(sub_file)
 
     call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
          env_data)

@@ -252,10 +252,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read continuous aerosol distribution composed of several modes.
-  subroutine spec_file_read_aero_dist(filename, aero_data, aero_dist)
+  subroutine spec_file_read_aero_dist(file, aero_data, aero_dist)
 
-    !> Spec filename to read data from.
-    character(len=*), intent(in) :: filename
+    !> Spec file to read data from.
+    type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol dist.
@@ -265,7 +265,6 @@ contains
     type(aero_mode_t) :: aero_mode
     integer :: i, j
     logical :: eof
-    type(spec_file_t) :: file
 
     ! note that the <p> is needed below to force correct paragraph
     ! breaking by doxygen
@@ -280,7 +279,6 @@ contains
     !!   - \ref input_format_aero_mode --- the format for each mode
     !!     of an aerosol distribution
 
-    call spec_file_open(filename, file)
     aero_dist%n_mode = 0
     allocate(aero_dist%mode(0))
     call aero_mode_allocate(aero_mode)
@@ -304,7 +302,6 @@ contains
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
     call aero_mode_deallocate(aero_mode)
-    call spec_file_close(file)
 
   end subroutine spec_file_read_aero_dist
 
@@ -313,16 +310,14 @@ contains
   !> Read an array of aero_dists with associated times and rates from
   !> the given file.
   subroutine spec_file_read_aero_dists_times_rates(file, aero_data, &
-       bin_grid, name, times, rates, aero_dists)
+       bin_grid, times, rates, aero_dists)
 
-    !> Spec file.
+    !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero data.
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Name of data line for filename.
-    character(len=*), intent(in) :: name
     !> Times (s).
     real(kind=dp), pointer :: times(:)
     !> Rates (s^{-1}).
@@ -330,9 +325,8 @@ contains
     !> Aero dists.
     type(aero_dist_t), pointer :: aero_dists(:)
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: read_name
-    type(spec_file_t) :: read_file
     type(spec_line_t) :: aero_dist_line
+    type(spec_file_t) :: aero_dist_file
     integer :: n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
     real(kind=dp), pointer :: data(:,:)
@@ -393,30 +387,27 @@ contains
     !!   - \ref input_format_aero_dist --- the format of the
     !!     instantaneous aerosol distribution files
 
-    ! read the filename then read the data from that file
-    call spec_file_read_string(file, name, read_name)
-    call spec_file_open(read_name, read_file)
+    ! read the data from the file
     allocate(names(0))
     allocate(data(0,0))
-    call spec_file_read_real_named_array(read_file, 2, names, data)
+    call spec_file_read_real_named_array(file, 2, names, data)
     call spec_line_allocate(aero_dist_line)
-    call spec_file_read_line_no_eof(read_file, aero_dist_line)
-    call spec_file_check_line_name(read_file, aero_dist_line, "dist")
-    call spec_file_check_line_length(read_file, aero_dist_line, size(data, 2))
-    call spec_file_close(read_file)
+    call spec_file_read_line_no_eof(file, aero_dist_line)
+    call spec_file_check_line_name(file, aero_dist_line, "dist")
+    call spec_file_check_line_length(file, aero_dist_line, size(data, 2))
 
     ! check the data size
     if (trim(names(1)) /= 'time') then
-       call die_msg(570205795, 'row 1 in ' // trim(read_name) &
+       call die_msg(570205795, 'row 1 in ' // trim(file%name) &
             // ' must start with: time not: ' // trim(names(1)))
     end if
     if (trim(names(2)) /= 'rate') then
-       call die_msg(221270915, 'row 2 in ' // trim(read_name) &
+       call die_msg(221270915, 'row 2 in ' // trim(file%name) &
             // ' must start with: rate not: ' // trim(names(1)))
     end if
     n_time = size(data, 2)
     if (n_time < 1) then
-       call die_msg(457229710, 'each line in ' // trim(read_name) &
+       call die_msg(457229710, 'each line in ' // trim(file%name) &
             // ' must contain at least one data value')
     end if
 
@@ -431,9 +422,10 @@ contains
     allocate(times(n_time))
     allocate(rates(n_time))
     do i_time = 1,n_time
-       call spec_file_open(aero_dist_line%data(i_time), read_file)
-       call spec_file_read_aero_dist(read_file, aero_data, aero_dists(i_time))
-       call spec_file_close(read_file)
+       call spec_file_open(aero_dist_line%data(i_time), aero_dist_file)
+       call spec_file_read_aero_dist(aero_dist_file, &
+            aero_data, aero_dists(i_time))
+       call spec_file_close(aero_dist_file)
        times(i_time) = data(1,i_time)
        rates(i_time) = data(2,i_time)
     end do

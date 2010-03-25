@@ -649,8 +649,6 @@ contains
     !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
     !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
     !!   and incremented each time the state is output)
-    !! - \b num_conc (real, unit 1/m^3): the total number
-    !!   concentration \f$N_0\f$ of the solution to be generated
     !! - \b t_max (real, unit s): total simulation time
     !! - \b t_output (real, unit s): the interval on which to output
     !!   data to disk and to print progress information to the screen
@@ -666,14 +664,38 @@ contains
     !! - \b soln (string): the type of exact solution to generate ---
     !!   must be one of \c golovin_exp, \c constant_exp_cond, or \c
     !!   zero.
-    !! - if \c soln is \c golovin_exp then the number concentration is
-    !!   given by:
-    !!   \f[ n(D) {\rm d}\ln D = \f]
-    !!   - \b mean_radius (real, unit m):
-    !! - if \c soln is \c constant_exp_cond then the 
-    !!   - \b mean_radius (real, unit m):
-    !! - if \c soln is \c zero then the 
-    !!   - \b aerosol_init (string):
+    !! - If \c soln is \c golovin_exp then the number concentration is
+    !!   generated for an exponential initial condition (\c mode_type
+    !!   set to \c exp in \ref input_format_aero_mode) with a Golovin
+    !!   coagulation kernel (\c kernel set to \c golovin in \ref
+    !!   input_format_particle) and no emissions or dilution. See
+    !!   soln_golovin_exp() for the solution expression. The
+    !!   subsequent parameters are:
+    !!   - \b num_conc (real, unit 1/m^3): The total number
+    !!     concentration \f$N_0\f$.
+    !!   - \b mean_radius (real, unit m): The radius \f$r_\mu\f$ that
+    !!     gives the diameter \f$D_\mu = 2 r_\mu\f$ and the mean volume
+    !!     \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$.
+    !! - If \c soln is \c constant_exp_cond then the exact solution is
+    !!   generated for an exponential initial condition (\c mode_type
+    !!   set to \c exp in \ref input_format_aero_mode) with a constant
+    !!   coagulation kernel (\c kernel set to \c constant in \ref
+    !!   input_format_particle) and no emissions or dilution. See
+    !!   soln_constant_exp_cond() for the solution expression. The
+    !!   subsequent parameters are:
+    !!   - \b num_conc (real, unit 1/m^3): The total number
+    !!     concentration \f$N_0\f$.
+    !!   - \b mean_radius (real, unit m): The radius \f$r_\mu\f$ that
+    !!     gives the diameter \f$D_\mu = 2 r_\mu\f$ and the mean volume
+    !!     \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$.
+    !! - If \c soln is \c zero then the exact solution is given with
+    !!   no coagulation (\c kernel set to \c zero in \ref
+    !!   input_format_particle), but with constant emissions and background
+    !!   dilution. See soln_zero() for the solution expression. The
+    !!   subsequent parameters are:
+    !!   - \b aerosol_init (string): The name of the file from which
+    !!     to read the inital aerosol distribution, in the format \ref
+    !!     input_format_aero_dist.
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -688,7 +710,6 @@ contains
     call aero_dist_allocate(exact_opt%aero_dist_init)
 
     call spec_file_read_string(file, 'output_prefix', exact_opt%prefix)
-    call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
 
     call spec_file_read_real(file, 't_max', exact_opt%t_max)
     call spec_file_read_real(file, 't_output', exact_opt%t_output)
@@ -712,8 +733,10 @@ contains
     call spec_file_read_string(file, 'soln', soln_name)
 
     if (trim(soln_name) == 'golovin_exp') then
+       call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
        call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'constant_exp_cond') then
+       call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
        call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
     elseif (trim(soln_name) == 'zero') then
        call spec_file_read_string(file, 'aerosol_init', sub_filename)

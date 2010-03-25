@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -69,28 +69,31 @@ contains
   !> Exact solution with the zero coagulation kernel. Only useful for
   !> testing emissions and background dilution.
   !!
-  !! With only emissions and dilution the number distribution \f$
-  !! n(r,t) \f$ satisfies:
+  !! With only constant-rate emissions and dilution the number
+  !! distribution \f$n(D,t)\f$ at diameter \f$D\f$ and time \f$t\f$
+  !! satisfies:
   !! \f[
-  !!     \frac{d n(r,t)}{dt} = k_{\rm emit} n_{\rm emit}(r)
-  !!                           + k_{\rm dilute} (n_{\rm back}(r) - n(r,t))
+  !!     \frac{d n(D,t)}{dt} = k_{\rm emit} n_{\rm emit}(D)
+  !!                           + k_{\rm dilute} (n_{\rm back}(D) - n(D,t))
   !! \f]
-  !! together with the initial condition \f$ n(r,0) = n_0(r) \f$. Here
-  !! \f$ n_{\rm emit}(r) \f$ and \f$ n_{\rm back}(r) \f$ are emission
-  !! and background size distributions, with corresponding rates \f$
-  !! k_{\rm emit} \f$ and \f$ k_{\rm dilute} \f$.
+  !! together with the initial condition \f$ n(D,0) = n_0(D) \f$. Here
+  !! \f$n_{\rm emit}(D)\f$ and \f$n_{\rm back}(D)\f$ are emission and
+  !! background size distributions, with corresponding rates \f$k_{\rm
+  !! emit}\f$ and \f$k_{\rm dilute}\f$. All values are taken at time
+  !! \f$t = 0\f$ and held constant, so there is no support for
+  !! time-varying emissions or background dilution.
   !!
-  !! This is a family of ODEs parameterized by \f$ r \f$ with
+  !! This is a family of ODEs parameterized by \f$D\f$ with
   !! solution:
   !! \f[
-  !!     n(r,t) = n_{\infty}(r)
-  !!              + (n_0(r) - n_{\infty}(r)) \exp(-k_{\rm dilute} t)
+  !!     n(D,t) = n_{\infty}(D)
+  !!              + (n_0(D) - n_{\infty}(D)) \exp(-k_{\rm dilute} t)
   !! \f]
   !! where the steady state limit is:
   !! \f[
-  !!     n_{\infty}(r) = n(r,\infty)
-  !!                   = n_{\rm back}(r)
-  !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(r)
+  !!     n_{\infty}(D) = n(D,\infty)
+  !!                   = n_{\rm back}(D)
+  !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, num_conc, mean_vol, &
        rho_p, aero_dist_init, env_state, aero_binned)

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -68,6 +68,24 @@ contains
 
   !> Exact solution with a constant coagulation kernel and an
   !> exponential initial condition.
+  !!
+  !! Given input paramaters \f$D_\mu\f$ and \f$N_0\f$ we let the mean
+  !! volume be \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$ and define the
+  !! rescaled time \f$\tau = N_0 \beta_0 t\f$, where \f$\beta_0\f$ is
+  !! the fixed constant kernel value. We also set the parameter
+  !! \f$\lambda = 1\f$. Then the solution is
+  !! \f[
+  !!     n(D,t) \ {\rm d}\ln D
+  !!     = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu} \frac{4}{(\tau + 2)^2}
+  !!     \exp\left(-\frac{v}{v_\mu} \frac{2}{\tau + 2}
+  !!     \exp(-\lambda \tau) - \lambda \tau\right) {\rm d}\ln D
+  !! \f]
+  !! This thus has initial condition
+  !! \f[
+  !!     n(D,t) \ {\rm d}\ln D
+  !!     = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu}
+  !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
+  !! \f]
   subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_conc, &
        mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 
@@ -77,7 +95,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Current time.
     real(kind=dp), intent(in) :: time
-    !> Particle number concentration (#/m^3).
+    !> Particle number concentration (#/m^3) --- not used in this
+    !> subroutine.
     real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
     real(kind=dp), intent(in) :: mean_radius
@@ -90,7 +109,7 @@ contains
     !> Output state.
     type(aero_binned_t), intent(out) :: aero_binned
     
-    real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, x, sigma, mean_vol
+    real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, sigma, mean_vol
     integer :: k
     
     real(kind=dp), parameter :: lambda = 1d0 ! FIXME: what is this?
@@ -108,7 +127,6 @@ contains
        tau = num_conc * beta_0 * time
        do k = 1,bin_grid%n_bin
           rat_v = bin_grid%v(k) / mean_vol
-          x = 2d0 * rat_v / (tau + 2d0)
           nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           aero_binned%num_conc(k) = const%pi/2d0 &

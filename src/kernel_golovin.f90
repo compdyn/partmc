@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -69,6 +69,30 @@ contains
 
   !> Exact solution with the Golovin coagulation kernel and
   !> exponential initial condition.
+  !!
+  !! Given input paramaters \f$D_\mu\f$ and \f$N_0\f$ we let the mean
+  !! volume be \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$ and define the
+  !! rescaled times \f$\tau = N_0 v_\mu \beta_1 t\f$ and \f$T = 1 -
+  !! e^{-\tau}\f$, where \f$\beta_1\f$ is the fixed kernel scaling
+  !! parameter. Then the solution is
+  !! \f[
+  !!     n(D,t) \ {\rm d}\ln D
+  !!     = \frac{\pi}{2} D^3 
+  !!       \frac{N_0}{v} \frac{1 - T}{\sqrt{T}}
+  !!       \exp\left(-(1 + T) \frac{v}{v_\mu}\right)
+  !!       I_1\left(2 \frac{v}{v_\mu} \sqrt{T}\right) {\rm d}\ln D
+  !! \f]
+  !! where \f$I_1(x)\f$ is the <a
+  !! href="http://en.wikipedia.org/wiki/Bessel_function">modified
+  !! Bessel function of the first kind</a>.
+  !!
+  !! For small \f$x\f$ we have \f$I_1(x) \approx \frac{x}{2}\f$, so
+  !! this solution has initial condition
+  !! \f[
+  !!     n(D,t) \ {\rm d}\ln D
+  !!     = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu}
+  !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
+  !! \f]
   subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
        mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
 

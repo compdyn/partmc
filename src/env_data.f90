@@ -28,7 +28,7 @@ module pmc_env_data
   !! environment state in env_state_t is time-dependent.
   !!
   !! The temperature, emissions and background states are profiles
-  !! proscribed as functions of time by giving a number of times and
+  !! prescribed as functions of time by giving a number of times and
   !! the corresponding data. Simple data such as temperature is
   !! linearly interpoloated between times, with constant interpolation
   !! outside of the range of times. Gases and aerosols are
@@ -398,7 +398,7 @@ contains
     !! </pre>
     !! Here the temperature starts at 270&nbsp;K at the start of the
     !! simulation, rises to 290&nbsp;K after 10&nbsp;min, and then
-    !! falls again to 280&nbsp;K at 30&nbsp;min. Beween these times
+    !! falls again to 280&nbsp;K at 30&nbsp;min. Between these times
     !! the temperature is linearly interpolated, while after
     !! 30&nbsp;min it is held constant at 280&nbsp;K.
     !!
@@ -431,7 +431,7 @@ contains
     !! </pre>
     !! Here the mixing layer height starts at 500&nbsp;m at the start
     !! of the simulation, rises to 1000&nbsp;m after 10&nbsp;min, and
-    !! then falls again to 800&nbsp;m at 30&nbsp;min. Beween these
+    !! then falls again to 800&nbsp;m at 30&nbsp;min. Between these
     !! times the mixing layer height is linearly interpolated, while
     !! after 30&nbsp;min it is held constant at 800&nbsp;m.
     !!

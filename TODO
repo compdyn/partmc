@@ -213,3 +213,5 @@ add a dilution rate profile somewhere --- better anyway to unify it.
 
 Add docs to say that rate for background is dilution rate (in and
 out).
+
+Rename "loop" to "repeat" or something in input and output.

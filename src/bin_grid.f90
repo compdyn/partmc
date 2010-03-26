@@ -187,19 +187,20 @@ contains
 
     !> \page input_format_bin_grid Input File Format: Diameter Axis Bin Grid
     !!
-    !! The bin grid is logarithmic in diameter, consisting of \c n_bin
-    !! bins with centers \f$c_i\f$ (\f$i = 1,\ldots,n_{\rm bin}\f$)
-    !! and edges \f$e_i\f$ (\f$i = 1,\ldots,(n_{\rm bin} + 1)\f$) such
-    !! that \f$e_{i+1}/e_i\f$ is a constant and \f$c_i/e_i =
-    !! \sqrt{e_{i+1}/e_i}\f$. That is, \f$\ln(e_i)\f$ are uniformly
-    !! spaced and \f$\ln(c_i)\f$ are the arithmetic centers.
+    !! The bin grid is logarithmic in diameter, consisting of
+    !! \f$n_{\rm bin}\f$ bins with centers \f$c_i\f$ (\f$i =
+    !! 1,\ldots,n_{\rm bin}\f$) and edges \f$e_i\f$ (\f$i =
+    !! 1,\ldots,(n_{\rm bin} + 1)\f$) such that \f$e_{i+1}/e_i\f$ is a
+    !! constant and \f$c_i/e_i = \sqrt{e_{i+1}/e_i}\f$. That is,
+    !! \f$\ln(e_i)\f$ are uniformly spaced and \f$\ln(c_i)\f$ are the
+    !! arithmetic centers.
     !!
     !! The diameter axis bin grid is specified by the parameters:
-    !!   - \b n_bin (integer): the number of bins
-    !!   - \b r_min (real, unit m): the center of the left-most bin
-    !!     \f$c_1\f$, given as a radius
-    !!   - \b r_max (real, unit m): the center of the right-most bin
-    !!     \f$c_{n_{\rm bin}}\f$, given as a radius
+    !!   - \b n_bin (integer): The number of bins \f$n_{\rm bin}\f$.
+    !!   - \b r_min (real, unit m): The center of the left-most bin
+    !!     \f$c_1\f$, given as a radius.
+    !!   - \b r_max (real, unit m): The center of the right-most bin
+    !!     \f$c_{n_{\rm bin}}\f$, given as a radius.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

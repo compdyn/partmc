@@ -652,6 +652,7 @@ contains
     !! - \b t_max (real, unit s): total simulation time
     !! - \b t_output (real, unit s): the interval on which to output
     !!   data to disk and to print progress information to the screen
+    !!   (see \ref output_format)
     !! - \subpage input_format_bin_grid
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
@@ -696,6 +697,41 @@ contains
     !!   - \b aerosol_init (string): The name of the file from which
     !!     to read the inital aerosol distribution, in the format \ref
     !!     input_format_aero_dist.
+    !!
+    !! Example:
+    !! <pre>
+    !! run_type exact                  # exact solution
+    !! output_prefix golovin_exact     # prefix of output files
+    !! 
+    !! t_max 600                       # total simulation time (s)
+    !! t_output 60                     # output interval (0 disables) (s)
+    !! 
+    !! n_bin 160                       # number of bins
+    !! r_min 1e-8                      # minimum radius (m)
+    !! r_max 1e-3                      # maximum radius (m)
+    !! 
+    !! gas_data gas_data.dat           # file containing gas data
+    !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! 
+    !! temp_profile temp.dat           # temperature profile file
+    !! height_profile height.dat       # height profile file
+    !! gas_emissions gas_emit.dat      # gas emissions file
+    !! gas_background gas_back.dat     # background gas mixing ratios file
+    !! aero_emissions aero_emit.dat    # aerosol emissions file
+    !! aero_background aero_back.dat   # aerosol background file
+    !! 
+    !! rel_humidity 0.999              # initial relative humidity (1)
+    !! pressure 1e5                    # initial pressure (Pa)
+    !! latitude 0                      # latitude (degrees, -90 to 90)
+    !! longitude 0                     # longitude (degrees, -180 to 180)
+    !! altitude 0                      # altitude (m)
+    !! start_time 0                    # start time (s since 00:00 UTC)
+    !! start_day 1                     # start day of year (UTC)
+    !! 
+    !! soln golovin_exp                # solution type
+    !! num_conc 1e9                    # particle number concentration (#/m^3)
+    !! mean_radius 1e-5                # mean radius (m)
+    !! </pre>
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
@@ -800,7 +836,75 @@ contains
 
     !> \page input_format_sectional Sectional Model Simulation
     !!
-    !! Under construction...
+    !! See \ref spec_file_format for the input file text format.
+    !!
+    !! A sectional simulation spec file has the parameters:
+    !! - \b run_type (string): must be \c sectional
+    !! - \b output_prefix (string): prefix of the output filenames ---
+    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
+    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
+    !!   and incremented each time the state is output)
+    !! - \b kernel (string): the type of coagulation kernel --- must
+    !!   be one of: \c sedi for the gravitational sedimentation
+    !!   kernel; \c golovin for the additive Golovin kernel;
+    !!   \c constant for the constant kernel; \c brown for the
+    !!   Brownian kernel, or \c zero for no coagulation
+    !! - \b del_t (real, unit s): timestep size
+    !! - \b t_output (real, unit s): the interval on which to
+    !!   output data to disk (see \ref output_format)
+    !! - \b t_progress (real, unit s): the interval on which to
+    !!   write summary information to the screen while running
+    !! - \subpage input_format_bin_grid
+    !! - \b gas_data (string): name of file from which to read the
+    !!   gas material data --- the file format should be
+    !!   \subpage input_format_gas_data
+    !! - \b aero_data (string): name of file from which to read the
+    !!   aerosol material data --- the file format should be
+    !!   \subpage input_format_aero_data
+    !! - \b aerosol_init (string): filename containing the initial
+    !!   aerosol state at the start of the simulation --- the file
+    !!   format should be \subpage input_format_aero_dist
+    !! - \subpage input_format_env_data
+    !! - \subpage input_format_env_state
+    !! - \b do_coagulation (logical): whether to perform particle
+    !!   coagulation
+    !!
+    !! Example:
+    !! <pre>
+    !! run_type sectional              # sectional code run
+    !! output_prefix brown_sect        # prefix of output files
+    !! kernel brown                    # coagulation kernel
+    !! 
+    !! t_max 86400                     # total simulation time (s)
+    !! del_t 60                        # timestep (s)
+    !! t_output 3600                   # output interval (0 disables) (s)
+    !! t_progress 600                  # progress printing interval (0 disables) (s)
+    !! 
+    !! n_bin 220                       # number of bins
+    !! r_min 1e-10                     # minimum radius (m)
+    !! r_max 1e-4                      # maximum radius (m)
+    !! 
+    !! gas_data gas_data.dat           # file containing gas data
+    !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! aerosol_init aero_init_dist.dat # initial aerosol distribution
+    !! 
+    !! temp_profile temp.dat           # temperature profile file
+    !! height_profile height.dat       # height profile file
+    !! gas_emissions gas_emit.dat      # gas emissions file
+    !! gas_background gas_back.dat     # background gas mixing ratios file
+    !! aero_emissions aero_emit.dat    # aerosol emissions file
+    !! aero_background aero_back.dat   # aerosol background file
+    !! 
+    !! rel_humidity 0.999              # initial relative humidity (1)
+    !! pressure 1e5                    # initial pressure (Pa)
+    !! latitude 0                      # latitude (degrees_north, -90 to 90)
+    !! longitude 0                     # longitude (degrees_east, -180 to 180)
+    !! altitude 0                      # altitude (m)
+    !! start_time 0                    # start time (s since 00:00 UTC)
+    !! start_day 1                     # start day of year (UTC)
+    !! 
+    !! do_coagulation yes              # whether to do coagulation (yes/no)
+    !! </pre>
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then

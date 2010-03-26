@@ -22,7 +22,10 @@
 !! where \c PREFIX is given by the \c output_prefix input parameter,
 !! \c LLLL is the four-digit loop number (repeats of the simulation,
 !! starting from 1), and \c SSSSSSSS is the eight-digit output index
-!! (starting at 1 and incremented each time the state is output).
+!! (starting at 1 and incremented each time the state is output). For
+!! exact and sectional simulations all loops would be identical so
+!! there is no support for looping and the filename is of the format
+!! \c PREFIX_SSSSSSSS.nc.
 !!
 !! The data in each output file comes in several different groups, as
 !! follows:

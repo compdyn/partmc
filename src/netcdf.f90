@@ -39,7 +39,7 @@ contains
     character(len=*), intent(in) :: error_msg
 
     if (status /= NF90_NOERR) then
-       call die_msg(291021908, trim(error_msg) &
+       call die_msg(701841139, trim(error_msg) &
             // " : " // trim(nf90_strerror(status)))
     end if
 
@@ -88,9 +88,12 @@ contains
 
     integer :: varid
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real
 
@@ -110,9 +113,12 @@ contains
 
     integer :: varid
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer
 
@@ -132,9 +138,12 @@ contains
 
     integer :: varid, start(1), count(1)
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real_1d
 
@@ -154,9 +163,12 @@ contains
 
     integer :: varid, start(1), count(1)
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer_1d
 
@@ -176,9 +188,12 @@ contains
 
     integer :: varid, start(1), count(1)
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real_2d
 
@@ -198,9 +213,12 @@ contains
 
     integer :: varid, start(1), count(1)
 
-    call pmc_nc_check(nf90_inq_varid(ncid, name, varid))
-    call pmc_nc_check(nf90_get_var(ncid, varid, var))
-    call pmc_nc_check(nf90_get_att(ncid, varid, "unit", unit))
+    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
+         "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
+         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer_2d
 

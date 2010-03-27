@@ -290,7 +290,7 @@ contains
     !!   initial gas state at the start of the simulation (only
     !!   provide option if \c restart is \c no) --- the file format
     !!   should be \subpage input_format_gas_state
-    !! - \b aero_data (string): name of file from which to read the
+    !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
     !! - \b aerosol_init (string): filename containing the initial
@@ -410,7 +410,7 @@ contains
           call spec_file_close(sub_file)
        end if
        
-       call spec_file_read_string(file, 'aero_data', sub_filename)
+       call spec_file_read_string(file, 'aerosol_data', sub_filename)
        call spec_file_open(sub_filename, sub_file)
        call spec_file_read_aero_data(sub_file, aero_data)
        call spec_file_close(sub_file)
@@ -657,7 +657,7 @@ contains
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
     !!   \subpage input_format_gas_data
-    !! - \b aero_data (string): name of file from which to read the
+    !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
     !! - \subpage input_format_env_data
@@ -757,7 +757,7 @@ contains
     call spec_file_read_gas_data(sub_file, gas_data)
     call spec_file_close(sub_file)
 
-    call spec_file_read_string(file, 'aero_data', sub_filename)
+    call spec_file_read_string(file, 'aerosol_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_data(sub_file, aero_data)
     call spec_file_close(sub_file)
@@ -858,7 +858,7 @@ contains
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
     !!   \subpage input_format_gas_data
-    !! - \b aero_data (string): name of file from which to read the
+    !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
     !! - \b aerosol_init (string): filename containing the initial
@@ -933,7 +933,7 @@ contains
     call spec_file_read_gas_data(sub_file, gas_data)
     call spec_file_close(sub_file)
     
-    call spec_file_read_string(file, 'aero_data', sub_filename)
+    call spec_file_read_string(file, 'aerosol_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_data(sub_file, aero_data)
     call spec_file_close(sub_file)

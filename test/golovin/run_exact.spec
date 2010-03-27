@@ -1,6 +1,5 @@
 run_type exact                  # exact solution
 output_prefix out/golovin_exact # prefix of output files
-num_conc 1e9                    # particle number concentration (#/m^3)
 
 t_max 600                       # total simulation time (s)
 t_output 60                     # output interval (0 disables) (s)
@@ -28,4 +27,5 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 soln golovin_exp                # solution type
+num_conc 1e9                    # particle number concentration (#/m^3)
 mean_radius 1e-5                # mean radius (m)

@@ -1,6 +1,5 @@
 run_type exact                  # Monte Carlo
 output_prefix out/emission_exact # prefix of output files
-num_conc 1e9                     # particle number concentration (#/m^3)
 
 t_max 86400                     # total simulation time (s)
 t_output 1200                   # output interval (0 disables) (s)

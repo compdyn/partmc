@@ -183,7 +183,6 @@ contains
     type(gas_data_t), intent(out) :: gas_data
 
     integer :: n_species, species, i
-    type(spec_file_t) :: read_file
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
     real(kind=dp), pointer :: species_data(:,:)
 
@@ -210,7 +209,7 @@ contains
     ! read the gas data from the specified file
     allocate(species_name(0))
     allocate(species_data(0,0))
-    call spec_file_read_real_named_array(read_file, 0, species_name, &
+    call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
     ! check the data size

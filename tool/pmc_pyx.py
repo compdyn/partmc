@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007 Matthew West
+# Copyright (C) 2007-2010 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -21,10 +21,9 @@ color_list = [color.hsb(0/3.0, 1, 1),
 	      color.hsb(11/12.0, 1, 1),
 	      ]
 
-class listpalette(color.palette):
+class listpalette(color.gradient):
 
     def __init__(self, colorlist):
-        color.palette.__init__(self)
         self.colorclass = colorlist[0][1].__class__
         self.colorlist = colorlist
 

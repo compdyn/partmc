@@ -130,6 +130,8 @@ ChangeLog
 
   - make compatible with gfortran 4.4.0 (string array initializers)
 
+  - make compatible with PyX 0.10 (color.gradient replaces color.palette)
+
 1.1.0 - 2008-02-17
 
   * Internal reorganization to use Fortran 90 derived types for the

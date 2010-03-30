@@ -43,6 +43,11 @@ dependencies except MOSAIC if the following packages are installed:
    * ScientificPython-2.6-10.fc8
    * PyX-0.9-5.fc8
 
+The recommended version of MOSAIC for this release of PartMC is:
+
+   * mosaic-2008-02-17
+
+
 Installation
 ============
 
@@ -133,6 +138,8 @@ ChangeLog
   - make compatible with PyX 0.10 (color.gradient replaces color.palette)
 
   - add restart component to the MOSAIC testcase (test/mosaic/)
+
+  - specified in README the appropriate MOSAIC version
 
 1.1.0 - 2008-02-17
 

@@ -86,7 +86,7 @@ the same summary NetCDF data.
 
 There are a number of examples provided in the `test` directory that
 can be run by the `run.sh` scripts. These use the python scripts with
-ScientificPython and Pyx to plot the results.
+ScientificPython and PyX to plot the results.
 
 
 Coding Conventions
@@ -127,6 +127,7 @@ and use `bt` to get a backtrace.
 To turn on MPI debugging info add the `-d` parameter to
 `mpiexec/mpirun`. To restrict the transport to only TCP use the `--mca
 btl tcp` option.
+
 
 ChangeLog
 =========

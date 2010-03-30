@@ -134,13 +134,13 @@ ChangeLog
 
 1.1.1 - 2010-03-29
 
-  - make compatible with gfortran 4.4.0 (string array initializers)
+  - Make compatible with gfortran 4.4.0 (string array initializers).
 
-  - make compatible with PyX 0.10 (color.gradient replaces color.palette)
+  - Make compatible with PyX 0.10 (color.gradient replaces color.palette).
 
-  - add restart component to the MOSAIC testcase (test/mosaic/)
+  - Add restart component to the MOSAIC testcase (test/mosaic/).
 
-  - specified in README the appropriate MOSAIC version
+  - Specified the appropriate MOSAIC version in README.
 
 1.1.0 - 2008-02-17
 

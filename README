@@ -4,8 +4,8 @@ PartMC
 
 PartMC - Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 1.1.0  
-Released 2008-02-17
+Version 1.1.1  
+Released 2010-03-29
 
 <http://www.mechse.uiuc.edu/research/mwest/partmc/>
 
@@ -126,7 +126,7 @@ btl tcp` option.
 ChangeLog
 =========
 
-1.1.1 - XXXX-XX-XX
+1.1.1 - 2010-03-29
 
   - make compatible with gfortran 4.4.0 (string array initializers)
 

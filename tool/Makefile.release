@@ -1,5 +1,5 @@
 
-VERSION = 1.2.0
+VERSION = 1.2.1
 DIST_NAME = partmc-$(VERSION)
 DATE := $(shell date +"%Y-%m-%d")
 

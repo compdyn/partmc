@@ -4,7 +4,7 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 1.2.0  
+Version 1.2.X  
 Released 2009-06-15
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
@@ -14,7 +14,7 @@ Simulating the evolution of soot mixing state with a particle-resolved
 aerosol model, J. Geophys. Res., 114, D09202,
 <http://dx.doi.org/10.1029/2008JD011073>.
 
-Copyright (C) 2005-2009 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2010 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
@@ -46,6 +46,10 @@ or openSUSE if the following packages are installed:
 PartMC will also compile out-of-the-box on OS X 10.5 using Fink (see
 <http://www.finkproject.org/>) if the following packages are
 installed: `gcc44`, `cmake`, `netcdf`, `netcdf-gfortran`, `gnuplot`.
+
+The recommended version of MOSAIC for this release of PartMC is:
+
+   * mosaic-2009-06-15
 
 
 Installation
@@ -135,6 +139,10 @@ used for sectional and exact model output).
 
 ChangeLog
 =========
+
+1.2.1 - XXXX-XX-XX
+
+  - Specified the appropriate MOSAIC version in README.
 
 1.2.0 - 2009-06-15
 

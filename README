@@ -34,14 +34,14 @@ Optional dependencies:
    * ScientificPython - <http://dirac.cnrs-orleans.fr/plone/software/scientificpython/>
    * PyX - <http://pyx.sourceforge.net/>
 
-PartMC can be compiled out-of-the-box on Fedora 8 with all
-dependencies except MOSAIC if the following packages are installed:
+PartMC can be compiled out-of-the-box on Fedora 12 with all
+dependencies except MPI and MOSAIC if the following packages are
+installed:
 
-   * gcc-gfortran-4.1.2-33
-   * netcdf-3.6.2-4.fc8
-   * openmpi-1.2.4-1.fc8
-   * ScientificPython-2.6-10.fc8
-   * PyX-0.9-5.fc8
+   * gcc-gfortran-4.4.3-4.fc12
+   * netcdf-devel-4.0.1-4.fc12
+   * ScientificPython-2.8-6.fc11
+   * PyX-0.10-8.fc12
 
 The recommended version of MOSAIC for this release of PartMC is:
 

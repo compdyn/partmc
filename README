@@ -132,6 +132,8 @@ ChangeLog
 
   - make compatible with PyX 0.10 (color.gradient replaces color.palette)
 
+  - add restart component to the MOSAIC testcase (test/mosaic/)
+
 1.1.0 - 2008-02-17
 
   * Internal reorganization to use Fortran 90 derived types for the

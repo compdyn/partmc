@@ -52,8 +52,8 @@ Installation
 ============
 
 The various helper scripts and testcases assume a Unix environment
-(tested on Fedora 8 Linux and OS X 10.4). The Makefile requires GNU
-make. The default compiler is gfortran.
+(tested on Fedora 12 Linux). The Makefile requires GNU make. The
+default compiler is gfortran.
 
 To build TAGS or the .deps dependency files set `DEV_BUILD = yes` in
 the Makefile. The .deps dependency files are rebuilt using

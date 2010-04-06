@@ -11,7 +11,7 @@ import partmc
 import config
 
 netcdf_dir = "../../scenarios/5_weighted/out"
-netcdf_pattern = "urban_plume_wc_10K_flat_0001_(.*).nc"
+netcdf_pattern = "urban_plume_wc_100K_wei-2_0001_(.*).nc"
 time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 time_array = np.zeros([len(time_filename_list)])
 num_avg = np.zeros([len(time_filename_list)])
@@ -22,7 +22,7 @@ array_mass = np.zeros([len(time_filename_list),config.i_loop_max])
 
 for i_loop in range (0, config.i_loop_max):
 
-    netcdf_pattern = "urban_plume_wc_10K_wei-3_00%02d_(.*).nc"  % (i_loop+1)
+    netcdf_pattern = "urban_plume_wc_100K_wei-2_00%02d_(.*).nc"  % (i_loop+1)
     print netcdf_pattern
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
     
@@ -51,13 +51,13 @@ mass_std = np.std(array_mass, axis = 1)
 print 'average of number std ', np.average(num_std)
 print 'average of mass std ', np.average(mass_std)
 
-np.savetxt("data/time_array.txt", time_array)
-np.savetxt("data/array_number.txt", array_num)
-np.savetxt("data/array_mass.txt", array_mass)
-np.savetxt("data/average_number.txt", num_avg)
-np.savetxt("data/average_mass.txt", mass_avg)
-np.savetxt("data/std_number.txt", num_std)
-np.savetxt("data/std_mass.txt", mass_std)
+np.savetxt("data/time_array_100K_wei-2.txt", time_array)
+np.savetxt("data/array_number_100K_wei-2.txt", array_num)
+np.savetxt("data/array_mass_100K_wei-2.txt", array_mass)
+np.savetxt("data/average_number_100K_wei-2.txt", num_avg)
+np.savetxt("data/average_mass_100K_wei-2.txt", mass_avg)
+np.savetxt("data/std_number_100K_wei-2.txt", num_std)
+np.savetxt("data/std_mass_100K_wei-2.txt", mass_std)
 
 
 

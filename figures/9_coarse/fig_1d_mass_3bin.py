@@ -21,7 +21,7 @@ def make_plot(in_dir, in_files, title, out_filename, hour):
         ncf.close() 
 
         dry_diameters = particles.dry_diameters()
-        hist = partmc.histogram_1d(dry_diameters, x_axis, weights = 1 / particles.comp_vols)
+        hist = partmc.histogram_1d(dry_diameters, x_axis, weights = particles.masses(exclude=["H2O"]) / particles.comp_vols)
         hist_array[:,counter] = hist
         counter = counter+1
     plt.clf()
@@ -32,9 +32,8 @@ def make_plot(in_dir, in_files, title, out_filename, hour):
         std = np.std(hist_array, axis = 1)
         error[:,hour-1] = std/avg
     print 'error ', hour, error
-    plt.axis([1e-8, 1e-5, 1e4, 1e11])
     plt.xlabel("dry diameter (m)")
-    plt.ylabel("number density (m^{-3})")
+    plt.ylabel("mass concentration (kg m^{-3})")
     plt.title(title)
     fig = plt.gcf()
     fig.savefig(out_filename)
@@ -49,13 +48,13 @@ for counter in ["flat", "wei-1", "wei-2", "wei-3", "wei-4"]:
         print "hour = ", hour
         files = []
         for i_loop in range (0, config.i_loop_max):
-            filename_in = "urban_plume_wc_100K_%s_00%02d_000000%02d.nc" % (counter, (i_loop+1), hour)
+            filename_in = "urban_plume_wc_10K_%s_00%02d_000000%02d.nc" % (counter, (i_loop+1), hour)
             files.append(filename_in)
-        filename_out = "figs/1d_100K_%s_%02d_3bin.pdf" % (counter, hour)
-        title = '100K %s, %02d hour' % (counter, hour-1)
+        filename_out = "figs/1d_mass_10K_%s_%02d_3bin.pdf" % (counter, hour)
+        title = '10K %s, %02d hour' % (counter, hour-1)
         make_plot(dir_name, files, title, filename_out, hour)
     avg_error[i_counter,:] = np.average(error, axis = 1)
     i_counter = i_counter + 1
-f1 = 'data/num_1d_3bin_100K.txt'
+f1 = 'data/mass_1d_3bin_10K.txt'
 np.savetxt(f1, avg_error)
 

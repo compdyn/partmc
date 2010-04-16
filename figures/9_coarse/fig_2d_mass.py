@@ -52,9 +52,9 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("BC mass fraction")
-    plt.clim(1e8, 5e11)
+    plt.clim(1.e-10, 1.e-7)
     cbar = plt.colorbar()
-    cbar.set_label("number density (m^{-3})")
+    cbar.set_label("mass density (kg m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename1)
 
@@ -82,7 +82,7 @@ for hour in range(1,26):
         for i_loop in range(0,config.i_loop_max):
             filename_in = "urban_plume_wc_%s_00%02d_000000%02d.nc" % (counter,i_loop+1,hour)
             files.append(filename_in)
-        filename_out1 = "figs/2d_bc_%s_%02d.pdf" % (counter, hour)
-        filename_out2 = "figs/2d_bc_std_%s_%02d.pdf" % (counter, hour)
+        filename_out1 = "figs/2d_bc_bcmass_%s_%02d.pdf" % (counter, hour)
+        filename_out2 = "figs/2d_bc_bc_mass_std_%s_%02d.pdf" % (counter, hour)
         make_plot(dir_name, files, filename_out1, filename_out2)
 

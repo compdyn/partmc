@@ -97,7 +97,7 @@ for hour in range(1,26):
     print "hour = ", hour
     case_counter = 0
     print 'counters 1 ', hour_counter, case_counter
-    for counter in ["10K_flat", "10K_wei-1"]:
+    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
         print 'counter ', counter
         files = []
         for i_loop in range(0,config.i_loop_max):
@@ -109,7 +109,9 @@ for hour in range(1,26):
         print 'counters 2', hour_counter, case_counter
         case_counter = case_counter + 1
     hour_counter = hour_counter + 1
-np.savetxt("data/ccn_average.txt", ccn_average)
+np.savetxt("data/ccn_average_ss1.txt", ccn_average[:,:,0])
+np.savetxt("data/ccn_average_ss2.txt", ccn_average[:,:,1])
+np.savetxt("data/ccn_average_ss3.txt", ccn_average[:,:,2])
 
 #    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
 #    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:

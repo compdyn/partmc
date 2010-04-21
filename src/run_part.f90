@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -150,8 +150,26 @@ contains
             time, part_opt%del_t, part_opt%i_loop, part_opt%record_removals)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
-
-    t_start = time
+    
+    ! Do an initial double/halve test. This shouldn't happen (except
+    ! for restart with inconsistent number) so issue a warning.
+    if (part_opt%allow_doubling) then
+       do while ((aero_state_total_particles(aero_state) &
+            < part_opt%n_part_max / 2) &
+            .and. (aero_state_total_particles(aero_state) > 0))
+          write(*,*) 'WARNING: doubling particles in initial condition'
+          call aero_state_double(aero_state)
+       end do
+    end if
+    if (part_opt%allow_halving) then
+       do while (aero_state_total_particles(aero_state) &
+            > part_opt%n_part_max * 2)
+          write(*,*) 'WARNING: halving particles in initial condition'
+          call aero_state_halve(aero_state, bin_grid)
+       end do
+    end if
+    
+    t_start = env_state%elapsed_time
     last_output_time = time
     last_progress_time = time
     n_time = nint(part_opt%t_max / part_opt%del_t)
@@ -161,7 +179,7 @@ contains
        time = dble(i_time) * part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
-       call env_data_update_state(env_data, env_state, time)
+       call env_data_update_state(env_data, env_state, time + t_start)
 
        if (part_opt%do_coagulation) then
           call mc_coag(kernel, bin_grid, env_state, aero_data, &
@@ -182,7 +200,7 @@ contains
 
        if (part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_state, gas_data, gas_state, time)
+               aero_state, gas_data, gas_state)
        end if
 
        call mc_mix(aero_data, aero_state, gas_data, gas_state, &
@@ -230,14 +248,14 @@ contains
        end if
 
        if (part_opt%t_progress > 0d0) then
-          if (rank == 0) then
-             ! progress only printed from root process
-             call check_event(time, part_opt%del_t, part_opt%t_progress, &
-                  last_progress_time, do_progress)
-             if (do_progress) then
+          call check_event(time, part_opt%del_t, part_opt%t_progress, &
+               last_progress_time, do_progress)
+          if (do_progress) then
+             if (rank == 0) then
+                ! progress only printed from root process
                 call cpu_time(t_wall_now)
-                prop_done = (dble(part_opt%i_loop - 1) + (time - t_start) &
-                     / (part_opt%t_max - t_start)) / dble(part_opt%n_loop)
+                prop_done = (dble(part_opt%i_loop - 1) &
+                     + time / part_opt%t_max) / dble(part_opt%n_loop)
                 t_wall_elapsed = t_wall_now - part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed

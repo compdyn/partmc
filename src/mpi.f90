@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -76,7 +76,7 @@ contains
 
     call mpi_abort(MPI_COMM_WORLD, status, ierr)
 #else
-    call exit(status)
+    call die(status)
 #endif
 
   end subroutine pmc_mpi_abort

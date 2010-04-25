@@ -447,26 +447,27 @@ class aero_particle_array_t(object):
 
         self.aero_data = aero_data_t(ncf)
 
-        for (ncf_var, self_var) in [
-            ("aero_particle_mass", "raw_masses"),
-            ("aero_n_orig_part", "n_orig_parts"),
-            ("aero_absorb_cross_sect", "absorb_cross_sects"),
-            ("aero_scatter_cross_sect", "scatter_cross_sects"),
-            ("aero_asymmetry", "asymmetries"),
-            ("aero_refract_shell_real", "refract_shell_reals"),
-            ("aero_refract_shell_imag", "refract_shell_imags"),
-            ("aero_refract_core_real", "refract_core_reals"),
-            ("aero_refract_core_imag", "refract_core_imags"),
-            ("aero_core_vol", "core_vols"),
-            ("aero_water_hyst_leg", "water_hyst_legs"),
-            ("aero_comp_vol", "comp_vols"),
-            ("aero_id", "ids"),
-            ("aero_least_create_time", "least_create_times"),
-            ("aero_greatest_create_time", "greatest_create_times"),
+        for (ncf_var, self_var, required) in [
+            ("aero_particle_mass", "raw_masses", True),
+            ("aero_n_orig_part", "n_orig_parts", True),
+            ("aero_absorb_cross_sect", "absorb_cross_sects", False),
+            ("aero_scatter_cross_sect", "scatter_cross_sects", False),
+            ("aero_asymmetry", "asymmetries", False),
+            ("aero_refract_shell_real", "refract_shell_reals", False),
+            ("aero_refract_shell_imag", "refract_shell_imags", False),
+            ("aero_refract_core_real", "refract_core_reals", False),
+            ("aero_refract_core_imag", "refract_core_imags", False),
+            ("aero_core_vol", "core_vols", False),
+            ("aero_water_hyst_leg", "water_hyst_legs", True),
+            ("aero_comp_vol", "comp_vols", True),
+            ("aero_id", "ids", True),
+            ("aero_least_create_time", "least_create_times", True),
+            ("aero_greatest_create_time", "greatest_create_times", True),
             ]:
-            if ncf_var not in ncf.variables.keys():
+            if ncf_var in ncf.variables.keys():
+                self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var].getValue())
+            elif required:
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var].getValue())
 
         if include_ids != None or exclude_ids != None:
             keep_indexes = [i for i in range(size(self.ids)) \

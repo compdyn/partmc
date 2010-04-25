@@ -29,10 +29,10 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
         ncf.close()
 
         dry_diameters = particles.dry_diameters()
-        total_number = len(particles.ids)
+        total_number = sum(1/particles.comp_vols)
         s_crit = (particles.critical_rel_humids(env_state) - 1)*100
-        hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
-        hist_array[:,:,i_counter] = hist2d
+ #       hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
+ #       hist_array[:,:,i_counter] = hist2d
 
         activated_1 = (s_crit < config.s_crit_1)
         number_act_1 = sum(1/particles.comp_vols[activated_1])
@@ -43,51 +43,51 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
         activated_3 = (s_crit < config.s_crit_3)
         number_act_3 = sum(1/particles.comp_vols[activated_3])
 
-        ccn_array[0,i_counter]= number_act_1/total_number
-        ccn_array[1,i_counter]= number_act_2/total_number
-        ccn_array[2,i_counter]= number_act_3/total_number
+        ccn_array[0,i_counter]= float(number_act_1)/ total_number
+        ccn_array[1,i_counter]= float(number_act_2)/total_number
+        ccn_array[2,i_counter]= float(number_act_3)/total_number
 
         i_counter += 1
 
-    hist_average = np.average(hist_array, axis = 2)
-    hist_std = np.std(hist_array, axis = 2)
-    hist_std_norm = hist_std/hist_average
-    hist_std_norm = np.nan_to_num(hist_std_norm)
+ #   hist_average = np.average(hist_array, axis = 2)
+ #   hist_std = np.std(hist_array, axis = 2)
+ #   hist_std_norm = hist_std/hist_average
+ #   hist_std_norm = np.nan_to_num(hist_std_norm)
     
     print 'counters 3 ', hour_counter, case_counter
 
     ccn = np.average(ccn_array, axis = 1)
     ccn_average[hour_counter,case_counter,:] = ccn
 
-    plt.clf()
-    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
-    a = plt.gca()
-    a.set_xscale("log")
-    a.set_yscale("log")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
-    plt.xlabel("dry diameter (m)")
-    plt.ylabel("critical supersaturation (%)")
-    plt.clim(1e8, 1e12)
-    cbar = plt.colorbar()
-    cbar.set_label("number density (m^{-3})")
-    plt.grid()
-    fig = plt.gcf()
-    fig.savefig(out_filename1)
+#    plt.clf()
+#    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+#    a = plt.gca()
+#    a.set_xscale("log")
+#    a.set_yscale("log")
+#    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+#    plt.xlabel("dry diameter (m)")
+#    plt.ylabel("critical supersaturation (%)")
+#    plt.clim(1e8, 1e12)
+#    cbar = plt.colorbar()
+#    cbar.set_label("number density (m^{-3})")
+#    plt.grid()
+#    fig = plt.gcf()
+#    fig.savefig(out_filename1)
 
-    plt.clf()
-    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_std_norm.transpose(), linewidths = 0.1)
-    a = plt.gca()
-    a.set_xscale("log")
-    a.set_yscale("log")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
-    plt.xlabel("dry diameter (m)")
-    plt.ylabel("critical supersaturation (%)")
-    cbar = plt.colorbar()
-    plt.clim(0, 3)
-    cbar.set_label("std/avg")
-    plt.grid()
-    fig = plt.gcf()
-    fig.savefig(out_filename2)
+#    plt.clf()
+#    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_std_norm.transpose(), linewidths = 0.1)
+#    a = plt.gca()
+#    a.set_xscale("log")
+#    a.set_yscale("log")
+#    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+#    plt.xlabel("dry diameter (m)")
+#    plt.ylabel("critical supersaturation (%)")
+#    cbar = plt.colorbar()
+#    plt.clim(0, 3)
+#    cbar.set_label("std/avg")
+#    plt.grid()
+#    fig = plt.gcf()
+#    fig.savefig(out_filename2)
 
 dir_name = "../../scenarios/5_weighted/out_10loop/"
 hour_counter = 0
@@ -97,6 +97,7 @@ for hour in range(1,26):
     print "hour = ", hour
     case_counter = 0
     print 'counters 1 ', hour_counter, case_counter
+#    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
     for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
         print 'counter ', counter
         files = []

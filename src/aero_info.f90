@@ -50,7 +50,8 @@ module pmc_aero_info
      integer :: id
      !> Action on this particle (from AERO_INFO_* parameters).
      integer :: action
-     !> ID number of the new coagulated particle.
+     !> ID number of the new coagulated particle, or 0 if the new
+     !> particle was not created.
      integer :: other_id
   end type aero_info_t
 

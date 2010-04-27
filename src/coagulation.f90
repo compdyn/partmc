@@ -205,72 +205,83 @@ contains
     
     type(aero_particle_t), pointer :: particle_1, particle_2
     type(aero_particle_t) :: particle_new
-    integer :: bn
+    integer :: bn, info_other_id
     type(aero_info_t) :: aero_info_1, aero_info_2
-    real(kind=dp) :: weight_1, weight_2, weight_new
-    real(kind=dp) :: prob_remove_1, prob_remove_2
-    logical :: remove_1, remove_2, id_1_lost, id_2_lost
+    real(kind=dp) :: radius_1, radius_2, radius_new
+    real(kind=dp) :: weight_1, weight_2, weight_new, weight_min
+    real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
+    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
-    call aero_particle_allocate_size(particle_new, aero_data%n_spec)
     particle_1 => aero_state%bin(b1)%particle(s1)
     particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)
-
-    ! coagulate particles
-    call aero_particle_coagulate(particle_1, particle_2, particle_new)
-    bn = aero_particle_in_bin(particle_new, bin_grid)
 
     ! decide which old particles are to be removed
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        remove_1 = .true.
        remove_2 = .true.
+       create_new = .true.
     else
-       weight_1 = aero_weight_value(aero_weight, &
-            aero_particle_radius(particle_1))
-       weight_2 = aero_weight_value(aero_weight, &
-            aero_particle_radius(particle_2))
-       weight_new = aero_weight_value(aero_weight, &
-            aero_particle_radius(particle_new))
-       prob_remove_1 = weight_new / weight_1
-       prob_remove_2 = weight_new / weight_2
+       radius_1 = aero_particle_radius(particle_1)
+       radius_2 = aero_particle_radius(particle_2)
+       radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
+       weight_1 = aero_weight_value(aero_weight, radius_1)
+       weight_2 = aero_weight_value(aero_weight, radius_2)
+       weight_new = aero_weight_value(aero_weight, radius_new)
+       weight_min = min(weight_1, weight_2, weight_new)
+       prob_remove_1 = weight_min / weight_1
+       prob_remove_2 = weight_min / weight_2
+       prob_create_new = weight_min / weight_new
        remove_1 = (pmc_random() < prob_remove_1)
        remove_2 = (pmc_random() < prob_remove_2)
+       create_new = (pmc_random() < prob_create_new)
     end if
 
-    if (remove_1 .and. remove_2) then
-       if (aero_particle_volume(particle_1) &
-            > aero_particle_volume(particle_2)) then
-          particle_new%id = particle_1%id
-          id_1_lost = .false.
-          id_2_lost = .true.
-       else
-          particle_new%id = particle_2%id
-          id_1_lost = .true.
-          id_2_lost = .false.
+    ! coagulate particles
+    if (create_new) then
+       call aero_particle_allocate_size(particle_new, aero_data%n_spec)
+       call aero_particle_coagulate(particle_1, particle_2, particle_new)
+    end if
+
+    id_1_lost = .false.
+    id_2_lost = .false.
+    if (create_new) then
+       if (remove_1 .and. remove_2) then
+          if (aero_particle_volume(particle_1) &
+               > aero_particle_volume(particle_2)) then
+             particle_new%id = particle_1%id
+             id_2_lost = .true.
+          else
+             particle_new%id = particle_2%id
+             id_1_lost = .true.
+          end if
        end if
-    elseif (remove_1 .and. (.not. remove_2)) then
-       particle_new%id = particle_1%id
-       id_1_lost = .false.
-       id_2_lost = .false.
-    elseif ((.not. remove_1) .and. remove_2) then
-       particle_new%id = particle_2%id
-       id_1_lost = .false.
-       id_2_lost = .false.
-    else ! ((.not. remove_1) .and. (.not. remove_2))
+    else
+       if (remove_1) then
+          id_1_lost = .true.
+       end if
+       if (remove_2) then
+          id_2_lost = .true.
+       end if
+    end if
+    if (create_new .and. (.not. remove_1) .and. (.not. remove_2)) then
        call aero_particle_new_id(particle_new)
-       id_1_lost = .false.
-       id_2_lost = .false.
     end if
 
     ! remove old particles
+    if (create_new) then
+       info_other_id = particle_new%id
+    else
+       info_other_id = 0
+    end if
     call aero_info_allocate(aero_info_1)
     aero_info_1%id = particle_1%id
     aero_info_1%action = AERO_INFO_COAG
-    aero_info_1%other_id = particle_new%id
+    aero_info_1%other_id = info_other_id
     call aero_info_allocate(aero_info_2)
     aero_info_2%id = particle_2%id
     aero_info_2%action = AERO_INFO_COAG
-    aero_info_2%other_id = particle_new%id
+    aero_info_2%other_id = info_other_id
     if ((b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
@@ -297,8 +308,11 @@ contains
     call aero_info_deallocate(aero_info_2)
 
     ! add new particle
-    call aero_state_add_particle(aero_state, bn, particle_new)
-    call aero_particle_deallocate(particle_new)
+    if (create_new) then
+       bn = aero_particle_in_bin(particle_new, bin_grid)
+       call aero_state_add_particle(aero_state, bn, particle_new)
+       call aero_particle_deallocate(particle_new)
+    end if
     
   end subroutine coagulate
 

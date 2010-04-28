@@ -408,7 +408,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    character(len=1000) :: unit, name
+    character(len=1000) :: name
     integer :: dimid_gas_species, n_spec, varid_gas_species, i_spec, i
     character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names
 
@@ -420,9 +420,9 @@ contains
     call assert(719237193, n_spec < 1000)
 
     call pmc_nc_read_integer_1d(ncid, gas_data%mosaic_index, &
-         "gas_mosaic_index", unit)
+         "gas_mosaic_index")
     call pmc_nc_read_real_1d(ncid, gas_data%molec_weight, &
-         "gas_molec_weight", unit)
+         "gas_molec_weight")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
     call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &

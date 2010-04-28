@@ -480,12 +480,11 @@ contains
 
     real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
-    character(len=1000) :: unit
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
-         "aero_number_concentration", unit)
+         "aero_number_concentration")
     call pmc_nc_read_real_2d(ncid, mass_den, &
-         "aero_mass_concentration", unit)
+         "aero_mass_concentration")
 
     do i_bin = 1,bin_grid%n_bin
        aero_binned%vol_conc(i_bin,:) = mass_den(i_bin,:) &

@@ -573,12 +573,10 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
 
-    character(len=1000) :: unit
-
     call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
-         "gas_mixing_ratio", unit)
+         "gas_mixing_ratio")
 
   end subroutine gas_state_input_netcdf
 

@@ -539,7 +539,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    character(len=1000) :: unit, name
+    character(len=1000) :: name
     integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
     character(len=((AERO_NAME_LEN + 2) * 1000)) :: aero_species_names
 
@@ -552,17 +552,17 @@ contains
     call assert(739238793, n_spec < 1000)
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
-         "aero_mosaic_index", unit)
+         "aero_mosaic_index")
     call pmc_nc_read_real_1d(ncid, aero_data%density, &
-         "aero_density", unit)
+         "aero_density")
     call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, &
-         "aero_num_ions", unit)
+         "aero_num_ions")
     call pmc_nc_read_real_1d(ncid, aero_data%solubility, &
-         "aero_solubility", unit)
+         "aero_solubility")
     call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, &
-         "aero_molec_weight", unit)
+         "aero_molec_weight")
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, &
-         "aero_kappa", unit)
+         "aero_kappa")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
          varid_aero_species))

@@ -75,7 +75,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single real from a NetCDF file.
-  subroutine pmc_nc_read_real(ncid, var, name, unit)
+  subroutine pmc_nc_read_real(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -83,8 +83,6 @@ contains
     real(kind=dp), intent(out) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid
 
@@ -92,15 +90,13 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single integer from a NetCDF file.
-  subroutine pmc_nc_read_integer(ncid, var, name, unit)
+  subroutine pmc_nc_read_integer(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -108,8 +104,6 @@ contains
     integer, intent(out) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid
 
@@ -117,15 +111,13 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real array from a NetCDF file.
-  subroutine pmc_nc_read_real_1d(ncid, var, name, unit)
+  subroutine pmc_nc_read_real_1d(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -133,8 +125,6 @@ contains
     real(kind=dp), intent(out) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid, start(1), count(1)
 
@@ -142,15 +132,13 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real_1d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer array from a NetCDF file.
-  subroutine pmc_nc_read_integer_1d(ncid, var, name, unit)
+  subroutine pmc_nc_read_integer_1d(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -158,8 +146,6 @@ contains
     integer, intent(out) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid, start(1), count(1)
 
@@ -167,15 +153,13 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer_1d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real 2D array from a NetCDF file.
-  subroutine pmc_nc_read_real_2d(ncid, var, name, unit)
+  subroutine pmc_nc_read_real_2d(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -183,8 +167,6 @@ contains
     real(kind=dp), intent(out) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid, start(1), count(1)
 
@@ -192,15 +174,13 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_real_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer 2D array from a NetCDF file.
-  subroutine pmc_nc_read_integer_2d(ncid, var, name, unit)
+  subroutine pmc_nc_read_integer_2d(ncid, var, name)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -208,8 +188,6 @@ contains
     integer, intent(out) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> Unit of variable.
-    character(len=*), intent(out) :: unit
 
     integer :: varid, start(1), count(1)
 
@@ -217,8 +195,6 @@ contains
          "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
-    call pmc_nc_check_msg(nf90_get_att(ncid, varid, "unit", unit), &
-         "getting attribute 'unit' for variable " // trim(name))
     
   end subroutine pmc_nc_read_integer_2d
 

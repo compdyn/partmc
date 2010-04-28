@@ -613,16 +613,15 @@ contains
     integer, intent(out) :: i_loop
     
     integer :: ncid
-    character(len=1000) :: unit
 
     ! only root node actually reads from the file
     if (pmc_mpi_rank() == 0) then
        call pmc_nc_open_read(filename, ncid)
 
-       call pmc_nc_read_real(ncid, time, "time", unit)
-       call pmc_nc_read_real(ncid, del_t, "timestep", unit)
-       call pmc_nc_read_integer(ncid, i_loop, "loop", unit)
-       call pmc_nc_read_integer(ncid, index, "timestep_index", unit)
+       call pmc_nc_read_real(ncid, time, "time")
+       call pmc_nc_read_real(ncid, del_t, "timestep")
+       call pmc_nc_read_integer(ncid, i_loop, "loop")
+       call pmc_nc_read_integer(ncid, index, "timestep_index")
 
        call env_state_input_netcdf(env_state, ncid)
        call gas_data_input_netcdf(gas_data, ncid)

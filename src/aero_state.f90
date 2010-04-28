@@ -1894,7 +1894,7 @@ contains
     integer :: dimid_aero_particle, dimid_aero_removed, n_info_item, n_part
     integer :: i_bin, i_part_in_bin, i_part, i_remove, status
     type(aero_particle_t) :: aero_particle
-    character(len=1000) :: unit, name
+    character(len=1000) :: name
 
     real(kind=dp), allocatable :: aero_particle_mass(:,:)
     integer, allocatable :: aero_n_orig_part(:)
@@ -1947,35 +1947,35 @@ contains
     allocate(aero_greatest_create_time(n_part))
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
-         "aero_particle_mass", unit)
+         "aero_particle_mass")
     call pmc_nc_read_integer_1d(ncid, aero_n_orig_part, &
-         "aero_n_orig_part", unit)
+         "aero_n_orig_part")
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
-         "aero_absorb_cross_sect", unit)
+         "aero_absorb_cross_sect")
     call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
-         "aero_scatter_cross_sect", unit)
+         "aero_scatter_cross_sect")
     call pmc_nc_read_real_1d(ncid, aero_asymmetry, &
-         "aero_asymmetry", unit)
+         "aero_asymmetry")
     call pmc_nc_read_real_1d(ncid, aero_refract_shell_real, &
-         "aero_refract_shell_real", unit)
+         "aero_refract_shell_real")
     call pmc_nc_read_real_1d(ncid, aero_refract_shell_imag, &
-         "aero_refract_shell_imag", unit)
+         "aero_refract_shell_imag")
     call pmc_nc_read_real_1d(ncid, aero_refract_core_real, &
-         "aero_refract_core_real", unit)
+         "aero_refract_core_real")
     call pmc_nc_read_real_1d(ncid, aero_refract_core_imag, &
-         "aero_refract_core_imag", unit)
+         "aero_refract_core_imag")
     call pmc_nc_read_real_1d(ncid, aero_core_vol, &
-         "aero_core_vol", unit)
+         "aero_core_vol")
     call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
-         "aero_water_hyst_leg", unit)
+         "aero_water_hyst_leg")
     call pmc_nc_read_real_1d(ncid, aero_comp_vol, &
-         "aero_comp_vol", unit)
+         "aero_comp_vol")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
-         "aero_id", unit)
+         "aero_id")
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
-         "aero_least_create_time", unit)
+         "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
-         "aero_greatest_create_time", unit)
+         "aero_greatest_create_time")
 
     call aero_state_deallocate(aero_state)
     call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
@@ -2036,11 +2036,11 @@ contains
        allocate(aero_removed_other_id(max(n_info_item,1)))
 
        call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
-            "aero_removed_id", unit)
+            "aero_removed_id")
        call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
-            "aero_removed_action", unit)
+            "aero_removed_action")
        call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
-            "aero_removed_other_id", unit)
+            "aero_removed_other_id")
 
        if ((n_info_item > 1) .or. (aero_removed_id(1) /= 0)) then
           call aero_info_array_enlarge_to(aero_state%aero_info_array, &

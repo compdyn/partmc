@@ -846,21 +846,18 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    character(len=1000) :: unit
-
-    call pmc_nc_read_real(ncid, env_state%temp, "temperature", unit)
-    call pmc_nc_read_real(ncid, env_state%rel_humid, "relative_humidity", &
-         unit)
-    call pmc_nc_read_real(ncid, env_state%pressure, "pressure", unit)
-    call pmc_nc_read_real(ncid, env_state%longitude, "longitude", unit)
-    call pmc_nc_read_real(ncid, env_state%latitude, "latitude", unit)
-    call pmc_nc_read_real(ncid, env_state%altitude, "altitude", unit)
+    call pmc_nc_read_real(ncid, env_state%temp, "temperature")
+    call pmc_nc_read_real(ncid, env_state%rel_humid, "relative_humidity")
+    call pmc_nc_read_real(ncid, env_state%pressure, "pressure")
+    call pmc_nc_read_real(ncid, env_state%longitude, "longitude")
+    call pmc_nc_read_real(ncid, env_state%latitude, "latitude")
+    call pmc_nc_read_real(ncid, env_state%altitude, "altitude")
     call pmc_nc_read_real(ncid, env_state%start_time, &
-         "start_time_of_day", unit)
+         "start_time_of_day")
     call pmc_nc_read_integer(ncid, env_state%start_day, &
-         "start_day_of_year", unit)
-    call pmc_nc_read_real(ncid, env_state%elapsed_time, "elapsed_time", unit)
-    call pmc_nc_read_real(ncid, env_state%height, "height", unit)
+         "start_day_of_year")
+    call pmc_nc_read_real(ncid, env_state%elapsed_time, "elapsed_time")
+    call pmc_nc_read_real(ncid, env_state%height, "height")
 
   end subroutine env_state_input_netcdf
   

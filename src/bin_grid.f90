@@ -395,7 +395,7 @@ contains
     integer, intent(in) :: ncid
 
     integer :: dimid_aero_radius
-    character(len=1000) :: unit, name
+    character(len=1000) :: name
     integer :: n_bin, i_bin
     real(kind=dp), allocatable :: aero_radius_centers(:)
     real(kind=dp), allocatable :: aero_radius_widths(:)
@@ -411,9 +411,9 @@ contains
     allocate(aero_radius_widths(n_bin))
 
     call pmc_nc_read_real_1d(ncid, aero_radius_centers, &
-         "aero_radius", unit)
+         "aero_radius")
     call pmc_nc_read_real_1d(ncid, aero_radius_widths, &
-         "aero_radius_widths", unit)
+         "aero_radius_widths")
 
     do i_bin = 1,n_bin
        bin_grid%v(i_bin) = rad2vol(aero_radius_centers(i_bin))

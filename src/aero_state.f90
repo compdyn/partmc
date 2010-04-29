@@ -1833,7 +1833,8 @@ contains
     !!       in the particle's weighting function
     !!   - \b aero_removed_other_id (dim \c aero_removed): the ID number of
     !!     the combined particle formed by coagulation, if the removal reason
-    !!     was coagulation (2, \c AERO_INFO_COAG).
+    !!     was coagulation (2, \c AERO_INFO_COAG). May be 0, if the new
+    !!     coagulated particle was not created due to weighting.
 
     if (record_removals) then
        call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
@@ -1869,7 +1870,8 @@ contains
             description="if <tt>aero_removed_action(i)</tt> is 2 " &
             // "(due to coagulation), then " &
             // "<tt>aero_removed_other_id(i)</tt> is the ID of the " &
-            // "resulting combined particle")
+            // "resulting combined particle, or 0 if the new particle " &
+            // "was not created")
     end if
 
   end subroutine aero_state_output_netcdf

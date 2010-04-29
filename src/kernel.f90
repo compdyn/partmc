@@ -53,7 +53,7 @@ contains
     
     real(kind=dp) :: unweighted_k
     real(kind=dp) :: radius_1, radius_2, radius_1_plus_2
-    real(kind=dp) :: weight_1, weight_2, weight_1_plus_2
+    real(kind=dp) :: weight_1, weight_2, weight_1_plus_2, weight_min
 
     call kernel(aero_particle_1, aero_particle_2, aero_data, &
             env_state, unweighted_k)
@@ -63,7 +63,8 @@ contains
     weight_1 = aero_weight_value(aero_weight, radius_1)
     weight_2 = aero_weight_value(aero_weight, radius_2)
     weight_1_plus_2 = aero_weight_value(aero_weight, radius_1_plus_2)
-    k = unweighted_k * weight_1 * weight_2 / weight_1_plus_2
+    weight_min = min(weight_1, weight_2, weight_1_plus_2)
+    k = unweighted_k * weight_1 * weight_2 / weight_min
     
   end subroutine weighted_kernel
 
@@ -101,13 +102,15 @@ contains
 #endif
 
     real(kind=dp) :: unweighted_k_max, weight_1, weight_2, weight_1_plus_2
+    real(kind=dp) :: weight_min
 
     call kernel_max(v1, v2, aero_data, env_state, unweighted_k_max)
 
     weight_1 = aero_weight_value(aero_weight, vol2rad(v1))
     weight_2 = aero_weight_value(aero_weight, vol2rad(v2))
     weight_1_plus_2 = aero_weight_value(aero_weight, vol2rad(v1 + v2))
-    k_max = unweighted_k_max * weight_1 * weight_2 / weight_1_plus_2
+    weight_min = min(weight_1, weight_2, weight_1_plus_2)
+    k_max = unweighted_k_max * weight_1 * weight_2 / weight_min
 
   end subroutine weighted_kernel_max
 

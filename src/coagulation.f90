@@ -216,7 +216,8 @@ contains
     particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)
 
-    ! decide which old particles are to be removed
+    ! decide which old particles are to be removed and whether to
+    ! create the resulting coagulated particle
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        remove_1 = .true.
        remove_2 = .true.
@@ -237,43 +238,46 @@ contains
        create_new = (pmc_random() < prob_create_new)
     end if
 
-    ! coagulate particles
+    ! figure out what to do about the ID numbers of the various
+    ! particles --- we try to preserve particle IDs as much as
+    ! possible
     if (create_new) then
-       call aero_particle_allocate_size(particle_new, aero_data%n_spec)
-       call aero_particle_coagulate(particle_1, particle_2, particle_new)
-    end if
-
-    id_1_lost = .false.
-    id_2_lost = .false.
-    if (create_new) then
+       id_1_lost = .false.
+       id_2_lost = .false.
        if (remove_1 .and. remove_2) then
           if (aero_particle_volume(particle_1) &
                > aero_particle_volume(particle_2)) then
-             particle_new%id = particle_1%id
              id_2_lost = .true.
           else
-             particle_new%id = particle_2%id
              id_1_lost = .true.
           end if
        end if
     else
-       if (remove_1) then
-          id_1_lost = .true.
-       end if
-       if (remove_2) then
-          id_2_lost = .true.
-       end if
-    end if
-    if (create_new .and. (.not. remove_1) .and. (.not. remove_2)) then
-       call aero_particle_new_id(particle_new)
+       id_1_lost = remove_1
+       id_2_lost = remove_2
     end if
 
-    ! remove old particles
+    ! create a new particle and set its ID
     if (create_new) then
+       call aero_particle_allocate_size(particle_new, aero_data%n_spec)
+       call aero_particle_coagulate(particle_1, particle_2, particle_new)
+       if (remove_1 .and. (.not. id_1_lost)) then
+          particle_new%id = particle_1%id
+          call assert(975059559, id_2_lost .eqv. remove_2)
+       elseif (remove_2 .and. (.not. id_2_lost)) then
+          particle_new%id = particle_2%id
+          call assert(246529753, id_1_lost .eqv. remove_1)
+       else
+          call aero_particle_new_id(particle_new)
+          call assert(852038606, id_1_lost .eqv. remove_1)
+          call assert(254018921, id_2_lost .eqv. remove_2)
+       end if
        info_other_id = particle_new%id
     else
        info_other_id = 0
     end if
+
+    ! remove old particles
     call aero_info_allocate(aero_info_1)
     aero_info_1%id = particle_1%id
     aero_info_1%action = AERO_INFO_COAG

@@ -1,0 +1,7 @@
+set(ENABLE_MOSAIC ON CACHE BOOL "")
+set(NETCDF_C_LIB "/sw/lib/libnetcdf.3.dylib" CACHE STRING "")
+set(ENABLE_SUNDIALS ON CACHE BOOL "")
+set(SUNDIALS_INCLUDE_DIR "/Users/mwest/opt/sundials-2.4.0/include" CACHE STRING "")
+set(SUNDIALS_NVECSERIAL_LIB "/Users/mwest/opt/sundials-2.4.0/lib/libsundials_nvecserial.a" CACHE STRING "")
+set(SUNDIALS_CVODE_LIB "/Users/mwest/opt/sundials-2.4.0/lib/libsundials_cvode.a" CACHE STRING "")
+set(CMAKE_C_FLAGS "-arch i386" CACHE STRING "")

@@ -66,7 +66,7 @@ find_library(NETCDF_FORTRAN_LIB netcdff
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
-endif(NETCDF_FORTRAN_LIB)
+endif()
 
 ######################################################################
 
@@ -121,7 +121,7 @@ if(ENABLE_SUNDIALS)
     $ENV{HOME}/sundials/lib64)
   
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
-endif(ENABLE_SUNDIALS)
+endif()
 
 ######################################################################
 
@@ -153,7 +153,7 @@ if(ENABLE_MOSAIC)
     $ENV{HOME}/svn/mosaic/trunk
     ${PROJECT_SOURCE_DIR}/../mosaic
     ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
-endif(ENABLE_MOSAIC)
+endif()
 
 ######################################################################
 
@@ -166,17 +166,17 @@ if(ENABLE_MOSAIC)
   include_directories(${MOSAIC_INCLUDE_DIR})
   set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSAIC_LIB})
   add_definitions(-DPMC_USE_MOSAIC)
-endif(ENABLE_MOSAIC)
+endif()
 
 if(ENABLE_MPI)
   add_definitions(-DPMC_USE_MPI)
-endif(ENABLE_MPI)
+endif()
 
 if(ENABLE_SUNDIALS)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   set(EXTRA_LIBS ${EXTRA_LIBS} ${SUNDIALS_LIBS})
   add_definitions(-DPMC_USE_SUNDIALS)
-endif(ENABLE_SUNDIALS)
+endif()
 
 get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
@@ -206,7 +206,7 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(LEGACY_COMPILER_FLAGS "${LEGACY_COMPILER_FLAGS} -g -std=legacy -I/include -I/usr/include -I/usr/local/include")
   if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(C_COMPILER_FLAGS "${C_COMPILER_FLAGS} -arch i386")
-  endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  endif()
   #add_definitions(-g -x f95-cpp-input -std=legacy -fimplicit-none -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
 
   #add_definitions(-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
@@ -214,11 +214,11 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   #add_definitions(-g -x f95-cpp-input -std=legacy -fimplicit-none -Wno-unused -fbounds-check -I/include -I/usr/include -I/usr/local/include)
   #if(NOT ENABLE_MPI)
   #  add_definitions(-Wimplicit-interface)
-  #endif(NOT ENABLE_MPI)
+  #endif()
 elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   add_definitions(-Mpreprocess)
   add_definitions(-DDEFINE_LOCAL_COMMAND_ARGUMENT)
-endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+endif()
 
 ######################################################################
 
@@ -238,7 +238,7 @@ add_test(brownian_6 ${CMAKE_BINARY_DIR}/run_test/brownian/run_test_6.sh)
 if(ENABLE_SUNDIALS)
   add_test(condense_1 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_1.sh)
   add_test(condense_2 ${CMAKE_BINARY_DIR}/run_test/condense/run_test_2.sh)
-endif(ENABLE_SUNDIALS)
+endif()
 add_test(emission_1 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_1.sh)
 add_test(emission_2 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_2.sh)
 add_test(emission_3 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_3.sh)
@@ -260,7 +260,7 @@ if(ENABLE_MOSAIC)
   add_test(mosaic_08 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_08.sh)
   add_test(mosaic_09 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_09.sh)
   add_test(mosaic_10 ${CMAKE_BINARY_DIR}/run_test/mosaic/run_test_10.sh)
-endif(ENABLE_MOSAIC)
+endif()
 if(ENABLE_MPI)
   add_test(parallel_1 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_1.sh)
   add_test(parallel_2 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_2.sh)
@@ -268,7 +268,7 @@ if(ENABLE_MPI)
   add_test(parallel_4 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_4.sh)
   add_test(parallel_5 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_5.sh)
   add_test(parallel_6 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_6.sh)
-endif(ENABLE_MPI)
+endif()
 add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
 add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
 add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
@@ -302,7 +302,7 @@ if(ENABLE_SUNDIALS)
   set_source_files_properties(src/condense.f90
     PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
   set(PARTMC_SRC ${PARTMC_SRC} src/condense.f90 src/condense_solver.c)
-endif(ENABLE_SUNDIALS)
+endif()
 
 add_executable(partmc ${PARTMC_SRC})
 target_link_libraries(partmc ${EXTRA_LIBS})

@@ -20,7 +20,8 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
     hist_average = np.zeros([len(x_centers), len(y_centers)])
     hist_std = np.zeros([len(x_centers), len(y_centers)])
     hist_std_norm = np.zeros([len(x_centers), len(y_centers)])
-    ccn_array = np.zeros([3,config.i_loop_max])
+    ccn_array = np.zeros([4,config.i_loop_max])
+    bc_array = np.zeros([4,config.i_loop_max])
 
     for file in in_files:
         ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+file)
@@ -30,22 +31,38 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
 
         dry_diameters = particles.dry_diameters()
         total_number = sum(1/particles.comp_vols)
+        bc = particles.masses(include = ["BC"])
+        total_bc = sum(bc/particles.comp_vols)
+
         s_crit = (particles.critical_rel_humids(env_state) - 1)*100
  #       hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
  #       hist_array[:,:,i_counter] = hist2d
 
         activated_1 = (s_crit < config.s_crit_1)
         number_act_1 = sum(1/particles.comp_vols[activated_1])
+        bc_mass_act1 = sum(bc[activated_1]/particles.comp_vols[activated_1])
 
         activated_2 = (s_crit < config.s_crit_2)
         number_act_2 = sum(1/particles.comp_vols[activated_2])
+        bc_mass_act2 = sum(bc[activated_2]/particles.comp_vols[activated_2])
 
         activated_3 = (s_crit < config.s_crit_3)
         number_act_3 = sum(1/particles.comp_vols[activated_3])
+        bc_mass_act3 = sum(bc[activated_3]/particles.comp_vols[activated_3])
 
-        ccn_array[0,i_counter]= float(number_act_1)/ total_number
+        activated_4 = (s_crit < config.s_crit_4)
+        number_act_4 = sum(1/particles.comp_vols[activated_4])
+        bc_mass_act4 = sum(bc[activated_4]/particles.comp_vols[activated_4])
+
+        ccn_array[0,i_counter]= float(number_act_1)/total_number
         ccn_array[1,i_counter]= float(number_act_2)/total_number
         ccn_array[2,i_counter]= float(number_act_3)/total_number
+        ccn_array[3,i_counter]= float(number_act_4)/total_number
+
+        bc_array[0,i_counter]= float(bc_mass_act1)/total_bc
+        bc_array[1,i_counter]= float(bc_mass_act2)/total_bc
+        bc_array[2,i_counter]= float(bc_mass_act3)/total_bc
+        bc_array[3,i_counter]= float(bc_mass_act4)/total_bc
 
         i_counter += 1
 
@@ -58,6 +75,10 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
 
     ccn = np.average(ccn_array, axis = 1)
     ccn_average[hour_counter,case_counter,:] = ccn
+    ccn_std[hour_counter,case_counter,:] = np.std(ccn_array, axis = 1)
+
+    bc_average[hour_counter,case_counter,:] = np.average(bc_array, axis = 1)
+    bc_std[hour_counter, case_counter, :] = np.std(bc_array, axis = 1)
 
 #    plt.clf()
 #    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
@@ -91,13 +112,16 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
 
 dir_name = "../../scenarios/5_weighted/out_10loop/"
 hour_counter = 0
-ccn_average = np.zeros([25,10,3])
+ccn_average = np.zeros([25,10,4])
+ccn_std = np.zeros([25,10,4])
+
+bc_average = np.zeros([25,10,4])
+bc_std = np.zeros([25,10,4])
 
 for hour in range(1,26):
     print "hour = ", hour
     case_counter = 0
     print 'counters 1 ', hour_counter, case_counter
-#    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
     for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
         print 'counter ', counter
         files = []
@@ -113,6 +137,22 @@ for hour in range(1,26):
 np.savetxt("data/ccn_average_ss1.txt", ccn_average[:,:,0])
 np.savetxt("data/ccn_average_ss2.txt", ccn_average[:,:,1])
 np.savetxt("data/ccn_average_ss3.txt", ccn_average[:,:,2])
+np.savetxt("data/ccn_average_ss4.txt", ccn_average[:,:,3])
+
+np.savetxt("data/bc_average_ss1.txt", bc_average[:,:,0])
+np.savetxt("data/bc_average_ss2.txt", bc_average[:,:,1])
+np.savetxt("data/bc_average_ss3.txt", bc_average[:,:,2])
+np.savetxt("data/bc_average_ss4.txt", bc_average[:,:,3])
+
+np.savetxt("data/ccn_std_ss1.txt", ccn_std[:,:,0])
+np.savetxt("data/ccn_std_ss2.txt", ccn_std[:,:,1])
+np.savetxt("data/ccn_std_ss3.txt", ccn_std[:,:,2])
+np.savetxt("data/ccn_std_ss4.txt", ccn_std[:,:,3])
+
+np.savetxt("data/bc_std_ss1.txt", bc_std[:,:,0])
+np.savetxt("data/bc_std_ss2.txt", bc_std[:,:,1])
+np.savetxt("data/bc_std_ss3.txt", bc_std[:,:,2])
+np.savetxt("data/bc_std_ss4.txt", bc_std[:,:,3])
 
 #    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
 #    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:

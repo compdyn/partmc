@@ -1348,7 +1348,27 @@ def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange=True)
     vals = numpy.ma.array(grid, mask=mask)
     return vals
 
-def time_of_day_string(time_seconds, separator=":", resolution="minutes"):
+def time_of_day_string(env_state, separator=":", resolution="minutes"):
+    """Return the current time-of-day in a 24-hour string
+    representation.
+
+    The optional resolution parameter can be 'hours', 'minutes', or
+    'seconds', to indicate the granularity of the result.
+
+    Example:
+    >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
+    >>> env_state = partmc.env_state_t(ncf)
+    >>> time_of_day_string(env_state)
+    '14:24'
+    
+    """
+    seconds_past_midnight = env_state.start_time_of_day \
+        + env_state.elapsed_time
+    return time_of_day_string_from_seconds(seconds_past_midnight,
+                                           separator, resolution)
+
+def time_of_day_string_from_seconds(time_seconds, separator=":",
+                                    resolution="minutes"):
     """Convert a time-of-day in seconds-past-midnight to a 24-hour
     string representation.
 
@@ -1356,9 +1376,9 @@ def time_of_day_string(time_seconds, separator=":", resolution="minutes"):
     'seconds', to indicate the granularity of the result.
 
     Example:
-    >>> time_of_day_string(51858.6)
+    >>> time_of_day_string_from_seconds(51858.6)
     '14:24'
-    >>> time_of_day_string(51858.6, resolution='seconds')
+    >>> time_of_day_string_from_seconds(51858.6, resolution='seconds')
     '14:24:18'
     
     """

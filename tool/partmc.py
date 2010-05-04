@@ -1287,6 +1287,23 @@ def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange = Tru
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals.transpose(),
                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
+    If there are zeros in the z_values but it desirable to use a
+    log-scale for the colors, then the zero values can be filtered out
+    as in the following example.
+
+    Example:
+    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
+    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
+    >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_grid, y_grid)
+    >>> vals_pos = np.ma.masked_less_equal(vals, 0)
+    >>> vals_zero = np.ma.masked_not_equal(vals, 0)
+    >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals_zero.transpose(),
+                   cmap = matplotlib.cm.gray,
+                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+    >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals_pos.transpose(),
+                   cmap = matplotlib.cm.jet, 
+                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+
     """
     if len(x_values) != len(y_values):
         raise Exception("x_values and y_values have different lengths")

@@ -125,14 +125,13 @@ def make_2d_plot(in_filename, out_filename):
     if value_pos.count() > 0:
         p = axes.pcolor(x_edges, y_edges, value_pos.transpose(), norm = matplotlib.colors.LogNorm(),
                         cmap=matplotlib.cm.jet, linewidths = 0.1)
-    figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
-    cbar_axes.set_ylabel(r"water mass $(\rm fg)$")
-    cbar_yaxis = cbar_axes.get_yaxis()
+        figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
+        cbar_axes.set_ylabel(r"water mass $(\rm fg)$")
 
     figure.savefig(out_filename)
 
 for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
-    out_filename = "%s_%d.pdf" % (out_prefix, i_run)
+    out_filename = "%s_%02d.pdf" % (out_prefix, i_run)
     print out_filename
 
     filename_list = partmc.get_filename_list(netcdf_dir, netcdf_pattern)

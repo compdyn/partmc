@@ -137,7 +137,7 @@ def make_2d_plot(in_filename, out_filename):
     figure.savefig(out_filename)
 
 for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
-    out_filename = "%s_%d.pdf" % (out_prefix, i_run)
+    out_filename = "%s_%02d.pdf" % (out_prefix, i_run)
     print out_filename
 
     filename_list = partmc.get_filename_list(netcdf_dir, netcdf_pattern)

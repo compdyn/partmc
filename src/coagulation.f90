@@ -181,39 +181,44 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Join together particles (b1, s1) and (b2, s2), updating all
-  !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, &
-       b1, s1, b2, s2)
- 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
+  !> Actually coagulate particle_1 and particle_2 to form particle_new
+  !> and compute weighting effects, including which particles should
+  !> be lost and which gained.
+  subroutine coagulate_weighting(particle_1, particle_2, particle_new, &
+       aero_data, aero_weight, remove_1, remove_2, create_new, &
+       id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+
+    !> First coagulating aerosol particle.
+    type(aero_particle_t), intent(in) :: particle_1
+    !> Second coagulating aerosol particle.
+    type(aero_particle_t), intent(in) :: particle_2
+    !> Combined aerosol particle resulting from coagulation of particle_1
+    !> and particle_2.
+    type(aero_particle_t), intent(inout) :: particle_new
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> First particle (bin number).
-    integer, intent(in) :: b1
-    !> First particle (number in bin).
-    integer, intent(in) :: s1
-    !> Second particle (bin number).
-    integer, intent(in) :: b2
-    !> Second particle (number in bin).
-    integer, intent(in) :: s2
-    
-    type(aero_particle_t), pointer :: particle_1, particle_2
-    type(aero_particle_t) :: particle_new
-    integer :: bn, info_other_id
-    type(aero_info_t) :: aero_info_1, aero_info_2
+    !> Whether to remove particle_1.
+    logical, intent(out) :: remove_1
+    !> Whether to remove particle_2.
+    logical, intent(out) :: remove_2
+    !> Whether to create particle_new.
+    logical, intent(out) :: create_new
+    !> Whether the ID of particle_1 will be lost due to coagulation.
+    logical, intent(out) :: id_1_lost
+    !> Whether the ID of particle_2 will be lost due to coagulation.
+    logical, intent(out) :: id_2_lost
+    !> The removal information associated with particle_1.
+    type(aero_info_t), intent(inout) :: aero_info_1
+    !> The removal information associated with particle_2.
+    type(aero_info_t), intent(inout) :: aero_info_2
+
     real(kind=dp) :: radius_1, radius_2, radius_new
     real(kind=dp) :: weight_1, weight_2, weight_new, weight_min
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
-    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
+    integer :: info_other_id
 
-    particle_1 => aero_state%bin(b1)%particle(s1)
-    particle_2 => aero_state%bin(b2)%particle(s2)
     call assert(371947172, particle_1%id /= particle_2%id)
 
     ! decide which old particles are to be removed and whether to
@@ -259,6 +264,7 @@ contains
 
     ! create a new particle and set its ID
     if (create_new) then
+       call aero_particle_deallocate(particle_new)
        call aero_particle_allocate_size(particle_new, aero_data%n_spec)
        call aero_particle_coagulate(particle_1, particle_2, particle_new)
        if (remove_1 .and. (.not. id_1_lost)) then
@@ -277,15 +283,58 @@ contains
        info_other_id = 0
     end if
 
-    ! remove old particles
-    call aero_info_allocate(aero_info_1)
     aero_info_1%id = particle_1%id
     aero_info_1%action = AERO_INFO_COAG
     aero_info_1%other_id = info_other_id
-    call aero_info_allocate(aero_info_2)
+
     aero_info_2%id = particle_2%id
     aero_info_2%action = AERO_INFO_COAG
     aero_info_2%other_id = info_other_id
+
+  end subroutine coagulate_weighting
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Join together particles (b1, s1) and (b2, s2), updating all
+  !> particle and bin structures to reflect the change.
+  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, &
+       b1, s1, b2, s2)
+ 
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> First particle (bin number).
+    integer, intent(in) :: b1
+    !> First particle (number in bin).
+    integer, intent(in) :: s1
+    !> Second particle (bin number).
+    integer, intent(in) :: b2
+    !> Second particle (number in bin).
+    integer, intent(in) :: s2
+    
+    type(aero_particle_t), pointer :: particle_1, particle_2
+    type(aero_particle_t) :: particle_new
+    integer :: bn
+    type(aero_info_t) :: aero_info_1, aero_info_2
+    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
+
+    call aero_particle_allocate(particle_new)
+    call aero_info_allocate(aero_info_1)
+    call aero_info_allocate(aero_info_2)
+
+    particle_1 => aero_state%bin(b1)%particle(s1)
+    particle_2 => aero_state%bin(b2)%particle(s2)
+
+    call coagulate_weighting(particle_1, particle_2, particle_new, &
+         aero_data, aero_weight, remove_1, remove_2, create_new, &
+         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+    
+    ! remove old particles
     if ((b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
@@ -308,15 +357,16 @@ contains
                id_2_lost, aero_info_2)
        end if
     end if
-    call aero_info_deallocate(aero_info_1)
-    call aero_info_deallocate(aero_info_2)
 
     ! add new particle
     if (create_new) then
        bn = aero_particle_in_bin(particle_new, bin_grid)
        call aero_state_add_particle(aero_state, bn, particle_new)
-       call aero_particle_deallocate(particle_new)
     end if
+
+    call aero_info_deallocate(aero_info_1)
+    call aero_info_deallocate(aero_info_2)
+    call aero_particle_deallocate(particle_new)
     
   end subroutine coagulate
 

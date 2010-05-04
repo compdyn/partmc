@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -104,7 +104,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag_mpi_equal(kernel, bin_grid, env_state, aero_data, &
-       aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
+       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -112,6 +112,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
@@ -202,9 +204,9 @@ contains
        !call sleep(1 + rank * 2)
        !<DEBUG
        ! receive exactly one message
-       call coag_equal_recv(requests, bin_grid, &
-            env_state, aero_data, aero_state, del_t, k_max, kernel, &
-            tot_n_coag, comp_vols, procs_done)
+       call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
+            aero_weight, aero_state, del_t, k_max, kernel, tot_n_coag, &
+            comp_vols, procs_done)
     end do
 
     do i_req = 1,COAG_EQUAL_MAX_REQUESTS
@@ -225,9 +227,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_equal_recv(requests, bin_grid, &
-       env_state, aero_data, aero_state, del_t, k_max, kernel, &
-       tot_n_coag, comp_vols, procs_done)
+  subroutine coag_equal_recv(requests, bin_grid, env_state, aero_data, &
+       aero_weight, aero_state, del_t, k_max, kernel, tot_n_coag, &
+       comp_vols, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
@@ -237,6 +239,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
@@ -297,8 +301,8 @@ contains
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, bin_grid, &
-            env_state, aero_data, aero_state, del_t, k_max, kernel, &
-            tot_n_coag, comp_vols)
+            env_state, aero_data, aero_weight, aero_state, del_t, k_max, &
+            kernel, tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state, bin_grid)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_NO_PARTICLE) then
@@ -667,8 +671,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_req_particle(requests, bin_grid, &
-       env_state, aero_data, aero_state, del_t, k_max, kernel, &
+  subroutine recv_return_req_particle(requests, bin_grid, env_state, &
+       aero_data, aero_weight, aero_state, del_t, k_max, kernel, &
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
@@ -677,6 +681,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -707,7 +713,7 @@ contains
 #endif
 
 #ifdef PMC_USE_MPI
-    logical :: found_request
+    logical :: found_request, remove_1, remove_2
     integer :: buffer_size, position, sent_bin, sent_proc, i_req, ierr
     integer :: status(MPI_STATUS_SIZE)
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
@@ -759,8 +765,8 @@ contains
     !<DEBUG
     
     ! maybe do coagulation
-    call kernel(requests(i_req)%local_aero_particle, sent_aero_particle, &
-         aero_data, env_state, k)
+    call weighted_kernel(kernel, requests(i_req)%local_aero_particle, &
+         sent_aero_particle, aero_data, aero_weight, env_state, k)
     p = k / k_max(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
@@ -769,16 +775,23 @@ contains
        !<DEBUG
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
-       call coagulate_mpi_equal(bin_grid, aero_data, aero_state, &
+       call coagulate_mpi_equal(bin_grid, aero_data, aero_weight, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
-            sent_proc, comp_vols)
+            sent_proc, comp_vols, remove_1, remove_2)
     else
        !>DEBUG
        !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: coagulation did not occur'
        !<DEBUG
-       ! coagulation didn't happen, send the particles back
+       remove_1 = .false.
+       remove_2 = .false.
+    end if
+
+    ! send the particles back
+    if (.not. remove_1) then
        call aero_state_add_particle(aero_state, requests(i_req)%local_bin, &
             requests(i_req)%local_aero_particle)
+    end if
+    if (.not. remove_2) then
        call send_return_unreq_particle(sent_aero_particle, sent_proc)
     end if
 
@@ -1065,13 +1078,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coagulate_mpi_equal(bin_grid, aero_data, aero_state, &
-       aero_particle_1, aero_particle_2, remote_proc, comp_vols)
+  subroutine coagulate_mpi_equal(bin_grid, aero_data, aero_weight, &
+       aero_state, aero_particle_1, aero_particle_2, remote_proc, &
+       comp_vols, remove_1, remove_2)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> First particle to coagulate.
@@ -1082,51 +1098,50 @@ contains
     integer, intent(in) :: remote_proc
     !> Computational volumes on all processors (m^3).
     real(kind=dp), intent(in) :: comp_vols(:)
+    !> Whether to remove aero_particle_1 after the coagulation.
+    logical, intent(out) :: remove_1
+    !> Whether to remove aero_particle_2 after the coagulation.
+    logical, intent(out) :: remove_2
     
     type(aero_particle_t) :: aero_particle_new
-    integer :: bin_new, rank, proc_new
-    type(aero_info_t) :: aero_info
+    integer :: rank, proc_new
+    type(aero_info_t) :: aero_info_1, aero_info_2
+    logical :: create_new, id_1_lost, id_2_lost
 
     !>DEBUG
     !write(*,*) pmc_mpi_rank(), 'coagulate_mpi_equal: entry'
     !<DEBUG
     rank = pmc_mpi_rank()
 
-    call aero_particle_allocate_size(aero_particle_new, aero_data%n_spec)
-    call assert(400463852, aero_particle_1%id /= aero_particle_2%id)
+    call aero_particle_allocate(aero_particle_new)
+    call aero_info_allocate(aero_info_1)
+    call aero_info_allocate(aero_info_2)
 
-    ! coagulate particles
-    call aero_particle_coagulate(aero_particle_1, aero_particle_2, &
-         aero_particle_new)
-    bin_new = aero_particle_in_bin(aero_particle_new, bin_grid)
+    call coagulate_weighting(aero_particle_1, aero_particle_2, aero_particle_new, &
+         aero_data, aero_weight, remove_1, remove_2, create_new, &
+         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
-    ! removal information
-    call aero_info_allocate(aero_info)
-    if (aero_particle_new%id /= aero_particle_1%id) then
-       ! aero_particle_1 is the removed particle
-       call assert(209246658, aero_particle_new%id == aero_particle_2%id)
-       aero_info%id = aero_particle_1%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = aero_particle_2%id
-    else
-       ! aero_particle_2 is the removed particle
-       call assert(967187262, aero_particle_new%id /= aero_particle_2%id)
-       aero_info%id = aero_particle_2%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = aero_particle_1%id
+    if (id_1_lost) then
+       call aero_info_array_add_aero_info(aero_state%aero_info_array, &
+            aero_info_1)
     end if
-    call aero_info_array_add_aero_info(aero_state%aero_info_array, &
-         aero_info)
-    call aero_info_deallocate(aero_info)
+    if (id_2_lost) then
+       call aero_info_array_add_aero_info(aero_state%aero_info_array, &
+            aero_info_2)
+    end if
 
     ! add new particle
-    proc_new = sample_cts_pdf(size(comp_vols), comp_vols) - 1
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'coagulate_mpi_equal: new proc = ', proc_new
-    !<DEBUG
-    call send_return_unreq_particle(aero_particle_new, proc_new)
+    if (create_new) then
+       proc_new = sample_cts_pdf(size(comp_vols), comp_vols) - 1
+       !>DEBUG
+       !write(*,*) pmc_mpi_rank(), 'coagulate_mpi_equal: new proc = ', proc_new
+       !<DEBUG
+       call send_return_unreq_particle(aero_particle_new, proc_new)
+    end if
 
     call aero_particle_deallocate(aero_particle_new)
+    call aero_info_deallocate(aero_info_1)
+    call aero_info_deallocate(aero_info_2)
 
   end subroutine coagulate_mpi_equal
 

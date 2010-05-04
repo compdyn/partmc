@@ -1,0 +1,7 @@
+set(CMAKE_Fortran_COMPILER "/usr/lib64/openmpi/bin/mpif90" CACHE FILEPATH "")
+set(ENABLE_MPI ON CACHE BOOL "")
+set(ENABLE_MOSAIC ON CACHE BOOL "")
+set(ENABLE_SUNDIALS ON CACHE BOOL "")
+set(SUNDIALS_INCLUDE_DIR "/home/mwest/opt/sundials-2.4.0/include" CACHE STRING "")
+set(SUNDIALS_NVECSERIAL_LIB "/home/mwest/opt/sundials-2.4.0/lib/libsundials_nvecserial.a" CACHE STRING "")
+set(SUNDIALS_CVODE_LIB "/home/mwest/opt/sundials-2.4.0/lib/libsundials_cvode.a" CACHE STRING "")

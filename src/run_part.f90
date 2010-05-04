@@ -221,13 +221,15 @@ contains
                   tot_n_coag)
           elseif (part_opt%coag_method == "collect") then
              call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
-                  aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+                  aero_weight, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "central") then
              call mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
-                  aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+                  aero_weight, aero_state, part_opt%del_t, k_max, tot_n_samp, &
+                  tot_n_coag)
           elseif (part_opt%coag_method == "dist") then
              call mc_coag_mpi_equal(kernel, bin_grid, env_state, aero_data, &
-                  aero_state, part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+                  aero_weight, aero_state, part_opt%del_t, k_max, tot_n_samp, &
+                  tot_n_coag)
           else
              call die_msg(323011762, "unknown coag_method: " &
                   // trim(part_opt%coag_method))
@@ -423,7 +425,8 @@ contains
 
   !> Do coagulation for time del_t in parallel by centralizing on node 0.
   subroutine mc_coag_mpi_centralized(kernel, bin_grid, env_state, &
-       aero_data, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+       aero_data, aero_weight, aero_state, part_opt, k_max, tot_n_samp, &
+       tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -431,6 +434,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Monte Carlo options.
@@ -466,7 +471,8 @@ contains
     call aero_state_mpi_gather(aero_state, aero_state_total)
     if (pmc_mpi_rank() == 0) then
        call mc_coag(kernel, bin_grid, env_state, aero_data, &
-            aero_state_total, part_opt, k_max, tot_n_samp, tot_n_coag)
+            aero_weight, aero_state_total, part_opt, k_max, tot_n_samp, &
+            tot_n_coag)
     end if
     call aero_state_mpi_scatter(aero_state_total, aero_state, aero_data)
     call aero_state_deallocate(aero_state_total)

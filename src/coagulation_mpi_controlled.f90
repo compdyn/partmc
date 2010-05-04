@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -32,7 +32,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
-       aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
+       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -40,6 +40,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
@@ -142,8 +144,8 @@ contains
                    exit
                 end if
                 call maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
-                     aero_data, aero_state, i, j, del_t, k_max(i,j), &
-                     kernel, did_coag, n_parts, comp_vols)
+                     aero_data, aero_weight, aero_state, i, j, del_t, &
+                     k_max(i,j), kernel, did_coag, n_parts, comp_vols)
                 if (did_coag) tot_n_coag = tot_n_coag + 1
              enddo
           enddo
@@ -481,8 +483,8 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
-       aero_data, aero_state, b1, b2, del_t, k_max, kernel, did_coag, &
-       n_parts, comp_vols)
+       aero_data, aero_weight, aero_state, b1, b2, del_t, k_max, &
+       kernel, did_coag, n_parts, comp_vols)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -490,6 +492,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin of first particle.
@@ -552,7 +556,8 @@ contains
     !write(*,*) 'maybe_coag_pair_mpi_controlled: fetching particle 2 ', pmc_mpi_rank()
     !<DEBUG
     call coag_remote_fetch_particle(aero_state, p2, b2, s2, particle_2)
-    call kernel(particle_1, particle_2, aero_data, env_state, k)
+    call weighted_kernel(kernel, particle_1, &
+         particle_2, aero_data, aero_weight, env_state, k)
     p = k / k_max
 
     !>DEBUG
@@ -562,8 +567,9 @@ contains
        !>DEBUG
        !write(*,*) 'maybe_coag_pair_mpi_controlled: coag happened ', pmc_mpi_rank()
        !<DEBUG
-       call coagulate_mpi_controlled(bin_grid, aero_data, aero_state, &
-            p1, b1, s1, p2, b2, s2, particle_1, particle_2, n_parts, comp_vols)
+       call coagulate_mpi_controlled(bin_grid, aero_data, aero_weight, &
+            aero_state, p1, b1, s1, p2, b2, s2, particle_1, particle_2, &
+            n_parts, comp_vols)
        did_coag = .true.
     end if
 
@@ -640,13 +646,16 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate_mpi_controlled(bin_grid, aero_data, aero_state, &
-       p1, b1, s1, p2, b2, s2, particle_1, particle_2, n_parts, comp_vols)
+  subroutine coagulate_mpi_controlled(bin_grid, aero_data, aero_weight, &
+       aero_state, p1, b1, s1, p2, b2, s2, aero_particle_1, &
+       aero_particle_2, n_parts, comp_vols)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Processor of first particle.
@@ -662,47 +671,31 @@ contains
     !> Second particle (number in bin).
     integer, intent(in) :: s2
     !> Copy of particle_1
-    type(aero_particle_t) :: particle_1
+    type(aero_particle_t) :: aero_particle_1
     !> Copy of particle_2
-    type(aero_particle_t) :: particle_2
+    type(aero_particle_t) :: aero_particle_2
     !> Number of particles per-bin and per-processor.
     integer :: n_parts(:, :)
     !> Computational volumes for each processor.
     real(kind=dp) :: comp_vols(:)
     
-    type(aero_particle_t) :: new_particle
-    type(aero_info_t) :: aero_info
-    logical :: p1_removed, p2_removed
+    type(aero_particle_t) :: aero_particle_new
+    type(aero_info_t) :: aero_info_1, aero_info_2
+    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
     integer :: pn, bn
 
     !>DEBUG
     !write(*,*) 'coagulate_mpi_controlled: entry ', pmc_mpi_rank()
     !<DEBUG
-    call assert(907178147, particle_1%id /= particle_2%id)
+    call aero_particle_allocate(aero_particle_new)
+    call aero_info_allocate(aero_info_1)
+    call aero_info_allocate(aero_info_2)
 
-    ! coagulate particles
-    call aero_particle_allocate_size(new_particle, aero_data%n_spec)
-    call aero_particle_coagulate(particle_1, particle_2, new_particle)
+    call coagulate_weighting(aero_particle_1, aero_particle_2, aero_particle_new, &
+         aero_data, aero_weight, remove_1, remove_2, create_new, &
+         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
-    ! remove old particles
-    call aero_info_allocate(aero_info)
-    if (new_particle%id /= particle_1%id) then
-       ! particle_1 is the removed particle
-       call assert(681297276, new_particle%id == particle_2%id)
-       aero_info%id = particle_1%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = particle_2%id
-       p1_removed = .true.
-       p2_removed = .false.
-    else
-       ! particle_2 is the removed particle
-       call assert(605428059, new_particle%id /= particle_2%id)
-       aero_info%id = particle_2%id
-       aero_info%action = AERO_INFO_COAG
-       aero_info%other_id = particle_1%id
-       p1_removed = .false.
-       p2_removed = .true.
-    end if
+    ! remove particles
     if ((p1 == p2) .and. (b1 == b2) .and. (s2 > s1)) then
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
@@ -710,48 +703,44 @@ contains
        !>DEBUG
        !write(*,*) 'coagulate_mpi_controlled: removing ', p2, b2, s2, p2_removed, pmc_mpi_rank()
        !<DEBUG
-       call coag_remote_remove_particle(aero_state, p2, b2, s2, &
-            p2_removed, aero_info)
+       if (remove_2) then
+          call coag_remote_remove_particle(aero_state, p2, b2, s2, &
+               id_2_lost, aero_info_2)
+       end if
        !>DEBUG
        !write(*,*) 'coagulate_mpi_controlled: removing ', p1, b1, s1, p1_removed, pmc_mpi_rank()
        !<DEBUG
-       call coag_remote_remove_particle(aero_state, p1, b1, s1, &
-            p1_removed, aero_info)
+       if (remove_1) then
+          call coag_remote_remove_particle(aero_state, p1, b1, s1, &
+               id_1_lost, aero_info_1)
+       end if
     else
        !>DEBUG
        !write(*,*) 'coagulate_mpi_controlled: removing ', p1, b1, s1, p1_removed, pmc_mpi_rank()
        !<DEBUG
-       call coag_remote_remove_particle(aero_state, p1, b1, s1, &
-            p1_removed, aero_info)
+       if (remove_1) then
+          call coag_remote_remove_particle(aero_state, p1, b1, s1, &
+               id_1_lost, aero_info_1)
+       end if
        !>DEBUG
        !write(*,*) 'coagulate_mpi_controlled: removing ', p2, b2, s2, p2_removed, pmc_mpi_rank()
        !<DEBUG
-       call coag_remote_remove_particle(aero_state, p2, b2, s2, &
-            p2_removed, aero_info)
+       if (remove_2) then
+          call coag_remote_remove_particle(aero_state, p2, b2, s2, &
+               id_2_lost, aero_info_2)
+       end if
     end if
-    call aero_info_deallocate(aero_info)
 
-    ! where does the new particle go?
-    bn = aero_particle_in_bin(new_particle, bin_grid)
-    pn = sample_cts_pdf(size(comp_vols), comp_vols) - 1
-    !>DEBUG
-    ! Following is the old code that always put the particle on p1 or p2.
-    ! Now we put it anywhere.
-    !if (pmc_random() &
-    !     < comp_vols(p1 + 1) / (comp_vols(p1 + 1) + comp_vols(p2 + 1))) then
-    !   pn = p1
-    !else
-    !   pn = p2
-    !end if
-    !<DEBUG
-    
     ! add new particle
-    !>DEBUG
-    !write(*,*) 'coagulate_mpi_controlled: adding to ', pn, pmc_mpi_rank()
-    !<DEBUG
-    call coag_remote_add_particle(bin_grid, aero_state, pn, &
-         new_particle)
-    call aero_particle_deallocate(new_particle)
+    if (create_new) then
+       bn = aero_particle_in_bin(aero_particle_new, bin_grid)
+       pn = sample_cts_pdf(size(comp_vols), comp_vols) - 1
+       !>DEBUG
+       !write(*,*) 'coagulate_mpi_controlled: adding to ', pn, pmc_mpi_rank()
+       !<DEBUG
+       call coag_remote_add_particle(bin_grid, aero_state, pn, &
+            aero_particle_new)
+    end if
 
     ! fix up n_parts
     !>DEBUG
@@ -767,6 +756,10 @@ contains
     !write(*,*) 'coagulate_mpi_controlled: p1,p2,pn = ', p1, p2, pn
     !<DEBUG
     
+    call aero_particle_deallocate(aero_particle_new)
+    call aero_info_deallocate(aero_info_1)
+    call aero_info_deallocate(aero_info_2)
+
   end subroutine coagulate_mpi_controlled
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

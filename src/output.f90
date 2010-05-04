@@ -337,7 +337,7 @@ contains
 #ifdef PMC_USE_MPI
     call pmc_nc_write_integer(ncid, write_rank + 1, "processor", &
          description="the processor number (starting from 1) " &
-         "that output this data file")
+         // "that output this data file")
     call pmc_nc_write_integer(ncid, write_n_proc, "total_processors", &
          description="total number of processors")
 #endif

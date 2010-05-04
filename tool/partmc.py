@@ -1358,7 +1358,7 @@ def time_of_day_string(env_state, separator=":", resolution="minutes"):
     Example:
     >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
     >>> env_state = partmc.env_state_t(ncf)
-    >>> time_of_day_string(env_state)
+    >>> partmc.time_of_day_string(env_state)
     '14:24'
     
     """

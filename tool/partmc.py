@@ -92,7 +92,7 @@ class aero_data_t(object):
 
     """
     
-    def __init__(self, ncf = None, n_species = None):
+    def __init__(self, ncf=None, n_species=None):
         """ Creates an aero_data_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
         aero_data information will be loaded from the file. Otherwise
@@ -104,7 +104,7 @@ class aero_data_t(object):
 
         or
 
-        >>> aero_data = partmc.aero_data_t(n_species = 10)
+        >>> aero_data = partmc.aero_data_t(n_species=10)
 
         """
         if ncf is not None:
@@ -161,7 +161,7 @@ class env_state_t(object):
 
     """
     
-    def __init__(self, ncf = None):
+    def __init__(self, ncf=None):
         """ Creates an env_state_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
         env_state information will be loaded from the file. Otherwise
@@ -234,7 +234,7 @@ class gas_data_t(object):
 
     """
     
-    def __init__(self, ncf = None, n_species = None):
+    def __init__(self, ncf=None, n_species=None):
         """ Creates a gas_data_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
         gas_data information will be loaded from the file. Otherwise
@@ -246,7 +246,7 @@ class gas_data_t(object):
 
         or
 
-        >>> gas_data = partmc.gas_data_t(n_species = 60)
+        >>> gas_data = partmc.gas_data_t(n_species=60)
 
         """
         if ncf is not None:
@@ -291,7 +291,7 @@ class gas_state_t(object):
 
     """
     
-    def __init__(self, ncf = None, gas_data = None):
+    def __init__(self, ncf=None, gas_data=None):
         """Creates a gas_state_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
         gas_state information will be loaded from the file. Otherwise
@@ -306,7 +306,7 @@ class gas_state_t(object):
 
         >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
         >>> gas_data = partmc.gas_data_t(ncf)
-        >>> gas_state = partmc.gas_state_t(gas_data = gas_data)
+        >>> gas_state = partmc.gas_state_t(gas_data=gas_data)
 
         """
         if ncf is not None:
@@ -379,8 +379,8 @@ class aero_particle_array_t(object):
 
     """
     
-    def __init__(self, ncf = None, n_particles = None, aero_data = None,
-                 include_ids = None, exclude_ids = None):
+    def __init__(self, ncf=None, n_particles=None, aero_data=None,
+                 include_ids=None, exclude_ids=None):
         """Creates an aero_particle_array_t object. If the ncf
         parameter is passed a NetCDFFile object output from PartMC
         then the aero_particle_array information will be loaded from
@@ -402,15 +402,15 @@ class aero_particle_array_t(object):
 
         >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
         >>> aero_particle_array = partmc.aero_particle_array_t(ncf,
-                include_ids = [45, 182, 7281])
+                include_ids=[45, 182, 7281])
 
         or
 
         >>> ncf = Scientific.IO.NetCDF.NetCDFFile('filename.nc')
         >>> aero_data = partmc.aero_data_t(ncf)
         >>> aero_particle_array \\
-                = partmc.aero_particle_array_t(n_particles = 100,
-                                               aero_data = aero_data)
+                = partmc.aero_particle_array_t(n_particles=100,
+                                               aero_data=aero_data)
 
         """
         if ncf == None:
@@ -489,8 +489,8 @@ class aero_particle_array_t(object):
             self.least_create_times = self.least_create_times[keep_indexes]
             self.greatest_create_times = self.greatest_create_times[keep_indexes]
 
-    def sum_masses_weighted(self, include = None, exclude = None,
-                            species_weights = None):
+    def sum_masses_weighted(self, include=None, exclude=None,
+                            species_weights=None):
         """Computes the weighted sum of the component masses of each
         particle, including and excluding the given species lists by
         name. This function should generally not be called directly,
@@ -499,8 +499,8 @@ class aero_particle_array_t(object):
 
         Example usage:
         >>> dry_volumes = aero_particle_array.sum_masses_weighted(
-                exclude = ['H2O'], species_weights
-                = 1 / aero_particle_array.aero_data.densities)
+                exclude=['H2O'],
+                species_weights=1 / aero_particle_array.aero_data.densities)
 
         """
         if include != None:
@@ -531,30 +531,30 @@ class aero_particle_array_t(object):
                 val += self.raw_masses[index,:]
         return val
     
-    def masses(self, include = None, exclude = None):
+    def masses(self, include=None, exclude=None):
         """Return the total mass (kg) of each particle as an array,
         including or excluding the given species by name. Examples:
 
         >>> total_masses = aero_particle_array.masses()
-        >>> water_masses = aero_particle_array.masses(include = ['H2O'])
-        >>> dry_masses = aero_particle_array.masses(exclude = ['H2O'])
-        >>> carbon_masses = aero_particle_array.masses(include = ['BC',
+        >>> water_masses = aero_particle_array.masses(include=['H2O'])
+        >>> dry_masses = aero_particle_array.masses(exclude=['H2O'])
+        >>> carbon_masses = aero_particle_array.masses(include=['BC',
                 'OC'])
 
         """
-        return self.sum_masses_weighted(include = include, exclude = exclude)
+        return self.sum_masses_weighted(include=include, exclude=exclude)
 
-    def volumes(self, include = None, exclude = None):
+    def volumes(self, include=None, exclude=None):
         """Return the total volume (m^3) of each particle as an array,
         including or excluding the given species by name. See the
         masses() method for examples of usage.
 
         """
         species_weights = 1.0 / self.aero_data.densities
-        return self.sum_masses_weighted(include = include, exclude = exclude,
-                                        species_weights = species_weights)
+        return self.sum_masses_weighted(include=include, exclude=exclude,
+                                        species_weights=species_weights)
 
-    def moles(self, include = None, exclude = None):
+    def moles(self, include=None, exclude=None):
         """Return the total moles (dimensionless) in each particle as
         an array, including or excluding the given species by
         name. See the masses() method for examples of usage.
@@ -562,8 +562,8 @@ class aero_particle_array_t(object):
         """
         species_weights = self.aero_data.molec_weights \
                           / self.aero_data.densities
-        return self.sum_masses_weighted(include = include, exclude = exclude,
-                                        species_weights = species_weights)
+        return self.sum_masses_weighted(include=include, exclude=exclude,
+                                        species_weights=species_weights)
 
     def radii(self):
         """Return the radius (m) of each particle as an array.
@@ -575,7 +575,7 @@ class aero_particle_array_t(object):
         """Return the dry radius (m) of each particle as an array.
 
         """
-        return (self.volumes(exclude = ["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
+        return (self.volumes(exclude=["H2O"]) * 3.0/4.0 / math.pi)**(1.0/3.0)
 
     def diameters(self):
         """Return the diameter (m) of each particle as an array.
@@ -628,9 +628,9 @@ class aero_particle_array_t(object):
             else:
                 species_weights[i_spec] = self.aero_data.kappas[i_spec]
         species_weights /= self.aero_data.densities
-        volume_kappas = self.sum_masses_weighted(exclude = ["H2O"],
-                                                 species_weights = species_weights)
-        dry_volumes = self.volumes(exclude = ["H2O"])
+        volume_kappas = self.sum_masses_weighted(exclude=["H2O"],
+                                                 species_weights=species_weights)
+        dry_volumes = self.volumes(exclude=["H2O"])
         return volume_kappas / dry_volumes
 
     def critical_rel_humids_approx(self, env_state):
@@ -663,14 +663,14 @@ class aero_particle_array_t(object):
         dry_diameters = self.dry_diameters()
         return critical_diameters(env_state, kappas, dry_diameters)
 
-    def bin_average(self, diameter_axis, dry_diameter = True):
+    def bin_average(self, diameter_axis, dry_diameter=True):
         """Return a new aero_particle_array_t object with one particle
         per grid cell which is an average of all the original
         particles within that grid cell (by diameter).
 
         """
-        averaged_particles = aero_particle_array_t(n_particles = diameter_axis.n_bin,
-                                                   aero_data = self.aero_data)
+        averaged_particles = aero_particle_array_t(n_particles=diameter_axis.n_bin,
+                                                   aero_data=self.aero_data)
         if dry_diameter:
             diameter = self.dry_diameter()
         else:
@@ -1053,8 +1053,8 @@ class linear_grid(grid):
         """
         if self.n_bin % 2 != 0:
             raise Exception("n_bin must be an even number")
-        return linear_grid(min = self.min, max = self.max,
-                               n_bin = self.n_bin / 2)
+        return linear_grid(min=self.min, max=self.max,
+                               n_bin=self.n_bin / 2)
         
 class log_grid(grid):
 
@@ -1104,7 +1104,7 @@ class log_grid(grid):
         self.min = self.min * factor
         self.max = self.max * factor
 
-    def grid_size(self, index, base = 10):
+    def grid_size(self, index, base=10):
         """Return the logarithmic size of the grid bin at the given
         index.
 
@@ -1214,17 +1214,17 @@ class log_grid(grid):
         """
         if self.n_bin % 2 != 0:
             raise Exception("n_bin must be an even number")
-        return log_grid(min = self.min, max = self.max,
-                            n_bin = self.n_bin / 2)
+        return log_grid(min=self.min, max=self.max,
+                            n_bin=self.n_bin / 2)
 
-def histogram_1d(x_values, x_grid, weights = None):
+def histogram_1d(x_values, x_grid, weights=None):
     """Make a 1D histogram.
 
     The histogram is of points at positions x_values[i] for each i.
 
     Example:
-    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> hist = partmc.histogram_1d(diam, x_grid, weights = 1 / particles.comp_vols)
+    >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
+    >>> hist = partmc.histogram_1d(diam, x_grid, weights=1 / particles.comp_vols)
     >>> plt.semilogx(x_grid.centers(), hist)
     
     """
@@ -1241,18 +1241,18 @@ def histogram_1d(x_values, x_grid, weights = None):
             hist[x_bins[i]] += value
     return hist
 
-def histogram_2d(x_values, y_values, x_grid, y_grid, weights = None, only_positive = True):
+def histogram_2d(x_values, y_values, x_grid, y_grid, weights=None, only_positive=True):
     """Make a 2D histogram.
 
     The histogram is of points at positions (x_values[i], y_values[i])
     for each i.
 
     Example:
-    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 70)
-    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 50)
-    >>> hist = partmc.histogram_2d(diam, bc_frac, x_grid, y_grid, weights = 1 / particles.comp_vols)
+    >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
+    >>> y_grid = partmc.linear_grid(min=0, max=1, n_bin=50)
+    >>> hist = partmc.histogram_2d(diam, bc_frac, x_grid, y_grid, weights=1 / particles.comp_vols)
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), hist.transpose(),
-                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+                   norm=matplotlib.colors.LogNorm(), linewidths=0.1)
 
     """
     if len(x_values) != len(y_values):
@@ -1271,38 +1271,38 @@ def histogram_2d(x_values, y_values, x_grid, y_grid, weights = None, only_positi
             hist[x_bins[i], y_bins[i]] += value
     if only_positive:
         mask = numpy.ma.make_mask(hist <= 0.0)
-        hist = numpy.ma.array(hist, mask = mask)
+        hist = numpy.ma.array(hist, mask=mask)
     return hist
 
-def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange = True):
+def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange=True):
     """Make a 2D matrix with 0%/33%/66%/100% percentile values.
 
     The returned matrix represents z_values[i] at position
     (x_values[i], y_values[i]) for each i.
 
     Example:
-    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
-    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
+    >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=140)
+    >>> y_grid = partmc.linear_grid(min=0, max=1, n_bin=100)
     >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_grid, y_grid)
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals.transpose(),
-                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+                   norm=matplotlib.colors.LogNorm(), linewidths=0.1)
 
     If there are zeros in the z_values but it desirable to use a
     log-scale for the colors, then the zero values can be filtered out
     as in the following example.
 
     Example:
-    >>> x_grid = partmc.log_grid(min = 1e-8, max = 1e-5, n_bin = 140)
-    >>> y_grid = partmc.linear_grid(min = 0, max = 1, n_bin = 100)
+    >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=140)
+    >>> y_grid = partmc.linear_grid(min=0, max=1, n_bin=100)
     >>> vals = partmc.multival_2d(diam, bc_frac, h2o, x_grid, y_grid)
     >>> vals_pos = np.ma.masked_less_equal(vals, 0)
     >>> vals_zero = np.ma.masked_not_equal(vals, 0)
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals_zero.transpose(),
-                   cmap = matplotlib.cm.gray,
-                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+                   cmap=matplotlib.cm.gray,
+                   norm=matplotlib.colors.LogNorm(), linewidths=0.1)
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), vals_pos.transpose(),
-                   cmap = matplotlib.cm.jet, 
-                   norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+                   cmap=matplotlib.cm.jet, 
+                   norm=matplotlib.colors.LogNorm(), linewidths=0.1)
 
     """
     if len(x_values) != len(y_values):
@@ -1345,10 +1345,10 @@ def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange = Tru
                     grid[i,j] = val
                     mask[i,j] = True
     mask = numpy.logical_not(mask)
-    vals = numpy.ma.array(grid, mask = mask)
+    vals = numpy.ma.array(grid, mask=mask)
     return vals
 
-def time_of_day_string(time_seconds, separator = ":", resolution = "minutes"):
+def time_of_day_string(time_seconds, separator=":", resolution="minutes"):
     """Convert a time-of-day in seconds-past-midnight to a 24-hour
     string representation.
 
@@ -1358,7 +1358,7 @@ def time_of_day_string(time_seconds, separator = ":", resolution = "minutes"):
     Example:
     >>> time_of_day_string(51858.6)
     '14:24'
-    >>> time_of_day_string(51858.6, resolution = 'seconds')
+    >>> time_of_day_string(51858.6, resolution='seconds')
     '14:24:18'
     
     """
@@ -1377,7 +1377,7 @@ def time_of_day_string(time_seconds, separator = ":", resolution = "minutes"):
         raise Exception("unknown resolution: %s" % resolution)
 
 def read_history(constructor, directory, filename_pattern,
-                 print_progress = False):
+                 print_progress=False):
     """Read a sequence of NetCDF files, extracting data from each one.
 
     Each file in the given directory whose name matches the
@@ -1553,7 +1553,7 @@ def find_filename_at_time(time_filename_list, search_time):
     i = find_nearest_time(time_filename_list, search_time)
     return time_filename_list[i][1]
 
-def cumulative_plot_data(x, y_inc, start = 0.0, final = None):
+def cumulative_plot_data(x, y_inc, start=0.0, final=None):
     """Transform density data to cumulative data.
 
     The x and y_inc arguments should be lists of the same length so
@@ -1584,9 +1584,9 @@ def cumulative_plot_data(x, y_inc, start = 0.0, final = None):
         plot_data_y.append(y)
     return (plot_data_x, plot_data_y)
 
-def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
-                      min_x_step = None, min_y_step = None,
-                      min_x_factor = None, min_y_factor = None):
+def cumulative_hi_res(x, y_inc, start=0.0, final=None,
+                      min_x_step=None, min_y_step=None,
+                      min_x_factor=None, min_y_factor=None):
     """Transform density data to cumulative data.
 
     The x and y_inc arguments should be lists of the same length so
@@ -1611,7 +1611,7 @@ def cumulative_hi_res(x, y_inc, start = 0.0, final = None,
 
     Example:
     >>> (x, y) = partmc.cumulative_hi_res(diameter, bc_mass,
-                                          min_x_factor = 10**0.01)
+                                          min_x_factor=10**0.01)
     >>> plt.plot(x, y)
     
     plots the cumulative distribution of BC mass versus diameter, with

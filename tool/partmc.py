@@ -1376,9 +1376,9 @@ def time_of_day_string_from_seconds(time_seconds, separator=":",
     'seconds', to indicate the granularity of the result.
 
     Example:
-    >>> time_of_day_string_from_seconds(51858.6)
+    >>> partmc.time_of_day_string_from_seconds(51858.6)
     '14:24'
-    >>> time_of_day_string_from_seconds(51858.6, resolution='seconds')
+    >>> partmc.time_of_day_string_from_seconds(51858.6, resolution='seconds')
     '14:24:18'
     
     """

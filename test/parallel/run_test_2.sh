@@ -7,8 +7,8 @@ parallel_type=central
 
 RT=0
 
-echo "om-mpirun -v -np 10 ../../partmc run_part_parallel_${parallel_type}.spec"
-om-mpirun -v -np 10 ../../partmc run_part_parallel_${parallel_type}.spec
+echo "mpirun -v -np 10 ../../partmc run_part_parallel_${parallel_type}.spec"
+mpirun -v -np 10 ../../partmc run_part_parallel_${parallel_type}.spec
 for f in out/parallel_${parallel_type}_0001_????_00000001.nc ; do
     prefix=${f/00000001.nc/}
     echo "../../extract_aero_size_num 1e-10 1e-4 220 ${prefix} ${prefix}aero_size_num.txt"

@@ -496,6 +496,7 @@ contains
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
+         + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
@@ -536,6 +537,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
@@ -579,6 +581,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)

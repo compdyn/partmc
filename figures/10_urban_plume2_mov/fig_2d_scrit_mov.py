@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 sys.path.append("../../tool")
 import partmc
 
-def make_plot(in_filename,out_filename,title):
+def make_plot(in_filename,out_filename):
     print in_filename
     ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
     particles = partmc.aero_particle_array_t(ncf)
@@ -28,6 +28,8 @@ def make_plot(in_filename,out_filename,title):
     hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+
+    title = partmc.time_of_day_string(env_state)
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("log")
@@ -46,10 +48,8 @@ for hour in range(1, 1442):
 
     filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_wc_0001_0000%04d.nc" % hour
     filename_out1 = "figs/2d_scrit_ref_%04d.png" % (hour-1)
-    titel = "%04d minutes" % (hour-1)
     print filename_in1
     print filename_out1
-    print titel
 
-    make_plot(filename_in1, filename_out1, titel)
+    make_plot(filename_in1, filename_out1)
  

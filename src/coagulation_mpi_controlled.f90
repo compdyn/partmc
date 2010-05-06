@@ -659,13 +659,13 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Processor of first particle.
-    integer, intent(out) :: p1
+    integer, intent(in) :: p1
     !> First particle (bin number).
     integer, intent(in) :: b1
     !> First particle (number in bin).
     integer, intent(in) :: s1
     !> Processor of second particle.
-    integer, intent(out) :: p2
+    integer, intent(in) :: p2
     !> Second particle (bin number).
     integer, intent(in) :: b2
     !> Second particle (number in bin).

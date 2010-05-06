@@ -8,7 +8,7 @@ restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 600                    # output interval (0 disables) (s)
+t_output 3600                    # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
@@ -49,7 +49,7 @@ record_removals no              # whether to record particle removals (yes/no)
 
 do_parallel yes                 # whether to run in parallel (yes/no)
 output_type single              # parallel output type (central/dist/single)
-mix_timescale 600               # mixing rate between processes (s)
+mix_timescale 0                 # mixing rate between processes (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
-coag_method local               # parallel method (local/collect/central/dist)
+coag_method dist                # parallel method (local/collect/central/dist)

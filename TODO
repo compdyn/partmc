@@ -215,3 +215,6 @@ Add docs to say that rate for background is dilution rate (in and
 out).
 
 Rename "loop" to "repeat" or something in input and output.
+
+Reading a file which does not have a newline at the end causes
+problems (specifically, gas_init.dat).

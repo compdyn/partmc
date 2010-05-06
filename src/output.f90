@@ -27,6 +27,13 @@
 !! there is no support for looping and the filename is of the format
 !! \c PREFIX_SSSSSSSS.nc.
 !!
+!! If run in parallel and \c output_type is \c central or \c dist,
+!! then the output files have names like \c
+!! PREFIX_LLLL_PPPP_SSSSSSSS.nc, where \c PPPP is a four-digit
+!! processor number (starting from 1) and the other variables are as
+!! above. If \c output_type is \c single then the output file naming
+!! scheme as the same as for serial runs.
+!!
 !! The data in each output file comes in several different groups, as
 !! follows:
 !!
@@ -276,7 +283,7 @@ contains
        write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
             '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
     else
-    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
             '_', i_loop, '_', index, '.nc'
     end if
 #else
@@ -325,6 +332,8 @@ contains
     !!   - \b processor (MPI only): the processor number (starting from 1)
     !!     that output this data file
     !!   - \b total_processors (MPI only): the total number of processors
+    !!     involved in writing data (may be less than the total number of
+    !!     processors that computed the data)
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
          "PartMC output file"))

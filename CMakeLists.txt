@@ -16,6 +16,7 @@ option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
+  $ENV{NETCDF_HOME}/include
   /include
   /usr/include
   /usr/local/include
@@ -33,6 +34,8 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
   PATHS
+  $ENV{NETCDF_HOME}/lib
+  $ENV{NETCDF_HOME}/lib64
   /usr/lib
   /usr/lib64
   /usr/local/lib
@@ -49,6 +52,8 @@ find_library(NETCDF_C_LIB netcdf
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
   PATHS
+  $ENV{NETCDF_HOME}/lib
+  $ENV{NETCDF_HOME}/lib64
   /usr/lib
   /usr/lib64
   /usr/local/lib

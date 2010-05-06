@@ -85,18 +85,21 @@ def make_fig(figure_width = 4,
     return (figure, axes, colorbar_axes)
 
 #ncf = Scientific.IO.NetCDF.NetCDFFile("~/t/urban_plume_wc_100K_flat_0001_00000010.nc")
-ncf = Scientific.IO.NetCDF.NetCDFFile("~/t/urban_plume_wc_100K_flat_0001_00000010.nc")
+#ncf = Scientific.IO.NetCDF.NetCDFFile("~/t/urban_plume_wc_100K_flat_0001_00000010.nc")
+ncf = Scientific.IO.NetCDF.NetCDFFile("../../scenarios/4_nucleate/out/urban_plume_wc_0001_00000100.nc")
 particles = partmc.aero_particle_array_t(ncf)
 ncf.close()
 
-(figure, axes, colorbar_axes) = make_fig(figure_width=7, colorbar=True, right_margin=1)
+(figure, axes, colorbar_axes) = make_fig(figure_width=12, colorbar=True, right_margin=1)
 
 #i_species = [0, 1, 5, 6, 7, 8, 9, 17, 18]
 #i_species = [0, 1, 17, 18]
 i_species = [0, 1, 3, 5, 6, 7, 8, 9, 17, 18, 19, 2]
+#i_species = range(len(particles.aero_data.names))
 #print [(i, particles.aero_data.names[i]) for i in i_species]
 
-n_particles = 1000
+#n_particles = 1000
+n_particles = len(particles.ids)
 i_particles = np.random.randint(0, len(particles.ids), n_particles)
 n_species = len(i_species)
 #for i in range(n_particles):
@@ -115,12 +118,12 @@ m_nice = np.where(m > 0.0, m, m_mean_tile)
 d = np.log(m_nice).transpose()
 #d = np.nan_to_num(d)
 d = d - d.mean(0)
-(U,L,Vh) = np.linalg.svd(np.dot(d.transpose(), d))
-mt = np.dot(U.transpose(), m)
-mt = mt.transpose()
-mt = mt - mt.min(0)
-mt = mt / mt.max(0)
-mt = mt.transpose()
+#(U,L,Vh) = np.linalg.svd(np.dot(d.transpose(), d))
+#mt = np.dot(U.transpose(), m)
+#mt = mt.transpose()
+#mt = mt - mt.min(0)
+#mt = mt / mt.max(0)
+#mt = mt.transpose()
 
 dry_diameters = particles.dry_diameters()
 dry_diameters = dry_diameters[i_particles]
@@ -142,7 +145,7 @@ cols = cols / max(cols)
 
 for i in range(np.size(x,1)):
     col = cmap(norm(dry_diameters[i]))
-    axes.semilogy(x[:,i], y[:,i], color=col, linestyle='-', marker='None', linewidth=1, alpha=0.9)
+    axes.semilogy(x[:,i], y[:,i], color=col, linestyle='-', marker='o', linewidth=1, alpha=0.9)
 
 axes.set_xticks(range(n_species))
 axes.set_xticklabels([aerosol_species_tex[particles.aero_data.names[i]] for i in i_species])

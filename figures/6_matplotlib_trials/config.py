@@ -49,5 +49,17 @@ num_diameter_bins = 70
 diameter_axis_label = r'dry diameter $D\ (\rm\mu m)$'
 
 bc_axis_min = 0
-bc_axis_max = 80
-num_bc_bins = 40
+bc_axis_max = 100
+num_bc_bins = 100
+
+oc_axis_min = 0
+oc_axis_max = 100
+num_oc_bins = 100
+
+soa_axis_min = 0
+soa_axis_max = 30
+num_soa_bins = 100
+
+inorg_axis_min = 0
+inorg_axis_max = 100
+num_inorg_bins = 100

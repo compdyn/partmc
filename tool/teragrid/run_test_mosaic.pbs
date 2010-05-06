@@ -1,0 +1,85 @@
+#!/bin/tcsh
+#  Sample Batch Script for a Serial job
+#
+#  Submit this script using the command: qsub <script_name>
+#
+#  Use the "qstat" command to check the status of a job.
+#
+# The following are embedded QSUB options. The syntax is #PBS (the # does
+# _not_  denote that the lines are commented out so do not remove).
+#
+# walltime : maximum wall clock time (hh:mm:ss)
+#PBS -l walltime=00:05:00
+#
+# nodes: number of 8-core nodes
+#   ppn: how many cores per node to use (1 through 8)
+#       (you are always charged for the entire node)
+#PBS -l nodes=1:ppn=1
+#
+# export all my environment variables to the job
+#PBS -V
+#
+# job name (default = name of script file)
+###PBS -N testjob
+#
+#
+# filename for standard output (default = <job_name>.o<job_id>)
+# at end of job, it is in directory from which qsub was executed
+# remove extra ## from the line below if you want to name your own file
+###PBS -o testjob.out
+#
+# filename for standard error (default = <job_name>.e<job_id>)
+# at end of job, it is in directory from which qsub was executed
+# remove extra ## from the line below if you want to name your own file
+###PBS -e testjob.err
+#
+# End of embedded QSUB options
+#
+# set echo               # echo commands before execution; use for debugging
+#
+echo "starting job script"
+set JOBID=`echo $PBS_JOBID | cut -d'.' -f1`
+echo "JOBID = " ${JOBID}
+
+cd $SCR                # change to job scratch directory
+                       # use cdjob <jobid> to go to this directory once
+                       # the job has started
+echo "changed to SCR directory"
+pwd
+
+# Get executable and input files from mass storage
+# **** IF THEY ARE STORED ON MSS ****
+# otherwise copy your executable to $SCR(the job's scratch directory)
+# Ex.   cp ~/subdir01/subdir02/a.out $SCR 
+#msscmd cd dir1, get a.out, mget *.input
+echo "copying files..."
+cp ~/svn/partmc/trunk/build/partmc .
+cp ~/svn/partmc/trunk/build/extract_* .
+cp ~/svn/partmc/trunk/build/numeric_diff .
+cp -a ~/svn/partmc/trunk/test .
+echo "done copying files"
+ls -l
+
+# mss doesn't keep executable bit set, so need to set it on program
+#chmod +x a.out
+
+#./a.out
+cd test/mosaic
+time ./run_test_01.sh
+time ./run_test_02.sh
+time ./run_test_03.sh
+time ./run_test_04.sh
+time ./run_test_05.sh
+time ./run_test_06.sh
+time ./run_test_07.sh
+time ./run_test_08.sh
+time ./run_test_09.sh
+time ./run_test_10.sh
+time ./run_test_11.sh
+time ./run_test_12.sh
+
+# save output files back to mass storage
+#msscmd mkdir Job.${JOBID},cd Job.${JOBID}, mput *
+cd $SCR
+mkdir ~/jobs/${JOBID}
+cp -a * ~/jobs/${JOBID}

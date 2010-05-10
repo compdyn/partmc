@@ -22,29 +22,29 @@
 # _not_  denote that the lines are commented out so do not remove).
 #
 # walltime : maximum wall clock time (hh:mm:ss)
-#PBS -l walltime=00:29:00
+#PBS -l walltime=%%{{MAX_WALLTIME}}%%
 #
 # nodes: number of 8-core nodes
 #   ppn: how many cores per node to use (1 through 8)
 #       (you are always charged for the entire node)
-#PBS -l nodes=6:ppn=8
+#PBS -l nodes=%%{{NUM_NODES}}%%:ppn=%%{{PROCS_PER_NODE}}%%
 #
 # export all my environment variables to the job
 #PBS -V
 #
 # job name (default = name of script file)
-#PBS -N urban_plume
+#PBS -N %%{{JOB_NAME}}%%
 #
 #
 # filename for standard output (default = <job_name>.o<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-###PBS -o testjob.out
+#PBS -o %%{{JOB_NAME}}%%.out
 #
 # filename for standard error (default = <job_name>.e<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-###PBS -e testjob.err
+#PBS -e %%{{JOB_NAME}}%%.err
 #
 # End of embedded QSUB options
 #
@@ -91,7 +91,8 @@ cat ${PBS_NODEFILE}
 
 setenv MV2_SRQ_SIZE 4000
 date -Isec
-time mpirun -np ${NP} ../partmc urban_plume_with_coag.spec
+time mpirun -np ${NP} ../partmc %%{{SPEC_FILE_NAME}}%%
+echo "Run finished: timing info above"
 date -Isec
 
 # The mpirun syntax above will assign ranks to nodes in round-robin fashion.
@@ -106,7 +107,9 @@ cd ..
 # save output files back to mass storage
 ls -lR
 date -Isec
-time msscmd mkdir job.${JOBID},cd job.${JOBID}, mput -r *
+setenv SAVE_DIR "job.%%{{JOB_NAME}}%%.${JOBID}"
+echo "SAVE_DIR = " ${SAVE_DIR}
+time msscmd mkdir ${SAVE_DIR},cd ${SAVE_DIR}, mput -r *
 echo "du -hs ."
 du -hs .
 date -Isec

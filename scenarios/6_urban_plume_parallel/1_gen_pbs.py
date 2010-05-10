@@ -31,7 +31,7 @@ for coag_method in ["local1", "local2", "local3", "collect",
                             % (- del_t / math.log(1 - mix_prob))
         else:
             mix_timescale = "0"
-        out_filename = "urban_plume_%s_%s.spec" \
+        out_filename = "specs/urban_plume_%s_%s.spec" \
                        % (coag_method, output_method)
         sub_file(spec_template_filename, out_filename,
                  {"%%{{OUTPUT_TYPE}}%%": output_type,
@@ -47,12 +47,12 @@ max_walltime = "01:00:00" # hh:mm:ss
 for coag_method in ["local1", "local2", "local3", "collect",
                     "central", "dist"]:
     for output_method in ["single", "central", "dist", "none"]:
-        spec_file_name = "urban_plume_with_coag_%s_%s.spec" \
+        spec_file_name = "specs/urban_plume_with_coag_%s_%s.spec" \
                          % (coag_method, output_method)
         for n in [0, 1, 2, 4, 6, 8, 12, 16]:
             job_name = "urban_plume_%s_%s_%02d" \
                        % (coag_method, output_method, n)
-            pbs_file_name = "run_%s.pbs" % job_name
+            pbs_file_name = "pbs/run_%s.pbs" % job_name
             if n == 0:
                 num_nodes = "1"
                 procs_per_node = "1"

@@ -39,12 +39,12 @@
 # filename for standard output (default = <job_name>.o<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-#PBS -o %%{{JOB_NAME}}%%.out
+#PBS -o job.%%{{JOB_NAME}}%%.out
 #
 # filename for standard error (default = <job_name>.e<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-#PBS -e %%{{JOB_NAME}}%%.err
+#PBS -e job.%%{{JOB_NAME}}%%.err
 #
 # End of embedded QSUB options
 #

@@ -1,14 +1,14 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume_wc # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 10000                     # total number of particles
+n_part 1000                     # total number of particles
 kernel brown                    # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 3600                    # output interval (0 disables) (s)
+t_output %%{{T_OUTPUT}}%%                    # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins

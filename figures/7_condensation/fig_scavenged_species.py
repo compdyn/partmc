@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -24,7 +24,7 @@ for k in range(0,4):
     run = run_list[k]
     for counter in range(1,41):
         in_filename = "cond_%02d_%s_0001_00000601.nc" % (counter, run)
-        ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename)
+        ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename, 'r')
         particles = partmc.aero_particle_array_t(ncf)
         ncf.close()
 

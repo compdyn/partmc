@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -10,10 +10,10 @@ sys.path.append("../../tool")
 import partmc
 
 def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_filename1, out_filename2, out_filename3, counter):
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir1+in_filename1)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir1+in_filename1, 'r')
     particles1 = partmc.aero_particle_array_t(ncf)
     ncf.close()
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir2+in_filename2)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir2+in_filename2, 'r')
     particles2 = partmc.aero_particle_array_t(ncf)
     particles2.aero_data.kappa[17] = 0.1
     particles2.aero_data = particles1.aero_data
@@ -36,7 +36,7 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
     time_index = time[max_index]    
     time_filename_list = partmc.get_time_filename_list(in_dir1, in_file_pattern)
     max_filename = partmc.find_filename_at_time(time_filename_list, time_index)
-    ncf = Scientific.IO.NetCDF.NetCDFFile(max_filename)
+    ncf = scipy.io.netcdf.netcdf_file(max_filename, 'r')
     max_env_state = partmc.env_state_t(ncf)
     ncf.close()
 
@@ -46,7 +46,7 @@ def check_num(in_dir1, in_filename1, in_file_pattern, indir2, in_filename2, out_
     
     for [time, filename, key] in time_filename_list:
         print 'time filename key ', time, filename, key
-        ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+        ncf = scipy.io.netcdf.netcdf_file(filename, 'r')
         particles = partmc.aero_particle_array_t(ncf) 
         env_state = partmc.env_state_t(ncf)
         ncf.close()

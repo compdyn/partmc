@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -19,7 +19,7 @@ array_nc = np.zeros([len(time_filename_list),10])
 i_counter = 0
 for [time, filename, key] in time_filename_list:
     print time, filename, key
-    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+    ncf = scipy.io.netcdf.netcdf_file(filename, 'r')
     particles = partmc.aero_particle_array_t(ncf)
     env_state = partmc.env_state_t(ncf)
     ncf.close()
@@ -54,7 +54,7 @@ for [time, filename, key] in time_filename_list:
 #i_counter = 0
 #for [time, filename, key] in time_filename_list:
 #    print time, filename, key
-#    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+#    ncf = scipy.io.netcdf.netcdf_file(filename, 'r')
 #    particles = partmc.aero_particle_array_t(ncf)
 #    env_state = partmc.env_state_t(ncf)
 #    ncf.close()

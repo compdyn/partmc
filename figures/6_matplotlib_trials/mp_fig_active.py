@@ -4,7 +4,7 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
-import Scientific.IO.NetCDF
+import scipy.io
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt

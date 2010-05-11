@@ -11,6 +11,7 @@ import math
 import numpy
 import random
 import scipy
+import scipy.io
 import scipy.optimize
 
 class constants_t(object):

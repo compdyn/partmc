@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys, math
 import numpy as np
 import matplotlib
@@ -84,9 +84,9 @@ def make_fig(figure_width = 4,
         colorbar_axes = None
     return (figure, axes, colorbar_axes)
 
-#ncf = Scientific.IO.NetCDF.NetCDFFile("~/t/urban_plume_wc_100K_flat_0001_00000010.nc")
-#ncf = Scientific.IO.NetCDF.NetCDFFile("~/t/urban_plume_wc_100K_flat_0001_00000010.nc")
-ncf = Scientific.IO.NetCDF.NetCDFFile("../../scenarios/4_nucleate/out/urban_plume_wc_0001_00000100.nc")
+#ncf = scipy.io.netcdf.netcdf_file("~/t/urban_plume_wc_100K_flat_0001_00000010.nc", 'r')
+#ncf = scipy.io.netcdf.netcdf_file("~/t/urban_plume_wc_100K_flat_0001_00000010.nc", 'r')
+ncf = scipy.io.netcdf.netcdf_file("../../scenarios/4_nucleate/out/urban_plume_wc_0001_00000100.nc", 'r')
 particles = partmc.aero_particle_array_t(ncf)
 ncf.close()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -12,13 +12,13 @@ import partmc
 ccn_cn_ratio = np.zeros([4,49])
 def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename, title, ccn_cn_i, ccn_cn_j):
     print in_filename1, in_filename2, in_filename3
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename1)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename1, 'r')
     particles1 = partmc.aero_particle_array_t(ncf)
     ncf.close()
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename2)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename2, 'r')
     particles2 = partmc.aero_particle_array_t(ncf)
     ncf.close()
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename3)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename3, 'r')
     particles3 = partmc.aero_particle_array_t(ncf)
     ncf.close()
 

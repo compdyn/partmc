@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.5
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import scipy
 import numpy as np
@@ -17,7 +17,7 @@ def effective_diam(env_state, kappa, s_crit):
 
 in_filename = "../../scenarios/1_urban_plume/out/urban_plume_wc_0001_00000013.nc"
 out_filename = "figs/ccn_spectrum_diam.pdf"
-ncf = Scientific.IO.NetCDF.NetCDFFile(in_filename)
+ncf = scipy.io.netcdf.netcdf_file(in_filename, 'r')
 particles = partmc.aero_particle_array_t(ncf)
 env_state = partmc.env_state_t(ncf)
 ncf.close()

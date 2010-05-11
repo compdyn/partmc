@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.5
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -11,7 +11,7 @@ import partmc
 
 def make_plot(in_dir, in_filename, out_filename):
     print in_filename
-    ncf = Scientific.IO.NetCDF.NetCDFFile(in_dir+in_filename)
+    ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename, 'r')
     particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 

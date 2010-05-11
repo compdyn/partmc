@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -24,7 +24,7 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
     bc_array = np.zeros([4,config.i_loop_max])
 
     for file in in_files:
-        ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+file)
+        ncf = scipy.io.netcdf.netcdf_file(dir_name+file, 'r')
         particles = partmc.aero_particle_array_t(ncf)
         env_state = partmc.env_state_t(ncf)
         ncf.close()

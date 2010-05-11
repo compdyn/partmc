@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import Scientific.IO.NetCDF
+import scipy.io
 import sys
 import numpy as np
 import matplotlib
@@ -22,7 +22,7 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     hist_std_norm = np.zeros([len(x_centers), len(y_centers)])
 
     for file in in_files:
-        ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+file)
+        ncf = scipy.io.netcdf.netcdf_file(dir_name+file, 'r')
         particles = partmc.aero_particle_array_t(ncf)
         ncf.close()
 

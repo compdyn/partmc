@@ -4,7 +4,7 @@
 # option) any later version. See the file COPYING for details.
 
 import os, sys, math
-import Scientific.IO.NetCDF
+import scipy.io
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ matplotlib.rc('axes', linewidth = 0.5)
 out_prefix = "figs/mp_2d_h2o_masked"
 
 def get_plot_data(filename, value_min = None, value_max = None):
-    ncf = Scientific.IO.NetCDF.NetCDFFile(filename)
+    ncf = scipy.io.netcdf.netcdf_file(filename, 'r')
     particles = partmc.aero_particle_array_t(ncf)
     env_state = partmc.env_state_t(ncf)
     ncf.close()

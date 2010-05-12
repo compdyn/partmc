@@ -3,6 +3,7 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
+import math
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt

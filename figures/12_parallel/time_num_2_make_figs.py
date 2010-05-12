@@ -18,7 +18,7 @@ fig_base_dir = "figs"
 data_base_dir = "data"
 data_type = "time_num"
 
-value_min = 80
+value_min = 0
 value_max = 1e6
 
 def make_plot(value, out_filename):
@@ -27,7 +27,6 @@ def make_plot(value, out_filename):
     axes.grid(True)
     axes.grid(True, which = 'minor')
     axes.minorticks_on()
-    axes.set_yscale('log')
 
     xaxis = axes.get_xaxis()
     yaxis = axes.get_yaxis()
@@ -40,10 +39,10 @@ def make_plot(value, out_filename):
     axes.set_xlabel(r"elapsed time $t\ /\ \rm hr$")
     axes.set_ylabel(r"number conc. $n\ /\ \rm cm^{-3}$")
 
-    axes.set_xbound(
+    axes.set_xbound(time_axis_min, time_axis_max)
     axes.set_ybound(value_min, value_max)
     
-    plt.semilogx((value[:,0] - value[0,0]) / 3600, value[:,1])
+    plt.semilogy((value[:,0] - value[0,0]) / 3600, value[:,1])
     figure.savefig(out_filename)
 
 if __name__ == "__main__":

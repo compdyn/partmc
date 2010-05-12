@@ -12,6 +12,7 @@ import scipy.io
 sys.path.append("../../tool")
 import partmc
 import config
+import config_filelist
 
 matplotlib.rc('text', usetex = True)
 matplotlib.rc('xtick.major', pad = 8)
@@ -98,25 +99,26 @@ def make_2d_plot(value, out_filename):
     axes.set_xbound(config.diameter_axis_min, config.diameter_axis_max)
     axes.set_ybound(config.bc_axis_min, config.bc_axis_max)
     
-    p = axes.pcolor(x_axis.edges(), y_axis.edges(), value.transpose(),
+    mask = np.ma.make_mask(value <= 0.0)
+    value_pos = np.ma.array(value, mask=mask)
+    p = axes.pcolor(x_axis.edges(), y_axis.edges(), value_pos.transpose(),
                     norm = matplotlib.colors.LogNorm(vmin=80.87, vmax=11346399),
                     cmap=matplotlib.cm.jet, linewidths = 0.1)
     figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
     cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")
     figure.savefig(out_filename)
 
-for run in config.runs:
-    data_dir = os.path.join(data_base_dir, run["name"])
-    fig_dir = os.path.join(fig_base_dir, run["name"])
-    if not os.path.isdir(fig_dir):
-        os.mkdir(fig_dir)
-    for loop in run["loops"]:
-        for index in loop["indices"]:
-            data_name = "%s_%04d_%08d" % (data_type, loop["num"], index["num"])
-            print run["name"] + " " + data_name
-            data_filename = os.path.join(data_dir, data_name + ".txt")
-            value = np.loadtxt(data_filename)
-            mask = np.ma.make_mask(value <= 0.0)
-            value = np.ma.array(value, mask=mask)
-            fig_filename = os.path.join(fig_dir, data_name + ".pdf")
-            make_2d_plot(value, fig_filename)
+if __name__ == "__main__":
+    for run in config_filelist.runs:
+        data_dir = os.path.join(data_base_dir, run["name"])
+        fig_dir = os.path.join(fig_base_dir, run["name"])
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+        for loop in run["loops"]:
+            for index in loop["indices"]:
+                data_name = "%s_%04d_%08d" % (data_type, loop["num"], index["num"])
+                print run["name"] + " " + data_name
+                data_filename = os.path.join(data_dir, data_name + ".txt")
+                value = np.loadtxt(data_filename)
+                fig_filename = os.path.join(fig_dir, data_name + ".pdf")
+                make_2d_plot(value, fig_filename)

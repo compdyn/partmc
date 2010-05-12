@@ -11,7 +11,7 @@ import numpy as np
 import scipy.io
 sys.path.append("../../tool")
 import partmc
-from config import *
+import config
 
 matplotlib.rc('text', usetex = True)
 matplotlib.rc('xtick.major', pad = 8)

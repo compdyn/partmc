@@ -22,6 +22,7 @@ datafile_serial_re = re.compile("^(.+)_([0-9]{4})_([0-9]{8})\.nc")
 
 runs = []
 main_dir_ls = os.listdir(main_dir)
+main_dir_ls.sort()
 for main_entry in main_dir_ls:
     main_entry_path = os.path.join(main_dir, main_entry)
     main_entry_path = os.path.join(main_entry_path, extra_sub_path)

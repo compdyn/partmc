@@ -11,3 +11,7 @@ diameter_axis_label = r'dry diameter $D\ (\rm\mu m)$'
 bc_axis_min = 0
 bc_axis_max = 80
 num_bc_bins = 40
+
+scrit_axis_min = 1e-3
+scrit_axis_max = 1e2
+num_scrit_bins = 40

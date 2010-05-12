@@ -10,7 +10,7 @@ import config
 import config_filelist
 
 data_base_dir = "data"
-data_type = "2d_bc"
+data_type = "diam_num"
 
 if __name__ == "__main__":
     value_min = None

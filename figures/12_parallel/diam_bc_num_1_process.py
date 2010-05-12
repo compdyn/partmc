@@ -12,7 +12,7 @@ import config
 import config_filelist
 
 data_base_dir = "data"
-data_type = "2d_bc"
+data_type = "diam_bc_num"
 
 x_axis = partmc.log_grid(min = config.diameter_axis_min,
                          max = config.diameter_axis_max,
@@ -29,18 +29,18 @@ def process_data(in_filename_list, out_filename):
         env_state = partmc.env_state_t(ncf)
         ncf.close()
 
-        diameters = particles.dry_diameters() * 1e6
+        dry_diameters = particles.dry_diameters() * 1e6 # m to um
         comp_frac = particles.masses(include = ["BC"]) \
-                    / particles.masses(exclude = ["H2O"]) * 100
+                    / particles.masses(exclude = ["H2O"]) * 100 # in %
 
         # hack to avoid landing just around the integer boundaries
         comp_frac *= (1.0 + 1e-12)
 
-        value = partmc.histogram_2d(diameters, comp_frac, x_axis, y_axis,
+        value = partmc.histogram_2d(dry_diameters, comp_frac, x_axis, y_axis,
                                     weights = 1 / particles.comp_vols,
                                     only_positive=False)
-        value *= 100
-        value /= 1e6
+        value *= 100 # account for y_axis scaling in %
+        value /= 1e6 # m^{-3} to cm^{-3}
 
         if total_value is None:
             total_value = value

@@ -102,7 +102,7 @@ def make_2d_plot(value, out_filename):
     mask = np.ma.make_mask(value <= 0.0)
     value_pos = np.ma.array(value, mask=mask)
     p = axes.pcolor(x_axis.edges(), y_axis.edges(), value_pos.transpose(),
-                    norm = matplotlib.colors.LogNorm(vmin=80.87, vmax=11346399),
+                    norm = matplotlib.colors.LogNorm(vmin=80, vmax=1e6),
                     cmap=matplotlib.cm.jet, linewidths = 0.1)
     figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
     cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")

@@ -26,6 +26,7 @@ if __name__ == "__main__":
                 mask = np.ma.make_mask(value <= 0.0)
                 value = np.ma.array(value, mask=mask)
                 print value.min(), value.max()
+                print value_min, value_max
                 if value_min is None:
                     value_min = value.min()
                 else:

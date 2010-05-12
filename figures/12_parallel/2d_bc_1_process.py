@@ -37,7 +37,8 @@ def process_data(in_filename_list, out_filename):
         comp_frac *= (1.0 + 1e-12)
 
         value = partmc.histogram_2d(diameters, comp_frac, x_axis, y_axis,
-                                    weights = 1 / particles.comp_vols)
+                                    weights = 1 / particles.comp_vols,
+                                    only_positive=False)
         value *= 100
         value /= 1e6
 

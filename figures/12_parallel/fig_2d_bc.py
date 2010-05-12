@@ -81,6 +81,9 @@ def make_2d_plot(value, out_filename):
     axes.minorticks_on()
     axes.set_xscale('log')
 
+    axes.set_xbound(config.diameter_axis_min, config.diameter_axis_max)
+    axes.set_ybound(config.bc_axis_min, config.bc_axis_max)
+
     xaxis = axes.get_xaxis()
     yaxis = axes.get_yaxis()
     xaxis.labelpad = 8
@@ -113,5 +116,7 @@ for run in config.runs:
             print run["name"] + " " + data_name
             data_filename = os.path.join(data_dir, data_name + ".txt")
             value = np.loadtxt(data_filename)
+            mask = np.ma.make_mask(value <= 0.0)
+            value = np.ma.array(value, mask=mask)
             fig_filename = os.path.join(fig_dir, data_name + ".pdf")
             make_2d_plot(value, fig_filename)

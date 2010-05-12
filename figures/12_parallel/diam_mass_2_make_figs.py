@@ -16,7 +16,7 @@ import config_matplotlib
 
 fig_base_dir = "figs"
 data_base_dir = "data"
-data_type = "diam_num"
+data_type = "diam_mass"
 
 value_min = 80
 value_max = 1e6
@@ -43,7 +43,7 @@ def make_plot(value, out_filename):
     #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
 
     axes.set_xlabel(r"dry diameter $D_{\rm dry}\ /\ \rm\mu m$")
-    axes.set_ylabel(r"number conc. $n\ /\ \rm cm^{-3}$")
+    axes.set_ylabel(r"mass conc. $m\ /\ \rm (kg\ cm^{-3})$")
 
     axes.set_xbound(x_axis.min, x_axis.max)
     axes.set_ybound(value_min, value_max)

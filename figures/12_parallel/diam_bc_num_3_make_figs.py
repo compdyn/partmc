@@ -18,8 +18,8 @@ fig_base_dir = "figs"
 data_base_dir = "data"
 data_type = "diam_bc_num"
 
-colorbar_min = 80
-colorbar_max = 1e6
+value_min = 80
+value_max = 1e6
 
 x_axis = partmc.log_grid(min = config.diameter_axis_min,
                          max = config.diameter_axis_max,
@@ -28,7 +28,7 @@ y_axis = partmc.linear_grid(min = config.bc_axis_min,
                             max = config.bc_axis_max,
                             n_bin = config.num_bc_bins)
 
-def make_2d_plot(value, out_filename):
+def make_plot(value, out_filename):
     (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar = True, right_margin = 0.9)
 
     axes.grid(True)
@@ -56,7 +56,7 @@ def make_2d_plot(value, out_filename):
     mask = np.ma.make_mask(value <= 0.0)
     value_pos = np.ma.array(value, mask=mask)
     p = axes.pcolor(x_axis.edges(), y_axis.edges(), value_pos.transpose(),
-                    norm = matplotlib.colors.LogNorm(vmin=colorbar_min, vmax=colorbar_max),
+                    norm = matplotlib.colors.LogNorm(vmin=value_min, vmax=value_max),
                     cmap=matplotlib.cm.jet, linewidths = 0.1)
     figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
     cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")
@@ -75,5 +75,5 @@ if __name__ == "__main__":
                 data_filename = os.path.join(data_dir, data_name + ".txt")
                 value = np.loadtxt(data_filename)
                 fig_filename = os.path.join(fig_dir, data_name + ".pdf")
-                make_2d_plot(value, fig_filename)
+                make_plot(value, fig_filename)
                 plt.close('all')

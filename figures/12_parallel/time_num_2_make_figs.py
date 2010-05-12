@@ -16,14 +16,10 @@ import config_matplotlib
 
 fig_base_dir = "figs"
 data_base_dir = "data"
-data_type = "diam_num"
+data_type = "time_num"
 
 value_min = 80
 value_max = 1e6
-
-x_axis = partmc.log_grid(min = config.diameter_axis_min,
-                         max = config.diameter_axis_max,
-                         n_bin = config.num_diameter_bins)
 
 def make_plot(value, out_filename):
     (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar = True, right_margin = 0.9)
@@ -31,7 +27,6 @@ def make_plot(value, out_filename):
     axes.grid(True)
     axes.grid(True, which = 'minor')
     axes.minorticks_on()
-    axes.set_xscale('log')
     axes.set_yscale('log')
 
     xaxis = axes.get_xaxis()
@@ -42,13 +37,13 @@ def make_plot(value, out_filename):
     yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
     #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
 
-    axes.set_xlabel(r"dry diameter $D_{\rm dry}\ /\ \rm\mu m$")
+    axes.set_xlabel(r"elapsed time $t\ /\ \rm hr$")
     axes.set_ylabel(r"number conc. $n\ /\ \rm cm^{-3}$")
 
-    axes.set_xbound(x_axis.min, x_axis.max)
+    axes.set_xbound(
     axes.set_ybound(value_min, value_max)
     
-    plt.loglog(x_grid.centers(), value)
+    plt.semilogx((value[:,0] - value[0,0]) / 3600, value[:,1])
     figure.savefig(out_filename)
 
 if __name__ == "__main__":
@@ -58,11 +53,10 @@ if __name__ == "__main__":
         if not os.path.isdir(fig_dir):
             os.mkdir(fig_dir)
         for loop in run["loops"]:
-            for index in loop["indices"]:
-                data_name = "%s_%04d_%08d" % (data_type, loop["num"], index["num"])
-                print run["name"] + " " + data_name
-                data_filename = os.path.join(data_dir, data_name + ".txt")
-                value = np.loadtxt(data_filename)
-                fig_filename = os.path.join(fig_dir, data_name + ".pdf")
-                make_plot(value, fig_filename)
-                plt.close('all')
+            data_name = "%s_%04d" % (data_type, loop["num"])
+            print run["name"] + " " + data_name
+            data_filename = os.path.join(data_dir, data_name + ".txt")
+            value = np.loadtxt(data_filename)
+            fig_filename = os.path.join(fig_dir, data_name + ".pdf")
+            make_plot(value, fig_filename)
+            plt.close('all')

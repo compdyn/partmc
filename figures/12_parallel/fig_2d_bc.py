@@ -24,40 +24,16 @@ matplotlib.rc('lines', linewidth = 0.5)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
-out_prefix = "figs/mp_2d_bc"
+fig_base_dir = "figs"
+data_base_dir = "data"
+data_type = "2d_bc"
 
-def get_plot_data_bc(filename, value_min = None, value_max = None):
-    ncf = scipy.io.netcdf.netcdf_file(filename, 'r')
-    particles = partmc.aero_particle_array_t(ncf)
-    env_state = partmc.env_state_t(ncf)
-    ncf.close()
-
-    diameters = particles.dry_diameters() * 1e6
-    comp_frac = particles.masses(include = ["BC"]) \
-                / particles.masses(exclude = ["H2O"]) * 100
-
-    x_axis = partmc.log_grid(min = diameter_axis_min, max = diameter_axis_max,
-                          n_bin = num_diameter_bins)
-    y_axis = partmc.linear_grid(min = bc_axis_min, max = bc_axis_max,
-                             n_bin = num_bc_bins)
-    # hack to avoid landing just around the integer boundaries
-    comp_frac *= (1.0 + 1e-12)
-
-    value = partmc.histogram_2d(diameters, comp_frac, x_axis, y_axis, weights = 1 / particles.comp_vols)
-    value *= 100
-    value /= 1e6
-    if value_max == None:
-        value_max = value.max()
-    if value_min == None:
-        maxed_value = np.where(value > 0.0, value, value_max)
-        value_min = maxed_value.min()
-    #if value_max > 0.0:
-    #    value = (log(value) - log(value_min)) \
-    #            / (log(value_max) - log(value_min))
-    #value = value.clip(0.0, 1.0)
-
-    return (value, x_axis.edges(), y_axis.edges(),
-            env_state, value_min, value_max)
+x_axis = partmc.log_grid(min = config.diameter_axis_min,
+                         max = config.diameter_axis_max,
+                         n_bin = config.num_diameter_bins)
+y_axis = partmc.linear_grid(min = config.bc_axis_min,
+                            max = config.bc_axis_max,
+                            n_bin = config.num_bc_bins)
 
 def make_fig(figure_width = 4,
              figure_height = None,
@@ -97,7 +73,7 @@ def make_fig(figure_width = 4,
         colorbar_axes = None
     return (figure, axes, colorbar_axes)
 
-def make_2d_plot(in_filename, out_filename):
+def make_2d_plot(value, out_filename):
     (figure, axes, cbar_axes) = make_fig(colorbar = True, right_margin = 0.9)
 
     axes.grid(True)
@@ -105,42 +81,37 @@ def make_2d_plot(in_filename, out_filename):
     axes.minorticks_on()
     axes.set_xscale('log')
 
-    #axes.set_xticks([0, 6, 12, 18, 24])
-    #axes.set_xticks([3, 9, 15, 21], minor = True)
-    #axes.set_yticks([0.025, 0.075, 0.125, 0.175], minor = True)
-    
-    axes.set_xbound(diameter_axis_min, diameter_axis_max)
-    axes.set_ybound(bc_axis_min, bc_axis_max)
-
     xaxis = axes.get_xaxis()
     yaxis = axes.get_yaxis()
     xaxis.labelpad = 8
     yaxis.labelpad = 8
-    #xaxis.set_major_formatter(matplotlib.ticker.LogFormatter())
+
     yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
     yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
 
     axes.set_xlabel(r"dry diameter $D\ (\rm\mu m)$")
     axes.set_ylabel(r"BC dry mass frac. $w_{{\rm BC},{\rm dry}}\ (\%)$")
 
-    (value, x_edges, y_edges, env_state, value_min, value_max) = get_plot_data_bc(in_filename)
-
-    axes.set_xbound(diameter_axis_min, diameter_axis_max)
-    axes.set_ybound(bc_axis_min, bc_axis_max)
+    axes.set_xbound(config.diameter_axis_min, config.diameter_axis_max)
+    axes.set_ybound(config.bc_axis_min, config.bc_axis_max)
     
-    p = axes.pcolor(x_edges, y_edges, value.transpose(), norm = matplotlib.colors.LogNorm(),
+    p = axes.pcolor(x_axis.edges(), y_axis.edges(), value.transpose(),
+                    norm = matplotlib.colors.LogNorm(),
                     cmap=matplotlib.cm.jet, linewidths = 0.1)
     figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
     cbar_axes.set_ylabel(r"number conc. $(\rm cm^{-3})$")
-    cbar_yaxis = cbar_axes.get_yaxis()
-
     figure.savefig(out_filename)
 
-for [i_run, netcdf_pattern] in netcdf_indexed_patterns:
-    out_filename = "%s_%d.pdf" % (out_prefix, i_run)
-    print out_filename
-
-    filename_list = partmc.get_filename_list(netcdf_dir, netcdf_pattern)
-    in_filename = filename_list[0]
-    make_2d_plot(in_filename, out_filename)
-    
+for run in config.runs:
+    data_dir = os.path.join(data_base_dir, run["name"])
+    fig_dir = os.path.join(fig_base_dir, run["name"])
+    if not os.path.isdir(fig_dir):
+        os.mkdir(fig_dir)
+    for loop in run["loops"]:
+        for index in loop["indices"]:
+            data_name = "%s_%04d_%08d" % (data_type, loop["num"], index["num"])
+            print run["name"] + " " + data_name
+            data_filename = os.path.join(data_dir, data_name + ".txt")
+            value = np.loadtxt(data_filename)
+            fig_filename = os.path.join(fig_dir, data_name + ".pdf")
+            make_2d_plot(value, fig_filename)

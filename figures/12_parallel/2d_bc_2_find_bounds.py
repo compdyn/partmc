@@ -23,6 +23,7 @@ for run in config.runs:
             value = np.loadtxt(data_filename)
             mask = np.ma.make_mask(value <= 0.0)
             value = np.ma.array(value, mask=mask)
+            print value.min(), value.max()
             if value_min is None:
                 value_min = value.min()
             else:

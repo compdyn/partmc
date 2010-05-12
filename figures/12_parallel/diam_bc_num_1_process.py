@@ -48,8 +48,13 @@ def process_data(in_filename_list, out_filename):
             total_value += value
     total_value /= len(in_filename_list)
     np.savetxt(out_filename, total_value)
+    mask = np.ma.make_mask(total_value <= 0.0)
+    masked_total_value = np.ma.array(total_value, mask=mask)
+    return(masked_total_value.min(), masked_total_value.max())
 
 if __name__ == "__main__":
+    global_min = None
+    global_max = None
     for run in config_filelist.runs:
         data_dir = os.path.join(data_base_dir, run["name"])
         if not os.path.isdir(data_dir):
@@ -60,4 +65,13 @@ if __name__ == "__main__":
                 print run["name"] + " " + data_name
                 in_filename_list = [proc["filename"] for proc in index["procs"]]
                 out_filename = os.path.join(data_dir, data_name + ".txt")
-                process_data(in_filename_list, out_filename)
+                (value_min, value_max) = process_data(in_filename_list, out_filename)
+                if global_min is None:
+                    global_min = value_min
+                else:
+                    global_min = min(global_min, value_min)
+                if global_max is None:
+                    global_max = value_max
+                else:
+                    global_max = max(global_max, value_max)
+                print "min = %g, max = %g" % (global_min, global_max)

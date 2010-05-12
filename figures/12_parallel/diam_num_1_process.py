@@ -38,7 +38,7 @@ def process_data(in_filename_list, out_filename):
             total_value += value
     total_value /= len(in_filename_list)
     np.savetxt(out_filename, total_value)
-    mask = np.ma.make_mask(value <= 0.0)
+    mask = np.ma.make_mask(total_value <= 0.0)
     masked_total_value = np.ma.array(total_value, mask=mask)
     return(masked_total_value.min(), masked_total_value.max())
 

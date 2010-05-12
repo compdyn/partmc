@@ -36,6 +36,7 @@ def make_2d_plot(value, out_filename):
     axes.grid(True, which = 'minor')
     axes.minorticks_on()
     axes.set_xscale('log')
+    axes.set_yscale('log')
 
     axes.set_xbound(config.diameter_axis_min, config.diameter_axis_max)
     axes.set_ybound(config.bc_axis_min, config.bc_axis_max)

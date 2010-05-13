@@ -27,7 +27,7 @@ def process_data(in_filename_list, out_filename):
         ncf.close()
 
         dry_diameters = particles.dry_diameters() * 1e6 # m to um
-        masses = particles.masses()
+        masses = particles.masses() * 1e9 # kg to ug
 
         value = partmc.histogram_1d(dry_diameters, x_axis,
                                     weights = masses / particles.comp_vols)

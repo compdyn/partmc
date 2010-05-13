@@ -3,6 +3,9 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
+import config
+import config_filelist
+import config_matplotlib
 import os, sys, math
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,45 +13,37 @@ import numpy as np
 import scipy.io
 sys.path.append("../../tool")
 import partmc
-import config
-import config_filelist
-import config_matplotlib
 
 fig_base_dir = "figs"
 data_base_dir = "data"
 data_type = "diam_mass"
 
-value_min = 80
-value_max = 1e6
+value_min = 1e-12
+value_max = 1e-3
 
 x_axis = partmc.log_grid(min = config.diameter_axis_min,
                          max = config.diameter_axis_max,
                          n_bin = config.num_diameter_bins)
 
 def make_plot(value, out_filename):
-    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar = True, right_margin = 0.9)
+    (figure, axes, cbar_axes) = config_matplotlib.make_fig(left_margin=0.8)
 
     axes.grid(True)
     axes.grid(True, which = 'minor')
     axes.minorticks_on()
-    axes.set_xscale('log')
-    axes.set_yscale('log')
 
     xaxis = axes.get_xaxis()
     yaxis = axes.get_yaxis()
     xaxis.labelpad = 8
     yaxis.labelpad = 8
 
-    yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
-    #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
-
     axes.set_xlabel(r"dry diameter $D_{\rm dry}\ /\ \rm\mu m$")
-    axes.set_ylabel(r"mass conc. $m\ /\ \rm (kg\ cm^{-3})$")
+    axes.set_ylabel(r"mass conc. $m\ /\ \rm (\mu g\ cm^{-3})$")
 
+    plt.loglog(x_axis.centers(), value)
     axes.set_xbound(x_axis.min, x_axis.max)
     axes.set_ybound(value_min, value_max)
     
-    plt.semilogx(x_grid.centers(), value)
     figure.savefig(out_filename)
 
 if __name__ == "__main__":

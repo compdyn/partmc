@@ -22,7 +22,8 @@ value_min = 0
 value_max = 1e6
 
 def make_plot(value, out_filename):
-    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar = True, right_margin = 0.9)
+    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar=True,
+                                                           right_margin=0.9)
 
     axes.grid(True)
     axes.grid(True, which = 'minor')
@@ -33,7 +34,7 @@ def make_plot(value, out_filename):
     xaxis.labelpad = 8
     yaxis.labelpad = 8
 
-    yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
+    #yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
     #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
 
     axes.set_xlabel(r"elapsed time $t\ /\ \rm hr$")

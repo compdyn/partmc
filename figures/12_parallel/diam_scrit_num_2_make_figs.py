@@ -42,8 +42,8 @@ def make_plot(value, out_filename):
     xaxis.labelpad = 8
     yaxis.labelpad = 8
 
-    yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
-    yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
+    #yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
+    #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
 
     axes.set_xlabel(r"dry diameter $D_{\rm dry}\ /\ \rm\mu m$")
     axes.set_ylabel(r"critical supersaturation $S_{\rm c}\ /\ \%$")

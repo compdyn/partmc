@@ -4,7 +4,8 @@ import os, sys, re
 
 main_dir = os.path.join(os.environ["HOME"], "parallel_runs")
 extra_sub_path = "6_urban_plume_parallel/out"
-run_re = re.compile("^job\.([^.]+)\.[0-9]+$")
+#run_re = re.compile("^job\.([^.]+)\.[0-9]+$")
+run_re = re.compile("^job\.(urban_plume_none_dist_..)\.[0-9]+$")
 datafile_parallel_re = re.compile("^(.+)_([0-9]{4})_([0-9]{4})_([0-9]{8})\.nc")
 datafile_serial_re = re.compile("^(.+)_([0-9]{4})_([0-9]{8})\.nc")
 

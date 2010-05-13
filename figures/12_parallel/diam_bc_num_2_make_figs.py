@@ -3,6 +3,9 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
+import config
+import config_filelist
+import config_matplotlib
 import os, sys, math
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,9 +13,6 @@ import numpy as np
 import scipy.io
 sys.path.append("../../tool")
 import partmc
-import config
-import config_filelist
-import config_matplotlib
 
 fig_base_dir = "figs"
 data_base_dir = "data"

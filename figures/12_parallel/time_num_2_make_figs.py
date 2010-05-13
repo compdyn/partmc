@@ -3,6 +3,9 @@
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
+import config
+import config_filelist
+import config_matplotlib
 import os, sys, math
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,23 +13,19 @@ import numpy as np
 import scipy.io
 sys.path.append("../../tool")
 import partmc
-import config
-import config_filelist
-import config_matplotlib
 
 fig_base_dir = "figs"
 data_base_dir = "data"
 data_type = "time_num"
 
 value_min = 0
-value_max = 1e6
+value_max = 20000
 
 def make_plot(value, out_filename):
-    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar=True,
-                                                           right_margin=0.9)
+    (figure, axes, cbar_axes) = config_matplotlib.make_fig(left_margin=0.8)
 
     axes.grid(True)
-    axes.grid(True, which = 'minor')
+    #axes.grid(True, which = 'minor')
     axes.minorticks_on()
 
     xaxis = axes.get_xaxis()
@@ -34,16 +33,13 @@ def make_plot(value, out_filename):
     xaxis.labelpad = 8
     yaxis.labelpad = 8
 
-    #yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
-    #yaxis.set_minor_locator(matplotlib.ticker.MaxNLocator(8))
-
     axes.set_xlabel(r"elapsed time $t\ /\ \rm hr$")
     axes.set_ylabel(r"number conc. $n\ /\ \rm cm^{-3}$")
 
-    axes.set_xbound(time_axis_min, time_axis_max)
+    plt.plot((value[:,0] - value[0,0]) / 3600, value[:,1])
+    axes.set_xbound(config.time_axis_min, config.time_axis_max)
     axes.set_ybound(value_min, value_max)
     
-    plt.semilogy((value[:,0] - value[0,0]) / 3600, value[:,1])
     figure.savefig(out_filename)
 
 if __name__ == "__main__":

@@ -29,7 +29,10 @@ y_axis = partmc.log_grid(min = config.scrit_axis_min,
                          n_bin = config.num_scrit_bins)
 
 def make_plot(value, out_filename):
-    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar = True, right_margin = 0.9)
+    (figure, axes, cbar_axes) = config_matplotlib.make_fig(colorbar=True,
+                                                           right_margin=0.9,
+                                                           left_margin=0.7,
+                                                           top_margin=0.3)
 
     axes.grid(True)
     axes.grid(True, which = 'minor')

@@ -218,3 +218,12 @@ Rename "loop" to "repeat" or something in input and output.
 
 Reading a file which does not have a newline at the end causes
 problems (specifically, gas_init.dat).
+
+Output filename format in parallel should be LLLL_TTTTTTTT_PPPP, as we
+typically want to sum over the processors first to get the result for
+a single time.
+
+When averaging parallel/dist output files, how should we account for
+different computational volumes? Should we store the comp_vol in the
+output files as a single number? Should we weight the files by the
+number of particles in them?

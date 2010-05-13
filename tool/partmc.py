@@ -90,8 +90,39 @@ class aero_data_t(object):
     molec_weights - molecular weights (kg/mole)
     kappas - hydroscopicity parameters (dimensionless)
 
+    There is one class data member, species_tex_names, that is a
+    dictionary mapping ASCII species names to LaTeX species names.
+
+    Example:
+    >>> species_name = "SO4"
+    >>> aero_data_t.species_tex_names[species_name]
+    "SO$_4$"
+
     """
-    
+
+    species_tex_names = {
+        "SO4": r"SO$_4$",
+        "NO3": r"NO$_3$",
+        "Cl": r"Cl",
+        "NH4": r"NH$_4$",
+        "MSA": r"MSA",
+        "ARO1": r"ARO1",
+        "ARO2": r"ARO2",
+        "ALK1": r"ALK1",
+        "OLE1": r"OLE1",
+        "API1": r"API1",
+        "API2": r"API2",
+        "LIM1": r"LIM1",
+        "LIM2": r"LIM2",
+        "CO3": r"CO$_3$",
+        "Na": r"Na",
+        "Ca": r"Ca",
+        "OIN": r"OIN",
+        "OC": r"POA",
+        "BC": r"BC",
+        "H2O": r"H$_2$O",
+        }
+
     def __init__(self, ncf=None, n_species=None):
         """ Creates an aero_data_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
@@ -232,7 +263,44 @@ class gas_data_t(object):
     mosaic_indices - species index numbers in MOSAIC (integers)
     molec_weights - molecular weights (kg/mole)
 
+    There is one class data member, species_tex_names, that is a
+    dictionary mapping ASCII species names to LaTeX species names.
+
+    Example:
+    >>> species_name = "H2SO4"
+    >>> aero_data_t.species_tex_names[species_name]
+    "H$_2$SO$_4$"
+
     """
+
+    species_tex_names = {
+        "H2SO4": r"H$_2$SO$_4$",
+        "HNO3": r"HNO$_3$",
+        "HCl": r"HC$\ell$",
+        "NH3": r"NH$_3$",
+        "NO2": r"NO$_2$",
+        "NO3": r"NO$_3$",
+        "N2O5": r"N$_2$O$_5$",
+        "HNO4": r"HNO$_4$",
+        "O3": r"O$_3$",
+        "O1D": r"O$_1$D",
+        "O3P": r"O$_3$P",
+        "HO2": r"HO$_2$",
+        "H2O2": r"H$_2$O$_2$",
+        "SO2": r"SO$_2$",
+        "CH4": r"CH$_4$",
+        "C2H6": r"C$_2$H$_6$",
+        "CH3O2": r"CH$_3$O$_2$",
+        "CH3OH": r"CH$_3$OH",
+        "CH3OOH": r"CH$_3$OOH",
+        "C2O3": r"C$_2$O$_3$",
+        "CH3SO2H": r"CH$_3$SO$_2$H",
+        "CH3SCH2OO": r"CH$_3$SCH$_2$OO",
+        "CH3SO2": r"CH$_3$SO$_2$",
+        "CH3SO3": r"CH$_3$SO$_3$",
+        "CH3SO2OO": r"CH$_3$SO$_2$OO",
+        "CH3SO2CH2OO": r"CH$_3$SO$_2$CH$_2$OO",
+        }
     
     def __init__(self, ncf=None, n_species=None):
         """ Creates a gas_data_t object. If the ncf parameter is

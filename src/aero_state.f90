@@ -799,6 +799,11 @@ contains
     ! processor information
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
+    if (n_proc == 1) then
+       ! buffer allocation below fails if n_proc == 1
+       ! so bail out early (nothing to mix anyway)
+       return
+    end if
     allocate(comp_vols(n_proc))
     call mpi_allgather(aero_state%comp_vol, 1, MPI_REAL8, &
          comp_vols, 1, MPI_REAL8, MPI_COMM_WORLD, ierr)

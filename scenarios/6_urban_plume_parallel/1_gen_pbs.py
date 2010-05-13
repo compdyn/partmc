@@ -16,10 +16,15 @@ def sub_file(in_filename, out_filename, subs):
     
 spec_template_filename = "urban_plume_template.spec"
 
-for coag_method_var in ["local1", "local2", "local3", "collect",
+for coag_method_var in ["none", "local1", "local2", "local3", "collect",
                     "central", "dist"]:
     for output_type_var in ["single", "central", "dist", "none"]:
-        if coag_method_var.startswith("local"):
+        if coag_method_var == "none":
+            coag_method = "local"
+            mix_timescale = "0"
+            gas_average = "no"
+            env_average = "no"
+        elif coag_method_var.startswith("local"):
             coag_method = "local"
             if coag_method_var == "local1":
                 mix_prob = 0.01
@@ -30,9 +35,13 @@ for coag_method_var in ["local1", "local2", "local3", "collect",
             del_t = 60
             mix_timescale = "%.2f" \
                             % (- del_t / math.log(1 - mix_prob))
+            gas_average = "yes"
+            env_average = "yes"
         else:
             coag_method = coag_method_var
             mix_timescale = "0"
+            gas_average = "yes"
+            env_average = "yes"
         if output_type_var == "none":
             t_output = "0"
             output_type = "dist"
@@ -46,6 +55,8 @@ for coag_method_var in ["local1", "local2", "local3", "collect",
                   "%%{{MIX_TIMESCALE}}%%": mix_timescale,
                   "%%{{COAG_METHOD}}%%": coag_method,
                   "%%{{T_OUTPUT}}%%": t_output,
+                  "%%{{GAS_AVERAGE}}%%": gas_average,
+                  "%%{{ENV_AVERAGE}}%%": env_average,
                   })
 
 ######################################################################
@@ -74,7 +85,7 @@ def make_pbs(coag_method, output_type):
                   "%%{{JOB_NAME}}%%": job_name,
                   })
 
-for coag_method in ["local1", "local2", "local3", "collect",
+for coag_method in ["none", "local1", "local2", "local3", "collect",
                     "central", "dist"]:
     if coag_method == "dist":
         for output_type in ["single", "central", "dist", "none"]:

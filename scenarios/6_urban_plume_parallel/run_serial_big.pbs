@@ -9,18 +9,18 @@
 # _not_  denote that the lines are commented out so do not remove).
 #
 # walltime : maximum wall clock time (hh:mm:ss)
-#PBS -l walltime=20:00:00
+#PBS -l walltime=160:00:00
 #
 # nodes: number of 8-core nodes
 #   ppn: how many cores per node to use (1 through 8)
 #       (you are always charged for the entire node)
-#PBS -l nodes=1:ppn=1
+#PBS -l nodes=1:ppn=8:himem
 #
 # export all my environment variables to the job
 #PBS -V
 #
 # job name (default = name of script file)
-#PBS -N urban_plume
+#PBS -N urban_plume_big
 #
 #
 # Send a notification email when the job (b)egins and when the (e)nds
@@ -31,12 +31,12 @@
 # filename for standard output (default = <job_name>.o<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-###PBS -o testjob.out
+#PBS -o job.urban_plume_serial_big.out
 #
 # filename for standard error (default = <job_name>.e<job_id>)
 # at end of job, it is in directory from which qsub was executed
 # remove extra ## from the line below if you want to name your own file
-###PBS -e testjob.err
+#PBS -e job.urban_plume_serial_big.err
 #
 # End of embedded QSUB options
 #
@@ -75,7 +75,7 @@ date -Isec
 #./a.out
 cd 6_urban_plume_parallel
 date -Isec
-time ../partmc urban_plume_with_coag.spec
+time ../partmc urban_plume_with_coag_big.spec
 date -Isec
 cd ..
 
@@ -83,7 +83,7 @@ cd ..
 ls -lR
 date -Isec
 msscmd mkdir job.${JOBID},cd job.${JOBID}, mput -r *
-setenv SAVE_DIR "job.urban_plume_serial.${JOBID}"
+setenv SAVE_DIR "job.urban_plume_serial_big.${JOBID}"
 echo "SAVE_DIR = " ${SAVE_DIR}
 time msscmd mkdir ${SAVE_DIR},cd ${SAVE_DIR}, mput -r *
 echo "du -hs ."

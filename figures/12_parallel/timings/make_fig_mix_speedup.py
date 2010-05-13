@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 data = np.loadtxt("times_local1_dist.txt")
 cores = data[:,0] * 8
 cores[0] = 1
-plt.plot(cores, cores * data[0,1] / data[:,1], label="Prob mix = 0.01")
+plt.loglog(cores, cores * data[0,1] / data[:,1], '-o', label="Prob mix = 0.01")
 plt.hold(True)
 data = np.loadtxt("times_local2_dist.txt")
-plt.plot(cores, cores * data[0,1] / data[:,1], label="Prob mix = 0.1")
+plt.loglog(cores, cores * data[0,1] / data[:,1], '-x', label="Prob mix = 0.1")
 data = np.loadtxt("times_local3_dist.txt")
-plt.plot(cores, cores * data[0,1] / data[:,1], label="Prob mix = 0.5")
+plt.loglog(cores, cores * data[0,1] / data[:,1], '-s', label="Prob mix = 0.5")
 
 plt.xlabel("cores")
 plt.ylabel("speedup factor")

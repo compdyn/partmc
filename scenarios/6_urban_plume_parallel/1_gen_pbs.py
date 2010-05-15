@@ -15,6 +15,7 @@ def sub_file(in_filename, out_filename, subs):
 ######################################################################
     
 spec_template_filename = "urban_plume_template.spec"
+n_part = "32"
 
 for coag_method_var in ["none", "local1", "local2", "local3", "collect",
                     "central", "dist"]:
@@ -31,7 +32,7 @@ for coag_method_var in ["none", "local1", "local2", "local3", "collect",
             if coag_method_var == "local2":
                 mix_prob = 0.1
             if coag_method_var == "local3":
-                mix_prob = 0.5
+                mix_prob = 0.9999
             del_t = 60
             mix_timescale = "%.2f" \
                             % (- del_t / math.log(1 - mix_prob))
@@ -48,8 +49,8 @@ for coag_method_var in ["none", "local1", "local2", "local3", "collect",
         else:
             t_output = "3600"
             output_type = output_type_var
-        out_filename = "specs/urban_plume_%s_%s.spec" \
-                       % (coag_method_var, output_type_var)
+        out_filename = "specs/urban_plume_%s_%s_%s.spec" \
+                       % (n_part, coag_method_var, output_type_var)
         sub_file(spec_template_filename, out_filename,
                  {"%%{{OUTPUT_TYPE}}%%": output_type,
                   "%%{{MIX_TIMESCALE}}%%": mix_timescale,
@@ -57,25 +58,26 @@ for coag_method_var in ["none", "local1", "local2", "local3", "collect",
                   "%%{{T_OUTPUT}}%%": t_output,
                   "%%{{GAS_AVERAGE}}%%": gas_average,
                   "%%{{ENV_AVERAGE}}%%": env_average,
+                  "%%{{N_PART}}%%": n_part,
                   })
 
 ######################################################################
 
 pbs_template_filename = "run_mvapich-intel_template.pbs"
-max_walltime = "01:00:00" # hh:mm:ss
+max_walltime = "04:00:00" # hh:mm:ss
 
 def make_pbs(coag_method, output_type):
-    spec_file_name = "specs/urban_plume_%s_%s.spec" \
-                     % (coag_method, output_type)
-    for n in [0, 1, 2, 4, 6, 8, 12, 16]:
-        job_name = "urban_plume_%s_%s_%02d" \
-                   % (coag_method, output_type, n)
+    spec_file_name = "specs/urban_plume_%s_%s_%s.spec" \
+                     % (n_part, coag_method, output_type)
+    for n in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096]:
+        job_name = "urban_plume_%s_%s_%s_%04d" \
+                   % (n_part, coag_method, output_type, n)
         pbs_file_name = "pbs/run_%s.pbs" % job_name
-        if n == 0:
+        if n < 8:
             num_nodes = "1"
-            procs_per_node = "1"
+            procs_per_node = str(n)
         else:
-            num_nodes = str(n)
+            num_nodes = str(n / 8)
             procs_per_node = "8"
         sub_file(pbs_template_filename, pbs_file_name,
                  {"%%{{MAX_WALLTIME}}%%": max_walltime,
@@ -85,10 +87,12 @@ def make_pbs(coag_method, output_type):
                   "%%{{JOB_NAME}}%%": job_name,
                   })
 
-for coag_method in ["none", "local1", "local2", "local3", "collect",
-                    "central", "dist"]:
+#for coag_method in ["none", "local1", "local2", "local3", "collect",
+#                    "central", "dist"]:
+for coag_method in ["none", "local1", "local2", "local3", "dist"]:
     if coag_method == "dist":
-        for output_type in ["single", "central", "dist", "none"]:
+        #for output_type in ["single", "central", "dist", "none"]:
+        for output_type in ["dist"]:
             make_pbs(coag_method, output_type)
     else:
         output_type = "dist"

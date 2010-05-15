@@ -107,9 +107,11 @@ cd ..
 # save output files back to mass storage
 ls -lR
 date -Isec
+time tar -czvf 6_urban_plume_parallel.tar.gz 6_urban_plume_parallel
+date -Isec
 setenv SAVE_DIR "job.%%{{JOB_NAME}}%%.${JOBID}"
 echo "SAVE_DIR = " ${SAVE_DIR}
-time msscmd mkdir ${SAVE_DIR},cd ${SAVE_DIR}, mput -r *
+time msscmd mkdir ${SAVE_DIR},cd ${SAVE_DIR}, put 6_urban_plume_parallel.tar.gz
 echo "du -hs ."
 du -hs .
 date -Isec

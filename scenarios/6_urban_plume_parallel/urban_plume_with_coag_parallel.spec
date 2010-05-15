@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume_wc # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 131072                     # total number of particles
+n_part 65536                     # total number of particles
 kernel brown                    # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
@@ -46,4 +46,10 @@ do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical no                   # whether to compute optical props (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
-do_parallel no                  # whether to run in parallel (yes/no)
+
+do_parallel yes                 # whether to run in parallel (yes/no)
+output_type dist                # parallel output type (central/dist/single)
+mix_timescale 0                 # mixing timescale between processors (s)
+gas_average yes                 # whether to average gases each timestep
+env_average yes                 # whether to average environment each timestep
+coag_method dist                # parallel method (local/collect/central/dist)

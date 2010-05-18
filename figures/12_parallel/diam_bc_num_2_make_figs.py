@@ -18,7 +18,7 @@ fig_base_dir = "figs"
 data_base_dir = "data"
 data_type = "diam_bc_num"
 
-value_min = 80
+value_min = 9.8 # 80
 value_max = 1e6
 
 x_axis = partmc.log_grid(min = config.diameter_axis_min,

@@ -2,14 +2,16 @@
 
 import os, sys, re
 
-main_dir = os.path.join(os.environ["HOME"], "parallel_runs")
+main_dir = os.path.join(os.environ["HOME"], "parallel_runs_32")
 extra_sub_path = "6_urban_plume_parallel/out"
 #run_re = re.compile("^job\.([^.]+)\.[0-9]+$")
-run_re = re.compile("^job\.(urban_plume_none_dist_..)\.[0-9]+$")
+run_re = re.compile("^job\.(urban_plume_serial_big)\.[0-9]+$")
+true_run_name = "urban_plume_serial"
 datafile_parallel_re = re.compile("^(.+)_([0-9]{4})_([0-9]{4})_([0-9]{8})\.nc")
 datafile_serial_re = re.compile("^(.+)_([0-9]{4})_([0-9]{8})\.nc")
 
 runs = []
+true_run = None
 main_dir_ls = os.listdir(main_dir)
 main_dir_ls.sort()
 for main_entry in main_dir_ls:
@@ -23,6 +25,8 @@ for main_entry in main_dir_ls:
         run = {"name": run_name,
                "loops": {}}
         runs.append(run)
+        if run_name == true_run_name:
+            true_run = run
         for run_entry in run_dir_ls:
             run_entry_path = os.path.join(main_entry_path, run_entry)
             run_match = datafile_parallel_re.search(run_entry)
@@ -54,6 +58,20 @@ for run in runs:
         loop["indices"].sort(key=lambda index: index["num"])
         for index in loop["indices"]:
             index["procs"].sort(key=lambda proc: proc["num"])
+
+runs_by_base = {}
+for run in runs:
+    match = re.search("^(.+)_([0-9]+)$", run["name"])
+    if match:
+        run_base = match.group(1)
+        run_size = int(match.group(2))
+        run_group = runs_by_base.setdefault(run_base, {"name": run_base,
+                                                       "run_items": []})
+        run_group["run_items"].append({"size": run_size,
+                                   "run": run})
+runs_by_base = runs_by_base.values()
+for run_group in runs_by_base:
+    run_group["run_items"].sort(key=lambda run_item: run_item["size"])
 
 if __name__ == "__main__":
     for run in runs:

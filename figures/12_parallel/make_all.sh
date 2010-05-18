@@ -8,6 +8,10 @@
 ./diam_num_2_make_figs.py
 ./diam_scrit_num_1_process.py
 ./diam_scrit_num_2_make_figs.py
+./time_env_1_process.py
+./time_env_2_make_figs.py
+./time_gas_1_process.py
+./time_gas_2_make_figs.py
 ./time_mass_1_process.py
 ./time_mass_2_make_figs.py
 ./time_num_1_process.py

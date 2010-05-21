@@ -1,18 +1,3 @@
-Right now:
-  -- fix mixing to use buffered sends, just pack them all up and send them to all procs
-  -- implement different output models
-  -- parallel testcases
-
-Parallel options:
-    parallel yes/no -- activate following options
-    output_type: dist    - per-processor writes to local NetCDF files,
- 	         central - centralized writes to per-processor NetCDF files,
- 		 single  - centralized write to a single NetCDF file
- 		           (averaged env_state, gas_state, all particles)
-    average_env: average the environment each timestep
-    average_gas: average the gas each timestep
-    aero_mix_rate: 0 to turn off aero mixing
-    coag_method: "central" or "dist"
 
 Use only one style of quotes: '' or "" (use "").
 
@@ -21,9 +6,6 @@ start_day, so we can easily change start_time without needing to
 rewrite all the emit/height/etc data. It just makes more sense for
 these to be absolute real times, rather than relative to start of
 simulation. Would also help with restarted simulations.
-
-Change cpu_time(t_wall_now) to system_clock() to actually get
-wall_time, not cpu_time, to avoid issues with MPI code.
 
 All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than
@@ -129,7 +111,8 @@ Switch MPI send to not send the size first, but just do the send. The
 receiver can do an mpi_probe() to detect the size and allocate the
 receive buffer.
 
-Standardize on "processor" or "node".
+Standardize on "processor" or "node" or "core". Use the MPI
+terminology, whatever it is.
 
 Change the line "n_samp = prob_round(n_samp_real)" to be "n_samp =
 ceil(n_samp_real)" to match the paper and make convergence
@@ -227,3 +210,7 @@ When averaging parallel/dist output files, how should we account for
 different computational volumes? Should we store the comp_vol in the
 output files as a single number? Should we weight the files by the
 number of particles in them?
+
+In the parallel mixing code, do an allreduce() with MPI_ADD to figure
+out how many processers are actually sending to each receiver, so it's
+more efficient in the slow mixing or few particles case.

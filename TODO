@@ -11,8 +11,6 @@ All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than
 deadlocking.
 
-Shift rand stuff from util.f90 to rand.f90.
-
 Add run_guid to netcdf output files and have extract_* programs check
 to make sure they are processing everything from a single run.
 

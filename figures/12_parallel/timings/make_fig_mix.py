@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 data = np.loadtxt("times_local3_dist.txt")
 cores = data[:,0] * 8
 cores[0] = 1
-plt.plot(cores, data[:,1], label="Prob mix = 0.5")
+plt.plot(cores, data[:,1], label="Prob mix = 1")
 plt.hold(True)
 data = np.loadtxt("times_local2_dist.txt")
 plt.plot(cores, data[:,1], label="Prob mix = 0.1")

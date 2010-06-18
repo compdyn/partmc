@@ -41,11 +41,11 @@ for hour in range(1, 26):
     files = []
     print 'files ', files
     for i_loop in range (0, config.i_loop_max):
-        filename_in = "urban_plume_wc_100K_wei-3_00%02d_000000%02d.nc" % ((i_loop+1), hour)
+        filename_in = "urban_plume_wc_100K_wei-1_0%03d_000000%02d.nc" % ((i_loop+1), hour)
         print i_loop, filename_in
         files.append(filename_in)
     print files
-    filename_out = "figs/1d_100K_wei-3_%02d.pdf" % hour
-    title = '100K wei-3, %02d hour' % (hour-1)
+    filename_out = "figs/100loop/1d_100K_wei-1_%02d.pdf" % hour
+    title = '100K wei-1 100, %02d hour' % (hour-1)
     print filename_out
     make_plot(dir_name, files, title, filename_out)

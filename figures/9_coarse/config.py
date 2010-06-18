@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-i_loop_max = 10 
+i_loop_max = 100 
 
 s_crit_1 = 0.001
 s_crit_2 = 0.01  

@@ -278,28 +278,79 @@ class gas_data_t(object):
         "HNO3": r"HNO$_3$",
         "HCl": r"HC$\ell$",
         "NH3": r"NH$_3$",
+        "NO": r"NO",
         "NO2": r"NO$_2$",
         "NO3": r"NO$_3$",
         "N2O5": r"N$_2$O$_5$",
+        "HONO": r"HONO",
         "HNO4": r"HNO$_4$",
         "O3": r"O$_3$",
         "O1D": r"O$_1$D",
         "O3P": r"O$_3$P",
+        "OH": r"OH",
         "HO2": r"HO$_2$",
         "H2O2": r"H$_2$O$_2$",
+        "CO": r"CO",
         "SO2": r"SO$_2$",
         "CH4": r"CH$_4$",
         "C2H6": r"C$_2$H$_6$",
         "CH3O2": r"CH$_3$O$_2$",
+        "ETHP": r"ETHP",
+        "HCHO": r"HCHO",
         "CH3OH": r"CH$_3$OH",
+        "ANOL": r"ANOL",
         "CH3OOH": r"CH$_3$OOH",
+        "ETHOOH": r"ETHOOH",
+        "ALD2": r"ALD2",
+        "HCOOH": r"HCOOH",
+        "RCOOH": r"RCOOH",
         "C2O3": r"C$_2$O$_3$",
+        "PAN": r"PAN",
+        "ARO1": r"ARO1",
+        "ARO2": r"ARO2",
+        "ALK1": r"ALK1",
+        "OLE1": r"OLE1",
+        "API1": r"API1",
+        "API2": r"API2",
+        "LIM1": r"LIM1",
+        "LIM2": r"LIM2",
+        "PAR": r"PAR",
+        "AONE": r"AONE",
+        "MGLY": r"MGLY",
+        "ETH": r"ETH",
+        "OLET": r"OLET",
+        "OLEI": r"OLEI",
+        "TOL": r"TOL",
+        "XYL": r"XYL",
+        "CRES": r"CRES",
+        "TO2": r"TO2",
+        "CRO": r"CRO",
+        "OPEN": r"OPEN",
+        "ONIT": r"ONIT",
+        "ROOH": r"ROOH",
+        "RO2": r"RO2",
+        "ANO2": r"ANO2",
+        "NAP": r"NAP",
+        "XO2": r"XO2",
+        "XPAR": r"XPAR",
+        "ISOP": r"ISOP",
+        "ISOPRD": r"ISOPRD",
+        "ISOPP": r"ISOPP",
+        "ISOPN": r"ISOPN",
+        "ISOPO2": r"ISOPO2",
+        "API": r"API",
+        "LIM": r"LIM",
+        "DMS": r"DMS",
+        "MSA": r"MSA",
+        "DMSO": r"DMSO",
+        "DMSO2": r"DMSO2",
         "CH3SO2H": r"CH$_3$SO$_2$H",
         "CH3SCH2OO": r"CH$_3$SCH$_2$OO",
         "CH3SO2": r"CH$_3$SO$_2$",
         "CH3SO3": r"CH$_3$SO$_3$",
         "CH3SO2OO": r"CH$_3$SO$_2$OO",
         "CH3SO2CH2OO": r"CH$_3$SO$_2$CH$_2$OO",
+        "SULFHOX": r"SULFHOX",
         }
     
     def __init__(self, ncf=None, n_species=None):
@@ -400,7 +451,7 @@ class gas_state_t(object):
         if species not in self.gas_data.names:
             raise Exception("unknown species: %s" % species)
         index = self.gas_data.names.index(species)
-        return self.raw_mixing_ratio[index]
+        return self.raw_mixing_ratios[index]
 
 class aero_particle_array_t(object):
 
@@ -1596,6 +1647,64 @@ def get_time_filename_list(dir, file_pattern):
         raise Exception("No files found in %s matching %s"
                         % (dir, file_pattern))
     return time_filename_list
+
+def find_nearest_index(data, value):
+    """Find the index of the entry in data that is closest to value.
+
+    Example:
+    >>> data = [0, 3, 5, -2]
+    >>> i = partmc.find_nearest_index(data, 3.4)
+    returns i = 1
+
+    """
+    min_diff = abs(value - data[0])
+    min_i = 0
+    for i in range(1,len(data)):
+        diff = abs(value - data[i])
+        if diff < min_diff:
+            min_diff = diff
+            min_i = i
+    return min_i
+
+def argmax(data):
+    """Find the index of the largest entry in data.
+
+    If there are multiple equally-large entries then the index of the
+    first is returned.
+
+    Example:
+    >>> data = [0, 3, 5, -2]
+    >>> i = partmc.argmax(data)
+    returns i = 2
+
+    """
+    max_val = data[0]
+    val_i = 0
+    for i in range(1,len(data)):
+        if data[i] > max_val:
+            max_val = data[i]
+            val_i = i
+    return val_i
+
+def argmin(data):
+    """Find the index of the smallest entry in data.
+
+    If there are multiple equally-small entries then the index of the
+    first is returned.
+
+    Example:
+    >>> data = [0, 3, 5, -2]
+    >>> i = partmc.argminx(data)
+    returns i = 3
+
+    """
+    min_val = data[0]
+    val_i = 0
+    for i in range(1,len(data)):
+        if data[i] < min_val:
+            min_val = data[i]
+            val_i = i
+    return val_i
 
 def find_nearest_time(time_indexed_data, search_time):
     """Find the closest data-point in a time-sequenced data-set to a

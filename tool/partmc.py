@@ -1389,8 +1389,7 @@ def histogram_2d(x_values, y_values, x_grid, y_grid, weights=None, only_positive
                 value *= weights[i]
             hist[x_bins[i], y_bins[i]] += value
     if only_positive:
-        mask = numpy.ma.make_mask(hist <= 0.0)
-        hist = numpy.ma.array(hist, mask=mask)
+        hist = numpy.ma.masked_less_equal(hist, 0.0)
     return hist
 
 def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange=True):

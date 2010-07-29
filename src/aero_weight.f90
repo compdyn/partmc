@@ -114,7 +114,8 @@ contains
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        aero_weight_value = 1d0
-    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        aero_weight_value &
             = (radius / aero_weight%ref_radius)**aero_weight%exponent
     else

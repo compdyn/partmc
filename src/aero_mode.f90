@@ -328,7 +328,8 @@ contains
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        aero_mode_weighted_num_conc = aero_mode%num_conc
-    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        if (aero_mode%type == "log_normal") then
           x_mean_prime = log10(aero_mode%mean_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
@@ -379,7 +380,8 @@ contains
           call die_msg(749122931, "Unknown aero_mode type: " &
                // aero_mode%type)
        end if
-    elseif (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        if (aero_mode%type == "log_normal") then
           x_mean_prime = log10(aero_mode%mean_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &

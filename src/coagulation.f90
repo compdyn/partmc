@@ -227,7 +227,8 @@ contains
        remove_1 = .true.
        remove_2 = .true.
        create_new = .true.
-    else
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        radius_1 = aero_particle_radius(particle_1)
        radius_2 = aero_particle_radius(particle_2)
        radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
@@ -239,8 +240,15 @@ contains
        prob_remove_2 = weight_min / weight_2
        prob_create_new = weight_min / weight_new
        remove_1 = (pmc_random() < prob_remove_1)
-       remove_2 = (pmc_random() < prob_remove_2)
+       if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
+          remove_2 = .not. remove_1
+       else
+          remove_2 = (pmc_random() < prob_remove_2)
+       end if
        create_new = (pmc_random() < prob_create_new)
+    else
+       call die_msg(886524113, "unknown aero_weight type: " &
+            // integer_to_string(aero_weight%type))
     end if
 
     ! figure out what to do about the ID numbers of the various

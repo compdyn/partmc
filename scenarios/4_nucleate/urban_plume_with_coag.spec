@@ -32,7 +32,7 @@ gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
-rel_humidity 0.95               # initial relative humidity (1)
+rel_humidity 0.90               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
 latitude 0                      # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)

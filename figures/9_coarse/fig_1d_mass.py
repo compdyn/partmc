@@ -24,28 +24,38 @@ def make_plot(in_dir, in_files, title, out_filename):
         hist = partmc.histogram_1d(dry_diameters, x_axis, weights = particles.masses(exclude=["H2O"]) / particles.comp_vols)
         hist_array[:,counter] = hist
         counter = counter+1
+
+    hist_array_gav = np.exp(np.average(np.log(hist_array),axis = 1))
+    hist_array_gstd = np.exp(np.std(np.log(hist_array), axis = 1))
+    e_bar_top = hist_array_gav * hist_array_gstd
+    e_bar_bottom = hist_array_gav / hist_array_gstd
+    e_bars = np.vstack((hist_array_gav - e_bar_bottom, e_bar_top - hist_array_gav))
+
     plt.clf()
-    for i_loop in range(0,config.i_loop_max):
-        plt.loglog(x_axis.centers(), hist_array[:,i_loop], 'k')
-        plt.errorbar(x_axis.centers(), np.average(hist_array,axis = 1), np.std(hist_array, axis = 1))
-#    plt.axis([1e-10, 1e-4, 1e4, 1e11])
+#    for i_loop in range(0,config.i_loop_max):
+#        plt.loglog(x_axis.centers(), hist_array[:,i_loop], 'k')
+    a = plt.gca() # gets the axis
+    a.set_xscale("log") # x axis log
+    a.set_yscale("log") # y axis log
+    plt.errorbar(x_axis.centers(), hist_array_gav, e_bars)
+    plt.axis([5e-9, 5e-6, 1e-13, 1e-7])
     plt.xlabel("dry diameter (m)")
     plt.ylabel(" mass concentration (kg m^{-3})")
-    plt.title(title)
+    plt.grid(True)
+#    plt.title(title)
     fig = plt.gcf()
     fig.savefig(out_filename)
 
 dir_name = "../../scenarios/5_weighted/out/"
-for hour in range(1, 26):
-    print "hour = ", hour
-    files = []
-    print 'files ', files
-    for i_loop in range (0, config.i_loop_max):
-        filename_in = "urban_plume_wc_100K_wei-3_00%02d_000000%02d.nc" % ((i_loop+1), hour)
-        print i_loop, filename_in
-        files.append(filename_in)
-    print files
-    filename_out = "figs/1d_mass_100K_wei-3_%02d.pdf" % hour
-    title = '100K wei-3, %02d hour' % (hour-1)
-    print filename_out
-    make_plot(dir_name, files, title, filename_out)
+for case in ["10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4" ]:
+#for case in ["100K_wei+1", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4" ]:
+    for hour in range(12, 13):
+        print "hour = ", hour
+        files = []
+        for i_loop in range (0, config.i_loop_max):
+            filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (case, (i_loop+1), hour)
+            files.append(filename_in)
+        filename_out = "figs/100loop/1d_mass_%s_%02d.pdf" % (case, hour)
+        title = '%s, %02d hour' % (case, hour-1)
+        print filename_out
+        make_plot(dir_name, files, title, filename_out)

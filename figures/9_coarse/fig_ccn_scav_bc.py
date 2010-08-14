@@ -10,7 +10,7 @@ sys.path.append("../../tool")
 import partmc
 import config
 
-def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_filename2):
+def make_plot(hour_counter, case_counter, dir_name, in_files):
     x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=70)
     y_axis = partmc.log_grid(min=1e-3,max=1e2,n_bin=50)
     x_centers = x_axis.centers()
@@ -73,38 +73,44 @@ def make_plot(hour_counter, case_counter, dir_name,in_files,out_filename1, out_f
     bc_average[hour_counter,case_counter,:] = np.average(bc_array, axis = 1)
     bc_std[hour_counter, case_counter, :] = np.std(bc_array, axis = 1)
 
-
 dir_name = "../../scenarios/5_weighted/out/"
 hour_counter = 0
-ccn_average = np.zeros([25,12,4])
-ccn_std = np.zeros([25,12,4])
-ccn_average_overall = np.zeros([12,4])
-ccn_std_overall = np.zeros([12,4])
+ccn_average = np.zeros([25,21,4])
+ccn_std = np.zeros([25,21,4])
+ccn_average_overall = np.zeros([21,4])
+ccn_std_overall = np.zeros([21,4])
 
-bc_average = np.zeros([25,12,4])
-bc_std = np.zeros([25,12,4])
-bc_average_overall = np.zeros([12,4])
-bc_std_overall = np.zeros([12,4])
+bc_average = np.zeros([25,21,4])
+bc_std = np.zeros([25,21,4])
+bc_average_overall = np.zeros([21,4])
+bc_std_overall = np.zeros([21,4])
 
 for hour in range(1,26):
     print "hour = ", hour
     case_counter = 0
     print 'counters 1 ', hour_counter, case_counter
-    for counter in ["1K_wei+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4", "10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
+    for counter in ["1K_wei+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4", 
+	 		"10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4",
+			"100K_wei+1", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4",
+			"1K_mfa", "10K_mfa", "100K_mfa"]:
         print 'counter ', counter
         files = []
         for i_loop in range(0,config.i_loop_max):
             filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (counter,i_loop+1,hour)
             files.append(filename_in)
-        filename_out1 = "figs/2d_scrit_%s_%02d.pdf" % (counter, hour)
-        filename_out2 = "figs/2d_scrit_std_%s_%02d.pdf" % (counter, hour)
-        make_plot(hour_counter, case_counter, dir_name, files, filename_out1, filename_out2)
+        make_plot(hour_counter, case_counter, dir_name, files)
         print 'counters 2', hour_counter, case_counter
         case_counter = case_counter + 1
     hour_counter = hour_counter + 1
 
+ccn_std = ccn_std / ccn_average
+bc_std = bc_std / bc_average
+
 ccn_std_overall = np.average(ccn_std, axis = 0)
 bc_std_overall = np.average(bc_std, axis = 0)
+
+ccn_average_overall = np.average(ccn_average, axis = 0)
+bc_average_overall = np.average(bc_average, axis = 0)
 
 np.savetxt("data/ccn_average_ss1.txt", ccn_average[:,:,0])
 np.savetxt("data/ccn_average_ss2.txt", ccn_average[:,:,1])

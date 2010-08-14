@@ -11,8 +11,10 @@ import partmc
 import config
 
 netcdf_dir = "../../scenarios/5_weighted/out"
-for counter in ["1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4"]:
-#for counter in ["100K_wei-1"]:
+#for counter in ["1K_wei\+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4","1K_mfa", 
+#	"10K_wei\+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "10K_maf"]:
+#for counter in ["1K_mfa", "10K_mfa"]:
+for counter in ["100K_wei\+1", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4","100K_mfa"]:
     netcdf_pattern = "urban_plume_wc_%s_0001_(.*).nc"  % counter
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
     time_array = np.zeros([len(time_filename_list)])

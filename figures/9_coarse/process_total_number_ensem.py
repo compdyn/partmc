@@ -13,7 +13,9 @@ import config
 i_loop_max = config.i_loop_max
 
 netcdf_dir = "../../scenarios/5_weighted/out"
-for counter in ["10K_wei\\+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4","1K_wei\\+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4"]:
+#for counter in ["10K_wei\\+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4","1K_wei\\+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4"]:
+#for counter in ["10K_mfa", "1K_mfa"]:
+for counter in ["100K_wei\\+1", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4", "100K_mfa"]:
     netcdf_pattern = "urban_plume_wc_%s_0001_(.*).nc"  % counter
     time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
     time_array = np.zeros([len(time_filename_list)])
@@ -60,7 +62,7 @@ for counter in ["10K_wei\\+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3"
             num_std[:,i_ensemble] = np.std(array_num[:,:i_loop], axis = 1)
 
             mass_avg[:,i_ensemble] = np.average(array_mass[:,:i_loop], axis = 1)
-            mass_std[:,i_ensemble] = np.std(array_mass[:,:i_loop], axis = 1)/mass_avg[:,i_ensemble]
+            mass_std[:,i_ensemble] = np.std(array_mass[:,:i_loop], axis = 1)
 
             
     num_avg_overall = np.average(num_avg, axis = 0)

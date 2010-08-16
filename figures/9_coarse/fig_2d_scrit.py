@@ -29,7 +29,7 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
 
         dry_diameters = particles.dry_diameters()
         s_crit = (particles.critical_rel_humids(env_state) - 1)*100
-        hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = particles.masses(include = ["BC"])/particles.comp_vols)
+        hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
         hist_array[:,:,counter] = hist2d
         counter = counter + 1
 
@@ -38,11 +38,26 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     hist_std_norm = hist_std/hist_average
     hist_std_norm = np.ma.masked_invalid(hist_std_norm)
 
-    print 'hist_array ', hist2d.shape, hist_array[35,:,0] 
-    print 'hist_std ', hist_average[35,:], hist_std[35,:], hist_std_norm[35,:]
-    
+    print "min, max", hist_average.min(), hist_average.max()
+  
+#    dry_diameters_line = np.array([1e-9, 1e-5])
+#    kappa_line1 = np.array([0.01, 0.01])
+#    crit_ss_line1 = (partmc.critical_rel_humids(env_state,kappa_line1, dry_diameters_line)-1)*100.
+#    kappa_line2 = np.array([0.1, 0.1])
+#    crit_ss_line2 = (partmc.critical_rel_humids(env_state,kappa_line2, dry_diameters_line)-1)*100.
+#    kappa_line3 = np.array([2,2])
+#    crit_ss_line3 = (partmc.critical_rel_humids(env_state,kappa_line3, dry_diameters_line)-1)*100.
+#    kappa_line4 = np.array([0.001,0.001])
+#    crit_ss_line4 = (partmc.critical_rel_humids(env_state,kappa_line4, dry_diameters_line)-1)*100.
+ 
+#    print 'line ', kappa_line1, dry_diameters_line, crit_ss_line1
+
     plt.clf()
-    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(vmin=1e-11, vmax=1e-7), linewidths = 0.1)
+    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(vmin=1e3, vmax=1e11), linewidths = 0.1)
+#    plt.plot(dry_diameters_line, crit_ss_line1, 'k-')
+#    plt.plot(dry_diameters_line, crit_ss_line2, 'k-')
+#    plt.plot(dry_diameters_line, crit_ss_line3, 'k-')
+#    plt.plot(dry_diameters_line, crit_ss_line4, 'k-')
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("log")
@@ -51,7 +66,7 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     plt.xlabel("dry diameter (m)")
     plt.ylabel("S_crit in %")
     cbar = plt.colorbar()
-    cbar.set_label("mass density (kg m^{-3})")
+    cbar.set_label("number density (m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename1)
 
@@ -65,13 +80,14 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     plt.xlabel("dry diameter (m)")
     plt.ylabel("S_crit in %")
     cbar = plt.colorbar()
-    cbar.set_label("std/avg")
+    cbar.set_label("CV")
     fig = plt.gcf()
     fig.savefig(out_filename2)
 
 dir_name = "../../scenarios/5_weighted/out/"
 for hour in range(12,13):
     print "hour = ", hour
+#    for counter in ["1K_wei+1", "1K_flat", "1K_wei-1", "1K_wei-2", "1K_wei-3", "1K_wei-4", "10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
     for counter in ["10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
 #    for counter in ["1K_flat"]:
         print 'counter ', counter
@@ -79,7 +95,8 @@ for hour in range(12,13):
         for i_loop in range(0,config.i_loop_max):
             filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (counter,i_loop+1,hour)
             files.append(filename_in)
-        filename_out1 = "figs/2d_scrit_mass_%s_%02d.pdf" % (counter, hour)
-        filename_out2 = "figs/2d_scrit_std_mass_%s_%02d.pdf" % (counter, hour)
+        filename_out1 = "figs/2d_scrit_%s_%02d.pdf" % (counter, hour)
+        filename_out2 = "figs/2d_scrit_std_%s_%02d.pdf" % (counter, hour)
         make_plot(dir_name, files, filename_out1, filename_out2)
+
 

@@ -39,50 +39,52 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     hist_average = np.average(hist_array, axis = 2)
     hist_std = np.std(hist_array, axis = 2)
     hist_std_norm = hist_std/hist_average
-    hist_std_norm = np.nan_to_num(hist_std_norm)
+    hist_std_norm = np.ma.masked_invalid(hist_std_norm)
 
-    print 'hist_array ', hist2d.shape, hist_array[35,:,0] 
     print 'hist_std ', hist_average[35,:], hist_std[35,:], hist_std_norm[35,:]
-    
+
     plt.clf()
     plt.pcolor(x_axis.edges(), y_axis.edges(), hist_average.transpose(), norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("linear")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+    plt.axis([5e-9, 5e-6, 0, 0.8])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("BC mass fraction")
     plt.clim(1.e-10, 1.e-7)
+    plt.grid()
     cbar = plt.colorbar()
-    cbar.set_label("mass density (kg m^{-3})")
+    cbar.set_label("BC mass concentration (kg m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename1)
 
     plt.clf()
-    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_std_norm.transpose(), linewidths = 0.1)
+    plt.pcolor(x_axis.edges(), y_axis.edges(), hist_std_norm.transpose(), 
+	norm = matplotlib.colors.LogNorm(vmin=1e-1, vmax = 10), linewidths = 0.1)
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("linear")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+    plt.axis([5e-9, 5e-6, 0, 0.8])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("BC mass fraction")
+    plt.grid()
     cbar = plt.colorbar()
-    cbar.set_label("std/avg")
+    cbar.set_label("CV")
     fig = plt.gcf()
     fig.savefig(out_filename2)
 
-dir_name = "../../scenarios/5_weighted/out_10loop/"
-for hour in range(1,26):
+dir_name = "../../scenarios/5_weighted/out/"
+for hour in range(12,13):
     print "hour = ", hour
-    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
-#    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
-#    for counter in ["10K_flat"]:
+#    for counter in ["10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4", "100K_flat", "100K_wei-1", "100K_wei-2", "100K_wei-3", "100K_wei-4"]:
+    for counter in ["10K_wei+1", "10K_flat", "10K_wei-1", "10K_wei-2", "10K_wei-3", "10K_wei-4"]:
+#    for counter in ["10K_wei+1"]:
         print 'counter ', counter
         files = []
         for i_loop in range(0,config.i_loop_max):
-            filename_in = "urban_plume_wc_%s_00%02d_000000%02d.nc" % (counter,i_loop+1,hour)
+            filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (counter,i_loop+1,hour)
             files.append(filename_in)
-        filename_out1 = "figs/2d_bc_bcmass_%s_%02d.pdf" % (counter, hour)
-        filename_out2 = "figs/2d_bc_bc_mass_std_%s_%02d.pdf" % (counter, hour)
+        filename_out1 = "figs/2d_bc_mass_%s_%02d.pdf" % (counter, hour)
+        filename_out2 = "figs/2d_bc_mass_std_%s_%02d.pdf" % (counter, hour)
         make_plot(dir_name, files, filename_out1, filename_out2)
 

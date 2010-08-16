@@ -41,7 +41,6 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     hist_std_norm = hist_std/hist_average
     hist_std_norm = np.ma.masked_invalid(hist_std_norm)
 
-    print 'hist_array ', hist2d.shape, hist_array[35,:,0] 
     print 'hist_std ', hist_average[35,:], hist_std[35,:], hist_std_norm[35,:]
     
     plt.clf()
@@ -49,7 +48,7 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("linear")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+    plt.axis([5e-9, 5e-6, 0, 0.8])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("BC mass fraction")
     plt.grid(True)
@@ -65,12 +64,12 @@ def make_plot(dir_name,in_files,out_filename1, out_filename2):
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("linear")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
+    plt.axis([5e-9, 5e-6, 0, 0.8])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("BC mass fraction")
     plt.grid(True)
     cbar = plt.colorbar()
-    cbar.set_label("std/avg")
+    cbar.set_label("CV")
     fig = plt.gcf()
     fig.savefig(out_filename2)
 

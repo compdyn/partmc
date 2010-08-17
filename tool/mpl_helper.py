@@ -93,11 +93,21 @@ def make_fig_array(n_horiz=2,
         for i_horiz in range(n_horiz):
             x_left = left_margin + i_horiz * (axis_width + horiz_sep)
             y_bottom = bottom_margin + i_vert * (axis_height + vert_sep)
+            kwargs = {}
+            if i_horiz > 0:
+                kwargs["sharey"] = last_y_axes
+            if i_vert > 0:
+                kwargs["sharex"] = last_x_axes
             new_axes = figure.add_axes([x_left / figure_width,
                                         y_bottom / figure_height,
                                         axis_width / figure_width,
-                                        axis_height / figure_height])
+                                        axis_height / figure_height],
+                                       **kwargs)
             axes_array[-1].append(new_axes)
+            if i_horiz == 0:
+                last_y_axes = new_axes
+            if i_vert == 0:
+                last_x_axes = new_axes
     if colorbar:
         colorbar_axes_array = []
         for i_vert in range(n_vert):
@@ -116,6 +126,16 @@ def make_fig_array(n_horiz=2,
         return (figure, axes_array, colorbar_axes_array)
     else:
         return (figure, axes_array)
+
+def remove_fig_array_axes(axes_array):
+    for (i_row, row) in enumerate(axes_array):
+        for (i_col, axes) in enumerate(row):
+            if i_row > 0:
+                for t in axes.get_xticklabels():
+                    t.set_visible(False)
+            if i_col > 0:
+                for t in axes.get_yticklabels():
+                    t.set_visible(False)
 
 def find_nearest_index(data, value):
     """Find the index of the entry in data that is closest to value.

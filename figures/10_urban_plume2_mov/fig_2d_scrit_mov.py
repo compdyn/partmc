@@ -43,11 +43,11 @@ def make_plot(in_filename,out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for hour in range(1, 1442):
+for hour in range(61, 62):
     print "hour = ", hour
 
-    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_wc_0001_0000%04d.nc" % hour
-    filename_out1 = "figs/2d_scrit_ref_%04d.png" % (hour-1)
+    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_both_wc_0001_0000%04d.nc" % hour
+    filename_out1 = "figs/2d_scrit_both_%04d.png" % (hour-1)
     print filename_in1
     print filename_out1
 

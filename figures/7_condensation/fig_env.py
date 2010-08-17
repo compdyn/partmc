@@ -33,10 +33,11 @@ def make_plot(in_dir, in_file_pattern, out_filename, title, max_ss_i, max_ss_j):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for counter in range(1,41):
+for counter in range(1,49):
     print "counter = ", counter
     
-    dir_name = "../../scenarios/3_condense/out"
+    dir_name = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/out/"
+
     filename_in1 = "cond_%02d_ref_0001_.*.nc" % counter
     filename_in2 = "cond_%02d_comp_0001_.*.nc" % counter
     filename_in3 = "cond_%02d_size_0001_.*.nc" % counter

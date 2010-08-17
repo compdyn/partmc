@@ -41,10 +41,10 @@ def make_plot(in_filename,out_filename,title):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for counter in range(1, 600):
+for counter in range(1, 602):
     print "counter = ",  counter
     
-    filename_in1 = "../../scenarios/3_condense/out/cond_07_ref_0001_00000%03d.nc" % counter
+    filename_in1 = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/out/cond_02_ref_0001_00000%03d.nc" % counter
     filename_out1 = "figs/2d_bc_ref_%03d.png" % (counter-1)
     titel = "%02d seconds" % (counter-1)
     print filename_in1

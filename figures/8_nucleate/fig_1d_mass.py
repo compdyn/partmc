@@ -30,7 +30,7 @@ def make_plot(in_dir, in_filename, out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../scenarios/4_nucleate/out/"
+dir_name = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/start/"
 
 #filename_in = "urban_plume_wc_0001_00000001.nc"
 #filename_out = "figs/1d_wc_mass_001.pdf"

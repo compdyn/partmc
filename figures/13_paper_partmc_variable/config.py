@@ -18,7 +18,7 @@ c_value = 0.95
 
 
 
-partmc_tool_dir = "/home/mwest/svn/partmc/trunk/tool"
+partmc_tool_dir = "../../tool"
 
 plume_data_dir = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/start"
 parcel_data_dir = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/out"

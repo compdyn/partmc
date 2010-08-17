@@ -3,6 +3,7 @@ i_loop_max = 100
 netcdf_dir = "../../scenarios/5_weighted/out"
 
 figure_width_single = 8.4 / 2.54
+figure_width_double = 16.9 / 2.54
 
 i_weighting_schemes = 6
 

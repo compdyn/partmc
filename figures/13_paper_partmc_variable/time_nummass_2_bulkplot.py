@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 
 import os, sys
 import config
@@ -22,7 +22,7 @@ num_avg = num_avg / 1e6
 num_std = num_std / 1e6
 
 (figure, axes_array) = mpl_helper.make_fig_array(2,1, figure_width=config.figure_width_single, 
-                                                 left_margin=0.7, right_margin=0.6, vert_sep=0.2)
+                                                 left_margin=0.7, right_margin=0.6, vert_sep=0.3)
 
 axes = axes_array[1][0]
 

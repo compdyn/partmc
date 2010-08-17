@@ -14,7 +14,7 @@ matplotlib.rc('xtick.major', pad = 8)
 matplotlib.rc('ytick.major', pad = 8)
 matplotlib.rc('xtick', labelsize = 10)
 matplotlib.rc('legend', fontsize = 10, borderpad = 0.7, borderaxespad = 1)
-matplotlib.rc('font', size = 11, family = "serif",
+matplotlib.rc('font', size = 10, family = "serif",
               serif = ["Computer Modern Roman"])
 matplotlib.rc('lines', linewidth = 1.5)
 matplotlib.rc('patch', linewidth = 0.5)
@@ -58,8 +58,8 @@ def make_fig(figure_width=5,
     else:
         return (figure, axes)
 
-def make_fig_array(n_horiz=2,
-                   n_vert=2,
+def make_fig_array(n_vert=2,
+                   n_horiz=2,
                    figure_width=5,
                    axis_ratio=(1 + math.sqrt(5)) / 2, # golden ratio
                    left_margin=0.8,

@@ -71,8 +71,29 @@ axes.grid(True)
 
 axes.set_xlabel(r"particle number $N_{\rm p}$")
 axes.set_ylabel(r"mean number conc. $\overline{\mu(N(t))}$ / $\rm cm^{-3}$")
-
 axes.minorticks_on()
 
+figure.savefig("figs/partnum_mean_num.pdf")
 
-figure.savefig("figs/partnum_mean_nummass.pdf")
+(figure, axes, cbar_axes) = config_matplotlib.make_fig(kind="1d")
+axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], r*mass_std_overall[i_weight*3,99],  ecolor='g')
+axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], conf_factor * mass_std_overall[i_weight*3,99],
+                  fmt='-', elinewidth = 7, capsize = 0, ecolor='r')
+axes.errorbar(x_array[1], mass_avg_overall[1+i_weight*3,99], r*mass_std_overall[1+i_weight*3,99], ecolor='g')
+axes.errorbar(x_array[1], mass_avg_overall[1+i_weight*3,99], conf_factor * mass_std_overall[1+i_weight*3,99],
+                 ecolor='r')
+axes.errorbar(x_array[2], mass_avg_overall[2+i_weight*3,99], r*mass_std_overall[2+i_weight*3,99], ecolor='g')
+axes.errorbar(x_array[2], mass_avg_overall[2+i_weight*3,99], conf_factor * mass_std_overall[2+i_weight*3,99],
+                 ecolor='r')
+axes.set_xscale("log")
+axes.set_yscale("linear")
+
+axes.set_xlim([500, 2e5])
+axes.grid(True)
+
+axes.set_xlabel(r"particle number $N_{\rm p}$")
+axes.set_ylabel(r"mean mass conc. $\overline{\mu(M(t))}$ / $\rm \mu g m^{-3}$")
+axes.minorticks_on()
+
+figure.savefig("figs/partnum_mean_mass.pdf")
+

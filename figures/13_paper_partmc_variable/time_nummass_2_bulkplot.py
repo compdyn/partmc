@@ -42,9 +42,40 @@ axes.set_xlim(0, 24)
 axes.set_xticks([0, 6, 12, 18, 24])
 axes.set_xlabel(r"time elapsed / h")
 
-config_matplotlib.label_plot_line(axes, time_array, num_avg, 15, "number",
-                                  verticalalignment="top",
+config_matplotlib.label_plot_line(axes, time_array, num_avg, 6, "number",
+                                  verticalalignment="bottom",
                                   horizontalalignment="right")
-config_matplotlib.label_plot_line(axes2, time_array, mass_avg, 10, "mass")
+config_matplotlib.label_plot_line(axes2, time_array, mass_avg, 8, "mass",
+                                  verticalalignment="top",
+                                  horizontalalignment="left")
 
 figure.savefig("figs/time_nummass_bulk.pdf")
+
+
+(figure, axes, cbar_axes) = config_matplotlib.make_fig(kind="1d")
+axes.errorbar(time_array, num_std/num_avg, fmt='b-')
+axes.set_ylabel(r"${\rm CV}(N(t))$")
+axes.set_ybound(lower=0)
+
+axes.grid(True)
+#axes.grid(True, which='minor')
+axes.minorticks_on()
+
+axes2 = axes.twinx()
+axes2.errorbar(time_array, mass_std/mass_avg, fmt='r-')
+axes2.set_ylabel(r"${\rm CV}(M(t))$")
+axes2.set_ybound(lower=0)
+
+axes.set_xlim(0, 24)
+axes.set_xticks([0, 6, 12, 18, 24])
+axes.set_xlabel(r"time elapsed / h")
+
+config_matplotlib.label_plot_line(axes, time_array, num_std/num_avg, 14, "number",
+                                  verticalalignment="bottom",
+                                  horizontalalignment="right")
+config_matplotlib.label_plot_line(axes2, time_array, mass_std/mass_avg, 12, "mass",
+                                  verticalalignment="top",
+                                  horizontalalignment="left")
+
+figure.savefig("figs/time_cv_nummass_bulk.pdf")
+

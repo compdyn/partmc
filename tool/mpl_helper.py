@@ -16,7 +16,7 @@ matplotlib.rc('xtick', labelsize = 10)
 matplotlib.rc('legend', fontsize = 10, borderpad = 0.7, borderaxespad = 1)
 matplotlib.rc('font', size = 10, family = "serif",
               serif = ["Computer Modern Roman"])
-matplotlib.rc('lines', linewidth = 1.5)
+matplotlib.rc('lines', linewidth = 1)
 matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
@@ -72,6 +72,8 @@ def make_fig_array(n_vert=2,
                    colorbar_width=0.15,
                    colorbar_height_fraction=0.8,
                    colorbar_offset=0.2,
+                   share_x_axes=True,
+                   share_y_axes=True,
                    ):
     """
     Numbering convention:
@@ -94,9 +96,9 @@ def make_fig_array(n_vert=2,
             x_left = left_margin + i_horiz * (axis_width + horiz_sep)
             y_bottom = bottom_margin + i_vert * (axis_height + vert_sep)
             kwargs = {}
-            if i_horiz > 0:
+            if i_horiz > 0 and share_y_axes:
                 kwargs["sharey"] = last_y_axes
-            if i_vert > 0:
+            if i_vert > 0 and share_x_axes:
                 kwargs["sharex"] = last_x_axes
             new_axes = figure.add_axes([x_left / figure_width,
                                         y_bottom / figure_height,
@@ -127,13 +129,13 @@ def make_fig_array(n_vert=2,
     else:
         return (figure, axes_array)
 
-def remove_fig_array_axes(axes_array):
+def remove_fig_array_axes(axes_array, remove_x_axes=True, remove_y_axes=True):
     for (i_row, row) in enumerate(axes_array):
         for (i_col, axes) in enumerate(row):
-            if i_row > 0:
+            if i_row > 0 and remove_x_axes:
                 for t in axes.get_xticklabels():
                     t.set_visible(False)
-            if i_col > 0:
+            if i_col > 0 and remove_y_axes:
                 for t in axes.get_yticklabels():
                     t.set_visible(False)
 

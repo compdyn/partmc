@@ -11,7 +11,7 @@ import mpl_helper
 import matplotlib
 
 x_array = np.loadtxt("data/2d_scrit_10K_wei+1_12_x_values.txt") * 1e6
-y_array = np.loadtxt("data/2d_scrit_10K_wei+1_12_y_values.txt") * 100
+y_array = np.loadtxt("data/2d_scrit_10K_wei+1_12_y_values.txt") 
 
 num_avg1 = np.loadtxt("data/2d_scrit_10K_wei+1_12_hist_average_num.txt") / 1e6
 num_avg2 = np.loadtxt("data/2d_scrit_10K_wei-1_12_hist_average_num.txt") / 1e6
@@ -57,7 +57,6 @@ axes = axes_array[2][1]
 axes.pcolor(x_array, y_array, mass_avg1.transpose(),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$S_{\rm crit} / \%$")
 axes.set_ylim(1e-3,1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
@@ -66,7 +65,6 @@ axes = axes_array[1][1]
 axes.pcolor(x_array, y_array, mass_avg2.transpose(),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$S_{\rm crit} / \%$")
 axes.set_ylim(1e-3,1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
@@ -75,7 +73,6 @@ axes = axes_array[0][1]
 axes.pcolor(x_array, y_array, mass_avg3.transpose(),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$S_{\rm crit} / \%$")
 axes.set_ylim(1e-3,1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)

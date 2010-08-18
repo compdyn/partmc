@@ -10,8 +10,8 @@ import config
 i_loop_max = config.i_loop_max
 
 def make_plot(in_files, f1, f2, f3, f4, f5, f6):
-    x_axis = partmc.log_grid(min=1e-10,max=1e-4,n_bin=100)
-    y_axis = partmc.linear_grid(min=0,max=1.,n_bin=50)
+    x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=70)
+    y_axis = partmc.log_grid(min=1e-3,max=1e2,n_bin=50)
     x_centers = x_axis.centers()
     y_centers = y_axis.centers()
     counter = 0

@@ -9,7 +9,7 @@ import config
 
 i_loop_max = config.i_loop_max
 
-def make_plot(hour, f1, f2, f3, f4, f5, f6):
+def make_plot(hour, f1, f2, f3, f4):
     x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=70)
     y_axis = partmc.log_grid(min=1e-3,max=1e2,n_bin=50)
     x_centers = x_axis.centers()
@@ -36,7 +36,7 @@ def make_plot(hour, f1, f2, f3, f4, f5, f6):
 
         for (counter_i_loop, file) in enumerate(files):
             print "file ", file
-            ncf = Scientific.IO.NetCDF.NetCDFFile(dir_name+file)
+            ncf = scipy.io.netcdf.netcdf_file(file, 'r')
             particles = partmc.aero_particle_array_t(ncf)
             env_state = partmc.env_state_t(ncf)
             ncf.close()
@@ -46,7 +46,7 @@ def make_plot(hour, f1, f2, f3, f4, f5, f6):
 
             hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
             hist_array_num[:,:,counter_weighting, counter_i_loop] = hist2d
-            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = particles.masses(include="[BC]")/particles.comp_vols)
+            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = particles.masses(include=["BC"])/particles.comp_vols)
             hist_array_mass[:,:,counter_weighting, counter_i_loop] = hist2d
 
     hist_array_num =  np.ma.masked_less_equal(hist_array_num,0)
@@ -87,7 +87,7 @@ for hour in range(12, 13):
     f1 = "data/2d_scrit_compo_%02d_x_values.txt" % hour
     f2 = "data/2d_scrit_compo_%02d_y_values.txt" % hour
     f3 = "data/2d_scrit_compo_%02d_average_num.txt" % hour
-    f4 = "data/2d_scrit_compo_%02d_average_mass.txt" % case, hour
+    f4 = "data/2d_scrit_compo_%02d_average_mass.txt" % hour
 
     print f1
     make_plot(hour, f1, f2, f3, f4)

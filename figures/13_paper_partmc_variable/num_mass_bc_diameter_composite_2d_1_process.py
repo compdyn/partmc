@@ -11,19 +11,16 @@ i_loop_max = config.i_loop_max
 
 def make_plot(hour, f1, f2, f3, f4, f5, f6):
     x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=70)
-    y_axis = partmc.log_grid(min=1e-3,max=1e2,n_bin=50)
+    y_axis = partmc.linear_grid(min=0,max=1.,n_bin=50)
     x_centers = x_axis.centers()
     y_centers = y_axis.centers()
 
     hist_array_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes, config.i_loop_max])
     hist_array_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes, config.i_loop_max])
-
     hist_average_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
     hist_average_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
-
     hist_var_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
     hist_var_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
-
     weighting_factor_num = np.zeros([len(x_centers), len(y_centers),config.i_weighting_schemes])
     weighting_factor_mass = np.zeros([len(x_centers), len(y_centers),config.i_weighting_schemes])
 
@@ -42,11 +39,13 @@ def make_plot(hour, f1, f2, f3, f4, f5, f6):
             ncf.close()
 
             dry_diameters = particles.dry_diameters()
-            s_crit = (particles.critical_rel_humids(env_state) - 1)*100
+            bc = particles.masses(include = ["BC"])
+            dry_mass = particles.masses(exclude = ["H2O"])
+            bc_frac = bc / dry_mass
 
-            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
+            hist2d = partmc.histogram_2d(dry_diameters, bc_frac, x_axis, y_axis, weights = 1/particles.comp_vols)
             hist_array_num[:,:,counter_weighting, counter_i_loop] = hist2d
-            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = particles.masses(include="[BC]")/particles.comp_vols)
+            hist2d = partmc.histogram_2d(dry_diameters, bc_frac, x_axis, y_axis, weights = particles.masses(include="[BC]")/particles.comp_vols)
             hist_array_mass[:,:,counter_weighting, counter_i_loop] = hist2d
 
     hist_array_num =  np.ma.masked_less_equal(hist_array_num,0)
@@ -78,16 +77,16 @@ def make_plot(hour, f1, f2, f3, f4, f5, f6):
         hist_composite_mass += increment
     hist_composite_mass = np.ma.masked_less_equal(hist_composite_mass,0)
 
-    np.savetxt(f1, x_axis.centers())
-    np.savetxt(f2, y_axis.centers())
-    np.savetxt(f3, hist_composite_num)
-    np.savetxt(f4, hist_composite_mass)
+np.savetxt(f1, x_axis.centers())
+np.savetxt(f2, y_axis.centers())
+np.savetxt(f3, hist_composite_num)
+np.savetxt(f4, hist_composite_mass)
 
 for hour in range(12, 13):
-    f1 = "data/2d_scrit_compo_%02d_x_values.txt" % hour
-    f2 = "data/2d_scrit_compo_%02d_y_values.txt" % hour
-    f3 = "data/2d_scrit_compo_%02d_average_num.txt" % hour
-    f4 = "data/2d_scrit_compo_%02d_average_mass.txt" % case, hour
+    f1 = "data/2d_bc_compo_%02d_x_values.txt" % hour
+    f2 = "data/2d_bc_compo_%02d_y_values.txt" % hour
+    f3 = "data/2d_bc_compo_%02d_average_num.txt" % hour
+    f4 = "data/2d_bc_compo_%02d_average_mass.txt" % case, hour
 
     print f1
     make_plot(hour, f1, f2, f3, f4)

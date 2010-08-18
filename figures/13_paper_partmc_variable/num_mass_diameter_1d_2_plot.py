@@ -10,33 +10,22 @@ import partmc
 import mpl_helper
 import matplotlib
 
-num_avg = np.zeros([3])
-mass_avg = np.zeros([3])
-num_std = np.zeros([3])
-mass_std = np.zeros([3])
+x_array = np.loadtxt("data/1d_10K_wei+1_12_x_values.txt") * 1e6
+num_avg1 = np.loadtxt("data/1d_10K_wei+1_12_hist_array_gav_num.txt") / 1e6
+num_avg2 = np.loadtxt("data/1d_10K_wei-1_12_hist_array_gav_num.txt") / 1e6
+num_avg3 = np.loadtxt("data/1d_10K_wei-4_12_hist_array_gav_num.txt") / 1e6
 
-x_array = np.loadtxt("data/1d_10K_wei+1_12_x_values.txt")
-num_avg1 = np.loadtxt("data/1d_10K_wei+1_12_hist_array_gav_num.txt")
-num_avg2 = np.loadtxt("data/1d_10K_wei-1_12_hist_array_gav_num.txt")
-num_avg3 = np.loadtxt("data/1d_10K_wei-4_12_hist_array_gav_num.txt")
+num_std1 = np.loadtxt("data/1d_10K_wei+1_12_e_bars_num.txt") / 1e6
+num_std2 = np.loadtxt("data/1d_10K_wei-1_12_e_bars_num.txt") / 1e6
+num_std3 = np.loadtxt("data/1d_10K_wei-4_12_e_bars_num.txt") / 1e6
 
-num_std1 = np.loadtxt("data/1d_10K_wei+1_12_e_bars_num.txt")
-num_std2 = np.loadtxt("data/1d_10K_wei-1_12_e_bars_num.txt")
-num_std3 = np.loadtxt("data/1d_10K_wei-4_12_e_bars_num.txt")
+mass_avg1 = np.loadtxt("data/1d_10K_wei+1_12_hist_array_gav_mass.txt") * 1e9
+mass_avg2 = np.loadtxt("data/1d_10K_wei-1_12_hist_array_gav_mass.txt") * 1e9
+mass_avg3 = np.loadtxt("data/1d_10K_wei-4_12_hist_array_gav_mass.txt") * 1e9
 
-mass_avg1 = np.loadtxt("data/1d_10K_wei+1_12_hist_array_gav_mass.txt")
-mass_avg2 = np.loadtxt("data/1d_10K_wei-1_12_hist_array_gav_mass.txt")
-mass_avg3 = np.loadtxt("data/1d_10K_wei-4_12_hist_array_gav_mass.txt")
-
-mass_std1 = np.loadtxt("data/1d_10K_wei+1_12_e_bars_mass.txt")
-mass_std2 = np.loadtxt("data/1d_10K_wei-1_12_e_bars_mass.txt")
-mass_std3 = np.loadtxt("data/1d_10K_wei-4_12_e_bars_mass.txt")
-
-x_array = x_array * 1e6
-num_avg1 = num_avg1 / 1e6
-num_std1 = num_std1 / 1e6
-mass_avg1 = mass_avg1 * 1e9
-mass_std1 = mass_std1 * 1e9
+mass_std1 = np.loadtxt("data/1d_10K_wei+1_12_e_bars_mass.txt") * 1e9
+mass_std2 = np.loadtxt("data/1d_10K_wei-1_12_e_bars_mass.txt") * 1e9
+mass_std3 = np.loadtxt("data/1d_10K_wei-4_12_e_bars_mass.txt") * 1e9
 
 (figure, axes_array) = mpl_helper.make_fig_array(3,2, figure_width=config.figure_width_double, 
                                                  left_margin=0.7, right_margin=0.6, vert_sep=0.3)

@@ -39,7 +39,7 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"num. conc. $n(D,w)$ / $\rm cm^{-3}$")
+cbar.set_label(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
 cbar.set_ticks([1e-3, 1e-1, 1e1, 1e3, 1e5])
 
 axes = axes_array[0][0]
@@ -55,7 +55,7 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"num. conc. $n(D,S)$ / $\rm cm^{-3}$")
+cbar.set_label(r"number conc. $n(D,S)$ / $\rm cm^{-3}$")
 cbar.set_ticks([1e-3, 1e-1, 1e1, 1e3, 1e5])
 
 axes = axes_array[1][1]

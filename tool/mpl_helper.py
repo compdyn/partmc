@@ -94,7 +94,7 @@ def make_fig_array(n_vert=2,
     dimensions and format as axes_array.
 
     If colorbar is "shared" then cbar_axes_array is a 1D list of
-    colorbars.
+    colorbars (one colorbar per row or per column).
 
     If colorbar is "single" then only one cbar_axes is returned.
     """
@@ -181,10 +181,10 @@ def make_fig_array(n_vert=2,
                         if colorbar_location == "top":
                             cbar_axes.xaxis.tick_top()
                             cbar_axes.xaxis.set_label_position('top')
-                if colorbar == "individual":
-                    cbar_axes_array[-1].append(cbar_axes)
-                elif colorbar == "shared":
-                    cbar_axes_array.append(cbar_axes)
+                        if colorbar == "individual":
+                            cbar_axes_array[-1].append(cbar_axes)
+                        elif colorbar == "shared":
+                            cbar_axes_array.append(cbar_axes)
         return (figure, axes_array, cbar_axes_array)
     elif colorbar == "single":
         total_width = n_horiz * axis_width + (n_horiz - 1) * horiz_sep

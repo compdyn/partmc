@@ -1,16 +1,12 @@
 #!/bin/sh
 
-./diam_bc_num.py
-./diam_num_parcel.py
-./diam_scrit_num.py
-./parceltime_env.py
-./plumetime_activated_2_plot_num.py
-./plumetime_activated_3_plot_numerr.py
-./plumetime_activated_4_plot_bc.py
-./plumetime_activated_5_plot_bcerr.py
-./plumetime_aero.py
-./plumetime_env.py
-./plumetime_gas.py
-./plumetime_maxss_2_plot.py
-./plumetime_maxss_3_plot_time.py
-./plumetime_nummass.py
+./cv_mass_cv_num.py
+./cv_scav_bc_cv_ccn.py
+./er_alpha_plot.py
+./num_mass_bc_diameter_2d_2_plot.py
+./num_mass_bc_scrit_diameter_compo_2d_2_plot.py
+./num_mass_bc_scrit_diameter_std_2d_2_plot.py
+./num_mass_diameter_1d_2_plot.py
+./num_mass_scrit_diameter_2d_2_plot.py
+./partnum_mean_nummass_2_plot.py
+./time_nummass_2_bulkplot.py

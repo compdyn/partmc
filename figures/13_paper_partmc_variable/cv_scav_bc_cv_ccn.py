@@ -25,11 +25,11 @@ for counter in ["ss1", "ss2", "ss3", "ss4"]:
     bc_std_overall[:,i_counter] = np.loadtxt(f2)
     i_counter += 1
 
-(figure, axes) = mpl_helper.make_fig(figure_width=config.figure_width_single)
+(figure, axes) = mpl_helper.make_fig(figure_width=config.figure_width_single, axis_ratio=1)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_xlabel("CV(xxx) ")
-axes.set_ylabel("CV(yyy)")
+axes.set_xlabel(r"$\overline{{\rm CV}(xxx)}$")
+axes.set_ylabel(r"$\overline{{\rm CV}(yyy)}$")
 axes.grid()
 axes.plot(bc_std_overall[0:6,1], ccn_std_overall[0:6,1],'g-x', label = '1K S_c = 0.01%')
 axes.plot(bc_std_overall[0:6,2], ccn_std_overall[0:6,2], 'b-x', label = '1K S_c = 0.1%')

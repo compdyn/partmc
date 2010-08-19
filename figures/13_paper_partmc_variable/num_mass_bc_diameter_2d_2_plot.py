@@ -21,17 +21,19 @@ mass_avg1 = np.loadtxt("data/2d_bc_10K_wei+1_12_hist_average_mass.txt") * 1e9
 mass_avg2 = np.loadtxt("data/2d_bc_10K_wei-1_12_hist_average_mass.txt") * 1e9
 mass_avg3 = np.loadtxt("data/2d_bc_10K_wei-4_12_hist_average_mass.txt") * 1e9
 
-(figure, axes_array, cbar_axes) = mpl_helper.make_fig_array(3,2, figure_width=config.figure_width_double, 
+(figure, axes_array, cbar_axes_array) = mpl_helper.make_fig_array(3,2, figure_width=config.figure_width_double, 
                                                  left_margin=0.7, right_margin=0.6, vert_sep=0.3, colorbar = True)
 
 axes = axes_array[2][0]
-axes.pcolor(x_array, y_array, num_avg1.transpose(), norm = matplotlib.colors.LogNorm(vmin=1e2, vmax = 1e5), linewidths = 0.1)
+cbar_axes = cbar_axes_array[2][0]
+p = axes.pcolor(x_array, y_array, num_avg1.transpose(), norm = matplotlib.colors.LogNorm(vmin=1e2, vmax = 1e5), linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylabel(r"$w_{\rm BC} / \%$")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
-#cbar_axes.set_clim(1e2, 1e5)
+figure.colorbar(p, cax = cbar_axes, format = matplotlib.ticker.LogFormatterMathtext())
+cbar_axes.set_ylabel(r"number conc. / $\rm cm^{-3}$")
 axes.grid(True)
 
 axes = axes_array[1][0]

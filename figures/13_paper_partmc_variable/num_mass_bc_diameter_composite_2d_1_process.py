@@ -77,8 +77,8 @@ def make_plot(hour, f1, f2, f3, f4):
         hist_composite_mass += increment
     hist_composite_mass = np.ma.masked_less_equal(hist_composite_mass,0)
 
-    np.savetxt(f1, x_axis.centers())
-    np.savetxt(f2, y_axis.centers())
+    np.savetxt(f1, x_axis.edges())
+    np.savetxt(f2, y_axis.edges())
     np.savetxt(f3, hist_composite_num)
     np.savetxt(f4, hist_composite_mass)
 

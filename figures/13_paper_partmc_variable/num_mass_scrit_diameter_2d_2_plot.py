@@ -41,7 +41,7 @@ print "mass range: ", min_pos(mass_avg3), mass_avg3.max()
                                 top_margin=1, bottom_margin=0.45,
                                 left_margin=1.07, right_margin=0.65,
                                 vert_sep=0.3, horiz_sep=0.3,
-                                top_colorbar=True)
+                                colorbar="shared", colorbar_location="top")
 
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
@@ -57,11 +57,10 @@ axes.text(-0.4, 0.5, r'$\alpha = +1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
-figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
+cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
-cbar_axes.xaxis.tick_top()
 cbar_axes.xaxis.set_label_position('top')
-cbar_axes.set_xlabel(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
+cbar.set_label(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
 
 axes = axes_array[1][0]
 axes.pcolor(x_array, y_array, num_avg2.transpose(),
@@ -101,13 +100,11 @@ axes.set_yscale("log")
 axes.set_ylim(1e-3,1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
+cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
-cbar_axes.xaxis.tick_top()
-#cbar_axes.set_xlim(1e-5, 10)
-#cbar_axes.set_xticks([1e-5, 1e-3, 1e-1, 10])
 cbar_axes.xaxis.set_label_position('top')
-cbar_axes.set_xlabel(r"mass conc. $m(D,w)$ / $\rm \mu g \ m^{-3}$")
+cbar.set_label(r"mass conc. $m(D,w)$ / $\rm \mu g \ m^{-3}$")
+cbar.set_ticks([1e-5, 1e-3, 1e-1, 1e1])
 
 axes = axes_array[1][1]
 axes.pcolor(x_array, y_array, mass_avg2.transpose(),

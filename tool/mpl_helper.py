@@ -69,8 +69,9 @@ def make_fig_array(n_vert=2,
                    horiz_sep=0.4,
                    vert_sep=0.4,
                    colorbar=False,
+                   top_colorbar=False,
                    colorbar_width=0.15,
-                   colorbar_height_fraction=0.8,
+                   colorbar_length_fraction=0.8,
                    colorbar_offset=0.2,
                    share_x_axes=True,
                    share_y_axes=True,
@@ -119,15 +120,28 @@ def make_fig_array(n_vert=2,
                     + i_horiz * horiz_sep + colorbar_offset
                 y_bottom = bottom_margin \
                     + i_vert * (axis_height + vert_sep) \
-                    + axis_height * (1.0 - colorbar_height_fraction) / 2.0
+                    + axis_height * (1.0 - colorbar_length_fraction) / 2.0
                 new_axes = figure.add_axes([x_left / figure_width,
                                             y_bottom / figure_height,
                                             colorbar_width / figure_width,
-                                            axis_height * colorbar_height_fraction / figure_height])
+                                            axis_height * colorbar_length_fraction / figure_height])
                 colorbar_axes_array[-1].append(new_axes)
         return (figure, axes_array, colorbar_axes_array)
-    else:
-        return (figure, axes_array)
+    if top_colorbar:
+        colorbar_axes_array = []
+        for i_horiz in range(n_horiz):
+            x_left = left_margin + i_horiz * (axis_width + horiz_sep) \
+                + axis_width * (1.0 - colorbar_length_fraction) / 2.0
+            y_bottom = bottom_margin \
+                + n_vert * axis_height + (n_vert - 1) * vert_sep \
+                + colorbar_offset
+            new_axes = figure.add_axes([x_left / figure_width,
+                                        y_bottom / figure_height,
+                                        axis_width * colorbar_length_fraction / figure_width,
+                                        colorbar_width / figure_height])
+            colorbar_axes_array.append(new_axes)
+        return (figure, axes_array, colorbar_axes_array)
+    return (figure, axes_array)
 
 def remove_fig_array_axes(axes_array, remove_x_axes=True, remove_y_axes=True):
     for (i_row, row) in enumerate(axes_array):

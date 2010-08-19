@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 
 import os, sys
 import config
@@ -38,9 +38,10 @@ print "mass range: ", min_pos(mass_avg3), mass_avg3.max()
 
 (figure, axes_array, cbar_axes_array) \
     = mpl_helper.make_fig_array(3,2, figure_width=config.figure_width_double, 
-                                left_margin=0.5, right_margin=0.05,
+                                top_margin=1, bottom_margin=0.45,
+                                left_margin=1.07, right_margin=0.65,
                                 vert_sep=0.3, horiz_sep=0.3,
-                                top_margin=0.8, top_colorbar=True)
+                                top_colorbar=True)
 
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
@@ -51,6 +52,10 @@ axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
+axes.text(-0.4, 0.5, r'$\alpha = +1$', horizontalalignment='center',
+           verticalalignment='center', transform=axes.transAxes,
+           rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
+                                          boxstyle="round,pad=0.5"))
 figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
 cbar_axes.xaxis.tick_top()
@@ -65,6 +70,10 @@ axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
+axes.text(-0.4, 0.5, r'$\alpha = -1$', horizontalalignment='center',
+           verticalalignment='center', transform=axes.transAxes,
+           rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
+                                          boxstyle="round,pad=0.5"))
 
 axes = axes_array[0][0]
 axes.pcolor(x_array, y_array, num_avg3.transpose(),norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max),linewidths = 0.1)
@@ -75,6 +84,10 @@ axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
 axes.set_xlabel(r"diameter $D$ / $\rm \mu m$")
+axes.text(-0.4, 0.5, r'$\alpha = -4$', horizontalalignment='center',
+           verticalalignment='center', transform=axes.transAxes,
+           rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
+                                          boxstyle="round,pad=0.5"))
 
 axes = axes_array[2][1]
 cbar_axes = cbar_axes_array[1]

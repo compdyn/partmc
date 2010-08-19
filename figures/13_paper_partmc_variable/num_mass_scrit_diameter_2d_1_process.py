@@ -51,10 +51,10 @@ def make_plot(in_files, f1, f2, f3, f4, f5, f6):
     hist_std_norm_mass = hist_std_mass / hist_average_mass
     hist_std_norm_mass = np.ma.masked_invalid(hist_std_norm_mass)
 
-    np.savetxt(f1, x_axis.centers())
-    np.savetxt(f2, y_axis.centers())
+    np.savetxt(f1, x_axis.edges())
+    np.savetxt(f2, y_axis.edges())
     np.savetxt(f3, hist_average_num)
-    np.savetxt(f4, hist_std_num)
+    np.savetxt(f4, hist_std_norm_num)
     np.savetxt(f5, hist_average_mass)
     np.savetxt(f6, hist_std_norm_mass)
 

@@ -21,6 +21,7 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   /usr/include
   /usr/local/include
   /opt/include
+  /opt/local/include
   /usr/lib64/gfortran/modules
   /usr/lib/gfortran/modules
   /sw/include
@@ -40,6 +41,8 @@ find_library(NETCDF_C_LIB netcdf
   /usr/lib64
   /usr/local/lib
   /usr/local/lib64
+  /opt/lib
+  /opt/local/lib
   /sw/lib
   /sw/lib/netcdf-gfortran/lib
   /sw/lib/netcdf-g95/lib
@@ -58,6 +61,8 @@ find_library(NETCDF_FORTRAN_LIB netcdff
   /usr/lib64
   /usr/local/lib
   /usr/local/lib64
+  /opt/lib
+  /opt/local/lib
   /sw/lib
   /sw/lib/netcdf-gfortran/lib
   /sw/lib/netcdf-g95/lib
@@ -85,6 +90,8 @@ if(ENABLE_SUNDIALS)
     /opt/include
     /usr/lib64/gfortran/modules
     /usr/lib/gfortran/modules
+    /opt/include
+    /opt/local/include
     /sw/include
     /sw/lib/netcdf-gfortran/include
     /sw/lib/netcdf-g95/include
@@ -99,6 +106,8 @@ if(ENABLE_SUNDIALS)
     /usr/lib64
     /usr/local/lib
     /usr/local/lib64
+    /opt/lib
+    /opt/local/lib
     /sw/lib
     /sw/lib/netcdf-gfortran/lib
     /sw/lib/netcdf-g95/lib
@@ -115,6 +124,8 @@ if(ENABLE_SUNDIALS)
     /usr/lib64
     /usr/local/lib
     /usr/local/lib64
+    /opt/lib
+    /opt/local/lib
     /sw/lib
     /sw/lib/netcdf-gfortran/lib
     /sw/lib/netcdf-g95/lib
@@ -134,10 +145,6 @@ if(ENABLE_MOSAIC)
   find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
     DOC "MOSAIC include directory"
     PATHS
-    /include
-    /usr/include
-    /usr/local/include
-    /opt/include
     $ENV{HOME}/include
     $ENV{HOME}/opt/include
     $ENV{HOME}/mosaic/include

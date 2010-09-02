@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import os, sys
 import config
@@ -45,30 +45,28 @@ for counter_p in ["1K", "10K", "100K"]:
         i_counter = i_counter + 1
     i_counter_p = i_counter_p + 1
 
-print 'array_num_std_avg ', array_num_std_avg
-print 'mfa ', array_num_std_avg[0,6], array_mass_std_avg[0,6]
 x_array = [1, 0, -1, -2, -3, -4]
 
 (figure, axes) = mpl_helper.make_fig(figure_width=config.figure_width_single, axis_ratio=1)
 
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.plot(array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6], 'xr-', label = '1K')
+axes.plot(array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6], 'xr-')
 #axes.plot(array_num_std_avg[0,6], array_mass_std_avg[0,6], 'or', label = '1K mfa')
-axes.plot(array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6], 'xg-', label = '10K')
+axes.plot(array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6], 'xg-')
 #axes.plot(array_num_std_avg[1,6], array_mass_std_avg[1,6], 'og', label = '10K mfa')
-axes.plot(array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6], 'xb-', label = '100K')
+axes.plot(array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6], 'xb-')
 #axes.plot(array_num_std_avg[2,6], array_mass_std_avg[2,6], 'ob', label = '100K mfa')
 axes.grid()
 axes.set_xlabel(r"$\overline{{\rm CV}(N(t))}$")
 axes.set_ylabel(r"$\overline{{\rm CV}(M(t))}$")
 
 
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, "1K",
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, "$10^3$",
                                   verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6] , 0.01, "10K",
+mpl_helper.label_plot_line(axes, array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6] , 0.01, "$10^4$",
                                   verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6] , 0.002, "100K",
+mpl_helper.label_plot_line(axes, array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6] , 0.002, "$10^5$",
                                   verticalalignment="bottom", horizontalalignment="right")
 
 mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, "1",

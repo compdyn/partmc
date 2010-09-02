@@ -2,11 +2,9 @@
 
 import os, sys
 import config
-import scipy.io
 import numpy as np
 
 sys.path.append("../../tool")
-import partmc
 import mpl_helper
 import matplotlib
 
@@ -41,11 +39,12 @@ print "mass range: ", min_pos(mass_avg3), mass_avg3.max()
                                 top_margin=1, bottom_margin=0.45,
                                 left_margin=1.07, right_margin=0.65,
                                 vert_sep=0.3, horiz_sep=0.3,
-                                top_colorbar=True)
+                                colorbar="shared", colorbar_location="top")
 
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
-p = axes.pcolor(x_array, y_array, num_avg1.transpose(), norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max), linewidths = 0.1)
+p = axes.pcolor(x_array, y_array, num_avg1.transpose(), 
+                norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max), linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
@@ -56,14 +55,14 @@ axes.text(-0.4, 0.5, r'$\alpha = +1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
-figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
+cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
-cbar_axes.xaxis.tick_top()
 cbar_axes.xaxis.set_label_position('top')
-cbar_axes.set_xlabel(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
+cbar.set_label(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
 
 axes = axes_array[1][0]
-axes.pcolor(x_array, y_array, num_avg2.transpose(),norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max),linewidths = 0.1)
+axes.pcolor(x_array, y_array, num_avg2.transpose(),
+            norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
@@ -76,7 +75,8 @@ axes.text(-0.4, 0.5, r'$\alpha = -1$', horizontalalignment='center',
                                           boxstyle="round,pad=0.5"))
 
 axes = axes_array[0][0]
-axes.pcolor(x_array, y_array, num_avg3.transpose(),norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max),linewidths = 0.1)
+axes.pcolor(x_array, y_array, num_avg3.transpose(),
+            norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
@@ -91,20 +91,22 @@ axes.text(-0.4, 0.5, r'$\alpha = -4$', horizontalalignment='center',
 
 axes = axes_array[2][1]
 cbar_axes = cbar_axes_array[1]
-p = axes.pcolor(x_array, y_array, mass_avg1.transpose(),norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
+p = axes.pcolor(x_array, y_array, mass_avg1.transpose(),
+                norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
+cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
-cbar_axes.xaxis.tick_top()
 cbar_axes.xaxis.set_label_position('top')
 cbar_axes.set_xlabel(r"mass conc. $m(D,w)$ / $\rm \mu g \ m^{-3}$")
+cbar.set_ticks([1e-5, 1e-3, 1e-1, 1e1])
 
 axes = axes_array[1][1]
-axes.pcolor(x_array, y_array, mass_avg2.transpose(),norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
+axes.pcolor(x_array, y_array, mass_avg2.transpose(),
+            norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 80)
@@ -112,7 +114,8 @@ axes.set_xlim(5e-3, 5)
 axes.grid(True)
 
 axes = axes_array[0][1]
-axes.pcolor(x_array, y_array, mass_avg3.transpose(),norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
+axes.pcolor(x_array, y_array, mass_avg3.transpose(),
+            norm = matplotlib.colors.LogNorm(vmin=mass_conc_min, vmax=mass_conc_max),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 80)

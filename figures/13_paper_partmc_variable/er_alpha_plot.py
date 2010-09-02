@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import os, sys
 import config
@@ -65,21 +65,22 @@ for weight in ["wei+1", "flat", "wei-1", "wei-2", "wei-3", "wei-4", "mfa"]:
 weight_array = [1, 0, -1, -2, -3, -4]
 
 (figure, axes) = mpl_helper.make_fig(figure_width = config.figure_width_single)
-axes.plot(weight_array, error_ratio_1K_num[0:6])#, label = "num, 1K")b
-axes.plot(weight_array, error_ratio_10K_num[0:6])#, label = "num, 10K")g
-axes.plot(weight_array, error_ratio_1K_mass[0:6])#, label = "mass, 1K")r
-axes.plot(weight_array, error_ratio_10K_mass[0:6])#, label = "mass, 10K")
+axes.plot(weight_array, error_ratio_1K_num[0:6], label = r"${\rm ER}_N(10^3,10^4)$")
+axes.plot(weight_array, error_ratio_10K_num[0:6], label = r"${\rm ER}_N(10^4,10^5)$")
+axes.plot(weight_array, error_ratio_1K_mass[0:6], label = r"${\rm ER}_M(10^3,10^4)$")
+axes.plot(weight_array, error_ratio_10K_mass[0:6], label = r"${\rm ER}_M(10^4,10^5)$")
 axes.grid(True)
+axes.legend()
 axes.set_ylim(-0.8, 0.5)
 axes.set_xlabel(r"$\alpha$ ")
 axes.set_ylabel(r"ER")
 
-mpl_helper.label_plot_line(axes, weight_array,  error_ratio_1K_num[0:6], -3, "num, 1K",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, weight_array,  error_ratio_10K_num[0:6], -3, "num, 10K",
-                                  verticalalignment="top", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, weight_array,  error_ratio_1K_mass[0:6], -2, "mass, 1K",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, weight_array,  error_ratio_10K_mass[0:6], -1, "mass, 10K",
-                                  verticalalignment="top", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, weight_array,  error_ratio_1K_num[0:6], -3, "num, 1K",
+#                                  verticalalignment="bottom", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, weight_array,  error_ratio_10K_num[0:6], -3, "num, 10K",
+#                                  verticalalignment="top", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, weight_array,  error_ratio_1K_mass[0:6], -2, "mass, 1K",
+#                                  verticalalignment="bottom", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, weight_array,  error_ratio_10K_mass[0:6], -1, "mass, 10K",
+#                                  verticalalignment="top", horizontalalignment="left")
 figure.savefig("figs/er_alpha.pdf")

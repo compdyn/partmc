@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import os, sys
 import config
@@ -72,7 +72,7 @@ axes.set_yscale("linear")
 axes.set_xlim([500, 2e5])
 axes.grid(True)
 
-axes.set_ylabel(r"$\overline{\mu(N(t))}$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"$\overline{\langle N(t) \rangle}$ / $\rm cm^{-3}$")
 
 axes = axes_array[0][0]
 axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], r*mass_std_overall[i_weight*3,99],  ecolor='g')
@@ -91,7 +91,7 @@ axes.set_xlim([500, 2e5])
 axes.grid(True)
 
 axes.set_xlabel(r"particle number $N_{\rm p}$")
-axes.set_ylabel(r"$\overline{\mu(M(t))}$ / $\rm \mu g \, m^{-3}$")
+axes.set_ylabel(r"$\overline{\langle M(t) \rangle}$ / $\rm \mu g \, m^{-3}$")
 
 mpl_helper.remove_fig_array_axes(axes_array)
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os, sys
-import config
 import scipy.io
 import scipy.stats
 import numpy as np
@@ -10,6 +9,7 @@ sys.path.append("../../tool")
 import partmc
 import mpl_helper
 import matplotlib
+import config
 
 #calculation of confidence interval
 
@@ -52,10 +52,10 @@ for counter in ["1K_wei\\+1","10K_wei\\+1", "100K_wei\\+1",
 x_array = [1000, 10000, 1e5]
 i_weight = 1
 
-(figure, axes_array) = mpl_helper.make_fig_array(2,1, figure_width=config.figure_width_single, 
-                                                 left_margin=0.75, vert_sep=0.2)
+(figure, axes_array) = mpl_helper.make_fig_array(1,2, figure_width=config.figure_width_double, 
+                                                 left_margin=0.75, horiz_sep=0.6, share_y_axes = False)
 
-axes = axes_array[1][0]
+axes = axes_array[0][0]
 
 axes.errorbar(x_array[0], num_avg_overall[i_weight*3,99], r*num_std_overall[i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[0], num_avg_overall[i_weight*3,99], conf_factor * num_std_overall[i_weight*3,99],
@@ -71,10 +71,10 @@ axes.set_yscale("linear")
 
 axes.set_xlim([500, 2e5])
 axes.grid(True)
-
+axes.set_xlabel(r"initial particle number $N_{\rm p}$")
 axes.set_ylabel(r"$\overline{\langle N(t) \rangle}$ / $\rm cm^{-3}$")
 
-axes = axes_array[0][0]
+axes = axes_array[0][1]
 axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], r*mass_std_overall[i_weight*3,99],  ecolor='g')
 axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], conf_factor * mass_std_overall[i_weight*3,99],
                   marker='_', mew=3, mec = 'k', ms= 7, elinewidth = 7, capsize = 0, ecolor='r')
@@ -92,8 +92,6 @@ axes.grid(True)
 
 axes.set_xlabel(r"initial particle number $N_{\rm p}$")
 axes.set_ylabel(r"$\overline{\langle M(t) \rangle}$ / $\rm \mu g \, m^{-3}$")
-
-mpl_helper.remove_fig_array_axes(axes_array)
 
 figure.savefig("figs/partnum_mean_massnum.pdf")
 

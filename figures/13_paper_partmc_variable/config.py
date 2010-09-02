@@ -1,9 +1,10 @@
+import matplotlib
 i_loop_max = 100
 
 netcdf_dir = "../../scenarios/5_weighted/out"
 
 figure_width_single = 8.4 / 2.54
-figure_width_double = 16.9 / 2.54
+figure_width_double = 16.45 / 2.54
 
 i_weighting_schemes = 6
 
@@ -14,6 +15,10 @@ s_crit_4 = 0.5
 
 c_value = 0.95
 
+matplotlib.rc('xtick', labelsize = 7)
+matplotlib.rc('legend', fontsize = 7, borderpad = 0.7, borderaxespad = 1)
+matplotlib.rc('font', size = 7, family = "serif",
+              serif = ["Computer Modern Roman"])
 
 
 

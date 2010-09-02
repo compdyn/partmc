@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os, sys
-import config
 import scipy.io
 import numpy as np
 
@@ -9,6 +8,7 @@ sys.path.append("../../tool")
 import partmc
 import mpl_helper
 import matplotlib
+import config
 
 bc_std_overall = np.zeros([21,4]) # 21 for weighting schemes, 4 for ss-values
 ccn_std_overall = np.zeros([21,4])
@@ -21,11 +21,12 @@ for counter in ["ss1", "ss2", "ss3", "ss4"]:
     bc_std_overall[:,i_counter] = np.loadtxt(f2)
     i_counter += 1
 
-(figure, axes_array) = mpl_helper.make_fig_array(2,1, figure_width=config.figure_width_single, vert_sep=0.2,axis_ratio=1)
-axes = axes_array[1][0]
+(figure, axes_array) = mpl_helper.make_fig_array(1,2, figure_width=config.figure_width_double, vert_sep=0.2,axis_ratio=1)
+axes = axes_array[0][0]
 axes.set_xscale("log")
 axes.set_yscale("log")
 axes.set_ylim(1e-3, 10)
+axes.set_xlabel(r"$\overline{{\rm CV}(N_{\rm CCN}(S_{\rm env}))}$")
 axes.set_ylabel(r"$\overline{{\rm CV}(M_{\rm BC}(S_{\rm env}))}$")
 axes.grid()
 axes.plot(ccn_std_overall[0:6,2], bc_std_overall[0:6,2], 'r-x', label = '1K S_c = 0.1%')
@@ -54,11 +55,13 @@ mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,
 mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.01, r"$\alpha = -4$",
                                   verticalalignment="bottom", horizontalalignment="left")
 
-axes = axes_array[0][0]
+axes.text(0.05, 0.95, r"$S_{\rm c} = 0.1$ %", verticalalignment='top', horizontalalignment='left', transform=axes.transAxes, 
+          bbox=dict(edgecolor='black', facecolor='white'))
+
+axes = axes_array[0][1]
 axes.set_xscale("log")
 axes.set_yscale("log")
 axes.set_xlabel(r"$\overline{{\rm CV}(N_{\rm CCN}(S_{\rm env}))}$")
-axes.set_ylabel(r"$\overline{{\rm CV}(M_{\rm BC}(S_{\rm env}))}$")
 axes.grid()
 
 axes.plot(ccn_std_overall[12:18,1], bc_std_overall[12:18,1], 'm-x', label = '100K S_c = 0.01%')
@@ -75,6 +78,11 @@ mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,
                                   verticalalignment="center", horizontalalignment="left")
 mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,3], bc_std_overall[12:18,3] , 0.1, r"$S_{\rm c} =0.5$ %",
                            verticalalignment="center", horizontalalignment="left")
+
+axes.text(0.05, 0.95, r"$N_{\rm p} = 10^5$", verticalalignment='top', horizontalalignment='left', transform=axes.transAxes, 
+          bbox=dict(edgecolor='black', facecolor='white'))
+
+
 mpl_helper.remove_fig_array_axes(axes_array)
 figure.savefig("figs/cv_scav_bc_cv_ccn.pdf")
 

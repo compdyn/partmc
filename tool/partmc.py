@@ -68,6 +68,13 @@ def constants_f2py(constants_f90_filename):
     if in_const_t:
         raise Exception("constants.f90 ended without finding end of const_t")
 
+def _get_netcdf_variable_data(nv):
+
+    """Extracts the data in a netcdf_variable object and returns it as
+    a numpy ndarray, a scalar, or a similar object."""
+
+    return nv[()]
+
 class aero_data_t(object):
 
     """Stores the physical constants describing aerosol species. All
@@ -155,7 +162,7 @@ class aero_data_t(object):
                 ]:
                 if ncf_var not in ncf.variables.keys():
                     raise Exception("%s variable not found in NetCDF file" % ncf_var)
-                self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var])
+                self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
                 
         if n_species is not None:
             if ncf is not None:
@@ -221,7 +228,7 @@ class env_state_t(object):
                 ]:
                 if ncf_var not in ncf.variables.keys():
                     raise Exception("%s variable not found in NetCDF file" % ncf_var)
-                self.__dict__[self_var] = ncf.variables[ncf_var].getValue()
+                self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
         else:
             self.temperature = 0.0
             self.relative_humidity = 0.0
@@ -381,7 +388,7 @@ class gas_data_t(object):
                 ]:
                 if ncf_var not in ncf.variables.keys():
                     raise Exception("%s variable not found in NetCDF file" % ncf_var)
-                self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var])
+                self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
                 
         if n_species is not None:
             if ncf is not None:
@@ -434,7 +441,7 @@ class gas_state_t(object):
             self.gas_data = gas_data_t(ncf)
             if "gas_mixing_ratio" not in ncf.variables.keys():
                 raise Exception("gas_mixing_ratio variable not found in NetCDF file")
-            self.raw_mixing_ratios = numpy.asarray(ncf.variables["gas_mixing_ratio"])
+            self.raw_mixing_ratios = _get_netcdf_variable_data(ncf.variables["gas_mixing_ratio"])
         else:
             if gas_data is None:
                 raise Exception("must specify either ncf or gas_data parameters")
@@ -584,7 +591,7 @@ class aero_particle_array_t(object):
             ("aero_greatest_create_time", "greatest_create_times", True),
             ]:
             if ncf_var in ncf.variables.keys():
-                self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var])
+                self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
             elif required:
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
 
@@ -943,7 +950,7 @@ class aero_removed_info_t(object):
             ]:
             if ncf_var not in ncf.variables.keys():
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
-            self.__dict__[self_var] = numpy.asarray(ncf.variables[ncf_var])
+            self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
 
         if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
             self.id = numpy.array([],'int32')

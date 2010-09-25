@@ -61,26 +61,50 @@ axes.grid()
 axes.set_xlabel(r"avg. num. coeff. var. $\overline{{\rm CV}(N(t))}$")
 axes.set_ylabel(r"avg. mass. coeff. var. $\overline{{\rm CV}(M(t))}$")
 
+axes.annotate(r"$N_{\rm p} = 10^3$", (array_num_std_avg[0,0], array_mass_std_avg[0,0]),
+              verticalalignment="bottom", horizontalalignment="center",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"$N_{\rm p} = 10^4$", (array_num_std_avg[1,0], array_mass_std_avg[1,0]),
+              verticalalignment="bottom", horizontalalignment="center",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"$N_{\rm p} = 10^5$", (array_num_std_avg[2,0], array_mass_std_avg[2,0]),
+              verticalalignment="bottom", horizontalalignment="center",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
 
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, r"$N_{\rm p} = 10^3$",
-                                  verticalalignment="bottom", horizontalalignment="center")
-mpl_helper.label_plot_line(axes, array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6] , 0.01, r"$N_{\rm p} = 10^4$",
-                                  verticalalignment="bottom", horizontalalignment="center")
-mpl_helper.label_plot_line(axes, array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6] , 0.003, r"$N_{\rm p} = 10^5$",
-                                  verticalalignment="bottom", horizontalalignment="center")
+axes.annotate(r"$\alpha = +1$", (array_num_std_avg[0,0], array_mass_std_avg[0,0]),
+              verticalalignment="center", horizontalalignment="left",
+              xytext=(5, 0), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = 0$", (array_num_std_avg[0,1], array_mass_std_avg[0,1]),
+              verticalalignment="center", horizontalalignment="left",
+              xytext=(5, 0), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -1$", (array_num_std_avg[0,2], array_mass_std_avg[0,2]),
+              verticalalignment="center", horizontalalignment="left",
+              xytext=(5, 5), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -2$", (array_num_std_avg[0,3], array_mass_std_avg[0,3]),
+              verticalalignment="top", horizontalalignment="center",
+              xytext=(0, -5), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -3$", (array_num_std_avg[0,4], array_mass_std_avg[0,4]),
+              verticalalignment="bottom", horizontalalignment="center",
+              xytext=(-4, 20), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'),
+              arrowprops=dict(arrowstyle='->'))
+axes.annotate(r"$\alpha = -4$", (array_num_std_avg[0,5], array_mass_std_avg[0,5]),
+              verticalalignment="bottom", horizontalalignment="center",
+              xytext=(-5, 25), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'),
+              arrowprops=dict(arrowstyle='->'))
 
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, r"$\alpha = +1$",
-                                  verticalalignment="center", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.02, r"$\alpha = 0$",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.04, r"$\alpha = -1$",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.08, r"$\alpha = -2$",
-                                  verticalalignment="top", horizontalalignment="center")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.2, r"$\alpha = -3$",
-                                  verticalalignment="bottom", horizontalalignment="center")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.5, r"$\alpha = -4$",
-                                  verticalalignment="top", horizontalalignment="center")
+axes.annotate(r"MFA", (array_num_std_avg[0,6], array_mass_std_avg[0,6]),
+              verticalalignment="center", horizontalalignment="left",
+              xytext=(5, -2), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
 
 figure.savefig("figs/cv_mass_cv_num.pdf")
 

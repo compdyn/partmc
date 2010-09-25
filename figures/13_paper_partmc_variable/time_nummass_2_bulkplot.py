@@ -27,14 +27,14 @@ num_std = num_std / 1e6
 axes = axes_array[0][0]
 
 axes.errorbar(time_array, num_avg, num_std, fmt='b-')
-axes.set_ylabel(r"$N(t)$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"total number $N(t)$ / $\rm cm^{-3}$")
 axes.set_ybound(lower=0)
 axes.set_yticks([0, 4000, 8000, 12000, 16000])
 axes.grid(True)
 
 axes2 = axes.twinx()
 axes2.errorbar(time_array, mass_avg, mass_std, fmt='r-')
-axes2.set_ylabel(r"$M(t)$ / $(\rm \mu g\ m^{-3})$")
+axes2.set_ylabel(r"total mass $M(t)$ / $(\rm \mu g\ m^{-3})$")
 axes2.set_ybound(lower=0)
 axes2.set_yticks([0, 10, 20, 30, 40])
 

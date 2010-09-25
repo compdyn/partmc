@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import os, sys
-import config
 import numpy as np
 
 sys.path.append("../../tool")
 import mpl_helper
 import matplotlib
+import config
 
 num_conc_min = 4e0
 num_conc_max = 4e5
@@ -16,6 +16,10 @@ mass_conc_max = 4e1
 x_array = np.loadtxt("data/2d_bc_10K_wei+1_12_x_values.txt") * 1e6
 y_array = np.loadtxt("data/2d_bc_10K_wei+1_12_y_values.txt") * 100
 
+line1 = np.zeros([len(x_array)])
+line1[:] = 70
+
+print 'line1 ', line1
 def min_pos(a):
     ma = np.ma.masked_less_equal(a, 0)
     return ma.min()
@@ -45,20 +49,21 @@ axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
 p = axes.pcolor(x_array, y_array, num_avg1.transpose(), 
                 norm = matplotlib.colors.LogNorm(vmin=num_conc_min, vmax=num_conc_max), linewidths = 0.1)
+axes.plot(x_array,line1, 'k')
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.text(-0.4, 0.5, r'$\alpha = +1$', horizontalalignment='center',
+axes.text(-0.3, 0.5, r'$\alpha = +1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
+cbar.set_label(r"number conc. $n(D_{\rm dry},w_{\rm BC})$ / $\rm cm^{-3}$")
 
 axes = axes_array[1][0]
 axes.pcolor(x_array, y_array, num_avg2.transpose(),
@@ -69,7 +74,7 @@ axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.text(-0.4, 0.5, r'$\alpha = -1$', horizontalalignment='center',
+axes.text(-0.3, 0.5, r'$\alpha = -1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
@@ -83,8 +88,8 @@ axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"diameter $D$ / $\rm \mu m$")
-axes.text(-0.4, 0.5, r'$\alpha = -4$', horizontalalignment='center',
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
+axes.text(-0.3, 0.5, r'$\alpha = -4$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
@@ -101,7 +106,7 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar_axes.set_xlabel(r"mass conc. $m(D,w)$ / $\rm \mu g \ m^{-3}$")
+cbar_axes.set_xlabel(r"mass conc. $m^{\rm BC}(D_{\rm dry},w_{\rm BC})$ / ($\rm \mu g \ m^{-3}$)")
 cbar.set_ticks([1e-5, 1e-3, 1e-1, 1e1])
 
 axes = axes_array[1][1]
@@ -121,7 +126,7 @@ axes.set_yscale("linear")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"diameter $D$ / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
 
 mpl_helper.remove_fig_array_axes(axes_array)
 

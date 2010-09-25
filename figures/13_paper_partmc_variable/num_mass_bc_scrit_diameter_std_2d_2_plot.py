@@ -34,15 +34,15 @@ p = axes.pcolor(x_array_bc, y_array_bc, num_bc_std.transpose(),
                 norm = matplotlib.colors.LogNorm(vmin=5e-2, vmax=10),linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("linear")
-axes.set_ylabel(r"$w_{\rm BC} / \%$")
+axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / $\%$")
 axes.set_ylim(0, 80)
 axes.set_yticks([0, 20, 40, 60, 80])
 axes.set_xlim(5e-3, 5)
-axes.set_xlabel(r"diameter $D$ / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"${\rm CV}(n_{\rm BC}(D, w))$ / $???$")
+cbar.set_label(r"${\rm CV}(n(D_{\rm dry}, w_{\rm BC}))$")
 
 axes = axes_array[0][1]
 cbar_axes = cbar_axes_array[0][1]
@@ -50,14 +50,14 @@ p = axes.pcolor(x_array_scrit, y_array_scrit, num_scrit_std.transpose(),
                 norm = matplotlib.colors.LogNorm(vmin=5e-2, vmax=10), linewidths = 0.1)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$S_{\rm c} / \%$")
+axes.set_ylabel(r"crit. supersat. $S_{\rm c}$ / $\%$")
 axes.set_ylim(1e-3,1e2)
 axes.set_xlim(5e-3, 5)
-axes.set_xlabel(r"diameter $D$ / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"${\rm CV}(n_{\rm  S}(D, S_{\rm c}))$ / $???$")
+cbar.set_label(r"${\rm CV}(n(D_{\rm dry}, S_{\rm c}))$")
 
 figure.savefig("figs/num_mass_bc_scrit_diameter_std_2d.pdf")
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os, sys
-import config
 import scipy.io
 import numpy as np
 
@@ -9,6 +8,7 @@ sys.path.append("../../tool")
 import partmc
 import mpl_helper
 import matplotlib
+import config
 
 i_counter = 0
 i_counter_p = 0
@@ -58,29 +58,29 @@ axes.plot(array_num_std_avg[1,6], array_mass_std_avg[1,6], 'og', label = '10K mf
 axes.plot(array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6], 'xb-')
 axes.plot(array_num_std_avg[2,6], array_mass_std_avg[2,6], 'ob', label = '100K mfa')
 axes.grid()
-axes.set_xlabel(r"$\overline{{\rm CV}(N(t))}$")
-axes.set_ylabel(r"$\overline{{\rm CV}(M(t))}$")
+axes.set_xlabel(r"avg. num. coeff. var. $\overline{{\rm CV}(N(t))}$")
+axes.set_ylabel(r"avg. mass. coeff. var. $\overline{{\rm CV}(M(t))}$")
 
 
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, "$10^3$",
-                                  verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6] , 0.01, "$10^4$",
-                                  verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6] , 0.003, "$10^5$",
-                                  verticalalignment="bottom", horizontalalignment="right")
-
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, "1",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.02, "0",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.04, "-1",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.08, "-2",
-                                  verticalalignment="bottom", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.2, "-3",
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, r"$N_{\rm p} = 10^3$",
                                   verticalalignment="bottom", horizontalalignment="center")
-mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.5, "-4",
+mpl_helper.label_plot_line(axes, array_num_std_avg[1,0:6], array_mass_std_avg[1,0:6] , 0.01, r"$N_{\rm p} = 10^4$",
                                   verticalalignment="bottom", horizontalalignment="center")
+mpl_helper.label_plot_line(axes, array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6] , 0.003, r"$N_{\rm p} = 10^5$",
+                                  verticalalignment="bottom", horizontalalignment="center")
+
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.03, r"$\alpha = +1$",
+                                  verticalalignment="center", horizontalalignment="left")
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.02, r"$\alpha = 0$",
+                                  verticalalignment="bottom", horizontalalignment="left")
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.04, r"$\alpha = -1$",
+                                  verticalalignment="bottom", horizontalalignment="left")
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.08, r"$\alpha = -2$",
+                                  verticalalignment="top", horizontalalignment="center")
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.2, r"$\alpha = -3$",
+                                  verticalalignment="bottom", horizontalalignment="center")
+mpl_helper.label_plot_line(axes, array_num_std_avg[0,0:6], array_mass_std_avg[0,0:6] , 0.5, r"$\alpha = -4$",
+                                  verticalalignment="top", horizontalalignment="center")
 
 figure.savefig("figs/cv_mass_cv_num.pdf")
 

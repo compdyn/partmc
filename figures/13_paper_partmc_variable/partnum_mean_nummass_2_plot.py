@@ -59,31 +59,31 @@ axes = axes_array[0][0]
 
 axes.errorbar(x_array[0], num_avg_overall[i_weight*3,99], r*num_std_overall[i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[0], num_avg_overall[i_weight*3,99], conf_factor * num_std_overall[i_weight*3,99],
-                 marker='_', mew=3, mec = 'k', ms=7, elinewidth = 7, capsize = 0, ecolor='r')
+                 marker='.', mew=1, mec = 'k', mfc = 'k',  ms=4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.errorbar(x_array[1], num_avg_overall[1+i_weight*3,99], r*num_std_overall[1+i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[1], num_avg_overall[1+i_weight*3,99], conf_factor * num_std_overall[1+i_weight*3,99],
-                 marker='_', mew=3, mec = 'k', ms=7, elinewidth = 7, capsize = 0, ecolor='r')
+                 marker='.', mew=1, mec = 'k', mfc = 'k', ms=4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.errorbar(x_array[2], num_avg_overall[2+i_weight*3,99], r*num_std_overall[2+i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[2], num_avg_overall[2+i_weight*3,99], conf_factor * num_std_overall[2+i_weight*3,99],
-                 marker='_', mew=3, mec = 'k', ms=7, elinewidth = 7, capsize = 0, ecolor='r')
+                 marker='.', mew=1, mec = 'k', mfc = 'k', ms=4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.set_xscale("log")
 axes.set_yscale("linear")
 
 axes.set_xlim([500, 2e5])
 axes.grid(True)
 axes.set_xlabel(r"initial particle number $N_{\rm p}$")
-axes.set_ylabel(r"$\overline{\langle N(t) \rangle}$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"total number $\overline{\langle N(t) \rangle}$ / $\rm cm^{-3}$")
 
 axes = axes_array[0][1]
 axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], r*mass_std_overall[i_weight*3,99],  ecolor='g')
 axes.errorbar(x_array[0], mass_avg_overall[i_weight*3,99], conf_factor * mass_std_overall[i_weight*3,99],
-                  marker='_', mew=3, mec = 'k', ms= 7, elinewidth = 7, capsize = 0, ecolor='r')
+                  marker='.', mew=1, mec = 'k', mfc = 'k', ms= 4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.errorbar(x_array[1], mass_avg_overall[1+i_weight*3,99], r*mass_std_overall[1+i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[1], mass_avg_overall[1+i_weight*3,99], conf_factor * mass_std_overall[1+i_weight*3,99],
-                 marker='_', mew=3, mec = 'k', ms= 7, elinewidth = 7, capsize = 0, ecolor='r')
+                 marker='.', mew=1, mec = 'k', mfc = 'k', ms= 4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.errorbar(x_array[2], mass_avg_overall[2+i_weight*3,99], r*mass_std_overall[2+i_weight*3,99], ecolor='g')
 axes.errorbar(x_array[2], mass_avg_overall[2+i_weight*3,99], conf_factor * mass_std_overall[2+i_weight*3,99],
-                 marker='_', mew=3, mec = 'k', ms= 7, elinewidth = 7, capsize = 0, ecolor='r')
+                 marker='.', mew=1, mec = 'k', mfc = 'k', ms= 4, elinewidth = 7, capsize = 0, ecolor='r')
 axes.set_xscale("log")
 axes.set_yscale("linear")
 
@@ -91,7 +91,7 @@ axes.set_xlim([500, 2e5])
 axes.grid(True)
 
 axes.set_xlabel(r"initial particle number $N_{\rm p}$")
-axes.set_ylabel(r"$\overline{\langle M(t) \rangle}$ / $\rm \mu g \, m^{-3}$")
+axes.set_ylabel(r"total mass $\overline{\langle M(t) \rangle}$ / $(\rm \mu g \, m^{-3})$")
 
 figure.savefig("figs/partnum_mean_massnum.pdf")
 

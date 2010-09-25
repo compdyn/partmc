@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import os, sys
-import config
 import numpy as np
 
 sys.path.append("../../tool")
 import partmc
 import mpl_helper
 import matplotlib
+import config
 
 top_label_width = 32.8
 top_label_height = 6.8
@@ -40,10 +40,10 @@ axes = axes_array[2][0]
 axes.errorbar(x_array, num_avg1, num_std1, fmt='b-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$n(D)$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"number conc. $n(D_{\rm dry})$ / $\rm cm^{-3}$")
 axes.set_ylim(1e-3, 1e5)
 axes.grid(True)
-axes.text(-0.4, 0.5, r'$\alpha = +1$', horizontalalignment='center',
+axes.text(-0.3, 0.5, r'$\alpha = +1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
@@ -63,11 +63,11 @@ axes = axes_array[1][0]
 axes.errorbar(x_array, num_avg2, num_std2, fmt='b-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$n(D)$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"number conc. $n(D_{\rm dry})$ / $\rm cm^{-3}$")
 axes.set_ylim(1e-3, 1e5)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.text(-0.4, 0.5, r'$\alpha = -1$', horizontalalignment='center',
+axes.text(-0.3, 0.5, r'$\alpha = -1$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
@@ -76,13 +76,13 @@ axes = axes_array[0][0]
 axes.errorbar(x_array, num_avg3, num_std3, fmt='b-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$n(D)$ / $\rm cm^{-3}$")
+axes.set_ylabel(r"number conc. $n(D_{\rm dry})$ / $\rm cm^{-3}$")
 axes.set_ylim(1e-3, 1e5)
 axes.set_xlim(5e-3, 5)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"diameter / $\rm \mu m$")
-axes.text(-0.4, 0.5, r'$\alpha = -4$', horizontalalignment='center',
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \mu m$")
+axes.text(-0.3, 0.5, r'$\alpha = -4$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
@@ -91,7 +91,7 @@ axes = axes_array[2][1]
 axes.errorbar(x_array, mass_avg1,mass_std1, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$m(D)$ / $\rm \mu g \, m^{-3}$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.grid(True)
 axes.yaxis.tick_right()
@@ -109,7 +109,7 @@ axes = axes_array[1][1]
 axes.errorbar(x_array, mass_avg2, mass_std2, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$m(D)$ / $\rm \mu g \, m^{-3}$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.grid(True)
 axes.yaxis.tick_right()
@@ -119,13 +119,13 @@ axes = axes_array[0][1]
 axes.errorbar(x_array, mass_avg3, mass_std3, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"$m(D)$ / $\rm \mu g \, m^{-3}$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
 axes.yaxis.tick_right()
 axes.yaxis.set_label_position('right')
-axes.set_xlabel(r"diameter / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \mu m$")
 
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 

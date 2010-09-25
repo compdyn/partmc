@@ -19,7 +19,6 @@ y_array = np.loadtxt("data/2d_bc_10K_wei+1_12_y_values.txt") * 100
 line1 = np.zeros([len(x_array)])
 line1[:] = 70
 
-print 'line1 ', line1
 def min_pos(a):
     ma = np.ma.masked_less_equal(a, 0)
     return ma.min()

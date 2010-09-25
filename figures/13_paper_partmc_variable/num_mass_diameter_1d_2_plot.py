@@ -48,14 +48,14 @@ axes.text(-0.3, 0.5, r'$\alpha = +1$', horizontalalignment='center',
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
 axes.text(0.5, 1.15, r'number', horizontalalignment='center',
-           verticalalignment='baseline', transform=axes.transAxes)
+           verticalalignment='baseline', transform=axes.transAxes, )
 #           bbox=dict(edgecolor='red', facecolor='white', alpha=0.8, linewidth=0.1,
 #                     boxstyle="round,pad=0.5"))
 pos = axes.transAxes.transform_point((0.5, 1)) * 72.0 / figure.get_dpi()
 axes.add_artist(matplotlib.patches.FancyBboxPatch((pos[0] - top_label_width / 2.0,
                                                    pos[1] + top_label_voffset),
                                                   top_label_width, top_label_height,
-                                                  boxstyle=matplotlib.patches.BoxStyle.Round(pad=5),
+                                                  boxstyle=matplotlib.patches.BoxStyle.Round(pad=3),
                                                   facecolor='white', edgecolor='black',
                                                   transform=None, clip_on=False))
 

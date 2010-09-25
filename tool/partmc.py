@@ -837,9 +837,15 @@ def critical_rel_humids(env_state, kappas, dry_diameters):
     """
     A = env_state.A()
     c_diams = critical_diameters(env_state, kappas, dry_diameters)
-    return (c_diams**3 - dry_diameters**3) \
-        / (c_diams**3 - dry_diameters**3 * (1 - kappas)) \
-        * numpy.exp(A / c_diams)
+    c_rh = numpy.zeros_like(dry_diameters)
+    for i in range(len(kappas)):
+        if kappas[i] < 1e-30:
+            c_rh = numpy.exp(A / c_diams[i])
+        else:
+            c_rh = (c_diams[i]**3 - dry_diameters[i]**3) \
+                / (c_diams[i]**3 - dry_diameters[i]**3 * (1 - kappas[i])) \
+                * numpy.exp(A / c_diams[i])
+    return c_rh
 
 def critical_diameters(env_state, kappas, dry_diameters):
     """Compute the critical diameters (m) for each kappa and
@@ -868,6 +874,9 @@ def critical_diameters(env_state, kappas, dry_diameters):
     c0 = dry_diameters**6 * (1.0 - kappas)
     dc = numpy.zeros_like(dry_diameters)
     for i in range(len(kappas)):
+        if kappas[i] < 1e-30:
+            dc[i] = dry_diameters[i]
+            continue
         def f(d):
             return d**6 + c4[i] * d**4 + c3[i] * d**3 + c0[i]
         d1 = dry_diameters[i]

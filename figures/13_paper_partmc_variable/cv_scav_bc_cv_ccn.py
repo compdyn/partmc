@@ -36,24 +36,70 @@ axes.plot(ccn_std_overall[18,2], bc_std_overall[18,2], 'ro')
 axes.plot(ccn_std_overall[19,2], bc_std_overall[19,2], 'go')
 axes.plot(ccn_std_overall[20,2], bc_std_overall[20,2], 'bo')
 
-mpl_helper.label_plot_line(axes, ccn_std_overall[0:6,2], bc_std_overall[0:6,2] , 0.4, r"$N_{\rm p} = 10^3$",
-                                  verticalalignment="center", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, ccn_std_overall[6:12,2], bc_std_overall[6:12,2] , 0.2, r"$N_{\rm p} = 10^4$",
-                                  verticalalignment="center", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.1, r"$N_{\rm p} =10^5$",
-                                  verticalalignment="center", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.02, r"$\alpha = 1$",
-                                  verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.009, r"$\alpha = 0$",
-                                  verticalalignment="bottom", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.006, r"$\alpha = -1$",
-                                  verticalalignment="center", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.01, r"$\alpha = -2$",
-                                  verticalalignment="top", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.03, r"$\alpha = -3$",
-                                  verticalalignment="top", horizontalalignment="left")
-mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.01, r"$\alpha = -4$",
-                                  verticalalignment="bottom", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[0:6,2], bc_std_overall[0:6,2] , 0.4, r"$N_{\rm p} = 10^3$",
+#                                  verticalalignment="center", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[6:12,2], bc_std_overall[6:12,2] , 0.2, r"$N_{\rm p} = 10^4$",
+#                                  verticalalignment="center", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.1, r"$N_{\rm p} =10^5$",
+#                                  verticalalignment="center", horizontalalignment="left")
+
+axes.annotate(r"$N_{\rm p} = 10^3$", (ccn_std_overall[0,2], bc_std_overall[0,2]),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"$N_{\rm p} = 10^4$", (ccn_std_overall[6,2], bc_std_overall[6,2]),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"$N_{\rm p} = 10^5$", (ccn_std_overall[12,2], bc_std_overall[12,2]),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+
+axes.annotate(r"$\alpha = +1$", (ccn_std_overall[12,2], bc_std_overall[12,2]),
+              verticalalignment="center", horizontalalignment="right",
+              xytext=(-15, -7), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'),
+              arrowprops=dict(arrowstyle='->'))
+axes.annotate(r"$\alpha = 0$", (ccn_std_overall[13,2], bc_std_overall[13,2]),
+              verticalalignment="center", horizontalalignment="right",
+              xytext=(-5, 0), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -1$", (ccn_std_overall[14,2], bc_std_overall[14,2]),
+              verticalalignment="center", horizontalalignment="right",
+              xytext=(-5, 0), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -2$", (ccn_std_overall[15,2], bc_std_overall[15,2]),
+              verticalalignment="top", horizontalalignment="center",
+              xytext=(0, -5), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -3$", (ccn_std_overall[16,2], bc_std_overall[16,2]),
+              verticalalignment="bottom", horizontalalignment="center",
+              xytext=(5, -12), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+axes.annotate(r"$\alpha = -4$", (ccn_std_overall[17,2], bc_std_overall[17,2]),
+              verticalalignment="bottom", horizontalalignment="center",
+              xytext=(10, -13), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+
+axes.annotate(r"MFA", (ccn_std_overall[16,2], bc_std_overall[16,2]),
+              verticalalignment="bottom", horizontalalignment="right",
+              xytext=(-8, 3), textcoords='offset points',
+              bbox = dict(facecolor='white', edgecolor='white'))
+
+
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.02, r"$\alpha = 1$",
+#                                  verticalalignment="bottom", horizontalalignment="right")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.009, r"$\alpha = 0$",
+#                                  verticalalignment="bottom", horizontalalignment="right")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.006, r"$\alpha = -1$",
+#                                  verticalalignment="center", horizontalalignment="right")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.01, r"$\alpha = -2$",
+#                                  verticalalignment="top", horizontalalignment="right")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.03, r"$\alpha = -3$",
+#                                  verticalalignment="top", horizontalalignment="left")
+#mpl_helper.label_plot_line(axes, ccn_std_overall[12:18,2], bc_std_overall[12:18,2] , 0.01, r"$\alpha = -4$",
+#                                  verticalalignment="bottom", horizontalalignment="left")
 
 axes.text(0.05, 0.95, r"$S_{\rm c} = 0.3$ %", verticalalignment='top', horizontalalignment='left', transform=axes.transAxes, 
           bbox=dict(edgecolor='black', facecolor='white'))

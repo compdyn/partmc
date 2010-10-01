@@ -58,8 +58,8 @@ axes.plot(array_num_std_avg[1,6], array_mass_std_avg[1,6], 'og', label = '10K mf
 axes.plot(array_num_std_avg[2,0:6], array_mass_std_avg[2,0:6], 'xb-')
 axes.plot(array_num_std_avg[2,6], array_mass_std_avg[2,6], 'ob', label = '100K mfa')
 axes.grid()
-axes.set_xlabel(r"avg. num. coeff. var. $\overline{{\rm CV}(N(t))}$")
-axes.set_ylabel(r"avg. mass. coeff. var. $\overline{{\rm CV}(M(t))}$")
+axes.set_xlabel(r"average number coeff. var. $\overline{{\rm CV}(N(t))}$")
+axes.set_ylabel(r"average mass coeff. var. $\overline{{\rm CV}(M(t))}$")
 
 axes.annotate(r"$N_{\rm p} = 10^3$", (array_num_std_avg[0,0], array_mass_std_avg[0,0]),
               verticalalignment="bottom", horizontalalignment="center",

@@ -39,7 +39,6 @@ print "mass range: ", min_pos(mass_avg3), mass_avg3.max()
 line1 = np.loadtxt("data/2d_scrit_kappa1.txt")
 line2 = np.loadtxt("data/2d_scrit_kappa2.txt")
 
-print "check ", len(line1), len(x_array)
 (figure, axes_array, cbar_axes_array) \
     = mpl_helper.make_fig_array(3,2, figure_width=config.figure_width_double, 
                                 top_margin=1, bottom_margin=0.45,

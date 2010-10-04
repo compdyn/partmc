@@ -47,6 +47,9 @@ for counter_p in ["1K", "10K", "100K"]:
 
 x_array = [1, 0, -1, -2, -3, -4]
 
+print "array_num_std_avg[1,0:6] ", array_num_std_avg[1,0:6]
+print "array_num_std_avg[2,0:6] ", array_num_std_avg[2,0:6]
+
 (figure, axes) = mpl_helper.make_fig(figure_width=config.figure_width_single, axis_ratio=1)
 
 axes.set_xscale("log")

@@ -8,10 +8,10 @@ figure_width_double = 16.45 / 2.54
 
 i_weighting_schemes = 6
 
-s_crit_1 = 0.001
-s_crit_2 = 0.01
-s_crit_3 = 0.1
-s_crit_4 = 0.5
+s_crit_1 = 0.01
+s_crit_2 = 0.1
+s_crit_3 = 0.3
+s_crit_4 = 0.6
 
 c_value = 0.95
 

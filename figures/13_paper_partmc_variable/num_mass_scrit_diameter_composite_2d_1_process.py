@@ -17,9 +17,11 @@ def make_plot(hour, f1, f2, f3, f4):
 
     hist_array_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes, config.i_loop_max])
     hist_array_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes, config.i_loop_max])
+    hist_array_pnum = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes, config.i_loop_max])
 
     hist_average_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
     hist_average_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
+    hist_average_pnum = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
 
     hist_var_num = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
     hist_var_mass = np.zeros([len(x_centers), len(y_centers), config.i_weighting_schemes])
@@ -46,20 +48,28 @@ def make_plot(hour, f1, f2, f3, f4):
 
             hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = 1/particles.comp_vols)
             hist_array_num[:,:,counter_weighting, counter_i_loop] = hist2d
-            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, weights = particles.masses(include=["BC"])/particles.comp_vols)
+            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis, 
+                                         weights = particles.masses(include=["BC"])/particles.comp_vols)
             hist_array_mass[:,:,counter_weighting, counter_i_loop] = hist2d
+            hist2d = partmc.histogram_2d(dry_diameters, s_crit, x_axis, y_axis)            
+            hist_array_pnum[:,:,counter_weighting, counter_i_loop] = hist2d
 
     hist_array_num =  np.ma.masked_less_equal(hist_array_num,0)
     hist_array_mass =  np.ma.masked_less_equal(hist_array_mass,0)
+    hist_array_pnum =  np.ma.masked_less_equal(hist_array_pnum,0)
+
     hist_average_num = np.average(hist_array_num, axis = 3)
     hist_average_mass = np.average(hist_array_mass, axis = 3)
+    hist_average_pnum = np.average(hist_array_pnum, axis = 3)
+
     hist_var_num = np.var(hist_array_num, axis = 3)
     hist_var_mass = np.var(hist_array_mass, axis = 3)
 
     print "Calculated average and variance", counter
 
-    weighting_factor_num = 1 / hist_var_num
-    weighting_factor_mass = 1 / hist_var_mass
+    weighting_factor_num = 1 / (hist_var_num / hist_average_pnum)
+    weighting_factor_mass = 1 / (hist_var_mass / hist_average_pnum)
+
     weighting_factor_num_sum = np.sum(weighting_factor_num, axis = 2)
     weighting_factor_mass_sum = np.sum(weighting_factor_mass, axis = 2)
 

@@ -28,6 +28,10 @@ num_scrit_std = np.ma.masked_invalid(num_scrit_std)
                                 vert_sep=0.2, horiz_sep=0.7,
                                 colorbar="individual", colorbar_location="top", share_y_axes=False)
 
+print "check"
+print num_bc_std.max(), num_bc_std.min()
+print num_scrit_std.max(), num_scrit_std.min()
+
 axes = axes_array[0][0]
 cbar_axes = cbar_axes_array[0][0]
 p = axes.pcolor(x_array_bc, y_array_bc, num_bc_std.transpose(), 

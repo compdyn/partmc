@@ -163,9 +163,6 @@ contains
     allocate(comp_vols(n_proc))
     call sync_info(aero_state%bin(:)%n_part, aero_state%comp_vol, &
          n_parts, comp_vols)
-    !>DEBUG
-    !call sleep(rank * 2)
-    !<DEBUG
 
     call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
          n_samps)
@@ -200,9 +197,6 @@ contains
           end if
        end if
 
-       !>DEBUG
-       !call sleep(1 + rank * 2)
-       !<DEBUG
        ! receive exactly one message
        call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
             aero_weight, aero_state, del_t, k_max, kernel, tot_n_coag, &
@@ -273,30 +267,10 @@ contains
 #ifdef PMC_USE_MPI
     character(len=100) :: error_msg
     integer :: status(MPI_STATUS_SIZE), ierr
-    !>DEBUG
-    integer :: i_req
-    !<DEBUG
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: entry'
-    !do i_req = 1,COAG_EQUAL_MAX_REQUESTS
-    !   if (request_is_active(requests(i_req))) then
-    !      write(*,*) pmc_mpi_rank(), ' request/active/remote = ', i_req, &
-    !           request_is_active(requests(i_req)), requests(i_req)%remote_proc, &
-    !           requests(i_req)%remote_bin
-    !   else
-    !      write(*,*) pmc_mpi_rank(), ' request/active = ', i_req, &
-    !           request_is_active(requests(i_req))
-    !   end if
-    !end do
-    !<DEBUG
     call mpi_probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &
          status, ierr)
     call pmc_mpi_check_ierr(ierr)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: tag = ', status(MPI_TAG)
-    !write(*,*) pmc_mpi_rank(), 'coag_equal_recv: from = ', status(MPI_SOURCE)
-    !<DEBUG
     if (status(MPI_TAG) == COAG_EQUAL_TAG_REQUEST_PARTICLE) then
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
@@ -369,10 +343,6 @@ contains
                 requests(i_req)%active = .true.
                 requests(i_req)%local_bin = local_bin
                 requests(i_req)%remote_bin = remote_bin
-                !>DEBUG
-                !write(*,*) pmc_mpi_rank(), 'add request, local,remote = ', pmc_mpi_rank(), local_bin, &
-                !     requests(i_req)%remote_proc, remote_bin
-                !<DEBUG
                 call aero_state_remove_rand_particle_from_bin(aero_state, &
                      local_bin, requests(i_req)%local_aero_particle)
                 call send_request_particle(requests(i_req)%remote_proc, &
@@ -481,10 +451,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'send_request_particle: entry'
-    !write(*,*) pmc_mpi_rank(), 'send_request_particle: dest proc/bin = ', remote_proc, remote_bin
-    !<DEBUG
     position = 0
     call pmc_mpi_pack_integer(buffer, position, remote_bin)
     buffer_size = position
@@ -509,9 +475,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: aero_particle
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_request_particle: entry'
-    !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
          MPI_ANY_SOURCE, COAG_EQUAL_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, &
@@ -528,9 +491,6 @@ contains
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, request_bin)
     call assert(895128380, position == buffer_size)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_request_particle: from proc/bin = ', remote_proc, request_bin
-    !<DEBUG
 
     ! send the particle back if we have one
     if (aero_state%bin(request_bin)%n_part == 0) then
@@ -560,10 +520,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'send_return_no_particle: entry'
-    !write(*,*) pmc_mpi_rank(), 'send_return_no_particle: dest proc/bin = ', dest_proc, i_bin
-    !<DEBUG
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
     buffer_size = position
@@ -595,9 +551,6 @@ contains
     integer :: status(MPI_STATUS_SIZE)
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_no_particle: entry'
-    !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
          MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_NO_PARTICLE, &
@@ -614,9 +567,6 @@ contains
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, sent_bin)
     call assert(518172999, position == buffer_size)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_no_particle: from proc/bin = ', sent_proc, sent_bin
-    !<DEBUG
 
     ! find the matching request
     found_request = .false.
@@ -653,10 +603,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'send_return_req_particle: entry'
-    !write(*,*) pmc_mpi_rank(), 'send_return_req_particle: to proc/bin/id = ', dest_proc, i_bin, aero_particle%id
-    !<DEBUG
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
@@ -720,18 +666,11 @@ contains
     type(aero_particle_t) :: sent_aero_particle
     real(kind=dp) :: k, p
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: entry'
-    !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
          MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_REQ_PARTICLE, &
          MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: tag/from = ', &
-    !     status(MPI_TAG), status(MPI_SOURCE)
-    !<DEBUG
     call assert(133285061, status(MPI_TAG) &
          == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
@@ -745,10 +684,6 @@ contains
     call aero_particle_allocate(sent_aero_particle)
     call pmc_mpi_unpack_aero_particle(buffer, position, sent_aero_particle)
     call assert(753356021, position == buffer_size)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: from proc/bin/id = ', &
-    !     sent_proc, sent_bin, sent_aero_particle%id
-    !<DEBUG
 
     ! find the matching request
     found_request = .false.
@@ -760,9 +695,6 @@ contains
        end if
     end do
     call assert(579308475, found_request)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: matches request # ', i_req
-    !<DEBUG
     
     ! maybe do coagulation
     call weighted_kernel(kernel, requests(i_req)%local_aero_particle, &
@@ -770,18 +702,12 @@ contains
     p = k / k_max(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
-       !>DEBUG
-       !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: coagulation occured'
-       !<DEBUG
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
        call coagulate_mpi_equal(bin_grid, aero_data, aero_weight, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
             sent_proc, comp_vols, remove_1, remove_2)
     else
-       !>DEBUG
-       !write(*,*) pmc_mpi_rank(), 'recv_return_req_particle: coagulation did not occur'
-       !<DEBUG
        remove_1 = .false.
        remove_2 = .false.
     end if
@@ -815,10 +741,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'send_return_unreq_particle: entry'
-    !write(*,*) pmc_mpi_rank(), 'send_return_unreq_particle: dest proc/id = ', dest_proc, aero_particle%id
-    !<DEBUG
     position = 0
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
     buffer_size = position
@@ -846,9 +768,6 @@ contains
     type(aero_particle_t) :: aero_particle
     integer :: i_bin, status(MPI_STATUS_SIZE), send_proc
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_unreq_particle: entry'
-    !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
          MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE, &
@@ -866,9 +785,6 @@ contains
     call aero_particle_allocate(aero_particle)
     call pmc_mpi_unpack_aero_particle(buffer, position, aero_particle)
     call assert(833588594, position == buffer_size)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_return_unreq_particle: from proc/id = ', sent_proc, aero_particle%id
-    !<DEBUG
 
     ! put it back
     i_bin = aero_particle_in_bin(aero_particle, bin_grid)
@@ -891,10 +807,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: buffer_size, ierr
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'sent_done: entry'
-    !write(*,*) pmc_mpi_rank(), 'sent_done: dest proc = ', dest_proc
-    !<DEBUG
     buffer_size = 0
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
          COAG_EQUAL_TAG_DONE, MPI_COMM_WORLD, ierr)
@@ -916,9 +828,6 @@ contains
     character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
     integer :: status(MPI_STATUS_SIZE)
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_done: entry'
-    !<DEBUG
     ! get the message
     call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
          MPI_ANY_SOURCE, COAG_EQUAL_TAG_DONE, MPI_COMM_WORLD, &
@@ -930,9 +839,6 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(214904056, buffer_size == 0)
     sent_proc = status(MPI_SOURCE)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'recv_done: from proc = ', sent_proc
-    !<DEBUG
 
     ! process it
     procs_done(sent_proc + 1) = .true.
@@ -959,9 +865,6 @@ contains
 #ifdef PMC_USE_MPI
     integer :: n_bin, n_proc, ierr
     integer, allocatable :: send_buf(:), recv_buf(:)
-    !> DEBUG
-    integer :: i_bin, i_proc
-    !< DEBUG
 
     n_bin = size(local_n_parts)
     n_proc = pmc_mpi_size()
@@ -983,20 +886,6 @@ contains
          global_comp_vols, 1, MPI_REAL8, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 
-    !> DEBUG
-    if (pmc_mpi_rank() == 0) then
-       !write(*,*) pmc_mpi_rank(), 'sync_info: global_comp_vols = ', global_comp_vols
-       !write(*,*) pmc_mpi_rank(), 'sync_info: global_n_parts = '
-       do i_bin = 1,n_bin
-          !write(*,'(i20,i20)',advance='no') pmc_mpi_rank(), i_bin
-          do i_proc = 0,(n_proc - 1)
-             !write(*,'(i20)',advance='no') global_n_parts(i_bin, i_proc + 1)
-          end do
-          !write(*,*) ''
-       end do
-       !write(*,*) pmc_mpi_rank(), 'sync_info: total n_parts = ', sum(global_n_parts, 1)
-    end if
-    !< DEBUG
 #endif
 
   end subroutine sync_info
@@ -1108,9 +997,6 @@ contains
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: create_new, id_1_lost, id_2_lost
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'coagulate_mpi_equal: entry'
-    !<DEBUG
     rank = pmc_mpi_rank()
 
     call aero_particle_allocate(aero_particle_new)
@@ -1133,9 +1019,6 @@ contains
     ! add new particle
     if (create_new) then
        proc_new = sample_cts_pdf(size(comp_vols), comp_vols) - 1
-       !>DEBUG
-       !write(*,*) pmc_mpi_rank(), 'coagulate_mpi_equal: new proc = ', proc_new
-       !<DEBUG
        call send_return_unreq_particle(aero_particle_new, proc_new)
     end if
 

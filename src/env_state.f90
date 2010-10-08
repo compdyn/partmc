@@ -468,9 +468,6 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, aero_weight, env_state%aero_background, sample_prop, &
          env_state%elapsed_time)
-    !>DEBUG
-    !write(*,*) 'env_state_update_aero_state: calling aero_state_add_particles'
-    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_delta)
     
     ! emissions
@@ -480,9 +477,6 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, aero_weight, env_state%aero_emissions, sample_prop, &
          env_state%elapsed_time)
-    !>DEBUG
-    !write(*,*) 'env_state_update_aero_state: calling aero_state_add_particles'
-    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_delta)
 
     ! update computational volume

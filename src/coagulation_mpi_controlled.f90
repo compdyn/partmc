@@ -75,67 +75,31 @@ contains
     integer, allocatable :: n_parts(:,:)
     real(kind=dp), allocatable :: comp_vols(:)
     
-    !>DEBUG
-    !call pmc_mpi_barrier()
-    !write(*,*) 'mc_coag_mpi_controlled: entry ', pmc_mpi_rank()
-    !<DEBUG
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
     allocate(n_parts(bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
     do i_proc = 0,(n_proc - 1)
-       !>DEBUG
-       !write(*,*) 'mc_coag_mpi_controlled: transfer comp_vol ', i_proc, 0, pmc_mpi_rank()
-       !<DEBUG
        call pmc_mpi_transfer_real(aero_state%comp_vol, &
             comp_vols(i_proc + 1), i_proc, 0)
        do i_bin = 1,bin_grid%n_bin
-          !>DEBUG
-          !write(*,*) 'mc_coag_mpi_controlled: transfer n_part ', i_bin, i_proc, 0, pmc_mpi_rank()
-          !<DEBUG
           call pmc_mpi_transfer_integer(aero_state%bin(i_bin)%n_part, &
                n_parts(i_bin, i_proc + 1), i_proc, 0)
        end do
     end do
-    !>DEBUG
-    !call pmc_mpi_barrier()
-    !write(*,*) 'mc_coag_mpi_controlled: done with transfer ', pmc_mpi_rank()
-    !<DEBUG
 
     tot_n_samp = 0
     tot_n_coag = 0
     if (rank == 0) then
-       !>DEBUG
-       !call sleep(2)
-       !write(*,*) 'mc_coag_mpi_controlled: comp_vols = ', comp_vols
-       !do i_bin = 1,bin_grid%n_bin
-       !   write(*,'(i20)',advance='no') i_bin
-       !   do i_proc = 0,(n_proc - 1)
-       !      write(*,'(i20)',advance='no') n_parts(i_bin, i_proc + 1)
-       !   end do
-       !   write(*,*) ''
-       !end do
-       !write(*,*) 'total particle counts = ', sum(n_parts, 1)
-       !<DEBUG
        ! root node actually does the coagulation
        do i = 1,bin_grid%n_bin
           do j = 1,bin_grid%n_bin
-             !>DEBUG
-             !write(*,*) 'mc_coag_mpi_controlled: bins = ', i, j
-             !write(*,*) 'mc_coag_mpi_controlled: n_parts = ', sum(n_parts(i,:)), sum(n_parts(j,:))
-             !write(*,*) 'mc_coag_mpi_controlled: comp_vol = ', sum(comp_vols)
-             !<DEBUG
              call compute_n_samp(sum(n_parts(i,:)), &
                   sum(n_parts(j,:)), i == j, k_max(i,j), &
                   sum(comp_vols), del_t, n_samp_real)
              ! probabalistically determine n_samp to cope with < 1 case
              n_samp = prob_round(n_samp_real)
              tot_n_samp = tot_n_samp + n_samp
-             !>DEBUG
-             !if (n_samp > 0) then
-             !   write(*,*) 'mc_coag_mpi_controlled: i,j, n_samp = ', i, j, n_samp
-             !end if
-             !<DEBUG
              do i_samp = 1,n_samp
                 ! check we still have enough particles to coagulate
                 if ((sum(n_parts(i,:)) < 1) &
@@ -185,9 +149,6 @@ contains
 
     done = .false.
     do while (.not. done)
-       !>DEBUG
-       !write(*,*) 'coag_remote_agent: waiting... ', pmc_mpi_rank()
-       !<DEBUG
        call mpi_recv(buffer, COAG_MAX_BUFFER_SIZE, MPI_CHARACTER, 0, &
             MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
        call pmc_mpi_check_ierr(ierr)
@@ -195,17 +156,10 @@ contains
        call pmc_mpi_check_ierr(ierr)
        call assert(132587470, buffer_size < COAG_MAX_BUFFER_SIZE)
        if (status(MPI_TAG) == COAG_TAG_REQUEST_PARTICLE) then
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: COAG_TAG_REQUEST_PARTICLE ', pmc_mpi_rank()
-          !<DEBUG
           position = 0
           call pmc_mpi_unpack_integer(buffer, position, i_bin)
           call pmc_mpi_unpack_integer(buffer, position, i_part)
           call assert(743978983, position == buffer_size)
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: i_bin = ', i_bin, pmc_mpi_rank()
-          !write(*,*) 'coag_remote_agent: i_part = ', i_part, pmc_mpi_rank()
-          !<DEBUG
 
           call assert(256332719, i_bin >= 1)
           call assert(887849380, i_bin <= bin_grid%n_bin)
@@ -216,17 +170,11 @@ contains
           call pmc_mpi_pack_aero_particle(buffer, position, &
                aero_state%bin(i_bin)%particle(i_part))
           buffer_size = position
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: sending particle back', pmc_mpi_rank()
-          !<DEBUG
           call assert(797402177, buffer_size < COAG_MAX_BUFFER_SIZE)
           call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
                COAG_TAG_SEND_PARTICLE, MPI_COMM_WORLD, ierr)
           call pmc_mpi_check_ierr(ierr)
        elseif (status(MPI_TAG) == COAG_TAG_REMOVE_PARTICLE) then
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: COAG_TAG_REMOVE_PARTICLE ', pmc_mpi_rank()
-          !<DEBUG
           call aero_info_allocate(aero_info)
           position = 0
           call pmc_mpi_unpack_integer(buffer, position, i_bin)
@@ -234,11 +182,6 @@ contains
           call pmc_mpi_unpack_logical(buffer, position, record_removal)
           call pmc_mpi_unpack_aero_info(buffer, position, aero_info)
           call assert(822092586, position == buffer_size)
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: i_bin = ', i_bin, pmc_mpi_rank()
-          !write(*,*) 'coag_remote_agent: i_part = ', i_part, pmc_mpi_rank()
-          !write(*,*) 'coag_remote_agent: record_removal = ', record_removal, pmc_mpi_rank()
-          !<DEBUG
           
           call assert(703875248, i_bin >= 1)
           call assert(254613726, i_bin <= bin_grid%n_bin)
@@ -249,9 +192,6 @@ contains
                record_removal, aero_info)
           call aero_info_deallocate(aero_info)
        elseif (status(MPI_TAG) == COAG_TAG_SEND_PARTICLE) then
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: COAG_TAG_SEND_PARTICLE ', pmc_mpi_rank()
-          !<DEBUG
           call aero_particle_allocate(aero_particle)
           position = 0
           call pmc_mpi_unpack_aero_particle(buffer, position, &
@@ -259,15 +199,9 @@ contains
           call assert(517349299, position == buffer_size)
 
           i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: i_bin = ', i_bin, pmc_mpi_rank()
-          !<DEBUG
           call aero_state_add_particle(aero_state, i_bin, aero_particle)
           call aero_particle_deallocate(aero_particle)
        elseif (status(MPI_TAG) == COAG_TAG_DONE) then
-          !>DEBUG
-          !write(*,*) 'coag_remote_agent: COAG_TAG_DONE ', pmc_mpi_rank()
-          !<DEBUG
           done = .true.
        else
           call die_msg(734832087, "unknown tag")
@@ -297,16 +231,8 @@ contains
     integer :: buffer_size, position, ierr, status(MPI_STATUS_SIZE)
     character :: buffer(COAG_MAX_BUFFER_SIZE)
 
-    !>DEBUG
-    !write(*,*) 'coag_remote_fetch_particle: i_proc = ', i_proc, pmc_mpi_rank()
-    !write(*,*) 'coag_remote_fetch_particle: i_bin = ', i_bin, pmc_mpi_rank()
-    !write(*,*) 'coag_remote_fetch_particle: i_part = ', i_part, pmc_mpi_rank()
-    !<DEBUG
     if (i_proc == 0) then
        ! just read it out of aero_state locally on node 0
-       !>DEBUG
-       !write(*,*) 'coag_remote_fetch_particle: local ', pmc_mpi_rank()
-       !<DEBUG
        call assert(977735278, i_bin >= 1)
        call assert(974530513, i_bin <= size(aero_state%bin))
        call assert(156583013, i_part >= 1)
@@ -319,18 +245,12 @@ contains
        call pmc_mpi_pack_integer(buffer, position, i_bin)
        call pmc_mpi_pack_integer(buffer, position, i_part)
        buffer_size = position
-       !>DEBUG
-       !write(*,*) 'coag_remote_fetch_particle: sending COAG_TAG_REQUEST_PARTICLE ', pmc_mpi_rank()
-       !<DEBUG
        call assert(771308284, buffer_size < COAG_MAX_BUFFER_SIZE)
        call mpi_send(buffer, buffer_size, MPI_CHARACTER, i_proc, &
             COAG_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
 
        ! get particle
-       !>DEBUG
-       !write(*,*) 'coag_remote_fetch_particle: waiting for COAG_TAG_SEND_PARTICLE ', pmc_mpi_rank()
-       !<DEBUG
        call mpi_recv(buffer, COAG_MAX_BUFFER_SIZE, MPI_CHARACTER, i_proc, &
             COAG_TAG_SEND_PARTICLE, MPI_COMM_WORLD, status, ierr)
        call pmc_mpi_check_ierr(ierr)
@@ -368,17 +288,8 @@ contains
     integer :: buffer_size, position, ierr
     character :: buffer(COAG_MAX_BUFFER_SIZE)
 
-    !>DEBUG
-    !write(*,*) 'coag_remote_remove_particle: i_proc = ', i_proc, pmc_mpi_rank()
-    !write(*,*) 'coag_remote_remove_particle: i_bin = ', i_bin, pmc_mpi_rank()
-    !write(*,*) 'coag_remote_remove_particle: i_part = ', i_part, pmc_mpi_rank()
-    !write(*,*) 'coag_remote_remove_particle: record_removal = ', record_removal, pmc_mpi_rank()
-    !<DEBUG
     if (i_proc == 0) then
        ! just do it directly on the local aero_state
-       !>DEBUG
-       !write(*,*) 'coag_remote_remove_particle: local ', pmc_mpi_rank()
-       !<DEBUG
        call aero_state_remove_particle(aero_state, i_bin, i_part, &
             record_removal, aero_info)
     else
@@ -389,9 +300,6 @@ contains
        call pmc_mpi_pack_aero_info(buffer, position, aero_info)
        buffer_size = position
        
-       !>DEBUG
-       !write(*,*) 'coag_remote_remove_particle: sending COAG_TAG_REMOVE_PARTICLE ', pmc_mpi_rank()
-       !<DEBUG
        call assert(521039594, buffer_size < COAG_MAX_BUFFER_SIZE)
        call mpi_send(buffer, buffer_size, MPI_CHARACTER, i_proc, &
             COAG_TAG_REMOVE_PARTICLE, MPI_COMM_WORLD, ierr)
@@ -419,14 +327,8 @@ contains
     integer :: buffer_size, position, i_bin, ierr
     character :: buffer(COAG_MAX_BUFFER_SIZE)
 
-    !>DEBUG
-    !write(*,*) 'coag_remote_add_particle: i_proc = ', i_proc, pmc_mpi_rank()
-    !<DEBUG
     if (i_proc == 0) then
        ! just do it directly on the local aero_state
-       !>DEBUG
-       !write(*,*) 'coag_remote_add_particle: local ', pmc_mpi_rank()
-       !<DEBUG
        i_bin = aero_particle_in_bin(aero_particle, bin_grid)
        call aero_state_add_particle(aero_state, i_bin, aero_particle)
     else
@@ -434,9 +336,6 @@ contains
        call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
        buffer_size = position
        
-       !>DEBUG
-       !write(*,*) 'coag_remote_add_particle: sending COAG_TAG_SEND_PARTICLE ', pmc_mpi_rank()
-       !<DEBUG
        call assert(159937224, buffer_size < COAG_MAX_BUFFER_SIZE)
        call mpi_send(buffer, buffer_size, MPI_CHARACTER, i_proc, &
             COAG_TAG_SEND_PARTICLE, MPI_COMM_WORLD, ierr)
@@ -457,14 +356,8 @@ contains
     integer :: buffer_size, ierr
     character :: buffer(COAG_MAX_BUFFER_SIZE)
 
-    !>DEBUG
-    !write(*,*) 'coag_remote_done: i_proc = ', i_proc, pmc_mpi_rank()
-    !<DEBUG
     if (i_proc > 0) then
        buffer_size = 0
-       !>DEBUG
-       !write(*,*) 'coag_remote_done: sending COAG_TAG_DONE ', pmc_mpi_rank()
-       !<DEBUG
        call assert(503494624, buffer_size < COAG_MAX_BUFFER_SIZE)
        call mpi_send(buffer, buffer_size, MPI_CHARACTER, i_proc, &
             COAG_TAG_DONE, MPI_COMM_WORLD, ierr)
@@ -531,10 +424,6 @@ contains
     real(kind=dp) :: p, k
     type(aero_particle_t) :: particle_1, particle_2
     
-    !>DEBUG
-    !write(*,*) '************************************************************************************'
-    !write(*,*) 'maybe_coag_pair_mpi_controlled: entry ', pmc_mpi_rank()
-    !<DEBUG
     call aero_particle_allocate(particle_1)
     call aero_particle_allocate(particle_2)
 
@@ -547,26 +436,13 @@ contains
     did_coag = .false.
     
     call find_rand_pair_mpi_controlled(n_parts, b1, b2, p1, p2, s1, s2)
-    !>DEBUG
-    !write(*,*) 'maybe_coag_pair_mpi_controlled: find_rand_pair: ', p1, b1, s1, p2, b2, s2
-    !write(*,*) 'maybe_coag_pair_mpi_controlled: fetching particle 1 ', pmc_mpi_rank()
-    !<DEBUG
     call coag_remote_fetch_particle(aero_state, p1, b1, s1, particle_1)
-    !>DEBUG
-    !write(*,*) 'maybe_coag_pair_mpi_controlled: fetching particle 2 ', pmc_mpi_rank()
-    !<DEBUG
     call coag_remote_fetch_particle(aero_state, p2, b2, s2, particle_2)
     call weighted_kernel(kernel, particle_1, &
          particle_2, aero_data, aero_weight, env_state, k)
     p = k / k_max
 
-    !>DEBUG
-    !write(*,*) 'maybe_coag_pair_mpi_controlled: p1,p2 = ', p1, p2
-    !<DEBUG
     if (pmc_random() .lt. p) then
-       !>DEBUG
-       !write(*,*) 'maybe_coag_pair_mpi_controlled: coag happened ', pmc_mpi_rank()
-       !<DEBUG
        call coagulate_mpi_controlled(bin_grid, aero_data, aero_weight, &
             aero_state, p1, b1, s1, p2, b2, s2, particle_1, particle_2, &
             n_parts, comp_vols)
@@ -617,12 +493,6 @@ contains
     if ((s2 .lt. 1) .or. (s2 .gt. sum(n_parts(b2,:)))) goto 101
     if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
 
-    !>DEBUG
-    !write(*,*) 'find_rand_pair_mpi_controlled: s1/np1 = ', real(s1, kind=dp) / dble(sum(n_parts(b1,:)))
-    !write(*,*) 'find_rand_pair_mpi_controlled: s2/np2 = ', real(s2, kind=dp) / dble(sum(n_parts(b2,:)))
-    !write(*,*) 'find_rand_pair_mpi_controlled: b1,np1,s1,nps1 = ', b1, sum(n_parts(b1,:)), s1, n_parts(b1,:)
-    !write(*,*) 'find_rand_pair_mpi_controlled: b2,np2,s2,nps2 = ', b2, sum(n_parts(b2,:)), s2, n_parts(b2,:)
-    !<DEBUG
     do p1 = 0,(pmc_mpi_size() - 1)
        if (s1 <= n_parts(b1, p1 + 1)) then
           exit
@@ -635,10 +505,6 @@ contains
        end if
        s2 = s2 - n_parts(b2, p2 + 1)
     end do
-    !>DEBUG
-    !write(*,*) 'find_rand_pair_mpi_controlled: b1,p1,s1 = ', b1, p1, s1
-    !write(*,*) 'find_rand_pair_mpi_controlled: b2,p2,s2 = ', b2, p2, s2
-    !<DEBUG
     
   end subroutine find_rand_pair_mpi_controlled
   
@@ -684,9 +550,6 @@ contains
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
     integer :: pn, bn
 
-    !>DEBUG
-    !write(*,*) 'coagulate_mpi_controlled: entry ', pmc_mpi_rank()
-    !<DEBUG
     call aero_particle_allocate(aero_particle_new)
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
@@ -700,31 +563,19 @@ contains
        ! handle a tricky corner case where we have to watch for s2 or
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
-       !>DEBUG
-       !write(*,*) 'coagulate_mpi_controlled: removing ', p2, b2, s2, p2_removed, pmc_mpi_rank()
-       !<DEBUG
        if (remove_2) then
           call coag_remote_remove_particle(aero_state, p2, b2, s2, &
                id_2_lost, aero_info_2)
        end if
-       !>DEBUG
-       !write(*,*) 'coagulate_mpi_controlled: removing ', p1, b1, s1, p1_removed, pmc_mpi_rank()
-       !<DEBUG
        if (remove_1) then
           call coag_remote_remove_particle(aero_state, p1, b1, s1, &
                id_1_lost, aero_info_1)
        end if
     else
-       !>DEBUG
-       !write(*,*) 'coagulate_mpi_controlled: removing ', p1, b1, s1, p1_removed, pmc_mpi_rank()
-       !<DEBUG
        if (remove_1) then
           call coag_remote_remove_particle(aero_state, p1, b1, s1, &
                id_1_lost, aero_info_1)
        end if
-       !>DEBUG
-       !write(*,*) 'coagulate_mpi_controlled: removing ', p2, b2, s2, p2_removed, pmc_mpi_rank()
-       !<DEBUG
        if (remove_2) then
           call coag_remote_remove_particle(aero_state, p2, b2, s2, &
                id_2_lost, aero_info_2)
@@ -735,26 +586,14 @@ contains
     if (create_new) then
        bn = aero_particle_in_bin(aero_particle_new, bin_grid)
        pn = sample_cts_pdf(size(comp_vols), comp_vols) - 1
-       !>DEBUG
-       !write(*,*) 'coagulate_mpi_controlled: adding to ', pn, pmc_mpi_rank()
-       !<DEBUG
        call coag_remote_add_particle(bin_grid, aero_state, pn, &
             aero_particle_new)
     end if
 
     ! fix up n_parts
-    !>DEBUG
-    !write(*,*) 'coagulate_mpi_controlled: b1,p1 = ', b1, p1, pmc_mpi_rank()
-    !write(*,*) 'coagulate_mpi_controlled: b2,p2 = ', b2, p2, pmc_mpi_rank()
-    !write(*,*) 'coagulate_mpi_controlled: bn,pn = ', bn, pn, pmc_mpi_rank()
-    !write(*,*) 'coagulate_mpi_controlled: n_parts = ', size(n_parts,1), size(n_parts,2), pmc_mpi_rank()
-    !<DEBUG
     n_parts(b1, p1 + 1) = n_parts(b1, p1 + 1) - 1
     n_parts(b2, p2 + 1) = n_parts(b2, p2 + 1) - 1
     n_parts(bn, pn + 1) = n_parts(bn, pn + 1) + 1
-    !>DEBUG
-    !write(*,*) 'coagulate_mpi_controlled: p1,p2,pn = ', p1, p2, pn
-    !<DEBUG
     
     call aero_particle_deallocate(aero_particle_new)
     call aero_info_deallocate(aero_info_1)

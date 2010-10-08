@@ -290,26 +290,11 @@ contains
 
     integer :: i_part
 
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: entry'
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: i_bin = ', i_bin
-    !<DEBUG
     call assert(392182617, aero_state%bin(i_bin)%n_part > 0)
     i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: n_part = ', &
-    !     aero_state%bin(i_bin)%n_part
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: i_part = ', i_part
-    !<DEBUG
     call aero_particle_copy(aero_state%bin(i_bin)%particle(i_part), &
          aero_particle)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: done copy'
-    !<DEBUG
     call aero_state_remove_particle_no_info(aero_state, i_bin, i_part)
-    !>DEBUG
-    !write(*,*) pmc_mpi_rank(), 'aero_state_remove_rand_particle_from_bin: done remove'
-    !<DEBUG
 
   end subroutine aero_state_remove_rand_particle_from_bin
 
@@ -325,9 +310,6 @@ contains
     !> Increment.
     type(aero_state_t), intent(in) :: aero_state_delta
 
-    !>DEBUG
-    !write(*,*) 'aero_state_add: entry'
-    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_delta)
     aero_state%comp_vol = aero_state%comp_vol + aero_state_delta%comp_vol
 
@@ -347,9 +329,6 @@ contains
 
     integer :: i_bin, i_part
 
-    !>DEBUG
-    !write(*,*) 'aero_state_add_particles: entry'
-    !<DEBUG
     call assert(265083067, &
          size(aero_state%bin) == size(aero_state_delta%bin))
     do i_bin = 1,size(aero_state_delta%bin)
@@ -938,9 +917,6 @@ contains
     deallocate(buffer)
 
     ! add the particles
-    !>DEBUG
-    !write(*,*) 'recv_aero_state_mix: calling aero_state_add_particles'
-    !<DEBUG
     call aero_state_add_particles(aero_state, aero_state_mix)
     call aero_state_deallocate(aero_state_mix)
 #endif
@@ -1211,31 +1187,9 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
-    !>DEBUG
-    !if (pmc_mpi_rank() == 1) then
-    !   write(*,*) 'pmc_mpi_pack_aero_state: entry'
-    !end if
-    !<DEBUG
     prev_position = position
-    !>DEBUG
-    !if (pmc_mpi_rank() == 1) then
-    !   write(*,*) 'pmc_mpi_pack_aero_state: start position = ', position
-    !end if
-    !<DEBUG
     call pmc_mpi_pack_real(buffer, position, val%comp_vol)
-    !>DEBUG
-    !if (pmc_mpi_rank() == 1) then
-    !   write(*,*) 'pmc_mpi_pack_aero_state: packed comp_vol position = ', position
-    !   write(*,*) 'pmc_mpi_pack_aero_state: comp_vol = ', val%comp_vol
-    !end if
-    !<DEBUG
     call pmc_mpi_pack_integer(buffer, position, val%n_part)
-    !>DEBUG
-    !if (pmc_mpi_rank() == 1) then
-    !   write(*,*) 'pmc_mpi_pack_aero_state: packed n_part position = ', position
-    !   write(*,*) 'pmc_mpi_pack_aero_state: n_part = ', val%n_part
-    !end if
-    !<DEBUG
     call pmc_mpi_pack_integer(buffer, position, size(val%bin))
     do i = 1,size(val%bin)
        call pmc_mpi_pack_aero_particle_array(buffer, position, val%bin(i))
@@ -1262,32 +1216,10 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
-    !>DEBUG
-    !if (pmc_mpi_rank() == 0) then
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: entry'
-    !end if
-    !<DEBUG
     call aero_state_deallocate(val)
     prev_position = position
-    !>DEBUG
-    !if (pmc_mpi_rank() == 0) then
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: start position = ', position
-    !end if
-    !<DEBUG
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
-    !>DEBUG
-    !if (pmc_mpi_rank() == 0) then
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: unpacked comp_vol position = ', position
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: comp_vol = ', val%comp_vol
-    !end if
-    !<DEBUG
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
-    !>DEBUG
-    !if (pmc_mpi_rank() == 0) then
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: unpacked n_part position = ', position
-    !   write(*,*) 'pmc_mpi_unpack_aero_state: n_part = ', val%n_part
-    !end if
-    !<DEBUG
     call pmc_mpi_unpack_integer(buffer, position, n)
     allocate(val%bin(n))
     do i = 1,size(val%bin)
@@ -1366,13 +1298,7 @@ contains
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
 
-          !>DEBUG
-          !write(*,*) 'aero_state_mpi_gather: about to call aero_state_add'
-          !<DEBUG
           call aero_state_add(aero_state_total, aero_state_transfer)
-          !>DEBUG
-          !write(*,*) 'aero_state_mpi_gather: returned from aero_state_add'
-          !<DEBUG
           
           call aero_state_deallocate(aero_state_transfer)
        end do

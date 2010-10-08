@@ -961,10 +961,10 @@ class aero_removed_info_t(object):
                 raise Exception("%s variable not found in NetCDF file" % ncf_var)
             self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
 
-        if (len(self.aero_removed_id) == 1) and (self.aero_removed_id[0] == 0):
-            self.id = numpy.array([],'int32')
-            self.action = numpy.array([],'int32')
-            self.other_id = numpy.array([],'int32')
+        if (len(self.ids) == 1) and (self.ids[0] == 0):
+            self.ids = numpy.array([], 'int32')
+            self.actions = numpy.array([], 'int32')
+            self.other_ids = numpy.array([], 'int32')
 
 class grid(object):
 

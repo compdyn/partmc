@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Matthew West
+! Copyright (C) 2007-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -214,9 +214,8 @@ contains
     call mpi_pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_integer, ierr)
     call pmc_mpi_check_ierr(ierr)
-!DEBUG
+! FIXME:
     pmc_mpi_pack_size_integer = 4
-!DEBUG
 #else
     pmc_mpi_pack_size_integer = 0
 #endif

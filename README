@@ -140,7 +140,7 @@ ChangeLog
 
 2.0.0 - YYYY-MM-DD
 
-  * Scalable parallel implementation added.
+  * Parallel implementations based on remote particle access.
 
   * Added restart capability from NetCDF state files.
 

@@ -840,9 +840,9 @@ def critical_rel_humids(env_state, kappas, dry_diameters):
     c_rh = numpy.zeros_like(dry_diameters)
     for i in range(len(kappas)):
         if kappas[i] < 1e-30:
-            c_rh = numpy.exp(A / c_diams[i])
+            c_rh[i] = numpy.exp(A / c_diams[i])
         else:
-            c_rh = (c_diams[i]**3 - dry_diameters[i]**3) \
+            c_rh[i] = (c_diams[i]**3 - dry_diameters[i]**3) \
                 / (c_diams[i]**3 - dry_diameters[i]**3 * (1 - kappas[i])) \
                 * numpy.exp(A / c_diams[i])
     return c_rh

@@ -45,10 +45,6 @@ or openSUSE if the following packages are installed:
    * Ubuntu 9.04: `gfortran`, `cmake`, `libnetcdf-dev`, `gnuplot`
    * openSUSE 11.1: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
 
-PartMC will also compile out-of-the-box on OS X 10.5 using Fink (see
-<http://www.finkproject.org/>) if the following packages are
-installed: `gcc44`, `cmake`, `netcdf`, `netcdf-gfortran`, `gnuplot`.
-
 
 Installation
 ============

@@ -38,12 +38,13 @@ Optional dependencies:
    * SUNDIALS - <http://www.llnl.gov/casc/sundials/>
    * gnuplot - <http://www.gnuplot.info/>
 
-PartMC can be compiled out-of-the-box on Linux under Fedora, Ubuntu,
-or openSUSE if the following packages are installed:
+PartMC can be compiled out-of-the-box on Linux if the following
+packages are installed:
 
-   * Fedora 11: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
-   * Ubuntu 9.04: `gfortran`, `cmake`, `libnetcdf-dev`, `gnuplot`
-   * openSUSE 11.1: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
+   * Fedora 13: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
+   * Ubuntu 10.04: `gfortran`, `cmake-curses-gui`, `libnetcdf-dev`, `gnuplot`
+   * openSUSE 11.3: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
+   * Debian 5.0: `gfortran`, `make`, `cmake`, `libnetcdf-dev`, `gnuplot`
 
 
 Installation
@@ -98,16 +99,10 @@ mainly been under Linux and OS X. The quick-start instructions are:
     tests run them as:
 
         cd run_test/emission
-        ./run_test_1.sh                       # similary for other tests
+        ./run_test_1.sh
+        ./run_test_2.sh
+        ./run_test_3.sh                       # similarly for other tests
         gnuplot -persist plot_species.gnuplot # etc...
-
-11. There is a complete scenario run under the `urban_plume/`
-    directory. From this directory do:
-
-        ./run.sh
-        ./process.sh
-        gnuplot -persist plot_aero_species_wc.gnuplot
-        # similarly for other plots
 
 PartMC can interface to the MOSAIC chemistry code (see above for
 availability) but this is not enabled by default. To use MOSAIC, set

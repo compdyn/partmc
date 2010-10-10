@@ -147,7 +147,6 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-    character*100 :: filename
   
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()

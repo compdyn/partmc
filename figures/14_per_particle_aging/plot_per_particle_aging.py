@@ -14,7 +14,7 @@ class Struct(object):
 	def __init__(self): 
 		pass
 
-input = open('particle_set_nc.pkl', 'rb')
+input = open('particle_set_wc_no_nh3_03.pkl', 'rb')
 particle_set = pickle.load(input)
 input.close()
 
@@ -24,6 +24,10 @@ bc_frac_emit = np.zeros([len(particle_set)])
 emit_comp_vols = np.zeros([len(particle_set)])
 emit_time = np.zeros([len(particle_set)])
 emit_s_crit = np.zeros([len(particle_set)])
+emit_kappa = np.zeros([len(particle_set)])
+aging_kappa = np.zeros([len(particle_set)])
+aging_diameter = np.zeros([len(particle_set)])
+aging_h2o = np.zeros([len(particle_set)])
 
 i_counter = 0
 for id in particle_set.keys():
@@ -32,6 +36,7 @@ for id in particle_set.keys():
 	emit_comp_vols[i_counter] = particle_set[id].emit_comp_vols
 	emit_time[i_counter] = particle_set[id].emit_time / 3600.
 	emit_s_crit[i_counter] = particle_set[id].emit_s_crit
+	emit_kappa[i_counter] = particle_set[id].emit_kappa
 
 #	print "emit_time ", i_counter, emit_time[i_counter]
 
@@ -45,10 +50,6 @@ emit_morning = (emit_time < 6.)
 emit_afternoon = ((emit_time > 6.) & (emit_time < 12.))
 emit_night = (emit_time > 12)
 
-#print "emit_time morning", emit_time[emit_morning]
-#print "emit_time afternoon", emit_time[emit_afternoon]
-#print "emit_time night", emit_time[emit_night]
-
 # Scatter plot, colored by time of emission
 (figure, axes_array, cbar_axes_array) = mpl_helper.make_fig_array(3,1,
 								  top_margin=1, bottom_margin=0.45,
@@ -58,7 +59,7 @@ emit_night = (emit_time > 12)
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
 p = axes.scatter(emit_diam[emit_morning], time_for_aging[emit_morning], c=emit_time[emit_morning], 
-		 norm = matplotlib.colors.LogNorm(vmin=1, vmax=20), s=2, linewidths=0)
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=12), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_xlim(1e-9, 1e-6)
@@ -68,11 +69,11 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, 
 		       orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"time of emission / xxx")
+cbar.set_label(r"time of emission / h")
 
 axes = axes_array[1][0]
 p = axes.scatter(emit_diam[emit_afternoon], time_for_aging[emit_afternoon], c=emit_time[emit_afternoon], 
-		 norm = matplotlib.colors.LogNorm(vmin=1, vmax=20), s=2, linewidths=0)
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=12), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 15)
@@ -81,7 +82,7 @@ axes.grid(True)
 
 axes = axes_array[0][0]
 p = axes.scatter(emit_diam[emit_night], time_for_aging[emit_night], c=emit_time[emit_night],
-		 norm = matplotlib.colors.LogNorm(vmin=1, vmax=20), s=2, linewidths=0)
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=12), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 15)
@@ -90,7 +91,7 @@ axes.set_xlabel(r"dry diameter at emission $D_{\rm dry}$ / $\rm \mu m$")
 axes.grid(True)
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig("aging_nc.pdf")
+figure.savefig("aging_wc_no_nh3_03.pdf")
 
 # Scatter plot, colored by s_crit at time of emission
 (figure, axes_array, cbar_axes_array) = mpl_helper.make_fig_array(3,1,
@@ -100,8 +101,8 @@ figure.savefig("aging_nc.pdf")
 								  colorbar="shared", colorbar_location="top")
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[0]
-p = axes.scatter(emit_diam[emit_morning], time_for_aging[emit_morning], c=emit_s_crit[emit_morning], 
-		 norm = matplotlib.colors.LogNorm(vmin=1e-1, vmax=1e2), s=2, linewidths=0)
+p = axes.scatter(emit_diam[emit_morning], time_for_aging[emit_morning], c=emit_kappa[emit_morning], 
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=1), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_xlim(1e-9, 1e-6)
@@ -111,11 +112,11 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, 
 		       orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar.set_label(r"$S_{\rm crit}$ at time of emission / $\%$")
+cbar.set_label(r"$\kappa$ at time of emission / $\%$")
 
 axes = axes_array[1][0]
-p = axes.scatter(emit_diam[emit_afternoon], time_for_aging[emit_afternoon], c=emit_s_crit[emit_afternoon], 
-		 norm = matplotlib.colors.LogNorm(vmin=1e-1, vmax=1e2), s=2, linewidths=0)
+p = axes.scatter(emit_diam[emit_afternoon], time_for_aging[emit_afternoon], c=emit_kappa[emit_afternoon], 
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=1), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 15)
@@ -123,8 +124,8 @@ axes.set_ylabel(r"per-particle aging time / h")
 axes.grid(True)
 
 axes = axes_array[0][0]
-p = axes.scatter(emit_diam[emit_night], time_for_aging[emit_night], c=emit_s_crit[emit_night],
-		 norm = matplotlib.colors.LogNorm(vmin=1e-1, vmax=1e2), s=2, linewidths=0)
+p = axes.scatter(emit_diam[emit_night], time_for_aging[emit_night], c=emit_kappa[emit_night],
+		 norm = matplotlib.colors.Normalize(vmin=0, vmax=1), s=2, linewidths=0)
 axes.set_xscale("log")
 axes.set_yscale("linear")
 axes.set_ylim(0, 15)
@@ -133,7 +134,7 @@ axes.set_xlabel(r"dry diameter at emission $D_{\rm dry}$ / $\rm \mu m$")
 axes.grid(True)
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig("aging_s_crit_nc.pdf")
+figure.savefig("aging_kappa_wc_no_nh3_03.pdf")
 
 
 # 2D Histogram plot
@@ -165,7 +166,7 @@ cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"number conc. $n(D,w)$ / $\rm cm^{-3}$")
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig("aging_nc_hist.pdf")
+figure.savefig("aging_wc_hist_no_nh3_03.pdf")
 
 #print "keys ", particle_set.keys()
 #for id in particle_set.keys():

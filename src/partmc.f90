@@ -282,7 +282,8 @@ contains
     !!   write summary information to the screen while running
     !! - \subpage input_format_bin_grid --- only used for efficiency
     !!   gains during coagulation
-    !! - \subpage input_format_aero_weight
+    !! - \subpage input_format_aero_weight (only provide if
+    !!   \c restart is \c no)
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
     !!   \subpage input_format_gas_data
@@ -388,7 +389,10 @@ contains
        call spec_file_read_real(file, 't_progress', part_opt%t_progress)
 
        call spec_file_read_bin_grid(file, bin_grid)
-       call spec_file_read_aero_weight(file, aero_weight)
+
+       if (.not. do_restart) then
+          call spec_file_read_aero_weight(file, aero_weight)
+       end if
 
        if (do_restart) then
           call input_state(restart_filename, bin_grid, aero_data, &

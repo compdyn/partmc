@@ -53,6 +53,9 @@
 !! \subpage output_format_aero_removed "Aerosol Particle Removal Information"
 !! (only for particle-resolved simulations, if \c record_removals is \c yes)
 !!
+!! \subpage output_format_aero_weight "Aerosol Weighting Function"
+!! (only for particle-resolved simulations)
+!!
 !! \subpage output_format_bin_grid "Bin Grid Data"
 !! (only for exact and sectional simulations)
 !!
@@ -355,6 +358,7 @@ contains
     call gas_data_output_netcdf(gas_data, ncid)
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
+    call aero_weight_output_netcdf(aero_weight, ncid)
     call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
          aero_data, aero_weight, record_removals, record_optical)
 
@@ -565,7 +569,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(out) :: aero_data
     !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
+    type(aero_weight_t), intent(out) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(out) :: aero_state
     !> Gas data.
@@ -601,6 +605,7 @@ contains
        call gas_data_input_netcdf(gas_data, ncid)
        call gas_state_input_netcdf(gas_state, ncid, gas_data)
        call aero_data_input_netcdf(aero_data, ncid)
+       call aero_weight_input_netcdf(aero_weight, ncid)
        call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
             aero_data, aero_weight)
 

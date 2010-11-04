@@ -11,9 +11,6 @@ mc_coag_mpi_centralized()).
 Change gnuplot scripts in test/ to have units like "time / s", not
 "time (s)".
 
-Store weighting information in the output files so we can reload it
-for averaging and things like that.
-
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").

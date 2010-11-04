@@ -12,6 +12,7 @@ module pmc_aero_weight
   use pmc_constants
   use pmc_rand
   use pmc_spec_file
+  use pmc_netcdf
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -257,6 +258,66 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_aero_weight
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine aero_weight_output_netcdf(aero_weight, ncid)
+
+    !> Aero weight to write.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    !> \page output_format_aero_weight Output File Format: Aerosol Weighting Function
+    !!
+    !! The aerosol weighting function NetCDF variables are:
+    !!   - \b weight_type (dimensionless integer): the type of the
+    !!     weighting function, with 0 = invalid weight, 1 = no weight
+    !!     (\f$w(D) = 1\f$), 2 = power weight (\f$w(D) =
+    !!     (D/D_0)^\alpha\f$), 3 = MFA weight (\f$w(D) =
+    !!     (D/D_0)^{-3}\f$)
+    !!   - \b weight_ref_radius (unit m): the reference radius
+    !!     \f$R_0\f$ (corresponding to \f$D_0 = 2R_0\f$), set to
+    !!     zero if \c weight_type does not need it
+    !!   - \b weight_exponent (dimensionless): the exponent
+    !!     \f$\alpha\f$ for the power \c weight_type, set to -3
+    !!     for the MFA \c weight_type, and zero otherwise
+    !!
+    !! See also:
+    !!   - \ref input_format_aero_weight --- the corresponding input format
+
+    call pmc_nc_write_integer(ncid, aero_weight%type, "weight_type", &
+         description="type of aerosol weighting function: 0 = invalid, " &
+         // "1 = none (w(D) = 1), 2 = power (w(D) = (D/D_0)^alpha), " &
+         // "3 = MFA (mass flow) (w(D) = (D/D_0)^(-3))")
+    call pmc_nc_write_real(ncid, aero_weight%ref_radius, &
+         "weight_ref_radius", unit="m", &
+         description="reference radius R_0 corresponding to the " &
+         // "reference diameter D_0 = 2 * R_0 if the weight_type " &
+         // "requires it, otherwise zero")
+    call pmc_nc_write_real(ncid, aero_weight%exponent, "weight_exponent", &
+         unit="1", &
+         description="exponent alpha for the power weight_type, " &
+         // "set to -3 for MFA, and zero otherwise")
+
+  end subroutine aero_weight_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine aero_weight_input_netcdf(aero_weight, ncid)
+
+    !> Environment state to read.
+    type(aero_weight_t), intent(inout) :: aero_weight
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_read_integer(ncid, aero_weight%type, "weight_type")
+    call pmc_nc_read_real(ncid, aero_weight%ref_radius, "weight_ref_radius")
+    call pmc_nc_read_real(ncid, aero_weight%exponent, "weight_exponent")
+
+  end subroutine aero_weight_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

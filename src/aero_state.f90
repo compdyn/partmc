@@ -1884,21 +1884,21 @@ contains
     call pmc_nc_read_integer_1d(ncid, aero_n_orig_part, &
          "aero_n_orig_part")
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
-         "aero_absorb_cross_sect")
+         "aero_absorb_cross_sect", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
-         "aero_scatter_cross_sect")
+         "aero_scatter_cross_sect", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_asymmetry, &
-         "aero_asymmetry")
+         "aero_asymmetry", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_refract_shell_real, &
-         "aero_refract_shell_real")
+         "aero_refract_shell_real", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_refract_shell_imag, &
-         "aero_refract_shell_imag")
+         "aero_refract_shell_imag", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_refract_core_real, &
-         "aero_refract_core_real")
+         "aero_refract_core_real", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_refract_core_imag, &
-         "aero_refract_core_imag")
+         "aero_refract_core_imag", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_core_vol, &
-         "aero_core_vol")
+         "aero_core_vol", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
          "aero_water_hyst_leg")
     call pmc_nc_read_real_1d(ncid, aero_comp_vol, &

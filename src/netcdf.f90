@@ -75,7 +75,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single real from a NetCDF file.
-  subroutine pmc_nc_read_real(ncid, var, name)
+  subroutine pmc_nc_read_real(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -83,11 +83,25 @@ contains
     real(kind=dp), intent(out) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     
@@ -96,7 +110,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a single integer from a NetCDF file.
-  subroutine pmc_nc_read_integer(ncid, var, name)
+  subroutine pmc_nc_read_integer(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -104,11 +118,25 @@ contains
     integer, intent(out) :: var
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     
@@ -117,7 +145,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real array from a NetCDF file.
-  subroutine pmc_nc_read_real_1d(ncid, var, name)
+  subroutine pmc_nc_read_real_1d(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -125,11 +153,25 @@ contains
     real(kind=dp), intent(out) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     
@@ -138,7 +180,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer array from a NetCDF file.
-  subroutine pmc_nc_read_integer_1d(ncid, var, name)
+  subroutine pmc_nc_read_integer_1d(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -146,11 +188,25 @@ contains
     integer, intent(out) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     
@@ -159,7 +215,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple real 2D array from a NetCDF file.
-  subroutine pmc_nc_read_real_2d(ncid, var, name)
+  subroutine pmc_nc_read_real_2d(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -167,11 +223,25 @@ contains
     real(kind=dp), intent(out) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     
@@ -180,7 +250,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a simple integer 2D array from a NetCDF file.
-  subroutine pmc_nc_read_integer_2d(ncid, var, name)
+  subroutine pmc_nc_read_integer_2d(ncid, var, name, must_be_present)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -188,11 +258,25 @@ contains
     integer, intent(out) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, status
+    logical :: use_must_be_present
 
-    call pmc_nc_check_msg(nf90_inq_varid(ncid, name, varid), &
-         "inquiring variable " // trim(name))
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
     

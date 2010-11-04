@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -59,22 +59,33 @@ program extract_env
      end if
      n_time = i_time
 
-     call nc_check(nf90_inq_varid(ncid, "time", varid_time))
-     call nc_check(nf90_get_var(ncid, varid_time, time))
+     call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
+          "getting variable ID for 'time'")
+     call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
+          "getting variable 'time'")
 
-     call nc_check(nf90_inq_varid(ncid, "temperature", varid_temp))
-     call nc_check(nf90_get_var(ncid, varid_temp, temp))
+     call nc_check_msg(nf90_inq_varid(ncid, "temperature", varid_temp), &
+          "getting variable ID for 'temperature'")
+     call nc_check_msg(nf90_get_var(ncid, varid_temp, temp), &
+          "getting variable 'temperature'")
 
-     call nc_check(nf90_inq_varid(ncid, "relative_humidity", varid_rh))
-     call nc_check(nf90_get_var(ncid, varid_rh, rh))
+     call nc_check_msg(nf90_inq_varid(ncid, "relative_humidity", &
+          varid_rh), "getting variable ID for 'relative_humidity'")
+     call nc_check_msg(nf90_get_var(ncid, varid_rh, rh), &
+          "getting variable 'relative_humidity'")
 
-     call nc_check(nf90_inq_varid(ncid, "pressure", varid_pres))
-     call nc_check(nf90_get_var(ncid, varid_pres, pres))
+     call nc_check_msg(nf90_inq_varid(ncid, "pressure", varid_pres), &
+          "getting variable ID for 'pressure'")
+     call nc_check_msg(nf90_get_var(ncid, varid_pres, pres), &
+          "getting variable 'pressure'")
 
-     call nc_check(nf90_inq_varid(ncid, "height", varid_height))
-     call nc_check(nf90_get_var(ncid, varid_height, height))
+     call nc_check_msg(nf90_inq_varid(ncid, "height", varid_height), &
+          "getting variable ID for 'height'")
+     call nc_check_msg(nf90_get_var(ncid, varid_height, height), &
+          "getting variable 'height'")
 
-     call nc_check(nf90_close(ncid))
+        call nc_check_msg(nf90_close(ncid), &
+             "closing file " // trim(in_filename))
 
      ! output data
      write(out_unit, '(5e30.15e3)') time, temp, rh, pres, height
@@ -90,17 +101,24 @@ program extract_env
 
 contains
 
-  subroutine nc_check(status)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check return status of NetCDF function calls.
+  subroutine nc_check_msg(status, error_msg)
 
     !> Status return value.
     integer, intent(in) :: status
+    !> Error message in case of failure.
+    character(len=*), intent(in) :: error_msg
 
     if (status /= NF90_NOERR) then
-       write(0,*) nf90_strerror(status)
+       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
        stop 1
     end if
 
-  end subroutine nc_check
+  end subroutine nc_check_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   integer function command_argument_count()

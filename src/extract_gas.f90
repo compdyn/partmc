@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -61,15 +61,22 @@ program extract_gas
      end if
      n_time = i_time
 
-     call nc_check(nf90_inq_varid(ncid, "time", varid_time))
-     call nc_check(nf90_get_var(ncid, varid_time, time))
+     ! read time
+     call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
+          "getting variable ID for 'time'")
+     call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
+          "getting variable 'time'")
 
-     call nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
-     call nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, &
-          tmp_str, n_gas_species))
-     call nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
-     call nc_check(nf90_get_att(ncid, varid_gas_species, &
-          "names", gas_species_names))
+     ! read gas_species
+     call nc_check_msg(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species), &
+          "getting dimension ID for 'gas_species'")
+     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_gas_species, &
+          tmp_str, n_gas_species), "inquiring dimension 'gas_species'")
+     call nc_check_msg(nf90_inq_varid(ncid, "gas_species", varid_gas_species), &
+          "getting variable ID for 'gas_species'")
+     call nc_check_msg(nf90_get_att(ncid, varid_gas_species, &
+          "names", gas_species_names), &
+          "getting attribute 'names' for variable 'gas_species'")
      if (i_time == 1) then
         remaining_species = gas_species_names
         do i_spec = 1,n_gas_species
@@ -84,20 +91,24 @@ program extract_gas
         end do
      end if
      
-     call nc_check(nf90_inq_varid(ncid, "gas_mixing_ratio", &
-          varid_gas_mixing_ratio))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_gas_mixing_ratio, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     ! read gas_mixing_ratio
+     call nc_check_msg(nf90_inq_varid(ncid, "gas_mixing_ratio", &
+          varid_gas_mixing_ratio), &
+          "getting variable ID for 'gas_mixing_ratio'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_gas_mixing_ratio, &
+          tmp_str, xtype, ndims, dimids, nAtts), &
+          "inquiring variable 'gas_mixing_ratio'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_gas_species)) then
         write(*,*) "ERROR: unexpected gas_mixing_ratio dimids"
         stop 1
      end if
      allocate(gas_mixing_ratio(n_gas_species))
-     call nc_check(nf90_get_var(ncid, varid_gas_mixing_ratio, &
-          gas_mixing_ratio))
+     call nc_check_msg(nf90_get_var(ncid, varid_gas_mixing_ratio, &
+          gas_mixing_ratio), "getting variable 'gas_mixing_ratio'")
      
-     call nc_check(nf90_close(ncid))
+     call nc_check_msg(nf90_close(ncid), &
+          "closing file " // trim(in_filename))
 
      ! output data
      write(out_unit, '(e30.15e3)', advance='no') time
@@ -120,17 +131,24 @@ program extract_gas
 
 contains
 
-  subroutine nc_check(status)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check return status of NetCDF function calls.
+  subroutine nc_check_msg(status, error_msg)
 
     !> Status return value.
     integer, intent(in) :: status
+    !> Error message in case of failure.
+    character(len=*), intent(in) :: error_msg
 
     if (status /= NF90_NOERR) then
-       write(0,*) nf90_strerror(status)
+       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
        stop 1
     end if
 
-  end subroutine nc_check
+  end subroutine nc_check_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   integer function command_argument_count()

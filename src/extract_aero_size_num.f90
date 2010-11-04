@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -69,16 +69,21 @@ program extract_aero_size_num
      end if
 
      ! read time
-     call nc_check(nf90_inq_varid(ncid, "time", varid_time))
-     call nc_check(nf90_get_var(ncid, varid_time, time))
+     call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
+          "getting variable ID for 'time'")
+     call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
+          "getting variable 'time'")
 
      ! read aero_species
-     call nc_check(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species))
-     call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
-          tmp_str, n_aero_species))
-     call nc_check(nf90_inq_varid(ncid, "aero_species", varid_aero_species))
-     call nc_check(nf90_get_att(ncid, varid_aero_species, &
-          "names", aero_species_names))
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species), &
+          "getting dimension ID for 'aero_species'")
+     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
+          tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_species", varid_aero_species), &
+          "getting variable ID for 'aero_species'")
+     call nc_check_msg(nf90_get_att(ncid, varid_aero_species, &
+          "names", aero_species_names), &
+          "getting attribute 'names' for variable 'aero_species'")
      
      ! read aero_particle dimension
      status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
@@ -86,15 +91,17 @@ program extract_aero_size_num
         ! dimension missing ==> no particles, so skip this time
         cycle
      end if
-     call nc_check(status)
-     call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
-          tmp_str, n_aero_particle))
+     call nc_check_msg(status, "getting dimension ID for 'aero_particle'")
+     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
+          tmp_str, n_aero_particle), "inquiring dimension 'aero_species'")
      
      ! read aero_particle_mass
-     call nc_check(nf90_inq_varid(ncid, "aero_particle_mass", &
-          varid_aero_particle_mass))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_particle_mass", &
+          varid_aero_particle_mass), &
+          "getting variable ID for 'aero_particle_mass'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
+          tmp_str, xtype, ndims, dimids, nAtts), &
+          "inquiring variable 'aero_particle_mass'")
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_particle) &
           .or. (dimids(2) /= dimid_aero_species)) then
@@ -102,38 +109,41 @@ program extract_aero_size_num
         stop 1
      end if
      allocate(aero_particle_mass(n_aero_particle, n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_particle_mass, &
-          aero_particle_mass))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_particle_mass, &
+          aero_particle_mass), "getting variable 'aero_particle_mass'")
      
      ! read aero_density
-     call nc_check(nf90_inq_varid(ncid, "aero_density", &
-          varid_aero_density))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_density, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_density", &
+          varid_aero_density), "getting variable ID for 'aero_density'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_density, &
+          tmp_str, xtype, ndims, dimids, nAtts), &
+          "inquiring variable 'aero_density'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_density dimids"
         stop 1
      end if
      allocate(aero_density(n_aero_species))
-     call nc_check(nf90_get_var(ncid, varid_aero_density, &
-          aero_density))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_density, &
+          aero_density), "getting variable 'aero_density'")
      
      ! read aero_comp_vol
-     call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
-          varid_aero_comp_vol))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
-          tmp_str, xtype, ndims, dimids, nAtts))
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_comp_vol", &
+          varid_aero_comp_vol), "getting variable ID for 'aero_comp_vol'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
+          tmp_str, xtype, ndims, dimids, nAtts), &
+          "inquiring variable 'aero_comp_vol'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_particle)) then
         write(*,*) "ERROR: unexpected aero_comp_vol dimids"
         stop 1
      end if
      allocate(aero_comp_vol(n_aero_particle))
-     call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
-          aero_comp_vol))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_comp_vol, &
+          aero_comp_vol), "getting variable 'aero_comp_vol'")
      
-     call nc_check(nf90_close(ncid))
+     call nc_check_msg(nf90_close(ncid), &
+          "closing file " // trim(in_filename))
 
      ! compute distribution
      dlnr = log(r_max / r_min) / real(n_bin - 1, kind=dp)
@@ -197,17 +207,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check return status of NetCDF function calls.
-  subroutine nc_check(status)
+  subroutine nc_check_msg(status, error_msg)
 
     !> Status return value.
     integer, intent(in) :: status
+    !> Error message in case of failure.
+    character(len=*), intent(in) :: error_msg
 
     if (status /= NF90_NOERR) then
-       write(0,*) nf90_strerror(status)
+       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
        stop 1
     end if
 
-  end subroutine nc_check
+  end subroutine nc_check_msg
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

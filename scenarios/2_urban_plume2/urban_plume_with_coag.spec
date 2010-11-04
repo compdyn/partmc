@@ -6,7 +6,7 @@ kernel brown                    # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 86400                     # total simulation time (s)
+t_max 172800                    # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)

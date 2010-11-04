@@ -585,6 +585,9 @@ contains
     
     integer :: ncid
 
+    ! FIXME: variables to be read should be inout, as they are are
+    ! already allocated and will be reallocated?
+
     ! only root node actually reads from the file
     if (pmc_mpi_rank() == 0) then
        call pmc_nc_open_read(filename, ncid)

@@ -3,13 +3,8 @@ Before release of 2.0.0:
 
 Fix condensation to use weights.
 
-Make averaging use weights.
-
 Remove coagulation_mpi_controlled (maybe also
 mc_coag_mpi_centralized()).
-
-Change gnuplot scripts in test/ to have units like "time / s", not
-"time (s)".
 
 ######################################################################
 
@@ -229,3 +224,6 @@ more efficient in the slow mixing or few particles case.
 
 Change radius to diameter in all input files and also in extract_*
 output files.
+
+Change gnuplot scripts in test/ to have units like "time / s", not
+"time (s)".

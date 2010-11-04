@@ -232,4 +232,54 @@ average within each bin.
   \frac{\hat{\bar{v}}_i}{\hat{\bar{v}}} &= \frac{\frac{v}{N}}{v} = \frac{1}{N} \text{ (particle volume ratios of total volume are all equal)}
 \end{align*}
 
+\newpage
+
+\section{Weighted Averaging}
+
+We follow the last section, but assume that we have a weighting
+function $W(v)$.
+
+\begin{align*}
+  \intertext{Given:}
+  v_i^a &= \text{volume of species $a = 1,\ldots,A$ in particle $i = 1,\ldots,N$} \\
+  W(v) &= \text{weighting function at volume $v$} \\
+  \intertext{Define:}
+  v_i &= \sum_{a=1}^A v_i^a = \text{total volume of particle $i$} \\
+  v_W^a &= \sum_{i=1}^N W(v_i) v_i^a = \text{weighted total volume of species $a$ in all particles} \\
+  v_W &= \sum_{i=1}^N \sum_{a=1}^A W(v_i) v_i^a = \sum_{i=1}^N W(v_i) v_i = \sum_{a=1}^A v_W^a = \text{weighted total volume of all particles} \\
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{weighted composition averaging defined by:}
+  \tilde{v}_i^a &= \frac{v_W^a v_i}{v_W} \\
+  \intertext{properties of weighted composition averaging:}
+  \tilde{v}_i &= \sum_{a=1}^A \tilde{v}_i^a = \sum_{a=1}^A \frac{v_W^a v_i}{v_W} = v_i \text{ (particle volumes are preserved)} \\
+  \tilde{v}_W^a &= \sum_{i=1}^N W(\tilde{v}_i) \tilde{v}_i^a = \sum_{i=1}^N W(v_i) \frac{v_W^a v_i}{v_W} = v_W^a \text{ (weighted total species volumes are preserved)} \\
+  \tilde{v}_W &= \sum_{i=1}^N \sum_{a=1}^A W(\tilde{v}_i) \tilde{v}_i^a = \sum_{i=1}^N \sum_{a=1}^A W(v_i) \frac{v_W^a v_i}{v_W} = \sum_{i=1}^N W(v_i) v_i = v_W \text{ (weighted total volume is preserved)} \\
+  \frac{\tilde{v}_i^a}{\tilde{v}_i} &= \frac{v_W^a v_i}{v_W} \frac{1}{v_i} = \frac{v_W^a}{v_W} \text{ (per-particle species ratios are all equal and the same as the weighted total species ratios)} \\
+  \frac{\tilde{v}_i}{\tilde{v}_W} &= \frac{v_i}{v_W} \text{ (particle volume ratios of weighted total volume are preserved)}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{weighted size averaging defined by:}
+  \check{v}_i^a &= \frac{v_i^a}{v_i} v^* \\
+  \intertext{where $v^*$ satisfies:}
+  v_W &= \sum_{i=1}^N W(v_i) v_i = \sum_{i=1}^M W(v^*) v^* \\
+  \intertext{If $W$ is continuous then at least one $v^*$ exists in $\left[\min_{i=1}^N(v_i), \max_{i=1}^N(v_i)\right]$. If $v W(v)$ is also monotone (as is the case for us) then $v^*$ is unique.}
+  \intertext{properties of size averaging:}
+  \check{v}_i &= \sum_{a=1}^A \check{v}_i^a = \sum_{a=1}^A \frac{v_i^a}{v_i} v^* = v^* \text{ (particle volumes are weighted-average volume)} \\
+  \check{v}_W^a &= \sum_{i=1}^N W(\check{v}_i) \check{v}_i^a = \sum_{i=1}^N W(v^*) \frac{v_i^a}{v_i} v^* \ne v_W^a \text{ (weighted total species volumes are not preserved)} \\
+  \check{v}_W &= \sum_{i=1}^N \sum_{a=1}^A W(\check{v}_i) \check{v}_i^a = \sum_{i=1}^N \sum_{a=1}^A W(v^*) \frac{v_i^a}{v_i} v^* = \sum_{i=1}^N W(v^*) v^* = v_W \text{ (weighted total volume is preserved)} \\
+  \frac{\check{v}_i^a}{\check{v}_i} &= \frac{\frac{v_i^a}{v_i} v^*}{v^*} = \frac{v_i^a}{v_i} \text{ (per-particle species ratios are preserved)} \\
+  \frac{\check{v}_i}{\check{v}_W} &= \frac{v^*}{v_W} \text{ (particle volume ratios of total volume are all equal)}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \intertext{if weighted size averaging is done after weighted composition averaging then:}
+  \check{\tilde{v}}^a_i &= \frac{\tilde{v}_i^a}{\tilde{v}_i} \tilde{v}^* = \frac{v_W^a v_i}{v_W} \frac{1}{v_i} \tilde{v}^* = \frac{v_W^a}{v_W} v^* \\
+  \intertext{where we use the fact that $\tilde{v}^* = v^*$ arising from the requirement:}
+  \sum_{i=1}^N W(\tilde{v}^*) \tilde{v}^* &= \sum_{i=1}^N W(\tilde{v}_i) \tilde{v}_i = \tilde{v}_W = v_W = \sum_{i=1}^N W(v_i) v_i = \sum_{i=1}^N W(v^*) v^* \\
+  \intertext{properties of weighted size averaging after weighted composition averaging:}
+  \check{\tilde{v}}_i &= \sum_{a=1}^A \check{\tilde{v}}_i^a = \sum_{a=1}^A \frac{v_W^a}{v_W} v^* = v^* \text{ (particle volumes are average volume)} \\
+  \check{\tilde{v}}_W^a &= \sum_{i=1}^N W(\check{\tilde{v}}_i) \check{\tilde{v}}_i^a = \sum_{i=1}^N W(v^*) \frac{v_W^a}{v_W} v^* = v_W^a \text{ (weighted total species volumes are preserved)} \\
+  \check{\tilde{v}}_W &= \sum_{a=1}^A \check{\tilde{v}}_W^a = \sum_{a=1}^A v_W^a = v_W \text{ (weighted total volume is preserved)} \\
+  \frac{\check{\tilde{v}}_i^a}{\check{\tilde{v}}_i} &= 
+\frac{v_W^a}{v_W} v^* \frac{1}{v^*} = \frac{v_W^a}{v_W} \text{ (per-particle species ratios are all equal and the same as the weighted total species ratios)} \\
+  \frac{\check{\tilde{v}}_i}{\check{\tilde{v}}_W} &= \frac{v^*}{v_W} \text{ (particle volume ratios of weighted total volume are all equal)}
+\end{align*}
+
 \end{document}

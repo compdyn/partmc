@@ -1,6 +1,6 @@
 # time (s)
 # rate (s^{-1})
-# emissions (ppb)
+# mixing ratios (ppb)
 time            0
 rate            1
 # these lines intentionally left empty

@@ -1,6 +1,6 @@
 # time (s)
 # rate (s^{-1})
-# emissions (ppb)
+# emissions (mol m^{-2} s^{-1})
 time            0
 rate            1
 # these lines intentionally left empty

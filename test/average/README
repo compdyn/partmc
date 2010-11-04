@@ -1,0 +1,7 @@
+
+Average Test-case
+=================
+
+This tests the per-bin averaging of aerosol populations. The averaged
+distributions are checked for conservation properties and can be
+plotted to see the effects of the different averaging types.

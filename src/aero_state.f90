@@ -1001,10 +1001,10 @@ contains
 
   !> Set each aerosol particle to have its original total volume, but
   !> species volume ratios given by the total species volume ratio
-  !> within each bin. This preserves the total species volume per bin
-  !> as well as per-particle total volumes.
+  !> within each bin. This preserves the (weighted) total species
+  !> volume per bin as well as per-particle total volumes.
   subroutine aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
-       dry_volume)
+       aero_weight, dry_volume)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1012,46 +1012,40 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Whether to use dry volume (rather than wet).
     logical, intent(in) :: dry_volume
 
-    real(kind=dp) :: species_volumes(aero_data%n_spec)
-    real(kind=dp) :: total_volume, particle_volume
+    real(kind=dp) :: weighted_species_volumes(aero_data%n_spec)
+    real(kind=dp) :: weighted_total_volume, particle_volume, weight
     integer :: i_bin, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
-    ! FIXME:
-    call warn_msg(516672698, &
-         "averaging is not yet compatible with weighting functions")
     do i_bin = 1,bin_grid%n_bin
-       species_volumes = 0d0
+       weighted_species_volumes = 0d0
+       weighted_total_volume = 0d0
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          species_volumes = species_volumes + aero_particle%vol
+          weight = aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle))
+          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+               aero_data, dry_volume)
+          weighted_species_volumes = weighted_species_volumes &
+               + weight * aero_particle%vol
+          weighted_total_volume = weighted_total_volume &
+               + weight * particle_volume
        end do
-       total_volume = 0d0
-       do i_spec = 1,aero_data%n_spec
-          if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-             total_volume = total_volume + species_volumes(i_spec)
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          aero_particle => aero_state%bin(i_bin)%particle(i_part)
+          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+               aero_data, dry_volume)
+          aero_particle%vol = particle_volume * weighted_species_volumes &
+               / weighted_total_volume
+          if (dry_volume .and. (aero_data%i_water > 0)) then
+             ! set water to zero if we are doing dry volume averaging
+             aero_particle%vol(aero_data%i_water) = 0d0
           end if
-       end do
-       do i_part = 1,aero_state%bin(i_bin)%n_part
-          aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          particle_volume = 0d0
-          do i_spec = 1,aero_data%n_spec
-             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                particle_volume = particle_volume + aero_particle%vol(i_spec)
-             end if
-          end do
-          do i_spec = 1,aero_data%n_spec
-             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                aero_particle%vol(i_spec) = particle_volume &
-                     * species_volumes(i_spec) / total_volume
-             else
-                ! water species for dry_volume
-                aero_particle%vol(i_spec) = 0d0
-             end if
-          end do
        end do
     end do
 
@@ -1061,12 +1055,20 @@ contains
 
   !> Set each aerosol particle to have its original species ratios,
   !> but total volume given by the average volume of all particles
-  !> within each bin. This does not preserve the total species volume
-  !> per bin. If the \c bin_center parameter is \c .true. then the
-  !> particles in each bin are set to have the bin center volume,
-  !> rather than the average volume of the particles in that bin.
+  !> within each bin.
+  !!
+  !! This does not preserve the total species volume
+  !! per bin. If the \c bin_center parameter is \c .true. then the
+  !! particles in each bin are set to have the bin center volume,
+  !! rather than the average volume of the particles in that bin.
+  !!
+  !! If the weighting function is not constant (AERO_WEIGHT_TYPE_NONE)
+  !! then the averaging can be performed in either a number-preserving
+  !! way or in a volume-preserving way. The volume-preserving way does
+  !! not preserve species volume ratios in gernal, but will do so if
+  !! the particle population has already been composition-averaged.
   subroutine aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
-       dry_volume, bin_center)
+       aero_weight, dry_volume, bin_center, preserve_number)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1074,52 +1076,163 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
     !> Whether to use dry volume (rather than wet).
     logical, intent(in) :: dry_volume
     !> Whether to assign the bin center volume (rather than the average
     !> volume).
     logical, intent(in) :: bin_center
+    !> Whether to use the number-preserving scheme (otherwise will use
+    !> the volume-preserving scheme). This parameter has no effect if
+    !> \c bin_center is \c .true.
+    logical, intent(in) :: preserve_number
 
-    real(kind=dp) :: total_volume, particle_volume
-    integer :: i_bin, i_part, i_spec
+    real(kind=dp) :: weighted_total_volume, particle_volume
+    real(kind=dp) :: new_particle_volume, weight, total_weight
+    real(kind=dp) :: lower_volume, upper_volume, center_volume
+    real(kind=dp) :: lower_function, upper_function, center_function
+    integer :: i_bin, i_part, i_bisect
     type(aero_particle_t), pointer :: aero_particle
 
-    ! FIXME:
-    call warn_msg(705987134, &
-         "averaging is not yet compatible with weighting functions")
     do i_bin = 1,bin_grid%n_bin
-       total_volume = 0d0
+       if (aero_state%bin(i_bin)%n_part == 0) then
+          cycle
+       end if
+
+       total_weight = 0d0
+       weighted_total_volume = 0d0
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          do i_spec = 1,aero_data%n_spec
-             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                total_volume = total_volume + aero_particle%vol(i_spec)
-             end if
-          end do
+          weight = aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle))
+          total_weight = total_weight + weight
+          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+               aero_data, dry_volume)
+          weighted_total_volume = weighted_total_volume &
+               + weight * particle_volume
        end do
+
+       ! determine the new_particle_volume for all particles in this bin
+       if (bin_center) then
+          new_particle_volume = bin_grid%v(i_bin)
+       elseif (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          new_particle_volume = weighted_total_volume &
+               / real(aero_state%bin(i_bin)%n_part, kind=dp)
+       elseif (preserve_number) then
+          ! number-preserving scheme: Solve the implicit equation:
+          ! n_part * W(new_vol) = total_weight
+          !
+          ! We assume that the weighting function is strictly monotone
+          ! so this equation has a unique solution and the solution
+          ! lies between the min and max particle volumes. We use
+          ! bisection as this doesn't really need to be fast, just
+          ! robust.
+
+          ! initialize to min and max particle volumes
+          do i_part = 1,aero_state%bin(i_bin)%n_part
+             aero_particle => aero_state%bin(i_bin)%particle(i_part)
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             if (i_part == 1) then
+                lower_volume = particle_volume
+                upper_volume = particle_volume
+             end if
+             lower_volume = min(lower_volume, particle_volume)
+             upper_volume = max(upper_volume, particle_volume)
+          end do
+
+          lower_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+               * aero_weight_value(aero_weight, vol2rad(lower_volume)) &
+               - total_weight
+          upper_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+               * aero_weight_value(aero_weight, vol2rad(upper_volume)) &
+               - total_weight
+
+          ! do 50 rounds of bisection (2^50 = 10^15)
+          do i_bisect = 1,50
+             center_volume = (lower_volume + upper_volume) / 2d0
+             center_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+                  * aero_weight_value(aero_weight, vol2rad(center_volume)) &
+                  - total_weight
+             if ((lower_function > 0d0 .and. center_function > 0d0) &
+                  .or. (lower_function < 0d0 .and. center_function < 0d0)) then
+                lower_volume = center_volume
+                lower_function = center_function
+             else
+                upper_volume = center_volume
+                upper_function = center_function
+             end if
+          end do
+
+          new_particle_volume = center_volume
+          !> DEBUG
+          write(*,*) 'num_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
+               i_bin, aero_state%bin(i_bin)%n_part, bin_grid%v(i_bin), new_particle_volume
+          !< DEBUG
+       else
+          ! volume-preserving scheme: Solve the implicit equation:
+          ! n_part * W(new_vol) * new_vol = weighted_total_volume
+          !
+          ! We assume that the weighting function is strictly monotone
+          ! so this equation has a unique solution and the solution
+          ! lies between the min and max particle volumes. We use
+          ! bisection as this doesn't really need to be fast, just
+          ! robust.
+
+          ! initialize to min and max particle volumes
+          do i_part = 1,aero_state%bin(i_bin)%n_part
+             aero_particle => aero_state%bin(i_bin)%particle(i_part)
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             if (i_part == 1) then
+                lower_volume = particle_volume
+                upper_volume = particle_volume
+             end if
+             lower_volume = min(lower_volume, particle_volume)
+             upper_volume = max(upper_volume, particle_volume)
+          end do
+
+          lower_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+               * aero_weight_value(aero_weight, vol2rad(lower_volume)) &
+               * lower_volume - weighted_total_volume
+          upper_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+               * aero_weight_value(aero_weight, vol2rad(upper_volume)) &
+               * upper_volume - weighted_total_volume
+
+          ! do 50 rounds of bisection (2^50 = 10^15)
+          do i_bisect = 1,50
+             center_volume = (lower_volume + upper_volume) / 2d0
+             center_function = real(aero_state%bin(i_bin)%n_part, kind=dp) &
+                  * aero_weight_value(aero_weight, vol2rad(center_volume)) &
+                  * center_volume - weighted_total_volume
+             if ((lower_function > 0d0 .and. center_function > 0d0) &
+                  .or. (lower_function < 0d0 .and. center_function < 0d0)) then
+                lower_volume = center_volume
+                lower_function = center_function
+             else
+                upper_volume = center_volume
+                upper_function = center_function
+             end if
+          end do
+
+          new_particle_volume = center_volume
+          !> DEBUG
+          write(*,*) 'vol_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
+               i_bin, aero_state%bin(i_bin)%n_part, bin_grid%v(i_bin), new_particle_volume
+          !< DEBUG
+       end if
+
        do i_part = 1,aero_state%bin(i_bin)%n_part
           aero_particle => aero_state%bin(i_bin)%particle(i_part)
-          particle_volume = 0d0
-          do i_spec = 1,aero_data%n_spec
-             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                particle_volume = particle_volume + aero_particle%vol(i_spec)
-             end if
-          end do
-          do i_spec = 1,aero_data%n_spec
-             if (.not. dry_volume .or. i_spec /= aero_data%i_water) then
-                if (bin_center) then
-                   aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                        / particle_volume * bin_grid%v(i_bin)
-                else
-                   aero_particle%vol(i_spec) = aero_particle%vol(i_spec) &
-                        / particle_volume * total_volume &
-                        / real(aero_state%bin(i_bin)%n_part, kind=dp)
-                end if
-             else
-                ! water species for dry_volume
-                aero_particle%vol(i_spec) = 0d0
-             end if
-          end do
+          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+               aero_data, dry_volume)
+          aero_particle%vol = aero_particle%vol / particle_volume &
+               * new_particle_volume
+          if (dry_volume .and. (aero_data%i_water > 0)) then
+             ! set water to zero if we are doing dry volume averaging
+             aero_particle%vol(aero_data%i_water) = 0d0
+          end if
        end do
     end do
 
@@ -1847,9 +1960,6 @@ contains
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
-
-    call warn_msg(519710312, &
-         "state input must use same weighting as original output")
 
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then

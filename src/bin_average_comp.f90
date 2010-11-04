@@ -35,6 +35,13 @@ program bin_average_comp
   if (command_argument_count() .ne. 6) then
      write(6,*) 'Usage: bin_average_comp <r_min> <r_max> <n_bin> ' &
           // '<"wet" or "dry"> <input_filename> <output_prefix>'
+     write(6,*) ''
+     write(6,*) '  r_min: minimum bin center radius (m)'
+     write(6,*) '  r_max: maximum bin center radius (m)'
+     write(6,*) '  n_bin: number of bins'
+     write(6,*) '  wet/dry: average wet or dry sizes'
+     write(6,*) '  input_filename: like scenario_0001_00000001.nc'
+     write(6,*) '  output_prefix: like scenario_comp_average'
      stop 2
   endif
   call get_command_argument(1, tmp_str)
@@ -74,7 +81,8 @@ program bin_average_comp
      call aero_state_make_dry(aero_state, bin_grid, aero_data)
   end if
 
-  call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, dry_volume)
+  call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
+       aero_weight, dry_volume)
 
   output_type = "central"
   record_removals = .false.

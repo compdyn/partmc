@@ -30,12 +30,23 @@ program bin_average_size
   real(kind=dp) :: r_min, r_max, time, del_t
   character(len=1000) :: output_type, tmp_str
   logical :: record_removals, dry_volume, bin_center, record_optical
+  logical :: preserve_number
 
   ! process commandline arguments
-  if (command_argument_count() .ne. 7) then
+  if (command_argument_count() .ne. 8) then
      write(6,*) 'Usage: bin_average_size <r_min> <r_max> <n_bin> ' &
           // '<"wet" or "dry"> <"center" or "average"> ' &
+          // '<"number" or "volume"> ' &
           // '<input_filename> <output_prefix>'
+     write(6,*) ''
+     write(6,*) '  r_min: minimum bin center radius (m)'
+     write(6,*) '  r_max: maximum bin center radius (m)'
+     write(6,*) '  n_bin: number of bins'
+     write(6,*) '  wet/dry: average wet or dry sizes'
+     write(6,*) '  center/average: set new sizes to bin centers, or to average sizes'
+     write(6,*) '  number/volume: preserve number or volume'
+     write(6,*) '  input_filename: like scenario_0001_00000001.nc'
+     write(6,*) '  output_prefix: like scenario_size_average'
      stop 2
   endif
   call get_command_argument(1, tmp_str)
@@ -64,8 +75,18 @@ program bin_average_size
           // trim(tmp_str)
      stop 1
   end if
-  call get_command_argument(6, in_filename)
-  call get_command_argument(7, out_prefix)
+  call get_command_argument(6, tmp_str)
+  if (trim(tmp_str) == "number") then
+     preserve_number = .true.
+  elseif (trim(tmp_str) == "volume") then
+     preserve_number = .false.
+  else
+     write(6,*) 'Argument 6 must be "number" or "volume", not ' &
+          // trim(tmp_str)
+     stop 1
+  end if
+  call get_command_argument(7, in_filename)
+  call get_command_argument(8, out_prefix)
 
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
@@ -86,7 +107,7 @@ program bin_average_size
   end if
 
   call aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
-       dry_volume, bin_center)
+       aero_weight, dry_volume, bin_center, preserve_number)
 
   output_type = "central"
   record_removals = .false.

@@ -1,24 +1,29 @@
 run_type particle               # particle-resolved run
-output_prefix out/mosaic_restarted # prefix of output files
+output_prefix out/average       # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part 20                       # total number of particles
-kernel golovin                  # coagulation kernel
+n_part 1000                     # total number of particles
+kernel zero                     # coagulation kernel
 nucleate none                   # nucleation parameterization
-restart yes                     # whether to restart from saved state (yes/no)
-restart_file out/mosaic_0001_00000013.nc # saved state file to restart from
+restart no                      # whether to restart from saved state (yes/no)
 
-t_max 43200                     # total simulation time (s)
+t_max 0                         # total simulation time (s)
 del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
-r_min 1e-8                      # minimum radius (m)
-r_max 1e-3                      # maximum radius (m)
+r_min 1e-10                     # minimum radius (m)
+r_max 1e-5                      # maximum radius (m)
+
+weight power                    # weighting function
+ref_radius 1e-7                 # radius at which weight is 1
+exponent -1                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
+gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
+aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
@@ -37,10 +42,9 @@ start_day 200                   # start day of year (UTC)
 
 rand_init 0                     # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
-allow_doubling yes              # whether to allow doubling (yes/no)
-allow_halving yes               # whether to allow halving (yes/no)
+allow_doubling no               # whether to allow doubling (yes/no)
+allow_halving no                # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic yes                   # whether to do MOSAIC (yes/no)
-do_optical yes                  # whether to compute optical props (yes/no)
+do_mosaic no                    # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

@@ -294,6 +294,28 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total volume (dry or wet) of the particle (m^3).
+  real(kind=dp) function aero_particle_volume_maybe_dry(aero_particle, &
+       aero_data, dry_volume)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Whether the desired volume is dry (otherwise wet).
+    logical, intent(in) :: dry_volume
+
+    if (dry_volume) then
+       aero_particle_volume_maybe_dry &
+            = aero_particle_dry_volume(aero_particle, aero_data)
+    else
+       aero_particle_volume_maybe_dry = aero_particle_volume(aero_particle)
+    end if
+
+  end function aero_particle_volume_maybe_dry
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total radius of the particle (m).
   real(kind=dp) function aero_particle_radius(aero_particle)
 

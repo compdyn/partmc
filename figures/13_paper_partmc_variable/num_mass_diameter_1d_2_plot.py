@@ -9,9 +9,9 @@ import mpl_helper
 import matplotlib
 import config
 
-top_label_width = 32.8
-top_label_height = 6.8
-top_label_voffset = 15.5
+top_label_width = 30 # 32.8
+top_label_height = 6 # 6.8
+top_label_voffset = 13.5 # 15.5
 
 x_array = np.loadtxt("data/1d_10K_wei+1_12_x_values.txt") * 1e6
 num_avg1 = np.loadtxt("data/1d_10K_wei+1_12_hist_array_gav_num.txt") / 1e6

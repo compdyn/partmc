@@ -404,7 +404,7 @@ contains
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref output_format_env_data --- the environment data
+    !!   - \ref input_format_env_data --- the environment data
     !!     containing the temperature profile
 
     !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
@@ -437,7 +437,7 @@ contains
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref output_format_env_data --- the environment data
+    !!   - \ref input_format_env_data --- the environment data
     !!     containing the mixing layer height profile
 
     ! temperature profile

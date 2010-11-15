@@ -203,8 +203,8 @@ contains
     !!     \f$c_{n_{\rm bin}}\f$, given as a radius.
     !!
     !! See also:
-    !!   - \ref spec_file_format: The input file text format.
-    !!   - \ref output_format_bin_grid: The corresponding output format.
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_bin_grid --- the corresponding output format
 
     call spec_file_read_integer(file, 'n_bin', n_bin)
     call spec_file_read_real(file, 'r_min', r_min)

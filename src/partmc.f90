@@ -338,16 +338,16 @@ contains
     !!     to write its own state file; or \c single to transfer all
     !!     data to processor 0 and write a single unified output file
     !!   - \b mix_timescale (real, unit s): timescale on which to mix
-    !!     simulation state information amongst processors in an
-    !!     attempt to keep them consistent (the mixing rate is inverse
-    !!     to \c mix_timescale)
+    !!     aerosol particle information amongst processors in an
+    !!     attempt to keep the aerosol state consistent (the mixing
+    !!     rate is inverse to \c mix_timescale)
     !!   - \b gas_average (logical): whether to average the gas state
     !!     amongst processors each timestep, to ensure uniform gas
     !!     concentrations
     !!   - \b env_average (logical): whether to average the
     !!     environment state amongst processors each timestep, to
     !!     ensure a uniform environment
-    !!   - \b coag_method (logical): type of parallel coagulation ---
+    !!   - \b coag_method (string): type of parallel coagulation ---
     !!     must be one of: \c local for only within-processor
     !!     coagulation; \c collect to transfer all particles to
     !!     processor 0 each timestep and coagulate there; \c central to

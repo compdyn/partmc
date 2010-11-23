@@ -81,7 +81,7 @@ axes.set_ylim(1e-3, 1e5)
 axes.set_xlim(5e-3, 5)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \upmu m$")
 axes.text(-0.3, 0.5, r'$\alpha = -4$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
@@ -91,7 +91,7 @@ axes = axes_array[2][1]
 axes.errorbar(x_array, mass_avg1,mass_std1, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \upmu g \ m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.grid(True)
 axes.yaxis.tick_right()
@@ -109,7 +109,7 @@ axes = axes_array[1][1]
 axes.errorbar(x_array, mass_avg2, mass_std2, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \upmu g \ m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.grid(True)
 axes.yaxis.tick_right()
@@ -119,13 +119,13 @@ axes = axes_array[0][1]
 axes.errorbar(x_array, mass_avg3, mass_std3, fmt='r-')
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \mu g \, m^{-3})$")
+axes.set_ylabel(r"mass conc. $m(D_{\rm dry})$ / $(\rm \upmu g \ m^{-3})$")
 axes.set_ylim(1e-4, 1e2)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
 axes.yaxis.tick_right()
 axes.yaxis.set_label_position('right')
-axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$/ $\rm \upmu m$")
 
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 

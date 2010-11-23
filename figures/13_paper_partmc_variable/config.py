@@ -19,7 +19,7 @@ matplotlib.rc('xtick', labelsize = 7)
 matplotlib.rc('legend', fontsize = 7, borderpad = 0.7, borderaxespad = 1)
 matplotlib.rc('font', size = 7, family = "serif",
               serif = ["Computer Modern Roman"])
-
+matplotlib.rc('text.latex', preamble = "\usepackage{upgreek}")
 
 
 

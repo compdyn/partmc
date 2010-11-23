@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ./cv_mass_cv_num.py
-./cv_scav_bc_cv_ccn.py
+./cv_scav_bc_cv_ccn_2_plot.py
 ./er_alpha_plot.py
 ./num_mass_bc_diameter_2d_2_plot.py
 ./num_mass_bc_scrit_diameter_compo_2d_2_plot.py

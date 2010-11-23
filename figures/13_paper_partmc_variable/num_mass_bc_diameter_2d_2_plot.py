@@ -90,7 +90,7 @@ axes.set_ylabel(r"BC mass frac. $w_{\rm BC}$ / \%")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \upmu m$")
 axes.text(-0.3, 0.5, r'$\alpha = -4$', horizontalalignment='center',
            verticalalignment='center', transform=axes.transAxes,
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
@@ -109,7 +109,7 @@ axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                 orientation='horizontal')
 cbar_axes.xaxis.set_label_position('top')
-cbar_axes.set_xlabel(r"mass conc. $m^{\rm BC}(D_{\rm dry},w_{\rm BC})$ / ($\rm \mu g \ m^{-3}$)")
+cbar_axes.set_xlabel(r"mass conc. $m^{\rm BC}(D_{\rm dry},w_{\rm BC})$ / ($\rm \upmu g \ m^{-3}$)")
 cbar.set_ticks([1e-5, 1e-3, 1e-1, 1e1])
 
 axes = axes_array[1][1]
@@ -131,7 +131,7 @@ axes.set_yscale("linear")
 axes.set_ylim(0, 80)
 axes.set_xlim(5e-3, 5)
 axes.grid(True)
-axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
+axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \upmu m$")
 
 mpl_helper.remove_fig_array_axes(axes_array)
 

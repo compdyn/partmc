@@ -34,7 +34,7 @@ axes.grid(True)
 
 axes2 = axes.twinx()
 axes2.errorbar(time_array, mass_avg, mass_std, fmt='r-')
-axes2.set_ylabel(r"total mass $M(t)$ / $(\rm \mu g\ m^{-3})$")
+axes2.set_ylabel(r"total mass $M(t)$ / $(\rm \upmu g\ m^{-3})$")
 axes2.set_ybound(lower=0)
 axes2.set_yticks([0, 10, 20, 30, 40])
 

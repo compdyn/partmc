@@ -91,7 +91,7 @@ axes.set_xlim([500, 2e5])
 axes.grid(True)
 
 axes.set_xlabel(r"initial particle number $N_{\rm p}$")
-axes.set_ylabel(r"total mass $\overline{\langle M(t) \rangle}$ / $(\rm \mu g \, m^{-3})$")
+axes.set_ylabel(r"total mass $\overline{\langle M(t) \rangle}$ / $(\rm \upmu g \ m^{-3})$")
 
 figure.savefig("figs/partnum_mean_massnum.pdf")
 

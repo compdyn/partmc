@@ -64,9 +64,9 @@ cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMa
                 orientation='horizontal')
 axes.plot(x_array,line1, 'k')
 axes.plot(x_array,line2, 'k')
-mpl_helper.label_plot_line(axes, x_array, line1 , 1, "$\kappa = 1$",
+mpl_helper.label_plot_line(axes, x_array, line1 , 0.6, "$\kappa = 1$",
                                   verticalalignment="top", horizontalalignment="right")
-mpl_helper.label_plot_line(axes, x_array, line2 , 0.5, "$\kappa = 10^{-4}$",
+mpl_helper.label_plot_line(axes, x_array, line2 , 0.4, "$\kappa = 0$",
                                   verticalalignment="bottom", horizontalalignment="left")
 
 cbar_axes.xaxis.set_label_position('top')

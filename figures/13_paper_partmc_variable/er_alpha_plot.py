@@ -71,11 +71,11 @@ l_m_1e3 = axes.plot(weight_array, error_ratio_1K_mass[0:6], label = r"${\rm ER_M
 l_m_1e4 = axes.plot(weight_array, error_ratio_10K_mass[0:6], label = r"${\rm ER_M}(10^4,10^5)$")
 axes.grid(True)
 #axes.legend()
-axes.set_ylim(0, 0.5)
+axes.set_ylim(0, 0.8)
 axes.set_xlabel(r"weighting exponent $\alpha$ ")
-axes.set_ylabel(r"error ratio magnitude $\rm |ER|$")
+axes.set_ylabel(r"error ratio $\rm ER$")
 axes.legend((l_n_1e3,l_n_1e4,l_m_1e3,l_m_1e4), 
-              (r"${\rm |ER|_N}(10^3,10^4)$", r"${\rm |ER|_N}(10^4,10^5)$", 
-               r"${\rm |ER|_M}(10^3,10^4)$", r"${\rm |ER|_M}(10^4,10^5)$"), loc='center left', bbox_to_anchor = (1.0,0.5),ncol=1)
+              (r"${\rm ER_N}(10^3,10^4)$", r"${\rm ER_N}(10^4,10^5)$", 
+               r"${\rm ER_M}(10^3,10^4)$", r"${\rm ER_M}(10^4,10^5)$"), loc='center left', bbox_to_anchor = (1.0,0.5),ncol=1)
 
 figure.savefig("figs/er_alpha.pdf")

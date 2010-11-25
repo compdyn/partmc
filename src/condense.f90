@@ -347,10 +347,10 @@ contains
     !> Outputs rates.
     type(condense_rates_outputs_t), intent(out) :: outputs
 
-    real(kind=dp) :: rho_w, M_w, P_0, dP0_dT, rho_air, k_a, D_v, U, V
-    real(kind=dp) :: dV_dT, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
+    real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air, k_a, D_v, U
+    real(kind=dp) :: V, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
     real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
-    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, dVcomp_dT
+    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH
     integer :: newton_step
 
     rho_w = const%water_density
@@ -358,18 +358,16 @@ contains
     P_0 = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
          / (inputs%T - 38d0))
-    dP0_dT = P_0 * 7.45d0 * log(10d0) * (const%water_freeze_temp - 38d0) &
+    dP0_dT_div_P0 = 7.45d0 * log(10d0) * (const%water_freeze_temp - 38d0) &
          / (inputs%T - 38d0)**2
     rho_air = const%air_molec_weight * inputs%p &
          / (const%univ_gas_const * inputs%T)
-    dVcomp_dT = inputs%V_comp / inputs%T
 
     k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
     D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
          * (inputs%T / 273d0)**1.94d0
     U = const%water_latent_heat * rho_w / (4d0 * inputs%T)
     V = 4d0 * M_w * P_0 / (rho_w * const%univ_gas_const * inputs%T)
-    dV_dT = (dP0_dT / P_0 - 1d0 / inputs%T) * V
     W = const%water_latent_heat * M_w / (const%univ_gas_const * inputs%T)
     X = 4d0 * M_w * const%water_surf_eng &
          / (const%univ_gas_const * inputs%T * rho_w) 
@@ -380,11 +378,9 @@ contains
     Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
          / (const%univ_gas_const * inputs%T))
 
-    outputs%Hdot_env = - dV_dT * inputs%Tdot * inputs%H / V &
-         - dVcomp_dT * inputs%Tdot * inputs%H / inputs%V_comp
+    outputs%Hdot_env = - dP0_dT_div_P0 * inputs%Tdot * inputs%H
     outputs%dHdotenv_dD = 0d0
-    outputs%dHdotenv_dH = - dV_dT * inputs%Tdot / V &
-         - dVcomp_dT * inputs%Tdot / inputs%V_comp
+    outputs%dHdotenv_dH = - dP0_dT_div_P0 * inputs%Tdot
 
     if (inputs%D <= inputs%D_dry) then
        k_ap = k_a / (1d0 + Y / inputs%D_dry)

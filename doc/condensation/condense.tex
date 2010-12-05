@@ -9,56 +9,57 @@
 \newcommand{\tn}{\tabularnewline\hline}
 \renewcommand{\arraystretch}{1.5}
 \begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
-\hline \textbf{Symbol}       & \textbf{Meaning}                                            & \textbf{Type} & \textbf{Units}                                  &  \textbf{Reference}                                \tn \hline \endhead
-$a$                 & \rr species index                          & index & discrete & \tn
-$\alpha$            & \rr thermal accommodation coefficient                  & constant & $1$                                              & \rr \verb+const%accom_coeff+, S\&P 15.76      \tn
-$a_{\rm w}$         & \rr water activity                                     & function & $1$                                        & \rr eq.~\ref{eq:aw}                           \tn
-$c_{\rm p}$         & \rr specific heat capacity of air at constant pressure & constant & $\rm J \, kg^{-1}$                          & \rr \verb+const%air_spec_heat+                \tn
-$D_{\rm v}$         & \rr diffusivity coefficient                            & function & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko}, S\&P 15.65          \tn
-$D_{\rm v}'$        & \rr corrected diffusivity coefficient                  & function & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko_corr}, S\&P 15.66     \tn
-$D_{i,\rm dry}$     & \rr dry diameter of particle $i$               & function & $\rm m$                                  & \rr eq.~\ref{eq:D_dry}                                          \tn
-$D_i$               & \rr diameter of particle $i$                               & dynamic & $\rm m$                              & \rr                                           \tn
-$\dot{D}_i$         & \rr rate of change of $D_i$                            & function & $\rm m \, s^{-1}$ & \rr eq.~\ref{eq:Ddot} \tn
-$\delta_i^*$          & \rr growth parameter of particle $i$                                   & function & $1$                                        & \rr eq.~\ref{eq:delta_star}                   \tn
-$g_i$              & \rr equilibriation function of particle $i$          & function & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:g} \tn
-$H$                 & \rr environmental relative humidity                    & dynamic & $1$                               &                                           \tn
-$\dot{H}$         & \rr rate of change of $H$       & function & $\rm s^{-1}$                                                 & \rr eq.~\ref{eq:Hdot}                                          \tn
-$\dot{H}_i$         & \rr rate of change of $H$ due to particle $i$       & function & $\rm s^{-1}$                                                 & \rr eq.~\ref{eq:Hdot_i}                                          \tn
-$\dot{H}_{\rm env}$ & \rr rate of change of $H$ due to environment changes        & function & $\rm s^{-1}$                                                 & \rr eq.~\ref{eq:Hdot_env}                                          \tn
-$\Delta H_{\rm v}$  & \rr latent heat of vaporization of water               & constant & $\rm J \, kg^{-1}$           & \rr \verb+const%water_latent_heat+, S\&P 15.3 \tn
-$h_i$              & \rr growth rate function of particle $i$          & function & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:h} and eq.~\ref{eq:h_out_of_range} \tn
-$i$                & \rr particle index                            & index & discrete & \tn
-$\kappa_a$          & \rr hygroscopicity of species $a$              & function & $1$                         & \rr eq.~\ref{eq:kappa_indiv}                  \tn
-$\kappa_i$            & \rr hygroscopicity of particle $i$                             & function & $1$                                        & \rr eq.~\ref{eq:kappa}                        \tn
-$k_{\rm a}$         & \rr thermal conductivity of air                        & function & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:therm_cond}, S\&P 15.75       \tn
-$k_{\rm a}'$        & \rr corrected thermal conductivity of air              & function & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:therm_cond_corr}, S\&P 15.76  \tn
-$M_{\rm air}$       & \rr molecular weight of air                            & constant & $\rm kg \,mol^{-1}$     & \rr \verb+const%air_molec_weight+             \tn
-$M_{\rm w}$         & \rr molecular weight of water                          & constant & $\rm kg \, mol^{-1}$         & \rr \verb+const%water_molec_weight+           \tn
-$M_a$               & \rr molecular weight of species $a$            & constant & $\rm kg \, mol^{-1}$         & \rr \verb+aero_data%molec_weight(a)+          \tn
-$m_{\rm w}$         & \rr mass of water vapor                                &  & $\rm kg$  & \rr                                                                                          \tn
-$N$                & \rr number of particles          & input & discrete & \tn
-$P^0$               & \rr saturation vapor pressure                          & function & $\rm Pa$                              & \rr eq.~\ref{eq:sat_vap}                      \tn
-$p_0$               & \rr standard surface pressure                          & constant & $\rm Pa$                                        & \rr \verb+const%air_std_press+                \tn
-$p$                 & \rr environmental air pressure                         & input & $\rm Pa$                                       & \rr \verb+env_state%pressure+                 \tn
-$R$                 & \rr universal gas constant                             & constant & $\rm J \, mol^{-1} \, K^{-1}$              & \rr \verb+const%univ_gas_const+               \tn
-$\rho_{\rm w}$      & \rr density of water                                   & constant & $\rm kg \, m^{-3}$             & \rr \verb+const%water_density+                \tn
-$\rho_a$            & \rr density of species $a$                     & constant & $\rm kg \, m^{-3}$           & \rr \verb+aero_data%density(a)+                                          \tn
-$\rho_{\rm air}$    & \rr air density                                        & function & $\rm kg \, m^{-3}$                                        & \rr eq.~\ref{eq:rho_air}                      \tn
-$\sigma_{\rm w}$    & \rr surface tension (or surface energy) of water       & constant & $\rm J \, m^{-2}$                          & \rr \verb+const%water_surf_eng+, S\&P 15.5    \tn
-$T_0$                 & \rr initial environmental temperature                          & input & $\rm K$                                        & \rr \verb+env_state%temp+                     \tn
-$T$                 & \rr current environmental temperature                          & prescribed & $\rm K$                                        &                      \tn
-$U$          & \rr & function & $\rm J \, m^{-3} \, K^{-1}$ & \rr eq.~\ref{eq:fcn_U} \tn
-$V$          & \rr & function & $\rm s^{-1}$ & \rr eq.~\ref{eq:fcn_V} \tn
-$V_{i,\rm dry}^a$     & \rr dry volume of species $a$ in particle $i$  & input & $\rm m^3$                                & \rr \verb+aero_particle%vol(a)+                                          \tn
-$V_{i,\rm dry}$     & \rr dry volume of particle $i$                 & function & $\rm m^3$                                & \rr eq.~\ref{eq:V_dry}                                          \tn
-$V_{\rm comp,0}$      & \rr initial computational volume at temperature $T_0$                               & input & $\rm m^3$                                & \rr \verb+env_state%comp_vol+                 \tn
-$V_{\rm comp}$      & \rr current computational volume                               & function & $\rm m^3$                                & \rr eq.~\ref{eq:comp_vol}                 \tn
-$V_{i,\rm comp,0}$      & \rr initial computational volume for particle $i$ at temperature $T_0$                               & input & $\rm m^3$                                & \rr                  \tn
-$V_{i,\rm comp}$      & \rr current computational volume for particle $i$                               & function & $\rm m^3$                                & \rr eq.~\ref{eq:comp_vol_i}                 \tn
-$W$          & \rr & function & $1$ & \rr eq.~\ref{eq:fcn_W} \tn
-$X$          & \rr & function & $\rm m$ & \rr eq.~\ref{eq:fcn_X} \tn
-$Y$          & \rr & function & $\rm m$ & \rr eq.~\ref{eq:fcn_Y} \tn
-$Z$          & \rr & function & $\rm m$ & \rr eq.~\ref{eq:fcn_Z} \tn
+\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\hline \endhead
+$a$                    & \rr species index                                                      & index         & discrete                              &                                                    \tn
+$\alpha$               & \rr thermal accommodation coefficient                                  & constant      & $1$                                   & \rr \verb+const%accom_coeff+, S\&P 15.76           \tn
+$a_{\rm w}$            & \rr water activity                                                     & function      & $1$                                   & \rr eq.~\ref{eq:aw}                                \tn
+$c_{\rm p}$            & \rr specific heat capacity of air at constant pressure                 & constant      & $\rm J \, kg^{-1}$                    & \rr \verb+const%air_spec_heat+                     \tn
+$D_{\rm v}$            & \rr diffusivity coefficient                                            & function      & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko}, S\&P 15.65               \tn
+$D_{\rm v}'$           & \rr corrected diffusivity coefficient                                  & function      & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko_corr}, S\&P 15.66          \tn
+$D_{i,\rm dry}$        & \rr dry diameter of particle $i$                                       & function      & $\rm m$                               & \rr eq.~\ref{eq:D_dry}                             \tn
+$D_i$                  & \rr diameter of particle $i$                                           & dynamic       & $\rm m$                               & \rr                                                \tn
+$\dot{D}_i$            & \rr rate of change of $D_i$                                            & function      & $\rm m \, s^{-1}$                     & \rr eq.~\ref{eq:Ddot}                              \tn
+$\delta_i^*$           & \rr growth parameter of particle $i$                                   & function      & $1$                                   & \rr eq.~\ref{eq:delta_star}                        \tn
+$g_i$                  & \rr equilibriation function of particle $i$                            & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:g}                                 \tn
+$H$                    & \rr environmental relative humidity                                    & dynamic       & $1$                                   &                                                    \tn
+$\dot{H}$              & \rr rate of change of $H$                                              & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:Hdot}                              \tn
+$\dot{H}_i$            & \rr rate of change of $H$ due to particle $i$                          & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:Hdot_i}                            \tn
+$\dot{H}_{\rm env}$    & \rr rate of change of $H$ due to environment changes                   & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:Hdot_env}                          \tn
+$\Delta H_{\rm v}$     & \rr latent heat of vaporization of water                               & constant      & $\rm J \, kg^{-1}$                    & \rr \verb+const%water_latent_heat+, S\&P 15.3      \tn
+$h_i$                  & \rr growth rate function of particle $i$                               & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:h} and eq.~\ref{eq:h_out_of_range} \tn
+$i$                    & \rr particle index                                                     & index         & discrete                              &                                                    \tn
+$\kappa_a$             & \rr hygroscopicity of species $a$                                      & function      & $1$                                   & \rr eq.~\ref{eq:kappa_indiv}                       \tn
+$\kappa_i$             & \rr hygroscopicity of particle $i$                                     & function      & $1$                                   & \rr eq.~\ref{eq:kappa}                             \tn
+$k_{\rm a}$            & \rr thermal conductivity of air                                        & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:therm_cond}, S\&P 15.75            \tn
+$k_{\rm a}'$           & \rr corrected thermal conductivity of air                              & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:therm_cond_corr}, S\&P 15.76       \tn
+$M_{\rm air}$          & \rr molecular weight of air                                            & constant      & $\rm kg \,mol^{-1}$                   & \rr \verb+const%air_molec_weight+                  \tn
+$M_{\rm w}$            & \rr molecular weight of water                                          & constant      & $\rm kg \, mol^{-1}$                  & \rr \verb+const%water_molec_weight+                \tn
+$M_a$                  & \rr molecular weight of species $a$                                    & constant      & $\rm kg \, mol^{-1}$                  & \rr \verb+aero_data%molec_weight(a)+               \tn
+$m_{\rm w}$            & \rr mass of water vapor in volume $V_{\rm comp}$                       & function      & $\rm kg$                              & \rr eq.~\ref{eq:H_m_w}                             \tn
+$N$                    & \rr number of particles                                                & input         & discrete                              &                                                    \tn
+$P^0$                  & \rr saturation vapor pressure                                          & function      & $\rm Pa$                              & \rr eq.~\ref{eq:sat_vap}                           \tn
+$p_0$                  & \rr standard surface pressure                                          & constant      & $\rm Pa$                              & \rr \verb+const%air_std_press+                     \tn
+$p$                    & \rr environmental air pressure                                         & input         & $\rm Pa$                              & \rr \verb+env_state%pressure+                      \tn
+$R$                    & \rr universal gas constant                                             & constant      & $\rm J \, mol^{-1} \, K^{-1}$         & \rr \verb+const%univ_gas_const+                    \tn
+$\rho_{\rm w}$         & \rr density of water                                                   & constant      & $\rm kg \, m^{-3}$                    & \rr \verb+const%water_density+                     \tn
+$\rho_a$               & \rr density of species $a$                                             & constant      & $\rm kg \, m^{-3}$                    & \rr \verb+aero_data%density(a)+                    \tn
+$\rho_{\rm air}$       & \rr air density                                                        & function      & $\rm kg \, m^{-3}$                    & \rr eq.~\ref{eq:rho_air}                           \tn
+$\sigma_{\rm w}$       & \rr surface tension (or surface energy) of water                       & constant      & $\rm J \, m^{-2}$                     & \rr \verb+const%water_surf_eng+, S\&P 15.5         \tn
+$T_0$                  & \rr initial environmental temperature                                  & input         & $\rm K$                               & \rr \verb+env_state%temp+                          \tn
+$T$                    & \rr current environmental temperature                                  & prescribed    & $\rm K$                               &                                                    \tn
+$U$                    & \rr                                                                    & function      & $\rm J \, m^{-3} \, K^{-1}$           & \rr eq.~\ref{eq:fcn_U}                             \tn
+$V$                    & \rr                                                                    & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:fcn_V}                             \tn
+$V_{i,\rm dry}^a$      & \rr dry volume of species $a$ in particle $i$                          & input         & $\rm m^3$                             & \rr \verb+aero_particle%vol(a)+                    \tn
+$V_{i,\rm dry}$        & \rr dry volume of particle $i$                                         & function      & $\rm m^3$                             & \rr eq.~\ref{eq:V_dry}                             \tn
+$V_{\rm comp,0}$       & \rr initial computational volume at temperature $T_0$                  & input         & $\rm m^3$                             & \rr \verb+env_state%comp_vol+                      \tn
+$V_{\rm comp}$         & \rr current computational volume                                       & function      & $\rm m^3$                             & \rr eq.~\ref{eq:comp_vol}                          \tn
+$V_{i,\rm comp,0}$     & \rr initial computational volume for particle $i$ at temperature $T_0$ & input         & $\rm m^3$                             &                                                    \tn
+$V_{i,\rm comp}$       & \rr current computational volume for particle $i$                      & function      & $\rm m^3$                             & \rr eq.~\ref{eq:comp_vol_i}                        \tn
+$W$                    & \rr                                                                    & function      & $1$                                   & \rr eq.~\ref{eq:fcn_W}                             \tn
+$X$                    & \rr                                                                    & function      & $\rm m$                               & \rr eq.~\ref{eq:fcn_X}                             \tn
+$Y$                    & \rr                                                                    & function      & $\rm m$                               & \rr eq.~\ref{eq:fcn_Y}                             \tn
+$Z$                    & \rr                                                                    & function      & $\rm m$                               & \rr eq.~\ref{eq:fcn_Z}                             \tn
 \end{longtable}
 
 \newpage
@@ -143,7 +144,7 @@ $Z$          & \rr & function & $\rm m$ & \rr eq.~\ref{eq:fcn_Z} \tn
   \frac{\partial \dot{H}_{\rm env}}{\partial D_i}(D_1,\ldots,D_N,H) &= 0 \displaybreak[0] \\
   \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H) &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \displaybreak[0] \\
+  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \label{eq:H_m_w} \displaybreak[0] \\
   \dot{H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \dot{H}_i(D_i,H) + \dot{H}_{\rm env}(D_1,\ldots,D_N,H) \label{eq:Hdot} \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) + \frac{\partial \dot{H}_{\rm env}}{\partial D_i}(D_1,\ldots,D_N,H) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \frac{\partial \dot{H}_i}{\partial H}(D_i,H) + \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H)

@@ -80,7 +80,7 @@ contains
   subroutine gas_data_deallocate(gas_data)
 
     !> Gas data.
-    type(gas_data_t), intent(out) :: gas_data
+    type(gas_data_t), intent(inout) :: gas_data
 
     deallocate(gas_data%molec_weight)
     deallocate(gas_data%name)
@@ -180,7 +180,7 @@ contains
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Gas data.
-    type(gas_data_t), intent(out) :: gas_data
+    type(gas_data_t), intent(inout) :: gas_data
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -285,7 +285,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(gas_data_t), intent(out) :: val
+    type(gas_data_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

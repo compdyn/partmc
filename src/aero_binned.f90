@@ -266,7 +266,7 @@ contains
     !> Base aero_binned_t structure to copy from.
     type(aero_binned_t), intent(in) :: aero_binned_from
     !> Structure to copy to.
-    type(aero_binned_t), intent(out) :: aero_binned_to
+    type(aero_binned_t), intent(inout) :: aero_binned_to
 
     integer :: n_bin, n_spec
 
@@ -363,7 +363,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Structure to unpack into (must not be allocated).
-    type(aero_binned_t), intent(out) :: val
+    type(aero_binned_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -386,7 +386,7 @@ contains
     !> Per-processor value to average.
     type(aero_binned_t), intent(in) :: val
     !> Averaged result (only valid on root processor).
-    type(aero_binned_t), intent(out) :: val_avg
+    type(aero_binned_t), intent(inout) :: val_avg
 
     call pmc_mpi_reduce_avg_real_array(val%num_conc, val_avg%num_conc)
     call pmc_mpi_reduce_avg_real_array_2d(val%vol_conc, val_avg%vol_conc)

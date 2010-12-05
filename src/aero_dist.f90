@@ -489,7 +489,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_dist_t), intent(out) :: val
+    type(aero_dist_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

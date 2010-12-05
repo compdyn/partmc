@@ -80,7 +80,7 @@ contains
   subroutine aero_state_allocate(aero_state)
 
     !> Aerosol to initialize.
-    type(aero_state_t), intent(inout) :: aero_state
+    type(aero_state_t), intent(out) :: aero_state
     
     allocate(aero_state%bin(0))
     call aero_info_array_allocate(aero_state%aero_info_array)
@@ -93,7 +93,7 @@ contains
   subroutine aero_state_allocate_size(aero_state, n_bin, n_spec)
 
     !> Aerosol to initialize.
-    type(aero_state_t), intent(inout) :: aero_state
+    type(aero_state_t), intent(out) :: aero_state
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Number of species.
@@ -582,7 +582,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
+    type(aero_binned_t), intent(inout) :: aero_binned
     
     integer :: b, j, s
     type(aero_particle_t), pointer :: aero_particle
@@ -620,7 +620,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
-    type(aero_binned_t), intent(out) :: aero_binned
+    type(aero_binned_t), intent(inout) :: aero_binned
     
     integer :: b, j, s, b_dry
     type(aero_particle_t), pointer :: aero_particle
@@ -1324,7 +1324,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_state_t), intent(out) :: val
+    type(aero_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n

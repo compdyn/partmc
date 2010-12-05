@@ -63,7 +63,7 @@ contains
   subroutine aero_info_allocate(aero_info)
 
     !> Result.
-    type(aero_info_t), intent(inout) :: aero_info
+    type(aero_info_t), intent(out) :: aero_info
 
     call aero_info_zero(aero_info)
 
@@ -164,7 +164,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_info_t), intent(out) :: val
+    type(aero_info_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

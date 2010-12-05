@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -48,7 +48,7 @@ contains
   subroutine aero_info_array_allocate(aero_info_array)
 
     !> Result.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
+    type(aero_info_array_t), intent(out) :: aero_info_array
 
     integer :: i
 
@@ -63,7 +63,7 @@ contains
   subroutine aero_info_array_allocate_size(aero_info_array, n_item)
 
     !> Result.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
+    type(aero_info_array_t), intent(out) :: aero_info_array
     !> Number of items.
     integer, intent(in) :: n_item
 
@@ -349,7 +349,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_info_array_t), intent(out) :: val
+    type(aero_info_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

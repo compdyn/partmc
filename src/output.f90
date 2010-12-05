@@ -567,17 +567,17 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol weight.
-    type(aero_weight_t), intent(out) :: aero_weight
+    type(aero_weight_t), intent(inout) :: aero_weight
     !> Aerosol state.
-    type(aero_state_t), intent(out) :: aero_state
+    type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
-    type(gas_data_t), intent(out) :: gas_data
+    type(gas_data_t), intent(inout) :: gas_data
     !> Gas state.
-    type(gas_state_t), intent(out) :: gas_state
+    type(gas_state_t), intent(inout) :: gas_state
     !> Environment state.
-    type(env_state_t), intent(out) :: env_state
+    type(env_state_t), intent(inout) :: env_state
     !> Filename index.
     integer, intent(out) :: index
     !> Current time (s).

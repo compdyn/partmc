@@ -284,7 +284,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Spec line.
-    type(spec_line_t), intent(out) :: line
+    type(spec_line_t), intent(inout) :: line
 
     logical :: eof
 

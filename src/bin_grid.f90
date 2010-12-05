@@ -97,7 +97,7 @@ contains
   subroutine bin_grid_make(bin_grid, n_bin, v_min, v_max)
     
     !> New bin grid.
-    type(bin_grid_t), intent(out) :: bin_grid
+    type(bin_grid_t), intent(inout) :: bin_grid
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Minimum volume (m^3).
@@ -180,7 +180,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Bin grid.
-    type(bin_grid_t), intent(out) :: bin_grid
+    type(bin_grid_t), intent(inout) :: bin_grid
 
     integer :: n_bin
     real(kind=dp) :: r_min, r_max
@@ -263,7 +263,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(bin_grid_t), intent(out) :: val
+    type(bin_grid_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

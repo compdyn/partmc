@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -39,7 +39,7 @@ contains
   subroutine spec_line_allocate(spec_line)
 
     !> Struct to alloc.
-    type(spec_line_t), intent(inout) :: spec_line
+    type(spec_line_t), intent(out) :: spec_line
 
     allocate(spec_line%data(0))
 
@@ -51,7 +51,7 @@ contains
   subroutine spec_line_allocate_size(spec_line, n_data)
 
     !> Struct to alloc.
-    type(spec_line_t), intent(inout) :: spec_line
+    type(spec_line_t), intent(out) :: spec_line
     !> Number of data items.
     integer, intent(in) :: n_data
 
@@ -79,7 +79,7 @@ contains
     !> Original spec_line.
     type(spec_line_t), intent(in) :: from_spec_line
     !> Destination, already alloced.
-    type(spec_line_t), intent(out) :: to_spec_line
+    type(spec_line_t), intent(inout) :: to_spec_line
 
     if (size(to_spec_line%data) /= size(from_spec_line%data)) then
        call spec_line_deallocate(to_spec_line)

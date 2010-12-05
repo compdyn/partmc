@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -54,7 +54,7 @@ contains
   subroutine aero_particle_array_allocate(aero_particle_array)
 
     !> Result.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    type(aero_particle_array_t), intent(out) :: aero_particle_array
 
     aero_particle_array%n_part = 0
     aero_particle_array%n_spec = 0
@@ -69,7 +69,7 @@ contains
        n_part, n_spec)
 
     !> Result.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    type(aero_particle_array_t), intent(out) :: aero_particle_array
     !> Number of particles.
     integer, intent(in) :: n_part
     !> Number of species.
@@ -359,7 +359,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_particle_array_t), intent(out) :: val
+    type(aero_particle_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

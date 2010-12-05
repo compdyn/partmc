@@ -413,7 +413,7 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
-    real(kind=dp), intent(out) :: vol_frac(:)
+    real(kind=dp), intent(inout) :: vol_frac(:)
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -671,7 +671,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_mode_t), intent(out) :: val
+    type(aero_mode_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

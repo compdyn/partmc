@@ -79,7 +79,7 @@ contains
   subroutine aero_weight_zero(aero_weight)
 
     !> Aerosol weight.
-    type(aero_weight_t), intent(out) :: aero_weight
+    type(aero_weight_t), intent(inout) :: aero_weight
 
     aero_weight%type = AERO_WEIGHT_TYPE_INVALID
     aero_weight%ref_radius = 0d0
@@ -244,7 +244,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_weight_t), intent(out) :: val
+    type(aero_weight_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

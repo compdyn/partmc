@@ -568,7 +568,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(run_part_opt_t), intent(out) :: val
+    type(run_part_opt_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

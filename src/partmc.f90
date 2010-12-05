@@ -222,7 +222,7 @@ contains
   subroutine partmc_part(file)
 
     !> Spec file.
-    type(spec_file_t), intent(out) :: file
+    type(spec_file_t), intent(inout) :: file
 
     character(len=100) :: kernel_name
     type(gas_data_t) :: gas_data
@@ -631,7 +631,7 @@ contains
   subroutine partmc_exact(file)
 
     !> Spec file.
-    type(spec_file_t), intent(out) :: file
+    type(spec_file_t), intent(inout) :: file
 
     character(len=100) :: soln_name
     type(aero_data_t) :: aero_data
@@ -824,7 +824,7 @@ contains
   subroutine partmc_sect(file)
 
     !> Spec file.
-    type(spec_file_t), intent(out) :: file
+    type(spec_file_t), intent(inout) :: file
 
     character(len=100) :: kernel_name
     type(run_sect_opt_t) :: sect_opt

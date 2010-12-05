@@ -115,7 +115,7 @@ contains
   subroutine env_state_deallocate(env_state)
 
     !> Environment.
-    type(env_state_t), intent(out) :: env_state
+    type(env_state_t), intent(inout) :: env_state
 
     call gas_state_deallocate(env_state%gas_emissions)
     call gas_state_deallocate(env_state%gas_background)
@@ -552,7 +552,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Environment data.
-    type(env_state_t), intent(out) :: env_state
+    type(env_state_t), intent(inout) :: env_state
 
     !> \page input_format_env_state Input File Format: Environment State
     !!
@@ -724,7 +724,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(env_state_t), intent(out) :: val
+    type(env_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -763,7 +763,7 @@ contains
     !> Value to average.
     type(env_state_t), intent(in) :: val
     !> Result.
-    type(env_state_t), intent(out) :: val_avg
+    type(env_state_t), intent(inout) :: val_avg
 
     call env_state_allocate(val_avg)
     call env_state_copy(val, val_avg)

@@ -61,7 +61,7 @@ contains
   subroutine aero_particle_allocate(aero_particle)
 
     !> Particle to init.
-    type(aero_particle_t), intent(inout) :: aero_particle
+    type(aero_particle_t), intent(out) :: aero_particle
 
     allocate(aero_particle%vol(0))
     call aero_particle_zero(aero_particle)
@@ -74,7 +74,7 @@ contains
   subroutine aero_particle_allocate_size(aero_particle, n_spec)
 
     !> Particle to init.
-    type(aero_particle_t), intent(inout) :: aero_particle
+    type(aero_particle_t), intent(out) :: aero_particle
     !> Number of species.
     integer, intent(in) :: n_spec
 
@@ -779,7 +779,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_particle_t), intent(out) :: val
+    type(aero_particle_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

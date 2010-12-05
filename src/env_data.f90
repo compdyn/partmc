@@ -114,7 +114,7 @@ contains
   subroutine env_data_deallocate(env_data)
 
     !> Environment data.
-    type(env_data_t), intent(out) :: env_data
+    type(env_data_t), intent(inout) :: env_data
 
     integer :: i
 
@@ -334,7 +334,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment data.
-    type(env_data_t), intent(out) :: env_data
+    type(env_data_t), intent(inout) :: env_data
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
@@ -588,7 +588,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(env_data_t), intent(out) :: val
+    type(env_data_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i

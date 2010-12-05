@@ -66,7 +66,7 @@ contains
   subroutine aero_data_allocate(aero_data)
 
     !> Aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data
+    type(aero_data_t), intent(out) :: aero_data
 
     aero_data%n_spec = 0
     allocate(aero_data%name(0))
@@ -87,7 +87,7 @@ contains
   subroutine aero_data_allocate_size(aero_data, n_spec)
 
     !> Aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data
+    type(aero_data_t), intent(out) :: aero_data
     !> Number of species.
     integer, intent(in) :: n_spec
 
@@ -233,7 +233,7 @@ contains
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -391,7 +391,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(aero_data_t), intent(out) :: val
+    type(aero_data_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

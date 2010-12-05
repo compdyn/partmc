@@ -88,7 +88,7 @@ contains
     !> Existing gas state.
     type(gas_state_t), intent(in) :: from_state
     !> Must be allocated already.
-    type(gas_state_t), intent(out) :: to_state
+    type(gas_state_t), intent(inout) :: to_state
 
     integer :: n_spec
 
@@ -208,7 +208,7 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas data to read.
-    type(gas_state_t), intent(out) :: gas_state
+    type(gas_state_t), intent(inout) :: gas_state
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -496,7 +496,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(gas_state_t), intent(out) :: val
+    type(gas_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -518,7 +518,7 @@ contains
     !> Value to average.
     type(gas_state_t), intent(in) :: val
     !> Result.
-    type(gas_state_t), intent(out) :: val_avg
+    type(gas_state_t), intent(inout) :: val_avg
 
     call pmc_mpi_reduce_avg_real_array(val%mix_rat, val_avg%mix_rat)
 

@@ -113,7 +113,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.
-    type(aero_binned_t), intent(out) :: aero_binned
+    type(aero_binned_t), intent(inout) :: aero_binned
     
     real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
     integer :: k

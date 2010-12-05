@@ -207,12 +207,50 @@ To solve $P X = R$ we use the block relations
   (A - B D^{-1} C) x &= q - B D^{-1} r \label{eq:reduced_x} \\
   (D - C A^{-1} B) y &= r - C A^{-1} q. \label{eq:reduced_y}
 \end{align}
-For us, $A$ is $N \times N$, $B$ is $N \times 1$, $C$ is $1 \times N$,
-and $D$ is $1 \times 1$, where $N$ is the number of particles. Also
-$A$ is diagonal and so trivially invertible, so $D - C A^{-1} B$ is $1
-\times 1$ and easily calculated. We thus use
+This is the usual block matrix solution using the Schur
+complement. For us, $A$ is $N \times N$, $B$ is $N \times 1$, $C$ is
+$1 \times N$, and $D$ is $1 \times 1$, where $N$ is the number of
+particles. Also $A$ is diagonal and so trivially invertible, so $D - C
+A^{-1} B$ is $1 \times 1$ and easily calculated. We thus use
 equation~(\ref{eq:reduced_y}) to solve for $y$, then solve for $x$
-with~(\ref{eq:solve_x}). Note that $A - B D^{-1} C$ is $N \times N$
-and dense, so~(\ref{eq:reduced_x}) is not a good choice.
+with~(\ref{eq:solve_x}).
+
+Note that $A - B D^{-1} C$ is $N \times N$ and dense,
+so~(\ref{eq:reduced_x}) is not a good choice. Although because $B
+D^{-1} C$ is rank-one, we could cheaply invert it using the
+Sherman–Morrison formula. If we have extra environment variables so it
+is rank-2 or rank-3 then we would use the more general Woodbury
+identity.
+
+\newpage
+
+\subsection*{Solution strategy notes}
+
+We choose to use $H$ and $D_1,\ldots,D_N$ as the dynamic variables for
+the ODE solver. We could use just $D_1,\ldots,D_N$, as $H(t)$ can be
+calculated from $H(0)$ and the current values of the diameters. The
+advantages of having $H$ be an independent dynamic variable are:
+\begin{enumerate}
+\item We can check the final water balance at the end of the ODE
+  solver run to check that error tolerances are ok.
+\item Because $\dot{D}_i$ depends on $H$, if $H$ were merely a
+  function of all the other $D_i$ then the Jacobian would be fully
+  dense. Ideally one could use just the diagonal (it will dominate)
+  but it's unclear how only-approximate Jacobian inverses would
+  interact with the rest of the ODE solver. We could also use the fact
+  that the dense terms in $J_{ij}$ would be $(\partial \dot{D}_i
+  / \partial H) (\partial H / \partial D_j)$, so it's only
+  rank-one. $J$ itself would then be the sum of a diagonal matrix with
+  this rank-one matrix, so we could use the Sherman–Morrison formula
+  to solve the system cheaply.
+\item At some point in the future we might want to treat temperature
+  as a dynamic variable as well (condensation lowers the temperature,
+  which we currently ignore). This might be easier with $H$ and $T$ as
+  dynamic variables. On the other hand, it might be possible to
+  compute $T$ knowing the total amount of water that is condensed or
+  evaporated. Even then, if we have a better updraft model then it
+  seems like something will have to be dynamic other than the particle
+  diameters.
+\end{enumerate}
 
 \end{document}

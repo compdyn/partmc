@@ -8,14 +8,16 @@ restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
 del_t 10                        # timestep (s)
-t_output 1                      # output interval (0 disables) (s)
-t_progress 0.1                  # progress printing interval (0 disables) (s)
+t_output 10                     # output interval (0 disables) (s)
+t_progress 10                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 r_min 1e-10                     # minimum radius (m)
 r_max 1e-1                      # maximum radius (m)
 
-weight none                     # weighting function
+weight power                    # weighting function
+ref_radius 1e-7                 # radius at which weight is 1
+exponent -1                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -41,7 +43,7 @@ start_day 200                   # start day of year (UTC)
 rand_init 0                     # random initialization (0 to use time)
 do_coagulation no               # whether to do coagulation (yes/no)
 allow_doubling no               # whether to allow doubling (yes/no)
-allow_halving no                # whether to allow halving (yes/no)
+allow_halving yes               # whether to allow halving (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

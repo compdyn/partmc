@@ -1,8 +1,6 @@
 
 Before release of 2.0.0:
 
-Fix condensation to use weights.
-
 Remove coagulation_mpi_controlled (maybe also
 mc_coag_mpi_centralized()).
 

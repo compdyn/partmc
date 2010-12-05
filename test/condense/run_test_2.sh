@@ -7,5 +7,5 @@ echo "../../extract_aero_species out/condense_0001_ out/condense_aero_species.tx
 ../../extract_aero_species out/condense_0001_ out/condense_aero_species.txt
 
 echo "../../numeric_diff true_aero_species.txt out/condense_aero_species.txt 0 1e-8"
-../../numeric_diff true_aero_species.txt out/condense_aero_species.txt 0 1e-8
+../../numeric_diff true_aero_species.txt out/condense_aero_species.txt 0 1e-6
 exit $?

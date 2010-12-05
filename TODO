@@ -2,7 +2,8 @@
 Before release of 2.0.0:
 
 Remove coagulation_mpi_controlled (maybe also
-mc_coag_mpi_centralized()).
+mc_coag_mpi_centralized()). Also look out whether we need all the
+parallel output types.
 
 ######################################################################
 
@@ -20,9 +21,6 @@ deadlocking.
 
 Add run_guid to netcdf output files and have extract_* programs check
 to make sure they are processing everything from a single run.
-
-Rename output_state_netcdf() to output_state(). Also
-input_state_netcdf() to input_state()?
 
 Provide *_allocate() and *_deallocate() subroutines for all
 structures, even those that don't need them. Maybe just call *_zero()
@@ -125,14 +123,7 @@ obvious.
 
 Switch to using mpi structures rather than pack/unpack?
 
-Rename part_opt to run_part_opt, and similarly for sect_opt and
-exact_opt.
-
 Don't pass unnecessary array size information (e.g. sample_cts_pdf).
-
-Add doxygen comments in partmc.f90 to produce a page describing the
-spec file formats, by having comments before each spec_file_read_*
-call. This may not be possible?
 
 Change numeric_average.f90 to be numeric_reduce.f90 with option
 "mean", "stddev", "min", "max", "median", "perc_rank" (percentile rank).
@@ -151,12 +142,6 @@ const%water_density (also const%water_molec_weight).
 
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
-
-Bin averaging should take aero_weight into account. Will require
-storing weightings in the output file in some way.
-
-Restart has to deal with aero_weight in some way. Just require
-aero_weight is the same as output? Can we check somehow?
 
 Don't store paricles as ragged array, but just as a flat list. For
 coagulation, pre-compute the bin structures as needed on every
@@ -178,17 +163,8 @@ kernel(type, ...) and kernel_max(type, ...).
 
 Replace aero_mode types by integers, like for aero_weight.
 
-Make weighted coagulation work for increasing weight
-functions. Presumably we always remove, but sometimes don't add?
-
 Change mean_radius to median_radius for log_normal distributions in
 input files. What about exponential distributions?
-
-Change real(kind=dp) to real(dp), etc. Only for real() and integer().
-
-Move doc/condensation/new_eqns.tex to doc/condense.tex.
-
-Add weight support to condensation.
 
 Add title parameter as the first line in .spec files and write this as
 the title attribute in the output files.

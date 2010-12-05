@@ -371,6 +371,9 @@ contains
                 do i_dup = 1,(n_copies - 1)
                    call aero_particle_copy(particle, new_particle)
                    call aero_particle_new_id(new_particle)
+                   ! this might be adding into the wrong bin, but
+                   ! that's necessary as we might not have processed
+                   ! the correct bin yet.
                    call aero_state_add_particle(aero_state, i_bin, &
                         new_particle)
                    ! re-get the particle pointer, which may have

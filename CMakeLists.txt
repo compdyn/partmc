@@ -145,16 +145,18 @@ if(ENABLE_MOSAIC)
   find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
     DOC "MOSAIC include directory"
     PATHS
+    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules
     $ENV{HOME}/include
     $ENV{HOME}/opt/include
     $ENV{HOME}/mosaic/include
     $ENV{HOME}/subversion/mosaic/trunk/datamodules
-    $ENV{HOME}/svn/mosaic/trunk/datamodules
-    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules)
+    $ENV{HOME}/svn/mosaic/trunk/datamodules)
   find_library(MOSAIC_LIB mosaic
     DOC "MOSAIC library"
     PATHS
+    ${PROJECT_SOURCE_DIR}/../mosaic
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk
     $ENV{HOME}/lib
     $ENV{HOME}/lib64
     $ENV{HOME}/opt/lib
@@ -162,9 +164,7 @@ if(ENABLE_MOSAIC)
     $ENV{HOME}/mosaic/lib
     $ENV{HOME}/mosaic/lib64
     $ENV{HOME}/subversion/mosaic/trunk
-    $ENV{HOME}/svn/mosaic/trunk
-    ${PROJECT_SOURCE_DIR}/../mosaic
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk)
+    $ENV{HOME}/svn/mosaic/trunk)
 endif()
 
 ######################################################################

@@ -7,7 +7,7 @@ set key top left
 
 set title "Aerosol bulk concentrations (with coag)"
 
-set xrange [0:24]
+set xrange [0:48]
 
 set xlabel "time (hours)"
 set ylabel "number concentration (#/m^3)"

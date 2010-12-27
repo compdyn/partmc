@@ -30,7 +30,7 @@ def make_plot(in_filename,out_filename,title):
     a = plt.gca()
     a.set_xscale("log")
     a.set_yscale("linear")
-    plt.axis([1e-8, 1e-5, 0, 1])
+    plt.axis([1e-8, 1e-4, 0, 1])
     plt.xlabel("dry diameter (m)")
     plt.ylabel("OIN mass fraction")
     plt.grid(True)

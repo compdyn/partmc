@@ -23,39 +23,66 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-\title{Measures of Variability in a Stochastic Particle-Resolved Aerosol Model}
-\author{Edwin Sumargo}
-\date{\today}
-\maketitle
-
-\section{Introduction}
-Here comes the introduction. This text cites \citet{Murphy2006}.
-\subsection{text}
 
 \begin{figure}
   \begin{center}
-    \includegraphics{2d_scrit_nc_61}
+    \includegraphics[scale = 0.5]{figs/bc_inorg_time_10K_wei-0_emit}
+    \includegraphics[scale = 0.5]{figs/bc_inorg_time_10K_wei-2_emit}
+    \includegraphics[scale = 0.5]{figs/bc_inorg_time_10K_wei-3_emit}
   \end{center}
-  \caption{\label{fig:2d_scrit_nc_61} Two-dimensional projections of
-    the 20-dimensional number distribution after 24~hours of
-    simulation (at 06:00~LST). The left panel shows the
-    two-dimensional projection as a function of dry diameter and the
-    dry mass fraction of black carbon, while the right panel shows the
-    two-dimensional projection with respect to dry diameter and
-    critical supersaturation. The plotted number concentrations have
-    been capped to better show the features in the data. Note the
-    structures in this high-dimensional data that are lost in current
-    aerosol models, resulting in errors in predicted quantities as
-    shown in Figure~\ref{fig:ssa_ccn}.}
+  \caption{\label{fig:bc_inorg_10K} Total mass concentrations versus
+    time. Top: $\alpha = 0$, middle: $\alpha = -2$, bottom: $\alpha =
+    -3$}.
 \end{figure}
 
-This is how we refer to Figure \ref{fig:2d_scrit_nc_61}.
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale = 0.5]{figs/1d_wc_num_10K_wei-0_emit}
+    \includegraphics[scale = 0.5]{figs/1d_wc_num_10K_wei-2_emit}
+    \includegraphics[scale = 0.5]{figs/1d_wc_num_10K_wei-3_emit}
+  \end{center}
+  \caption{\label{fig:1d_wc_num_10K} Number size distributions, $10^4$
+    computational particles. Top: $\alpha = 0$, middle: $\alpha = -2$,
+    bottom: $\alpha = -3$}.
+\end{figure}
 
-\section{Methods}
-Put your equations here.
-\section{Results}
-Put your results here.
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale = 0.5]{figs/1d_wc_mass_10K_wei-0_emit}
+    \includegraphics[scale = 0.5]{figs/1d_wc_mass_10K_wei-2_emit}
+    \includegraphics[scale = 0.5]{figs/1d_wc_mass_10K_wei-3_emit}
+  \end{center}
+  \caption{\label{fig:1d_wc_mass_10K} Mass size distributions $10^4$
+    computational particles. Top: $\alpha = 0$, middle: $\alpha = -2$,
+    bottom: $\alpha = -3$}.
+\end{figure}
 
-\bibliographystyle{plain-local-srefid}
-\bibliography{refs_template}
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale = 0.7]{figs/1d_wc_num_100K_wei-2_emit}
+    \includegraphics[scale = 0.7]{figs/1d_wc_mass_100K_wei-2_emit}
+  \end{center}
+  \caption{\label{fig:1d_wc_100K} Number and Mass size distributions, $10^5$
+    computational particles, $\alpha = -2$}.
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale = 0.7]{figs/2d_oin_100K_wei-2_emit_06.pdf}
+    \includegraphics[scale = 0.7]{figs/2d_oin_100K_wei-2_emit_12.pdf}
+  \end{center}
+  \caption{\label{fig:1d_wc_100K} 2D number distribution, dust mass
+    fraction versus dry diameter, $10^5$ computational particles,
+    $\alpha = -2$}.
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale = 0.7]{figs/2d_oin_mass_100K_wei-2_emit_06.pdf}
+    \includegraphics[scale = 0.7]{figs/2d_oin_mass_100K_wei-2_emit_12.pdf}
+  \end{center}
+  \caption{\label{fig:1d_wc_100K} 2D mass distribution, dust mass
+    fraction versus dry diameter, $10^5$ computational particles,
+    $\alpha = -2$}.
+\end{figure}
 \end{document}

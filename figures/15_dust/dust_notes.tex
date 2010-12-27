@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,graphicx}
+\usepackage[authoryear,sort&compress]{natbib}
+\usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% todos 
+
+\newcommand{\todo}[1]{\vspace{5 mm}\par \noindent
+\marginpar{\textsc{Todo}}
+\framebox{\begin{minipage}[c]{0.95 \textwidth}
+\tt \flushleft #1 \end{minipage}}\vspace{5 mm}\par}
+
+\newcounter{edremcounter}
+\setlength\marginparwidth{18mm}
+\newcommand{\smalltodo}[1]{%
+  \addtocounter{edremcounter}{1}%
+    \mbox{${}^{{\sf\theedremcounter}}$}%
+  \marginpar{\vskip 3mm\footnotesize\flushleft
+      \textsf{\textbf{\mbox{\theedremcounter
+            }}}~{\fontsize{6}{10pt}\textsf{#1}}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\title{Measures of Variability in a Stochastic Particle-Resolved Aerosol Model}
+\author{Edwin Sumargo}
+\date{\today}
+\maketitle
+
+\section{Introduction}
+Here comes the introduction. This text cites \citet{Murphy2006}.
+\subsection{text}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics{2d_scrit_nc_61}
+  \end{center}
+  \caption{\label{fig:2d_scrit_nc_61} Two-dimensional projections of
+    the 20-dimensional number distribution after 24~hours of
+    simulation (at 06:00~LST). The left panel shows the
+    two-dimensional projection as a function of dry diameter and the
+    dry mass fraction of black carbon, while the right panel shows the
+    two-dimensional projection with respect to dry diameter and
+    critical supersaturation. The plotted number concentrations have
+    been capped to better show the features in the data. Note the
+    structures in this high-dimensional data that are lost in current
+    aerosol models, resulting in errors in predicted quantities as
+    shown in Figure~\ref{fig:ssa_ccn}.}
+\end{figure}
+
+This is how we refer to Figure \ref{fig:2d_scrit_nc_61}.
+
+\section{Methods}
+Put your equations here.
+\section{Results}
+Put your results here.
+
+\bibliographystyle{plain-local-srefid}
+\bibliography{refs_template}
+\end{document}

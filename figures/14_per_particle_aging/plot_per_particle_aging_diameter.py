@@ -14,7 +14,7 @@ class Struct(object):
 	def __init__(self): 
 		pass
 
-input = open('particle_set_wc_06.pkl', 'rb')
+input = open('particle_set_wc_03.pkl', 'rb')
 particle_set = pickle.load(input)
 input.close()
 
@@ -91,5 +91,5 @@ axes.set_xlabel(r"dry diameter at emission $D_{\rm dry}$ /  m")
 axes.grid(True)
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig("aging_diameter_at_aging_wc_06.pdf")
+figure.savefig("aging_diameter_at_aging_wc_03.pdf")
 			

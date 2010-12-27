@@ -15,8 +15,8 @@ def make_plot(in_filename,out_filename,title):
     particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
 
-    bc_dens = particles.aero_data.densities[18]
-    bc = particles.masses(include = ["BC"])
+    bc_volume = particles.volumes(include = ["BC"])
+    bc  = particles.masses(include = ["BC"])
     dry_mass = particles.masses(exclude = ["H2O"])
     bc_frac = bc / dry_mass
     coat_frac = 1 - bc / dry_mass
@@ -24,7 +24,7 @@ def make_plot(in_filename,out_filename,title):
     is_bc = (bc_frac > 0.05)
     dry_diameters = particles.dry_diameters()
 
-    core_diameters = (6 / math.pi * bc / bc_dens)**(1./3.)
+    core_diameters = (6 / math.pi * bc_volume)**(1./3.)
     coating_thickness = (dry_diameters - core_diameters) / 2.
     ratio = coating_thickness/dry_diameters
 

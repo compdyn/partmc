@@ -15,7 +15,7 @@ class Struct(object):
 def make_plot(netcdf_pattern, aging_ss, output_pkl):
 	particle_set = {}
 
-	netcdf_dir = "/Users/nriemer/subversion/partmc/trunk/scenarios/2_urban_plume2/out"
+	netcdf_dir = "/Users/nriemer/subversion/partmc/trunk/scenarios/1_urban_plume/out"
 	time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 
 	for [time, filename, key] in time_filename_list:
@@ -30,10 +30,17 @@ def make_plot(netcdf_pattern, aging_ss, output_pkl):
 		s_crit = (particles.critical_rel_humids(env_state) - 1)*100
 
 		bc = particles.masses(include = ["BC"])
-		no3 = particles.masses(include = ["NO3"]
+		no3 = particles.masses(include = ["NO3"])
+		so4 = particles.masses(include = ["SO4"])
+		nh4 = particles.masses(include = ["NH4"])
+
 		dry_mass = particles.masses(exclude = ["H2O"])
 		bc_frac = bc / dry_mass
 		no3_frac = no3 / dry_mass
+		so4_frac = so4 / dry_mass
+		nh4_frac = nh4 / dry_mass
+		solute_frac = (no3 + so4 + nh4) / dry_mass
+
 		kappas = particles.kappas()
 		comp_vols = particles.comp_vols
 		h2o = particles.masses(include = ["H2O"])
@@ -65,6 +72,9 @@ def make_plot(netcdf_pattern, aging_ss, output_pkl):
 				particle_set[id].aging_kappa = -1
 				particle_set[id].aging_h2o = -1
 				particle_set[id].aging_no3_fraction = -1
+				particle_set[id].aging_so4_fraction = -1
+				particle_set[id].aging_nh4_fraction = -1
+				particle_set[id].aging_solute_fraction = -1
 				particle_set[id].aging_diameter = -1
 
 		for id in particle_set.keys():
@@ -79,14 +89,24 @@ def make_plot(netcdf_pattern, aging_ss, output_pkl):
 					particle_set[id].aging_diameter = dry_diameters[i]
 					particle_set[id].aging_h2o = h2o[i]
 				        particle_set[id].aging_no3_fraction = no3_frac[i]
+					particle_set[id].aging_so4_fraction = so4_frac[i]
+					particle_set[id].aging_nh4_fraction = nh4_frac[i]
+					particle_set[id].aging_solute_fraction = solute_frac[i]
+					
 
 	output = open(output_pkl, 'wb')
 	pickle.dump(particle_set, output)
 	output.close()
 
-#make_plot("urban_plume_wc_no_nh3_0001_(.*).nc", 0.6, "particle_set_wc_no_nh3_06.pkl")
-make_plot("urban_plume_wc_no_nh3_0001_(.*).nc", 0.3, "particle_set_wc_no_nh3_03.pkl")
-#make_plot("urban_plume_wc_0001_(.*).nc", 0.1, "particle_set_wc_01.pkl")
-#make_plot("urban_plume_wc_0001_(.*).nc", 0.6, "particle_set_nc_06.pkl")
-#make_plot("urban_plume_wc_0001_(.*).nc", 0.3, "particle_set_nc_03.pkl")
-#make_plot("urban_plume_wc_0001_(.*).nc", 0.1, "particle_set_nc_01.pkl")
+#make_plot("urban_plume_wc_noon_0001_(.*).nc", 0.6, "particle_set_wc_noon_06.pkl")
+#make_plot("urban_plume_wc_noon_0001_(.*).nc", 0.3, "particle_set_wc_noon_03.pkl")
+#make_plot("urban_plume_wc_noon_0001_(.*).nc", 0.1, "particle_set_wc_noon_01.pkl")
+#make_plot("urban_plume_nc_noon_0001_(.*).nc", 0.6, "particle_set_nc_noon_06.pkl")
+#make_plot("urban_plume_nc_noon_0001_(.*).nc", 0.3, "particle_set_nc_noon_03.pkl")
+#make_plot("urban_plume_nc_noon_0001_(.*).nc", 0.1, "particle_set_nc_noon_01.pkl")
+make_plot("urban_plume_wc_0001_(.*).nc", 0.6, "particle_set_wc_06.pkl")
+make_plot("urban_plume_wc_0001_(.*).nc", 0.3, "particle_set_wc_03.pkl")
+make_plot("urban_plume_wc_0001_(.*).nc", 0.1, "particle_set_wc_01.pkl")
+#make_plot("urban_plume_nc_0001_(.*).nc", 0.6, "particle_set_nc_06.pkl")
+#make_plot("urban_plume_nc_0001_(.*).nc", 0.3, "particle_set_nc_03.pkl")
+#make_plot("urban_plume_nc_0001_(.*).nc", 0.1, "particle_set_nc_01.pkl")

@@ -37,7 +37,7 @@ def make_plot(dir_name,in_filename,out_filename):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../scenarios/4_nucleate/out/"
+dir_name = "../../scenarios/1_urban_plume/out/"
 
 filename_in = "urban_plume_wc_0001_00000001.nc"
 filename_out = "figs/2d_wc_bc_01.pdf"

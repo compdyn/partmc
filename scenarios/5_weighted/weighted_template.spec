@@ -14,7 +14,6 @@ d_min 1e-10                     # minimum diameter (m)
 d_max 1e-5                      # maximum diameter (m)
 
 weight %%WEIGHTING_FUNC%%       # weighting function
-ref_radius %%REF_RADIUS%%       # radius at which weight is 1
 exponent %%EXPONENT%%           # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data

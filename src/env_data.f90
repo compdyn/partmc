@@ -292,8 +292,10 @@ contains
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv
 
-    ! update temperature and adjust relative humidity to maintain
-    ! water mixing ratio
+    ! Update temperature and adjust relative humidity to maintain
+    ! water mixing ratio. This uses the fact that we keep the total
+    ! pressure constant, so ambient water vapor pressure is also
+    ! constant (whatever temperature and hence volume does).
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     env_state%temp = interp_1d(env_data%temp_time, env_data%temp, time)
     if (update_rel_humid) then

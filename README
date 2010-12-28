@@ -151,6 +151,8 @@ ChangeLog
 
   * Changed to Poisson sampling for coagulation test number.
 
+  * Input and output now use diameter everywhere rather than radius.
+
 1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.

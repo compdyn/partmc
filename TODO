@@ -15,7 +15,7 @@ Make brownian test use negative weighting.
 
 User-visible changes:
 
-r_min/r_max -> d_min/d_max, now edges
+r_min/r_max -> d_min/d_max, now bin edges rather than centers
 
 n_loop -> n_repeat
 
@@ -23,11 +23,15 @@ kernel -> coag_kernel
 
 added do_nucleation (removed "nucleate")
 
+added do_init_equilibriate parameter for condensation
+
 rearraged order of do_* parameters
 
 log_normal distriubtions:
   mean_radius -> geom_mean_diam
   log_std_dev -> log10_geom_std_dev
+
+ref_radius weighting parameter removed
 
 ######################################################################
 

@@ -6,6 +6,8 @@ set -e
 set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
+# make the output directory if it doesn't exist
+mkdir -p out
 
 mpirun -v -np 1 ../../partmc run_sect.spec
 ../../extract_sectional_aero_size_num out/sect_ out/sect_aero_size_num.txt

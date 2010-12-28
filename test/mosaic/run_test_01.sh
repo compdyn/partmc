@@ -6,6 +6,8 @@ set -e
 set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
+# make the output directory if it doesn't exist
+mkdir -p out
 
 ../../partmc run_part.spec
 ../../extract_aero_species out/mosaic_0001_ out/mosaic_aero_species.txt

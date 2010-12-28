@@ -6,6 +6,8 @@ set -e
 set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
+# make the output directory if it doesn't exist
+mkdir -p out
 
 # Poisson mean m, prob of k events is:
 # f(k,m) = m^k e^(-m) / k!

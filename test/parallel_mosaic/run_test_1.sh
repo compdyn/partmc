@@ -6,6 +6,8 @@ set -e
 set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
+# make the output directory if it doesn't exist
+mkdir -p out
 
 time mpirun -v -np 1 ../../partmc run_part_serial.spec
 time mpirun -v -np 2 ../../partmc run_part_parallel.spec

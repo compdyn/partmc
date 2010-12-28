@@ -9,16 +9,9 @@ part_opt%output_type to enumerations.
 Change mean_radius to median_radius for log_normal distributions in
 input files. What about exponential distributions?
 
-Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
-makes sense for background as well), or just delete it. Will need to
-add a dilution rate profile somewhere --- better anyway to unify it.
-
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
 Rename "kernel" to "coag" in input files and elsewhere.
-
-Why do we need "interface" blocks in mosaic.f90 for mosaic
-subroutines. Can't we just use the mosaic modules?
 
 ######################################################################
 
@@ -199,3 +192,7 @@ match mode_t types, etc), but requires Fortran 2003.
 
 Add title parameter as the first line in .spec files and write this as
 the title attribute in the output files.
+
+Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
+makes sense for background as well), or just delete it. Will need to
+add a dilution rate profile somewhere --- better anyway to unify it.

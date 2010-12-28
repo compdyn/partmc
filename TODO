@@ -20,8 +20,6 @@ use run_guid, use run_date or something similar.
 Add new run-mode to make an output directory, copy input files into
 it, etc.
 
-Replace aero_mode types by integers, like for aero_weight.
-
 Change mean_radius to median_radius for log_normal distributions in
 input files. What about exponential distributions?
 

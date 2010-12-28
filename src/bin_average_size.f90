@@ -26,7 +26,7 @@ program bin_average_size
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
   type(env_state_t) :: env_state
-  integer :: n_bin, index, i_loop
+  integer :: n_bin, index, i_repeat
   real(kind=dp) :: d_min, d_max, time, del_t
   character(len=1000) :: output_type, tmp_str
   logical :: record_removals, dry_volume, bin_center, record_optical
@@ -102,7 +102,7 @@ program bin_average_size
   
   call input_state(in_filename, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, &
-       index, time, del_t, i_loop, uuid)
+       index, time, del_t, i_repeat, uuid)
 
   if (dry_volume) then
      call aero_state_make_dry(aero_state, bin_grid, aero_data)
@@ -116,7 +116,7 @@ program bin_average_size
   record_optical = .true.
   call output_state(out_prefix, output_type, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, &
-       index, time, del_t, i_loop, record_removals, record_optical, uuid)
+       index, time, del_t, i_repeat, record_removals, record_optical, uuid)
 
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)

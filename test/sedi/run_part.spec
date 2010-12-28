@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out/sedi_part     # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 kernel sedi                     # coagulation kernel
 nucleate none                   # nucleation parameterization

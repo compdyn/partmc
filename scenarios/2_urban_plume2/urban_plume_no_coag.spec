@@ -1,6 +1,6 @@
 run_type particle                # particle-resolved run
-output_prefix out/urban_plume_nc_noon # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
+output_prefix out/urban_plume_nc # prefix of output files
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 kernel brown                    # coagulation kernel
 nucleate none                   # nucleation parameterization

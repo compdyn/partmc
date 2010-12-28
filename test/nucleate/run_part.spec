@@ -1,18 +1,18 @@
 run_type particle               # particle-resolved run
 output_prefix out/nucleate_part # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
-n_part 1000                    # total number of particles
+n_repeat 1                      # number of Monte Carlo repeats
+n_part 1000                     # total number of particles
 kernel sedi                     # coagulation kernel
 nucleate sulf_acid              # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 3600                     # total simulation time (s)
-del_t 1                        # timestep (s)
-t_output 60                   # output interval (0 disables) (s)
-t_progress 60                 # progress printing interval (0 disables) (s)
+t_max 3600                      # total simulation time (s)
+del_t 1                         # timestep (s)
+t_output 60                     # output interval (0 disables) (s)
+t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
-d_min 1e-10                      # minimum diameter (m)
+d_min 1e-10                     # minimum diameter (m)
 d_max 1e-6                      # maximum diameter (m)
 
 weight none                     # weighting function

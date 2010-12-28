@@ -233,14 +233,14 @@ contains
     type(env_state_t) :: env_state_init
     type(bin_grid_t) :: bin_grid
     type(run_part_opt_t) :: part_opt
-    integer :: i_loop
+    integer :: i_repeat
     integer :: rand_init
     character, allocatable :: buffer(:)
     integer :: buffer_size
     integer :: position
     logical :: do_restart
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
-    integer :: dummy_index, dummy_i_loop
+    integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
@@ -253,7 +253,7 @@ contains
     !! - \b run_type (string): must be \c particle
     !! - \b output_prefix (string): prefix of the output filenames
     !!   --- see \ref output_format for the full name format
-    !! - \b n_loop (integer): number of loops
+    !! - \b n_repeat (integer): number of repeats
     !! - \b n_part (integer): number of computational particles to
     !!   simulate (actual number used will vary between <tt>n_part /
     !!   2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
@@ -365,7 +365,7 @@ contains
 
        call spec_file_read_string(file, 'output_prefix', &
             part_opt%output_prefix)
-       call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
+       call spec_file_read_integer(file, 'n_repeat', part_opt%n_repeat)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
        call spec_file_read_kernel_type(file, part_opt%kernel_type)
        call spec_file_read_nucleate(file, part_opt%nucleate_type)
@@ -389,7 +389,7 @@ contains
           call input_state(restart_filename, bin_grid, aero_data, &
                aero_weight, aero_state_init, gas_data, gas_state_init, &
                env_state_init, dummy_index, dummy_time, dummy_del_t, &
-               dummy_i_loop, part_opt%uuid)
+               dummy_i_repeat, part_opt%uuid)
        end if
 
        call spec_file_read_string(file, 'gas_data', sub_filename)
@@ -553,8 +553,8 @@ contains
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(part_opt%t_wall_start)
     
-    do i_loop = 1,part_opt%n_loop
-       part_opt%i_loop = i_loop
+    do i_repeat = 1,part_opt%n_repeat
+       part_opt%i_repeat = i_repeat
        
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then

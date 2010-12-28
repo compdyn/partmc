@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out/emission_part # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 kernel zero                     # coagulation kernel
 nucleate none                   # nucleation parameterization

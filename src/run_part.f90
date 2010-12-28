@@ -64,10 +64,10 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to compute optical properties.
      logical :: do_optical
-     !> Loop number of run.
-     integer :: i_loop
-     !> Total number of loops.
-     integer :: n_loop
+     !> Repeat number of run.
+     integer :: i_repeat
+     !> Total number of repeats.
+     integer :: n_repeat
      !> Cpu_time() of start.
      real(kind=dp) :: t_wall_start
      !> Whether to record particle removal information.
@@ -119,7 +119,7 @@ contains
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer :: tot_n_samp, tot_n_coag, rank, n_proc, pre_index, ncid
-    integer :: pre_i_loop, progress_n_samp, progress_n_coag
+    integer :: pre_i_repeat, progress_n_samp, progress_n_coag
     integer :: global_n_part, global_n_samp, global_n_coag
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     logical :: update_rel_humid
@@ -155,7 +155,7 @@ contains
        call output_state(part_opt%output_prefix, part_opt%output_type, &
             bin_grid, aero_data, aero_weight, aero_state, gas_data, &
             gas_state, env_state, i_state, time, part_opt%del_t, &
-            part_opt%i_loop, part_opt%record_removals, part_opt%do_optical, &
+            part_opt%i_repeat, part_opt%record_removals, part_opt%do_optical, &
             part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
@@ -277,7 +277,7 @@ contains
              call output_state(part_opt%output_prefix, &
                   part_opt%output_type, bin_grid, aero_data, aero_weight, &
                   aero_state, gas_data, gas_state, env_state, i_output, &
-                  time, part_opt%del_t, part_opt%i_loop, &
+                  time, part_opt%del_t, part_opt%i_repeat, &
                   part_opt%record_removals, part_opt%do_optical, &
                   part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
@@ -302,16 +302,16 @@ contains
              if (rank == 0) then
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
-                prop_done = (real(part_opt%i_loop - 1, kind=dp) &
-                     + time / part_opt%t_max) / real(part_opt%n_loop, kind=dp)
+                prop_done = (real(part_opt%i_repeat - 1, kind=dp) &
+                     + time / part_opt%t_max) / real(part_opt%n_repeat, kind=dp)
                 t_wall_elapsed = t_wall_now - part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed
-                write(*,'(a6,a9,a11,a12,a12,a13,a12)') 'loop', 'time(s)', &
+                write(*,'(a6,a9,a11,a12,a12,a13,a12)') 'repeat', 'time(s)', &
                      'n_particle', 'n_samples', 'n_coagulate', &
                      't_elapsed(s)', 't_remain(s)'
                 write(*,'(i6,f9.1,i11,i12,i12,f13.0,f12.0)') &
-                     part_opt%i_loop, time, global_n_part, global_n_samp, &
+                     part_opt%i_repeat, time, global_n_part, global_n_samp, &
                      global_n_coag, t_wall_elapsed, t_wall_remain
              end if
              ! reset counters so they show information since last
@@ -353,8 +353,8 @@ contains
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
-         + pmc_mpi_pack_size_integer(val%i_loop) &
-         + pmc_mpi_pack_size_integer(val%n_loop) &
+         + pmc_mpi_pack_size_integer(val%i_repeat) &
+         + pmc_mpi_pack_size_integer(val%n_repeat) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
          + pmc_mpi_pack_size_logical(val%record_removals) &
          + pmc_mpi_pack_size_logical(val%do_parallel) &
@@ -396,8 +396,8 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
-    call pmc_mpi_pack_integer(buffer, position, val%i_loop)
-    call pmc_mpi_pack_integer(buffer, position, val%n_loop)
+    call pmc_mpi_pack_integer(buffer, position, val%i_repeat)
+    call pmc_mpi_pack_integer(buffer, position, val%n_repeat)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_pack_logical(buffer, position, val%record_removals)
     call pmc_mpi_pack_logical(buffer, position, val%do_parallel)
@@ -442,8 +442,8 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
-    call pmc_mpi_unpack_integer(buffer, position, val%i_loop)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_loop)
+    call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_repeat)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_unpack_logical(buffer, position, val%record_removals)
     call pmc_mpi_unpack_logical(buffer, position, val%do_parallel)

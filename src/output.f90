@@ -18,18 +18,18 @@
 !!
 !! The state of the simulation is periodically output during the run,
 !! with frequency determined by the \c t_output input parameter. Each
-!! output file has a filename of the form \c PREFIX_LLLL_SSSSSSSS.nc,
+!! output file has a filename of the form \c PREFIX_RRRR_SSSSSSSS.nc,
 !! where \c PREFIX is given by the \c output_prefix input parameter,
-!! \c LLLL is the four-digit loop number (repeats of the simulation,
-!! starting from 1), and \c SSSSSSSS is the eight-digit output index
-!! (starting at 1 and incremented each time the state is output). For
-!! exact and sectional simulations all loops would be identical so
-!! there is no support for looping and the filename is of the format
-!! \c PREFIX_SSSSSSSS.nc.
+!! \c RRRR is the four-digit repeat number (starting from 1), and \c
+!! SSSSSSSS is the eight-digit output index (starting at 1 and
+!! incremented each time the state is output). For exact and sectional
+!! simulations all repeats would be identical so there is no support
+!! for repeating and the filename is of the format \c
+!! PREFIX_SSSSSSSS.nc.
 !!
 !! If run in parallel and \c output_type is \c central or \c dist,
 !! then the output files have names like \c
-!! PREFIX_LLLL_PPPP_SSSSSSSS.nc, where \c PPPP is a four-digit
+!! PREFIX_RRRR_PPPP_SSSSSSSS.nc, where \c PPPP is a four-digit
 !! processor number (starting from 1) and the other variables are as
 !! above. If \c output_type is \c single then the output file naming
 !! scheme as the same as for serial runs.
@@ -90,7 +90,7 @@ contains
   !> Write the current state.
   subroutine output_state(prefix, output_type, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_loop, record_removals, record_optical, uuid)
+       time, del_t, i_repeat, record_removals, record_optical, uuid)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -116,8 +116,8 @@ contains
     real(kind=dp), intent(in) :: time
     !> Current timestep (s).
     real(kind=dp), intent(in) :: del_t
-    !> Current loop number.
-    integer, intent(in) :: i_loop
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
     !> Whether to output aerosol optical properties.
@@ -142,13 +142,13 @@ contains
        if (rank == 0) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, env_state, &
-               index, time, del_t, i_loop, record_removals, record_optical, &
-               rank, n_proc, uuid)
+               index, time, del_t, i_repeat, record_removals, &
+               record_optical, rank, n_proc, uuid)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, bin_grid, &
                   aero_data, aero_weight, gas_data, index, time, del_t, &
-                  i_loop, record_removals, record_optical, i_proc)
+                  i_repeat, record_removals, record_optical, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -158,13 +158,13 @@ contains
        ! have each processor write its own data directly
        call output_state_to_file(prefix, bin_grid, aero_data, &
             aero_weight, aero_state, gas_data, gas_state, env_state, &
-            index, time, del_t, i_loop, record_removals, record_optical, &
+            index, time, del_t, i_repeat, record_removals, record_optical, &
             rank, n_proc, uuid)
     elseif (output_type == "single") then
        if (n_proc == 1) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, &
-               env_state, index, time, del_t, i_loop, &
+               env_state, index, time, del_t, i_repeat, &
                record_removals, record_optical, rank, n_proc, uuid)
        else
 #ifdef PMC_USE_MPI
@@ -185,7 +185,7 @@ contains
              end do
              call output_state_to_file(prefix, bin_grid, aero_data, &
                   aero_weight, aero_state_write, gas_data, gas_state_write, &
-                  env_state_write, index, time, del_t, i_loop, &
+                  env_state_write, index, time, del_t, i_repeat, &
                   record_removals, record_optical, rank, 1, uuid)
              call aero_state_deallocate(aero_state_write)
           else ! rank /= 0
@@ -249,7 +249,7 @@ contains
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_loop, record_removals, record_optical, write_rank, &
+       time, del_t, i_repeat, record_removals, record_optical, write_rank, &
        write_n_proc, uuid)
 
     !> Prefix of state file.
@@ -274,8 +274,8 @@ contains
     real(kind=dp), intent(in) :: time
     !> Current timestep (s).
     real(kind=dp), intent(in) :: del_t
-    !> Current loop number.
-    integer, intent(in) :: i_loop
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
     !> Whether to output aerosol optical properties.
@@ -293,14 +293,14 @@ contains
 #ifdef PMC_USE_MPI
     if (write_n_proc > 1) then
        write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_loop, '_', (write_rank + 1), '_', index, '.nc'
+            '_', i_repeat, '_', (write_rank + 1), '_', index, '.nc'
     else
        write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_loop, '_', index, '.nc'
+            '_', i_repeat, '_', index, '.nc'
     end if
 #else
     write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-         '_', i_loop, '_', index, '.nc'
+         '_', i_repeat, '_', index, '.nc'
 #endif
     call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
          "opening " // trim(filename))
@@ -341,7 +341,7 @@ contains
     !!   - \b time (unit s): time elapsed since the simulation start time,
     !!     as specified in the \ref output_format_env_state section
     !!   - \b timestep (unit s): the current timestep size
-    !!   - \b loop: the loop number of this simulation (starting from 1)
+    !!   - \b repeat: the repeat number of this simulation (starting from 1)
     !!   - \b timestep_index: an integer that is 1 on the first timestep, 2
     !!     on the second timestep, etc.
     !!   - \b processor (MPI only): the processor number (starting from 1)
@@ -355,8 +355,8 @@ contains
     call pmc_nc_check(nf90_enddef(ncid))
 
     call write_header_and_time(ncid, time, del_t, index, uuid)
-    call pmc_nc_write_integer(ncid, i_loop, "loop", &
-         description="loop repeat number of this simulation " &
+    call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
+         description="repeat repeat number of this simulation " &
          // "(starting from 1)")
 #ifdef PMC_USE_MPI
     call pmc_nc_write_integer(ncid, write_rank + 1, "processor", &
@@ -419,8 +419,8 @@ contains
   !> Receive the state for the "central" output method on the root
   !> processor.
   subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
-       aero_weight, gas_data, index, time, del_t, i_loop, record_removals, &
-       record_optical, remote_proc)
+       aero_weight, gas_data, index, time, del_t, i_repeat, &
+       record_removals, record_optical, remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -438,8 +438,8 @@ contains
     real(kind=dp), intent(in) :: time
     !> Current timestep (s).
     real(kind=dp), intent(in) :: del_t
-    !> Current loop number.
-    integer, intent(in) :: i_loop
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
     !> Whether to output particle removal info.
     logical, intent(in) :: record_removals
     !> Whether to output aerosol_optical_properties.
@@ -484,7 +484,7 @@ contains
     
     call output_state_to_file(prefix, bin_grid, aero_data, &
          aero_weight, aero_state, gas_data, gas_state, env_state, &
-         index, time, del_t, i_loop, record_removals, record_optical, &
+         index, time, del_t, i_repeat, record_removals, record_optical, &
          remote_proc, n_proc)
     
     call env_state_deallocate(env_state)
@@ -572,7 +572,7 @@ contains
   !> Read the current state.
   subroutine input_state(filename, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_loop, uuid)
+       time, del_t, i_repeat, uuid)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
@@ -596,8 +596,8 @@ contains
     real(kind=dp), intent(out) :: time
     !> Current timestep (s).
     real(kind=dp), intent(out) :: del_t
-    !> Current loop number.
-    integer, intent(out) :: i_loop
+    !> Current repeat number.
+    integer, intent(out) :: i_repeat
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(out) :: uuid
     
@@ -614,7 +614,7 @@ contains
 
        call pmc_nc_read_real(ncid, time, "time")
        call pmc_nc_read_real(ncid, del_t, "timestep")
-       call pmc_nc_read_integer(ncid, i_loop, "loop")
+       call pmc_nc_read_integer(ncid, i_repeat, "repeat")
        call pmc_nc_read_integer(ncid, index, "timestep_index")
 
        call env_state_input_netcdf(env_state, ncid)

@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out/additive_part # prefix of output files
-n_loop 1                        # number of Monte Carlo loops
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 kernel additive                 # coagulation kernel
 nucleate none                   # nucleation parameterization

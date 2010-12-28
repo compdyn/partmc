@@ -8,7 +8,7 @@ GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = doc/html/index.html
 
 DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test \
-	urban_plume
+	scenarios/1_urban_plume scenarios/2_urban_plume2 tool/partmc.py
 
 ALL_SOURCE = $(wildcard src/*.f90)
 
@@ -26,6 +26,7 @@ dist: doc
 	grep -q "^ *\"PartMC version $(VERSION)\"" src/output.f90
 	test ! -d .svn # check this was svn exported
 	test ! -d doc/condensation # no condensation notes
+	test ! -d test/parallel_mosaic # test not active
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

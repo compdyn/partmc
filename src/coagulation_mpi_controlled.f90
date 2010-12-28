@@ -555,7 +555,7 @@ contains
     ! add new particle
     if (create_new) then
        bn = aero_particle_in_bin(aero_particle_new, bin_grid)
-       pn = sample_cts_pdf(size(comp_vols), comp_vols) - 1
+       pn = sample_cts_pdf(comp_vols) - 1
        call coag_remote_add_particle(bin_grid, aero_state, pn, &
             aero_particle_new)
     end if

@@ -969,7 +969,7 @@ contains
 
     ! add new particle
     if (create_new) then
-       proc_new = sample_cts_pdf(size(comp_vols), comp_vols) - 1
+       proc_new = sample_cts_pdf(comp_vols) - 1
        call send_return_unreq_particle(aero_particle_new, proc_new)
     end if
 

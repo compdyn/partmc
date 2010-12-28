@@ -176,12 +176,10 @@ contains
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
   !! sum(pdf).
-  integer function sample_cts_pdf(n, pdf)
+  integer function sample_cts_pdf(pdf)
 
-    !> Number of entries.
-    integer, intent(in) :: n
     !> Probability density function (not normalized).
-    real(kind=dp), intent(in) :: pdf(n)
+    real(kind=dp), intent(in) :: pdf(:)
 
     real(kind=dp) :: pdf_max
     integer :: k
@@ -197,7 +195,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = pmc_rand_int(n)
+       k = pmc_rand_int(size(pdf))
        if (pmc_random() < pdf(k) / pdf_max) then
           found = .true.
        end if
@@ -212,12 +210,10 @@ contains
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
   !! sum(pdf).
-  integer function sample_disc_pdf(n, pdf)
+  integer function sample_disc_pdf(pdf)
 
-    !> Number of entries.
-    integer, intent(in) :: n
     !> Probability density function.
-    integer, intent(in) :: pdf(n)
+    integer, intent(in) :: pdf(:)
 
     integer :: pdf_max, k
     logical :: found
@@ -232,7 +228,7 @@ contains
     end if
     found = .false.
     do while (.not. found)
-       k = pmc_rand_int(n)
+       k = pmc_rand_int(size(pdf))
        if (pmc_random() < real(pdf(k), kind=dp) / real(pdf_max, kind=dp)) then
           found = .true.
        end if
@@ -248,22 +244,20 @@ contains
   !!
   !! Use n_samp samples. Each discrete entry is sampled with a PDF
   !! given by vec_cts. This is very slow for large n_samp or large n.
-  subroutine sample_vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
+  subroutine sample_vec_cts_to_disc(vec_cts, n_samp, vec_disc)
     
-    !> Number of entries in vector.
-    integer, intent(in) :: n
     !> Continuous vector.
-    real(kind=dp), intent(in) :: vec_cts(n)
+    real(kind=dp), intent(in) :: vec_cts(:)
     !> Number of discrete samples to use.
     integer, intent(in) :: n_samp
     !> Discretized vector.
-    integer, intent(out) :: vec_disc(n)
+    integer, intent(out) :: vec_disc(size(vec_cts))
 
     integer :: i_samp, k
 
     vec_disc = 0
     do i_samp = 1,n_samp
-       k = sample_cts_pdf(n, vec_cts)
+       k = sample_cts_pdf(vec_cts)
        vec_disc(k) = vec_disc(k) + 1
     end do
     

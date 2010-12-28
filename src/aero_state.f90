@@ -409,7 +409,7 @@ contains
     call assert(950725003, aero_state%n_part > 0)
     n_bin = size(aero_state%bin)
     disc_pdf = (/(aero_state%bin(i_bin)%n_part, i_bin = 1,n_bin)/)
-    i_bin = sample_disc_pdf(n_bin, disc_pdf)
+    i_bin = sample_disc_pdf(disc_pdf)
     i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
 
   end subroutine aero_state_rand_particle

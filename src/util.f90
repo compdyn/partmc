@@ -37,11 +37,8 @@ contains
     !> Message to display.
     character(len=*), intent(in) :: warning_msg
 
-    character(len=100) :: code_str
-
-    write(code_str,*) code
-    code_str = adjustl(code_str)
-    write(0,*) 'WARNING (PartMC-', trim(code_str), '): ', trim(warning_msg)
+    write(0,'(a)') 'WARNING (PartMC-' // trim(integer_to_string(code)) &
+         // '): ' // trim(warning_msg)
 
   end subroutine warn_msg
 
@@ -81,7 +78,8 @@ contains
     write(code_str,*) code
     code_str = adjustl(code_str)
     if (.not. condition_ok) then
-       write(0,*) 'ERROR (PartMC-', trim(code_str), '): ', trim(error_msg)
+       write(0,'(a)') 'ERROR (PartMC-' // trim(integer_to_string(code)) &
+            // '): ' // trim(error_msg)
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else
@@ -576,11 +574,9 @@ contains
     character(len=len(string)+300) :: error_msg
 
     read(string, '(i20)', iostat=ios) val
-    if (ios /= 0) then
-       write(error_msg, *) 'error converting ', trim(string), &
-            ' to integer: IOSTAT = ', ios
-       call die_msg(895881873, error_msg)
-    end if
+    call assert_msg(895881873, ios == 0, &
+         'error converting "' // trim(string) &
+         // '" to integer: IOSTAT = ' // integer_to_string(ios))
     string_to_integer = val
 
   end function string_to_integer
@@ -598,11 +594,9 @@ contains
     character(len=len(string)+300) :: error_msg
 
     read(string, '(f20.0)', iostat=ios) val
-    if (ios /= 0) then
-       write(error_msg, *) 'error converting ', trim(string), &
-            ' to real: IOSTAT = ', ios
-       call die_msg(727430097, error_msg)
-    end if
+    call assert_msg(727430097, ios == 0, &
+         'error converting "' // trim(string) &
+         // '" to real: IOSTAT = ' // integer_to_string(ios))
     string_to_real = val
 
   end function string_to_real
@@ -633,9 +627,9 @@ contains
          .or. (trim(string) == '0')) then
        val = .false.
     else
-       write(error_msg, *) 'error converting ', trim(string), &
-            ' to logical: IOSTAT = ', ios
-       call die_msg(985010153, error_msg)
+       call assert_msg(985010153, ios == 0, &
+            'error converting "' // trim(string) &
+            // '" to logical: IOSTAT = ' // integer_to_string(ios))
     end if
     string_to_logical = val
 
@@ -652,8 +646,8 @@ contains
     character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
     
     ret_val = ""
-    write(ret_val, '(i20)') val
-    integer_to_string = ret_val
+    write(ret_val, '(i30)') val
+    integer_to_string = adjustl(ret_val)
 
   end function integer_to_string
 
@@ -669,7 +663,7 @@ contains
     
     ret_val = ""
     write(ret_val, '(g30.20)') val
-    real_to_string = ret_val
+    real_to_string = adjustl(ret_val)
 
   end function real_to_string
 
@@ -732,10 +726,8 @@ contains
        vec_disc(k) = vec_disc(k) - 1
     end do
     
-    ! asserts
-    if (sum(vec_disc) /= n_samp) then
-       call die_msg(323412496, 'generated incorrect number of samples')
-    end if
+    call assert_msg(323412496, sum(vec_disc) == n_samp, &
+         'generated incorrect number of samples')
     
   end subroutine vec_cts_to_disc
   

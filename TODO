@@ -15,9 +15,6 @@ Include scenarios in README and distribution tarball.
 
 Remove out directories.
 
-Reading a file which does not have a newline at the end causes
-problems (specifically, gas_init.dat).
-
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
 

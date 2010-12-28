@@ -37,54 +37,54 @@ module pmc_run_part
   !> Options controlling the execution of run_part().
   type run_part_opt_t
      !> Maximum number of particles.
-    integer :: n_part_max
-    !> Final time (s).
-    real(kind=dp) :: t_max
-    !> Output interval (0 disables) (s).
-    real(kind=dp) :: t_output
-    !> Progress interval (0 disables) (s).
-    real(kind=dp) :: t_progress
-    !> Timestep for coagulation.
-    real(kind=dp) :: del_t
-    !> Prefix for output files.
-    character(len=300) :: output_prefix
-    !> Type of coagulation kernel.
-    integer :: kernel_type
-    !> Type of nucleation.
-    integer :: nucleate_type
-    !> Whether to do coagulation.
-    logical :: do_coagulation
-    !> Allow doubling if needed.
-    logical :: allow_doubling
-    !> Allow halving if needed.
-    logical :: allow_halving
-    !> Whether to do condensation.
-    logical :: do_condensation
-    !> Whether to do MOSAIC.
-    logical :: do_mosaic
-    !> Whether to compute optical properties.
-    logical :: do_optical
-    !> Loop number of run.
-    integer :: i_loop
-    !> Total number of loops.
-    integer :: n_loop
-    !> Cpu_time() of start.
-    real(kind=dp) :: t_wall_start
-    !> Whether to record particle removal information.
-    logical :: record_removals
-    !> Whether to run in parallel.
-    logical :: do_parallel
-    !> Parallel output type (central/dist/single).
-    character(len=RUN_PART_OPT_CHAR_LEN) :: output_type
-    !> Mixing timescale between processes (s).
-    real(kind=dp) :: mix_timescale
-    !> Whether to average gases each timestep.
-    logical :: gas_average
-    !> Whether to average environment each timestep.
-    logical :: env_average
-    !> Parallel coagulation method (local/collect/central/dist).
-    character(len=RUN_PART_OPT_CHAR_LEN) :: coag_method
- end type run_part_opt_t
+     integer :: n_part_max
+     !> Final time (s).
+     real(kind=dp) :: t_max
+     !> Output interval (0 disables) (s).
+     real(kind=dp) :: t_output
+     !> Progress interval (0 disables) (s).
+     real(kind=dp) :: t_progress
+     !> Timestep for coagulation.
+     real(kind=dp) :: del_t
+     !> Prefix for output files.
+     character(len=300) :: output_prefix
+     !> Type of coagulation kernel.
+     integer :: kernel_type
+     !> Type of nucleation.
+     integer :: nucleate_type
+     !> Whether to do coagulation.
+     logical :: do_coagulation
+     !> Allow doubling if needed.
+     logical :: allow_doubling
+     !> Allow halving if needed.
+     logical :: allow_halving
+     !> Whether to do condensation.
+     logical :: do_condensation
+     !> Whether to do MOSAIC.
+     logical :: do_mosaic
+     !> Whether to compute optical properties.
+     logical :: do_optical
+     !> Loop number of run.
+     integer :: i_loop
+     !> Total number of loops.
+     integer :: n_loop
+     !> Cpu_time() of start.
+     real(kind=dp) :: t_wall_start
+     !> Whether to record particle removal information.
+     logical :: record_removals
+     !> Whether to run in parallel.
+     logical :: do_parallel
+     !> Parallel output type (central/dist/single).
+     character(len=RUN_PART_OPT_CHAR_LEN) :: output_type
+     !> Mixing timescale between processes (s).
+     real(kind=dp) :: mix_timescale
+     !> Whether to average gases each timestep.
+     logical :: gas_average
+     !> Whether to average environment each timestep.
+     logical :: env_average
+     !> Parallel coagulation method (local/collect/central/dist).
+     character(len=RUN_PART_OPT_CHAR_LEN) :: coag_method
+  end type run_part_opt_t
   
 contains
   

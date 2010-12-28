@@ -7,7 +7,7 @@ parallel output types. And change part_opt%coag_method and
 part_opt%output_type to enumerations.
 
 Change radius to diameter in all input files and also in extract_*
-output files.
+output files. Also fix bin_grid to take bin edges.
 
 Output filename format in parallel should be LLLL_TTTTTTTT_PPPP, as we
 typically want to sum over the processors first to get the result for
@@ -44,6 +44,8 @@ Rename "kernel" to "coag" in input files and elsewhere.
 
 Why do we need "interface" blocks in mosaic.f90 for mosaic
 subroutines. Can't we just use the mosaic modules?
+
+Rename golovin to additive.
 
 ######################################################################
 

@@ -19,6 +19,7 @@ module pmc_run_part
   use pmc_output
   use pmc_mosaic
   use pmc_coagulation
+  use pmc_coagulation_mpi_centralized
   use pmc_coagulation_mpi_controlled
   use pmc_coagulation_mpi_equal
   use pmc_kernel
@@ -325,110 +326,6 @@ contains
     call env_state_deallocate(old_env_state)
 
   end subroutine run_part
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do coagulation for time del_t.
-  subroutine mc_coag(kernel_type, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
-
-    !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Timestep for coagulation.
-    real(kind=dp) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
-    !> Total number of samples tested.
-    integer, intent(out) :: tot_n_samp
-    !> Number of coagulation events.
-    integer, intent(out) :: tot_n_coag
-
-    logical did_coag
-    integer i, j, n_samp, i_samp
-    real(kind=dp) n_samp_real
-
-    tot_n_samp = 0
-    tot_n_coag = 0
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
-          call compute_n_samp(aero_state%bin(i)%n_part, &
-               aero_state%bin(j)%n_part, i == j, k_max(i,j), &
-               aero_state%comp_vol, del_t, n_samp_real)
-          ! probabalistically determine n_samp to cope with < 1 case
-          n_samp = prob_round(n_samp_real)
-          tot_n_samp = tot_n_samp + n_samp
-          do i_samp = 1,n_samp
-             ! check we still have enough particles to coagulate
-             if ((aero_state%bin(i)%n_part < 1) &
-                  .or. (aero_state%bin(j)%n_part < 1) &
-                  .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
-                exit
-             end if
-             call maybe_coag_pair(bin_grid, env_state, &
-                  aero_data, aero_weight, aero_state, i, j, del_t, &
-                  k_max(i,j), kernel_type, did_coag)
-             if (did_coag) tot_n_coag = tot_n_coag + 1
-          enddo
-       enddo
-    enddo
-
-  end subroutine mc_coag
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do coagulation for time del_t in parallel by centralizing on node 0.
-  subroutine mc_coag_mpi_centralized(kernel_type, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
-       tot_n_coag)
-
-    !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Timestep for coagulation.
-    real(kind=dp) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
-    !> Total number of samples tested.
-    integer, intent(out) :: tot_n_samp
-    !> Number of coagulation events.
-    integer, intent(out) :: tot_n_coag
-
-    type(aero_state_t) :: aero_state_total
-    
-#ifdef PMC_USE_MPI
-
-    call aero_state_allocate(aero_state_total)
-    call aero_state_mpi_gather(aero_state, aero_state_total)
-    if (pmc_mpi_rank() == 0) then
-       call mc_coag(kernel_type, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state_total, del_t, k_max, tot_n_samp, &
-            tot_n_coag)
-    end if
-    call aero_state_mpi_scatter(aero_state_total, aero_state, aero_data)
-    call aero_state_deallocate(aero_state_total)
-    
-#endif
-
-  end subroutine mc_coag_mpi_centralized
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

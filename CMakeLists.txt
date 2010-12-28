@@ -329,6 +329,7 @@ set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/aero_data.f90 src/run_exact.f90 src/run_part.f90 src/util.f90
   src/run_sect.f90 src/output.f90 src/mosaic.f90 src/gas_data.f90
   src/gas_state.f90 src/coagulation.f90
+  src/coagulation_mpi_centralized.f90
   src/coagulation_mpi_controlled.f90 src/coagulation_mpi_equal.f90
   src/kernel.f90 src/spec_line.f90 src/spec_file.f90 src/rand.f90
   src/aero_particle.f90 src/aero_particle_array.f90 src/mpi.f90

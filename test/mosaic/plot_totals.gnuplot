@@ -12,8 +12,10 @@ set key top left
 set ytics nomirror
 set y2tics
 
-plot "out/mosaic_aero_total.txt" using 1:2 axes x1y1 with lines title "number"
-replot "out/mosaic_aero_total.txt" using 1:3 axes x1y2 with lines title "mass"
+set yrange [0:*]
+set y2range [0:*]
 
-replot "true_aero_total.txt" using 1:2 axes x1y1 with points title "true number"
-replot "true_aero_total.txt" using 1:3 axes x1y2 with points title "true mass"
+plot "out/mosaic_aero_total.txt" using 1:2 axes x1y1 with lines title "number", \
+     "out/mosaic_aero_total.txt" using 1:3 axes x1y2 with lines title "mass", \
+     "true_aero_total.txt" using 1:2 axes x1y1 with points title "true number", \
+     "true_aero_total.txt" using 1:3 axes x1y2 with points title "true mass"

@@ -31,7 +31,7 @@ module pmc_aero_weight
   type aero_weight_t
      !> Weight type (given by module constants).
      integer :: type
-     !> Reference radius at which the weight is 1.
+     !> Reference radius at which the weight is 1 (hard-coded at present).
      real(kind=dp) :: ref_radius
      !> Exponent for "power" weight.
      real(kind=dp) :: exponent
@@ -154,13 +154,10 @@ contains
     !! The aerosol weighting function is specified by the parameters:
     !!   - \b weight (string): the type of weighting function --- must
     !!     be one of: "none" for no weighting (\f$w(D) = 1\f$);
-    !!     "power" for a power-law weighting (\f$w(D) =
-    !!     (D/D_0)^\alpha\f$), or "mfa" for the mass flow algorithm
-    !!     weighting (\f$w(D) = (D/D_0)^{-3}\f$ with dependent
-    !!     coagulation particle removal)
-    !!   - if the \c weight is \c power then the next parameters are:
-    !!     - \b ref_radius (real, unit m): the reference radius
-    !!       \f$R_0\f$ (corresponding to \f$D_0 = 2R_0\f$)
+    !!     "power" for a power-law weighting (\f$w(D) = D^\alpha\f$),
+    !!     or "mfa" for the mass flow algorithm weighting (\f$w(D) =
+    !!     D^{-3}\f$ with dependent coagulation particle removal)
+    !!   - if the \c weight is \c power then the next parameter is:
     !!     - \b exponent (real, dimensionless): the exponent
     !!       \f$\alpha\f$ in the power law relationship --- setting
     !!       the \c exponent to 0 is equivalent to no weighting, while
@@ -169,9 +166,6 @@ contains
     !!       positive uses more computational particles at smaller
     !!       diameters; in practice exponents between 0 and -3 are
     !!       most useful
-    !!   - if the \c weight is \c mfa then the next parameter is:
-    !!     - \b ref_radius (real, unit m): the reference radius
-    !!       \f$R_0\f$ (corresponding to \f$D_0 = 2R_0\f$)
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
@@ -181,11 +175,11 @@ contains
        aero_weight%type = AERO_WEIGHT_TYPE_NONE
     elseif (trim(weight_type) == 'power') then
        aero_weight%type = AERO_WEIGHT_TYPE_POWER
-       call spec_file_read_real(file, 'ref_radius', aero_weight%ref_radius)
+       aero_weight%ref_radius = 1d0
        call spec_file_read_real(file, 'exponent', aero_weight%exponent)
     elseif (trim(weight_type) == 'mfa') then
        aero_weight%type = AERO_WEIGHT_TYPE_MFA
-       call spec_file_read_real(file, 'ref_radius', aero_weight%ref_radius)
+       aero_weight%ref_radius = 1d0
        aero_weight%exponent = -3d0
     else
        call spec_file_die_msg(456342050, file, "unknown weight_type: " &

@@ -14,7 +14,6 @@ d_min 1e-8                      # minimum diameter (m)
 d_max 1e-2                      # maximum diameter (m)
 
 weight power                    # weighting function
-ref_radius 1e-5                 # radius at which weight is 1
 exponent -1                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data

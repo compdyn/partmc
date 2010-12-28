@@ -350,13 +350,18 @@ contains
     !!
     !! The units of the \c rate line depend on the type of aerosol
     !! distribution profile:
-    !! - emissions aerosol profiles have rates with units m/s ---
+    !! - Emissions aerosol profiles have rates with units m/s ---
     !!   the aerosol distribution number concentrations are multiplied
     !!   by the rate to give an emission rate with unit #/(m^2 s)
     !!   which is then divided by the current mixing layer height
-    !!   to give a per-volume emission rate
-    !! - background aerosol profiles have dimensionless rates that
-    !! - simply scale the number concentrations
+    !!   to give a per-volume emission rate.
+    !! - Background aerosol profiles have rates with units \f$\rm
+    !!   s^{-1}\f$, which is the dilution rate between the background
+    !!   and the simulated air parcel. That is, if the simulated
+    !!   number concentration is \f$N\f$ and the background number
+    !!   concentration is \f$N_{\rm back}\f$, then dilution is modeled
+    !!   as \f$\dot{N} = r N_{\rm back} - r N\f$, where \f$r\f$ is the
+    !!   rate.
     !!
     !! Between the specified times the aerosol profile is interpolated
     !! step-wise and kept constant at its last value. That is, if the

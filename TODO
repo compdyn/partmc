@@ -20,9 +20,6 @@ Rename "kernel" to "coag" in input files and elsewhere.
 Why do we need "interface" blocks in mosaic.f90 for mosaic
 subroutines. Can't we just use the mosaic modules?
 
-Add docs to say that rate for background is dilution rate (in and
-out).
-
 ######################################################################
 
 User-visible changes:

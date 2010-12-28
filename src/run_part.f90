@@ -193,12 +193,12 @@ contains
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then
              call mc_coag(part_opt%kernel_type, bin_grid, env_state, &
-                  aero_data, aero_weight, aero_state, part_opt, k_max, &
+                  aero_data, aero_weight, aero_state, part_opt%del_t, k_max, &
                   tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "collect") then
              call mc_coag_mpi_centralized(part_opt%kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, part_opt, &
-                  k_max, tot_n_samp, tot_n_coag)
+                  env_state, aero_data, aero_weight, aero_state, &
+                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "central") then
              call mc_coag_mpi_controlled(part_opt%kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
@@ -330,7 +330,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag(kernel_type, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
     integer, intent(in) :: kernel_type
@@ -344,8 +344,8 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Monte Carlo options.
-    type(run_part_opt_t), intent(in) :: part_opt
+    !> Timestep for coagulation.
+    real(kind=dp) :: del_t
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
@@ -363,7 +363,7 @@ contains
        do j = 1,bin_grid%n_bin
           call compute_n_samp(aero_state%bin(i)%n_part, &
                aero_state%bin(j)%n_part, i == j, k_max(i,j), &
-               aero_state%comp_vol, part_opt%del_t, n_samp_real)
+               aero_state%comp_vol, del_t, n_samp_real)
           ! probabalistically determine n_samp to cope with < 1 case
           n_samp = prob_round(n_samp_real)
           tot_n_samp = tot_n_samp + n_samp
@@ -375,7 +375,7 @@ contains
                 exit
              end if
              call maybe_coag_pair(bin_grid, env_state, &
-                  aero_data, aero_weight, aero_state, i, j, part_opt%del_t, &
+                  aero_data, aero_weight, aero_state, i, j, del_t, &
                   k_max(i,j), kernel_type, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
@@ -388,7 +388,7 @@ contains
 
   !> Do coagulation for time del_t in parallel by centralizing on node 0.
   subroutine mc_coag_mpi_centralized(kernel_type, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, part_opt, k_max, tot_n_samp, &
+       aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
        tot_n_coag)
 
     !> Coagulation kernel type.
@@ -403,8 +403,8 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Monte Carlo options.
-    type(run_part_opt_t), intent(in) :: part_opt
+    !> Timestep for coagulation.
+    real(kind=dp) :: del_t
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
@@ -420,7 +420,7 @@ contains
     call aero_state_mpi_gather(aero_state, aero_state_total)
     if (pmc_mpi_rank() == 0) then
        call mc_coag(kernel_type, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state_total, part_opt, k_max, tot_n_samp, &
+            aero_weight, aero_state_total, del_t, k_max, tot_n_samp, &
             tot_n_coag)
     end if
     call aero_state_mpi_scatter(aero_state_total, aero_state, aero_data)

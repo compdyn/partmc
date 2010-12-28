@@ -17,22 +17,22 @@ program extract_sectional_aero_size_num
 
   character(len=1000) :: in_prefix, in_filename, out_filename
   integer :: ncid
-  integer :: dimid_aero_radius
+  integer :: dimid_aero_diam
   integer :: varid_time, varid_aero_number_concentration
-  integer :: varid_aero_radius, varid_aero_radius_widths
+  integer :: varid_aero_diam, varid_aero_diam_widths
   integer :: n_bin
   character(len=1000) :: tmp_str
   real(kind=dp) :: time
   real(kind=dp), allocatable :: aero_dist(:,:)
-  real(kind=dp), allocatable :: aero_radius(:)
-  real(kind=dp), allocatable :: aero_radius_widths(:)
+  real(kind=dp), allocatable :: aero_diam(:)
+  real(kind=dp), allocatable :: aero_diam_widths(:)
   real(kind=dp), allocatable :: aero_number_concentration(:)
-  real(kind=dp), allocatable :: save_aero_radius(:)
+  real(kind=dp), allocatable :: save_aero_diam(:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: i_bin, n_time, new_n_bin
-  real(kind=dp) :: dlnr
+  real(kind=dp) :: log_width
   character(len=36) :: uuid, run_uuid
 
   ! process commandline arguments
@@ -80,11 +80,11 @@ program extract_sectional_aero_size_num
      call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
           "getting variable 'time'")
 
-     ! read aero_radius dimension
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_radius", &
-          dimid_aero_radius), "getting dimension ID for 'aero_radius'")
-     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_radius, &
-          tmp_str, new_n_bin), "inquiring dimension 'aero_radius'")
+     ! read aero_diam dimension
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_diam", &
+          dimid_aero_diam), "getting dimension ID for 'aero_diam'")
+     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_diam, &
+          tmp_str, new_n_bin), "inquiring dimension 'aero_diam'")
 
      ! allocate aero_dist on first time
      if (i_time == 1) then
@@ -98,41 +98,41 @@ program extract_sectional_aero_size_num
         end if
      end if
         
-     ! read aero_radius variable
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_radius", &
-          varid_aero_radius), &
-          "getting variable ID for 'aero_radius'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_radius, &
+     ! read aero_diam variable
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_diam", &
+          varid_aero_diam), &
+          "getting variable ID for 'aero_diam'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_diam, &
           tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_radius'")
+          "inquiring variable 'aero_diam'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_radius dimids"
+          .or. (dimids(1) /= dimid_aero_diam)) then
+        write(*,*) "ERROR: unexpected aero_diam dimids"
         stop 1
      end if
-     allocate(aero_radius(n_bin))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_radius, &
-          aero_radius), "getting variable 'aero_radius'")
+     allocate(aero_diam(n_bin))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_diam, &
+          aero_diam), "getting variable 'aero_diam'")
      if (i_time == 1) then
-        allocate(save_aero_radius(n_bin))
-        save_aero_radius = aero_radius
+        allocate(save_aero_diam(n_bin))
+        save_aero_diam = aero_diam
      end if
 
-     ! read aero_radius_widths variable
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_radius_widths", &
-          varid_aero_radius_widths), &
-          "getting variable ID 'aero_radius_widths'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_radius_widths, &
+     ! read aero_diam_widths variable
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_diam_widths", &
+          varid_aero_diam_widths), &
+          "getting variable ID 'aero_diam_widths'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_diam_widths, &
           tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_radius_widths'")
+          "inquiring variable 'aero_diam_widths'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_radius_widths dimids"
+          .or. (dimids(1) /= dimid_aero_diam)) then
+        write(*,*) "ERROR: unexpected aero_diam_widths dimids"
         stop 1
      end if
-     allocate(aero_radius_widths(n_bin))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_radius_widths, &
-          aero_radius_widths), "getting variable 'aero_radius_widths'")
+     allocate(aero_diam_widths(n_bin))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_diam_widths, &
+          aero_diam_widths), "getting variable 'aero_diam_widths'")
 
      ! read aero_number_concentration
      call nc_check_msg(nf90_inq_varid(ncid, "aero_number_concentration", &
@@ -142,7 +142,7 @@ program extract_sectional_aero_size_num
           varid_aero_number_concentration, tmp_str, xtype, ndims, &
           dimids, nAtts), "inquiring variable 'aero_number_concentration'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
+          .or. (dimids(1) /= dimid_aero_diam)) then
         write(*,*) "ERROR: unexpected aero_number_concentration dimids"
         stop 1
      end if
@@ -155,11 +155,11 @@ program extract_sectional_aero_size_num
           "closing file " // trim(in_filename))
 
      ! compute distribution
-     dlnr = aero_radius_widths(1)
+     log_width = aero_diam_widths(1)
      aero_dist(:, i_time) = aero_number_concentration
 
-     deallocate(aero_radius)
-     deallocate(aero_radius_widths)
+     deallocate(aero_diam)
+     deallocate(aero_diam_widths)
      deallocate(aero_number_concentration)
   end do
 
@@ -171,11 +171,11 @@ program extract_sectional_aero_size_num
 
   ! write information
   write(*,*) "Output file array A has:"
-  write(*,*) "  A(i, 1) = radius(i) (m)"
-  write(*,*) "  A(i, j+1) = number concentration at radius(i) and" &
+  write(*,*) "  A(i, 1) = diameter(i) (m)"
+  write(*,*) "  A(i, j+1) = number concentration at diameter(i) and" &
        // " time(j) (#/m^3)"
-  write(*,*) "Radius bins have logarithmic width:"
-  write(*,*) "  d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
+  write(*,*) "Diameter bins have logarithmic width:"
+  write(*,*) "  log_width = ln(diameter(i+1)) - ln(diameter(i)) =", log_width
 
   ! open output file
   open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
@@ -188,7 +188,7 @@ program extract_sectional_aero_size_num
   ! output data
   do i_bin = 1,n_bin
      write(out_unit, '(e30.15e3)', advance='no') &
-          save_aero_radius(i_bin)
+          save_aero_diam(i_bin)
      do i_time = 1,n_time
         write(out_unit, '(e30.15e3)', advance='no') &
              aero_dist(i_bin, i_time)
@@ -197,7 +197,7 @@ program extract_sectional_aero_size_num
   end do
 
   close(out_unit)
-  deallocate(save_aero_radius)
+  deallocate(save_aero_diam)
   deallocate(aero_dist)
 
 contains

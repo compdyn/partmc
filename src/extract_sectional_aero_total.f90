@@ -16,15 +16,15 @@ program extract_sectional_aero_total
 
   character(len=1000) :: in_prefix, in_filename, out_filename
   integer :: ncid
-  integer :: dimid_aero_species, dimid_aero_radius
+  integer :: dimid_aero_species, dimid_aero_diam
   integer :: varid_time, varid_aero_species
-  integer :: varid_aero_radius, varid_aero_radius_widths
+  integer :: varid_aero_diam, varid_aero_diam_widths
   integer :: varid_aero_mass_concentration, varid_aero_number_concentration
   integer :: n_aero_species, n_bin
   character(len=1000) :: tmp_str, aero_species_names
   real(kind=dp) :: time
-  real(kind=dp), allocatable :: aero_radius(:)
-  real(kind=dp), allocatable :: aero_radius_widths(:)
+  real(kind=dp), allocatable :: aero_diam(:)
+  real(kind=dp), allocatable :: aero_diam_widths(:)
   real(kind=dp), allocatable :: aero_mass_concentration(:,:)
   real(kind=dp), allocatable :: aero_number_concentration(:)
   integer :: xtype, ndims, nAtts
@@ -93,43 +93,43 @@ program extract_sectional_aero_total
      call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
           tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
      
-     ! read aero_radius dimension
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_radius", &
-          dimid_aero_radius), "getting dimension ID for 'aero_radius'")
-     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_radius, &
-          tmp_str, n_bin), "inquiring dimension 'aero_radius'")
+     ! read aero_diam dimension
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_diam", &
+          dimid_aero_diam), "getting dimension ID for 'aero_diam'")
+     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_diam, &
+          tmp_str, n_bin), "inquiring dimension 'aero_diam'")
 
-     ! read aero_radius variable
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_radius", &
-          varid_aero_radius), &
-          "getting variable ID for 'aero_radius'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_radius, &
+     ! read aero_diam variable
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_diam", &
+          varid_aero_diam), &
+          "getting variable ID for 'aero_diam'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_diam, &
           tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_radius'")
+          "inquiring variable 'aero_diam'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_radius dimids"
+          .or. (dimids(1) /= dimid_aero_diam)) then
+        write(*,*) "ERROR: unexpected aero_diam dimids"
         stop 1
      end if
-     allocate(aero_radius(n_bin))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_radius, &
-          aero_radius), "getting variable 'aero_radius'")
+     allocate(aero_diam(n_bin))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_diam, &
+          aero_diam), "getting variable 'aero_diam'")
 
-     ! read aero_radius_widths variable
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_radius_widths", &
-          varid_aero_radius_widths), &
-          "getting variable ID 'aero_radius_widths'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_radius_widths, &
+     ! read aero_diam_widths variable
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_diam_widths", &
+          varid_aero_diam_widths), &
+          "getting variable ID 'aero_diam_widths'")
+     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_diam_widths, &
           tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_radius_widths'")
+          "inquiring variable 'aero_diam_widths'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
-        write(*,*) "ERROR: unexpected aero_radius_widths dimids"
+          .or. (dimids(1) /= dimid_aero_diam)) then
+        write(*,*) "ERROR: unexpected aero_diam_widths dimids"
         stop 1
      end if
-     allocate(aero_radius_widths(n_bin))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_radius_widths, &
-          aero_radius_widths), "getting variable 'aero_radius_widths'")
+     allocate(aero_diam_widths(n_bin))
+     call nc_check_msg(nf90_get_var(ncid, varid_aero_diam_widths, &
+          aero_diam_widths), "getting variable 'aero_diam_widths'")
 
      ! read aero_number_concentration
      call nc_check_msg(nf90_inq_varid(ncid, "aero_number_concentration", &
@@ -139,7 +139,7 @@ program extract_sectional_aero_total
           varid_aero_number_concentration, tmp_str, xtype, ndims, &
           dimids, nAtts), "inquiring variable 'aero_number_concentration'")
      if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_radius)) then
+          .or. (dimids(1) /= dimid_aero_diam)) then
         write(*,*) "ERROR: unexpected aero_number_concentration dimids"
         stop 1
      end if
@@ -156,7 +156,7 @@ program extract_sectional_aero_total
           varid_aero_mass_concentration, tmp_str, xtype, ndims, &
           dimids, nAtts), "inquiring variable 'aero_mass_concentration'")
      if ((ndims /= 2) &
-          .or. (dimids(1) /= dimid_aero_radius) &
+          .or. (dimids(1) /= dimid_aero_diam) &
           .or. (dimids(2) /= dimid_aero_species)) then
         write(*,*) "ERROR: unexpected aero_mass_concentration dimids"
         stop 1
@@ -170,15 +170,15 @@ program extract_sectional_aero_total
           "closing file " // trim(in_filename))
 
      ! compute number and mass concentrations
-     num_conc = sum(aero_number_concentration * aero_radius_widths)
+     num_conc = sum(aero_number_concentration * aero_diam_widths)
      mass_conc = 0d0
      do i_spec = 1,n_aero_species
         mass_conc = mass_conc + sum(aero_mass_concentration(:,i_spec) &
-             * aero_radius_widths)
+             * aero_diam_widths)
      end do
 
-     deallocate(aero_radius)
-     deallocate(aero_radius_widths)
+     deallocate(aero_diam)
+     deallocate(aero_diam_widths)
      deallocate(aero_mass_concentration)
      deallocate(aero_number_concentration)
 

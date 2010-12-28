@@ -169,7 +169,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to radius (m).
-  real(kind=dp) function vol2rad(v)
+  real(kind=dp) elemental function vol2rad(v)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -181,7 +181,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to diameter (m).
-  real(kind=dp) function vol2diam(v)
+  real(kind=dp) elemental function vol2diam(v)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -192,8 +192,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert radius (m) to diameter (m).
+  real(kind=dp) elemental function rad2diam(r)
+
+    !> Radius (m).
+    real(kind=dp), intent(in) :: r
+    
+    rad2diam = 2d0 * r
+    
+  end function rad2diam
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert radius (m) to volume (m^3).
-  real(kind=dp) function rad2vol(r)
+  real(kind=dp) elemental function rad2vol(r)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -204,8 +216,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert diameter (m) to radius (m).
+  real(kind=dp) elemental function diam2rad(d)
+
+    !> Diameter (m).
+    real(kind=dp), intent(in) :: d
+    
+    diam2rad = d / 2d0
+    
+  end function diam2rad
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert diameter (m) to volume (m^3).
-  real(kind=dp) function diam2vol(d)
+  real(kind=dp) elemental function diam2vol(d)
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
@@ -333,21 +357,20 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Makes a linearly spaced array of length n from min to max.
-  subroutine linspace(min_x, max_x, n, x)
+  !> Makes a linearly spaced array from min to max.
+  subroutine linspace(min_x, max_x, x)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Number of entries.
-    integer, intent(in) :: n
     !> Array.
-    real(kind=dp), intent(out) :: x(n)
+    real(kind=dp), intent(out) :: x(:)
 
-    integer :: i
+    integer :: i, n
     real(kind=dp) :: a
 
+    n = size(x)
     do i = 2, (n - 1)
        a = real(i - 1, kind=dp) / real(n - 1, kind=dp)
        x(i) = (1d0 - a) * min_x + a * max_x
@@ -363,22 +386,22 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a logarithmically spaced array of length n from min to max.
-  subroutine logspace(min_x, max_x, n, x)
+  subroutine logspace(min_x, max_x, x)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Number of entries.
-    integer, intent(in) :: n
     !> Array.
-    real(kind=dp), intent(out) :: x(n)
+    real(kind=dp), intent(out) :: x(:)
 
-    real(kind=dp) :: log_x(n)
+    integer :: n
+    real(kind=dp) :: log_x(size(x))
 
+    n = size(x)
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
-    call linspace(log(min_x), log(max_x), n, log_x)
+    call linspace(log(min_x), log(max_x), log_x)
     x = exp(log_x)
     if (n > 0) then
        ! make sure these values are exact
@@ -392,11 +415,11 @@ contains
 
   !> Find the position of a real number in a 1D linear array.
   !!
-  !! If xa is the array allocated by linspace(min_x, max_x, n, xa)
+  !! If xa is the array allocated by linspace(min_x, max_x, xa)
   !! then i = linspace_find(min_x, max_x, n, x) returns the index i
   !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If
   !! x >= max_x then i = n - 1.  If x < min_x then i = 1. Thus
-  !! 1 <= i <= n - 1.
+  !! 1 <= i <= n - 1. Here n is the length of xa.
   !!
   !! This is equivalent to using find_1d() but much faster if the
   !! array is linear.

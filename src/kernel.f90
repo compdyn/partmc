@@ -218,12 +218,12 @@ contains
   !> Computes an array of kernel values for each bin pair. k(i,j) is
   !> the kernel value at the centers of bins i and j. This assumes the
   !> kernel is only a function of the particle volumes.
-  subroutine bin_kernel(n_bin, bin_v, aero_data, kernel_type, env_state, k)
+  subroutine bin_kernel(n_bin, bin_r, aero_data, kernel_type, env_state, k)
     
     !> Number of bins.
     integer, intent(in) :: n_bin
-    !> Volume of particles in bins (m^3).
-    real(kind=dp), intent(in) :: bin_v(n_bin)
+    !> Radii of particles in bins (m).
+    real(kind=dp), intent(in) :: bin_r(n_bin)
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Coagulation kernel type.
@@ -240,8 +240,8 @@ contains
     call aero_particle_allocate_size(aero_particle_2, aero_data%n_spec)
     do i = 1,n_bin
        do j = 1,n_bin
-          aero_particle_1%vol(1) = bin_v(i)
-          aero_particle_2%vol(1) = bin_v(j)
+          aero_particle_1%vol(1) = rad2vol(bin_r(i))
+          aero_particle_2%vol(1) = rad2vol(bin_r(j))
           call kernel(kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do
@@ -316,12 +316,12 @@ contains
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
-    v1_low = bin_grid_edge(bin_grid, b1)
-    v1_high = bin_grid_edge(bin_grid, b1 + 1)
+    v1_low = rad2vol(bin_grid%edge_radius(b1))
+    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1))
     
     ! v2_low < bin_v(b2) < v2_high
-    v2_low = bin_grid_edge(bin_grid, b2)
-    v2_high = bin_grid_edge(bin_grid, b2 + 1)
+    v2_low = rad2vol(bin_grid%edge_radius(b2))
+    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1))
     
     k_max = 0d0
     do i = 1,n_sample

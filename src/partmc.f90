@@ -670,8 +670,8 @@ contains
     !! t_output 60                     # output interval (0 disables) (s)
     !! 
     !! n_bin 160                       # number of bins
-    !! r_min 1e-8                      # minimum radius (m)
-    !! r_max 1e-3                      # maximum radius (m)
+    !! d_min 1e-8                      # minimum diameter (m)
+    !! d_max 1e-3                      # maximum diameter (m)
     !! 
     !! gas_data gas_data.dat           # file containing gas data
     !!
@@ -815,8 +815,8 @@ contains
     !! t_progress 600                  # progress printing interval (0 disables) (s)
     !! 
     !! n_bin 220                       # number of bins
-    !! r_min 1e-10                     # minimum radius (m)
-    !! r_max 1e-4                      # maximum radius (m)
+    !! d_min 1e-10                     # minimum diameter (m)
+    !! d_max 1e-4                      # maximum diameter (m)
     !! 
     !! gas_data gas_data.dat           # file containing gas data
     !! aerosol_data aero_data.dat      # file containing aerosol data

@@ -394,7 +394,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     
     aero_particle_in_bin = bin_grid_particle_in_bin(bin_grid, &
-         aero_particle_volume(aero_particle))
+         aero_particle_radius(aero_particle))
     
   end function aero_particle_in_bin
   
@@ -616,7 +616,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total solute volume (m^3).
-  real(kind=dp) function aero_particle_solute_volume(aero_particle, aero_data)
+  real(kind=dp) function aero_particle_solute_volume(aero_particle, &
+       aero_data)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -631,6 +632,22 @@ contains
          aero_data, ones)
 
   end function aero_particle_solute_volume
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the total solute radius (m).
+  real(kind=dp) function aero_particle_solute_radius(aero_particle, &
+       aero_data)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
+    aero_particle_solute_radius &
+         = vol2rad(aero_particle_solute_volume(aero_particle, aero_data))
+
+  end function aero_particle_solute_radius
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

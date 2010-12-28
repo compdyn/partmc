@@ -32,8 +32,8 @@ module pmc_aero_state
   !!
   !! The particles in aero_state_t are stored sorted per-bin, to
   !! improve efficiency of access and sampling. If a particle has
-  !! total volume \c v then calling <tt> i_bin =
-  !! bin_grid_particle_in_bin(bin_grid, v)</tt> finds the bin number
+  !! total radius \c r then calling <tt> i_bin =
+  !! bin_grid_particle_in_bin(bin_grid, r)</tt> finds the bin number
   !! i_bin where that particle should go. That particle is then stored
   !! as \c aero_state%%bin(i_bin)%%particle(i_part), where \c i_part
   !! is the index within the bin. \c
@@ -595,11 +595,11 @@ contains
           aero_binned%vol_conc(b,:) = aero_binned%vol_conc(b,:) &
                + aero_particle%vol / aero_state%comp_vol &
                * aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle)) / bin_grid%dlnr
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
           aero_binned%num_conc(b) = aero_binned%num_conc(b) &
                + 1d0 / aero_state%comp_vol &
                * aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle)) / bin_grid%dlnr
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
        end do
     end do
     
@@ -631,15 +631,15 @@ contains
        do j = 1,aero_state%bin(b)%n_part
           aero_particle => aero_state%bin(b)%particle(j)
           b_dry = bin_grid_particle_in_bin(bin_grid, &
-               aero_particle_solute_volume(aero_particle, aero_data))
+               aero_particle_solute_radius(aero_particle, aero_data))
           aero_binned%vol_conc(b_dry,:) = aero_binned%vol_conc(b_dry,:) &
                + aero_particle%vol / aero_state%comp_vol &
                * aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle)) / bin_grid%dlnr
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
           aero_binned%num_conc(b_dry) = aero_binned%num_conc(b_dry) &
                + 1d0 / aero_state%comp_vol &
                * aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle)) / bin_grid%dlnr
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
        end do
     end do
     
@@ -1117,7 +1117,7 @@ contains
 
        ! determine the new_particle_volume for all particles in this bin
        if (bin_center) then
-          new_particle_volume = bin_grid%v(i_bin)
+          new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
        elseif (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
           new_particle_volume = weighted_total_volume &
                / real(aero_state%bin(i_bin)%n_part, kind=dp)
@@ -1171,7 +1171,7 @@ contains
           new_particle_volume = center_volume
           !> DEBUG
           write(*,*) 'num_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
-               i_bin, aero_state%bin(i_bin)%n_part, bin_grid%v(i_bin), new_particle_volume
+               i_bin, aero_state%bin(i_bin)%n_part, rad2vol(bin_grid%center_radius(i_bin)), new_particle_volume
           !< DEBUG
        else
           ! volume-preserving scheme: Solve the implicit equation:
@@ -1223,7 +1223,7 @@ contains
           new_particle_volume = center_volume
           !> DEBUG
           write(*,*) 'vol_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
-               i_bin, aero_state%bin(i_bin)%n_part, bin_grid%v(i_bin), new_particle_volume
+               i_bin, aero_state%bin(i_bin)%n_part, rad2vol(bin_grid%center_radius(i_bin)), new_particle_volume
           !< DEBUG
        end if
 

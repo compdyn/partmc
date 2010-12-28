@@ -27,7 +27,7 @@ program bin_average_size
   type(gas_state_t) :: gas_state
   type(env_state_t) :: env_state
   integer :: n_bin, index, i_loop
-  real(kind=dp) :: r_min, r_max, time, del_t
+  real(kind=dp) :: d_min, d_max, time, del_t
   character(len=1000) :: output_type, tmp_str
   logical :: record_removals, dry_volume, bin_center, record_optical
   logical :: preserve_number
@@ -35,13 +35,13 @@ program bin_average_size
 
   ! process commandline arguments
   if (command_argument_count() .ne. 8) then
-     write(6,*) 'Usage: bin_average_size <r_min> <r_max> <n_bin> ' &
+     write(6,*) 'Usage: bin_average_size <d_min> <d_max> <n_bin> ' &
           // '<"wet" or "dry"> <"center" or "average"> ' &
           // '<"number" or "volume"> ' &
           // '<input_filename> <output_prefix>'
      write(6,*) ''
-     write(6,*) '  r_min: minimum bin center radius (m)'
-     write(6,*) '  r_max: maximum bin center radius (m)'
+     write(6,*) '  d_min: minimum bin diameter (m)'
+     write(6,*) '  d_max: maximum bin diameter (m)'
      write(6,*) '  n_bin: number of bins'
      write(6,*) '  wet/dry: average wet or dry sizes'
      write(6,*) '  center/average: set new sizes to bin centers, ' &
@@ -52,9 +52,9 @@ program bin_average_size
      stop 2
   endif
   call get_command_argument(1, tmp_str)
-  r_min = string_to_real(tmp_str)
+  d_min = string_to_real(tmp_str)
   call get_command_argument(2, tmp_str)
-  r_max = string_to_real(tmp_str)
+  d_max = string_to_real(tmp_str)
   call get_command_argument(3, tmp_str)
   n_bin = string_to_integer(tmp_str)
   call get_command_argument(4, tmp_str)
@@ -98,7 +98,7 @@ program bin_average_size
   call gas_state_allocate(gas_state)
   call env_state_allocate(env_state)
 
-  call bin_grid_make(bin_grid, n_bin, rad2vol(r_min), rad2vol(r_max))
+  call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
   
   call input_state(in_filename, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, &

@@ -141,7 +141,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution, normalized so that
-  !> sum(num_conc(k) * dlnr) = 1
+  !> sum(num_conc(k) * log_width) = 1
   subroutine num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
     
     !> Geometric mean radius (m).
@@ -157,7 +157,7 @@ contains
     
     do k = 1,bin_grid%n_bin
        num_conc(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
-            dexp(-(dlog10(vol2rad(bin_grid%v(k))) &
+            dexp(-(dlog10(bin_grid%center_radius(k)) &
             - dlog10(mean_radius))**2d0 &
             / (2d0 * log_sigma**2d0)) / dlog(10d0)
     end do
@@ -187,7 +187,7 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
-    vol_conc = num_conc * bin_grid%v
+    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_log_normal
   
@@ -195,7 +195,7 @@ contains
 
   !> Exponential distribution in volume
   !> \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
-  !> Normalized so that sum(num_conc(k) * dlnr) = 1
+  !> Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_exp(mean_radius, bin_grid, num_conc)
     
     !> Mean radius (m).
@@ -210,8 +210,9 @@ contains
     
     mean_vol = rad2vol(mean_radius)
     do k = 1,bin_grid%n_bin
-       num_conc_vol = 1d0 / mean_vol * exp(-(bin_grid%v(k) / mean_vol))
-       call vol_to_lnr(vol2rad(bin_grid%v(k)), num_conc_vol, num_conc(k))
+       num_conc_vol = 1d0 / mean_vol &
+            * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
+       call vol_to_lnr(bin_grid%center_radius(k), num_conc_vol, num_conc(k))
     end do
     
   end subroutine num_conc_exp
@@ -231,14 +232,14 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_exp(mean_radius, bin_grid, num_conc)
-    vol_conc = num_conc * bin_grid%v
+    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution.
-  !> Normalized so that sum(num_conc(k) * dlnr) = 1
+  !> Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_mono(radius, bin_grid, num_conc)
     
     !> Radius of each particle (m^3).
@@ -251,8 +252,8 @@ contains
     integer :: k
 
     num_conc = 0d0
-    k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
-    num_conc(k) = 1d0 / bin_grid%dlnr
+    k = bin_grid_particle_in_bin(bin_grid, radius)
+    num_conc(k) = 1d0 / bin_grid%log_width
     
   end subroutine num_conc_mono
   
@@ -271,8 +272,8 @@ contains
     integer :: k
 
     vol_conc = 0d0
-    k = bin_grid_particle_in_bin(bin_grid, rad2vol(radius))
-    vol_conc(k) = 1d0 / bin_grid%dlnr * rad2vol(radius)
+    k = bin_grid_particle_in_bin(bin_grid, radius)
+    vol_conc(k) = 1d0 / bin_grid%log_width * rad2vol(radius)
     
   end subroutine vol_conc_mono
   

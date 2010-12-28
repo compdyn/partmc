@@ -32,7 +32,7 @@ program extract_aero_particle_mass
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time, i
-  real(kind=dp) :: r_min, r_max, radius, volume, dlnr
+  real(kind=dp) :: radius, volume
 
   ! process commandline arguments
   if (command_argument_count() .ne. 2) then

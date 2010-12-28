@@ -13,8 +13,8 @@ t_output 1                      # output interval (0 disables) (s)
 t_progress 1                    # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
-r_min 1e-10                     # minimum radius (m)
-r_max 1e-1                      # maximum radius (m)
+d_min 1e-10                     # minimum diameter (m)
+d_max 1e-1                      # maximum diameter (m)
 
 weight none                     # unweighted particles
 

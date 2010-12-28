@@ -88,10 +88,10 @@ contains
     integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
-    ! g   : spectral mass distribution (mg/cm^3)
-    ! e   : droplet mass grid (mg)
-    ! r   : droplet radius grid (um)
-    ! dlnr: constant grid distance of logarithmic grid 
+    ! g         : spectral mass distribution (mg/cm^3)
+    ! e         : droplet mass grid (mg)
+    ! r         : droplet radius grid (um)
+    ! log_width : constant grid distance of logarithmic grid 
 
     if (aero_data%n_spec /= 1) then
        call die_msg(844211192, &
@@ -106,8 +106,8 @@ contains
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
-       r(i) = vol2rad(bin_grid%v(i)) * 1d6 ! radius in m to um
-       e(i) = bin_grid%v(i) &
+       r(i) = bin_grid%center_radius(i) * 1d6 ! radius in m to um
+       e(i) = rad2vol(bin_grid%center_radius(i)) &
             * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
     end do
     
@@ -115,7 +115,7 @@ contains
     call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
          aero_dist)
     
-    call courant(bin_grid%n_bin, bin_grid%dlnr, e, ima, c)
+    call courant(bin_grid%n_bin, bin_grid%log_width, e, ima, c)
     
     ! initialize time
     last_progress_time = 0d0
@@ -123,7 +123,7 @@ contains
     i_summary = 1
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%v, aero_data, &
+    call bin_kernel(bin_grid%n_bin, bin_grid%center_radius, aero_data, &
          sect_opt%kernel_type, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
@@ -135,7 +135,7 @@ contains
     ! multiply kernel with constant timestep and logarithmic grid distance
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          ck(i,j) = ck(i,j) * sect_opt%del_t * bin_grid%dlnr
+          ck(i,j) = ck(i,j) * sect_opt%del_t * bin_grid%log_width
        end do
     end do
     
@@ -158,7 +158,8 @@ contains
           call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_conc(:,1) = g / aero_data%density(1)
-          aero_binned%num_conc = aero_binned%vol_conc(:,1) / bin_grid%v
+          aero_binned%num_conc = aero_binned%vol_conc(:,1) &
+               / rad2vol(bin_grid%center_radius)
        end if
 
        time = sect_opt%t_max * real(i_time, kind=dp) / real(num_t, kind=dp)
@@ -279,12 +280,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the Courant number for each bin pair.
-  subroutine courant(n_bin, dlnr, e, ima, c)
+  subroutine courant(n_bin, log_width, e, ima, c)
 
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Bin scale factor.
-    real(kind=dp), intent(in) :: dlnr
+    real(kind=dp), intent(in) :: log_width
     !> Droplet mass grid (mg).
     real(kind=dp), intent(in) :: e(n_bin)
     !> i + j goes in bin ima(i,j).
@@ -307,7 +308,7 @@ contains
              k = k + 1
              if (c(i,j) .lt. 1d0 - 1d-08) then
                 kk = k - 1
-                c(i,j) = log(x0 / e(k-1)) / (3d0 * dlnr)
+                c(i,j) = log(x0 / e(k-1)) / (3d0 * log_width)
              else
                 c(i,j) = 0d0
                 kk = k

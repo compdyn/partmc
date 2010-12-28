@@ -14,7 +14,7 @@
 !! particle-resolved simulation.
 !!
 !! Initial distributions should be normalized so that <tt>sum(n_den) =
-!! 1/dlnr</tt>.
+!! 1/log_width</tt>.
 module pmc_aero_dist
 
   use pmc_bin_grid

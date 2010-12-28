@@ -32,19 +32,19 @@ program extract_aero_size_mass
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time
-  real(kind=dp) :: r_min, r_max, radius, volume, dlnr
+  real(kind=dp) :: d_min, d_max, diam, volume, log_width
   character(len=36) :: uuid, run_uuid
 
   ! process commandline arguments
   if (command_argument_count() .ne. 5) then
-     write(6,*) 'Usage: extract_aero_size_mass <r_min> <r_max>' &
+     write(6,*) 'Usage: extract_aero_size_mass <d_min> <d_max>' &
           // ' <n_bin> <netcdf_state_prefix> <output_filename>'
      stop 2
   endif
   call get_command_argument(1, tmp_str)
-  r_min = string_to_real(tmp_str)
+  d_min = string_to_real(tmp_str)
   call get_command_argument(2, tmp_str)
-  r_max = string_to_real(tmp_str)
+  d_max = string_to_real(tmp_str)
   call get_command_argument(3, tmp_str)
   n_bin = string_to_integer(tmp_str)
   call get_command_argument(4, in_prefix)
@@ -159,18 +159,16 @@ program extract_aero_size_mass
           "closing file " // trim(in_filename))
 
      ! compute distribution
-     dlnr = log(r_max / r_min) / real(n_bin - 1, kind=dp)
+     log_width = (log(d_max) - log(d_min)) / real(n_bin, kind=dp)
      do i_part = 1,n_aero_particle
         volume = sum(aero_particle_mass(i_part,:) / aero_density)
-        radius = (volume / (4d0 / 3d0 &
-             * 3.14159265358979323846d0))**(1d0/3d0)
-        i_bin = ceiling((log(radius) - log(r_min)) &
-             / (log(r_max) - log(r_min)) * real(n_bin - 1, kind=dp) + 0.5d0)
+        diam = (volume / (3.14159265358979323846d0 / 6d0))**(1d0/3d0)
+        i_bin = ceiling((log(diam) - log(d_min)) / log_width)
         i_bin = max(1, i_bin)
         i_bin = min(n_bin, i_bin)
         aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
              + sum(aero_particle_mass(i_part,:)) / aero_comp_vol(i_part) &
-             / dlnr
+             / log_width
      end do
 
      deallocate(aero_particle_mass)
@@ -188,10 +186,11 @@ program extract_aero_size_mass
   write(*,'(a,a)') "Output file: ", trim(out_filename)
   write(*,'(a)') "  Each row of output is one size bin."
   write(*,'(a)') "  The columns of output are:"
-  write(*,'(a)') "    column   1: bin radius (m)"
+  write(*,'(a)') "    column   1: bin center diameter (m)"
   write(*,'(a)') "    column j+1: mass concentration at time(j) (kg/m^3)"
-  write(*,'(a)') "  Radius bins have logarithmic width:"
-  write(*,'(a,e20.10)') "    d(ln(r)) = ln(radius(i+1)/radius(i)) =", dlnr
+  write(*,'(a)') "  Diameter bins have logarithmic width:"
+  write(*,'(a,e20.10)') "    log_width = ln(diam(i+1)) - ln(diam(i)) =", &
+       log_width
 
   ! open output file
   open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
@@ -203,9 +202,8 @@ program extract_aero_size_mass
 
   ! output data
   do i_bin = 1,n_bin
-     radius = exp(real(i_bin - 1, kind=dp) / real(n_bin - 1, kind=dp) &
-          * (log(r_max) - log(r_min)) + log(r_min))
-     write(out_unit, '(e30.15e3)', advance='no') radius
+     diam = exp((real(i_bin, kind=dp) - 0.5d0) * log_width + log(d_min))
+     write(out_unit, '(e30.15e3)', advance='no') diam
      do i_time = 1,n_time
         write(out_unit, '(e30.15e3)', advance='no') &
              aero_dist(i_bin, i_time)

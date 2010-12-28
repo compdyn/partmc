@@ -84,7 +84,8 @@ contains
   !! \f]
   !! where \f$I_1(x)\f$ is the <a
   !! href="http://en.wikipedia.org/wiki/Bessel_function">modified
-  !! Bessel function of the first kind</a>.
+  !! Bessel function of the first kind</a> and \f$v = \frac{\pi}{6}
+  !! D^3\f$.
   !!
   !! For small \f$x\f$ we have \f$I_1(x) \approx \frac{x}{2}\f$, so
   !! this solution has initial condition
@@ -120,38 +121,39 @@ contains
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_conc(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * num_conc / mean_vol &
-               * exp(-(bin_grid%v(k)/mean_vol))
+               * (2d0 * bin_grid%center_radius(k))**3 * num_conc / mean_vol &
+               * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
        end do
     else
        tau = num_conc * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
        do k = 1,bin_grid%n_bin
-          rat_v = bin_grid%v(k) / mean_vol
+          rat_v = rad2vol(bin_grid%center_radius(k)) / mean_vol
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
-             nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
-                  * exp(-((1d0 + T) * rat_v)) * b
+             nn = num_conc / rad2vol(bin_grid%center_radius(k)) &
+                  * (1d0 - T) / sqrt(T) * exp(-((1d0 + T) * rat_v)) * b
           else
              ! For very large volumes we can use the asymptotic
              ! approximation I_1(x) \approx e^x / sqrt(2 pi x) and
              ! simplify the result to avoid the overflow from
              ! multiplying a huge bessel function result by a very
              ! tiny exponential.
-             nn = num_conc / bin_grid%v(k) * (1d0 - T) / sqrt(T) &
+             nn = num_conc / rad2vol(bin_grid%center_radius(k)) &
+                  * (1d0 - T) / sqrt(T) &
                   * exp((2d0*sqrt(T) - T - 1d0) * rat_v) &
                   / sqrt(4d0 * const%pi * rat_v * sqrt(T))
           end if
           aero_binned%num_conc(k) = const%pi/2d0 &
-               * (2d0*vol2rad(bin_grid%v(k)))**3 * nn
+               * (2d0 * bin_grid%center_radius(k))**3 * nn
        end do
     end if
 
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
-       aero_binned%vol_conc(k,1) = const%pi/6d0 &
-            * (2d0*vol2rad(bin_grid%v(k)))**3 * aero_binned%num_conc(k)
+       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%center_radius(k)) &
+            * aero_binned%num_conc(k)
     end do
     
   end subroutine soln_additive_exp

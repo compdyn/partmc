@@ -6,9 +6,6 @@ mc_coag_mpi_centralized()). Also look out whether we need all the
 parallel output types. And change part_opt%coag_method and
 part_opt%output_type to enumerations.
 
-Change radius to diameter in all input files and also in extract_*
-output files. Also fix bin_grid to take bin edges.
-
 Add new run-mode to make an output directory, copy input files into
 it, etc.
 

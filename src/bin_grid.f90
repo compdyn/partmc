@@ -26,10 +26,13 @@ module pmc_bin_grid
   type bin_grid_t
      !> Number of bins.
      integer :: n_bin
-     !> Len n_bin, bin center volumes (m^3).
-     real(kind=dp), pointer :: v(:)
-     !> Bin scale factor (1).
-     real(kind=dp) :: dlnr
+     !> Len n_bin, bin center radii (m^3).
+     real(kind=dp), pointer :: center_radius(:)
+     !> Len (n_bin + 1), bin edge radii (m^3).
+     real(kind=dp), pointer :: edge_radius(:)
+     !> Bin logarithmic width, equal to <tt>log(edge_radius(i+1)) -
+     !> log(edge_radius(i))</tt> for any \c i (dimensionless).
+     real(kind=dp) :: log_width
   end type bin_grid_t
 
 contains
@@ -43,7 +46,8 @@ contains
     type(bin_grid_t), intent(out) :: bin_grid
 
     bin_grid%n_bin = 0
-    allocate(bin_grid%v(0))
+    allocate(bin_grid%center_radius(0))
+    allocate(bin_grid%edge_radius(0))
 
   end subroutine bin_grid_allocate
 
@@ -58,7 +62,8 @@ contains
     integer, intent(in) :: n_bin
 
     bin_grid%n_bin = n_bin
-    allocate(bin_grid%v(n_bin))
+    allocate(bin_grid%center_radius(n_bin))
+    allocate(bin_grid%edge_radius(n_bin + 1))
 
   end subroutine bin_grid_allocate_size
 
@@ -70,7 +75,8 @@ contains
     !> Bin_grid to free.
     type(bin_grid_t), intent(inout) :: bin_grid
 
-    deallocate(bin_grid%v)
+    deallocate(bin_grid%center_radius)
+    deallocate(bin_grid%edge_radius)
 
   end subroutine bin_grid_deallocate
 
@@ -94,83 +100,60 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates the bin grid given the range and number of bins.
-  subroutine bin_grid_make(bin_grid, n_bin, v_min, v_max)
+  subroutine bin_grid_make(bin_grid, n_bin, r_min, r_max)
     
     !> New bin grid.
     type(bin_grid_t), intent(inout) :: bin_grid
     !> Number of bins.
     integer, intent(in) :: n_bin
-    !> Minimum volume (m^3).
-    real(kind=dp), intent(in) :: v_min
-    !> Minimum volume (m^3).
-    real(kind=dp), intent(in) :: v_max
+    !> Minimum radius (m^3).
+    real(kind=dp), intent(in) :: r_min
+    !> Minimum radius (m^3).
+    real(kind=dp), intent(in) :: r_max
 
+    integer :: i_bin
+
+    call assert_msg(538534122, n_bin > 0, &
+         "bin_grid requires a positive n_bin, not: " &
+         // integer_to_string(n_bin))
+    call assert_msg(966541762, r_min > 0d0, &
+         "bin_grid requires a positive r_min, not: " &
+         // real_to_string(r_min))
+    call assert_msg(966541762, r_min < r_max, &
+         "bin_grid requires r_min < r_max, not: " &
+         // real_to_string(r_min) // " and " &
+         // real_to_string(r_max))
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
-    call logspace(v_min, v_max, n_bin, bin_grid%v)
-    ! dlnr = ln(r(i) / r(i-1))
-    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) &
-         / real(n_bin - 1, kind=dp)
+    call logspace(r_min, r_max, bin_grid%edge_radius)
+    do i_bin = 1,n_bin
+       bin_grid%center_radius(i_bin) &
+            = exp(0.5d0 * log(bin_grid%edge_radius(i_bin)) &
+            + 0.5d0 * log(bin_grid%edge_radius(i_bin + 1)))
+    end do
+    bin_grid%log_width = (log(r_max) - log(r_min)) / real(n_bin, kind=dp)
 
   end subroutine bin_grid_make
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Given a bin_grid (which stores the center points of the bins),
-  !> find the given edge volume (m^3).
+  !> Find the bin number that contains a given particle.
   !!
-  !! With n_bin bin centers there are (n_bin + 1) bin edges, so bin
-  !! center bin_grid%v(i) is between bin edges i and (i + 1). This
-  !! code currently assumes a logarithmically spaced bin grid and
-  !! returns logarithmically spaced edges.
-  real(kind=dp) function bin_grid_edge(bin_grid, i)
-    
-    !> Bin_grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Edge number (1 <= i <= n_bin + 1).
-    integer, intent(in) :: i
-
-    real(kind=dp) :: log_v_min, log_v_max, log_delta
-
-    call assert(440393735, bin_grid%n_bin > 1)
-    log_v_min = log(bin_grid%v(1))
-    log_v_max = log(bin_grid%v(bin_grid%n_bin))
-    log_delta = (log_v_max - log_v_min) / real(bin_grid%n_bin - 1, kind=dp)
-    bin_grid_edge = exp(log_v_min + (real(i, kind=dp) - 1.5d0) * log_delta)
-    
-  end function bin_grid_edge
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Find the bin number that contains a given particle. This assumes
-  !> logarithmically spaced bins.
-  integer function bin_grid_particle_in_bin(bin_grid, v)
+  !! This assumes logarithmically spaced bins. If a particle is below
+  !! the smallest bin or above the largest bin, then it is returned as
+  !! being in the smallest or largest bin, respectively.
+  integer function bin_grid_particle_in_bin(bin_grid, radius)
 
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Volume of particle.
-    real(kind=dp), intent(in) :: v
+    !> Radius of particle.
+    real(kind=dp), intent(in) :: radius
 
-    real(kind=dp) :: log_v_min, log_v_max, log_edge_min, log_edge_max
-    real(kind=dp) :: half_log_delta
-    integer :: k
+    call assert(448215689, bin_grid%n_bin >= 1)
+    bin_grid_particle_in_bin = logspace_find(bin_grid%edge_radius(1), &
+         bin_grid%edge_radius(bin_grid%n_bin + 1), bin_grid%n_bin + 1, &
+         radius)
 
-    call assert(448215689, bin_grid%n_bin > 2)
-    log_v_min = log(bin_grid%v(1))
-    log_v_max = log(bin_grid%v(bin_grid%n_bin))
-    half_log_delta = (log_v_max - log_v_min) &
-         / real(2 * (bin_grid%n_bin - 1), kind=dp)
-    log_edge_min = log_v_min + half_log_delta
-    log_edge_max = log_v_max - half_log_delta
-    k = ceiling((log(v) - log_edge_min) / (log_edge_max - log_edge_min) &
-         * real(bin_grid%n_bin - 2, kind=dp)) + 1
-    k = max(k, 1)
-    k = min(k, bin_grid%n_bin)
-    bin_grid_particle_in_bin = k
-    !FIXME: above should be equivalent to:
-    !    i_bin = ceiling((log(radius) - log(r_min)) &
-    !         / (log(r_max) - log(r_min)) * real(n_bin - 1, kind=dp) + 0.5d0)
-    
   end function bin_grid_particle_in_bin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -185,7 +168,7 @@ contains
     type(bin_grid_t), intent(inout) :: bin_grid
 
     integer :: n_bin
-    real(kind=dp) :: r_min, r_max
+    real(kind=dp) :: d_min, d_max
 
     !> \page input_format_bin_grid Input File Format: Diameter Axis Bin Grid
     !!
@@ -199,19 +182,19 @@ contains
     !!
     !! The diameter axis bin grid is specified by the parameters:
     !!   - \b n_bin (integer): The number of bins \f$n_{\rm bin}\f$.
-    !!   - \b r_min (real, unit m): The center of the left-most bin
-    !!     \f$c_1\f$, given as a radius.
-    !!   - \b r_max (real, unit m): The center of the right-most bin
-    !!     \f$c_{n_{\rm bin}}\f$, given as a radius.
+    !!   - \b d_min (real, unit m): The left edge of the left-most bin,
+    !!     \f$e_1\f$.
+    !!   - \b d_max (real, unit m): The right edge of the right-most bin,
+    !!     \f$e_{n_{\rm bin} + 1}\f$.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref output_format_bin_grid --- the corresponding output format
 
     call spec_file_read_integer(file, 'n_bin', n_bin)
-    call spec_file_read_real(file, 'r_min', r_min)
-    call spec_file_read_real(file, 'r_max', r_max)
-    call bin_grid_make(bin_grid, n_bin, rad2vol(r_min), rad2vol(r_max))
+    call spec_file_read_real(file, 'd_min', d_min)
+    call spec_file_read_real(file, 'd_max', d_max)
+    call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
 
   end subroutine spec_file_read_bin_grid
 
@@ -225,8 +208,9 @@ contains
 
     pmc_mpi_pack_size_bin_grid = &
          pmc_mpi_pack_size_integer(val%n_bin) &
-         + pmc_mpi_pack_size_real_array(val%v) &
-         + pmc_mpi_pack_size_real(val%dlnr)
+         + pmc_mpi_pack_size_real_array(val%center_radius) &
+         + pmc_mpi_pack_size_real_array(val%edge_radius) &
+         + pmc_mpi_pack_size_real(val%log_width)
 
   end function pmc_mpi_pack_size_bin_grid
 
@@ -247,8 +231,9 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, val%n_bin)
-    call pmc_mpi_pack_real_array(buffer, position, val%v)
-    call pmc_mpi_pack_real(buffer, position, val%dlnr)
+    call pmc_mpi_pack_real_array(buffer, position, val%center_radius)
+    call pmc_mpi_pack_real_array(buffer, position, val%edge_radius)
+    call pmc_mpi_pack_real(buffer, position, val%log_width)
     call assert(385455586, &
          position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
@@ -272,8 +257,9 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
-    call pmc_mpi_unpack_real_array(buffer, position, val%v)
-    call pmc_mpi_unpack_real(buffer, position, val%dlnr)
+    call pmc_mpi_unpack_real_array(buffer, position, val%center_radius)
+    call pmc_mpi_unpack_real_array(buffer, position, val%edge_radius)
+    call pmc_mpi_unpack_real(buffer, position, val%log_width)
     call assert(741838730, &
          position - prev_position == pmc_mpi_pack_size_bin_grid(val))
 #endif
@@ -282,67 +268,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the aero_radius dimension to the given NetCDF file if it is
+  !> Write the aero_diam dimension to the given NetCDF file if it is
   !> not already present and in any case return the associated dimid.
-  subroutine bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
-       dimid_aero_radius)
+  subroutine bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, &
+       dimid_aero_diam)
 
     !> Bin_grid structure.
     type(bin_grid_t), intent(in) :: bin_grid
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Dimid of the aero_radius dimension.
-    integer, intent(out) :: dimid_aero_radius
+    !> Dimid of the aero_diam dimension.
+    integer, intent(out) :: dimid_aero_diam
 
-    integer :: status, i_bin, varid_aero_radius
-    integer :: dimid_aero_radius_edges, varid_aero_radius_edges, &
-         varid_aero_radius_widths
-    real(kind=dp) :: aero_radius_centers(bin_grid%n_bin), &
-         aero_radius_edges(bin_grid%n_bin + 1)
-    real(kind=dp) :: aero_radius_widths(bin_grid%n_bin)
+    integer :: status, varid_aero_diam
+    integer :: dimid_aero_diam_edges, varid_aero_diam_edges, &
+         varid_aero_diam_widths
+    real(kind=dp) :: aero_diam_centers(bin_grid%n_bin), &
+         aero_diam_edges(bin_grid%n_bin + 1)
+    real(kind=dp) :: aero_diam_widths(bin_grid%n_bin)
 
-    status = nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius)
+    status = nf90_inq_dimid(ncid, "aero_diam", dimid_aero_diam)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    call pmc_nc_check(nf90_def_dim(ncid, "aero_radius", &
-         bin_grid%n_bin, dimid_aero_radius))
-    call pmc_nc_check(nf90_def_dim(ncid, "aero_radius_edges", &
-         bin_grid%n_bin + 1, dimid_aero_radius_edges))
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_diam", &
+         bin_grid%n_bin, dimid_aero_diam))
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_diam_edges", &
+         bin_grid%n_bin + 1, dimid_aero_diam_edges))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
-    do i_bin = 1,bin_grid%n_bin
-       aero_radius_centers(i_bin) = vol2rad(bin_grid%v(i_bin))
-       aero_radius_widths(i_bin) = bin_grid%dlnr
-    end do
-    do i_bin = 1,(bin_grid%n_bin + 1)
-       aero_radius_edges(i_bin) = vol2rad(bin_grid_edge(bin_grid, i_bin))
-    end do
+    aero_diam_centers = rad2diam(bin_grid%center_radius)
+    aero_diam_widths = bin_grid%log_width
+    aero_diam_edges = rad2diam(bin_grid%edge_radius)
 
-    call pmc_nc_write_real_1d(ncid, aero_radius_centers, &
-         "aero_radius", (/ dimid_aero_radius /), unit="m", &
+    call pmc_nc_write_real_1d(ncid, aero_diam_centers, &
+         "aero_diam", (/ dimid_aero_diam /), unit="m", &
          long_name="aerosol radius axis bin centers", &
          description="logarithmically spaced centers of radius axis grid, " &
-         // "so that aero_radius(i) / aero_radius_edges(i) = " &
-         // "0.5 * aero_radius_edges(i+1) / aero_radius_edges(i)")
-    call pmc_nc_write_real_1d(ncid, aero_radius_edges, &
-         "aero_radius_edges", (/ dimid_aero_radius_edges /), unit="m", &
+         // "so that aero_diam(i) / aero_diam_edges(i) = " &
+         // "0.5 * aero_diam_edges(i+1) / aero_diam_edges(i)")
+    call pmc_nc_write_real_1d(ncid, aero_diam_edges, &
+         "aero_diam_edges", (/ dimid_aero_diam_edges /), unit="m", &
          long_name="aerosol radius axis bin edges", &
          description="logarithmically spaced edges of radius axis grid, " &
          // "with one more edge than center")
-    call pmc_nc_write_real_1d(ncid, aero_radius_widths, &
-         "aero_radius_widths", (/ dimid_aero_radius /), unit="m", &
+    call pmc_nc_write_real_1d(ncid, aero_diam_widths, &
+         "aero_diam_widths", (/ dimid_aero_diam /), unit="m", &
          long_name="aerosol radius axis bin widths", &
          description="base-e logarithmic widths of radius axis grid, " &
-         // "so that aero_radius_widths(i)" &
-         // "= ln(aero_radius_edges(i+1) / aero_radius_edges(i)) and " &
+         // "so that aero_diam_widths(i)" &
+         // "= ln(aero_diam_edges(i+1) / aero_diam_edges(i)) and " &
          // "all bins have the same width")
 
-  end subroutine bin_grid_netcdf_dim_aero_radius
+  end subroutine bin_grid_netcdf_dim_aero_diam
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -354,32 +336,32 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_radius
+    integer :: dimid_aero_diam
 
     !> \page output_format_bin_grid Output File Format: Bin Grid Data
     !!
     !! The bin grid data NetCDF dimensions are:
-    !!   - \b aero_radius: number of bins (grid cells) on the radius axis
-    !!   - \b aero_radius_edges: number of bin edges (grid cell edges) on
-    !!     the radius axis --- always equal to <tt>aero_radius + 1</tt>
+    !!   - \b aero_diam: number of bins (grid cells) on the diameter axis
+    !!   - \b aero_diam_edges: number of bin edges (grid cell edges) on
+    !!     the diameter axis --- always equal to <tt>aero_diam + 1</tt>
     !!
     !! The bin grid data NetCDF variables are:
-    !!   - \b aero_radius (unit m, dim \c aero_radius): aerosol radius axis
+    !!   - \b aero_diam (unit m, dim \c aero_diam): aerosol diameter axis
     !!     bin centers --- centered on a logarithmic scale from the edges, so
-    !!     that <tt>aero_radius(i) / aero_radius_edges(i) =
-    !!     sqrt(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>
-    !!   - \b aero_radius_edges (unit m, dim \c aero_radius_edges): aersol
-    !!     radius axis bin edges (there is one more edge than center)
-    !!   - \b aero_radius_widths (dimensionless, dim \c aero_radius):
-    !!     the base-e logarithmic bin widths --- <tt>aero_radius_widths(i)
-    !!     = ln(aero_radius_edges(i+1) / aero_radius_edges(i))</tt>, so
+    !!     that <tt>aero_diam(i) / aero_diam_edges(i) =
+    !!     sqrt(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>
+    !!   - \b aero_diam_edges (unit m, dim \c aero_diam_edges): aersol
+    !!     diameter axis bin edges (there is one more edge than center)
+    !!   - \b aero_diam_widths (dimensionless, dim \c aero_diam):
+    !!     the base-e logarithmic bin widths --- <tt>aero_diam_widths(i)
+    !!     = ln(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>, so
     !!     all bins have the same width
     !!
     !! See also:
     !!   - \ref input_format_bin_grid --- the corresponding input format
 
-    call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
-         dimid_aero_radius)
+    call bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, &
+         dimid_aero_diam)
 
     ! no need to write any more data as it's all contained in the
     ! dimension and associated variables
@@ -396,34 +378,37 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_radius
+    integer :: dimid_aero_diam, n_bin
     character(len=1000) :: name
-    integer :: n_bin, i_bin
-    real(kind=dp), allocatable :: aero_radius_centers(:)
-    real(kind=dp), allocatable :: aero_radius_widths(:)
+    real(kind=dp), allocatable :: aero_diam_centers(:)
+    real(kind=dp), allocatable :: aero_diam_edges(:)
+    real(kind=dp), allocatable :: aero_diam_widths(:)
 
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius))
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_radius, name, &
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_diam", dimid_aero_diam))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_diam, name, &
          n_bin))
 
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
 
-    allocate(aero_radius_centers(n_bin))
-    allocate(aero_radius_widths(n_bin))
+    allocate(aero_diam_centers(n_bin))
+    allocate(aero_diam_edges(n_bin + 1))
+    allocate(aero_diam_widths(n_bin))
 
-    call pmc_nc_read_real_1d(ncid, aero_radius_centers, &
-         "aero_radius")
-    call pmc_nc_read_real_1d(ncid, aero_radius_widths, &
-         "aero_radius_widths")
+    call pmc_nc_read_real_1d(ncid, aero_diam_centers, &
+         "aero_diam")
+    call pmc_nc_read_real_1d(ncid, aero_diam_edges, &
+         "aero_diam_edges")
+    call pmc_nc_read_real_1d(ncid, aero_diam_widths, &
+         "aero_diam_widths")
 
-    do i_bin = 1,n_bin
-       bin_grid%v(i_bin) = rad2vol(aero_radius_centers(i_bin))
-    end do
-    bin_grid%dlnr = aero_radius_widths(1)
+    bin_grid%center_radius = diam2rad(aero_diam_centers)
+    bin_grid%edge_radius = diam2rad(aero_diam_edges)
+    bin_grid%log_width = aero_diam_widths(1)
 
-    deallocate(aero_radius_centers)
-    deallocate(aero_radius_widths)
+    deallocate(aero_diam_centers)
+    deallocate(aero_diam_edges)
+    deallocate(aero_diam_widths)
 
   end subroutine bin_grid_input_netcdf
 

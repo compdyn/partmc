@@ -23,18 +23,18 @@ module pmc_aero_binned
   !> Aerosol number and volume distributions stored per bin.
   !!
   !! These quantities are densities both in volume (per m^3) and in
-  !! radius (per dlnr). The total concentration per volume is computed as
-  !! sum(aero_binned\%num_conc * bin_grid\%dlnr).
+  !! radius (per log_width). The total concentration per volume is computed as
+  !! sum(aero_binned\%num_conc * bin_grid\%log_width).
   !!
   !! An aero_binned_t is similar to an aero_dist_t in that they both
   !! store binned aerosol distributions. The difference is that an
   !! aero_dist_t has the same composition in every bin, whereas an
   !! aero_binned_t can have aerosol composition that varies per bin.
   type aero_binned_t
-     !> Number concentration per bin (#/m^3/dlnr).
+     !> Number concentration per bin (#/m^3/log_width).
      !! Array length is typically \c bin_grid\%n_bin.
      real(kind=dp), pointer :: num_conc(:)
-     !> Volume concentration per bin and per species (m^3/m^3/dlnr).
+     !> Volume concentration per bin and per species (m^3/m^3/log_width).
      !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
      real(kind=dp), pointer :: vol_conc(:,:)
   end type aero_binned_t
@@ -121,9 +121,9 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_binned%num_conc(bin) = aero_binned%num_conc(bin) &
-         + 1d0 / comp_vol / bin_grid%dlnr
+         + 1d0 / comp_vol / bin_grid%log_width
     aero_binned%vol_conc(bin,:) = aero_binned%vol_conc(bin,:) &
-         + aero_particle%vol / comp_vol / bin_grid%dlnr
+         + aero_particle%vol / comp_vol / bin_grid%log_width
 
   end subroutine aero_binned_add_particle_in_bin
 
@@ -174,9 +174,9 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_binned%num_conc(bin) = aero_binned%num_conc(bin) &
-         - 1d0 / comp_vol / bin_grid%dlnr
+         - 1d0 / comp_vol / bin_grid%log_width
     aero_binned%vol_conc(bin,:) = aero_binned%vol_conc(bin,:) &
-         - aero_particle%vol / comp_vol / bin_grid%dlnr
+         - aero_particle%vol / comp_vol / bin_grid%log_width
 
   end subroutine aero_binned_remove_particle_in_bin
 
@@ -408,7 +408,7 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    integer :: dimid_aero_radius, dimid_aero_species
+    integer :: dimid_aero_diam, dimid_aero_species
     real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     
@@ -418,20 +418,20 @@ contains
     !! a logarmithmic grid (see the \ref output_format_bin_grid
     !! section). To compute the total number or mass concentration,
     !! compute the sum over \c i of <tt>aero_number_concentration(i) *
-    !! aero_radius_widths(i)</tt>, for example.
+    !! aero_diam_widths(i)</tt>, for example.
     !!
     !! The aerosol binned sectional state uses the \c aero_species
     !! NetCDF dimension as specified in the \ref
-    !! output_format_aero_data section, as well as the \c aero_radius
+    !! output_format_aero_data section, as well as the \c aero_diam
     !! NetCDF dimension specified in the \ref output_format_bin_grid
     !! section.
     !!
     !! The aerosol binned sectional state NetCDF variables are:
-    !!   - \b aero_number_concentration (unit 1/m^3, dim \c aero_radius): the
+    !!   - \b aero_number_concentration (unit 1/m^3, dim \c aero_diam): the
     !!     number size distribution for the aerosol population,
     !!     \f$ dN(r)/d\ln r \f$, per bin
     !!   - \b aero_mass_concentration (unit kg/m^3, dim
-    !!     <tt>dimid_aero_radius x dimid_aero_species</tt>): the mass size
+    !!     <tt>dimid_aero_diam x dimid_aero_species</tt>): the mass size
     !!     distribution for the aerosol population,
     !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species
     
@@ -440,24 +440,24 @@ contains
             * aero_data%density
     end do
 
-    call bin_grid_netcdf_dim_aero_radius(bin_grid, ncid, &
-         dimid_aero_radius)
+    call bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, &
+         dimid_aero_diam)
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
 
     call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &
-         "aero_number_concentration", (/ dimid_aero_radius /), &
+         "aero_number_concentration", (/ dimid_aero_diam /), &
          unit="1/m^3", &
          long_name="aerosol number size concentration distribution", &
          description="logarithmic number size concentration, " &
-         // "d N(r)/d ln r --- multiply by aero_radius_widths(i) " &
+         // "d N(r)/d ln r --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total number concentration")
     call pmc_nc_write_real_2d(ncid, mass_den, &
          "aero_mass_concentration", &
-         (/ dimid_aero_radius, dimid_aero_species /), unit="kg/m^3", &
+         (/ dimid_aero_diam, dimid_aero_species /), unit="kg/m^3", &
          long_name="aerosol number size concentration distribution", &
          description="logarithmic mass size concentration per species, " &
-         // "d M(r,s)/d ln r --- multiply by aero_radius_widths(i) " &
+         // "d M(r,s)/d ln r --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total mass concentration of " &
          // "species s")
 

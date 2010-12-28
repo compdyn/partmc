@@ -293,7 +293,7 @@ contains
        create_new = (pmc_random() < prob_create_new)
     else
        call die_msg(886524113, "unknown aero_weight type: " &
-            // integer_to_string(aero_weight%type))
+            // trim(integer_to_string(aero_weight%type)))
     end if
 
     ! figure out what to do about the ID numbers of the various

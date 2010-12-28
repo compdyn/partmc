@@ -115,14 +115,14 @@ contains
 
     call assert_msg(538534122, n_bin > 0, &
          "bin_grid requires a positive n_bin, not: " &
-         // integer_to_string(n_bin))
+         // trim(integer_to_string(n_bin)))
     call assert_msg(966541762, r_min > 0d0, &
          "bin_grid requires a positive r_min, not: " &
-         // real_to_string(r_min))
+         // trim(real_to_string(r_min)))
     call assert_msg(966541762, r_min < r_max, &
          "bin_grid requires r_min < r_max, not: " &
-         // real_to_string(r_min) // " and " &
-         // real_to_string(r_max))
+         // trim(real_to_string(r_min)) // " and " &
+         // trim(real_to_string(r_max)))
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
     call logspace(r_min, r_max, bin_grid%edge_radius)

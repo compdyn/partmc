@@ -301,7 +301,7 @@ contains
        call num_conc_mono(aero_mode%mean_radius, bin_grid, num_conc)
     else
        call die_msg(719625922, "unknown aero_mode type: " &
-            // integer_to_string(aero_mode%type))
+            // trim(integer_to_string(aero_mode%type)))
     end if
     num_conc = num_conc * aero_mode%num_conc
 
@@ -337,7 +337,7 @@ contains
             vol_conc_total)
     else
        call die_msg(314169653, "Unknown aero_mode type: " &
-            // integer_to_string(aero_mode%type))
+            // trim(integer_to_string(aero_mode%type)))
     end if
     vol_conc_total = vol_conc_total * aero_mode%num_conc
     do i_spec = 1,aero_data%n_spec
@@ -378,11 +378,11 @@ contains
                / aero_weight_value(aero_weight, aero_mode%mean_radius)
        else
           call die_msg(901140225, "unknown aero_mode type: " &
-               // integer_to_string(aero_mode%type))
+               // trim(integer_to_string(aero_mode%type)))
        end if
     else
        call die_msg(742383510, "unknown aero_weight type: " &
-            // integer_to_string(aero_weight%type))
+            // trim(integer_to_string(aero_weight%type)))
     end if
 
   end function aero_mode_weighted_num_conc
@@ -412,7 +412,7 @@ contains
           radius = aero_mode%mean_radius
        else
           call die_msg(749122931, "Unknown aero_mode type: " &
-               // integer_to_string(aero_mode%type))
+               // trim(integer_to_string(aero_mode%type)))
        end if
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
@@ -428,11 +428,11 @@ contains
           radius = aero_mode%mean_radius
        else
           call die_msg(886417976, "unknown aero_mode type: " &
-               // integer_to_string(aero_mode%type))
+               // trim(integer_to_string(aero_mode%type)))
        end if
     else
        call die_msg(863127819, "unknown aero_weight type: " &
-            // integer_to_string(aero_weight%type))
+            // trim(integer_to_string(aero_weight%type)))
     end if
 
   end subroutine aero_mode_sample_radius

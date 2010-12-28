@@ -50,7 +50,7 @@ contains
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(827813758, "Exact solution with additive kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
-               // integer_to_string(aero_dist_init%n_mode))
+               // trim(integer_to_string(aero_dist_init%n_mode)))
        end if
        if (aero_dist_init%mode(1)%type /= AERO_MODE_TYPE_EXP) then
           call die_msg(574495367, "Exact solution with additive kernel " &
@@ -66,7 +66,7 @@ contains
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(827813758, "Exact solution with constant kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
-               // integer_to_string(aero_dist_init%n_mode))
+               // trim(integer_to_string(aero_dist_init%n_mode)))
        end if
        if (aero_dist_init%mode(1)%type /= AERO_MODE_TYPE_EXP) then
           call die_msg(574495367, "Exact solution with constant kernel " &
@@ -83,8 +83,9 @@ contains
             env_state, aero_binned)
     else
        call die_msg(932981721, "No exact solutions with " &
-            // "coagulation kernel type " // integer_to_string(kernel_type) &
-            // "(" // kernel_type_to_string(kernel_type) // ")")
+            // "coagulation kernel type " &
+            // trim(integer_to_string(kernel_type)) &
+            // " (" // kernel_type_to_string(kernel_type) // ")")
     end if
 
   end subroutine exact_soln

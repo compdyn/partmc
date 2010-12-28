@@ -100,7 +100,7 @@ contains
        aero_data, env_state, k)
     else
        call die_msg(200724934, "Unknown kernel type: " &
-            // integer_to_string(kernel_type))
+            // trim(integer_to_string(kernel_type)))
     end if
 
   end subroutine kernel
@@ -135,7 +135,7 @@ contains
        call kernel_zero_max(v1, v2, aero_data, env_state, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &
-            // integer_to_string(kernel_type))
+            // trim(integer_to_string(kernel_type)))
     end if
 
   end subroutine kernel_max

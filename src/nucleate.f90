@@ -56,7 +56,8 @@ contains
        ! do nothing
     else
        call die_msg(983831728, &
-            "unknown nucleation type: " // integer_to_string(nucleate_type))
+            "unknown nucleation type: " &
+            // trim(integer_to_string(nucleate_type)))
     end if
 
   end subroutine nucleate

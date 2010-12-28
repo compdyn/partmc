@@ -121,7 +121,7 @@ contains
             = (radius / aero_weight%ref_radius)**aero_weight%exponent
     else
        call die_msg(700421478, "unknown aero_weight type: " &
-            // integer_to_string(aero_weight%type))
+            // trim(integer_to_string(aero_weight%type)))
     end if
 
   end function aero_weight_value

@@ -28,9 +28,6 @@ Rename "kernel" to "coag" in input files and elsewhere.
 Why do we need "interface" blocks in mosaic.f90 for mosaic
 subroutines. Can't we just use the mosaic modules?
 
-Shouldn't we use trim(real_to_string()) etc in error messages, rather
-than just real_to_string()?
-
 Debug code in aero_state_bin_average_size(), etc?
 
 ######################################################################

@@ -453,11 +453,16 @@ contains
           call spec_file_die_msg(929006383, file, &
                'cannot use parallel mode, support is not compiled in')
 #endif
-          call spec_file_read_string(file, 'output_type', part_opt%output_type)
-          call spec_file_read_real(file, 'mix_timescale', part_opt%mix_timescale)
-          call spec_file_read_logical(file, 'gas_average', part_opt%gas_average)
-          call spec_file_read_logical(file, 'env_average', part_opt%env_average)
-          call spec_file_read_string(file, 'coag_method', part_opt%coag_method)
+          call spec_file_read_string(file, 'output_type', &
+               part_opt%output_type)
+          call spec_file_read_real(file, 'mix_timescale', &
+               part_opt%mix_timescale)
+          call spec_file_read_logical(file, 'gas_average', &
+               part_opt%gas_average)
+          call spec_file_read_logical(file, 'env_average', &
+               part_opt%env_average)
+          call spec_file_read_string(file, 'coag_method', &
+               part_opt%coag_method)
        else
           part_opt%output_type = "single"
           part_opt%mix_timescale = 0d0
@@ -491,7 +496,8 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_logical(do_restart)
-       buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state_init)
+       buffer_size = buffer_size &
+            + pmc_mpi_pack_size_aero_state(aero_state_init)
     end if
 
     ! tell everyone the size and allocate buffer space
@@ -563,7 +569,8 @@ contains
                aero_data, aero_weight, aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
-       call env_data_init_state(env_data, env_state, env_state_init%elapsed_time)
+       call env_data_init_state(env_data, env_state, &
+            env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
        if (part_opt%do_condensation) then

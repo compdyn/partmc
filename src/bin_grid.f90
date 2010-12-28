@@ -109,7 +109,8 @@ contains
     call bin_grid_allocate_size(bin_grid, n_bin)
     call logspace(v_min, v_max, n_bin, bin_grid%v)
     ! dlnr = ln(r(i) / r(i-1))
-    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) / real(n_bin - 1, kind=dp)
+    bin_grid%dlnr = log(vol2rad(v_max) / vol2rad(v_min)) &
+         / real(n_bin - 1, kind=dp)
 
   end subroutine bin_grid_make
 
@@ -157,7 +158,8 @@ contains
     call assert(448215689, bin_grid%n_bin > 2)
     log_v_min = log(bin_grid%v(1))
     log_v_max = log(bin_grid%v(bin_grid%n_bin))
-    half_log_delta = (log_v_max - log_v_min) / real(2 * (bin_grid%n_bin - 1), kind=dp)
+    half_log_delta = (log_v_max - log_v_min) &
+         / real(2 * (bin_grid%n_bin - 1), kind=dp)
     log_edge_min = log_v_min + half_log_delta
     log_edge_max = log_v_max - half_log_delta
     k = ceiling((log(v) - log_edge_min) / (log_edge_max - log_edge_min) &

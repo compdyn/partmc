@@ -81,12 +81,12 @@ program extract_gas
           "getting variable 'time'")
 
      ! read gas_species
-     call nc_check_msg(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species), &
-          "getting dimension ID for 'gas_species'")
+     call nc_check_msg(nf90_inq_dimid(ncid, "gas_species", &
+          dimid_gas_species), "getting dimension ID for 'gas_species'")
      call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_gas_species, &
           tmp_str, n_gas_species), "inquiring dimension 'gas_species'")
-     call nc_check_msg(nf90_inq_varid(ncid, "gas_species", varid_gas_species), &
-          "getting variable ID for 'gas_species'")
+     call nc_check_msg(nf90_inq_varid(ncid, "gas_species", &
+          varid_gas_species), "getting variable ID for 'gas_species'")
      call nc_check_msg(nf90_get_att(ncid, varid_gas_species, &
           "names", gas_species_names), &
           "getting attribute 'names' for variable 'gas_species'")

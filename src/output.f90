@@ -168,7 +168,8 @@ contains
                record_removals, record_optical, rank, n_proc, uuid)
        else
 #ifdef PMC_USE_MPI
-          ! collect all data onto processor 0 and then write it to a single file
+          ! collect all data onto processor 0 and then write it to a
+          ! single file
           call env_state_allocate(env_state_write)
           call gas_state_allocate(gas_state_write)
           call env_state_copy(env_state, env_state_write)
@@ -227,7 +228,8 @@ contains
     call iso8601_date_and_time(history)
     history((len_trim(history)+1):) = " created by PartMC"
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "Conventions", "CF-1.4"))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "Conventions", &
+         "CF-1.4"))
     
     call pmc_nc_check(nf90_enddef(ncid))
     

@@ -662,9 +662,9 @@ contains
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
-       call coagulate_mpi_equal(bin_grid, aero_data, aero_weight, aero_state, &
-            requests(i_req)%local_aero_particle, sent_aero_particle, &
-            sent_proc, comp_vols, remove_1, remove_2)
+       call coagulate_mpi_equal(bin_grid, aero_data, aero_weight, &
+            aero_state, requests(i_req)%local_aero_particle, &
+            sent_aero_particle, sent_proc, comp_vols, remove_1, remove_2)
     else
        remove_1 = .false.
        remove_2 = .false.
@@ -961,9 +961,9 @@ contains
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
-    call coagulate_weighting(aero_particle_1, aero_particle_2, aero_particle_new, &
-         aero_data, aero_weight, remove_1, remove_2, create_new, &
-         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+    call coagulate_weighting(aero_particle_1, aero_particle_2, &
+         aero_particle_new, aero_data, aero_weight, remove_1, remove_2, &
+         create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     if (id_1_lost) then
        call aero_info_array_add_aero_info(aero_state%aero_info_array, &

@@ -405,7 +405,8 @@ contains
           radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
                aero_mode%log10_std_dev_radius)
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_random()))
+          radius = vol2rad(- rad2vol(aero_mode%mean_radius) &
+               * log(pmc_random()))
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           radius = aero_mode%mean_radius
        else
@@ -564,15 +565,16 @@ contains
     !!      shape is
     !!      \f[ n(\log D) {\rm d}\log D
     !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}}
-    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{2 \log ^2 \sigma_{\rm g}}\right)
+    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{2 \log ^2
+    !!      \sigma_{\rm g}}\right)
     !!      {\rm d}\log D \f]
     !!      and the following parameters are:
     !!      <ul>
     !!      <li> \b mean_radius (real, unit m): the geometric mean radius
     !!           \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
     !!           \mu g}\f$
-    !!      <li> \b log_std_dev (real, dimensionless): \f$\log_{10}\f$ of the geometric
-    !!           standard deviation \f$\sigma_{\rm g}\f$
+    !!      <li> \b log_std_dev (real, dimensionless): \f$\log_{10}\f$ of the
+    !!           geometric standard deviation \f$\sigma_{\rm g}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c exp then the mode distribution shape is
     !!      \f[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}}
@@ -581,8 +583,8 @@ contains
     !!      and the following parameters are:
     !!      <ul>
     !!      <li> \b mean_radius (real, unit m): the mean radius
-    !!           \f$R_{\rm \mu}\f$ such that \f$v_{\rm \mu} = \frac{4}{3} \pi R^3_{\rm
-    !!           \mu}\f$
+    !!           \f$R_{\rm \mu}\f$ such that \f$v_{\rm \mu}
+    !!           = \frac{4}{3} \pi R^3_{\rm \mu}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c mono then the mode distribution shape
     !!      is a delta distribution at diameter \f$D_0\f$ and the

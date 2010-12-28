@@ -98,7 +98,8 @@ contains
     real(kind=dp), intent(in) :: del_t
 
     real(kind=dp), parameter :: nucleate_coeff = 1d-18 ! K (m^3 s^{-1})
-    real(kind=dp), parameter :: nucleate_diam = 1d-9   ! diameter of new particles (m)
+    real(kind=dp), parameter :: nucleate_diam = 1d-9   ! diameter of new
+                                                       ! particles (m)
 
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg

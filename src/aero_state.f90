@@ -679,7 +679,8 @@ contains
 
     n_part_orig = aero_state%n_part
     do i_bin = 1,bin_grid%n_bin
-       n_remove = prob_round(real(aero_state%bin(i_bin)%n_part, kind=dp) / 2d0)
+       n_remove = prob_round(real(aero_state%bin(i_bin)%n_part, kind=dp) &
+            / 2d0)
        do i_remove = 1,n_remove
           i_part = pmc_rand_int(aero_state%bin(i_bin)%n_part)
           call aero_info_allocate(aero_info)
@@ -804,7 +805,8 @@ contains
           ! fact that they did not transfer already
           prob_transfer_given_not_transferred = prob_transfer &
                / prob_not_transferred
-          call aero_state_sample(aero_state, aero_state_sends(dest_proc + 1), &
+          call aero_state_sample(aero_state, &
+               aero_state_sends(dest_proc + 1), &
                prob_transfer_given_not_transferred, AERO_INFO_NONE)
           prob_not_transferred = prob_not_transferred - prob_transfer
        end if
@@ -1156,7 +1158,8 @@ contains
                   * aero_weight_value(aero_weight, vol2rad(center_volume)) &
                   - total_weight
              if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) then
+                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
+                  then
                 lower_volume = center_volume
                 lower_function = center_function
              else
@@ -1207,7 +1210,8 @@ contains
                   * aero_weight_value(aero_weight, vol2rad(center_volume)) &
                   * center_volume - weighted_total_volume
              if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) then
+                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
+                  then
                 lower_volume = center_volume
                 lower_function = center_function
              else
@@ -1255,7 +1259,8 @@ contains
     if (aero_data%i_water > 0) then
        do i_bin = 1,bin_grid%n_bin
           do i_part = 1,aero_state%bin(i_bin)%n_part
-             aero_state%bin(i_bin)%particle(i_part)%vol(aero_data%i_water) = 0d0
+             aero_state%bin(i_bin)%particle(i_part)%vol(aero_data%i_water) &
+                  = 0d0
           end do
        end do
        call aero_state_resort(bin_grid, aero_state)
@@ -1407,7 +1412,8 @@ contains
           position = 0
           
           call aero_state_allocate(aero_state_transfer)
-          call pmc_mpi_unpack_aero_state(buffer, position, aero_state_transfer)
+          call pmc_mpi_unpack_aero_state(buffer, position, &
+               aero_state_transfer)
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
 
@@ -1753,7 +1759,8 @@ contains
                 aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
                 aero_asymmetry(i_part) = particle%asymmetry
                 aero_refract_shell_real(i_part) = real(particle%refract_shell)
-                aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
+                aero_refract_shell_imag(i_part) = &
+                     aimag(particle%refract_shell)
                 aero_refract_core_real(i_part) = real(particle%refract_core)
                 aero_refract_core_imag(i_part) = aimag(particle%refract_core)
                 aero_core_vol(i_part) = particle%core_vol
@@ -1782,43 +1789,54 @@ contains
             "aero_least_create_time", (/ dimid_aero_particle /), unit="s", &
             long_name="least creation time of each aerosol particle", &
             description="least (earliest) creation time of any original " &
-            // "constituent particles that coagulated to form each particle, " &
-            // "measured from the start of the simulation")
+            // "constituent particles that coagulated to form each " &
+            // "particle, measured from the start of the simulation")
        call pmc_nc_write_real_1d(ncid, aero_greatest_create_time, &
-            "aero_greatest_create_time", (/ dimid_aero_particle /), unit="s", &
+            "aero_greatest_create_time", (/ dimid_aero_particle /), &
+            unit="s", &
             long_name="greatest creation time of each aerosol particle", &
             description="greatest (latest) creation time of any original " &
-            // "constituent particles that coagulated to form each particle, " &
-            // "measured from the start of the simulation")
+            // "constituent particles that coagulated to form each " &
+            // "particle, measured from the start of the simulation")
        if (record_optical) then
           call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
-               "aero_absorb_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
-               long_name="optical absorption cross sections of each aerosol particle")
+               "aero_absorb_cross_sect", (/ dimid_aero_particle /), &
+               unit="m^2", &
+               long_name="optical absorption cross sections of each " &
+               // "aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
-               "aero_scatter_cross_sect", (/ dimid_aero_particle /), unit="m^2", &
-               long_name="optical scattering cross sections of each aerosol particle")
+               "aero_scatter_cross_sect", (/ dimid_aero_particle /), &
+               unit="m^2", &
+               long_name="optical scattering cross sections of each " &
+               // "aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
                "aero_asymmetry", (/ dimid_aero_particle /), unit="1", &
-               long_name="optical asymmetry parameters of each aerosol particle")
+               long_name="optical asymmetry parameters of each " &
+               // "aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
-               "aero_refract_shell_real", (/ dimid_aero_particle /), unit="1", &
-               long_name="real part of the refractive indices of the shell " &
-               // "of each aerosol particle")
+               "aero_refract_shell_real", (/ dimid_aero_particle /), &
+               unit="1", &
+               long_name="real part of the refractive indices of the " &
+               // "shell of each aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
-               "aero_refract_shell_imag", (/ dimid_aero_particle /), unit="1", &
-               long_name="imaginary part of the refractive indices of the shell " &
-               // "of each aerosol particle")
+               "aero_refract_shell_imag", (/ dimid_aero_particle /), &
+               unit="1", &
+               long_name="imaginary part of the refractive indices of " &
+               // "the shell of each aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
-               "aero_refract_core_real", (/ dimid_aero_particle /), unit="1", &
+               "aero_refract_core_real", (/ dimid_aero_particle /), &
+               unit="1", &
                long_name="real part of the refractive indices of the core " &
                // "of each aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
-               "aero_refract_core_imag", (/ dimid_aero_particle /), unit="1", &
-               long_name="imaginary part of the refractive indices of the core " &
-               // "of each aerosol particle")
+               "aero_refract_core_imag", (/ dimid_aero_particle /), &
+               unit="1", &
+               long_name="imaginary part of the refractive indices of " &
+               // "the core of each aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_core_vol, &
                "aero_core_vol", (/ dimid_aero_particle /), unit="m^3", &
-               long_name="volume of the optical cores of each aerosol particle")
+               long_name="volume of the optical cores of each " &
+               // "aerosol particle")
        end if
     end if
 

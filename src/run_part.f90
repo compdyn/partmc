@@ -115,15 +115,15 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: part_opt
 
-    real(kind=dp) :: time, pre_time, pre_del_t
+    real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer :: tot_n_samp, tot_n_coag, rank, n_proc, pre_index, ncid, pre_i_loop
-    integer :: progress_n_samp, progress_n_coag
+    integer :: tot_n_samp, tot_n_coag, rank, n_proc, pre_index, ncid
+    integer :: pre_i_loop, progress_n_samp, progress_n_coag
     integer :: global_n_part, global_n_samp, global_n_coag
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     logical :: update_rel_humid
-    real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain, prop_done
+    real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output

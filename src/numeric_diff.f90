@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009-2010 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -12,7 +12,8 @@
 !> automatically different. Otherwise the are the same if
 !>       \f[ | A_1 - A_2 |_2 < \verb+abs_tol+ \f]
 !> and
-!>       \f[ \frac{| A_1 - A_2 |_2}{| A_1 |_2 + | A_2 |_2} < \verb+rel_tol+ \f]
+!>       \f[ \frac{| A_1 - A_2 |_2}{| A_1 |_2 + | A_2 |_2}
+!>           < \verb+rel_tol+ \f]
 !> and are otherwise different. Setting \c abs_tol or \c rel_tol to zero
 !> skips the corresponding test.
 !>

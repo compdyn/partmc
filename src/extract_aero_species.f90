@@ -85,12 +85,12 @@ program extract_aero_species
           "getting variable 'time'")
 
      ! read aero_species
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species), &
-          "getting dimension ID for 'aero_species'")
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", &
+          dimid_aero_species), "getting dimension ID for 'aero_species'")
      call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
           tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_species", varid_aero_species), &
-          "getting variable ID for 'aero_species'")
+     call nc_check_msg(nf90_inq_varid(ncid, "aero_species", &
+          varid_aero_species), "getting variable ID for 'aero_species'")
      call nc_check_msg(nf90_get_att(ncid, varid_aero_species, &
           "names", aero_species_names), &
           "getting attribute 'names' for variable 'aero_species'")
@@ -123,9 +123,9 @@ program extract_aero_species
         call nc_check_msg(nf90_inq_varid(ncid, "aero_particle_mass", &
              varid_aero_particle_mass), &
              "getting variable ID for 'aero_particle_mass'")
-        call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
-             tmp_str, xtype, ndims, dimids, nAtts), &
-             "inquiring variable 'aero_particle_mass'")
+        call nc_check_msg(nf90_Inquire_Variable(ncid, &
+             varid_aero_particle_mass, tmp_str, xtype, ndims, &
+             dimids, nAtts), "inquiring variable 'aero_particle_mass'")
         if ((ndims /= 2) &
              .or. (dimids(1) /= dimid_aero_particle) &
              .or. (dimids(2) /= dimid_aero_species)) then

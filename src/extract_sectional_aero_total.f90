@@ -88,14 +88,14 @@ program extract_sectional_aero_total
           "getting variable 'time'")
 
      ! read aero_species
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", dimid_aero_species), &
-          "getting dimension ID for 'aero_species'")
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", &
+          dimid_aero_species), "getting dimension ID for 'aero_species'")
      call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
           tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
      
      ! read aero_radius dimension
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_radius", dimid_aero_radius), &
-          "getting dimension ID for 'aero_radius'")
+     call nc_check_msg(nf90_inq_dimid(ncid, "aero_radius", &
+          dimid_aero_radius), "getting dimension ID for 'aero_radius'")
      call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_radius, &
           tmp_str, n_bin), "inquiring dimension 'aero_radius'")
 

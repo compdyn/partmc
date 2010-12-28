@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -79,9 +79,11 @@ contains
     k_max = 0d0
     do i = 1,n_sample
        do j = 1,n_sample
-          d1 = d_max * real(n_sample - i, kind=dp) / real(n_sample - 1, kind=dp) + &
+          d1 = d_max * real(n_sample - i, kind=dp) &
+               / real(n_sample - 1, kind=dp) + &
                d_min * real(i - 1, kind=dp) / real(n_sample - 1, kind=dp)
-          d2 = d_max * real(n_sample - j, kind=dp) / real(n_sample - 1, kind=dp) + &
+          d2 = d_max * real(n_sample - j, kind=dp) &
+               / real(n_sample - 1, kind=dp) + &
                d_min * real(j - 1, kind=dp) / real(n_sample - 1, kind=dp)
           call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
                env_state%pressure, k)

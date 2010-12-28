@@ -26,8 +26,6 @@ Rename "loop" to "repeat" or something in input and output.
 
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
-Check for long lines.
-
 Rename "kernel" to "coag" in input files and elsewhere.
 
 Why do we need "interface" blocks in mosaic.f90 for mosaic

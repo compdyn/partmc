@@ -401,8 +401,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-average of the non-water elements of quantity.
-  real(kind=dp) function aero_particle_average_solute_quantity(aero_particle, &
-       aero_data, quantity)
+  real(kind=dp) function aero_particle_average_solute_quantity( &
+       aero_particle, aero_data, quantity)
 
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -520,7 +520,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the average of the solute ion number (1).
-  real(kind=dp) function aero_particle_solute_num_ions(aero_particle, aero_data)
+  real(kind=dp) function aero_particle_solute_num_ions(aero_particle, &
+       aero_data)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data

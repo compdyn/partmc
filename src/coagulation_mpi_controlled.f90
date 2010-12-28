@@ -527,9 +527,9 @@ contains
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
-    call coagulate_weighting(aero_particle_1, aero_particle_2, aero_particle_new, &
-         aero_data, aero_weight, remove_1, remove_2, create_new, &
-         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+    call coagulate_weighting(aero_particle_1, aero_particle_2, &
+         aero_particle_new, aero_data, aero_weight, remove_1, remove_2, &
+         create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove particles
     if ((p1 == p2) .and. (b1 == b2) .and. (s2 > s1)) then

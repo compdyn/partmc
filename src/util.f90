@@ -411,7 +411,8 @@ contains
     !> Value.
     real(kind=dp), intent(in) :: x
 
-    linspace_find = floor((x - min_x) / (max_x - min_x) * real(n - 1, kind=dp)) + 1
+    linspace_find = floor((x - min_x) / (max_x - min_x) &
+         * real(n - 1, kind=dp)) + 1
     linspace_find = min(linspace_find, n - 1)
     linspace_find = max(linspace_find, 1)
     

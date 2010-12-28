@@ -86,8 +86,8 @@ contains
   !!     = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu}
   !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
   !! \f]
-  subroutine soln_constant_exp_cond(bin_grid, aero_data, time, num_conc, &
-       mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
+  subroutine soln_constant_exp(bin_grid, aero_data, time, num_conc, &
+       mean_radius, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -95,15 +95,10 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Current time.
     real(kind=dp), intent(in) :: time
-    !> Particle number concentration (#/m^3) --- not used in this
-    !> subroutine.
+    !> Particle number concentration (#/m^3).
     real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
     real(kind=dp), intent(in) :: mean_radius
-    !> Particle density (kg/m^3).
-    real(kind=dp), intent(in) :: rho_p
-    !> Initial distribution.
-    type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.
@@ -140,7 +135,7 @@ contains
             * (2d0*vol2rad(bin_grid%v(k)))**3d0 * aero_binned%num_conc(k)
     end do
     
-  end subroutine soln_constant_exp_cond
+  end subroutine soln_constant_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

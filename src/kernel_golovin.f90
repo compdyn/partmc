@@ -94,7 +94,7 @@ contains
   !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
   !! \f]
   subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
-       mean_radius, rho_p, aero_dist_init, env_state, aero_binned)
+       mean_radius, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -106,10 +106,6 @@ contains
     real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
     real(kind=dp), intent(in) :: mean_radius
-    !> Particle density (kg/m^3).
-    real(kind=dp), intent(in) :: rho_p
-    !> Initial distribution.
-    type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.

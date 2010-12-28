@@ -19,6 +19,9 @@ module pmc_kernel
   use pmc_kernel_brown
   use pmc_kernel_zero
 
+  !> Maximum length of a mode type.
+  integer, parameter :: COAG_KERNEL_TYPE_LEN = 20
+
   !> Type code for an undefined or invalid kernel.
   integer, parameter :: COAG_KERNEL_TYPE_INVALID  = 0
   !> Type code for a sedimentation kernel.
@@ -33,6 +36,33 @@ module pmc_kernel
   integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
   
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a string representation of a kernel type.
+  character(len=COAG_KERNEL_TYPE_LEN) function kernel_type_to_string( &
+       kernel_type)
+
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
+   
+    if (kernel_type == COAG_KERNEL_TYPE_INVALID) then
+       kernel_type_to_string = "invalid"
+    elseif (kernel_type == COAG_KERNEL_TYPE_SEDI) then
+       kernel_type_to_string = "sedi"
+    elseif (kernel_type == COAG_KERNEL_TYPE_GOLOVIN) then
+       kernel_type_to_string = "golovin"
+    elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
+       kernel_type_to_string = "constant"
+    elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
+       kernel_type_to_string = "brown"
+    elseif (kernel_type == COAG_KERNEL_TYPE_ZERO) then
+       kernel_type_to_string = "zero"
+    else
+       kernel_type_to_string = "unknown"
+    end if
+
+  end function kernel_type_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

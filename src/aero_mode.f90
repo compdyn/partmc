@@ -20,8 +20,10 @@ module pmc_aero_mode
   use mpi
 #endif
 
-  !> Maximum length of an aero_dist mode name.
+  !> Maximum length of a mode name.
   integer, parameter :: AERO_MODE_NAME_LEN = 300
+  !> Maximum length of a mode type.
+  integer, parameter :: AERO_MODE_TYPE_LEN = 20
 
   !> Type code for an undefined or invalid mode.
   integer, parameter :: AERO_MODE_TYPE_INVALID    = 0
@@ -54,6 +56,28 @@ module pmc_aero_mode
   end type aero_mode_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a string representation of a kernel type.
+  character(len=AERO_MODE_TYPE_LEN) function aero_mode_type_to_string(type)
+
+    !> Aero mode type.
+    integer, intent(in) :: type
+   
+    if (type == AERO_MODE_TYPE_INVALID) then
+       aero_mode_type_to_string = "invalid"
+    elseif (type == AERO_MODE_TYPE_LOG_NORMAL) then
+       aero_mode_type_to_string = "log_normal"
+    elseif (type == AERO_MODE_TYPE_EXP) then
+       aero_mode_type_to_string = "exp"
+    elseif (type == AERO_MODE_TYPE_MONO) then
+       aero_mode_type_to_string = "mono"
+    else
+       aero_mode_type_to_string = "unknown"
+    end if
+
+  end function aero_mode_type_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

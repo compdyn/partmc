@@ -95,8 +95,8 @@ contains
   !!                   = n_{\rm back}(D)
   !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
   !! \f]
-  subroutine soln_zero(bin_grid, aero_data, time, num_conc, mean_vol, &
-       rho_p, aero_dist_init, env_state, aero_binned)
+  subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
+       env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -104,12 +104,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Current time (s).
     real(kind=dp), intent(in) :: time
-    !> Particle number concentration (#/m^3).
-    real(kind=dp), intent(in) :: num_conc
-    !> Mean init volume (m^3).
-    real(kind=dp), intent(in) :: mean_vol
-    !> Particle density (kg/m^3).
-    real(kind=dp), intent(in) :: rho_p
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment state.

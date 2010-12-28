@@ -2,7 +2,7 @@ run_type particle               # particle-resolved run
 output_prefix out/emission_part # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 10000                    # total number of particles
-kernel sedi                     # coagulation kernel
+kernel zero                     # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 

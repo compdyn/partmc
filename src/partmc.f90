@@ -600,6 +600,7 @@ contains
     type(aero_data_t) :: aero_data
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
+    type(aero_dist_t) :: aero_dist_init
     type(run_exact_opt_t) :: exact_opt
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
@@ -607,6 +608,20 @@ contains
     type(spec_file_t) :: sub_file
 
     !> \page input_format_exact Exact (Analytical) Solution
+    !!
+    !! The coagulation kernel and initial distribution must be matched
+    !! for an exact solution to exist. The valid choices are:
+    !!
+    !! <table>
+    !! <tr><th>Coagulation kernel</th>
+    !!     <th>Initial aerosol distribution</th></tr>
+    !! <tr><td>Golovin</td>
+    !!     <td>Single exponential mode</td></tr>
+    !! <tr><td>Constant</td>
+    !!     <td>Single exponential mode</td></tr>
+    !! <tr><td>Zero</td>
+    !!     <td>Anything</td></tr>
+    !! </table>
     !!
     !! See \ref spec_file_format for the input file text format.
     !!
@@ -616,6 +631,7 @@ contains
     !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
     !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
     !!   and incremented each time the state is output)
+    !! - \subpage input_format_coag_kernel
     !! - \b t_max (real, unit s): total simulation time
     !! - \b t_output (real, unit s): the interval on which to output
     !!   data to disk and to print progress information to the screen
@@ -627,48 +643,17 @@ contains
     !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
+    !! - \b aerosol_init (string): filename containing the initial
+    !!   aerosol state at the start of the simulation --- the file
+    !!   format should be \subpage input_format_aero_dist
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
-    !! - \b soln (string): the type of exact solution to generate ---
-    !!   must be one of \c golovin_exp, \c constant_exp_cond, or \c
-    !!   zero.
-    !! - If \c soln is \c golovin_exp then the number concentration is
-    !!   generated for an exponential initial condition (\c mode_type
-    !!   set to \c exp in \ref input_format_aero_mode) with a Golovin
-    !!   coagulation kernel (\c kernel set to \c golovin in \ref
-    !!   input_format_coag_kernel) and no emissions or dilution. See
-    !!   soln_golovin_exp() for the solution expression. The
-    !!   subsequent parameters are:
-    !!   - \b num_conc (real, unit 1/m^3): The total number
-    !!     concentration \f$N_0\f$.
-    !!   - \b mean_radius (real, unit m): The radius \f$r_\mu\f$ that
-    !!     gives the diameter \f$D_\mu = 2 r_\mu\f$ and the mean volume
-    !!     \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$.
-    !! - If \c soln is \c constant_exp_cond then the exact solution is
-    !!   generated for an exponential initial condition (\c mode_type
-    !!   set to \c exp in \ref input_format_aero_mode) with a constant
-    !!   coagulation kernel (\c kernel set to \c constant in \ref
-    !!   input_format_coag_kernel) and no emissions or dilution. See
-    !!   soln_constant_exp_cond() for the solution expression. The
-    !!   subsequent parameters are:
-    !!   - \b num_conc (real, unit 1/m^3): The total number
-    !!     concentration \f$N_0\f$.
-    !!   - \b mean_radius (real, unit m): The radius \f$r_\mu\f$ that
-    !!     gives the diameter \f$D_\mu = 2 r_\mu\f$ and the mean volume
-    !!     \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$.
-    !! - If \c soln is \c zero then the exact solution is given with
-    !!   no coagulation (\c kernel set to \c zero in \ref
-    !!   input_format_coag_kernel), but with constant emissions and background
-    !!   dilution. See soln_zero() for the solution expression. The
-    !!   subsequent parameters are:
-    !!   - \b aerosol_init (string): The name of the file from which
-    !!     to read the inital aerosol distribution, in the format \ref
-    !!     input_format_aero_dist.
     !!
     !! Example:
     !! <pre>
     !! run_type exact                  # exact solution
     !! output_prefix golovin_exact     # prefix of output files
+    !! kernel golovin                  # Golovin coagulation kernel
     !! 
     !! t_max 600                       # total simulation time (s)
     !! t_output 60                     # output interval (0 disables) (s)
@@ -678,7 +663,9 @@ contains
     !! r_max 1e-3                      # maximum radius (m)
     !! 
     !! gas_data gas_data.dat           # file containing gas data
+    !!
     !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! aerosol_init aero_init_dist.dat # aerosol initial condition file
     !! 
     !! temp_profile temp.dat           # temperature profile file
     !! height_profile height.dat       # height profile file
@@ -694,10 +681,6 @@ contains
     !! altitude 0                      # altitude (m)
     !! start_time 0                    # start time (s since 00:00 UTC)
     !! start_day 1                     # start day of year (UTC)
-    !! 
-    !! soln golovin_exp                # solution type
-    !! num_conc 1e9                    # particle number concentration (#/m^3)
-    !! mean_radius 1e-5                # mean radius (m)
     !! </pre>
 
     ! only serial code here
@@ -710,9 +693,10 @@ contains
     call aero_data_allocate(aero_data)
     call env_data_allocate(env_data)
     call env_state_allocate(env_state)
-    call aero_dist_allocate(exact_opt%aero_dist_init)
+    call aero_dist_allocate(aero_dist_init)
 
     call spec_file_read_string(file, 'output_prefix', exact_opt%prefix)
+    call spec_file_read_kernel_type(file, exact_opt%kernel_type)
 
     call spec_file_read_real(file, 't_max', exact_opt%t_max)
     call spec_file_read_real(file, 't_output', exact_opt%t_output)
@@ -729,55 +713,30 @@ contains
     call spec_file_read_aero_data(sub_file, aero_data)
     call spec_file_close(sub_file)
 
+    call spec_file_read_string(file, 'aerosol_init', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_close(sub_file)
+
     call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
          env_data)
     call spec_file_read_env_state(file, env_state)
 
-    call spec_file_read_string(file, 'soln', soln_name)
-
-    if (trim(soln_name) == 'golovin_exp') then
-       call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
-       call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
-    elseif (trim(soln_name) == 'constant_exp_cond') then
-       call spec_file_read_real(file, 'num_conc', exact_opt%num_conc)
-       call spec_file_read_real(file, 'mean_radius', exact_opt%mean_radius)
-    elseif (trim(soln_name) == 'zero') then
-       call spec_file_read_string(file, 'aerosol_init', sub_filename)
-       call spec_file_open(sub_filename, sub_file)
-       call spec_file_read_aero_dist(sub_file, aero_data, &
-            exact_opt%aero_dist_init)
-       call spec_file_close(sub_file)
-    else
-       call die_msg(955390033, 'unknown solution type: ' &
-            // trim(soln_name))
-    end if
-    
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
 
     call env_data_init_state(env_data, env_state, 0d0)
 
-    if (trim(soln_name) == 'golovin_exp') then
-       call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_golovin_exp)
-    elseif (trim(soln_name) == 'golovin_exp') then
-       call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_constant_exp_cond)
-    elseif (trim(soln_name) == 'zero') then
-       call run_exact(bin_grid, env_data, env_state, aero_data, exact_opt, &
-            soln_zero)
-    else
-       call die_msg(859292825, 'unknown solution type: ' &
-            // trim(soln_name))
-    end if
+    call run_exact(bin_grid, env_data, env_state, aero_data, &
+         aero_dist_init, exact_opt)
 
     call aero_data_deallocate(aero_data)
     call env_data_deallocate(env_data)
     call env_state_deallocate(env_state)
     call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
-    call aero_dist_deallocate(exact_opt%aero_dist_init)
+    call aero_dist_deallocate(aero_dist_init)
     
   end subroutine partmc_exact
 

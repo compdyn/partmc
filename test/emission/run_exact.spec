@@ -1,5 +1,6 @@
 run_type exact                  # Monte Carlo
 output_prefix out/emission_exact # prefix of output files
+kernel zero                     # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 t_output 1200                   # output interval (0 disables) (s)
@@ -9,7 +10,9 @@ r_min 1e-8                      # minimum radius (m)
 r_max 1e-3                      # maximum radius (m)
 
 gas_data gas_data.dat           # file containing gas data
+
 aerosol_data aero_data.dat      # file containing aerosol data
+aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
@@ -25,6 +28,3 @@ longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
-
-soln zero                       # solution type
-aerosol_init aero_init_dist.dat # aerosol initial condition file

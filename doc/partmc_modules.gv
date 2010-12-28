@@ -12,6 +12,7 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref bin_grid.f90"] bin_grid
     node [shape = box, peripheries = 1, href = "\ref aero_dist.f90"] aero_dist
     node [shape = box, peripheries = 1, href = "\ref aero_binned.f90"] aero_binned
+    node [shape = box, peripheries = 1, href = "\ref exact_soln.f90"] exact_soln
     node [shape = box, peripheries = 1, href = "\ref kernel_constant.f90"] kernel_constant
     node [shape = box, peripheries = 1, href = "\ref kernel_zero.f90"] kernel_zero
     node [shape = box, peripheries = 1, href = "\ref kernel_brown.f90"] kernel_brown
@@ -27,6 +28,7 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
     node [shape = box, peripheries = 1, href = "\ref env_state.f90"] env_state
     node [shape = box, peripheries = 1, href = "\ref gas_state.f90"] gas_state
+    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_centralized.f90"] coagulation_mpi_centralized
     node [shape = box, peripheries = 1, href = "\ref aero_state.f90"] aero_state
     node [shape = box, peripheries = 1, href = "\ref aero_particle.f90"] aero_particle
     node [shape = box, peripheries = 1, href = "\ref mpi.f90"] mpi
@@ -63,6 +65,8 @@ digraph partmc_modules {
     aero_dist -> aero_mode
     aero_binned -> aero_particle
     aero_binned -> aero_dist
+    exact_soln -> kernel
+    exact_soln -> env_data
     kernel_constant -> env_state
     kernel_zero -> env_state
     kernel_brown -> env_state
@@ -83,6 +87,7 @@ digraph partmc_modules {
     env_state -> gas_state
     env_state -> aero_state
     gas_state -> gas_data
+    coagulation_mpi_centralized -> coagulation
     aero_state -> aero_weight
     aero_state -> aero_info_array
     aero_state -> aero_particle_array
@@ -104,6 +109,7 @@ digraph partmc_modules {
     bin_average_size -> output
     run_part -> coagulation_mpi_controlled
     run_part -> coagulation_mpi_equal
+    run_part -> coagulation_mpi_centralized
     run_part -> nucleate
     run_part -> mosaic
     run_part -> condense
@@ -112,8 +118,8 @@ digraph partmc_modules {
     aero_particle_array -> aero_particle
     coagulation -> kernel
     output -> env_state
-    run_exact -> env_data
     run_exact -> output
+    run_exact -> exact_soln
     aero_info -> mpi
     aero_info -> spec_file
 }

@@ -23,6 +23,8 @@ temp when updating rel_humid.
 
 Weighting D_0 selection --- shouldn't need it.
 
+Rename n_part_max -> n_part_ideal in run_part.
+
 ######################################################################
 
 User-visible changes:

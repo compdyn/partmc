@@ -27,12 +27,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t in parallel by centralizing on node 0.
-  subroutine mc_coag_mpi_centralized(kernel_type, bin_grid, env_state, &
+  subroutine mc_coag_mpi_centralized(coag_kernel_type, bin_grid, env_state, &
        aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
        tot_n_coag)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -59,7 +59,7 @@ contains
     call aero_state_allocate(aero_state_total)
     call aero_state_mpi_gather(aero_state, aero_state_total)
     if (pmc_mpi_rank() == 0) then
-       call mc_coag(kernel_type, bin_grid, env_state, aero_data, &
+       call mc_coag(coag_kernel_type, bin_grid, env_state, aero_data, &
             aero_weight, aero_state_total, del_t, k_max, tot_n_samp, &
             tot_n_coag)
     end if

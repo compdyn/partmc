@@ -25,11 +25,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag(kernel_type, bin_grid, env_state, aero_data, &
+  subroutine mc_coag(coag_kernel_type, bin_grid, env_state, aero_data, &
        aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -69,7 +69,7 @@ contains
                 exit
              end if
              call maybe_coag_pair(bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, i, j, kernel_type, &
+                  aero_weight, aero_state, i, j, coag_kernel_type, &
                   accept_factor, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
@@ -144,8 +144,8 @@ contains
   !!
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
-  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, b1, b2, kernel_type, accept_factor, did_coag)
+  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, aero_weight, &
+       aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -162,7 +162,7 @@ contains
     !> Bin of second particle.
     integer, intent(in) :: b2
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Scale factor for accept probability (1).
     real(kind=dp), intent(in) :: accept_factor
     !> Whether a coagulation occured.
@@ -180,7 +180,7 @@ contains
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    call weighted_kernel(kernel_type, aero_state%bin(b1)%particle(s1), &
+    call weighted_kernel(coag_kernel_type, aero_state%bin(b1)%particle(s1), &
          aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
          env_state, k)
     p = k * accept_factor

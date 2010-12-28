@@ -43,7 +43,7 @@ module pmc_run_sect
     !> Output prefix.
      character(len=300) :: prefix
     !> Type of coagulation kernel.
-    integer :: kernel_type
+    integer :: coag_kernel_type
      !> UUID of the simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_sect_opt_t
@@ -124,7 +124,7 @@ contains
     
     ! precompute kernel values for all pairs of bins
     call bin_kernel(bin_grid%n_bin, bin_grid%center_radius, aero_data, &
-         sect_opt%kernel_type, env_state, k_bin)
+         sect_opt%coag_kernel_type, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin

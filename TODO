@@ -11,7 +11,12 @@ input files. What about exponential distributions?
 
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
-Rename "kernel" to "coag" in input files and elsewhere.
+left justify integer_to_string etc?
+
+Rename part_opt to run_part_opt, etc in partmc.f90 and run_part.f90,
+and for sect and exact.
+
+Include scenarios in README and distribution tarball.
 
 ######################################################################
 
@@ -20,6 +25,12 @@ User-visible changes:
 r_min/r_max -> d_min/d_max, now edges
 
 n_loop -> n_repeat
+
+kernel -> coag_kernel
+
+added do_nucleation (removed "nucleate")
+
+rearraged order of do_* parameters
 
 ######################################################################
 

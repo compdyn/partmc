@@ -49,11 +49,13 @@ module pmc_run_part
      !> Prefix for output files.
      character(len=300) :: output_prefix
      !> Type of coagulation kernel.
-     integer :: kernel_type
+     integer :: coag_kernel_type
      !> Type of nucleation.
      integer :: nucleate_type
      !> Whether to do coagulation.
      logical :: do_coagulation
+     !> Whether to do nucleation.
+     logical :: do_nucleation
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -143,8 +145,10 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    call est_k_max_binned(bin_grid, part_opt%kernel_type, aero_data, &
-         aero_weight, env_state, k_max)
+    if (part_opt%do_coagulation) then
+       call est_k_max_binned(bin_grid, part_opt%coag_kernel_type, aero_data, &
+            aero_weight, env_state, k_max)
+    end if
 
     if (part_opt%do_mosaic) then
        call mosaic_init(bin_grid, env_state, part_opt%del_t, &
@@ -155,8 +159,8 @@ contains
        call output_state(part_opt%output_prefix, part_opt%output_type, &
             bin_grid, aero_data, aero_weight, aero_state, gas_data, &
             gas_state, env_state, i_state, time, part_opt%del_t, &
-            part_opt%i_repeat, part_opt%record_removals, part_opt%do_optical, &
-            part_opt%uuid)
+            part_opt%i_repeat, part_opt%record_removals, &
+            part_opt%do_optical, part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -191,24 +195,28 @@ contains
        update_rel_humid = .not. part_opt%do_condensation
        call env_data_update_state(env_data, env_state, time + t_start, &
             update_rel_humid)
-       call nucleate(part_opt%nucleate_type, bin_grid, env_state, gas_data, &
-            aero_data, aero_weight, aero_state, gas_state, part_opt%del_t)
+
+       if (part_opt%do_nucleation) then
+          call nucleate(part_opt%nucleate_type, bin_grid, env_state, &
+               gas_data, aero_data, aero_weight, aero_state, gas_state, &
+               part_opt%del_t)
+       end if
 
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then
-             call mc_coag(part_opt%kernel_type, bin_grid, env_state, &
+             call mc_coag(part_opt%coag_kernel_type, bin_grid, env_state, &
                   aero_data, aero_weight, aero_state, part_opt%del_t, k_max, &
                   tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "collect") then
-             call mc_coag_mpi_centralized(part_opt%kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, &
+             call mc_coag_mpi_centralized(part_opt%coag_kernel_type, &
+                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "central") then
-             call mc_coag_mpi_controlled(part_opt%kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, &
+             call mc_coag_mpi_controlled(part_opt%coag_kernel_type, &
+                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "dist") then
-             call mc_coag_mpi_equal(part_opt%kernel_type, bin_grid, &
+             call mc_coag_mpi_equal(part_opt%coag_kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
                   part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           else
@@ -303,7 +311,8 @@ contains
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
                 prop_done = (real(part_opt%i_repeat - 1, kind=dp) &
-                     + time / part_opt%t_max) / real(part_opt%n_repeat, kind=dp)
+                     + time / part_opt%t_max) &
+                     / real(part_opt%n_repeat, kind=dp)
                 t_wall_elapsed = t_wall_now - part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed
@@ -321,7 +330,7 @@ contains
           end if
        end if
        
-    enddo
+    end do
 
     if (part_opt%do_mosaic) then
        call mosaic_cleanup()
@@ -346,11 +355,12 @@ contains
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
-         + pmc_mpi_pack_size_integer(val%kernel_type) &
+         + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
+         + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
@@ -389,9 +399,10 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
-    call pmc_mpi_pack_integer(buffer, position, val%kernel_type)
+    call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
@@ -435,11 +446,12 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
-    call pmc_mpi_unpack_integer(buffer, position, val%kernel_type)
+    call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)

@@ -258,8 +258,6 @@ contains
     !!   simulate (actual number used will vary between <tt>n_part /
     !!   2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
     !!   allow_halving are \c yes)
-    !! - \subpage input_format_coag_kernel
-    !! - \subpage input_format_nucleate
     !! - \b restart (logical): whether to restart the simulation
     !!   from a saved output data file
     !! - \b restart_file (string): name of file from which to load
@@ -291,21 +289,10 @@ contains
     !!   be \subpage input_format_aero_dist
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
-    !! - \b rand_init (integer): if greater than zero then use as
-    !!   the seed for the random number generator, or if zero then
-    !!   generate a random seed for the random number generator ---
-    !!   two simulations on the same machine with the same seed
-    !!   (greater than 0) will produce identical output
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation
-    !! - \b allow_doubling (logical): if \c yes, then whenever the
-    !!   number of simulated particles falls below <tt>n_part /
-    !!   2</tt>, every particle is duplicated to give better
-    !!   statistics
-    !! - \b allow_halving (logical): if \c yes, then whenever the
-    !!   number of simulated particles rises above <tt>n_part *
-    !!   2</tt>, half of the particles are removed (chosen randomly)
-    !!   to reduce the computational expense
+    !! - \subpage input_format_coag_kernel (only provide option if
+    !!   \c do_coagulation is \c yes)
     !! - \b do_condensation (logical): whether to perform explicit
     !!   water condensation (requires SUNDIALS support to be
     !!   compiled in; cannot be used simultaneously with MOSAIC)
@@ -316,6 +303,23 @@ contains
     !!   properties of the aersol particles for the output files ---
     !!   see output_format_aero_state (only provide option if \c
     !!   do_mosaic is \c yes)
+    !! - \b do_nucleation (logical): whether to perform particle
+    !!   nucleation
+    !! - \subpage input_format_nucleate (only provide option if \c
+    !!   do_nucleation is \c yes)
+    !! - \b rand_init (integer): if greater than zero then use as
+    !!   the seed for the random number generator, or if zero then
+    !!   generate a random seed for the random number generator ---
+    !!   two simulations on the same machine with the same seed
+    !!   (greater than 0) will produce identical output
+    !! - \b allow_doubling (logical): if \c yes, then whenever the
+    !!   number of simulated particles falls below <tt>n_part /
+    !!   2</tt>, every particle is duplicated to give better
+    !!   statistics
+    !! - \b allow_halving (logical): if \c yes, then whenever the
+    !!   number of simulated particles rises above <tt>n_part *
+    !!   2</tt>, half of the particles are removed (chosen randomly)
+    !!   to reduce the computational expense
     !! - \b record_removals (logical): whether to record information
     !!   about aerosol particles removed from the simulation --- see
     !!   \ref output_format_aero_removed
@@ -367,8 +371,6 @@ contains
             part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_repeat', part_opt%n_repeat)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
-       call spec_file_read_kernel_type(file, part_opt%kernel_type)
-       call spec_file_read_nucleate(file, part_opt%nucleate_type)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -421,19 +423,22 @@ contains
             env_data)
        call spec_file_read_env_state(file, env_state_init)
        
-       call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'do_coagulation', &
             part_opt%do_coagulation)
-       call spec_file_read_logical(file, 'allow_doubling', &
-            part_opt%allow_doubling)
-       call spec_file_read_logical(file, 'allow_halving', &
-            part_opt%allow_halving)
+       if (part_opt%do_coagulation) then
+          call spec_file_read_coag_kernel_type(file, &
+               part_opt%coag_kernel_type)
+       else
+          part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+       end if
+
        call spec_file_read_logical(file, 'do_condensation', &
             part_opt%do_condensation)
 #ifndef PMC_USE_SUNDIALS
        call assert_msg(121370218, part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
+
        call spec_file_read_logical(file, 'do_mosaic', part_opt%do_mosaic)
        if (part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
@@ -444,6 +449,20 @@ contains
        else
           part_opt%do_optical = .false.
        end if
+
+       call spec_file_read_logical(file, 'do_nucleation', &
+            part_opt%do_nucleation)
+       if (part_opt%do_nucleation) then
+          call spec_file_read_nucleate_type(file, part_opt%nucleate_type)
+       else
+          part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
+       end if
+
+       call spec_file_read_integer(file, 'rand_init', rand_init)
+       call spec_file_read_logical(file, 'allow_doubling', &
+            part_opt%allow_doubling)
+       call spec_file_read_logical(file, 'allow_halving', &
+            part_opt%allow_halving)
        call spec_file_read_logical(file, 'record_removals', &
             part_opt%record_removals)
 
@@ -642,7 +661,6 @@ contains
     !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
     !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
     !!   and incremented each time the state is output)
-    !! - \subpage input_format_coag_kernel
     !! - \b t_max (real, unit s): total simulation time
     !! - \b t_output (real, unit s): the interval on which to output
     !!   data to disk and to print progress information to the screen
@@ -659,12 +677,15 @@ contains
     !!   format should be \subpage input_format_aero_dist
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
+    !! - \b do_coagulation (logical): whether to perform particle
+    !!   coagulation
+    !! - \subpage input_format_coag_kernel (only provide option if
+    !!   \c do_coagulation is \c yes)
     !!
     !! Example:
     !! <pre>
     !! run_type exact                  # exact solution
     !! output_prefix additive_exact    # prefix of output files
-    !! kernel additive                 # Additive coagulation kernel
     !! 
     !! t_max 600                       # total simulation time (s)
     !! t_output 60                     # output interval (0 disables) (s)
@@ -692,6 +713,9 @@ contains
     !! altitude 0                      # altitude (m)
     !! start_time 0                    # start time (s since 00:00 UTC)
     !! start_day 1                     # start day of year (UTC)
+    !!
+    !! do_coagulation yes              # whether to do coagulation (yes/no)
+    !! kernel additive                 # Additive coagulation kernel
     !! </pre>
 
     ! only serial code here
@@ -707,7 +731,6 @@ contains
     call aero_dist_allocate(aero_dist_init)
 
     call spec_file_read_string(file, 'output_prefix', exact_opt%prefix)
-    call spec_file_read_kernel_type(file, exact_opt%kernel_type)
 
     call spec_file_read_real(file, 't_max', exact_opt%t_max)
     call spec_file_read_real(file, 't_output', exact_opt%t_output)
@@ -733,6 +756,14 @@ contains
          env_data)
     call spec_file_read_env_state(file, env_state)
 
+    call spec_file_read_logical(file, 'do_coagulation', &
+         exact_opt%do_coagulation)
+    if (exact_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, exact_opt%coag_kernel_type)
+    else
+       exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+    
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -782,7 +813,6 @@ contains
     !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
     !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
     !!   and incremented each time the state is output)
-    !! - \subpage input_format_coag_kernel
     !! - \b del_t (real, unit s): timestep size
     !! - \b t_output (real, unit s): the interval on which to
     !!   output data to disk (see \ref output_format)
@@ -802,12 +832,13 @@ contains
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation
+    !! - \subpage input_format_coag_kernel (only provide option if
+    !!   \c do_coagulation is \c yes)
     !!
     !! Example:
     !! <pre>
     !! run_type sectional              # sectional code run
     !! output_prefix brown_sect        # prefix of output files
-    !! kernel brown                    # coagulation kernel
     !! 
     !! t_max 86400                     # total simulation time (s)
     !! del_t 60                        # timestep (s)
@@ -838,6 +869,7 @@ contains
     !! start_day 1                     # start day of year (UTC)
     !! 
     !! do_coagulation yes              # whether to do coagulation (yes/no)
+    !! kernel brown                    # coagulation kernel
     !! </pre>
 
     ! only serial code here
@@ -853,7 +885,6 @@ contains
     call gas_data_allocate(gas_data)
 
     call spec_file_read_string(file, 'output_prefix', sect_opt%prefix)
-    call spec_file_read_kernel_type(file, sect_opt%kernel_type)
 
     call spec_file_read_real(file, 't_max', sect_opt%t_max)
     call spec_file_read_real(file, 'del_t', sect_opt%del_t)
@@ -883,6 +914,11 @@ contains
 
     call spec_file_read_logical(file, 'do_coagulation', &
          sect_opt%do_coagulation)
+    if (sect_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, sect_opt%coag_kernel_type)
+    else
+       sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
     
     call spec_file_close(file)
 

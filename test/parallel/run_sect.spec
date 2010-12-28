@@ -1,6 +1,5 @@
 run_type sectional              # sectional code run
 output_prefix out/sect # prefix of output files
-kernel brown                    # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
@@ -31,3 +30,4 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
+coag_kernel brown               # coagulation kernel

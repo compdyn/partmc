@@ -1,6 +1,5 @@
 run_type sectional              # sectional code run
 output_prefix out/sedi_sect     # prefix of output files
-kernel sedi                     # coagulation kernel
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
@@ -31,3 +30,4 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
+coag_kernel sedi                # coagulation kernel

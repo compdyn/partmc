@@ -31,12 +31,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_mpi_controlled(kernel_type, bin_grid, env_state, &
+  subroutine mc_coag_mpi_controlled(coag_kernel_type, bin_grid, env_state, &
        aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
        tot_n_coag)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -94,7 +94,8 @@ contains
                 end if
                 call maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
                      aero_data, aero_weight, aero_state, i, j, &
-                     kernel_type, accept_factor, did_coag, n_parts, comp_vols)
+                     coag_kernel_type, accept_factor, did_coag, n_parts, &
+                     comp_vols)
                 if (did_coag) tot_n_coag = tot_n_coag + 1
              enddo
           enddo
@@ -361,7 +362,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, b1, b2, kernel_type, &
+       aero_data, aero_weight, aero_state, b1, b2, coag_kernel_type, &
        accept_factor, did_coag, n_parts, comp_vols)
 
     !> Bin grid.
@@ -379,7 +380,7 @@ contains
     !> Bin of second particle.
     integer, intent(in) :: b2
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Scale factor for accept probability (1).
     real(kind=dp), intent(in) :: accept_factor
     !> Whether a coagulation occured.
@@ -407,7 +408,7 @@ contains
     call find_rand_pair_mpi_controlled(n_parts, b1, b2, p1, p2, s1, s2)
     call coag_remote_fetch_particle(aero_state, p1, b1, s1, particle_1)
     call coag_remote_fetch_particle(aero_state, p2, b2, s2, particle_2)
-    call weighted_kernel(kernel_type, particle_1, &
+    call weighted_kernel(coag_kernel_type, particle_1, &
          particle_2, aero_data, aero_weight, env_state, k)
     p = k * accept_factor
 

@@ -103,11 +103,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_mpi_equal(kernel_type, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
+  subroutine mc_coag_mpi_equal(coag_kernel_type, bin_grid, env_state, &
+       aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
+       tot_n_coag)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -186,8 +187,8 @@ contains
 
        ! receive exactly one message
        call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state, accept_factors, kernel_type, tot_n_coag, &
-            comp_vols, procs_done)
+            aero_weight, aero_state, accept_factors, coag_kernel_type, &
+            tot_n_coag, comp_vols, procs_done)
     end do
 
     do i_req = 1,COAG_EQUAL_MAX_REQUESTS
@@ -209,8 +210,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, accept_factors, kernel_type, tot_n_coag, &
-       comp_vols, procs_done)
+       aero_weight, aero_state, accept_factors, coag_kernel_type, &
+       tot_n_coag, comp_vols, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
@@ -228,7 +229,7 @@ contains
     real(kind=dp), intent(out) :: &
          accept_factors(bin_grid%n_bin,bin_grid%n_bin)
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processors.
@@ -248,7 +249,7 @@ contains
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, bin_grid, &
             env_state, aero_data, aero_weight, aero_state, accept_factors, &
-            kernel_type, tot_n_coag, comp_vols)
+            coag_kernel_type, tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state, bin_grid)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_NO_PARTICLE) then
@@ -577,7 +578,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine recv_return_req_particle(requests, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, accept_factors, kernel_type, &
+       aero_data, aero_weight, aero_state, accept_factors, coag_kernel_type, &
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
@@ -596,7 +597,7 @@ contains
     real(kind=dp), intent(out) :: &
          accept_factors(bin_grid%n_bin,bin_grid%n_bin)
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processors.
@@ -641,7 +642,8 @@ contains
     call assert(579308475, found_request)
     
     ! maybe do coagulation
-    call weighted_kernel(kernel_type, requests(i_req)%local_aero_particle, &
+    call weighted_kernel(coag_kernel_type, &
+         requests(i_req)%local_aero_particle, &
          sent_aero_particle, aero_data, aero_weight, env_state, k)
     p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 

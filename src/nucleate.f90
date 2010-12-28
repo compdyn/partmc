@@ -17,10 +17,8 @@ module pmc_nucleate
 
   !> Type code for unknown or invalid nucleation type.
   integer, parameter :: NUCLEATE_TYPE_INVALID   = 0
-  !> Type code for no nucleation.
-  integer, parameter :: NUCLEATE_TYPE_NONE      = 1
   !> Type code for H2SO4 to SO4 nucleation with quadratic rate.
-  integer, parameter :: NUCLEATE_TYPE_SULF_ACID = 2
+  integer, parameter :: NUCLEATE_TYPE_SULF_ACID = 1
   
 contains
 
@@ -52,8 +50,6 @@ contains
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
        call nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
             aero_weight, aero_state, gas_state, del_t)
-    elseif (nucleate_type == NUCLEATE_TYPE_NONE) then
-       ! do nothing
     else
        call die_msg(983831728, &
             "unknown nucleation type: " &
@@ -164,7 +160,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_file_read_nucleate(file, nucleate_type)
+  subroutine spec_file_read_nucleate_type(file, nucleate_type)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -185,16 +181,14 @@ contains
     !!   - \ref spec_file_format --- the input file text format
 
     call spec_file_read_string(file, 'nucleate', nucleate_type_name)
-    if (nucleate_type_name == 'none') then
-       nucleate_type = NUCLEATE_TYPE_NONE
-    elseif (nucleate_type_name == 'sulf_acid') then
+    if (nucleate_type_name == 'sulf_acid') then
        nucleate_type = NUCLEATE_TYPE_SULF_ACID
     else
        call spec_file_die_msg(707263678, file, "unknown nucleate type: " &
             // trim(nucleate_type_name))
     end if
 
-  end subroutine spec_file_read_nucleate
+  end subroutine spec_file_read_nucleate_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

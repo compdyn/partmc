@@ -28,8 +28,10 @@ module pmc_run_exact
      real(kind=dp) :: t_output
      !> Output prefix.
      character(len=300) :: prefix
+     !> Whether to do coagulation.
+     logical :: do_coagulation
      !> Type of coagulation kernel.
-     integer :: kernel_type
+     integer :: coag_kernel_type
      !> UUID of the simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_exact_opt_t
@@ -71,8 +73,9 @@ contains
        time = real(i_time, kind=dp) / real(n_time, kind=dp) * exact_opt%t_max
        call env_data_update_state(env_data, env_state, time, &
             update_rel_humid = .true.)
-       call exact_soln(bin_grid, aero_data, exact_opt%kernel_type, &
-            aero_dist_init, env_data, env_state, time, aero_binned)
+       call exact_soln(bin_grid, aero_data, exact_opt%do_coagulation, &
+            exact_opt%coag_kernel_type, aero_dist_init, env_data, &
+            env_state, time, aero_binned)
        call output_sectional(exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &
             time, exact_opt%t_output, exact_opt%uuid)

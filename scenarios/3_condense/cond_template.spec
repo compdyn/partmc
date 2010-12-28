@@ -2,8 +2,6 @@ run_type particle               # Monte Carlo run
 output_prefix %%OUTPUT_PREFIX%% # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1                        # total number of particles
-kernel brown                    # coagulation kernel
-nucleate none                   # nucleation function
 restart yes                     # whether to restart from saved state (yes/no)
 restart_file %%RESTART_FILE%%   # saved state file to restart from
 
@@ -37,11 +35,13 @@ altitude 0                      # altitude (m)
 start_time 21600                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
-rand_init 7                     # random initialization (0 to use time)
 do_coagulation no               # whether to do coagulation (yes/no)
-allow_doubling no               # whether to allow doubling (yes/no)
-allow_halving no                # whether to allow halving (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_nucleation no                # whether to do nucleation (yes/no)
+
+rand_init 7                     # random initialization (0 to use time)
+allow_doubling no               # whether to allow doubling (yes/no)
+allow_halving no                # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

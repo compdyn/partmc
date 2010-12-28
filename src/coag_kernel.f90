@@ -40,38 +40,38 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return a string representation of a kernel type.
-  character(len=COAG_KERNEL_TYPE_LEN) function kernel_type_to_string( &
-       kernel_type)
+  character(len=COAG_KERNEL_TYPE_LEN) function coag_kernel_type_to_string( &
+       coag_kernel_type)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
    
-    if (kernel_type == COAG_KERNEL_TYPE_INVALID) then
-       kernel_type_to_string = "invalid"
-    elseif (kernel_type == COAG_KERNEL_TYPE_SEDI) then
-       kernel_type_to_string = "sedi"
-    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
-       kernel_type_to_string = "additive"
-    elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
-       kernel_type_to_string = "constant"
-    elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
-       kernel_type_to_string = "brown"
-    elseif (kernel_type == COAG_KERNEL_TYPE_ZERO) then
-       kernel_type_to_string = "zero"
+    if (coag_kernel_type == COAG_KERNEL_TYPE_INVALID) then
+       coag_kernel_type_to_string = "invalid"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_SEDI) then
+       coag_kernel_type_to_string = "sedi"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+       coag_kernel_type_to_string = "additive"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
+       coag_kernel_type_to_string = "constant"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN) then
+       coag_kernel_type_to_string = "brown"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
+       coag_kernel_type_to_string = "zero"
     else
-       kernel_type_to_string = "unknown"
+       coag_kernel_type_to_string = "unknown"
     end if
 
-  end function kernel_type_to_string
+  end function coag_kernel_type_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Evalulate a coagulation kernel function.
-  subroutine kernel(kernel_type, aero_particle_1, aero_particle_2, &
+  subroutine kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> First particle.
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle.
@@ -83,24 +83,24 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    if (kernel_type == COAG_KERNEL_TYPE_SEDI) then
+    if (coag_kernel_type == COAG_KERNEL_TYPE_SEDI) then
        call kernel_sedi(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
-    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        call kernel_additive(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
-    elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        call kernel_constant(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
-    elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN) then
        call kernel_brown(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
-    elseif (kernel_type == COAG_KERNEL_TYPE_ZERO) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
     else
        call die_msg(200724934, "Unknown kernel type: " &
-            // trim(integer_to_string(kernel_type)))
+            // trim(integer_to_string(coag_kernel_type)))
     end if
 
   end subroutine kernel
@@ -108,10 +108,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the maximum coagulation kernel.
-  subroutine kernel_max(kernel_type, v1, v2, aero_data, env_state, k_max)
+  subroutine kernel_max(coag_kernel_type, v1, v2, aero_data, env_state, k_max)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
@@ -123,19 +123,19 @@ contains
     !> Maximum kernel value (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    if (kernel_type == COAG_KERNEL_TYPE_SEDI) then
+    if (coag_kernel_type == COAG_KERNEL_TYPE_SEDI) then
        call kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
-    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        call kernel_additive_max(v1, v2, aero_data, env_state, k_max)
-    elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        call kernel_constant_max(v1, v2, aero_data, env_state, k_max)
-    elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN) then
        call kernel_brown_max(v1, v2, aero_data, env_state, k_max)
-    elseif (kernel_type == COAG_KERNEL_TYPE_ZERO) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero_max(v1, v2, aero_data, env_state, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &
-            // trim(integer_to_string(kernel_type)))
+            // trim(integer_to_string(coag_kernel_type)))
     end if
 
   end subroutine kernel_max
@@ -143,11 +143,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the kernel value with the given weight.
-  subroutine weighted_kernel(kernel_type, aero_particle_1, aero_particle_2, &
-       aero_data, aero_weight, env_state, k)
+  subroutine weighted_kernel(coag_kernel_type, aero_particle_1, &
+       aero_particle_2, aero_data, aero_weight, env_state, k)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> First particle.
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle.
@@ -165,8 +165,8 @@ contains
     real(kind=dp) :: radius_1, radius_2, radius_1_plus_2
     real(kind=dp) :: weight_1, weight_2, weight_1_plus_2, weight_min
 
-    call kernel(kernel_type, aero_particle_1, aero_particle_2, aero_data, &
-            env_state, unweighted_k)
+    call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
+         aero_data, env_state, unweighted_k)
     radius_1 = aero_particle_radius(aero_particle_1)
     radius_2 = aero_particle_radius(aero_particle_2)
     radius_1_plus_2 = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
@@ -181,11 +181,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the max kernel value with the given weight.
-  subroutine weighted_kernel_max(kernel_type, v1, v2, aero_data, &
+  subroutine weighted_kernel_max(coag_kernel_type, v1, v2, aero_data, &
        aero_weight, env_state, k_max)
 
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Volume of first particle.
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle.
@@ -202,7 +202,7 @@ contains
     real(kind=dp) :: unweighted_k_max, weight_1, weight_2, weight_1_plus_2
     real(kind=dp) :: weight_min
 
-    call kernel_max(kernel_type, v1, v2, aero_data, env_state, &
+    call kernel_max(coag_kernel_type, v1, v2, aero_data, env_state, &
          unweighted_k_max)
 
     weight_1 = aero_weight_value(aero_weight, vol2rad(v1))
@@ -218,7 +218,8 @@ contains
   !> Computes an array of kernel values for each bin pair. k(i,j) is
   !> the kernel value at the centers of bins i and j. This assumes the
   !> kernel is only a function of the particle volumes.
-  subroutine bin_kernel(n_bin, bin_r, aero_data, kernel_type, env_state, k)
+  subroutine bin_kernel(n_bin, bin_r, aero_data, coag_kernel_type, &
+       env_state, k)
     
     !> Number of bins.
     integer, intent(in) :: n_bin
@@ -227,7 +228,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Kernel values.
@@ -242,7 +243,7 @@ contains
        do j = 1,n_bin
           aero_particle_1%vol(1) = rad2vol(bin_r(i))
           aero_particle_2%vol(1) = rad2vol(bin_r(j))
-          call kernel(kernel_type, aero_particle_1, aero_particle_2, &
+          call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do
     end do
@@ -256,13 +257,13 @@ contains
   !> Estimate an array of maximum kernel values. Given particles v1 in
   !> bin b1 and v2 in bin b2, it is probably true that kernel(v1,v2)
   !> <= k_max(b1,b2).
-  subroutine est_k_max_binned(bin_grid, kernel_type, aero_data, &
+  subroutine est_k_max_binned(bin_grid, coag_kernel_type, aero_data, &
        aero_weight, env_state, k_max)
 
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -276,8 +277,8 @@ contains
     
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call est_k_max_for_bin(bin_grid, kernel_type, i, j, aero_data, &
-               aero_weight, env_state, k_max(i,j))
+          call est_k_max_for_bin(bin_grid, coag_kernel_type, i, j, &
+               aero_data, aero_weight, env_state, k_max(i,j))
        end do
     end do
     
@@ -287,13 +288,13 @@ contains
 
   !> Samples within bins b1 and b2 to find the maximum value of the
   !> kernel between particles from the two bins.
-  subroutine est_k_max_for_bin(bin_grid, kernel_type, b1, b2, aero_data, &
-       aero_weight, env_state, k_max)
+  subroutine est_k_max_for_bin(bin_grid, coag_kernel_type, b1, b2, &
+       aero_data, aero_weight, env_state, k_max)
    
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> First bin.
     integer, intent(in) :: b1
     !> Second bin.
@@ -328,7 +329,7 @@ contains
        do j = 1,n_sample
           v1 = interp_linear_disc(v1_low, v1_high, n_sample, i)
           v2 = interp_linear_disc(v2_low, v2_high, n_sample, j)
-          call weighted_kernel_max(kernel_type, v1, v2, aero_data, &
+          call weighted_kernel_max(coag_kernel_type, v1, v2, aero_data, &
                aero_weight, env_state, k)
           if (k .gt. k_max) k_max = k
        end do
@@ -342,44 +343,44 @@ contains
 
   !> Read the specification for a kernel type from a spec file and
   !> generate it.
-  subroutine spec_file_read_kernel_type(file, kernel_type)
+  subroutine spec_file_read_coag_kernel_type(file, coag_kernel_type)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Kernel type.
-    integer, intent(out) :: kernel_type
+    integer, intent(out) :: coag_kernel_type
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: kernel_name
 
     !> \page input_format_coag_kernel Input File Format: Coagulation Kernel
     !!
     !! The coagulation kernel is specified by the parameter:
-    !!   - \b kernel (string): the type of coagulation kernel --- must
-    !!     be one of: \c sedi for the gravitational sedimentation
-    !!     kernel; \c additive for the additive kernel;
-    !!     \c constant for the constant kernel; \c brown for the
-    !!     Brownian kernel, or \c zero for no coagulation
+    !!   - \b coag_kernel (string): the type of coagulation kernel ---
+    !!     must be one of: \c sedi for the gravitational sedimentation
+    !!     kernel; \c additive for the additive kernel; \c constant
+    !!     for the constant kernel; \c brown for the Brownian kernel,
+    !!     or \c zero for no coagulation
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
 
-    call spec_file_read_string(file, 'kernel', kernel_name)
+    call spec_file_read_string(file, 'coag_kernel', kernel_name)
     if (trim(kernel_name) == 'sedi') then
-       kernel_type = COAG_KERNEL_TYPE_SEDI
+       coag_kernel_type = COAG_KERNEL_TYPE_SEDI
     elseif (trim(kernel_name) == 'additive') then
-       kernel_type = COAG_KERNEL_TYPE_ADDITIVE
+       coag_kernel_type = COAG_KERNEL_TYPE_ADDITIVE
     elseif (trim(kernel_name) == 'constant') then
-       kernel_type = COAG_KERNEL_TYPE_CONSTANT
+       coag_kernel_type = COAG_KERNEL_TYPE_CONSTANT
     elseif (trim(kernel_name) == 'brown') then
-       kernel_type = COAG_KERNEL_TYPE_BROWN
+       coag_kernel_type = COAG_KERNEL_TYPE_BROWN
     elseif (trim(kernel_name) == 'zero') then
-       kernel_type = COAG_KERNEL_TYPE_ZERO
+       coag_kernel_type = COAG_KERNEL_TYPE_ZERO
     else
        call spec_file_die_msg(494684716, file, &
-            "Unknown kernel type: " // trim(kernel_name))
+            "Unknown coagulation kernel type: " // trim(kernel_name))
     end if
 
-  end subroutine spec_file_read_kernel_type
+  end subroutine spec_file_read_coag_kernel_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

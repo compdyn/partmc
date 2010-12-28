@@ -25,15 +25,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  subroutine exact_soln(bin_grid, aero_data, kernel_type, aero_dist_init, &
-       env_data, env_state, time, aero_binned)
+  subroutine exact_soln(bin_grid, aero_data, do_coagulation, &
+       coag_kernel_type, aero_dist_init, env_data, env_state, time, &
+       aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to do coagulation.
+    logical, intent(in) :: do_coagulation
     !> Coagulation kernel type.
-    integer, intent(in) :: kernel_type
+    integer, intent(in) :: coag_kernel_type
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment data.
@@ -45,7 +48,12 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    if (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+    if (.not. do_coagulation) then
+       call die_msg(287486666, 'Exact solutions require coagulation ' &
+            // '(can set coag_kernel to "zero").')
+    end if
+
+    if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        ! FIXME: check env_data has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(827813758, "Exact solution with additive kernel " &
@@ -61,7 +69,7 @@ contains
        call soln_additive_exp(bin_grid, aero_data, time, &
             aero_dist_init%mode(1)%num_conc, &
             aero_dist_init%mode(1)%mean_radius, env_state, aero_binned)
-    elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        ! FIXME: check env_data has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(827813758, "Exact solution with constant kernel " &
@@ -77,15 +85,15 @@ contains
        call soln_constant_exp(bin_grid, aero_data, time, &
             aero_dist_init%mode(1)%num_conc, &
             aero_dist_init%mode(1)%mean_radius, env_state, aero_binned)
-    elseif (kernel_type == COAG_KERNEL_TYPE_ZERO) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        ! FIXME: check env_data has constant emissions and constant dilution
        call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
             env_state, aero_binned)
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &
-            // trim(integer_to_string(kernel_type)) &
-            // " (" // kernel_type_to_string(kernel_type) // ")")
+            // trim(integer_to_string(coag_kernel_type)) &
+            // " (" // coag_kernel_type_to_string(coag_kernel_type) // ")")
     end if
 
   end subroutine exact_soln

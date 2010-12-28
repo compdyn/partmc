@@ -2,8 +2,6 @@ run_type particle               # particle-resolved run
 output_prefix out/nucleate_part # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
-kernel sedi                     # coagulation kernel
-nucleate sulf_acid              # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 3600                      # total simulation time (s)
@@ -38,11 +36,14 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-rand_init 0                     # random initialization (0 to auto-generate)
 do_coagulation no               # whether to do coagulation (yes/no)
-allow_doubling no               # whether to allow doubling (yes/no)
-allow_halving yes               # whether to allow halving (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_nucleation yes               # whether to do nucleation (yes/no)
+nucleate sulf_acid              # nucleation parameterization
+
+rand_init 0                     # random initialization (0 to auto-generate)
+allow_doubling no               # whether to allow doubling (yes/no)
+allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

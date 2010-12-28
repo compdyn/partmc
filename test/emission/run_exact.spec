@@ -1,6 +1,5 @@
 run_type exact                  # Monte Carlo
 output_prefix out/emission_exact # prefix of output files
-kernel zero                     # coagulation kernel
 
 t_max 86400                     # total simulation time (s)
 t_output 1200                   # output interval (0 disables) (s)
@@ -28,3 +27,6 @@ longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
+
+do_coagulation yes              # whether to do coagulation (yes/no)
+coag_kernel zero                # coagulation kernel

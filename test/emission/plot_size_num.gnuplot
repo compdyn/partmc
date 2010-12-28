@@ -4,9 +4,9 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale x
-set xlabel "radius / m"
+set xlabel "diameter / m"
 set ylabel "number concentration / (1/m^3)"
-set xrange [1e-5:1e-4]
+set xrange [1e-5:1e-3]
 
 plot "out/emission_part_size_num.txt" using 1:2 title "particle t = 0 hours"
 replot "out/emission_part_size_num.txt" using 1:38 title "particle t = 12 hours"

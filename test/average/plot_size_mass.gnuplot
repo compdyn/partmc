@@ -4,7 +4,7 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale x
-set xlabel "radius / m"
+set xlabel "diameter / m"
 set ylabel "mass concentration / (kg/m^3)"
 
 set xrange [1e-9:1e-6]

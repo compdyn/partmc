@@ -32,7 +32,7 @@ program extract_aero_particle_mass
   integer, dimension(nf90_max_var_dims) :: dimids
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time, i
-  real(kind=dp) :: radius, volume
+  real(kind=dp) :: diameter, volume
 
   ! process commandline arguments
   if (command_argument_count() .ne. 2) then
@@ -147,7 +147,7 @@ program extract_aero_particle_mass
   write(*,'(a)') "  The columns of output are:"
   write(*,'(a)') "    column  1: particle ID number"
   write(*,'(a)') "    column  2: computational volume (m^3)"
-  write(*,'(a)') "    column  3: particle radius (m)"
+  write(*,'(a)') "    column  3: particle diameter (m)"
   write(*,'(a)') "    column  4: particle total mass (kg)"
   remaining_species = aero_species_names
   do i_spec = 1,n_aero_species
@@ -176,9 +176,8 @@ program extract_aero_particle_mass
      write(out_unit, '(e30.15e3)', advance='no') &
           aero_comp_vol(i_part)
      volume = sum(aero_particle_mass(i_part,:) / aero_density)
-     radius = (volume / (4d0 / 3d0 &
-          * 3.14159265358979323846d0))**(1d0/3d0)
-     write(out_unit, '(e30.15e3)', advance='no') radius
+     diameter = (volume / (3.14159265358979323846d0 / 6d0))**(1d0/3d0)
+     write(out_unit, '(e30.15e3)', advance='no') diameter
      write(out_unit, '(e30.15e3)', advance='no') &
           sum(aero_particle_mass(i_part,:))
      do i_spec = 1,n_aero_species

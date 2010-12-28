@@ -4,7 +4,7 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale
-set xlabel "radius / m"
+set xlabel "diameter / m"
 set ylabel "number concentration / (1/m^3)"
 
 plot "out/bidisperse_part_aero_size_num.txt" using 1:2 with linespoints title "particle initial condition"

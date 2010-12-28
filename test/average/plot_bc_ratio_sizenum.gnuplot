@@ -4,7 +4,7 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale x
-set xlabel "radius / m"
+set xlabel "diameter / m"
 set ylabel "BC ratio"
 
 plot "out/average_sizenum_particles.txt" using 3:($15/($15+$14)) with points

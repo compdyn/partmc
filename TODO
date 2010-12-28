@@ -10,9 +10,6 @@ Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
 Remove out directories.
 
-Test scripts should plot diameter. Do we output diameter from
-extract_*?
-
 ######################################################################
 
 User-visible changes:

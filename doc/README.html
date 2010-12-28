@@ -6,7 +6,7 @@
 <p>PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation</p>
 
 <p>Version 2.0.0 <br />
-Released XXXX-XX-XX</p>
+Released 2010-12-26</p>
 
 <p><a href="http://lagrange.mechse.illinois.edu/mwest/partmc/">http://lagrange.mechse.illinois.edu/mwest/partmc/</a></p>
 
@@ -27,7 +27,7 @@ For details see the file COPYING or
 <p>Required dependencies:</p>
 
 <ul>
-<li>Fortran 90 compiler</li>
+<li>Fortran 90/95 compiler</li>
 <li>cmake version 2.6 or higher - <a href="http://www.cmake.org/">http://www.cmake.org/</a></li>
 <li>NetCDF - <a href="http://www.unidata.ucar.edu/software/netcdf/">http://www.unidata.ucar.edu/software/netcdf/</a></li>
 </ul>
@@ -35,24 +35,21 @@ For details see the file COPYING or
 <p>Optional dependencies:</p>
 
 <ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#x3a;&#x52;&#x61;&#104;&#x75;&#x6c;&#46;&#90;&#97;v&#x65;&#x72;&#105;&#x40;&#x70;&#110;&#108;.&#x67;o&#118;">&#x52;&#x61;&#104;&#x75;&#x6c;&#46;&#90;&#97;v&#x65;&#x72;&#105;&#x40;&#x70;&#110;&#108;.&#x67;o&#118;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#58;&#x52;&#97;&#x68;&#117;&#x6c;&#x2e;&#90;&#97;&#118;&#101;&#x72;&#x69;&#64;&#x70;&#110;&#x6c;.&#x67;&#111;&#x76;">&#x52;&#97;&#x68;&#117;&#x6c;&#x2e;&#90;&#97;&#118;&#101;&#x72;&#x69;&#64;&#x70;&#110;&#x6c;.&#x67;&#111;&#x76;</a></li>
 <li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
 <li>SUNDIALS - <a href="http://www.llnl.gov/casc/sundials/">http://www.llnl.gov/casc/sundials/</a></li>
 <li>gnuplot - <a href="http://www.gnuplot.info/">http://www.gnuplot.info/</a></li>
 </ul>
 
-<p>PartMC can be compiled out-of-the-box on Linux under Fedora, Ubuntu,
-or openSUSE if the following packages are installed:</p>
+<p>PartMC can be compiled out-of-the-box on Linux if the following
+packages are installed:</p>
 
 <ul>
-<li>Fedora 11: <code>gcc-gfortran</code>, <code>cmake</code>, <code>netcdf-devel</code>, <code>gnuplot</code></li>
-<li>Ubuntu 9.04: <code>gfortran</code>, <code>cmake</code>, <code>libnetcdf-dev</code>, <code>gnuplot</code></li>
-<li>openSUSE 11.1: <code>gcc-fortran</code>, <code>cmake</code>, <code>libnetcdf-devel</code>, <code>gnuplot</code></li>
+<li>Fedora 13: <code>gcc-gfortran</code>, <code>cmake</code>, <code>netcdf-devel</code>, <code>gnuplot</code></li>
+<li>Ubuntu 10.04: <code>gfortran</code>, <code>cmake-curses-gui</code>, <code>libnetcdf-dev</code>, <code>gnuplot</code></li>
+<li>openSUSE 11.3: <code>gcc-fortran</code>, <code>cmake</code>, <code>libnetcdf-devel</code>, <code>gnuplot</code></li>
+<li>Debian 5.0: <code>gfortran</code>, <code>make</code>, <code>cmake</code>, <code>libnetcdf-dev</code>, <code>gnuplot</code></li>
 </ul>
-
-<p>PartMC will also compile out-of-the-box on OS X 10.5 using Fink (see
-<a href="http://www.finkproject.org/">http://www.finkproject.org/</a>) if the following packages are
-installed: <code>gcc44</code>, <code>cmake</code>, <code>netcdf</code>, <code>netcdf-gfortran</code>, <code>gnuplot</code>.</p>
 
 <h1>Installation</h1>
 
@@ -104,16 +101,15 @@ make test
 tests run them as:</p>
 
 <pre><code>cd run_test/emission
-./run_test_1.sh                       # similary for other tests
+./run_test_1.sh
+./run_test_2.sh
+./run_test_3.sh                       # similarly for other tests
 gnuplot -persist plot_species.gnuplot # etc...
 </code></pre></li>
-<li><p>There is a complete scenario run under the <code>urban_plume/</code>
-directory. From this directory do:</p>
+<li><p>To run full scenarios, do, for example:</p>
 
-<pre><code>./run.sh
-./process.sh
-gnuplot -persist plot_aero_species_wc.gnuplot
-# similarly for other plots
+<pre><code>cd ../scenarios/1_urban_plume
+./run.sh
 </code></pre></li>
 </ol>
 
@@ -138,18 +134,17 @@ used for sectional and exact model output).</p>
 
 <h1>ChangeLog</h1>
 
-<p>2.0.0 - YYYY-MM-DD</p>
+<p>2.0.0 - 2010-12-26</p>
 
 <ul>
-<li><p>Scalable parallel implementation added.</p></li>
+<li><p>Parallel implementations based on remote particle access.</p></li>
 <li><p>Added restart capability from NetCDF state files.</p></li>
 <li><p>Added partmc.py library for python-based analysis of PartMC output
 files.</p></li>
-<li><p>Reimplemented water condensation to be much faster and also
-correct.</p></li>
-<li><p>Nucleation added with parameterization due to Kuang, McMurray, et
-al.</p></li>
+<li><p>Reimplemented water condensation to be much faster and also correct.</p></li>
+<li><p>Nucleation added with parameterization due to Kuang, McMurray, et al.</p></li>
 <li><p>Weighted particles, with full support for coagulation and MOSAIC.</p></li>
+<li><p>Changed to Poisson sampling for coagulation test number.</p></li>
 </ul>
 
 <p>1.2.0 - 2009-06-15</p>

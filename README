@@ -5,7 +5,7 @@ PartMC
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 2.0.0  
-Released XXXX-XX-XX
+Released 2010-12-26
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -104,6 +104,11 @@ mainly been under Linux and OS X. The quick-start instructions are:
         ./run_test_3.sh                       # similarly for other tests
         gnuplot -persist plot_species.gnuplot # etc...
 
+11. To run full scenarios, do, for example:
+
+        cd ../scenarios/1_urban_plume
+        ./run.sh
+
 PartMC can interface to the MOSAIC chemistry code (see above for
 availability) but this is not enabled by default. To use MOSAIC, set
 the `ENABLE_MOSAIC` variable to `ON` in cmake. The
@@ -129,7 +134,7 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-2.0.0 - YYYY-MM-DD
+2.0.0 - 2010-12-26
 
   * Parallel implementations based on remote particle access.
 
@@ -138,11 +143,9 @@ ChangeLog
   * Added partmc.py library for python-based analysis of PartMC output
     files.
 
-  * Reimplemented water condensation to be much faster and also
-    correct.
+  * Reimplemented water condensation to be much faster and also correct.
 
-  * Nucleation added with parameterization due to Kuang, McMurray, et
-    al.
+  * Nucleation added with parameterization due to Kuang, McMurray, et al.
 
   * Weighted particles, with full support for coagulation and MOSAIC.
 

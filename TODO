@@ -35,8 +35,6 @@ subroutines. Can't we just use the mosaic modules?
 
 Rename golovin to additive.
 
-Use "set -e" in test scripts.
-
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").

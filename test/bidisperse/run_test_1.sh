@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# exit on error
+set -e
+# turn on command echoing
+set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
@@ -16,27 +20,22 @@ try_number=0
 while (( $mc_run_not_ok )) ; do
     try_number=$(( $try_number + 1 ))
     echo Try number $try_number
-    echo "../../partmc run_part.spec"
     ../../partmc run_part.spec
-    echo "../../test_bidisperse_extract"
-    ../../test_bidisperse_extract
-    mc_run_not_ok=$?
-    if (( $mc_run_not_ok )) ; then
+    if ! ../../test_bidisperse_extract ; then
 	if (( $try_number > $MAX_TRIES )) ; then
 	    echo "Maximum number of tries exceeded: giving up..."
 	    exit 1
 	fi
 	echo "Retrying..."
+    else
+        mc_run_not_ok=0
     fi
 done
 
-echo "../../test_bidisperse_ode"
 ../../test_bidisperse_ode
 
 # extract size distributions for plotting
-echo "../../extract_aero_size_num 1e-8 1e0 255 out/bidisperse_part_0001_ out/bidisperse_part_aero_size_num.txt"
 ../../extract_aero_size_num 1e-8 1e0 255 out/bidisperse_part_0001_ out/bidisperse_part_aero_size_num.txt
 
-echo "../../numeric_diff out/bidisperse_part_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1"
 ../../numeric_diff out/bidisperse_part_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1
 exit $?

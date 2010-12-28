@@ -2,14 +2,11 @@
 Before release of 2.0.0:
 
 Remove coagulation_mpi_controlled (maybe also
-mc_coag_mpi_centralized()). Also look out whether we need all the
-parallel output types.
+mc_coag_mpi_centralized()).
 
 Change part_opt%coag_method to an enumeration.
 
 Remove out directories.
-
-Make brownian test use negative weighting.
 
 ######################################################################
 

@@ -6,8 +6,6 @@ mc_coag_mpi_centralized()).
 
 Change part_opt%coag_method to an enumeration.
 
-Remove out directories.
-
 ######################################################################
 
 User-visible changes:

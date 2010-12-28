@@ -42,7 +42,7 @@ do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 7                     # random initialization (0 to use time)
+rand_init 0                     # random initialization (0 to use time)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)

@@ -46,7 +46,7 @@ do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation yes               # whether to do nucleation (yes/no)
 nucleate sulf_acid              # nucleation parameterization
 
-rand_init 8                     # random initialization (0 to use time)
+rand_init 0                     # random initialization (0 to use time)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)

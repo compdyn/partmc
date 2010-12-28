@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 172800                     # total simulation time (s)
@@ -43,7 +43,7 @@ do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 8                     # random initialization (0 to use time)
+rand_init 0                     # random initialization (0 to use time)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)

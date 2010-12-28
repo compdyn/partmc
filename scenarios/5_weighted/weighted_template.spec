@@ -50,4 +50,3 @@ allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
-

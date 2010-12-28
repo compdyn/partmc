@@ -35,6 +35,8 @@ Rename "loop" to "repeat" or something in input and output.
 
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
+Add a constant_exp_cond testcase (with weighting, to test above fix).
+
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").

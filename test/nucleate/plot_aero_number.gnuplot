@@ -3,8 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "aerosol number concentration (particles/m^3)"
+set xlabel "time / s"
+set ylabel "aerosol number concentration / (1/m^3)"
 set key right bottom
 
 plot "out/aero_total.txt" using 1:2 title "particle", \

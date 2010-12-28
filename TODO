@@ -20,9 +20,6 @@ Add separate option controlling whether to equilibriate if doing cond.
 Reading a file which does not have a newline at the end causes
 problems (specifically, gas_init.dat).
 
-Change gnuplot scripts in test/ to have units like "time / s", not
-"time (s)".
-
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
 

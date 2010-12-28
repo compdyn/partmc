@@ -3,9 +3,9 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "relative humidity (1)"
-set y2label "aerosol water mass concentration (kg/m^3)"
+set xlabel "time / s"
+set ylabel "relative humidity"
+set y2label "aerosol water mass concentration / (kg/m^3)"
 
 set key bottom right
 

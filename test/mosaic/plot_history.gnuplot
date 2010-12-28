@@ -3,9 +3,9 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "gas mixing ratio (ppb)"
-set y2label "aerosol mass concentration (kg/m^3)"
+set xlabel "time / s"
+set ylabel "gas mixing ratio / ppb"
+set y2label "aerosol mass concentration / (kg/m^3)"
 
 set key top left
 

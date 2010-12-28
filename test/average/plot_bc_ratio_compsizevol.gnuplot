@@ -4,7 +4,7 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale x
-set xlabel "radius (m)"
+set xlabel "radius / m"
 set ylabel "BC ratio"
 
 plot "out/average_compsizevol_particles.txt" using 3:($15/($15+$14)) with points

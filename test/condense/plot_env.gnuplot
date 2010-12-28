@@ -3,9 +3,9 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "temperature (K)"
-set y2label "relative humidity (1)"
+set xlabel "time / s"
+set ylabel "temperature / K"
+set y2label "relative humidity"
 
 set key center right
 

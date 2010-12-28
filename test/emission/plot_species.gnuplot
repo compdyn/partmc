@@ -3,8 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "mass concentration (kg/m^3)"
+set xlabel "time / s"
+set ylabel "mass concentration / (kg/m^3)"
 
 plot "out/emission_part_species.txt" using 1:2 title "particle initial"
 replot "out/emission_part_species.txt" using 1:3 title "particle background"

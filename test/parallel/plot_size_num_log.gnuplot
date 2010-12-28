@@ -4,8 +4,8 @@
 # gnuplot -persist <filename>.gnuplot
 
 set logscale x
-set xlabel "radius (m)"
-set ylabel "number concentration (#/m^3)"
+set xlabel "radius / m"
+set ylabel "number concentration / (1/m^3)"
 
 set xrange [1e-9:1e-6]
 #set yrange [1e7:1e11]

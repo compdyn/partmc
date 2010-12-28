@@ -9,16 +9,16 @@ set key top left
 
 #set xrange [0:24]
 
-set xlabel "time (hours)"
-set ylabel "number concentration (#/m^3)"
-#set y2label "mass concentration (kg/m^3)"
+set xlabel "time / h"
+set ylabel "number concentration / (1/m^3)"
+#set y2label "mass concentration / (kg/m^3)"
 
 #set ytics nomirror
 #set y2tics
 
-#    column 1: time (s)
-#    column 2 = aerosol number concentration (#/m^3)
-#    column 3 = aerosol mass concentration (kg/m^3)
+#    column 1: time / s
+#    column 2 = aerosol number concentration / (1/m^3)
+#    column 3 = aerosol mass concentration / (kg/m^3)
 
 plot "out/parallel_0001_aero_total.txt" using 1:2 axes x1y1 with lines title "num p1", \
      "out/parallel_0002_aero_total.txt" using 1:2 axes x1y1 with lines title "num p2", \

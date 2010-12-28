@@ -3,8 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xlabel "time (s)"
-set ylabel "aerosol SO4 mass concentration (kg/m^3)"
+set xlabel "time / s"
+set ylabel "aerosol SO4 mass concentration / (kg/m^3)"
 set key right bottom
 
 plot "out/aero_species.txt" using 1:2 title "particle", \

@@ -3,7 +3,10 @@ Before release of 2.0.0:
 
 Remove coagulation_mpi_controlled (maybe also
 mc_coag_mpi_centralized()). Also look out whether we need all the
-parallel output types.
+parallel output types. And change part_opt%coag_method and
+part_opt%output_type to enumerations.
+
+Remove all coag stuff to a coagulate.f90 (out of run_part.f90).
 
 Change radius to diameter in all input files and also in extract_*
 output files.
@@ -36,6 +39,15 @@ Rename "loop" to "repeat" or something in input and output.
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
 Add a constant_exp_cond testcase (with weighting, to test above fix).
+
+Add enumerated type for exact solutions.
+
+Check for long lines.
+
+Rename "kernel" to "coag" in input files and elsewhere.
+
+Why do we need "interface" blocks in mosaic.f90 for mosaic
+subroutines. Can't we just use the mosaic modules?
 
 ######################################################################
 

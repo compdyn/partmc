@@ -78,11 +78,8 @@ contains
     !> Error message.
     character(len=*), intent(in) :: msg
     
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
-
-    write(error_msg, *) "file ", trim(file%name), &
-         " line ", file%line_num, ": ", trim(msg)
-    call die_msg(code, error_msg)
+    call die_msg(code, "file " // trim(file%name) // " line " &
+         // integer_to_string(file%line_num) // ": " // trim(msg))
 
   end subroutine spec_file_die_msg
 
@@ -97,15 +94,13 @@ contains
     type(spec_file_t), intent(out) :: file
 
     integer :: ios, unit
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     file%name = trim(filename)
     file%unit = get_unit()
     open(unit=file%unit, status='old', file=file%name, iostat=ios)
     if (ios /= 0) then
-       write(error_msg, *) 'unable to open file ', &
-            trim(file%name), ' for reading: IOSTAT = ', ios
-       call die_msg(173932734, error_msg)
+       call die_msg(173932734, "unable to open file " // trim(file%name) &
+            // " for reading: IOSTAT = " // trim(integer_to_string(ios)))
     end if
     file%line_num = 0
 
@@ -137,7 +132,6 @@ contains
     logical, intent(out) :: eof
 
     integer :: ios, n_read
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     file%line_num = file%line_num + 1
     eof = .false.
@@ -145,13 +139,13 @@ contains
     read(unit=file%unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) line
     if (ios /= 0) then
-       write(error_msg, *) 'error reading: IOSTAT = ', ios
-       call spec_file_die_msg(869855853, file, error_msg)
+       call spec_file_die_msg(869855853, file, &
+            'error reading: IOSTAT = ' // integer_to_string(ios))
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read, meaning the line was too long
-    write(error_msg, *) 'line exceeds length: ', len(line)
-    call spec_file_die_msg(468785871, file, error_msg)
+    call spec_file_die_msg(468785871, file, &
+         'line exceeds length: ' // integer_to_string(len(line)))
 
 100 line = "" ! goto here if end-of-file was encountered immediately
     eof = .true.
@@ -207,7 +201,6 @@ contains
     character(len=SPEC_LINE_MAX_LEN) :: line_string, rest
     integer i, n_data
     logical done
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     call spec_file_read_next_data_line(file, line_string, eof)
     if (eof) return
@@ -221,8 +214,8 @@ contains
        call spec_file_die_msg(650916702, file, 'line starts with whitespace')
     end if
     if (i >= SPEC_LINE_MAX_VAR_LEN) then
-       write(error_msg, *) 'line name longer than: ', SPEC_LINE_MAX_VAR_LEN
-       call spec_file_die_msg(170403881, file, error_msg)
+       call spec_file_die_msg(170403881, file, &
+            'line name longer than: ' // integer_to_string(SPEC_LINE_MAX_VAR_LEN))
     end if
     line%name = line_string(1:(i-1))
     line_string = line_string(i:)
@@ -262,9 +255,10 @@ contains
                   'internal processing error')
           end if
           if (i >= SPEC_LINE_MAX_VAR_LEN) then
-             write(error_msg, *) 'data element ', n_data, ' longer than: ', &
-                  SPEC_LINE_MAX_VAR_LEN
-             call spec_file_die_msg(145508629, file, error_msg)
+             call spec_file_die_msg(145508629, file, &
+                  'data element ' // integer_to_string(n_data) &
+                  // ' longer than: ' &
+                  // integer_to_string(SPEC_LINE_MAX_VAR_LEN))
           end if
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
@@ -430,11 +424,9 @@ contains
     !> Expected data length.
     integer, intent(in) :: length
 
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
-
     if (size(line%data) /= length) then
-       write(error_msg, *) 'expected ', length, ' data items on line'
-       call spec_file_die_msg(189339129, file, error_msg)
+       call spec_file_die_msg(189339129, file, 'expected ' &
+            // integer_to_string(length) // ' data items on line')
     end if
 
   end subroutine spec_file_check_line_length
@@ -451,11 +443,9 @@ contains
     !> Type being read during error.
     character(len=*), intent(in) :: type
 
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
-
     if (ios /= 0) then
-       write(error_msg, *) 'error reading: IOSTAT = ', ios
-       call spec_file_die_msg(704342497, file, error_msg)
+       call spec_file_die_msg(704342497, file, &
+            'error reading: IOSTAT = ' // integer_to_string(ios))
     end if
 
   end subroutine spec_file_check_read_iostat
@@ -710,7 +700,6 @@ contains
     integer :: n_lines, n_times
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
     real(kind=dp), pointer :: read_data(:,:)
-    character(len=SPEC_LINE_MAX_LEN) :: error_msg
 
     allocate(read_names(0))
     allocate(read_data(0,0))

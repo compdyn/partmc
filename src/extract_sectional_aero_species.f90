@@ -117,7 +117,7 @@ program extract_sectional_aero_species
           "inquiring variable 'aero_diam'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_diam)) then
-        write(*,*) "ERROR: unexpected aero_diam dimids"
+        write(0,*) "ERROR: unexpected aero_diam dimids"
         stop 1
      end if
      allocate(aero_diam(n_bin))
@@ -133,7 +133,7 @@ program extract_sectional_aero_species
           "inquiring variable 'aero_diam_widths'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_diam)) then
-        write(*,*) "ERROR: unexpected aero_diam_widths dimids"
+        write(0,*) "ERROR: unexpected aero_diam_widths dimids"
         stop 1
      end if
      allocate(aero_diam_widths(n_bin))
@@ -150,7 +150,7 @@ program extract_sectional_aero_species
      if ((ndims /= 2) &
           .or. (dimids(1) /= dimid_aero_diam) &
           .or. (dimids(2) /= dimid_aero_species)) then
-        write(*,*) "ERROR: unexpected aero_mass_concentration dimids"
+        write(0,*) "ERROR: unexpected aero_mass_concentration dimids"
         stop 1
      end if
      allocate(aero_mass_concentration(n_bin, n_aero_species))

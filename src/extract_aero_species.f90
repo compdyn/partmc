@@ -129,7 +129,7 @@ program extract_aero_species
         if ((ndims /= 2) &
              .or. (dimids(1) /= dimid_aero_particle) &
              .or. (dimids(2) /= dimid_aero_species)) then
-           write(*,*) "ERROR: unexpected aero_particle_mass dimids"
+           write(0,*) "ERROR: unexpected aero_particle_mass dimids"
            stop 1
         end if
         allocate(aero_particle_mass(n_aero_particle, n_aero_species))
@@ -144,7 +144,7 @@ program extract_aero_species
              "inquiring variable 'aero_comp_vol'")
         if ((ndims /= 1) &
              .or. (dimids(1) /= dimid_aero_particle)) then
-           write(*,*) "ERROR: unexpected aero_comp_vol dimids"
+           write(0,*) "ERROR: unexpected aero_comp_vol dimids"
            stop 1
         end if
         allocate(aero_comp_vol(n_aero_particle))

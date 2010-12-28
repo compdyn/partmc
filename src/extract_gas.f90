@@ -113,7 +113,7 @@ program extract_gas
           "inquiring variable 'gas_mixing_ratio'")
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_gas_species)) then
-        write(*,*) "ERROR: unexpected gas_mixing_ratio dimids"
+        write(0,*) "ERROR: unexpected gas_mixing_ratio dimids"
         stop 1
      end if
      allocate(gas_mixing_ratio(n_gas_species))

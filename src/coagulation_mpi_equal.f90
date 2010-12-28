@@ -238,7 +238,6 @@ contains
     logical, intent(inout) :: procs_done(:)
 
 #ifdef PMC_USE_MPI
-    character(len=100) :: error_msg
     integer :: status(MPI_STATUS_SIZE), ierr
 
     call mpi_probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &
@@ -258,8 +257,8 @@ contains
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_DONE) then
        call recv_done(procs_done)
     else
-       write(error_msg, '(a,i20)') 'unknown tag', status(MPI_TAG)
-       call die_msg(856123972, error_msg)
+       call die_msg(856123972, &
+            'unknown tag: ' // integer_to_string(status(MPI_TAG)))
     end if
 #endif
     

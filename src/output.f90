@@ -80,7 +80,21 @@ module pmc_output
   use mpi
 #endif
 
+  !> Type code for undefined or invalid output.
+  integer, parameter :: OUTPUT_TYPE_INVALID = 0
+  !> Type code for centralized output (one file per node, all written
+  !> by node 0).
+  integer, parameter :: OUTPUT_TYPE_CENTRAL = 1
+  !> Type code for distributed output (one file per node, written by
+  !> each node).
+  integer, parameter :: OUTPUT_TYPE_DIST    = 1
+  !> Type code for single output (one file for all nodes, written by
+  !> node 0).
+  integer, parameter :: OUTPUT_TYPE_SINGLE  = 1
+
+  !> Internal-use variable only.
   integer, parameter :: TAG_OUTPUT_STATE_CENTRAL = 4341
+  !> Internal-use variable only.
   integer, parameter :: TAG_OUTPUT_STATE_SINGLE  = 4342
   
 contains
@@ -94,8 +108,8 @@ contains
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
-    !> Output type for parallel runs (central/dist/single).
-    character(len=*), intent(in) :: output_type
+    !> Output type for parallel runs (see module constants).
+    integer, intent(in) :: output_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -136,7 +150,7 @@ contains
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
-    if (output_type == "central") then
+    if (output_type == OUTPUT_TYPE_CENTRAL) then
        ! write per-processor data to separate files, but do it by
        ! transferring data to processor 0 and having it do the writes
        if (rank == 0) then
@@ -154,13 +168,13 @@ contains
        else ! rank /= 0
           call send_output_state_central(aero_state, gas_state, env_state)
        end if
-    elseif (output_type == "dist") then
+    elseif (output_type == OUTPUT_TYPE_DIST) then
        ! have each processor write its own data directly
        call output_state_to_file(prefix, bin_grid, aero_data, &
             aero_weight, aero_state, gas_data, gas_state, env_state, &
             index, time, del_t, i_repeat, record_removals, record_optical, &
             rank, n_proc, uuid)
-    elseif (output_type == "single") then
+    elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, &
@@ -196,7 +210,8 @@ contains
 #endif
        end if
     else
-       call die_msg(626743323, "Unknown output_type: " // trim(output_type))
+       call die_msg(626743323, "Unknown output_type: " &
+            // trim(integer_to_string(output_type)))
     end if
 
   end subroutine output_state
@@ -686,6 +701,45 @@ contains
 
   end subroutine output_sectional
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a kernel type from a spec file and
+  !> generate it.
+  subroutine spec_file_read_output_type(file, output_type)
+    
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Kernel type.
+    integer, intent(out) :: output_type
+    
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: output_type_name
+    
+    !> \page input_format_output Input File Format: Output Type
+    !!
+    !! The output type is specified by the parameter:
+    !!   - \b output_type (string): type of disk output --- must be
+    !!     one of: \c central to write one file per processor, but all
+    !!     written by processor 0; \c dist for every processor to
+    !!     write its own state file; or \c single to transfer all data
+    !!     to processor 0 and write a single unified output file
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_read_string(file, 'output_type', output_type_name)
+    if (trim(output_type_name) == 'central') then
+       output_type = OUTPUT_TYPE_CENTRAL
+    elseif (trim(output_type_name) == 'dist') then
+       output_type = OUTPUT_TYPE_DIST
+    elseif (trim(output_type_name) == 'single') then
+       output_type = OUTPUT_TYPE_SINGLE
+    else
+       call spec_file_die_msg(494684716, file, &
+            "Unknown output type: " // trim(output_type_name))
+    end if
+
+  end subroutine spec_file_read_output_type
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_output

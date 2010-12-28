@@ -76,8 +76,8 @@ module pmc_run_part
      logical :: record_removals
      !> Whether to run in parallel.
      logical :: do_parallel
-     !> Parallel output type (central/dist/single).
-     character(len=RUN_PART_OPT_CHAR_LEN) :: output_type
+     !> Parallel output type.
+     integer :: output_type
      !> Mixing timescale between processes (s).
      real(kind=dp) :: mix_timescale
      !> Whether to average gases each timestep.
@@ -370,7 +370,7 @@ contains
          + pmc_mpi_pack_size_real(val%t_wall_start) &
          + pmc_mpi_pack_size_logical(val%record_removals) &
          + pmc_mpi_pack_size_logical(val%do_parallel) &
-         + pmc_mpi_pack_size_string(val%output_type) &
+         + pmc_mpi_pack_size_integer(val%output_type) &
          + pmc_mpi_pack_size_real(val%mix_timescale) &
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
@@ -414,7 +414,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_pack_logical(buffer, position, val%record_removals)
     call pmc_mpi_pack_logical(buffer, position, val%do_parallel)
-    call pmc_mpi_pack_string(buffer, position, val%output_type)
+    call pmc_mpi_pack_integer(buffer, position, val%output_type)
     call pmc_mpi_pack_real(buffer, position, val%mix_timescale)
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
@@ -461,7 +461,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)
     call pmc_mpi_unpack_logical(buffer, position, val%record_removals)
     call pmc_mpi_unpack_logical(buffer, position, val%do_parallel)
-    call pmc_mpi_unpack_string(buffer, position, val%output_type)
+    call pmc_mpi_unpack_integer(buffer, position, val%output_type)
     call pmc_mpi_unpack_real(buffer, position, val%mix_timescale)
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)

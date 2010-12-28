@@ -79,7 +79,7 @@ contains
     character(len=*), intent(in) :: msg
     
     call die_msg(code, "file " // trim(file%name) // " line " &
-         // integer_to_string(file%line_num) // ": " // trim(msg))
+         // trim(integer_to_string(file%line_num)) // ": " // trim(msg))
 
   end subroutine spec_file_die_msg
 
@@ -140,12 +140,12 @@ contains
          iostat=ios) line
     if (ios /= 0) then
        call spec_file_die_msg(869855853, file, &
-            'error reading: IOSTAT = ' // integer_to_string(ios))
+            'error reading: IOSTAT = ' // trim(integer_to_string(ios)))
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read, meaning the line was too long
     call spec_file_die_msg(468785871, file, &
-         'line exceeds length: ' // integer_to_string(len(line)))
+         'line exceeds length: ' // trim(integer_to_string(len(line))))
 
 100 line = "" ! goto here if end-of-file was encountered immediately
     eof = .true.
@@ -214,8 +214,8 @@ contains
        call spec_file_die_msg(650916702, file, 'line starts with whitespace')
     end if
     if (i >= SPEC_LINE_MAX_VAR_LEN) then
-       call spec_file_die_msg(170403881, file, &
-            'line name longer than: ' // integer_to_string(SPEC_LINE_MAX_VAR_LEN))
+       call spec_file_die_msg(170403881, file, 'line name longer than: ' &
+            // trim(integer_to_string(SPEC_LINE_MAX_VAR_LEN)))
     end if
     line%name = line_string(1:(i-1))
     line_string = line_string(i:)
@@ -256,9 +256,9 @@ contains
           end if
           if (i >= SPEC_LINE_MAX_VAR_LEN) then
              call spec_file_die_msg(145508629, file, &
-                  'data element ' // integer_to_string(n_data) &
+                  'data element ' // trim(integer_to_string(n_data)) &
                   // ' longer than: ' &
-                  // integer_to_string(SPEC_LINE_MAX_VAR_LEN))
+                  // trim(integer_to_string(SPEC_LINE_MAX_VAR_LEN)))
           end if
           line%data(n_data) = rest(1:(i-1))
           rest = rest(i:)
@@ -426,7 +426,7 @@ contains
 
     if (size(line%data) /= length) then
        call spec_file_die_msg(189339129, file, 'expected ' &
-            // integer_to_string(length) // ' data items on line')
+            // trim(integer_to_string(length)) // ' data items on line')
     end if
 
   end subroutine spec_file_check_line_length
@@ -445,7 +445,7 @@ contains
 
     if (ios /= 0) then
        call spec_file_die_msg(704342497, file, &
-            'error reading: IOSTAT = ' // integer_to_string(ios))
+            'error reading: IOSTAT = ' // trim(integer_to_string(ios)))
     end if
 
   end subroutine spec_file_check_read_iostat

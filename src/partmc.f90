@@ -258,11 +258,11 @@ contains
     !!   simulate (actual number used will vary between <tt>n_part /
     !!   2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
     !!   allow_halving are \c yes)
-    !! - \b restart (logical): whether to restart the simulation
-    !!   from a saved output data file
-    !! - \b restart_file (string): name of file from which to load
-    !!   restart data, which must be a PartMC output NetCDF file
-    !!   (only provide option if \c restart is \c yes)
+    !! - \b restart (logical): whether to restart the simulation from
+    !!   a saved output data file. If \c restart is \c yes, then the
+    !!   following parameters must also be provided:
+    !!   - \b restart_file (string): name of file from which to load
+    !!     restart data, which must be a PartMC output NetCDF file
     !! - \b t_max (real, unit s): total simulation time
     !! - \b del_t (real, unit s): timestep size
     !! - \b t_output (real, unit s): the interval on which to
@@ -290,27 +290,28 @@ contains
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
-    !!   coagulation
-    !! - \subpage input_format_coag_kernel (only provide option if
-    !!   \c do_coagulation is \c yes)
+    !!   coagulation. If \c do_coagulation is \c yes, then the
+    !!   following parameters must also be provided:
+    !!   - \subpage input_format_coag_kernel
     !! - \b do_condensation (logical): whether to perform explicit
-    !!   water condensation (requires SUNDIALS support to be
-    !!   compiled in; cannot be used simultaneously with MOSAIC)
-    !! - \b do_init_equilibriate (logical): whether to equilibriate
-    !!   the water content of each particle before starting the
-    !!   simulation (only provide option if \c do_condensation is
-    !!   \c yes)
-    !! - \b do_mosaic (logical): whether to use the MOSAIC
-    !!   chemistry code (requires support to be compiled in; cannot
-    !!   be used simultaneously with condensation)
-    !! - \b do_optical (logical): whether to compute optical
-    !!   properties of the aersol particles for the output files ---
-    !!   see output_format_aero_state (only provide option if \c
-    !!   do_mosaic is \c yes)
+    !!   water condensation (requires SUNDIALS support to be compiled
+    !!   in; cannot be used simultaneously with MOSAIC). If \c
+    !!   do_condensation is \c yes, then the following parameters must
+    !!   also be provided:
+    !!   - \b do_init_equilibriate (logical): whether to equilibriate
+    !!     the water content of each particle before starting the
+    !!     simulation
+    !! - \b do_mosaic (logical): whether to use the MOSAIC chemistry
+    !!   code (requires support to be compiled in; cannot be used
+    !!   simultaneously with condensation). If \c do_mosaic is \c
+    !!   yes, then the following parameters must also be provided:
+    !!   - \b do_optical (logical): whether to compute optical
+    !!     properties of the aersol particles for the output files ---
+    !!     see output_format_aero_state
     !! - \b do_nucleation (logical): whether to perform particle
-    !!   nucleation
-    !! - \subpage input_format_nucleate (only provide option if \c
-    !!   do_nucleation is \c yes)
+    !!   nucleation. If \c do_nucleation is \c yes, then the following
+    !!   parameters must also be provided:
+    !!   - \subpage input_format_nucleate
     !! - \b rand_init (integer): if greater than zero then use as
     !!   the seed for the random number generator, or if zero then
     !!   generate a random seed for the random number generator ---
@@ -328,14 +329,10 @@ contains
     !!   about aerosol particles removed from the simulation --- see
     !!   \ref output_format_aero_removed
     !! - \b do_parallel (logical): whether to run in parallel mode
-    !!   (requires MPI support to be compiled in)
-    !! - if \c do_parallel is \c yes, then the following parameters
-    !!     must also be provided:
-    !!   - \b output_type (string): type of parallel disk output ---
-    !!     must be one of: \c central to write one file per processor,
-    !!     but all written by processor 0; \c dist for every processor
-    !!     to write its own state file; or \c single to transfer all
-    !!     data to processor 0 and write a single unified output file
+    !!   (requires MPI support to be compiled in). If \c do_parallel
+    !!   is \c yes, then the following parameters must also be
+    !!   provided:
+    !!   - \subpage input_format_output
     !!   - \b mix_timescale (real, unit s): timescale on which to mix
     !!     aerosol particle information amongst processors in an
     !!     attempt to keep the aerosol state consistent (the mixing
@@ -489,8 +486,7 @@ contains
           call spec_file_die_msg(929006383, file, &
                'cannot use parallel mode, support is not compiled in')
 #endif
-          call spec_file_read_string(file, 'output_type', &
-               run_part_opt%output_type)
+          call spec_file_read_output_type(file, run_part_opt%output_type)
           call spec_file_read_real(file, 'mix_timescale', &
                run_part_opt%mix_timescale)
           call spec_file_read_logical(file, 'gas_average', &
@@ -500,7 +496,7 @@ contains
           call spec_file_read_string(file, 'coag_method', &
                run_part_opt%coag_method)
        else
-          run_part_opt%output_type = "single"
+          run_part_opt%output_type = OUTPUT_TYPE_SINGLE
           run_part_opt%mix_timescale = 0d0
           run_part_opt%gas_average = .false.
           run_part_opt%env_average = .false.
@@ -700,9 +696,9 @@ contains
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
-    !!   coagulation
-    !! - \subpage input_format_coag_kernel (only provide option if
-    !!   \c do_coagulation is \c yes)
+    !!   coagulation.  If \c do_coagulation is \c yes, then the
+    !!   following parameters must also be provided:
+    !!   - \subpage input_format_coag_kernel
     !!
     !! Example:
     !! <pre>
@@ -854,9 +850,9 @@ contains
     !! - \subpage input_format_env_data
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
-    !!   coagulation
-    !! - \subpage input_format_coag_kernel (only provide option if
-    !!   \c do_coagulation is \c yes)
+    !!   coagulation.  If \c do_coagulation is \c yes, then the
+    !!   following parameters must also be provided:
+    !!   - \subpage input_format_coag_kernel
     !!
     !! Example:
     !! <pre>

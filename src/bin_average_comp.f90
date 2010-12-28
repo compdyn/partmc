@@ -27,9 +27,9 @@ program bin_average_comp
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
   type(env_state_t) :: env_state
-  integer :: n_bin, index, i_repeat
+  integer :: n_bin, index, i_repeat, output_type
   real(kind=dp) :: d_min, d_max, time, del_t
-  character(len=1000) :: output_type, tmp_str
+  character(len=1000) :: tmp_str
   logical :: record_removals, dry_volume, record_optical
   character(len=PMC_UUID_LEN) :: uuid
 
@@ -86,7 +86,7 @@ program bin_average_comp
   call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
        aero_weight, dry_volume)
 
-  output_type = "central"
+  output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
   record_optical = .true.
   call output_state(out_prefix, output_type, bin_grid, aero_data, &

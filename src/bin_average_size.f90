@@ -26,9 +26,9 @@ program bin_average_size
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
   type(env_state_t) :: env_state
-  integer :: n_bin, index, i_repeat
+  integer :: n_bin, index, i_repeat, output_type
   real(kind=dp) :: d_min, d_max, time, del_t
-  character(len=1000) :: output_type, tmp_str
+  character(len=1000) :: tmp_str
   logical :: record_removals, dry_volume, bin_center, record_optical
   logical :: preserve_number
   character(len=PMC_UUID_LEN) :: uuid
@@ -111,7 +111,7 @@ program bin_average_size
   call aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
        aero_weight, dry_volume, bin_center, preserve_number)
 
-  output_type = "central"
+  output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
   record_optical = .true.
   call output_state(out_prefix, output_type, bin_grid, aero_data, &

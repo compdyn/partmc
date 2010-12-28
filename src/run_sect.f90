@@ -54,7 +54,7 @@ contains
 
   !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env_state, sect_opt)
+       env_data, env_state, run_sect_opt)
   
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -69,7 +69,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Options.
-    type(run_sect_opt_t), intent(in) :: sect_opt
+    type(run_sect_opt_t), intent(in) :: run_sect_opt
     
     real(kind=dp) c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
@@ -124,7 +124,7 @@ contains
     
     ! precompute kernel values for all pairs of bins
     call bin_kernel(bin_grid%n_bin, bin_grid%center_radius, aero_data, &
-         sect_opt%coag_kernel_type, env_state, k_bin)
+         run_sect_opt%coag_kernel_type, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
@@ -135,55 +135,56 @@ contains
     ! multiply kernel with constant timestep and logarithmic grid distance
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          ck(i,j) = ck(i,j) * sect_opt%del_t * bin_grid%log_width
+          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%log_width
        end do
     end do
     
     ! initial output
-    call check_event(time, sect_opt%del_t, sect_opt%t_output, &
+    call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
-       call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
+       call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_summary, &
-            time, sect_opt%t_output, sect_opt%uuid)
+            time, run_sect_opt%t_output, run_sect_opt%uuid)
     end if
     
     ! main time-stepping loop
-    num_t = nint(sect_opt%t_max / sect_opt%del_t)
+    num_t = nint(run_sect_opt%t_max / run_sect_opt%del_t)
     call env_state_allocate(old_env_state)
     do i_time = 1, num_t
 
-       if (sect_opt%do_coagulation) then
+       if (run_sect_opt%do_coagulation) then
           g = aero_binned%vol_conc(:,1) * aero_data%density(1)
-          call coad(bin_grid%n_bin, sect_opt%del_t, taug, taup, taul, &
+          call coad(bin_grid%n_bin, run_sect_opt%del_t, taug, taup, taul, &
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_conc(:,1) = g / aero_data%density(1)
           aero_binned%num_conc = aero_binned%vol_conc(:,1) &
                / rad2vol(bin_grid%center_radius)
        end if
 
-       time = sect_opt%t_max * real(i_time, kind=dp) / real(num_t, kind=dp)
+       time = run_sect_opt%t_max * real(i_time, kind=dp) &
+            / real(num_t, kind=dp)
 
        call env_state_copy(env_state, old_env_state)
        call env_data_update_state(env_data, env_state, time, &
             update_rel_humid = .true.)
-       call env_state_update_gas_state(env_state, sect_opt%del_t, &
+       call env_state_update_gas_state(env_state, run_sect_opt%del_t, &
             old_env_state, gas_data, gas_state)
-       call env_state_update_aero_binned(env_state, sect_opt%del_t, &
+       call env_state_update_aero_binned(env_state, run_sect_opt%del_t, &
             old_env_state, bin_grid, aero_data, aero_binned)
        
        ! print output
-       call check_event(time, sect_opt%del_t, sect_opt%t_output, &
+       call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
             last_output_time, do_output)
        if (do_output) then
           i_summary = i_summary + 1
-          call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
+          call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
                aero_binned, gas_data, gas_state, env_state, i_summary, &
-               time, sect_opt%t_output, sect_opt%uuid)
+               time, run_sect_opt%t_output, run_sect_opt%uuid)
        end if
        
        ! print progress to stdout
-       call check_event(time, sect_opt%del_t, sect_opt%t_progress, &
+       call check_event(time, run_sect_opt%del_t, run_sect_opt%t_progress, &
             last_progress_time, do_progress)
        if (do_progress) then
           write(*,'(a6,a8)') 'step', 'time'

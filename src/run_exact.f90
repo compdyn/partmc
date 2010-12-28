@@ -42,7 +42,7 @@ contains
 
   !> Run an exact simulation.
   subroutine run_exact(bin_grid, env_data, env_state, aero_data, &
-       aero_dist_init, exact_opt)
+       aero_dist_init, run_exact_opt)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -55,7 +55,7 @@ contains
     !> Initial aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Options.
-    type(run_exact_opt_t), intent(in) :: exact_opt
+    type(run_exact_opt_t), intent(in) :: run_exact_opt
     
     integer :: i_time, n_time, ncid
     type(aero_binned_t) :: aero_binned
@@ -68,17 +68,18 @@ contains
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
 
-    n_time = nint(exact_opt%t_max / exact_opt%t_output)
+    n_time = nint(run_exact_opt%t_max / run_exact_opt%t_output)
     do i_time = 0,n_time
-       time = real(i_time, kind=dp) / real(n_time, kind=dp) * exact_opt%t_max
+       time = real(i_time, kind=dp) / real(n_time, kind=dp) &
+            * run_exact_opt%t_max
        call env_data_update_state(env_data, env_state, time, &
             update_rel_humid = .true.)
-       call exact_soln(bin_grid, aero_data, exact_opt%do_coagulation, &
-            exact_opt%coag_kernel_type, aero_dist_init, env_data, &
+       call exact_soln(bin_grid, aero_data, run_exact_opt%do_coagulation, &
+            run_exact_opt%coag_kernel_type, aero_dist_init, env_data, &
             env_state, time, aero_binned)
-       call output_sectional(exact_opt%prefix, bin_grid, aero_data, &
+       call output_sectional(run_exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &
-            time, exact_opt%t_output, exact_opt%uuid)
+            time, run_exact_opt%t_output, run_exact_opt%uuid)
     end do
 
     call gas_data_deallocate(gas_data)

@@ -11,9 +11,6 @@ input files. What about exponential distributions?
 
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
-Rename part_opt to run_part_opt, etc in partmc.f90 and run_part.f90,
-and for sect and exact.
-
 Include scenarios in README and distribution tarball.
 
 ######################################################################

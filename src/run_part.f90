@@ -96,7 +96,7 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(bin_grid, env_data, env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, part_opt)
+       aero_weight, aero_state, gas_data, gas_state, run_part_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -115,7 +115,7 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
-    type(run_part_opt_t), intent(in) :: part_opt
+    type(run_part_opt_t), intent(in) :: run_part_opt
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
@@ -145,38 +145,39 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    if (part_opt%do_coagulation) then
-       call est_k_max_binned(bin_grid, part_opt%coag_kernel_type, aero_data, &
-            aero_weight, env_state, k_max)
+    if (run_part_opt%do_coagulation) then
+       call est_k_max_binned(bin_grid, run_part_opt%coag_kernel_type, &
+            aero_data, aero_weight, env_state, k_max)
     end if
 
-    if (part_opt%do_mosaic) then
-       call mosaic_init(bin_grid, env_state, part_opt%del_t, &
-            part_opt%do_optical)
+    if (run_part_opt%do_mosaic) then
+       call mosaic_init(bin_grid, env_state, run_part_opt%del_t, &
+            run_part_opt%do_optical)
     end if
 
-    if (part_opt%t_output > 0d0) then
-       call output_state(part_opt%output_prefix, part_opt%output_type, &
-            bin_grid, aero_data, aero_weight, aero_state, gas_data, &
-            gas_state, env_state, i_state, time, part_opt%del_t, &
-            part_opt%i_repeat, part_opt%record_removals, &
-            part_opt%do_optical, part_opt%uuid)
+    if (run_part_opt%t_output > 0d0) then
+       call output_state(run_part_opt%output_prefix, &
+            run_part_opt%output_type, bin_grid, aero_data, aero_weight, &
+            aero_state, gas_data, gas_state, env_state, i_state, time, &
+            run_part_opt%del_t, run_part_opt%i_repeat, &
+            run_part_opt%record_removals, run_part_opt%do_optical, &
+            run_part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
     ! Do an initial double/halve test. This shouldn't happen (except
     ! for restart with inconsistent number) so issue a warning.
-    if (part_opt%allow_doubling) then
+    if (run_part_opt%allow_doubling) then
        do while ((aero_state_total_particles(aero_state) &
-            < part_opt%n_part_max / 2) &
+            < run_part_opt%n_part_max / 2) &
             .and. (aero_state_total_particles(aero_state) > 0))
           call warn_msg(716882783, "doubling particles in initial condition")
           call aero_state_double(aero_state)
        end do
     end if
-    if (part_opt%allow_halving) then
+    if (run_part_opt%allow_halving) then
        do while (aero_state_total_particles(aero_state) &
-            > part_opt%n_part_max * 2)
+            > run_part_opt%n_part_max * 2)
           call warn_msg(661936373, "halving particles in initial condition")
           call aero_state_halve(aero_state, bin_grid)
        end do
@@ -185,90 +186,90 @@ contains
     t_start = env_state%elapsed_time
     last_output_time = time
     last_progress_time = time
-    n_time = nint(part_opt%t_max / part_opt%del_t)
-    i_time_start = nint(time / part_opt%del_t) + 1
+    n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
+    i_time_start = nint(time / run_part_opt%del_t) + 1
     do i_time = i_time_start,n_time
 
-       time = real(i_time, kind=dp) * part_opt%del_t
+       time = real(i_time, kind=dp) * run_part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
-       update_rel_humid = .not. part_opt%do_condensation
+       update_rel_humid = .not. run_part_opt%do_condensation
        call env_data_update_state(env_data, env_state, time + t_start, &
             update_rel_humid)
 
-       if (part_opt%do_nucleation) then
-          call nucleate(part_opt%nucleate_type, bin_grid, env_state, &
+       if (run_part_opt%do_nucleation) then
+          call nucleate(run_part_opt%nucleate_type, bin_grid, env_state, &
                gas_data, aero_data, aero_weight, aero_state, gas_state, &
-               part_opt%del_t)
+               run_part_opt%del_t)
        end if
 
-       if (part_opt%do_coagulation) then
-          if (part_opt%coag_method == "local") then
-             call mc_coag(part_opt%coag_kernel_type, bin_grid, env_state, &
-                  aero_data, aero_weight, aero_state, part_opt%del_t, k_max, &
-                  tot_n_samp, tot_n_coag)
-          elseif (part_opt%coag_method == "collect") then
-             call mc_coag_mpi_centralized(part_opt%coag_kernel_type, &
-                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
-                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (part_opt%coag_method == "central") then
-             call mc_coag_mpi_controlled(part_opt%coag_kernel_type, &
-                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
-                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (part_opt%coag_method == "dist") then
-             call mc_coag_mpi_equal(part_opt%coag_kernel_type, bin_grid, &
+       if (run_part_opt%do_coagulation) then
+          if (run_part_opt%coag_method == "local") then
+             call mc_coag(run_part_opt%coag_kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
-                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+          elseif (run_part_opt%coag_method == "collect") then
+             call mc_coag_mpi_centralized(run_part_opt%coag_kernel_type, &
+                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
+                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+          elseif (run_part_opt%coag_method == "central") then
+             call mc_coag_mpi_controlled(run_part_opt%coag_kernel_type, &
+                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
+                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+          elseif (run_part_opt%coag_method == "dist") then
+             call mc_coag_mpi_equal(run_part_opt%coag_kernel_type, bin_grid, &
+                  env_state, aero_data, aero_weight, aero_state, &
+                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           else
              call die_msg(323011762, "unknown coag_method: " &
-                  // trim(part_opt%coag_method))
+                  // trim(run_part_opt%coag_method))
           end if
           progress_n_samp = progress_n_samp + tot_n_samp
           progress_n_coag = progress_n_coag + tot_n_coag
        end if
 
-       call env_state_update_gas_state(env_state, part_opt%del_t, &
+       call env_state_update_gas_state(env_state, run_part_opt%del_t, &
             old_env_state, gas_data, gas_state)
-       call env_state_update_aero_state(env_state, part_opt%del_t, &
+       call env_state_update_aero_state(env_state, run_part_opt%del_t, &
             old_env_state, bin_grid, aero_data, aero_weight, aero_state)
 
 #ifdef PMC_USE_SUNDIALS
-       if (part_opt%do_condensation) then
-          call condense_particles(bin_grid, env_state, &
-               env_data, aero_data, aero_weight, aero_state, part_opt%del_t)
+       if (run_part_opt%do_condensation) then
+          call condense_particles(bin_grid, env_state, env_data, aero_data, &
+               aero_weight, aero_state, run_part_opt%del_t)
        end if
 #endif
 
-       if (part_opt%do_mosaic) then
+       if (run_part_opt%do_mosaic) then
           call mosaic_timestep(bin_grid, env_state, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, &
-               part_opt%do_optical)
+               run_part_opt%do_optical)
        end if
 
-       if (part_opt%mix_timescale > 0d0) then
-          call aero_state_mix(aero_state, part_opt%del_t, &
-               part_opt%mix_timescale, aero_data, bin_grid)
+       if (run_part_opt%mix_timescale > 0d0) then
+          call aero_state_mix(aero_state, run_part_opt%del_t, &
+               run_part_opt%mix_timescale, aero_data, bin_grid)
        end if
-       if (part_opt%gas_average) then
+       if (run_part_opt%gas_average) then
           call gas_state_mix(gas_state)
        end if
-       if (part_opt%gas_average) then
+       if (run_part_opt%gas_average) then
           call env_state_mix(env_state)
        end if
 
        ! if we have less than half the maximum number of particles then
        ! double until we fill up the array
-       if (part_opt%allow_doubling) then
+       if (run_part_opt%allow_doubling) then
           do while ((aero_state_total_particles(aero_state) &
-               < part_opt%n_part_max / 2) &
+               < run_part_opt%n_part_max / 2) &
                .and. (aero_state_total_particles(aero_state) > 0))
              call aero_state_double(aero_state)
           end do
        end if
        ! same for halving if we have too many particles
-       if (part_opt%allow_halving) then
+       if (run_part_opt%allow_halving) then
           do while (aero_state_total_particles(aero_state) &
-               > part_opt%n_part_max * 2)
+               > run_part_opt%n_part_max * 2)
              call aero_state_halve(aero_state, bin_grid)
           end do
        end if
@@ -277,31 +278,31 @@ contains
        ! call aero_state_check(bin_grid, aero_data, aero_state)
        ! DEBUG: end
        
-       if (part_opt%t_output > 0d0) then
-          call check_event(time, part_opt%del_t, part_opt%t_output, &
+       if (run_part_opt%t_output > 0d0) then
+          call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
                last_output_time, do_output)
           if (do_output) then
              i_output = i_output + 1
-             call output_state(part_opt%output_prefix, &
-                  part_opt%output_type, bin_grid, aero_data, aero_weight, &
-                  aero_state, gas_data, gas_state, env_state, i_output, &
-                  time, part_opt%del_t, part_opt%i_repeat, &
-                  part_opt%record_removals, part_opt%do_optical, &
-                  part_opt%uuid)
+             call output_state(run_part_opt%output_prefix, &
+                  run_part_opt%output_type, bin_grid, aero_data, &
+                  aero_weight, aero_state, gas_data, gas_state, env_state, &
+                  i_output, time, run_part_opt%del_t, &
+                  run_part_opt%i_repeat, run_part_opt%record_removals, &
+                  run_part_opt%do_optical, run_part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
 
-       if (.not. part_opt%record_removals) then
+       if (.not. run_part_opt%record_removals) then
           ! If we are not recording removals then we can zero them as
           ! often as possible to minimize the cost of maintaining
           ! them.
           call aero_info_array_zero(aero_state%aero_info_array)
        end if
 
-       if (part_opt%t_progress > 0d0) then
-          call check_event(time, part_opt%del_t, part_opt%t_progress, &
-               last_progress_time, do_progress)
+       if (run_part_opt%t_progress > 0d0) then
+          call check_event(time, run_part_opt%del_t, &
+               run_part_opt%t_progress, last_progress_time, do_progress)
           if (do_progress) then
              call pmc_mpi_reduce_sum_integer(&
                   aero_state_total_particles(aero_state), global_n_part)
@@ -310,18 +311,19 @@ contains
              if (rank == 0) then
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
-                prop_done = (real(part_opt%i_repeat - 1, kind=dp) &
-                     + time / part_opt%t_max) &
-                     / real(part_opt%n_repeat, kind=dp)
-                t_wall_elapsed = t_wall_now - part_opt%t_wall_start
+                prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
+                     + time / run_part_opt%t_max) &
+                     / real(run_part_opt%n_repeat, kind=dp)
+                t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed
                 write(*,'(a6,a9,a11,a12,a12,a13,a12)') 'repeat', 'time(s)', &
                      'n_particle', 'n_samples', 'n_coagulate', &
                      't_elapsed(s)', 't_remain(s)'
                 write(*,'(i6,f9.1,i11,i12,i12,f13.0,f12.0)') &
-                     part_opt%i_repeat, time, global_n_part, global_n_samp, &
-                     global_n_coag, t_wall_elapsed, t_wall_remain
+                     run_part_opt%i_repeat, time, global_n_part, &
+                     global_n_samp, global_n_coag, t_wall_elapsed, &
+                     t_wall_remain
              end if
              ! reset counters so they show information since last
              ! progress display
@@ -332,7 +334,7 @@ contains
        
     end do
 
-    if (part_opt%do_mosaic) then
+    if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
     end if
 
@@ -343,12 +345,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_part_opt(val)
+  integer function pmc_mpi_pack_size_run_part_opt(val)
 
     !> Value to pack.
     type(run_part_opt_t), intent(in) :: val
 
-    pmc_mpi_pack_size_part_opt = &
+    pmc_mpi_pack_size_run_part_opt = &
          pmc_mpi_pack_size_integer(val%n_part_max) &
          + pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
@@ -375,12 +377,12 @@ contains
          + pmc_mpi_pack_size_string(val%coag_method) &
          + pmc_mpi_pack_size_string(val%uuid)
 
-  end function pmc_mpi_pack_size_part_opt
+  end function pmc_mpi_pack_size_run_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_part_opt(buffer, position, val)
+  subroutine pmc_mpi_pack_run_part_opt(buffer, position, val)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -419,15 +421,15 @@ contains
     call pmc_mpi_pack_string(buffer, position, val%coag_method)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
-         position - prev_position == pmc_mpi_pack_size_part_opt(val))
+         position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
-  end subroutine pmc_mpi_pack_part_opt
+  end subroutine pmc_mpi_pack_run_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_part_opt(buffer, position, val)
+  subroutine pmc_mpi_unpack_run_part_opt(buffer, position, val)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -466,10 +468,10 @@ contains
     call pmc_mpi_unpack_string(buffer, position, val%coag_method)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
-         position - prev_position == pmc_mpi_pack_size_part_opt(val))
+         position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
-  end subroutine pmc_mpi_unpack_part_opt
+  end subroutine pmc_mpi_unpack_run_part_opt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

@@ -232,7 +232,7 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(bin_grid_t) :: bin_grid
-    type(run_part_opt_t) :: part_opt
+    type(run_part_opt_t) :: run_part_opt
     integer :: i_repeat
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -368,18 +368,18 @@ contains
        ! only the root process does I/O
 
        call spec_file_read_string(file, 'output_prefix', &
-            part_opt%output_prefix)
-       call spec_file_read_integer(file, 'n_repeat', part_opt%n_repeat)
-       call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
+            run_part_opt%output_prefix)
+       call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
+       call spec_file_read_integer(file, 'n_part', run_part_opt%n_part_max)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
        end if
        
-       call spec_file_read_real(file, 't_max', part_opt%t_max)
-       call spec_file_read_real(file, 'del_t', part_opt%del_t)
-       call spec_file_read_real(file, 't_output', part_opt%t_output)
-       call spec_file_read_real(file, 't_progress', part_opt%t_progress)
+       call spec_file_read_real(file, 't_max', run_part_opt%t_max)
+       call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
+       call spec_file_read_real(file, 't_output', run_part_opt%t_output)
+       call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
        call spec_file_read_bin_grid(file, bin_grid)
 
@@ -391,7 +391,7 @@ contains
           call input_state(restart_filename, bin_grid, aero_data, &
                aero_weight, aero_state_init, gas_data, gas_state_init, &
                env_state_init, dummy_index, dummy_time, dummy_del_t, &
-               dummy_i_repeat, part_opt%uuid)
+               dummy_i_repeat, run_part_opt%uuid)
        end if
 
        call spec_file_read_string(file, 'gas_data', sub_filename)
@@ -424,70 +424,73 @@ contains
        call spec_file_read_env_state(file, env_state_init)
        
        call spec_file_read_logical(file, 'do_coagulation', &
-            part_opt%do_coagulation)
-       if (part_opt%do_coagulation) then
+            run_part_opt%do_coagulation)
+       if (run_part_opt%do_coagulation) then
           call spec_file_read_coag_kernel_type(file, &
-               part_opt%coag_kernel_type)
+               run_part_opt%coag_kernel_type)
        else
-          part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+          run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
        end if
 
        call spec_file_read_logical(file, 'do_condensation', &
-            part_opt%do_condensation)
+            run_part_opt%do_condensation)
 #ifndef PMC_USE_SUNDIALS
-       call assert_msg(121370218, part_opt%do_condensation .eqv. .false., &
+       call assert_msg(121370218, run_part_opt%do_condensation &
+            .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
 
-       call spec_file_read_logical(file, 'do_mosaic', part_opt%do_mosaic)
-       if (part_opt%do_mosaic .and. (.not. mosaic_support())) then
+       call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
+       if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
        end if
-       if (part_opt%do_mosaic) then
-          call spec_file_read_logical(file, 'do_optical', part_opt%do_optical)
+       if (run_part_opt%do_mosaic) then
+          call spec_file_read_logical(file, 'do_optical', &
+               run_part_opt%do_optical)
        else
-          part_opt%do_optical = .false.
+          run_part_opt%do_optical = .false.
        end if
 
        call spec_file_read_logical(file, 'do_nucleation', &
-            part_opt%do_nucleation)
-       if (part_opt%do_nucleation) then
-          call spec_file_read_nucleate_type(file, part_opt%nucleate_type)
+            run_part_opt%do_nucleation)
+       if (run_part_opt%do_nucleation) then
+          call spec_file_read_nucleate_type(file, run_part_opt%nucleate_type)
        else
-          part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
+          run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
 
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'allow_doubling', &
-            part_opt%allow_doubling)
+            run_part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
-            part_opt%allow_halving)
+            run_part_opt%allow_halving)
        call spec_file_read_logical(file, 'record_removals', &
-            part_opt%record_removals)
+            run_part_opt%record_removals)
 
-       call spec_file_read_logical(file, 'do_parallel', part_opt%do_parallel)
-       if (part_opt%do_parallel) then
+       call spec_file_read_logical(file, 'do_parallel', &
+            run_part_opt%do_parallel)
+       if (run_part_opt%do_parallel) then
 #ifndef PMC_USE_MPI
           call spec_file_die_msg(929006383, file, &
                'cannot use parallel mode, support is not compiled in')
 #endif
           call spec_file_read_string(file, 'output_type', &
-               part_opt%output_type)
+               run_part_opt%output_type)
           call spec_file_read_real(file, 'mix_timescale', &
-               part_opt%mix_timescale)
+               run_part_opt%mix_timescale)
           call spec_file_read_logical(file, 'gas_average', &
-               part_opt%gas_average)
+               run_part_opt%gas_average)
           call spec_file_read_logical(file, 'env_average', &
-               part_opt%env_average)
+               run_part_opt%env_average)
           call spec_file_read_string(file, 'coag_method', &
-               part_opt%coag_method)
+               run_part_opt%coag_method)
        else
-          part_opt%output_type = "single"
-          part_opt%mix_timescale = 0d0
-          part_opt%gas_average = .false.
-          part_opt%env_average = .false.
-          part_opt%coag_method = "local"
+          run_part_opt%output_type = "single"
+          run_part_opt%mix_timescale = 0d0
+          run_part_opt%gas_average = .false.
+          run_part_opt%env_average = .false.
+          run_part_opt%coag_method = "local"
        end if
        
        call spec_file_close(file)
@@ -496,14 +499,15 @@ contains
     ! finished reading .spec data, now broadcast data
 
     if (.not. do_restart) then
-       call uuid4_str(part_opt%uuid)
+       call uuid4_str(run_part_opt%uuid)
     end if
 
 #ifdef PMC_USE_MPI
     if (pmc_mpi_rank() == 0) then
        ! root process determines size
        buffer_size = 0
-       buffer_size = buffer_size + pmc_mpi_pack_size_part_opt(part_opt)
+       buffer_size = buffer_size &
+            + pmc_mpi_pack_size_run_part_opt(run_part_opt)
        buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state_init)
@@ -526,7 +530,7 @@ contains
     if (pmc_mpi_rank() == 0) then
        ! root process packs data
        position = 0
-       call pmc_mpi_pack_part_opt(buffer, position, part_opt)
+       call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
@@ -547,7 +551,7 @@ contains
     if (pmc_mpi_rank() /= 0) then
        ! non-root processes unpack data
        position = 0
-       call pmc_mpi_unpack_part_opt(buffer, position, part_opt)
+       call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
@@ -570,10 +574,10 @@ contains
 
     call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    call cpu_time(part_opt%t_wall_start)
+    call cpu_time(run_part_opt%t_wall_start)
     
-    do i_repeat = 1,part_opt%n_repeat
-       part_opt%i_repeat = i_repeat
+    do i_repeat = 1,run_part_opt%n_repeat
+       run_part_opt%i_repeat = i_repeat
        
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
@@ -582,7 +586,7 @@ contains
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
                aero_data%n_spec)
-          aero_state%comp_vol = real(part_opt%n_part_max, kind=dp) / &
+          aero_state%comp_vol = real(run_part_opt%n_part_max, kind=dp) / &
                aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
           call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
                aero_data, aero_weight, aero_dist_init, 1d0, 0d0)
@@ -592,14 +596,14 @@ contains
             env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
-       if (part_opt%do_condensation) then
+       if (run_part_opt%do_condensation) then
           call condense_equilib_particles(bin_grid, env_state, aero_data, &
                aero_weight, aero_state)
        end if
 #endif
        
        call run_part(bin_grid, env_data, env_state, aero_data, aero_weight, &
-            aero_state, gas_data, gas_state, part_opt)
+            aero_state, gas_data, gas_state, run_part_opt)
 
     end do
 
@@ -631,7 +635,7 @@ contains
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
     type(aero_dist_t) :: aero_dist_init
-    type(run_exact_opt_t) :: exact_opt
+    type(run_exact_opt_t) :: run_exact_opt
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
@@ -730,10 +734,10 @@ contains
     call env_state_allocate(env_state)
     call aero_dist_allocate(aero_dist_init)
 
-    call spec_file_read_string(file, 'output_prefix', exact_opt%prefix)
+    call spec_file_read_string(file, 'output_prefix', run_exact_opt%prefix)
 
-    call spec_file_read_real(file, 't_max', exact_opt%t_max)
-    call spec_file_read_real(file, 't_output', exact_opt%t_output)
+    call spec_file_read_real(file, 't_max', run_exact_opt%t_max)
+    call spec_file_read_real(file, 't_output', run_exact_opt%t_output)
 
     call spec_file_read_bin_grid(file, bin_grid)
 
@@ -757,23 +761,24 @@ contains
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
-         exact_opt%do_coagulation)
-    if (exact_opt%do_coagulation) then
-       call spec_file_read_coag_kernel_type(file, exact_opt%coag_kernel_type)
+         run_exact_opt%do_coagulation)
+    if (run_exact_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, &
+            run_exact_opt%coag_kernel_type)
     else
-       exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+       run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
     
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
 
-    call uuid4_str(exact_opt%uuid)
+    call uuid4_str(run_exact_opt%uuid)
 
     call env_data_init_state(env_data, env_state, 0d0)
 
     call run_exact(bin_grid, env_data, env_state, aero_data, &
-         aero_dist_init, exact_opt)
+         aero_dist_init, run_exact_opt)
 
     call aero_data_deallocate(aero_data)
     call env_data_deallocate(env_data)
@@ -792,7 +797,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
 
-    type(run_sect_opt_t) :: sect_opt
+    type(run_sect_opt_t) :: run_sect_opt
     type(aero_data_t) :: aero_data
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_init
@@ -884,12 +889,12 @@ contains
     call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
 
-    call spec_file_read_string(file, 'output_prefix', sect_opt%prefix)
+    call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
 
-    call spec_file_read_real(file, 't_max', sect_opt%t_max)
-    call spec_file_read_real(file, 'del_t', sect_opt%del_t)
-    call spec_file_read_real(file, 't_output', sect_opt%t_output)
-    call spec_file_read_real(file, 't_progress', sect_opt%t_progress)
+    call spec_file_read_real(file, 't_max', run_sect_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_sect_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_sect_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
 
     call spec_file_read_bin_grid(file, bin_grid)
 
@@ -913,23 +918,24 @@ contains
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
-         sect_opt%do_coagulation)
-    if (sect_opt%do_coagulation) then
-       call spec_file_read_coag_kernel_type(file, sect_opt%coag_kernel_type)
+         run_sect_opt%do_coagulation)
+    if (run_sect_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, &
+            run_sect_opt%coag_kernel_type)
     else
-       sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+       run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
     
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
 
-    call uuid4_str(sect_opt%uuid)
+    call uuid4_str(run_sect_opt%uuid)
 
     call env_data_init_state(env_data, env_state, 0d0)
 
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env_data, &
-         env_state, sect_opt)
+         env_state, run_sect_opt)
 
     call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)

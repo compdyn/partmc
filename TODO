@@ -31,6 +31,11 @@ Rename "kernel" to "coag" in input files and elsewhere.
 Why do we need "interface" blocks in mosaic.f90 for mosaic
 subroutines. Can't we just use the mosaic modules?
 
+Shouldn't we use trim(real_to_string()) etc in error messages, rather
+than just real_to_string()?
+
+Debug code in aero_state_bin_average_size(), etc?
+
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").
@@ -97,7 +102,8 @@ it every timestep, or just when needed, or what? What about
 coagulation? Does this come in the right order?
 
 Sometimes cmake seems to rebuild even if no source files have changed
-at all?
+at all? Maybe has to do with the fact that the module files are being
+put into the build/ directory?
 
 Change bins to have r_min, r_max as edges, not centers. Would be even
 better to switch to d_min, d_max for diameter.

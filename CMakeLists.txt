@@ -211,9 +211,9 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(DEFAULT_PARTMC_FFLAGS "-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check")
 elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
   set(DEFAULT_PARTMC_FFLAGS "-Mpreprocess -DDEFINE_LOCAL_COMMAND_ARGUMENT")
-else()
+else(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(DEFAULT_PARTMC_FFLAGS "")
-endif()
+endif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 set(PARTMC_CFLAGS "" CACHE STRING "CFLAGS used while compiling PartMC")
 set(PARTMC_FFLAGS ${DEFAULT_PARTMC_FFLAGS} CACHE STRING "FFLAGS used while compiling PartMC")
@@ -323,15 +323,21 @@ set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90
   src/nucleate.f90)
 
-set_source_files_properties(${PARTMC_SRC}
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(${PARTMC_SRC}
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 if(ENABLE_SUNDIALS)
-  set_source_files_properties(src/condense_solver.c
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-  set_source_files_properties(src/condense.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-  set(PARTMC_SRC ${PARTMC_SRC} src/condense.f90 src/condense_solver.c)
+  if(PARTMC_CFLAGS)
+    set_source_files_properties(src/condense_solver.c
+      PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
+  endif()
+  if(PARTMC_FFLAGS)
+    set_source_files_properties(src/condense.f90
+      PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+    set(PARTMC_SRC ${PARTMC_SRC} src/condense.f90 src/condense_solver.c)
+  endif(PARTMC_FFLAGS)
 endif()
 
 add_executable(partmc ${PARTMC_SRC})
@@ -349,67 +355,89 @@ add_executable(test_bidisperse_ode
   src/aero_particle.f90 src/aero_particle_array.f90 src/mpi.f90
   src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90)
 target_link_libraries(test_bidisperse_ode ${EXTRA_LIBS})
-set_source_files_properties(test/bidisperse/test_bidisperse_ode.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(test/bidisperse/test_bidisperse_ode.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(test_bidisperse_extract
   test/bidisperse/test_bidisperse_extract.f90)
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
-set_source_files_properties(test/bidisperse/test_bidisperse_extract.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(test/bidisperse/test_bidisperse_extract.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.f90
   src/util.f90 src/constants.f90)
-set_source_files_properties(test/nucleate/test_nucleate_ode.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(test/nucleate/test_nucleate_ode.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(test_poisson_sample test/poisson/test_poisson_sample.f90
   src/util.f90 src/rand.f90 src/constants.f90)
 target_link_libraries(test_poisson_sample)
-set_source_files_properties(test/poisson/test_poisson_sample.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(test/poisson/test_poisson_sample.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 ######################################################################
 
 add_executable(extract_aero_particle_mass
   src/extract_aero_particle_mass.f90)
 target_link_libraries(extract_aero_particle_mass ${NETCDF_LIBS})
-set_source_files_properties(src/extract_aero_particle_mass.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_aero_particle_mass.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_aero_size_num
   src/extract_aero_size_num.f90)
 target_link_libraries(extract_aero_size_num ${NETCDF_LIBS})
-set_source_files_properties(src/extract_aero_size_num.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_aero_size_num.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_aero_size_mass
   src/extract_aero_size_mass.f90)
 target_link_libraries(extract_aero_size_mass ${NETCDF_LIBS})
-set_source_files_properties(src/extract_aero_size_mass.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_aero_size_mass.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_aero_species
   src/extract_aero_species.f90)
 target_link_libraries(extract_aero_species ${NETCDF_LIBS})
-set_source_files_properties(src/extract_aero_species.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_aero_species.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_aero_total
   src/extract_aero_total.f90)
 target_link_libraries(extract_aero_total ${NETCDF_LIBS})
-set_source_files_properties(src/extract_aero_total.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_aero_total.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_gas src/extract_gas.f90)
 target_link_libraries(extract_gas ${NETCDF_LIBS})
-set_source_files_properties(src/extract_gas.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_gas.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_env src/extract_env.f90)
 target_link_libraries(extract_env ${NETCDF_LIBS})
-set_source_files_properties(src/extract_env.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_env.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 ######################################################################
 
@@ -423,8 +451,10 @@ add_executable(bin_average_comp src/bin_average_comp.f90
   src/spec_line.f90 src/aero_mode.f90 src/aero_weight.f90
   src/rand.f90)
 target_link_libraries(bin_average_comp ${NETCDF_LIBS})
-set_source_files_properties(src/bin_average_comp.f90 PROPERTIES
-COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/bin_average_comp.f90 PROPERTIES
+    COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(bin_average_size src/bin_average_size.f90
   src/bin_grid.f90 src/gas_state.f90 src/gas_data.f90 src/util.f90
@@ -436,43 +466,57 @@ add_executable(bin_average_size src/bin_average_size.f90
   src/spec_line.f90 src/aero_mode.f90 src/rand.f90
   src/aero_weight.f90)
 target_link_libraries(bin_average_size ${NETCDF_LIBS})
-set_source_files_properties(src/bin_average_size.f90 PROPERTIES
-COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/bin_average_size.f90 PROPERTIES
+    COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 ######################################################################
 
 add_executable(extract_sectional_aero_size_num
   src/extract_sectional_aero_size_num.f90)
 target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})
-set_source_files_properties(src/extract_sectional_aero_size_num.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_sectional_aero_size_num.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_sectional_aero_size_mass
   src/extract_sectional_aero_size_mass.f90)
 target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
-set_source_files_properties(src/extract_sectional_aero_size_mass.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_sectional_aero_size_mass.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_sectional_aero_species
   src/extract_sectional_aero_species.f90)
 target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})
-set_source_files_properties(src/extract_sectional_aero_species.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_sectional_aero_species.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(extract_sectional_aero_total
   src/extract_sectional_aero_total.f90)
 target_link_libraries(extract_sectional_aero_total ${NETCDF_LIBS})
-set_source_files_properties(src/extract_sectional_aero_total.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/extract_sectional_aero_total.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 ######################################################################
 
 add_executable(numeric_diff src/numeric_diff.f90)
-set_source_files_properties(src/numeric_diff.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/numeric_diff.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 add_executable(numeric_average src/numeric_average.f90)
-set_source_files_properties(src/numeric_average.f90
-  PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+if(PARTMC_FFLAGS)
+  set_source_files_properties(src/numeric_average.f90
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif(PARTMC_FFLAGS)
 
 ######################################################################

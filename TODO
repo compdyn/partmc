@@ -5,6 +5,34 @@ Remove coagulation_mpi_controlled (maybe also
 mc_coag_mpi_centralized()). Also look out whether we need all the
 parallel output types.
 
+Change radius to diameter in all input files and also in extract_*
+output files.
+
+Output filename format in parallel should be LLLL_TTTTTTTT_PPPP, as we
+typically want to sum over the processors first to get the result for
+a single time.
+
+Add run_guid to netcdf output files and have extract_* programs check
+to make sure they are processing everything from a single run. Don't
+use run_guid, use run_date or something similar.
+
+Add new run-mode to make an output directory, copy input files into
+it, etc.
+
+Replace aero_mode types by integers, like for aero_weight.
+
+Change mean_radius to median_radius for log_normal distributions in
+input files. What about exponential distributions?
+
+Add title parameter as the first line in .spec files and write this as
+the title attribute in the output files.
+
+Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
+makes sense for background as well), or just delete it. Will need to
+add a dilution rate profile somewhere --- better anyway to unify it.
+
+Rename "loop" to "repeat" or something in input and output.
+
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").
@@ -18,9 +46,6 @@ simulation. Would also help with restarted simulations.
 All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than
 deadlocking.
-
-Add run_guid to netcdf output files and have extract_* programs check
-to make sure they are processing everything from a single run.
 
 Provide *_allocate() and *_deallocate() subroutines for all
 structures, even those that don't need them. Maybe just call *_zero()
@@ -161,31 +186,13 @@ determines which one it is, like aero_weight, and have a multiplexing
 function to take care of evaluating it. The functions should be
 kernel(type, ...) and kernel_max(type, ...).
 
-Replace aero_mode types by integers, like for aero_weight.
-
-Change mean_radius to median_radius for log_normal distributions in
-input files. What about exponential distributions?
-
-Add title parameter as the first line in .spec files and write this as
-the title attribute in the output files.
-
 Add separate option controlling whether to equilibriate if doing cond.
-
-Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
-makes sense for background as well), or just delete it. Will need to
-add a dilution rate profile somewhere --- better anyway to unify it.
 
 Add docs to say that rate for background is dilution rate (in and
 out).
 
-Rename "loop" to "repeat" or something in input and output.
-
 Reading a file which does not have a newline at the end causes
 problems (specifically, gas_init.dat).
-
-Output filename format in parallel should be LLLL_TTTTTTTT_PPPP, as we
-typically want to sum over the processors first to get the result for
-a single time.
 
 When averaging parallel/dist output files, how should we account for
 different computational volumes? Should we store the comp_vol in the
@@ -196,8 +203,12 @@ In the parallel mixing code, do an allreduce() with MPI_ADD to figure
 out how many processers are actually sending to each receiver, so it's
 more efficient in the slow mixing or few particles case.
 
-Change radius to diameter in all input files and also in extract_*
-output files.
-
 Change gnuplot scripts in test/ to have units like "time / s", not
 "time (s)".
+
+Store all lost particles in another aero_state rather than just
+deleting them, and (optionally) write this aero_state into the output
+file, then clear it. Do the same thing for emitted particles. This way
+we can see the exact state of particles when they are emitted and
+lost. The coagulation loss should do the same thing. Perhaps we should
+always have a new ID for coagulated particles?

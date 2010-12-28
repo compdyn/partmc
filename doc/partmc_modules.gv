@@ -48,8 +48,13 @@ digraph partmc_modules {
     aero_weight -> rand
     aero_weight -> spec_file
     aero_weight -> mpi
+    aero_weight -> netcdf
     coagulation_mpi_equal -> coagulation
-    kernel -> env_state
+    kernel -> kernel_brown
+    kernel -> kernel_sedi
+    kernel -> kernel_golovin
+    kernel -> kernel_constant
+    kernel -> kernel_zero
     netcdf -> util
     nucleate -> env_state
     bin_grid -> netcdf
@@ -68,14 +73,9 @@ digraph partmc_modules {
     run_sect -> output
     spec_file -> spec_line
     condense -> env_data
-    partmc -> kernel_golovin
-    partmc -> kernel_zero
-    partmc -> kernel_brown
-    partmc -> kernel_sedi
-    partmc -> kernel_constant
-    partmc -> run_sect
     partmc -> run_exact
     partmc -> run_part
+    partmc -> run_sect
     kernel_golovin -> env_state
     bin_average_comp -> output
     mosaic -> env_state
@@ -102,11 +102,11 @@ digraph partmc_modules {
     aero_data -> netcdf
     aero_data -> spec_file
     bin_average_size -> output
+    run_part -> coagulation_mpi_controlled
     run_part -> coagulation_mpi_equal
     run_part -> nucleate
     run_part -> mosaic
     run_part -> condense
-    run_part -> coagulation_mpi_controlled
     run_part -> output
     util -> constants
     aero_particle_array -> aero_particle

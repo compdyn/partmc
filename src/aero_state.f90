@@ -1169,10 +1169,6 @@ contains
           end do
 
           new_particle_volume = center_volume
-          !> DEBUG
-          write(*,*) 'num_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
-               i_bin, aero_state%bin(i_bin)%n_part, rad2vol(bin_grid%center_radius(i_bin)), new_particle_volume
-          !< DEBUG
        else
           ! volume-preserving scheme: Solve the implicit equation:
           ! n_part * W(new_vol) * new_vol = weighted_total_volume
@@ -1221,10 +1217,6 @@ contains
           end do
 
           new_particle_volume = center_volume
-          !> DEBUG
-          write(*,*) 'vol_pres: i_bin, n_part, bin_vol, new_part_vol = ', &
-               i_bin, aero_state%bin(i_bin)%n_part, rad2vol(bin_grid%center_radius(i_bin)), new_particle_volume
-          !< DEBUG
        end if
 
        do i_part = 1,aero_state%bin(i_bin)%n_part

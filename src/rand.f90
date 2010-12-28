@@ -10,6 +10,9 @@ module pmc_rand
   
   use pmc_util
   use pmc_constants
+
+  !> Length of a UUID string.
+  integer, parameter :: PMC_UUID_LEN = 36
   
 contains
 
@@ -266,6 +269,65 @@ contains
     
   end subroutine sample_vec_cts_to_disc
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generate a random hexadecimal character.
+  character function rand_hex_char()
+
+    integer :: i
+
+    i = pmc_rand_int(16)
+    if (i <= 10) then
+       rand_hex_char = achar(iachar('0') + i - 1)
+    else
+       rand_hex_char = achar(iachar('A') + i - 11)
+    end if
+
+  end function rand_hex_char
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generate a version 4 UUID as a string.
+  !!
+  !! See http://en.wikipedia.org/wiki/Universally_Unique_Identifier
+  !! for format details.
+  subroutine uuid4_str(uuid)
+
+    character(len=PMC_UUID_LEN), intent(out) :: uuid
+
+    integer :: i
+
+    do i = 1,8
+       uuid(i:i) = rand_hex_char()
+    end do
+    uuid(9:9) = '-'
+    do i = 1,4
+       uuid((i + 9):(i + 9)) = rand_hex_char()
+    end do
+    uuid(14:14) = '-'
+    do i = 1,4
+       uuid((i + 14):(i + 14)) = rand_hex_char()
+    end do
+    uuid(19:19) = '-'
+    do i = 1,4
+       uuid((i + 19):(i + 19)) = rand_hex_char()
+    end do
+    uuid(24:24) = '-'
+    do i = 1,12
+       uuid((i + 24):(i + 24)) = rand_hex_char()
+    end do
+
+    uuid(15:15) = '4'
+
+    i = pmc_rand_int(4)
+    if (i <= 2) then
+       uuid(20:20) = achar(iachar('8') + i - 1)
+    else
+       uuid(20:20) = achar(iachar('A') + i - 3)
+    end if
+
+  end subroutine uuid4_str
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_rand

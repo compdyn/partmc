@@ -33,6 +33,7 @@ program extract_aero_size_num
   integer :: ios, i_time, i_spec, i_part, status
   integer :: n_bin, i_bin, n_time
   real(kind=dp) :: r_min, r_max, radius, volume, dlnr
+  character(len=36) :: uuid, run_uuid
 
   ! process commandline arguments
   if (command_argument_count() .ne. 5) then
@@ -66,6 +67,18 @@ program extract_aero_size_num
         write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
              MAX_N_TIME
         stop 1
+     end if
+
+     ! read and check uuid
+     call nc_check_msg(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid), &
+          "getting global attribute 'UUID'")
+     if (i_time == 1) then
+        run_uuid = uuid
+     else
+        if (run_uuid /= uuid) then
+           write(0,*) 'ERROR: UUID mismatch at: ' // trim(in_filename)
+           stop 1
+        end if
      end if
 
      ! read time

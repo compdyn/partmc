@@ -84,6 +84,8 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method (local/collect/central/dist).
      character(len=RUN_PART_OPT_CHAR_LEN) :: coag_method
+     !> UUID for this simulation.
+     character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
   
 contains
@@ -153,7 +155,8 @@ contains
        call output_state(part_opt%output_prefix, part_opt%output_type, &
             bin_grid, aero_data, aero_weight, aero_state, gas_data, &
             gas_state, env_state, i_state, time, part_opt%del_t, &
-            part_opt%i_loop, part_opt%record_removals, part_opt%do_optical)
+            part_opt%i_loop, part_opt%record_removals, part_opt%do_optical, &
+            part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -275,7 +278,8 @@ contains
                   part_opt%output_type, bin_grid, aero_data, aero_weight, &
                   aero_state, gas_data, gas_state, env_state, i_output, &
                   time, part_opt%del_t, part_opt%i_loop, &
-                  part_opt%record_removals, part_opt%do_optical)
+                  part_opt%record_removals, part_opt%do_optical, &
+                  part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if
@@ -358,7 +362,8 @@ contains
          + pmc_mpi_pack_size_real(val%mix_timescale) &
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
-         + pmc_mpi_pack_size_string(val%coag_method)
+         + pmc_mpi_pack_size_string(val%coag_method) &
+         + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_part_opt
 
@@ -401,6 +406,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_string(buffer, position, val%coag_method)
+    call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif
@@ -446,6 +452,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_string(buffer, position, val%coag_method)
+    call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position == pmc_mpi_pack_size_part_opt(val))
 #endif

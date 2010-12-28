@@ -389,7 +389,7 @@ contains
           call input_state(restart_filename, bin_grid, aero_data, &
                aero_weight, aero_state_init, gas_data, gas_state_init, &
                env_state_init, dummy_index, dummy_time, dummy_del_t, &
-               dummy_i_loop)
+               dummy_i_loop, part_opt%uuid)
        end if
 
        call spec_file_read_string(file, 'gas_data', sub_filename)
@@ -470,6 +470,10 @@ contains
     end if
 
     ! finished reading .spec data, now broadcast data
+
+    if (.not. do_restart) then
+       call uuid4_str(part_opt%uuid)
+    end if
 
 #ifdef PMC_USE_MPI
     if (pmc_mpi_rank() == 0) then
@@ -726,6 +730,8 @@ contains
 
     ! finished reading .spec data, now do the run
 
+    call uuid4_str(exact_opt%uuid)
+
     call env_data_init_state(env_data, env_state, 0d0)
 
     call run_exact(bin_grid, env_data, env_state, aero_data, &
@@ -874,6 +880,8 @@ contains
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
+
+    call uuid4_str(sect_opt%uuid)
 
     call env_data_init_state(env_data, env_state, 0d0)
 

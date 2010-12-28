@@ -30,6 +30,7 @@ program extract_aero_total
   integer :: ios, i_time, i_part, status
   integer :: n_bin, i_bin, n_time, i
   real(kind=dp) :: num_conc, mass_conc
+  character(len=36) :: uuid, run_uuid
 
   ! process commandline arguments
   if (command_argument_count() .ne. 2) then
@@ -66,6 +67,18 @@ program extract_aero_total
         exit
      end if
      n_time = i_time
+
+     ! read and check uuid
+     call nc_check_msg(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid), &
+          "getting global attribute 'UUID'")
+     if (i_time == 1) then
+        run_uuid = uuid
+     else
+        if (run_uuid /= uuid) then
+           write(0,*) 'ERROR: UUID mismatch at: ' // trim(in_filename)
+           stop 1
+        end if
+     end if
 
      ! read time
      call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &

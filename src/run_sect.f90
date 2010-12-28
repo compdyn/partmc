@@ -44,6 +44,8 @@ module pmc_run_sect
      character(len=300) :: prefix
     !> Type of coagulation kernel.
     integer :: kernel_type
+     !> UUID of the simulation.
+     character(len=PMC_UUID_LEN) :: uuid
   end type run_sect_opt_t
 
 contains
@@ -143,7 +145,7 @@ contains
     if (do_output) then
        call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_summary, &
-            time, sect_opt%t_output)
+            time, sect_opt%t_output, sect_opt%uuid)
     end if
     
     ! main time-stepping loop
@@ -176,7 +178,7 @@ contains
           i_summary = i_summary + 1
           call output_sectional(sect_opt%prefix, bin_grid, aero_data, &
                aero_binned, gas_data, gas_state, env_state, i_summary, &
-               time, sect_opt%t_output)
+               time, sect_opt%t_output, sect_opt%uuid)
        end if
        
        ! print progress to stdout

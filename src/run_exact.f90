@@ -30,6 +30,8 @@ module pmc_run_exact
      character(len=300) :: prefix
      !> Type of coagulation kernel.
      integer :: kernel_type
+     !> UUID of the simulation.
+     character(len=PMC_UUID_LEN) :: uuid
   end type run_exact_opt_t
 
 contains
@@ -73,7 +75,7 @@ contains
             aero_dist_init, env_data, env_state, time, aero_binned)
        call output_sectional(exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &
-            time, exact_opt%t_output)
+            time, exact_opt%t_output, exact_opt%uuid)
     end do
 
     call gas_data_deallocate(gas_data)

@@ -281,14 +281,25 @@ contains
     call aero_data_allocate_size(aero_data, n_species)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
-       if (species_name(i) == "H2O") then
-          aero_data%i_water = i
-       end if
        aero_data%density(i) = species_data(i,1)
        aero_data%num_ions(i) = nint(species_data(i,2))
        aero_data%solubility(i) = species_data(i,3)
        aero_data%molec_weight(i) = species_data(i,4)
        aero_data%kappa(i) = species_data(i,5)
+       if (species_name(i) == "H2O") then
+          aero_data%i_water = i
+          call warn_assert_msg(945800387, &
+               aero_data%density(i) == const%water_density, &
+               "input H2O density not equal to const%water_density (" &
+               // trim(real_to_string(aero_data%density(i))) // " /= " &
+               // trim(real_to_string(const%water_density)) // ")")
+          call warn_assert_msg(945800387, &
+               aero_data%molec_weight(i) == const%water_molec_weight, &
+               "input H2O molec_weight not equal " &
+               // "to const%water_molec_weight (" &
+               // trim(real_to_string(aero_data%molec_weight(i))) // " /= " &
+               // trim(real_to_string(const%water_molec_weight)) // ")")
+       end if
     end do
     deallocate(species_name)
     deallocate(species_data)

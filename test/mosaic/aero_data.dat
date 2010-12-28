@@ -1,5 +1,5 @@
 #     dens (kg/m^3)   ions in soln (1)    solubty (1)   molec wght (kg/mole)   kappa
-H2O            1200                0              0                  18d-3      0
+H2O            1000                0              0                  18d-3      0
 SO4            1800                0              0                  96d-3      0.53
 NO3            1800                0              0                  62d-3      0.53
 Cl             2200                0              0                  35.5d-3    0.53

@@ -15,9 +15,6 @@ Include scenarios in README and distribution tarball.
 
 Remove out directories.
 
-When inputting aero_data, warn if water density is not
-const%water_density (also const%water_molec_weight).
-
 Add separate option controlling whether to equilibriate if doing cond.
 
 Reading a file which does not have a newline at the end causes
@@ -28,6 +25,8 @@ Change gnuplot scripts in test/ to have units like "time / s", not
 
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
+
+Weighting D_0 selection --- shouldn't need it.
 
 ######################################################################
 

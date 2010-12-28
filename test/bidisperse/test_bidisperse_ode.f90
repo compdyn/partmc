@@ -19,7 +19,7 @@
 
 program test_bidisperse_ode
   
-  use pmc_kernel_sedi
+  use pmc_coag_kernel_sedi
   use pmc_env_state
   use pmc_util
   use pmc_bin_grid

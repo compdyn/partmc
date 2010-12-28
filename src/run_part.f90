@@ -22,7 +22,7 @@ module pmc_run_part
   use pmc_coagulation_mpi_centralized
   use pmc_coagulation_mpi_controlled
   use pmc_coagulation_mpi_equal
-  use pmc_kernel
+  use pmc_coag_kernel
   use pmc_nucleate
   use pmc_mpi
 #ifdef PMC_USE_SUNDIALS

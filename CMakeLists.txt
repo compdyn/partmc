@@ -324,14 +324,15 @@ add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/bin_grid.f90 src/constants.f90 src/env_data.f90
   src/env_state.f90 src/aero_mode.f90 src/aero_dist.f90
-  src/aero_weight.f90 src/kernel_additive.f90 src/kernel_sedi.f90
-  src/kernel_constant.f90 src/kernel_brown.f90 src/kernel_zero.f90
-  src/aero_data.f90 src/run_exact.f90 src/run_part.f90 src/util.f90
-  src/run_sect.f90 src/output.f90 src/mosaic.f90 src/gas_data.f90
-  src/gas_state.f90 src/coagulation.f90 src/exact_soln.f90
+  src/aero_weight.f90 src/coag_kernel_additive.f90
+  src/coag_kernel_sedi.f90 src/coag_kernel_constant.f90
+  src/coag_kernel_brown.f90 src/coag_kernel_zero.f90 src/aero_data.f90
+  src/run_exact.f90 src/run_part.f90 src/util.f90 src/run_sect.f90
+  src/output.f90 src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
+  src/coagulation.f90 src/exact_soln.f90
   src/coagulation_mpi_centralized.f90
   src/coagulation_mpi_controlled.f90 src/coagulation_mpi_equal.f90
-  src/kernel.f90 src/spec_line.f90 src/spec_file.f90 src/rand.f90
+  src/coag_kernel.f90 src/spec_line.f90 src/spec_file.f90 src/rand.f90
   src/aero_particle.f90 src/aero_particle_array.f90 src/mpi.f90
   src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90
   src/nucleate.f90)
@@ -354,18 +355,19 @@ target_link_libraries(partmc ${EXTRA_LIBS})
 
 add_executable(test_bidisperse_ode
 	       test/bidisperse/test_bidisperse_ode.f90
-	       src/kernel_sedi.f90 src/env_data.f90 src/env_state.f90
-	       src/constants.f90 src/aero_data.f90 src/util.f90
-	       src/gas_data.f90 src/gas_state.f90 src/aero_state.f90
-	       src/output.f90 src/bin_grid.f90 src/spec_line.f90
-	       src/spec_file.f90 src/aero_mode.f90 src/aero_dist.f90
-	       src/aero_weight.f90 src/aero_binned.f90 src/rand.f90
-	       src/aero_particle.f90 src/aero_particle_array.f90
-	       src/mpi.f90 src/netcdf.f90 src/aero_info.f90
-	       src/aero_info_array.f90)
-target_link_libraries(test_bidisperse_ode ${EXTRA_LIBS})
-set_source_files_properties(test/bidisperse/test_bidisperse_ode.f90
-  PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
+	       src/coag_kernel_sedi.f90 src/env_data.f90
+	       src/env_state.f90 src/constants.f90 src/aero_data.f90
+	       src/util.f90 src/gas_data.f90 src/gas_state.f90
+	       src/aero_state.f90 src/output.f90 src/bin_grid.f90
+	       src/spec_line.f90 src/spec_file.f90 src/aero_mode.f90
+	       src/aero_dist.f90 src/aero_weight.f90
+	       src/aero_binned.f90 src/rand.f90 src/aero_particle.f90
+	       src/aero_particle_array.f90 src/mpi.f90 src/netcdf.f90
+	       src/aero_info.f90 src/aero_info_array.f90)
+	       target_link_libraries(test_bidisperse_ode
+	       ${EXTRA_LIBS})
+	       set_source_files_properties(test/bidisperse/test_bidisperse_ode.f90
+	       PROPERTIES COMPILE_FLAGS ${STD_COMPILER_FLAGS})
 
 add_executable(test_bidisperse_extract
                test/bidisperse/test_bidisperse_extract.f90)

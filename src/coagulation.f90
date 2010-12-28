@@ -15,7 +15,7 @@ module pmc_coagulation
   use pmc_aero_state
   use pmc_aero_weight
   use pmc_mpi
-  use pmc_kernel
+  use pmc_coag_kernel
 #ifdef PMC_USE_MPI
   use mpi
 #endif

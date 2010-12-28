@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel_additive module.
+!> The pmc_coag_kernel_additive module.
 
 !> Additive coagulation kernel.
-module pmc_kernel_additive
+module pmc_coag_kernel_additive
 
   use pmc_bin_grid
   use pmc_env_state
@@ -197,4 +197,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_kernel_additive
+end module pmc_coag_kernel_additive

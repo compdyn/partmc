@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel_constant module.
+!> The pmc_coag_kernel_constant module.
 
 !> Constant coagulation kernel.
-module pmc_kernel_constant
+module pmc_coag_kernel_constant
 
   use pmc_env_state
   use pmc_bin_grid
@@ -139,4 +139,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_kernel_constant
+end module pmc_coag_kernel_constant

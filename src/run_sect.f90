@@ -23,7 +23,7 @@ module pmc_run_sect
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data
-  use pmc_kernel
+  use pmc_coag_kernel
   use pmc_output
   use pmc_gas_data
   use pmc_gas_state

@@ -3,14 +3,14 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel_zero module.
+!> The pmc_coag_kernel_zero module.
 
 !> Constant kernel equal to zero.
 !!
 !! This is only of interest for the exact solution to the
 !! no-coagulation, no-condensation case that can be used to test
 !! emissions and background dilution.
-module pmc_kernel_zero
+module pmc_coag_kernel_zero
 
   use pmc_bin_grid
   use pmc_env_state
@@ -147,4 +147,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_kernel_zero
+end module pmc_coag_kernel_zero

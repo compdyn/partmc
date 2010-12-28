@@ -1,10 +1,10 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel_sedi module.
+!> The pmc_coag_kernel_sedi module.
 !!
 !! Contains code based on \c coad1d.f by Andreas Bott
 !!     - http://www.meteo.uni-bonn.de/mitarbeiter/ABott/
@@ -14,7 +14,7 @@
 !!       1998.
 
 !> Gravitational sedimentation coagulation kernel.
-module pmc_kernel_sedi
+module pmc_coag_kernel_sedi
 
   use pmc_env_state
   use pmc_constants
@@ -256,4 +256,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_kernel_sedi
+end module pmc_coag_kernel_sedi

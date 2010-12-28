@@ -13,10 +13,10 @@ module pmc_exact_soln
   use pmc_constants
   use pmc_aero_data
   use pmc_aero_dist
-  use pmc_kernel
-  use pmc_kernel_zero
-  use pmc_kernel_additive
-  use pmc_kernel_constant
+  use pmc_coag_kernel
+  use pmc_coag_kernel_zero
+  use pmc_coag_kernel_additive
+  use pmc_coag_kernel_constant
   use pmc_env_state
   use pmc_env_data
   use pmc_aero_binned

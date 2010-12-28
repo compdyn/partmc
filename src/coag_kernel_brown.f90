@@ -4,10 +4,10 @@
 ! option) any later version. See the file COPYING for details.
     
 !> \file
-!> The pmc_kernel_brown module.
+!> The pmc_coag_kernel_brown module.
 
 !> Brownian coagulation kernel.
-module pmc_kernel_brown
+module pmc_coag_kernel_brown
 
   use pmc_env_state
   use pmc_constants
@@ -197,4 +197,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_kernel_brown
+end module pmc_coag_kernel_brown

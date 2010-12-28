@@ -128,7 +128,7 @@ program partmc
   use pmc_aero_state
   use pmc_aero_dist
   use pmc_aero_binned
-  use pmc_kernel
+  use pmc_coag_kernel
   use pmc_aero_data
   use pmc_aero_weight
   use pmc_env_data

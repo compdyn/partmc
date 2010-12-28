@@ -3,21 +3,21 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel module.
+!> The pmc_coag_kernel module.
 
 !> Generic coagulation kernel.
-module pmc_kernel
+module pmc_coag_kernel
 
   use pmc_env_state
   use pmc_bin_grid
   use pmc_aero_particle
   use pmc_aero_data
   use pmc_aero_weight
-  use pmc_kernel_sedi
-  use pmc_kernel_additive
-  use pmc_kernel_constant
-  use pmc_kernel_brown
-  use pmc_kernel_zero
+  use pmc_coag_kernel_sedi
+  use pmc_coag_kernel_additive
+  use pmc_coag_kernel_constant
+  use pmc_coag_kernel_brown
+  use pmc_coag_kernel_zero
 
   !> Maximum length of a mode type.
   integer, parameter :: COAG_KERNEL_TYPE_LEN = 20
@@ -27,7 +27,7 @@ module pmc_kernel
   !> Type code for a sedimentation kernel.
   integer, parameter :: COAG_KERNEL_TYPE_SEDI     = 1
   !> Type code for an additive kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE  = 2
+  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE = 2
   !> Type code for a constant kernel.
   integer, parameter :: COAG_KERNEL_TYPE_CONSTANT = 3
   !> Type code for a Brownian kernel.
@@ -383,4 +383,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_kernel
+end module pmc_coag_kernel

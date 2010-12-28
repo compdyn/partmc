@@ -238,7 +238,7 @@ contains
     character, allocatable :: buffer(:)
     integer :: buffer_size
     integer :: position
-    logical :: do_restart
+    logical :: do_restart, do_init_equilibriate
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t
@@ -296,6 +296,10 @@ contains
     !! - \b do_condensation (logical): whether to perform explicit
     !!   water condensation (requires SUNDIALS support to be
     !!   compiled in; cannot be used simultaneously with MOSAIC)
+    !! - \b do_init_equilibriate (logical): whether to equilibriate
+    !!   the water content of each particle before starting the
+    !!   simulation (only provide option if \c do_condensation is
+    !!   \c yes)
     !! - \b do_mosaic (logical): whether to use the MOSAIC
     !!   chemistry code (requires support to be compiled in; cannot
     !!   be used simultaneously with condensation)
@@ -435,15 +439,25 @@ contains
        call spec_file_read_logical(file, 'do_condensation', &
             run_part_opt%do_condensation)
 #ifndef PMC_USE_SUNDIALS
-       call assert_msg(121370218, run_part_opt%do_condensation &
-            .eqv. .false., &
+       call assert_msg(121370218, &
+            run_part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
+       if (run_part_opt%do_condensation) then
+          call spec_file_read_logical(file, 'do_init_equilibriate', &
+               do_init_equilibriate)
+       else
+          do_init_equilibriate = .false.
+       end if
 
        call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
        if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &
                'cannot use MOSAIC, support is not compiled in')
+       end if
+       if (run_part_opt%do_mosaic .and. run_part_opt%do_condensation) then
+          call spec_file_die_msg(599877804, file, &
+               'cannot use MOSAIC and condensation simultaneously')
        end if
        if (run_part_opt%do_mosaic) then
           call spec_file_read_logical(file, 'do_optical', &
@@ -520,6 +534,8 @@ contains
        buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
        buffer_size = buffer_size + pmc_mpi_pack_size_logical(do_restart)
        buffer_size = buffer_size &
+            + pmc_mpi_pack_size_logical(do_init_equilibriate)
+       buffer_size = buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
     end if
 
@@ -541,6 +557,7 @@ contains
        call pmc_mpi_pack_env_state(buffer, position, env_state_init)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
        call pmc_mpi_pack_logical(buffer, position, do_restart)
+       call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
        call assert(181905491, position == buffer_size)
     end if
@@ -562,6 +579,7 @@ contains
        call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
+       call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
        call assert(143770146, position == buffer_size)
     end if
@@ -596,7 +614,7 @@ contains
             env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
-       if (run_part_opt%do_condensation) then
+       if (do_init_equilibriate) then
           call condense_equilib_particles(bin_grid, env_state, aero_data, &
                aero_weight, aero_state)
        end if

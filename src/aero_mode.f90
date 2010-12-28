@@ -22,8 +22,15 @@ module pmc_aero_mode
 
   !> Maximum length of an aero_dist mode name.
   integer, parameter :: AERO_MODE_NAME_LEN = 300
-  !> Maximum length of an aero_dist mode type.
-  integer, parameter :: AERO_MODE_TYPE_LEN = 100
+
+  !> Type code for an undefined or invalid mode.
+  integer, parameter :: AERO_MODE_TYPE_INVALID    = 0
+  !> Type code for a log-normal mode.
+  integer, parameter :: AERO_MODE_TYPE_LOG_NORMAL = 1
+  !> Type code for an exponential mode.
+  integer, parameter :: AERO_MODE_TYPE_EXP        = 2
+  !> Type code for a mono-disperse mode.
+  integer, parameter :: AERO_MODE_TYPE_MONO       = 3
 
   !> An aerosol size distribution mode.
   !!
@@ -33,8 +40,8 @@ module pmc_aero_mode
   type aero_mode_t
      !> Mode name, used to track particle sources.
      character(len=AERO_MODE_NAME_LEN) :: name
-     !> Mode type ("log_normal", "exp", or "mono").
-     character(len=AERO_MODE_TYPE_LEN) :: type
+     !> Mode type (given by module constants).
+     integer :: type
      !> Mean radius of mode (m).
      real(kind=dp) :: mean_radius
      !> Log base 10 of geometric standard deviation of radius, if
@@ -260,16 +267,16 @@ contains
     !> Number concentration (#(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
 
-    if (aero_mode%type == "log_normal") then
+    if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call num_conc_log_normal(aero_mode%mean_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, num_conc)
-    elseif (aero_mode%type == "exp") then
+    elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        call num_conc_exp(aero_mode%mean_radius, bin_grid, num_conc)
-    elseif (aero_mode%type == "mono") then
+    elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
        call num_conc_mono(aero_mode%mean_radius, bin_grid, num_conc)
     else
        call die_msg(719625922, "unknown aero_mode type: " &
-            // trim(aero_mode%type))
+            // integer_to_string(aero_mode%type))
     end if
     num_conc = num_conc * aero_mode%num_conc
 
@@ -294,17 +301,18 @@ contains
     integer :: i_spec
     real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
 
-    if (aero_mode%type == "log_normal") then
+    if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call vol_conc_log_normal(aero_mode%mean_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, vol_conc_total)
-    elseif (aero_mode%type == "exp") then
+    elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        call vol_conc_exp(aero_mode%mean_radius, bin_grid, &
             vol_conc_total)
-    elseif (aero_mode%type == "mono") then
+    elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
        call vol_conc_mono(aero_mode%mean_radius, bin_grid, &
             vol_conc_total)
     else
-       call die_msg(314169653, "Unknown aero_mode type")
+       call die_msg(314169653, "Unknown aero_mode type: " &
+            // integer_to_string(aero_mode%type))
     end if
     vol_conc_total = vol_conc_total * aero_mode%num_conc
     do i_spec = 1,aero_data%n_spec
@@ -330,7 +338,7 @@ contains
        aero_mode_weighted_num_conc = aero_mode%num_conc
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-       if (aero_mode%type == "log_normal") then
+       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
           x_mean_prime = log10(aero_mode%mean_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
@@ -338,14 +346,14 @@ contains
                * aero_weight%ref_radius**aero_weight%exponent &
                * exp((x_mean_prime**2 - log10(aero_mode%mean_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
-       elseif (aero_mode%type == "exp") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
           call die_msg(822252601, "exp/power unimplemented")
-       elseif (aero_mode%type == "mono") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           aero_mode_weighted_num_conc = aero_mode%num_conc &
                / aero_weight_value(aero_weight, aero_mode%mean_radius)
        else
           call die_msg(901140225, "unknown aero_mode type: " &
-               // aero_mode%type)
+               // integer_to_string(aero_mode%type))
        end if
     else
        call die_msg(742383510, "unknown aero_weight type: " &
@@ -369,32 +377,32 @@ contains
     real(kind=dp) :: x_mean_prime
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-       if (aero_mode%type == "log_normal") then
+       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
           radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
                aero_mode%log10_std_dev_radius)
-       elseif (aero_mode%type == "exp") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
           radius = vol2rad(- rad2vol(aero_mode%mean_radius) * log(pmc_random()))
-       elseif (aero_mode%type == "mono") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           radius = aero_mode%mean_radius
        else
           call die_msg(749122931, "Unknown aero_mode type: " &
-               // aero_mode%type)
+               // integer_to_string(aero_mode%type))
        end if
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-       if (aero_mode%type == "log_normal") then
+       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
           x_mean_prime = log10(aero_mode%mean_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
           radius = 10d0**rand_normal(x_mean_prime, &
                aero_mode%log10_std_dev_radius)
-       elseif (aero_mode%type == "exp") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
           call die_msg(111024862, "exp/power unimplemented")
-       elseif (aero_mode%type == "mono") then
+       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           radius = aero_mode%mean_radius
        else
           call die_msg(886417976, "unknown aero_mode type: " &
-               // aero_mode%type)
+               // integer_to_string(aero_mode%type))
        end if
     else
        call die_msg(863127819, "unknown aero_weight type: " &
@@ -594,21 +602,20 @@ contains
        call spec_file_close(mass_frac_file)
        call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
        call spec_file_read_string(file, 'mode_type', mode_type)
-       if (len_trim(mode_type) < AERO_MODE_TYPE_LEN) then
-          aero_mode%type = mode_type(1:AERO_MODE_TYPE_LEN)
-       else
-          call spec_file_die_msg(284789262, file, "mode_type string too long")
-       end if
        if (trim(mode_type) == 'log_normal') then
+          aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
           call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
           call spec_file_read_real(file, 'log_std_dev', &
                aero_mode%log10_std_dev_radius)
        elseif (trim(mode_type) == 'exp') then
+          aero_mode%type = AERO_MODE_TYPE_EXP
           call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
        elseif (trim(mode_type) == 'mono') then
+          aero_mode%type = AERO_MODE_TYPE_MONO
           call spec_file_read_real(file, 'radius', aero_mode%mean_radius)
        else
-          call spec_file_die_msg(729472928, file, "Unknown distribution type")
+          call spec_file_die_msg(729472928, file, &
+               "Unknown distribution mode type: " // trim(mode_type))
        end if
     end if
     call spec_line_deallocate(line)
@@ -625,7 +632,7 @@ contains
 
     pmc_mpi_pack_size_aero_mode = &
          pmc_mpi_pack_size_string(val%name) &
-         + pmc_mpi_pack_size_string(val%type) &
+         + pmc_mpi_pack_size_integer(val%type) &
          + pmc_mpi_pack_size_real(val%mean_radius) &
          + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
          + pmc_mpi_pack_size_real(val%num_conc) &
@@ -650,7 +657,7 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_string(buffer, position, val%name)
-    call pmc_mpi_pack_string(buffer, position, val%type)
+    call pmc_mpi_pack_integer(buffer, position, val%type)
     call pmc_mpi_pack_real(buffer, position, val%mean_radius)
     call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
@@ -678,7 +685,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_string(buffer, position, val%name)
-    call pmc_mpi_unpack_string(buffer, position, val%type)
+    call pmc_mpi_unpack_integer(buffer, position, val%type)
     call pmc_mpi_unpack_real(buffer, position, val%mean_radius)
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)

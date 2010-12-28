@@ -2,4 +2,4 @@ mode_name init                  # name of mode source
 mass_frac aero_init_comp.dat    # species mass fractions
 num_conc 1e8                    # particle number concentration (#/m^3)
 mode_type mono                  # type of distribution
-radius 1e-7                     # radius (m)
+diam 2e-7                       # diameter (m)

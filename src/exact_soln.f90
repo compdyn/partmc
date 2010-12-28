@@ -68,7 +68,7 @@ contains
        end if
        call soln_additive_exp(bin_grid, aero_data, time, &
             aero_dist_init%mode(1)%num_conc, &
-            aero_dist_init%mode(1)%mean_radius, env_state, aero_binned)
+            aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        ! FIXME: check env_data has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
@@ -84,7 +84,7 @@ contains
        end if
        call soln_constant_exp(bin_grid, aero_data, time, &
             aero_dist_init%mode(1)%num_conc, &
-            aero_dist_init%mode(1)%mean_radius, env_state, aero_binned)
+            aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        ! FIXME: check env_data has constant emissions and constant dilution
        call soln_zero(bin_grid, aero_data, time, aero_dist_init, &

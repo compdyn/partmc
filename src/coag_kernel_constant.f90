@@ -69,8 +69,8 @@ contains
   !> Exact solution with a constant coagulation kernel and an
   !> exponential initial condition.
   !!
-  !! Given input paramaters \f$D_\mu\f$ and \f$N_0\f$ we let the mean
-  !! volume be \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$ and define the
+  !! Given input paramaters \f$R\f$ and \f$N_0\f$ we let the mean
+  !! volume be \f$v_\mu = \frac{4\pi}{3} R^3\f$ and define the
   !! rescaled time \f$\tau = N_0 \beta_0 t\f$, where \f$\beta_0\f$ is
   !! the fixed constant kernel value. We also set the parameter
   !! \f$\lambda = 1\f$. Then the solution is
@@ -87,7 +87,7 @@ contains
   !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
   !! \f]
   subroutine soln_constant_exp(bin_grid, aero_data, time, num_conc, &
-       mean_radius, env_state, aero_binned)
+       radius_at_mean_vol, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -98,7 +98,7 @@ contains
     !> Particle number concentration (#/m^3).
     real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
-    real(kind=dp), intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.
@@ -111,7 +111,7 @@ contains
 
     call kernel_constant_max(1d0, 1d0, aero_data, env_state, beta_0)
     
-    mean_vol = rad2vol(mean_radius)
+    mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_conc(k) = const%pi / 2d0 &

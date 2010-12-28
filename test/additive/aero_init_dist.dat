@@ -2,4 +2,4 @@ mode_name init1                 # name of mode source
 mass_frac aero_comp_water.dat   # species mass fractions
 num_conc 1e9                    # particle number concentration (#/m^3)
 mode_type exp                   # type of mode
-mean_radius 1e-5                # mean radius (m)
+diam_at_mean_vol 2e-5           # diameter at the mean volume (m)

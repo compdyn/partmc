@@ -44,8 +44,8 @@ module pmc_aero_mode
      character(len=AERO_MODE_NAME_LEN) :: name
      !> Mode type (given by module constants).
      integer :: type
-     !> Mean radius of mode (m).
-     real(kind=dp) :: mean_radius
+     !> Characteristic radius, with meaning dependent on mode type (m).
+     real(kind=dp) :: char_radius
      !> Log base 10 of geometric standard deviation of radius, if
      !> necessary (m).
      real(kind=dp) :: log10_std_dev_radius
@@ -131,7 +131,7 @@ contains
     call aero_mode_allocate_size(aero_mode_to, size(aero_mode_from%vol_frac))
     aero_mode_to%name = aero_mode_from%name
     aero_mode_to%type = aero_mode_from%type
-    aero_mode_to%mean_radius = aero_mode_from%mean_radius
+    aero_mode_to%char_radius = aero_mode_from%char_radius
     aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
     aero_mode_to%num_conc = aero_mode_from%num_conc
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
@@ -142,12 +142,13 @@ contains
 
   !> Compute a log-normal distribution, normalized so that
   !> sum(num_conc(k) * log_width) = 1
-  subroutine num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
+  subroutine num_conc_log_normal(geom_mean_radius, log10_sigma_g, &
+       bin_grid, num_conc)
     
     !> Geometric mean radius (m).
-    real(kind=dp), intent(in) :: mean_radius
-    !> log_10(geom. std dev) (1).
-    real(kind=dp), intent(in) :: log_sigma
+    real(kind=dp), intent(in) :: geom_mean_radius
+    !> log_10(geom. std. dev.) (1).
+    real(kind=dp), intent(in) :: log10_sigma_g
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
@@ -156,10 +157,10 @@ contains
     integer :: k
     
     do k = 1,bin_grid%n_bin
-       num_conc(k) = 1d0 / (sqrt(2d0 * const%pi) * log_sigma) * &
+       num_conc(k) = 1d0 / (sqrt(2d0 * const%pi) * log10_sigma_g) * &
             dexp(-(dlog10(bin_grid%center_radius(k)) &
-            - dlog10(mean_radius))**2d0 &
-            / (2d0 * log_sigma**2d0)) / dlog(10d0)
+            - dlog10(geom_mean_radius))**2d0 &
+            / (2d0 * log10_sigma_g**2d0)) / dlog(10d0)
     end do
     
     ! The formula above was originally for a distribution in
@@ -173,12 +174,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
-  subroutine vol_conc_log_normal(mean_radius, log_sigma, bin_grid, vol_conc)
+  subroutine vol_conc_log_normal(geom_mean_radius, log10_sigma_g, &
+       bin_grid, vol_conc)
     
     !> Geometric mean radius (m).
-    real(kind=dp), intent(in) :: mean_radius
-    !> log_10(geom. std dev) (1).
-    real(kind=dp), intent(in) :: log_sigma
+    real(kind=dp), intent(in) :: geom_mean_radius
+    !> log_10(geom. std. dev.) (1).
+    real(kind=dp), intent(in) :: log10_sigma_g
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
@@ -186,7 +188,8 @@ contains
     
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
-    call num_conc_log_normal(mean_radius, log_sigma, bin_grid, num_conc)
+    call num_conc_log_normal(geom_mean_radius, log10_sigma_g, &
+         bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_log_normal
@@ -196,10 +199,10 @@ contains
   !> Exponential distribution in volume
   !> \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
   !> Normalized so that sum(num_conc(k) * log_width) = 1
-  subroutine num_conc_exp(mean_radius, bin_grid, num_conc)
+  subroutine num_conc_exp(radius_at_mean_vol, bin_grid, num_conc)
     
-    !> Mean radius (m).
-    real(kind=dp), intent(in) :: mean_radius
+    !> Radius at mean volume (m).
+    real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
@@ -208,7 +211,7 @@ contains
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
     
-    mean_vol = rad2vol(mean_radius)
+    mean_vol = rad2vol(radius_at_mean_vol)
     do k = 1,bin_grid%n_bin
        num_conc_vol = 1d0 / mean_vol &
             * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
@@ -220,10 +223,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
-  subroutine vol_conc_exp(mean_radius, bin_grid, vol_conc)
+  subroutine vol_conc_exp(radius_at_mean_vol, bin_grid, vol_conc)
     
-    !> Mean radius (m).
-    real(kind=dp), intent(in) :: mean_radius
+    !> Radius at mean volume (m).
+    real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
@@ -231,7 +234,7 @@ contains
     
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
-    call num_conc_exp(mean_radius, bin_grid, num_conc)
+    call num_conc_exp(radius_at_mean_vol, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_exp
@@ -293,12 +296,12 @@ contains
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-       call num_conc_log_normal(aero_mode%mean_radius, &
+       call num_conc_log_normal(aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-       call num_conc_exp(aero_mode%mean_radius, bin_grid, num_conc)
+       call num_conc_exp(aero_mode%char_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-       call num_conc_mono(aero_mode%mean_radius, bin_grid, num_conc)
+       call num_conc_mono(aero_mode%char_radius, bin_grid, num_conc)
     else
        call die_msg(719625922, "unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
@@ -327,13 +330,13 @@ contains
     real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-       call vol_conc_log_normal(aero_mode%mean_radius, &
+       call vol_conc_log_normal(aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-       call vol_conc_exp(aero_mode%mean_radius, bin_grid, &
+       call vol_conc_exp(aero_mode%char_radius, bin_grid, &
             vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-       call vol_conc_mono(aero_mode%mean_radius, bin_grid, &
+       call vol_conc_mono(aero_mode%char_radius, bin_grid, &
             vol_conc_total)
     else
        call die_msg(314169653, "Unknown aero_mode type: " &
@@ -364,18 +367,18 @@ contains
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-          x_mean_prime = log10(aero_mode%mean_radius) &
+          x_mean_prime = log10(aero_mode%char_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
           aero_mode_weighted_num_conc = aero_mode%num_conc &
                * aero_weight%ref_radius**aero_weight%exponent &
-               * exp((x_mean_prime**2 - log10(aero_mode%mean_radius)**2) &
+               * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
           call die_msg(822252601, "exp/power unimplemented")
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           aero_mode_weighted_num_conc = aero_mode%num_conc &
-               / aero_weight_value(aero_weight, aero_mode%mean_radius)
+               / aero_weight_value(aero_weight, aero_mode%char_radius)
        else
           call die_msg(901140225, "unknown aero_mode type: " &
                // trim(integer_to_string(aero_mode%type)))
@@ -403,13 +406,13 @@ contains
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-          radius = 10d0**rand_normal(log10(aero_mode%mean_radius), &
+          radius = 10d0**rand_normal(log10(aero_mode%char_radius), &
                aero_mode%log10_std_dev_radius)
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          radius = vol2rad(- rad2vol(aero_mode%mean_radius) &
+          radius = vol2rad(- rad2vol(aero_mode%char_radius) &
                * log(pmc_random()))
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-          radius = aero_mode%mean_radius
+          radius = aero_mode%char_radius
        else
           call die_msg(749122931, "Unknown aero_mode type: " &
                // trim(integer_to_string(aero_mode%type)))
@@ -417,7 +420,7 @@ contains
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-          x_mean_prime = log10(aero_mode%mean_radius) &
+          x_mean_prime = log10(aero_mode%char_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
           radius = 10d0**rand_normal(x_mean_prime, &
@@ -425,7 +428,7 @@ contains
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
           call die_msg(111024862, "exp/power unimplemented")
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-          radius = aero_mode%mean_radius
+          radius = aero_mode%char_radius
        else
           call die_msg(886417976, "unknown aero_mode type: " &
                // trim(integer_to_string(aero_mode%type)))
@@ -543,6 +546,7 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     type(spec_line_t) :: line
     type(spec_file_t) :: mass_frac_file
+    real(kind=dp) :: diam
 
     ! note that doxygen's automatic list creation breaks on the list
     ! below for some reason, so we just use html format
@@ -566,16 +570,16 @@ contains
     !!      shape is
     !!      \f[ n(\log D) {\rm d}\log D
     !!      = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}}
-    !!      \exp\left(\frac{(\log D - \log D_{\rm \mu g})^2}{2 \log ^2
+    !!      \exp\left(\frac{(\log D - \log D_{\rm gn})^2}{2 \log ^2
     !!      \sigma_{\rm g}}\right)
     !!      {\rm d}\log D \f]
     !!      and the following parameters are:
     !!      <ul>
-    !!      <li> \b mean_radius (real, unit m): the geometric mean radius
-    !!           \f$R_{\rm \mu g}\f$ such that \f$D_{\rm \mu g} = 2 R_{\rm
-    !!           \mu g}\f$
-    !!      <li> \b log_std_dev (real, dimensionless): \f$\log_{10}\f$ of the
-    !!           geometric standard deviation \f$\sigma_{\rm g}\f$
+    !!      <li> \b geom_mean_diam (real, unit m): the geometric mean
+    !!           diameter \f$D_{\rm gn}\f$
+    !!      <li> \b log10_geom_std_dev (real, dimensionless): &
+    !!           \f$\log_{10}\f$ of the geometric standard deviation &
+    !!           \f$\sigma_{\rm g}\f$ of the diameter
     !!      </ul>
     !! <li> if \c mode_type is \c exp then the mode distribution shape is
     !!      \f[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}}
@@ -583,9 +587,9 @@ contains
     !!      {\rm d}v \f]
     !!      and the following parameters are:
     !!      <ul>
-    !!      <li> \b mean_radius (real, unit m): the mean radius
-    !!           \f$R_{\rm \mu}\f$ such that \f$v_{\rm \mu}
-    !!           = \frac{4}{3} \pi R^3_{\rm \mu}\f$
+    !!      <li> \b diam_at_mean_vol (real, unit m): the diameter
+    !!           \f$D_{\rm \mu}\f$ such that \f$v_{\rm \mu}
+    !!           = \frac{\pi}{6} D^3_{\rm \mu}\f$
     !!      </ul>
     !! <li> if \c mode_type is \c mono then the mode distribution shape
     !!      is a delta distribution at diameter \f$D_0\f$ and the
@@ -602,8 +606,8 @@ contains
     !! mass_frac comp_diesel.dat # mass fractions in each aerosol particle
     !! num_conc 1.6e8            # particle number density (#/m^3)
     !! mode_type log_normal      # type of distribution
-    !! mean_radius 2.5e-08       # mean radius (m)
-    !! log_std_dev 0.24          # log_10 of geometric standard deviation
+    !! geom_mean_diam 2.5e-8     # geometric mean diameter (m)
+    !! log10_geom_std_dev 0.24   # log_10 of geometric standard deviation
     !! </pre>
     !!
     !! See also:
@@ -631,15 +635,18 @@ contains
        call spec_file_read_string(file, 'mode_type', mode_type)
        if (trim(mode_type) == 'log_normal') then
           aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
-          call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
-          call spec_file_read_real(file, 'log_std_dev', &
+          call spec_file_read_real(file, 'geom_mean_diam', diam)
+          aero_mode%char_radius = diam2rad(diam)
+          call spec_file_read_real(file, 'log10_geom_std_dev', &
                aero_mode%log10_std_dev_radius)
        elseif (trim(mode_type) == 'exp') then
           aero_mode%type = AERO_MODE_TYPE_EXP
-          call spec_file_read_real(file, 'mean_radius', aero_mode%mean_radius)
+          call spec_file_read_real(file, 'diam_at_mean_vol', diam)
+          aero_mode%char_radius = diam2rad(diam)
        elseif (trim(mode_type) == 'mono') then
           aero_mode%type = AERO_MODE_TYPE_MONO
-          call spec_file_read_real(file, 'radius', aero_mode%mean_radius)
+          call spec_file_read_real(file, 'diam', diam)
+          aero_mode%char_radius = diam2rad(diam)
        else
           call spec_file_die_msg(729472928, file, &
                "Unknown distribution mode type: " // trim(mode_type))
@@ -660,7 +667,7 @@ contains
     pmc_mpi_pack_size_aero_mode = &
          pmc_mpi_pack_size_string(val%name) &
          + pmc_mpi_pack_size_integer(val%type) &
-         + pmc_mpi_pack_size_real(val%mean_radius) &
+         + pmc_mpi_pack_size_real(val%char_radius) &
          + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac)
@@ -685,7 +692,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_string(buffer, position, val%name)
     call pmc_mpi_pack_integer(buffer, position, val%type)
-    call pmc_mpi_pack_real(buffer, position, val%mean_radius)
+    call pmc_mpi_pack_real(buffer, position, val%char_radius)
     call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
@@ -713,7 +720,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_string(buffer, position, val%name)
     call pmc_mpi_unpack_integer(buffer, position, val%type)
-    call pmc_mpi_unpack_real(buffer, position, val%mean_radius)
+    call pmc_mpi_unpack_real(buffer, position, val%char_radius)
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)

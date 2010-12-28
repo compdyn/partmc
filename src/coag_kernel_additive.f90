@@ -70,8 +70,8 @@ contains
   !> Exact solution with the additive coagulation kernel and
   !> exponential initial condition.
   !!
-  !! Given input paramaters \f$D_\mu\f$ and \f$N_0\f$ we let the mean
-  !! volume be \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$ and define the
+  !! Given input paramaters \f$R\f$ and \f$N_0\f$ we let the mean
+  !! volume be \f$v_\mu = \frac{4\pi}{3} R^3\f$ and define the
   !! rescaled times \f$\tau = N_0 v_\mu \beta_1 t\f$ and \f$T = 1 -
   !! e^{-\tau}\f$, where \f$\beta_1\f$ is the fixed kernel scaling
   !! parameter. Then the solution is
@@ -95,7 +95,7 @@ contains
   !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
   !! \f]
   subroutine soln_additive_exp(bin_grid, aero_data, time, num_conc, &
-       mean_radius, env_state, aero_binned)
+       radius_at_mean_vol, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -106,7 +106,7 @@ contains
     !> Particle number concentration (#/m^3).
     real(kind=dp), intent(in) :: num_conc
     !> Mean init radius (m).
-    real(kind=dp), intent(in) :: mean_radius
+    real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.
@@ -117,7 +117,7 @@ contains
     
     call kernel_additive_max(1d0, 0d0, aero_data, env_state, beta_1)
 
-    mean_vol = rad2vol(mean_radius)
+    mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_conc(k) = const%pi/2d0 &

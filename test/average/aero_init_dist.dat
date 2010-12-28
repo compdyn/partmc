@@ -2,19 +2,19 @@ mode_name init_low              # name of mode source
 mass_frac aero_init_comp_low.dat # species mass fractions
 num_conc 2e8                    # particle number concentration (#/m^3)
 mode_type log_normal            # type of distribution
-mean_radius 1e-8                # mean radius (m)
-log_std_dev 0.161               # log_10 of geometric standard deviation
+geom_mean_diam 2e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.161        # log_10 of geometric std dev of diameter
 
 mode_name init_medium           # name of mode source
 mass_frac aero_init_comp_medium.dat # species mass fractions
 num_conc 4e8                    # particle number concentration (#/m^3)
 mode_type log_normal            # type of distribution
-mean_radius 2e-8                # mean radius (m)
-log_std_dev 0.161               # log_10 of geometric standard deviation
+geom_mean_diam 4e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.161        # log_10 of geometric std dev of diameter
 
 mode_name init_high             # name of mode source
 mass_frac aero_init_comp_high.dat # species mass fractions
 num_conc 1e8                    # particle number concentration (#/m^3)
 mode_type log_normal            # type of distribution
-mean_radius 4e-8                # mean radius (m)
-log_std_dev 0.161               # log_10 of geometric standard deviation
+geom_mean_diam 8e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.161        # log_10 of geometric std dev of diameter

@@ -6,12 +6,12 @@ mc_coag_mpi_centralized()). Also look out whether we need all the
 parallel output types. And change part_opt%coag_method and
 part_opt%output_type to enumerations.
 
-Change mean_radius to median_radius for log_normal distributions in
-input files. What about exponential distributions?
-
 Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
 Remove out directories.
+
+Test scripts should plot diameter. Do we output diameter from
+extract_*?
 
 ######################################################################
 
@@ -26,6 +26,10 @@ kernel -> coag_kernel
 added do_nucleation (removed "nucleate")
 
 rearraged order of do_* parameters
+
+log_normal distriubtions:
+  mean_radius -> geom_mean_diam
+  log_std_dev -> log10_geom_std_dev
 
 ######################################################################
 

@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_kernel_golovin module.
+!> The pmc_kernel_additive module.
 
-!> Golovin (additive) coagulation kernel.
-module pmc_kernel_golovin
+!> Additive coagulation kernel.
+module pmc_kernel_additive
 
   use pmc_bin_grid
   use pmc_env_state
@@ -23,8 +23,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Golovin (additive) coagulation kernel.
-  subroutine kernel_golovin(aero_particle_1, aero_particle_2, &
+  !> Additive coagulation kernel.
+  subroutine kernel_additive(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
     !> First particle.
@@ -38,15 +38,15 @@ contains
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
     
-    call kernel_golovin_max(aero_particle_volume(aero_particle_1), &
+    call kernel_additive_max(aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), aero_data, env_state, k)
     
-  end subroutine kernel_golovin
+  end subroutine kernel_additive
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Maximum value of the Golovin (additive) kernel.
-  subroutine kernel_golovin_max(v1, v2, aero_data, env_state, k_max)
+  !> Maximum value of the additive kernel.
+  subroutine kernel_additive_max(v1, v2, aero_data, env_state, k_max)
 
     !> Volume of first particle.
     real(kind=dp), intent(in) :: v1
@@ -63,11 +63,11 @@ contains
     
     k_max = beta_1 * (v1 + v2)
     
-  end subroutine kernel_golovin_max
+  end subroutine kernel_additive_max
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Exact solution with the Golovin coagulation kernel and
+  !> Exact solution with the additive coagulation kernel and
   !> exponential initial condition.
   !!
   !! Given input paramaters \f$D_\mu\f$ and \f$N_0\f$ we let the mean
@@ -93,7 +93,7 @@ contains
   !!     = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu}
   !!     \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D
   !! \f]
-  subroutine soln_golovin_exp(bin_grid, aero_data, time, num_conc, &
+  subroutine soln_additive_exp(bin_grid, aero_data, time, num_conc, &
        mean_radius, env_state, aero_binned)
 
     !> Bin grid.
@@ -114,7 +114,7 @@ contains
     real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
     
-    call kernel_golovin_max(1d0, 0d0, aero_data, env_state, beta_1)
+    call kernel_additive_max(1d0, 0d0, aero_data, env_state, beta_1)
 
     mean_vol = rad2vol(mean_radius)
     if (time .eq. 0d0) then
@@ -154,7 +154,7 @@ contains
             * (2d0*vol2rad(bin_grid%v(k)))**3 * aero_binned%num_conc(k)
     end do
     
-  end subroutine soln_golovin_exp
+  end subroutine soln_additive_exp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -195,4 +195,4 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_kernel_golovin
+end module pmc_kernel_additive

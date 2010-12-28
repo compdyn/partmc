@@ -238,6 +238,9 @@ enable_testing()
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/run_test)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES run_test)
 
+add_test(additive_1 ${CMAKE_BINARY_DIR}/run_test/additive/run_test_1.sh)
+add_test(additive_2 ${CMAKE_BINARY_DIR}/run_test/additive/run_test_2.sh)
+
 add_test(average_01 ${CMAKE_BINARY_DIR}/run_test/average/run_test_01.sh)
 add_test(average_02 ${CMAKE_BINARY_DIR}/run_test/average/run_test_02.sh)
 add_test(average_03 ${CMAKE_BINARY_DIR}/run_test/average/run_test_03.sh)
@@ -281,9 +284,6 @@ add_test(emission_3 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_3.sh)
 add_test(emission_4 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_4.sh)
 add_test(emission_5 ${CMAKE_BINARY_DIR}/run_test/emission/run_test_5.sh)
 
-add_test(golovin_1 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_1.sh)
-add_test(golovin_2 ${CMAKE_BINARY_DIR}/run_test/golovin/run_test_2.sh)
-
 add_test(nucleate_1 ${CMAKE_BINARY_DIR}/run_test/nucleate/run_test_1.sh)
 add_test(nucleate_2 ${CMAKE_BINARY_DIR}/run_test/nucleate/run_test_2.sh)
 add_test(nucleate_3 ${CMAKE_BINARY_DIR}/run_test/nucleate/run_test_3.sh)
@@ -324,7 +324,7 @@ add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
 set(PARTMC_SRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
   src/bin_grid.f90 src/constants.f90 src/env_data.f90
   src/env_state.f90 src/aero_mode.f90 src/aero_dist.f90
-  src/aero_weight.f90 src/kernel_golovin.f90 src/kernel_sedi.f90
+  src/aero_weight.f90 src/kernel_additive.f90 src/kernel_sedi.f90
   src/kernel_constant.f90 src/kernel_brown.f90 src/kernel_zero.f90
   src/aero_data.f90 src/run_exact.f90 src/run_part.f90 src/util.f90
   src/run_sect.f90 src/output.f90 src/mosaic.f90 src/gas_data.f90

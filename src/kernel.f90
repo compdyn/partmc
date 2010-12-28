@@ -14,7 +14,7 @@ module pmc_kernel
   use pmc_aero_data
   use pmc_aero_weight
   use pmc_kernel_sedi
-  use pmc_kernel_golovin
+  use pmc_kernel_additive
   use pmc_kernel_constant
   use pmc_kernel_brown
   use pmc_kernel_zero
@@ -26,8 +26,8 @@ module pmc_kernel
   integer, parameter :: COAG_KERNEL_TYPE_INVALID  = 0
   !> Type code for a sedimentation kernel.
   integer, parameter :: COAG_KERNEL_TYPE_SEDI     = 1
-  !> Type code for a Golovin kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_GOLOVIN  = 2
+  !> Type code for an additive kernel.
+  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE  = 2
   !> Type code for a constant kernel.
   integer, parameter :: COAG_KERNEL_TYPE_CONSTANT = 3
   !> Type code for a Brownian kernel.
@@ -50,8 +50,8 @@ contains
        kernel_type_to_string = "invalid"
     elseif (kernel_type == COAG_KERNEL_TYPE_SEDI) then
        kernel_type_to_string = "sedi"
-    elseif (kernel_type == COAG_KERNEL_TYPE_GOLOVIN) then
-       kernel_type_to_string = "golovin"
+    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+       kernel_type_to_string = "additive"
     elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        kernel_type_to_string = "constant"
     elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
@@ -86,8 +86,8 @@ contains
     if (kernel_type == COAG_KERNEL_TYPE_SEDI) then
        call kernel_sedi(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
-    elseif (kernel_type == COAG_KERNEL_TYPE_GOLOVIN) then
-       call kernel_golovin(aero_particle_1, aero_particle_2, &
+    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+       call kernel_additive(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
     elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        call kernel_constant(aero_particle_1, aero_particle_2, &
@@ -125,8 +125,8 @@ contains
 
     if (kernel_type == COAG_KERNEL_TYPE_SEDI) then
        call kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
-    elseif (kernel_type == COAG_KERNEL_TYPE_GOLOVIN) then
-       call kernel_golovin_max(v1, v2, aero_data, env_state, k_max)
+    elseif (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+       call kernel_additive_max(v1, v2, aero_data, env_state, k_max)
     elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        call kernel_constant_max(v1, v2, aero_data, env_state, k_max)
     elseif (kernel_type == COAG_KERNEL_TYPE_BROWN) then
@@ -356,7 +356,7 @@ contains
     !! The coagulation kernel is specified by the parameter:
     !!   - \b kernel (string): the type of coagulation kernel --- must
     !!     be one of: \c sedi for the gravitational sedimentation
-    !!     kernel; \c golovin for the additive Golovin kernel;
+    !!     kernel; \c additive for the additive kernel;
     !!     \c constant for the constant kernel; \c brown for the
     !!     Brownian kernel, or \c zero for no coagulation
     !!
@@ -366,8 +366,8 @@ contains
     call spec_file_read_string(file, 'kernel', kernel_name)
     if (trim(kernel_name) == 'sedi') then
        kernel_type = COAG_KERNEL_TYPE_SEDI
-    elseif (trim(kernel_name) == 'golovin') then
-       kernel_type = COAG_KERNEL_TYPE_GOLOVIN
+    elseif (trim(kernel_name) == 'additive') then
+       kernel_type = COAG_KERNEL_TYPE_ADDITIVE
     elseif (trim(kernel_name) == 'constant') then
        kernel_type = COAG_KERNEL_TYPE_CONSTANT
     elseif (trim(kernel_name) == 'brown') then

@@ -15,7 +15,7 @@ module pmc_exact_soln
   use pmc_aero_dist
   use pmc_kernel
   use pmc_kernel_zero
-  use pmc_kernel_golovin
+  use pmc_kernel_additive
   use pmc_kernel_constant
   use pmc_env_state
   use pmc_env_data
@@ -45,20 +45,20 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    if (kernel_type == COAG_KERNEL_TYPE_GOLOVIN) then
+    if (kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        ! FIXME: check env_data has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
-          call die_msg(827813758, "Exact solution with golovin kernel " &
+          call die_msg(827813758, "Exact solution with additive kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
                // integer_to_string(aero_dist_init%n_mode))
        end if
        if (aero_dist_init%mode(1)%type /= AERO_MODE_TYPE_EXP) then
-          call die_msg(574495367, "Exact solution with golovin kernel " &
+          call die_msg(574495367, "Exact solution with additive kernel " &
                // "requires exactly 1 initial distribution mode of " &
                // "exponential type, not: " &
                // aero_mode_type_to_string(aero_dist_init%mode(1)%type))
        end if
-       call soln_golovin_exp(bin_grid, aero_data, time, &
+       call soln_additive_exp(bin_grid, aero_data, time, &
             aero_dist_init%mode(1)%num_conc, &
             aero_dist_init%mode(1)%mean_radius, env_state, aero_binned)
     elseif (kernel_type == COAG_KERNEL_TYPE_CONSTANT) then

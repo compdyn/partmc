@@ -22,7 +22,6 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref spec_file.f90"] spec_file
     node [shape = box, peripheries = 1, href = "\ref condense.f90"] condense
     node [shape = box, peripheries = 2, href = "\ref partmc.f90"] partmc
-    node [shape = box, peripheries = 1, href = "\ref kernel_golovin.f90"] kernel_golovin
     node [shape = box, peripheries = 2, href = "\ref bin_average_comp.f90"] bin_average_comp
     node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
     node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
@@ -34,6 +33,7 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref mpi.f90"] mpi
     node [shape = box, peripheries = 1, href = "\ref aero_info_array.f90"] aero_info_array
     node [shape = box, peripheries = 1, href = "\ref env_data.f90"] env_data
+    node [shape = box, peripheries = 1, href = "\ref kernel_additive.f90"] kernel_additive
     node [shape = box, peripheries = 1, href = "\ref aero_mode.f90"] aero_mode
     node [shape = box, peripheries = 1, href = "\ref gas_data.f90"] gas_data
     node [shape = box, peripheries = 1, href = "\ref aero_data.f90"] aero_data
@@ -54,7 +54,7 @@ digraph partmc_modules {
     coagulation_mpi_equal -> coagulation
     kernel -> kernel_brown
     kernel -> kernel_sedi
-    kernel -> kernel_golovin
+    kernel -> kernel_additive
     kernel -> kernel_constant
     kernel -> kernel_zero
     netcdf -> util
@@ -80,7 +80,6 @@ digraph partmc_modules {
     partmc -> run_exact
     partmc -> run_part
     partmc -> run_sect
-    kernel_golovin -> env_state
     bin_average_comp -> output
     mosaic -> env_state
     rand -> util
@@ -97,6 +96,7 @@ digraph partmc_modules {
     mpi -> util
     aero_info_array -> aero_info
     env_data -> env_state
+    kernel_additive -> env_state
     aero_mode -> aero_weight
     aero_mode -> bin_grid
     aero_mode -> aero_data

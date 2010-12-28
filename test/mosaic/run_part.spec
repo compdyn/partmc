@@ -2,7 +2,7 @@ run_type particle               # particle-resolved run
 output_prefix out/mosaic        # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
 n_part 20                       # total number of particles
-kernel golovin                  # coagulation kernel
+kernel additive                 # coagulation kernel
 nucleate none                   # nucleation parameterization
 restart no                      # whether to restart from saved state (yes/no)
 

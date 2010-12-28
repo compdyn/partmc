@@ -626,7 +626,7 @@ contains
     !! <table>
     !! <tr><th>Coagulation kernel</th>
     !!     <th>Initial aerosol distribution</th></tr>
-    !! <tr><td>Golovin</td>
+    !! <tr><td>Additive</td>
     !!     <td>Single exponential mode</td></tr>
     !! <tr><td>Constant</td>
     !!     <td>Single exponential mode</td></tr>
@@ -663,8 +663,8 @@ contains
     !! Example:
     !! <pre>
     !! run_type exact                  # exact solution
-    !! output_prefix golovin_exact     # prefix of output files
-    !! kernel golovin                  # Golovin coagulation kernel
+    !! output_prefix additive_exact    # prefix of output files
+    !! kernel additive                 # Additive coagulation kernel
     !! 
     !! t_max 600                       # total simulation time (s)
     !! t_output 60                     # output interval (0 disables) (s)

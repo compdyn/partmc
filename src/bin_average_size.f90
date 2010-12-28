@@ -44,8 +44,8 @@ program bin_average_size
      write(6,*) '  r_max: maximum bin center radius (m)'
      write(6,*) '  n_bin: number of bins'
      write(6,*) '  wet/dry: average wet or dry sizes'
-     write(6,*) '  center/average: set new sizes to bin centers, " &
-          // "or to average sizes'
+     write(6,*) '  center/average: set new sizes to bin centers, ' &
+          // 'or to average sizes'
      write(6,*) '  number/volume: preserve number or volume'
      write(6,*) '  input_filename: like scenario_0001_00000001.nc'
      write(6,*) '  output_prefix: like scenario_size_average'

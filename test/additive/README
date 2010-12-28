@@ -1,8 +1,8 @@
 
-Golovin Test-case
+Additive Test-case
 =================
 
-This tests the particle-resolved coagulation code for the Golovin
+This tests the particle-resolved coagulation code for the additive
 kernel with an exponential initial condition for which an analytical
 solution is known. This test-case demonstrates generating exact
 analytical solutions and serves as model verification against an

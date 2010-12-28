@@ -34,8 +34,8 @@ program extract_aero_total
 
   ! process commandline arguments
   if (command_argument_count() .ne. 2) then
-     write(6,*) 'Usage: extract_aero_total <netcdf_state_prefix> " &
-          // "<output_filename>'
+     write(6,*) 'Usage: extract_aero_total <netcdf_state_prefix> ' &
+          // '<output_filename>'
      stop 2
   endif
   call get_command_argument(1, in_prefix)

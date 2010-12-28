@@ -375,7 +375,8 @@ contains
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          call die_msg(822252601, "exp/power unimplemented")
+          call die_msg(822252601, &
+               "cannot use exponential modes with weighting")
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           aero_mode_weighted_num_conc = aero_mode%num_conc &
                / aero_weight_value(aero_weight, aero_mode%char_radius)
@@ -426,7 +427,8 @@ contains
           radius = 10d0**rand_normal(x_mean_prime, &
                aero_mode%log10_std_dev_radius)
        elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          call die_msg(111024862, "exp/power unimplemented")
+          call die_msg(111024862, &
+               "cannot use exponential modes with weighting")
        elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
           radius = aero_mode%char_radius
        else

@@ -6,8 +6,6 @@ mc_coag_mpi_centralized()). Also look out whether we need all the
 parallel output types. And change part_opt%coag_method and
 part_opt%output_type to enumerations.
 
-Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
-
 Remove out directories.
 
 ######################################################################

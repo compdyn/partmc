@@ -128,11 +128,7 @@ program partmc
   use pmc_aero_state
   use pmc_aero_dist
   use pmc_aero_binned
-  use pmc_kernel_sedi
-  use pmc_kernel_golovin
-  use pmc_kernel_constant
-  use pmc_kernel_brown
-  use pmc_kernel_zero
+  use pmc_kernel
   use pmc_aero_data
   use pmc_aero_weight
   use pmc_env_data
@@ -224,7 +220,6 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
 
-    character(len=100) :: kernel_name
     type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
     type(gas_state_t) :: gas_state_init
@@ -263,11 +258,7 @@ contains
     !!   simulate (actual number used will vary between <tt>n_part /
     !!   2</tt> and <tt>n_part * 2</tt> if \c allow_doubling and \c
     !!   allow_halving are \c yes)
-    !! - \b kernel (string): the type of coagulation kernel --- must
-    !!   be one of: \c sedi for the gravitational sedimentation
-    !!   kernel; \c golovin for the additive Golovin kernel;
-    !!   \c constant for the constant kernel; \c brown for the
-    !!   Brownian kernel, or \c zero for no coagulation
+    !! - \subpage input_format_coag_kernel
     !! - \subpage input_format_nucleate
     !! - \b restart (logical): whether to restart the simulation
     !!   from a saved output data file
@@ -376,7 +367,7 @@ contains
             part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_loop', part_opt%n_loop)
        call spec_file_read_integer(file, 'n_part', part_opt%n_part_max)
-       call spec_file_read_string(file, 'kernel', kernel_name)
+       call spec_file_read_kernel_type(file, part_opt%kernel_type)
        call spec_file_read_nucleate(file, part_opt%nucleate_type)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
@@ -485,7 +476,6 @@ contains
        ! root process determines size
        buffer_size = 0
        buffer_size = buffer_size + pmc_mpi_pack_size_part_opt(part_opt)
-       buffer_size = buffer_size + pmc_mpi_pack_size_string(kernel_name)
        buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
        buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state_init)
@@ -508,7 +498,6 @@ contains
        ! root process packs data
        position = 0
        call pmc_mpi_pack_part_opt(buffer, position, part_opt)
-       call pmc_mpi_pack_string(buffer, position, kernel_name)
        call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
@@ -530,7 +519,6 @@ contains
        ! non-root processes unpack data
        position = 0
        call pmc_mpi_unpack_part_opt(buffer, position, part_opt)
-       call pmc_mpi_unpack_string(buffer, position, kernel_name)
        call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
@@ -580,33 +568,8 @@ contains
        end if
 #endif
        
-       if (trim(kernel_name) == 'sedi') then
-          call run_part(kernel_sedi, kernel_sedi_max, bin_grid, &
-               env_data, env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, part_opt)
-       elseif (trim(kernel_name) == 'golovin') then
-          call run_part(kernel_golovin, kernel_golovin_max, bin_grid, &
-               env_data, env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, part_opt)
-       elseif (trim(kernel_name) == 'constant') then
-          call run_part(kernel_constant, kernel_constant_max, bin_grid, &
-               env_data, env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, part_opt)
-       elseif (trim(kernel_name) == 'brown') then
-          call run_part(kernel_brown, kernel_brown_max, bin_grid, &
-               env_data, env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, part_opt)
-       elseif (trim(kernel_name) == 'zero') then
-          call run_part(kernel_zero, kernel_zero_max, bin_grid, &
-               env_data, env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, part_opt)
-       else
-          if (pmc_mpi_rank() == 0) then
-             call die_msg(727498351, 'unknown kernel type: ' &
-                  // trim(kernel_name))
-          end if
-          call pmc_mpi_abort(1)
-       end if
+       call run_part(bin_grid, env_data, env_state, aero_data, aero_weight, &
+            aero_state, gas_data, gas_state, part_opt)
 
     end do
 
@@ -673,7 +636,7 @@ contains
     !!   generated for an exponential initial condition (\c mode_type
     !!   set to \c exp in \ref input_format_aero_mode) with a Golovin
     !!   coagulation kernel (\c kernel set to \c golovin in \ref
-    !!   input_format_particle) and no emissions or dilution. See
+    !!   input_format_coag_kernel) and no emissions or dilution. See
     !!   soln_golovin_exp() for the solution expression. The
     !!   subsequent parameters are:
     !!   - \b num_conc (real, unit 1/m^3): The total number
@@ -685,7 +648,7 @@ contains
     !!   generated for an exponential initial condition (\c mode_type
     !!   set to \c exp in \ref input_format_aero_mode) with a constant
     !!   coagulation kernel (\c kernel set to \c constant in \ref
-    !!   input_format_particle) and no emissions or dilution. See
+    !!   input_format_coag_kernel) and no emissions or dilution. See
     !!   soln_constant_exp_cond() for the solution expression. The
     !!   subsequent parameters are:
     !!   - \b num_conc (real, unit 1/m^3): The total number
@@ -695,7 +658,7 @@ contains
     !!     \f$v_\mu = \frac{\pi}{6} D_\mu^3\f$.
     !! - If \c soln is \c zero then the exact solution is given with
     !!   no coagulation (\c kernel set to \c zero in \ref
-    !!   input_format_particle), but with constant emissions and background
+    !!   input_format_coag_kernel), but with constant emissions and background
     !!   dilution. See soln_zero() for the solution expression. The
     !!   subsequent parameters are:
     !!   - \b aerosol_init (string): The name of the file from which
@@ -826,7 +789,6 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
 
-    character(len=100) :: kernel_name
     type(run_sect_opt_t) :: sect_opt
     type(aero_data_t) :: aero_data
     type(aero_dist_t) :: aero_dist_init
@@ -848,11 +810,7 @@ contains
     !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
     !!   \c SSSSSSSS is is the eight-digit output index (starting at 1
     !!   and incremented each time the state is output)
-    !! - \b kernel (string): the type of coagulation kernel --- must
-    !!   be one of: \c sedi for the gravitational sedimentation
-    !!   kernel; \c golovin for the additive Golovin kernel;
-    !!   \c constant for the constant kernel; \c brown for the
-    !!   Brownian kernel, or \c zero for no coagulation
+    !! - \subpage input_format_coag_kernel
     !! - \b del_t (real, unit s): timestep size
     !! - \b t_output (real, unit s): the interval on which to
     !!   output data to disk (see \ref output_format)
@@ -923,7 +881,7 @@ contains
     call gas_data_allocate(gas_data)
 
     call spec_file_read_string(file, 'output_prefix', sect_opt%prefix)
-    call spec_file_read_string(file, 'kernel', kernel_name)
+    call spec_file_read_kernel_type(file, sect_opt%kernel_type)
 
     call spec_file_read_real(file, 't_max', sect_opt%t_max)
     call spec_file_read_real(file, 'del_t', sect_opt%del_t)
@@ -960,25 +918,8 @@ contains
 
     call env_data_init_state(env_data, env_state, 0d0)
 
-    if (trim(kernel_name) == 'sedi') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_sedi, sect_opt)
-    elseif (trim(kernel_name) == 'golovin') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_golovin, sect_opt)
-    elseif (trim(kernel_name) == 'constant') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_constant, sect_opt)
-    elseif (trim(kernel_name) == 'brown') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_brown, sect_opt)
-    elseif (trim(kernel_name) == 'zero') then
-       call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, &
-            env_data, env_state, kernel_zero, sect_opt)
-    else
-       call die_msg(859292825, 'unknown kernel type: ' &
-            // trim(kernel_name))
-    end if
+    call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env_data, &
+         env_state, sect_opt)
 
     call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)

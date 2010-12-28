@@ -31,9 +31,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
+  subroutine mc_coag_mpi_controlled(kernel_type, bin_grid, env_state, &
+       aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
+       tot_n_coag)
 
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -52,22 +55,6 @@ contains
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
-
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
 
     logical :: did_coag
     integer :: i, j, n_samp, i_samp, rank, i_proc, n_proc, i_bin
@@ -109,7 +96,7 @@ contains
                 end if
                 call maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
                      aero_data, aero_weight, aero_state, i, j, del_t, &
-                     k_max(i,j), kernel, did_coag, n_parts, comp_vols)
+                     k_max(i,j), kernel_type, did_coag, n_parts, comp_vols)
                 if (did_coag) tot_n_coag = tot_n_coag + 1
              enddo
           enddo
@@ -377,7 +364,7 @@ contains
   !! k_max)</tt>.
   subroutine maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
        aero_data, aero_weight, aero_state, b1, b2, del_t, k_max, &
-       kernel, did_coag, n_parts, comp_vols)
+       kernel_type, did_coag, n_parts, comp_vols)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -397,28 +384,14 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> K_max scale factor.
     real(kind=dp), intent(in) :: k_max
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     !> Number of particles per-bin and per-processor.
     integer :: n_parts(:, :)
     !> Computational volumes for each processor.
     real(kind=dp) :: comp_vols(:)
-    
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
     
     integer :: p1, p2, s1, s2
     real(kind=dp) :: p, k
@@ -438,7 +411,7 @@ contains
     call find_rand_pair_mpi_controlled(n_parts, b1, b2, p1, p2, s1, s2)
     call coag_remote_fetch_particle(aero_state, p1, b1, s1, particle_1)
     call coag_remote_fetch_particle(aero_state, p2, b2, s2, particle_2)
-    call weighted_kernel(kernel, particle_1, &
+    call weighted_kernel(kernel_type, particle_1, &
          particle_2, aero_data, aero_weight, env_state, k)
     p = k / k_max
 

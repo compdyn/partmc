@@ -47,6 +47,8 @@ module pmc_run_part
     real(kind=dp) :: del_t
     !> Prefix for output files.
     character(len=300) :: output_prefix
+    !> Type of coagulation kernel.
+    integer :: kernel_type
     !> Type of nucleation.
     integer :: nucleate_type
     !> Whether to do coagulation.
@@ -88,8 +90,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_part(kernel, kernel_max, bin_grid, env_data, env_state, &
-       aero_data, aero_weight, aero_state, gas_data, gas_state, part_opt)
+  subroutine run_part(bin_grid, env_data, env_state, aero_data, &
+       aero_weight, aero_state, gas_data, gas_state, part_opt)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -110,31 +112,6 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: part_opt
 
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-       subroutine kernel_max(v1, v2, aero_data, env_state, k_max)
-         use pmc_aero_data
-         use pmc_env_state
-         real(kind=dp), intent(in) :: v1
-         real(kind=dp), intent(in) :: v2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k_max
-       end subroutine kernel_max
-    end interface
-#endif
-    
     real(kind=dp) :: time, pre_time, pre_del_t
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
@@ -163,8 +140,8 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    call est_k_max_binned(bin_grid, kernel_max, aero_data, aero_weight, &
-         env_state, k_max)
+    call est_k_max_binned(bin_grid, part_opt%kernel_type, aero_data, &
+         aero_weight, env_state, k_max)
 
     if (part_opt%do_mosaic) then
        call mosaic_init(bin_grid, env_state, part_opt%del_t, &
@@ -215,20 +192,21 @@ contains
 
        if (part_opt%do_coagulation) then
           if (part_opt%coag_method == "local") then
-             call mc_coag(kernel, bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, part_opt, k_max, tot_n_samp, &
-                  tot_n_coag)
+             call mc_coag(part_opt%kernel_type, bin_grid, env_state, &
+                  aero_data, aero_weight, aero_state, part_opt, k_max, &
+                  tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "collect") then
-             call mc_coag_mpi_centralized(kernel, bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
+             call mc_coag_mpi_centralized(part_opt%kernel_type, bin_grid, &
+                  env_state, aero_data, aero_weight, aero_state, part_opt, &
+                  k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "central") then
-             call mc_coag_mpi_controlled(kernel, bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, part_opt%del_t, k_max, tot_n_samp, &
-                  tot_n_coag)
+             call mc_coag_mpi_controlled(part_opt%kernel_type, bin_grid, &
+                  env_state, aero_data, aero_weight, aero_state, &
+                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           elseif (part_opt%coag_method == "dist") then
-             call mc_coag_mpi_equal(kernel, bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, part_opt%del_t, k_max, tot_n_samp, &
-                  tot_n_coag)
+             call mc_coag_mpi_equal(part_opt%kernel_type, bin_grid, &
+                  env_state, aero_data, aero_weight, aero_state, &
+                  part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           else
              call die_msg(323011762, "unknown coag_method: " &
                   // trim(part_opt%coag_method))
@@ -351,9 +329,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag(kernel, bin_grid, env_state, aero_data, &
+  subroutine mc_coag(kernel_type, bin_grid, env_state, aero_data, &
        aero_weight, aero_state, part_opt, k_max, tot_n_samp, tot_n_coag)
 
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -373,22 +353,6 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
-    
     logical did_coag
     integer i, j, n_samp, i_samp
     real(kind=dp) n_samp_real
@@ -412,7 +376,7 @@ contains
              end if
              call maybe_coag_pair(bin_grid, env_state, &
                   aero_data, aero_weight, aero_state, i, j, part_opt%del_t, &
-                  k_max(i,j), kernel, did_coag)
+                  k_max(i,j), kernel_type, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
        enddo
@@ -423,10 +387,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t in parallel by centralizing on node 0.
-  subroutine mc_coag_mpi_centralized(kernel, bin_grid, env_state, &
+  subroutine mc_coag_mpi_centralized(kernel_type, bin_grid, env_state, &
        aero_data, aero_weight, aero_state, part_opt, k_max, tot_n_samp, &
        tot_n_coag)
 
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -446,22 +412,6 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
-
     type(aero_state_t) :: aero_state_total
     
 #ifdef PMC_USE_MPI
@@ -469,7 +419,7 @@ contains
     call aero_state_allocate(aero_state_total)
     call aero_state_mpi_gather(aero_state, aero_state_total)
     if (pmc_mpi_rank() == 0) then
-       call mc_coag(kernel, bin_grid, env_state, aero_data, &
+       call mc_coag(kernel_type, bin_grid, env_state, aero_data, &
             aero_weight, aero_state_total, part_opt, k_max, tot_n_samp, &
             tot_n_coag)
     end if
@@ -495,6 +445,7 @@ contains
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
          + pmc_mpi_pack_size_string(val%output_prefix) &
+         + pmc_mpi_pack_size_integer(val%kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -536,6 +487,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
     call pmc_mpi_pack_real(buffer, position, val%del_t)
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
+    call pmc_mpi_pack_integer(buffer, position, val%kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -580,6 +532,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)
     call pmc_mpi_unpack_real(buffer, position, val%del_t)
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
+    call pmc_mpi_unpack_integer(buffer, position, val%kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)

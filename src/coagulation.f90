@@ -68,7 +68,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, b1, b2, del_t, k_max, kernel, did_coag)
+       aero_weight, aero_state, b1, b2, del_t, k_max, kernel_type, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -88,24 +88,10 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> K_max scale factor.
     real(kind=dp), intent(in) :: k_max
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
-    
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
     
     integer :: s1, s2
     real(kind=dp) :: p, k
@@ -119,7 +105,7 @@ contains
     end if
     
     call find_rand_pair(aero_state, b1, b2, s1, s2)
-    call weighted_kernel(kernel, aero_state%bin(b1)%particle(s1), &
+    call weighted_kernel(kernel_type, aero_state%bin(b1)%particle(s1), &
          aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
          env_state, k)
     p = k / k_max

@@ -103,9 +103,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_mpi_equal(kernel, bin_grid, env_state, aero_data, &
+  subroutine mc_coag_mpi_equal(kernel_type, bin_grid, env_state, aero_data, &
        aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
 
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -124,22 +126,6 @@ contains
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
-
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
 
 #ifdef PMC_USE_MPI
     logical :: samps_remaining, sent_dones
@@ -199,7 +185,7 @@ contains
 
        ! receive exactly one message
        call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state, del_t, k_max, kernel, tot_n_coag, &
+            aero_weight, aero_state, del_t, k_max, kernel_type, tot_n_coag, &
             comp_vols, procs_done)
     end do
 
@@ -222,7 +208,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, kernel, tot_n_coag, &
+       aero_weight, aero_state, del_t, k_max, kernel_type, tot_n_coag, &
        comp_vols, procs_done)
 
     !> Array of outstanding requests.
@@ -241,28 +227,14 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processors.
     real(kind=dp), intent(in) :: comp_vols(:)
     !> Which processors are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
-
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
 
 #ifdef PMC_USE_MPI
     character(len=100) :: error_msg
@@ -276,7 +248,7 @@ contains
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, bin_grid, &
             env_state, aero_data, aero_weight, aero_state, del_t, k_max, &
-            kernel, tot_n_coag, comp_vols)
+            kernel_type, tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state, bin_grid)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_NO_PARTICLE) then
@@ -618,7 +590,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine recv_return_req_particle(requests, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, del_t, k_max, kernel, &
+       aero_data, aero_weight, aero_state, del_t, k_max, kernel_type, &
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
@@ -637,26 +609,12 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Coagulation kernel type.
+    integer, intent(in) :: kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processors.
     real(kind=dp), intent(in) :: comp_vols(:)
-
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
 
 #ifdef PMC_USE_MPI
     logical :: found_request, remove_1, remove_2
@@ -697,7 +655,7 @@ contains
     call assert(579308475, found_request)
     
     ! maybe do coagulation
-    call weighted_kernel(kernel, requests(i_req)%local_aero_particle, &
+    call weighted_kernel(kernel_type, requests(i_req)%local_aero_particle, &
          sent_aero_particle, aero_data, aero_weight, env_state, k)
     p = k / k_max(requests(i_req)%local_bin, sent_bin)
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -42,6 +42,8 @@ module pmc_run_sect
     logical :: do_coagulation
     !> Output prefix.
      character(len=300) :: prefix
+    !> Type of coagulation kernel.
+    integer :: kernel_type
   end type run_sect_opt_t
 
 contains
@@ -50,7 +52,7 @@ contains
 
   !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env_state, kernel, sect_opt)
+       env_data, env_state, sect_opt)
   
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -84,22 +86,6 @@ contains
     integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
-#ifndef DOXYGEN_SKIP_DOC
-    interface
-       subroutine kernel(aero_particle_1, aero_particle_2, aero_data, &
-            env_state, k)
-         use pmc_aero_particle
-         use pmc_aero_data
-         use pmc_env_state
-         type(aero_particle_t), intent(in) :: aero_particle_1
-         type(aero_particle_t), intent(in) :: aero_particle_2
-         type(aero_data_t), intent(in) :: aero_data
-         type(env_state_t), intent(in) :: env_state  
-         real(kind=dp), intent(out) :: k
-       end subroutine kernel
-    end interface
-#endif
-
     ! g   : spectral mass distribution (mg/cm^3)
     ! e   : droplet mass grid (mg)
     ! r   : droplet radius grid (um)
@@ -135,8 +121,8 @@ contains
     i_summary = 1
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%v, aero_data, kernel, &
-         env_state, k_bin)
+    call bin_kernel(bin_grid%n_bin, bin_grid%v, aero_data, &
+         sect_opt%kernel_type, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin

@@ -185,11 +185,6 @@ Separate out conensation into libcondense, using sundials as the
 solver and taking n_particle arrays of kappas, dry_diameters,
 water_mass, and returning new water_mass array.
 
-Don't pass the kernel function around. Just pass an integer that
-determines which one it is, like aero_weight, and have a multiplexing
-function to take care of evaluating it. The functions should be
-kernel(type, ...) and kernel_max(type, ...).
-
 Add separate option controlling whether to equilibriate if doing cond.
 
 Add docs to say that rate for background is dilution rate (in and

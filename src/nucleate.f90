@@ -173,7 +173,7 @@ contains
 
     !> \page input_format_nucleate Input File Format: Nucleation Parameterization
     !!
-    !! The nucleation parameterization is specified by the parameters:
+    !! The nucleation parameterization is specified by the parameter:
     !!   - \b nucleate (string): the type of nucleation
     !!     parameterization --- must be one of: "none" for no
     !!     nucleation; or "sulf_acid" for the nucleate_sulf_acid()

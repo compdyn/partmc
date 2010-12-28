@@ -33,8 +33,8 @@ done
 # The second line below should be a factor of 3 smaller than the first line
 cat out/brownian_part_average_mass_error.txt
 
-../../numeric_diff expected_error_mass.txt out/brownian_part_average_mass_error.txt 0 0.5 1 1 2 0
+../../numeric_diff expected_error_mass.txt out/brownian_part_average_mass_error.txt 0 0.7 1 1 2 0
 status1=$?
-../../numeric_diff expected_error_mass.txt out/brownian_part_average_mass_error.txt 0 0.5 2 2 2 0
+../../numeric_diff expected_error_mass.txt out/brownian_part_average_mass_error.txt 0 0.7 2 2 2 0
 status2=$?
 exit $(( $status1 && $status2 ))

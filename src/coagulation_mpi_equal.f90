@@ -136,6 +136,7 @@ contains
     real(kind=dp), allocatable :: comp_vols(:)
     type(request_t) :: requests(COAG_EQUAL_MAX_REQUESTS)
     integer :: n_samps(bin_grid%n_bin, bin_grid%n_bin)
+    real(kind=dp) :: accept_factors(bin_grid%n_bin, bin_grid%n_bin)
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_EQUAL_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
@@ -151,7 +152,7 @@ contains
          n_parts, comp_vols)
 
     call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
-         n_samps)
+         n_samps, accept_factors)
     tot_n_samp = sum(n_samps)
 
     ! main loop
@@ -185,7 +186,7 @@ contains
 
        ! receive exactly one message
        call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state, del_t, k_max, kernel_type, tot_n_coag, &
+            aero_weight, aero_state, accept_factors, kernel_type, tot_n_coag, &
             comp_vols, procs_done)
     end do
 
@@ -208,7 +209,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coag_equal_recv(requests, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, kernel_type, tot_n_coag, &
+       aero_weight, aero_state, accept_factors, kernel_type, tot_n_coag, &
        comp_vols, procs_done)
 
     !> Array of outstanding requests.
@@ -223,10 +224,9 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Timestep.
-    real(kind=dp), intent(in) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Accept scale factors per bin pair (1).
+    real(kind=dp), intent(out) :: &
+         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
     !> Coagulation kernel type.
     integer, intent(in) :: kernel_type
     !> Number of coagulation events.
@@ -247,7 +247,7 @@ contains
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, bin_grid, &
-            env_state, aero_data, aero_weight, aero_state, del_t, k_max, &
+            env_state, aero_data, aero_weight, aero_state, accept_factors, &
             kernel_type, tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state, bin_grid)
@@ -266,16 +266,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine add_coagulation_requests(bin_grid, env_state, aero_data, &
-       aero_state, requests, n_parts, local_bin, remote_bin, &
-       n_samps, samps_remaining, del_t, k_max, comp_vols, procs_done)
+  subroutine add_coagulation_requests(bin_grid, aero_state, requests, &
+       n_parts, local_bin, remote_bin, n_samps, samps_remaining)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Array of outstanding requests.
@@ -286,18 +281,10 @@ contains
     integer, intent(inout) :: local_bin
     !> Bin index of second particle we need to coagulate.
     integer, intent(inout) :: remote_bin
-    !> Whether there are still coagulation samples that need to be done.
-    logical, intent(inout) :: samps_remaining
     !> Number of samples remaining per bin pair
     integer, intent(inout) :: n_samps(bin_grid%n_bin,bin_grid%n_bin)
-    !> Timestep.
-    real(kind=dp), intent(in) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
-    !> Computational volumes on all processors.
-    real(kind=dp), intent(in) :: comp_vols(:)
-    !> Which processors are finished with coagulation.
-    logical, intent(inout) :: procs_done(:)
+    !> Whether there are still coagulation samples that need to be done.
+    logical, intent(inout) :: samps_remaining
 
     integer :: i_req
 
@@ -590,7 +577,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine recv_return_req_particle(requests, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, del_t, k_max, kernel_type, &
+       aero_data, aero_weight, aero_state, accept_factors, kernel_type, &
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
@@ -605,10 +592,9 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Timestep.
-    real(kind=dp), intent(in) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    !> Accept scale factors per bin pair (1).
+    real(kind=dp), intent(out) :: &
+         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
     !> Coagulation kernel type.
     integer, intent(in) :: kernel_type
     !> Number of coagulation events.
@@ -657,7 +643,7 @@ contains
     ! maybe do coagulation
     call weighted_kernel(kernel_type, requests(i_req)%local_aero_particle, &
          sent_aero_particle, aero_data, aero_weight, env_state, k)
-    p = k / k_max(requests(i_req)%local_bin, sent_bin)
+    p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
@@ -852,7 +838,7 @@ contains
 
   !> generate the number of samples to do per bin pair.
   subroutine generate_n_samps(bin_grid, n_parts, comp_vols, del_t, &
-       k_max, n_samps)
+       k_max, n_samps, accept_factors)
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -866,6 +852,9 @@ contains
     real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Number of samples to do per bin pair.
     integer, intent(out) :: n_samps(bin_grid%n_bin,bin_grid%n_bin)
+    !> Accept scale factors per bin pair (1).
+    real(kind=dp), intent(out) :: &
+         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
 
     integer :: i, j, rank
     real(kind=dp) :: n_samp_real
@@ -875,9 +864,7 @@ contains
        do j = 1,bin_grid%n_bin
           call coag_equal_compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
-               sum(comp_vols), del_t, n_samp_real)
-          ! probabalistically determine n_samp to cope with < 1 case
-          n_samps(i,j) = prob_round(n_samp_real)
+               sum(comp_vols), del_t, n_samps(i,j), accept_factors(i,j))
        end do
     end do
 
@@ -887,7 +874,7 @@ contains
 
   subroutine coag_equal_compute_n_samp(n_parts_local, &
        n_parts_total, same_bin, k_max, &
-       comp_vol_total, del_t, n_samp_real)
+       comp_vol_total, del_t, n_samp, accept_factor)
 
     !> Number of particle on the local processor.
     integer, intent(in) :: n_parts_local
@@ -902,9 +889,11 @@ contains
     !> Timestep (s).
     real(kind=dp), intent(in) :: del_t
     !> Number of samples to do per timestep.
-    real(kind=dp), intent(out) :: n_samp_real
+    integer, intent(out) :: n_samp
+    !> Scale factor for accept probability (1).
+    real(kind=dp), intent(out) :: accept_factor
 
-    real(kind=dp) :: r_samp
+    real(kind=dp) :: r_samp, n_samp_mean
     real(kind=dp) :: n_possible ! use real(kind=dp) to avoid integer overflow
     ! FIXME: should use integer*8 or integer(kind = 8)
     ! or even better, di = selected_int_kind(18), integer(kind=di)
@@ -917,9 +906,11 @@ contains
        n_possible = real(n_parts_local, kind=dp) &
             * real(n_parts_total, kind=dp) / 2d0
     endif
-    
+
     r_samp = k_max / comp_vol_total * del_t
-    n_samp_real = r_samp * n_possible
+    n_samp_mean = r_samp * n_possible
+    n_samp = rand_poisson(n_samp_mean)
+    accept_factor = 1d0 / k_max
   
   end subroutine coag_equal_compute_n_samp
 

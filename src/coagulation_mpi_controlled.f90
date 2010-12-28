@@ -58,7 +58,7 @@ contains
 
     logical :: did_coag
     integer :: i, j, n_samp, i_samp, rank, i_proc, n_proc, i_bin
-    real(kind=dp) :: n_samp_real
+    real(kind=dp) :: accept_factor
     integer, allocatable :: n_parts(:,:)
     real(kind=dp), allocatable :: comp_vols(:)
     
@@ -83,9 +83,7 @@ contains
           do j = 1,bin_grid%n_bin
              call compute_n_samp(sum(n_parts(i,:)), &
                   sum(n_parts(j,:)), i == j, k_max(i,j), &
-                  sum(comp_vols), del_t, n_samp_real)
-             ! probabalistically determine n_samp to cope with < 1 case
-             n_samp = prob_round(n_samp_real)
+                  sum(comp_vols), del_t, n_samp, accept_factor)
              tot_n_samp = tot_n_samp + n_samp
              do i_samp = 1,n_samp
                 ! check we still have enough particles to coagulate
@@ -95,8 +93,8 @@ contains
                    exit
                 end if
                 call maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
-                     aero_data, aero_weight, aero_state, i, j, del_t, &
-                     k_max(i,j), kernel_type, did_coag, n_parts, comp_vols)
+                     aero_data, aero_weight, aero_state, i, j, &
+                     kernel_type, accept_factor, did_coag, n_parts, comp_vols)
                 if (did_coag) tot_n_coag = tot_n_coag + 1
              enddo
           enddo
@@ -363,8 +361,8 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair_mpi_controlled(bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, b1, b2, del_t, k_max, &
-       kernel_type, did_coag, n_parts, comp_vols)
+       aero_data, aero_weight, aero_state, b1, b2, kernel_type, &
+       accept_factor, did_coag, n_parts, comp_vols)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -380,12 +378,10 @@ contains
     integer, intent(in) :: b1
     !> Bin of second particle.
     integer, intent(in) :: b2
-    !> Timestep.
-    real(kind=dp), intent(in) :: del_t
-    !> K_max scale factor.
-    real(kind=dp), intent(in) :: k_max
     !> Coagulation kernel type.
     integer, intent(in) :: kernel_type
+    !> Scale factor for accept probability (1).
+    real(kind=dp), intent(in) :: accept_factor
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     !> Number of particles per-bin and per-processor.
@@ -413,7 +409,7 @@ contains
     call coag_remote_fetch_particle(aero_state, p2, b2, s2, particle_2)
     call weighted_kernel(kernel_type, particle_1, &
          particle_2, aero_data, aero_weight, env_state, k)
-    p = k / k_max
+    p = k * accept_factor
 
     if (pmc_random() .lt. p) then
        call coagulate_mpi_controlled(bin_grid, aero_data, aero_weight, &

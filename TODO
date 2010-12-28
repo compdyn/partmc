@@ -132,10 +132,6 @@ receive buffer.
 Standardize on "processor" or "node" or "core". Use the MPI
 terminology, whatever it is.
 
-Change the line "n_samp = prob_round(n_samp_real)" to be "n_samp =
-ceil(n_samp_real)" to match the paper and make convergence
-obvious.
-
 Switch to using mpi structures rather than pack/unpack?
 
 Don't pass unnecessary array size information (e.g. sample_cts_pdf).

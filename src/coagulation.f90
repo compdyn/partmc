@@ -49,9 +49,9 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
-    logical did_coag
-    integer i, j, n_samp, i_samp
-    real(kind=dp) n_samp_real
+    logical :: did_coag
+    integer :: i, j, n_samp, i_samp
+    real(kind=dp) :: accept_factor
 
     tot_n_samp = 0
     tot_n_coag = 0
@@ -59,9 +59,7 @@ contains
        do j = 1,bin_grid%n_bin
           call compute_n_samp(aero_state%bin(i)%n_part, &
                aero_state%bin(j)%n_part, i == j, k_max(i,j), &
-               aero_state%comp_vol, del_t, n_samp_real)
-          ! probabalistically determine n_samp to cope with < 1 case
-          n_samp = prob_round(n_samp_real)
+               aero_state%comp_vol, del_t, n_samp, accept_factor)
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
              ! check we still have enough particles to coagulate
@@ -70,9 +68,9 @@ contains
                   .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, env_state, &
-                  aero_data, aero_weight, aero_state, i, j, del_t, &
-                  k_max(i,j), kernel_type, did_coag)
+             call maybe_coag_pair(bin_grid, env_state, aero_data, &
+                  aero_weight, aero_state, i, j, kernel_type, &
+                  accept_factor, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
           enddo
        enddo
@@ -84,7 +82,7 @@ contains
 
   !> Compute the number of samples required for the pair of bins.
   subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
-       del_t, n_samp_real)
+       del_t, n_samp, accept_factor)
 
     !> Number particles in first bin .
     integer, intent(in) :: ni
@@ -99,9 +97,11 @@ contains
     !> Timestep (s).
     real(kind=dp), intent(in) :: del_t
     !> Number of samples per timestep.
-    real(kind=dp), intent(out) :: n_samp_real
+    integer, intent(out) :: n_samp
+    !> Scale factor for accept probability (1).
+    real(kind=dp), intent(out) :: accept_factor
     
-    real(kind=dp) :: r_samp
+    real(kind=dp) :: r_samp, n_samp_mean
     real(kind=dp) :: n_possible ! use real(kind=dp) to avoid integer overflow
     ! FIXME: should use integer*8 or integer(kind = 8)
     ! or even better, di = selected_int_kind(18), integer(kind=di)
@@ -114,7 +114,25 @@ contains
     endif
     
     r_samp = k_max / comp_vol * del_t
-    n_samp_real = r_samp * n_possible
+    n_samp_mean = r_samp * n_possible
+    n_samp = rand_poisson(n_samp_mean)
+    accept_factor = 1d0 / k_max
+
+    ! possible variants:
+    ! A: accept_factor = 1d0 / k_max
+    ! B: accept_factor = del_t * n_possible &
+    !                    / (real(n_samp, kind=dp) * comp_vol)
+    ! timings of test suite as of 2010-12-22T17:12:14-0600:
+    !   A with n_samp = prob_round(n_samp_mean):
+    !       159.82 162.18 156.28
+    !   A with n_samp = rand_poisson(n_samp_mean):
+    !       151.93 158.38 174.74 157.65
+    !   B with n_samp = ceiling(n_samp_mean):
+    !       196.06 200.23 192.41
+    !   B with n_samp = ceiling(n_samp_mean + 1 * sqrt(n_samp_mean)):
+    !       189.78 211.12 195.19
+    !   B with n_samp = ceiling(n_samp_mean + 3 * sqrt(n_samp_mean)):
+    !       214.60 201.25 203.55
     
   end subroutine compute_n_samp
   
@@ -127,7 +145,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, b1, b2, del_t, k_max, kernel_type, did_coag)
+       aero_weight, aero_state, b1, b2, kernel_type, accept_factor, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -143,12 +161,10 @@ contains
     integer, intent(in) :: b1
     !> Bin of second particle.
     integer, intent(in) :: b2
-    !> Timestep.
-    real(kind=dp), intent(in) :: del_t
-    !> K_max scale factor.
-    real(kind=dp), intent(in) :: k_max
     !> Coagulation kernel type.
     integer, intent(in) :: kernel_type
+    !> Scale factor for accept probability (1).
+    real(kind=dp), intent(in) :: accept_factor
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
     
@@ -167,7 +183,7 @@ contains
     call weighted_kernel(kernel_type, aero_state%bin(b1)%particle(s1), &
          aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
          env_state, k)
-    p = k / k_max
+    p = k * accept_factor
     
     if (pmc_random() .lt. p) then
        call coagulate(bin_grid, aero_data, aero_weight, aero_state, &

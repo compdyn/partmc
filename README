@@ -146,6 +146,8 @@ ChangeLog
 
   * Weighted particles, with full support for coagulation and MOSAIC.
 
+  * Changed to Poisson sampling for coagulation test number.
+
 1.2.0 - 2009-06-15
 
   * Output of full per-particle data in NetCDF format.

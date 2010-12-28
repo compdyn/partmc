@@ -30,6 +30,12 @@ subroutines. Can't we just use the mosaic modules?
 
 ######################################################################
 
+User-visible changes:
+
+r_min/r_max -> d_min/d_max, now edges
+
+######################################################################
+
 Use only one style of quotes: '' or "" (use "").
 
 Change times in the env_data arrays to be seconds since midnight on

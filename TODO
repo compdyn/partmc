@@ -6,14 +6,8 @@ mc_coag_mpi_centralized()). Also look out whether we need all the
 parallel output types. And change part_opt%coag_method and
 part_opt%output_type to enumerations.
 
-Add new run-mode to make an output directory, copy input files into
-it, etc.
-
 Change mean_radius to median_radius for log_normal distributions in
 input files. What about exponential distributions?
-
-Add title parameter as the first line in .spec files and write this as
-the title attribute in the output files.
 
 Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
 makes sense for background as well), or just delete it. Will need to
@@ -25,6 +19,9 @@ Rename "kernel" to "coag" in input files and elsewhere.
 
 Why do we need "interface" blocks in mosaic.f90 for mosaic
 subroutines. Can't we just use the mosaic modules?
+
+Add docs to say that rate for background is dilution rate (in and
+out).
 
 ######################################################################
 
@@ -103,9 +100,6 @@ Sometimes cmake seems to rebuild even if no source files have changed
 at all? Maybe has to do with the fact that the module files are being
 put into the build/ directory?
 
-Change bins to have r_min, r_max as edges, not centers. Would be even
-better to switch to d_min, d_max for diameter.
-
 Document interpolation strategies. Emissions and background all use
 piecewise constant: for data d_1, d_2, ..., d_n at times t_1, t_2,
 ..., t_n then at time t we use d_1 if t < t_1, d_n if t > t_n, and d_i
@@ -125,12 +119,6 @@ not the file containing the line containing the filename.
 
 Change spec_read_aero_data to spec_read_aero_data_filename and pass in
 the name, and similar spec_read_*.
-
-soln_* shouldn't need to be passed mean_radius, etc, as they can read
-this out of aero_dist_init if they need it.
-
-soln_* should check that aero_dist_init and emissions, etc, are
-correct for the given analytic solution.
 
 Use wiki page to update CMakeLists.txt for Fortran:
 http://www.cmake.org/Wiki/CMakeForFortranExample
@@ -185,16 +173,14 @@ water_mass, and returning new water_mass array.
 
 Add separate option controlling whether to equilibriate if doing cond.
 
-Add docs to say that rate for background is dilution rate (in and
-out).
-
 Reading a file which does not have a newline at the end causes
 problems (specifically, gas_init.dat).
 
 When averaging parallel/dist output files, how should we account for
 different computational volumes? Should we store the comp_vol in the
 output files as a single number? Should we weight the files by the
-number of particles in them?
+number of particles in them? No, probably not, because they are no
+more accurate just because we did a double.
 
 In the parallel mixing code, do an allreduce() with MPI_ADD to figure
 out how many processers are actually sending to each receiver, so it's
@@ -212,3 +198,11 @@ always have a new ID for coagulated particles?
 
 Add a constant_exp_cond testcase (with weighting, to test above fix)?
 Probably not, it'll just slow down the test cases for no real gain.
+
+Add new run-mode to make an output directory, copy input files into
+it, etc. Not so easy, given that fortran has no mkdir. We could call
+the C mkdir() directly, or via our own C code (probably easier to
+match mode_t types, etc), but requires Fortran 2003.
+
+Add title parameter as the first line in .spec files and write this as
+the title attribute in the output files.

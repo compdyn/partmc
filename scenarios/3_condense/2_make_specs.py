@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+import os
+
+if not os.path.exists("spec"):
+    os.mkdir("spec")
+if not os.path.exists("temp"):
+    os.mkdir("temp")
+
 for counter in range(1, 50):
     print "counter = ", counter
     filename_in = "cond_template.spec"

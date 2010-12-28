@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import os
+
+if not os.path.exists("spec"):
+    os.mkdir("spec")
+
 for counter in ["10K", "100K"]:
     print "counter = ", counter
     filename_in = "weighted_template.spec"

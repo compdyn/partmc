@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 import subprocess
+import os
+
+if not os.path.exists("out"):
+    os.mkdir("out")
 
 str_exec = "../../build/partmc"
 

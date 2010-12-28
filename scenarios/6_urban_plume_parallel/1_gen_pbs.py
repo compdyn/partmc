@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import math
+import math, os
+
+if not os.path.exists("specs"):
+    os.mkdir("specs")
+if not os.path.exists("pbs"):
+    os.mkdir("pbs")
 
 def sub_file(in_filename, out_filename, subs):
     f_in = open(in_filename, 'r')

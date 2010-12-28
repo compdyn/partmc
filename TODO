@@ -13,6 +13,8 @@ Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
 
 Include scenarios in README and distribution tarball.
 
+Remove out directories, add mkdir -p
+
 ######################################################################
 
 User-visible changes:

@@ -1,4 +1,4 @@
-0. Copy output from urban_plume2 run to directory start (assuming hourly output, 49 files).
+0. Copy output from urban_plume2 run to directory "start" (assuming hourly output, 49 files).
 1. Run 1_avg.py. This produces composition and size-averaged start files (4 cases: ref, comp, size, both).
 2. Run 2_make_specs.py. This produces spec files and temperature profiles.
 3. Run 3_run.py. This runs the cloud parcel simulations for all 49 starting times, and for all 4 cases.

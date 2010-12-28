@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mkdir -p out
+
 echo "run_urban_plume_32_dist_dist_0001.pbs"
 qsub pbs/run_urban_plume_32_dist_dist_0001.pbs
 echo "run_urban_plume_32_dist_dist_0002.pbs"

@@ -33,6 +33,8 @@ add a dilution rate profile somewhere --- better anyway to unify it.
 
 Rename "loop" to "repeat" or something in input and output.
 
+Fix aero_mode.f90: call die_msg(822252601, "exp/power unimplemented")
+
 ######################################################################
 
 Use only one style of quotes: '' or "" (use "").

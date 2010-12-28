@@ -374,7 +374,7 @@ contains
        call spec_file_read_string(file, 'output_prefix', &
             run_part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
-       call spec_file_read_integer(file, 'n_part', run_part_opt%n_part_max)
+       call spec_file_read_integer(file, 'n_part', run_part_opt%n_part_ideal)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -604,7 +604,7 @@ contains
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
                aero_data%n_spec)
-          aero_state%comp_vol = real(run_part_opt%n_part_max, kind=dp) / &
+          aero_state%comp_vol = real(run_part_opt%n_part_ideal, kind=dp) / &
                aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
           call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
                aero_data, aero_weight, aero_dist_init, 1d0, 0d0)

@@ -21,8 +21,6 @@ problems (specifically, gas_init.dat).
 env_data_update_state() should take into account V_comp changes due to
 temp when updating rel_humid.
 
-Rename n_part_max -> n_part_ideal in run_part.
-
 ######################################################################
 
 User-visible changes:

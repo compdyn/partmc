@@ -36,8 +36,8 @@ module pmc_run_part
 
   !> Options controlling the execution of run_part().
   type run_part_opt_t
-     !> Maximum number of particles.
-     integer :: n_part_max
+     !> Preferred number of particles.
+     integer :: n_part_ideal
      !> Final time (s).
      real(kind=dp) :: t_max
      !> Output interval (0 disables) (s).
@@ -169,7 +169,7 @@ contains
     ! for restart with inconsistent number) so issue a warning.
     if (run_part_opt%allow_doubling) then
        do while ((aero_state_total_particles(aero_state) &
-            < run_part_opt%n_part_max / 2) &
+            < run_part_opt%n_part_ideal / 2) &
             .and. (aero_state_total_particles(aero_state) > 0))
           call warn_msg(716882783, "doubling particles in initial condition")
           call aero_state_double(aero_state)
@@ -177,7 +177,7 @@ contains
     end if
     if (run_part_opt%allow_halving) then
        do while (aero_state_total_particles(aero_state) &
-            > run_part_opt%n_part_max * 2)
+            > run_part_opt%n_part_ideal * 2)
           call warn_msg(661936373, "halving particles in initial condition")
           call aero_state_halve(aero_state, bin_grid)
        end do
@@ -261,7 +261,7 @@ contains
        ! double until we fill up the array
        if (run_part_opt%allow_doubling) then
           do while ((aero_state_total_particles(aero_state) &
-               < run_part_opt%n_part_max / 2) &
+               < run_part_opt%n_part_ideal / 2) &
                .and. (aero_state_total_particles(aero_state) > 0))
              call aero_state_double(aero_state)
           end do
@@ -269,7 +269,7 @@ contains
        ! same for halving if we have too many particles
        if (run_part_opt%allow_halving) then
           do while (aero_state_total_particles(aero_state) &
-               > run_part_opt%n_part_max * 2)
+               > run_part_opt%n_part_ideal * 2)
              call aero_state_halve(aero_state, bin_grid)
           end do
        end if
@@ -351,7 +351,7 @@ contains
     type(run_part_opt_t), intent(in) :: val
 
     pmc_mpi_pack_size_run_part_opt = &
-         pmc_mpi_pack_size_integer(val%n_part_max) &
+         pmc_mpi_pack_size_integer(val%n_part_ideal) &
          + pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
          + pmc_mpi_pack_size_real(val%t_progress) &
@@ -395,7 +395,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_part_max)
+    call pmc_mpi_pack_integer(buffer, position, val%n_part_ideal)
     call pmc_mpi_pack_real(buffer, position, val%t_max)
     call pmc_mpi_pack_real(buffer, position, val%t_output)
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
@@ -442,7 +442,7 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_part_max)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_part_ideal)
     call pmc_mpi_unpack_real(buffer, position, val%t_max)
     call pmc_mpi_unpack_real(buffer, position, val%t_output)
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)

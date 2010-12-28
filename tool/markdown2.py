@@ -64,7 +64,7 @@ import sys
 from pprint import pprint
 import re
 import logging
-import md5
+import hashlib
 import optparse
 from random import random
 import codecs
@@ -97,8 +97,8 @@ def _escape_hash(ch):
     # Lame attempt to avoid possible collision with someone actually
     # using the MD5 hexdigest of one of these chars in there text.
     # Other ideas: random.random(), uuid.uuid()
-    #return md5.md5(ch).hexdigest()         # Markdown.pl does this
-    return '!'+md5.md5(ch).hexdigest()+'!'
+    #return hashlib.md5(ch).hexdigest()         # Markdown.pl does this
+    return '!'+hashlib.md5(ch).hexdigest()+'!'
 g_escape_table = dict([(ch, _escape_hash(ch))
                        for ch in '\\`*_{}[]()>#+-.!'])
 
@@ -409,7 +409,7 @@ class Markdown(object):
 
     def _hash_html_block_sub(self, match, raw=False):
         g1 = match.group(1)
-        key = '!'+md5.md5(g1.encode('utf-8')).hexdigest()+'!' # see _escape_hash() above
+        key = '!'+hashlib.md5(g1.encode('utf-8')).hexdigest()+'!' # see _escape_hash() above
         self.html_blocks[key] = (g1, raw)
         return "\n\n" + key + "\n\n"
 
@@ -1335,7 +1335,7 @@ class Markdown(object):
                         .replace('*', g_escape_table['*'])
                         .replace('_', g_escape_table['_']))
                 link = '<a href="%s">%s</a>' % (escaped_href, text[start:end])
-                hash = md5.md5(link).hexdigest()
+                hash = hashlib.md5(link).hexdigest()
                 link_from_hash[hash] = link
                 text = text[:start] + hash + text[end:]
         for hash, link in link_from_hash.items():
@@ -1654,7 +1654,7 @@ def main(argv=sys.argv):
                              html4tags=opts.html4tags,
                              safe_mode=opts.safe_mode,
                              extras=extras, link_patterns=link_patterns)
-        sys.stdout.write(html)
+        sys.stdout.write(html.encode("utf8"))
 
 
 if __name__ == "__main__":

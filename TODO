@@ -9,6 +9,8 @@ Change part_opt%coag_method to an enumeration.
 
 Remove out directories.
 
+Make brownian test use negative weighting.
+
 ######################################################################
 
 User-visible changes:

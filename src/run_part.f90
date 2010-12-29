@@ -19,8 +19,6 @@ module pmc_run_part
   use pmc_output
   use pmc_mosaic
   use pmc_coagulation
-  use pmc_coagulation_mpi_centralized
-  use pmc_coagulation_mpi_controlled
   use pmc_coagulation_mpi_equal
   use pmc_coag_kernel
   use pmc_nucleate
@@ -36,10 +34,6 @@ module pmc_run_part
   integer, parameter :: PARALLEL_COAG_TYPE_INVALID = 0
   !> Type code for local parallel coagulation.
   integer, parameter :: PARALLEL_COAG_TYPE_LOCAL   = 0
-  !> Type code for collected parallel coagulation.
-  integer, parameter :: PARALLEL_COAG_TYPE_COLLECT = 0
-  !> Type code for centralized parallel coagulation.
-  integer, parameter :: PARALLEL_COAG_TYPE_CENTRAL = 0
   !> Type code for distributed parallel coagulation.
   integer, parameter :: PARALLEL_COAG_TYPE_DIST    = 0
 
@@ -217,16 +211,6 @@ contains
                == PARALLEL_COAG_TYPE_LOCAL) then
              call mc_coag(run_part_opt%coag_kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_COLLECT) then
-             call mc_coag_mpi_centralized(run_part_opt%coag_kernel_type, &
-                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_CENTRAL) then
-             call mc_coag_mpi_controlled(run_part_opt%coag_kernel_type, &
-                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           elseif (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_DIST) then
@@ -503,12 +487,9 @@ contains
     !! The output type is specified by the parameter:
     !!   - \b parallel_coag (string): type of parallel coagulation ---
     !!     must be one of: \c local for only within-processor
-    !!     coagulation; \c collect to transfer all particles to
-    !!     processor 0 each timestep and coagulate there; \c central
-    !!     to have processor 0 do all coagulation by requesting
-    !!     individual particles as needed; or \c dist to have all
-    !!     processors perform coagulation globally, requesting
-    !!     particles from other processors as needed
+    !!     coagulation or \c dist to have all processors perform
+    !!     coagulation globally, requesting particles from other
+    !!     processors as needed
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
@@ -517,10 +498,6 @@ contains
          parallel_coag_type_name)
     if (trim(parallel_coag_type_name) == 'local') then
        parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
-    elseif (trim(parallel_coag_type_name) == 'COLLECT') then
-       parallel_coag_type = PARALLEL_COAG_TYPE_COLLECT
-    elseif (trim(parallel_coag_type_name) == 'central') then
-       parallel_coag_type = PARALLEL_COAG_TYPE_CENTRAL
     elseif (trim(parallel_coag_type_name) == 'dist') then
        parallel_coag_type = PARALLEL_COAG_TYPE_DIST
     else

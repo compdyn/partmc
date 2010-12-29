@@ -32,7 +32,16 @@ module pmc_run_part
   use mpi
 #endif
 
-  integer, parameter :: RUN_PART_OPT_CHAR_LEN = 100
+  !> Type code for undefined or invalid parallel coagulation method.
+  integer, parameter :: PARALLEL_COAG_TYPE_INVALID = 0
+  !> Type code for local parallel coagulation.
+  integer, parameter :: PARALLEL_COAG_TYPE_LOCAL   = 0
+  !> Type code for collected parallel coagulation.
+  integer, parameter :: PARALLEL_COAG_TYPE_COLLECT = 0
+  !> Type code for centralized parallel coagulation.
+  integer, parameter :: PARALLEL_COAG_TYPE_CENTRAL = 0
+  !> Type code for distributed parallel coagulation.
+  integer, parameter :: PARALLEL_COAG_TYPE_DIST    = 0
 
   !> Options controlling the execution of run_part().
   type run_part_opt_t
@@ -84,8 +93,8 @@ module pmc_run_part
      logical :: gas_average
      !> Whether to average environment each timestep.
      logical :: env_average
-     !> Parallel coagulation method (local/collect/central/dist).
-     character(len=RUN_PART_OPT_CHAR_LEN) :: coag_method
+     !> Parallel coagulation method type.
+     integer :: parallel_coag_type
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -204,25 +213,29 @@ contains
        end if
 
        if (run_part_opt%do_coagulation) then
-          if (run_part_opt%coag_method == "local") then
+          if (run_part_opt%parallel_coag_type &
+               == PARALLEL_COAG_TYPE_LOCAL) then
              call mc_coag(run_part_opt%coag_kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (run_part_opt%coag_method == "collect") then
+          elseif (run_part_opt%parallel_coag_type &
+               == PARALLEL_COAG_TYPE_COLLECT) then
              call mc_coag_mpi_centralized(run_part_opt%coag_kernel_type, &
                   bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (run_part_opt%coag_method == "central") then
+          elseif (run_part_opt%parallel_coag_type &
+               == PARALLEL_COAG_TYPE_CENTRAL) then
              call mc_coag_mpi_controlled(run_part_opt%coag_kernel_type, &
                   bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
-          elseif (run_part_opt%coag_method == "dist") then
-             call mc_coag_mpi_equal(run_part_opt%coag_kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, &
+          elseif (run_part_opt%parallel_coag_type &
+               == PARALLEL_COAG_TYPE_DIST) then
+             call mc_coag_mpi_equal(run_part_opt%coag_kernel_type, &
+                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
           else
-             call die_msg(323011762, "unknown coag_method: " &
-                  // trim(run_part_opt%coag_method))
+             call die_msg(323011762, "unknown parallel coagulation type: " &
+                  // trim(integer_to_string(run_part_opt%parallel_coag_type)))
           end if
           progress_n_samp = progress_n_samp + tot_n_samp
           progress_n_coag = progress_n_coag + tot_n_coag
@@ -374,7 +387,7 @@ contains
          + pmc_mpi_pack_size_real(val%mix_timescale) &
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
-         + pmc_mpi_pack_size_string(val%coag_method) &
+         + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -418,7 +431,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%mix_timescale)
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
-    call pmc_mpi_pack_string(buffer, position, val%coag_method)
+    call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
@@ -465,13 +478,58 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%mix_timescale)
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
-    call pmc_mpi_unpack_string(buffer, position, val%coag_method)
+    call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_run_part_opt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a parallel coagulation type from a spec file.
+  subroutine spec_file_read_parallel_coag_type(file, parallel_coag_type)
+    
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Kernel type.
+    integer, intent(out) :: parallel_coag_type
+    
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: parallel_coag_type_name
+    
+    !> \page input_format_parallel_coag Input File Format: Parallel Coagulation Type
+    !!
+    !! The output type is specified by the parameter:
+    !!   - \b parallel_coag (string): type of parallel coagulation ---
+    !!     must be one of: \c local for only within-processor
+    !!     coagulation; \c collect to transfer all particles to
+    !!     processor 0 each timestep and coagulate there; \c central
+    !!     to have processor 0 do all coagulation by requesting
+    !!     individual particles as needed; or \c dist to have all
+    !!     processors perform coagulation globally, requesting
+    !!     particles from other processors as needed
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_read_string(file, 'parallel_coag', &
+         parallel_coag_type_name)
+    if (trim(parallel_coag_type_name) == 'local') then
+       parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
+    elseif (trim(parallel_coag_type_name) == 'COLLECT') then
+       parallel_coag_type = PARALLEL_COAG_TYPE_COLLECT
+    elseif (trim(parallel_coag_type_name) == 'central') then
+       parallel_coag_type = PARALLEL_COAG_TYPE_CENTRAL
+    elseif (trim(parallel_coag_type_name) == 'dist') then
+       parallel_coag_type = PARALLEL_COAG_TYPE_DIST
+    else
+       call spec_file_die_msg(494684716, file, &
+            "Unknown parallel coagulation type: " &
+            // trim(parallel_coag_type_name))
+    end if
+
+  end subroutine spec_file_read_parallel_coag_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

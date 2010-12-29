@@ -703,7 +703,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read the specification for a kernel type from a spec file and
+  !> Read the specification for an output type from a spec file and
   !> generate it.
   subroutine spec_file_read_output_type(file, output_type)
     

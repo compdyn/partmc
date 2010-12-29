@@ -343,14 +343,7 @@ contains
     !!   - \b env_average (logical): whether to average the
     !!     environment state amongst processors each timestep, to
     !!     ensure a uniform environment
-    !!   - \b coag_method (string): type of parallel coagulation ---
-    !!     must be one of: \c local for only within-processor
-    !!     coagulation; \c collect to transfer all particles to
-    !!     processor 0 each timestep and coagulate there; \c central to
-    !!     have processor 0 do all coagulation by requesting
-    !!     individual particles as needed; or \c dist to have all
-    !!     processors perform coagulation globally, requesting
-    !!     particles from other processors as needed
+    !!   - \subpage input_format_parallel_coag
 
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
@@ -493,14 +486,14 @@ contains
                run_part_opt%gas_average)
           call spec_file_read_logical(file, 'env_average', &
                run_part_opt%env_average)
-          call spec_file_read_string(file, 'coag_method', &
-               run_part_opt%coag_method)
+          call spec_file_read_parallel_coag_type(file, &
+               run_part_opt%parallel_coag_type)
        else
           run_part_opt%output_type = OUTPUT_TYPE_SINGLE
           run_part_opt%mix_timescale = 0d0
           run_part_opt%gas_average = .false.
           run_part_opt%env_average = .false.
-          run_part_opt%coag_method = "local"
+          run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
        
        call spec_file_close(file)

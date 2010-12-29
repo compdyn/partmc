@@ -119,3 +119,9 @@ match mode_t types, etc), but requires Fortran 2003.
 Change "rate" line in gas_profile/aero_profile to be "scaling" (so it
 makes sense for background as well), or just delete it. Will need to
 add a dilution rate profile somewhere --- better anyway to unify it.
+
+Separate out numerical parameters into
+run_part_opt/run_sect_opt/run_exact_opt and scenario parameters into
+another structure (to replace env_data --- maybe call it
+scenario_t). Add spec_file_read_run_part_opt() etc to input the
+numerical parameters.

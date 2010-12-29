@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6.4)
 project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
@@ -206,6 +206,10 @@ get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 # into cmake 2.6.4, but we'll keep the explicit include hack below for
 # a while until everyone updates.
 # [3] http://www.cmake.org/Bug/view.php?id=8598
+#
+# MW 2010-12-29: Version 2.8 of cmake has been out for quite a while
+# now, so I'm removing the explicit -I/include hack and bumping the
+# required cmake version to 2.6.4.
 
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set(DEFAULT_PARTMC_FFLAGS "-g -std=f2003 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check")

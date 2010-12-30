@@ -171,9 +171,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     do while (.not. all(procs_done))
        ! add requests if we have any slots available call
-       call add_coagulation_requests(bin_grid, env_state, aero_data, &
-            aero_state, requests, n_parts, current_i, current_j, n_samps, &
-            samps_remaining, del_t, k_max, comp_vols, procs_done)
+       call add_coagulation_requests(bin_grid, aero_state, requests, &
+            n_parts, current_i, current_j, n_samps, samps_remaining)
 
        ! if we have no outstanding requests, send done messages
        if (.not. sent_dones) then
@@ -355,7 +354,7 @@ contains
     n_proc = pmc_mpi_size()
     call assert(542705260, size(n_parts, 1) == bin_grid%n_bin)
     call assert(770964285, size(n_parts, 2) == n_proc)
-    remote_proc = sample_disc_pdf(n_proc, n_parts(remote_bin,:)) - 1
+    remote_proc = sample_disc_pdf(n_parts(remote_bin,:)) - 1
 #endif
 
   end subroutine find_rand_remote_proc

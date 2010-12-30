@@ -19,12 +19,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initializes the random number generator to the state defined by
-  !> the given seed. If the seed is 0 then a seed is auto-generated
-  !> from the current time.
-  subroutine pmc_srand(seed)
+  !> the given seed plus offset. If the seed is 0 then a seed is
+  !> auto-generated from the current time plus offset.
+  subroutine pmc_srand(seed, offset)
 
     !> Random number generator seed.
     integer, intent(in) :: seed
+    !> Random number generator offset.
+    integer, intent(in) :: offset
 
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
@@ -40,7 +42,7 @@ contains
        clock = seed
     end if
     i = 0 ! HACK to shut up gfortran warning
-    seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
+    seed_vec = clock + offset + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)
     ! FIXME: HACK for bad rng behavior from pgf90

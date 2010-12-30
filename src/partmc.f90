@@ -577,7 +577,7 @@ contains
     deallocate(buffer)
 #endif
 
-    call pmc_srand(rand_init + pmc_mpi_rank())
+    call pmc_srand(rand_init, pmc_mpi_rank())
 
     call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)

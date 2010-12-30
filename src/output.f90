@@ -162,7 +162,7 @@ contains
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, bin_grid, &
                   aero_data, aero_weight, gas_data, index, time, del_t, &
-                  i_repeat, record_removals, record_optical, i_proc)
+                  i_repeat, record_removals, record_optical, uuid, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -435,7 +435,7 @@ contains
   !> processor.
   subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
        aero_weight, gas_data, index, time, del_t, i_repeat, &
-       record_removals, record_optical, remote_proc)
+       record_removals, record_optical, uuid, remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -459,6 +459,8 @@ contains
     logical, intent(in) :: record_removals
     !> Whether to output aerosol_optical_properties.
     logical, intent(in) :: record_optical
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
     !> Processor number to receive from.
     integer, intent(in) :: remote_proc
 
@@ -500,7 +502,7 @@ contains
     call output_state_to_file(prefix, bin_grid, aero_data, &
          aero_weight, aero_state, gas_data, gas_state, env_state, &
          index, time, del_t, i_repeat, record_removals, record_optical, &
-         remote_proc, n_proc)
+         remote_proc, n_proc, uuid)
     
     call env_state_deallocate(env_state)
     call gas_state_deallocate(gas_state)

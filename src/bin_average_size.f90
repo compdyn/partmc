@@ -90,6 +90,8 @@ program bin_average_size
   call get_command_argument(7, in_filename)
   call get_command_argument(8, out_prefix)
 
+  call pmc_mpi_init()
+
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
   call aero_weight_allocate(aero_weight)
@@ -126,4 +128,6 @@ program bin_average_size
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
   
+  call pmc_mpi_finalize()
+
 end program bin_average_size

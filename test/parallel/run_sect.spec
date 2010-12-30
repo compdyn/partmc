@@ -1,10 +1,10 @@
 run_type sectional              # sectional code run
-output_prefix out/sect # prefix of output files
+output_prefix out/sect          # prefix of output files
 
 t_max 86400                     # total simulation time (s)
-del_t 60                        # timestep (s)
+del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_progress 600                  # progress printing interval (0 disables) (s)
+t_progress 3600                 # progress printing interval (0 disables) (s)
 
 n_bin 220                       # number of bins
 d_min 1e-10                     # minimum diameter (m)

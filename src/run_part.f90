@@ -357,9 +357,10 @@ contains
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
-         + pmc_mpi_pack_size_logical(val%allow_doubling) &
-         + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
+         + pmc_mpi_pack_size_logical(val%allow_doubling) &
+         + pmc_mpi_pack_size_logical(val%allow_halving) &
+         + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
@@ -403,6 +404,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
+    call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
@@ -448,9 +450,10 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
-    call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
-    call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
+    call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
+    call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)

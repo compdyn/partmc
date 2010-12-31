@@ -257,7 +257,7 @@ contains
        call recv_done(procs_done)
     else
        call die_msg(856123972, &
-            'unknown tag: ' // integer_to_string(status(MPI_TAG)))
+            'unknown tag: ' // trim(integer_to_string(status(MPI_TAG))))
     end if
 #endif
     

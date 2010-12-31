@@ -576,7 +576,7 @@ contains
     read(string, '(i20)', iostat=ios) val
     call assert_msg(895881873, ios == 0, &
          'error converting "' // trim(string) &
-         // '" to integer: IOSTAT = ' // integer_to_string(ios))
+         // '" to integer: IOSTAT = ' // trim(integer_to_string(ios)))
     string_to_integer = val
 
   end function string_to_integer
@@ -596,7 +596,7 @@ contains
     read(string, '(f20.0)', iostat=ios) val
     call assert_msg(727430097, ios == 0, &
          'error converting "' // trim(string) &
-         // '" to real: IOSTAT = ' // integer_to_string(ios))
+         // '" to real: IOSTAT = ' // trim(integer_to_string(ios)))
     string_to_real = val
 
   end function string_to_real
@@ -629,7 +629,7 @@ contains
     else
        call assert_msg(985010153, ios == 0, &
             'error converting "' // trim(string) &
-            // '" to logical: IOSTAT = ' // integer_to_string(ios))
+            // '" to logical: IOSTAT = ' // trim(integer_to_string(ios)))
     end if
     string_to_logical = val
 

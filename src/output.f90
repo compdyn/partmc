@@ -87,10 +87,10 @@ module pmc_output
   integer, parameter :: OUTPUT_TYPE_CENTRAL = 1
   !> Type code for distributed output (one file per node, written by
   !> each node).
-  integer, parameter :: OUTPUT_TYPE_DIST    = 1
+  integer, parameter :: OUTPUT_TYPE_DIST    = 2
   !> Type code for single output (one file for all nodes, written by
   !> node 0).
-  integer, parameter :: OUTPUT_TYPE_SINGLE  = 1
+  integer, parameter :: OUTPUT_TYPE_SINGLE  = 3
 
   !> Internal-use variable only.
   integer, parameter :: TAG_OUTPUT_STATE_CENTRAL = 4341

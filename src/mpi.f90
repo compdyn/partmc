@@ -1005,6 +1005,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the sum of \c val across all processes, storing the
+  !> result in \c val_sum on all processes.
+  subroutine pmc_mpi_allreduce_sum_integer(val, val_sum)
+
+    !> Value to sum.
+    integer, intent(in) :: val
+    !> Result.
+    integer, intent(out) :: val_sum
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_sum, 1, MPI_INTEGER, MPI_SUM, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_sum = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_sum_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Computes the average of val across all processes, storing the
   !> result in val_avg on the root process.
   subroutine pmc_mpi_reduce_avg_real_array(val, val_avg)
@@ -1061,7 +1084,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of val across all processes, storing the
-  !> result in val_avg on the root process.
+  !> result in val_avg on all processes.
   subroutine pmc_mpi_allreduce_average_real(val, val_avg)
 
     !> Value to average.
@@ -1085,7 +1108,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of val across all processes, storing the
-  !> result in val_avg on the root process.
+  !> result in val_avg on all processes.
   subroutine pmc_mpi_allreduce_average_real_array(val, val_avg)
 
     !> Value to average.

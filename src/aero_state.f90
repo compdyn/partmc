@@ -175,6 +175,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number of particles across all processors.
+  integer function aero_state_total_particles_all_procs(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    call pmc_mpi_allreduce_sum_integer(&
+         aero_state_total_particles(aero_state), &
+         aero_state_total_particles_all_procs)
+
+  end function aero_state_total_particles_all_procs
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Resets an aero_state to have zero particles per bin. This must
   !> already have had aero_state_allocate() called on it. This
   !> function can be called more than once on the same state.

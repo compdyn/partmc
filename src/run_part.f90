@@ -33,9 +33,9 @@ module pmc_run_part
   !> Type code for undefined or invalid parallel coagulation method.
   integer, parameter :: PARALLEL_COAG_TYPE_INVALID = 0
   !> Type code for local parallel coagulation.
-  integer, parameter :: PARALLEL_COAG_TYPE_LOCAL   = 0
+  integer, parameter :: PARALLEL_COAG_TYPE_LOCAL   = 1
   !> Type code for distributed parallel coagulation.
-  integer, parameter :: PARALLEL_COAG_TYPE_DIST    = 0
+  integer, parameter :: PARALLEL_COAG_TYPE_DIST    = 2
 
   !> Options controlling the execution of run_part().
   type run_part_opt_t

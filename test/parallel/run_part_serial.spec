@@ -13,7 +13,8 @@ n_bin 220                       # number of bins
 d_min 1e-10                     # minimum diameter (m)
 d_max 1e-4                      # maximum diameter (m)
 
-weight none                     # weighting function
+weight power                    # weighting function
+exponent -1.5                   # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios

@@ -7,13 +7,14 @@ restart no                      # whether to restart from saved state (yes/no)
 t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_progress 600                  # progress printing interval (0 disables) (s)
+t_progress 3600                 # progress printing interval (0 disables) (s)
 
 n_bin 220                       # number of bins
 d_min 1e-10                     # minimum diameter (m)
 d_max 1e-4                      # maximum diameter (m)
 
-weight none                     # weighting function
+weight power                    # weighting function
+exponent -1.5                   # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -52,4 +53,4 @@ output_type single              # parallel output type (central/dist/single)
 mix_timescale 0                 # mixing timescale between processors (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
-coag_method dist                # parallel method (local/collect/central/dist)
+parallel_coag dist              # parallel coagulation method (local/dist)

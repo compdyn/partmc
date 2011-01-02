@@ -155,6 +155,7 @@ contains
     call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
          n_samps, accept_factors)
     tot_n_samp = sum(n_samps)
+    tot_n_coag = 0
 
     ! main loop
     do i_req = 1,COAG_EQUAL_MAX_REQUESTS

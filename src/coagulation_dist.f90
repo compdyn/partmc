@@ -1,13 +1,13 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_coagulation_mpi_equal module.
+!> The pmc_coagulation_dist module.
 
 !> Aerosol particle coagulation with MPI where each node has its own
 !> aero_state and all nodes perform coagulation equally.
-module pmc_coagulation_mpi_equal
+module pmc_coagulation_dist
 
   use pmc_bin_grid
   use pmc_aero_data
@@ -28,7 +28,7 @@ module pmc_coagulation_mpi_equal
   !! because it's only kind of a circular buffer --- the messages
   !! themselves aren't allowed to wrap around then end, so we might
   !! need extra space up to the size of the largest message type.
-  integer, parameter :: COAG_EQUAL_OUTGOING_BUFFER_SIZE      = 1000000
+  integer, parameter :: COAG_DIST_OUTGOING_BUFFER_SIZE      = 1000000
   !> Size of send and receive buffer for each message (bytes).
   !!
   !! FIXME: check that this size is big enough. The biggest message
@@ -37,13 +37,13 @@ module pmc_coagulation_mpi_equal
   !! integers or something. At the moment this means something like (10
   !! + n_spec) reals, (3 + 2) integers, which for n_spec = 20 gives a
   !! size of 260 bytes.
-  integer, parameter :: COAG_EQUAL_MAX_BUFFER_SIZE           = 10000
-  integer, parameter :: COAG_EQUAL_MAX_REQUESTS              = 1
-  integer, parameter :: COAG_EQUAL_TAG_REQUEST_PARTICLE      = 5321
-  integer, parameter :: COAG_EQUAL_TAG_RETURN_REQ_PARTICLE   = 5322
-  integer, parameter :: COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE = 5323
-  integer, parameter :: COAG_EQUAL_TAG_RETURN_NO_PARTICLE    = 5324
-  integer, parameter :: COAG_EQUAL_TAG_DONE                  = 5325
+  integer, parameter :: COAG_DIST_MAX_BUFFER_SIZE           = 10000
+  integer, parameter :: COAG_DIST_MAX_REQUESTS              = 1
+  integer, parameter :: COAG_DIST_TAG_REQUEST_PARTICLE      = 5321
+  integer, parameter :: COAG_DIST_TAG_RETURN_REQ_PARTICLE   = 5322
+  integer, parameter :: COAG_DIST_TAG_RETURN_UNREQ_PARTICLE = 5323
+  integer, parameter :: COAG_DIST_TAG_RETURN_NO_PARTICLE    = 5324
+  integer, parameter :: COAG_DIST_TAG_DONE                  = 5325
 
   type request_t
      !> Local \c aero_particle to maybe coagulate with the received
@@ -103,7 +103,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_mpi_equal(coag_kernel_type, bin_grid, env_state, &
+  subroutine mc_coag_dist(coag_kernel_type, bin_grid, env_state, &
        aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
        tot_n_coag)
 
@@ -135,11 +135,11 @@ contains
     real(kind=dp) :: n_samp_real
     integer, allocatable :: n_parts(:,:)
     real(kind=dp), allocatable :: comp_vols(:)
-    type(request_t) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t) :: requests(COAG_DIST_MAX_REQUESTS)
     integer :: n_samps(bin_grid%n_bin, bin_grid%n_bin)
     real(kind=dp) :: accept_factors(bin_grid%n_bin, bin_grid%n_bin)
     logical, allocatable :: procs_done(:)
-    integer :: outgoing_buffer(COAG_EQUAL_OUTGOING_BUFFER_SIZE)
+    integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
     
     rank = pmc_mpi_rank()
@@ -158,7 +158,7 @@ contains
     tot_n_coag = 0
 
     ! main loop
-    do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    do i_req = 1,COAG_DIST_MAX_REQUESTS
        call request_allocate(requests(i_req))
     end do
     samps_remaining = .true.
@@ -168,7 +168,7 @@ contains
     procs_done = .false.
     sent_dones = .false.
     call mpi_buffer_attach(outgoing_buffer, &
-         COAG_EQUAL_OUTGOING_BUFFER_SIZE, ierr)
+         COAG_DIST_OUTGOING_BUFFER_SIZE, ierr)
     call pmc_mpi_check_ierr(ierr)
     do while (.not. all(procs_done))
        ! add requests if we have any slots available call
@@ -186,12 +186,12 @@ contains
        end if
 
        ! receive exactly one message
-       call coag_equal_recv(requests, bin_grid, env_state, aero_data, &
+       call coag_dist_recv(requests, bin_grid, env_state, aero_data, &
             aero_weight, aero_state, accept_factors, coag_kernel_type, &
             tot_n_coag, comp_vols, procs_done)
     end do
 
-    do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    do i_req = 1,COAG_DIST_MAX_REQUESTS
        call assert(502009333, .not. request_is_active(requests(i_req)))
        call request_deallocate(requests(i_req))
     end do
@@ -202,19 +202,19 @@ contains
          outgoing_buffer_size_check, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(577822730, &
-         COAG_EQUAL_OUTGOING_BUFFER_SIZE == outgoing_buffer_size_check)
+         COAG_DIST_OUTGOING_BUFFER_SIZE == outgoing_buffer_size_check)
 #endif
 
-  end subroutine mc_coag_mpi_equal
+  end subroutine mc_coag_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_equal_recv(requests, bin_grid, env_state, aero_data, &
+  subroutine coag_dist_recv(requests, bin_grid, env_state, aero_data, &
        aero_weight, aero_state, accept_factors, coag_kernel_type, &
        tot_n_coag, comp_vols, procs_done)
 
     !> Array of outstanding requests.
-    type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -243,18 +243,18 @@ contains
     call mpi_probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &
          status, ierr)
     call pmc_mpi_check_ierr(ierr)
-    if (status(MPI_TAG) == COAG_EQUAL_TAG_REQUEST_PARTICLE) then
+    if (status(MPI_TAG) == COAG_DIST_TAG_REQUEST_PARTICLE) then
        call recv_request_particle(aero_state)
-    elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE) then
+    elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, bin_grid, &
             env_state, aero_data, aero_weight, aero_state, accept_factors, &
             coag_kernel_type, tot_n_coag, comp_vols)
-    elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE) then
+    elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state, bin_grid)
-    elseif (status(MPI_TAG) == COAG_EQUAL_TAG_RETURN_NO_PARTICLE) then
+    elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
        call recv_return_no_particle(requests, bin_grid, &
             aero_data, aero_state)
-    elseif (status(MPI_TAG) == COAG_EQUAL_TAG_DONE) then
+    elseif (status(MPI_TAG) == COAG_DIST_TAG_DONE) then
        call recv_done(procs_done)
     else
        call die_msg(856123972, &
@@ -262,7 +262,7 @@ contains
     end if
 #endif
     
-  end subroutine coag_equal_recv
+  end subroutine coag_dist_recv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -274,7 +274,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Array of outstanding requests.
-    type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Number of particles per bin per processor.
     integer, intent(in) :: n_parts(:,:)
     !> Bin index of first particle we need to coagulate.
@@ -290,7 +290,7 @@ contains
 
     if (.not. samps_remaining) return
 
-    outer: do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    outer: do i_req = 1,COAG_DIST_MAX_REQUESTS
        if (.not. request_is_active(requests(i_req))) then
           inner: do
              call update_n_samps(bin_grid, n_samps, local_bin, &
@@ -321,11 +321,11 @@ contains
   logical function any_requests_active(requests)
 
     !> Array of outstanding requests.
-    type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     
     integer :: i_req
 
-    do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    do i_req = 1,COAG_DIST_MAX_REQUESTS
        if (request_is_active(requests(i_req))) then
           any_requests_active = .true.
           return
@@ -407,15 +407,15 @@ contains
     integer, intent(in) :: remote_bin
 
 #ifdef PMC_USE_MPI
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
     position = 0
     call pmc_mpi_pack_integer(buffer, position, remote_bin)
     buffer_size = position
-    call assert(490250818, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(490250818, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, remote_proc, &
-         COAG_EQUAL_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, ierr)
+         COAG_DIST_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -431,19 +431,19 @@ contains
 #ifdef PMC_USE_MPI
     integer :: buffer_size, position, request_bin, sent_proc, ierr
     integer :: remote_proc, status(MPI_STATUS_SIZE)
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: aero_particle
 
     ! get the message
-    call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, COAG_EQUAL_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, &
+    call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, COAG_DIST_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, &
          status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(920139874, status(MPI_TAG) &
-         == COAG_EQUAL_TAG_REQUEST_PARTICLE)
+         == COAG_DIST_TAG_REQUEST_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(190658659, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(190658659, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     remote_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -476,15 +476,15 @@ contains
     integer, intent(in) :: i_bin
 
 #ifdef PMC_USE_MPI
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
     buffer_size = position
-    call assert(473131470, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(473131470, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
-         COAG_EQUAL_TAG_RETURN_NO_PARTICLE, MPI_COMM_WORLD, ierr)
+         COAG_DIST_TAG_RETURN_NO_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -496,7 +496,7 @@ contains
        aero_data, aero_state)
 
     !> Array of outstanding requests.
-    type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -508,18 +508,18 @@ contains
     logical :: found_request
     integer :: buffer_size, position, sent_bin, sent_proc, i_req, ierr
     integer :: status(MPI_STATUS_SIZE)
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
 
     ! get the message
-    call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_NO_PARTICLE, &
+    call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, COAG_DIST_TAG_RETURN_NO_PARTICLE, &
          MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(918153221, status(MPI_TAG) &
-         == COAG_EQUAL_TAG_RETURN_NO_PARTICLE)
+         == COAG_DIST_TAG_RETURN_NO_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(461111487, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(461111487, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -529,7 +529,7 @@ contains
 
     ! find the matching request
     found_request = .false.
-    do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    do i_req = 1,COAG_DIST_MAX_REQUESTS
        if ((requests(i_req)%remote_proc == sent_proc) &
             .and. (requests(i_req)%remote_bin == sent_bin)) then
           found_request = .true.
@@ -559,16 +559,16 @@ contains
     integer, intent(in) :: dest_proc
 
 #ifdef PMC_USE_MPI
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
     buffer_size = position
-    call assert(622476860, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(622476860, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
-         COAG_EQUAL_TAG_RETURN_REQ_PARTICLE, MPI_COMM_WORLD, ierr)
+         COAG_DIST_TAG_RETURN_REQ_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -581,7 +581,7 @@ contains
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
-    type(request_t), intent(inout) :: requests(COAG_EQUAL_MAX_REQUESTS)
+    type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
@@ -606,20 +606,20 @@ contains
     logical :: found_request, remove_1, remove_2
     integer :: buffer_size, position, sent_bin, sent_proc, i_req, ierr
     integer :: status(MPI_STATUS_SIZE)
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: sent_aero_particle
     real(kind=dp) :: k, p
 
     ! get the message
-    call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_REQ_PARTICLE, &
+    call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, COAG_DIST_TAG_RETURN_REQ_PARTICLE, &
          MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(133285061, status(MPI_TAG) &
-         == COAG_EQUAL_TAG_RETURN_REQ_PARTICLE)
+         == COAG_DIST_TAG_RETURN_REQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(461111487, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(461111487, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -631,7 +631,7 @@ contains
 
     ! find the matching request
     found_request = .false.
-    do i_req = 1,COAG_EQUAL_MAX_REQUESTS
+    do i_req = 1,COAG_DIST_MAX_REQUESTS
        if ((requests(i_req)%remote_proc == sent_proc) &
             .and. (requests(i_req)%remote_bin == sent_bin)) then
           found_request = .true.
@@ -649,7 +649,7 @@ contains
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
-       call coagulate_mpi_equal(bin_grid, aero_data, aero_weight, &
+       call coagulate_dist(bin_grid, aero_data, aero_weight, &
             aero_state, requests(i_req)%local_aero_particle, &
             sent_aero_particle, sent_proc, comp_vols, remove_1, remove_2)
     else
@@ -683,15 +683,15 @@ contains
     integer, intent(in) :: dest_proc
 
 #ifdef PMC_USE_MPI
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: buffer_size, position, ierr
 
     position = 0
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
     buffer_size = position
-    call assert(622476860, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(622476860, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
-         COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE, MPI_COMM_WORLD, ierr)
+         COAG_DIST_TAG_RETURN_UNREQ_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -709,20 +709,20 @@ contains
 #ifdef PMC_USE_MPI
     logical :: found_request
     integer :: buffer_size, position, sent_proc, ierr
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: aero_particle
     integer :: i_bin, status(MPI_STATUS_SIZE), send_proc
 
     ! get the message
-    call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE, &
+    call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, COAG_DIST_TAG_RETURN_UNREQ_PARTICLE, &
          MPI_COMM_WORLD, status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(496247788, status(MPI_TAG) &
-         == COAG_EQUAL_TAG_RETURN_UNREQ_PARTICLE)
+         == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(590644042, buffer_size < COAG_EQUAL_MAX_BUFFER_SIZE)
+    call assert(590644042, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -749,12 +749,12 @@ contains
     integer, intent(in) :: dest_proc
 
 #ifdef PMC_USE_MPI
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: buffer_size, ierr
 
     buffer_size = 0
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
-         COAG_EQUAL_TAG_DONE, MPI_COMM_WORLD, ierr)
+         COAG_DIST_TAG_DONE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -770,16 +770,16 @@ contains
     
 #ifdef PMC_USE_MPI
     integer :: buffer_size, sent_proc, ierr
-    character :: buffer(COAG_EQUAL_MAX_BUFFER_SIZE)
+    character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     integer :: status(MPI_STATUS_SIZE)
 
     ! get the message
-    call mpi_recv(buffer, COAG_EQUAL_MAX_BUFFER_SIZE, MPI_CHARACTER, &
-         MPI_ANY_SOURCE, COAG_EQUAL_TAG_DONE, MPI_COMM_WORLD, &
+    call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
+         MPI_ANY_SOURCE, COAG_DIST_TAG_DONE, MPI_COMM_WORLD, &
          status, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(348737947, status(MPI_TAG) &
-         == COAG_EQUAL_TAG_DONE)
+         == COAG_DIST_TAG_DONE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(214904056, buffer_size == 0)
@@ -863,7 +863,7 @@ contains
     rank = pmc_mpi_rank()
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call coag_equal_compute_n_samp(n_parts(i, rank + 1), &
+          call coag_dist_compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
                sum(comp_vols), del_t, n_samps(i,j), accept_factors(i,j))
        end do
@@ -873,7 +873,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_equal_compute_n_samp(n_parts_local, &
+  subroutine coag_dist_compute_n_samp(n_parts_local, &
        n_parts_total, same_bin, k_max, &
        comp_vol_total, del_t, n_samp, accept_factor)
 
@@ -913,11 +913,11 @@ contains
     n_samp = rand_poisson(n_samp_mean)
     accept_factor = 1d0 / k_max
   
-  end subroutine coag_equal_compute_n_samp
+  end subroutine coag_dist_compute_n_samp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coagulate_mpi_equal(bin_grid, aero_data, aero_weight, &
+  subroutine coagulate_dist(bin_grid, aero_data, aero_weight, &
        aero_state, aero_particle_1, aero_particle_2, remote_proc, &
        comp_vols, remove_1, remove_2)
 
@@ -976,8 +976,8 @@ contains
     call aero_info_deallocate(aero_info_1)
     call aero_info_deallocate(aero_info_2)
 
-  end subroutine coagulate_mpi_equal
+  end subroutine coagulate_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_coagulation_mpi_equal
+end module pmc_coagulation_dist

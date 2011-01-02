@@ -19,7 +19,7 @@ module pmc_run_part
   use pmc_output
   use pmc_mosaic
   use pmc_coagulation
-  use pmc_coagulation_mpi_equal
+  use pmc_coagulation_dist
   use pmc_coag_kernel
   use pmc_nucleate
   use pmc_mpi
@@ -235,8 +235,8 @@ contains
                   run_part_opt%del_t, k_max, n_samp, n_coag)
           elseif (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_DIST) then
-             call mc_coag_mpi_equal(run_part_opt%coag_kernel_type, &
-                  bin_grid, env_state, aero_data, aero_weight, aero_state, &
+             call mc_coag_dist(run_part_opt%coag_kernel_type, bin_grid, &
+                  env_state, aero_data, aero_weight, aero_state, &
                   run_part_opt%del_t, k_max, n_samp, n_coag)
           else
              call die_msg(323011762, "unknown parallel coagulation type: " &

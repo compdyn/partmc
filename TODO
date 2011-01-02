@@ -5,8 +5,6 @@ Kill test/parallel_mosaic.
 
 Rename coagulation_mpi_equal coagulation_dist or something.
 
-Fix output: remove n_samples, add n_emit, n_dil_in, n_dil_out
-
 ######################################################################
 
 Time

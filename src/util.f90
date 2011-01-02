@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -653,7 +653,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert an real to a string format.
+  !> Convert a real to a string format.
   character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_to_string(val)
 
     !> Value to convert.
@@ -669,7 +669,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert an logical to a string format.
+  !> Convert a logical to a string format.
   character(len=PMC_UTIL_CONVERT_STRING_LEN) function logical_to_string(val)
 
     !> Value to convert.
@@ -686,6 +686,121 @@ contains
     logical_to_string = ret_val
 
   end function logical_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert an integer to a string format of maximum length.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) &
+       function integer_to_string_max_len(val, max_len)
+
+    !> Value to convert.
+    integer, intent(in) :: val
+    !> Maximum length of resulting string.
+    integer, intent(in) :: max_len
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+
+    ret_val = integer_to_string(val)
+    if (len_trim(ret_val) > max_len) then
+       ret_val = real_to_string_max_len(real(val, kind=dp), max_len)
+    end if
+    integer_to_string_max_len = adjustl(ret_val)
+
+  end function integer_to_string_max_len
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a real to a string format of maximum length.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) &
+       function real_to_string_max_len(val, max_len)
+
+    !> Value to convert.
+    real(kind=dp), intent(in) :: val
+    !> Maximum length of resulting string.
+    integer, intent(in) :: max_len
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val, exp_str, frac_str
+    integer :: exp_val, exp_len, frac_len, use_frac_len, min_frac_len, i
+    real(kind=dp) :: frac_val
+
+    ret_val = ""
+    if (val == 0d0) then
+       if (max_len >= 3) then
+          ret_val = "0e0"
+       else
+          do i = 1,max_len
+             ret_val(i:i) = "*"
+          end do
+       end if
+       real_to_string_max_len = adjustl(ret_val)
+       return
+    end if
+
+    exp_val = floor(log10(abs(val)))
+    frac_val = val / 10d0**exp_val
+    exp_str = integer_to_string(exp_val)
+    frac_str = real_to_string(frac_val)
+
+    exp_len = len_trim(exp_str)
+    frac_len = len_trim(frac_str)
+    use_frac_len = max_len - 1 - exp_len
+    if (use_frac_len > frac_len) then
+       use_frac_len = frac_len
+    end if
+    if (val < 0d0) then
+       min_frac_len = 2
+    else
+       min_frac_len = 1
+    end if
+    if (use_frac_len < min_frac_len) then
+       do i = 1,max_len
+          ret_val(i:i) = "*"
+       end do
+    else
+       ret_val = frac_str(1:use_frac_len) // "e" // trim(exp_str)
+    end if
+    real_to_string_max_len = adjustl(ret_val)
+
+  end function real_to_string_max_len
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a time to a string format of maximum length.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) &
+       function time_to_string_max_len(time, max_len)
+
+    !> Time to convert (s).
+    real(kind=dp), intent(in) :: time
+    !> Maximum length of resulting string.
+    integer, intent(in) :: max_len
+
+    integer, dimension(4), parameter :: scale  = (/   1,  60,  60,  24 /)
+    character, dimension(4), parameter :: unit = (/ "s", "m", "h", "d" /)
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+    integer :: i
+    logical :: len_ok
+    real(kind=dp) :: scaled_time
+
+    scaled_time = time
+    len_ok = .false.
+    do i = 1,4
+       scaled_time = scaled_time / real(scale(i), kind=dp)
+       ret_val = trim(integer_to_string(nint(scaled_time))) // unit(i)
+       if (len_trim(ret_val) <= max_len) then
+          len_ok = .true.
+          exit
+       end if
+    end do
+    if (.not. len_ok) then
+       ret_val = ""
+       do i = 1,max_len
+          ret_val(i:i) = "*"
+       end do
+    end if
+    time_to_string_max_len = adjustl(ret_val)
+
+  end function time_to_string_max_len
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

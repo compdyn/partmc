@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -123,9 +123,15 @@ contains
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
-    integer :: tot_n_samp, tot_n_coag, rank, n_proc, pre_index, ncid
-    integer :: pre_i_repeat, progress_n_samp, progress_n_coag
+    integer :: rank, n_proc, pre_index, ncid
+    integer :: pre_i_repeat
+    integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
+    integer :: progress_n_samp, progress_n_coag
+    integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
+    integer :: progress_n_nuc, n_part_before
     integer :: global_n_part, global_n_samp, global_n_coag
+    integer :: global_n_emit, global_n_dil_in, global_n_dil_out
+    integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     logical :: update_rel_humid
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
@@ -141,10 +147,12 @@ contains
     i_state = 1
     i_state_netcdf = 1
     time = 0d0
-    tot_n_samp = 0
-    tot_n_coag = 0
     progress_n_samp = 0
     progress_n_coag = 0
+    progress_n_emit = 0
+    progress_n_dil_in = 0
+    progress_n_dil_out = 0
+    progress_n_nuc = 0
 
     call env_state_allocate(old_env_state)
 
@@ -187,12 +195,19 @@ contains
           call aero_state_halve(aero_state, bin_grid)
        end do
     end if
-    
+
     t_start = env_state%elapsed_time
     last_output_time = time
     last_progress_time = time
     n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
     i_time_start = nint(time / run_part_opt%del_t) + 1
+
+    global_n_part = aero_state_total_particles_all_procs(aero_state)
+    if (rank == 0) then
+       call print_part_progress(run_part_opt%i_repeat, time, &
+            global_n_part, 0, 0, 0, 0, 0, 0d0, 0d0)
+    end if
+
     do i_time = i_time_start,n_time
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
@@ -203,9 +218,13 @@ contains
             update_rel_humid)
 
        if (run_part_opt%do_nucleation) then
+          n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, bin_grid, env_state, &
                gas_data, aero_data, aero_weight, aero_state, gas_state, &
                run_part_opt%del_t)
+          n_nuc = aero_state_total_particles(aero_state) &
+               - n_part_before
+          progress_n_nuc = progress_n_nuc + n_nuc
        end if
 
        if (run_part_opt%do_coagulation) then
@@ -213,24 +232,28 @@ contains
                == PARALLEL_COAG_TYPE_LOCAL) then
              call mc_coag(run_part_opt%coag_kernel_type, bin_grid, &
                   env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+                  run_part_opt%del_t, k_max, n_samp, n_coag)
           elseif (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_DIST) then
              call mc_coag_mpi_equal(run_part_opt%coag_kernel_type, &
                   bin_grid, env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, tot_n_samp, tot_n_coag)
+                  run_part_opt%del_t, k_max, n_samp, n_coag)
           else
              call die_msg(323011762, "unknown parallel coagulation type: " &
                   // trim(integer_to_string(run_part_opt%parallel_coag_type)))
           end if
-          progress_n_samp = progress_n_samp + tot_n_samp
-          progress_n_coag = progress_n_coag + tot_n_coag
+          progress_n_samp = progress_n_samp + n_samp
+          progress_n_coag = progress_n_coag + n_coag
        end if
 
        call env_state_update_gas_state(env_state, run_part_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, run_part_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_weight, aero_state)
+            old_env_state, bin_grid, aero_data, aero_weight, aero_state, &
+            n_emit, n_dil_in, n_dil_out)
+       progress_n_emit = progress_n_emit + n_emit
+       progress_n_dil_in = progress_n_dil_in + n_dil_in
+       progress_n_dil_out = progress_n_dil_out + n_dil_out
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
@@ -308,6 +331,12 @@ contains
              global_n_part = aero_state_total_particles_all_procs(aero_state)
              call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
              call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
+             call pmc_mpi_reduce_sum_integer(progress_n_emit, global_n_emit)
+             call pmc_mpi_reduce_sum_integer(progress_n_dil_in, &
+                  global_n_dil_in)
+             call pmc_mpi_reduce_sum_integer(progress_n_dil_out, &
+                  global_n_dil_out)
+             call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
              if (rank == 0) then
                 ! progress only printed from root process
                 call cpu_time(t_wall_now)
@@ -317,18 +346,19 @@ contains
                 t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
                 t_wall_remain = (1d0 - prop_done) / prop_done &
                      * t_wall_elapsed
-                write(*,'(a6,a9,a11,a12,a12,a13,a12)') 'repeat', 'time(s)', &
-                     'n_particle', 'n_samples', 'n_coagulate', &
-                     't_elapsed(s)', 't_remain(s)'
-                write(*,'(i6,f9.1,i11,i12,i12,f13.0,f12.0)') &
-                     run_part_opt%i_repeat, time, global_n_part, &
-                     global_n_samp, global_n_coag, t_wall_elapsed, &
-                     t_wall_remain
+                call print_part_progress(run_part_opt%i_repeat, time, &
+                     global_n_part, global_n_coag, global_n_emit, &
+                     global_n_dil_in, global_n_dil_out, global_n_nuc, &
+                     t_wall_elapsed, t_wall_remain)
              end if
              ! reset counters so they show information since last
              ! progress display
              progress_n_samp = 0
              progress_n_coag = 0
+             progress_n_emit = 0
+             progress_n_dil_in = 0
+             progress_n_dil_out = 0
+             progress_n_nuc = 0
           end if
        end if
        
@@ -342,6 +372,51 @@ contains
 
   end subroutine run_part
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the current simulation progress to the screen.
+  subroutine print_part_progress(i_repeat, t_sim_elapsed, n_part, n_coag, &
+       n_emit, n_dil_in, n_dil_out, n_nuc, t_wall_elapsed, t_wall_remain)
+
+    !> Repeat number of simulation.
+    integer, intent(in) :: i_repeat
+    !> Elapsed simulation time (s).
+    real(kind=dp), intent(in) :: t_sim_elapsed
+    !> Number of particles.
+    integer, intent(in) :: n_part
+    !> Number of coagulated particles since last progress printing.
+    integer, intent(in) :: n_coag
+    !> Number of emitted particles since last progress printing.
+    integer, intent(in) :: n_emit
+    !> Number of diluted-in particles since last progress printing.
+    integer, intent(in) :: n_dil_in
+    !> Number of diluted-out particles since last progress printing.
+    integer, intent(in) :: n_dil_out
+    !> Number of nucleated particles since last progress printing.
+    integer, intent(in) :: n_nuc
+    !> Elapsed wall time (s).
+    real(kind=dp), intent(in) :: t_wall_elapsed
+    !> Estimated remaining wall time (s).
+    real(kind=dp), intent(in) :: t_wall_remain
+
+    write(*,'(a6,a1,a6,a1,a7,a1,a7,a1,a7,a1,a8,a1,a9,a1,a7,a1,a6,a1,a6)') &
+         "repeat", " ", "t_sim", " ", "n_part", " ", "n_coag", " ", &
+         "n_emit", " ", "n_dil_in", " ", "n_dil_out", " ", "n_nuc", " ", &
+         "t_wall", " ", "t_rem"
+    write(*,'(a6,a1,a6,a1,a7,a1,a7,a1,a7,a1,a8,a1,a9,a1,a7,a1,a6,a1,a6)') &
+         trim(integer_to_string_max_len(i_repeat, 6)), " ", &
+         trim(time_to_string_max_len(t_sim_elapsed, 6)), " ", &
+         trim(integer_to_string_max_len(n_part, 7)), " ", &
+         trim(integer_to_string_max_len(n_coag, 7)), " ", &
+         trim(integer_to_string_max_len(n_emit, 7)), " ", &
+         trim(integer_to_string_max_len(n_dil_in, 7)), " ", &
+         trim(integer_to_string_max_len(n_dil_out, 7)), " ", &
+         trim(integer_to_string_max_len(n_nuc, 7)), " ", &
+         trim(time_to_string_max_len(t_wall_elapsed, 6)), " ", &
+         trim(time_to_string_max_len(t_wall_remain, 6))
+
+  end subroutine print_part_progress
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.

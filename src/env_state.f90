@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -418,7 +418,8 @@ contains
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
   subroutine env_state_update_aero_state(env_state, delta_t, &
-       old_env_state, bin_grid, aero_data, aero_weight, aero_state)
+       old_env_state, bin_grid, aero_data, aero_weight, aero_state, &
+       n_emit, n_dil_in, n_dil_out)
 
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
@@ -434,6 +435,12 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Aero state to update.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Number of emitted particles.
+    integer, intent(out) :: n_emit
+    !> Number of diluted-in particles.
+    integer, intent(out) :: n_dil_in
+    !> Number of diluted-out particles.
+    integer, intent(out) :: n_dil_out
 
     integer :: i
     real(kind=dp) :: sample_prop, effective_dilution_rate
@@ -454,12 +461,14 @@ contains
     sample_prop = delta_t * effective_dilution_rate
     if (sample_prop > 1d0) then
        call die_msg(925788271, &
-            'effective dilution rate too high for this timestep')
+            'effective dilution rate too high for this timestep, ' &
+            // 'try reducing timestep')
     end if
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
          AERO_INFO_DILUTION)
+    n_dil_out = aero_state_total_particles(aero_state_delta)
 
     ! addition from background
     sample_prop = delta_t * effective_dilution_rate
@@ -468,6 +477,7 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, aero_weight, env_state%aero_background, sample_prop, &
          env_state%elapsed_time)
+    n_dil_in = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
     
     ! emissions
@@ -477,6 +487,7 @@ contains
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
          aero_data, aero_weight, env_state%aero_emissions, sample_prop, &
          env_state%elapsed_time)
+    n_emit = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
 
     ! update computational volume

@@ -27,6 +27,7 @@ dist:
 	grep -q "^ *\"PartMC version $(VERSION)\"" src/output.f90
 	test ! -d .svn # check this was svn exported
 	test ! -d doc/condensation # no condensation notes
+	test ! -d doc/ship_track # no ship_track notes
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	mkdir $(DIST_NAME)/scenarios

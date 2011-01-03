@@ -29,10 +29,10 @@ dist:
 	test ! -d doc/condensation # no condensation notes
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
-        mkdir $(DIST_NAME)/scenarios
-        cp -r $(SCENARIOS_DIST_FILES) $(DIST_NAME)/scenarios
-        mkdir $(DIST_NAME)/tool
-        cp -r $(TOOL_DIST_FILES) $(DIST_NAME)/tool
+	mkdir $(DIST_NAME)/scenarios
+	cp -r $(SCENARIOS_DIST_FILES) $(DIST_NAME)/scenarios
+	mkdir $(DIST_NAME)/tool
+	cp -r $(TOOL_DIST_FILES) $(DIST_NAME)/tool
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 

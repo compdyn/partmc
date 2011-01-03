@@ -1,6 +1,16 @@
 
 Before release of 2.0.0:
 
+remove "exit $?" from run_test
+
+increase t_progress in tests
+
+run under valgrind
+
+change "position ==" to "position <="
+
+whenever we use mpi_send_packed() or similar, check used_buffer_size
+
 ######################################################################
 
 Time
@@ -35,12 +45,6 @@ All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than
 deadlocking.
 
-Use mpi_sizeof() to get the sizes for reals, logicals, etc. There are
-also functions called MPI_Sizeof1DR8 for a 1D array of real*8,
-etc. What about 2D arrays, is it correct to treat them as 1D as we do
-at present with mpi_pack? See
-http://www.mpi-forum.org/docs/mpi21-report-bw/node347.htm
-
 Change gas mixing to be by diffusion, rather than allreduce, also env,
 but first fix weighting so it is not all equal, but weighted by
 particle numbers and comp vols or something?
@@ -53,12 +57,6 @@ Standardize on "processor" or "node" or "core". Use the MPI
 terminology, whatever it is.
 
 Switch to using mpi structures rather than pack/unpack?
-
-When averaging parallel/dist output files, how should we account for
-different computational volumes? Should we store the comp_vol in the
-output files as a single number? Should we weight the files by the
-number of particles in them? No, probably not, because they are no
-more accurate just because we did a double.
 
 In the parallel mixing code, do an allreduce() with MPI_ADD to figure
 out how many processers are actually sending to each receiver, so it's

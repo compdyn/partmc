@@ -516,7 +516,7 @@ contains
     integer :: prev_position, ierr
 
     prev_position = position
-    call mpi_pack(val, 1, MPI_COMPLEX16, buffer, size(buffer), &
+    call mpi_pack(val, 1, MPI_DOUBLE_COMPLEX, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(640416372, &
@@ -754,8 +754,8 @@ contains
     integer :: prev_position, ierr
 
     prev_position = position
-    call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_COMPLEX16, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_unpack(buffer, size(buffer), position, val, 1, &
+         MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(969672634, &
          position - prev_position == pmc_mpi_pack_size_complex(val))

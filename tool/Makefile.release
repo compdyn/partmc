@@ -18,7 +18,7 @@ PARTMC_SOURCE = $(filter-out src/extract_% src/numeric_%,$(ALL_SOURCE))
 all: dist
 
 .PHONY: dist
-dist: doc
+dist:
 	grep -q "^Version $(VERSION)" README
 	grep -q "^Released $(DATE)" README
 	grep -q "^$(VERSION) - $(DATE)" README
@@ -26,7 +26,6 @@ dist: doc
 	grep -q "^ *\"PartMC version $(VERSION)\"" src/output.f90
 	test ! -d .svn # check this was svn exported
 	test ! -d doc/condensation # no condensation notes
-	test ! -d test/parallel_mosaic # test not active
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)

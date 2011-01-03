@@ -117,6 +117,21 @@ module files (compiled with the same compiler), probably ending in
 `mosaic/datamodules`. The `MOSAIC_LIB` variable should end in
 something like `mosaic/libmosaic.a`.
 
+The condensation code in PartMC requires SUNDIALS version 2.4.0 (not
+enabled by default). To use it, set the `ENABLE_SUNDIALS` variable to
+`ON`. The `SUNDIALS_CVODE_LIB` variable should be the location of the
+`libsundials_cvode` library, the `SUNDIALS_NVECSERIAL_LIB` variable
+should be the location of the `libsundials_nvecserial` library, and
+`SUNDIALS_INCLUDE_DIR` should be the base directory that contains the
+cvode header directory.
+
+To compile PartMC to enable parallel execution with MPI, set the
+`ENABLE_MPI` variable to `ON`. Then in the advaced mode section of
+cmake set the `CMAKE_Fortran_COMPILER` to `mpif90` (or other MPI
+compiler wrapper as appropriate) and reconfigure cmake. The `partmc`
+executable should then be lauched with `mpirun -np 2 partmc` or
+similar.
+
 
 Usage
 =====

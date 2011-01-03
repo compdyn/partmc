@@ -233,7 +233,7 @@ contains
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(1, MPI_REAL8, MPI_COMM_WORLD, &
+    call mpi_pack_size(1, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_real, ierr)
     call pmc_mpi_check_ierr(ierr)
     !FIXME: HACK for now
@@ -339,7 +339,7 @@ contains
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(size(val), MPI_REAL8, MPI_COMM_WORLD, &
+    call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_real_array, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
@@ -382,7 +382,7 @@ contains
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(size(val), MPI_REAL8, MPI_COMM_WORLD, &
+    call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_real_array_2d, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
@@ -439,7 +439,7 @@ contains
     integer :: prev_position, ierr
 
     prev_position = position
-    call mpi_pack(val, 1, MPI_REAL8, buffer, size(buffer), &
+    call mpi_pack(val, 1, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(395354132, &
@@ -570,7 +570,7 @@ contains
     prev_position = position
     n = size(val)
     call pmc_mpi_pack_integer(buffer, position, n)
-    call mpi_pack(val, n, MPI_REAL8, buffer, size(buffer), &
+    call mpi_pack(val, n, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(825718791, &
@@ -626,7 +626,7 @@ contains
     n2 = size(val, 2)
     call pmc_mpi_pack_integer(buffer, position, n1)
     call pmc_mpi_pack_integer(buffer, position, n2)
-    call mpi_pack(val, n1*n2, MPI_REAL8, buffer, size(buffer), &
+    call mpi_pack(val, n1*n2, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(567349745, &
@@ -676,8 +676,8 @@ contains
     integer :: prev_position, ierr
 
     prev_position = position
-    call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_REAL8, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_unpack(buffer, size(buffer), position, val, 1, &
+         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(570771632, &
          position - prev_position == pmc_mpi_pack_size_real(val))
@@ -810,8 +810,8 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, n)
     deallocate(val)
     allocate(val(n))
-    call mpi_unpack(buffer, size(buffer), position, val, n, MPI_REAL8, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_unpack(buffer, size(buffer), position, val, n, &
+         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(782875761, &
          position - prev_position == pmc_mpi_pack_size_real_array(val))
@@ -867,8 +867,8 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, n2)
     deallocate(val)
     allocate(val(n1,n2))
-    call mpi_unpack(buffer, size(buffer), position, val, n1*n2, MPI_REAL8, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_unpack(buffer, size(buffer), position, val, n1*n2, &
+         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(781681739, position - prev_position &
          == pmc_mpi_pack_size_real_array_2d(val))
@@ -890,7 +890,7 @@ contains
 #ifdef PMC_USE_MPI
     integer :: ierr
 
-    call mpi_reduce(val, val_avg, 1, MPI_REAL8, MPI_SUM, 0, &
+    call mpi_reduce(val, val_avg, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
@@ -926,11 +926,11 @@ contains
        end if
     else
        if (rank == from_proc) then
-          call mpi_send(from_val, 1, MPI_REAL8, to_proc, &
+          call mpi_send(from_val, 1, MPI_DOUBLE_PRECISION, to_proc, &
                208020430, MPI_COMM_WORLD, ierr)
           call pmc_mpi_check_ierr(ierr)
        elseif (rank == to_proc) then
-          call mpi_recv(to_val, 1, MPI_REAL8, from_proc, &
+          call mpi_recv(to_val, 1, MPI_DOUBLE_PRECISION, from_proc, &
                208020430, MPI_COMM_WORLD, status, ierr)
           call pmc_mpi_check_ierr(ierr)
        end if
@@ -1041,8 +1041,8 @@ contains
     integer :: ierr
 
     call assert(915136121, size(val) == size(val_avg))
-    call mpi_reduce(val, val_avg, size(val), MPI_REAL8, MPI_SUM, 0, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_reduce(val, val_avg, size(val), MPI_DOUBLE_PRECISION, &
+         MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
        val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
@@ -1069,8 +1069,8 @@ contains
 
     call assert(131229046, size(val,1) == size(val_avg,1))
     call assert(992122167, size(val,2) == size(val_avg,2))
-    call mpi_reduce(val, val_avg, size(val), MPI_REAL8, MPI_SUM, 0, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_reduce(val, val_avg, size(val), MPI_DOUBLE_PRECISION, &
+         MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     if (pmc_mpi_rank() == 0) then
        val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
@@ -1095,7 +1095,7 @@ contains
 #ifdef PMC_USE_MPI
     integer :: ierr
 
-    call mpi_allreduce(val, val_avg, 1, MPI_REAL8, MPI_SUM, &
+    call mpi_allreduce(val, val_avg, 1, MPI_DOUBLE_PRECISION, MPI_SUM, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
@@ -1120,8 +1120,8 @@ contains
     integer :: ierr
 
     call assert(948533359, size(val) == size(val_avg))
-    call mpi_allreduce(val, val_avg, size(val), MPI_REAL8, MPI_SUM, &
-         MPI_COMM_WORLD, ierr)
+    call mpi_allreduce(val, val_avg, size(val), MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     val_avg = val_avg / real(pmc_mpi_size(), kind=dp)
 #else

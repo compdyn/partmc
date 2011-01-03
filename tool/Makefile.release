@@ -7,9 +7,9 @@ GRAPHVIZ_FILE = doc/partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = doc/html/index.html
 
-DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test \
-	scenarios/1_urban_plume scenarios/2_urban_plume2 tool/partmc.py \
-        tool/doxygen_footer.html
+DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test
+SCENARIOS_DIST_FILES = scenarios/1_urban_plume scenarios/2_urban_plume2
+TOOL_DIST_FILES = tool/partmc.py tool/doxygen_footer.html
 
 ALL_SOURCE = $(wildcard src/*.f90)
 
@@ -29,6 +29,10 @@ dist:
 	test ! -d doc/condensation # no condensation notes
 	mkdir $(DIST_NAME)
 	cp -r $(DIST_FILES) $(DIST_NAME)
+        mkdir $(DIST_NAME)/scenarios
+        cp -r $(SCENARIOS_DIST_FILES) $(DIST_NAME)/scenarios
+        mkdir $(DIST_NAME)/tool
+        cp -r $(TOOL_DIST_FILES) $(DIST_NAME)/tool
 	tar czf $(DIST_NAME).tar.gz $(DIST_NAME)
 	rm -r $(DIST_NAME)
 

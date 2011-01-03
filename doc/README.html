@@ -6,7 +6,7 @@
 <p>PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation</p>
 
 <p>Version 2.0.0 <br />
-Released 2010-12-26</p>
+Released 2011-01-02</p>
 
 <p><a href="http://lagrange.mechse.illinois.edu/mwest/partmc/">http://lagrange.mechse.illinois.edu/mwest/partmc/</a></p>
 
@@ -35,7 +35,7 @@ For details see the file COPYING or
 <p>Optional dependencies:</p>
 
 <ul>
-<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#58;&#x52;&#97;&#x68;&#117;&#x6c;&#x2e;&#90;&#97;&#118;&#101;&#x72;&#x69;&#64;&#x70;&#110;&#x6c;.&#x67;&#111;&#x76;">&#x52;&#97;&#x68;&#117;&#x6c;&#x2e;&#90;&#97;&#118;&#101;&#x72;&#x69;&#64;&#x70;&#110;&#x6c;.&#x67;&#111;&#x76;</a></li>
+<li>MOSAIC - Available from Rahul Zaveri - <a href="&#109;&#97;&#x69;&#108;&#x74;o&#x3a;&#x52;&#97;&#104;u&#x6c;&#x2e;&#x5a;&#x61;&#118;&#x65;&#x72;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#103;&#111;&#118;">&#x52;&#97;&#104;u&#x6c;&#x2e;&#x5a;&#x61;&#118;&#x65;&#x72;&#105;&#x40;&#x70;&#x6e;&#108;&#46;&#103;&#111;&#118;</a></li>
 <li>MPI - <a href="http://www.open-mpi.org/">http://www.open-mpi.org/</a></li>
 <li>SUNDIALS - <a href="http://www.llnl.gov/casc/sundials/">http://www.llnl.gov/casc/sundials/</a></li>
 <li>gnuplot - <a href="http://www.gnuplot.info/">http://www.gnuplot.info/</a></li>
@@ -45,7 +45,7 @@ For details see the file COPYING or
 packages are installed:</p>
 
 <ul>
-<li>Fedora 13: <code>gcc-gfortran</code>, <code>cmake</code>, <code>netcdf-devel</code>, <code>gnuplot</code></li>
+<li>Fedora 14: <code>gcc-gfortran</code>, <code>cmake</code>, <code>netcdf-devel</code>, <code>gnuplot</code></li>
 <li>Ubuntu 10.04: <code>gfortran</code>, <code>cmake-curses-gui</code>, <code>libnetcdf-dev</code>, <code>gnuplot</code></li>
 <li>openSUSE 11.3: <code>gcc-fortran</code>, <code>cmake</code>, <code>libnetcdf-devel</code>, <code>gnuplot</code></li>
 <li>Debian 5.0: <code>gfortran</code>, <code>make</code>, <code>cmake</code>, <code>libnetcdf-dev</code>, <code>gnuplot</code></li>
@@ -121,6 +121,21 @@ module files (compiled with the same compiler), probably ending in
 <code>mosaic/datamodules</code>. The <code>MOSAIC_LIB</code> variable should end in
 something like <code>mosaic/libmosaic.a</code>.</p>
 
+<p>The condensation code in PartMC requires SUNDIALS version 2.4.0 (not
+enabled by default). To use it, set the <code>ENABLE_SUNDIALS</code> variable to
+<code>ON</code>. The <code>SUNDIALS_CVODE_LIB</code> variable should be the location of the
+<code>libsundials_cvode</code> library, the <code>SUNDIALS_NVECSERIAL_LIB</code> variable
+should be the location of the <code>libsundials_nvecserial</code> library, and
+<code>SUNDIALS_INCLUDE_DIR</code> should be the base directory that contains the
+cvode header directory.</p>
+
+<p>To compile PartMC to enable parallel execution with MPI, set the
+<code>ENABLE_MPI</code> variable to <code>ON</code>. Then in the advaced mode section of
+cmake set the <code>CMAKE_Fortran_COMPILER</code> to <code>mpif90</code> (or other MPI
+compiler wrapper as appropriate) and reconfigure cmake. The <code>partmc</code>
+executable should then be lauched with <code>mpirun -np 2 partmc</code> or
+similar.</p>
+
 <h1>Usage</h1>
 
 <p>The main <code>partmc</code> command reads <code>.spec</code> files and does the run
@@ -128,9 +143,9 @@ specified therein. Either particle-resolved runs, sectional-code runs,
 or exact solutions can be generated. A run produces one NetCDF file
 per timestep, containing per-particle data (from particle-resolved
 runs) or binned data (from sectional or exact runs). The <code>extract_*</code>
-programs in the <code>tool/</code> directory can read these per-timestep NetCDF
-files and output ASCII data (the <code>extract_sectional_*</code> programs are
-used for sectional and exact model output).</p>
+programs can read these per-timestep NetCDF files and output ASCII
+data (the <code>extract_sectional_*</code> programs are used for sectional and
+exact model output).</p>
 
 <h1>ChangeLog</h1>
 
@@ -145,6 +160,7 @@ files.</p></li>
 <li><p>Nucleation added with parameterization due to Kuang, McMurray, et al.</p></li>
 <li><p>Weighted particles, with full support for coagulation and MOSAIC.</p></li>
 <li><p>Changed to Poisson sampling for coagulation test number.</p></li>
+<li><p>Input and output now use diameter everywhere rather than radius.</p></li>
 </ul>
 
 <p>1.2.0 - 2009-06-15</p>

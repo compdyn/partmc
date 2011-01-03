@@ -59,6 +59,7 @@ contains
 
     call mpi_init(ierr)
     call pmc_mpi_check_ierr(ierr)
+    call pmc_mpi_test()
 #endif
 
   end subroutine pmc_mpi_init
@@ -142,6 +143,145 @@ contains
 #endif
 
   end function pmc_mpi_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Perform basic sanity checks on send/receive.
+  subroutine pmc_mpi_test()
+
+#ifdef PMC_USE_MPI
+    real(kind=dp), parameter :: test_real = 2.718281828459d0
+    complex(kind=dc), parameter :: test_complex &
+         = (0.707106781187d0, 1.4142135624d0)
+    logical, parameter :: test_logical = .true.
+    character(len=100), parameter :: test_string &
+         = "a truth universally acknowledged"
+    integer, parameter :: test_integer = 314159
+
+    character, allocatable :: buffer(:)
+    integer :: buffer_size, used_buffer_size, position
+    real(kind=dp) :: send_real, recv_real
+    complex(kind=dc) :: send_complex, recv_complex
+    logical :: send_logical, recv_logical
+    character(len=100) :: send_string, recv_string
+    integer :: send_integer, recv_integer
+    real(kind=dp) :: send_real_array(2)
+    real(kind=dp), pointer :: recv_real_array(:)
+
+    allocate(recv_real_array(1))
+
+    if (pmc_mpi_rank() == 0) then
+       send_real = test_real
+       send_complex = test_complex
+       send_logical = test_logical
+       send_string = test_string
+       send_integer = test_integer
+       send_real_array(1) = real(test_complex)
+       send_real_array(2) = aimag(test_complex)
+
+       buffer_size = 0
+       buffer_size = buffer_size + pmc_mpi_pack_size_integer(send_integer)
+       buffer_size = buffer_size + pmc_mpi_pack_size_real(send_real)
+       buffer_size = buffer_size + pmc_mpi_pack_size_complex(send_complex)
+       buffer_size = buffer_size + pmc_mpi_pack_size_logical(send_logical)
+       buffer_size = buffer_size + pmc_mpi_pack_size_string(send_string)
+       buffer_size = buffer_size &
+            + pmc_mpi_pack_size_real_array(send_real_array)
+    end if
+
+    call pmc_mpi_bcast_integer(buffer_size)
+    allocate(buffer(buffer_size))
+
+    if (pmc_mpi_rank() == 0) then
+       position = 0
+       call pmc_mpi_pack_real(buffer, position, send_real)
+       call pmc_mpi_pack_complex(buffer, position, send_complex)
+       call pmc_mpi_pack_logical(buffer, position, send_logical)
+       call pmc_mpi_pack_string(buffer, position, send_string)
+       call pmc_mpi_pack_integer(buffer, position, send_integer)
+       call pmc_mpi_pack_real_array(buffer, position, send_real_array)
+       call assert_msg(350740830, position <= buffer_size, &
+            "MPI test failure: pack position " &
+            // trim(integer_to_string(position)) &
+            // " greater than buffer_size " &
+            // trim(integer_to_string(buffer_size)))
+       used_buffer_size = position
+    end if
+
+    call pmc_mpi_bcast_packed(buffer)
+
+    call pmc_mpi_bcast_integer(used_buffer_size)
+
+    if (pmc_mpi_rank() /= 0) then
+       position = 0
+       call pmc_mpi_unpack_real(buffer, position, recv_real)
+       call pmc_mpi_unpack_complex(buffer, position, recv_complex)
+       call pmc_mpi_unpack_logical(buffer, position, recv_logical)
+       call pmc_mpi_unpack_string(buffer, position, recv_string)
+       call pmc_mpi_unpack_integer(buffer, position, recv_integer)
+       call pmc_mpi_unpack_real_array(buffer, position, recv_real_array)
+       call assert_msg(787677020, position <= buffer_size, &
+            "MPI test failure: unpack position " &
+            // trim(integer_to_string(position)) &
+            // " greater than buffer_size " &
+            // trim(integer_to_string(buffer_size)))
+       call assert_msg(348213573, position == used_buffer_size, &
+            "MPI test failure: unpack position " &
+            // trim(integer_to_string(position)) &
+            // " not equal to used_buffer_size " &
+            // trim(integer_to_string(used_buffer_size)))
+    end if
+
+    deallocate(buffer)
+
+    if (pmc_mpi_rank() /= 0) then
+       call assert_msg(567548916, recv_real == test_real, &
+            "MPI test failure: real recv " &
+            // trim(real_to_string(recv_real)) &
+            // " not equal to " &
+            // trim(real_to_string(test_real)))
+       call assert_msg(653908509, recv_complex == test_complex, &
+            "MPI test failure: complex recv " &
+            // trim(complex_to_string(recv_complex)) &
+            // " not equal to " &
+            // trim(complex_to_string(test_complex)))
+       call assert_msg(307746296, recv_logical .eqv. test_logical, &
+            "MPI test failure: logical recv " &
+            // trim(logical_to_string(recv_logical)) &
+            // " not equal to " &
+            // trim(logical_to_string(test_logical)))
+       call assert_msg(155693492, recv_string == test_string, &
+            "MPI test failure: string recv '" &
+            // trim(recv_string) &
+            // "' not equal to '" &
+            // trim(test_string) // "'")
+       call assert_msg(875699427, recv_integer == test_integer, &
+            "MPI test failure: integer recv " &
+            // trim(integer_to_string(recv_integer)) &
+            // " not equal to " &
+            // trim(integer_to_string(test_integer)))
+       call assert_msg(326982363, size(recv_real_array) == 2, &
+            "MPI test failure: real array recv size " &
+            // trim(integer_to_string(size(recv_real_array))) &
+            // " not equal to 2")
+       call assert_msg(744394323, &
+            recv_real_array(1) == real(test_complex), &
+            "MPI test failure: real array recv index 1 " &
+            // trim(real_to_string(recv_real_array(1))) &
+            // " not equal to " &
+            // trim(real_to_string(real(test_complex))))
+       call assert_msg(858902527, &
+            recv_real_array(2) == aimag(test_complex), &
+            "MPI test failure: real array recv index 2 " &
+            // trim(real_to_string(recv_real_array(2))) &
+            // " not equal to " &
+            // trim(real_to_string(aimag(test_complex))))
+    end if
+
+    deallocate(recv_real_array)
+#endif
+
+  end subroutine pmc_mpi_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

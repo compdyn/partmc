@@ -214,8 +214,6 @@ contains
     call mpi_pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_integer, ierr)
     call pmc_mpi_check_ierr(ierr)
-! FIXME:
-    pmc_mpi_pack_size_integer = 4
 #else
     pmc_mpi_pack_size_integer = 0
 #endif
@@ -236,8 +234,6 @@ contains
     call mpi_pack_size(1, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_real, ierr)
     call pmc_mpi_check_ierr(ierr)
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_real = 8
 #else
     pmc_mpi_pack_size_real = 0
 #endif
@@ -260,9 +256,6 @@ contains
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_string = pmc_mpi_pack_size_string &
          + pmc_mpi_pack_size_integer(len_trim(val))
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_string = len_trim(val) &
-         + pmc_mpi_pack_size_integer(len_trim(val))
 #else
     pmc_mpi_pack_size_string = 0
 #endif
@@ -283,8 +276,6 @@ contains
     call mpi_pack_size(1, MPI_LOGICAL, MPI_COMM_WORLD, &
          pmc_mpi_pack_size_logical, ierr)
     call pmc_mpi_check_ierr(ierr)
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_logical = 4
 #else
     pmc_mpi_pack_size_logical = 0
 #endif
@@ -299,7 +290,15 @@ contains
     !> Value to pack.
     complex(kind=dc), intent(in) :: val
 
-    pmc_mpi_pack_size_complex = 16
+    integer :: ierr
+
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(1, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_complex, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    pmc_mpi_pack_size_real = 0
+#endif
 
   end function pmc_mpi_pack_size_complex
 
@@ -318,9 +317,6 @@ contains
          pmc_mpi_pack_size_integer_array, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer_array &
-         + pmc_mpi_pack_size_integer(size(val))
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_integer_array = size(val) * 4 &
          + pmc_mpi_pack_size_integer(size(val))
 #else
     pmc_mpi_pack_size_integer_array = 0
@@ -343,9 +339,6 @@ contains
          pmc_mpi_pack_size_real_array, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
-         + pmc_mpi_pack_size_integer(size(val))
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_real_array = size(val) * 8 &
          + pmc_mpi_pack_size_integer(size(val))
 #else
     pmc_mpi_pack_size_real_array = 0
@@ -386,10 +379,6 @@ contains
          pmc_mpi_pack_size_real_array_2d, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
-         + pmc_mpi_pack_size_integer(size(val,1)) &
-         + pmc_mpi_pack_size_integer(size(val,2))
-    !FIXME: HACK for now
-    pmc_mpi_pack_size_real_array_2d = size(val) * 8 &
          + pmc_mpi_pack_size_integer(size(val,1)) &
          + pmc_mpi_pack_size_integer(size(val,2))
 #else

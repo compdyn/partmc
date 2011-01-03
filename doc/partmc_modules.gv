@@ -3,9 +3,9 @@ digraph partmc_modules {
     node [fontsize = 10, height = 0.3, width = 0.5];
     graph [nodesep = 0.2, ranksep = 0.3];
     edge [arrowsize = 0.7];
-    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_controlled.f90"] coagulation_mpi_controlled
     node [shape = box, peripheries = 1, href = "\ref aero_weight.f90"] aero_weight
-    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_equal.f90"] coagulation_mpi_equal
+    node [shape = box, peripheries = 1, href = "\ref coagulation_dist.f90"] coagulation_dist
+    node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
     node [shape = box, peripheries = 1, href = "\ref coag_kernel.f90"] coag_kernel
     node [shape = box, peripheries = 1, href = "\ref coag_kernel_zero.f90"] coag_kernel_zero
     node [shape = box, peripheries = 1, href = "\ref coag_kernel_constant.f90"] coag_kernel_constant
@@ -23,10 +23,9 @@ digraph partmc_modules {
     node [shape = box, peripheries = 2, href = "\ref bin_average_comp.f90"] bin_average_comp
     node [shape = box, peripheries = 1, href = "\ref mosaic.f90"] mosaic
     node [shape = box, peripheries = 1, href = "\ref coag_kernel_additive.f90"] coag_kernel_additive
-    node [shape = box, peripheries = 1, href = "\ref rand.f90"] rand
+    node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
     node [shape = box, peripheries = 1, href = "\ref coag_kernel_brown.f90"] coag_kernel_brown
     node [shape = box, peripheries = 1, href = "\ref gas_state.f90"] gas_state
-    node [shape = box, peripheries = 1, href = "\ref coagulation_mpi_centralized.f90"] coagulation_mpi_centralized
     node [shape = box, peripheries = 1, href = "\ref aero_state.f90"] aero_state
     node [shape = box, peripheries = 1, href = "\ref aero_particle.f90"] aero_particle
     node [shape = box, peripheries = 1, href = "\ref mpi.f90"] mpi
@@ -44,14 +43,13 @@ digraph partmc_modules {
     node [shape = box, peripheries = 1, href = "\ref coagulation.f90"] coagulation
     node [shape = box, peripheries = 1, href = "\ref env_state.f90"] env_state
     node [shape = box, peripheries = 1, href = "\ref output.f90"] output
-    node [shape = box, peripheries = 1, href = "\ref run_exact.f90"] run_exact
     node [shape = box, peripheries = 1, href = "\ref aero_info.f90"] aero_info
-    coagulation_mpi_controlled -> coagulation
     aero_weight -> rand
     aero_weight -> spec_file
     aero_weight -> mpi
     aero_weight -> netcdf
-    coagulation_mpi_equal -> coagulation
+    coagulation_dist -> coagulation
+    rand -> util
     coag_kernel -> coag_kernel_zero
     coag_kernel -> coag_kernel_sedi
     coag_kernel -> coag_kernel_constant
@@ -81,10 +79,10 @@ digraph partmc_modules {
     bin_average_comp -> output
     mosaic -> env_state
     coag_kernel_additive -> env_state
-    rand -> util
+    run_exact -> output
+    run_exact -> exact_soln
     coag_kernel_brown -> env_state
     gas_state -> gas_data
-    coagulation_mpi_centralized -> coagulation
     aero_state -> aero_weight
     aero_state -> aero_info_array
     aero_state -> aero_particle_array
@@ -104,9 +102,7 @@ digraph partmc_modules {
     aero_data -> netcdf
     aero_data -> spec_file
     bin_average_size -> output
-    run_part -> coagulation_mpi_controlled
-    run_part -> coagulation_mpi_equal
-    run_part -> coagulation_mpi_centralized
+    run_part -> coagulation_dist
     run_part -> nucleate
     run_part -> mosaic
     run_part -> condense
@@ -118,8 +114,6 @@ digraph partmc_modules {
     env_state -> gas_state
     env_state -> aero_state
     output -> env_state
-    run_exact -> output
-    run_exact -> exact_soln
     aero_info -> mpi
     aero_info -> spec_file
 }

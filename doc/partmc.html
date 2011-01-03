@@ -1137,6 +1137,34 @@ Example:<br>
 &gt;&gt;&gt;&nbsp;time&nbsp;=&nbsp;[t&nbsp;for&nbsp;[t,&nbsp;gs]&nbsp;in&nbsp;gas_state_history]<br>
 &gt;&gt;&gt;&nbsp;o3&nbsp;=&nbsp;[gs.mixing_ratio('O3')&nbsp;for&nbsp;[t,&nbsp;gs]&nbsp;in&nbsp;gas_state_history]<br>
 &gt;&gt;&gt;&nbsp;plt.plot(time,&nbsp;o3)</tt></dd></dl>
+ <dl><dt><a name="-smooth"><strong>smooth</strong></a>(x, window_len<font color="#909090">=10</font>, window<font color="#909090">='hanning'</font>)</dt><dd><tt>smooth&nbsp;the&nbsp;data&nbsp;using&nbsp;a&nbsp;window&nbsp;with&nbsp;requested&nbsp;size.<br>
+&nbsp;<br>
+This&nbsp;method&nbsp;is&nbsp;based&nbsp;on&nbsp;the&nbsp;convolution&nbsp;of&nbsp;a&nbsp;scaled&nbsp;window&nbsp;with&nbsp;the&nbsp;signal.<br>
+The&nbsp;signal&nbsp;is&nbsp;prepared&nbsp;by&nbsp;introducing&nbsp;reflected&nbsp;copies&nbsp;of&nbsp;the&nbsp;signal&nbsp;<br>
+(with&nbsp;the&nbsp;window&nbsp;size)&nbsp;in&nbsp;both&nbsp;ends&nbsp;so&nbsp;that&nbsp;transient&nbsp;parts&nbsp;are&nbsp;minimized<br>
+in&nbsp;the&nbsp;begining&nbsp;and&nbsp;end&nbsp;part&nbsp;of&nbsp;the&nbsp;output&nbsp;signal.<br>
+&nbsp;<br>
+input:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;x:&nbsp;the&nbsp;input&nbsp;signal&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;window_len:&nbsp;the&nbsp;dimension&nbsp;of&nbsp;the&nbsp;smoothing&nbsp;window<br>
+&nbsp;&nbsp;&nbsp;&nbsp;window:&nbsp;the&nbsp;type&nbsp;of&nbsp;window&nbsp;from&nbsp;'flat',&nbsp;'hanning',&nbsp;'hamming',&nbsp;'bartlett',&nbsp;'blackman'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flat&nbsp;window&nbsp;will&nbsp;produce&nbsp;a&nbsp;moving&nbsp;average&nbsp;smoothing.<br>
+&nbsp;<br>
+output:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;smoothed&nbsp;signal<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+example:<br>
+&nbsp;<br>
+t=linspace(-2,2,0.1)<br>
+x=sin(t)+randn(len(t))*0.1<br>
+y=<a href="#-smooth">smooth</a>(x)<br>
+&nbsp;<br>
+see&nbsp;also:&nbsp;<br>
+&nbsp;<br>
+numpy.hanning,&nbsp;numpy.hamming,&nbsp;numpy.bartlett,&nbsp;numpy.blackman,&nbsp;numpy.convolve<br>
+scipy.signal.lfilter<br>
+&nbsp;<br>
+TODO:&nbsp;the&nbsp;window&nbsp;parameter&nbsp;could&nbsp;be&nbsp;the&nbsp;window&nbsp;itself&nbsp;if&nbsp;an&nbsp;array&nbsp;instead&nbsp;of&nbsp;a&nbsp;string</tt></dd></dl>
  <dl><dt><a name="-time_of_day_string"><strong>time_of_day_string</strong></a>(env_state, separator<font color="#909090">=':'</font>, resolution<font color="#909090">='minutes'</font>)</dt><dd><tt>Return&nbsp;the&nbsp;current&nbsp;time-of-day&nbsp;in&nbsp;a&nbsp;24-hour&nbsp;string<br>
 representation.<br>
 &nbsp;<br>

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -238,7 +238,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
-         "PartMC version 2.0.0 alpha"))
+         "PartMC version 2.0.0"))
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "UUID", uuid))
     call iso8601_date_and_time(history)
     history((len_trim(history)+1):) = " created by PartMC"

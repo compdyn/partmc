@@ -689,6 +689,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert a complex to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function complex_to_string(val)
+
+    !> Value to convert.
+    complex(kind=dc), intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+
+    ret_val = ""
+    ret_val = "(" // trim(real_to_string(real(val))) &
+         // ", " // trim(real_to_string(aimag(val))) // ")"
+    complex_to_string = adjustl(ret_val)
+
+  end function complex_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert an integer to a string format of maximum length.
   character(len=PMC_UTIL_CONVERT_STRING_LEN) &
        function integer_to_string_max_len(val, max_len)

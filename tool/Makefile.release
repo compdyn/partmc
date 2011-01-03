@@ -8,7 +8,8 @@ GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = doc/html/index.html
 
 DIST_FILES = CMakeLists.txt COPYING Doxyfile README doc src test \
-	scenarios/1_urban_plume scenarios/2_urban_plume2 tool/partmc.py
+	scenarios/1_urban_plume scenarios/2_urban_plume2 tool/partmc.py \
+        tool/doxygen_footer.html
 
 ALL_SOURCE = $(wildcard src/*.f90)
 

@@ -9,10 +9,22 @@ Released 2011-01-02
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
-Reference: N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
-Simulating the evolution of soot mixing state with a particle-resolved
-aerosol model, J. Geophys. Res., 114, D09202,
-<http://dx.doi.org/10.1029/2008JD011073>.
+References:
+
+   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
+     Simulating the evolution of soot mixing state with a
+     particle-resolved aerosol model, J. Geophys. Res. 114(D09202),
+     <http://dx.doi.org/10.1029/2008JD011073>.
+   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2010),
+     Estimating black carbon aging time-scales with a
+     particle-resolved aerosol model, J. Aerosol Sci. 41(1), 143-158,
+     <http://dx.doi.org/10.1016/j.jaerosci.2009.08.009>.
+   * R. A. Zaveri, R. C. Easter, J. C. Barnard, N. Riemer, and M. West
+     (2010), Particle-resolved simulation of aerosol size,
+     composition, mixing state, and the associated optical and cloud
+     condensation nuclei activation properties in an evolving urban
+     plume, J. Geophys. Res. 115(D17210),
+     <http://dx.doi.org/10.1029/2009JD013616>.
 
 Copyright (C) 2005-2011 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
@@ -168,6 +180,9 @@ ChangeLog
   * Changed to Poisson sampling for coagulation test number.
 
   * Input and output now use diameter everywhere rather than radius.
+
+  * `urban_plume2` test-case added, as described in the paper
+     <http://dx.doi.org/10.1029/2009JD013616>.
 
 1.2.0 - 2009-06-15
 

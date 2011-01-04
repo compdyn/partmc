@@ -437,7 +437,7 @@ contains
          pmc_mpi_pack_size_complex, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
-    pmc_mpi_pack_size_real = 0
+    pmc_mpi_pack_size_complex = 0
 #endif
 
   end function pmc_mpi_pack_size_complex

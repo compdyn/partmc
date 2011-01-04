@@ -1,8 +1,6 @@
 
 Before release of 2.0.0:
 
-remove "exit $?" from run_test
-
 increase t_progress in tests
 
 run under valgrind

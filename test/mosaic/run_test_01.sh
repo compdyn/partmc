@@ -12,4 +12,3 @@ mkdir -p out
 ../../partmc run_part.spec
 ../../extract_aero_species out/mosaic_0001_ out/mosaic_aero_species.txt
 ../../numeric_diff true_aero_species.txt out/mosaic_aero_species.txt 0 0.1 0 0 2 0
-exit $?

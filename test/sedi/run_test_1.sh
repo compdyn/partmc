@@ -16,4 +16,3 @@ mkdir -p out
 ../../extract_sectional_aero_size_num out/sedi_sect_ out/sedi_sect_size_num.txt
 
 ../../numeric_diff out/sedi_part_size_num.txt out/sedi_sect_size_num.txt 0 0.2 0 0 2 0
-exit $?

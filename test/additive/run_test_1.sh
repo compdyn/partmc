@@ -16,4 +16,3 @@ mkdir -p out
 ../../extract_sectional_aero_size_num out/additive_exact_ out/additive_exact_size_num.txt
 
 ../../numeric_diff out/additive_part_size_num.txt out/additive_exact_size_num.txt 0 5e-2
-exit $?

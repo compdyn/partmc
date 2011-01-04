@@ -11,4 +11,3 @@ cd ${0%/*}
 ../../extract_sectional_aero_size_mass out/emission_exact_ out/emission_exact_size_mass.txt
 
 ../../numeric_diff out/emission_part_size_mass.txt out/emission_exact_size_mass.txt 0 5e-2 0 0 2 0
-exit $?

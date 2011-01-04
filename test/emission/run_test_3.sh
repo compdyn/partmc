@@ -11,4 +11,3 @@ cd ${0%/*}
 ../../extract_sectional_aero_species out/emission_exact_ out/emission_exact_species.txt
 
 ../../numeric_diff out/emission_part_species.txt out/emission_exact_species.txt 0 5e-2 0 0 2 0
-exit $?

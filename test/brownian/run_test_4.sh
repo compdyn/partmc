@@ -17,4 +17,3 @@ done
 ../../extract_sectional_aero_size_mass out/brownian_sect_ out/brownian_sect_size_mass.txt
 
 ../../numeric_diff out/brownian_part_size_mass_average.txt out/brownian_sect_size_mass.txt 0 0.6 0 0 2 0
-exit $?

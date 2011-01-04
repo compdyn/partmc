@@ -10,4 +10,3 @@ cd ${0%/*}
 ../../extract_aero_species out/condense_0001_ out/condense_aero_species.txt
 
 ../../numeric_diff true_aero_species.txt out/condense_aero_species.txt 0 1e-6
-exit $?

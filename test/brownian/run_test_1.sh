@@ -16,4 +16,3 @@ mkdir -p out
 ../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt
 
 ../../numeric_diff out/brownian_part_size_num.txt out/brownian_sect_size_num.txt 0 0.3 0 0 2 0
-exit $?

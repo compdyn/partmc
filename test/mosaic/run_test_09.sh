@@ -11,4 +11,3 @@ cd ${0%/*}
 tail -n +13 out/mosaic_env.txt > out/mosaic_env_tail.txt
 
 ../../numeric_diff out/mosaic_env_restarted.txt out/mosaic_env_tail.txt 0 1e-8 0 0 2 0
-exit $?

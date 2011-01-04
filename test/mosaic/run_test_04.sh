@@ -9,4 +9,3 @@ cd ${0%/*}
 
 ../../extract_env out/mosaic_0001_ out/mosaic_env.txt
 ../../numeric_diff true_env.txt out/mosaic_env.txt 0 1e-8 0 0 0 0
-exit $?

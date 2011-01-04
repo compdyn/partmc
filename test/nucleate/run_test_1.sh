@@ -16,4 +16,3 @@ mkdir -p out
 ../../test_nucleate_ode
 
 ../../numeric_diff out/aero_total.txt out/nucleate_ode_aero_number.txt 0 5e-2 0 0 2 0
-exit $?

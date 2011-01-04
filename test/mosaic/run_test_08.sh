@@ -11,4 +11,3 @@ cd ${0%/*}
 tail -n +13 out/mosaic_aero_total.txt > out/mosaic_aero_total_tail.txt
 
 ../../numeric_diff out/mosaic_aero_total_restarted.txt out/mosaic_aero_total_tail.txt 0 0.1 0 0 3 3
-exit $?

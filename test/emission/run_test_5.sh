@@ -11,4 +11,3 @@ cd ${0%/*}
 ../../extract_sectional_aero_total out/emission_exact_ out/emission_exact_total.txt
 
 ../../numeric_diff out/emission_part_total.txt out/emission_exact_total.txt 0 5e-2 0 0 3 3
-exit $?

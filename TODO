@@ -1,8 +1,6 @@
 
 Before release of 2.0.0:
 
-increase t_progress in tests
-
 run under valgrind
 
 change "position ==" to "position <="

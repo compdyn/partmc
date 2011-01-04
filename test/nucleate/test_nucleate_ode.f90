@@ -1,4 +1,4 @@
-! Copyright (C) 2010 Matthew West
+! Copyright (C) 2010, 2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -16,7 +16,8 @@
 !
 ! \f[ \dot{G} + \dot{A} {\rm nucleate-vol} {\rm so4-molec-dens} = 0 \f]
 ! \f[ A = (G_0 - G) / {\rm nucleate-vol} / {\rm so4-molec-dens} \f]
-! \f[ \dot{G} = - {\rm nucleate-vol} {\rm so4-molec-dens} {\rm nucleate-coeff} G^2 \f]
+! \f[ \dot{G} = - {\rm nucleate-vol} {\rm so4-molec-dens}
+! {\rm nucleate-coeff} G^2 \f]
 
 program test_nucleate_ode
   
@@ -43,7 +44,9 @@ program test_nucleate_ode
   !> Timestep (s).
   real(kind=dp), parameter :: del_t = 1d0
   !> How often to print progress (s).
-  real(kind=dp), parameter :: t_progress = 60d0
+  real(kind=dp), parameter :: t_progress = 600d0
+  !> How often to print output (s).
+  real(kind=dp), parameter :: t_output = 60d0
   !> Output unit number for gas mixing ratio.
   integer, parameter :: unit_gas = 33
   !> Output unit number for aerosol number.
@@ -53,9 +56,11 @@ program test_nucleate_ode
   !> Output filename for gas mixing ratio.
   character(len=*), parameter :: name_gas = "out/nucleate_ode_gas.txt"
   !> Output filename for aerosol number.
-  character(len=*), parameter :: name_aero_number = "out/nucleate_ode_aero_number.txt"
+  character(len=*), parameter :: name_aero_number &
+       = "out/nucleate_ode_aero_number.txt"
   !> Output filename for aerosol mass.
-  character(len=*), parameter :: name_aero_mass = "out/nucleate_ode_aero_mass.txt"
+  character(len=*), parameter :: name_aero_mass &
+       = "out/nucleate_ode_aero_mass.txt"
 
   real(kind=dp) :: init_h2so4_conc ! molecules / m^3
   real(kind=dp) :: nucleate_vol    ! m^3
@@ -104,6 +109,8 @@ program test_nucleate_ode
              'time', 'aero_mass_conc', 'h2so4_mix_rat'
         write(*,'(e20.10,e20.10,e20.10)') &
              time, aero_mass_conc, h2so4_mix_rat
+     end if
+     if (mod(i_step - 1, nint(t_output / del_t)) .eq. 0) then
         write(unit_gas,'(e20.10,e20.10)') &
              time, h2so4_mix_rat
         write(unit_aero_number,'(e20.10,e20.10,e20.10)') &

@@ -7,7 +7,7 @@ restart no                      # whether to restart from saved state (yes/no)
 t_max 600                       # total simulation time (s)
 del_t 10                        # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
-t_progress 10                   # progress printing interval (0 disables) (s)
+t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-10                     # minimum diameter (m)

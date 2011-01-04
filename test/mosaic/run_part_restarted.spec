@@ -8,7 +8,7 @@ restart_file out/mosaic_0001_00000013.nc # saved state file to restart from
 t_max 43200                     # total simulation time (s)
 del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_progress 600                  # progress printing interval (0 disables) (s)
+t_progress 3600                 # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-8                      # minimum diameter (m)

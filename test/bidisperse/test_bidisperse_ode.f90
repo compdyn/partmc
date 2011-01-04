@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -37,7 +37,9 @@ program test_bidisperse_ode
   !> Timestep (s).
   real(kind=dp), parameter :: del_t = 0.001d0
   !> How often to print progress (s).
-  real(kind=dp), parameter :: t_progress = 10d0
+  real(kind=dp), parameter :: t_progress = 60d0
+  !> How often to print output (s).
+  real(kind=dp), parameter :: t_output = 10d0
   !> Particle number conc (#/m^3).
   real(kind=dp), parameter :: num_conc_small = 1d9
   !> Number of bins.
@@ -55,7 +57,8 @@ program test_bidisperse_ode
   
   type(env_state_t) :: env_state
   integer :: i_step, n_step
-  real(kind=dp) :: comp_vol, n_small, time, v_big, num_conc, v_small, v_big_init
+  real(kind=dp) :: comp_vol, n_small, time, v_big, num_conc
+  real(kind=dp) :: v_small, v_big_init
   type(bin_grid_t) :: bin_grid
 
   v_small = rad2vol(r_small)
@@ -88,6 +91,8 @@ program test_bidisperse_ode
         write(*,'(f8.1,e14.5,e14.5,f9.2)') &
              time, n_small / comp_vol, v_big * density / comp_vol, &
              n_small_init - n_small
+     end if
+     if (mod(i_step - 1, nint(t_output / del_t)) .eq. 0) then
         write(out_unit,'(e20.10,e20.10,e20.10)') &
              time, n_small / comp_vol, v_big * density / comp_vol
      end if

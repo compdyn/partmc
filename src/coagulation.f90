@@ -224,21 +224,14 @@ contains
     ! FIXME: rand() only returns a REAL*4, so we might not be able to
     ! generate all integers between 1 and M if M is too big.
 
-100 s1 = int(pmc_random() * real(aero_state%bin(b1)%n_part, kind=dp)) + 1
-    if ((s1 .lt. 1) .or. (s1 .gt. aero_state%bin(b1)%n_part)) goto 100
-101 s2 = int(pmc_random() * real(aero_state%bin(b2)%n_part, kind=dp)) + 1
-    if ((s2 .lt. 1) .or. (s2 .gt. aero_state%bin(b2)%n_part)) goto 101
-    if ((b1 .eq. b2) .and. (s1 .eq. s2)) goto 101
-
-! FIXME: enable this and delete the above junk
-!    do
-!       s1 = pmc_rand_int(aero_state%bin(b1)%n_part)
-!       s2 = pmc_rand_int(aero_state%bin(b2)%n_part)
-!       if (.not. ((b1 .eq. b2) .and. (s1 .eq. s2))) then
-!          ! stop generating if we have two distinct particles
-!          exit
-!       end if
-!    end do
+    do
+       s1 = pmc_rand_int(aero_state%bin(b1)%n_part)
+       s2 = pmc_rand_int(aero_state%bin(b2)%n_part)
+       if ((b1 /= b2) .or. (s1 /= s2)) then
+          ! stop generating if we have two distinct particles
+          exit
+       end if
+    end do
     
   end subroutine find_rand_pair
   

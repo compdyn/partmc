@@ -567,10 +567,10 @@ contains
     !!
     !! The output type is specified by the parameter:
     !!   - \b parallel_coag (string): type of parallel coagulation ---
-    !!     must be one of: \c local for only within-processor
-    !!     coagulation or \c dist to have all processors perform
+    !!     must be one of: \c local for only within-process
+    !!     coagulation or \c dist to have all processes perform
     !!     coagulation globally, requesting particles from other
-    !!     processors as needed
+    !!     processes as needed
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

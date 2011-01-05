@@ -443,7 +443,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Average val over all processes, with the result only on the root
-  !> processor.
+  !> process.
   subroutine gas_state_reduce_avg(val)
 
     !> Value to average.

@@ -334,14 +334,14 @@ contains
     !!   provided:
     !!   - \subpage input_format_output
     !!   - \b mix_timescale (real, unit s): timescale on which to mix
-    !!     aerosol particle information amongst processors in an
+    !!     aerosol particle information amongst processes in an
     !!     attempt to keep the aerosol state consistent (the mixing
     !!     rate is inverse to \c mix_timescale)
     !!   - \b gas_average (logical): whether to average the gas state
-    !!     amongst processors each timestep, to ensure uniform gas
+    !!     amongst processes each timestep, to ensure uniform gas
     !!     concentrations
     !!   - \b env_average (logical): whether to average the
-    !!     environment state amongst processors each timestep, to
+    !!     environment state amongst processes each timestep, to
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
 

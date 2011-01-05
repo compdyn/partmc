@@ -30,7 +30,7 @@
 !! If run in parallel and \c output_type is \c central or \c dist,
 !! then the output files have names like \c
 !! PREFIX_RRRR_PPPP_SSSSSSSS.nc, where \c PPPP is a four-digit
-!! processor number (starting from 1) and the other variables are as
+!! process number (starting from 1) and the other variables are as
 !! above. If \c output_type is \c single then the output file naming
 !! scheme as the same as for serial runs.
 !!
@@ -82,14 +82,14 @@ module pmc_output
 
   !> Type code for undefined or invalid output.
   integer, parameter :: OUTPUT_TYPE_INVALID = 0
-  !> Type code for centralized output (one file per node, all written
-  !> by node 0).
+  !> Type code for centralized output (one file per process, all written
+  !> by process 0).
   integer, parameter :: OUTPUT_TYPE_CENTRAL = 1
-  !> Type code for distributed output (one file per node, written by
-  !> each node).
+  !> Type code for distributed output (one file per process, written by
+  !> each process).
   integer, parameter :: OUTPUT_TYPE_DIST    = 2
-  !> Type code for single output (one file for all nodes, written by
-  !> node 0).
+  !> Type code for single output (one file for all processes, written by
+  !> process 0).
   integer, parameter :: OUTPUT_TYPE_SINGLE  = 3
 
   !> Internal-use variable only.
@@ -151,8 +151,8 @@ contains
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
     if (output_type == OUTPUT_TYPE_CENTRAL) then
-       ! write per-processor data to separate files, but do it by
-       ! transferring data to processor 0 and having it do the writes
+       ! write per-process data to separate files, but do it by
+       ! transferring data to process 0 and having it do the writes
        if (rank == 0) then
           call output_state_to_file(prefix, bin_grid, aero_data, &
                aero_weight, aero_state, gas_data, gas_state, env_state, &
@@ -169,7 +169,7 @@ contains
           call send_output_state_central(aero_state, gas_state, env_state)
        end if
     elseif (output_type == OUTPUT_TYPE_DIST) then
-       ! have each processor write its own data directly
+       ! have each process write its own data directly
        call output_state_to_file(prefix, bin_grid, aero_data, &
             aero_weight, aero_state, gas_data, gas_state, env_state, &
             index, time, del_t, i_repeat, record_removals, record_optical, &
@@ -182,7 +182,7 @@ contains
                record_removals, record_optical, rank, n_proc, uuid)
        else
 #ifdef PMC_USE_MPI
-          ! collect all data onto processor 0 and then write it to a
+          ! collect all data onto process 0 and then write it to a
           ! single file
           call env_state_allocate(env_state_write)
           call gas_state_allocate(gas_state_write)
@@ -254,7 +254,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the current state for a single processor. Do not call this
+  !> Write the current state for a single process. Do not call this
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, bin_grid, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, env_state, index, &
@@ -291,7 +291,7 @@ contains
     logical, intent(in) :: record_optical
     !> Rank to write into file.
     integer, intent(in) :: write_rank
-    !> Number of processors to write into file.
+    !> Number of processes to write into file.
     integer, intent(in) :: write_n_proc
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
@@ -353,11 +353,11 @@ contains
     !!   - \b repeat: the repeat number of this simulation (starting from 1)
     !!   - \b timestep_index: an integer that is 1 on the first timestep, 2
     !!     on the second timestep, etc.
-    !!   - \b processor (MPI only): the processor number (starting from 1)
+    !!   - \b process (MPI only): the process number (starting from 1)
     !!     that output this data file
-    !!   - \b total_processors (MPI only): the total number of processors
+    !!   - \b total_processes (MPI only): the total number of processes
     !!     involved in writing data (may be less than the total number of
-    !!     processors that computed the data)
+    !!     processes that computed the data)
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
          "PartMC output file"))
@@ -368,11 +368,11 @@ contains
          description="repeat repeat number of this simulation " &
          // "(starting from 1)")
 #ifdef PMC_USE_MPI
-    call pmc_nc_write_integer(ncid, write_rank + 1, "processor", &
-         description="the processor number (starting from 1) " &
+    call pmc_nc_write_integer(ncid, write_rank + 1, "process", &
+         description="the process number (starting from 1) " &
          // "that output this data file")
-    call pmc_nc_write_integer(ncid, write_n_proc, "total_processors", &
-         description="total number of processors")
+    call pmc_nc_write_integer(ncid, write_n_proc, "total_processes", &
+         description="total number of processes")
 #endif
 
     call env_state_output_netcdf(env_state, ncid)
@@ -389,7 +389,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Send the state for the "central" output method to the root processor.
+  !> Send the state for the "central" output method to the root process.
   subroutine send_output_state_central(aero_state, gas_state, env_state)
 
     !> Aerosol state.
@@ -430,7 +430,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Receive the state for the "central" output method on the root
-  !> processor.
+  !> process.
   subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
        aero_weight, gas_data, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid, remote_proc)
@@ -459,7 +459,7 @@ contains
     logical, intent(in) :: record_optical
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
-    !> Processor number to receive from.
+    !> Process number to receive from.
     integer, intent(in) :: remote_proc
 
 #ifdef PMC_USE_MPI
@@ -545,7 +545,7 @@ contains
     
     integer :: ncid
 
-    ! only root node actually reads from the file
+    ! only root process actually reads from the file
     if (pmc_mpi_rank() == 0) then
        call pmc_nc_open_read(filename, ncid)
 
@@ -642,10 +642,10 @@ contains
     !!
     !! The output type is specified by the parameter:
     !!   - \b output_type (string): type of disk output --- must be
-    !!     one of: \c central to write one file per processor, but all
-    !!     written by processor 0; \c dist for every processor to
+    !!     one of: \c central to write one file per process, but all
+    !!     written by process 0; \c dist for every process to
     !!     write its own state file; or \c single to transfer all data
-    !!     to processor 0 and write a single unified output file
+    !!     to process 0 and write a single unified output file
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

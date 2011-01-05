@@ -25,11 +25,11 @@ module pmc_aero_state
   use mpi
 #endif
 
-  !> MPI tag for mixing particles between processors.
+  !> MPI tag for mixing particles between processes.
   integer, parameter :: AERO_STATE_TAG_MIX     = 4987
-  !> MPI tag for gathering between processors.
+  !> MPI tag for gathering between processes.
   integer, parameter :: AERO_STATE_TAG_GATHER  = 4988
-  !> MPI tag for scattering between processors.
+  !> MPI tag for scattering between processes.
   integer, parameter :: AERO_STATE_TAG_SCATTER = 4989
 
   !> The current collection of aerosol particles.
@@ -179,7 +179,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the total number of particles across all processors.
+  !> Returns the total number of particles across all processes.
   integer function aero_state_total_particles_all_procs(aero_state)
 
     !> Aerosol state.
@@ -794,7 +794,7 @@ contains
     real(kind=dp) :: prob_transfer_given_not_transferred
     real(kind=dp), allocatable :: comp_vols(:)
 
-    ! processor information
+    ! process information
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
     if (n_proc == 1) then
@@ -869,11 +869,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  !> Send the given \c aero_state to the destination processor for
+  !> Send the given \c aero_state to the destination process for
   !> mixing.
   subroutine send_aero_state_mix(dest_proc, aero_state)
 
-    !> Destination processor number.
+    !> Destination process number.
     integer, intent(in) :: dest_proc
     !> Aero_state to send.
     type(aero_state_t), intent(in) :: aero_state
@@ -1366,12 +1366,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Gathers data from all processors into one aero_state on node 0.
+  !> Gathers data from all processes into one aero_state on process 0.
   subroutine aero_state_mpi_gather(aero_state, aero_state_total)
 
     !> Local aero_state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Centralized aero_state (only on node 0).
+    !> Centralized aero_state (only on process 0).
     type(aero_state_t), intent(inout) :: aero_state_total
 
 #ifdef PMC_USE_MPI
@@ -1388,7 +1388,7 @@ contains
 #ifdef PMC_USE_MPI
     
     if (pmc_mpi_rank() /= 0) then
-       ! send data from remote nodes
+       ! send data from remote processes
        max_buffer_size = 0
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state)
@@ -1402,17 +1402,17 @@ contains
        call pmc_mpi_check_ierr(ierr)
        deallocate(buffer)
     else
-       ! root node receives data from each remote proc
+       ! root process receives data from each remote proc
        n_proc = pmc_mpi_size()
        do i_proc = 1,(n_proc - 1)
-          ! determine buffer size at root node
+          ! determine buffer size at root process
           call mpi_probe(i_proc, AERO_STATE_TAG_GATHER, MPI_COMM_WORLD, &
                status, ierr)
           call pmc_mpi_check_ierr(ierr)
           call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
           call pmc_mpi_check_ierr(ierr)
 
-          ! get buffer at root node
+          ! get buffer at root process
           allocate(buffer(buffer_size))
           call mpi_recv(buffer, buffer_size, MPI_CHARACTER, i_proc, &
                AERO_STATE_TAG_GATHER, MPI_COMM_WORLD, status, ierr)
@@ -1437,12 +1437,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scatters data from node 0 to all processors by assigning each
-  !> particle to a random node.
+  !> Scatters data from process 0 to all processes by assigning each
+  !> particle to a random process.
   subroutine aero_state_mpi_scatter(aero_state_total, aero_state, &
        aero_data)
 
-    !> Centralized aero_state (only on node 0.
+    !> Centralized aero_state (only on process 0.
     type(aero_state_t), intent(in) :: aero_state_total
     !> Local aero_state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1461,7 +1461,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
 
     if (pmc_mpi_rank() == 0) then
-       ! assign particles at random to other processors
+       ! assign particles at random to other processes
        allocate(aero_state_transfers(n_proc))
        do i_proc = 1,n_proc
           call aero_state_allocate_size(aero_state_transfers(i_proc), &
@@ -1505,7 +1505,7 @@ contains
        end do
        deallocate(aero_state_transfers)
     else
-       ! remote nodes just receive data
+       ! remote processes just receive data
 
        ! determine buffer size
        call mpi_probe(0, AERO_STATE_TAG_SCATTER, MPI_COMM_WORLD, &

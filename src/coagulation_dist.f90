@@ -5,8 +5,8 @@
 !> \file
 !> The pmc_coagulation_dist module.
 
-!> Aerosol particle coagulation with MPI where each node has its own
-!> aero_state and all nodes perform coagulation equally.
+!> Aerosol particle coagulation with MPI where each process has its own
+!> aero_state and all processes perform coagulation equally.
 module pmc_coagulation_dist
 
   use pmc_bin_grid
@@ -48,7 +48,7 @@ module pmc_coagulation_dist
      !> Local \c aero_particle to maybe coagulate with the received
      !> particle.
      type(aero_particle_t) :: local_aero_particle
-     !> Remote processor number that we sent the request to
+     !> Remote process number that we sent the request to
      !> (-1 means this request is currently not used).
      integer :: remote_proc
      !> Local bin number from which we took \c local_aero_particle.
@@ -230,9 +230,9 @@ contains
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
-    !> Computational volumes on all processors.
+    !> Computational volumes on all processes.
     real(kind=dp), intent(in) :: comp_vols(:)
-    !> Which processors are finished with coagulation.
+    !> Which processes are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
 
 #ifdef PMC_USE_MPI
@@ -273,7 +273,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
-    !> Number of particles per bin per processor.
+    !> Number of particles per bin per process.
     integer, intent(in) :: n_parts(:,:)
     !> Bin index of first particle we need to coagulate.
     integer, intent(inout) :: local_bin
@@ -339,11 +339,11 @@ contains
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Number of particles per bin per processor.
+    !> Number of particles per bin per process.
     integer, intent(in) :: n_parts(:,:)
     !> Remote bin number.
     integer, intent(in) :: remote_bin
-    !> Remote processor number chosen at random.
+    !> Remote process number chosen at random.
     integer, intent(out) :: remote_proc
 
 #ifdef PMC_USE_MPI
@@ -395,7 +395,7 @@ contains
 
   subroutine send_request_particle(remote_proc, remote_bin)
 
-    !> Remote processor number.
+    !> Remote process number.
     integer, intent(in) :: remote_proc
     !> Remote bin number.
     integer, intent(in) :: remote_bin
@@ -467,7 +467,7 @@ contains
 
   subroutine send_return_no_particle(dest_proc, i_bin)
 
-    !> Processor number to send message to.
+    !> Process number to send message to.
     integer, intent(in) :: dest_proc
     !> Bin number where there was no particle.
     integer, intent(in) :: i_bin
@@ -555,7 +555,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Bin that the particle is in.
     integer, intent(in) :: i_bin
-    !> Processor number to send particle to.
+    !> Process number to send particle to.
     integer, intent(in) :: dest_proc
 
 #ifdef PMC_USE_MPI
@@ -604,7 +604,7 @@ contains
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
-    !> Computational volumes on all processors.
+    !> Computational volumes on all processes.
     real(kind=dp), intent(in) :: comp_vols(:)
 
 #ifdef PMC_USE_MPI
@@ -750,7 +750,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Send a message saying that this processor is finished with its
+  !> Send a message saying that this process is finished with its
   !> coagulation.
   subroutine send_done(dest_proc)
 
@@ -774,7 +774,7 @@ contains
   !> Receive a done message.
   subroutine recv_done(procs_done)
 
-    !> Which processors are finished with coagulation.
+    !> Which processes are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
     
 #ifdef PMC_USE_MPI
@@ -803,17 +803,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do an allgather to exchange number of particles and computational
-  !> volume information between all processors.
+  !> volume information between all processes.
   subroutine sync_info(local_n_parts, local_comp_vol, &
        global_n_parts, global_comp_vols)
 
-    !> Number of particles per bin on the local processor.
+    !> Number of particles per bin on the local process.
     integer, intent(in) :: local_n_parts(:)
-    !> Computational volume on the local processor.
+    !> Computational volume on the local process.
     real(kind=dp), intent(in) :: local_comp_vol
-    !> Number of particles per bin on all processors.
+    !> Number of particles per bin on all processes.
     integer, intent(out) :: global_n_parts(:,:)
-    !> Computational volumes on all processors (m^3).
+    !> Computational volumes on all processes (m^3).
     real(kind=dp), intent(out) :: global_comp_vols(:)
 
 #ifdef PMC_USE_MPI
@@ -852,9 +852,9 @@ contains
     
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Number of particles per bin on all processors.
+    !> Number of particles per bin on all processes.
     integer, intent(in) :: n_parts(:,:)
-    !> Computational volumes on all processors..
+    !> Computational volumes on all processes..
     real(kind=dp), intent(in) :: comp_vols(:)
     !> Timestep.
     real(kind=dp), intent(in) :: del_t
@@ -898,9 +898,9 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle to coagulate.
     type(aero_particle_t), intent(in) :: aero_particle_2
-    !> Remote processor that the particle came from.
+    !> Remote process that the particle came from.
     integer, intent(in) :: remote_proc
-    !> Computational volumes on all processors (m^3).
+    !> Computational volumes on all processes (m^3).
     real(kind=dp), intent(in) :: comp_vols(:)
     !> Whether to remove aero_particle_1 after the coagulation.
     logical, intent(out) :: remove_1

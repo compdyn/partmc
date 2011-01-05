@@ -39,12 +39,7 @@ All mpi_recv calls should use MPI_TAG_ANY and MPI_SOURCE_ANY but then
 assert() that they are correct, so that we die rather than
 deadlocking.
 
-Change gas mixing to be by diffusion, rather than allreduce, also env,
-but first fix weighting so it is not all equal, but weighted by
-particle numbers and comp vols or something?
-
-Standardize on "processor" or "node" or "core". Use the MPI
-terminology, whatever it is.
+Change gas mixing to be by diffusion, rather than allreduce, also env.
 
 Switch to using mpi structures rather than pack/unpack?
 
@@ -56,9 +51,6 @@ other processor is less than one, switch to a
 
 Build
 #####
-
-Use wiki page to update CMakeLists.txt for Fortran:
-http://www.cmake.org/Wiki/CMakeForFortranExample
 
 Add proper cmake support for debug/optimized builds.
 

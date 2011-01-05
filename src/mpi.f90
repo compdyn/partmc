@@ -98,7 +98,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Synchronize all processors.
+  !> Synchronize all processes.
   subroutine pmc_mpi_barrier()
 
 #ifdef PMC_USE_MPI
@@ -1034,16 +1034,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Transfer the value between the given processors.
+  !> Transfer the value between the given processes.
   subroutine pmc_mpi_transfer_real(from_val, to_val, from_proc, to_proc)
 
     !> Value to send.
     real(kind=dp), intent(in) :: from_val
     !> Variable to send to.
     real(kind=dp), intent(out) :: to_val
-    !> Processor to send from.
+    !> Process to send from.
     integer, intent(in) :: from_proc
-    !> Processor to send to.
+    !> Process to send to.
     integer, intent(in) :: to_proc
 
 #ifdef PMC_USE_MPI
@@ -1073,16 +1073,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Transfer the value between the given processors.
+  !> Transfer the value between the given processes.
   subroutine pmc_mpi_transfer_integer(from_val, to_val, from_proc, to_proc)
 
     !> Value to send.
     integer, intent(in) :: from_val
     !> Variable to send to.
     integer, intent(out) :: to_val
-    !> Processor to send from.
+    !> Process to send from.
     integer, intent(in) :: from_proc
-    !> Processor to send to.
+    !> Process to send to.
     integer, intent(in) :: to_proc
 
 #ifdef PMC_USE_MPI

@@ -379,13 +379,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Computes the average of the structure across all processors,
-  !> storing the result on the root processor.
+  !> Computes the average of the structure across all processes,
+  !> storing the result on the root process.
   subroutine pmc_mpi_reduce_avg_aero_binned(val, val_avg)
 
-    !> Per-processor value to average.
+    !> Per-process value to average.
     type(aero_binned_t), intent(in) :: val
-    !> Averaged result (only valid on root processor).
+    !> Averaged result (only valid on root process).
     type(aero_binned_t), intent(inout) :: val_avg
 
     call pmc_mpi_reduce_avg_real_array(val%num_conc, val_avg%num_conc)

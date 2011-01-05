@@ -872,57 +872,13 @@ contains
     rank = pmc_mpi_rank()
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call coag_dist_compute_n_samp(n_parts(i, rank + 1), &
+          call compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
                sum(comp_vols), del_t, n_samps(i,j), accept_factors(i,j))
        end do
     end do
 
   end subroutine generate_n_samps
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine coag_dist_compute_n_samp(n_parts_local, &
-       n_parts_total, same_bin, k_max, &
-       comp_vol_total, del_t, n_samp, accept_factor)
-
-    !> Number of particle on the local processor.
-    integer, intent(in) :: n_parts_local
-    !> Number of particles on all processors.
-    integer, intent(in) :: n_parts_total
-    !> Whether the bins are the same.
-    logical, intent(in) :: same_bin
-    !> Maximum kernel value (s^{-1}).
-    real(kind=dp), intent(in) :: k_max
-    !> Total computational volume
-    real(kind=dp), intent(in) :: comp_vol_total
-    !> Timestep (s).
-    real(kind=dp), intent(in) :: del_t
-    !> Number of samples to do per timestep.
-    integer, intent(out) :: n_samp
-    !> Scale factor for accept probability (1).
-    real(kind=dp), intent(out) :: accept_factor
-
-    real(kind=dp) :: r_samp, n_samp_mean
-    real(kind=dp) :: n_possible ! use real(kind=dp) to avoid integer overflow
-    ! FIXME: should use integer*8 or integer(kind = 8)
-    ! or even better, di = selected_int_kind(18), integer(kind=di)
-    ! to represent 10^{-18} to 10^{18}
-    
-    if (same_bin) then
-       n_possible = real(n_parts_local, kind=dp) &
-            * (real(n_parts_total, kind=dp) - 1d0) / 2d0
-    else
-       n_possible = real(n_parts_local, kind=dp) &
-            * real(n_parts_total, kind=dp) / 2d0
-    endif
-
-    r_samp = k_max / comp_vol_total * del_t
-    n_samp_mean = r_samp * n_possible
-    n_samp = rand_poisson(n_samp_mean)
-    accept_factor = 1d0 / k_max
-  
-  end subroutine coag_dist_compute_n_samp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

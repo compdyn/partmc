@@ -108,6 +108,8 @@ contains
     ! to represent 10^{-18} to 10^{18}
     
     if (same_bin) then
+       ! don't change this to ni * (ni - 1) as the ni/nj distinction
+       ! is important for coagulation_dist, which also calls this
        n_possible = real(ni, kind=dp) * (real(nj, kind=dp) - 1d0) / 2d0
     else
        n_possible = real(ni, kind=dp) * real(nj, kind=dp) / 2d0

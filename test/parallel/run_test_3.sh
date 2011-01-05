@@ -9,7 +9,7 @@ cd ${0%/*}
 
 parallel_type=mix
 
-mpirun -v -np 10 ../../partmc run_part_parallel_${parallel_type}.spec
+mpirun -v -np 4 ../../partmc run_part_parallel_${parallel_type}.spec
 for f in out/parallel_${parallel_type}_0001_????_00000001.nc ; do
     echo "####################################################################"
     echo "####################################################################"

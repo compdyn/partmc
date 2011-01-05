@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/parallel_mix  # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+n_part 2500                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)
@@ -50,7 +50,7 @@ record_removals no              # whether to record particle removals (yes/no)
 
 do_parallel yes                 # whether to run in parallel (yes/no)
 output_type central             # parallel output type (central/dist/single)
-mix_timescale 600               # mixing timescale between processors (s)
+mix_timescale 3600              # mixing timescale between processors (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
 parallel_coag local             # parallel coagulation method (local/dist)

@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/parallel_dist_single # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+n_part 2500                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)

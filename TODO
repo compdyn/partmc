@@ -9,8 +9,6 @@ whenever we use mpi_send_packed() or similar, check used_buffer_size
 
 grep for DEBUG and FIXME
 
-make test/parallel faster (less procs)
-
 ######################################################################
 
 Time

@@ -102,9 +102,9 @@ program test_nucleate_ode
      call nucleate_step(h2so4_conc, del_t)
      aero_conc = (init_h2so4_conc - h2so4_conc) / nucleate_vol &
           / so4_molec_dens
+     h2so4_mix_rat = h2so4_conc * conc_to_ppb
+     aero_mass_conc = aero_conc * nucleate_vol * so4_dens
      if (mod(i_step - 1, nint(t_progress / del_t)) .eq. 0) then
-        h2so4_mix_rat = h2so4_conc * conc_to_ppb
-        aero_mass_conc = aero_conc * nucleate_vol * so4_dens
         write(*,'(a20,a20,a20)') &
              'time', 'aero_mass_conc', 'h2so4_mix_rat'
         write(*,'(e20.10,e20.10,e20.10)') &

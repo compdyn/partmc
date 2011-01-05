@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2009-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -149,7 +149,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%action)
     call pmc_mpi_pack_integer(buffer, position, val%other_id)
     call assert(842929827, &
-         position - prev_position == pmc_mpi_pack_size_aero_info(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_info(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_info
@@ -174,7 +174,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%action)
     call pmc_mpi_unpack_integer(buffer, position, val%other_id)
     call assert(841267392, &
-         position - prev_position == pmc_mpi_pack_size_aero_info(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_info(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_info

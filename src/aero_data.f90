@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -387,7 +387,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call assert(183834856, &
-         position - prev_position == pmc_mpi_pack_size_aero_data(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_data
@@ -418,7 +418,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call assert(188522823, &
-         position - prev_position == pmc_mpi_pack_size_aero_data(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_data

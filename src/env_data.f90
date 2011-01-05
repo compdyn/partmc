@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -575,7 +575,7 @@ contains
        call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
     end do
     call assert(639466930, &
-         position - prev_position == pmc_mpi_pack_size_env_data(val))
+         position - prev_position <= pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_env_data
@@ -635,7 +635,7 @@ contains
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
     end do
     call assert(611542570, &
-         position - prev_position == pmc_mpi_pack_size_env_data(val))
+         position - prev_position <= pmc_mpi_pack_size_env_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env_data

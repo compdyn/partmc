@@ -498,7 +498,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
-         position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
+         position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
   end subroutine pmc_mpi_pack_run_part_opt
@@ -546,7 +546,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
-         position - prev_position == pmc_mpi_pack_size_run_part_opt(val))
+         position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_run_part_opt

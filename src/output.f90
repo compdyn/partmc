@@ -144,7 +144,7 @@ contains
     type(env_state_t) :: env_state_write
     type(gas_state_t) :: gas_state_write
     type(aero_state_t) :: aero_state_write
-    integer :: ierr, status(MPI_STATUS_SIZE), buffer_size, i_proc, position
+    integer :: ierr, status(MPI_STATUS_SIZE), i_proc, position
     character, allocatable :: buffer(:)
 #endif
 
@@ -190,21 +190,15 @@ contains
           call gas_state_copy(gas_state, gas_state_write)
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          !FIXME: use aero_state_mpi_gather() here.
+          call aero_state_allocate(aero_state_write)
+          call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
-             call aero_state_allocate(aero_state_write)
-             call aero_state_copy(aero_state, aero_state_write)
-             do i_proc = 1,(n_proc - 1)
-                call recv_output_state_single(aero_state_write, i_proc)
-             end do
              call output_state_to_file(prefix, bin_grid, aero_data, &
                   aero_weight, aero_state_write, gas_data, gas_state_write, &
                   env_state_write, index, time, del_t, i_repeat, &
                   record_removals, record_optical, rank, 1, uuid)
-             call aero_state_deallocate(aero_state_write)
-          else ! rank /= 0
-             call send_output_state_single(aero_state)
           end if
+          call aero_state_deallocate(aero_state_write)
           call env_state_deallocate(env_state_write)
           call gas_state_deallocate(gas_state_write)
 #endif
@@ -406,21 +400,25 @@ contains
     type(env_state_t), intent(in) :: env_state
 
 #ifdef PMC_USE_MPI
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
     character, allocatable :: buffer(:)
 
     call assert(645797304, pmc_mpi_rank() /= 0)
 
-    buffer_size = 0
-    buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state)
-    buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state)
-    buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
-    allocate(buffer(buffer_size))
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_env_state(env_state)
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_gas_state(gas_state)
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_aero_state(aero_state)
+    allocate(buffer(max_buffer_size))
     position = 0
     call pmc_mpi_pack_env_state(buffer, position, env_state)
     call pmc_mpi_pack_gas_state(buffer, position, gas_state)
     call pmc_mpi_pack_aero_state(buffer, position, aero_state)
-    call assert(839343839, position == buffer_size)
+    call assert(839343839, position <= max_buffer_size)
+    buffer_size = position
     call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
          TAG_OUTPUT_STATE_CENTRAL, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -520,17 +518,19 @@ contains
     type(aero_state_t), intent(in) :: aero_state
 
 #ifdef PMC_USE_MPI
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
     character, allocatable :: buffer(:)
 
     call assert(699329210, pmc_mpi_rank() /= 0)
 
-    buffer_size = 0
-    buffer_size = buffer_size + pmc_mpi_pack_size_aero_state(aero_state)
-    allocate(buffer(buffer_size))
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_aero_state(aero_state)
+    allocate(buffer(max_buffer_size))
     position = 0
     call pmc_mpi_pack_aero_state(buffer, position, aero_state)
-    call assert(269866580, position == buffer_size)
+    call assert(269866580, position <= max_buffer_size)
+    buffer_size = position
     call mpi_send(buffer, buffer_size, MPI_CHARACTER, 0, &
          TAG_OUTPUT_STATE_SINGLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)

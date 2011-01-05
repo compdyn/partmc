@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -334,7 +334,7 @@ contains
        call pmc_mpi_pack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(732927292, &
-         position - prev_position == pmc_mpi_pack_size_aia(val))
+         position - prev_position <= pmc_mpi_pack_size_aia(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_info_array
@@ -363,7 +363,7 @@ contains
        call pmc_mpi_unpack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(262838429, &
-         position - prev_position == pmc_mpi_pack_size_aia(val))
+         position - prev_position <= pmc_mpi_pack_size_aia(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_info_array

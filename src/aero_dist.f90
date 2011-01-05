@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -479,7 +479,7 @@ contains
        call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
     end do
     call assert(440557910, &
-         position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_dist
@@ -508,7 +508,7 @@ contains
        call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
     end do
     call assert(742535268, &
-         position - prev_position == pmc_mpi_pack_size_aero_dist(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_dist(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_dist

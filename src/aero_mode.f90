@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -699,7 +699,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call assert(579699255, &
-         position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_mode
@@ -727,7 +727,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call assert(874467577, &
-         position - prev_position == pmc_mpi_pack_size_aero_mode(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_mode

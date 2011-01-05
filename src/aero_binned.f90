@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for the.
 
@@ -346,7 +346,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_conc)
     call assert(348207873, &
-         position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_binned
@@ -372,7 +372,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_conc)
     call assert(878267066, &
-         position - prev_position == pmc_mpi_pack_size_aero_binned(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_binned(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_binned

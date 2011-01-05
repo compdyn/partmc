@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -481,7 +481,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%mix_rat)
     call assert(655827004, &
-         position - prev_position == pmc_mpi_pack_size_gas_state(val))
+         position - prev_position <= pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_gas_state
@@ -504,7 +504,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%mix_rat)
     call assert(520815247, &
-         position - prev_position == pmc_mpi_pack_size_gas_state(val))
+         position - prev_position <= pmc_mpi_pack_size_gas_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_gas_state

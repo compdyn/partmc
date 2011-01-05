@@ -31,12 +31,11 @@ module pmc_coagulation_dist
   integer, parameter :: COAG_DIST_OUTGOING_BUFFER_SIZE      = 1000000
   !> Size of send and receive buffer for each message (bytes).
   !!
-  !! FIXME: check that this size is big enough. The biggest message
-  !! type will be one of the particle-sending types, for which we need
-  !! pmc_mpi_pack_size_aero_particle(aero_particle), plus a couple of
-  !! integers or something. At the moment this means something like (10
-  !! + n_spec) reals, (3 + 2) integers, which for n_spec = 20 gives a
-  !! size of 260 bytes.
+  !! The biggest message type will be one of the particle-sending
+  !! types, for which we need pmc_mpi_pack_size_aero_particle(), plus
+  !! a couple of integers or something. At the moment this means
+  !! something like (10 + n_spec) reals, (3 + 2) integers, which for
+  !! n_spec = 20 gives a size of 260 bytes.
   integer, parameter :: COAG_DIST_MAX_BUFFER_SIZE           = 10000
   integer, parameter :: COAG_DIST_MAX_REQUESTS              = 1
   integer, parameter :: COAG_DIST_TAG_REQUEST_PARTICLE      = 5321
@@ -130,7 +129,7 @@ contains
 
 #ifdef PMC_USE_MPI
     logical :: samps_remaining, sent_dones
-    integer :: i, j, n_samp, i_samp, rank, i_proc, n_proc, i_bin
+    integer :: i, j, n_samp, i_samp, i_proc, n_proc, i_bin
     integer :: ierr, status(MPI_STATUS_SIZE), current_i, current_j, i_req
     real(kind=dp) :: n_samp_real
     integer, allocatable :: n_parts(:,:)
@@ -142,7 +141,6 @@ contains
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
     
-    rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
 
     call pmc_mpi_barrier()
@@ -349,12 +347,8 @@ contains
     integer, intent(out) :: remote_proc
 
 #ifdef PMC_USE_MPI
-    integer :: rank, n_proc
-
-    rank = pmc_mpi_rank()
-    n_proc = pmc_mpi_size()
     call assert(542705260, size(n_parts, 1) == bin_grid%n_bin)
-    call assert(770964285, size(n_parts, 2) == n_proc)
+    call assert(770964285, size(n_parts, 2) == pmc_mpi_size())
     remote_proc = sample_disc_pdf(n_parts(remote_bin,:)) - 1
 #endif
 
@@ -408,12 +402,15 @@ contains
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
 
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(remote_bin)
+    call assert(893545122, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, remote_bin)
+    call assert(610314213, position <= max_buffer_size)
     buffer_size = position
-    call assert(490250818, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, remote_proc, &
          COAG_DIST_TAG_REQUEST_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -443,7 +440,7 @@ contains
          == COAG_DIST_TAG_REQUEST_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(190658659, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
+    call assert(190658659, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     remote_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -477,12 +474,15 @@ contains
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
 
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_bin)
+    call assert(744787119, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
+    call assert(445960340, position <= max_buffer_size)
     buffer_size = position
-    call assert(473131470, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
          COAG_DIST_TAG_RETURN_NO_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -519,7 +519,7 @@ contains
          == COAG_DIST_TAG_RETURN_NO_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(461111487, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
+    call assert(461111487, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -560,13 +560,18 @@ contains
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
 
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_bin)
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_aero_particle(aero_particle)
+    call assert(496283814, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
+    call assert(263666386, position <= max_buffer_size)
     buffer_size = position
-    call assert(622476860, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
          COAG_DIST_TAG_RETURN_REQ_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -619,7 +624,7 @@ contains
          == COAG_DIST_TAG_RETURN_REQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(461111487, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
+    call assert(461111487, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -684,12 +689,16 @@ contains
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
-    integer :: buffer_size, position, ierr
+    integer :: buffer_size, max_buffer_size, position, ierr
 
+    max_buffer_size = 0
+    max_buffer_size = max_buffer_size &
+         + pmc_mpi_pack_size_aero_particle(aero_particle)
+    call assert(414990602, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
+    call assert(898537822, position <= max_buffer_size)
     buffer_size = position
-    call assert(622476860, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
          COAG_DIST_TAG_RETURN_UNREQ_PARTICLE, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -722,7 +731,7 @@ contains
          == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(590644042, buffer_size < COAG_DIST_MAX_BUFFER_SIZE)
+    call assert(590644042, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it
@@ -943,11 +952,9 @@ contains
     logical, intent(out) :: remove_2
     
     type(aero_particle_t) :: aero_particle_new
-    integer :: rank, proc_new
+    integer :: proc_new
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: create_new, id_1_lost, id_2_lost
-
-    rank = pmc_mpi_rank()
 
     call aero_particle_allocate(aero_particle_new)
     call aero_info_allocate(aero_info_1)

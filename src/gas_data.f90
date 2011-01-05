@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -270,7 +270,7 @@ contains
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
     call assert(449872094, &
-         position - prev_position == pmc_mpi_pack_size_gas_data(val))
+         position - prev_position <= pmc_mpi_pack_size_gas_data(val))
 #endif
 
   end subroutine pmc_mpi_pack_gas_data
@@ -296,7 +296,7 @@ contains
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
     call assert(137879163, &
-         position - prev_position == pmc_mpi_pack_size_gas_data(val))
+         position - prev_position <= pmc_mpi_pack_size_gas_data(val))
 #endif
 
   end subroutine pmc_mpi_unpack_gas_data

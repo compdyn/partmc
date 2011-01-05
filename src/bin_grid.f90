@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -235,7 +235,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%edge_radius)
     call pmc_mpi_pack_real(buffer, position, val%log_width)
     call assert(385455586, &
-         position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+         position - prev_position <= pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_pack_bin_grid
@@ -261,7 +261,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%edge_radius)
     call pmc_mpi_unpack_real(buffer, position, val%log_width)
     call assert(741838730, &
-         position - prev_position == pmc_mpi_pack_size_bin_grid(val))
+         position - prev_position <= pmc_mpi_pack_size_bin_grid(val))
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid

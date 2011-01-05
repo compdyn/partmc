@@ -1,4 +1,4 @@
-! Copyright (C) 2010 Matthew West
+! Copyright (C) 2010-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -223,7 +223,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%ref_radius)
     call pmc_mpi_pack_real(buffer, position, val%exponent)
     call assert(579699255, &
-         position - prev_position == pmc_mpi_pack_size_aero_weight(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_weight(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_weight
@@ -248,7 +248,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%ref_radius)
     call pmc_mpi_unpack_real(buffer, position, val%exponent)
     call assert(874467577, &
-         position - prev_position == pmc_mpi_pack_size_aero_weight(val))
+         position - prev_position <= pmc_mpi_pack_size_aero_weight(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_weight

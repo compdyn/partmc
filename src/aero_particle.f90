@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -782,7 +782,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
     call assert(810223998, position - prev_position &
-         == pmc_mpi_pack_size_aero_particle(val))
+         <= pmc_mpi_pack_size_aero_particle(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_particle
@@ -816,7 +816,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
     call assert(287447241, position - prev_position &
-         == pmc_mpi_pack_size_aero_particle(val))
+         <= pmc_mpi_pack_size_aero_particle(val))
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle

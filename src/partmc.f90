@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -236,7 +236,7 @@ contains
     integer :: i_repeat
     integer :: rand_init
     character, allocatable :: buffer(:)
-    integer :: buffer_size
+    integer :: buffer_size, max_buffer_size
     integer :: position
     logical :: do_restart, do_init_equilibriate
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
@@ -508,32 +508,36 @@ contains
 #ifdef PMC_USE_MPI
     if (pmc_mpi_rank() == 0) then
        ! root process determines size
-       buffer_size = 0
-       buffer_size = buffer_size &
+       max_buffer_size = 0
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_run_part_opt(run_part_opt)
-       buffer_size = buffer_size + pmc_mpi_pack_size_bin_grid(bin_grid)
-       buffer_size = buffer_size + pmc_mpi_pack_size_gas_data(gas_data)
-       buffer_size = buffer_size + pmc_mpi_pack_size_gas_state(gas_state_init)
-       buffer_size = buffer_size + pmc_mpi_pack_size_aero_data(aero_data)
-       buffer_size = buffer_size + pmc_mpi_pack_size_aero_weight(aero_weight)
-       buffer_size = buffer_size &
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_bin_grid(bin_grid)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_data(gas_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_state(gas_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_data(aero_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_weight(aero_weight)
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_dist(aero_dist_init)
-       buffer_size = buffer_size + pmc_mpi_pack_size_env_data(env_data)
-       buffer_size = buffer_size + pmc_mpi_pack_size_env_state(env_state_init)
-       buffer_size = buffer_size + pmc_mpi_pack_size_integer(rand_init)
-       buffer_size = buffer_size + pmc_mpi_pack_size_logical(do_restart)
-       buffer_size = buffer_size &
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_env_data(env_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_env_state(env_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_integer(rand_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_logical(do_restart)
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_logical(do_init_equilibriate)
-       buffer_size = buffer_size &
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
-    end if
 
-    ! tell everyone the size and allocate buffer space
-    call pmc_mpi_bcast_integer(buffer_size)
-    allocate(buffer(buffer_size))
+       allocate(buffer(max_buffer_size))
 
-    if (pmc_mpi_rank() == 0) then
-       ! root process packs data
        position = 0
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
@@ -548,7 +552,16 @@ contains
        call pmc_mpi_pack_logical(buffer, position, do_restart)
        call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
-       call assert(181905491, position == buffer_size)
+       call assert(181905491, position <= max_buffer_size)
+       buffer_size = position ! might be less than we allocated
+    end if
+
+    ! tell everyone the size
+    call pmc_mpi_bcast_integer(buffer_size)
+
+    if (pmc_mpi_rank() /= 0) then
+       ! non-root processes allocate space
+       allocate(buffer(buffer_size))
     end if
 
     ! broadcast data to everyone

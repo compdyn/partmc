@@ -720,7 +720,7 @@ contains
     call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_pack_real(buffer, position, val%aero_dilution_rate)
     call assert(464101191, &
-         position - prev_position == pmc_mpi_pack_size_env_state(val))
+         position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
 
   end subroutine pmc_mpi_pack_env_state
@@ -760,7 +760,7 @@ contains
     call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background)
     call pmc_mpi_unpack_real(buffer, position, val%aero_dilution_rate)
     call assert(205696745, &
-         position - prev_position == pmc_mpi_pack_size_env_state(val))
+         position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
 
   end subroutine pmc_mpi_unpack_env_state

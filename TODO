@@ -3,11 +3,9 @@ Before release of 2.0.0:
 
 run under valgrind
 
-change "position ==" to "position <="
-
-whenever we use mpi_send_packed() or similar, check used_buffer_size
-
 grep for DEBUG and FIXME
+
+delete send/recv_output_state_single()
 
 ######################################################################
 
@@ -47,18 +45,14 @@ Change gas mixing to be by diffusion, rather than allreduce, also env,
 but first fix weighting so it is not all equal, but weighted by
 particle numbers and comp vols or something?
 
-Switch MPI send to not send the size first, but just do the send. The
-receiver can do an mpi_probe() to detect the size and allocate the
-receive buffer.
-
 Standardize on "processor" or "node" or "core". Use the MPI
 terminology, whatever it is.
 
 Switch to using mpi structures rather than pack/unpack?
 
-In the parallel mixing code, do an allreduce() with MPI_ADD to figure
-out how many processers are actually sending to each receiver, so it's
-more efficient in the slow mixing or few particles case.
+In aero_state_mix(), if expected number of particles to send to each
+other processor is less than one, switch to a
+"send-individual-particles" mode, which should be more efficient.
 
 ######################################################################
 

@@ -192,6 +192,7 @@ contains
        end if
     end do
 
+    call env_state_deallocate(old_env_state)
     call aero_binned_deallocate(aero_binned)
     call gas_state_deallocate(gas_state)
 

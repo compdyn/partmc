@@ -406,7 +406,7 @@ contains
     call gas_state_add(gas_state, emission)
     call gas_state_add(gas_state, dilution)
 
-    !FIXME: ensure gas state is still positive
+    call gas_state_ensure_nonnegative(gas_state)
 
     call gas_state_deallocate(emission)
     call gas_state_deallocate(dilution)

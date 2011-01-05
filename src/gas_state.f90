@@ -159,6 +159,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Set any negative values to zero.
+  subroutine gas_state_ensure_nonnegative(gas_state)
+
+    !> Gas state.
+    type(gas_state_t) :: gas_state
+
+    gas_state%mix_rat = max(gas_state%mix_rat, 0d0)
+
+  end subroutine gas_state_ensure_nonnegative
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the current gas_state and rate by interpolating at the
   !> current time with the lists of gas_states and rates.
   subroutine gas_state_interp_1d(gas_state_list, time_list, &

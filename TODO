@@ -5,8 +5,6 @@ run under valgrind
 
 grep for DEBUG and FIXME
 
-delete send/recv_output_state_single()
-
 ######################################################################
 
 Time

@@ -279,8 +279,8 @@ contains
     !!   - \ref input_format_aero_mode --- the format for each mode
     !!     of an aerosol distribution
 
-    aero_dist%n_mode = 0
-    allocate(aero_dist%mode(0))
+    call aero_dist_deallocate(aero_dist)
+    call aero_dist_allocate(aero_dist)
     call aero_mode_allocate(aero_mode)
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
@@ -428,6 +428,7 @@ contains
     allocate(rates(n_time))
     do i_time = 1,n_time
        call spec_file_open(aero_dist_line%data(i_time), aero_dist_file)
+       call aero_dist_allocate(aero_dists(i_time))
        call spec_file_read_aero_dist(aero_dist_file, &
             aero_data, aero_dists(i_time))
        call spec_file_close(aero_dist_file)

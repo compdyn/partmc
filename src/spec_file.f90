@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -311,6 +311,9 @@ contains
     eof = .false.
     call spec_line_allocate(temp_line_list(num_lines + 1))
     call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
+    if (eof) then
+       call spec_line_deallocate(temp_line_list(num_lines + 1))
+    end if
     do while (.not. eof)
        num_lines = num_lines + 1
        if (num_lines > SPEC_FILE_MAX_LIST_LINES) then
@@ -325,6 +328,9 @@ contains
        if (.not. eof) then
           call spec_line_allocate(temp_line_list(num_lines + 1))
           call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
+          if (eof) then
+             call spec_line_deallocate(temp_line_list(num_lines + 1))
+          end if
        end if
     end do
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -84,13 +84,13 @@ contains
   subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
        del_t, n_samp, accept_factor)
 
-    !> Number particles in first bin .
+    !> Number particles in first bin.
     integer, intent(in) :: ni
     !> Number particles in second bin.
     integer, intent(in) :: nj
     !> Whether first bin is second bin.
     logical, intent(in) :: same_bin
-    !> Maximum kernel value.
+    !> Maximum kernel value (s^{-1}).
     real(kind=dp), intent(in) :: k_max
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: comp_vol
@@ -103,8 +103,8 @@ contains
     
     real(kind=dp) :: r_samp, n_samp_mean
     real(kind=dp) :: n_possible ! use real(kind=dp) to avoid integer overflow
-    ! FIXME: should use integer*8 or integer(kind = 8)
-    ! or even better, di = selected_int_kind(18), integer(kind=di)
+    ! could use integer*8 or integer(kind = 8)
+    ! or di = selected_int_kind(18), integer(kind=di)
     ! to represent 10^{-18} to 10^{18}
     
     if (same_bin) then

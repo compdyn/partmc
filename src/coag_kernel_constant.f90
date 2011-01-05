@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -107,7 +107,7 @@ contains
     real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, sigma, mean_vol
     integer :: k
     
-    real(kind=dp), parameter :: lambda = 1d0 ! FIXME: what is this?
+    real(kind=dp), parameter :: lambda = 1d0
 
     call kernel_constant_max(1d0, 1d0, aero_data, env_state, beta_0)
     

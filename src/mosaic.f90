@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -473,7 +473,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle.
-  !> FIXME: currenlty disabled.
+  !> FIXME: currently disabled.
   !!
   !! At the moment we are computing the aerosol optical properties
   !! every timestep from withing mosaic_timestep. This decision should

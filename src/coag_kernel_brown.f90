@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -140,7 +140,7 @@ contains
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
     mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to ??? (FIXME)
+    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
     
     rhoair = 0.001d0 * ((press/1.01325d5)*mwair/(rgas*tk))
     

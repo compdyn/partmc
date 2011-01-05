@@ -805,8 +805,7 @@ contains
     !!   - \b latitude (unit degrees_north): latitude of simulation location
     !!   - \b altitude (unit m): altitude of simulation location
     !!   - \b start_time_of_day (unit s): time-of-day of the
-    !!     simulation start measured in seconds after midnight (FIXME:
-    !!     is this local midnight, midnight UTC, or something else?)
+    !!     simulation start measured in seconds after midnight UTC
     !!   - \b start_day_of_year: day-in-year number of the simulation start
     !!     (starting from 1 on the first day of the year)
     !!   - \b elapsed_time (unit s): elapsed time since the simulation start

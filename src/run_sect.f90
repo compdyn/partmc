@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -302,8 +302,9 @@ contains
     do i = 1,n_bin
        do j = i,n_bin
           x0 = e(i) + e(j)
-          ! FIXME: should use particle_in_bin(), but that is actually
-          ! slightly different than what was always done here
+          ! this is basically the same as particle_in_bin(), but that
+          ! is actually slightly different than what was always done
+          ! here
           k = find_1d(n_bin, e, x0)
           if (k < n_bin) then
              k = k + 1

@@ -8,6 +8,8 @@ t_wall, t_rem incorrect for repeats (see test/brownian)
 rename run_test_XX.sh to test_NNNNN_XX.sh, change CMakeFiles to print
 something like this.
 
+change "true" to "ref" in test/mosaic and test/condense
+
 ######################################################################
 
 Time

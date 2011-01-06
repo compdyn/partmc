@@ -7,7 +7,7 @@ set key top left
 
 set title "Gas mixing ratios (with coag)"
 
-set xrange [0:48]
+set xrange [0:24]
 set xtics 3
 
 set multiplot layout 2,1

@@ -7,7 +7,7 @@ set key top right
 
 set title "Environment data (with coag)"
 
-set xrange [0:48]
+set xrange [0:24]
 set xtics 3
 
 #  column 1: time (s)

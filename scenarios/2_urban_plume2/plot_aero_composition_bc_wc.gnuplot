@@ -39,12 +39,12 @@ set ylabel "BC dry mass fraction (%)"
 set multiplot layout 2,2
 
 set title "BC composition (with coag) at 0 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000001.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000001.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 5 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000006.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000006.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 7 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000008.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000008.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 24 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000025.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000025.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 
 unset multiplot

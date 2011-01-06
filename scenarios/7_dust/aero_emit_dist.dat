@@ -19,3 +19,18 @@ mode_type log_normal            # type of distribution
 mean_radius 2.5E-08             # mean radius (m)
 log_std_dev 0.24                # log_10 of geometric standard deviation
 
+mode_name dust_1
+mass_frac aero_emit_comp_dust.dat   # composition proportions of species
+num_conc 5.00E+04                # particle number density (#/m^2)
+mode_type log_normal            # type of distribution
+mean_radius 2.25E-07             # mean radius (m)
+log_std_dev 0.342                # log_10 of geometric standard deviation
+
+mode_name dust_2
+mass_frac aero_emit_comp_dust.dat   # composition proportions of species
+num_conc 5.00E+03                # particle number density (#/m^2)
+mode_type log_normal            # type of distribution
+mean_radius 1.4E-06             # mean radius (m)
+log_std_dev 0.238                # log_10 of geometric standard deviation
+
+

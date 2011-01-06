@@ -13,7 +13,7 @@ set ylabel "BC dry mass fraction (%)"
 
 #    column  1: particle ID number
 #    column  2: computational volume (m^3)
-#    column  3: particle radius (m)
+#    column  3: particle diameter (m)
 #    column  4: particle total mass (kg)
 #    column  5: SO4 mass (kg) - density =  0.180E+04 (kg/m^3)
 #    column  6: NO3 mass (kg) - density =  0.180E+04 (kg/m^3)
@@ -39,12 +39,12 @@ set ylabel "BC dry mass fraction (%)"
 set multiplot layout 2,2
 
 set title "BC composition (with coag) at 0 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000001.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000001.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 5 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000006.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000006.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 7 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000008.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000008.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 24 hours"
-plot "out/urban_plume_wc_aero_particle_mass_00000025.txt" using ($3*2e6):(($23/($4-$24))*100) with points notitle
+plot "out/urban_plume_wc_aero_particle_mass_00000025.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 
 unset multiplot

@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009, 2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -165,6 +165,7 @@ contains
 
     eol = .false.
     eof = .false.
+    char = " " ! shut up uninitialized variable warnings
     read_char = "" ! needed for pgf95 for reading blank lines
     read(unit=unit, fmt='(a)', advance='no', end=100, eor=110, &
          iostat=ios) read_char

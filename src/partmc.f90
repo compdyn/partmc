@@ -501,6 +501,9 @@ contains
 
     ! finished reading .spec data, now broadcast data
 
+    ! initialize RNG with random seed for UUID generation
+    call pmc_srand(0, pmc_mpi_rank())
+
     if (.not. do_restart) then
        call uuid4_str(run_part_opt%uuid)
     end if
@@ -590,6 +593,8 @@ contains
     deallocate(buffer)
 #endif
 
+    ! re-initialize RNG with the given seed
+    call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
 
     call gas_state_deallocate(gas_state)
@@ -639,6 +644,8 @@ contains
     call env_state_deallocate(env_state)
     call env_state_deallocate(env_state_init)
     call bin_grid_deallocate(bin_grid)
+
+    call pmc_rand_finalize()
 
   end subroutine partmc_part
 
@@ -793,6 +800,8 @@ contains
 
     ! finished reading .spec data, now do the run
 
+    call pmc_srand(0, 0)
+
     call uuid4_str(run_exact_opt%uuid)
 
     call env_data_init_state(env_data, env_state, 0d0)
@@ -806,7 +815,9 @@ contains
     call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
     call aero_dist_deallocate(aero_dist_init)
-    
+
+    call pmc_rand_finalize()
+
   end subroutine partmc_exact
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -950,6 +961,8 @@ contains
 
     ! finished reading .spec data, now do the run
 
+    call pmc_srand(0, 0)
+
     call uuid4_str(run_sect_opt%uuid)
 
     call env_data_init_state(env_data, env_state, 0d0)
@@ -963,6 +976,8 @@ contains
     call env_data_deallocate(env_data)
     call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
+
+    call pmc_rand_finalize()
     
   end subroutine partmc_sect
 

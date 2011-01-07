@@ -23,6 +23,9 @@ program poisson_sample
   n_samp = string_to_integer(tmp)
 
   allocate(count(0:k_max), count_pdf(0:k_max), pdf(0:k_max))
+
+  ! initialize the RNG with a random seed
+  call pmc_srand(0, 0)
   
   ! compute exact PDF
   if (n_samp == 0) then
@@ -52,5 +55,8 @@ program poisson_sample
         write(*,'(i6,e20.10)') k, count_pdf(k)
      end if
   end do
+
+  ! cleanup the RNG
+  call pmc_rand_finalize()
 
 end program poisson_sample

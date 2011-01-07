@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -10,11 +10,49 @@ module pmc_rand
   
   use pmc_util
   use pmc_constants
+  use pmc_mpi
+#ifdef PMC_USE_GSL
+  use iso_c_binding
+#endif
 
   !> Length of a UUID string.
   integer, parameter :: PMC_UUID_LEN = 36
+
+#ifdef PMC_USE_GSL
+  integer, parameter :: PMC_RAND_GSL_SUCCESS      = 0
+  integer, parameter :: PMC_RAND_GSL_INIT_FAIL    = 1
+  integer, parameter :: PMC_RAND_GSL_NOT_INIT     = 2
+  integer, parameter :: PMC_RAND_GSL_ALREADY_INIT = 3
+#endif
   
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_GSL
+  !> Check the return value of a call to one of the GSL RNG functions.
+  subroutine rand_check_gsl(code, value)
+
+    !> Error code.
+    integer :: code
+    !> Return value.
+    integer(kind=c_int) :: value
+
+    if (value == PMC_RAND_GSL_SUCCESS) then
+       return
+    elseif (value == PMC_RAND_GSL_INIT_FAIL) then
+       call die_msg(code, "GSL RNG initialization failed")
+    elseif (value == PMC_RAND_GSL_NOT_INIT) then
+       call die_msg(code, "GSL RNG has not been successfully initialized")
+    elseif (value == PMC_RAND_GSL_ALREADY_INIT) then
+       call die_msg(code, "GSL RNG was already initialized")
+    else
+       call die_msg(code, "Unknown GSL RNG interface return value: " &
+            // trim(integer_to_string(value)))
+    end if
+
+  end subroutine rand_check_gsl
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -30,19 +68,43 @@ contains
 
     integer :: i, n, clock
     integer, allocatable :: seed_vec(:)
+#ifdef PMC_USE_GSL
+    integer(kind=c_int) :: c_clock
+#endif
     ! FIXME: HACK
     real(kind=dp) :: r
     ! FIXME: end HACK
 
-    call random_seed(size = n)
-    allocate(seed_vec(n))
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_srand_gsl(seed) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: seed
+       end function pmc_srand_gsl
+    end interface
+#endif
+#endif
+
     if (seed == 0) then
-       call system_clock(count = clock)
+       if (pmc_mpi_rank() == 0) then
+          call system_clock(count = clock)
+       end if
+       ! ensure all nodes use exactly the same seed base, to avoid
+       ! accidental correlations
+       call pmc_mpi_bcast_integer(clock)
     else
        clock = seed
     end if
+    clock = clock + 67 * offset
+#ifdef PMC_USE_GSL
+    c_clock = int(clock, kind=c_int)
+    call rand_check_gsl(100489590, pmc_srand_gsl(c_clock))
+#else
+    call random_seed(size = n)
+    allocate(seed_vec(n))
     i = 0 ! HACK to shut up gfortran warning
-    seed_vec = clock + offset + 37 * (/ (i - 1, i = 1, n) /)
+    seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)
     ! FIXME: HACK for bad rng behavior from pgf90
@@ -50,18 +112,61 @@ contains
        r = pmc_random()
     end do
     ! FIXME: end HACK
+#endif
 
   end subroutine pmc_srand
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Cleanup the random number generator.
+  subroutine pmc_rand_finalize()
+
+#ifdef PMC_USE_GSL
+
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_finalize_gsl() bind(c)
+         use iso_c_binding
+       end function pmc_rand_finalize_gsl
+    end interface
+#endif
+
+    call rand_check_gsl(489538382, pmc_rand_finalize_gsl())
+#endif
+
+  end subroutine pmc_rand_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns a random number between 0 and 1.
   real(kind=dp) function pmc_random()
 
-    real(kind=dp) rnd
+#ifdef PMC_USE_GSL
+    real(kind=c_double), target :: rnd
+    type(c_ptr) :: rnd_ptr
+#else
+    real(kind=dp) :: rnd
+#endif
 
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_gsl(harvest) bind(c)
+         use iso_c_binding
+         type(c_ptr), value :: harvest
+       end function pmc_rand_gsl
+    end interface
+#endif
+#endif
+
+#ifdef PMC_USE_GSL
+    rnd_ptr = c_loc(rnd)
+    call rand_check_gsl(843777138, pmc_rand_gsl(rnd_ptr))
+    pmc_random = real(rnd, kind=dp)
+#else
     call random_number(rnd)
     pmc_random = rnd
+#endif
 
   end function pmc_random
   
@@ -73,7 +178,32 @@ contains
     !> Maximum random number to generate.
     integer, intent(in) :: n
 
+#ifdef PMC_USE_GSL
+    integer(kind=c_int) :: n_c
+    integer(kind=c_int), target :: harvest
+    type(c_ptr) :: harvest_ptr
+#endif
+
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_int_gsl(n, harvest) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n
+         type(c_ptr), value :: harvest
+       end function pmc_rand_int_gsl
+    end interface
+#endif
+#endif
+
+#ifdef PMC_USE_GSL
+    n_c = int(n, kind=c_int)
+    harvest_ptr = c_loc(harvest)
+    call rand_check_gsl(388234845, pmc_rand_int_gsl(n_c, harvest_ptr))
+    pmc_rand_int = int(harvest)
+#else
     pmc_rand_int = mod(int(pmc_random() * real(n, kind=dp)), n) + 1
+#endif
     call assert(515838689, pmc_rand_int >= 1)
     call assert(802560153, pmc_rand_int <= n)
 
@@ -122,9 +252,35 @@ contains
     !> Mean of the distribution.
     real(kind=dp), intent(in) :: mean
 
+#ifdef PMC_USE_GSL
+    real(kind=c_double) :: mean_c
+    integer(kind=c_int), target :: harvest
+    type(c_ptr) :: harvest_ptr
+#else
     real(kind=dp) :: L, p
     integer :: k
+#endif
 
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_poisson_gsl(mean, harvest) &
+            bind(c)
+         use iso_c_binding
+         real(kind=c_double), value :: mean
+         type(c_ptr), value :: harvest
+       end function pmc_rand_poisson_gsl
+    end interface
+#endif
+#endif
+
+#ifdef PMC_USE_GSL
+    mean_c = real(mean, kind=c_double)
+    harvest_ptr = c_loc(harvest)
+    call rand_check_gsl(208869397, &
+         pmc_rand_poisson_gsl(mean_c, harvest_ptr))
+    rand_poisson = int(harvest)
+#else
     if (mean <= 10d0) then
        ! exact method due to Knuth
        L = exp(-mean)
@@ -141,6 +297,7 @@ contains
        k = nint(rand_normal(mean - 0.5d0, sqrt(mean)))
        rand_poisson = max(k, 0)
     end if
+#endif
 
   end function rand_poisson
 

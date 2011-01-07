@@ -47,6 +47,7 @@ Optional dependencies:
 
    * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
    * MPI - <http://www.open-mpi.org/>
+   * GSL - <http://www.gnu.org/software/gsl/>
    * SUNDIALS - <http://www.llnl.gov/casc/sundials/>
    * gnuplot - <http://www.gnuplot.info/>
 
@@ -130,6 +131,12 @@ module files (compiled with the same compiler), probably ending in
 `mosaic/datamodules`. The `MOSAIC_LIB` variable should end in
 something like `mosaic/libmosaic.a`.
 
+Rather than using the builtin random number intrinsics of the Fortran
+compiler, PartMC can alternatively use the GSL library for random
+number generation and distribution sampling. To enable this, set the
+`ENABLE_GSL` variable to `ON` and set the `GSL_INCLUDE_DIR` and
+`GSL_LIB` variables to the correct values.
+
 The condensation code in PartMC requires SUNDIALS version 2.4.0 (not
 enabled by default). To use it, set the `ENABLE_SUNDIALS` variable to
 `ON`. The `SUNDIALS_CVODE_LIB` variable should be the location of the
@@ -144,6 +151,11 @@ cmake set the `CMAKE_Fortran_COMPILER` to `mpif90` (or other MPI
 compiler wrapper as appropriate) and reconfigure cmake. The `partmc`
 executable should then be lauched with `mpirun -np 2 partmc` or
 similar.
+
+Using SUNDIALS or GSL requires linking C libraries with the Fortran
+2003 C Interoperability mechanisms. This requires both a Fortran
+compiler supporting the Fortran 2003 ISO_C_BINDING intrinsic module,
+as well as a C compiler.
 
 
 Usage

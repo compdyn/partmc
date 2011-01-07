@@ -8,6 +8,14 @@ something like this.
 
 change "true" to "ref" in test/mosaic and test/condense
 
+use CPack
+
+change source to .F90 and drop preprocessor compiler args
+
+Do .c files generate doxygen content appropriately?
+
+Use binomial rands for dilution loss.
+
 ######################################################################
 
 Time

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -36,7 +36,9 @@ module pmc_condense
   use pmc_util
   use pmc_aero_particle
   use pmc_constants
+#ifdef PMC_USE_SUNDIALS
   use iso_c_binding
+#endif
 
   !> Whether to numerically test the Jacobian-solve function during
   !> execution (for debugging only).

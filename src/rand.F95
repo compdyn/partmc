@@ -75,9 +75,6 @@ contains
 #ifdef PMC_USE_GSL
     integer(kind=c_int) :: c_clock
 #endif
-    ! FIXME: HACK
-    real(kind=dp) :: r
-    ! FIXME: end HACK
 
 #ifdef PMC_USE_GSL
 #ifndef DOXYGEN_SKIP_DOC
@@ -111,11 +108,6 @@ contains
     seed_vec = clock + 37 * (/ (i - 1, i = 1, n) /)
     call random_seed(put = seed_vec)
     deallocate(seed_vec)
-    ! FIXME: HACK for bad rng behavior from pgf90
-    do i = 1,1000
-       r = pmc_random()
-    end do
-    ! FIXME: end HACK
 #endif
 
   end subroutine pmc_srand

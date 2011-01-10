@@ -299,7 +299,7 @@ contains
        rand_poisson = k - 1
     else
        ! normal approximation with a continuity correction
-       k = nint(rand_normal(mean - 0.5d0, sqrt(mean)))
+       k = nint(rand_normal(mean, sqrt(mean)))
        rand_poisson = max(k, 0)
     end if
 #endif

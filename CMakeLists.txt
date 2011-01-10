@@ -33,69 +33,17 @@ include(CPack)
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
-  PATHS
-  $ENV{NETCDF_HOME}/include
-  /include
-  /usr/include
-  /usr/local/include
-  /opt/include
-  /opt/local/include
-  /usr/lib64/gfortran/modules
-  /usr/lib/gfortran/modules
-  /sw/include
-  /sw/lib/netcdf-gfortran/include
-  /sw/lib/netcdf-g95/include
-  /usr/include/netcdf
-  $ENV{HOME}/include
-  $ENV{HOME}/opt/include
-  $ENV{HOME}/netcdf/include
-  PATH_SUFFIXES netcdf-3)
+  PATHS $ENV{NETCDF_HOME}/include /opt/local/include)
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
-  PATHS
-  $ENV{NETCDF_HOME}/lib
-  $ENV{NETCDF_HOME}/lib64
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /usr/local/lib64
-  /opt/lib
-  /opt/local/lib
-  /sw/lib
-  /sw/lib/netcdf-gfortran/lib
-  /sw/lib/netcdf-g95/lib
-  $ENV{HOME}/lib
-  $ENV{HOME}/lib64
-  $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64
-  $ENV{HOME}/netcdf/lib
-  $ENV{HOME}/netcdf/lib64)
+  PATHS $ENV{NETCDF_HOME}/lib /opt/local/lib)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
-  PATHS
-  $ENV{NETCDF_HOME}/lib
-  $ENV{NETCDF_HOME}/lib64
-  /usr/lib
-  /usr/lib64
-  /usr/local/lib
-  /usr/local/lib64
-  /opt/lib
-  /opt/local/lib
-  /sw/lib
-  /sw/lib/netcdf-gfortran/lib
-  /sw/lib/netcdf-g95/lib
-  $ENV{HOME}/lib
-  $ENV{HOME}/lib64
-  $ENV{HOME}/opt/lib
-  $ENV{HOME}/opt/lib64
-  $ENV{HOME}/netcdf/lib
-  $ENV{HOME}/netcdf/lib64)
-
+  PATHS $ENV{NETCDF_HOME}/lib /opt/local/lib)
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
 endif()
-
 include_directories(${NETCDF_INCLUDE_DIR})
 
 ######################################################################
@@ -104,36 +52,10 @@ include_directories(${NETCDF_INCLUDE_DIR})
 if(ENABLE_GSL)
   find_path(GSL_INCLUDE_DIR gsl/gsl_math.h
     DOC "GSL include directory (must have gsl/ subdir)"
-    PATHS
-    /include
-    /usr/include
-    /usr/local/include
-    /opt/include
-    /opt/include
-    /opt/local/include
-    /sw/include
-    /usr/include/netcdf
-    $ENV{HOME}/include
-    $ENV{HOME}/opt/include
-    $ENV{HOME}/gsl/include)
+    PATHS $ENV{GSL_HOME}/include /opt/local/include)
   find_library(GSL_LIB gsl
     DOC "GSL library"
-    PATHS
-    /usr/lib
-    /usr/lib64
-    /usr/local/lib
-    /usr/local/lib64
-    /opt/lib
-    /opt/local/lib
-    /sw/lib
-    /sw/lib/netcdf-gfortran/lib
-    /sw/lib/netcdf-g95/lib
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/gsl/lib
-    $ENV{HOME}/gsl/lib64)
+    PATHS $ENV{GSL_HOME}/lib /opt/local/lib)
   set(GSL_SRC src/rand_gsl.c)
   include_directories(${GSL_INCLUDE_DIR})
   add_definitions(-DPMC_USE_GSL)
@@ -145,27 +67,10 @@ endif()
 if(ENABLE_MOSAIC)
   find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
     DOC "MOSAIC include directory"
-    PATHS
-    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules
-    $ENV{HOME}/include
-    $ENV{HOME}/opt/include
-    $ENV{HOME}/mosaic/include
-    $ENV{HOME}/subversion/mosaic/trunk/datamodules
-    $ENV{HOME}/svn/mosaic/trunk/datamodules)
+    PATHS $ENV{MOSAIC_HOME}/datamodules $ENV{MOSAIC_HOME}/include)
   find_library(MOSAIC_LIB mosaic
     DOC "MOSAIC library"
-    PATHS
-    ${PROJECT_SOURCE_DIR}/../mosaic
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/mosaic/lib
-    $ENV{HOME}/mosaic/lib64
-    $ENV{HOME}/subversion/mosaic/trunk
-    $ENV{HOME}/svn/mosaic/trunk)
+    PATHS $ENV{MOSAIC_HOME} $ENV{MOSAIC_HOME}/lib)
   include_directories(${MOSAIC_INCLUDE_DIR})
   add_definitions(-DPMC_USE_MOSAIC)
 endif()
@@ -183,49 +88,13 @@ endif()
 if(ENABLE_SUNDIALS)
   find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
     DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
-    PATHS
-    /include
-    /usr/include
-    /usr/local/include
-    /opt/include
-    /opt/local/include
-    /sw/include
-    /usr/include/netcdf
-    $ENV{HOME}/include
-    $ENV{HOME}/opt/include
-    $ENV{HOME}/sundials/include)
+    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include)
   find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
     DOC "SUNDIALS serial vector library"
-    PATHS
-    /usr/lib
-    /usr/lib64
-    /usr/local/lib
-    /usr/local/lib64
-    /opt/lib
-    /opt/local/lib
-    /sw/lib
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/sundials/lib
-    $ENV{HOME}/sundials/lib64)
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
   find_library(SUNDIALS_CVODE_LIB sundials_cvode
     DOC "SUNDIALS CVODE library"
-    PATHS
-    /usr/lib
-    /usr/lib64
-    /usr/local/lib
-    /usr/local/lib64
-    /opt/lib
-    /opt/local/lib
-    /sw/lib
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/sundials/lib
-    $ENV{HOME}/sundials/lib64)
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})

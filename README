@@ -131,6 +131,13 @@ module files (compiled with the same compiler), probably ending in
 `mosaic/datamodules`. The `MOSAIC_LIB` variable should end in
 something like `mosaic/libmosaic.a`.
 
+ These variables will be set
+automatically if, before running `cmake`, the environment variable
+`MOSAIC_HOME` is set. For example:
+
+     export MOSAIC_HOME=${HOME}/subversion/mosaic/trunk   # for bash
+     setenv MOSAIC_HOME ${HOME}/subversion/mosaic/trunk   # for tcsh
+
 Rather than using the builtin random number intrinsics of the Fortran
 compiler, PartMC can alternatively use the GSL library for random
 number generation and distribution sampling. To enable this, set the
@@ -154,8 +161,26 @@ similar.
 
 Using SUNDIALS or GSL requires linking C libraries with the Fortran
 2003 C Interoperability mechanisms. This requires both a Fortran
-compiler supporting the Fortran 2003 ISO_C_BINDING intrinsic module,
+compiler supporting the Fortran 2003 `ISO_C_BINDING` intrinsic module,
 as well as a C compiler.
+
+To aid CMake in its search for include directories and libraries,
+various environment variables can be set _before_ running `ccmake` for
+the first time. If the command `echo $SHELL` is `bash` or similar,
+then the environment variables can be set, for example, like:
+
+    export NETCDF_HOME=/
+    export MOSAIC_HOME=${HOME}/subversion/trunk
+    export SUNDIALS_HOME=${HOME}/opt
+    export GSL_HOME=${HOME}/opt
+
+If `echo $SHELL` instead is `tcsh` or similar, then the environment
+variables can be set with:
+
+    setenv NETCDF_HOME /
+    setenv MOSAIC_HOME ${HOME}/subversion/trunk
+    setenv SUNDIALS_HOME ${HOME}/opt
+    setenv GSL_HOME ${HOME}/opt
 
 
 Usage

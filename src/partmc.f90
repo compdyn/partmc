@@ -63,13 +63,13 @@
 !! Extensive use is made of Fortran 90 derived types and pointers for
 !! dynamic memory allocation of arrays inside derived types. Derived
 !! types are named \c my_type_t and are generally defined in modules
-!! named \c pmc_mod_my_type within files named \c my_type.f90. Each
+!! named \c pmc_my_type within files named \c my_type.f90. Each
 !! derived type has allocation and deallocation functions \c
 !! my_type_allocate() and \c my_type_deallocate(), where
 !! appropriate. Almost all subroutines and function in each \c
 !! my_type.f90 file have names of the form \c my_type_*() and take an
-!! object of type \c my_type as the first argument on which to
-!! operate.
+!! object of type \c my_type_t (called \c my_type) as the first argument
+!! on which to operate.
 !!
 !! Module names are always the same as the name of the containing
 !! file, but prefixed with \c pmc_. Thus the module \c

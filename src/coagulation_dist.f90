@@ -5,8 +5,7 @@
 !> \file
 !> The pmc_coagulation_dist module.
 
-!> Aerosol particle coagulation with MPI where each process has its own
-!> aero_state and all processes perform coagulation equally.
+!> Parallel aerosol particle coagulation with MPI
 module pmc_coagulation_dist
 
   use pmc_bin_grid
@@ -44,6 +43,7 @@ module pmc_coagulation_dist
   integer, parameter :: COAG_DIST_TAG_RETURN_NO_PARTICLE    = 5324
   integer, parameter :: COAG_DIST_TAG_DONE                  = 5325
 
+  !> A single outstanding request for a remote particle.
   type request_t
      !> Local \c aero_particle to maybe coagulate with the received
      !> particle.

@@ -18,7 +18,8 @@
 !! Parameter names are strings (normally lowercase) without spaces,
 !! such as \c output_prefix or \c del_t. The case of parameter names
 !! is significant. The order of parameters in a file is not
-!! arbitrary. Instead, they must come in the prescribed order.
+!! arbitrary. Instead, they must come in the prescribed order and
+!! cannot be skipped or rearranged.
 !!
 !! The parameter types are:
 !!   - \b string: a single string without spaces (case is significant)

@@ -99,7 +99,10 @@ contains
     !> Whether the assertion is ok.
     logical, intent(in) :: condition_ok
 
-    call assert_msg(code, condition_ok, 'assertion failed')
+    if (.not. condition_ok) then
+       ! much faster with gfortran 4.4.5 to do this extra test
+       call assert_msg(code, condition_ok, 'assertion failed')
+    end if
 
   end subroutine assert
 

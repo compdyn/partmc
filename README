@@ -39,8 +39,8 @@ Dependencies
 
 Required dependencies:
 
-   * Fortran 90/95 compiler
-   * cmake version 2.6 or higher - <http://www.cmake.org/>
+   * Fortran 95 compiler
+   * cmake version 2.6.4 or higher - <http://www.cmake.org/>
    * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
 
 Optional dependencies:

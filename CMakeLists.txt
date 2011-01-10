@@ -350,11 +350,14 @@ if(ENABLE_MPI)
   add_test(parallel_4 ${CMAKE_BINARY_DIR}/run_test/parallel/run_test_4.sh)
 endif()
 
-add_test(poisson_1 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_1.sh)
-add_test(poisson_2 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_2.sh)
-add_test(poisson_3 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_3.sh)
-add_test(poisson_4 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_4.sh)
-add_test(poisson_5 ${CMAKE_BINARY_DIR}/run_test/poisson/run_test_5.sh)
+add_test(rand_1 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_1.sh)
+add_test(rand_2 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_2.sh)
+add_test(rand_3 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_3.sh)
+add_test(rand_4 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_4.sh)
+add_test(rand_5 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_5.sh)
+add_test(rand_6 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_6.sh)
+add_test(rand_7 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_7.sh)
+add_test(rand_8 ${CMAKE_BINARY_DIR}/run_test/rand/run_test_8.sh)
 
 add_test(sedi_1 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_1.sh)
 add_test(sedi_2 ${CMAKE_BINARY_DIR}/run_test/sedi/run_test_2.sh)
@@ -468,7 +471,7 @@ add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_FSRC})
 ######################################################################
 # test_poisson_sample
 
-set(TEST_POISSON_SAMPLE_FSRC test/poisson/test_poisson_sample.f90
+set(TEST_POISSON_SAMPLE_FSRC test/rand/test_poisson_sample.f90
   src/util.f90 src/rand.f90 src/constants.f90 src/mpi.f90)
 
 set(TEST_POISSON_SAMPLE_CSRC "")
@@ -492,6 +495,34 @@ add_executable(test_poisson_sample ${TEST_POISSON_SAMPLE_FSRC}
   ${TEST_POISSON_SAMPLE_CSRC})
 
 target_link_libraries(test_poisson_sample ${GSL_LIB})
+
+######################################################################
+# test_binomial_sample
+
+set(TEST_BINOMIAL_SAMPLE_FSRC test/rand/test_binomial_sample.f90
+  src/util.f90 src/rand.f90 src/constants.f90 src/mpi.f90)
+
+set(TEST_BINOMIAL_SAMPLE_CSRC "")
+
+if(ENABLE_GSL)
+  set(TEST_BINOMIAL_SAMPLE_CSRC ${TEST_BINOMIAL_SAMPLE_CSRC}
+    src/rand_gsl.c)
+endif()
+
+if(TEST_BINOMIAL_SAMPLE_FSRC AND PARTMC_FFLAGS)
+  set_source_files_properties(${TEST_BINOMIAL_SAMPLE_FSRC}
+    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
+endif()
+
+if(TEST_BINOMIAL_SAMPLE_CSRC AND PARTMC_CFLAGS)
+  set_source_files_properties(${TEST_BINOMIAL_SAMPLE_CSRC}
+    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
+endif()
+
+add_executable(test_binomial_sample ${TEST_BINOMIAL_SAMPLE_FSRC}
+  ${TEST_BINOMIAL_SAMPLE_CSRC})
+
+target_link_libraries(test_binomial_sample ${GSL_LIB})
 
 ######################################################################
 # bin_average_comp

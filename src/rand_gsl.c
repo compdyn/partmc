@@ -52,6 +52,18 @@ int pmc_rand_poisson_gsl(double mean, int *harvest)
         return PMC_RAND_GSL_SUCCESS;
 }
 
+int pmc_rand_binomial_gsl(int n, double p, int *harvest)
+{
+        unsigned int u;
+
+        if (!pmc_rand_gsl_rng) {
+                return PMC_RAND_GSL_NOT_INIT;
+        }
+        u = n;
+        *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
+        return PMC_RAND_GSL_SUCCESS;
+}
+
 int pmc_rand_finalize_gsl()
 {
         if (!pmc_rand_gsl_rng) {

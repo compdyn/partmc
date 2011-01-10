@@ -308,6 +308,98 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generate a Binomial-distributed random number with the given
+  !> parameters.
+  !!
+  !! See http://en.wikipedia.org/wiki/Binomial_distribution for
+  !! information on the method. The method used at present is rather
+  !! inefficient and inaccurate (brute force for \f$np \le 10\f$ and
+  !! \f$n(1-p) \le 10\f$, otherwise normal approximation).
+  !!
+  !! For better methods, see L. Devroye, "Non-Uniform Random Variate
+  !! Generation", Springer-Verlag, 1986.
+  integer function rand_binomial(n, p)
+
+    !> Sample size.
+    integer, intent(in) :: n
+    !> Sample probability.
+    real(kind=dp), intent(in) :: p
+
+#ifdef PMC_USE_GSL
+    integer(kind=c_int) :: n_c
+    real(kind=c_double) :: p_c
+    integer(kind=c_int), target :: harvest
+    type(c_ptr) :: harvest_ptr
+#else
+    real(kind=dp) :: np, nomp, q
+    integer :: k, G, sum
+#endif
+
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_binomial_gsl(n, p, harvest) &
+            bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n
+         real(kind=c_double), value :: p
+         type(c_ptr), value :: harvest
+       end function pmc_rand_binomial_gsl
+    end interface
+#endif
+#endif
+
+    call assert(130699849, n >= 0)
+    call assert(754379796, p >= 0d0)
+    call assert(678506029, p <= 1d0)
+#ifdef PMC_USE_GSL
+    n_c = int(n, kind=c_int)
+    p_c = real(p, kind=c_double)
+    harvest_ptr = c_loc(harvest)
+    call rand_check_gsl(208869397, &
+         pmc_rand_binomial_gsl(n_c, p_c, harvest_ptr))
+    rand_binomial = int(harvest)
+#else
+    np = real(n, kind=dp) * p
+    nomp = real(n, kind=dp) * (1d0 - p)
+    if ((np >= 10d0) .and. (nomp >= 10d0)) then
+       ! normal approximation with continuity correction
+       k = nint(rand_normal(np, sqrt(np * (1d0 - p))))
+       rand_binomial = min(max(k, 0), n)
+    elseif (np < 1d-200) then
+       rand_binomial = 0
+    elseif (nomp < 1d-200) then
+       rand_binomial = n
+    else
+       ! First waiting time method of Devroye (p. 525).
+       ! We want p small, so if p > 1/2 then we compute with 1 - p and
+       ! take n - k at the end.
+       if (p <= 0.5d0) then
+          q = p
+       else
+          q = 1d0 - p
+       end if
+       k = -1
+       sum = 0
+       do while (sum <= n)
+          ! G is geometric(p)
+          G = ceiling(log(pmc_random()) / log(1d0 - q))
+          sum = sum + G
+          k = k + 1
+       end do
+       if (p <= 0.5d0) then
+          rand_binomial = k
+       else
+          rand_binomial = n - k
+       end if
+       call assert(359087410, rand_binomial <= n)
+    end if
+#endif
+
+  end function rand_binomial
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Generates a normally distributed random number with the given
   !> mean and standard deviation.
   real(kind=dp) function rand_normal(mean, stddev)

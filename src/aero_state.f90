@@ -434,18 +434,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Generates a Poisson sample by removing particles from
+  !> Generates a random sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, which must
   !> be already allocated (and should have its comp_vol set).
   subroutine aero_state_sample(aero_state_from, aero_state_to, &
-       sample_prop, removal_action)
+       sample_prob, removal_action)
 
     !> Original state.
     type(aero_state_t), intent(inout) :: aero_state_from
     !> Destination state.
     type(aero_state_t), intent(inout) :: aero_state_to
-    !> Proportion to sample.
-    real(kind=dp), intent(in) :: sample_prop
+    !> Probability of sampling each particle.
+    real(kind=dp), intent(in) :: sample_prob
     !> Action for removal (see pmc_aero_info module for action
     !> parameters). Set to AERO_INFO_NONE to not log removal.
     integer, intent(in) :: removal_action
@@ -455,9 +455,9 @@ contains
     real(kind=dp) :: vol_ratio
     type(aero_info_t) :: aero_info
 
-    call assert(721006962, (sample_prop >= 0d0) .and. (sample_prop <= 1d0))
-    n_transfer = rand_poisson(sample_prop &
-         * real(aero_state_total_particles(aero_state_from), kind=dp))
+    call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
+    n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
+         sample_prob)
     n_bin = size(aero_state_from%bin)
     vol_ratio = aero_state_to%comp_vol / aero_state_from%comp_vol
     i_transfer = 0

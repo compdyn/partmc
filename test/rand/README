@@ -1,0 +1,9 @@
+
+Poisson Sample Test
+===================
+
+This test generates samples from the random number generators used in
+the main code. The resulting sampled distributions are plotted against
+the analytical expressions. Depending on the generator used, the
+sampled distribution may only be approximate and thus may not match
+exactly.

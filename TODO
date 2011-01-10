@@ -12,13 +12,13 @@ change source to .F90 and drop preprocessor compiler args
 
 Do .c files generate doxygen content appropriately?
 
-Use binomial rands for dilution loss.
-
 Use MOSAIC_DIR as env variable to search for MOSAIC.
 
 Add source docs for *.c files.
 
 Add gsl normal call.
+
+Continuity correction for Poisson?
 
 ######################################################################
 

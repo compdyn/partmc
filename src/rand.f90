@@ -409,9 +409,37 @@ contains
     !> Standard deviation of distribution.
     real(kind=dp), intent(in) :: stddev
 
+#ifdef PMC_USE_GSL
+    real(kind=c_double) :: mean_c, stddev_c
+    real(kind=c_double), target :: harvest
+    type(c_ptr) :: harvest_ptr
+#else
     real(kind=dp) :: u1, u2, r, theta, z0, z1
+#endif
+
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_normal_gsl(mean, stddev, &
+            harvest) bind(c)
+         use iso_c_binding
+         real(kind=c_double), value :: mean
+         real(kind=c_double), value :: stddev
+         type(c_ptr), value :: harvest
+       end function pmc_rand_normal_gsl
+    end interface
+#endif
+#endif
 
     call assert(898978929, stddev >= 0d0)
+#ifdef PMC_USE_GSL
+    mean_c = real(mean, kind=c_double)
+    stddev_c = real(stddev, kind=c_double)
+    harvest_ptr = c_loc(harvest)
+    call rand_check_gsl(102078576, &
+         pmc_rand_normal_gsl(mean_c, stddev_c, harvest_ptr))
+    rand_normal = real(harvest, kind=dp)
+#else
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
     u1 = pmc_random()
@@ -424,6 +452,7 @@ contains
     ! We throw away z1, but we could use a SAVE variable to only do
     ! the computation on every second call of this function.
     rand_normal = stddev * z0 + mean
+#endif
 
   end function rand_normal
 

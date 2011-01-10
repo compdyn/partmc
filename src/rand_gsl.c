@@ -53,6 +53,15 @@ int pmc_rand_int_gsl(int n, int *harvest)
         return PMC_RAND_GSL_SUCCESS;
 }
 
+int pmc_rand_normal_gsl(double mean, double stddev, double *harvest)
+{
+        if (!pmc_rand_gsl_rng) {
+                return PMC_RAND_GSL_NOT_INIT;
+        }
+        *harvest = gsl_ran_gaussian(pmc_rand_gsl_rng, stddev) + mean;
+        return PMC_RAND_GSL_SUCCESS;
+}
+
 int pmc_rand_poisson_gsl(double mean, int *harvest)
 {
         if (!pmc_rand_gsl_rng) {

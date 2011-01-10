@@ -18,6 +18,8 @@ Use binomial rands for dilution loss.
 
 Use MOSAIC_DIR as env variable to search for MOSAIC.
 
+Add source docs for *.c files.
+
 ######################################################################
 
 Time

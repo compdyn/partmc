@@ -1,6 +1,8 @@
 
 Before release of 2.0.0:
 
+Check for FIXME, HACK, DEBUG
+
 t_wall, t_rem incorrect for repeats (see test/brownian)
 
 Use MOSAIC_DIR as env variable to search for MOSAIC.

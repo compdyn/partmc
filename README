@@ -111,10 +111,10 @@ mainly been under Linux and OS X. The quick-start instructions are:
 10. To run tests with visible output or to make some plots from the
     tests run them as:
 
-        cd run_test/emission
-        ./run_test_1.sh
-        ./run_test_2.sh
-        ./run_test_3.sh                       # similarly for other tests
+        cd test_run/emission
+        ./test_emission_1.sh
+        ./test_emission_2.sh
+        ./test_emission_3.sh            # similarly for other tests
         gnuplot -persist plot_species.gnuplot # etc...
 
 11. To run full scenarios, do, for example:

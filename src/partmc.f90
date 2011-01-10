@@ -23,8 +23,9 @@
 
 !> \page input_format Input File Format
 !!
-!! The input file format is plain text. See \ref spec_file_format for
-!! a description of the file format.
+!! The input file format is plain text:
+!!
+!! \subpage spec_file_format "Spec File Format"
 !!
 !! When running PartMC with the command <tt>partmc input.spec</tt> the
 !! first line of the <tt>input.spec</tt> file must define the \c

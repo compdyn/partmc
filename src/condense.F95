@@ -47,6 +47,23 @@ module pmc_condense
   !> (for debugging only).
   logical, parameter :: CONDENSE_DO_TEST_COUNTS = .false.
 
+  !> Result code indicating successful completion.
+  integer, parameter :: PMC_CONDENSE_SOLVER_SUCCESS        = 0
+  !> Result code indicating failure to allocate \c y vector.
+  integer, parameter :: PMC_CONDENSE_SOLVER_INIT_Y         = 1
+  !> Result code indicating failure to allocate \c abstol vector.
+  integer, parameter :: PMC_CONDENSE_SOLVER_INIT_ABSTOL    = 2
+  !> Result code indicating failure to create the solver.
+  integer, parameter :: PMC_CONDENSE_SOLVER_INIT_CVODE_MEM = 3
+  !> Result code indicating failure to initialize the solver.
+  integer, parameter :: PMC_CONDENSE_SOLVER_INIT_CVODE     = 4
+  !> Result code indicating failure to set tolerances.
+  integer, parameter :: PMC_CONDENSE_SOLVER_SVTOL          = 5
+  !> Result code indicating failure to set maximum steps.
+  integer, parameter :: PMC_CONDENSE_SOLVER_SET_MAX_STEPS  = 6
+  !> Result code indicating failure of the solver.
+  integer, parameter :: PMC_CONDENSE_SOLVER_FAIL           = 7
+
   !> Internal-use structure for storing the inputs for the
   !> rate-calculation function.
   type condense_rates_inputs_t
@@ -148,7 +165,7 @@ contains
     !> Total time to integrate.
     real(kind=dp), intent(in) :: del_t
     
-    integer :: i_bin, i_part, n_eqn, i_eqn, solver_stat
+    integer :: i_bin, i_part, n_eqn, i_eqn
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%n_part + 1)
@@ -161,7 +178,7 @@ contains
     real(kind=c_double), target :: state_f(aero_state%n_part + 1)
     real(kind=c_double), target :: abstol_f(aero_state%n_part + 1)
     type(c_ptr) :: state_f_p, abstol_f_p
-    integer(kind=c_int) :: n_eqn_f
+    integer(kind=c_int) :: n_eqn_f, solver_stat
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
 #endif
     type(aero_particle_t) :: new_aero_particle
@@ -256,6 +273,7 @@ contains
     condense_count_solve = 0
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f)
+    call condense_check_solve(solver_stat)
     if (CONDENSE_DO_TEST_COUNTS) then
        write(0,*) 'condense_count_vf ', condense_count_vf
        write(0,*) 'condense_count_solve ', condense_count_solve
@@ -364,6 +382,45 @@ contains
     call env_state_deallocate(condense_saved_env_state_initial)
 
   end subroutine condense_particles
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_SUNDIALS
+  !> Check the return code from the condense_solver() function.
+  subroutine condense_check_solve(value)
+
+    !> Return code to check.
+    integer(kind=c_int), intent(in) :: value
+
+    if (value == PMC_CONDENSE_SOLVER_SUCCESS) then
+       return
+    elseif (value == PMC_CONDENSE_SOLVER_INIT_Y) then
+       call die_msg(123749472, "condense_solver: " &
+            // "failed to allocate y vector")
+    elseif (value == PMC_CONDENSE_SOLVER_INIT_ABSTOL) then
+       call die_msg(563665949, "condense_solver: " &
+            // "failed to allocate abstol vector")
+    elseif (value == PMC_CONDENSE_SOLVER_INIT_CVODE_MEM) then
+       call die_msg(700541443, "condense_solver: " &
+            // "failed to create the solver")
+    elseif (value == PMC_CONDENSE_SOLVER_INIT_CVODE) then
+       call die_msg(297559183, "condense_solver: " &
+            // "failure to initialize the solver")
+    elseif (value == PMC_CONDENSE_SOLVER_SVTOL) then
+       call die_msg(848342417, "condense_solver: " &
+            // "failed to set tolerances")
+    elseif (value == PMC_CONDENSE_SOLVER_SET_MAX_STEPS) then
+       call die_msg(275591501, "condense_solver: " &
+            // "failed to set maximum steps")
+    elseif (value == PMC_CONDENSE_SOLVER_FAIL) then
+       call die_msg(862254233, "condense_solver: solver failed")
+    else
+       call die_msg(635697577, "condense_solver: unknown return code: " &
+            // trim(integer_to_string(value)))
+    end if
+
+  end subroutine condense_check_solve
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

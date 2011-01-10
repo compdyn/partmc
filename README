@@ -100,7 +100,7 @@ mainly been under Linux and OS X. The quick-start instructions are:
         make
         make test
 
-8. To run just a single test do something like:
+8. To run just a single set of tests do something like:
 
         ctest -R poisson # argument is a regexp for test names
 

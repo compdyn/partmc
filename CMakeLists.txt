@@ -16,7 +16,7 @@ option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/ship_track/;/old/")
+set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/ship_track/;/old/;/tool/")
 
 include(CPack)
 

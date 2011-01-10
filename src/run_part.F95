@@ -204,8 +204,20 @@ contains
 
     global_n_part = aero_state_total_particles_all_procs(aero_state)
     if (rank == 0) then
+       ! progress only printed from root process
+       if (run_part_opt%i_repeat == 1) then
+          t_wall_elapsed = 0d0
+          t_wall_remain = 0d0
+       else
+          call cpu_time(t_wall_now)
+          prop_done = real(run_part_opt%i_repeat - 1, kind=dp) &
+               / real(run_part_opt%n_repeat, kind=dp)
+          t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
+          t_wall_remain = (1d0 - prop_done) / prop_done &
+               * t_wall_elapsed
+       end if
        call print_part_progress(run_part_opt%i_repeat, time, &
-            global_n_part, 0, 0, 0, 0, 0, 0d0, 0d0)
+            global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
 
     do i_time = i_time_start,n_time

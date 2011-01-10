@@ -719,9 +719,8 @@ contains
     type(c_ptr), value, intent(in) :: state_dot_p
     !> Pointer to right-hand-side vector.
     type(c_ptr), value, intent(in) :: rhs_p
-    !> Value of \c gamma parameter.
+    !> Value of \c gamma scalar parameter.
     real(kind=c_double), value, intent(in) :: gamma
-    ! FIXME: doxygen can't handle \f$\gamma\f$ in the comment above?
 
     real(kind=c_double), pointer :: state(:), state_dot(:), rhs(:)
     real(kind=c_double) :: soln(n_eqn)

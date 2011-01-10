@@ -221,9 +221,6 @@ contains
        call assert(161928491, aero_state%bin(b1)%n_part >= 2)
     end if
     
-    ! FIXME: rand() only returns a REAL*4, so we might not be able to
-    ! generate all integers between 1 and M if M is too big.
-
     do
        s1 = pmc_rand_int(aero_state%bin(b1)%n_part)
        s2 = pmc_rand_int(aero_state%bin(b2)%n_part)

@@ -3,9 +3,13 @@ GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = html/index.html
 
-ALL_SOURCE = $(wildcard ../src/*.f90)
+ALL_FSRC = $(wildcard ../src/*.f90)
+ALL_CSRC = $(wildcard ../src/*.c)
+ALL_SRC = $(ALL_FSRC) $(ALL_CSRC)
 
-PARTMC_SOURCE = $(filter-out ../src/extract_% ../src/numeric_%,$(ALL_SOURCE))
+PARTMC_FSRC = $(filter-out ../src/extract_% ../src/numeric_%,$(ALL_FSRC))
+PARTMC_CSRC = $(ALL_CSRC)
+PARTMC_SRC = $(PARTMC_FSRC) $(PARTMC_CSRC)
 
 .PHONY: all
 all: doc
@@ -20,7 +24,7 @@ README.html: ../README markdown2.py
 	./markdown2.py ../README >> $@
 	echo "</body></html>" >> $@
 
-$(DOC_INDEX): $(ALL_SOURCE) $(GRAPHVIZ_PDF) Doxyfile
+$(DOC_INDEX): $(ALL_SRC) $(GRAPHVIZ_PDF) Doxyfile
 	doxygen
 
 $(GRAPHVIZ_FILE): $(PARTMC_SOURCE) f90_mod_deps.py
@@ -29,7 +33,7 @@ $(GRAPHVIZ_FILE): $(PARTMC_SOURCE) f90_mod_deps.py
 	echo "    node [fontsize = 10, height = 0.3, width = 0.5];" >> $@
 	echo "    graph [nodesep = 0.2, ranksep = 0.3];" >> $@
 	echo "    edge [arrowsize = 0.7];" >> $@
-	./f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_SOURCE) >> $@
+	./f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_FSRC) >> $@
 	echo "}" >> $@
 
 %.png: %.gv

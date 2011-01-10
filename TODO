@@ -10,11 +10,7 @@ change "true" to "ref" in test/mosaic and test/condense
 
 change source to .F90 and drop preprocessor compiler args
 
-Do .c files generate doxygen content appropriately?
-
 Use MOSAIC_DIR as env variable to search for MOSAIC.
-
-Add source docs for *.c files.
 
 ######################################################################
 

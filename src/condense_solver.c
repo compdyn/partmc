@@ -1,9 +1,11 @@
-// Copyright (C) 2009-2010 Matthew West
-// Licensed under the GNU General Public License version 2 or (at your
-// option) any later version. See the file COPYING for details.
+/* Copyright (C) 2009-2011 Matthew West
+ * Licensed under the GNU General Public License version 2 or (at your
+ * option) any later version. See the file COPYING for details.
+ */
 
-// \file
-// Helper file to call the SUNDIALS solver for condensation.
+/** \file
+ * \brief Interface to SUNDIALS ODE solver library for condensation.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,6 +32,19 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 static void condense_solver_Free(CVodeMem cv_mem);
 /*******************************************************/
 
+/** \brief Call the ODE solver.
+ *
+ * \param neq The number of equations.
+ * \param x_f A pointer to a vector of \c neq variables, giving the
+ * initial state vector on entry and the final state vector on exit.
+ * \param abstol_f A pointer to a vector of \c neq variables, giving
+ * the absolute error tolerance for the corresponding state vector
+ * component.
+ * \param reltol_f The scalar relative tolerance.
+ * \param t_initial_f The initial time (s).
+ * \param t_final_f The final time (s).
+ * \return A result code (0 is success).
+ */
 int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 		    double t_initial_f, double t_final_f)
 {
@@ -115,6 +130,14 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	return(0);
 }
 
+/** \brief The ODE vector field to integrate.
+ *
+ * \param t The current time (s).
+ * \param y The state vector.
+ * \param ydot The rate of change of the state vector.
+ * \param user_data A pointer to user-provided data.
+ * \return A result code (0 is success).
+ */
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
 	realtype *y_data, *ydot_data;
@@ -141,14 +164,24 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	return(0);
 }
 
-/*
- * Check function return value...
- *   opt == 0 means SUNDIALS function allocates memory so check if
- *            returned NULL pointer
- *   opt == 1 means SUNDIALS function returns a flag so check if
- *            flag >= 0
- *   opt == 2 means function allocates memory so check if returned
- *            NULL pointer 
+/** \brief Check the return value from a SUNDIALS call.
+ *
+ *  - <code>opt == 0</code> means SUNDIALS function allocates memory
+ *            so check if \c flagvalue is not a \c NULL pointer.
+
+ *  - <code>opt == 1</code> means SUNDIALS function returns a flag so
+ *            check if the \c int pointed to by \c flagvalue has
+ *            <code>flag >= 0</code>.
+
+ *  - <code>opt == 2</code> means function allocates memory so check
+ *            if \c flagvalue is not a \c NULL pointer.
+ *
+ * \param flagvalue A pointer to check (either for \c NULL, or as an
+ * \c int pointer giving the flag value).
+ * \param funcname A string giving the function name returning this
+ * result code.
+ * \param opt A flag indicating the type of check to perform.
+ * \return A result code (0 is success).
  */
 static int condense_check_flag(void *flagvalue, char *funcname, int opt)
 {
@@ -177,11 +210,28 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
   return(0);
 }
 
+/** \brief Initialization routine for the ODE linear equation solver.
+ *
+ * \param cv_mem The \c CVODE solver parameter structure.
+ * \return A result code (0 is success).
+ */
 static int condense_solver_Init(CVodeMem cv_mem)
 {
 	return(0);
 }
 
+/** \brief Setup routine for the ODE linear equation solver.
+ *
+ * \param cv_mem The \c CVODE solver parameter structure.
+ * \param convfail
+ * \param ypred
+ * \param fpred
+ * \param jcurPtr
+ * \param vtemp1
+ * \param vtemp2
+ * \param vtemp3
+ * \return A result code (0 is success).
+ */
 static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
 				 N_Vector fpred, booleantype *jcurPtr, 
 				 N_Vector vtemp1, N_Vector vtemp2, N_Vector vtemp3)
@@ -189,6 +239,19 @@ static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
 	return(0);
 }
 
+/** \brief Linear solver routine for use by the ODE solver.
+ *
+ * Should solve the system \f$(I - \gamma J) x = b\f$, where \f$J\f$
+ * is the current vector field Jacobian, \f$\gamma\f$ is a given
+ * scalar, and \f$b\f$ is a given vector.
+ *
+ * \param cv_mem The \c CVODE solver parameter structure.
+ * \param b The right-hand-side of the linear system.
+ * \param weight
+ * \param ycur The current state vector.
+ * \param fcur The current vector field vector.
+ * \return A result code (0 is success).
+ */
 static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 				 N_Vector ycur, N_Vector fcur)
 {
@@ -225,6 +288,10 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 	return(0);
 }
 
+/** \brief Finalization routine for the ODE linear equation solver.
+ *
+ * \param cv_mem The \c CVODE solver parameter structure.
+ */
 static void condense_solver_Free(CVodeMem cv_mem)
 {
 }

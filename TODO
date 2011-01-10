@@ -18,6 +18,8 @@ Use MOSAIC_DIR as env variable to search for MOSAIC.
 
 Add source docs for *.c files.
 
+Add gsl normal call.
+
 ######################################################################
 
 Time
@@ -85,7 +87,11 @@ coagulation? Does this come in the right order? We should really be
 able to do aerosol_optical as a post-processing step.
 
 Change numeric_average.f90 to be numeric_reduce.f90 with option
-"mean", "stddev", "min", "max", "median", "perc_rank" (percentile rank).
+"mean", "stddev", "min", "max", "median", "perc_rank" (percentile
+rank).
+
+Change sample_disc_pdf() and sample_cts_pdf() to use cumulative
+distributions.
 
 Don't store paricles as ragged array, but just as a flat list. For
 coagulation, pre-compute the bin structures as needed on every

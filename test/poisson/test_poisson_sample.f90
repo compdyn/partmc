@@ -4,7 +4,7 @@ program poisson_sample
   use pmc_rand
   use pmc_util
 
-  integer :: k_max, n_samp, i_samp, k, i
+  integer :: k_max, n_samp, i_samp, k
   real(kind=dp) :: lambda
   real(kind=dp), allocatable :: count_pdf(:), pdf(:)
   integer, allocatable :: count(:)
@@ -30,10 +30,7 @@ program poisson_sample
   ! compute exact PDF
   if (n_samp == 0) then
      do k = 0,k_max
-        pdf(k) = exp(-lambda) * lambda**k
-        do i = 1,k
-           pdf(k) = pdf(k) / dble(i)
-        end do
+        pdf(k) = exp(-lambda) * lambda**k / gamma(real(k + 1, kind=dp))
      end do
   end if
 

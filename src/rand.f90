@@ -196,6 +196,7 @@ contains
 #endif
 #endif
 
+    call assert(669532625, n >= 1)
 #ifdef PMC_USE_GSL
     n_c = int(n, kind=c_int)
     harvest_ptr = c_loc(harvest)
@@ -247,6 +248,9 @@ contains
   !!
   !! Unfortunately the above code is under the non-free license:
   !!     - http://www.acm.org/pubs/copyright_policy/softwareCRnotice.html
+  !!
+  !! For other reasonable methods see L. Devroye, "Non-Uniform Random
+  !! Variate Generation", Springer-Verlag, 1986.
   integer function rand_poisson(mean)
 
     !> Mean of the distribution.
@@ -274,6 +278,7 @@ contains
 #endif
 #endif
 
+    call assert(368397056, mean >= 0d0)
 #ifdef PMC_USE_GSL
     mean_c = real(mean, kind=c_double)
     harvest_ptr = c_loc(harvest)
@@ -314,6 +319,7 @@ contains
 
     real(kind=dp) :: u1, u2, r, theta, z0, z1
 
+    call assert(898978929, stddev >= 0d0)
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
     u1 = pmc_random()
@@ -323,7 +329,7 @@ contains
     z0 = r * cos(theta)
     z1 = r * sin(theta)
     ! z0 and z1 are now independent N(0,1) random variables
-    ! We through away z1, but we could use a SAVE variable to only do
+    ! We throw away z1, but we could use a SAVE variable to only do
     ! the computation on every second call of this function.
     rand_normal = stddev * z0 + mean
 
@@ -334,7 +340,7 @@ contains
   !> Sample the given continuous probability density function.
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
-  !! sum(pdf).
+  !! sum(pdf). Uses accept-reject.
   integer function sample_cts_pdf(pdf)
 
     !> Probability density function (not normalized).
@@ -368,7 +374,7 @@ contains
   !> Sample the given discrete probability density function.
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /
-  !! sum(pdf).
+  !! sum(pdf). Uses accept-reject.
   integer function sample_disc_pdf(pdf)
 
     !> Probability density function.
@@ -414,6 +420,7 @@ contains
 
     integer :: i_samp, k
 
+    call assert(617770167, n_samp >= 0)
     vec_disc = 0
     do i_samp = 1,n_samp
        k = sample_cts_pdf(vec_cts)

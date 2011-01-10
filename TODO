@@ -3,8 +3,6 @@ Before release of 2.0.0:
 
 t_wall, t_rem incorrect for repeats (see test/brownian)
 
-change source to .F90 and drop preprocessor compiler args
-
 Use MOSAIC_DIR as env variable to search for MOSAIC.
 
 ######################################################################
@@ -53,8 +51,6 @@ other processor is less than one, switch to a
 
 Build
 #####
-
-Add proper cmake support for debug/optimized builds.
 
 Sometimes cmake seems to rebuild even if no source files have changed
 at all? Maybe has to do with the fact that the module files are being

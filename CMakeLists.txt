@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 2.6.4)
+# Require 2.6.4 due to -I/usr/include behavior:
+# http://www.cmake.org/Bug/view.php?id=8598
+# http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
+# http://www.cmake.org/Bug/view.php?id=8408
 project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
@@ -7,12 +11,16 @@ set(PACKAGE_STRING "PartMC 2.0.0")
 set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "2.0.0")
 
+######################################################################
+# options
+
+option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
-option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 
 ######################################################################
+# CPack
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
@@ -21,6 +29,7 @@ set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build
 include(CPack)
 
 ######################################################################
+# NetCDF
 
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
@@ -87,7 +96,89 @@ if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
 endif()
 
+include_directories(${NETCDF_INCLUDE_DIR})
+
 ######################################################################
+# GSL
+
+if(ENABLE_GSL)
+  find_path(GSL_INCLUDE_DIR gsl/gsl_math.h
+    DOC "GSL include directory (must have gsl/ subdir)"
+    PATHS
+    /include
+    /usr/include
+    /usr/local/include
+    /opt/include
+    /opt/include
+    /opt/local/include
+    /sw/include
+    /usr/include/netcdf
+    $ENV{HOME}/include
+    $ENV{HOME}/opt/include
+    $ENV{HOME}/gsl/include)
+  find_library(GSL_LIB gsl
+    DOC "GSL library"
+    PATHS
+    /usr/lib
+    /usr/lib64
+    /usr/local/lib
+    /usr/local/lib64
+    /opt/lib
+    /opt/local/lib
+    /sw/lib
+    /sw/lib/netcdf-gfortran/lib
+    /sw/lib/netcdf-g95/lib
+    $ENV{HOME}/lib
+    $ENV{HOME}/lib64
+    $ENV{HOME}/opt/lib
+    $ENV{HOME}/opt/lib64
+    $ENV{HOME}/gsl/lib
+    $ENV{HOME}/gsl/lib64)
+  set(GSL_SRC src/rand_gsl.c)
+  include_directories(${GSL_INCLUDE_DIR})
+  add_definitions(-DPMC_USE_GSL)
+endif()
+
+######################################################################
+# MOSAIC
+
+if(ENABLE_MOSAIC)
+  find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
+    DOC "MOSAIC include directory"
+    PATHS
+    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules
+    $ENV{HOME}/include
+    $ENV{HOME}/opt/include
+    $ENV{HOME}/mosaic/include
+    $ENV{HOME}/subversion/mosaic/trunk/datamodules
+    $ENV{HOME}/svn/mosaic/trunk/datamodules)
+  find_library(MOSAIC_LIB mosaic
+    DOC "MOSAIC library"
+    PATHS
+    ${PROJECT_SOURCE_DIR}/../mosaic
+    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk
+    $ENV{HOME}/lib
+    $ENV{HOME}/lib64
+    $ENV{HOME}/opt/lib
+    $ENV{HOME}/opt/lib64
+    $ENV{HOME}/mosaic/lib
+    $ENV{HOME}/mosaic/lib64
+    $ENV{HOME}/subversion/mosaic/trunk
+    $ENV{HOME}/svn/mosaic/trunk)
+  include_directories(${MOSAIC_INCLUDE_DIR})
+  add_definitions(-DPMC_USE_MOSAIC)
+endif()
+
+######################################################################
+# MPI
+
+if(ENABLE_MPI)
+  add_definitions(-DPMC_USE_MPI)
+endif()
+
+######################################################################
+# SUNDIALS
 
 if(ENABLE_SUNDIALS)
   find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
@@ -135,146 +226,14 @@ if(ENABLE_SUNDIALS)
     $ENV{HOME}/opt/lib64
     $ENV{HOME}/sundials/lib
     $ENV{HOME}/sundials/lib64)
-  
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
-else()
-  set(SUNDIALS_LIBS "")
-endif()
-
-######################################################################
-
-if(ENABLE_MOSAIC)
-  find_path(MOSAIC_INCLUDE_DIR module_data_mosaic_main.mod
-    DOC "MOSAIC include directory"
-    PATHS
-    ${PROJECT_SOURCE_DIR}/../mosaic/datamodules
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk/datamodules
-    $ENV{HOME}/include
-    $ENV{HOME}/opt/include
-    $ENV{HOME}/mosaic/include
-    $ENV{HOME}/subversion/mosaic/trunk/datamodules
-    $ENV{HOME}/svn/mosaic/trunk/datamodules)
-  find_library(MOSAIC_LIB mosaic
-    DOC "MOSAIC library"
-    PATHS
-    ${PROJECT_SOURCE_DIR}/../mosaic
-    ${PROJECT_SOURCE_DIR}/../../mosaic/trunk
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/mosaic/lib
-    $ENV{HOME}/mosaic/lib64
-    $ENV{HOME}/subversion/mosaic/trunk
-    $ENV{HOME}/svn/mosaic/trunk)
-else()
-  set(MOSAIC_LIB "")
-endif()
-
-######################################################################
-
-if(ENABLE_GSL)
-  find_path(GSL_INCLUDE_DIR gsl/gsl_math.h
-    DOC "GSL include directory (must have gsl/ subdir)"
-    PATHS
-    /include
-    /usr/include
-    /usr/local/include
-    /opt/include
-    /opt/include
-    /opt/local/include
-    /sw/include
-    /usr/include/netcdf
-    $ENV{HOME}/include
-    $ENV{HOME}/opt/include
-    $ENV{HOME}/gsl/include)
-  find_library(GSL_LIB gsl
-    DOC "GSL library"
-    PATHS
-    /usr/lib
-    /usr/lib64
-    /usr/local/lib
-    /usr/local/lib64
-    /opt/lib
-    /opt/local/lib
-    /sw/lib
-    /sw/lib/netcdf-gfortran/lib
-    /sw/lib/netcdf-g95/lib
-    $ENV{HOME}/lib
-    $ENV{HOME}/lib64
-    $ENV{HOME}/opt/lib
-    $ENV{HOME}/opt/lib64
-    $ENV{HOME}/gsl/lib
-    $ENV{HOME}/gsl/lib64)
-else()
-  set(GSL_LIB "")
-endif()
-
-######################################################################
-
-set(EXTRA_LIBS)
-
-include_directories(${NETCDF_INCLUDE_DIR})
-
-if(ENABLE_MOSAIC)
-  include_directories(${MOSAIC_INCLUDE_DIR})
-  add_definitions(-DPMC_USE_MOSAIC)
-endif()
-
-if(ENABLE_MPI)
-  add_definitions(-DPMC_USE_MPI)
-endif()
-
-if(ENABLE_SUNDIALS)
+  set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
 endif()
 
-if(ENABLE_GSL)
-  include_directories(${GSL_INCLUDE_DIR})
-  add_definitions(-DPMC_USE_GSL)
-endif()
-
 ######################################################################
-
-get_filename_component(COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-
-# MW 2009-01-20: Below we add -I/usr/include manually because gfortran
-# does not search this by default [1], but cmake strips it from paths
-# given by include_directories(), assuming that the compiler will
-# search it anyway (as gcc does). I reported this as a cmake bug [2].
-# [1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
-# [2] http://www.cmake.org/Bug/view.php?id=8408
-#
-# MW 2009-06-15: The issue is rather tricky from the gfortran side
-# (module files should not go in include directories at all). On the
-# cmake side the issue has been resolved by removing include directory
-# suppression altogether for Fortran [3]. This change apparently went
-# into cmake 2.6.4, but we'll keep the explicit include hack below for
-# a while until everyone updates.
-# [3] http://www.cmake.org/Bug/view.php?id=8598
-#
-# MW 2010-12-29: Version 2.8 of cmake has been out for quite a while
-# now, so I'm removing the explicit -I/include hack and bumping the
-# required cmake version to 2.6.4.
-
-if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  set(DEFAULT_PARTMC_FFLAGS "-g -std=f2008 -pedantic -x f95-cpp-input -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wno-unused -fbounds-check")
-elseif(COMPILER_NAME MATCHES ".*pgf90" OR COMPILER_NAME MATCHES ".*pgf95")
-  set(DEFAULT_PARTMC_FFLAGS "-Mpreprocess -DDEFINE_LOCAL_COMMAND_ARGUMENT")
-else()
-  set(DEFAULT_PARTMC_FFLAGS "")
-endif()
-
-set(PARTMC_FFLAGS ${DEFAULT_PARTMC_FFLAGS} CACHE STRING "FFLAGS used while compiling PartMC")
-
-if(ENABLE_SUNDIALS OR ENABLE_GSL)
-  set(PARTMC_CFLAGS "" CACHE STRING "CFLAGS used while compiling PartMC")
-else()
-  set(PARTMC_CFLAGS "")
-endif()
-
-######################################################################
+# tests
 
 enable_testing()
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
@@ -365,42 +324,19 @@ add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 ######################################################################
 # partmc
 
-set(PARTMC_FSRC src/partmc.f90 src/aero_state.f90 src/aero_binned.f90
-  src/bin_grid.f90 src/constants.f90 src/env_data.f90
-  src/env_state.f90 src/aero_mode.f90 src/aero_dist.f90
-  src/aero_weight.f90 src/coag_kernel_additive.f90
-  src/coag_kernel_sedi.f90 src/coag_kernel_constant.f90
-  src/coag_kernel_brown.f90 src/coag_kernel_zero.f90 src/aero_data.f90
-  src/run_exact.f90 src/run_part.f90 src/util.f90 src/run_sect.f90
-  src/output.f90 src/mosaic.f90 src/gas_data.f90 src/gas_state.f90
-  src/coagulation.f90 src/exact_soln.f90 src/coagulation_dist.f90
-  src/coag_kernel.f90 src/spec_line.f90 src/spec_file.f90 src/rand.f90
-  src/aero_particle.f90 src/aero_particle_array.f90 src/mpi.f90
-  src/netcdf.f90 src/aero_info.f90 src/aero_info_array.f90
-  src/nucleate.f90)
-
-set(PARTMC_CSRC "")
-
-if(ENABLE_SUNDIALS)
-  set(PARTMC_FSRC ${PARTMC_FSRC} src/condense.f90)
-  set(PARTMC_CSRC ${PARTMC_CSRC} src/condense_solver.c)
-endif()
-
-if(ENABLE_GSL)
-  set(PARTMC_CSRC ${PARTMC_CSRC} src/rand_gsl.c)
-endif()
-
-if(PARTMC_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(${PARTMC_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(PARTMC_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(${PARTMC_CSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(partmc ${PARTMC_FSRC} ${PARTMC_CSRC})
+add_executable(partmc src/partmc.F95 src/aero_state.F95
+  src/aero_binned.F95 src/bin_grid.F95 src/constants.F95
+  src/env_data.F95 src/env_state.F95 src/aero_mode.F95
+  src/aero_dist.F95 src/aero_weight.F95 src/coag_kernel_additive.F95
+  src/coag_kernel_sedi.F95 src/coag_kernel_constant.F95
+  src/coag_kernel_brown.F95 src/coag_kernel_zero.F95 src/aero_data.F95
+  src/run_exact.F95 src/run_part.F95 src/util.F95 src/run_sect.F95
+  src/output.F95 src/mosaic.F95 src/gas_data.F95 src/gas_state.F95
+  src/coagulation.F95 src/exact_soln.F95 src/coagulation_dist.F95
+  src/coag_kernel.F95 src/spec_line.F95 src/spec_file.F95 src/rand.F95
+  src/aero_particle.F95 src/aero_particle_array.F95 src/mpi.F95
+  src/netcdf.F95 src/aero_info.F95 src/aero_info_array.F95
+  src/nucleate.F95 src/condense.F95 ${SUNDIALS_SRC} ${GSL_SRC})
 
 target_link_libraries(partmc ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIB})
@@ -408,187 +344,77 @@ target_link_libraries(partmc ${NETCDF_LIBS} ${SUNDIALS_LIBS}
 ######################################################################
 # test_bidisperse_ode
 
-set(TEST_BIDISPERSE_ODE_FSRC test/bidisperse/test_bidisperse_ode.f90
-  src/coag_kernel_sedi.f90 src/env_data.f90 src/env_state.f90
-  src/constants.f90 src/aero_data.f90 src/util.f90 src/gas_data.f90
-  src/gas_state.f90 src/aero_state.f90 src/output.f90 src/bin_grid.f90
-  src/spec_line.f90 src/spec_file.f90 src/aero_mode.f90
-  src/aero_dist.f90 src/aero_weight.f90 src/aero_binned.f90
-  src/rand.f90 src/aero_particle.f90 src/aero_particle_array.f90
-  src/mpi.f90 src/netcdf.f90 src/aero_info.f90
-  src/aero_info_array.f90)
-
-set(TEST_BIDISPERSE_ODE_CSRC "")
-
-if(ENABLE_GSL)
-  set(TEST_BIDISPERSE_ODE_CSRC ${TEST_BIDISPERSE_ODE_CSRC} src/rand_gsl.c)
-endif()
-
-if(TEST_BIDISPERSE_ODE_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(TEST_BIDISPERSE_ODE_FSRC
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(TEST_BIDISPERSE_ODE_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(TEST_BIDISPERSE_ODE_CSRC
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(test_bidisperse_ode ${TEST_BIDISPERSE_ODE_FSRC}
-  ${TEST_BIDISPERSE_ODE_CSRC})
+add_executable(test_bidisperse_ode
+  test/bidisperse/test_bidisperse_ode.F95 src/coag_kernel_sedi.F95
+  src/env_data.F95 src/env_state.F95 src/constants.F95
+  src/aero_data.F95 src/util.F95 src/gas_data.F95 src/gas_state.F95
+  src/aero_state.F95 src/output.F95 src/bin_grid.F95 src/spec_line.F95
+  src/spec_file.F95 src/aero_mode.F95 src/aero_dist.F95
+  src/aero_weight.F95 src/aero_binned.F95 src/rand.F95
+  src/aero_particle.F95 src/aero_particle_array.F95 src/mpi.F95
+  src/netcdf.F95 src/aero_info.F95 src/aero_info_array.F95 ${GSL_SRC})
 
 target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIB})
 
 ######################################################################
 # test_bidisperse_extract
 
-set(TEST_BIDISPERSE_EXTRACT_FSRC
-  test/bidisperse/test_bidisperse_extract.f90)
-
-if(PARTMC_FFLAGS)
-  set_source_files_properties(${TEST_BIDISPERSE_EXTRACT_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
 add_executable(test_bidisperse_extract
-  ${TEST_BIDISPERSE_EXTRACT_FSRC})
+test/bidisperse/test_bidisperse_extract.F95)
 
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
 ######################################################################
 # test_nucleate_ode
 
-set(TEST_NUCLEATE_ODE_FSRC test/nucleate/test_nucleate_ode.f90
-  src/util.f90 src/constants.f90)
+set(TEST_NUCLEATE_ODE_SRC test/nucleate/test_nucleate_ode.F95
+  src/util.F95 src/constants.F95)
 
-if(PARTMC_FFLAGS)
-  set_source_files_properties(${TEST_NUCLEATE_ODE_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_FSRC})
+add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 
 ######################################################################
 # test_poisson_sample
 
-set(TEST_POISSON_SAMPLE_FSRC test/rand/test_poisson_sample.f90
-  src/util.f90 src/rand.f90 src/constants.f90 src/mpi.f90)
-
-set(TEST_POISSON_SAMPLE_CSRC "")
-
-if(ENABLE_GSL)
-  set(TEST_POISSON_SAMPLE_CSRC ${TEST_POISSON_SAMPLE_CSRC}
-    src/rand_gsl.c)
-endif()
-
-if(TEST_POISSON_SAMPLE_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(${TEST_POISSON_SAMPLE_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(TEST_POISSON_SAMPLE_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(${TEST_POISSON_SAMPLE_CSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(test_poisson_sample ${TEST_POISSON_SAMPLE_FSRC}
-  ${TEST_POISSON_SAMPLE_CSRC})
+add_executable(test_poisson_sample test/rand/test_poisson_sample.F95
+  src/util.F95 src/rand.F95 src/constants.F95 src/mpi.F95 ${GSL_SRC})
 
 target_link_libraries(test_poisson_sample ${GSL_LIB})
 
 ######################################################################
 # test_binomial_sample
 
-set(TEST_BINOMIAL_SAMPLE_FSRC test/rand/test_binomial_sample.f90
-  src/util.f90 src/rand.f90 src/constants.f90 src/mpi.f90)
-
-set(TEST_BINOMIAL_SAMPLE_CSRC "")
-
-if(ENABLE_GSL)
-  set(TEST_BINOMIAL_SAMPLE_CSRC ${TEST_BINOMIAL_SAMPLE_CSRC}
-    src/rand_gsl.c)
-endif()
-
-if(TEST_BINOMIAL_SAMPLE_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(${TEST_BINOMIAL_SAMPLE_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(TEST_BINOMIAL_SAMPLE_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(${TEST_BINOMIAL_SAMPLE_CSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(test_binomial_sample ${TEST_BINOMIAL_SAMPLE_FSRC}
-  ${TEST_BINOMIAL_SAMPLE_CSRC})
+add_executable(test_binomial_sample test/rand/test_binomial_sample.F95
+  src/util.F95 src/rand.F95 src/constants.F95 src/mpi.F95 ${GSL_SRC})
 
 target_link_libraries(test_binomial_sample ${GSL_LIB})
 
 ######################################################################
 # bin_average_comp
 
-set(BIN_AVERAGE_COMP_FSRC src/bin_average_comp.f90 src/bin_grid.f90
-  src/gas_state.f90 src/gas_data.f90 src/util.f90 src/env_state.f90
-  src/output.f90 src/aero_state.f90 src/aero_data.f90 src/netcdf.f90
-  src/mpi.f90 src/spec_file.f90 src/aero_binned.f90
-  src/aero_particle.f90 src/aero_particle_array.f90 src/aero_info.f90
-  src/aero_info_array.f90 src/aero_dist.f90 src/constants.f90
-  src/spec_line.f90 src/aero_mode.f90 src/aero_weight.f90
-  src/rand.f90)
-
-set(BIN_AVERAGE_COMP_CSRC "")
-
-if(ENABLE_GSL)
-  set(BIN_AVERAGE_COMP_CSRC ${BIN_AVERAGE_COMP_CSRC}
-    src/rand_gsl.c)
-endif()
-
-if(BIN_AVERAGE_COMP_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(${BIN_AVERAGE_COMP_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(BIN_AVERAGE_COMP_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(${BIN_AVERAGE_COMP_CSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(bin_average_comp ${BIN_AVERAGE_COMP_FSRC}
-  ${BIN_AVERAGE_COMP_CSRC})
+add_executable(bin_average_comp src/bin_average_comp.F95
+  src/bin_grid.F95 src/gas_state.F95 src/gas_data.F95 src/util.F95
+  src/env_state.F95 src/output.F95 src/aero_state.F95
+  src/aero_data.F95 src/netcdf.F95 src/mpi.F95 src/spec_file.F95
+  src/aero_binned.F95 src/aero_particle.F95
+  src/aero_particle_array.F95 src/aero_info.F95
+  src/aero_info_array.F95 src/aero_dist.F95 src/constants.F95
+  src/spec_line.F95 src/aero_mode.F95 src/aero_weight.F95 src/rand.F95
+  ${GSL_SRC})
 
 target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIB})
 
 ######################################################################
 # bin_average_size
 
-set(BIN_AVERAGE_SIZE_FSRC src/bin_average_size.f90 src/bin_grid.f90
-  src/gas_state.f90 src/gas_data.f90 src/util.f90 src/env_state.f90
-  src/output.f90 src/aero_state.f90 src/aero_data.f90 src/netcdf.f90
-  src/mpi.f90 src/spec_file.f90 src/aero_binned.f90
-  src/aero_particle.f90 src/aero_particle_array.f90 src/aero_info.f90
-  src/aero_info_array.f90 src/aero_dist.f90 src/constants.f90
-  src/spec_line.f90 src/aero_mode.f90 src/aero_weight.f90
-  src/rand.f90)
-
-set(BIN_AVERAGE_SIZE_CSRC "")
-
-if(ENABLE_GSL)
-  set(BIN_AVERAGE_SIZE_CSRC ${BIN_AVERAGE_SIZE_CSRC}
-    src/rand_gsl.c)
-endif()
-
-if(BIN_AVERAGE_SIZE_FSRC AND PARTMC_FFLAGS)
-  set_source_files_properties(${BIN_AVERAGE_SIZE_FSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
-
-if(BIN_AVERAGE_SIZE_CSRC AND PARTMC_CFLAGS)
-  set_source_files_properties(${BIN_AVERAGE_SIZE_CSRC}
-    PROPERTIES COMPILE_FLAGS ${PARTMC_CFLAGS})
-endif()
-
-add_executable(bin_average_size ${BIN_AVERAGE_SIZE_FSRC}
-  ${BIN_AVERAGE_SIZE_CSRC})
+add_executable(bin_average_size src/bin_average_size.F95
+  src/bin_grid.F95 src/gas_state.F95 src/gas_data.F95 src/util.F95
+  src/env_state.F95 src/output.F95 src/aero_state.F95
+  src/aero_data.F95 src/netcdf.F95 src/mpi.F95 src/spec_file.F95
+  src/aero_binned.F95 src/aero_particle.F95
+  src/aero_particle_array.F95 src/aero_info.F95
+  src/aero_info_array.F95 src/aero_dist.F95 src/constants.F95
+  src/spec_line.F95 src/aero_mode.F95 src/aero_weight.F95 src/rand.F95
+  ${GSL_SRC})
 
 target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIB})
 
@@ -596,107 +422,55 @@ target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIB})
 # extract_aero_*
 
 add_executable(extract_aero_particle_mass
-  src/extract_aero_particle_mass.f90)
+  src/extract_aero_particle_mass.F95)
 target_link_libraries(extract_aero_particle_mass ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_aero_particle_mass.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_aero_size_num
-  src/extract_aero_size_num.f90)
+  src/extract_aero_size_num.F95)
 target_link_libraries(extract_aero_size_num ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_aero_size_num.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_aero_size_mass
-  src/extract_aero_size_mass.f90)
+  src/extract_aero_size_mass.F95)
 target_link_libraries(extract_aero_size_mass ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_aero_size_mass.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_aero_species
-  src/extract_aero_species.f90)
+  src/extract_aero_species.F95)
 target_link_libraries(extract_aero_species ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_aero_species.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_aero_total
-  src/extract_aero_total.f90)
+  src/extract_aero_total.F95)
 target_link_libraries(extract_aero_total ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_aero_total.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
-add_executable(extract_gas src/extract_gas.f90)
+add_executable(extract_gas src/extract_gas.F95)
 target_link_libraries(extract_gas ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_gas.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
-add_executable(extract_env src/extract_env.f90)
+add_executable(extract_env src/extract_env.F95)
 target_link_libraries(extract_env ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_env.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 ######################################################################
 # extract_sectional_*
 
 add_executable(extract_sectional_aero_size_num
-  src/extract_sectional_aero_size_num.f90)
+  src/extract_sectional_aero_size_num.F95)
 target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_sectional_aero_size_num.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_sectional_aero_size_mass
-  src/extract_sectional_aero_size_mass.f90)
+  src/extract_sectional_aero_size_mass.F95)
 target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_sectional_aero_size_mass.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_sectional_aero_species
-  src/extract_sectional_aero_species.f90)
+  src/extract_sectional_aero_species.F95)
 target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_sectional_aero_species.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 add_executable(extract_sectional_aero_total
-  src/extract_sectional_aero_total.f90)
+  src/extract_sectional_aero_total.F95)
 target_link_libraries(extract_sectional_aero_total ${NETCDF_LIBS})
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/extract_sectional_aero_total.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
 
 ######################################################################
 # numeric_*
 
-add_executable(numeric_diff src/numeric_diff.f90)
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/numeric_diff.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
+add_executable(numeric_diff src/numeric_diff.F95)
 
-add_executable(numeric_average src/numeric_average.f90)
-if(PARTMC_FFLAGS)
-  set_source_files_properties(src/numeric_average.f90
-    PROPERTIES COMPILE_FLAGS ${PARTMC_FFLAGS})
-endif()
+add_executable(numeric_average src/numeric_average.F95)
 
 ######################################################################

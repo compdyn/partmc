@@ -157,11 +157,13 @@ contains
     real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
     real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
     real(kind=dp) :: V_comp_final, water_rel_error
+#ifdef PMC_USE_SUNDIALS
     real(kind=c_double), target :: state_f(aero_state%n_part + 1)
     real(kind=c_double), target :: abstol_f(aero_state%n_part + 1)
     type(c_ptr) :: state_f_p, abstol_f_p
     integer(kind=c_int) :: n_eqn_f
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
+#endif
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
     integer :: n_copies, i_dup
@@ -237,6 +239,7 @@ contains
     state(aero_state%n_part + 1) = env_state%rel_humid
     abs_tol_vector(aero_state%n_part + 1) = 1d-10
 
+#ifdef PMC_USE_SUNDIALS
     ! call SUNDIALS solver
     n_eqn = aero_state%n_part + 1
     n_eqn_f = int(n_eqn, kind=c_int)
@@ -251,10 +254,8 @@ contains
     abstol_f_p = c_loc(abstol_f)
     condense_count_vf = 0
     condense_count_solve = 0
-#ifdef PMC_USE_SUNDIALS
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f)
-#endif
     if (CONDENSE_DO_TEST_COUNTS) then
        write(0,*) 'condense_count_vf ', condense_count_vf
        write(0,*) 'condense_count_solve ', condense_count_solve
@@ -262,6 +263,7 @@ contains
     do i_eqn = 1,n_eqn
        state(i_eqn) = real(state_f(i_eqn), kind=dp)
     end do
+#endif
 
     ! unpack result state vector into env_state
     env_state%rel_humid = state(aero_state%n_part + 1)
@@ -524,6 +526,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef PMC_USE_SUNDIALS
   !> Compute the condensation rates (Ddot and Hdot) at the current
   !> value of the state (D and H).
   subroutine condense_vf_f(n_eqn, time, state_p, state_dot_p) bind(c)
@@ -577,9 +580,11 @@ contains
     call env_state_deallocate(env_state)
     
   end subroutine condense_vf_f
+#endif
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef PMC_USE_SUNDIALS
   !> Compute the Jacobian given by the derivatives of the condensation
   !> rates (Ddot and Hdot) with respect to the input variables (D and
   !> H).
@@ -636,9 +641,11 @@ contains
     call env_state_deallocate(env_state)
     
   end subroutine condense_jac
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef PMC_USE_SUNDIALS
   !> Solve the system \f$ Pz = r \f$ where \f$ P = I - \gamma J \f$
   !> and \f$ J = \partial f / \partial y \f$. The solution is returned
   !> in the \f$ r \f$ vector.
@@ -714,6 +721,7 @@ contains
     rhs = soln
 
   end subroutine condense_jac_solve_f
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

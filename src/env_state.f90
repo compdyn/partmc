@@ -458,12 +458,7 @@ contains
     end if
 
     ! loss to background
-    sample_prop = delta_t * effective_dilution_rate
-    if (sample_prop > 1d0) then
-       call die_msg(925788271, &
-            'effective dilution rate too high for this timestep, ' &
-            // 'try reducing timestep')
-    end if
+    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
@@ -471,7 +466,7 @@ contains
     n_dil_out = aero_state_total_particles(aero_state_delta)
 
     ! addition from background
-    sample_prop = delta_t * effective_dilution_rate
+    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
@@ -481,7 +476,8 @@ contains
     call aero_state_add_particles(aero_state, aero_state_delta)
     
     ! emissions
-    sample_prop = delta_t * env_state%aero_emission_rate / env_state%height
+    sample_prop = 1d0 &
+         - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &

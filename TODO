@@ -6,8 +6,6 @@ t_wall, t_rem incorrect for repeats (see test/brownian)
 Rename run_test_XX.sh to test_NNNNN_XX.sh, change CMakeFiles to print
 something like this. Also run_test to test_run.
 
-change "true" to "ref" in test/mosaic and test/condense
-
 change source to .F90 and drop preprocessor compiler args
 
 Use MOSAIC_DIR as env variable to search for MOSAIC.

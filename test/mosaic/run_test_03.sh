@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_aero_total out/mosaic_0001_ out/mosaic_aero_total.txt
-../../numeric_diff true_aero_total.txt out/mosaic_aero_total.txt 0 0.1 0 0 3 3
+../../numeric_diff ref_aero_total.txt out/mosaic_aero_total.txt 0 0.1 0 0 3 3

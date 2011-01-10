@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_gas out/mosaic_0001_ out/mosaic_gas.txt
-../../numeric_diff true_gas.txt out/mosaic_gas.txt 0 0.01 0 0 2 0
+../../numeric_diff ref_gas.txt out/mosaic_gas.txt 0 0.01 0 0 2 0

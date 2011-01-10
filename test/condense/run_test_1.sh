@@ -12,4 +12,4 @@ mkdir -p out
 ../../partmc run_part.spec
 
 ../../extract_env out/condense_0001_ out/condense_env.txt
-../../numeric_diff true_env.txt out/condense_env.txt 0 1e-8
+../../numeric_diff ref_env.txt out/condense_env.txt 0 1e-8

@@ -25,6 +25,16 @@ int pmc_srand_gsl(int seed)
         return PMC_RAND_GSL_SUCCESS;
 }
 
+int pmc_rand_finalize_gsl()
+{
+        if (!pmc_rand_gsl_rng) {
+                return PMC_RAND_GSL_NOT_INIT;
+        }
+        gsl_rng_free(pmc_rand_gsl_rng);
+        pmc_rand_gsl_rng = NULL;
+        return PMC_RAND_GSL_SUCCESS;
+}
+
 int pmc_rand_gsl(double *harvest)
 {
         if (!pmc_rand_gsl_rng) {
@@ -61,15 +71,5 @@ int pmc_rand_binomial_gsl(int n, double p, int *harvest)
         }
         u = n;
         *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
-        return PMC_RAND_GSL_SUCCESS;
-}
-
-int pmc_rand_finalize_gsl()
-{
-        if (!pmc_rand_gsl_rng) {
-                return PMC_RAND_GSL_NOT_INIT;
-        }
-        gsl_rng_free(pmc_rand_gsl_rng);
-        pmc_rand_gsl_rng = NULL;
         return PMC_RAND_GSL_SUCCESS;
 }

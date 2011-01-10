@@ -3,12 +3,10 @@ Before release of 2.0.0:
 
 t_wall, t_rem incorrect for repeats (see test/brownian)
 
-rename run_test_XX.sh to test_NNNNN_XX.sh, change CMakeFiles to print
-something like this.
+Rename run_test_XX.sh to test_NNNNN_XX.sh, change CMakeFiles to print
+something like this. Also run_test to test_run.
 
 change "true" to "ref" in test/mosaic and test/condense
-
-use CPack
 
 change source to .F90 and drop preprocessor compiler args
 
@@ -72,8 +70,6 @@ Add proper cmake support for debug/optimized builds.
 Sometimes cmake seems to rebuild even if no source files have changed
 at all? Maybe has to do with the fact that the module files are being
 put into the build/ directory?
-
-Why does doxygen make a "Related Pages" with just spec_file_format?
 
 ######################################################################
 

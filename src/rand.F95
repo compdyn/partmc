@@ -18,12 +18,16 @@ module pmc_rand
   !> Length of a UUID string.
   integer, parameter :: PMC_UUID_LEN = 36
 
-#ifdef PMC_USE_GSL
+  !> Result code indicating successful completion.
   integer, parameter :: PMC_RAND_GSL_SUCCESS      = 0
+  !> Result code indicating initialization failure.
   integer, parameter :: PMC_RAND_GSL_INIT_FAIL    = 1
+  !> Result code indicating the generator was not initialized when it
+  !> should have been.
   integer, parameter :: PMC_RAND_GSL_NOT_INIT     = 2
+  !> Result code indicating the generator was already initialized when
+  !> an initialization was attempted.
   integer, parameter :: PMC_RAND_GSL_ALREADY_INIT = 3
-#endif
   
 contains
 
@@ -331,7 +335,7 @@ contains
     integer(kind=c_int), target :: harvest
     type(c_ptr) :: harvest_ptr
 #else
-    real(kind=dp) :: np, nomp, q
+    real(kind=dp) :: np, nomp, q, G_real
     integer :: k, G, sum
 #endif
 
@@ -379,12 +383,16 @@ contains
        else
           q = 1d0 - p
        end if
-       k = -1
+       k = 0
        sum = 0
-       do while (sum <= n)
-          ! G is geometric(p)
-          G = ceiling(log(pmc_random()) / log(1d0 - q))
+       do
+          ! G is geometric(q)
+          G_real = log(pmc_random()) / log(1d0 - q)
+          ! early bailout for cases to avoid integer overflow
+          if (G_real > real(n - sum, kind=dp)) exit
+          G = ceiling(G_real)
           sum = sum + G
+          if (sum > n) exit
           k = k + 1
        end do
        if (p <= 0.5d0) then

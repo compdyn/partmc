@@ -25,6 +25,7 @@ program binomial_sample
   allocate(count(0:n), count_pdf(0:n), pdf(0:n))
 
   ! initialize the RNG with a random seed
+  call pmc_mpi_init()
   call pmc_srand(0, 0)
   
   ! compute exact PDF
@@ -58,5 +59,6 @@ program binomial_sample
 
   ! cleanup the RNG
   call pmc_rand_finalize()
+  call pmc_mpi_finalize()
 
 end program binomial_sample

@@ -25,6 +25,7 @@ program poisson_sample
   allocate(count(0:k_max), count_pdf(0:k_max), pdf(0:k_max))
 
   ! initialize the RNG with a random seed
+  call pmc_mpi_init()
   call pmc_srand(0, 0)
   
   ! compute exact PDF
@@ -55,5 +56,6 @@ program poisson_sample
 
   ! cleanup the RNG
   call pmc_rand_finalize()
+  call pmc_mpi_finalize()
 
 end program poisson_sample

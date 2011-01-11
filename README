@@ -5,7 +5,7 @@ PartMC
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 2.0.0  
-Released 2011-01-05
+Released 2011-01-11
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -39,17 +39,21 @@ Dependencies
 
 Required dependencies:
 
-   * Fortran 95 compiler
+   * Fortran 95 compiler (Fortran 2003 `ISO_C_BINDING` support
+     required for SUNDIALS or GSL)
    * cmake version 2.6.4 or higher - <http://www.cmake.org/>
    * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
 
 Optional dependencies:
 
-   * MOSAIC - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
-   * MPI - <http://www.open-mpi.org/>
-   * GSL - <http://www.gnu.org/software/gsl/>
-   * SUNDIALS - <http://www.llnl.gov/casc/sundials/>
-   * gnuplot - <http://www.gnuplot.info/>
+   * MOSAIC chemistry code version 2011-01-10 - Available from Rahul
+     Zaveri - <Rahul.Zaveri@pnl.gov>
+   * MPI parallel support - <http://www.open-mpi.org/>
+   * GSL for random number generators -
+     <http://www.gnu.org/software/gsl/>
+   * SUNDIALS ODE solver version 2.4 for condensation support -
+     <http://www.llnl.gov/casc/sundials/>
+   * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 
 PartMC can be compiled out-of-the-box on Linux if the following
 packages are installed:
@@ -85,30 +89,51 @@ mainly been under Linux and OS X. The quick-start instructions are:
         mkdir build
         cd build
 
-5. Run cmake with the main PartMC directory as an argument (note the
+5. If necessary, set environment variables to indicate the install
+   locations of supporting libraries. If running `echo $SHELL`
+   indicates that you are running `bash`, then you can do something
+   like:
+
+        export NETCDF_HOME=/
+        export MOSAIC_HOME=${HOME}/subversion/trunk
+        export SUNDIALS_HOME=${HOME}/opt
+        export GSL_HOME=${HOME}/opt
+
+   Of course the exact directories will depend on where the libraries
+   are installed. You only need to set variables for libraries
+   installed in non-default locations, and only for those libraries
+   you want to use.
+
+   If `echo $SHELL` instead is `tcsh` or similar, then the environment
+   variables can be set like `setenv NETCDF_HOME /` and similarly.
+
+6. Run cmake with the main PartMC directory as an argument (note the
    double-c):
 
         ccmake ..
 
-6. Inside ccmake press `c` to configure, edit the values as needed,
-   press `c` again, then `g` to generate.
+7. Inside ccmake press `c` to configure, edit the values as needed,
+   press `c` again, then `g` to generate. Optional libraries can be
+   activated by setting the `ENABLE` variable to `ON`. For a parallel
+   build, toggle advanced mode with `t` and set the
+   `CMAKE_Fortran_COMPILER` to `mpif90`, then reconfigure.
 
-7. Compile PartMC and test it as follows. Some tests may fail due to
+8. Compile PartMC and test it as follows. Some tests may fail due to
    bad random initial conditions, so re-run the tests a few times to
    see if failures persist.
 
         make
         make test
 
-8. To run just a single set of tests do something like:
+9. To run just a single set of tests do something like:
 
         ctest -R poisson # argument is a regexp for test names
 
-9. To see what make is doing run it like:
+10. To see what make is doing run it like:
 
         VERBOSE=1 make
 
-10. To run tests with visible output or to make some plots from the
+11. To run tests with visible output or to make some plots from the
     tests run them as:
 
         cd test_run/emission
@@ -117,70 +142,10 @@ mainly been under Linux and OS X. The quick-start instructions are:
         ./test_emission_3.sh            # similarly for other tests
         gnuplot -persist plot_species.gnuplot # etc...
 
-11. To run full scenarios, do, for example:
+12. To run full scenarios, do, for example:
 
         cd ../scenarios/1_urban_plume
         ./run.sh
-
-PartMC can interface to the MOSAIC chemistry code (see above for
-availability) but this is not enabled by default. This version of
-PartMC has been tested with the `mosaic-2011-01-02` version. To use
-MOSAIC, set the `ENABLE_MOSAIC` variable to `ON` in cmake. The
-`MOSAIC_INCLUDE_DIR` variable should be the location of the MOSAIC
-module files (compiled with the same compiler), probably ending in
-`mosaic/datamodules`. The `MOSAIC_LIB` variable should end in
-something like `mosaic/libmosaic.a`.
-
- These variables will be set
-automatically if, before running `cmake`, the environment variable
-`MOSAIC_HOME` is set. For example:
-
-     export MOSAIC_HOME=${HOME}/subversion/mosaic/trunk   # for bash
-     setenv MOSAIC_HOME ${HOME}/subversion/mosaic/trunk   # for tcsh
-
-Rather than using the builtin random number intrinsics of the Fortran
-compiler, PartMC can alternatively use the GSL library for random
-number generation and distribution sampling. To enable this, set the
-`ENABLE_GSL` variable to `ON` and set the `GSL_INCLUDE_DIR` and
-`GSL_LIB` variables to the correct values.
-
-The condensation code in PartMC requires SUNDIALS version 2.4.0 (not
-enabled by default). To use it, set the `ENABLE_SUNDIALS` variable to
-`ON`. The `SUNDIALS_CVODE_LIB` variable should be the location of the
-`libsundials_cvode` library, the `SUNDIALS_NVECSERIAL_LIB` variable
-should be the location of the `libsundials_nvecserial` library, and
-`SUNDIALS_INCLUDE_DIR` should be the base directory that contains the
-cvode header directory.
-
-To compile PartMC to enable parallel execution with MPI, set the
-`ENABLE_MPI` variable to `ON`. Then in the advaced mode section of
-cmake set the `CMAKE_Fortran_COMPILER` to `mpif90` (or other MPI
-compiler wrapper as appropriate) and reconfigure cmake. The `partmc`
-executable should then be lauched with `mpirun -np 2 partmc` or
-similar.
-
-Using SUNDIALS or GSL requires linking C libraries with the Fortran
-2003 C Interoperability mechanisms. This requires both a Fortran
-compiler supporting the Fortran 2003 `ISO_C_BINDING` intrinsic module,
-as well as a C compiler.
-
-To aid CMake in its search for include directories and libraries,
-various environment variables can be set _before_ running `ccmake` for
-the first time. If the command `echo $SHELL` is `bash` or similar,
-then the environment variables can be set, for example, like:
-
-    export NETCDF_HOME=/
-    export MOSAIC_HOME=${HOME}/subversion/trunk
-    export SUNDIALS_HOME=${HOME}/opt
-    export GSL_HOME=${HOME}/opt
-
-If `echo $SHELL` instead is `tcsh` or similar, then the environment
-variables can be set with:
-
-    setenv NETCDF_HOME /
-    setenv MOSAIC_HOME ${HOME}/subversion/trunk
-    setenv SUNDIALS_HOME ${HOME}/opt
-    setenv GSL_HOME ${HOME}/opt
 
 
 Usage
@@ -199,7 +164,7 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-2.0.0 - 2011-01-05
+2.0.0 - 2011-01-11
 
   * Parallel implementations based on remote particle access.
 

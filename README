@@ -95,7 +95,7 @@ mainly been under Linux and OS X. The quick-start instructions are:
    like:
 
         export NETCDF_HOME=/
-        export MOSAIC_HOME=${HOME}/subversion/trunk
+        export MOSAIC_HOME=${HOME}/mosaic-2011-01-10
         export SUNDIALS_HOME=${HOME}/opt
         export GSL_HOME=${HOME}/opt
 

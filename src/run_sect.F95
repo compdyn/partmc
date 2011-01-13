@@ -28,7 +28,7 @@ module pmc_run_sect
   use pmc_gas_data
   use pmc_gas_state
 
-  !> Options to control the operation of run_sect().
+  !> Options controlling the operation of run_sect().
   type run_sect_opt_t
      !> Final time (s).
     real(kind=dp) :: t_max

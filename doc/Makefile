@@ -3,7 +3,7 @@ GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = html/index.html
 
-ALL_FSRC = $(wildcard ../src/*.f90)
+ALL_FSRC = $(wildcard ../src/*.F95)
 ALL_CSRC = $(wildcard ../src/*.c)
 ALL_SRC = $(ALL_FSRC) $(ALL_CSRC)
 
@@ -27,7 +27,7 @@ README.html: ../README markdown2.py
 $(DOC_INDEX): $(ALL_SRC) $(GRAPHVIZ_PDF) Doxyfile
 	doxygen
 
-$(GRAPHVIZ_FILE): $(PARTMC_SOURCE) f90_mod_deps.py
+$(GRAPHVIZ_FILE): $(PARTMC_FSRC) f90_mod_deps.py
 	echo "digraph partmc_modules {" > $@
 	echo "    rankdir = TB;" >> $@
 	echo "    node [fontsize = 10, height = 0.3, width = 0.5];" >> $@

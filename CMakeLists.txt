@@ -24,7 +24,7 @@ option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/ship_track/;/old/;/tool/")
+set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/ship_track/;/old/;/tool/;/TODO/")
 
 include(CPack)
 

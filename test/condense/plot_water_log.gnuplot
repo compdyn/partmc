@@ -14,7 +14,7 @@ set y2tics
 
 set logscale y2
 
-plot "true_env.txt" using 1:3 axes x1y1 with lines title "true relative humidity", \
+plot "ref_env.txt" using 1:3 axes x1y1 with lines title "ref relative humidity", \
      "out/condense_env.txt" using 1:3 axes x1y1 with points title "relative humidity", \
-     "true_aero_species.txt" using 1:21 axes x1y2 with lines title "true aerosol water", \
+     "ref_aero_species.txt" using 1:21 axes x1y2 with lines title "ref aerosol water", \
      "out/condense_aero_species.txt" using 1:21 axes x1y2 with points title "aerosol water"

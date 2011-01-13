@@ -17,5 +17,5 @@ set y2range [0:*]
 
 plot "out/mosaic_aero_total.txt" using 1:2 axes x1y1 with lines title "number", \
      "out/mosaic_aero_total.txt" using 1:3 axes x1y2 with lines title "mass", \
-     "true_aero_total.txt" using 1:2 axes x1y1 with points title "true number", \
-     "true_aero_total.txt" using 1:3 axes x1y2 with points title "true mass"
+     "ref_aero_total.txt" using 1:2 axes x1y1 with points title "ref number", \
+     "ref_aero_total.txt" using 1:3 axes x1y2 with points title "ref mass"

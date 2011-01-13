@@ -59,7 +59,7 @@ PartMC can be compiled out-of-the-box on Linux if the following
 packages are installed:
 
    * Fedora 14: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
-   * Ubuntu 10.04: `gfortran`, `cmake-curses-gui`, `libnetcdf-dev`, `gnuplot`
+   * Ubuntu 10.10: `gfortran`, `cmake-curses-gui`, `libnetcdf-dev`, `gnuplot`
    * openSUSE 11.3: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
    * Debian 5.0: `gfortran`, `make`, `cmake`, `libnetcdf-dev`, `gnuplot`
 

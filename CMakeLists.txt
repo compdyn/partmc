@@ -60,7 +60,13 @@ if(ENABLE_GSL)
   find_library(GSL_LIB gsl
     DOC "GSL library"
     PATHS $ENV{GSL_HOME}/lib /opt/local/lib)
+  find_library(GSL_CBLAS_LIB gslcblas
+    DOC "GSL CBLAS library"
+    PATHS $ENV{GSL_HOME}/lib /opt/local/lib)
+  find_library(M_LIB m
+    DOC "standard C math library")
   set(GSL_SRC src/rand_gsl.c)
+  set(GSL_LIBS ${GSL_LIB} ${GSL_CBLAS_LIB} ${M_LIB})
   include_directories(${GSL_INCLUDE_DIR})
   add_definitions(-DPMC_USE_GSL)
 endif()
@@ -212,7 +218,7 @@ add_executable(partmc src/partmc.F95 src/aero_state.F95
   src/nucleate.F95 src/condense.F95 ${SUNDIALS_SRC} ${GSL_SRC})
 
 target_link_libraries(partmc ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIB})
+  ${MOSAIC_LIB} ${GSL_LIBS})
 
 ######################################################################
 # test_bidisperse_ode
@@ -227,7 +233,7 @@ add_executable(test_bidisperse_ode
   src/aero_particle.F95 src/aero_particle_array.F95 src/mpi.F95
   src/netcdf.F95 src/aero_info.F95 src/aero_info_array.F95 ${GSL_SRC})
 
-target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIB})
+target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIBS})
 
 ######################################################################
 # test_bidisperse_extract
@@ -251,7 +257,7 @@ add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 add_executable(test_poisson_sample test/rand/test_poisson_sample.F95
   src/util.F95 src/rand.F95 src/constants.F95 src/mpi.F95 ${GSL_SRC})
 
-target_link_libraries(test_poisson_sample ${GSL_LIB})
+target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
 ######################################################################
 # test_binomial_sample
@@ -259,7 +265,7 @@ target_link_libraries(test_poisson_sample ${GSL_LIB})
 add_executable(test_binomial_sample test/rand/test_binomial_sample.F95
   src/util.F95 src/rand.F95 src/constants.F95 src/mpi.F95 ${GSL_SRC})
 
-target_link_libraries(test_binomial_sample ${GSL_LIB})
+target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
 ######################################################################
 # bin_average_comp
@@ -274,7 +280,7 @@ add_executable(bin_average_comp src/bin_average_comp.F95
   src/spec_line.F95 src/aero_mode.F95 src/aero_weight.F95 src/rand.F95
   ${GSL_SRC})
 
-target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIB})
+target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIBS})
 
 ######################################################################
 # bin_average_size
@@ -289,7 +295,7 @@ add_executable(bin_average_size src/bin_average_size.F95
   src/spec_line.F95 src/aero_mode.F95 src/aero_weight.F95 src/rand.F95
   ${GSL_SRC})
 
-target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIB})
+target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIBS})
 
 ######################################################################
 # extract_aero_*

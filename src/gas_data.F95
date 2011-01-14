@@ -22,16 +22,13 @@ module pmc_gas_data
   !> Constant gas data.
   !!
   !! Each gas species is identified by an integer \c i between 1 and
-  !! \c n_spec. Species \c i has name \c gas_data%%name(i), molecular
-  !! weight gas_data%%molec_weight(i), etc. The variable gas data
-  !! describing the current mixing ratios is stored in the
-  !! gas_state_t structure, so the mixing ratio of species \c i is
-  !! gas_state%%mix_rat(i).
+  !! \c n_spec. Species \c i has name \c gas_data%%name(i). The
+  !! variable gas data describing the current mixing ratios is stored
+  !! in the gas_state_t structure, so the mixing ratio of species \c i
+  !! is gas_state%%mix_rat(i).
   type gas_data_t
      !> Number of species.
      integer :: n_spec
-     !> Molecular weight (kg mole^{-1}).
-     real(kind=dp), pointer :: molec_weight(:)
      !> Species name [length \c n_spec].
      character(len=GAS_NAME_LEN), pointer :: name(:)
      !> Index of the corresponding MOSAIC species [length \c
@@ -51,7 +48,6 @@ contains
     type(gas_data_t), intent(out) :: gas_data
 
     gas_data%n_spec = 0
-    allocate(gas_data%molec_weight(0))
     allocate(gas_data%name(0))
     allocate(gas_data%mosaic_index(0))
 
@@ -68,7 +64,6 @@ contains
     integer, intent(in) :: n_spec
 
     gas_data%n_spec = n_spec
-    allocate(gas_data%molec_weight(n_spec))
     allocate(gas_data%name(n_spec))
     allocate(gas_data%mosaic_index(n_spec))
 
@@ -82,7 +77,6 @@ contains
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
 
-    deallocate(gas_data%molec_weight)
     deallocate(gas_data%name)
     deallocate(gas_data%mosaic_index)
 
@@ -189,17 +183,14 @@ contains
     !> \page input_format_gas_data Input File Format: Gas Material Data
     !!
     !! A gas material data file must consist of one line per gas
-    !! species, with each line having the species name followed by the
-    !! species molecular weight in kg/mol, separated by spaces. This
-    !! specifies both which species are to be recognized as gases, as
-    !! well as their physical properties. For example, a \c gas_data
-    !! file could contain:
+    !! species, with each line having the species name. This specifies
+    !! which species are to be recognized as gases. For example, a \c
+    !! gas_data file could contain:
     !! <pre>
-    !! # gas  molec weight (kg/mol)
-    !! H2SO4  18d-3
-    !! HNO3   18d-3
-    !! HCl    18d-3
-    !! NH3    18d-3
+    !! H2SO4
+    !! HNO3
+    !! HCl
+    !! NH3
     !! </pre>
     !!
     !! See also:
@@ -213,9 +204,9 @@ contains
          species_data)
 
     ! check the data size
-    if (size(species_data, 2) /= 1) then
+    if (size(species_data, 2) /= 0) then
        call die_msg(614290516, 'each line in ' // trim(file%name) &
-            // ' must only contain one value')
+            // ' must only contain the species name')
     end if
 
     ! allocate and copy over the data
@@ -224,7 +215,6 @@ contains
     call gas_data_allocate_size(gas_data, n_species)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
-       gas_data%molec_weight(i) = species_data(i,1)
     end do
     deallocate(species_name)
     deallocate(species_data)
@@ -243,7 +233,6 @@ contains
 
     pmc_mpi_pack_size_gas_data = &
          pmc_mpi_pack_size_integer(val%n_spec) &
-         + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_string_array(val%name) &
          + pmc_mpi_pack_size_integer_array(val%mosaic_index)
 
@@ -266,7 +255,6 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, val%n_spec)
-    call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
     call assert(449872094, &
@@ -292,7 +280,6 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
-    call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
     call assert(137879163, &
@@ -380,8 +367,6 @@ contains
     !!     from the 'names' attribute
     !!   - \b gas_mosaic_index (dim \c gas_species): MOSAIC indices of
     !!     gas species
-    !!   - \b gas_molec_weight (unit kg/mol, dim \c gas_species): molecular
-    !!     weights of gas species
     !!
     !! See also:
     !!   - \ref input_format_gas_data --- the corresponding input format
@@ -392,9 +377,6 @@ contains
     call pmc_nc_write_integer_1d(ncid, gas_data%mosaic_index, &
          "gas_mosaic_index", (/ dimid_gas_species /), &
          long_name="MOSAIC indices of gas species")
-    call pmc_nc_write_real_1d(ncid, gas_data%molec_weight, &
-         "gas_molec_weight", (/ dimid_gas_species /), unit="kg/mol", &
-         long_name="molecular weights of gas species")
 
   end subroutine gas_data_output_netcdf
 
@@ -421,8 +403,6 @@ contains
 
     call pmc_nc_read_integer_1d(ncid, gas_data%mosaic_index, &
          "gas_mosaic_index")
-    call pmc_nc_read_real_1d(ncid, gas_data%molec_weight, &
-         "gas_molec_weight")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
     call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &

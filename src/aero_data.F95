@@ -239,9 +239,12 @@ contains
     !! aerosol species, with each line having:
     !!   - species name (string)
     !!   - density (real, unit kg/m^3)
-    !!   - ions per fully dissociated molecule (integer)
+    !!   - ions per fully dissociated molecule (integer) - used to
+    !!     compute kappa value if the corresponding kappa value is
+    !!     zero
     !!   - molecular weight (real, unit kg/mol)
-    !!   - kappa hygroscopicity parameter (real, dimensionless)
+    !!   - kappa hygroscopicity parameter (real, dimensionless) - if
+    !!     zero, then inferred from the ions value
     !!
     !! This specifies both which species are to be recognized as
     !! aerosol consituents, as well as their physical properties. For
@@ -250,9 +253,15 @@ contains
     !! # species  dens (kg/m^3)   ions (1)    molec wght (kg/mole)   kappa (1)
     !! SO4        1800            0           96e-3                  0.65
     !! NO3        1800            0           62e-3                  0.65
-    !! Cl         2200            0           35.5e-3                0.53
+    !! Cl         2200            1           35.5e-3                0
     !! NH4        1800            0           18e-3                  0.65
     !! </pre>
+    !!
+    !! Note that it is an error to specify a non-zero number of ions
+    !! and a non-zero kappa value for a species. If both values are
+    !! zero then that species has zero hygroscopicity parameter. If
+    !! exactly one of kappa or ions is non-zero then the non-zero
+    !! value is used and the zero value is ignored.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

@@ -566,9 +566,9 @@ contains
     !! The environment parameters are divided into those specified at
     !! the start of the simulation and then either held constant or
     !! computed for the rest of the simulation, and those parameters
-    !! given as proscribed profiles for the entire simulation
+    !! given as prescribed profiles for the entire simulation
     !! duration. The variables below are for the first type --- for
-    !! the proscribed profiles see \ref input_format_env_data.
+    !! the prescribed profiles see \ref input_format_env_data.
     !!
     !! The environment state is specified by the parameters:
     !! - \b rel_humidity (real, dimensionless): the relative humidity

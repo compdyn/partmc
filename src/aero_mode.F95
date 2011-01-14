@@ -579,8 +579,8 @@ contains
     !!      <ul>
     !!      <li> \b geom_mean_diam (real, unit m): the geometric mean
     !!           diameter \f$D_{\rm gn}\f$
-    !!      <li> \b log10_geom_std_dev (real, dimensionless): &
-    !!           \f$\log_{10}\f$ of the geometric standard deviation &
+    !!      <li> \b log10_geom_std_dev (real, dimensionless):
+    !!           \f$\log_{10}\f$ of the geometric standard deviation
     !!           \f$\sigma_{\rm g}\f$ of the diameter
     !!      </ul>
     !! <li> if \c mode_type is \c exp then the mode distribution shape is

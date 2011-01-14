@@ -348,7 +348,7 @@ contains
     !! The environment parameters are divided into those specified at
     !! the start of the simulation and then either held constant or
     !! computed for the rest of the simulation, and those parameters
-    !! given as proscribed profiles for the entire simulation
+    !! given as prescribed profiles for the entire simulation
     !! duration. The variables below are for the second type --- for
     !! the computed values see \ref input_format_env_state.
     !!

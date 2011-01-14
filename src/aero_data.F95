@@ -287,6 +287,10 @@ contains
        aero_data%num_ions(i) = nint(species_data(i,2))
        aero_data%molec_weight(i) = species_data(i,3)
        aero_data%kappa(i) = species_data(i,4)
+       call assert_msg(232362742, &
+            (aero_data%num_ions(i) == 0) .or. (aero_data%kappa(i) == 0d0), &
+            "ions and kappa both non-zero for species " &
+            // trim(aero_data%name(i)) // " in " // trim(file%name))
        if (species_name(i) == "H2O") then
           aero_data%i_water = i
           call warn_assert_msg(945800387, &

@@ -536,23 +536,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the average of the solute solubilities (1).
-  real(kind=dp) function aero_particle_solute_solubility(aero_particle, &
-       aero_data)
-
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-
-    aero_particle_solute_solubility &
-         = aero_particle_average_solute_quantity(aero_particle, &
-         aero_data, aero_data%solubility)
-
-  end function aero_particle_solute_solubility
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the water density (kg/m^3).
   real(kind=dp) function aero_particle_water_density(aero_data)
 

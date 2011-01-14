@@ -50,8 +50,6 @@ module pmc_aero_data
      real(kind=dp), pointer ::  density(:)
      !> Len n_spec, number of ions in solute.
      integer, pointer :: num_ions(:)
-     !> Len n_spec, solubilities (1).
-     real(kind=dp), pointer :: solubility(:)
      !> Len n_spec, molecular weights (kg mol^{-1}).
      real(kind=dp), pointer :: molec_weight(:)
      !> Len n_spec, kappas (1).
@@ -73,7 +71,6 @@ contains
     allocate(aero_data%mosaic_index(0))
     allocate(aero_data%density(0))
     allocate(aero_data%num_ions(0))
-    allocate(aero_data%solubility(0))
     allocate(aero_data%molec_weight(0))
     allocate(aero_data%kappa(0))
     aero_data%i_water = 0
@@ -96,7 +93,6 @@ contains
     allocate(aero_data%mosaic_index(n_spec))
     allocate(aero_data%density(n_spec))
     allocate(aero_data%num_ions(n_spec))
-    allocate(aero_data%solubility(n_spec))
     allocate(aero_data%molec_weight(n_spec))
     allocate(aero_data%kappa(n_spec))
     aero_data%i_water = 0
@@ -115,7 +111,6 @@ contains
     deallocate(aero_data%mosaic_index)
     deallocate(aero_data%density)
     deallocate(aero_data%num_ions)
-    deallocate(aero_data%solubility)
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
 
@@ -139,7 +134,6 @@ contains
     aero_data_to%mosaic_index = aero_data_from%mosaic_index
     aero_data_to%density = aero_data_from%density
     aero_data_to%num_ions = aero_data_from%num_ions
-    aero_data_to%solubility = aero_data_from%solubility
     aero_data_to%molec_weight = aero_data_from%molec_weight
     aero_data_to%kappa = aero_data_from%kappa
 
@@ -246,7 +240,6 @@ contains
     !!   - species name (string)
     !!   - density (real, unit kg/m^3)
     !!   - ions per fully dissociated molecule (integer)
-    !!   - solubility (real, dimensionless)
     !!   - molecular weight (real, unit kg/mol)
     !!   - kappa hygroscopicity parameter (real, dimensionless)
     !!
@@ -254,11 +247,11 @@ contains
     !! aerosol consituents, as well as their physical properties. For
     !! example, an aerosol material data file could contain:
     !! <pre>
-    !! # species  dens (kg/m^3)   ions (1)    solubty (1)   molec wght (kg/mole)   kappa (1)
-    !! SO4        1800            0           0             96e-3                  0.65
-    !! NO3        1800            0           0             62e-3                  0.65
-    !! Cl         2200            0           0             35.5e-3                0.53
-    !! NH4        1800            0           0             18e-3                  0.65
+    !! # species  dens (kg/m^3)   ions (1)    molec wght (kg/mole)   kappa (1)
+    !! SO4        1800            0           96e-3                  0.65
+    !! NO3        1800            0           62e-3                  0.65
+    !! Cl         2200            0           35.5e-3                0.53
+    !! NH4        1800            0           18e-3                  0.65
     !! </pre>
     !!
     !! See also:
@@ -271,7 +264,7 @@ contains
 
     ! check the data size
     n_species = size(species_data, 1)
-    if (.not. ((size(species_data, 2) == 5) .or. (n_species == 0))) then
+    if (.not. ((size(species_data, 2) == 4) .or. (n_species == 0))) then
        call die_msg(428926381, 'each line in ' // trim(file%name) &
             // ' should contain exactly 5 values')
     end if
@@ -283,9 +276,8 @@ contains
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        aero_data%density(i) = species_data(i,1)
        aero_data%num_ions(i) = nint(species_data(i,2))
-       aero_data%solubility(i) = species_data(i,3)
-       aero_data%molec_weight(i) = species_data(i,4)
-       aero_data%kappa(i) = species_data(i,5)
+       aero_data%molec_weight(i) = species_data(i,3)
+       aero_data%kappa(i) = species_data(i,4)
        if (species_name(i) == "H2O") then
           aero_data%i_water = i
           call warn_assert_msg(945800387, &
@@ -355,7 +347,6 @@ contains
          + pmc_mpi_pack_size_integer_array(val%mosaic_index) &
          + pmc_mpi_pack_size_real_array(val%density) &
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
-         + pmc_mpi_pack_size_real_array(val%solubility) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa)
 
@@ -383,7 +374,6 @@ contains
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
     call pmc_mpi_pack_real_array(buffer, position, val%density)
     call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
-    call pmc_mpi_pack_real_array(buffer, position, val%solubility)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call assert(183834856, &
@@ -414,7 +404,6 @@ contains
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
     call pmc_mpi_unpack_real_array(buffer, position, val%density)
     call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
-    call pmc_mpi_unpack_real_array(buffer, position, val%solubility)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call assert(188522823, &
@@ -506,8 +495,6 @@ contains
     !!     of aerosol species
     !!   - \b aero_num_ions (dim \c aero_species): number of ions produced
     !!     when one molecule of each species fully dissociates in water
-    !!   - \b aero_solubility (dimensionless, dim \c aero_species):
-    !!     solubilities of aerosol species
     !!   - \b aero_molec_weight (unit kg/mol, dim \c aero_species): molecular
     !!     weights of aerosol species
     !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
@@ -528,9 +515,6 @@ contains
     call pmc_nc_write_integer_1d(ncid, aero_data%num_ions, &
          "aero_num_ions", (/ dimid_aero_species /), &
          long_name="number of ions after dissociation of aerosol species")
-    call pmc_nc_write_real_1d(ncid, aero_data%solubility, &
-         "aero_solubility", (/ dimid_aero_species /), unit="1", &
-         long_name="solubilities of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%molec_weight, &
          "aero_molec_weight", (/ dimid_aero_species /), unit="kg/mol", &
          long_name="molecular weights of aerosol species")
@@ -568,8 +552,6 @@ contains
          "aero_density")
     call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, &
          "aero_num_ions")
-    call pmc_nc_read_real_1d(ncid, aero_data%solubility, &
-         "aero_solubility")
     call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, &
          "aero_molec_weight")
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, &

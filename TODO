@@ -1,8 +1,6 @@
 
 Before release of 2.0.0:
 
-Remove solubility from aero_data.
-
 Explain that kappa and num_ions cannot both be specified.
 
 Remove molec_weight from gas_data.

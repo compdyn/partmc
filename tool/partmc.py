@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2010 Matthew West
+# Copyright (C) 2007-2011 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -93,7 +93,6 @@ class aero_data_t(object):
     mosaic_indices - species index numbers in MOSAIC (integers)
     densities - density of each species (kg/m^3)
     num_ions - number of ions for dissociation (integers)
-    solubilities - solubility factors (dimensionless)
     molec_weights - molecular weights (kg/mole)
     kappas - hydroscopicity parameters (dimensionless)
 
@@ -156,7 +155,6 @@ class aero_data_t(object):
                 ("aero_mosaic_index", "mosaic_indices"),
                 ("aero_density", "densities"),
                 ("aero_num_ions", "num_ions"),
-                ("aero_solubility", "solubilities"),
                 ("aero_molec_weight", "molec_weights"),
                 ("aero_kappa", "kappas"),
                 ]:
@@ -171,7 +169,6 @@ class aero_data_t(object):
             self.mosaic_indices = numpy.zeros([n_species], float)
             self.densities = numpy.zeros([n_species], float)
             self.num_ions = numpy.zeros([n_species], int)
-            self.solubilities = numpy.zeros([n_species], float)
             self.molec_weights = numpy.zeros([n_species], float)
             self.kappas = numpy.zeros([n_species], float)
 

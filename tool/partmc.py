@@ -253,8 +253,7 @@ class gas_data_t(object):
 
     """Stores the physical constants describing gas species. All data
     atributes are 1D arrays, with one entry per species. Thus names[i]
-    and molec_weights[i] give the name and molecular weight of the
-    i-th gas species, respectively.
+    gives of the i-th gas species.
 
     All data attribute arrays have the same length, so the number of
     species can be found, for example, with:
@@ -265,7 +264,6 @@ class gas_data_t(object):
     
     names - names of the gas species (strings)
     mosaic_indices - species index numbers in MOSAIC (integers)
-    molec_weights - molecular weights (kg/mole)
 
     There is one class data member, species_tex_names, that is a
     dictionary mapping ASCII species names to LaTeX species names.
@@ -381,7 +379,6 @@ class gas_data_t(object):
 
             for (ncf_var, self_var) in [
                 ("gas_mosaic_index", "mosaic_indices"),
-                ("gas_molec_weight", "molec_weights"),
                 ]:
                 if ncf_var not in ncf.variables.keys():
                     raise Exception("%s variable not found in NetCDF file" % ncf_var)
@@ -392,7 +389,6 @@ class gas_data_t(object):
                 raise Exception("ncf and n_species arguments cannot both be specified")
             self.names = ["" for i in range(n_species)]
             self.mosaic_indices = numpy.zeros([n_species], float)
-            self.molec_weights = numpy.zeros([n_species], float)
 
         if ncf is None and n_species is None:
             raise Exception("either ncf or n_species parameter must be specified")

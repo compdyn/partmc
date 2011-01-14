@@ -40,12 +40,12 @@ set y2tics
 
 set multiplot layout 2,1
 
-plot "out/urban_plume_nc_aero_species.txt" using ($1/3600):($3*1e9) axes x1y1 with lines title "NO3", \
-     "out/urban_plume_nc_aero_species.txt" using ($1/3600):($19*1e9) axes x1y1 with lines title "OC", \
-     "out/urban_plume_nc_aero_species.txt" using ($1/3600):($5*1e9) axes x1y1 with lines title "NH4"
+plot "out/urban_plume2_nc_aero_species.txt" using ($1/3600):($3*1e9) axes x1y1 with lines title "NO3", \
+     "out/urban_plume2_nc_aero_species.txt" using ($1/3600):($19*1e9) axes x1y1 with lines title "OC", \
+     "out/urban_plume2_nc_aero_species.txt" using ($1/3600):($5*1e9) axes x1y1 with lines title "NH4"
 
-plot "out/urban_plume_nc_aero_species.txt" using ($1/3600):($2*1e9) axes x1y1 with lines title "SO4", \
-     "out/urban_plume_nc_aero_species.txt" using ($1/3600):($20*1e9) axes x1y1 with lines title "BC", \
-     "out/urban_plume_nc_aero_species.txt" using ($1/3600):(($7+$8+$9+$10)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1
+plot "out/urban_plume2_nc_aero_species.txt" using ($1/3600):($2*1e9) axes x1y1 with lines title "SO4", \
+     "out/urban_plume2_nc_aero_species.txt" using ($1/3600):($20*1e9) axes x1y1 with lines title "BC", \
+     "out/urban_plume2_nc_aero_species.txt" using ($1/3600):(($7+$8+$9+$10)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1
 
 unset multiplot

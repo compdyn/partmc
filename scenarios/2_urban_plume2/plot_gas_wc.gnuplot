@@ -94,12 +94,12 @@ set ylabel "gas mixing ratio (ppb)"
 #  column 77: CH3SO2CH2OO (ppb)
 #  column 78: SULFHOX (ppb)
 
-plot "out/urban_plume_wc_gas.txt" using ($1/3600):12 axes x1y1 with lines title "O3", \
-     "out/urban_plume_wc_gas.txt" using ($1/3600):7 axes x1y1 with lines title "NO2"
+plot "out/urban_plume2_wc_gas.txt" using ($1/3600):12 axes x1y1 with lines title "O3", \
+     "out/urban_plume2_wc_gas.txt" using ($1/3600):7 axes x1y1 with lines title "NO2"
 
-plot "out/urban_plume_wc_gas.txt" using ($1/3600):3 axes x1y1 with lines title "HNO3", \
-     "out/urban_plume_wc_gas.txt" using ($1/3600):24 axes x1y1 with lines title "HCHO", \
-     "out/urban_plume_wc_gas.txt" using ($1/3600):19 axes x1y1 with lines title "SO2", \
-     "out/urban_plume_wc_gas.txt" using ($1/3600):5 axes x1y1 with lines title "NH3"
+plot "out/urban_plume2_wc_gas.txt" using ($1/3600):3 axes x1y1 with lines title "HNO3", \
+     "out/urban_plume2_wc_gas.txt" using ($1/3600):24 axes x1y1 with lines title "HCHO", \
+     "out/urban_plume2_wc_gas.txt" using ($1/3600):19 axes x1y1 with lines title "SO2", \
+     "out/urban_plume2_wc_gas.txt" using ($1/3600):5 axes x1y1 with lines title "NH3"
 
 unset multiplot

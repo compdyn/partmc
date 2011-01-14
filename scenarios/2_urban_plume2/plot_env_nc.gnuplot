@@ -25,8 +25,8 @@ set y2label "relative humidity (%)"
 set ytics nomirror
 set y2tics
 
-plot "out/urban_plume_nc_env.txt" using ($1/3600):2 axes x1y1 with lines title "temperature", \
-     "out/urban_plume_nc_env.txt" using ($1/3600):($3*100) axes x1y2 with lines title "relative humidity"
+plot "out/urban_plume2_nc_env.txt" using ($1/3600):2 axes x1y1 with lines title "temperature", \
+     "out/urban_plume2_nc_env.txt" using ($1/3600):($3*100) axes x1y2 with lines title "relative humidity"
 
 set ylabel "mixing height (m)"
 unset y2label
@@ -34,6 +34,6 @@ unset y2label
 set ytics mirror
 unset y2tics
 
-plot "out/urban_plume_nc_env.txt" using ($1/3600):5 axes x1y1 with lines title "mixing height"
+plot "out/urban_plume2_nc_env.txt" using ($1/3600):5 axes x1y1 with lines title "mixing height"
 
 unset multiplot

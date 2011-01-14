@@ -127,7 +127,7 @@ mainly been under Linux and OS X. The quick-start instructions are:
 
 9. To run just a single set of tests do something like:
 
-        ctest -R poisson # argument is a regexp for test names
+        ctest -R bidisperse   # argument is a regexp for test names
 
 10. To see what make is doing run it like:
 

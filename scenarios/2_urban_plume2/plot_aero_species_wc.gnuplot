@@ -46,6 +46,6 @@ plot "out/urban_plume2_wc_aero_species.txt" using ($1/3600):($3*1e9) axes x1y1 w
 
 plot "out/urban_plume2_wc_aero_species.txt" using ($1/3600):($2*1e9) axes x1y1 with lines title "SO4", \
      "out/urban_plume2_wc_aero_species.txt" using ($1/3600):($20*1e9) axes x1y1 with lines title "BC", \
-     "out/urban_plume2_wc_aero_species.txt" using ($1/3600):(($7+$8+$9+$10)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1
+     "out/urban_plume2_wc_aero_species.txt" using ($1/3600):(($7+$8+$9+$10+$11+$12+$13+$14)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1 + API1 + API2 + LIM1 + LIM2
 
 unset multiplot

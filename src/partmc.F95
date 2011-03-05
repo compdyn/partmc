@@ -102,13 +102,12 @@
 
 !> \page publications PartMC Publications
 !!
-!!   - R.&nbsp;A.&nbsp;Zaveri, R.&nbsp;C.&nbsp;Easter,
-!!     J.&nbsp;C.&nbsp;Barnard, N.&nbsp;Riemer, and M.&nbsp;West
-!!     (2010) Particle-resolved simulation of aerosol size,
-!!     composition, mixing state, and the associated optical and cloud
-!!     condensation nuclei activation properties in an evolving urban
-!!     plume, <i>Journal of Geophysical Research</i> 115(D17210), DOI:
-!!     <a
+!!   - R.&nbsp;A.&nbsp;Zaveri, J.&nbsp;C.&nbsp;Barnard,
+!!     R.&nbsp;C.&nbsp;Easter, N.&nbsp;Riemer, and M.&nbsp;West (2010)
+!!     Particle-resolved simulation of aerosol size, composition,
+!!     mixing state, and the associated optical and cloud condensation
+!!     nuclei activation properties in an evolving urban plume,
+!!     <i>Journal of Geophysical Research</i> 115(D17210), DOI: <a
 !!     href="http://dx.doi.org/10.1029/2009JD013616">10.1029/2009JD013616</a>.
 !!   - N.&nbsp;Riemer, M.&nbsp;West, R.&nbsp;A.&nbsp;Zaveri, and
 !!     R.&nbsp;C.&nbsp;Easter (2010) Estimating black carbon aging

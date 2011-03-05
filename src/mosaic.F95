@@ -275,6 +275,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  !> Map all data MOSAIC -> PartMC.
   subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
        aero_weight, aero_state, gas_data, gas_state)
     
@@ -284,7 +285,7 @@ contains
     
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         cair_molm3, ppb, avogad, msolar
+         cair_molm3, ppb, avogad, msolar, cos_sza
 #endif
     
     !> Bin grid.
@@ -323,6 +324,9 @@ contains
     env_state%rel_humid = RH / 100d0
     env_state%temp = te
     env_state%pressure = pr_atm * const%air_std_press
+    if (msolar == 1) then
+       env_state%solar_zenith_angle = acos(cos_sza)
+    end if
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9

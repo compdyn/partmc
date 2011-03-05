@@ -57,6 +57,8 @@ module pmc_env_state
      integer :: start_day
      !> Time since \c start_time (s).
      real(kind=dp) :: elapsed_time
+     !> Solar zenith angle (radians from zenith).
+     real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
      !> Gas emissions.
@@ -96,6 +98,7 @@ contains
     env_state%start_time = 0d0
     env_state%start_day = 0
     env_state%elapsed_time = 0d0
+    env_state%solar_zenith_angle = 0d0
     env_state%height = 0d0
 
     call gas_state_allocate(env_state%gas_emissions)
@@ -144,6 +147,8 @@ contains
     env_state%start_day = env_state%start_day + env_state_delta%start_day
     env_state%elapsed_time = env_state%elapsed_time &
          + env_state_delta%elapsed_time
+    env_state%solar_zenith_angle = env_state%solar_zenith_angle &
+         + env_state_delta%solar_zenith_angle
     env_state%height = env_state%height + env_state_delta%height
     call gas_state_add(env_state%gas_emissions, env_state_delta%gas_emissions)
     env_state%gas_emission_rate = env_state%gas_emission_rate &
@@ -178,6 +183,7 @@ contains
     env_state%start_time = env_state%start_time * alpha
     env_state%start_day = nint(real(env_state%start_day, kind=dp) * alpha)
     env_state%elapsed_time = env_state%elapsed_time * alpha
+    env_state%solar_zenith_angle = env_state%solar_zenith_angle * alpha
     env_state%height = env_state%height * alpha
     call gas_state_scale(env_state%gas_emissions, alpha)
     env_state%gas_emission_rate = env_state%gas_emission_rate * alpha
@@ -205,6 +211,7 @@ contains
     env_to%start_time = env_from%start_time
     env_to%start_day = env_from%start_day
     env_to%elapsed_time = env_from%elapsed_time
+    env_to%solar_zenith_angle = env_from%solar_zenith_angle
     env_to%height = env_from%height
     call gas_state_copy(env_from%gas_emissions, env_to%gas_emissions)
     env_to%gas_emission_rate = env_from%gas_emission_rate
@@ -669,6 +676,7 @@ contains
          + pmc_mpi_pack_size_real(val%start_time) &
          + pmc_mpi_pack_size_integer(val%start_day) &
          + pmc_mpi_pack_size_real(val%elapsed_time) &
+         + pmc_mpi_pack_size_real(val%solar_zenith_angle) &
          + pmc_mpi_pack_size_real(val%height) &
          + pmc_mpi_pack_size_gas_state(val%gas_emissions) &
          + pmc_mpi_pack_size_real(val%gas_emission_rate) &
@@ -706,6 +714,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
     call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
+    call pmc_mpi_pack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_pack_real(buffer, position, val%height)
     call pmc_mpi_pack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_pack_real(buffer, position, val%gas_emission_rate)
@@ -746,6 +755,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)
     call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
+    call pmc_mpi_unpack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_unpack_real(buffer, position, val%height)
     call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emissions)
     call pmc_mpi_unpack_real(buffer, position, val%gas_emission_rate)
@@ -805,6 +815,8 @@ contains
     !!   - \b start_day_of_year: day-in-year number of the simulation start
     !!     (starting from 1 on the first day of the year)
     !!   - \b elapsed_time (unit s): elapsed time since the simulation start
+    !!   - \b solar_zenith_angle (unit radians): current angle from
+    !!     the zenith to the sun
     !!   - \b height (unit m): current boundary layer mixing height
     !!
     !! See also:
@@ -831,6 +843,9 @@ contains
          description="day-of-year number of simulation start")
     call pmc_nc_write_real(ncid, env_state%elapsed_time, "elapsed_time", &
          unit="s", description="elapsed time since simulation start")
+    call pmc_nc_write_real(ncid, env_state%solar_zenith_angle, &
+         "solar_zenith_angle", unit="radian", &
+         description="current angle from the zenith to the sun")
     call pmc_nc_write_real(ncid, env_state%height, "height", unit="m", &
          long_name="boundary layer mixing height")
 
@@ -857,6 +872,8 @@ contains
     call pmc_nc_read_integer(ncid, env_state%start_day, &
          "start_day_of_year")
     call pmc_nc_read_real(ncid, env_state%elapsed_time, "elapsed_time")
+    call pmc_nc_read_real(ncid, env_state%solar_zenith_angle, &
+         "solar_zenith_angle")
     call pmc_nc_read_real(ncid, env_state%height, "height")
 
   end subroutine env_state_input_netcdf

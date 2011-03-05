@@ -191,6 +191,7 @@ class env_state_t(object):
     start_day_of_year - day number of year when the simulation
         started (integer)
     elapsed_time - elapsed simulation time since the simulation start (s)
+    solar_zenith_angle - angle between the zenith and the sun (radians)
     height - mixing layer height (m)
     
 
@@ -221,6 +222,7 @@ class env_state_t(object):
                 ("start_time_of_day", "start_time_of_day"),
                 ("start_day_of_year", "start_day_of_year"),
                 ("elapsed_time", "elapsed_time"),
+                ("solar_zenith_angle", "solar_zenith_angle"),
                 ("height", "height"),
                 ]:
                 if ncf_var not in ncf.variables.keys():
@@ -236,6 +238,7 @@ class env_state_t(object):
             self.start_time_of_day = 0.0
             self.start_day_of_year = 0
             self.elapsed_time = 0.0
+            self.solar_zenith_angle = 0.0
             self.height = 0.0
 
     def A(self):

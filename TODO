@@ -94,3 +94,11 @@ run_part_opt/run_sect_opt/run_exact_opt and scenario parameters into
 another structure (to replace env_data --- maybe call it
 scenario_t). Add spec_file_read_run_part_opt() etc to input the
 numerical parameters.
+
+Shift spec file reading into run_part.F95, etc. Have a
+spec_file_read_run_part() or similar, that just takes a filename. The
+main partmc program would then just read the first line of the file,
+close it, then call the correct run_*() reader. This would enable
+other driver programs to be easily written. run_part() should also
+take a callback function, with a t_callback timestep parameter, to
+enable in-run processing.

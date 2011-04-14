@@ -215,7 +215,9 @@ contains
 
     !> Value to round.
     real(kind=dp), intent(in) :: val
-    
+
+    ! FIXME: can replace this with:
+    ! prob_round = floor(val + pmc_random())
     if (pmc_random() < real(ceiling(val), kind=dp) - val) then
        prob_round = floor(val)
     else

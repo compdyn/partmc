@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -284,6 +284,50 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a simple logical 2D array from a NetCDF file.
+  subroutine pmc_nc_read_logical_2d(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read, must be correctly sized.
+    logical, intent(out) :: var(:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    ! integer kind that can represent -1, 0, 1
+    integer, parameter :: short = selected_int_kind(0)
+
+    integer :: varid, status
+    logical :: use_must_be_present
+    integer(kind=short) :: int_var(size(var,1), size(var,2))
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = .false.
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, int_var), &
+         "getting variable " // trim(name))
+    where (int_var == 0_short)
+       var = .false.
+    elsewhere
+       var = .true.
+    end where
+    
+  end subroutine pmc_nc_read_logical_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write attributes for a variable to a NetCDF file.
   subroutine pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
        description)
@@ -535,6 +579,54 @@ contains
          start = start, count = count))
     
   end subroutine pmc_nc_write_integer_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a simple logical 2D array to a NetCDF file.
+  subroutine pmc_nc_write_logical_2d(ncid, var, name, dimids, unit, &
+       long_name, standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    logical, intent(in) :: var(:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable
+    integer, intent(in) :: dimids(2)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    ! integer kind that can represent -1, 0, 1
+    integer, parameter :: short = selected_int_kind(0)
+
+    integer :: varid, start(2), count(2)
+    integer(kind=short) :: int_var(size(var,1), size(var,2))
+
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_BYTE, dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    where (var)
+       int_var = 1_short
+    elsewhere
+       int_var = 0_short
+    end where
+
+    start = (/ 1, 1 /)
+    count = (/ size(var, 1), size(var, 2) /)
+    call pmc_nc_check(nf90_put_var(ncid, varid, int_var, &
+         start = start, count = count))
+    
+  end subroutine pmc_nc_write_logical_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -168,6 +168,8 @@ ChangeLog
 
   * Include solar_zenith_angle in output files when using MOSAIC.
 
+  * Added source-oriented capability for aerosol particles.
+
 2.0.0 - 2011-01-13
 
   * Parallel implementations based on remote particle access.

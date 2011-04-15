@@ -743,7 +743,7 @@ contains
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
     aero_particle_new%source = aero_particle_1%source &
-         .and. aero_particle_2%source
+         .or. aero_particle_2%source
 
   end subroutine aero_particle_coagulate
 

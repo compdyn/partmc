@@ -1567,7 +1567,7 @@ contains
     integer :: i_bin, i_part_in_bin, i_part, i_remove
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: aero_particle_mass(aero_state%n_part, aero_data%n_spec)
-    integer :: aero_n_orig_part(aero_state%n_part)
+    integer :: aero_n_orig_part(aero_state%n_part, aero_data%n_source)
     real(kind=dp) :: aero_absorb_cross_sect(aero_state%n_part)
     real(kind=dp) :: aero_scatter_cross_sect(aero_state%n_part)
     real(kind=dp) :: aero_asymmetry(aero_state%n_part)
@@ -1581,7 +1581,6 @@ contains
     integer :: aero_id(aero_state%n_part)
     real(kind=dp) :: aero_least_create_time(aero_state%n_part)
     real(kind=dp) :: aero_greatest_create_time(aero_state%n_part)
-    logical :: aero_particle_source(aero_state%n_part, aero_data%n_source)
     integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
@@ -1620,13 +1619,18 @@ contains
     !!     dim <tt>aero_particle x aero_species</tt>): constituent masses of
     !!     each aerosol particle - <tt>aero_particle_mass(i,s)</tt> gives the
     !!     mass of species \c s in particle \c i
-    !!   - \b aero_n_orig_part (dim \c aero_particle): number of original
-    !!     particles that coagulated to form each aerosol particle - when
-    !!     particles first enter the simulation (by emissions, dilution,
-    !!     etc.) they have <tt>aero_n_orig_part = 1</tt> and when two
-    !!     particles coagulate, their values of \c aero_n_orig_part are
-    !!     added (the number of coagulation events that formed each particle
-    !!     is thus <tt>aero_n_orig_part - 1</tt>)
+    !!   - \b aero_n_orig_part (dim <tt>aero_particle x
+    !!     aero_source</tt>): number of original particles from each
+    !!     source that formed each aerosol particle -
+    !!     <tt>aero_n_orig_part(i,s)</tt> is the number of particles
+    !!     from source \c i that contributed to particle \i - when
+    !!     particle \c i first enters the simulation (by emissions,
+    !!     dilution, etc.) it has <tt>aero_n_orig_part(i,s) = 1</tt>
+    !!     for the source number \c s it came from (otherwise zero)
+    !!     and when two particles coagulate, their values of \c
+    !!     aero_n_orig_part are added (the number of coagulation
+    !!     events that formed each particle is thus
+    !!     <tt>sum(aero_n_orig_part(i,:)) - 1</tt>)
     !!   - \b aero_absorb_cross_sect (unit m^2, dim \c aero_particle):
     !!     optical absorption cross sections of each aerosol particle
     !!   - \b aero_scatter_cross_sect (unit m^2, dim \c aero_particle):
@@ -1665,8 +1669,7 @@ contains
     !!     particle, measured from the start of the simulation - a
     !!     particle is said to be created when it first enters the
     !!     simulation (by emissions, dilution, etc.)
-    !!   - \b aero_particle_source (logical, dim <tt>aero_particle x
-    !!     aero_source</tt>): sources that contributed to each aerosol
+    !!   - \b aero_particle_source (logical, dim ): sources that contributed to each aerosol
     !!     particle - <tt>aero_particle_source(i,s)</tt> is TRUE if
     !!     source number \c s contributed to particle \c i
 
@@ -1685,7 +1688,7 @@ contains
              i_part = i_part + 1
              particle => aero_state%bin(i_bin)%particle(i_part_in_bin)
              aero_particle_mass(i_part, :) = particle%vol * aero_data%density
-             aero_n_orig_part(i_part) = particle%n_orig_part
+             aero_n_orig_part(i_part, :) = particle%n_orig_part
              aero_water_hyst_leg(i_part) = particle%water_hyst_leg
              aero_comp_vol(i_part) = aero_state%comp_vol &
                   / aero_weight_value(aero_weight, &
@@ -1693,7 +1696,6 @@ contains
              aero_id(i_part) = particle%id
              aero_least_create_time(i_part) = particle%least_create_time
              aero_greatest_create_time(i_part) = particle%greatest_create_time
-             aero_particle_source(i_part, :) = particle%source
              if (record_optical) then
                 aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
                 aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
@@ -1711,10 +1713,11 @@ contains
             "aero_particle_mass", (/ dimid_aero_particle, &
             dimid_aero_species /), unit="kg", &
             long_name="constituent masses of each aerosol particle")
-       call pmc_nc_write_integer_1d(ncid, aero_n_orig_part, &
-            "aero_n_orig_part", (/ dimid_aero_particle /), &
-            long_name="number of original constituent particles that " &
-            // "coagulated to form each aerosol particle")
+       call pmc_nc_write_integer_2d(ncid, aero_n_orig_part, &
+            "aero_n_orig_part", (/ dimid_aero_particle, &
+            dimid_aero_source /), &
+            long_name="number of original constituent particles from " &
+            // "each source that coagulated to form each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
@@ -1738,10 +1741,6 @@ contains
             description="greatest (latest) creation time of any original " &
             // "constituent particles that coagulated to form each " &
             // "particle, measured from the start of the simulation")
-       call pmc_nc_write_logical_2d(ncid, aero_particle_source, &
-            "aero_particle_source", (/ dimid_aero_particle, &
-            dimid_aero_source /), unit="logical", &
-            long_name="whether each source contributed to each particle")
        if (record_optical) then
           call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
                "aero_absorb_cross_sect", (/ dimid_aero_particle /), &
@@ -1905,7 +1904,7 @@ contains
     character(len=1000) :: name
 
     real(kind=dp), allocatable :: aero_particle_mass(:,:)
-    integer, allocatable :: aero_n_orig_part(:)
+    integer, allocatable :: aero_n_orig_part(:,:)
     real(kind=dp), allocatable :: aero_absorb_cross_sect(:)
     real(kind=dp), allocatable :: aero_scatter_cross_sect(:)
     real(kind=dp), allocatable :: aero_asymmetry(:)
@@ -1919,7 +1918,6 @@ contains
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
-    logical, allocatable :: aero_particle_source(:,:)
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
@@ -1937,7 +1935,7 @@ contains
          name, n_part))
 
     allocate(aero_particle_mass(n_part, aero_data%n_spec))
-    allocate(aero_n_orig_part(n_part))
+    allocate(aero_n_orig_part(n_part, aero_data%n_source))
     allocate(aero_absorb_cross_sect(n_part))
     allocate(aero_scatter_cross_sect(n_part))
     allocate(aero_asymmetry(n_part))
@@ -1951,11 +1949,10 @@ contains
     allocate(aero_id(n_part))
     allocate(aero_least_create_time(n_part))
     allocate(aero_greatest_create_time(n_part))
-    allocate(aero_particle_source(n_part, aero_data%n_source))
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
-    call pmc_nc_read_integer_1d(ncid, aero_n_orig_part, &
+    call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
          "aero_n_orig_part")
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
          "aero_absorb_cross_sect", must_be_present=.false.)
@@ -1983,8 +1980,6 @@ contains
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time")
-    call pmc_nc_read_logical_2d(ncid, aero_particle_source, &
-         "aero_particle_source")
 
     call aero_state_deallocate(aero_state)
     call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
@@ -1994,7 +1989,7 @@ contains
          aero_data%n_source)
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
-       aero_particle%n_orig_part = aero_n_orig_part(i_part)
+       aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
        aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
        aero_particle%asymmetry = aero_asymmetry(i_part)
@@ -2011,7 +2006,6 @@ contains
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
-       aero_particle%source = aero_particle_source(i_part, :)
 
        i_bin = aero_particle_in_bin(aero_particle, bin_grid)
        call aero_state_add_particle(aero_state, i_bin, aero_particle)
@@ -2033,7 +2027,6 @@ contains
     deallocate(aero_id)
     deallocate(aero_least_create_time)
     deallocate(aero_greatest_create_time)
-    deallocate(aero_particle_source)
 
     status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
     if ((status /= NF90_NOERR) .and. (status /= NF90_EBADDIM)) then

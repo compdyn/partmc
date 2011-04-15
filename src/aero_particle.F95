@@ -26,8 +26,9 @@ module pmc_aero_particle
   type aero_particle_t
      !> Constituent species volumes [length aero_data%%n_spec] (m^3).
      real(kind=dp), pointer :: vol(:)
-     !> Number of original particles that coagulated to form this one.
-     integer :: n_orig_part
+     !> Number of original particles from each source that coagulated
+     !> to form this one [length aero_data%%n_source].
+     integer, pointer :: n_orig_part(:)
      !> Absorption cross-section (m^2).
      real(kind=dp) :: absorb_cross_sect
      !> Scattering cross-section (m^2).
@@ -48,8 +49,6 @@ module pmc_aero_particle
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
-     !> Which sources contributed to this particle.
-     logical, pointer :: source(:)
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
@@ -66,7 +65,7 @@ contains
     type(aero_particle_t), intent(out) :: aero_particle
 
     allocate(aero_particle%vol(0))
-    allocate(aero_particle%source(0))
+    allocate(aero_particle%n_orig_part(0))
     call aero_particle_zero(aero_particle)
 
   end subroutine aero_particle_allocate
@@ -84,7 +83,7 @@ contains
     integer, intent(in) :: n_source
 
     allocate(aero_particle%vol(n_spec))
-    allocate(aero_particle%source(n_source))
+    allocate(aero_particle%n_orig_part(n_source))
     call aero_particle_zero(aero_particle)
 
   end subroutine aero_particle_allocate_size
@@ -98,7 +97,7 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle
     
     deallocate(aero_particle%vol)
-    deallocate(aero_particle%source)
+    deallocate(aero_particle%n_orig_part)
 
   end subroutine aero_particle_deallocate
   
@@ -115,16 +114,16 @@ contains
     integer :: n_spec, n_source
 
     n_spec = size(aero_particle_from%vol)
-    n_source = size(aero_particle_from%source)
+    n_source = size(aero_particle_from%n_orig_part)
     if ((n_spec /= size(aero_particle_to%vol)) &
-         .or. (n_source /= size(aero_particle_to%source))) then
+         .or. (n_source /= size(aero_particle_to%n_orig_part))) then
        call aero_particle_deallocate(aero_particle_to)
        call aero_particle_allocate_size(aero_particle_to, n_spec, n_source)
     end if
     call assert(651178226, size(aero_particle_from%vol) &
          == size(aero_particle_to%vol))
-    call assert(105980551, size(aero_particle_from%source) &
-         == size(aero_particle_to%source))
+    call assert(105980551, size(aero_particle_from%n_orig_part) &
+         == size(aero_particle_to%n_orig_part))
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
@@ -139,7 +138,6 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
-    aero_particle_to%source = aero_particle_from%source
 
   end subroutine aero_particle_copy
   
@@ -160,7 +158,8 @@ contains
 
     aero_particle_to%vol => aero_particle_from%vol
     nullify(aero_particle_from%vol)
-    aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
+    aero_particle_to%n_orig_part => aero_particle_from%n_orig_part
+    nullify(aero_particle_from%n_orig_part)
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
     aero_particle_to%scatter_cross_sect = &
          aero_particle_from%scatter_cross_sect
@@ -173,8 +172,6 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
-    aero_particle_to%source => aero_particle_from%source
-    nullify(aero_particle_from%source)
     
   end subroutine aero_particle_shift
 
@@ -187,7 +184,7 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle
     
     aero_particle%vol = 0d0
-    aero_particle%n_orig_part = 1
+    aero_particle%n_orig_part = 0
     aero_particle%absorb_cross_sect = 0d0
     aero_particle%scatter_cross_sect = 0d0
     aero_particle%asymmetry = 0d0
@@ -198,7 +195,6 @@ contains
     aero_particle%id = 0
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
-    aero_particle%source = .false.
 
   end subroutine aero_particle_zero
   
@@ -254,7 +250,7 @@ contains
     !> Source number for the particle.
     integer, intent(in) :: i_source
 
-    aero_particle%source(i_source) = .true.
+    aero_particle%n_orig_part(i_source) = 1
 
   end subroutine aero_particle_set_source
 
@@ -716,10 +712,10 @@ contains
          == size(aero_particle_new%vol))
     call assert(586181003, size(aero_particle_2%vol) &
          == size(aero_particle_new%vol))
-    call assert(483452167, size(aero_particle_1%source) &
-         == size(aero_particle_new%source))
-    call assert(126911035, size(aero_particle_2%source) &
-         == size(aero_particle_new%source))
+    call assert(483452167, size(aero_particle_1%n_orig_part) &
+         == size(aero_particle_new%n_orig_part))
+    call assert(126911035, size(aero_particle_2%n_orig_part) &
+         == size(aero_particle_new%n_orig_part))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
@@ -742,8 +738,6 @@ contains
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
-    aero_particle_new%source = aero_particle_1%source &
-         .or. aero_particle_2%source
 
   end subroutine aero_particle_coagulate
 
@@ -757,7 +751,7 @@ contains
 
     pmc_mpi_pack_size_aero_particle = &
          pmc_mpi_pack_size_real_array(val%vol) &
-         + pmc_mpi_pack_size_integer(val%n_orig_part) &
+         + pmc_mpi_pack_size_integer_array(val%n_orig_part) &
          + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
          + pmc_mpi_pack_size_real(val%scatter_cross_sect) &
          + pmc_mpi_pack_size_real(val%asymmetry) &
@@ -767,8 +761,7 @@ contains
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
          + pmc_mpi_pack_size_integer(val%id) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
-         + pmc_mpi_pack_size_real(val%greatest_create_time) &
-         + pmc_mpi_pack_size_logical_array(val%source)
+         + pmc_mpi_pack_size_real(val%greatest_create_time)
     
   end function pmc_mpi_pack_size_aero_particle
 
@@ -789,7 +782,7 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
-    call pmc_mpi_pack_integer(buffer, position, val%n_orig_part)
+    call pmc_mpi_pack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
     call pmc_mpi_pack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_pack_real(buffer, position, val%asymmetry)
@@ -800,7 +793,6 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%id)
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
-    call pmc_mpi_pack_logical_array(buffer, position, val%source)
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -824,7 +816,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_orig_part)
+    call pmc_mpi_unpack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
     call pmc_mpi_unpack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_unpack_real(buffer, position, val%asymmetry)
@@ -835,7 +827,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%id)
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
-    call pmc_mpi_unpack_logical_array(buffer, position, val%source)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif

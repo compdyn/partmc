@@ -131,6 +131,7 @@ class aero_data_t(object):
     num_ions - number of ions for dissociation (integers)
     molec_weights - molecular weights (kg/mole)
     kappas - hydroscopicity parameters (dimensionless)
+    source_names - names of the particle sources (strings)
 
     There is one class data member, species_tex_names, that is a
     dictionary mapping ASCII species names to LaTeX species names.
@@ -165,7 +166,7 @@ class aero_data_t(object):
         "H2O": r"H$_2$O",
         }
 
-    def __init__(self, ncf=None, n_species=None):
+    def __init__(self, ncf=None, n_species=None, n_sources=None):
         """ Creates an aero_data_t object. If the ncf parameter is
         passed a NetCDFFile object output from PartMC then the
         aero_data information will be loaded from the file. Otherwise
@@ -177,7 +178,7 @@ class aero_data_t(object):
 
         or
 
-        >>> aero_data = partmc.aero_data_t(n_species=10)
+        >>> aero_data = partmc.aero_data_t(n_species=10, n_sources=3)
 
         """
         if ncf is not None:
@@ -186,6 +187,12 @@ class aero_data_t(object):
             if "names" not in dir(ncf.variables["aero_species"]):
                 raise Exception("aero_species variable does not have 'names' attribute")
             self.names = ncf.variables["aero_species"].names.split(",")
+
+            if "aero_source" not in ncf.variables.keys():
+                raise Exception("aero_source variable not found in NetCDF file")
+            if "names" not in dir(ncf.variables["aero_source"]):
+                raise Exception("aero_source variable does not have 'names' attribute")
+            self.source_names = ncf.variables["aero_source"].names.split(",")
 
             for (ncf_var, self_var) in [
                 ("aero_mosaic_index", "mosaic_indices"),
@@ -201,12 +208,18 @@ class aero_data_t(object):
         if n_species is not None:
             if ncf is not None:
                 raise Exception("ncf and n_species arguments cannot both be specified")
+            if n_sources is None:
+                raise Exception("n_species and n_sources arguments must be specified together")
             self.names = ["" for i in range(n_species)]
             self.mosaic_indices = numpy.zeros([n_species], float)
             self.densities = numpy.zeros([n_species], float)
             self.num_ions = numpy.zeros([n_species], int)
             self.molec_weights = numpy.zeros([n_species], float)
             self.kappas = numpy.zeros([n_species], float)
+            self.names = ["" for i in range(n_species)]
+        else:
+            if n_sources is not None:
+                raise Exception("n_species and n_sources arguments must be specified together")
 
         if ncf is None and n_species is None:
             raise Exception("either ncf or n_species parameter must be specified")
@@ -500,9 +513,9 @@ class aero_particle_array_t(object):
     are (assuming S species and N particles):
 
     aero_data - object of type aero_data_t with per-species physical data
-    raw_masses - S x N array of the mass (kg) of species i in particle j
-    n_orig_parts - length N array with the number of original particles
-        that coagulated to form each particle
+    raw_masses - SPEC x N array of the mass (kg) of species i in particle j
+    n_orig_parts - SOURCE x N array with the number of original particles
+        from source i that now compose particle j
     absorb_cross_sects - length N array with absorbion cross section (m^2
         of each particle
     scatter_cross_sects - length N array with scattering cross section
@@ -582,7 +595,7 @@ class aero_particle_array_t(object):
                 raise Exception("cannot provide include_ids without the ncf parameter")
             self.aero_data = aero_data
             self.raw_masses = zeros([len(aero_data.names), n_particles])
-            self.n_orig_parts = zeros(n_particles, int)
+            self.n_orig_parts = zeros([len(aero_data.source_names), n_particles], int)
             self.absorb_cross_sects = zeros(n_particles)
             self.scatter_cross_sects = zeros(n_particles)
             self.asymmetries = zeros(n_particles)
@@ -632,7 +645,7 @@ class aero_particle_array_t(object):
                             if (include_ids != None and self.ids[i] in include_ids) \
                             or (exclude_ids != None and self.ids[i] not in exclude_ids)]
             self.raw_masses = self.raw_masses[:, keep_indexes]
-            self.n_orig_parts = self.n_orig_parts[keep_indexes]
+            self.n_orig_parts = self.n_orig_parts[:, keep_indexes]
             self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
             self.scatter_cross_sects = self.scatter_cross_sects[keep_indexes]
             self.asymmetries = self.asymmetries[keep_indexes]

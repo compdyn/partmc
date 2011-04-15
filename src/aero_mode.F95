@@ -53,6 +53,8 @@ module pmc_aero_mode
      real(kind=dp) :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
      real(kind=dp), pointer :: vol_frac(:)
+     !> Source number.
+     integer :: source
   end type aero_mode_t
 
 contains
@@ -135,6 +137,7 @@ contains
     aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
     aero_mode_to%num_conc = aero_mode_from%num_conc
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
+    aero_mode_to%source = aero_mode_from%source
 
   end subroutine aero_mode_copy
 
@@ -538,7 +541,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol mode.
     type(aero_mode_t), intent(inout) :: aero_mode
     !> If eof instead of reading data.
@@ -628,6 +631,7 @@ contains
        call aero_mode_allocate_size(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
+       aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
@@ -672,7 +676,8 @@ contains
          + pmc_mpi_pack_size_real(val%char_radius) &
          + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
          + pmc_mpi_pack_size_real(val%num_conc) &
-         + pmc_mpi_pack_size_real_array(val%vol_frac)
+         + pmc_mpi_pack_size_real_array(val%vol_frac) &
+         + pmc_mpi_pack_size_integer(val%source)
 
   end function pmc_mpi_pack_size_aero_mode
 
@@ -698,6 +703,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
+    call pmc_mpi_pack_integer(buffer, position, val%source)
     call assert(579699255, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
@@ -726,6 +732,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
+    call pmc_mpi_unpack_source(buffer, position, val%source)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif

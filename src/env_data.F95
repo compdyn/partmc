@@ -334,7 +334,7 @@ contains
     !> Gas data values.
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Environment data.
     type(env_data_t), intent(inout) :: env_data
 

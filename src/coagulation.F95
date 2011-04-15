@@ -326,7 +326,8 @@ contains
     ! create a new particle and set its ID
     if (create_new) then
        call aero_particle_deallocate(particle_new)
-       call aero_particle_allocate_size(particle_new, aero_data%n_spec)
+       call aero_particle_allocate_size(particle_new, aero_data%n_spec, &
+            aero_data%n_source)
        call aero_particle_coagulate(particle_1, particle_2, particle_new)
        if (remove_1 .and. (.not. id_1_lost)) then
           particle_new%id = particle_1%id

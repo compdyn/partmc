@@ -94,7 +94,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_allocate_size(aero_state, n_bin, n_spec)
+  subroutine aero_state_allocate_size(aero_state, n_bin, n_spec, n_source)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
@@ -102,12 +102,15 @@ contains
     integer, intent(in) :: n_bin
     !> Number of species.
     integer, intent(in) :: n_spec
+    !> Number of sources.
+    integer, intent(in) :: n_source
     
     integer i
 
     allocate(aero_state%bin(n_bin))
     do i = 1,n_bin
-       call aero_particle_array_allocate_size(aero_state%bin(i), 0, n_spec)
+       call aero_particle_array_allocate_size(aero_state%bin(i), &
+            0, n_spec, n_source)
     end do
     aero_state%comp_vol = 0d0
     aero_state%n_part = 0
@@ -150,7 +153,7 @@ contains
     n_bin = size(aero_state_from%bin)
 
     call aero_state_deallocate(aero_state_to)
-    call aero_state_allocate_size(aero_state_to, n_bin, 0)
+    call aero_state_allocate_size(aero_state_to, n_bin, 0, 0)
 
     do i = 1,n_bin
        call aero_particle_array_copy(aero_state_from%bin(i), &
@@ -389,7 +392,8 @@ contains
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
+         aero_data%n_source)
     sample_vol = sample_prop * aero_state%comp_vol
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
@@ -402,6 +406,7 @@ contains
           call aero_particle_set_vols(aero_particle, aero_mode%vol_frac * vol)
           call aero_particle_new_id(aero_particle)
           call aero_particle_set_create_time(aero_particle, create_time)
+          call aero_particle_set_source(aero_particle, aero_mode%source)
           i_bin = aero_particle_in_bin(aero_particle, bin_grid)
           call aero_state_add_particle(aero_state, i_bin, aero_particle)
        end do
@@ -1557,7 +1562,7 @@ contains
     !> Whether to output aerosol optical properties.
     logical, intent(in) :: record_optical
 
-    integer :: dimid_aero_particle, dimid_aero_species
+    integer :: dimid_aero_particle, dimid_aero_species, dimid_aero_source
     integer :: dimid_aero_removed
     integer :: i_bin, i_part_in_bin, i_part, i_remove
     type(aero_particle_t), pointer :: particle
@@ -1576,6 +1581,7 @@ contains
     integer :: aero_id(aero_state%n_part)
     real(kind=dp) :: aero_least_create_time(aero_state%n_part)
     real(kind=dp) :: aero_greatest_create_time(aero_state%n_part)
+    logical :: aero_particle_source(aero_state%n_part, aero_data%n_source)
     integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
     integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
@@ -1659,9 +1665,15 @@ contains
     !!     particle, measured from the start of the simulation - a
     !!     particle is said to be created when it first enters the
     !!     simulation (by emissions, dilution, etc.)
+    !!   - \b aero_particle_source (logical, dim <tt>aero_particle x
+    !!     aero_source</tt>): sources that contributed to each aerosol
+    !!     particle - <tt>aero_particle_source(i,s)</tt> is TRUE if
+    !!     source number \c s contributed to particle \c i
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
+    call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
+         dimid_aero_source)
     
     if (aero_state%n_part > 0) then
        call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
@@ -1681,6 +1693,7 @@ contains
              aero_id(i_part) = particle%id
              aero_least_create_time(i_part) = particle%least_create_time
              aero_greatest_create_time(i_part) = particle%greatest_create_time
+             aero_particle_source(i_part, :) = particle%source
              if (record_optical) then
                 aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
                 aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
@@ -1725,6 +1738,10 @@ contains
             description="greatest (latest) creation time of any original " &
             // "constituent particles that coagulated to form each " &
             // "particle, measured from the start of the simulation")
+       call pmc_nc_write_logical_2d(ncid, aero_particle_source, &
+            "aero_particle_source", (/ dimid_aero_particle, &
+            dimid_aero_source /), unit="logical", &
+            long_name="whether each source contributed to each particle")
        if (record_optical) then
           call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
                "aero_absorb_cross_sect", (/ dimid_aero_particle /), &
@@ -1902,6 +1919,7 @@ contains
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
+    logical, allocatable :: aero_particle_source(:,:)
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
@@ -1911,7 +1929,7 @@ contains
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
        call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-            aero_data%n_spec)
+            aero_data%n_spec, aero_data%n_source)
        return
     end if
     call pmc_nc_check(status)
@@ -1933,6 +1951,7 @@ contains
     allocate(aero_id(n_part))
     allocate(aero_least_create_time(n_part))
     allocate(aero_greatest_create_time(n_part))
+    allocate(aero_particle_source(n_part, aero_data%n_source))
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
@@ -1964,12 +1983,15 @@ contains
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time")
+    call pmc_nc_read_logical_2d(ncid, aero_particle_source, &
+         "aero_particle_source")
 
     call aero_state_deallocate(aero_state)
     call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-         aero_data%n_spec)
+         aero_data%n_spec, aero_data%n_source)
 
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
+         aero_data%n_source)
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part)
@@ -1989,6 +2011,7 @@ contains
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
+       aero_particle%source = aero_particle_source(i_part, :)
 
        i_bin = aero_particle_in_bin(aero_particle, bin_grid)
        call aero_state_add_particle(aero_state, i_bin, aero_particle)
@@ -2010,6 +2033,7 @@ contains
     deallocate(aero_id)
     deallocate(aero_least_create_time)
     deallocate(aero_greatest_create_time)
+    deallocate(aero_particle_source)
 
     status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
     if ((status /= NF90_NOERR) .and. (status /= NF90_EBADDIM)) then

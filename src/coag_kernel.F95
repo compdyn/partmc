@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -237,8 +237,10 @@ contains
     integer :: i, j
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     
-    call aero_particle_allocate_size(aero_particle_1, aero_data%n_spec)
-    call aero_particle_allocate_size(aero_particle_2, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle_1, aero_data%n_spec, &
+         aero_data%n_source)
+    call aero_particle_allocate_size(aero_particle_2, aero_data%n_spec, &
+         aero_data%n_source)
     do i = 1,n_bin
        do j = 1,n_bin
           aero_particle_1%vol(1) = rad2vol(bin_r(i))

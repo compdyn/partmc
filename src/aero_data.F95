@@ -17,6 +17,7 @@ module pmc_aero_data
 #endif
 
   integer, parameter :: AERO_NAME_LEN = 15
+  integer, parameter :: AERO_SOURCE_NAME_LEN = 100
 
   !> Aerosol material properties and associated data.
   !!
@@ -39,6 +40,8 @@ module pmc_aero_data
   type aero_data_t
      !> Number of species.
      integer :: n_spec
+     !> Number of sources.
+     integer :: n_source
      !> Water species number (0 if water is not a species).
      integer :: i_water
      !> Len n_spec, species names.
@@ -54,6 +57,8 @@ module pmc_aero_data
      real(kind=dp), pointer :: molec_weight(:)
      !> Len n_spec, kappas (1).
      real(kind=dp), pointer :: kappa(:)
+     !> Len n_source, source names.
+     character(len=AERO_SOURCE_NAME_LEN), pointer :: source_name(:)
   end type aero_data_t
 
 contains
@@ -67,12 +72,14 @@ contains
     type(aero_data_t), intent(out) :: aero_data
 
     aero_data%n_spec = 0
+    aero_data%n_source = 0
     allocate(aero_data%name(0))
     allocate(aero_data%mosaic_index(0))
     allocate(aero_data%density(0))
     allocate(aero_data%num_ions(0))
     allocate(aero_data%molec_weight(0))
     allocate(aero_data%kappa(0))
+    allocate(aero_data%source_name(0))
     aero_data%i_water = 0
 
   end subroutine aero_data_allocate
@@ -81,20 +88,24 @@ contains
 
   !> Allocate storage for aero_data parameters given the number of
   !> species.
-  subroutine aero_data_allocate_size(aero_data, n_spec)
+  subroutine aero_data_allocate_size(aero_data, n_spec, n_source)
 
     !> Aerosol data.
     type(aero_data_t), intent(out) :: aero_data
     !> Number of species.
     integer, intent(in) :: n_spec
+    !> Number of sources.
+    integer, intent(in) :: n_source
 
     aero_data%n_spec = n_spec
+    aero_data%n_source = n_source
     allocate(aero_data%name(n_spec))
     allocate(aero_data%mosaic_index(n_spec))
     allocate(aero_data%density(n_spec))
     allocate(aero_data%num_ions(n_spec))
     allocate(aero_data%molec_weight(n_spec))
     allocate(aero_data%kappa(n_spec))
+    allocate(aero_data%source_name(n_spec))
     aero_data%i_water = 0
 
   end subroutine aero_data_allocate_size
@@ -113,6 +124,7 @@ contains
     deallocate(aero_data%num_ions)
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
+    deallocate(aero_data%source_name)
 
   end subroutine aero_data_deallocate
 
@@ -127,7 +139,8 @@ contains
     type(aero_data_t), intent(inout) :: aero_data_to
 
     call aero_data_deallocate(aero_data_to)
-    call aero_data_allocate_size(aero_data_to, aero_data_from%n_spec)
+    call aero_data_allocate_size(aero_data_to, aero_data_from%n_spec, &
+         aero_data_from%n_source)
 
     aero_data_to%i_water = aero_data_from%i_water
     aero_data_to%name = aero_data_from%name
@@ -136,6 +149,7 @@ contains
     aero_data_to%num_ions = aero_data_from%num_ions
     aero_data_to%molec_weight = aero_data_from%molec_weight
     aero_data_to%kappa = aero_data_from%kappa
+    aero_data_to%source_name = aero_data_from%source_name
 
   end subroutine aero_data_copy
 
@@ -167,6 +181,44 @@ contains
     end if
 
   end function aero_data_spec_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of the source in aero_data with the given name, or
+  !> adds the source if it doesn't exist yet.
+  integer function aero_data_source_by_name(aero_data, name)
+
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Name of source to find.
+    character(len=*), intent(in) :: name
+
+    integer :: i
+    logical :: found
+    character(len=AERO_SOURCE_NAME_LEN), pointer :: new_source_name(:)
+
+    found = .false.
+    do i = 1,aero_data%n_source
+       if (name == aero_data%source_name(i)) then
+          found = .true.
+          exit
+       end if
+    end do
+    if (found) then
+       aero_data_source_by_name = i
+    else
+       allocate(new_source_name(aero_data%n_source + 1))
+       do i = 1,aero_data%n_source
+          new_source_name(i) = aero_data%source_name(i)
+       end do
+       new_source_name(i) = name(1:AERO_SOURCE_NAME_LEN)
+       deallocate(aero_data%source_name)
+       aero_data%source_name => new_source_name
+       aero_data%n_source = aero_data%n_source + 1
+       aero_data_source_by_name = aero_data%n_source
+    end if
+
+  end function aero_data_source_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -280,7 +332,7 @@ contains
 
     ! allocate and copy over the data
     call aero_data_deallocate(aero_data)
-    call aero_data_allocate_size(aero_data, n_species)
+    call aero_data_allocate_size(aero_data, n_species, 0)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        aero_data%density(i) = species_data(i,1)
@@ -361,7 +413,8 @@ contains
          + pmc_mpi_pack_size_real_array(val%density) &
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
-         + pmc_mpi_pack_size_real_array(val%kappa)
+         + pmc_mpi_pack_size_real_array(val%kappa) &
+         + pmc_mpi_pack_size_string_array(val%source_name)
 
   end function pmc_mpi_pack_size_aero_data
 
@@ -389,6 +442,7 @@ contains
     call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
+    call pmc_mpi_pack_string_array(buffer, position, val%source_name)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -419,6 +473,7 @@ contains
     call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
+    call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -483,6 +538,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero source dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_data_netcdf_dim_aero_source(aero_data, ncid, &
+       dimid_aero_source)
+
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the source dimension.
+    integer, intent(out) :: dimid_aero_source
+
+    integer :: status, i_source
+    integer :: varid_aero_source
+    integer :: aero_source_centers(aero_data%n_source)
+    character(len=(AERO_SOURCE_NAME_LEN * aero_data%n_source)) &
+         :: aero_source_names
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_source", dimid_aero_source)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_source", &
+         aero_data%n_source, dimid_aero_source))
+    aero_source_names = ""
+    do i_source = 1,aero_data%n_source
+       aero_source_names((len_trim(aero_source_names) + 1):) &
+            = trim(aero_data%source_name(i_source))
+       if (i_source < aero_data%n_source) then
+          aero_source_names((len_trim(aero_source_names) + 1):) = ","
+       end if
+    end do
+    call pmc_nc_check(nf90_def_var(ncid, "aero_source", NF90_INT, &
+         dimid_aero_source, varid_aero_source))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_source, "names", &
+         aero_source_names))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_source, "description", &
+         "dummy dimension variable (no useful value) - read source names " &
+         // "as comma-separated values from the 'names' attribute"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_source = 1,aero_data%n_source
+       aero_source_centers(i_source) = i_source
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_source, &
+         aero_source_centers))
+
+  end subroutine aero_data_netcdf_dim_aero_source
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write full state.
   subroutine aero_data_output_netcdf(aero_data, ncid)
     
@@ -491,16 +603,20 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_species
+    integer :: dimid_aero_species, dimid_aero_source
 
     !> \page output_format_aero_data Output File Format: Aerosol Material Data
     !!
     !! The aerosol material data NetCDF dimensions are:
     !!   - \b aero_species: number of aerosol species
+    !!   - \b aero_source: number of aerosol sources
     !!
     !! The aerosol material data NetCDF variables are:
     !!   - \b aero_species (dim \c aero_species): dummy dimension variable
     !!     (no useful value) - read species names as comma-separated values
+    !!     from the 'names' attribute
+    !!   - \b aero_source (dim \c aero_source): dummy dimension variable
+    !!     (no useful value) - read source names as comma-separated values
     !!     from the 'names' attribute
     !!   - \b aero_mosaic_index (dim \c aero_species): indices of species
     !!     in MOSAIC
@@ -518,6 +634,8 @@ contains
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
+    call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
+         dimid_aero_source)
 
     call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index", (/ dimid_aero_species /), &
@@ -549,15 +667,24 @@ contains
 
     character(len=1000) :: name
     integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
+    integer :: dimid_aero_source, n_source, varid_aero_source, i_source
     character(len=((AERO_NAME_LEN + 2) * 1000)) :: aero_species_names
+    character(len=((AERO_SOURCE_NAME_LEN + 2) * 1000)) :: aero_source_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
          dimid_aero_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
          dimid_aero_species, name, n_spec))
-    call aero_data_deallocate(aero_data)
-    call aero_data_allocate_size(aero_data, n_spec)
     call assert(739238793, n_spec < 1000)
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_source", &
+         dimid_aero_source))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_source, name, n_source))
+    call assert(739238793, n_source < 1000)
+
+    call aero_data_deallocate(aero_data)
+    call aero_data_allocate_size(aero_data, n_spec, n_source)
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index")
@@ -586,6 +713,23 @@ contains
        aero_species_names = aero_species_names((i+1):)
     end do
     call assert(729138192, aero_species_names == "")
+
+    call pmc_nc_check(nf90_inq_varid(ncid, "aero_source", &
+         varid_aero_source))
+    call pmc_nc_check(nf90_get_att(ncid, varid_aero_source, "names", &
+         aero_source_names))
+    ! aero_source_names are comma-separated, so unpack them
+    do i_source = 1,aero_data%n_source
+       i = 1
+       do while ((aero_source_names(i:i) /= " ") &
+            .and. (aero_source_names(i:i) /= ","))
+          i = i + 1
+       end do
+       call assert(840982478, i > 1)
+       aero_data%source_name(i_source) = aero_source_names(1:(i-1))
+       aero_source_names = aero_source_names((i+1):)
+    end do
+    call assert(377166446, aero_source_names == "")
 
     call aero_data_set_water_index(aero_data)
 

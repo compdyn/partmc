@@ -454,7 +454,7 @@ contains
     type(aero_state_t) :: aero_state_delta
 
     call aero_state_allocate_size(aero_state_delta, bin_grid%n_bin, &
-         aero_data%n_spec)
+         aero_data%n_spec, aero_data%n_source)
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate

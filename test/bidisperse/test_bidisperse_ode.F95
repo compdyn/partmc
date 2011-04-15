@@ -125,16 +125,17 @@ contains
     !> Derivative of n_small.
     real(kind=dp), intent(out) :: n_small_dot
 
-    integer :: n_spec
+    integer :: n_spec, n_source
     real(kind=dp) :: v_big, k
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     type(aero_data_t) :: aero_data
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
-    call aero_data_allocate_size(aero_data, n_spec)
-    call aero_particle_allocate_size(aero_particle_1, n_spec)
-    call aero_particle_allocate_size(aero_particle_2, n_spec)
+    n_source = 1
+    call aero_data_allocate_size(aero_data, n_spec, n_source)
+    call aero_particle_allocate_size(aero_particle_1, n_spec, n_source)
+    call aero_particle_allocate_size(aero_particle_2, n_spec, n_source)
     aero_particle_1%vol(1) = v_small
     aero_particle_2%vol(1) = v_big
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &

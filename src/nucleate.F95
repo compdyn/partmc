@@ -1,4 +1,4 @@
-! Copyright (C) 2010 Matthew West
+! Copyright (C) 2010, 2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -129,7 +129,8 @@ contains
     n_samp = rand_poisson(n_samp_avg)
 
     ! create the particles
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec)
+    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
+         aero_data%n_source)
     total_so4_vol = 0d0
     do i_samp = 1,n_samp
        vol = diam2vol(nucleate_diam)

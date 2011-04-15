@@ -257,7 +257,7 @@ contains
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol dist.
     type(aero_dist_t), intent(inout) :: aero_dist
 
@@ -315,7 +315,7 @@ contains
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Times (s).

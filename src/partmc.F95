@@ -618,7 +618,7 @@ contains
        else
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-               aero_data%n_spec)
+               aero_data%n_spec, aero_data%n_source)
           aero_state%comp_vol = real(run_part_opt%n_part_ideal, kind=dp) / &
                aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
           call aero_state_add_aero_dist_sample(aero_state, bin_grid, &

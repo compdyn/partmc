@@ -732,7 +732,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
-    call pmc_mpi_unpack_source(buffer, position, val%source)
+    call pmc_mpi_unpack_integer(buffer, position, val%source)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif

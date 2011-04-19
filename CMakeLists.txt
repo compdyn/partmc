@@ -188,14 +188,14 @@ if(ENABLE_MPI)
   add_test(test_parallel_4 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_4.sh)
 endif()
 
-add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
-add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
-add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
-add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
-add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
-add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
-add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
-add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
+#add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
+#add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
+#add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
+#add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
+#add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
+#add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
+#add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
+#add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
 
 add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
@@ -254,18 +254,18 @@ add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 ######################################################################
 # test_poisson_sample
 
-add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+#add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
+#  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
 
-target_link_libraries(test_poisson_sample ${GSL_LIBS})
+#target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
 ######################################################################
 # test_binomial_sample
 
-add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+#add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
+#  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
 
-target_link_libraries(test_binomial_sample ${GSL_LIBS})
+#target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
 ######################################################################
 # bin_average_comp

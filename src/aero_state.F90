@@ -740,7 +740,7 @@ contains
     do dest_proc = 0,(n_proc - 1)
        if (dest_proc /= rank) then
           call aero_state_allocate_size(aero_state_sends(dest_proc + 1), &
-               bin_grid%n_bin, aero_data%n_spec)
+               bin_grid%n_bin, aero_data%n_spec, aero_data%n_source)
           aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
           prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
                / real(n_proc, kind=dp) &
@@ -1393,7 +1393,7 @@ contains
        allocate(aero_state_transfers(n_proc))
        do i_proc = 1,n_proc
           call aero_state_allocate_size(aero_state_transfers(i_proc), &
-               size(aero_state_total%bin), aero_data%n_spec)
+               size(aero_state_total%bin), aero_data%n_spec, aero_data%n_source)
           aero_state_transfers(i_proc)%comp_vol = &
                aero_state_total%comp_vol / real(n_proc, kind=dp)
        end do

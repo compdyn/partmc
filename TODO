@@ -110,3 +110,8 @@ subroutines. Then don't need to pre-allocate before calling
 subroutines which are just going to reallocate anyway. Will need to
 clearly indicate which procedures can be passed unallocated
 structures.
+
+Fix sources to work with MPI.
+
+Integrate aero_particle_array into aero_state? Rename aero_state%p in
+any case.

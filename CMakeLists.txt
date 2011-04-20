@@ -204,13 +204,14 @@ add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 # partmc
 
 add_executable(partmc src/partmc.F90 src/aero_state.F90
-  src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
-  src/env_data.F90 src/env_state.F90 src/aero_mode.F90
-  src/aero_dist.F90 src/aero_weight.F90 src/coag_kernel_additive.F90
-  src/coag_kernel_sedi.F90 src/coag_kernel_constant.F90
-  src/coag_kernel_brown.F90 src/coag_kernel_zero.F90 src/aero_data.F90
-  src/run_exact.F90 src/run_part.F90 src/util.F90 src/run_sect.F90
-  src/output.F90 src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
+  src/integer_array.F90 src/aero_binned.F90 src/bin_grid.F90
+  src/constants.F90 src/env_data.F90 src/env_state.F90
+  src/aero_mode.F90 src/aero_dist.F90 src/aero_weight.F90
+  src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
+  src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
+  src/coag_kernel_zero.F90 src/aero_data.F90 src/run_exact.F90
+  src/run_part.F90 src/util.F90 src/run_sect.F90 src/output.F90
+  src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
   src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
@@ -227,11 +228,12 @@ add_executable(test_bidisperse_ode
   test/bidisperse/test_bidisperse_ode.F90 src/coag_kernel_sedi.F90
   src/env_data.F90 src/env_state.F90 src/constants.F90
   src/aero_data.F90 src/util.F90 src/gas_data.F90 src/gas_state.F90
-  src/aero_state.F90 src/output.F90 src/bin_grid.F90 src/spec_line.F90
-  src/spec_file.F90 src/aero_mode.F90 src/aero_dist.F90
-  src/aero_weight.F90 src/aero_binned.F90 src/rand.F90
-  src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
-  src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90 ${GSL_SRC})
+  src/aero_state.F90 src/integer_array.F90 src/output.F90
+  src/bin_grid.F90 src/spec_line.F90 src/spec_file.F90
+  src/aero_mode.F90 src/aero_dist.F90 src/aero_weight.F90
+  src/aero_binned.F90 src/rand.F90 src/aero_particle.F90
+  src/aero_particle_array.F90 src/mpi.F90 src/netcdf.F90
+  src/aero_info.F90 src/aero_info_array.F90 ${GSL_SRC})
 
 target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIBS})
 
@@ -273,8 +275,8 @@ target_link_libraries(test_binomial_sample ${GSL_LIBS})
 add_executable(bin_average_comp src/bin_average_comp.F90
   src/bin_grid.F90 src/gas_state.F90 src/gas_data.F90 src/util.F90
   src/env_state.F90 src/output.F90 src/aero_state.F90
-  src/aero_data.F90 src/netcdf.F90 src/mpi.F90 src/spec_file.F90
-  src/aero_binned.F90 src/aero_particle.F90
+  src/integer_array.F90 src/aero_data.F90 src/netcdf.F90 src/mpi.F90
+  src/spec_file.F90 src/aero_binned.F90 src/aero_particle.F90
   src/aero_particle_array.F90 src/aero_info.F90
   src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
   src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90
@@ -288,8 +290,8 @@ target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIBS})
 add_executable(bin_average_size src/bin_average_size.F90
   src/bin_grid.F90 src/gas_state.F90 src/gas_data.F90 src/util.F90
   src/env_state.F90 src/output.F90 src/aero_state.F90
-  src/aero_data.F90 src/netcdf.F90 src/mpi.F90 src/spec_file.F90
-  src/aero_binned.F90 src/aero_particle.F90
+  src/integer_array.F90 src/aero_data.F90 src/netcdf.F90 src/mpi.F90
+  src/spec_file.F90 src/aero_binned.F90 src/aero_particle.F90
   src/aero_particle_array.F90 src/aero_info.F90
   src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
   src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90

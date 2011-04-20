@@ -81,7 +81,6 @@ contains
     integer, dimension(integer_array%n_entry) :: temp_array
 
     call assert(753399394, new_length >= integer_array%n_entry)
-    if (new_length <= size(integer_array%entry)) return
     temp_array = integer_array%entry(1:integer_array%n_entry)
     deallocate(integer_array%entry)
     allocate(integer_array%entry(new_length))

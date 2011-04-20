@@ -2068,5 +2068,36 @@ contains
   end subroutine aero_state_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Temporary.
+  subroutine aero_state_flatten(aero_state, aero_particle_array, bin_grid, &
+       aero_data)
+
+    !> aero_state to flatten.
+    type(aero_state_t), intent(in) :: aero_state
+    !> destination.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: i_bin, i_part, i_flat_part
+
+    call aero_particle_array_deallocate(aero_particle_array)
+    call aero_particle_array_allocate_size(aero_particle_array, &
+         aero_state%n_part, aero_data%n_spec, aero_data%n_source)
+    i_flat_part = 0
+    do i_bin = 1,bin_grid%n_bin
+       do i_part = 1,aero_state%bin(i_bin)%n_part
+          i_flat_part = i_flat_part + 1
+          call aero_particle_copy(aero_state%bin(i_bin)%particle(i_part), &
+               aero_particle_array%particle(i_flat_part))
+       end do
+    end do
+
+  end subroutine aero_state_flatten
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
 end module pmc_aero_state

@@ -16,6 +16,7 @@ module pmc_coagulation
   use pmc_aero_weight
   use pmc_mpi
   use pmc_coag_kernel
+  use pmc_aero_sorted
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -52,6 +53,15 @@ contains
     logical :: did_coag
     integer :: i, j, n_samp, i_samp
     real(kind=dp) :: accept_factor
+    type(aero_sorted_t) :: aero_sorted
+    type(aero_particle_array_t) :: aero_particle_array
+
+    call aero_particle_array_allocate(aero_particle_array)
+    call aero_state_flatten(aero_state, aero_particle_array, bin_grid, &
+         aero_data)
+
+    call aero_sorted_allocate(aero_sorted)
+    call aero_sorted_fill(aero_sorted, aero_particle_array, bin_grid)
 
     tot_n_samp = 0
     tot_n_coag = 0
@@ -72,9 +82,12 @@ contains
                   aero_weight, aero_state, i, j, coag_kernel_type, &
                   accept_factor, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
+
+    call aero_sorted_deallocate(aero_sorted)
+    call aero_particle_array_deallocate(aero_particle_array)
 
   end subroutine mc_coag
 
@@ -113,7 +126,7 @@ contains
        n_possible = real(ni, kind=dp) * (real(nj, kind=dp) - 1d0) / 2d0
     else
        n_possible = real(ni, kind=dp) * real(nj, kind=dp) / 2d0
-    endif
+    end if
     
     r_samp = k_max / comp_vol * del_t
     n_samp_mean = r_samp * n_possible

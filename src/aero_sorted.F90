@@ -9,6 +9,8 @@
 module pmc_aero_sorted
 
   use pmc_integer_array
+  use pmc_aero_particle
+  use pmc_aero_particle_array
 
   !> A sorted particle index set.
   type aero_sorted_t
@@ -57,6 +59,30 @@ contains
     deallocate(aero_sorted%bin)
 
   end subroutine aero_sorted_deallocate
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Fills in particle indexes from the given aero_state.
+  subroutine aero_sorted_fill(aero_sorted, aero_particle_array, bin_grid)
+
+    !> Structure to deallocate.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Aerosol particles.
+    type(aero_particle_array_t), intent(in) :: aero_particle_array
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+
+    integer :: i_part, i_bin
+
+    call aero_sorted_deallocate(aero_sorted)
+    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin)
+    do i_part = 1,aero_particle_array%n_part
+       i_bin = aero_particle_in_bin(aero_particle_array%particle(i_part), &
+            bin_grid)
+       call integer_array_append(aero_sorted%bin(i_bin), i_part)
+    end do
+
+  end subroutine aero_sorted_fill
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

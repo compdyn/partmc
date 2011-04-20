@@ -76,10 +76,7 @@ contains
     character(len=*), intent(in) :: error_msg
 
     integer :: ierr
-    character(len=100) :: code_str
 
-    write(code_str,*) code
-    code_str = adjustl(code_str)
     if (.not. condition_ok) then
        write(0,'(a)') 'ERROR (PartMC-' // trim(integer_to_string(code)) &
             // '): ' // trim(error_msg)
@@ -104,6 +101,8 @@ contains
 
     if (.not. condition_ok) then
        ! much faster with gfortran 4.4.5 to do this extra test
+       ! FIXME: is it still faster now that assert_msg doesn't
+       ! unconditionally construct a code_str?
        call assert_msg(code, condition_ok, 'assertion failed')
     end if
 

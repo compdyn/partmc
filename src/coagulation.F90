@@ -55,13 +55,28 @@ contains
     real(kind=dp) :: accept_factor
     type(aero_sorted_t) :: aero_sorted
     type(aero_particle_array_t) :: aero_particle_array
+    !>DEBUG
+    integer :: s1, s2, id, k
+    logical :: did_coag_old
+    real(kind=dp) :: r, r1, r2, r3
+    type(aero_info_array_t) :: aero_info_array
+    !<DEBUG
 
+    !>DEBUG
+    !write(*,*) '*********************************************'
+    !<DEBUG
     call aero_particle_array_allocate(aero_particle_array)
     call aero_state_flatten(aero_state, aero_particle_array, bin_grid, &
          aero_data)
 
     call aero_sorted_allocate(aero_sorted)
     call aero_sorted_fill(aero_sorted, aero_particle_array, bin_grid)
+
+    call aero_sorted_check(aero_sorted, aero_particle_array, bin_grid)
+    call aero_sorted_check_aero_state(aero_sorted, aero_particle_array, &
+         bin_grid, aero_state)
+
+    call aero_info_array_allocate(aero_info_array)
 
     tot_n_samp = 0
     tot_n_coag = 0
@@ -78,14 +93,33 @@ contains
                   .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
                 exit
              end if
+             call maybe_coag_pair(bin_grid, env_state, aero_data, &
+                  aero_weight, aero_particle_array, aero_sorted, &
+                  aero_info_array, i, j, coag_kernel_type, accept_factor, &
+                  did_coag, s1, s2, r, r1, r2, r3, id)
+             !>DEBUG
              call maybe_coag_pair_old(bin_grid, env_state, aero_data, &
                   aero_weight, aero_state, i, j, coag_kernel_type, &
-                  accept_factor, did_coag)
+                  accept_factor, did_coag_old, s1, s2, r, r1, r2, r3, id)
+             call assert(715627882, did_coag .eqv. did_coag_old)
+             !<DEBUG
              if (did_coag) tot_n_coag = tot_n_coag + 1
+
+             !>DEBUG
+             !call aero_sorted_check(aero_sorted, aero_particle_array, bin_grid)
+             !call aero_sorted_check_aero_state(aero_sorted, aero_particle_array, &
+             !     bin_grid, aero_state)
+             !<DEBUG
+
           end do
        end do
     end do
 
+    call aero_sorted_check(aero_sorted, aero_particle_array, bin_grid)
+    call aero_sorted_check_aero_state(aero_sorted, aero_particle_array, &
+         bin_grid, aero_state)
+
+    call aero_info_array_deallocate(aero_info_array)
     call aero_sorted_deallocate(aero_sorted)
     call aero_particle_array_deallocate(aero_particle_array)
 
@@ -160,7 +194,8 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair_old(bin_grid, env_state, aero_data, aero_weight, &
-       aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag)
+       aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag, s1, s2, &
+       r, r1, r2, r3, i)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -182,8 +217,12 @@ contains
     real(kind=dp), intent(in) :: accept_factor
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
+    integer, intent(in) :: s1, s2
+    real(kind=dp), intent(in) :: r
+    real(kind=dp), intent(inout) :: r1, r2, r3
+    integer, intent(inout) :: i
     
-    integer :: s1, s2
+    !integer :: s1, s2
     real(kind=dp) :: p, k
     
     did_coag = .false.
@@ -194,19 +233,94 @@ contains
        call assert(528541565, aero_state%bin(b1)%n_part >= 2)
     end if
     
-    call find_rand_pair_old(aero_state, b1, b2, s1, s2)
+    !call find_rand_pair_old(aero_state, b1, b2, s1, s2)
     call weighted_kernel(coag_kernel_type, aero_state%bin(b1)%particle(s1), &
          aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
          env_state, k)
     p = k * accept_factor
     
-    if (pmc_random() .lt. p) then
+    if (r .lt. p) then
        call coagulate_old(bin_grid, aero_data, aero_weight, aero_state, &
-            b1, s1, b2, s2)
+            b1, s1, b2, s2, r1, r2, r3, i)
        did_coag = .true.
     end if
     
   end subroutine maybe_coag_pair_old
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Choose a random pair for potential coagulation and test its
+  !> probability of coagulation. If it happens, do the coagulation and
+  !> update all structures.
+  !!
+  !! The probability of a coagulation will be taken as <tt>(kernel /
+  !! k_max)</tt>.
+  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, aero_weight, &
+       aero_particle_array, aero_sorted, aero_info_array, b1, b2, &
+       coag_kernel_type, accept_factor, did_coag, s1, s2, r, r1, r2, r3, i)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Aerosol particle array.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Aerosol sorted data.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Aerosol information array.
+    type(aero_info_array_t), intent(inout) :: aero_info_array
+    !> Bin of first particle.
+    integer, intent(in) :: b1
+    !> Bin of second particle.
+    integer, intent(in) :: b2
+    !> Coagulation kernel type.
+    integer, intent(in) :: coag_kernel_type
+    !> Scale factor for accept probability (1).
+    real(kind=dp), intent(in) :: accept_factor
+    !> Whether a coagulation occured.
+    logical, intent(out) :: did_coag
+    
+    !>DEBUG
+    integer, intent(out) :: s1, s2
+    real(kind=dp), intent(inout) :: r, r1, r2, r3
+    integer, intent(inout) :: i
+    !<DEBUG
+
+    !integer :: s1, s2
+    integer :: p1, p2
+    real(kind=dp) :: p, k
+    
+    did_coag = .false.
+    
+    call assert(210827476, aero_sorted%bin(b1)%n_entry >= 1)
+    call assert(368973460, aero_sorted%bin(b2)%n_entry >= 1)
+    if (b1 == b2) then
+       call assert(528541565, aero_sorted%bin(b1)%n_entry >= 2)
+    end if
+    
+    call find_rand_pair(aero_sorted, b1, b2, s1, s2)
+    p1 = aero_sorted%bin(b1)%entry(s1)
+    p2 = aero_sorted%bin(b2)%entry(s2)
+    call weighted_kernel(coag_kernel_type, aero_particle_array%particle(p1), &
+         aero_particle_array%particle(p2), aero_data, aero_weight, &
+         env_state, k)
+    p = k * accept_factor
+
+    !>DEBUG
+    r = pmc_random()
+    !<DEBUG
+    if (r .lt. p) then
+       call coagulate(bin_grid, aero_data, aero_weight, &
+            aero_particle_array, aero_sorted, aero_info_array, &
+            b1, s1, b2, s2, r1, r2, r3, i)
+       did_coag = .true.
+    end if
+    
+  end subroutine maybe_coag_pair
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -247,12 +361,59 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Given bins b1 and b2, find a random pair of particles (b1, s1)
+  !> and (b2, s2) that are not the same particle particle as each
+  !> other.
+  subroutine find_rand_pair(aero_sorted, b1, b2, s1, s2)
+    
+    !> Aerosol sorted data.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+    !> Bin number of first particle.
+    integer, intent(in) :: b1
+    !> Bin number of second particle.
+    integer, intent(in) :: b2
+    !> First rand particle.
+    integer, intent(out) :: s1
+    !> Second rand particle.
+    integer, intent(out) :: s2
+
+    ! check we have enough particles to avoid being stuck in an
+    ! infinite loop below
+    call assert(619608562, aero_sorted%bin(b1)%n_entry >= 1)
+    call assert(271635751, aero_sorted%bin(b2)%n_entry >= 1)
+    if (b1 == b2) then
+       call assert(956184336, aero_sorted%bin(b1)%n_entry >= 2)
+    end if
+    
+    ! FIXME: don't loop, just do:
+    ! if (b1 == b2) then
+    !    s2 = pmc_rand_int(aero_sorted%bin(b2)%n_entry - 1)
+    !    if (s2 == s1) then
+    !       s2 = aero_sorted%bin(b2)%n_entry
+    !    end if
+    ! else
+    !    s2 = pmc_rand_int(aero_sorted%bin(b2)%n_entry)
+    ! end if
+    do
+       s1 = pmc_rand_int(aero_sorted%bin(b1)%n_entry)
+       s2 = pmc_rand_int(aero_sorted%bin(b2)%n_entry)
+       if ((b1 /= b2) .or. (s1 /= s2)) then
+          ! stop generating if we have two distinct particles
+          exit
+       end if
+    end do
+    
+  end subroutine find_rand_pair
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Actually coagulate particle_1 and particle_2 to form particle_new
   !> and compute weighting effects, including which particles should
   !> be lost and which gained.
   subroutine coagulate_weighting(particle_1, particle_2, particle_new, &
        aero_data, aero_weight, remove_1, remove_2, create_new, &
-       id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+       id_1_lost, id_2_lost, aero_info_1, aero_info_2, r1, r2, r3, gen_rs, &
+       i, gen_id)
 
     !> First coagulating aerosol particle.
     type(aero_particle_t), intent(in) :: particle_1
@@ -280,6 +441,13 @@ contains
     !> The removal information associated with particle_2.
     type(aero_info_t), intent(inout) :: aero_info_2
 
+    !>DEBUG
+    real(kind=dp), intent(inout) :: r1, r2, r3
+    logical, intent(in) :: gen_rs
+    integer, intent(inout) :: i
+    logical, intent(in) :: gen_id
+    !<DEBUG
+
     real(kind=dp) :: radius_1, radius_2, radius_new
     real(kind=dp) :: weight_1, weight_2, weight_new, weight_min
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
@@ -305,13 +473,20 @@ contains
        prob_remove_1 = weight_min / weight_1
        prob_remove_2 = weight_min / weight_2
        prob_create_new = weight_min / weight_new
-       remove_1 = (pmc_random() < prob_remove_1)
+       !>DEBUG
+       if (gen_rs) then
+          r1 = pmc_random()
+          r2 = pmc_random()
+          r3 = pmc_random()
+       end if
+       !<DEBUG
+       remove_1 = (r1 < prob_remove_1)
        if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
           remove_2 = .not. remove_1
        else
-          remove_2 = (pmc_random() < prob_remove_2)
+          remove_2 = (r2 < prob_remove_2)
        end if
-       create_new = (pmc_random() < prob_create_new)
+       create_new = (r3 < prob_create_new)
     else
        call die_msg(886524113, "unknown aero_weight type: " &
             // trim(integer_to_string(aero_weight%type)))
@@ -349,7 +524,15 @@ contains
           particle_new%id = particle_2%id
           call assert(246529753, id_1_lost .eqv. remove_1)
        else
-          call aero_particle_new_id(particle_new)
+          !>DEBUG
+          if (gen_id) then
+             call aero_particle_new_id(particle_new)
+             i = particle_new%id
+          else
+             particle_new%id = i
+          end if
+          !<DEBUG
+          !call aero_particle_new_id(particle_new)
           call assert(852038606, id_1_lost .eqv. remove_1)
           call assert(254018921, id_2_lost .eqv. remove_2)
        end if
@@ -373,7 +556,7 @@ contains
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
   subroutine coagulate_old(bin_grid, aero_data, aero_weight, aero_state, &
-       b1, s1, b2, s2)
+       b1, s1, b2, s2, r1, r2, r3, i)
  
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -392,6 +575,11 @@ contains
     !> Second particle (number in bin).
     integer, intent(in) :: s2
     
+    !>DEBUG
+    real(kind=dp), intent(inout) :: r1, r2, r3
+    integer, intent(inout) :: i
+    !<DEBUG
+
     type(aero_particle_t), pointer :: particle_1, particle_2
     type(aero_particle_t) :: particle_new
     integer :: bn
@@ -407,7 +595,8 @@ contains
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
          aero_data, aero_weight, remove_1, remove_2, create_new, &
-         id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+         id_1_lost, id_2_lost, aero_info_1, aero_info_2, &
+         r1, r2, r3, .false., i, .false.)
     
     ! remove old particles
     if ((b1 == b2) .and. (s2 > s1)) then
@@ -415,19 +604,31 @@ contains
        ! s1 being the last entry in the array and being repacked when
        ! the other one is removed
        if (remove_2) then
+          !>DEBUG
+          !write(*,*) 'coag_old: remove', b2, s2
+          !<DEBUG
           call aero_state_remove_particle(aero_state, b2, s2, &
                id_2_lost, aero_info_2)
        end if
        if (remove_1) then
+          !>DEBUG
+          !write(*,*) 'coag_old: remove', b1, s1
+          !<DEBUG
           call aero_state_remove_particle(aero_state, b1, s1, &
                id_1_lost, aero_info_1)
        end if
     else
        if (remove_1) then
+          !>DEBUG
+          !write(*,*) 'coag_old: remove', b1, s1
+          !<DEBUG
           call aero_state_remove_particle(aero_state, b1, s1, &
                id_1_lost, aero_info_1)
        end if
        if (remove_2) then
+          !>DEBUG
+          !write(*,*) 'coag_old: remove', b2, s2
+          !<DEBUG
           call aero_state_remove_particle(aero_state, b2, s2, &
                id_2_lost, aero_info_2)
        end if
@@ -436,6 +637,9 @@ contains
     ! add new particle
     if (create_new) then
        bn = aero_particle_in_bin(particle_new, bin_grid)
+       !>DEBUG
+       !write(*,*) 'coag_old: add', bn, particle_new%id
+       !<DEBUG
        call aero_state_add_particle(aero_state, bn, particle_new)
     end if
 
@@ -444,6 +648,120 @@ contains
     call aero_particle_deallocate(particle_new)
     
   end subroutine coagulate_old
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Join together particles (b1, s1) and (b2, s2), updating all
+  !> particle and bin structures to reflect the change.
+  subroutine coagulate(bin_grid, aero_data, aero_weight, &
+       aero_particle_array, aero_sorted, aero_info_array, b1, s1, b2, s2, &
+       r1, r2, r3, i)
+ 
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Aerosol particle array.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Aerosol sorted data.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Aerosol information array.
+    type(aero_info_array_t), intent(inout) :: aero_info_array
+    !> First particle (bin number).
+    integer, intent(in) :: b1
+    !> First particle (number in bin).
+    integer, intent(in) :: s1
+    !> Second particle (bin number).
+    integer, intent(in) :: b2
+    !> Second particle (number in bin).
+    integer, intent(in) :: s2
+
+    !>DEBUG
+    real(kind=dp), intent(inout) :: r1, r2, r3
+    integer, intent(inout) :: i
+    !<DEBUG
+    
+    type(aero_particle_t), pointer :: particle_1, particle_2
+    type(aero_particle_t) :: particle_new
+    integer :: bn, p1, p2
+    type(aero_info_t) :: aero_info_1, aero_info_2
+    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
+
+    call aero_particle_allocate(particle_new)
+    call aero_info_allocate(aero_info_1)
+    call aero_info_allocate(aero_info_2)
+
+    p1 = aero_sorted%bin(b1)%entry(s1)
+    p2 = aero_sorted%bin(b2)%entry(s2)
+    particle_1 => aero_particle_array%particle(p1)
+    particle_2 => aero_particle_array%particle(p2)
+
+    call coagulate_weighting(particle_1, particle_2, particle_new, &
+         aero_data, aero_weight, remove_1, remove_2, create_new, &
+         id_1_lost, id_2_lost, aero_info_1, aero_info_2, &
+         r1, r2, r3, .true., i, .true.)
+
+    ! remove old particles
+    if ((b1 == b2) .and. (s2 > s1)) then
+       ! handle a tricky corner case where we have to watch for s2 or
+       ! s1 being the last entry in the array and being repacked when
+       ! the other one is removed
+       if (remove_2) then
+          !>DEBUG
+          !write(*,*) 'coag: remove', b2, s2
+          !<DEBUG
+          call aero_sorted_remove_particle(aero_sorted, &
+               aero_particle_array, bin_grid, b2, s2)
+       end if
+       if (remove_1) then
+          !>DEBUG
+          !write(*,*) 'coag: remove', b1, s1
+          !<DEBUG
+          call aero_sorted_remove_particle(aero_sorted, &
+               aero_particle_array, bin_grid, b1, s1)
+       end if
+    else
+       if (remove_1) then
+          !>DEBUG
+          !write(*,*) 'coag: remove', b1, s1
+          !<DEBUG
+          call aero_sorted_remove_particle(aero_sorted, &
+               aero_particle_array, bin_grid, b1, s1)
+       end if
+       if (remove_2) then
+          !>DEBUG
+          !write(*,*) 'coag: remove', b2, s2
+          !<DEBUG
+          call aero_sorted_remove_particle(aero_sorted, &
+               aero_particle_array, bin_grid, b2, s2)
+       end if
+    end if
+    if (id_1_lost) then
+       call aero_info_array_add_aero_info(aero_info_array, &
+            aero_info_1)
+    end if
+    if (id_2_lost) then
+       call aero_info_array_add_aero_info(aero_info_array, &
+            aero_info_2)
+    end if
+
+    ! add new particle
+    if (create_new) then
+       bn = aero_particle_in_bin(particle_new, bin_grid)
+       !>DEBUG
+       !write(*,*) 'coag: add', bn, particle_new%id
+       !<DEBUG
+       call aero_sorted_add_particle(aero_sorted, aero_particle_array, &
+            bin_grid, particle_new, bn)
+    end if
+
+    call aero_info_deallocate(aero_info_1)
+    call aero_info_deallocate(aero_info_2)
+    call aero_particle_deallocate(particle_new)
+    
+  end subroutine coagulate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

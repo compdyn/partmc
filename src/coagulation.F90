@@ -78,7 +78,7 @@ contains
                   .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, env_state, aero_data, &
+             call maybe_coag_pair_old(bin_grid, env_state, aero_data, &
                   aero_weight, aero_state, i, j, coag_kernel_type, &
                   accept_factor, did_coag)
              if (did_coag) tot_n_coag = tot_n_coag + 1
@@ -159,7 +159,7 @@ contains
   !!
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
-  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, aero_weight, &
+  subroutine maybe_coag_pair_old(bin_grid, env_state, aero_data, aero_weight, &
        aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag)
 
     !> Bin grid.
@@ -194,26 +194,26 @@ contains
        call assert(528541565, aero_state%bin(b1)%n_part >= 2)
     end if
     
-    call find_rand_pair(aero_state, b1, b2, s1, s2)
+    call find_rand_pair_old(aero_state, b1, b2, s1, s2)
     call weighted_kernel(coag_kernel_type, aero_state%bin(b1)%particle(s1), &
          aero_state%bin(b2)%particle(s2), aero_data, aero_weight, &
          env_state, k)
     p = k * accept_factor
     
     if (pmc_random() .lt. p) then
-       call coagulate(bin_grid, aero_data, aero_weight, aero_state, &
+       call coagulate_old(bin_grid, aero_data, aero_weight, aero_state, &
             b1, s1, b2, s2)
        did_coag = .true.
     end if
     
-  end subroutine maybe_coag_pair
+  end subroutine maybe_coag_pair_old
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Given bins b1 and b2, find a random pair of particles (b1, s1)
   !> and (b2, s2) that are not the same particle particle as each
   !> other.
-  subroutine find_rand_pair(aero_state, b1, b2, s1, s2)
+  subroutine find_rand_pair_old(aero_state, b1, b2, s1, s2)
     
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -243,7 +243,7 @@ contains
        end if
     end do
     
-  end subroutine find_rand_pair
+  end subroutine find_rand_pair_old
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -372,7 +372,7 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, &
+  subroutine coagulate_old(bin_grid, aero_data, aero_weight, aero_state, &
        b1, s1, b2, s2)
  
     !> Bin grid.
@@ -443,7 +443,7 @@ contains
     call aero_info_deallocate(aero_info_2)
     call aero_particle_deallocate(particle_new)
     
-  end subroutine coagulate
+  end subroutine coagulate_old
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

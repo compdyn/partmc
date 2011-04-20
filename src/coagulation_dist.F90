@@ -911,10 +911,6 @@ contains
     integer :: proc_new
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: create_new, id_1_lost, id_2_lost
-    !>DEBUG
-    real(kind=dp) :: r1, r2, r3
-    integer :: i
-    !<DEBUG
 
     call aero_particle_allocate(aero_particle_new)
     call aero_info_allocate(aero_info_1)
@@ -922,8 +918,7 @@ contains
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
          aero_particle_new, aero_data, aero_weight, remove_1, remove_2, &
-         create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2, &
-         r1, r2, r3, .true., i, .true.)
+         create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     if (id_1_lost) then
        call aero_info_array_add_aero_info(aero_state%aero_info_array, &

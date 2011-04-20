@@ -122,9 +122,6 @@ contains
     call aero_particle_array_add_particle(aero_particle_array, aero_particle)
 
     ! update the forward index
-    !>DEBUG
-    call assert(715771599, i_bin > 0)
-    !<DEBUG
     call integer_varray_append(aero_sorted%bin(i_bin), &
          aero_particle_array%n_part)
 

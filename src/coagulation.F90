@@ -53,41 +53,31 @@ contains
     logical :: did_coag
     integer :: i, j, n_samp, i_samp
     real(kind=dp) :: accept_factor
-    type(aero_sorted_t) :: aero_sorted
-    type(aero_particle_array_t) :: aero_particle_array
 
-    call aero_particle_array_allocate(aero_particle_array)
-    call aero_state_flatten(aero_state, aero_particle_array, bin_grid, &
-         aero_data)
-
-    call aero_sorted_allocate(aero_sorted)
-    call aero_sorted_fill(aero_sorted, aero_particle_array, bin_grid)
+    call aero_state_sort(aero_state, bin_grid)
 
     tot_n_samp = 0
     tot_n_coag = 0
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call compute_n_samp(aero_state%bin(i)%n_part, &
-               aero_state%bin(j)%n_part, i == j, k_max(i,j), &
+          call compute_n_samp(aero_state%aero_sorted%bin(i)%n_entry, &
+               aero_state%aero_sorted%bin(j)%n_entry, i == j, k_max(i,j), &
                aero_state%comp_vol, del_t, n_samp, accept_factor)
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
              ! check we still have enough particles to coagulate
-             if ((aero_state%bin(i)%n_part < 1) &
-                  .or. (aero_state%bin(j)%n_part < 1) &
-                  .or. ((i == j) .and. (aero_state%bin(i)%n_part < 2))) then
+             if ((aero_state%aero_sorted%bin(i)%n_entry < 1) &
+                  .or. (aero_state%aero_sorted%bin(j)%n_entry < 1) &
+                  .or. ((i == j) &
+                  .and. (aero_state%aero_sorted%bin(i)%n_entry < 2))) then
                 exit
              end if
              call maybe_coag_pair(bin_grid, env_state, aero_data, &
-                  aero_weight, aero_particle_array, aero_sorted, &
-                  aero_state%aero_info_array, i, j, coag_kernel_type, &
+                  aero_weight, aero_state, i, j, coag_kernel_type, &
                   accept_factor, did_coag)
           end do
        end do
     end do
-
-    call aero_sorted_deallocate(aero_sorted)
-    call aero_particle_array_deallocate(aero_particle_array)
 
   end subroutine mc_coag
 
@@ -160,8 +150,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(bin_grid, env_state, aero_data, aero_weight, &
-       aero_particle_array, aero_sorted, aero_info_array, b1, b2, &
-       coag_kernel_type, accept_factor, did_coag)
+       aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -171,12 +160,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol particle array.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    !> Aerosol sorted data.
-    type(aero_sorted_t), intent(inout) :: aero_sorted
-    !> Aerosol information array.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     !> Bin of first particle.
     integer, intent(in) :: b1
     !> Bin of second particle.
@@ -194,24 +179,22 @@ contains
     
     did_coag = .false.
     
-    call assert(210827476, aero_sorted%bin(b1)%n_entry >= 1)
-    call assert(368973460, aero_sorted%bin(b2)%n_entry >= 1)
+    call assert(210827476, aero_state%aero_sorted%bin(b1)%n_entry >= 1)
+    call assert(368973460, aero_state%aero_sorted%bin(b2)%n_entry >= 1)
     if (b1 == b2) then
-       call assert(528541565, aero_sorted%bin(b1)%n_entry >= 2)
+       call assert(528541565, aero_state%aero_sorted%bin(b1)%n_entry >= 2)
     end if
     
-    call find_rand_pair(aero_sorted, b1, b2, s1, s2)
-    p1 = aero_sorted%bin(b1)%entry(s1)
-    p2 = aero_sorted%bin(b2)%entry(s2)
-    call weighted_kernel(coag_kernel_type, aero_particle_array%particle(p1), &
-         aero_particle_array%particle(p2), aero_data, aero_weight, &
+    call find_rand_pair(aero_state%aero_sorted, b1, b2, s1, s2)
+    p1 = aero_state%aero_sorted%bin(b1)%entry(s1)
+    p2 = aero_state%aero_sorted%bin(b2)%entry(s2)
+    call weighted_kernel(coag_kernel_type, aero_state%p%particle(p1), &
+         aero_state%p%particle(p2), aero_data, aero_weight, &
          env_state, k)
     p = k * accept_factor
 
     if (pmc_random() .lt. p) then
-       call coagulate(bin_grid, aero_data, aero_weight, &
-            aero_particle_array, aero_sorted, aero_info_array, &
-            b1, s1, b2, s2)
+       call coagulate(bin_grid, aero_data, aero_weight, aero_state, p1, p2)
        did_coag = .true.
     end if
     
@@ -390,8 +373,7 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_data, aero_weight, &
-       aero_particle_array, aero_sorted, aero_info_array, b1, s1, b2, s2)
+  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, p1, p2)
  
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -399,24 +381,16 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol particle array.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    !> Aerosol sorted data.
-    type(aero_sorted_t), intent(inout) :: aero_sorted
-    !> Aerosol information array.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
-    !> First particle (bin number).
-    integer, intent(in) :: b1
-    !> First particle (number in bin).
-    integer, intent(in) :: s1
-    !> Second particle (bin number).
-    integer, intent(in) :: b2
-    !> Second particle (number in bin).
-    integer, intent(in) :: s2
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> First particle index.
+    integer, intent(in) :: p1
+    !> Second particle index.
+    integer, intent(in) :: p2
 
     type(aero_particle_t), pointer :: particle_1, particle_2
     type(aero_particle_t) :: particle_new
-    integer :: bn, p1, p2
+    integer :: bn
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
@@ -424,52 +398,41 @@ contains
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
-    p1 = aero_sorted%bin(b1)%entry(s1)
-    p2 = aero_sorted%bin(b2)%entry(s2)
-    particle_1 => aero_particle_array%particle(p1)
-    particle_2 => aero_particle_array%particle(p2)
+    particle_1 => aero_state%p%particle(p1)
+    particle_2 => aero_state%p%particle(p2)
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
          aero_data, aero_weight, remove_1, remove_2, create_new, &
          id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove old particles
-    if ((b1 == b2) .and. (s2 > s1)) then
-       ! handle a tricky corner case where we have to watch for s2 or
-       ! s1 being the last entry in the array and being repacked when
+    if (p2 > p1) then
+       ! handle a tricky corner case where we have to watch for p2 or
+       ! p1 being the last entry in the array and being repacked when
        ! the other one is removed
        if (remove_2) then
-          call aero_sorted_remove_particle(aero_sorted, &
-               aero_particle_array, bin_grid, b2, s2)
+          call aero_state_remove_particle(aero_state, p2, &
+               id_2_lost, aero_info_2)
        end if
        if (remove_1) then
-          call aero_sorted_remove_particle(aero_sorted, &
-               aero_particle_array, bin_grid, b1, s1)
+          call aero_state_remove_particle(aero_state, p1, &
+               id_1_lost, aero_info_1)
        end if
     else
        if (remove_1) then
-          call aero_sorted_remove_particle(aero_sorted, &
-               aero_particle_array, bin_grid, b1, s1)
+          call aero_state_remove_particle(aero_state, p1, &
+               id_1_lost, aero_info_1)
        end if
        if (remove_2) then
-          call aero_sorted_remove_particle(aero_sorted, &
-               aero_particle_array, bin_grid, b2, s2)
+          call aero_state_remove_particle(aero_state, p2, &
+               id_2_lost, aero_info_2)
        end if
-    end if
-    if (id_1_lost) then
-       call aero_info_array_add_aero_info(aero_info_array, &
-            aero_info_1)
-    end if
-    if (id_2_lost) then
-       call aero_info_array_add_aero_info(aero_info_array, &
-            aero_info_2)
     end if
 
     ! add new particle
     if (create_new) then
        bn = aero_particle_in_bin(particle_new, bin_grid)
-       call aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-            bin_grid, particle_new, bn)
+       call aero_state_add_particle(aero_state, particle_new, bn)
     end if
 
     call aero_info_deallocate(aero_info_1)

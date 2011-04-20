@@ -162,7 +162,7 @@ contains
     end if
 
     if (run_part_opt%do_mosaic) then
-       call mosaic_init(bin_grid, env_state, run_part_opt%del_t, &
+       call mosaic_init(env_state, run_part_opt%del_t, &
             run_part_opt%do_optical)
     end if
 
@@ -231,7 +231,7 @@ contains
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
-          call nucleate(run_part_opt%nucleate_type, bin_grid, env_state, &
+          call nucleate(run_part_opt%nucleate_type, env_state, &
                gas_data, aero_data, aero_weight, aero_state, gas_state, &
                run_part_opt%del_t)
           n_nuc = aero_state_total_particles(aero_state) &
@@ -275,9 +275,8 @@ contains
 #endif
 
        if (run_part_opt%do_mosaic) then
-          call mosaic_timestep(bin_grid, env_state, aero_data, &
-               aero_weight, aero_state, gas_data, gas_state, &
-               run_part_opt%do_optical)
+          call mosaic_timestep(env_state, aero_data, aero_weight, &
+               aero_state, gas_data, gas_state, run_part_opt%do_optical)
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then

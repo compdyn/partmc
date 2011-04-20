@@ -9,7 +9,6 @@
 module pmc_nucleate
 
   use pmc_env_state
-  use pmc_bin_grid
   use pmc_aero_state
   use pmc_aero_data
   use pmc_gas_data
@@ -25,13 +24,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do nucleation of the type given by the first argument.
-  subroutine nucleate(nucleate_type, bin_grid, env_state, gas_data, &
+  subroutine nucleate(nucleate_type, env_state, gas_data, &
        aero_data, aero_weight, aero_state, gas_state, del_t)
 
     !> Type of nucleation.
     integer, intent(in) :: nucleate_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -48,7 +45,7 @@ contains
     real(kind=dp), intent(in) :: del_t
 
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
-       call nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
+       call nucleate_sulf_acid(env_state, gas_data, aero_data, &
             aero_weight, aero_state, gas_state, del_t)
     else
        call die_msg(983831728, &
@@ -74,11 +71,9 @@ contains
   !! concentration in diverse atmospheric locations,
   !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
   !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
-  subroutine nucleate_sulf_acid(bin_grid, env_state, gas_data, aero_data, &
+  subroutine nucleate_sulf_acid(env_state, gas_data, aero_data, &
        aero_weight, aero_state, gas_state, del_t)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -140,8 +135,7 @@ contains
        call aero_particle_new_id(aero_particle)
        call aero_particle_set_create_time(aero_particle, &
             env_state%elapsed_time)
-       i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-       call aero_state_add_particle(aero_state, i_bin, aero_particle)
+       call aero_state_add_particle(aero_state, aero_particle)
     end do
     call aero_particle_deallocate(aero_particle)
 

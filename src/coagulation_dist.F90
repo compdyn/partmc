@@ -145,10 +145,12 @@ contains
 
     call pmc_mpi_barrier()
 
+    call aero_state_sort(aero_state, bin_grid)
+
     allocate(n_parts(bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
-    call sync_info(aero_state%bin(:)%n_part, aero_state%comp_vol, &
-         n_parts, comp_vols)
+    call sync_info(aero_state%aero_sorted%bin(:)%n_entry, &
+         aero_state%comp_vol, n_parts, comp_vols)
 
     call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
          n_samps, accept_factors)
@@ -294,7 +296,7 @@ contains
              call update_n_samps(bin_grid, n_samps, local_bin, &
                   remote_bin, samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%bin(local_bin)%n_part > 0) then
+             if (aero_state%aero_sorted%bin(local_bin)%n_entry > 0) then
                 call find_rand_remote_proc(bin_grid, n_parts, &
                      remote_bin, requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.
@@ -449,7 +451,7 @@ contains
     call assert(895128380, position == buffer_size)
 
     ! send the particle back if we have one
-    if (aero_state%bin(request_bin)%n_part == 0) then
+    if (aero_state%aero_sorted%bin(request_bin)%n_entry == 0) then
        call send_return_no_particle(remote_proc, request_bin)
     else
        call aero_particle_allocate(aero_particle)

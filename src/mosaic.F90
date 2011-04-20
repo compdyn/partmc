@@ -10,7 +10,6 @@ module pmc_mosaic
   
   use pmc_aero_data
   use pmc_aero_state
-  use pmc_bin_grid 
   use pmc_constants
   use pmc_env_state
   use pmc_gas_data
@@ -35,7 +34,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize all MOSAIC data-structures.
-  subroutine mosaic_init(bin_grid, env_state, del_t, do_optical)
+  subroutine mosaic_init(env_state, del_t, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -47,8 +46,6 @@ contains
          msolar, mphoto, lun_aeroptic, naerbin
 #endif
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Timestep for coagulation.
@@ -140,7 +137,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Map all data PartMC -> MOSAIC.
-  subroutine mosaic_from_partmc(bin_grid, env_state, aero_data, &
+  subroutine mosaic_from_partmc(env_state, aero_data, &
        aero_weight, aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
@@ -152,8 +149,6 @@ contains
          cair_molm3, ppb, avogad, msolar, naerbin
 #endif
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -172,7 +167,7 @@ contains
     real(kind=dp) :: time_UTC    ! 24-hr UTC clock time (hr).
     real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
-    integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
+    integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: weight
 
@@ -231,33 +226,29 @@ contains
        naerbin = nbin_a
        call AllocateMemory()
     end if
-    i_mosaic = 0 ! MOSAIC bin number
     aer = 0d0    ! initialize to zero
-    do i_bin = 1,bin_grid%n_bin
-       ! work backwards for consistency with mosaic_to_partmc(), which
-       ! has specific ordering requirements
-       do i_part = aero_state%bin(i_bin)%n_part,1,-1
-          particle => aero_state%bin(i_bin)%particle(i_part)
-          weight = aero_weight_value(aero_weight, &
-               aero_particle_radius(particle))
-          i_mosaic = i_mosaic + 1
-          do i_spec = 1,aero_data%n_spec
-             i_spec_mosaic = aero_data%mosaic_index(i_spec)
-             if (i_spec_mosaic > 0) then
-                ! convert m^3(species) to nmol(species)/m^3(air)
-                aer(i_spec_mosaic, 3, i_mosaic) &   ! nmol/m^3(air)
-                     = particle%vol(i_spec) * conv_fac(i_spec) * weight
-             end if
-          end do
-          ! handle water specially
-          ! convert m^3(water) to kg(water)/m^3(air)
-          water_a(i_mosaic) = particle%vol(aero_data%i_water) &
-               * aero_data%density(aero_data%i_water) &
-               / (aero_state%comp_vol / weight)
-          num_a(i_mosaic) = 1d-6 &
-               / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
-          jhyst_leg(i_mosaic) = particle%water_hyst_leg
+    ! work backwards for consistency with mosaic_to_partmc(), which
+    ! has specific ordering requirements
+    do i_part = 1,aero_state%p%n_part
+       particle => aero_state%p%particle(i_part)
+       weight = aero_weight_value(aero_weight, &
+            aero_particle_radius(particle))
+       do i_spec = 1,aero_data%n_spec
+          i_spec_mosaic = aero_data%mosaic_index(i_spec)
+          if (i_spec_mosaic > 0) then
+             ! convert m^3(species) to nmol(species)/m^3(air)
+             aer(i_spec_mosaic, 3, i_part) &   ! nmol/m^3(air)
+                  = particle%vol(i_spec) * conv_fac(i_spec) * weight
+          end if
        end do
+       ! handle water specially
+       ! convert m^3(water) to kg(water)/m^3(air)
+       water_a(i_part) = particle%vol(aero_data%i_water) &
+            * aero_data%density(aero_data%i_water) &
+            / (aero_state%comp_vol / weight)
+       num_a(i_part) = 1d-6 &
+            / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
+       jhyst_leg(i_part) = particle%water_hyst_leg
     end do
 
     ! gas chemistry: map PartMC -> MOSAIC
@@ -276,7 +267,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   !> Map all data MOSAIC -> PartMC.
-  subroutine mosaic_to_partmc(bin_grid, env_state, aero_data, &
+  subroutine mosaic_to_partmc(env_state, aero_data, &
        aero_weight, aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
@@ -288,8 +279,6 @@ contains
          cair_molm3, ppb, avogad, msolar, cos_sza
 #endif
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -306,7 +295,7 @@ contains
 #ifdef PMC_USE_MOSAIC
     ! local variables
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
-    integer :: i_bin, i_part, i_spec, i_mosaic, i_spec_mosaic
+    integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     type(aero_particle_t) :: new_particle
     type(aero_info_t) :: aero_info
@@ -334,61 +323,58 @@ contains
     call aero_particle_allocate(new_particle)
     call aero_info_allocate(aero_info)
 
-    ! aerosol data: map MOSAIC -> PartMC
-    i_mosaic = 0 ! MOSAIC bin number
-    do i_bin = 1,bin_grid%n_bin
-       ! work backwards so any additions and removals will only affect
-       ! particles that we've already dealt with
-       do i_part = aero_state%bin(i_bin)%n_part,1,-1
-          i_mosaic = i_mosaic + 1
-          particle => aero_state%bin(i_bin)%particle(i_part)
-          old_weight = aero_weight_value(aero_weight, &
-               aero_particle_radius(particle))
-          do i_spec = 1,aero_data%n_spec
-             i_spec_mosaic = aero_data%mosaic_index(i_spec)
-             if (i_spec_mosaic > 0) then
-                particle%vol(i_spec) = &
-                     ! convert nmol(species)/m^3(air) to m^3(species)
-                     aer(i_spec_mosaic, 3, i_mosaic) &
-                     / (conv_fac(i_spec) * old_weight)
-             end if
-          end do
-          particle%water_hyst_leg = jhyst_leg(i_mosaic)
-          ! handle water specially
-          ! convert kg(water)/m^3(air) to m^3(water)
-          particle%vol(aero_data%i_water) = water_a(i_mosaic) &
-               / aero_data%density(aero_data%i_water) &
-               * (aero_state%comp_vol / old_weight)
+    ! We're modifying particle diameters, so the bin sort is now invalid
+    aero_state%valid_sort = .false.
 
-          ! adjust particle number to account for weight changes
-          if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
-             new_weight = aero_weight_value(aero_weight, &
-                  aero_particle_radius(particle))
-             n_copies = prob_round(old_weight / new_weight)
-             if (n_copies == 0) then
-                aero_info%id = particle%id
-                aero_info%action = AERO_INFO_WEIGHT
-                aero_info%other_id = 0
-                call aero_state_remove_particle_with_info(aero_state, &
-                     i_bin, i_part, aero_info)
-             elseif (n_copies > 1) then
-                do i_dup = 1,(n_copies - 1)
-                   call aero_particle_copy(particle, new_particle)
-                   call aero_particle_new_id(new_particle)
-                   ! this might be adding into the wrong bin, but
-                   ! that's necessary as we might not have processed
-                   ! the correct bin yet.
-                   call aero_state_add_particle(aero_state, i_bin, &
-                        new_particle)
-                   ! re-get the particle pointer, which may have
-                   ! changed due to reallocations caused by adding
-                   particle => aero_state%bin(i_bin)%particle(i_part)
-                end do
-             end if
+    ! aerosol data: map MOSAIC -> PartMC
+    ! work backwards so any additions and removals will only affect
+    ! particles that we've already dealt with
+    do i_part = aero_state%p%n_part,1,-1
+       particle => aero_state%p%particle(i_part)
+       old_weight = aero_weight_value(aero_weight, &
+            aero_particle_radius(particle))
+       do i_spec = 1,aero_data%n_spec
+          i_spec_mosaic = aero_data%mosaic_index(i_spec)
+          if (i_spec_mosaic > 0) then
+             particle%vol(i_spec) = &
+                  ! convert nmol(species)/m^3(air) to m^3(species)
+                  aer(i_spec_mosaic, 3, i_part) &
+                  / (conv_fac(i_spec) * old_weight)
           end if
        end do
+       particle%water_hyst_leg = jhyst_leg(i_part)
+       ! handle water specially
+       ! convert kg(water)/m^3(air) to m^3(water)
+       particle%vol(aero_data%i_water) = water_a(i_part) &
+            / aero_data%density(aero_data%i_water) &
+            * (aero_state%comp_vol / old_weight)
+       
+       ! adjust particle number to account for weight changes
+       if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
+          new_weight = aero_weight_value(aero_weight, &
+               aero_particle_radius(particle))
+          n_copies = prob_round(old_weight / new_weight)
+          if (n_copies == 0) then
+             aero_info%id = particle%id
+             aero_info%action = AERO_INFO_WEIGHT
+             aero_info%other_id = 0
+             call aero_state_remove_particle_with_info(aero_state, &
+                  i_part, aero_info)
+          elseif (n_copies > 1) then
+             do i_dup = 1,(n_copies - 1)
+                call aero_particle_copy(particle, new_particle)
+                call aero_particle_new_id(new_particle)
+                ! this might be adding into the wrong bin, but
+                ! that's necessary as we might not have processed
+                ! the correct bin yet.
+                call aero_state_add_particle(aero_state, new_particle)
+                ! re-get the particle pointer, which may have
+                ! changed due to reallocations caused by adding
+                particle => aero_state%p%particle(i_part)
+             end do
+          end if
+       end if
     end do
-    call aero_state_resort(bin_grid, aero_state)
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec
@@ -414,15 +400,13 @@ contains
   !! time, rather than inside the timestepper. It's not clear if this
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
-  subroutine mosaic_timestep(bin_grid, env_state, aero_data, &
+  subroutine mosaic_timestep(env_state, aero_data, &
        aero_weight, aero_state, gas_data, gas_state, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
 #endif
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -450,7 +434,7 @@ contains
     end interface
     
     ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_weight, &
+    call mosaic_from_partmc(env_state, aero_data, aero_weight, &
          aero_state, gas_data, gas_state)
 
     if (msolar == 1) then
@@ -464,11 +448,11 @@ contains
        ! must do optical properties first, as mosaic_to_partmc() may
        ! change the number of particles
        call aerosol_optical
-       call mosaic_aero_optical(bin_grid, env_state, aero_data, &
+       call mosaic_aero_optical(env_state, aero_data, &
             aero_state, gas_data, gas_state)
     end if
 
-    call mosaic_to_partmc(bin_grid, env_state, aero_data, aero_weight, &
+    call mosaic_to_partmc(env_state, aero_data, aero_weight, &
          aero_state, gas_data, gas_state)
 #endif
 
@@ -482,7 +466,7 @@ contains
   !! At the moment we are computing the aerosol optical properties
   !! every timestep from withing mosaic_timestep. This decision should
   !! be re-evaluated at some point in the future.
-  subroutine mosaic_aero_optical(bin_grid, env_state, aero_data, &
+  subroutine mosaic_aero_optical(env_state, aero_data, &
        aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
@@ -490,8 +474,6 @@ contains
          ext_cross, scat_cross, asym_particle
 #endif
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -510,33 +492,29 @@ contains
        end subroutine aerosol_optical
     end interface
 
-    integer :: i_bin, i_part, i_mosaic
+    integer :: i_part
     type(aero_particle_t), pointer :: particle
     
     ! map PartMC -> MOSAIC
-!    call mosaic_from_partmc(bin_grid, env_state, aero_data, aero_state, &
+!    call mosaic_from_partmc(env_state, aero_data, aero_state, &
 !         gas_data, gas_state)
 
 !    call aerosol_optical
 
     ! map MOSAIC -> PartMC
-    i_mosaic = 0 ! MOSAIC bin number
-    do i_bin = 1,bin_grid%n_bin
-       ! work backwards for consistency with mosaic_to_partmc(), which
-       ! has specific ordering requirements
-       do i_part = aero_state%bin(i_bin)%n_part,1,-1
-          i_mosaic = i_mosaic + 1
-          particle => aero_state%bin(i_bin)%particle(i_part)
-          particle%absorb_cross_sect = (ext_cross(i_mosaic) &
-               - scat_cross(i_mosaic)) / 1d4                       ! (m^2)
-          particle%scatter_cross_sect = scat_cross(i_mosaic) / 1d4 ! (m^2)
-          particle%asymmetry = asym_particle(i_mosaic)             ! (1)
-          particle%refract_shell = cmplx(ri_shell_a(i_mosaic), kind=dc) ! (1)
-          particle%refract_core = cmplx(ri_core_a(i_mosaic), kind=dc)   ! (1)
-          ! FIXME: how do we get core_vol?
-          !particle%core_vol = diam2vol(dp_core_a(i_mosaic))        ! (m^3)
-          particle%core_vol = 0d0
-        end do
+    ! work backwards for consistency with mosaic_to_partmc(), which
+    ! has specific ordering requirements
+    do i_part = aero_state%p%n_part,1,-1
+       particle => aero_state%p%particle(i_part)
+       particle%absorb_cross_sect = (ext_cross(i_part) &
+            - scat_cross(i_part)) / 1d4                       ! (m^2)
+       particle%scatter_cross_sect = scat_cross(i_part) / 1d4 ! (m^2)
+       particle%asymmetry = asym_particle(i_part)             ! (1)
+       particle%refract_shell = cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+       particle%refract_core = cmplx(ri_core_a(i_part), kind=dc)   ! (1)
+       ! FIXME: how do we get core_vol?
+       !particle%core_vol = diam2vol(dp_core_a(i_part))        ! (m^3)
+       particle%core_vol = 0d0
     end do
 #endif
 

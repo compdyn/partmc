@@ -123,7 +123,7 @@ contains
   !> Deallocates a previously allocated aerosol.
   subroutine aero_state_deallocate(aero_state)
 
-    !> Aerosol to initialize.
+    !> Aerosol to deallocate.
     type(aero_state_t), intent(inout) :: aero_state
     
     integer :: n_bin, i

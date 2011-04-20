@@ -18,6 +18,7 @@ option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
+option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 
 ######################################################################
 # CPack
@@ -69,6 +70,14 @@ if(ENABLE_GSL)
   set(GSL_LIBS ${GSL_LIB} ${GSL_CBLAS_LIB} ${M_LIB})
   include_directories(${GSL_INCLUDE_DIR})
   add_definitions(-DPMC_USE_GSL)
+endif()
+
+######################################################################
+# C sort
+
+if(ENABLE_C_SORT)
+  set(C_SORT_SRC src/sort.c)
+  add_definitions(-DPMC_USE_C_SORT)
 endif()
 
 ######################################################################
@@ -216,7 +225,8 @@ add_executable(partmc src/partmc.F90 src/aero_state.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC})
+  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
+  ${C_SORT_SRC})
 
 target_link_libraries(partmc ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS})
@@ -233,7 +243,7 @@ add_executable(test_bidisperse_ode
   src/aero_mode.F90 src/aero_dist.F90 src/aero_weight.F90
   src/aero_binned.F90 src/rand.F90 src/aero_particle.F90
   src/aero_particle_array.F90 src/mpi.F90 src/netcdf.F90
-  src/aero_info.F90 src/aero_info_array.F90 ${GSL_SRC})
+  src/aero_info.F90 src/aero_info_array.F90 ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIBS})
 
@@ -241,7 +251,7 @@ target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIBS})
 # test_bidisperse_extract
 
 add_executable(test_bidisperse_extract
-test/bidisperse/test_bidisperse_extract.F90)
+  test/bidisperse/test_bidisperse_extract.F90)
 
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
@@ -249,7 +259,7 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 # test_nucleate_ode
 
 set(TEST_NUCLEATE_ODE_SRC test/nucleate/test_nucleate_ode.F90
-  src/util.F90 src/constants.F90)
+  src/util.F90 src/constants.F90 ${C_SORT_SRC})
 
 add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 
@@ -257,7 +267,8 @@ add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 # test_poisson_sample
 
 add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
+  ${C_SORT_SRC})
 
 target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
@@ -265,7 +276,8 @@ target_link_libraries(test_poisson_sample ${GSL_LIBS})
 # test_binomial_sample
 
 add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
+  ${C_SORT_SRC})
 
 target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
@@ -280,7 +292,7 @@ add_executable(bin_average_comp src/bin_average_comp.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/aero_info.F90
   src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
   src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90
-  ${GSL_SRC})
+  ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIBS})
 
@@ -295,7 +307,7 @@ add_executable(bin_average_size src/bin_average_size.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/aero_info.F90
   src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
   src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90
-  ${GSL_SRC})
+  ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIBS})
 

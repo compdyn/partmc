@@ -12,6 +12,9 @@ module pmc_util
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+#ifdef PMC_USE_C_SORT
+  use iso_c_binding
+#endif
 
   !> Maximum number of IO units usable simultaneously.
   integer, parameter :: max_units = 200
@@ -1001,6 +1004,48 @@ contains
   end subroutine get_command_argument
 #endif
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sort the given data array and return the permutation defining the sort.
+  !!
+  !! If \c data is the original data array, \c new_data is the sorted
+  !! value of data, and \c perm is the returned permutation, then
+  !! <tt>new_data(i) = data(perm(i))</tt>.
+  subroutine integer_sort(data, perm)
+
+    !> Data array to sort, sorted on exit.
+    integer, intent(inout) :: data(:)
+    !> Permutation defining the sort: <tt>new_data(i) = data(perm(i))</tt>.
+    integer, intent(out) :: perm(size(data))
+    
+#ifdef PMC_USE_C_SORT
+    integer(kind=c_int) :: n_c
+    integer(kind=c_int), target :: data_c(size(data))
+    integer(kind=c_int), target :: perm_c(size(data))
+    type(c_ptr) :: data_ptr, perm_ptr
+
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       subroutine integer_sort_c(n_c, data_ptr, perm_ptr) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n_c
+         type(c_ptr), value :: data_ptr, perm_ptr
+       end subroutine integer_sort_c
+    end interface
+#endif
+
+    data_c = int(data, kind=c_int)
+    perm_c = 0_c_int
+    n_c = int(size(data), kind=c_int)
+    data_ptr = c_loc(data_c)
+    perm_ptr = c_loc(perm_c)
+    call integer_sort_c(n_c, data_ptr, perm_ptr)
+    data = int(data_c)
+    perm = int(perm_c)
+#endif
+
+  end subroutine integer_sort
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_util

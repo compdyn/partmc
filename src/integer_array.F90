@@ -19,7 +19,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an empty structure.
-  subroutine integer_array_allocate(integer_array)
+  elemental subroutine integer_array_allocate(integer_array)
 
     !> Structure to initialize.
     type(integer_array_t), intent(out) :: integer_array
@@ -31,7 +31,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a structure with the given size.
-  subroutine integer_array_allocate_size(integer_array, n_entry)
+  elemental subroutine integer_array_allocate_size(integer_array, n_entry)
 
     !> Structure to initialize.
     type(integer_array_t), intent(out) :: integer_array
@@ -45,7 +45,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated structure.
-  subroutine integer_array_deallocate(integer_array)
+  elemental subroutine integer_array_deallocate(integer_array)
 
     !> Structure to deallocate.
     type(integer_array_t), intent(inout) :: integer_array

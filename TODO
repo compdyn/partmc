@@ -102,3 +102,11 @@ close it, then call the correct run_*() reader. This would enable
 other driver programs to be easily written. run_part() should also
 take a callback function, with a t_callback timestep parameter, to
 enable in-run processing.
+
+Switch to allocatable structure members, rather than pointers. Also
+test for allocated() inside my_type_allocate(), and deallocate first
+if needed. Then don't need to deallocate before allocating in
+subroutines. Then don't need to pre-allocate before calling
+subroutines which are just going to reallocate anyway. Will need to
+clearly indicate which procedures can be passed unallocated
+structures.

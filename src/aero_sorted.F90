@@ -224,12 +224,12 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer(size(val%bin))
+    call pmc_mpi_pack_integer(buffer, position, size(val%bin))
     do i = 1,size(val%bin)
-       call pmc_mpi_pack_integer_varray(val%bin(i))
+       call pmc_mpi_pack_integer_varray(buffer, position, val%bin(i))
     end do
-    call pmc_mpi_pack_integer_varray(val%reverse_bin)
-    call pmc_mpi_pack_integer_varray(val%reverse_entry)
+    call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_bin)
+    call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_entry)
     call assert(178297816, &
          position - prev_position <= pmc_mpi_pack_size_aero_sorted(val))
 #endif
@@ -252,14 +252,14 @@ contains
     integer :: prev_position, i, n
 
     prev_position = position
-    call pmc_mpi_unpack_integer(n)
+    call pmc_mpi_unpack_integer(buffer, position, n)
     call aero_sorted_deallocate(val)
     call aero_sorted_allocate_size(val, n)
     do i = 1,size(val%bin)
-       call pmc_mpi_unpack_integer_varray(val%bin(i))
+       call pmc_mpi_unpack_integer_varray(buffer, position, val%bin(i))
     end do
-    call pmc_mpi_unpack_integer_varray(val%reverse_bin)
-    call pmc_mpi_unpack_integer_varray(val%reverse_entry)
+    call pmc_mpi_unpack_integer_varray(buffer, position, val%reverse_bin)
+    call pmc_mpi_unpack_integer_varray(buffer, position, val%reverse_entry)
     call assert(364064630, &
          position - prev_position <= pmc_mpi_pack_size_aero_sorted(val))
 #endif

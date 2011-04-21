@@ -1109,7 +1109,7 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_apa(buffer, position, val%p)
+    call pmc_mpi_pack_aero_particle_array(buffer, position, val%p)
     call pmc_mpi_pack_aero_sorted(buffer, position, val%aero_sorted)
     call pmc_mpi_pack_logical(buffer, position, val%valid_sort)
     call pmc_mpi_pack_real(buffer, position, val%comp_vol)
@@ -1136,7 +1136,7 @@ contains
     integer :: prev_position, i, n
 
     prev_position = position
-    call pmc_mpi_unpack_apa(buffer, position, val%p)
+    call pmc_mpi_unpack_aero_particle_array(buffer, position, val%p)
     call pmc_mpi_unpack_aero_sorted(buffer, position, val%aero_sorted)
     call pmc_mpi_unpack_logical(buffer, position, val%valid_sort)
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
@@ -1258,7 +1258,7 @@ contains
           aero_particle => aero_state_total%p%particle(i_part)
           i_proc = pmc_rand_int(n_proc)
           call aero_state_add_particle(aero_state_transfers(i_proc), &
-               i_bin, aero_particle)
+               aero_particle)
        end do
 
        ! just copy our own transfer aero_state

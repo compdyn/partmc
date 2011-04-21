@@ -233,7 +233,8 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer_array(val%entry(1:val%n_entry))
+    call pmc_mpi_pack_integer_array(buffer, position, &
+         val%entry(1:val%n_entry))
     call assert(230655880, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))
 #endif
@@ -254,10 +255,15 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
+    ! FIXME: should switch to allocatable arrays in pmc_mpi_unpack_*()
+    integer, pointer, dimension(:) :: tmp_entry
 
     prev_position = position
-    call pmc_mpi_unpack_integer_array(val%entry)
-    val%n_entry = size(val%entry)
+    allocate(tmp_entry(0))
+    call pmc_mpi_unpack_integer_array(buffer, position, tmp_entry)
+    call integer_varray_deallocate(val)
+    call integer_varray_allocate_size(val, size(tmp_entry))
+    val%entry = tmp_entry
     call assert(355866103, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))
 #endif

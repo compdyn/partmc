@@ -541,8 +541,8 @@ contains
     call assert(215612776, found_request)
 
     ! we can't do coagulation with the local particle, so store it back
-    call aero_state_add_particle(aero_state, requests(i_req)%local_bin, &
-         requests(i_req)%local_aero_particle)
+    call aero_state_add_particle(aero_state, &
+         requests(i_req)%local_aero_particle, requests(i_req)%local_bin)
     call request_deallocate(requests(i_req))
     call request_allocate(requests(i_req))
 #endif
@@ -666,8 +666,8 @@ contains
 
     ! send the particles back
     if (.not. remove_1) then
-       call aero_state_add_particle(aero_state, requests(i_req)%local_bin, &
-            requests(i_req)%local_aero_particle)
+       call aero_state_add_particle(aero_state, &
+            requests(i_req)%local_aero_particle, requests(i_req)%local_bin)
     end if
     if (.not. remove_2) then
        call send_return_unreq_particle(sent_aero_particle, sent_proc)
@@ -744,7 +744,7 @@ contains
 
     ! put it back
     i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-    call aero_state_add_particle(aero_state, i_bin, aero_particle)
+    call aero_state_add_particle(aero_state, aero_particle, i_bin)
     call aero_particle_deallocate(aero_particle)
 #endif
 

@@ -269,7 +269,7 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
-          call condense_particles(bin_grid, env_state, env_data, aero_data, &
+          call condense_particles(env_state, env_data, aero_data, &
                aero_weight, aero_state, run_part_opt%del_t)
        end if
 #endif

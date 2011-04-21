@@ -110,7 +110,7 @@ contains
     !> Structure to copy from.
     type(integer_varray_t), intent(in) :: integer_varray_from
     !> Structure to copy to.
-    type(integer_varray_t), intent(out) :: integer_varray_to
+    type(integer_varray_t), intent(inout) :: integer_varray_to
     
     call integer_varray_deallocate(integer_varray_to)
     call integer_varray_allocate_size(integer_varray_to, &

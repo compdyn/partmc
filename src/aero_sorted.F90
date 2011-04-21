@@ -110,14 +110,11 @@ contains
     !> Structure to copy from.
     type(aero_sorted_t), intent(in) :: aero_sorted_from
     !> Structure to copy to.
-    type(aero_sorted_t), intent(out) :: aero_sorted_to
+    type(aero_sorted_t), intent(inout) :: aero_sorted_to
     
     integer :: i_bin, n_bin
 
     call aero_sorted_deallocate(aero_sorted_to)
-    !>DEBUG
-    call die(974926176)
-    !<DEBUG
     n_bin = size(aero_sorted_from%bin)
     call aero_sorted_allocate_size(aero_sorted_to, n_bin)
     do i_bin = 1,n_bin

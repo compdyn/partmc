@@ -147,7 +147,14 @@ contains
     type(aero_state_t), intent(inout) :: aero_state_to
     
     call aero_particle_array_copy(aero_state_from%p, aero_state_to%p)
-    aero_state_to%valid_sort = .false.
+
+    if (aero_state_from%valid_sort) then
+       aero_state_to%valid_sort = .true.
+       call aero_sorted_copy(aero_state_from%aero_sorted, &
+            aero_state_to%aero_sorted)
+    else
+       aero_state_to%valid_sort = .false.
+    end if
 
     aero_state_to%comp_vol = aero_state_from%comp_vol
 
@@ -1165,6 +1172,8 @@ contains
     character, allocatable :: buffer(:)
 #endif
 
+    call assert(978229191, &
+         aero_state%valid_sort .eqv. aero_state_total%valid_sort)
     if (pmc_mpi_rank() == 0) then
        call aero_state_copy(aero_state, aero_state_total)
     end if

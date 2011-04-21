@@ -104,6 +104,35 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies an aero_sorted.
+  subroutine aero_sorted_copy(aero_sorted_from, aero_sorted_to)
+
+    !> Structure to copy from.
+    type(aero_sorted_t), intent(in) :: aero_sorted_from
+    !> Structure to copy to.
+    type(aero_sorted_t), intent(out) :: aero_sorted_to
+    
+    integer :: i_bin, n_bin
+
+    call aero_sorted_deallocate(aero_sorted_to)
+    !>DEBUG
+    call die(974926176)
+    !<DEBUG
+    n_bin = size(aero_sorted_from%bin)
+    call aero_sorted_allocate_size(aero_sorted_to, n_bin)
+    do i_bin = 1,n_bin
+       call integer_varray_copy(aero_sorted_from%bin(i_bin), &
+            aero_sorted_to%bin(i_bin))
+    end do
+    call integer_varray_copy(aero_sorted_from%reverse_bin, &
+         aero_sorted_to%reverse_bin)
+    call integer_varray_copy(aero_sorted_from%reverse_entry, &
+         aero_sorted_to%reverse_entry)
+
+  end subroutine aero_sorted_copy
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &

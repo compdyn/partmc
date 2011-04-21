@@ -104,6 +104,24 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies an integer_varray.
+  subroutine integer_varray_copy(integer_varray_from, integer_varray_to)
+
+    !> Structure to copy from.
+    type(integer_varray_t), intent(in) :: integer_varray_from
+    !> Structure to copy to.
+    type(integer_varray_t), intent(out) :: integer_varray_to
+    
+    call integer_varray_deallocate(integer_varray_to)
+    call integer_varray_allocate_size(integer_varray_to, &
+         integer_varray_from%n_entry)
+    integer_varray_to%entry(1:integer_varray_from%n_entry) &
+         = integer_varray_from%entry(1:integer_varray_from%n_entry)
+
+  end subroutine integer_varray_copy
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Enlarges the given integer_varray by at least one element.
   !!
   !! Currently this at least doubles the length.

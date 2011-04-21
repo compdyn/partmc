@@ -190,7 +190,8 @@ contains
           call gas_state_copy(gas_state, gas_state_write)
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          call aero_state_allocate(aero_state_write)
+          call aero_state_allocate_size(aero_state_write, bin_grid%n_bin, &
+               aero_data%n_spec, aero_data%n_source)
           call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
              call output_state_to_file(prefix, bin_grid, aero_data, &

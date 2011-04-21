@@ -114,4 +114,9 @@ structures.
 Fix sources to work with MPI.
 
 Integrate aero_particle_array into aero_state? Rename aero_state%p in
-any case.
+any case. Probably best to rename aero_state%p to aero_state%particle
+and aero_particle_array%n_part to n_entry and
+aero_particle_array%particle to entry.
+
+Don't specify a bin grid in the spec file; work it out automatically
+in run_part.

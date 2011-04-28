@@ -19,6 +19,9 @@ module pmc_coag_kernel_additive
   use pmc_aero_data
   use pmc_aero_particle
   
+  !> Scaling coefficient for constant kernel.
+  real(kind=dp), parameter :: beta_1 = 1000d0
+
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -38,11 +41,9 @@ contains
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
 
-    real(kind=dp) :: k_tmp
-    
-    call kernel_additive_minmax(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state, k, k_tmp)
-    
+    k = beta_1 * (aero_particle_volume(aero_particle_1) &
+         + aero_particle_volume(aero_particle_2))
+
   end subroutine kernel_additive
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -62,8 +63,6 @@ contains
     real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
-    
-    real(kind=dp), parameter :: beta_1 = 1000d0
     
     k_min = beta_1 * (v1 + v2)
     k_max = k_min
@@ -117,11 +116,9 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
     
-    real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol, tmp
+    real(kind=dp) :: tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
     
-    call kernel_additive_minmax(1d0, 0d0, aero_data, env_state, beta_1, tmp)
-
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin

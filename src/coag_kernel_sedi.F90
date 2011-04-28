@@ -40,16 +40,14 @@ contains
     !> Kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    real(kind=dp) :: k_tmp
-
-    call kernel_sedi_minmax(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state, k, k_tmp)
+    call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), k)
 
   end subroutine kernel_sedi
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Minimum and maximum values of the sedimentation coagulation kernel.
+  !> Minimum and maximum values of the sedimentation coagulation.
   subroutine kernel_sedi_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle (m^3).
@@ -64,22 +62,37 @@ contains
     real(kind=dp), intent(out) :: k_min
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
-    
-    real(kind=dp) constant, onethird
-    real(kind=dp) r1, r2, winf1, winf2, ec
-    
-    constant = 3d0 / (4d0 * const%pi)
-    onethird  = 1d0/3d0
-    r1 = (constant*v1)**onethird ! m
-    r2 = (constant*v2)**onethird ! m
-    call fall_g(r1, winf1) ! winf1 in m/s
-    call fall_g(r2, winf2) ! winf2 in m/s
-    call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
-    k_min = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
+
+    call kernel_sedi_helper(v1, v2, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
-  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Helper function that does the actual sedimentation kernel computation.
+  !!
+  !! Helper function. Do not call directly. Instead use kernel_sedi().
+  subroutine kernel_sedi_helper(v1, v2, k)
+
+    !> Volume of first particle (m^3).
+    real(kind=dp), intent(in) :: v1
+    !> Volume of second particle (m^3).
+    real(kind=dp), intent(in) :: v2
+    !> Kernel k(a,b) (m^3/s).
+    real(kind=dp), intent(out) :: k
+
+    real(kind=dp) r1, r2, winf1, winf2, ec
+    
+    r1 = vol2rad(v1) ! m
+    r2 = vol2rad(v2) ! m
+    call fall_g(r1, winf1) ! winf1 in m/s
+    call fall_g(r2, winf2) ! winf2 in m/s
+    call effic(r1, r2, ec) ! ec is dimensionless
+    k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)
+
+  end subroutine kernel_sedi_helper
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finds the terminal velocity of a particle based on its size.
@@ -155,17 +168,18 @@ contains
   !! given that they approach close enough to do so.
   subroutine effic(r1, r2, ec)
 
-    !> Radius of first particle (um).
+    !> Radius of first particle (m).
     real(kind=dp), intent(in) :: r1
-    !> Radius of second particle (um).
+    !> Radius of second particle (m).
     real(kind=dp), intent(in) :: r2
     !> Collision efficiency (dimensionless).
     real(kind=dp), intent(out) :: ec
     
-    real(kind=dp) r_small, r_big, rq, p, q, ek
-    integer k, ir, kk, iq
+    real(kind=dp) :: r_small, r_big, rq, p, q, ek
+    integer :: k, ir, kk, iq
     ! collision efficiencies of hall kernel
-    real(kind=dp) rat(21),r0(15),ecoll(15,21)
+    real(kind=dp) :: rat(21),r0(15),ecoll(15,21)
+
     data r0 /6.0d0,8.0d0,10.0d0,15.0d0,20.0d0,25.0d0,30.0d0,40.0d0 &
          ,50.0d0,60.0d0,70.0d0,100.0d0,150.0d0,200.0d0,300.0d0/
     data rat /0.0d0,0.05d0,0.1d0,0.15d0,0.2d0,0.25d0,0.3d0,0.35d0 &
@@ -219,8 +233,8 @@ contains
          ,1.400d0,2.300d0,3.000d0 ,4.000d0,4.000d0,4.000d0,4.000d0 &
          ,4.000d0/
     
-    r_small = min(r1, r2)
-    r_big = max(r1, r2)
+    r_small = min(r1 * 1d6, r2 * 1d6) ! um
+    r_big = max(r1 * 1d6, r2 * 1d6) ! um
     rq = r_small / r_big
     
     ir = 1

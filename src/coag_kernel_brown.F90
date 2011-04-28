@@ -74,22 +74,20 @@ contains
 
     real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
+    logical :: first
     
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
-    
-    k_max = 0d0
+
+    first = .true.
     do i = 1,n_sample
        do j = 1,n_sample
-          d1 = d_max * real(n_sample - i, kind=dp) &
-               / real(n_sample - 1, kind=dp) + &
-               d_min * real(i - 1, kind=dp) / real(n_sample - 1, kind=dp)
-          d2 = d_max * real(n_sample - j, kind=dp) &
-               / real(n_sample - 1, kind=dp) + &
-               d_min * real(j - 1, kind=dp) / real(n_sample - 1, kind=dp)
-          call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
-               env_state%pressure, k)
-          if ((i == 1) .and. (j == 1)) then
+          d1 = interp_linear_disc(d_min, d_max, n_sample, i)
+          d2 = interp_linear_disc(d_min, d_max, n_sample, j)
+          call kernel_brown_helper(v1, d1, v2, d2, &
+               env_state%temp, env_state%pressure, k)
+          if (first) then
+             first = .false.
              k_min = k
              k_max = k
           else

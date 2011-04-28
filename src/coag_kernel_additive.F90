@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -37,16 +37,18 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
+
+    real(kind=dp) :: k_tmp
     
-    call kernel_additive_max(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
+    call kernel_additive_minmax(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k, k_tmp)
     
   end subroutine kernel_additive
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Maximum value of the additive kernel.
-  subroutine kernel_additive_max(v1, v2, aero_data, env_state, k_max)
+  !> Minimum and maximum values of the additive kernel.
+  subroutine kernel_additive_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle.
     real(kind=dp), intent(in) :: v1
@@ -56,14 +58,17 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel minimum value.
+    real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
     
     real(kind=dp), parameter :: beta_1 = 1000d0
     
-    k_max = beta_1 * (v1 + v2)
+    k_min = beta_1 * (v1 + v2)
+    k_max = k_min
     
-  end subroutine kernel_additive_max
+  end subroutine kernel_additive_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -112,10 +117,10 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
     
-    real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol
+    real(kind=dp) :: beta_1, tau, T, rat_v, nn, b, x, mean_vol, tmp
     integer :: k
     
-    call kernel_additive_max(1d0, 0d0, aero_data, env_state, beta_1)
+    call kernel_additive_minmax(1d0, 0d0, aero_data, env_state, beta_1, tmp)
 
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then

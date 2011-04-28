@@ -107,8 +107,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the maximum coagulation kernel.
-  subroutine kernel_max(coag_kernel_type, v1, v2, aero_data, env_state, k_max)
+  !> Compute the minimum and maximum coagulation kernel.
+  subroutine kernel_minmax(coag_kernel_type, v1, v2, aero_data, env_state, &
+       k_min, k_max)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -120,25 +121,27 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel value (m^3/s).
+    real(kind=dp), intent(out) :: k_min
     !> Maximum kernel value (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_SEDI) then
-       call kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
+       call kernel_sedi_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
-       call kernel_additive_max(v1, v2, aero_data, env_state, k_max)
+       call kernel_additive_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
-       call kernel_constant_max(v1, v2, aero_data, env_state, k_max)
+       call kernel_constant_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN) then
-       call kernel_brown_max(v1, v2, aero_data, env_state, k_max)
+       call kernel_brown_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
-       call kernel_zero_max(v1, v2, aero_data, env_state, k_max)
+       call kernel_zero_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &
             // trim(integer_to_string(coag_kernel_type)))
     end if
 
-  end subroutine kernel_max
+  end subroutine kernel_minmax
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -180,9 +183,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the max kernel value with the given weight.
-  subroutine weighted_kernel_max(coag_kernel_type, v1, v2, aero_data, &
-       aero_weight, env_state, k_max)
+  !> Compute the minimum and maximum kernel value with the given weight.
+  subroutine weighted_kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
+       aero_weight, env_state, k_min, k_max)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -196,22 +199,25 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel minimum value.
+    real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
 
-    real(kind=dp) :: unweighted_k_max, weight_1, weight_2, weight_1_plus_2
-    real(kind=dp) :: weight_min
+    real(kind=dp) :: unweighted_k_min, unweighted_k_max
+    real(kind=dp) :: weight_1, weight_2, weight_1_plus_2, weight_min
 
-    call kernel_max(coag_kernel_type, v1, v2, aero_data, env_state, &
-         unweighted_k_max)
+    call kernel_minmax(coag_kernel_type, v1, v2, aero_data, env_state, &
+         unweighted_k_min, unweighted_k_max)
 
     weight_1 = aero_weight_value(aero_weight, vol2rad(v1))
     weight_2 = aero_weight_value(aero_weight, vol2rad(v2))
     weight_1_plus_2 = aero_weight_value(aero_weight, vol2rad(v1 + v2))
     weight_min = min(weight_1, weight_2, weight_1_plus_2)
+    k_min = unweighted_k_min * weight_1 * weight_2 / weight_min
     k_max = unweighted_k_max * weight_1 * weight_2 / weight_min
 
-  end subroutine weighted_kernel_max
+  end subroutine weighted_kernel_minmax
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -256,11 +262,11 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Estimate an array of maximum kernel values. Given particles v1 in
-  !> bin b1 and v2 in bin b2, it is probably true that kernel(v1,v2)
-  !> <= k_max(b1,b2).
-  subroutine est_k_max_binned(bin_grid, coag_kernel_type, aero_data, &
-       aero_weight, env_state, k_max)
+  !> Estimate an array of minimum and maximum kernel values. Given
+  !> particles v1 in bin b1 and v2 in bin b2, it is probably true that
+  !> <tt>k_min(b1,b2) <= kernel(v1,v2) <= k_max(b1,b2)</tt>.
+  subroutine est_k_minmax_binned(bin_grid, coag_kernel_type, aero_data, &
+       aero_weight, env_state, k_min, k_max)
 
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -272,26 +278,28 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Max kernel vals.
+    !> Minimum kernel vals.
+    real(kind=dp), intent(out) :: k_min(bin_grid%n_bin,bin_grid%n_bin)
+    !> Maximum kernel vals.
     real(kind=dp), intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     
     integer i, j
     
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          call est_k_max_for_bin(bin_grid, coag_kernel_type, i, j, &
-               aero_data, aero_weight, env_state, k_max(i,j))
+          call est_k_minmax_for_bin(bin_grid, coag_kernel_type, i, j, &
+               aero_data, aero_weight, env_state, k_min(i,j), k_max(i,j))
        end do
     end do
     
-  end subroutine est_k_max_binned
+  end subroutine est_k_minmax_binned
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Samples within bins b1 and b2 to find the maximum value of the
-  !> kernel between particles from the two bins.
-  subroutine est_k_max_for_bin(bin_grid, coag_kernel_type, b1, b2, &
-       aero_data, aero_weight, env_state, k_max)
+  !> Samples within bins b1 and b2 to find the minimum and maximum
+  !> value of the kernel between particles from the two bins.
+  subroutine est_k_minmax_for_bin(bin_grid, coag_kernel_type, b1, b2, &
+       aero_data, aero_weight, env_state, k_min, k_max)
    
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -307,7 +315,9 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Maximum kernel values.
+    !> Minimum kernel value.
+    real(kind=dp), intent(out) :: k_min
+    !> Maximum kernel value.
     real(kind=dp), intent(out) :: k_max
     
     !> Number of sample points per bin.
@@ -315,7 +325,8 @@ contains
     !> Over-estimation scale factor parameter.
     real(kind=dp), parameter :: over_scale = 1.1d0
     
-    real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low, k
+    real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low
+    real(kind=dp) :: new_k_min, new_k_max
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
@@ -326,20 +337,25 @@ contains
     v2_low = rad2vol(bin_grid%edge_radius(b2))
     v2_high = rad2vol(bin_grid%edge_radius(b2 + 1))
     
-    k_max = 0d0
     do i = 1,n_sample
        do j = 1,n_sample
           v1 = interp_linear_disc(v1_low, v1_high, n_sample, i)
           v2 = interp_linear_disc(v2_low, v2_high, n_sample, j)
-          call weighted_kernel_max(coag_kernel_type, v1, v2, aero_data, &
-               aero_weight, env_state, k)
-          if (k .gt. k_max) k_max = k
+          call weighted_kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
+               aero_weight, env_state, new_k_min, new_k_max)
+          if ((i == 1) .and. (j == 1)) then
+             k_min = new_k_min
+             k_max = new_k_max
+          else
+             k_min = min(k_min, new_k_min)
+             k_max = max(k_max, new_k_max)
+          end if
        end do
     end do
     
     k_max = k_max * over_scale
     
-  end subroutine est_k_max_for_bin
+  end subroutine est_k_minmax_for_bin
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

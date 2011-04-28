@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -40,15 +40,17 @@ contains
     !> Kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    call kernel_sedi_max(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
+    real(kind=dp) :: k_tmp
+
+    call kernel_sedi_minmax(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k, k_tmp)
 
   end subroutine kernel_sedi
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Sedimentation coagulation kernel.
-  subroutine kernel_sedi_max(v1, v2, aero_data, env_state, k_max)
+  !> Minimum and maximum values of the sedimentation coagulation kernel.
+  subroutine kernel_sedi_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -58,6 +60,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel \c k(a,b) (m^3/s).
+    real(kind=dp), intent(out) :: k_min
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
     
@@ -71,9 +75,10 @@ contains
     call fall_g(r1, winf1) ! winf1 in m/s
     call fall_g(r2, winf2) ! winf2 in m/s
     call effic(r1 * 1d6, r2 * 1d6, ec) ! ec is dimensionless
-    k_max = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
+    k_min = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2) 
+    k_max = k_min
 
-  end subroutine kernel_sedi_max
+  end subroutine kernel_sedi_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -46,8 +46,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Zero coagulation kernel.
-  subroutine kernel_zero_max(v1, v2, aero_data, env_state, k_max)
+  !> Minimum and maximum of the zero coagulation kernel.
+  subroutine kernel_zero_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle.
     real(kind=dp), intent(in) :: v1
@@ -57,12 +57,15 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel minimum value.
+    real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
     
+    k_min = 0d0
     k_max = 0d0
     
-  end subroutine kernel_zero_max
+  end subroutine kernel_zero_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

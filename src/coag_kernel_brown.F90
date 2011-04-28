@@ -50,11 +50,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the maximum Brownian coagulation kernel.
+  !> Compute the minimum and maximum Brownian coagulation kernel.
   !!
-  !! Finds the maximum kernel value between particles of volumes v1
-  !! and v2, by sampling over possible densities.
-  subroutine kernel_brown_max(v1, v2, aero_data, env_state, k_max)
+  !! Finds the minimum and maximum kernel values between particles of
+  !! volumes v1 and v2, by sampling over possible densities.
+  subroutine kernel_brown_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -64,6 +64,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel value (m^3/s).
+    real(kind=dp), intent(out) :: k_min
     !> Maximum kernel value (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
@@ -87,11 +89,17 @@ contains
                d_min * real(j - 1, kind=dp) / real(n_sample - 1, kind=dp)
           call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
                env_state%pressure, k)
-          if (k > k_max) k_max = k
+          if ((i == 1) .and. (j == 1)) then
+             k_min = k
+             k_max = k
+          else
+             k_min = min(k_min, k)
+             k_max = max(k_max, k)
+          end if
        end do
     end do
 
-  end subroutine kernel_brown_max
+  end subroutine kernel_brown_minmax
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

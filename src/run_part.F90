@@ -123,6 +123,7 @@ contains
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
+    real(kind=dp) :: k_min(bin_grid%n_bin, bin_grid%n_bin)
     integer :: rank, n_proc, pre_index, ncid
     integer :: pre_i_repeat
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
@@ -157,8 +158,8 @@ contains
     call env_state_allocate(old_env_state)
 
     if (run_part_opt%do_coagulation) then
-       call est_k_max_binned(bin_grid, run_part_opt%coag_kernel_type, &
-            aero_data, aero_weight, env_state, k_max)
+       call est_k_minmax_binned(bin_grid, run_part_opt%coag_kernel_type, &
+            aero_data, aero_weight, env_state, k_min, k_max)
     end if
 
     if (run_part_opt%do_mosaic) then

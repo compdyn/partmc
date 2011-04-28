@@ -36,16 +36,18 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
+
+    real(kind=dp) :: k_tmp
     
-    call kernel_constant_max(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state, k)
+    call kernel_constant_minmax(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state, k, k_tmp)
     
   end subroutine kernel_constant
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Maximum value of the constant coagulation kernel.
-  subroutine kernel_constant_max(v1, v2, aero_data, env_state, k_max)
+  !> Minimum and maximum values of the constant coagulation kernel.
+  subroutine kernel_constant_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle.
     real(kind=dp), intent(in) :: v1
@@ -55,14 +57,17 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel minimum value.
+    real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
 
     real(kind=dp), parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
 
-    k_max = beta_0
+    k_min = beta_0
+    k_max = k_min
     
-  end subroutine kernel_constant_max
+  end subroutine kernel_constant_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -104,12 +109,12 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
     
-    real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, sigma, mean_vol
+    real(kind=dp) :: beta_0, tau, T, rat_v, nn, b, sigma, mean_vol, tmp
     integer :: k
     
     real(kind=dp), parameter :: lambda = 1d0
 
-    call kernel_constant_max(1d0, 1d0, aero_data, env_state, beta_0)
+    call kernel_constant_minmax(1d0, 1d0, aero_data, env_state, beta_0, tmp)
     
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then

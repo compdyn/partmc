@@ -139,9 +139,6 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-    !>DEBUG
-    integer :: i, j
-    !<DEBUG
   
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -163,19 +160,6 @@ contains
     if (run_part_opt%do_coagulation) then
        call est_k_minmax_binned(bin_grid, run_part_opt%coag_kernel_type, &
             aero_data, aero_weight, env_state, k_min, k_max)
-       !>DEBUG
-       do i = 1,bin_grid%n_bin
-          do j = 1,bin_grid%n_bin
-             write(*,*) i, j, k_min(i,j), k_max(i,j)
-          end do
-       end do
-       do i = 1,bin_grid%n_bin
-          write(*,*) i, rad2diam(bin_grid%center_radius(i)), &
-               rad2diam(bin_grid%edge_radius(i)), &
-               rad2diam(bin_grid%edge_radius(i + 1)), &
-               aero_state%aero_sorted%bin(i)%n_entry
-       end do
-       !<DEBUG
     end if
 
     if (run_part_opt%do_mosaic) then
@@ -356,14 +340,6 @@ contains
           call check_event(time, run_part_opt%del_t, &
                run_part_opt%t_progress, last_progress_time, do_progress)
           if (do_progress) then
-             !>DEBUG
-             do i = 1,bin_grid%n_bin
-                write(*,*) i, rad2diam(bin_grid%center_radius(i)), &
-                     rad2diam(bin_grid%edge_radius(i)), &
-                     rad2diam(bin_grid%edge_radius(i + 1)), &
-                     aero_state%aero_sorted%bin(i)%n_entry
-             end do
-             !<DEBUG
              global_n_part = aero_state_total_particles_all_procs(aero_state)
              call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
              call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)

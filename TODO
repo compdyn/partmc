@@ -120,3 +120,9 @@ aero_particle_array%particle to entry.
 
 Don't specify a bin grid in the spec file; work it out automatically
 in run_part.
+
+Change check_event() to always return false if the t_freq is 0, so
+run_part can change to not testing this itself.
+
+Brownian kernel depends on pressure, temperature, etc. Does this hurt
+k_max?

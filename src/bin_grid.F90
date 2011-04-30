@@ -306,7 +306,7 @@ contains
     end if
 
     if (pmc_mpi_allequal_real(val%edge_radius(1)) &
-         .and. pmc_mpi_allequal_real(val%edge_radius(val%n_bin)))
+         .and. pmc_mpi_allequal_real(val%edge_radius(val%n_bin))) then
        pmc_mpi_allequal_bin_grid = .true.
     else
        pmc_mpi_allequal_bin_grid = .false.

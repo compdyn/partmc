@@ -1221,7 +1221,7 @@ contains
        allocate(aero_state_transfers(n_proc))
        do i_proc = 1,n_proc
           call aero_state_allocate_size(aero_state_transfers(i_proc), &
-               0, aero_data%n_spec, aero_data%n_source)
+               aero_data)
           aero_state_transfers(i_proc)%comp_vol = &
                aero_state_total%comp_vol / real(n_proc, kind=dp)
        end do

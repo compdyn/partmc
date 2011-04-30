@@ -285,27 +285,27 @@ contains
        end do
     end if
 
+    if (present(all_procs_same)) then
+       if (all_procs_same) then
+          ! take global min/max
+          local_r_min = r_min
+          local_r_max = r_max
+          call pmc_mpi_allreduce_min_real(local_r_min, r_min)
+          call pmc_mpi_allreduce_max_real(local_r_max, r_max)
+          
+          ! check that all the bin grids are really the same
+          if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
+             need_new_bin_grid = .true.
+          end if
+       end if
+    end if
+
     if (aero_sorted%bin_grid%n_bin < 1) then
        need_new_bin_grid = .true.
     else
        grid_r_min = aero_sorted%bin_grid%edge_radius(1)
        grid_r_max &
             = aero_sorted%bin_grid%edge_radius(aero_sorted%bin_grid%n_bin + 1)
-
-       if (present(all_procs_same)) then
-          if (all_procs_same) then
-             ! take global min/max
-             local_r_min = r_min
-             local_r_max = r_max
-             call pmc_mpi_allreduce_min_real(local_r_min, r_min)
-             call pmc_mpi_allreduce_max_real(local_r_max, r_max)
-             
-             ! check that all the bin grids are really the same
-             if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
-                need_new_bin_grid = .true.
-             end if
-          end if
-       end if
        
        ! We don't check to see whether we could make the bin grid
        ! smaller, as there doesn't seem much point. It would be easy

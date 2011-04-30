@@ -130,8 +130,8 @@ contains
     integer, allocatable :: n_parts(:,:)
     real(kind=dp), allocatable :: comp_vols(:)
     type(request_t) :: requests(COAG_DIST_MAX_REQUESTS)
-    integer :: n_samps(bin_grid%n_bin, bin_grid%n_bin)
-    real(kind=dp) :: accept_factors(bin_grid%n_bin, bin_grid%n_bin)
+    integer, allocatable :: n_samps(:,:)
+    real(kind=dp), allocatable :: accept_factors(:,:)
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
@@ -149,6 +149,10 @@ contains
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
 
+    allocate(n_samps(aero_state%aero_sorted%bin_grid%n_bin, &
+         aero_state%aero_sorted%bin_grid%n_bin))
+    allocate(accept_factors(aero_state%aero_sorted%bin_grid%n_bin, &
+         aero_state%aero_sorted%bin_grid%n_bin))
     allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
     call sync_info(aero_state%aero_sorted%bin(:)%n_entry, &
@@ -198,6 +202,8 @@ contains
        call request_deallocate(requests(i_req))
     end do
     deallocate(procs_done)
+    deallocate(n_samps)
+    deallocate(accept_factors)
     deallocate(n_parts)
     deallocate(comp_vols)
     call mpi_buffer_detach(outgoing_buffer, &
@@ -794,8 +800,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Do an allgather to exchange number of particles and computational
-  !> volume information between all processes.
+  !> Synchronize number of particles and computational volume
+  !> information between all processes.
   subroutine sync_info(local_n_parts, local_comp_vol, &
        global_n_parts, global_comp_vols)
 

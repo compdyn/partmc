@@ -49,6 +49,16 @@ contains
     logical :: did_coag
     integer :: i, j, n_samp, i_samp
     real(kind=dp) :: accept_factor
+    !>DEBUG
+    integer :: k_unit, d_unit
+    real(kind=dp) :: n_possible, r_samp, n_samp_mean
+    real(kind=dp) :: r_samp_rate, n_samp_mean_rate
+
+    k_unit = get_unit()
+    d_unit = get_unit()
+    open(unit=k_unit, file="kernel.txt", status="replace")
+    open(unit=d_unit, file="count.txt", status="replace")
+    !<DEBUG
 
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
@@ -62,7 +72,36 @@ contains
     tot_n_samp = 0
     tot_n_coag = 0
     do i = 1,aero_state%aero_sorted%bin_grid%n_bin
+       !>DEBUG
+       write(d_unit,*) i, &
+            rad2diam(aero_state%aero_sorted%bin_grid%center_radius(i)), &
+            rad2diam(aero_state%aero_sorted%bin_grid%edge_radius(i)), &
+            rad2diam(aero_state%aero_sorted%bin_grid%edge_radius(i + 1)), &
+            aero_state%aero_sorted%bin(i)%n_entry
+       !<DEBUG
        do j = 1,aero_state%aero_sorted%bin_grid%n_bin
+          !>DEBUG
+          if (i == j) then
+             n_possible &
+                  = real(aero_state%aero_sorted%bin(i)%n_entry, kind=dp) &
+                  * (real(aero_state%aero_sorted%bin(j)%n_entry, kind=dp) &
+                  - 1d0) / 2d0
+          else
+             n_possible &
+                  = real(aero_state%aero_sorted%bin(i)%n_entry, kind=dp) &
+                  * real(aero_state%aero_sorted%bin(j)%n_entry, kind=dp) / 2d0
+          end if
+          r_samp = aero_state%aero_sorted%coag_kernel_max(i,j) &
+               / aero_state%comp_vol * del_t
+          n_samp_mean = r_samp * n_possible
+          r_samp_rate = aero_state%aero_sorted%coag_kernel_max(i,j) &
+               / aero_state%comp_vol
+          n_samp_mean_rate = r_samp_rate * n_possible
+          write(k_unit,*) i, j, &
+               aero_state%aero_sorted%coag_kernel_min(i,j), &
+               aero_state%aero_sorted%coag_kernel_max(i,j), &
+               n_possible, r_samp, n_samp_mean, r_samp_rate, n_samp_mean_rate
+          !<DEBUG
           call compute_n_samp(aero_state%aero_sorted%bin(i)%n_entry, &
                aero_state%aero_sorted%bin(j)%n_entry, i == j, &
                aero_state%aero_sorted%coag_kernel_max(i,j), &
@@ -81,6 +120,12 @@ contains
           end do
        end do
     end do
+    !>DEBUG
+    close(k_unit)
+    close(d_unit)
+    call free_unit(k_unit)
+    call free_unit(d_unit)
+    !<DEBUG
 
   end subroutine mc_coag
 

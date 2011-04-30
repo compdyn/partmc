@@ -160,8 +160,8 @@ contains
   !> Find the bin number that contains a given particle.
   !!
   !! This assumes logarithmically spaced bins. If a particle is below
-  !! the smallest bin or above the largest bin, then it is returned as
-  !! being in the smallest or largest bin, respectively.
+  !! the smallest bin then its bin number is 0. If a particle is above
+  !! the largest bin then its bin number is </tt>n_bin + 1</tt>.
   integer function bin_grid_particle_in_bin(bin_grid, radius)
 
     !> Bin_grid.
@@ -285,6 +285,37 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether all processors have the same value.
+  logical function pmc_mpi_allequal_bin_grid(val)
+
+    !> Value to compare.
+    type(bin_grid_t), intent(inout) :: val
+
+#ifdef PMC_USE_MPI
+    if (.not. pmc_mpi_allequal_integer(val%n_bin)) then
+       pmc_mpi_allequal_bin_grid = .false.
+       return
+    end if
+
+    if (val%n_bin == 0) then
+       pmc_mpi_allequal_bin_grid = .true.
+       return
+    end if
+
+    if (pmc_mpi_allequal_real(val%edge_radius(1)) &
+         .and. pmc_mpi_allequal_real(val%edge_radius(val%n_bin)))
+       pmc_mpi_allequal_bin_grid = .true.
+    else
+       pmc_mpi_allequal_bin_grid = .false.
+    end if
+#else
+    pmc_mpi_allequal_bin_grid = .true.
+#endif
+
+  end function pmc_mpi_allequal_bin_grid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

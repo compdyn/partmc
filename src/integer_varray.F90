@@ -92,7 +92,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an integer_varray to have zero particles per bin.
-  subroutine integer_varray_zero(integer_varray)
+  elemental subroutine integer_varray_zero(integer_varray)
 
     !> Structure to zero.
     type(integer_varray_t), intent(inout) :: integer_varray

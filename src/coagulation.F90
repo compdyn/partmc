@@ -430,7 +430,8 @@ contains
 
     ! add new particle
     if (create_new) then
-       call aero_state_add_particle(aero_state, particle_new)
+       call aero_state_add_particle(aero_state, particle_new, &
+            allow_resort=.false.)
     end if
 
     call aero_info_deallocate(aero_info_1)

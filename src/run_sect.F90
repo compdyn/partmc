@@ -306,6 +306,10 @@ contains
           ! this is basically the same as particle_in_bin(), but that
           ! is actually slightly different than what was always done
           ! here
+
+          ! MW 2011-04-28: I think the above comment no longer
+          ! applies, and we can make this just
+          ! bin_grid_particle_in_bin(). FIXME.
           k = find_1d(n_bin, e, x0)
           if (k < n_bin) then
              k = k + 1

@@ -259,7 +259,11 @@ contains
 
     num_conc = 0d0
     k = bin_grid_particle_in_bin(bin_grid, radius)
-    num_conc(k) = 1d0 / bin_grid%log_width
+    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+       call warn_msg(825666877, "monodisperse radius outside of bin_grid")
+    else
+       num_conc(k) = 1d0 / bin_grid%log_width
+    end if
     
   end subroutine num_conc_mono
   
@@ -279,7 +283,11 @@ contains
 
     vol_conc = 0d0
     k = bin_grid_particle_in_bin(bin_grid, radius)
-    vol_conc(k) = 1d0 / bin_grid%log_width * rad2vol(radius)
+    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+       call warn_msg(420930707, "monodisperse radius outside of bin_grid")
+    else
+       vol_conc(k) = 1d0 / bin_grid%log_width * rad2vol(radius)
+    end if
     
   end subroutine vol_conc_mono
   

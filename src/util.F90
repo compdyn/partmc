@@ -418,11 +418,11 @@ contains
 
   !> Find the position of a real number in a 1D linear array.
   !!
-  !! If xa is the array allocated by linspace(min_x, max_x, xa)
-  !! then i = linspace_find(min_x, max_x, n, x) returns the index i
-  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If
-  !! x >= max_x then i = n - 1.  If x < min_x then i = 1. Thus
-  !! 1 <= i <= n - 1. Here n is the length of xa.
+  !! If xa is the array allocated by linspace(min_x, max_x, xa) then i
+  !! = linspace_find(min_x, max_x, n, x) returns the index i
+  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >=
+  !! max_x then i = n.  If x < min_x then i = 0. Thus 0 <= i <=
+  !! n. Here n is the length of xa.
   !!
   !! This is equivalent to using find_1d() but much faster if the
   !! array is linear.
@@ -439,8 +439,8 @@ contains
 
     linspace_find = floor((x - min_x) / (max_x - min_x) &
          * real(n - 1, kind=dp)) + 1
-    linspace_find = min(linspace_find, n - 1)
-    linspace_find = max(linspace_find, 1)
+    linspace_find = min(linspace_find, n)
+    linspace_find = max(linspace_find, 0)
     
   end function linspace_find
 
@@ -448,13 +448,14 @@ contains
 
   !> Find the position of a real number in a 1D logarithmic array.
   !!
-  !! If xa is the array allocated by logspace(min_x, max_x, n, xa) then
-  !! i = logspace_find(min_x, max_x, n, x) returns the index i satisfying
-  !! xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >= max_x then i = n.
-  !! If x < min_x then i = 1. Thus 1 <= i <= n.
+  !! If xa is the array allocated by logspace(min_x, max_x, xa) then i
+  !! = logspace_find(min_x, max_x, n, x) returns the index i
+  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >=
+  !! max_x then i = n.  If x < min_x then i = 0. Thus 0 <= i <=
+  !! n. Here n is the length of xa.
   !!
   !! This is equivalent to using find_1d() but much faster if the
-  !! array is known to be logarithmic.
+  !! array is logarithmic.
   integer function logspace_find(min_x, max_x, n, x)
 
     !> Minimum array value.

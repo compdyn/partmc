@@ -301,7 +301,7 @@ contains
        end if
     
        ! DEBUG: enable to check array handling
-       ! call aero_state_check(aero_data, aero_state)
+       ! call aero_state_check_sort(aero_state)
        ! DEBUG: end
        
        if (run_part_opt%t_output > 0d0) then

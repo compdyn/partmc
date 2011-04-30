@@ -136,27 +136,143 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a sorting of a set of aerosol particles.
-  subroutine aero_sorted_make(aero_sorted, aero_particle_array, bin_grid, &
-       all_procs_same)
+  subroutine aero_sorted_set_bin_grid(aero_sorted, bin_grid)
 
-    !> Aerosol sorted to make.
+    !> Aerosol sorted.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+
+    call aero_sorted_deallocate(aero_sorted)
+    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin)
+    call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
+
+  end subroutine aero_sorted_set_bin_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Discard particles that don't fit the bin grid.
+  subroutine aero_sorted_discard_outside_grid(aero_sorted, &
+       aero_particle_array)
+
+    !> Aerosol sorted.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+    !> Aerosol particles to discard from.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+  
+    integer :: i_part, i_bin
+
+    ! Work backwards so we only shift particles that we've already
+    ! tested.
+    do i_part = aero_particle_array%n_part,1,-1
+       i_bin = aero_sorted_particle_in_bin(aero_sorted, &
+            aero_particle_array%particle(i_part))
+       if ((i_bin < 1) .or. (i_bin > aero_sorted%bin_grid%n_bin)) then
+          call warn_msg(954800836, "particle ID " &
+               // trim(integer_to_string( &
+               aero_particle_array%particle(i_part)%id)) &
+               // " outside of bin_grid, discarding")
+          call aero_particle_array_remove_particle(aero_particle_array, &
+               i_part)
+       end if
+    end do
+
+  end subroutine aero_sorted_discard_outside_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    !> Sort the particles.
+    subroutine aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+
+    !> Aerosol sorted.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(in) :: aero_particle_array
-    !> Bin grid.
+
+    integer :: i_part, i_bin
+
+    call integer_varray_zero(aero_sorted%bin)
+    call integer_varray_zero(aero_sorted%reverse_bin)
+    call integer_varray_zero(aero_sorted%reverse_entry)
+
+    call assert(427582120, &
+         size(aero_sorted%bin) == aero_sorted%bin_grid%n_bin)
+
+    do i_part = 1,aero_particle_array%n_part
+       i_bin = aero_sorted_particle_in_bin(aero_sorted, &
+            aero_particle_array%particle(i_part))
+       call assert(754810952, i_bin >= 1)
+       call assert(811054361, i_bin <= aero_sorted%bin_grid%n_bin)
+
+       ! fill in forward index
+       call integer_varray_append(aero_sorted%bin(i_bin), i_part)
+       
+       ! fill in reverse index
+       call integer_varray_append(aero_sorted%reverse_bin, i_bin)
+       call integer_varray_append(aero_sorted%reverse_entry, &
+            aero_sorted%bin(i_bin)%n_entry)
+    end do
+
+  end subroutine aero_sorted_sort_particles
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Remake a sorting if particles are getting too close to the edges.
+  subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
+       valid_sort, bin_grid, all_procs_same)
+
+    !> Aerosol sorted to (possibly) remake.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Aerosol particles to sort.
+    type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Whether the given aero_sorted is valid.
+    logical, intent(in) :: valid_sort
+    !> An optional bin_grid to use for the sort.
     type(bin_grid_t), optional, intent(in) :: bin_grid
     !> Whether all processors should use the same bin grid.
     logical, optional, intent(in) :: all_procs_same
 
-    integer :: i_part, i_bin, n_bin
+    integer :: i_bin, i_bin_min, i_bin_max, i_part, n_bin
     real(kind=dp) :: r, r_min, r_max, grid_r_min, grid_r_max
+    real(kind=dp) :: local_r_min, local_r_max
+    logical :: need_new_bin_grid
+    type(bin_grid_t) :: new_bin_grid
 
-    ! make the bin grid, and re-allocate the aero_sorted
-    call aero_sorted_deallocate(aero_sorted)
     if (present(bin_grid)) then
-       call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin)
-       call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
+       call aero_sorted_set_bin_grid(aero_sorted, bin_grid)
+       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+       return
+    end if
+
+    need_new_bin_grid = .false.
+
+    ! determine r_min and r_max
+    if (valid_sort) then
+       ! use bin data to avoid looping over all particles
+       i_bin_min = 0
+       i_bin_max = 0
+       do i_bin = 1,aero_sorted%bin_grid%n_bin
+          if (aero_sorted%bin(i_bin)%n_entry > 0) then
+             if (i_bin_min == 0) then
+                i_bin_min = i_bin
+             end if
+             i_bin_max = i_bin
+          end if
+       end do
+
+       if (i_bin_min == 0) then
+          ! there are't any particles, take r_min = upper edge, etc.
+          call assert(333430891, i_bin_max == 0)
+          r_min = aero_sorted%bin_grid%edge_radius( &
+               aero_sorted%bin_grid%n_bin + 1)
+          r_max = aero_sorted%bin_grid%edge_radius(1)
+       else
+          r_min = aero_sorted%bin_grid%edge_radius(i_bin_min)
+          r_max = aero_sorted%bin_grid%edge_radius(i_bin_max + 1)
+       end if
     else
+       ! no bin data, need to loop over all particles
        do i_part = 1,aero_particle_array%n_part
           r = aero_particle_radius(aero_particle_array%particle(i_part))
           if (i_part == 1) then
@@ -167,88 +283,54 @@ contains
              r_max = max(r_max, r)
           end if
        end do
-       grid_r_min = r_min
-       grid_r_max = r_max
+    end if
+
+    if (aero_sorted%bin_grid%n_bin < 1) then
+       need_new_bin_grid = .true.
+    else
+       grid_r_min = aero_sorted%bin_grid%edge_radius(1)
+       grid_r_max &
+            = aero_sorted%bin_grid%edge_radius(aero_sorted%bin_grid%n_bin + 1)
+
        if (present(all_procs_same)) then
           if (all_procs_same) then
-             call pmc_mpi_allreduce_min_real(r_min, grid_r_min)
-             call pmc_mpi_allreduce_max_real(r_max, grid_r_max)
+             ! take global min/max
+             local_r_min = r_min
+             local_r_max = r_max
+             call pmc_mpi_allreduce_min_real(local_r_min, r_min)
+             call pmc_mpi_allreduce_max_real(local_r_max, r_max)
+             
+             ! check that all the bin grids are really the same
+             if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
+                need_new_bin_grid = .true.
+             end if
           end if
        end if
-       grid_r_min = grid_r_min / AERO_SORTED_BIN_OVER_FACTOR
-       grid_r_max = grid_r_max * AERO_SORTED_BIN_OVER_FACTOR
+       
+       ! We don't check to see whether we could make the bin grid
+       ! smaller, as there doesn't seem much point. It would be easy
+       ! to add if desired.
+       if ((r_min / grid_r_min < AERO_SORTED_BIN_SAFETY_FACTOR) &
+            .or. (grid_r_max / r_max < AERO_SORTED_BIN_SAFETY_FACTOR)) then
+          need_new_bin_grid = .true.
+       end if
+    end if
+       
+    if (need_new_bin_grid) then
+       grid_r_min = r_min / AERO_SORTED_BIN_OVER_FACTOR
+       grid_r_max = r_max * AERO_SORTED_BIN_OVER_FACTOR
        n_bin = ceiling((log10(grid_r_max) - log10(grid_r_min)) &
             * AERO_SORTED_BINS_PER_DECADE)
-       call aero_sorted_allocate_size(aero_sorted, n_bin)
-       call bin_grid_make(aero_sorted%bin_grid, n_bin, grid_r_min, grid_r_max)
-    end if
-    !>DEBUG
-    write(*,*) 'aero_sorted_make: n_bin', aero_sorted%bin_grid%n_bin
-    !<DEBUG
-
-    ! sort the particles
-    do i_part = 1,aero_particle_array%n_part
-       i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-            aero_particle_array%particle(i_part))
-
-       ! fill in forward index
-       call integer_varray_append(aero_sorted%bin(i_bin), i_part)
-
-       ! fill in reverse index
-       call integer_varray_append(aero_sorted%reverse_bin, i_bin)
-       call integer_varray_append(aero_sorted%reverse_entry, &
-            aero_sorted%bin(i_bin)%n_entry)
-    end do
-
-    ! we haven't computed kernel bounds yet
-    aero_sorted%coag_kernel_bounds_valid = .false.
-
-  end subroutine aero_sorted_make
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Remake a sorting if particles are getting too close to the edges.
-  subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-       all_procs_same)
-
-    !> Aerosol sorted to (possibly) remake.
-    type(aero_sorted_t), intent(inout) :: aero_sorted
-    !> Aerosol particles to sort.
-    type(aero_particle_array_t), intent(in) :: aero_particle_array
-    !> Whether all processors should use the same bin grid.
-    logical, optional, intent(in) :: all_procs_same
-
-    integer :: i_bin, i_bin_min, i_bin_max
-    real(kind=dp) :: r_min, r_max, grid_r_min, grid_r_max
-
-    i_bin_min = 0
-    i_bin_max = 0
-    do i_bin = 1,aero_sorted%bin_grid%n_bin
-       if (aero_sorted%bin(i_bin)%n_entry > 0) then
-          if (i_bin_min == 0) then
-             i_bin_min = i_bin
-          end if
-          i_bin_max = i_bin
+       call bin_grid_allocate(new_bin_grid)
+       call bin_grid_make(new_bin_grid, n_bin, grid_r_min, grid_r_max)
+       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+       call bin_grid_deallocate(new_bin_grid)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+    else
+       if (.not. valid_sort) then
+          call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
        end if
-    end do
-
-    if (i_bin_min == 0) then
-       ! there are't any particles, so just return
-       call assert(333430891, i_bin_max == 0)
-       return
-    end if
-
-    r_min = aero_sorted%bin_grid%edge_radius(i_bin_min)
-    r_max = aero_sorted%bin_grid%edge_radius(i_bin_max + 1)
-
-    grid_r_min = aero_sorted%bin_grid%edge_radius(1)
-    grid_r_max &
-         = aero_sorted%bin_grid%edge_radius(aero_sorted%bin_grid%n_bin + 1)
-
-    if ((r_min / grid_r_min < AERO_SORTED_BIN_SAFETY_FACTOR) &
-         .or. (grid_r_max / r_max < AERO_SORTED_BIN_SAFETY_FACTOR)) then
-       call aero_sorted_make(aero_sorted, aero_particle_array, &
-            all_procs_same=all_procs_same)
     end if
 
   end subroutine aero_sorted_remake_if_needed
@@ -274,7 +356,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-       aero_particle, i_bin)
+       aero_particle, allow_resort)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -282,28 +364,39 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Bin number of added particle.
-    integer, optional, intent(in) :: i_bin
+    !> Whether to allow a resort due to the add.
+    logical, optional, intent(in) :: allow_resort
 
-    integer :: use_i_bin
+    integer :: i_bin
 
-    if (present(i_bin)) then
-       use_i_bin = i_bin
-    else
-       use_i_bin = aero_sorted_particle_in_bin(aero_sorted, aero_particle)
-    end if
+    i_bin = aero_sorted_particle_in_bin(aero_sorted, aero_particle)
 
     ! add the particle to the aero_particle_array
     call aero_particle_array_add_particle(aero_particle_array, aero_particle)
 
-    ! update the forward index
-    call integer_varray_append(aero_sorted%bin(use_i_bin), &
-         aero_particle_array%n_part)
+    if ((i_bin < 1) .or. (i_bin > aero_sorted%bin_grid%n_bin)) then
+       ! particle doesn't fit in the current bin_grid, so remake the
+       ! bin_grid if we are allowed
+       if (present(allow_resort)) then
+          if (.not. allow_resort) then
+             call die_msg(134572570, "particle outside of bin_grid: " &
+                  // "try reducing the timestep del_t")
+          end if
+       end if
+       call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
+            valid_sort=.false.)
+    else
+       ! particle fits in the current bin_grid
 
-    ! update the reverse index
-    call integer_varray_append(aero_sorted%reverse_bin, use_i_bin)
-    call integer_varray_append(aero_sorted%reverse_entry, &
-         aero_sorted%bin(use_i_bin)%n_entry)
+       ! update the forward index
+       call integer_varray_append(aero_sorted%bin(i_bin), &
+            aero_particle_array%n_part)
+       
+       ! update the reverse index
+       call integer_varray_append(aero_sorted%reverse_bin, i_bin)
+       call integer_varray_append(aero_sorted%reverse_entry, &
+            aero_sorted%bin(i_bin)%n_entry)
+    end if
 
   end subroutine aero_sorted_add_particle
 

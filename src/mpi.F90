@@ -1264,6 +1264,52 @@ contains
 
   !> Computes the minimum of val across all processes, storing the
   !> result in val_min on all processes.
+  subroutine pmc_mpi_allreduce_min_integer(val, val_min)
+
+    !> Value to minimize.
+    integer, intent(in) :: val
+    !> Result.
+    integer, intent(out) :: val_min
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_min, 1, MPI_INTEGER, MPI_MIN, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_min = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_min_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the maximum of val across all processes, storing the
+  !> result in val_max on all processes.
+  subroutine pmc_mpi_allreduce_max_integer(val, val_max)
+
+    !> Value to maximize.
+    integer, intent(in) :: val
+    !> Result.
+    integer, intent(out) :: val_max
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_max, 1, MPI_INTEGER, MPI_MAX, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_max = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_max_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the minimum of val across all processes, storing the
+  !> result in val_min on all processes.
   subroutine pmc_mpi_allreduce_min_real(val, val_min)
 
     !> Value to minimize.
@@ -1305,6 +1351,54 @@ contains
 #endif
 
   end subroutine pmc_mpi_allreduce_max_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns whether all processors have the same value.
+  logical function pmc_mpi_allequal_integer(val)
+
+    !> Value to compare.
+    integer, intent(in) :: val
+
+#ifdef PMC_USE_MPI
+    integer :: min_val, max_val
+
+    call pmc_mpi_allreduce_min_integer(val, min_val)
+    call pmc_mpi_allreduce_max_integer(val, max_val)
+    if (min_val == max_val) then
+       pmc_mpi_allequal_integer = .true.
+    else
+       pmc_mpi_allequal_integer = .false.
+    end if
+#else
+    pmc_mpi_allequal_integer = .true.
+#endif
+
+  end function pmc_mpi_allequal_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns whether all processors have the same value.
+  logical function pmc_mpi_allequal_real(val)
+
+    !> Value to compare.
+    real(kind=dp), intent(in) :: val
+
+#ifdef PMC_USE_MPI
+    real(kind=dp) :: min_val, max_val
+
+    call pmc_mpi_allreduce_min_real(val, min_val)
+    call pmc_mpi_allreduce_max_real(val, max_val)
+    if (min_val == max_val) then
+       pmc_mpi_allequal_real = .true.
+    else
+       pmc_mpi_allequal_real = .false.
+    end if
+#else
+    pmc_mpi_allequal_real = .true.
+#endif
+
+  end function pmc_mpi_allequal_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

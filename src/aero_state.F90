@@ -196,18 +196,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
-  subroutine aero_state_add_particle(aero_state, aero_particle, i_bin)
+  subroutine aero_state_add_particle(aero_state, aero_particle, allow_resort)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Bin number of particle to add.
-    integer, optional, intent(in) :: i_bin
+    !> Whether to allow a resort due to the add.
+    logical, optional, intent(in) :: allow_resort
 
     if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%p, &
-            aero_particle, i_bin)
+            aero_particle, allow_resort)
     else
        call aero_particle_array_add_particle(aero_state%p, aero_particle)
     end if
@@ -504,14 +504,20 @@ contains
        aero_particle => aero_state%p%particle(i_part)
        i_bin = bin_grid_particle_in_bin(bin_grid, &
             aero_particle_radius(aero_particle))
-       aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
-            + aero_particle%vol / aero_state%comp_vol &
-            * aero_weight_value(aero_weight, &
-            aero_particle_radius(aero_particle)) / bin_grid%log_width
-       aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-            + 1d0 / aero_state%comp_vol &
-            * aero_weight_value(aero_weight, &
-            aero_particle_radius(aero_particle)) / bin_grid%log_width
+       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+          call warn_msg(980232449, "particle ID " &
+               // trim(integer_to_string(aero_particle%id)) &
+               // " outside of bin_grid, discarding")
+       else
+          aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
+               + aero_particle%vol / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
+          aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
+               + 1d0 / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
+       end if
     end do
     
   end subroutine aero_state_to_binned
@@ -542,14 +548,20 @@ contains
        aero_particle => aero_state%p%particle(i_part)
        i_bin = bin_grid_particle_in_bin(bin_grid, &
             aero_particle_solute_radius(aero_particle, aero_data))
-       aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
-            + aero_particle%vol / aero_state%comp_vol &
-            * aero_weight_value(aero_weight, &
-            aero_particle_radius(aero_particle)) / bin_grid%log_width
-       aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-            + 1d0 / aero_state%comp_vol &
-            * aero_weight_value(aero_weight, &
-            aero_particle_radius(aero_particle)) / bin_grid%log_width
+       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+          call warn_msg(503871022, "particle ID " &
+               // trim(integer_to_string(aero_particle%id)) &
+               // " outside of bin_grid, discarding")
+       else
+          aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
+               + aero_particle%vol / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
+          aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
+               + 1d0 / aero_state%comp_vol &
+               * aero_weight_value(aero_weight, &
+               aero_particle_radius(aero_particle)) / bin_grid%log_width
+       end if
     end do
     
   end subroutine aero_state_to_binned_dry
@@ -1125,8 +1137,6 @@ contains
     character, allocatable :: buffer(:)
 #endif
 
-    call assert(978229191, &
-         aero_state%valid_sort .eqv. aero_state_total%valid_sort)
     if (pmc_mpi_rank() == 0) then
        call aero_state_copy(aero_state, aero_state_total)
     end if
@@ -1887,14 +1897,9 @@ contains
     !> Whether all processors should use the same bin grid.
     logical, optional, intent(in) :: all_procs_same
 
-    if ((.not. aero_state%valid_sort) .or. present(bin_grid)) then
-       call aero_sorted_make(aero_state%aero_sorted, aero_state%p, bin_grid, &
-            all_procs_same)
-       aero_state%valid_sort = .true.
-    else
-       call aero_sorted_remake_if_needed(aero_state%aero_sorted, &
-            aero_state%p, all_procs_same)
-    end if
+    call aero_sorted_remake_if_needed(aero_state%aero_sorted, aero_state%p, &
+         aero_state%valid_sort, bin_grid, all_procs_same)
+    aero_state%valid_sort = .true.
 
   end subroutine aero_state_sort
   
@@ -1938,8 +1943,17 @@ contains
 
        i_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
             aero_state%p%particle(i_part))
-       if (i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) then
+       if ((i_bin < 1) &
+            .or. (i_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
           write(0,*) 'SORTED CHECK ERROR C'
+          write(0,*) 'i_part', i_part
+          write(0,*) 'ID', aero_state%p%particle(i_part)%id
+          write(0,*) 'computed bin', i_bin
+          cycle
+       end if
+
+       if (i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) then
+          write(0,*) 'SORTED CHECK ERROR D'
           write(0,*) 'i_part', i_part
           write(0,*) 'ID', aero_state%p%particle(i_part)%id
           write(0,*) 'computed bin', i_bin
@@ -1952,7 +1966,7 @@ contains
        i_entry = aero_state%aero_sorted%reverse_entry%entry(i_part)
        if ((i_entry < 1) &
             .or. (i_entry > aero_state%aero_sorted%bin(i_bin)%n_entry)) then
-          write(0,*) 'SORTED CHECK ERROR D'
+          write(0,*) 'SORTED CHECK ERROR E'
           write(0,*) 'i_part', i_part
           write(0,*) 'ID', aero_state%p%particle(i_part)%id
           write(0,*) 'computed bin', i_bin
@@ -1964,7 +1978,7 @@ contains
                aero_state%aero_sorted%bin(i_bin)%n_entry
        end if
        if (i_part /= aero_state%aero_sorted%bin(i_bin)%entry(i_entry)) then
-          write(0,*) 'SORTED CHECK ERROR E'
+          write(0,*) 'SORTED CHECK ERROR F'
           write(0,*) 'i_part', i_part
           write(0,*) 'ID', aero_state%p%particle(i_part)%id
           write(0,*) 'computed bin', i_bin
@@ -1981,7 +1995,7 @@ contains
        do i_entry = 1,aero_state%aero_sorted%bin(i_bin)%n_entry
           i_part = aero_state%aero_sorted%bin(i_bin)%entry(i_entry)
           if ((i_part < 1) .or. (i_part > aero_state%p%n_part)) then
-             write(0,*) 'SORTED CHECK ERROR F'
+             write(0,*) 'SORTED CHECK ERROR G'
              write(0,*) 'i_bin', i_bin
              write(0,*) 'i_entry', i_entry
              write(0,*) 'bin(i_bin)%entry(i_entry)', &
@@ -1992,7 +2006,7 @@ contains
           if ((i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) &
                .or. (i_entry &
                /= aero_state%aero_sorted%reverse_entry%entry(i_part))) then
-             write(0,*) 'SORTED CHECK ERROR G'
+             write(0,*) 'SORTED CHECK ERROR H'
              write(0,*) 'i_bin', i_bin
              write(0,*) 'i_entry', i_entry
              write(0,*) 'i_part', i_part

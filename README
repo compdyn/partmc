@@ -170,6 +170,8 @@ ChangeLog
 
   * Added source-oriented capability for aerosol particles.
 
+  * No longer need to specify size bins for particle simulations.
+
 2.0.0 - 2011-01-13
 
   * Parallel implementations based on remote particle access.

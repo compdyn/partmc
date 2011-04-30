@@ -126,3 +126,19 @@ run_part can change to not testing this itself.
 
 Brownian kernel depends on pressure, temperature, etc. Does this hurt
 k_max?
+
+Rename aero_sorted to aero_sort.
+
+Parallel method should just generate n_samp for all pairs, then
+request these as blocks, not one-by-one. Also, don't bother sending
+coagulation products to other processors, just keep them. Can we
+analyze how expensive this is, compared to mixing?
+
+In bin_grid_particle_in_bin, warn if a particle is beyond r_min,
+r_max.
+
+We could ensure that bin_grids are always aligned to same base grid,
+so that when we extend the bin_grid, we don't need to recompute the
+sort, and we only need to recompute some parts of k_max.
+
+Rename valid_sort -> sort_valid.

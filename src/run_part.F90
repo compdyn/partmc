@@ -10,7 +10,6 @@ module pmc_run_part
 
   use pmc_util
   use pmc_aero_state
-  use pmc_bin_grid
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data
@@ -98,11 +97,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_part(bin_grid, env_data, env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, run_part_opt)
+  subroutine run_part(env_data, env_state, aero_data, aero_weight, &
+       aero_state, gas_data, gas_state, run_part_opt)
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_data_t), intent(in) :: env_data
     !> Environment state.
@@ -122,8 +119,6 @@ contains
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
-    real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
-    real(kind=dp) :: k_min(bin_grid%n_bin, bin_grid%n_bin)
     integer :: rank, n_proc, pre_index, ncid
     integer :: pre_i_repeat
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
@@ -157,11 +152,6 @@ contains
 
     call env_state_allocate(old_env_state)
 
-    if (run_part_opt%do_coagulation) then
-       call est_k_minmax_binned(bin_grid, run_part_opt%coag_kernel_type, &
-            aero_data, aero_weight, env_state, k_min, k_max)
-    end if
-
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, run_part_opt%del_t, &
             run_part_opt%do_optical)
@@ -169,7 +159,7 @@ contains
 
     if (run_part_opt%t_output > 0d0) then
        call output_state(run_part_opt%output_prefix, &
-            run_part_opt%output_type, bin_grid, aero_data, aero_weight, &
+            run_part_opt%output_type, aero_data, aero_weight, &
             aero_state, gas_data, gas_state, env_state, i_state, time, &
             run_part_opt%del_t, run_part_opt%i_repeat, &
             run_part_opt%record_removals, run_part_opt%do_optical, &
@@ -193,7 +183,7 @@ contains
        do while (aero_state_total_particles_all_procs(aero_state) &
             > run_part_opt%n_part_ideal * pmc_mpi_size() * 2)
           call warn_msg(661936373, "halving particles in initial condition")
-          call aero_state_halve(aero_state, bin_grid)
+          call aero_state_halve(aero_state)
        end do
     end if
 
@@ -243,14 +233,14 @@ contains
        if (run_part_opt%do_coagulation) then
           if (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_LOCAL) then
-             call mc_coag(run_part_opt%coag_kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, n_samp, n_coag)
+             call mc_coag(run_part_opt%coag_kernel_type, env_state, &
+                  aero_data, aero_weight, aero_state, run_part_opt%del_t, &
+                  n_samp, n_coag)
           elseif (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_DIST) then
-             call mc_coag_dist(run_part_opt%coag_kernel_type, bin_grid, &
-                  env_state, aero_data, aero_weight, aero_state, &
-                  run_part_opt%del_t, k_max, n_samp, n_coag)
+             call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
+                  aero_data, aero_weight, aero_state, run_part_opt%del_t, &
+                  n_samp, n_coag)
           else
              call die_msg(323011762, "unknown parallel coagulation type: " &
                   // trim(integer_to_string(run_part_opt%parallel_coag_type)))
@@ -262,7 +252,7 @@ contains
        call env_state_update_gas_state(env_state, run_part_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, run_part_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_weight, aero_state, &
+            old_env_state, aero_data, aero_weight, aero_state, &
             n_emit, n_dil_in, n_dil_out)
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
@@ -282,7 +272,7 @@ contains
 
        if (run_part_opt%mix_timescale > 0d0) then
           call aero_state_mix(aero_state, run_part_opt%del_t, &
-               run_part_opt%mix_timescale, aero_data, bin_grid)
+               run_part_opt%mix_timescale, aero_data)
        end if
        if (run_part_opt%gas_average) then
           call gas_state_mix(gas_state)
@@ -306,12 +296,12 @@ contains
        if (run_part_opt%allow_halving) then
           do while (aero_state_total_particles_all_procs(aero_state) &
                > run_part_opt%n_part_ideal * pmc_mpi_size() * 2)
-             call aero_state_halve(aero_state, bin_grid)
+             call aero_state_halve(aero_state)
           end do
        end if
     
        ! DEBUG: enable to check array handling
-       ! call aero_state_check(bin_grid, aero_data, aero_state)
+       ! call aero_state_check(aero_data, aero_state)
        ! DEBUG: end
        
        if (run_part_opt%t_output > 0d0) then
@@ -320,11 +310,11 @@ contains
           if (do_output) then
              i_output = i_output + 1
              call output_state(run_part_opt%output_prefix, &
-                  run_part_opt%output_type, bin_grid, aero_data, &
-                  aero_weight, aero_state, gas_data, gas_state, env_state, &
-                  i_output, time, run_part_opt%del_t, &
-                  run_part_opt%i_repeat, run_part_opt%record_removals, &
-                  run_part_opt%do_optical, run_part_opt%uuid)
+                  run_part_opt%output_type, aero_data, aero_weight, &
+                  aero_state, gas_data, gas_state, env_state, i_output, &
+                  time, run_part_opt%del_t, run_part_opt%i_repeat, &
+                  run_part_opt%record_removals, run_part_opt%do_optical, &
+                  run_part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if

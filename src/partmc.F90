@@ -239,7 +239,6 @@ contains
     type(env_data_t) :: env_data
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
-    type(bin_grid_t) :: bin_grid
     type(run_part_opt_t) :: run_part_opt
     integer :: i_repeat
     integer :: rand_init
@@ -277,8 +276,6 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \subpage input_format_bin_grid --- only used for efficiency
-    !!   gains during coagulation
     !! - \subpage input_format_aero_weight (only provide if
     !!   \c restart is \c no)
     !! - \b gas_data (string): name of file from which to read the
@@ -364,7 +361,6 @@ contains
     call env_data_allocate(env_data)
     call env_state_allocate(env_state)
     call env_state_allocate(env_state_init)
-    call bin_grid_allocate(bin_grid)
     
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -383,14 +379,12 @@ contains
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
-       call spec_file_read_bin_grid(file, bin_grid)
-
        if (.not. do_restart) then
           call spec_file_read_aero_weight(file, aero_weight)
        end if
 
        if (do_restart) then
-          call input_state(restart_filename, bin_grid, aero_data, &
+          call input_state(restart_filename, aero_data, &
                aero_weight, aero_state_init, gas_data, gas_state_init, &
                env_state_init, dummy_index, dummy_time, dummy_del_t, &
                dummy_i_repeat, run_part_opt%uuid)
@@ -421,8 +415,7 @@ contains
           call spec_file_close(sub_file)
        end if
        
-       call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
-            env_data)
+       call spec_file_read_env_data(file, gas_data, aero_data, env_data)
        call spec_file_read_env_state(file, env_state_init)
        
        call spec_file_read_logical(file, 'do_coagulation', &
@@ -523,8 +516,6 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_run_part_opt(run_part_opt)
        max_buffer_size = max_buffer_size &
-            + pmc_mpi_pack_size_bin_grid(bin_grid)
-       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_data(gas_data)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_state(gas_state_init)
@@ -551,7 +542,6 @@ contains
 
        position = 0
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
-       call pmc_mpi_pack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
@@ -582,7 +572,6 @@ contains
        ! non-root processes unpack data
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
-       call pmc_mpi_unpack_bin_grid(buffer, position, bin_grid)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
@@ -617,12 +606,11 @@ contains
           call aero_state_copy(aero_state_init, aero_state)
        else
           call aero_state_deallocate(aero_state)
-          call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-               aero_data%n_spec, aero_data%n_source)
+          call aero_state_allocate_size(aero_state, aero_data)
           aero_state%comp_vol = real(run_part_opt%n_part_ideal, kind=dp) / &
                aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
-          call aero_state_add_aero_dist_sample(aero_state, bin_grid, &
-               aero_data, aero_weight, aero_dist_init, 1d0, 0d0)
+          call aero_state_add_aero_dist_sample(aero_state, aero_data, &
+               aero_weight, aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
        call env_data_init_state(env_data, env_state, &
@@ -630,12 +618,12 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
        if (do_init_equilibriate) then
-          call condense_equilib_particles(bin_grid, env_state, aero_data, &
+          call condense_equilib_particles(env_state, aero_data, &
                aero_weight, aero_state)
        end if
 #endif
        
-       call run_part(bin_grid, env_data, env_state, aero_data, aero_weight, &
+       call run_part(env_data, env_state, aero_data, aero_weight, &
             aero_state, gas_data, gas_state, run_part_opt)
 
     end do
@@ -651,7 +639,6 @@ contains
     call env_data_deallocate(env_data)
     call env_state_deallocate(env_state)
     call env_state_deallocate(env_state_init)
-    call bin_grid_deallocate(bin_grid)
 
     call pmc_rand_finalize()
 
@@ -791,8 +778,7 @@ contains
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
-         env_data)
+    call spec_file_read_env_data(file, gas_data, aero_data, env_data)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
@@ -952,8 +938,7 @@ contains
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_env_data(file, bin_grid, gas_data, aero_data, &
-         env_data)
+    call spec_file_read_env_data(file, gas_data, aero_data, env_data)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &

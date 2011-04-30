@@ -82,6 +82,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copies a bin grid.
+  subroutine bin_grid_copy(bin_grid_from, bin_grid_to)
+
+    !> Bin_grid to copy from.
+    type(bin_grid_t), intent(in) :: bin_grid_from
+    !> Bin_grid to copy to.
+    type(bin_grid_t), intent(inout) :: bin_grid_to
+
+    if (bin_grid_from%n_bin /= bin_grid_to%n_bin) then
+       call bin_grid_deallocate(bin_grid_to)
+       call bin_grid_allocate_size(bin_grid_to, bin_grid_from%n_bin)
+    end if
+    bin_grid_to%center_radius = bin_grid_from%center_radius
+    bin_grid_to%edge_radius = bin_grid_from%edge_radius
+    bin_grid_to%log_width = bin_grid_from%log_width
+
+  end subroutine bin_grid_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
   subroutine vol_to_lnr(r, f_vol, f_lnr)

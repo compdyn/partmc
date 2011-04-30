@@ -310,14 +310,12 @@ contains
   !> Read an array of aero_dists with associated times and rates from
   !> the given file.
   subroutine spec_file_read_aero_dists_times_rates(file, aero_data, &
-       bin_grid, times, rates, aero_dists)
+       times, rates, aero_dists)
 
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero data.
     type(aero_data_t), intent(inout) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Times (s).
     real(kind=dp), pointer :: times(:)
     !> Rates (s^{-1}).

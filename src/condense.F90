@@ -29,7 +29,6 @@
 module pmc_condense
 
   use pmc_aero_state
-  use pmc_bin_grid
   use pmc_env_data
   use pmc_env_state
   use pmc_aero_data
@@ -808,11 +807,9 @@ contains
   !> Call condense_equilib_particle() on each particle in the aerosol
   !> to ensure that every particle has its water content in
   !> equilibrium.
-  subroutine condense_equilib_particles(bin_grid, env_state, aero_data, &
-       aero_weight, aero_state)
+  subroutine condense_equilib_particles(env_state, aero_data, aero_weight, &
+       aero_state)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.

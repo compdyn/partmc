@@ -13,7 +13,6 @@ module pmc_env_data
   use pmc_util
   use pmc_env_state
   use pmc_spec_file
-  use pmc_bin_grid
   use pmc_aero_data
   use pmc_gas_data
   use pmc_mpi
@@ -324,13 +323,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment data from an spec file.
-  subroutine spec_file_read_env_data(file, bin_grid, gas_data, &
-       aero_data, env_data)
+  subroutine spec_file_read_env_data(file, gas_data, aero_data, env_data)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Gas data values.
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
@@ -476,16 +472,16 @@ contains
     call spec_file_read_string(file, "aero_emissions", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         bin_grid, env_data%aero_emission_time, &
-         env_data%aero_emission_rate, env_data%aero_emission)
+         env_data%aero_emission_time, env_data%aero_emission_rate, &
+         env_data%aero_emission)
     call spec_file_close(sub_file)
 
     ! aerosol background profile
     call spec_file_read_string(file, "aero_background", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         bin_grid, env_data%aero_dilution_time, &
-         env_data%aero_dilution_rate, env_data%aero_background)
+         env_data%aero_dilution_time, env_data%aero_dilution_rate, &
+         env_data%aero_background)
     call spec_file_close(sub_file)
 
   end subroutine spec_file_read_env_data

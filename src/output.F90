@@ -102,16 +102,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write the current state.
-  subroutine output_state(prefix, output_type, bin_grid, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_repeat, record_removals, record_optical, uuid)
+  subroutine output_state(prefix, output_type, aero_data, aero_weight, &
+       aero_state, gas_data, gas_state, env_state, index, time, del_t, &
+       i_repeat, record_removals, record_optical, uuid)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
     !> Output type for parallel runs (see module constants).
     integer, intent(in) :: output_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -154,15 +152,15 @@ contains
        ! write per-process data to separate files, but do it by
        ! transferring data to process 0 and having it do the writes
        if (rank == 0) then
-          call output_state_to_file(prefix, bin_grid, aero_data, &
-               aero_weight, aero_state, gas_data, gas_state, env_state, &
-               index, time, del_t, i_repeat, record_removals, &
-               record_optical, rank, n_proc, uuid)
+          call output_state_to_file(prefix, aero_data, aero_weight, &
+               aero_state, gas_data, gas_state, env_state, index, time, &
+               del_t, i_repeat, record_removals, record_optical, rank, &
+               n_proc, uuid)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
-             call recv_output_state_central(prefix, bin_grid, &
-                  aero_data, aero_weight, gas_data, index, time, del_t, &
-                  i_repeat, record_removals, record_optical, uuid, i_proc)
+             call recv_output_state_central(prefix, aero_data, aero_weight, &
+                  gas_data, index, time, del_t, i_repeat, record_removals, &
+                  record_optical, uuid, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -170,16 +168,15 @@ contains
        end if
     elseif (output_type == OUTPUT_TYPE_DIST) then
        ! have each process write its own data directly
-       call output_state_to_file(prefix, bin_grid, aero_data, &
-            aero_weight, aero_state, gas_data, gas_state, env_state, &
-            index, time, del_t, i_repeat, record_removals, record_optical, &
-            rank, n_proc, uuid)
+       call output_state_to_file(prefix, aero_data, aero_weight, aero_state, &
+            gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
+            record_removals, record_optical, rank, n_proc, uuid)
     elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
-          call output_state_to_file(prefix, bin_grid, aero_data, &
-               aero_weight, aero_state, gas_data, gas_state, &
-               env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, rank, n_proc, uuid)
+          call output_state_to_file(prefix, aero_data, aero_weight, &
+               aero_state, gas_data, gas_state, env_state, index, time, &
+               del_t, i_repeat, record_removals, record_optical, rank, &
+               n_proc, uuid)
        else
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
@@ -190,12 +187,11 @@ contains
           call gas_state_copy(gas_state, gas_state_write)
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          call aero_state_allocate_size(aero_state_write, bin_grid%n_bin, &
-               aero_data%n_spec, aero_data%n_source)
+          call aero_state_allocate_size(aero_state_write, aero_data)
           call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
-             call output_state_to_file(prefix, bin_grid, aero_data, &
-                  aero_weight, aero_state_write, gas_data, gas_state_write, &
+             call output_state_to_file(prefix, aero_data, aero_weight, &
+                  aero_state_write, gas_data, gas_state_write, &
                   env_state_write, index, time, del_t, i_repeat, &
                   record_removals, record_optical, rank, 1, uuid)
           end if
@@ -257,15 +253,13 @@ contains
 
   !> Write the current state for a single process. Do not call this
   !> subroutine directly, but rather call output_state().
-  subroutine output_state_to_file(prefix, bin_grid, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_repeat, record_removals, record_optical, write_rank, &
-       write_n_proc, uuid)
+  subroutine output_state_to_file(prefix, aero_data, aero_weight, &
+       aero_state, gas_data, gas_state, env_state, index, time, del_t, &
+       i_repeat, record_removals, record_optical, write_rank, write_n_proc, &
+       uuid)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -381,8 +375,8 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_weight_output_netcdf(aero_weight, ncid)
-    call aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-         aero_data, aero_weight, record_removals, record_optical)
+    call aero_state_output_netcdf(aero_state, ncid, aero_data, aero_weight, &
+         record_removals, record_optical)
 
     call pmc_nc_check(nf90_close(ncid))
     
@@ -432,14 +426,12 @@ contains
 
   !> Receive the state for the "central" output method on the root
   !> process.
-  subroutine recv_output_state_central(prefix, bin_grid, aero_data, &
-       aero_weight, gas_data, index, time, del_t, i_repeat, &
-       record_removals, record_optical, uuid, remote_proc)
+  subroutine recv_output_state_central(prefix, aero_data, aero_weight, &
+       gas_data, index, time, del_t, i_repeat, record_removals, &
+       record_optical, uuid, remote_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -498,10 +490,9 @@ contains
     call assert(279581330, position == buffer_size)
     deallocate(buffer)
     
-    call output_state_to_file(prefix, bin_grid, aero_data, &
-         aero_weight, aero_state, gas_data, gas_state, env_state, &
-         index, time, del_t, i_repeat, record_removals, record_optical, &
-         remote_proc, n_proc, uuid)
+    call output_state_to_file(prefix, aero_data, aero_weight, aero_state, &
+         gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
+         record_removals, record_optical, remote_proc, n_proc, uuid)
     
     call env_state_deallocate(env_state)
     call gas_state_deallocate(gas_state)
@@ -513,14 +504,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the current state.
-  subroutine input_state(filename, bin_grid, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, env_state, index, &
-       time, del_t, i_repeat, uuid)
+  subroutine input_state(filename, aero_data, aero_weight, aero_state, &
+       gas_data, gas_state, env_state, index, time, del_t, i_repeat, uuid)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol weight.
@@ -562,8 +550,7 @@ contains
        call gas_state_input_netcdf(gas_state, ncid, gas_data)
        call aero_data_input_netcdf(aero_data, ncid)
        call aero_weight_input_netcdf(aero_weight, ncid)
-       call aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-            aero_data, aero_weight)
+       call aero_state_input_netcdf(aero_state, ncid, aero_data, aero_weight)
 
        call pmc_nc_close(ncid)
     end if

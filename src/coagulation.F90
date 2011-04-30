@@ -26,13 +26,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag(coag_kernel_type, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, del_t, k_max, tot_n_samp, tot_n_coag)
+  subroutine mc_coag(coag_kernel_type, env_state, aero_data, aero_weight, &
+       aero_state, del_t, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -43,8 +41,6 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep for coagulation.
     real(kind=dp) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
@@ -54,14 +50,22 @@ contains
     integer :: i, j, n_samp, i_samp
     real(kind=dp) :: accept_factor
 
-    call aero_state_sort(aero_state, bin_grid)
-
+    call aero_state_sort(aero_state)
+    if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
+       call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
+            coag_kernel_type, aero_data, aero_weight, env_state, &
+            aero_state%aero_sorted%coag_kernel_min, &
+            aero_state%aero_sorted%coag_kernel_max)
+       aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
+    end if
+       
     tot_n_samp = 0
     tot_n_coag = 0
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
+    do i = 1,aero_state%aero_sorted%bin_grid%n_bin
+       do j = 1,aero_state%aero_sorted%bin_grid%n_bin
           call compute_n_samp(aero_state%aero_sorted%bin(i)%n_entry, &
-               aero_state%aero_sorted%bin(j)%n_entry, i == j, k_max(i,j), &
+               aero_state%aero_sorted%bin(j)%n_entry, i == j, &
+               aero_state%aero_sorted%coag_kernel_max(i,j), &
                aero_state%comp_vol, del_t, n_samp, accept_factor)
           tot_n_samp = tot_n_samp + n_samp
           do i_samp = 1,n_samp
@@ -72,9 +76,8 @@ contains
                   .and. (aero_state%aero_sorted%bin(i)%n_entry < 2))) then
                 exit
              end if
-             call maybe_coag_pair(bin_grid, env_state, aero_data, &
-                  aero_weight, aero_state, i, j, coag_kernel_type, &
-                  accept_factor, did_coag)
+             call maybe_coag_pair(env_state, aero_data, aero_weight, &
+                  aero_state, i, j, coag_kernel_type, accept_factor, did_coag)
           end do
        end do
     end do
@@ -149,11 +152,9 @@ contains
   !!
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
-  subroutine maybe_coag_pair(bin_grid, env_state, aero_data, aero_weight, &
-       aero_state, b1, b2, coag_kernel_type, accept_factor, did_coag)
+  subroutine maybe_coag_pair(env_state, aero_data, aero_weight, aero_state, &
+       b1, b2, coag_kernel_type, accept_factor, did_coag)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -194,7 +195,7 @@ contains
     p = k * accept_factor
 
     if (pmc_random() .lt. p) then
-       call coagulate(bin_grid, aero_data, aero_weight, aero_state, p1, p2)
+       call coagulate(aero_data, aero_weight, aero_state, p1, p2)
        did_coag = .true.
     end if
     
@@ -373,10 +374,8 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(bin_grid, aero_data, aero_weight, aero_state, p1, p2)
+  subroutine coagulate(aero_data, aero_weight, aero_state, p1, p2)
  
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -431,8 +430,7 @@ contains
 
     ! add new particle
     if (create_new) then
-       bn = aero_particle_in_bin(particle_new, bin_grid)
-       call aero_state_add_particle(aero_state, particle_new, bn)
+       call aero_state_add_particle(aero_state, particle_new)
     end if
 
     call aero_info_deallocate(aero_info_1)

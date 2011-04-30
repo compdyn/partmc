@@ -1262,4 +1262,50 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Computes the minimum of val across all processes, storing the
+  !> result in val_min on all processes.
+  subroutine pmc_mpi_allreduce_min_real(val, val_min)
+
+    !> Value to minimize.
+    real(kind=dp), intent(in) :: val
+    !> Result.
+    real(kind=dp), intent(out) :: val_min
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_min, 1, MPI_DOUBLE_PRECISION, MPI_MIN, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_min = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_min_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the maximum of val across all processes, storing the
+  !> result in val_max on all processes.
+  subroutine pmc_mpi_allreduce_max_real(val, val_max)
+
+    !> Value to maximize.
+    real(kind=dp), intent(in) :: val
+    !> Result.
+    real(kind=dp), intent(out) :: val_max
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_allreduce(val, val_max, 1, MPI_DOUBLE_PRECISION, MPI_MAX, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    val_max = val
+#endif
+
+  end subroutine pmc_mpi_allreduce_max_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_mpi

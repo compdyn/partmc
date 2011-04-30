@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2010 Matthew West
+! Copyright (C) 2009-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -15,6 +15,7 @@ program bin_average_size
   use pmc_env_state
   use pmc_aero_data
   use pmc_aero_weight
+  use pmc_bin_grid
   use pmc_output
   use netcdf
 
@@ -102,12 +103,11 @@ program bin_average_size
 
   call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
   
-  call input_state(in_filename, bin_grid, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, env_state, &
-       index, time, del_t, i_repeat, uuid)
+  call input_state(in_filename, aero_data, aero_weight, aero_state, &
+       gas_data, gas_state, env_state, index, time, del_t, i_repeat, uuid)
 
   if (dry_volume) then
-     call aero_state_make_dry(aero_state, bin_grid, aero_data)
+     call aero_state_make_dry(aero_state, aero_data)
   end if
 
   call aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
@@ -116,9 +116,9 @@ program bin_average_size
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
   record_optical = .true.
-  call output_state(out_prefix, output_type, bin_grid, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, env_state, &
-       index, time, del_t, i_repeat, record_removals, record_optical, uuid)
+  call output_state(out_prefix, output_type, aero_data, aero_weight, &
+       aero_state, gas_data, gas_state, env_state, index, time, del_t, &
+       i_repeat, record_removals, record_optical, uuid)
 
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)

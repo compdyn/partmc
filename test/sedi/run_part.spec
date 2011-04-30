@@ -9,10 +9,6 @@ del_t 0.5                       # timestep (s)
 t_output 300                    # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
-n_bin 220                       # number of bins
-d_min 1e-8                      # minimum diameter (m)
-d_max 1e-2                      # maximum diameter (m)
-
 weight power                    # weighting function
 exponent -1                     # weighting exponent
 

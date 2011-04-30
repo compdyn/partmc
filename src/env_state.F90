@@ -425,7 +425,7 @@ contains
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
   subroutine env_state_update_aero_state(env_state, delta_t, &
-       old_env_state, bin_grid, aero_data, aero_weight, aero_state, &
+       old_env_state, aero_data, aero_weight, aero_state, &
        n_emit, n_dil_in, n_dil_out)
 
     !> Current environment.
@@ -434,8 +434,6 @@ contains
     real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
     type(env_state_t), intent(in) :: old_env_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Aero weight.
@@ -453,8 +451,7 @@ contains
     real(kind=dp) :: sample_prop, effective_dilution_rate
     type(aero_state_t) :: aero_state_delta
 
-    call aero_state_allocate_size(aero_state_delta, bin_grid%n_bin, &
-         aero_data%n_spec, aero_data%n_source)
+    call aero_state_allocate_size(aero_state_delta, aero_data)
 
     ! account for height changes
     effective_dilution_rate = env_state%aero_dilution_rate
@@ -476,8 +473,8 @@ contains
     sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
-    call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
-         aero_data, aero_weight, env_state%aero_background, sample_prop, &
+    call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
+         aero_weight, env_state%aero_background, sample_prop, &
          env_state%elapsed_time)
     n_dil_in = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -487,8 +484,8 @@ contains
          - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
-    call aero_state_add_aero_dist_sample(aero_state_delta, bin_grid, &
-         aero_data, aero_weight, env_state%aero_emissions, sample_prop, &
+    call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
+         aero_weight, env_state%aero_emissions, sample_prop, &
          env_state%elapsed_time)
     n_emit = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
@@ -506,8 +503,7 @@ contains
   !> Do emissions and background dilution from the environment for a
   !> binned aerosol distribution.
   subroutine env_state_update_aero_binned(env_state, delta_t, & 
-       old_env_state, &
-       bin_grid, aero_data, aero_binned)
+       old_env_state, bin_grid, aero_data, aero_binned)
 
     !> Current environment.
     type(env_state_t), intent(in) :: env_state

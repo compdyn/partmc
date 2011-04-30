@@ -10,7 +10,6 @@ module pmc_aero_particle
 
   use pmc_util
   use pmc_aero_data
-  use pmc_bin_grid
   use pmc_spec_file
   use pmc_mpi
 #ifdef PMC_USE_MPI
@@ -408,21 +407,6 @@ contains
 
   end function aero_particle_density
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Find the bin number that contains a given particle.
-  integer function aero_particle_in_bin(aero_particle, bin_grid)
-
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Bin_grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    
-    aero_particle_in_bin = bin_grid_particle_in_bin(bin_grid, &
-         aero_particle_radius(aero_particle))
-    
-  end function aero_particle_in_bin
-  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the volume-average of the non-water elements of quantity.

@@ -97,22 +97,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_allocate_size(aero_state, n_bin, n_spec, n_source)
+  subroutine aero_state_allocate_size(aero_state, aero_data)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
-    !> Number of bins.
-    integer, intent(in) :: n_bin
-    !> Number of species.
-    integer, intent(in) :: n_spec
-    !> Number of sources.
-    integer, intent(in) :: n_source
-    
-    integer i
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
-    call aero_particle_array_allocate_size(aero_state%p, 0, n_spec, n_source)
-    call aero_sorted_allocate_size(aero_state%aero_sorted, n_bin)
-    aero_state%valid_sort = .true.
+    call aero_particle_array_allocate_size(aero_state%p, 0, &
+         aero_data%n_spec, aero_data%n_source)
+    call aero_sorted_allocate(aero_state%aero_sorted)
+    aero_state%valid_sort = .false.
     aero_state%comp_vol = 0d0
     call aero_info_array_allocate(aero_state%aero_info_array)
 
@@ -147,17 +142,8 @@ contains
     type(aero_state_t), intent(inout) :: aero_state_to
     
     call aero_particle_array_copy(aero_state_from%p, aero_state_to%p)
-
-    if (aero_state_from%valid_sort) then
-       aero_state_to%valid_sort = .true.
-       call aero_sorted_copy(aero_state_from%aero_sorted, &
-            aero_state_to%aero_sorted)
-    else
-       aero_state_to%valid_sort = .false.
-    end if
-
+    aero_state_to%valid_sort = .false.
     aero_state_to%comp_vol = aero_state_from%comp_vol
-
     call aero_info_array_copy(aero_state_from%aero_info_array, &
          aero_state_to%aero_info_array)
 
@@ -202,9 +188,7 @@ contains
     integer :: i, n_bin
 
     call aero_particle_array_zero(aero_state%p)
-    if (aero_state%valid_sort) then
-       call aero_sorted_zero(aero_state%aero_sorted)
-    end if
+    aero_state%valid_sort = .false.
     call aero_info_array_zero(aero_state%aero_info_array)
 
   end subroutine aero_state_zero
@@ -221,12 +205,10 @@ contains
     !> Bin number of particle to add.
     integer, optional, intent(in) :: i_bin
 
-    if (present(i_bin)) then
-       call assert(445165145, aero_state%valid_sort)
+    if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%p, &
             aero_particle, i_bin)
     else
-       aero_state%valid_sort = .false.
        call aero_particle_array_add_particle(aero_state%p, aero_particle)
     end if
 
@@ -351,14 +333,8 @@ contains
     integer :: i_part, i_bin
 
     do i_part = 1,aero_state_delta%p%n_part
-       if (aero_state_delta%valid_sort) then
-          i_bin = aero_state_delta%aero_sorted%reverse_bin%entry(i_part)
-          call aero_state_add_particle(aero_state, &
-               aero_state_delta%p%particle(i_part), i_bin)
-       else
-          call aero_state_add_particle(aero_state, &
-               aero_state_delta%p%particle(i_part))
-       end if
+       call aero_state_add_particle(aero_state, &
+            aero_state_delta%p%particle(i_part))
     end do
     call aero_info_array_add(aero_state%aero_info_array, &
          aero_state_delta%aero_info_array)
@@ -370,13 +346,11 @@ contains
   !> Generates a Poisson sample of an aero_dist, adding to
   !> aero_state. The sampled amount is sample_prop *
   !> aero_state%comp_vol.
-  subroutine aero_state_add_aero_dist_sample(aero_state, bin_grid, &
-       aero_data, aero_weight, aero_dist, sample_prop, create_time)
+  subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
+       aero_weight, aero_dist, sample_prop, create_time)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
@@ -389,12 +363,9 @@ contains
     real(kind=dp), intent(in) :: create_time
 
     real(kind=dp) :: n_samp_avg, sample_vol, radius, vol
-    integer :: n_samp, i_mode, i_samp, i_bin
-    integer :: num_per_bin(bin_grid%n_bin)
+    integer :: n_samp, i_mode, i_samp
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
-
-    call assert(371655698, aero_state%valid_sort)
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
@@ -411,8 +382,7 @@ contains
           call aero_particle_new_id(aero_particle)
           call aero_particle_set_create_time(aero_particle, create_time)
           call aero_particle_set_source(aero_particle, aero_mode%source)
-          i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-          call aero_state_add_particle(aero_state, aero_particle, i_bin)
+          call aero_state_add_particle(aero_state, aero_particle)
        end do
     end do
     call aero_particle_deallocate(aero_particle)
@@ -452,7 +422,7 @@ contains
     !> parameters). Set to AERO_INFO_NONE to not log removal.
     integer, intent(in) :: removal_action
     
-    integer :: n_transfer, i_transfer, i_part, i_bin
+    integer :: n_transfer, i_transfer, i_part
     logical :: do_add, do_remove
     real(kind=dp) :: vol_ratio
     type(aero_info_t) :: aero_info
@@ -487,14 +457,8 @@ contains
           do_remove = .true.
        end if
        if (do_add) then
-          if (aero_state_from%valid_sort) then
-             i_bin = aero_state_from%aero_sorted%reverse_bin%entry(i_part)
-             call aero_state_add_particle(aero_state_to, &
-                  aero_state_from%p%particle(i_part), i_bin)
-          else
-             call aero_state_add_particle(aero_state_to, &
-                  aero_state_from%p%particle(i_part))
-          end if
+          call aero_state_add_particle(aero_state_to, &
+               aero_state_from%p%particle(i_part))
        end if
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
@@ -538,7 +502,8 @@ contains
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%p%n_part
        aero_particle => aero_state%p%particle(i_part)
-       i_bin = aero_particle_in_bin(aero_particle, bin_grid)
+       i_bin = bin_grid_particle_in_bin(bin_grid, &
+            aero_particle_radius(aero_particle))
        aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
             + aero_particle%vol / aero_state%comp_vol &
             * aero_weight_value(aero_weight, &
@@ -608,12 +573,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove approximately half of the particles in each bin.
-  subroutine aero_state_halve(aero_state, bin_grid)
+  subroutine aero_state_halve(aero_state)
     
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     
     integer :: i_part, n_part_orig, i_remove, n_remove
     type(aero_info_t) :: aero_info
@@ -637,8 +600,7 @@ contains
 
   !> Mix the aero_states between all processes. Currently uses a
   !> simple all-to-all diffusion.
-  subroutine aero_state_mix(aero_state, del_t, mix_timescale, &
-       aero_data, bin_grid)
+  subroutine aero_state_mix(aero_state, del_t, mix_timescale, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -648,8 +610,6 @@ contains
     real(kind=dp), intent(in) :: mix_timescale
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
 
 #ifdef PMC_USE_MPI
     integer :: rank, n_proc, dest_proc, ierr
@@ -678,7 +638,7 @@ contains
     do dest_proc = 0,(n_proc - 1)
        if (dest_proc /= rank) then
           call aero_state_allocate_size(aero_state_sends(dest_proc + 1), &
-               bin_grid%n_bin, aero_data%n_spec, aero_data%n_source)
+               aero_data)
           aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
           prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
                / real(n_proc, kind=dp) &
@@ -1060,12 +1020,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Make all particles dry (water set to zero).
-  subroutine aero_state_make_dry(aero_state, bin_grid, aero_data)
+  subroutine aero_state_make_dry(aero_state, aero_data)
 
     !> Aerosol state to make dry.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
@@ -1092,8 +1050,6 @@ contains
 
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_apa(val%p)
-    total_size = total_size + pmc_mpi_pack_size_aero_sorted(val%aero_sorted)
-    total_size = total_size + pmc_mpi_pack_size_logical(val%valid_sort)
     total_size = total_size + pmc_mpi_pack_size_real(val%comp_vol)
     total_size = total_size + pmc_mpi_pack_size_aia(val%aero_info_array)
     pmc_mpi_pack_size_aero_state = total_size
@@ -1117,8 +1073,6 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_aero_particle_array(buffer, position, val%p)
-    call pmc_mpi_pack_aero_sorted(buffer, position, val%aero_sorted)
-    call pmc_mpi_pack_logical(buffer, position, val%valid_sort)
     call pmc_mpi_pack_real(buffer, position, val%comp_vol)
     call pmc_mpi_pack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(850997402, &
@@ -1142,10 +1096,9 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
+    val%valid_sort = .false.
     prev_position = position
     call pmc_mpi_unpack_aero_particle_array(buffer, position, val%p)
-    call pmc_mpi_unpack_aero_sorted(buffer, position, val%aero_sorted)
-    call pmc_mpi_unpack_logical(buffer, position, val%valid_sort)
     call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
     call aero_info_array_allocate(val%aero_info_array)
     call pmc_mpi_unpack_aero_info_array(buffer, position, val%aero_info_array)
@@ -1408,15 +1361,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write full state.
-  subroutine aero_state_output_netcdf(aero_state, ncid, bin_grid, &
-       aero_data, aero_weight, record_removals, record_optical)
+  subroutine aero_state_output_netcdf(aero_state, ncid, aero_data, &
+       aero_weight, record_removals, record_optical)
     
     !> aero_state to write.
     type(aero_state_t), intent(in) :: aero_state
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> bin_grid structure.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
     !> aero_weight structure.
@@ -1747,15 +1698,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
-  subroutine aero_state_input_netcdf(aero_state, ncid, bin_grid, &
-       aero_data, aero_weight)
+  subroutine aero_state_input_netcdf(aero_state, ncid, aero_data, aero_weight)
     
     !> aero_state to read.
     type(aero_state_t), intent(inout) :: aero_state
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> bin_grid structure.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
     !> aero_weight structure.
@@ -1789,8 +1737,7 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-            aero_data%n_spec, aero_data%n_source)
+       call aero_state_allocate_size(aero_state, aero_data)
        return
     end if
     call pmc_nc_check(status)
@@ -1845,8 +1792,7 @@ contains
          "aero_greatest_create_time")
 
     call aero_state_deallocate(aero_state)
-    call aero_state_allocate_size(aero_state, bin_grid%n_bin, &
-         aero_data%n_spec, aero_data%n_source)
+    call aero_state_allocate_size(aero_state, aero_data)
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
@@ -1870,8 +1816,7 @@ contains
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 
-       i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-       call aero_state_add_particle(aero_state, aero_particle, i_bin)
+       call aero_state_add_particle(aero_state, aero_particle)
     end do
     call aero_particle_deallocate(aero_particle)
 
@@ -1932,46 +1877,34 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Updates the sorted index cache if necessary.
-  subroutine aero_state_sort(aero_state, bin_grid)
+  !> Sorts the particles if necessary.
+  subroutine aero_state_sort(aero_state, bin_grid, all_procs_same)
 
     !> Aerosol state to sort.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
+    type(bin_grid_t), optional, intent(in) :: bin_grid
+    !> Whether all processors should use the same bin grid.
+    logical, optional, intent(in) :: all_procs_same
 
-    integer :: i_part, i_bin
-
-    if (aero_state%valid_sort) return
-
-    call aero_sorted_deallocate(aero_state%aero_sorted)
-    call aero_sorted_allocate_size(aero_state%aero_sorted, bin_grid%n_bin)
-    do i_part = 1,aero_state%p%n_part
-       i_bin = aero_particle_in_bin(aero_state%p%particle(i_part), &
-            bin_grid)
-
-       ! fill in forward index
-       call integer_varray_append(aero_state%aero_sorted%bin(i_bin), i_part)
-
-       ! fill in reverse index
-       call integer_varray_append(aero_state%aero_sorted%reverse_bin, i_bin)
-       call integer_varray_append(aero_state%aero_sorted%reverse_entry, &
-            aero_state%aero_sorted%bin(i_bin)%n_entry)
-    end do
-
-    aero_state%valid_sort = .true.
+    if ((.not. aero_state%valid_sort) .or. present(bin_grid)) then
+       call aero_sorted_make(aero_state%aero_sorted, aero_state%p, bin_grid, &
+            all_procs_same)
+       aero_state%valid_sort = .true.
+    else
+       call aero_sorted_remake_if_needed(aero_state%aero_sorted, &
+            aero_state%p, all_procs_same)
+    end if
 
   end subroutine aero_state_sort
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the sorted data is consistent.
-  subroutine aero_state_check_sort(aero_state, bin_grid)
+  subroutine aero_state_check_sort(aero_state)
 
     !> Aerosol state to check.
     type(aero_state_t), intent(in) :: aero_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
 
     integer :: i_part, i_bin, i_entry
 
@@ -2003,8 +1936,8 @@ contains
                aero_state%aero_sorted%reverse_entry%n_entry
        end if
 
-       i_bin = aero_particle_in_bin(aero_state%p%particle(i_part), &
-            bin_grid)
+       i_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+            aero_state%p%particle(i_part))
        if (i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) then
           write(0,*) 'SORTED CHECK ERROR C'
           write(0,*) 'i_part', i_part
@@ -2044,7 +1977,7 @@ contains
        end if
     end do
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do i_entry = 1,aero_state%aero_sorted%bin(i_bin)%n_entry
           i_part = aero_state%aero_sorted%bin(i_bin)%entry(i_entry)
           if ((i_part < 1) .or. (i_part > aero_state%p%n_part)) then

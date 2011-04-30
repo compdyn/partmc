@@ -10,10 +10,6 @@ del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
-n_bin 160                       # number of bins
-d_min 1e-8                      # minimum diameter (m)
-d_max 1e-3                      # maximum diameter (m)
-
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data

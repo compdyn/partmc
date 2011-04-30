@@ -9,10 +9,6 @@ del_t 1                         # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
-n_bin 255                       # number of bins
-d_min 1e-8                      # minimum diameter (m)
-d_max 1e0                       # maximum diameter (m)
-
 weight none                     # weighting function
 
 gas_data gas_data.dat           # file containing gas data

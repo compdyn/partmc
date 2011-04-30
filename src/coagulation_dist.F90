@@ -102,14 +102,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag_dist(coag_kernel_type, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, del_t, k_max, tot_n_samp, &
-       tot_n_coag)
+  subroutine mc_coag_dist(coag_kernel_type, env_state, aero_data, &
+       aero_weight, aero_state, del_t, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -120,8 +117,6 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
     real(kind=dp), intent(in) :: del_t
-    !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
     !> Total number of samples tested.
     integer, intent(out) :: tot_n_samp
     !> Number of coagulation events.
@@ -145,15 +140,22 @@ contains
 
     call pmc_mpi_barrier()
 
-    call aero_state_sort(aero_state, bin_grid)
+    call aero_state_sort(aero_state, all_procs_same=.true.)
+    if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
+       call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
+            coag_kernel_type, aero_data, aero_weight, env_state, &
+            aero_state%aero_sorted%coag_kernel_min, &
+            aero_state%aero_sorted%coag_kernel_max)
+       aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
+    end if
 
-    allocate(n_parts(bin_grid%n_bin, n_proc))
+    allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
     call sync_info(aero_state%aero_sorted%bin(:)%n_entry, &
          aero_state%comp_vol, n_parts, comp_vols)
 
-    call generate_n_samps(bin_grid, n_parts, comp_vols, del_t, k_max, &
-         n_samps, accept_factors)
+    call generate_n_samps(n_parts, comp_vols, del_t, &
+         aero_state%aero_sorted%coag_kernel_max, n_samps, accept_factors)
     tot_n_samp = sum(n_samps)
     tot_n_coag = 0
 
@@ -172,8 +174,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     do while (.not. all(procs_done))
        ! add requests if we have any slots available call
-       call add_coagulation_requests(bin_grid, aero_state, requests, &
-            n_parts, current_i, current_j, n_samps, samps_remaining)
+       call add_coagulation_requests(aero_state, requests, n_parts, &
+            current_i, current_j, n_samps, samps_remaining)
 
        ! if we have no outstanding requests, send done messages
        if (.not. sent_dones) then
@@ -186,9 +188,9 @@ contains
        end if
 
        ! receive exactly one message
-       call coag_dist_recv(requests, bin_grid, env_state, aero_data, &
-            aero_weight, aero_state, accept_factors, coag_kernel_type, &
-            tot_n_coag, comp_vols, procs_done)
+       call coag_dist_recv(requests, env_state, aero_data, aero_weight, &
+            aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
+            comp_vols, procs_done)
     end do
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -209,14 +211,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_dist_recv(requests, bin_grid, env_state, aero_data, &
-       aero_weight, aero_state, accept_factors, coag_kernel_type, &
-       tot_n_coag, comp_vols, procs_done)
+  subroutine coag_dist_recv(requests, env_state, aero_data, aero_weight, &
+       aero_state, accept_factors, coag_kernel_type, tot_n_coag, comp_vols, &
+       procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -226,8 +226,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: &
-         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: accept_factors(:,:)
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
@@ -246,14 +245,13 @@ contains
     if (status(MPI_TAG) == COAG_DIST_TAG_REQUEST_PARTICLE) then
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
-       call recv_return_req_particle(requests, bin_grid, &
-            env_state, aero_data, aero_weight, aero_state, accept_factors, &
-            coag_kernel_type, tot_n_coag, comp_vols)
+       call recv_return_req_particle(requests, env_state, aero_data, &
+            aero_weight, aero_state, accept_factors, coag_kernel_type, &
+            tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
-       call recv_return_unreq_particle(aero_state, bin_grid)
+       call recv_return_unreq_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
-       call recv_return_no_particle(requests, bin_grid, &
-            aero_data, aero_state)
+       call recv_return_no_particle(requests, aero_data, aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_DONE) then
        call recv_done(procs_done)
     else
@@ -266,11 +264,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine add_coagulation_requests(bin_grid, aero_state, requests, &
-       n_parts, local_bin, remote_bin, n_samps, samps_remaining)
+  subroutine add_coagulation_requests(aero_state, requests, n_parts, &
+       local_bin, remote_bin, n_samps, samps_remaining)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Array of outstanding requests.
@@ -282,7 +278,7 @@ contains
     !> Bin index of second particle we need to coagulate.
     integer, intent(inout) :: remote_bin
     !> Number of samples remaining per bin pair
-    integer, intent(inout) :: n_samps(bin_grid%n_bin,bin_grid%n_bin)
+    integer, intent(inout) :: n_samps(:,:)
     !> Whether there are still coagulation samples that need to be done.
     logical, intent(inout) :: samps_remaining
 
@@ -293,12 +289,12 @@ contains
     outer: do i_req = 1,COAG_DIST_MAX_REQUESTS
        if (.not. request_is_active(requests(i_req))) then
           inner: do
-             call update_n_samps(bin_grid, n_samps, local_bin, &
-                  remote_bin, samps_remaining)
+             call update_n_samps(n_samps, local_bin, remote_bin, &
+                  samps_remaining)
              if (.not. samps_remaining) exit outer
              if (aero_state%aero_sorted%bin(local_bin)%n_entry > 0) then
-                call find_rand_remote_proc(bin_grid, n_parts, &
-                     remote_bin, requests(i_req)%remote_proc)
+                call find_rand_remote_proc(n_parts, remote_bin, &
+                     requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.
                 requests(i_req)%local_bin = local_bin
                 requests(i_req)%remote_bin = remote_bin
@@ -337,10 +333,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_rand_remote_proc(bin_grid, n_parts, remote_bin, remote_proc)
+  subroutine find_rand_remote_proc(n_parts, remote_bin, remote_proc)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Number of particles per bin per process.
     integer, intent(in) :: n_parts(:,:)
     !> Remote bin number.
@@ -349,7 +343,6 @@ contains
     integer, intent(out) :: remote_proc
 
 #ifdef PMC_USE_MPI
-    call assert(542705260, size(n_parts, 1) == bin_grid%n_bin)
     call assert(770964285, size(n_parts, 2) == pmc_mpi_size())
     remote_proc = sample_disc_pdf(n_parts(remote_bin,:)) - 1
 #endif
@@ -358,13 +351,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine update_n_samps(bin_grid, n_samps, local_bin, remote_bin, &
+  subroutine update_n_samps(n_samps, local_bin, remote_bin, &
        samps_remaining)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Number of samples remaining per bin pair
-    integer, intent(inout) :: n_samps(bin_grid%n_bin,bin_grid%n_bin)
+    integer, intent(inout) :: n_samps(:,:)
     !> Bin index of first particle we need to coagulate.
     integer, intent(inout) :: local_bin
     !> Bin index of second particle we need to coagulate.
@@ -372,20 +363,23 @@ contains
     !> Whether there are still coagulation samples that need to be done.
     logical, intent(inout) :: samps_remaining
 
+    integer :: n_bin
+
     if (.not. samps_remaining) return
 
+    n_bin = size(n_samps, 1)
     do
        if (n_samps(local_bin, remote_bin) > 0) exit
 
        remote_bin = remote_bin + 1
-       if (remote_bin > bin_grid%n_bin) then
+       if (remote_bin > n_bin) then
           remote_bin = 1
           local_bin = local_bin + 1
        end if
-       if (local_bin > bin_grid%n_bin) exit
+       if (local_bin > n_bin) exit
     end do
     
-    if (local_bin > bin_grid%n_bin) then
+    if (local_bin > n_bin) then
        samps_remaining = .false.
     else
        n_samps(local_bin, remote_bin) = n_samps(local_bin, remote_bin) - 1
@@ -494,13 +488,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_no_particle(requests, bin_grid, &
-       aero_data, aero_state)
+  subroutine recv_return_no_particle(requests, aero_data, aero_state)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -583,14 +574,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_req_particle(requests, bin_grid, env_state, &
-       aero_data, aero_weight, aero_state, accept_factors, coag_kernel_type, &
+  subroutine recv_return_req_particle(requests, env_state, aero_data, &
+       aero_weight, aero_state, accept_factors, coag_kernel_type, &
        tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol weight.
@@ -600,8 +589,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: &
-         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: accept_factors(:,:)
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
@@ -656,9 +644,9 @@ contains
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
-       call coagulate_dist(bin_grid, aero_data, aero_weight, &
-            aero_state, requests(i_req)%local_aero_particle, &
-            sent_aero_particle, sent_proc, comp_vols, remove_1, remove_2)
+       call coagulate_dist(aero_data, aero_weight, aero_state, &
+            requests(i_req)%local_aero_particle, sent_aero_particle, &
+            sent_proc, comp_vols, remove_1, remove_2)
     else
        remove_1 = .false.
        remove_2 = .false.
@@ -710,19 +698,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_unreq_particle(aero_state, bin_grid)
+  subroutine recv_return_unreq_particle(aero_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
 
 #ifdef PMC_USE_MPI
     logical :: found_request
     integer :: buffer_size, position, sent_proc, ierr
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: aero_particle
-    integer :: i_bin, status(MPI_STATUS_SIZE), send_proc
+    integer :: status(MPI_STATUS_SIZE), send_proc
 
     ! get the message
     call mpi_recv(buffer, COAG_DIST_MAX_BUFFER_SIZE, MPI_CHARACTER, &
@@ -743,8 +729,7 @@ contains
     call assert(833588594, position == buffer_size)
 
     ! put it back
-    i_bin = aero_particle_in_bin(aero_particle, bin_grid)
-    call aero_state_add_particle(aero_state, aero_particle, i_bin)
+    call aero_state_add_particle(aero_state, aero_particle)
     call aero_particle_deallocate(aero_particle)
 #endif
 
@@ -849,11 +834,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> generate the number of samples to do per bin pair.
-  subroutine generate_n_samps(bin_grid, n_parts, comp_vols, del_t, &
-       k_max, n_samps, accept_factors)
+  subroutine generate_n_samps(n_parts, comp_vols, del_t, k_max, n_samps, &
+       accept_factors)
     
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Number of particles per bin on all processes.
     integer, intent(in) :: n_parts(:,:)
     !> Computational volumes on all processes..
@@ -861,19 +844,19 @@ contains
     !> Timestep.
     real(kind=dp), intent(in) :: del_t
     !> Maximum kernel.
-    real(kind=dp), intent(in) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(in) :: k_max(:,:)
     !> Number of samples to do per bin pair.
-    integer, intent(out) :: n_samps(bin_grid%n_bin,bin_grid%n_bin)
+    integer, intent(out) :: n_samps(:,:)
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: &
-         accept_factors(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: accept_factors(:,:)
 
-    integer :: i, j, rank
+    integer :: i, j, rank, n_bin
     real(kind=dp) :: n_samp_real
 
+    n_bin = size(k_max, 1)
     rank = pmc_mpi_rank()
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
+    do i = 1,n_bin
+       do j = 1,n_bin
           call compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
                sum(comp_vols), del_t, n_samps(i,j), accept_factors(i,j))
@@ -884,12 +867,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coagulate_dist(bin_grid, aero_data, aero_weight, &
-       aero_state, aero_particle_1, aero_particle_2, remote_proc, &
-       comp_vols, remove_1, remove_2)
+  subroutine coagulate_dist(aero_data, aero_weight, aero_state, &
+       aero_particle_1, aero_particle_2, remote_proc, comp_vols, &
+       remove_1, remove_2)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.

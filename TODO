@@ -142,3 +142,5 @@ so that when we extend the bin_grid, we don't need to recompute the
 sort, and we only need to recompute some parts of k_max.
 
 Rename valid_sort -> sort_valid.
+
+Fix aero_state structure documentation.

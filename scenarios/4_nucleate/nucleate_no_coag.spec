@@ -9,12 +9,7 @@ del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
-n_bin 160                       # number of bins
-d_min 1e-10                     # minimum diameter (m)
-d_max 1e-5                      # maximum diameter (m)
-
 weight power                    # weighting function
-ref_radius 1e-8                 # radius at which weight is 1
 exponent -1                     # weighting exponent
 
 gas_data gas_data.dat           # file containing gas data

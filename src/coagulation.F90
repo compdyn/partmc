@@ -62,7 +62,7 @@ contains
     tot_n_samp = 0
     tot_n_coag = 0
     do i = 1,aero_state%aero_sorted%bin_grid%n_bin
-       do j = 1,aero_state%aero_sorted%bin_grid%n_bin
+       do j = i,aero_state%aero_sorted%bin_grid%n_bin
           call compute_n_samp(aero_state%aero_sorted%bin(i)%n_entry, &
                aero_state%aero_sorted%bin(j)%n_entry, i == j, &
                aero_state%aero_sorted%coag_kernel_max(i,j), &
@@ -119,7 +119,7 @@ contains
        ! is important for coagulation_dist, which also calls this
        n_possible = real(ni, kind=dp) * (real(nj, kind=dp) - 1d0) / 2d0
     else
-       n_possible = real(ni, kind=dp) * real(nj, kind=dp) / 2d0
+       n_possible = real(ni, kind=dp) * real(nj, kind=dp)
     end if
     
     r_samp = k_max / comp_vol * del_t

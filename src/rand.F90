@@ -613,4 +613,60 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return a fairly tight upper-bound on the Student's t coefficient
+  !> for the 95% confidence interval.
+  !!
+  !! The number of degrees of freedom is one less than \c n_sample. If
+  !! a set of \f$n\f$ numbers has sample mean \f$\mu\f$ and sample
+  !! standard deviation \f$\sigma\f$, then the 95% confidence interval
+  !! for the mean is \f$[\mu - r\sigma/\sqrt{n}, \mu +
+  !! r\sigma/\sqrt{n}]\f$, where <tt>r =
+  !! student_t_95_coeff(n_sample)</tt>.
+  !!
+  !! The method used here was written by MW on 2011-05-01, based on
+  !! the following empirical observation. If \f$f(\nu) =
+  !! t_{0.95,\nu}\f$ is the function we want, where $\nu = n - 1$ is
+  !! the number of degrees-of-freedom, then set \f$g(\nu) = f(\nu) -
+  !! L\f$, where $L = \Phi^{-1}(0.975)$ is the limiting value given by
+  !! the Gaussian CDF \f$\Phi\f$. We observe numerically that
+  !! \f$g'(\nu) < -1\f$ and \f$g'(\nu) \to -1\f$ as \f$\nu \to
+  !! \infty\f$. Thus \f$g(\nu)\f$ is well-approximated by $A/\nu$ for
+  !! some \f$A\f$. Furthermore, if \f$g(\nu^*) = A^*/\nu\f$, then
+  !! \f$g(\nu) < A^*/\nu\f$ for $\nu > \nu^*$. We thus have \f$f(\nu)
+  !! \le (f(\nu^*) - L) (\nu^* / \nu) + L\f$ for $\nu \ge \nu^*$. By
+  !! using a sequence of known \f$(\nu^*, f(\nu^*))\f$ pairs we can
+  !! thus construct a fairly tight upper bound.
+  !!
+  !! This implementation has an error of below 0.1% for all values of
+  !! \c n_sample.
+  real(kind=dp) function student_t_95_coeff(n_sample)
+
+    !> Number of samples.
+    integer, intent(in) :: n_sample
+
+    real(kind=dp), parameter :: limit = 1.959963984540054d0
+    real(kind=dp), parameter, dimension(15) :: values &
+         = (/ 12.7062047364d0, 4.30265272991d0, 3.18244630528d0, &
+         2.7764451052d0, 2.57058183661d0, 2.44691184879d0, 2.36462425101d0, &
+         2.30600413503d0, 2.26215716274d0, 2.22813885196d0, 2.20098516008d0, &
+         2.17881282966d0, 2.16036865646d0, 2.14478668792d0, 2.13144954556d0 /)
+
+    integer :: n_dof
+
+    n_dof = n_sample - 1
+    call assert(359779741, n_dof >= 1)
+    if (n_dof <= 15) then
+       student_t_95_coeff = values(n_dof)
+    elseif (n_dof <= 20) then
+       student_t_95_coeff = (2.11990529922d0 - limit) * 16d0 &
+            / real(n_dof, kind=dp) + limit
+    else
+       student_t_95_coeff = (2.07961384473d0 - limit) * 21d0 &
+            / real(n_dof, kind=dp) + limit
+    end if
+
+  end function student_t_95_coeff
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_rand

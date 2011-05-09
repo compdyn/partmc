@@ -862,15 +862,17 @@ contains
     real(kind=dp), intent(out) :: accept_factors(:,:)
 
     integer :: i, j, rank, n_bin
-    real(kind=dp) :: n_samp_real
+    real(kind=dp) :: n_samp_mean
 
     n_bin = size(k_max, 1)
     rank = pmc_mpi_rank()
+    n_samps = 0
     do i = 1,n_bin
-       do j = 1,n_bin
+       do j = i,n_bin
           call compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
-               sum(comp_vols), del_t, n_samps(i,j), accept_factors(i,j))
+               sum(comp_vols), del_t, n_samp_mean, n_samps(i,j), &
+               accept_factors(i,j))
        end do
     end do
 

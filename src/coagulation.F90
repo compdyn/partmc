@@ -47,7 +47,8 @@ contains
     integer, intent(out) :: tot_n_coag
 
     logical :: did_coag, do_accel_coag
-    integer :: i_bin, j_bin, n_samp, n_coag, i_samp, j_entry, j_part, new_bin
+    integer :: i_bin, j_bin, n_samp, n_coag, n_remove
+    integer :: i_samp, j_entry, j_part, new_bin
     real(kind=dp) :: accept_factor, n_samp_mean, n_samp_per_j_part
 
     call aero_state_sort(aero_state)
@@ -79,7 +80,7 @@ contains
              do j_entry = 1,aero_state%aero_sorted%bin(j_bin)%n_entry
                 call accel_coag(env_state, aero_data, aero_weight, &
                      aero_state, i_bin, j_bin, j_entry, coag_kernel_type, &
-                     del_t, n_samp, n_coag)
+                     del_t, n_samp, n_coag, n_remove)
                 tot_n_samp = tot_n_samp + n_samp
                 tot_n_coag = tot_n_coag + n_coag
              end do
@@ -125,7 +126,8 @@ contains
 
   !> Accelerated coagulation for a single particle.
   subroutine accel_coag(env_state, aero_data, aero_weight, aero_state, &
-       i_bin, j_bin, j_entry, coag_kernel_type, del_t, n_samp, n_coag)
+       i_bin, j_bin, j_entry, coag_kernel_type, del_t, n_samp, n_coag, &
+       n_remove)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -149,6 +151,8 @@ contains
     integer, intent(out) :: n_samp
     !> Number of coagulations performed.
     integer, intent(out) :: n_coag
+    !> Number of particles removed.
+    integer, intent(out) :: n_remove
 
     real(kind=dp) :: n_samp_mean, k_max, prob_remove_i, prob_remove_i_max
     real(kind=dp) :: prob_coag, prob_coag_tot, prob_coag_mean
@@ -185,6 +189,7 @@ contains
 
     n_avg = 0
     n_samp = 0
+    n_remove = 0
     prob_coag_tot = 0d0
     call aero_particle_allocate_size(aero_particle_delta, &
          aero_data%n_spec, aero_data%n_source)
@@ -227,6 +232,7 @@ contains
                   aero_particle_radius(i_particle))
              prob_remove_i = weight_j / weight_i
              if (pmc_random() < prob_remove_i / prob_remove_i_max) then
+                n_remove = n_remove + 1
                 call aero_info_allocate(aero_info)
                 aero_info%id = i_particle%id
                 aero_info%action = AERO_INFO_COAG

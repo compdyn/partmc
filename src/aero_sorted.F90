@@ -465,7 +465,7 @@ contains
     !> New bin to move particle to.
     integer, intent(in) :: new_bin
 
-    integer :: i_bin, i_entry, new_entry
+    integer :: i_bin, i_entry, new_entry, i_part_shifted
 
     i_bin = aero_sorted%reverse_bin%entry(i_part)
     i_entry = aero_sorted%reverse_entry%entry(i_part)
@@ -473,6 +473,12 @@ contains
 
     ! remove the old forward map
     call integer_varray_remove_entry(aero_sorted%bin(i_bin), i_entry)
+
+    ! fix the reverse entry map for the last entry moved into the new slot
+    if (i_entry <= aero_sorted%bin(i_bin)%n_entry) then
+       i_part_shifted = aero_sorted%bin(i_bin)%entry(i_entry)
+       aero_sorted%reverse_entry%entry(i_part_shifted) = i_entry
+    end if
 
     ! add the new forward map
     call integer_varray_append(aero_sorted%bin(new_bin), i_part)

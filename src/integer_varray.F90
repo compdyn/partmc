@@ -209,7 +209,8 @@ contains
     call assert(385739765, index <= integer_varray%n_entry)
     if (index < integer_varray%n_entry) then
        ! shift last entry into now-empty slot to preserve dense packing
-       integer_varray%entry(index) = integer_varray%entry(integer_varray%n_entry)
+       integer_varray%entry(index) &
+            = integer_varray%entry(integer_varray%n_entry)
     end if
     ! clear now-unused last entry for safety
     integer_varray%entry(integer_varray%n_entry) = 0

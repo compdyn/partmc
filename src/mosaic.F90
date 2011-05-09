@@ -297,10 +297,7 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    type(aero_particle_t) :: new_particle
-    type(aero_info_t) :: aero_info
-    real(kind=dp) :: old_weight, new_weight
-    integer :: n_copies, i_dup
+    real(kind=dp) :: old_weight
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -319,9 +316,6 @@ contains
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
-
-    call aero_particle_allocate(new_particle)
-    call aero_info_allocate(aero_info)
 
     ! We're modifying particle diameters, so the bin sort is now invalid
     aero_state%valid_sort = .false.
@@ -350,30 +344,8 @@ contains
             * (aero_state%comp_vol / old_weight)
        
        ! adjust particle number to account for weight changes
-       if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
-          new_weight = aero_weight_value(aero_weight, &
-               aero_particle_radius(particle))
-          n_copies = prob_round(old_weight / new_weight)
-          if (n_copies == 0) then
-             aero_info%id = particle%id
-             aero_info%action = AERO_INFO_WEIGHT
-             aero_info%other_id = 0
-             call aero_state_remove_particle_with_info(aero_state, &
-                  i_part, aero_info)
-          elseif (n_copies > 1) then
-             do i_dup = 1,(n_copies - 1)
-                call aero_particle_copy(particle, new_particle)
-                call aero_particle_new_id(new_particle)
-                ! this might be adding into the wrong bin, but
-                ! that's necessary as we might not have processed
-                ! the correct bin yet.
-                call aero_state_add_particle(aero_state, new_particle)
-                ! re-get the particle pointer, which may have
-                ! changed due to reallocations caused by adding
-                particle => aero_state%p%particle(i_part)
-             end do
-          end if
-       end if
+       call aero_state_reweight_particle(aero_state, aero_weight, i_part, &
+            old_weight)
     end do
 
     ! gas chemistry: map MOSAIC -> PartMC
@@ -384,9 +356,6 @@ contains
           gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
        end if
     end do
-
-    call aero_particle_deallocate(new_particle)
-    call aero_info_deallocate(aero_info)
 #endif
 
   end subroutine mosaic_to_partmc

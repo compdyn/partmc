@@ -166,7 +166,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%p%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%p%n_part + 1)
-    real(kind=dp) :: weight, old_weight, new_weight
+    real(kind=dp) :: weight, old_weight
     type(env_state_t) :: env_state_final
     real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
     real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
@@ -178,9 +178,6 @@ contains
     integer(kind=c_int) :: n_eqn_f, solver_stat
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
 #endif
-    type(aero_particle_t) :: new_aero_particle
-    type(aero_info_t) :: aero_info
-    integer :: n_copies, i_dup
 
 #ifdef PMC_USE_SUNDIALS
 #ifndef DOXYGEN_SKIP_DOC
@@ -280,8 +277,6 @@ contains
     ! unpack result state vector into aero_state, compute the final
     ! water volume in the aerosol particles in volume V_comp, and
     ! adjust particle number to account for weight changes
-    call aero_particle_allocate(new_aero_particle)
-    call aero_info_allocate(aero_info)
     water_vol_final = 0d0
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
@@ -303,33 +298,9 @@ contains
             + aero_particle%vol(aero_data%i_water) * old_weight
        
        ! adjust particle number to account for weight changes
-       if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
-          new_weight = aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle))
-          n_copies = prob_round(old_weight / new_weight)
-          if (n_copies == 0) then
-             aero_info%id = aero_particle%id
-             aero_info%action = AERO_INFO_WEIGHT
-             aero_info%other_id = 0
-             call aero_state_remove_particle_with_info(aero_state, &
-                  i_part, aero_info)
-          elseif (n_copies > 1) then
-             do i_dup = 1,(n_copies - 1)
-                call aero_particle_copy(aero_particle, new_aero_particle)
-                call aero_particle_new_id(new_aero_particle)
-                ! this might be adding into the wrong bin, but
-                ! that's necessary as we might not have processed
-                ! the correct bin yet.
-                call aero_state_add_particle(aero_state, new_aero_particle)
-                ! re-get the particle pointer, which may have
-                ! changed due to reallocations caused by adding
-                aero_particle => aero_state%p%particle(i_part)
-             end do
-          end if
-       end if
+       call aero_state_reweight_particle(aero_state, aero_weight, i_part, &
+            old_weight)
     end do
-    call aero_particle_deallocate(new_aero_particle)
-    call aero_info_deallocate(aero_info)
     
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to

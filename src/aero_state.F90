@@ -303,6 +303,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Add copies or remove a particle, due to a change in its weight.
+  !!
+  !! The particle number \c i_part is either removed, or zero or more
+  !! copies are added, to account from the change from \c old_weight
+  !! to its current weight. If \c new_weight is the current weight of
+  !! the particle and <tt>p = old_weight / current_weight</tt>, then
+  !! the total number of particles is either <tt>floor(p)</tt> or
+  !! <tt>ceiling(p)</tt>, chosen randomly so the mean is \c p.
+  subroutine aero_state_reweight_particle(aero_state, aero_weight, i_part, &
+       old_weight)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol weighting.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Particle number.
+    integer, intent(in) :: i_part
+    !> Old weight of particle.
+    real(kind=dp), intent(in) :: old_weight
+
+    real(kind=dp) :: new_weight
+    integer :: n_copies, i_dup
+    type(aero_particle_t), pointer :: aero_particle
+    type(aero_particle_t) :: new_aero_particle
+    type(aero_info_t) :: aero_info
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) return
+
+    aero_particle => aero_state%p%particle(i_part)
+    new_weight = aero_weight_value(aero_weight, &
+         aero_particle_radius(aero_particle))
+    n_copies = prob_round(old_weight / new_weight)
+    if (n_copies == 0) then
+       call aero_info_allocate(aero_info)
+       aero_info%id = aero_particle%id
+       aero_info%action = AERO_INFO_WEIGHT
+       aero_info%other_id = 0
+       call aero_state_remove_particle_with_info(aero_state, &
+            i_part, aero_info)
+       call aero_info_deallocate(aero_info)
+    elseif (n_copies > 1) then
+       call aero_particle_allocate(new_aero_particle)
+       do i_dup = 1,(n_copies - 1)
+          call aero_particle_copy(aero_particle, new_aero_particle)
+          call aero_particle_new_id(new_aero_particle)
+          call aero_state_add_particle(aero_state, new_aero_particle)
+          ! re-get the particle pointer, which may have
+          ! changed due to reallocations caused by adding
+          aero_particle => aero_state%p%particle(i_part)
+       end do
+       call aero_particle_deallocate(new_aero_particle)
+    end if
+
+  end subroutine aero_state_reweight_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> <tt>aero_state += aero_state_delta</tt>, with adding the computational
   !> volumes, so the new concentration is the (volume-weighted)
   !> average of the two concentration.

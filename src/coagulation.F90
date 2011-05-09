@@ -57,6 +57,7 @@ contains
     integer :: i_bin, j_bin, n_samp, n_coag, n_remove
     integer :: i_samp, j_entry, j_part, new_bin
     real(kind=dp) :: accept_factor, n_samp_mean, n_samp_per_j_part
+    type(aero_particle_t) :: coag_particle, sampled_partner
 
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
@@ -66,6 +67,9 @@ contains
             aero_state%aero_sorted%coag_kernel_max)
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
+
+    call aero_particle_allocate(coag_particle)
+    call aero_particle_allocate(sampled_partner)
        
     tot_n_samp = 0
     tot_n_coag = 0
@@ -75,10 +79,12 @@ contains
           if ((j_bin > i_bin) &
                .and. (aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
                .and. (aero_weight%exponent < 0d0)) then
-             n_samp_per_j_part &
-                  = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) &
-                  / aero_state%comp_vol * del_t &
-                  * real(aero_state%aero_sorted%bin(i_bin)%n_entry, kind=dp)
+             ! FIXME: we don't really need exp < 0, do we?
+             call compute_n_partners( &
+                  aero_state%aero_sorted%bin(i_bin)%n_entry, &
+                  aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
+                  aero_state%comp_vol, del_t, n_samp_per_j_part, &
+                  accept_factor)
              if (n_samp_per_j_part > COAG_ACCEL_N_EVENT) then
                 do_accel_coag = .true.
              end if
@@ -86,9 +92,19 @@ contains
           if (do_accel_coag) then
              ! work backwards to avoid particle movement issues
              do j_entry = aero_state%aero_sorted%bin(j_bin)%n_entry,1,-1
-                call accel_coag(env_state, aero_data, aero_weight, &
-                     aero_state, i_bin, j_bin, j_entry, coag_kernel_type, &
-                     del_t, n_samp, n_coag, n_remove)
+                j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
+                ! need to copy coag_particle as the underlying storage
+                ! may be rearranged due to removals
+                call aero_particle_copy(aero_state%p%particle(j_part), &
+                     coag_particle)
+                call sample_coag_partners(aero_state, aero_data, &
+                     aero_weight, env_state, coag_kernel_type, i_bin, &
+                     coag_particle, n_samp_per_j_part, accept_factor, &
+                     n_samp, n_coag, n_remove, sampled_partner)
+                if (n_coag > 0) then
+                   call coag_with_partner(aero_state, aero_weight, j_bin, &
+                        j_entry, sampled_partner)
+                end if
                 tot_n_samp = tot_n_samp + n_samp
                 tot_n_coag = tot_n_coag + n_coag
              end do
@@ -117,48 +133,75 @@ contains
        end do
     end do
 
+    call aero_particle_deallocate(coag_particle)
+    call aero_particle_deallocate(sampled_partner)
+
   end subroutine mc_coag
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Accelerated coagulation for a single particle.
-  subroutine accel_coag(env_state, aero_data, aero_weight, aero_state, &
-       i_bin, j_bin, j_entry, coag_kernel_type, del_t, n_samp, n_coag, &
-       n_remove)
+  subroutine compute_n_partners(n_part, k_max, comp_vol, del_t, n_partners, &
+       accept_factor)
 
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
+    !> Number of particles available as partners.
+    integer, intent(in) :: n_part
+    !> Maximum coagulation kernel (s^{-1} m^3).
+    real(kind=dp), intent(in) :: k_max
+    !> Computational volume (m^3).
+    real(kind=dp), intent(in) :: comp_vol
+    !> Timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Mean number of coagulation partners.
+    real(kind=dp), intent(out) :: n_partners
+    !> Accept factor for samples.
+    real(kind=dp), intent(out) :: accept_factor
+
+    n_partners = k_max / comp_vol * del_t * real(n_part, kind=dp)
+    accept_factor = 1d0 / k_max
+
+  end subroutine compute_n_partners
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sample coagulation partners for a single coagulation event.
+  subroutine sample_coag_partners(aero_state, aero_data, aero_weight, &
+       env_state, coag_kernel_type, i_bin, coag_particle, n_samp_mean, &
+       accept_factor, n_samp, n_coag, n_remove, sampled_partner)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Bin of first particle.
-    integer, intent(in) :: i_bin
-    !> Bin of second particle.
-    integer, intent(in) :: j_bin
-    !> Entry in bin of second particle.
-    integer, intent(in) :: j_entry
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
-    !> Timestep (s).
-    real(kind=dp), intent(in) :: del_t
+    !> Bin to sample particles from.
+    integer, intent(in) :: i_bin
+    !> Aerosol particle that coagulation will be with.
+    type(aero_particle_t), intent(in) :: coag_particle
+    !> Mean number of samples to use.
+    real(kind=dp), intent(in) :: n_samp_mean
+    !> Probability factor of accepting samples.
+    real(kind=dp), intent(in) :: accept_factor
     !> Number of samples used.
     integer, intent(out) :: n_samp
     !> Number of coagulations performed.
     integer, intent(out) :: n_coag
     !> Number of particles removed.
     integer, intent(out) :: n_remove
+    !> Sampled average coagulation partner particle.
+    type(aero_particle_t), intent(inout) :: sampled_partner
 
-    real(kind=dp) :: n_samp_mean, k_max, prob_remove_i, prob_remove_i_max
+    real(kind=dp) :: prob_remove_i, prob_remove_i_max
     real(kind=dp) :: prob_coag, prob_coag_tot, prob_coag_mean
     real(kind=dp) :: weight_i, weight_i_min, weight_j, k
     real(kind=dp) :: vol_sq(aero_data%n_spec), vol_mean(aero_data%n_spec)
     real(kind=dp) :: vol_cv(aero_data%n_spec), vol_cv_max, mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: j_part, i_entry, i_part, j_id, new_bin
-    type(aero_particle_t) :: aero_particle_delta
+    integer :: i_entry, i_part, j_id, new_bin
     type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
 
@@ -169,21 +212,15 @@ contains
        return
     end if
 
-    j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
     weight_j = aero_weight_value(aero_weight, &
-         aero_particle_radius(aero_state%p%particle(j_part)))
-    j_id = aero_state%p%particle(j_part)%id
-    ! don't reuse j_part later, as it may change (j_bin/j_entry are stable)
-    j_part = 0
+         aero_particle_radius(coag_particle))
+    j_id = coag_particle%id
 
     weight_i_min = aero_weight_value(aero_weight, &
          aero_state%aero_sorted%bin_grid%edge_radius(i_bin))
     prob_remove_i_max = weight_j / weight_i_min
     call assert(653606684, prob_remove_i_max <= 1d0)
 
-    k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)
-    n_samp_mean =  k_max / aero_state%comp_vol * del_t &
-         * real(aero_state%aero_sorted%bin(i_bin)%n_entry, kind=dp)
     n_samp_remove = rand_poisson(prob_remove_i_max * n_samp_mean)
     n_samp_extra = rand_poisson((1d0 - prob_remove_i_max) * n_samp_mean)
     n_samp_total = n_samp_remove + n_samp_extra
@@ -192,7 +229,8 @@ contains
     n_samp = 0
     n_remove = 0
     prob_coag_tot = 0d0
-    call aero_particle_allocate_size(aero_particle_delta, &
+    call aero_particle_deallocate(sampled_partner)
+    call aero_particle_allocate_size(sampled_partner, &
          aero_data%n_spec, aero_data%n_source)
 
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
@@ -200,7 +238,7 @@ contains
     do i_samp = 1,n_samp_total
        if (aero_state%aero_sorted%bin(i_bin)%n_entry == 0) exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then
-          vol_mean = aero_particle_delta%vol / real(n_avg, kind=dp)
+          vol_mean = sampled_partner%vol / real(n_avg, kind=dp)
           where(vol_mean > 0d0) &
                vol_cv = sqrt(vol_sq / real(n_avg, kind=dp) - (vol_mean)**2) &
                / vol_mean
@@ -217,18 +255,14 @@ contains
        i_part = aero_state%aero_sorted%bin(i_bin)%entry(i_entry)
        i_particle => aero_state%p%particle(i_part)
        ! re-get j_part as particle ordering may be changing
-       j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
-       call weighted_kernel(coag_kernel_type, i_particle, &
-            aero_state%p%particle(j_part), aero_data, aero_weight, &
-            env_state, k)
-       ! don't reuse j_part
-       j_part = 0
-       prob_coag = k / k_max
+       call weighted_kernel(coag_kernel_type, i_particle, coag_particle, &
+            aero_data, aero_weight, env_state, k)
+       prob_coag = k * accept_factor
        prob_coag_tot = prob_coag_tot + prob_coag
        if (pmc_random() < prob_coag) then
           n_avg = n_avg + 1
-          call aero_particle_coagulate(aero_particle_delta, i_particle, &
-               aero_particle_delta)
+          call aero_particle_coagulate(sampled_partner, i_particle, &
+               sampled_partner)
           vol_sq = vol_sq + i_particle%vol**2
           if (i_samp <= n_samp_remove) then
              weight_i = aero_weight_value(aero_weight, &
@@ -255,12 +289,37 @@ contains
 
     prob_coag_mean = prob_coag_tot / real(n_samp, kind=dp) ! note not n_avg
     n_coag = rand_binomial(n_samp_total, prob_coag_mean)
-    aero_particle_delta%vol = aero_particle_delta%vol &
+    sampled_partner%vol = sampled_partner%vol &
          * (real(n_coag, kind=dp) / real(n_avg, kind=dp))
-    ! re-get j_part as particle ordering may be changing
+
+  end subroutine sample_coag_partners
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Coagulate a sampled partner with a particle.
+  subroutine coag_with_partner(aero_state, aero_weight, j_bin, j_entry, &
+       sampled_partner)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Bin of coagulating particle.
+    integer, intent(in) :: j_bin
+    !> Entry-in-bin of coagulating particle.
+    integer, intent(in) :: j_entry
+    !> Sampled particle to coagulate with.
+    type(aero_particle_t), intent(in) :: sampled_partner
+
+    integer :: j_part, j_id, new_bin
+    real(kind=dp) :: weight_j
+
     j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
+    j_id = aero_state%p%particle(j_part)%id
+    weight_j = aero_weight_value(aero_weight, &
+         aero_particle_radius(aero_state%p%particle(j_part)))
     call aero_particle_coagulate(aero_state%p%particle(j_part), &
-         aero_particle_delta, aero_state%p%particle(j_part))
+         sampled_partner, aero_state%p%particle(j_part))
     aero_state%p%particle(j_part)%id = j_id
     ! fix bin due to composition changes
     new_bin &
@@ -282,7 +341,7 @@ contains
     ! we should only be doing this for decreasing weights
     call assert(654300924, aero_state%p%particle(j_part)%id == j_id)
 
-  end subroutine accel_coag
+  end subroutine coag_with_partner
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -296,7 +355,7 @@ contains
     integer, intent(in) :: nj
     !> Whether first bin is second bin.
     logical, intent(in) :: same_bin
-    !> Maximum kernel value (s^{-1}).
+    !> Maximum kernel value (s^{-1} m^3).
     real(kind=dp), intent(in) :: k_max
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: comp_vol

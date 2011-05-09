@@ -154,8 +154,12 @@ contains
     type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
 
-    call assert(617651414, aero_state%aero_sorted%bin(i_bin)%n_entry > 0)
-    call assert(777800964, aero_state%aero_sorted%bin(j_bin)%n_entry > 0)
+    if (aero_state%aero_sorted%bin(i_bin)%n_entry == 0) then
+       n_samp = 0
+       n_remove = 0
+       n_coag = 0
+       return
+    end if
 
     j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
     weight_j = aero_weight_value(aero_weight, &

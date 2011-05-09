@@ -23,7 +23,7 @@ module pmc_coagulation
 
   !> Minimum number of coagulation events per large particle for which
   !> accelerated coagulation is used.
-  real(kind=dp), parameter :: COAG_ACCEL_N_EVENT = 3d0
+  real(kind=dp), parameter :: COAG_ACCEL_N_EVENT = 1d0
   !> Maximum allowed coefficient-of-variation due to undersampling in
   !> accelerated coagulation.
   real(kind=dp), parameter :: COAG_ACCEL_MAX_CV = 0.1d0

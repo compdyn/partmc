@@ -77,24 +77,13 @@ contains
              end if
           end if
           if (do_accel_coag) then
-             do j_entry = 1,aero_state%aero_sorted%bin(j_bin)%n_entry
+             ! work backwards to avoid particle movement issues
+             do j_entry = aero_state%aero_sorted%bin(j_bin)%n_entry,1,-1
                 call accel_coag(env_state, aero_data, aero_weight, &
                      aero_state, i_bin, j_bin, j_entry, coag_kernel_type, &
                      del_t, n_samp, n_coag, n_remove)
                 tot_n_samp = tot_n_samp + n_samp
                 tot_n_coag = tot_n_coag + n_coag
-             end do
-             ! particles might be in the wrong bins: work backwards to
-             ! avoid particle movement issues
-             do j_entry = aero_state%aero_sorted%bin(j_bin)%n_entry,1,-1
-                j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
-                new_bin &
-                     = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
-                     aero_state%p%particle(j_part))
-                if (new_bin /= j_bin) then
-                   call aero_sorted_move_particle(aero_state%aero_sorted, &
-                        j_part, new_bin)
-                end if
              end do
           else
              call compute_n_samp(aero_state%aero_sorted%bin(i_bin)%n_entry, &
@@ -160,7 +149,7 @@ contains
     real(kind=dp) :: vol_sq(aero_data%n_spec), vol_mean(aero_data%n_spec)
     real(kind=dp) :: vol_cv(aero_data%n_spec), vol_cv_max, mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: j_part, i_entry, i_part, j_id
+    integer :: j_part, i_entry, i_part, j_id, new_bin
     type(aero_particle_t) :: aero_particle_delta
     type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
@@ -259,6 +248,20 @@ contains
     call aero_particle_coagulate(aero_state%p%particle(j_part), &
          aero_particle_delta, aero_state%p%particle(j_part))
     aero_state%p%particle(j_part)%id = j_id
+    ! fix bin due to composition changes
+    new_bin &
+         = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+         aero_state%p%particle(j_part))
+    if ((new_bin < 1) &
+         .or. (new_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
+       call die_msg(765620746, "particle outside of bin_grid: " &
+            // "try reducing the timestep del_t")
+    end if
+    if (new_bin /= j_bin) then
+       call aero_sorted_move_particle(aero_state%aero_sorted, &
+            j_part, new_bin)
+    end if
+    ! now j_bin/j_entry are invalid, but j_part is still good
     ! adjust particle number to account for weight changes
     call aero_state_reweight_particle(aero_state, aero_weight, j_part, &
          weight_j)

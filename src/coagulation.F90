@@ -243,7 +243,7 @@ contains
        return
     end if
 
-    prob_coag_mean = prob_coag_tot / real(n_avg, kind=dp)
+    prob_coag_mean = prob_coag_tot / real(n_samp, kind=dp) ! note not n_avg
     n_coag = rand_binomial(n_samp_total, prob_coag_mean)
     aero_particle_delta%vol = aero_particle_delta%vol &
          * (real(n_coag, kind=dp) / real(n_avg, kind=dp))

@@ -229,7 +229,7 @@ contains
     aer = 0d0    ! initialize to zero
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
-    do i_part = 1,aero_state%p%n_part
+    do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
        weight = aero_weight_value(aero_weight, &
             aero_particle_radius(particle))

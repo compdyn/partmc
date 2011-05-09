@@ -186,7 +186,9 @@ contains
     prob_coag_tot = 0d0
     call aero_particle_allocate_size(aero_particle_delta, &
          aero_data%n_spec, aero_data%n_source)
-    
+
+    ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
+    ! to the end?
     do i_samp = 1,n_samp_total
        if (aero_state%aero_sorted%bin(i_bin)%n_entry == 0) exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then

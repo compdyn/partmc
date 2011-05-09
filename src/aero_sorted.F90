@@ -455,6 +455,37 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Move a particle to a different bin.
+  subroutine aero_sorted_move_particle(aero_sorted, i_part, new_bin)
+
+    !> Aerosol sorted.
+    type(aero_sorted_t), intent(inout) :: aero_sorted
+    !> Particle number to move.
+    integer, intent(in) :: i_part
+    !> New bin to move particle to.
+    integer, intent(in) :: new_bin
+
+    integer :: i_bin, i_entry, new_entry
+
+    i_bin = aero_sorted%reverse_bin%entry(i_part)
+    i_entry = aero_sorted%reverse_entry%entry(i_part)
+    if (i_bin == new_bin) return
+
+    ! remove the old forward map
+    call integer_varray_remove_entry(aero_sorted%bin(i_bin), i_entry)
+
+    ! add the new forward map
+    call integer_varray_append(aero_sorted%bin(new_bin), i_part)
+    new_entry = aero_sorted%bin(new_bin)%n_entry
+
+    ! fix the reverse maps
+    aero_sorted%reverse_bin%entry(i_part) = new_bin
+    aero_sorted%reverse_entry%entry(i_part) = new_entry
+
+  end subroutine aero_sorted_move_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_sorted(val)
 

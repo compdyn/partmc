@@ -104,6 +104,7 @@ contains
                 call maybe_coag_pair(env_state, aero_data, aero_weight, &
                      aero_state, i_bin, j_bin, coag_kernel_type, &
                      accept_factor, did_coag)
+                if (did_coag) tot_n_coag = tot_n_coag + 1
              end do
           end if
        end do

@@ -145,7 +145,5 @@ Rename valid_sort -> sort_valid.
 
 Fix aero_state structure documentation.
 
-In mc_coag(), tot_n_coag is broken.
-
 Change aero_particle_allocate_size() to just take aero_data, not
 individual n_*.

@@ -21,6 +21,13 @@ module pmc_coagulation
   use mpi
 #endif
 
+  !> Minimum number of coagulation events per large particle for which
+  !> accelerated coagulation is used.
+  real(kind=dp), parameter :: COAG_ACCEL_N_EVENT = 3d0
+  !> Maximum allowed coefficient-of-variation due to undersampling in
+  !> accelerated coagulation.
+  real(kind=dp), parameter :: COAG_ACCEL_MAX_CV = 0.1d0
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -72,7 +79,7 @@ contains
                   = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) &
                   / aero_state%comp_vol * del_t &
                   * real(aero_state%aero_sorted%bin(i_bin)%n_entry, kind=dp)
-             if (n_samp_per_j_part > 3d0) then
+             if (n_samp_per_j_part > COAG_ACCEL_N_EVENT) then
                 do_accel_coag = .true.
              end if
           end if
@@ -202,7 +209,7 @@ contains
                * student_t_95_coeff(n_avg)
           ! FIXME: We are using just the max of the diagonal of the
           ! covariance matrix. Is this well-justified?
-          if (mean_95_conf_cv < 0.1d0) exit
+          if (mean_95_conf_cv < COAG_ACCEL_MAX_CV) exit
        end if
        n_samp = n_samp + 1
        ! FIXME: We are sampling with replacement. Is this a problem?

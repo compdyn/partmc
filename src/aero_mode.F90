@@ -33,12 +33,17 @@ module pmc_aero_mode
   integer, parameter :: AERO_MODE_TYPE_EXP        = 2
   !> Type code for a mono-disperse mode.
   integer, parameter :: AERO_MODE_TYPE_MONO       = 3
+  !> Type code for a sampled mode.
+  integer, parameter :: AERO_MODE_TYPE_SAMPLED    = 4
 
   !> An aerosol size distribution mode.
   !!
   !! Each mode is assumed to be fully internally mixed so that every
-  !! particle has the same composition. The \c num_conc array then
-  !! stores the number concentration distribution.
+  !! particle has the same composition. The composition is stored in
+  !! \c vol_frac, while the other parameters define the size
+  !! distribution (with \c type defining the type of size distribution
+  !! function). See \ref input_format_mass_frac for descriptions of
+  !! the parameters relevant to each mode type.
   type aero_mode_t
      !> Mode name, used to track particle sources.
      character(len=AERO_MODE_NAME_LEN) :: name
@@ -46,9 +51,12 @@ module pmc_aero_mode
      integer :: type
      !> Characteristic radius, with meaning dependent on mode type (m).
      real(kind=dp) :: char_radius
-     !> Log base 10 of geometric standard deviation of radius, if
-     !> necessary (m).
+     !> Log base 10 of geometric standard deviation of radius, (m).
      real(kind=dp) :: log10_std_dev_radius
+     !> Sample bin radii [length <tt>(N + 1)</tt>] (m).
+     real(kind=dp), pointer :: sample_radius(:)
+     !> Sample bin number concentrations [length <tt>N</tt>] (m^{-3}).
+     real(kind=dp), pointer :: sample_num_conc(:)
      !> Total number concentration of mode (#/m^3).
      real(kind=dp) :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
@@ -75,6 +83,8 @@ contains
        aero_mode_type_to_string = "exp"
     elseif (type == AERO_MODE_TYPE_MONO) then
        aero_mode_type_to_string = "mono"
+    elseif (type == AERO_MODE_TYPE_SAMPLED) then
+       aero_mode_type_to_string = "sampled"
     else
        aero_mode_type_to_string = "unknown"
     end if
@@ -90,6 +100,8 @@ contains
     type(aero_mode_t), intent(out) :: aero_mode
 
     allocate(aero_mode%vol_frac(0))
+    allocate(aero_mode%sample_radius(0))
+    allocate(aero_mode%sample_num_conc(0))
 
   end subroutine aero_mode_allocate
 
@@ -104,6 +116,8 @@ contains
     integer, intent(in) :: n_spec
 
     allocate(aero_mode%vol_frac(n_spec))
+    allocate(aero_mode%sample_radius(0))
+    allocate(aero_mode%sample_num_conc(0))
 
   end subroutine aero_mode_allocate_size
 
@@ -116,6 +130,8 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode
 
     deallocate(aero_mode%vol_frac)
+    deallocate(aero_mode%sample_radius)
+    deallocate(aero_mode%sample_num_conc)
 
   end subroutine aero_mode_deallocate
 
@@ -138,16 +154,45 @@ contains
     aero_mode_to%num_conc = aero_mode_from%num_conc
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
     aero_mode_to%source = aero_mode_from%source
+    deallocate(aero_mode_to%sample_radius)
+    deallocate(aero_mode_to%sample_num_conc)
+    allocate(aero_mode_to%sample_radius(size(aero_mode_from%sample_radius)))
+    allocate(aero_mode_to%sample_num_conc( &
+         size(aero_mode_from%sample_num_conc)))
+    aero_mode_to%sample_radius = aero_mode_from%sample_radius
+    aero_mode_to%sample_num_conc = aero_mode_from%sample_num_conc
 
   end subroutine aero_mode_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute a log-normal distribution, normalized so that
-  !> sum(num_conc(k) * log_width) = 1
-  subroutine num_conc_log_normal(geom_mean_radius, log10_sigma_g, &
-       bin_grid, num_conc)
-    
+  !> Returns the total number concentration of a mode. (#/m^3)
+  real(kind=dp) function aero_mode_total_num_conc(aero_mode)
+
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+
+    if ((aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) &
+         .or. (aero_mode%type == AERO_MODE_TYPE_EXP) &
+       .or. (aero_mode%type == AERO_MODE_TYPE_MONO)) then
+       aero_mode_total_num_conc = aero_mode%num_conc
+    elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
+       aero_mode_total_num_conc = sum(aero_mode%sample_num_conc)
+    else
+       call die_msg(719625922, "unknown aero_mode type: " &
+            // trim(integer_to_string(aero_mode%type)))
+    end if
+
+  end function aero_mode_total_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute a log-normal distribution.
+  subroutine num_conc_log_normal(total_num_conc, geom_mean_radius, &
+       log10_sigma_g, bin_grid, num_conc)
+
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Geometric mean radius (m).
     real(kind=dp), intent(in) :: geom_mean_radius
     !> log_10(geom. std. dev.) (1).
@@ -160,8 +205,8 @@ contains
     integer :: k
     
     do k = 1,bin_grid%n_bin
-       num_conc(k) = 1d0 / (sqrt(2d0 * const%pi) * log10_sigma_g) * &
-            dexp(-(dlog10(bin_grid%center_radius(k)) &
+       num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
+            * log10_sigma_g) * dexp(-(dlog10(bin_grid%center_radius(k)) &
             - dlog10(geom_mean_radius))**2d0 &
             / (2d0 * log10_sigma_g**2d0)) / dlog(10d0)
     end do
@@ -177,9 +222,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
-  subroutine vol_conc_log_normal(geom_mean_radius, log10_sigma_g, &
-       bin_grid, vol_conc)
+  subroutine vol_conc_log_normal(total_num_conc, geom_mean_radius, &
+       log10_sigma_g, bin_grid, vol_conc)
     
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Geometric mean radius (m).
     real(kind=dp), intent(in) :: geom_mean_radius
     !> log_10(geom. std. dev.) (1).
@@ -191,19 +238,23 @@ contains
     
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
-    call num_conc_log_normal(geom_mean_radius, log10_sigma_g, &
-         bin_grid, num_conc)
+    call num_conc_log_normal(total_num_conc, geom_mean_radius, &
+         log10_sigma_g, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_log_normal
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Exponential distribution in volume
-  !> \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
-  !> Normalized so that sum(num_conc(k) * log_width) = 1
-  subroutine num_conc_exp(radius_at_mean_vol, bin_grid, num_conc)
+  !> Exponential distribution in volume.
+  !!
+  !! \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
+  !! Normalized so that sum(num_conc(k) * log_width) = 1
+  subroutine num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, &
+       num_conc)
     
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
     real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
@@ -216,7 +267,7 @@ contains
     
     mean_vol = rad2vol(radius_at_mean_vol)
     do k = 1,bin_grid%n_bin
-       num_conc_vol = 1d0 / mean_vol &
+       num_conc_vol = total_num_conc / mean_vol &
             * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
        call vol_to_lnr(bin_grid%center_radius(k), num_conc_vol, num_conc(k))
     end do
@@ -226,8 +277,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
-  subroutine vol_conc_exp(radius_at_mean_vol, bin_grid, vol_conc)
+  subroutine vol_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, &
+       vol_conc)
     
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
     real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
@@ -237,7 +291,7 @@ contains
     
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
-    call num_conc_exp(radius_at_mean_vol, bin_grid, num_conc)
+    call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%center_radius)
     
   end subroutine vol_conc_exp
@@ -246,8 +300,10 @@ contains
 
   !> Mono-disperse distribution.
   !> Normalized so that sum(num_conc(k) * log_width) = 1
-  subroutine num_conc_mono(radius, bin_grid, num_conc)
+  subroutine num_conc_mono(total_num_conc, radius, bin_grid, num_conc)
     
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Radius of each particle (m^3).
     real(kind=dp), intent(in) :: radius
     !> Bin grid.
@@ -262,7 +318,7 @@ contains
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(825666877, "monodisperse radius outside of bin_grid")
     else
-       num_conc(k) = 1d0 / bin_grid%log_width
+       num_conc(k) = total_num_conc / bin_grid%log_width
     end if
     
   end subroutine num_conc_mono
@@ -270,8 +326,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution in volume.
-  subroutine vol_conc_mono(radius, bin_grid, vol_conc)
+  subroutine vol_conc_mono(total_num_conc, radius, bin_grid, vol_conc)
     
+    !> Total number concentration of the mode (m^{-3}).
+    real(kind=dp), intent(in) :: total_num_conc
     !> Radius of each particle (m^3).
     real(kind=dp), intent(in) :: radius
     !> Bin grid.
@@ -286,10 +344,78 @@ contains
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
-       vol_conc(k) = 1d0 / bin_grid%log_width * rad2vol(radius)
+       vol_conc(k) = total_num_conc / bin_grid%log_width * rad2vol(radius)
     end if
     
   end subroutine vol_conc_mono
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sampled distribution, not normalized.
+  subroutine num_conc_sampled(sample_radius, sample_num_conc, bin_grid, &
+       num_conc)
+    
+    !> Sampled radius bin edges (m).
+    real(kind=dp), intent(in) :: sample_radius(:)
+    !> Sampled number concentrations (m^{-3}).
+    real(kind=dp), intent(in) :: sample_num_conc(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Number concentration (#(ln(r))d(ln(r))).
+    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+
+    integer :: i_sample, n_sample, i_lower, i_upper, i_bin
+    real(kind=dp) :: r_lower, r_upper
+    real(kind=dp) :: r_bin_lower, r_bin_upper, r1, r2, ratio
+    
+    n_sample = size(sample_num_conc)
+    call assert(188766208, size(sample_radius) == n_sample + 1)
+    call assert(295384037, n_sample >= 1)
+
+    num_conc = 0d0
+    do i_sample = 1,n_sample
+       r_lower = sample_radius(i_sample)
+       r_upper = sample_radius(i_sample + 1)
+       i_lower = bin_grid_particle_in_bin(bin_grid, r_lower)
+       i_upper = bin_grid_particle_in_bin(bin_grid, r_upper)
+       if (i_upper < 1) cycle
+       if (i_lower > bin_grid%n_bin) cycle
+       i_lower = max(1, i_lower)
+       i_upper = min(bin_grid%n_bin, i_upper)
+       do i_bin = i_lower,i_upper
+          r_bin_lower = bin_grid%edge_radius(i_bin)
+          r_bin_upper = bin_grid%edge_radius(i_bin + 1)
+          r1 = max(r_lower, r_bin_lower)
+          r2 = min(r_upper, r_bin_upper)
+          ratio = (log(r2) - log(r1)) / (log(r_upper) - log(r_lower))
+          num_conc(i_bin) = num_conc(i_bin) &
+               + ratio * sample_num_conc(i_sample) / bin_grid%log_width
+       end do
+    end do
+    
+  end subroutine num_conc_sampled
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sampled distribution in volume.
+  subroutine vol_conc_sampled(sample_radius, sample_num_conc, bin_grid, &
+       vol_conc)
+    
+    !> Sampled radius bin edges (m).
+    real(kind=dp), intent(in) :: sample_radius(:)
+    !> Sampled number concentrations (m^{-3}).
+    real(kind=dp), intent(in) :: sample_num_conc(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Volume concentration (V(ln(r))d(ln(r))).
+    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    
+    real(kind=dp) :: num_conc(bin_grid%n_bin)
+
+    call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
+    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
+    
+  end subroutine vol_conc_sampled
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -307,17 +433,21 @@ contains
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-       call num_conc_log_normal(aero_mode%char_radius, &
+       call num_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-       call num_conc_exp(aero_mode%char_radius, bin_grid, num_conc)
+       call num_conc_exp(aero_mode%num_conc, aero_mode%char_radius, &
+            bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-       call num_conc_mono(aero_mode%char_radius, bin_grid, num_conc)
+       call num_conc_mono(aero_mode%num_conc, aero_mode%char_radius, &
+            bin_grid, num_conc)
+    elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
+       call num_conc_sampled(aero_mode%sample_radius, &
+            aero_mode%sample_num_conc, bin_grid, num_conc)
     else
        call die_msg(719625922, "unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
     end if
-    num_conc = num_conc * aero_mode%num_conc
 
   end subroutine aero_mode_num_conc
 
@@ -341,25 +471,68 @@ contains
     real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-       call vol_conc_log_normal(aero_mode%char_radius, &
+       call vol_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-       call vol_conc_exp(aero_mode%char_radius, bin_grid, &
-            vol_conc_total)
+       call vol_conc_exp(aero_mode%num_conc, aero_mode%char_radius, &
+            bin_grid, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-       call vol_conc_mono(aero_mode%char_radius, bin_grid, &
-            vol_conc_total)
+       call vol_conc_mono(aero_mode%num_conc, aero_mode%char_radius, &
+            bin_grid, vol_conc_total)
+    elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
+       call vol_conc_sampled(aero_mode%sample_radius, &
+            aero_mode%sample_num_conc, bin_grid, vol_conc_total)
     else
        call die_msg(314169653, "Unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
     end if
-    vol_conc_total = vol_conc_total * aero_mode%num_conc
     do i_spec = 1,aero_data%n_spec
        vol_conc(:,i_spec) = vol_conc_total &
             * aero_mode%vol_frac(i_spec)
     end do
 
   end subroutine aero_mode_vol_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute weighted sampled number concentrations.
+  subroutine aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
+       weighted_num_conc)
+
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Weighted number concentration
+    real(kind=dp), intent(out) :: weighted_num_conc(:)
+
+    integer :: i_sample
+    real(kind=dp) :: x0, x1, xr
+
+    call assert(256667423, aero_mode%type == AERO_MODE_TYPE_SAMPLED)
+    call assert(878731017, &
+         size(weighted_num_conc) == size(aero_mode%sample_num_conc))
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       weighted_num_conc = aero_mode%sample_num_conc
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+       do i_sample = 1,size(aero_mode%sample_num_conc)
+          x0 = log(aero_mode%sample_radius(i_sample))
+          x1 = log(aero_mode%sample_radius(i_sample + 1))
+          xr = log(aero_weight%ref_radius)
+          weighted_num_conc(i_sample) = aero_mode%sample_num_conc(i_sample) &
+               / aero_weight%exponent &
+               * (exp(- aero_weight%exponent * (x0 - xr)) &
+               - exp(- aero_weight%exponent * (x1 - xr))) &
+               / (x1 - x0)
+       end do
+    else
+       call die_msg(576124393, "unknown aero_weight type: " &
+            // trim(integer_to_string(aero_weight%type)))
+    end if
+
+  end subroutine aero_mode_weighted_sampled_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -372,32 +545,43 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
 
     real(kind=dp) :: x_mean_prime
+    real(kind=dp), allocatable :: weighted_num_conc(:)
 
-    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-       aero_mode_weighted_num_conc = aero_mode%num_conc
-    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
-         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-          x_mean_prime = log10(aero_mode%char_radius) &
-               - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
-               * log(10d0)
+    if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
+       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          aero_mode_weighted_num_conc = aero_mode%num_conc
+       elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+            x_mean_prime = log10(aero_mode%char_radius) &
+            - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
+            * log(10d0)
           aero_mode_weighted_num_conc = aero_mode%num_conc &
                * aero_weight%ref_radius**aero_weight%exponent &
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
-       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
+       else
+          call die_msg(466668240, "unknown aero_weight type: " &
+               // trim(integer_to_string(aero_weight%type)))
+       end if
+    elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
+       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          aero_mode_weighted_num_conc = aero_mode%num_conc
+       else
           call die_msg(822252601, &
                "cannot use exponential modes with weighting")
-       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-          aero_mode_weighted_num_conc = aero_mode%num_conc &
-               / aero_weight_value(aero_weight, aero_mode%char_radius)
-       else
-          call die_msg(901140225, "unknown aero_mode type: " &
-               // trim(integer_to_string(aero_mode%type)))
        end if
+    elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
+       aero_mode_weighted_num_conc = aero_mode%num_conc &
+            / aero_weight_value(aero_weight, aero_mode%char_radius)
+    elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
+       allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
+       call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
+            weighted_num_conc)
+       aero_mode_weighted_num_conc = sum(weighted_num_conc)
+       deallocate(weighted_num_conc)
     else
-       call die_msg(742383510, "unknown aero_weight type: " &
-            // trim(integer_to_string(aero_weight%type)))
+       call die_msg(901140225, "unknown aero_mode type: " &
+            // trim(integer_to_string(aero_mode%type)))
     end if
 
   end function aero_mode_weighted_num_conc
@@ -414,41 +598,67 @@ contains
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
 
-    real(kind=dp) :: x_mean_prime
+    real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_w0, inv_w1
+    integer :: i_sample
+    real(kind=dp), allocatable :: weighted_num_conc(:)
 
-    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-          radius = 10d0**rand_normal(log10(aero_mode%char_radius), &
-               aero_mode%log10_std_dev_radius)
-       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          radius = vol2rad(- rad2vol(aero_mode%char_radius) &
-               * log(pmc_random()))
-       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-          radius = aero_mode%char_radius
-       else
-          call die_msg(749122931, "Unknown aero_mode type: " &
-               // trim(integer_to_string(aero_mode%type)))
-       end if
-    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
-         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-       if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
+    if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
+       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          x_mean_prime = log10(aero_mode%char_radius)
+       elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
           x_mean_prime = log10(aero_mode%char_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
-          radius = 10d0**rand_normal(x_mean_prime, &
-               aero_mode%log10_std_dev_radius)
-       elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-          call die_msg(111024862, &
-               "cannot use exponential modes with weighting")
-       elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-          radius = aero_mode%char_radius
        else
-          call die_msg(886417976, "unknown aero_mode type: " &
-               // trim(integer_to_string(aero_mode%type)))
+          call die_msg(517376844, "unknown aero_weight type: " &
+               // trim(integer_to_string(aero_weight%type)))
        end if
+       radius = 10d0**rand_normal(x_mean_prime, &
+            aero_mode%log10_std_dev_radius)
+    elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
+       allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
+       call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
+            weighted_num_conc)
+       i_sample = sample_cts_pdf(weighted_num_conc)
+       deallocate(weighted_num_conc)
+       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          x0 = log(aero_mode%sample_radius(i_sample))
+          x1 = log(aero_mode%sample_radius(i_sample + 1))
+          r = pmc_random()
+          x = (1d0 - r) * x0 + r * x1
+          radius = exp(x)
+       elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+          inv_w0 = 1d0 / aero_weight_value(aero_weight, &
+               aero_mode%sample_radius(i_sample))
+          inv_w1 = 1d0 / aero_weight_value(aero_weight, &
+               aero_mode%sample_radius(i_sample + 1))
+          r = pmc_random()
+          x = log(aero_weight%ref_radius) &
+               - log((1d0 - r) * inv_w0 + r * inv_w1) / aero_weight%exponent
+          radius = exp(x)
+       else
+          call die_msg(769131141, "unknown aero_weight type: " &
+               // trim(integer_to_string(aero_weight%type)))
+       end if
+    elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
+       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+          radius = vol2rad(- rad2vol(aero_mode%char_radius) &
+               * log(pmc_random()))
+       elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+          call die_msg(678481276, &
+               "cannot use exponential modes with weighting")
+       else
+          call die_msg(301787712, "unknown aero_weight type: " &
+               // trim(integer_to_string(aero_weight%type)))
+       end if
+    elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
+       radius = aero_mode%char_radius
     else
-       call die_msg(863127819, "unknown aero_weight type: " &
-            // trim(integer_to_string(aero_weight%type)))
+       call die_msg(749122931, "Unknown aero_mode type: " &
+            // trim(integer_to_string(aero_mode%type)))
     end if
 
   end subroutine aero_mode_sample_radius
@@ -542,6 +752,89 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a size distribution from a data file.
+  subroutine spec_file_read_size_dist(file, sample_radius, sample_num_conc)
+
+    !> Spec file to read size distribution from.
+    type(spec_file_t), intent(inout) :: file
+    !> Sample radius values (m).
+    real(kind=dp), pointer :: sample_radius(:)
+    !> Sample number concentrations (m^{-3}).
+    real(kind=dp), pointer :: sample_num_conc(:)
+
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
+    real(kind=dp), pointer :: data(:,:)
+    integer :: n_sample, i_sample
+
+    !> \page input_format_size_dist Input File Format: Size Distribution
+    !!
+    !! A size distribution file must consist of two lines:
+    !! - the first line must begin with \c diam and be followed by
+    !!   \f$N + 1\f$ space-separated real scalars, giving the radii
+    !!   \f$r_1,\ldots,r_{N+1}\f$ of bin edges (m) --- these must be
+    !!   in increasing order, so \f$r_i < r_{i+1}\f$
+    !! - the second line must begin with \c num_conc and be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the number
+    !!   concenrations \f$C_1,\ldots,C_N\f$ in each bin (#/m^3) ---
+    !!   \f$C_i\f$ is the total number concentrations of particles
+    !!   with diameters in \f$[r_i, r_{i+1}]\f$
+    !!
+    !! The resulting size distribution is taken to be piecewise
+    !! constant in log-diameter coordinates.
+    !!
+    !! Example: a size distribution could be:
+    !! <pre>
+    !! diam 1e-7 1e-6 1e-5  # bin edge diameters (m)
+    !! num_conc 1e9 1e8     # bin number concentrations (m^{-3})
+    !! </pre>
+    !! This distribution has 1e9 particles per cubic meter with
+    !! diameters between 0.1 micron and 1 micron, and 1e8 particles
+    !! per cubic meter with diameters between 1 micron and 10 micron.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_aero_dist --- the format for a complete
+    !!     aerosol distribution with several modes
+    !!   - \ref input_format_aero_mode --- the format for each mode
+    !!     of an aerosol distribution
+
+    ! read the data from the file
+    allocate(names(0))
+    allocate(data(0,0))
+    call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_check_name(file, 'diam', names(1))
+    n_sample = size(data,2) - 1
+    call spec_file_assert_msg(669011124, file, n_sample >= 1, &
+         'must have at least two diam values')
+
+    deallocate(sample_radius)
+    allocate(sample_radius(n_sample + 1))
+    sample_radius = diam2rad(data(1,:))
+    do i_sample = 1,n_sample
+       call spec_file_assert_msg(528089871, file, &
+            sample_radius(i_sample) < sample_radius(i_sample + 1), &
+            'diam values must be strictly increasing')
+    end do
+    
+    call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_check_name(file, 'num_conc', names(1))
+
+    call spec_file_assert_msg(721029144, file, size(data, 2) == n_sample, &
+         'must have one fewer num_conc than diam values')
+
+    deallocate(sample_num_conc)
+    allocate(sample_num_conc(n_sample))
+    sample_num_conc = data(1,:)
+    do i_sample = 1,n_sample
+       call spec_file_assert_msg(356490397, file, &
+            sample_num_conc(i_sample) >= 0d0, &
+            'num_conc values must be non-negative')
+    end do
+
+  end subroutine spec_file_read_size_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read one mode of an aerosol distribution (number concentration,
   !> volume fractions, and mode shape).
   subroutine spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
@@ -557,8 +850,9 @@ contains
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: size_dist_filename
     type(spec_line_t) :: line
-    type(spec_file_t) :: mass_frac_file
+    type(spec_file_t) :: mass_frac_file, size_dist_file
     real(kind=dp) :: diam
 
     ! note that doxygen's automatic list creation breaks on the list
@@ -573,12 +867,11 @@ contains
     !! <li> \b mass_frac (string): name of file from which to read the
     !!      species mass fractions --- the file format should
     !!      be \subpage input_format_mass_frac
-    !! <li> \b num_conc (real, unit 1/m^3): the total number
-    !!      concentration \f$N_{\rm total}\f$ of the mode
     !! <li> \b mode_type (string): the functional form of the mode ---
-    !!      must be one of: \c log_normal for a log-normal distribution;
-    !!      \c exp for an exponential distribution; or \c mono for a
-    !!      mono-disperse distribution
+    !!      must be one of: \c log_normal for a log-normal
+    !!      distribution; \c exp for an exponential distribution; \c
+    !!      mono for a mono-disperse distribution; or \c sampled for a
+    !!      sampled distribution
     !! <li> if \c mode_type is \c log_normal then the mode distribution
     !!      shape is
     !!      \f[ n(\log D) {\rm d}\log D
@@ -588,6 +881,8 @@ contains
     !!      {\rm d}\log D \f]
     !!      and the following parameters are:
     !!      <ul>
+    !!      <li> \b num_conc (real, unit 1/m^3): the total number
+    !!           concentration \f$N_{\rm total}\f$ of the mode
     !!      <li> \b geom_mean_diam (real, unit m): the geometric mean
     !!           diameter \f$D_{\rm gn}\f$
     !!      <li> \b log10_geom_std_dev (real, dimensionless):
@@ -600,6 +895,8 @@ contains
     !!      {\rm d}v \f]
     !!      and the following parameters are:
     !!      <ul>
+    !!      <li> \b num_conc (real, unit 1/m^3): the total number
+    !!           concentration \f$N_{\rm total}\f$ of the mode
     !!      <li> \b diam_at_mean_vol (real, unit m): the diameter
     !!           \f$D_{\rm \mu}\f$ such that \f$v_{\rm \mu}
     !!           = \frac{\pi}{6} D^3_{\rm \mu}\f$
@@ -608,8 +905,18 @@ contains
     !!      is a delta distribution at diameter \f$D_0\f$ and the
     !!      following parameters are:
     !!      <ul>
+    !!      <li> \b num_conc (real, unit 1/m^3): the total number
+    !!           concentration \f$N_{\rm total}\f$ of the mode
     !!      <li> \b radius (real, unit m): the radius \f$R_0\f$ of the
     !!           particles, so that \f$D_0 = 2 R_0\f$
+    !!      </ul>
+    !! <li> if \c mode_type is \c sampled then the mode distribution
+    !!      shape is piecewise constant (in log-diameter coordinates)
+    !!      and the following parameters are:
+    !!      <ul>
+    !!      <li> \b size_dist (string): name of file from which to
+    !!           read the size distribution --- the file format should
+    !!           be \subpage input_format_size_dist
     !!      </ul>
     !! </ul>
     !!
@@ -617,8 +924,8 @@ contains
     !! <pre>
     !! mode_name diesel          # mode name (descriptive only)
     !! mass_frac comp_diesel.dat # mass fractions in each aerosol particle
-    !! num_conc 1.6e8            # particle number density (#/m^3)
     !! mode_type log_normal      # type of distribution
+    !! num_conc 1.6e8            # particle number density (#/m^3)
     !! geom_mean_diam 2.5e-8     # geometric mean diameter (m)
     !! log10_geom_std_dev 0.24   # log_10 of geometric standard deviation
     !! </pre>
@@ -645,22 +952,31 @@ contains
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
             aero_mode%vol_frac)
        call spec_file_close(mass_frac_file)
-       call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
        call spec_file_read_string(file, 'mode_type', mode_type)
        if (trim(mode_type) == 'log_normal') then
           aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
+          call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'geom_mean_diam', diam)
           aero_mode%char_radius = diam2rad(diam)
           call spec_file_read_real(file, 'log10_geom_std_dev', &
                aero_mode%log10_std_dev_radius)
        elseif (trim(mode_type) == 'exp') then
           aero_mode%type = AERO_MODE_TYPE_EXP
+          call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam_at_mean_vol', diam)
           aero_mode%char_radius = diam2rad(diam)
        elseif (trim(mode_type) == 'mono') then
           aero_mode%type = AERO_MODE_TYPE_MONO
+          call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam', diam)
           aero_mode%char_radius = diam2rad(diam)
+       elseif (trim(mode_type) == 'sampled') then
+          aero_mode%type = AERO_MODE_TYPE_SAMPLED
+          call spec_file_read_string(file, 'size_dist', size_dist_filename)
+          call spec_file_open(size_dist_filename, size_dist_file)
+          call spec_file_read_size_dist(size_dist_file, &
+               aero_mode%sample_radius, aero_mode%sample_num_conc)
+          call spec_file_close(size_dist_file)
        else
           call spec_file_die_msg(729472928, file, &
                "Unknown distribution mode type: " // trim(mode_type))
@@ -683,6 +999,8 @@ contains
          + pmc_mpi_pack_size_integer(val%type) &
          + pmc_mpi_pack_size_real(val%char_radius) &
          + pmc_mpi_pack_size_real(val%log10_std_dev_radius) &
+         + pmc_mpi_pack_size_real_array(val%sample_radius) &
+         + pmc_mpi_pack_size_real_array(val%sample_num_conc) &
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac) &
          + pmc_mpi_pack_size_integer(val%source)
@@ -709,6 +1027,8 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%type)
     call pmc_mpi_pack_real(buffer, position, val%char_radius)
     call pmc_mpi_pack_real(buffer, position, val%log10_std_dev_radius)
+    call pmc_mpi_pack_real_array(buffer, position, val%sample_radius)
+    call pmc_mpi_pack_real_array(buffer, position, val%sample_num_conc)
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_pack_integer(buffer, position, val%source)
@@ -738,6 +1058,8 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%type)
     call pmc_mpi_unpack_real(buffer, position, val%char_radius)
     call pmc_mpi_unpack_real(buffer, position, val%log10_std_dev_radius)
+    call pmc_mpi_unpack_real_array(buffer, position, val%sample_radius)
+    call pmc_mpi_unpack_real_array(buffer, position, val%sample_num_conc)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_unpack_integer(buffer, position, val%source)

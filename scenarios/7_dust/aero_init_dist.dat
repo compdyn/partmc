@@ -1,32 +1,32 @@
 # page 430 Seinfeld & Pandis: remote continental
 mode_name init_small
 mass_frac aero_init_comp.dat           # composition proportions of species
-num_conc 1.8e9                     # particle number density (#/m^3)
 mode_type log_normal              # type of distribution
+num_conc 1.8e9                     # particle number density (#/m^3)
 mean_radius 1e-8                  # mean radius (m)
 log_std_dev 0.161                 # log_10 of geometric standard deviation
 
 # page 430 Seinfeld & Pandis: remote continental
 mode_name init_large
 mass_frac aero_init_comp.dat           # composition proportions of species
-num_conc 1.5e9                     # particle number density (#/m^3)
 mode_type log_normal              # type of distribution
+num_conc 1.5e9                     # particle number density (#/m^3)
 mean_radius 5.8e-8                # mean radius (m)
 log_std_dev 0.217                 # log_10 of geometric standard deviation
 
 # Zhao modal1 dust mode 1
 mode_name dust_init_1
 mass_frac aero_init_comp_dust.dat      # composition proportions of species
-num_conc 7.63e5                    # particle number density (#/m^3)
 mode_type log_normal              # type of distribution
+num_conc 7.63e5                    # particle number density (#/m^3)
 mean_radius 2.25e-7                # mean radius (m)
 log_std_dev 0.342                 # log_10 of geometric standard deviation
 
 # Zhao modal2 dust mode 2
 mode_name dust_init_2
 mass_frac aero_init_comp_dust.dat      # composition proportions of species
-num_conc 7.607e4                    # particle number density (#/m^3)
 mode_type log_normal              # type of distribution
+num_conc 7.607e4                    # particle number density (#/m^3)
 mean_radius 1.4e-6                # mean radius (m)
 log_std_dev 0.238                 # log_10 of geometric standard deviation
 

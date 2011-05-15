@@ -126,7 +126,13 @@ contains
     !> Aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    aero_dist_total_num_conc = sum(aero_dist%mode%num_conc)
+    integer :: i_mode
+
+    aero_dist_total_num_conc = 0d0
+    do i_mode = 1,aero_dist%n_mode
+       aero_dist_total_num_conc = aero_dist_total_num_conc &
+            + aero_mode_total_num_conc(aero_dist%mode(i_mode))
+    end do
 
   end function aero_dist_total_num_conc
 

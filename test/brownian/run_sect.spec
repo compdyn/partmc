@@ -12,7 +12,7 @@ d_max 1e-4                      # maximum diameter (m)
 
 gas_data gas_data.dat           # file containing gas data
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # initial aerosol distribution
+aerosol_init aero_init_dist_log_normal.dat # initial aerosol distribution
 
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file

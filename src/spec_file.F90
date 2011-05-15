@@ -78,11 +78,32 @@ contains
     type(spec_file_t), intent(in) :: file
     !> Error message.
     character(len=*), intent(in) :: msg
-    
-    call die_msg(code, "file " // trim(file%name) // " line " &
-         // trim(integer_to_string(file%line_num)) // ": " // trim(msg))
+
+    call spec_file_assert_msg(code, file, .false., msg)
 
   end subroutine spec_file_die_msg
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Exit with an error message containing filename and line number
+  !> if \c condition_ok is \c .false.
+  subroutine spec_file_assert_msg(code, file, condition_ok, msg)
+
+    !> Failure status code.
+    integer, intent(in) :: code
+    !> Spec file.
+    type(spec_file_t), intent(in) :: file
+    !> Whether the assertion is ok.
+    logical, intent(in) :: condition_ok
+    !> Error message.
+    character(len=*), intent(in) :: msg
+
+    if (.not. condition_ok) then
+       call die_msg(code, "file " // trim(file%name) // " line " &
+            // trim(integer_to_string(file%line_num)) // ": " // trim(msg))
+    end if
+
+  end subroutine spec_file_assert_msg
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

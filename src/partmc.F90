@@ -390,25 +390,23 @@ contains
                dummy_i_repeat, run_part_opt%uuid)
        end if
 
-       call spec_file_read_string(file, 'gas_data', sub_filename)
-       call spec_file_open(sub_filename, sub_file)
-       call spec_file_read_gas_data(sub_file, gas_data)
-       call spec_file_close(sub_file)
-
        if (.not. do_restart) then
+          call spec_file_read_string(file, 'gas_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_gas_data(sub_file, gas_data)
+          call spec_file_close(sub_file)
+
           call spec_file_read_string(file, 'gas_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_state(sub_file, gas_data, &
                gas_state_init)
           call spec_file_close(sub_file)
-       end if
        
-       call spec_file_read_string(file, 'aerosol_data', sub_filename)
-       call spec_file_open(sub_filename, sub_file)
-       call spec_file_read_aero_data(sub_file, aero_data)
-       call spec_file_close(sub_file)
+          call spec_file_read_string(file, 'aerosol_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_data(sub_file, aero_data)
+          call spec_file_close(sub_file)
        
-       if (.not. do_restart) then
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)

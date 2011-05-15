@@ -172,6 +172,8 @@ ChangeLog
 
   * No longer need to specify size bins for particle simulations.
 
+  * Coagulation with negative weightings is faster.
+
 2.0.0 - 2011-01-13
 
   * Parallel implementations based on remote particle access.

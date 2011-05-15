@@ -576,6 +576,7 @@ contains
   !! for format details.
   subroutine uuid4_str(uuid)
 
+    !> The newly generated UUID string.
     character(len=PMC_UUID_LEN), intent(out) :: uuid
 
     integer :: i
@@ -625,17 +626,17 @@ contains
   !!
   !! The method used here was written by MW on 2011-05-01, based on
   !! the following empirical observation. If \f$f(\nu) =
-  !! t_{0.95,\nu}\f$ is the function we want, where $\nu = n - 1$ is
-  !! the number of degrees-of-freedom, then set \f$g(\nu) = f(\nu) -
-  !! L\f$, where $L = \Phi^{-1}(0.975)$ is the limiting value given by
-  !! the Gaussian CDF \f$\Phi\f$. We observe numerically that
+  !! t_{0.95,\nu}\f$ is the function we want, where \f$\nu = n - 1\f$
+  !! is the number of degrees-of-freedom, then set \f$g(\nu) = f(\nu)
+  !! - L\f$, where \f$L = \Phi^{-1}(0.975)\f$ is the limiting value
+  !! given by the Gaussian CDF \f$\Phi\f$. We observe numerically that
   !! \f$g'(\nu) < -1\f$ and \f$g'(\nu) \to -1\f$ as \f$\nu \to
-  !! \infty\f$. Thus \f$g(\nu)\f$ is well-approximated by $A/\nu$ for
-  !! some \f$A\f$. Furthermore, if \f$g(\nu^*) = A^*/\nu\f$, then
-  !! \f$g(\nu) < A^*/\nu\f$ for $\nu > \nu^*$. We thus have \f$f(\nu)
-  !! \le (f(\nu^*) - L) (\nu^* / \nu) + L\f$ for $\nu \ge \nu^*$. By
-  !! using a sequence of known \f$(\nu^*, f(\nu^*))\f$ pairs we can
-  !! thus construct a fairly tight upper bound.
+  !! \infty\f$. Thus \f$g(\nu)\f$ is well-approximated by \f$A/\nu\f$
+  !! for some \f$A\f$. Furthermore, if \f$g(\nu^*) = A^*/\nu\f$, then
+  !! \f$g(\nu) < A^*/\nu\f$ for \f$\nu > \nu^*\f$. We thus have
+  !! \f$f(\nu) \le (f(\nu^*) - L) (\nu^* / \nu) + L\f$ for \f$\nu \ge
+  !! \nu^*\f$. By using a sequence of known \f$(\nu^*, f(\nu^*))\f$
+  !! pairs we can thus construct a fairly tight upper bound.
   !!
   !! This implementation has an error of below 0.1% for all values of
   !! \c n_sample.

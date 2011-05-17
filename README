@@ -164,17 +164,19 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-2.1.0 - ???
-
-  * Include `solar_zenith_angle` in output files when using MOSAIC.
-
-  * Added source-oriented capability for aerosol particles.
+2.2.0 - ???
 
   * No longer need to specify size bins for particle simulations.
 
   * Coagulation with negative weightings is faster.
 
   * Added sampled input mode type.
+
+2.1.0 - 2011-05-17
+
+  * Include `solar_zenith_angle` in output files when using MOSAIC.
+
+  * Added source-oriented capability for aerosol particles.
 
 2.0.0 - 2011-01-13
 

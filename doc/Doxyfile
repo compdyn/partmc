@@ -227,7 +227,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # (default is Fortran), use: inc=Fortran f=C. Note that for custom extensions
 # you also need to set FILE_PATTERNS otherwise the files are not read by doxygen.
 
-EXTENSION_MAPPING      = F95=Fortran
+EXTENSION_MAPPING      = F90=Fortran
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should
@@ -637,7 +637,7 @@ FILE_PATTERNS          = *.c \
                          *.dox \
                          *.py \
                          *.f90 \
-                         *.F95
+                         *.F90
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories
 # should be searched for input files as well. Possible values are YES and NO.

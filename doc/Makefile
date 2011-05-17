@@ -3,7 +3,7 @@ GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = html/index.html
 
-ALL_FSRC = $(wildcard ../src/*.F95)
+ALL_FSRC = $(wildcard ../src/*.F90)
 ALL_CSRC = $(wildcard ../src/*.c)
 ALL_SRC = $(ALL_FSRC) $(ALL_CSRC)
 

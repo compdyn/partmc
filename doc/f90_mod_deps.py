@@ -140,7 +140,7 @@ def write_deps_graphviz(outf, filename, all_deps, has_mods):
         else:
             props = " peripheries = 2,"
         outf.write(("    node [shape = box,%s"
-                    " href = \"\\ref %s.F95\"] %s\n") % (props, mod, mod))
+                    " href = \"\\ref %s.F90\"] %s\n") % (props, mod, mod))
     for mod in all_deps.keys():
         for dep in all_deps[mod]:
             outf.write("    %s -> %s\n" % (mod, dep))

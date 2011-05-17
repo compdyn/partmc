@@ -14,10 +14,6 @@ n_bin 160                       # number of bins
 d_min 1e-8                      # minimum diameter (m)
 d_max 1e-3                      # maximum diameter (m)
 
-gas_data gas_data.dat           # file containing gas data
-
-aerosol_data aero_data.dat      # file containing aerosol data
-
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file

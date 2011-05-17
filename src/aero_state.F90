@@ -1505,7 +1505,7 @@ contains
     !!     aero_source</tt>): number of original particles from each
     !!     source that formed each aerosol particle -
     !!     <tt>aero_n_orig_part(i,s)</tt> is the number of particles
-    !!     from source \c i that contributed to particle \i - when
+    !!     from source \c s that contributed to particle \c i - when
     !!     particle \c i first enters the simulation (by emissions,
     !!     dilution, etc.) it has <tt>aero_n_orig_part(i,s) = 1</tt>
     !!     for the source number \c s it came from (otherwise zero)
@@ -1551,9 +1551,6 @@ contains
     !!     particle, measured from the start of the simulation - a
     !!     particle is said to be created when it first enters the
     !!     simulation (by emissions, dilution, etc.)
-    !!   - \b aero_particle_source (logical, dim ): sources that contributed to each aerosol
-    !!     particle - <tt>aero_particle_source(i,s)</tt> is TRUE if
-    !!     source number \c s contributed to particle \c i
 
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)

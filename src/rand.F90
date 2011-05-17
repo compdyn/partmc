@@ -576,6 +576,7 @@ contains
   !! for format details.
   subroutine uuid4_str(uuid)
 
+    !> The newly generated UUID string.
     character(len=PMC_UUID_LEN), intent(out) :: uuid
 
     integer :: i

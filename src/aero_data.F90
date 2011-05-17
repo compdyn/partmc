@@ -407,6 +407,7 @@ contains
 
     pmc_mpi_pack_size_aero_data = &
          pmc_mpi_pack_size_integer(val%n_spec) &
+         + pmc_mpi_pack_size_integer(val%n_source) &
          + pmc_mpi_pack_size_integer(val%i_water) &
          + pmc_mpi_pack_size_string_array(val%name) &
          + pmc_mpi_pack_size_integer_array(val%mosaic_index) &
@@ -435,6 +436,7 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, val%n_spec)
+    call pmc_mpi_pack_integer(buffer, position, val%n_source)
     call pmc_mpi_pack_integer(buffer, position, val%i_water)
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
@@ -466,6 +468,7 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_source)
     call pmc_mpi_unpack_integer(buffer, position, val%i_water)
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)

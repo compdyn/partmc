@@ -63,7 +63,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Allocate a request object and set its state to 
+  ! Allocate a request object and set its state to invalid.
   subroutine request_allocate(request)
 
     !> Request object to allocate.

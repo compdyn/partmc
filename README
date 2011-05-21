@@ -164,6 +164,10 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
+2.1.1 - ????
+
+  * Fix documentation about `restart` and `gas_data`/`aerosol_data`.
+
 2.1.0 - 2011-05-17
 
   * Include `solar_zenith_angle` in output files when using MOSAIC.

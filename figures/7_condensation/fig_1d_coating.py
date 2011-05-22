@@ -32,24 +32,25 @@ def make_plot(in_filename,out_filename,title):
     x_axis = partmc.linear_grid(min=0,max=ratio.max(),n_bin=50)
 
     hist1d = partmc.histogram_1d(coating_thickness[is_bc]/dry_diameters[is_bc], x_axis, weights = 1/particles.comp_vols[is_bc])
-
+    print hist1d
     plt.clf()
     a = plt.gca()
     a.set_xscale("linear")
     a.set_yscale("log")
     plt.plot(x_axis.centers(), hist1d)
     plt.axis([x_axis.min, x_axis.max, 1e8, 1e12])
+    plt.grid(True)
     plt.xlabel("coating thickness / dry diameter")
-    plt.ylabel("number density (m^{-3})")
+    plt.ylabel("number concentration (m^{-3})")
     plt.title(title)
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for hour in range(1, 24):
-    minutes = hour * 60. 
+for hour in range(2, 26):
+    minutes = hour 
     print "hour = ", hour
-    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_wc_0001_0000%04d.nc" % minutes
-    filename_out1 = "figs/2d_bc_urban_plume_%02d.pdf" % (hour-1)
+    filename_in1 = "../../local_scenarios/aging_comp/run_100K_60min/out/urban_plume2_wc_0001_0000%04d.nc" % minutes
+    filename_out1 = "figs/coating_%02d.pdf" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1
     print filename_out1

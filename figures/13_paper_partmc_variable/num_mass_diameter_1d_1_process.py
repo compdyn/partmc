@@ -46,19 +46,33 @@ def make_plot(in_files, f1, f2, f3, f4, f5):
     np.savetxt(f4, hist_array_gav_mass)
     np.savetxt(f5, e_bars_mass)
 
-for case in ["10K_wei+1", "10K_wei-1", "10K_wei-4" ]:
-    for hour in range(12, 13):
-        files = []
-        for i_loop in range (0, config.i_loop_max):
-            filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (case, (i_loop+1), hour)
-            files.append(filename_in)
-        f1 = "data/1d_%s_%02d_x_values.txt" % (case, hour)
-        f2 = "data/1d_%s_%02d_hist_array_gav_num.txt" % (case, hour)
-        f3 = "data/1d_%s_%02d_e_bars_num.txt" % (case, hour)
-        f4 = "data/1d_%s_%02d_hist_array_gav_mass.txt" % (case, hour)
-        f5 = "data/1d_%s_%02d_e_bars_mass.txt" % (case, hour)
-        print f1
-        make_plot(files, f1, f2, f3, f4, f5)
+#used for urban plume scenario data
+#for case in ["10K_wei+1", "10K_wei-1", "10K_wei-4" ]:
+#    for hour in range(12, 13):
+#        files = []
+#        for i_loop in range (0, config.i_loop_max):
+#            filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (case, (i_loop+1), hour)
+#            files.append(filename_in)
+#        f1 = "data/1d_%s_%02d_x_values.txt" % (case, hour)
+#        f2 = "data/1d_%s_%02d_hist_array_gav_num.txt" % (case, hour)
+#        f3 = "data/1d_%s_%02d_e_bars_num.txt" % (case, hour)
+#        f4 = "data/1d_%s_%02d_hist_array_gav_mass.txt" % (case, hour)
+#        f5 = "data/1d_%s_%02d_e_bars_mass.txt" % (case, hour)
+#        print f1
+#        make_plot(files, f1, f2, f3, f4, f5)
+
+for hour in range(12, 13):
+    files = []
+    for i_loop in range (0, config.i_loop_max):
+        filename_in = "urban_plume_wc_%s_0%03d_000000%02d.nc" % (case, (i_loop+1), hour)
+        files.append(filename_in)
+    f1 = "data/1d_%s_%02d_x_values.txt" % (case, hour)
+    f2 = "data/1d_%s_%02d_hist_array_gav_num.txt" % (case, hour)
+    f3 = "data/1d_%s_%02d_e_bars_num.txt" % (case, hour)
+    f4 = "data/1d_%s_%02d_hist_array_gav_mass.txt" % (case, hour)
+    f5 = "data/1d_%s_%02d_e_bars_mass.txt" % (case, hour)
+    print f1
+    make_plot(files, f1, f2, f3, f4, f5)
 
 
 

@@ -1,7 +1,10 @@
 import matplotlib
+
+i_ens_max = 10
 i_loop_max = 100
 
-netcdf_dir = "../../scenarios/5_weighted/out"
+#netcdf_dir = "../../scenarios/5_weighted/out"
+netcdf_dir = "../../local_scenarios/brownian_test_paper/out"
 
 figure_width_single = 8.4 / 2.54
 figure_width_double = 16.45 / 2.54

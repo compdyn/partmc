@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 
 import scipy.io
 import sys
@@ -86,10 +86,10 @@ def make_plot(in_filename,out_filename,title):
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-for hour in range(13, 14):
+for hour in range(1, 14):
     print "hour = ", hour
     
-    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume_wc_0001_000000%02d.nc" % hour
+    filename_in1 = "../../scenarios/2_urban_plume2/out/urban_plume2_wc_0001_000000%02d.nc" % hour
     filename_out1 = "figs/2d_neutral_wc_%02d.png" % (hour-1)
     titel = "%02d hours" % (hour-1)
     print filename_in1

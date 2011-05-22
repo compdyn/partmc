@@ -13,7 +13,7 @@ import mpl_helper
 import config
 
 netcdf_dir = "../../scenarios/1_urban_plume/out/"
-netcdf_pattern = "urban_plume_wc_0001_(.*).nc"
+netcdf_pattern = "urban_plume_nc_0001_(.*).nc"
 time_filename_list = partmc.get_time_filename_list(netcdf_dir, netcdf_pattern)
 
 mass_array = np.zeros([len(time_filename_list),5])
@@ -54,13 +54,13 @@ plt.plot(mass_array[:,0]/3600., mass_array[:,3], label = 'total inorg on non-BC'
 plt.plot(mass_array[:,0]/3600., mass_array[:,4], label = 'total BC')
 
 plt.legend(loc = 'center right')
-plt.title("Inorganic mass and BC mass")
+plt.title("Inorganic mass and BC mass (no coag)")
 plt.grid(True)
 plt.xlabel("time in hours")
 plt.ylabel(r"mass in $\rm \mu g \, m^{-3}$")
 
 fig = plt.gcf()
-fig.savefig("figs/bc_inorg_time.pdf")
+fig.savefig("figs/bc_inorg_time_nc.pdf")
 
 
 

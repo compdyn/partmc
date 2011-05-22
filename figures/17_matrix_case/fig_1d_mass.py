@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 
 import scipy.io
 import sys
@@ -20,38 +20,38 @@ def make_plot(in_dir, in_filename, out_filename):
 
     dry_diameters = particles.dry_diameters()
 
-    hist = partmc.histogram_1d(dry_diameters, x_axis, weights = 1 / particles.comp_vols)
+    hist = partmc.histogram_1d(dry_diameters, x_axis, weights = particles.masses() / particles.comp_vols)
 
     plt.clf()
     plt.loglog(x_axis.centers(), hist)
-    plt.axis([1e-10, 1e-4, 1e7, 1e15])
+#    plt.axis([1e-10, 1e-4, 1e7, 1e15])
     plt.xlabel("dry diameter (m)")
-    plt.ylabel("number density (m^{-3})")
+    plt.ylabel("mass density (kg m^{-3})")
     fig = plt.gcf()
     fig.savefig(out_filename)
 
-dir_name = "../../scenarios/4_nucleate/out_wei-1/"
+dir_name = "/home/ching1/subversion/partmc/trunk/scenarios/3_condense/start/"
 
-filename_in = "nucleate_wc_0001_00000001.nc"
-filename_out = "figs/1d_wc_num_001_wei-1.pdf"
+#filename_in = "urban_plume_wc_0001_00000001.nc"
+#filename_out = "figs/1d_wc_mass_001.pdf"
+#make_plot(dir_name, filename_in, filename_out)
+
+filename_in = "urban_plume_wc_0001_00000005.nc"
+filename_out = "figs/1d_wc_mass_005_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "nucleate_wc_0001_00000030.nc"
-filename_out = "figs/1d_wc_num_030_wei-1.pdf"
+filename_in = "urban_plume_wc_0001_00000013.nc"
+filename_out = "figs/1d_wc_mass_013_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "nucleate_wc_0001_00000078.nc"
-filename_out = "figs/1d_wc_num_078_wei-1.pdf"
+filename_in = "urban_plume_wc_0001_00000016.nc"
+filename_out = "figs/1d_wc_mass_016_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "nucleate_wc_0001_00000096.nc"
-filename_out = "figs/1d_wc_num_096_wei-1.pdf"
+filename_in = "urban_plume_wc_0001_00000018.nc"
+filename_out = "figs/1d_wc_mass_018_w.pdf"
 make_plot(dir_name, filename_in, filename_out)
 
-filename_in = "nucleate_wc_0001_00000108.nc"
-filename_out = "figs/1d_wc_num_108_wei-1.pdf"
-make_plot(dir_name, filename_in, filename_out)
-
-filename_in = "nucleate_wc_0001_00000144.nc"
-filename_out = "figs/1d_wc_num_144_wei-1.pdf"
+filename_in = "urban_plume_wc_0001_00000024.nc"
+filename_out = "figs/1d_wc_mass_024_w.pdf"
 make_plot(dir_name, filename_in, filename_out)

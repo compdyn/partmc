@@ -50,8 +50,8 @@ for [time, filename, key] in time_filename_list:
     i_counter += 1
 
 plt.plot(mass_array[:,0]/3600., mass_array[:,1], label = 'total inorg')
-#plt.plot(mass_array[:,0]/3600., mass_array[:,2], label = 'total inorg on OIN')
-#plt.plot(mass_array[:,0]/3600., mass_array[:,3], label = 'total inorg on non-OIN')
+plt.plot(mass_array[:,0]/3600., mass_array[:,2], label = 'total inorg on OIN')
+plt.plot(mass_array[:,0]/3600., mass_array[:,3], label = 'total inorg on non-OIN')
 plt.plot(mass_array[:,0]/3600., mass_array[:,4], label = 'total BC')
 plt.plot(mass_array[:,0]/3600., mass_array[:,5], label = 'total OIN')
 plt.xlim(0, 24)

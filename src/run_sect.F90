@@ -88,6 +88,13 @@ contains
     integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
   
+    call check_time_multiple("t_max", run_sect_opt%t_max, &
+         "del_t", run_sect_opt%del_t)
+    call check_time_multiple("t_output", run_sect_opt%t_output, &
+         "del_t", run_sect_opt%del_t)
+    call check_time_multiple("t_progress", run_sect_opt%t_progress, &
+         "del_t", run_sect_opt%del_t)
+
     ! g         : spectral mass distribution (mg/cm^3)
     ! e         : droplet mass grid (mg)
     ! r         : droplet radius grid (um)

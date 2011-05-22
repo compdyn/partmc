@@ -300,6 +300,29 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check that the first time interval is close to an integer
+  !> multiple of the second, and warn if it is not.
+  subroutine check_time_multiple(first_name, first_time, &
+       second_name, second_time)
+
+    !> Name of the first time variable.
+    character(len=*), intent(in) :: first_name
+    !> First time variable (s).
+    real(kind=dp), intent(in) :: first_time
+    !> Name of the second time variable.
+    character(len=*), intent(in) :: second_name
+    !> Second time variable (s).
+    real(kind=dp), intent(in) :: second_time
+
+    if (abs(mod(first_time, second_time) / second_time) > 1d-6) then
+       call warn_msg(952299377, trim(first_name) &
+            // " is not an integer multiple of " // trim(second_name))
+    end if
+
+  end subroutine check_time_multiple
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Computes whether an event is scheduled to take place.
   !!
   !! The events should occur ideally at times 0, interval, 2*interval,

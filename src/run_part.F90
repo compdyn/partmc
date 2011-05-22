@@ -150,6 +150,13 @@ contains
     progress_n_dil_out = 0
     progress_n_nuc = 0
 
+    call check_time_multiple("t_max", run_part_opt%t_max, &
+         "del_t", run_part_opt%del_t)
+    call check_time_multiple("t_output", run_part_opt%t_output, &
+         "del_t", run_part_opt%del_t)
+    call check_time_multiple("t_progress", run_part_opt%t_progress, &
+         "del_t", run_part_opt%del_t)
+
     call env_state_allocate(old_env_state)
 
     if (run_part_opt%do_mosaic) then

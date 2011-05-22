@@ -278,16 +278,16 @@ contains
     !!   write summary information to the screen while running
     !! - \subpage input_format_aero_weight (only provide if
     !!   \c restart is \c no)
-    !! - \b gas_data (string): name of file from which to read the
-    !!   gas material data --- the file format should be
-    !!   \subpage input_format_gas_data
+    !! - \b gas_data (string): name of file from which to read the gas
+    !!   material data (only provide if \c restart is \c no) --- the
+    !!   file format should be \subpage input_format_gas_data
     !! - \b gas_init (string): name of file from which to read the
     !!   initial gas state at the start of the simulation (only
     !!   provide option if \c restart is \c no) --- the file format
     !!   should be \subpage input_format_gas_state
     !! - \b aerosol_data (string): name of file from which to read the
-    !!   aerosol material data --- the file format should be
-    !!   \subpage input_format_aero_data
+    !!   aerosol material data (only provide if \c restart is \c no)
+    !!   --- the file format should be \subpage input_format_aero_data
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation (only provide
     !!   option if \c restart is \c no) --- the file format should

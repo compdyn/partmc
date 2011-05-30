@@ -5,6 +5,9 @@
 
 \begin{document}
 
+\section{Symbol list}
+\label{sec:symbol-list}
+
 \newcommand{\rr}{\raggedright}
 \newcommand{\tn}{\tabularnewline\hline}
 \renewcommand{\arraystretch}{1.5}
@@ -62,7 +65,8 @@ $Y$                    & \rr                                                    
 $Z$                    & \rr                                                                    & function      & $\rm m$                               & \rr eq.~\ref{eq:fcn_Z}                             \tn
 \end{longtable}
 
-\newpage
+\section{Equations}
+\label{sec:equations}
 
 \begin{align}
   P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
@@ -181,7 +185,8 @@ For equilibriation:
   \frac{\partial g_i}{\partial D_i}(D_i, H) &= - \frac{\partial a_{{\rm w},i}}{\partial D_i} (D_i) \exp\biggl(\frac{X}{D_i}\biggr) + a_{{\rm w},i}(D_i) \exp\biggl(\frac{X}{D_i}\biggr) \frac{X}{D_i^2}
 \end{align}
 
-\newpage
+\section{Block matrix inverses}
+\label{sec:block-matr-invers}
 
 To use the implicit SUNDIALS ODE solvers we need to solve $P X = R$
 for $P = I - \gamma J$, with $J$ the Jacobian of the vector field and
@@ -222,9 +227,8 @@ Sherman–Morrison formula. If we have extra environment variables so it
 is rank-2 or rank-3 then we would use the more general Woodbury
 identity.
 
-\newpage
-
-\subsection*{Solution strategy notes}
+\section{Solution strategy}
+\label{sec:solution-strategy}
 
 We choose to use $H$ and $D_1,\ldots,D_N$ as the dynamic variables for
 the ODE solver. We could use just $D_1,\ldots,D_N$, as $H(t)$ can be
@@ -252,5 +256,23 @@ advantages of having $H$ be an independent dynamic variable are:
   seems like something will have to be dynamic other than the particle
   diameters.
 \end{enumerate}
+
+Having chosen the state $x = (D_1,\ldots,D_N,H)$, we see that
+$\dot{x}$ is defined by~(\ref{eq:Ddot}) and~(\ref{eq:Hdot}) (with
+components~(\ref{eq:Hdot_i}) and~(\ref{eq:Hdot_env})). The expressions
+for $\dot{D}_i$ are given in terms of the functions $\delta_i^*$ which
+are defined implicitly by~(\ref{eq:delta_star}) as the zeros of $h_i$
+defined in~(\ref{eq:h}).
+
+To compute $\delta_i^*$ we solve~(\ref{eq:delta_star}) using a Newton
+loop, which requires $\partial h_i/\partial \delta$. We then use an
+implicit integration method to solve the ODE (as it is stiff), which
+results in implicit equations. We solve these with another Newton
+loop, which requires derivatives with respect to the state variables
+$D_i$ and $H$.
+
+The ODE solution will satisfy $D_i \ge D_{i,\rm dry}$, but a numerical
+solution may violate this condition. In this case we use the alternate
+equations which force the system back towards the allowed region.
 
 \end{document}

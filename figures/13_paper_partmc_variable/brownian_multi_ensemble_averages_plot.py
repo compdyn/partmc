@@ -86,10 +86,10 @@ axes.set_xscale("log")
 axes.set_yscale("log")
 
 axes.set_xlim([0, 100])
-axes.set_ylim([num_avg_overall_600s.min(), num_avg_overall_600s.max()])
+axes.set_ylim([num_avg_overall_60s.min(), num_avg_overall_60s.max()])
 axes.grid(True)
 axes.set_xlabel(r"ensemble size")
-axes.set_ylabel(r" $\| \langle  n_{\rm p}(24\, {\rm h}) - n_{\rm sect}(24 \, {\rm h}) \rangle \|_2$")
+axes.set_ylabel(r" $\| \langle  n_{\rm p}(11\, {\rm h}) - n_{\rm sect}(11 \, {\rm h}) \rangle \|_2$")
 axes.legend((time_step_6s, time_step_60s, time_step_600s, time_step_1200s), (r"6 s", r"60 s", r"600 s", r"1200 s"))
 
 axes = axes_array[0][1]
@@ -110,11 +110,11 @@ axes.set_xscale("log")
 axes.set_yscale("log")
 
 axes.set_xlim([0, 100])
-axes.set_ylim([mass_avg_overall_600s.min(), mass_avg_overall_600s.max()])
+axes.set_ylim([mass_avg_overall_60s.min(), mass_avg_overall_60s.max()])
 axes.grid(True)
 
 axes.set_xlabel(r"ensemble size")
-axes.set_ylabel(r" $\| \langle  m_{\rm p}(24\, {\rm h}) - m_{\rm sect}(24 \, {\rm h}) \rangle \|_2$")
+axes.set_ylabel(r" $\| \langle  m_{\rm p}(11\, {\rm h}) - m_{\rm sect}(11 \, {\rm h}) \rangle \|_2$")
 axes.legend((time_step_6s, time_step_60s, time_step_600s, time_step_1200s), (r"6 s", r"60 s", r"600 s", r"1200 s"))
 
 figure.savefig("figs/brownian_multi_ensemble_averages.pdf")

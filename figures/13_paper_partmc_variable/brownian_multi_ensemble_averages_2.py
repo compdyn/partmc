@@ -14,11 +14,11 @@ i_ens_max = config.i_ens_max
 i_loop_max = config.i_loop_max
 i_bin = 100
 
-sect_array_num_all = np.loadtxt("/Users/nriemer/subversion/partmc/trunk/local_scenarios/brownian_test_paper/one_ensemble/out_60s/brownian_sect_size_num.txt")
-sect_array_mass_all = np.loadtxt("/Users/nriemer/subversion/partmc/trunk/local_scenarios/brownian_test_paper/one_ensemble/out_60s/brownian_sect_size_mass.txt")
+sect_array_num_all = np.loadtxt("/home/nriemer/subversion/partmc/branches/nriemer/local_scenarios/brownian_test_paper2/brownian_sect_size_num.txt")
+sect_array_mass_all = np.loadtxt("/home/nriemer/subversion/partmc/branches/nriemer/local_scenarios/brownian_test_paper2/brownian_sect_size_mass.txt")
 
-sect_array_num = np.log(10) * sect_array_num_all[:,25]
-sect_array_mass = np.log(10) * sect_array_mass_all[:,25]
+sect_array_num = np.log(10) * sect_array_num_all[:,12]
+sect_array_mass = np.log(10) * sect_array_mass_all[:,12]
 print "sect_array_num ", sect_array_num.shape
 
 sect_num = sect_array_num.reshape((100,10)).mean(axis=1)
@@ -35,8 +35,8 @@ num_std = np.zeros([i_ens_max,i_loop_max,i_bin])
 mass_avg = np.zeros([i_ens_max,i_loop_max,i_bin])
 mass_std = np.zeros([i_ens_max,i_loop_max,i_bin])
 
-f1 = "data/ensemble_size_dist_num_brownian_1200s.txt"
-f2 = "data/ensemble_size_dist_mass_brownian_1200s.txt" 
+f1 = "data/ensemble_size_dist_num_brownian_600s.txt"
+f2 = "data/ensemble_size_dist_mass_brownian_600s.txt" 
 
 array_num = np.loadtxt(f1)
 array_mass = np.loadtxt(f2)
@@ -66,10 +66,10 @@ norm_mass_std = np.std(norm_mass, axis = 0)
 
 print "norm_num_avg ", norm_num_avg.shape
 
-f1 = "data/avg_ensemble_norm_num_brownian_1200s.txt" 
-f2 = "data/avg_ensemble_norm_mass_brownian_1200s.txt"
-f3 = "data/std_ensemble_norm_num_brownian_1200s.txt" 
-f4 = "data/std_ensemble_norm_mass_brownian_1200s.txt"
+f1 = "data/avg_ensemble_norm_num_brownian_600s.txt" 
+f2 = "data/avg_ensemble_norm_mass_brownian_600s.txt"
+f3 = "data/std_ensemble_norm_num_brownian_600s.txt" 
+f4 = "data/std_ensemble_norm_mass_brownian_600s.txt"
 
 np.savetxt(f1, norm_num_avg)
 np.savetxt(f2, norm_mass_avg)

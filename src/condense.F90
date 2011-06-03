@@ -105,6 +105,8 @@ module pmc_condense
      real(kind=dp) :: dHdotenv_dD
      !> Sensitivity of \c Hdot_env to input \c D (s^{-1}).
      real(kind=dp) :: dHdotenv_dH
+     !> DEBUG
+     real(kind=dp) :: delta_star
   end type condense_rates_outputs_t
 
   !> Internal-use variable for storing the aerosol data during calls
@@ -474,6 +476,7 @@ contains
        outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
             * inputs%D_dry**2 * outputs%dDdot_dH
 
+       outputs%delta_star = delta_star
        return
     end if
 
@@ -532,6 +535,8 @@ contains
          * (2d0 * inputs%D * outputs%Ddot + inputs%D**2 * outputs%dDdot_dD)
     outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%dDdot_dH
+
+    outputs%delta_star = delta_star
 
   end subroutine condense_rates
 

@@ -264,6 +264,23 @@ add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
 ######################################################################
+# delta_star
+
+add_executable(delta_star src/delta_star.F90 src/constants.F90
+  src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
+  src/netcdf.F90 src/condense.F90 src/util.F90 src/aero_info.F90
+  src/aero_weight.F90 src/aero_state.F90 src/env_state.F90
+  src/env_data.F90 src/spec_file.F90 src/spec_line.F90
+  src/aero_dist.F90 src/gas_state.F90 src/aero_mode.F90
+  src/aero_binned.F90 src/gas_data.F90 src/aero_sorted.F90
+  src/rand.F90 src/bin_grid.F90 src/aero_info.F90
+  src/aero_info_array.F90 src/aero_data.F90
+  src/integer_varray.F90 ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
+
+target_link_libraries(delta_star ${NETCDF_LIBS} ${SUNDIALS_LIBS}
+  ${GSL_LIBS})
+
+######################################################################
 # partmc
 
 add_executable(partmc src/partmc.F90 src/aero_state.F90

@@ -14,7 +14,7 @@ program partmc
   integer, parameter :: unit_Hdot_i = 24
   integer, parameter :: unit_Hdot_env = 25
 
-  integer, parameter :: i_diam_start = 4
+  integer, parameter :: i_diam_start = 10
 
   type(condense_rates_inputs_t) :: inputs
   type(condense_rates_outputs_t) :: outputs
@@ -25,7 +25,7 @@ program partmc
   inputs%Tdot = 0d0
   inputs%p = 1d5
   inputs%V_comp = 1d-6
-  inputs%D_dry = 1d-8
+  inputs%D_dry = 1d-6
   inputs%kappa = 0.5d0
 
   call linspace(0.98d0, 1.04d0, rhs)

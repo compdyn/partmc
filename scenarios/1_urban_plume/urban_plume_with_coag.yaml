@@ -1,0 +1,387 @@
+run_type: particle               # particle-resolved run
+output_prefix: out/urban_plume_wc # prefix of output files
+n_repeat: 1                      # number of Monte Carlo repeats
+n_part: 10000                    # total number of particles
+restart: no                      # whether to restart from saved state (yes/no)
+
+t_max: 86400                     # total simulation time (s)
+del_t: 60                        # timestep (s)
+t_output: 3600                   # output interval (0 disables) (s)
+t_progress: 600                  # progress printing interval (0 disables) (s)
+
+weight: none                     # weighting function
+
+rel_humidity: 0.95               # initial relative humidity (1)
+pressure: 1e5                    # initial pressure (Pa)
+latitude: 0                      # latitude (degrees, -90 to 90)
+longitude: 0                     # longitude (degrees, -180 to 180)
+altitude: 0                      # altitude (m)
+start_time: 21600                # start time (s since 00:00 UTC)
+start_day: 200                   # start day of year (UTC)
+
+do_coagulation: yes              # whether to do coagulation (yes/no)
+coag_kernel: brown               # coagulation kernel
+do_condensation: no              # whether to do condensation (yes/no)
+do_mosaic: yes                   # whether to do MOSAIC (yes/no)
+do_optical: yes                  # whether to compute optical props (yes/no)
+do_nucleation: no                # whether to do nucleation (yes/no)
+
+rand_init: 0                     # random initialization (0 to use time)
+allow_doubling: yes              # whether to allow doubling (yes/no)
+allow_halving: yes               # whether to allow halving (yes/no)
+record_removals: yes             # whether to record particle removals (yes/no)
+do_parallel: no                  # whether to run in parallel (yes/no)
+
+gas_init: # initial gas concentrations (ppb)
+    NO:           0.1E+00
+    NO2:          1.0E+00
+    HNO3:         1.0E+00
+    O3:           5.0E+01
+    H2O2:         1.1E+00
+    CO:           2.1E+02
+    SO2:          0.8E+00
+    NH3:          0.5E+00
+    HCl:          0.7E+00
+    CH4:          2.2E+03
+    C2H6:         1.0E+00
+    HCHO:         1.2E+00
+    CH3OH:        1.2E-01
+    CH3OOH:       0.5E+00
+    ALD2:         1.0E+00
+    PAR:          2.0E+00
+    AONE:         1.0E+00
+    ETH:          0.2E+00
+    OLET:         2.3E-02
+    OLEI:         3.1E-04
+    TOL:          0.1E+00
+    XYL:          0.1E+00
+    ONIT:         0.1E+00
+    PAN:          0.8E+00
+    RCOOH:        0.2E+00
+    ROOH:         2.5E-02
+    ISOP:         0.5E+00
+
+aerosol_init: # aerosol initial condition
+  - mode_name: init_small      # page 430 Seinfeld & Pandis: remote continental
+    mass_frac: &mass_fracs     # mass fractions
+      - OC:  1.375
+      - SO4: 1
+      - NH4: 0.375
+    mode_type: log_normal      # type of distribution
+    num_conc: 3.2e9            # particle number concentration (#/m^3)
+    geom_mean_diam: 2e-8       # geometric mean diameter (m)
+    log10_geom_std_dev: 0.161  # log_10 of geometric std dev of diameter
+
+  - mode_name: init_large      # page 430 Seinfeld & Pandis: remote continental
+    mass_frac: *mass_fracs     # mass fractions
+    mode_type: log_normal      # type of distribution
+    num_conc: 2.9e9            # particle number concentration (#/m^3)
+    geom_mean_diam: 1.16e-7    # geometric mean diameter (m)
+    log10_geom_std_dev: 0.217  # log_10 of geometric std dev of diameter
+
+temp_profile: # temperature profile
+  - time: 0
+    temp: 290.016
+  - time: 3600
+    temp: 292.5  
+  - time: 7200
+    temp: 294.5  
+  - time: 10800
+    temp: 296.112
+  - time: 14400
+    temp: 297.649
+  - time: 18000
+    temp: 299.049
+  - time: 21600
+    temp: 299.684
+  - time: 25200
+    temp: 299.509
+  - time: 28800
+    temp: 299.002
+  - time: 32400
+    temp: 298.432
+  - time: 36000
+    temp: 296.943
+  - time: 39600
+    temp: 295.153
+  - time: 43200
+    temp: 293.475
+  - time: 46800
+    temp: 292.466
+  - time: 50400
+    temp: 291.972
+  - time: 54000
+    temp: 291.96 
+  - time: 57600
+    temp: 291.512
+  - time: 61200
+    temp: 291.481
+  - time: 64800
+    temp: 290.5  
+  - time: 68400
+    temp: 290.313
+  - time: 72000
+    temp: 290.317
+  - time: 75600
+    temp: 290.362
+  - time: 79200
+    temp: 290.245
+  - time: 82800
+    temp: 290.228
+  - time: 86400
+    temp: 291.466
+  - time: 90000
+    temp: 292.5  
+  - time: 93600
+    temp: 294.5  
+  - time: 97200
+    temp: 296.112
+  - time: 100800
+    temp: 297.649
+  - time: 104400
+    temp: 299.049
+  - time: 108000
+    temp: 299.684
+  - time: 111600
+    temp: 299.509
+  - time: 115200
+    temp: 299.002
+  - time: 118800
+    temp: 298.432
+  - time: 122400
+    temp: 296.943
+  - time: 126000
+    temp: 295.153
+  - time: 129600
+    temp: 293.475
+  - time: 133200
+    temp: 292.466
+  - time: 136800
+    temp: 291.972
+  - time: 140400
+    temp: 291.96 
+  - time: 144000
+    temp: 291.512
+  - time: 147600
+    temp: 291.481
+  - time: 151200
+    temp: 290.5  
+  - time: 154800
+    temp: 290.313
+  - time: 158400
+    temp: 290.317
+  - time: 162000
+    temp: 290.362
+  - time: 165600
+    temp: 290.245
+  - time: 169200
+    temp: 290.228
+  - time: 172800
+    temp: 291.466
+
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas concentrations file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
+
+gas_data:
+    - H2SO4
+    - HNO3
+    - HCl
+    - NH3
+    - NO
+    - NO2
+    - NO3
+    - N2O5
+    - HONO
+    - HNO4
+    - O3
+    - O1D
+    - O3P
+    - OH
+    - HO2
+    - H2O2
+    - CO
+    - SO2
+    - CH4
+    - C2H6
+    - CH3O2
+    - ETHP
+    - HCHO
+    - CH3OH
+    - ANOL
+    - CH3OOH
+    - ETHOOH
+    - ALD2
+    - HCOOH
+    - RCOOH
+    - C2O3
+    - PAN
+    - ARO1
+    - ARO2
+    - ALK1
+    - OLE1
+    - API1
+    - API2
+    - LIM1
+    - LIM2
+    - PAR
+    - AONE
+    - MGLY
+    - ETH
+    - OLET
+    - OLEI
+    - TOL
+    - XYL
+    - CRES
+    - TO2
+    - CRO
+    - OPEN
+    - ONIT
+    - ROOH
+    - RO2
+    - ANO2
+    - NAP
+    - XO2
+    - XPAR
+    - ISOP
+    - ISOPRD
+    - ISOPP
+    - ISOPN
+    - ISOPO2
+    - API
+    - LIM
+    - DMS
+    - MSA
+    - DMSO
+    - DMSO2
+    - CH3SO2H
+    - CH3SCH2OO
+    - CH3SO2
+    - CH3SO3
+    - CH3SO2OO
+    - CH3SO2CH2OO
+    - SULFHOX
+
+aerosol_data:
+        #     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)
+        - species: SO4
+          density: 1800
+          ions: 0
+          molec_weight: 96d-3
+          kappa: 0.65
+
+        - species: NO3
+          density: 1800
+          ions: 0
+          molec_weight: 62d-3
+          kappa: 0.65
+
+        - species: Cl
+          density: 2200
+          ions: 0
+          molec_weight: 35.5d-3
+          kappa: 0.53
+
+        - species: NH4
+          density: 1800
+          ions: 0
+          molec_weight: 18d-3
+          kappa: 0.65
+
+        - species: MSA
+          density: 1800
+          ions: 0
+          molec_weight: 95d-3
+          kappa: 0.53
+
+        - species: ARO1
+          density: 1400
+          ions: 0
+          molec_weight: 150d-3
+          kappa: 0.1
+
+        - species: ARO2
+          density: 1400
+          ions: 0
+          molec_weight: 150d-3
+          kappa: 0.1
+
+        - species: ALK1
+          density: 1400
+          ions: 0
+          molec_weight: 140d-3
+          kappa: 0.1
+
+        - species: OLE1
+          density: 1400
+          ions: 0
+          molec_weight: 140d-3
+          kappa: 0.1
+
+        - species: API1
+          density: 1400
+          ions: 0
+          molec_weight: 184d-3
+          kappa: 0.1
+
+        - species: API2
+          density: 1400
+          ions: 0
+          molec_weight: 184d-3
+          kappa: 0.1
+
+        - species: LIM1
+          density: 1400
+          ions: 0
+          molec_weight: 200d-3
+          kappa: 0.1
+
+        - species: LIM2
+          density: 1400
+          ions: 0
+          molec_weight: 200d-3
+          kappa: 0.1
+
+        - species: CO3
+          density: 2600
+          ions: 0
+          molec_weight: 60d-3
+          kappa: 0.53
+
+        - species: Na
+          density: 2200
+          ions: 0
+          molec_weight: 23d-3
+          kappa: 0.53
+
+        - species: Ca
+          density: 2600
+          ions: 0
+          molec_weight: 40d-3
+          kappa: 0.53
+
+        - species: OIN
+          density: 2600
+          ions: 0
+          molec_weight: 1d-3
+          kappa: 0.1
+
+        - species: OC
+          density: 1000
+          ions: 0
+          molec_weight: 1d-3
+          kappa: 0.001
+
+        - species: BC
+          density: 1800
+          ions: 0
+          molec_weight: 1d-3
+          kappa: 0
+
+        - species: H2O
+          density: 1000
+          ions: 0
+          molec_weight: 18d-3
+          kappa: 0

@@ -283,6 +283,7 @@ contains
     call integer_varray_deallocate(val)
     call integer_varray_allocate_size(val, size(tmp_entry))
     val%entry = tmp_entry
+    deallocate(tmp_entry)
     call assert(355866103, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))
 #endif

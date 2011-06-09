@@ -232,7 +232,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: accept_factors(:,:)
+    real(kind=dp), intent(in) :: accept_factors(:,:)
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.
@@ -597,7 +597,7 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: accept_factors(:,:)
+    real(kind=dp), intent(in) :: accept_factors(:,:)
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
     !> Number of coagulation events.

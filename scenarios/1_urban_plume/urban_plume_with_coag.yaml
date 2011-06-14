@@ -228,7 +228,7 @@ gas_background:
 aero_emissions:
   # time (s)
   # rate (s^{-1})
-  # aerosol distribution filename   
+  # aerosol distribution filename
   time: [ 0, 43200 ]
   rate: [ 1, 0 ]
   dist:
@@ -242,7 +242,7 @@ aero_emissions:
         num_conc: 5.03E+03         # particle number concentration (#/m^2)
         geom_mean_diam: 1.42e-6    # geometric mean diameter (m)
         log10_geom_std_dev: 0.11   # log_10 of geometric std dev of diameter
-  
+
       - mode_name: cooking
         mass_frac:                 # mass fractions
           OC: 1
@@ -250,7 +250,7 @@ aero_emissions:
         num_conc: 9.0E+06          # particle number concentration (#/m^2)
         geom_mean_diam: 8.64e-8    # geometric mean diameter (m)
         log10_geom_std_dev: 0.28   # log_10 of geometric std dev of diameter
-  
+
       - mode_name: diesel
         mass_frac:                 # mass fractions
           OC: 0.3
@@ -259,7 +259,7 @@ aero_emissions:
         num_conc: 1.6E+08          # particle number concentration (#/m^2)
         geom_mean_diam: 5e-8       # geometric mean diameter (m)
         log10_geom_std_dev: 0.24   # log_10 of geometric std dev of diameter
-  
+
       - mode_name: gasoline
         mass_frac:                 # mass fractions
           OC: 0.8
@@ -280,24 +280,24 @@ aero_background:
   dist:
     - # page 430 Seinfeld & Pandis: remote continental
       - mode_name: back_small
-        mass_frac:                         # mass fractions
+        mass_frac:                 # mass fractions
         SO4: 1
         OC:  1.375
         NH4: 0.375
-        mode_type: log_normal               # type of distribution
-        num_conc: 3.2e9                     # particle number concentration (#/m^3)
-        geom_mean_diam: 2e-8                # geometric mean diameter (m)
-        log10_geom_std_dev: 0.161           # log_10 of geometric std dev of diameter
+        mode_type: log_normal      # type of distribution
+        num_conc: 3.2e9            # particle number concentration (#/m^3)
+        geom_mean_diam: 2e-8       # geometric mean diameter (m)
+        log10_geom_std_dev: 0.161  # log_10 of geometric std dev of diameter
 
       - mode_name: back_large
-        mass_frac:                         # mass fractions
+        mass_frac:                 # mass fractions
         SO4: 1
         OC:  1.375
         NH4: 0.375
         mode_type: log_normal               # type of distribution
-        num_conc: 2.9e9                     # particle number concentration (#/m^3)
-        geom_mean_diam: 1.16e-7             # geometric mean diameter (m)
-        log10_geom_std_dev: 0.217           # log_10 of geometric std dev of diameter
+        num_conc: 2.9e9            # particle number concentration (#/m^3)
+        geom_mean_diam: 1.16e-7    # geometric mean diameter (m)
+        log10_geom_std_dev: 0.217  # log_10 of geometric std dev of diameter
 
 gas_data: [ H2SO4, HNO3, HCl, NH3, NO, NO2, NO3, N2O5, HONO, HNO4, O3,
      O1D, O3P, OH, HO2, H2O2, CO, SO2, CH4, C2H6, CH3O2, ETHP, HCHO,
@@ -310,23 +310,43 @@ gas_data: [ H2SO4, HNO3, HCl, NH3, NO, NO2, NO3, N2O5, HONO, HNO4, O3,
 
 aerosol_data:
   #          dens (kg/m^3)   ions in soln (1)   molec wght (kg/mole)   kappa (1)
-  - { species: SO4,  density: 1800, ions: 0, molec_weight: 96d-3,   kappa: 0.65  }
-  - { species: NO3,  density: 1800, ions: 0, molec_weight: 62d-3,   kappa: 0.65  }
-  - { species: Cl,   density: 2200, ions: 0, molec_weight: 35.5d-3, kappa: 0.53  }
-  - { species: NH4,  density: 1800, ions: 0, molec_weight: 18d-3,   kappa: 0.65  }
-  - { species: MSA,  density: 1800, ions: 0, molec_weight: 95d-3,   kappa: 0.53  }
-  - { species: ARO1, density: 1400, ions: 0, molec_weight: 150d-3,  kappa: 0.1   }
-  - { species: ARO2, density: 1400, ions: 0, molec_weight: 150d-3,  kappa: 0.1   }
-  - { species: ALK1, density: 1400, ions: 0, molec_weight: 140d-3,  kappa: 0.1   }
-  - { species: OLE1, density: 1400, ions: 0, molec_weight: 140d-3,  kappa: 0.1   }
-  - { species: API1, density: 1400, ions: 0, molec_weight: 184d-3,  kappa: 0.1   }
-  - { species: API2, density: 1400, ions: 0, molec_weight: 184d-3,  kappa: 0.1   }
-  - { species: LIM1, density: 1400, ions: 0, molec_weight: 200d-3,  kappa: 0.1   }
-  - { species: LIM2, density: 1400, ions: 0, molec_weight: 200d-3,  kappa: 0.1   }
-  - { species: CO3,  density: 2600, ions: 0, molec_weight: 60d-3,   kappa: 0.53  }
-  - { species: Na,   density: 2200, ions: 0, molec_weight: 23d-3,   kappa: 0.53  }
-  - { species: Ca,   density: 2600, ions: 0, molec_weight: 40d-3,   kappa: 0.53  }
-  - { species: OIN,  density: 2600, ions: 0, molec_weight: 1d-3,    kappa: 0.1   }
-  - { species: OC,   density: 1000, ions: 0, molec_weight: 1d-3,    kappa: 0.001 }
-  - { species: BC,   density: 1800, ions: 0, molec_weight: 1d-3,    kappa: 0     }
-  - { species: H2O,  density: 1000, ions: 0, molec_weight: 18d-3,   kappa: 0     }
+  - { species: SO4,  density: 1800, ions: 0,
+      molec_weight: 96d-3,   kappa: 0.65  }
+  - { species: NO3,  density: 1800, ions: 0,
+      molec_weight: 62d-3,   kappa: 0.65  }
+  - { species: Cl,   density: 2200, ions: 0,
+      molec_weight: 35.5d-3, kappa: 0.53  }
+  - { species: NH4,  density: 1800, ions: 0,
+      molec_weight: 18d-3,   kappa: 0.65  }
+  - { species: MSA,  density: 1800, ions: 0,
+      molec_weight: 95d-3,   kappa: 0.53  }
+  - { species: ARO1, density: 1400, ions: 0,
+      molec_weight: 150d-3,  kappa: 0.1   }
+  - { species: ARO2, density: 1400, ions: 0,
+      molec_weight: 150d-3,  kappa: 0.1   }
+  - { species: ALK1, density: 1400, ions: 0,
+      molec_weight: 140d-3,  kappa: 0.1   }
+  - { species: OLE1, density: 1400, ions: 0,
+      molec_weight: 140d-3,  kappa: 0.1   }
+  - { species: API1, density: 1400, ions: 0,
+      molec_weight: 184d-3,  kappa: 0.1   }
+  - { species: API2, density: 1400, ions: 0,
+      molec_weight: 184d-3,  kappa: 0.1   }
+  - { species: LIM1, density: 1400, ions: 0,
+      molec_weight: 200d-3,  kappa: 0.1   }
+  - { species: LIM2, density: 1400, ions: 0,
+      molec_weight: 200d-3,  kappa: 0.1   }
+  - { species: CO3,  density: 2600, ions: 0,
+      molec_weight: 60d-3,   kappa: 0.53  }
+  - { species: Na,   density: 2200, ions: 0,
+      molec_weight: 23d-3,   kappa: 0.53  }
+  - { species: Ca,   density: 2600, ions: 0,
+      molec_weight: 40d-3,   kappa: 0.53  }
+  - { species: OIN,  density: 2600, ions: 0,
+      molec_weight: 1d-3,    kappa: 0.1   }
+  - { species: OC,   density: 1000, ions: 0,
+      molec_weight: 1d-3,    kappa: 0.001 }
+  - { species: BC,   density: 1800, ions: 0,
+      molec_weight: 1d-3,    kappa: 0     }
+  - { species: H2O,  density: 1000, ions: 0,
+      molec_weight: 18d-3,   kappa: 0     }

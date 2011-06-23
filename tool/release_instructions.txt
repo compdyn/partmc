@@ -1,0 +1,62 @@
+
+Make sure files are up to date:
+
+README:
+  Version
+  Released date
+  Change version in build instructions (2 places)
+  ChangeLog update (plus release date)
+CMakeLists.txt:
+  PACKAGE_STRING
+  PACKAGE_VERSION
+doc/Makefile: Version
+doc/Doxyfile: Version
+src/output.F90: Version
+
+svn commit -m "updating info for 2.1.0 release"
+
+svn cp https://lagrange.mechse.illinois.edu/svn/partmc/trunk https://lagrange.mechse.illinois.edu/svn/partmc/branches/2.1 -m "branching for 2.1"
+
+svn cp https://lagrange.mechse.illinois.edu/svn/partmc/branches/2.1 https://lagrange.mechse.illinois.edu/svn/partmc/tags/2.1.0 -m "tagging release 2.1.0"
+
+svn update
+
+in ~/t :
+
+svn export https://lagrange.mechse.illinois.edu/svn/partmc/tags/2.1.0
+
+cd ~/t/2.1.0/doc
+make
+check README.html and html/index.html look ok
+check module diagram page
+
+cd ~/t/2.1.0
+mkdir build
+export MOSAIC_HOME=~/git/mosaic
+ccmake ..
+make
+make test
+
+make package_source
+
+test package:
+
+cd t
+tar xf ~/t/2.1.0/build/partmc-2.1.0.tar.gz
+build and test
+
+add release tarball:
+
+cp ~/t/2.1.0/build/partmc-2.1.0.tar.gz ~/svn/partmc/releases/
+cd ~/svn/partmc/releases
+svn add partmc-2.1.0.tar.gz
+svn commit -m 'add 2.1.0 release'
+
+update website:
+
+cd ~/work/web/site/partmc/
+cp ~/svn/partmc/releases/partmc-2.1.0.tar.gz .
+tar xf partmc-2.1.0.tar.gz
+
+edit index.content
+make website

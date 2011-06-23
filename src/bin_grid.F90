@@ -161,7 +161,7 @@ contains
   !!
   !! This assumes logarithmically spaced bins. If a particle is below
   !! the smallest bin then its bin number is 0. If a particle is above
-  !! the largest bin then its bin number is </tt>n_bin + 1</tt>.
+  !! the largest bin then its bin number is <tt>n_bin + 1</tt>.
   integer function bin_grid_particle_in_bin(bin_grid, radius)
 
     !> Bin_grid.

@@ -5,7 +5,7 @@ PartMC
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 Version 2.1.2  
-Released 2011-06-24
+Released 2011-06-26
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -164,7 +164,7 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
-2.1.2 - 2011-06-24
+2.1.2 - 2011-06-26
 
   * Update documentation to include source code.
 

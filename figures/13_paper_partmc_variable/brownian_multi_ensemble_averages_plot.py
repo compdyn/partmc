@@ -11,9 +11,9 @@ import mpl_helper
 import matplotlib
 import config
 
-top_label_width = 30 # 32.8
-top_label_height = 6 # 6.8
-top_label_voffset = 13.5 # 15.5
+top_label_width = 30
+top_label_height = 6
+top_label_voffset = 12.2
 
 c = config.c_value
 n = config.i_ens_max

@@ -48,8 +48,8 @@ axes.grid(True)
 #           verticalalignment='center', transform=axes.transAxes,
 #           rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
 #                                          boxstyle="round,pad=0.5"))
-axes.text(0.5, 1.15, r'number', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes, )
+axes.text(0.5, 1.135, r'number', horizontalalignment='center',
+           verticalalignment='baseline', transform=axes.transAxes, )
 #           bbox=dict(edgecolor='red', facecolor='white', alpha=0.8, linewidth=0.1,
 #                     boxstyle="round,pad=0.5"))
 pos = axes.transAxes.transform_point((0.5, 1)) * 72.0 / figure.get_dpi()
@@ -71,8 +71,8 @@ axes.set_ylim(0, 1.2e2)
 axes.grid(True)
 axes.yaxis.tick_right()
 axes.yaxis.set_label_position('right')
-axes.text(0.5, 1.15, r'mass', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes)
+axes.text(0.5, 1.135, r'mass', horizontalalignment='center',
+           verticalalignment='baseline', transform=axes.transAxes)
 pos = axes.transAxes.transform_point((0.5, 1)) * 72.0 / figure.get_dpi()
 axes.add_artist(matplotlib.patches.FancyBboxPatch((pos[0] - top_label_width / 2.0,
                                                    pos[1] + top_label_voffset),

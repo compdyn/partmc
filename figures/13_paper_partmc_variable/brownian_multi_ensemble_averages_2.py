@@ -35,8 +35,8 @@ num_std = np.zeros([i_ens_max,i_loop_max,i_bin])
 mass_avg = np.zeros([i_ens_max,i_loop_max,i_bin])
 mass_std = np.zeros([i_ens_max,i_loop_max,i_bin])
 
-f1 = "data/ensemble_size_dist_num_brownian_600s.txt"
-f2 = "data/ensemble_size_dist_mass_brownian_600s.txt" 
+f1 = "data/ensemble_size_dist_num_brownian_10p.txt"
+f2 = "data/ensemble_size_dist_mass_brownian_10p.txt" 
 
 array_num = np.loadtxt(f1)
 array_mass = np.loadtxt(f2)
@@ -66,10 +66,10 @@ norm_mass_std = np.std(norm_mass, axis = 0)
 
 print "norm_num_avg ", norm_num_avg.shape
 
-f1 = "data/avg_ensemble_norm_num_brownian_600s.txt" 
-f2 = "data/avg_ensemble_norm_mass_brownian_600s.txt"
-f3 = "data/std_ensemble_norm_num_brownian_600s.txt" 
-f4 = "data/std_ensemble_norm_mass_brownian_600s.txt"
+f1 = "data/avg_ensemble_norm_num_brownian_10p.txt" 
+f2 = "data/avg_ensemble_norm_mass_brownian_10p.txt"
+f3 = "data/std_ensemble_norm_num_brownian_10p.txt" 
+f4 = "data/std_ensemble_norm_mass_brownian_10p.txt"
 
 np.savetxt(f1, norm_num_avg)
 np.savetxt(f2, norm_mass_avg)

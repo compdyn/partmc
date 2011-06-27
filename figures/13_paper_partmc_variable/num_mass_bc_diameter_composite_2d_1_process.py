@@ -10,7 +10,7 @@ import config
 i_loop_max = config.i_loop_max
 
 def make_plot(hour, f1, f2, f3, f4):
-    x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=70)
+    x_axis = partmc.log_grid(min=1e-9,max=1e-5,n_bin=80) # n_bin changed to 80. was 70 for the submitted paper
     y_axis = partmc.linear_grid(min=0,max=1.,n_bin=50)
     x_centers = x_axis.centers()
     y_centers = y_axis.centers()
@@ -70,8 +70,14 @@ def make_plot(hour, f1, f2, f3, f4):
 
     print "Calculated average and variance", counter
 
-    weighting_factor_num = 1 / (hist_var_num / hist_average_pnum)
-    weighting_factor_mass = 1 / (hist_var_mass / hist_average_pnum)
+#    weighting_factor_num = 1 / (hist_var_num / hist_average_pnum)
+#    weighting_factor_mass = 1 / (hist_var_mass / hist_average_pnum)
+#    new way of calculating weighting_factor after Matt discovered error, 6/25/2011
+#    weighting_factor_num = 1 / hist_var_num 
+#    weighting_factor_mass = 1 / hist_var_mass 
+# TEST: weighting directly proportional to N_p
+    weighting_factor_num = hist_average_pnum 
+    weighting_factor_mass = hist_average_pnum 
 
     weighting_factor_num_sum = np.sum(weighting_factor_num, axis = 2)
     weighting_factor_mass_sum = np.sum(weighting_factor_mass, axis = 2)
@@ -81,15 +87,16 @@ def make_plot(hour, f1, f2, f3, f4):
 
     for i in range(0,config.i_weighting_schemes):
         increment = weighting_factor_num[:,:,i] / weighting_factor_num_sum * hist_average_num[:,:,i]
-        increment = increment.filled(0)
+#        increment = increment.filled(0)
         hist_composite_num += increment
-    hist_composite_num = np.ma.masked_less_equal(hist_composite_num,0)
+    print "hist_composite_num ", hist_composite_num
+    hist_composite_num = np.nan_to_num(hist_composite_num)
 
     for i in range(0,config.i_weighting_schemes):
         increment = weighting_factor_mass[:,:,i] / weighting_factor_mass_sum * hist_average_mass[:,:,i]
-        increment = increment.filled(0)
+#        increment = increment.filled(0)
         hist_composite_mass += increment
-    hist_composite_mass = np.ma.masked_less_equal(hist_composite_mass,0)
+    hist_composite_mass =np.nan_to_num(hist_composite_mass)
 
     np.savetxt(f1, x_axis.edges())
     np.savetxt(f2, y_axis.edges())
@@ -97,10 +104,10 @@ def make_plot(hour, f1, f2, f3, f4):
     np.savetxt(f4, hist_composite_mass)
 
 for hour in range(12, 13):
-    f1 = "data/2d_bc_compo_%02d_x_values.txt" % hour
-    f2 = "data/2d_bc_compo_%02d_y_values.txt" % hour
-    f3 = "data/2d_bc_compo_%02d_average_num.txt" % hour
-    f4 = "data/2d_bc_compo_%02d_average_mass.txt" % hour
+    f1 = "data/2d_bc_compo_%02d_x_values_corrected2.txt" % hour
+    f2 = "data/2d_bc_compo_%02d_y_values_corrected2.txt" % hour
+    f3 = "data/2d_bc_compo_%02d_average_num_corrected2.txt" % hour
+    f4 = "data/2d_bc_compo_%02d_average_mass_corrected2.txt" % hour
 
     print f1
     make_plot(hour, f1, f2, f3, f4)

@@ -7,7 +7,7 @@ sys.path.append("../../tool")
 import partmc
 import config
 
-i_loop_max = config.i_loop_max
+i_loop_max = config.i_loop_max 
 
 def make_plot(in_files, f1, f2, f3, f4, f5):
     x_axis = partmc.log_grid(min=1e-10,max=1e-4,n_bin=100)
@@ -61,18 +61,17 @@ def make_plot(in_files, f1, f2, f3, f4, f5):
 #        print f1
 #        make_plot(files, f1, f2, f3, f4, f5)
 
-for hour in range(12, 13):
-    files = []
-    for i_loop in range (0, config.i_loop_max):
-        filename_in = "brownian_part_0%03d_000000%02d.nc" % ((i_loop+1), hour)
-        files.append(filename_in)
-    f1 = "data/1d_brown_%02d_x_values.txt" % hour
-    f2 = "data/1d_brown_%02d_hist_array_gav_num.txt" % hour
-    f3 = "data/1d_brown_%02d_e_bars_num.txt" % hour
-    f4 = "data/1d_brown_%02d_hist_array_gav_mass.txt" % hour
-    f5 = "data/1d_brown_%02d_e_bars_mass.txt" % hour
-    print f1
-    make_plot(files, f1, f2, f3, f4, f5)
+files = []
+for i_loop in range (0, config.i_loop_max):
+    filename_in = "brownian_part_%05d_00000002.nc" % (i_loop+1)
+    files.append(filename_in)
+f1 = "data/1d_brown_x_values.txt" 
+f2 = "data/1d_brown_hist_array_gav_num.txt" 
+f3 = "data/1d_brown_e_bars_num.txt"
+f4 = "data/1d_brown_hist_array_gav_mass.txt"
+f5 = "data/1d_brown_e_bars_mass.txt"
+print f1
+make_plot(files, f1, f2, f3, f4, f5)
 
 
 

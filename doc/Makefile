@@ -17,13 +17,21 @@ PARTMC_SRC = $(PARTMC_FSRC) $(PARTMC_CSRC)
 all: doc
 
 .PHONY: doc
-doc: README.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
+doc: README.html ChangeLog.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
 
 README.html: ../README markdown2.py
 	echo "<html>" > $@
 	echo "<head><title>PartMC $(VERSION)</title></head>" >> $@
 	echo "<body bgcolor=\"#ffffff\">" >> $@
 	./markdown2.py ../README >> $@
+	echo "</body></html>" >> $@
+
+ChangeLog.html: ../ChangeLog markdown2.py
+	echo "<html>" > $@
+	echo "<head><title>ChangeLog: PartMC $(VERSION)</title></head>" >> $@
+	echo "<body bgcolor=\"#ffffff\">" >> $@
+	echo "<h1>ChangeLog: PartMC $(VERSION)</h1>" >> $@
+	./markdown2.py ../ChangeLog >> $@
 	echo "</body></html>" >> $@
 
 $(DOC_INDEX): $(ALL_SRC) $(GRAPHVIZ_PDF) Doxyfile
@@ -48,4 +56,4 @@ $(GRAPHVIZ_FILE): $(PARTMC_FSRC) f90_mod_deps.py
 	epstopdf $<
 
 clean:
-	rm -rf html README.html $(GRAPHVIZ_FILE) $(GRAPHVIZ_PDF)
+	rm -rf html README.html ChangeLog.html $(GRAPHVIZ_FILE) $(GRAPHVIZ_PDF)

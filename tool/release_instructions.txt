@@ -5,7 +5,7 @@ README:
   Version
   Released date
   Change version in build instructions (2 places)
-  ChangeLog update (plus release date)
+ChangeLog: update release info (plus release date)
 CMakeLists.txt:
   PACKAGE_STRING
   PACKAGE_VERSION
@@ -27,7 +27,7 @@ svn export https://lagrange.mechse.illinois.edu/svn/partmc/tags/2.1.0
 
 cd ~/t/2.1.0/doc
 make
-check README.html and html/index.html look ok
+check README.html, ChangeLog.html and html/index.html look ok
 check module diagram page
 
 cd ~/t/2.1.0
@@ -59,4 +59,5 @@ cp ~/svn/partmc/releases/partmc-2.1.0.tar.gz .
 tar xf partmc-2.1.0.tar.gz
 
 edit index.content
+remember to add ChangeLog now
 make website

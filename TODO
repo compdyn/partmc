@@ -147,3 +147,7 @@ Fix aero_state structure documentation.
 
 Change aero_particle_allocate_size() to just take aero_data, not
 individual n_*.
+
+Change constants to use format 3_dp rather than 3d0.
+
+Change kind=dp to kind=wp for "working precision".

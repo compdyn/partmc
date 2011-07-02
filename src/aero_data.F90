@@ -105,7 +105,7 @@ contains
     allocate(aero_data%num_ions(n_spec))
     allocate(aero_data%molec_weight(n_spec))
     allocate(aero_data%kappa(n_spec))
-    allocate(aero_data%source_name(n_spec))
+    allocate(aero_data%source_name(n_source))
     aero_data%i_water = 0
 
   end subroutine aero_data_allocate_size

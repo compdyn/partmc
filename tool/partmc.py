@@ -877,6 +877,39 @@ class aero_particle_array_t(object):
             averaged_particles.masses[:,b] = masses_conc[:,b] * averaged_particles.comp_vols[b]
         return averaged_particles
 
+def equilib_rel_humids(env_state, kappa, dry_diameter, wet_diameters):
+    """Compute the equilibrium relative humidity (dimensionless) for each
+    wet_diameter.
+
+    The kappa and dry_diameter parameters should be scalars, specifying a
+    single particle. The wet_diameters parameter should be a 1D array of
+    length N, and the return value will be a 1D array of length N with
+    each entry i being the equilibrium RH for a particle with the given
+    average kappa and the given dry_diameter.
+
+    The env_state parameter should be an object of type env_state_t.
+
+    Example:
+    >>> ncf = scipy.io.netcdf.netcdf_file('filename.nc', 'r')
+    >>> env_state = partmc.env_state_t(ncf)
+    >>> kappa = 0.2
+    >>> dry_diameter = 1e-8
+    >>> wet_diameters = partmc.log_grid(min=1.1e-8, max=1e-7, n_bin=20).edges()
+    >>> equilib_rhs = partmc.equilib_rel_humids(env_state,
+            kappa, dry_diameter, wet_diameters)
+
+    """
+    A = env_state.A()
+    e_rh = numpy.zeros_like(wet_diameters)
+    for i in range(len(wet_diameters)):
+        if kappa < 1e-30:
+            e_rh[i] = numpy.exp(A / wet_diameters[i])
+        else:
+            e_rh[i] = (wet_diameters[i]**3 - dry_diameter**3) \
+                / (wet_diameters[i]**3 - dry_diameter**3 * (1 - kappa)) \
+                * numpy.exp(A / wet_diameters[i])
+    return e_rh
+
 def critical_rel_humids(env_state, kappas, dry_diameters):
     """Compute the critical relative humidity (dimensionless) for each
     kappa and dry_diameter.

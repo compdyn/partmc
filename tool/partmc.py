@@ -852,6 +852,22 @@ class aero_particle_array_t(object):
         dry_diameters = self.dry_diameters()
         return critical_diameters(env_state, kappas, dry_diameters)
 
+    def equilib_rel_humids(self, env_state):
+        """Compute the equilibrium relative humidities (dimensionless)
+        of each particle as an array.
+
+        """
+        kappas = self.kappas()
+        dry_diameters = self.dry_diameters()
+        wet_diameters = self.diameters()
+        equilib_rhs = numpy.zeros_like(wet_diameters)
+
+        for i in range(len(wet_diameters)):
+            equilib_rhs[i] = equilib_rel_humids(env_state, kappas[i], 
+                                                dry_diameters[i], 
+                                                numpy.array([wet_diameters[i]]))[0]
+        return equilib_rhs
+
     def bin_average(self, diameter_axis, dry_diameter=True):
         """Return a new aero_particle_array_t object with one particle
         per grid cell which is an average of all the original

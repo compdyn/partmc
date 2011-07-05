@@ -151,3 +151,7 @@ individual n_*.
 Change constants to use format 3_dp rather than 3d0.
 
 Change kind=dp to kind=wp for "working precision".
+
+Fix aero_state%p naming.
+
+Document aero_state%p and aero_state%aero_sorted in aero_state_t.

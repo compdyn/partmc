@@ -637,8 +637,10 @@ class aero_particle_array_t(object):
             ]:
             if ncf_var in ncf.variables.keys():
                 self.__dict__[self_var] = _get_netcdf_variable_data(ncf.variables[ncf_var])
-            elif required:
-                raise Exception("%s variable not found in NetCDF file" % ncf_var)
+            else:
+                self.__dict__[self_var] = None
+                if required:
+                    raise Exception("%s variable not found in NetCDF file" % ncf_var)
 
         if include_ids != None or exclude_ids != None:
             keep_indexes = [i for i in range(size(self.ids)) \
@@ -646,19 +648,55 @@ class aero_particle_array_t(object):
                             or (exclude_ids != None and self.ids[i] not in exclude_ids)]
             self.raw_masses = self.raw_masses[:, keep_indexes]
             self.n_orig_parts = self.n_orig_parts[:, keep_indexes]
-            self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
-            self.scatter_cross_sects = self.scatter_cross_sects[keep_indexes]
-            self.asymmetries = self.asymmetries[keep_indexes]
-            self.refract_shell_reals = self.refract_shell_reals[keep_indexes]
-            self.refract_shell_imags = self.refract_shell_imags[keep_indexes]
-            self.refract_core_reals = self.refract_core_reals[keep_indexes]
-            self.refract_core_imags = self.refract_core_imags[keep_indexes]
-            self.core_vols = self.core_vols[keep_indexes]
+            if self.absorb_cross_sects is not None:
+                self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
+            if self.scatter_cross_sects is not None:
+                self.scatter_cross_sects = self.scatter_cross_sects[keep_indexes]
+            if self.asymmetries is not None:
+                self.asymmetries = self.asymmetries[keep_indexes]
+            if self.refract_shell_reals is not None:
+                self.refract_shell_reals = self.refract_shell_reals[keep_indexes]
+            if self.refract_shell_imags is not None:
+                self.refract_shell_imags = self.refract_shell_imags[keep_indexes]
+            if self.refract_core_reals is not None:
+                self.refract_core_reals = self.refract_core_reals[keep_indexes]
+            if self.refract_core_imags is not None:
+                self.refract_core_imags = self.refract_core_imags[keep_indexes]
+            if self.core_vols is not None:
+                self.core_vols = self.core_vols[keep_indexes]
             self.water_hyst_legs = self.water_hyst_legs[keep_indexes]
             self.comp_vols = self.comp_vols[keep_indexes]
             self.ids = self.ids[keep_indexes]
             self.least_create_times = self.least_create_times[keep_indexes]
             self.greatest_create_times = self.greatest_create_times[keep_indexes]
+
+    def sort_by_id(self):
+        """Sorts particles so that the IDs are in ascending order."""
+
+        i = self.ids.argsort()
+        self.raw_masses = self.raw_masses[:,i]
+        self.n_orig_parts = self.n_orig_parts[:, i]
+        if self.absorb_cross_sects is not None:
+            self.absorb_cross_sects = self.absorb_cross_sects[i]
+        if self.scatter_cross_sects is not None:
+            self.scatter_cross_sects = self.scatter_cross_sects[i]
+        if self.asymmetries is not None:
+            self.asymmetries = self.asymmetries[i]
+        if self.refract_shell_reals is not None:
+            self.refract_shell_reals = self.refract_shell_reals[i]
+        if self.refract_shell_imags is not None:
+            self.refract_shell_imags = self.refract_shell_imags[i]
+        if self.refract_core_reals is not None:
+            self.refract_core_reals = self.refract_core_reals[i]
+        if self.refract_core_imags is not None:           
+            self.refract_core_imags = self.refract_core_imags[i]
+        if self.core_vols is not None:
+            self.core_vols = self.core_vols[i]
+        self.water_hyst_legs = self.water_hyst_legs[i]
+        self.comp_vols = self.comp_vols[i]
+        self.ids = self.ids[i]
+        self.least_create_times = self.least_create_times[i]
+        self.greatest_create_times = self.greatest_create_times[i]
 
     def sum_masses_weighted(self, include=None, exclude=None,
                             species_weights=None):

@@ -13,10 +13,17 @@ import config
 #import matplotlib.pyplot as plt
 
 
-def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
+def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150, dir_cloud, in_file_pattern):
 
 ## calculate critical supersaturation for each particle
     print filename_in_100
+
+    ncf = scipy.io.netcdf.netcdf_file(filename_in_080, 'r')
+    particles = partmc.aero_particle_array_t(ncf)
+    particles.sort_by_id()
+    env_state_080s = partmc.env_state_t(ncf)
+    ncf.close()
+
     ncf = scipy.io.netcdf.netcdf_file(filename_in_100, 'r')
     particles = partmc.aero_particle_array_t(ncf)
     particles.sort_by_id()
@@ -29,6 +36,12 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     particles = partmc.aero_particle_array_t(ncf)
     particles.sort_by_id()
     env_state_130s = partmc.env_state_t(ncf)
+    ncf.close()
+
+    ncf = scipy.io.netcdf.netcdf_file(filename_in_150, 'r')
+    particles = partmc.aero_particle_array_t(ncf)
+    particles.sort_by_id()
+    env_state_150s = partmc.env_state_t(ncf)
     ncf.close()
 
     dry_diameters = particles.dry_diameters()
@@ -80,18 +93,11 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
         seconds[i_count] = i_count
         i_count = i_count + 1
 
-    print "diameter for particle 1 ", d[1,:]
-    print "kappa for particle 1 ", kappas[1,:]
-
     d_max = d.max(axis = 1)
     final_rh_c[:] = rh_c[:,-1]
 
-    print "dmax ", d_max   
-    
 ## find the particles in the four categories
 ## 1. particles that do not activate
-
-#    not_activate = ((maximum_ss < s_crit) & (d_max < d_crit))
 
     not_activate = np.logical_and(np.all(rh < rh_c, axis=1), np.all(d<d_c, axis=1))
 
@@ -109,20 +115,27 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     kappa_not_activate = kappas[plot_index,0]
     wet_diameters_not_activate = partmc.log_grid(min=1.1*dry_diam_not_activate, max=100*dry_diam_not_activate, n_bin=100).edges()
 
+    equilib_rhs_not_activate_grid_080 = partmc.equilib_rel_humids(env_state_080s,
+            kappa_not_activate, dry_diam_not_activate, wet_diameters_not_activate)
     equilib_rhs_not_activate_grid_100 = partmc.equilib_rel_humids(env_state_100s,
             kappa_not_activate, dry_diam_not_activate, wet_diameters_not_activate)
     equilib_rhs_not_activate_grid_130 = partmc.equilib_rel_humids(env_state_130s,
             kappa_not_activate, dry_diam_not_activate, wet_diameters_not_activate)
+    equilib_rhs_not_activate_grid_150 = partmc.equilib_rel_humids(env_state_150s,
+            kappa_not_activate, dry_diam_not_activate, wet_diameters_not_activate)
 
 ## 2. evaporation type     
   
-#    evaporation = ((maximum_ss > s_crit) & (d_max < d_crit) & (final_ss < s_crit))
     evaporation = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (final_rh < final_rh_c))
 
     id_list_evaporation = particles.ids[evaporation]
     print "id_list_evaporation ", id_list_evaporation
 
-    plot_id = id_list_evaporation[0]
+#    plot_id = id_list_evaporation[0]
+    rh_c_init = rh_c[:,0]
+    rh_c_init_evaporation = np.ma.masked_where(np.logical_not(evaporation), rh_c_init)
+    plot_id = rh_c_init_evaporation.argmax()
+
     plot_index = partmc.find_nearest_index(particles.ids, plot_id)
     diam_evaporation = d[plot_index,:]
     ids_evaporation = ids[plot_index,:]
@@ -134,19 +147,28 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     kappa_evaporation = kappas[plot_index,0]
     wet_diameters_evaporation = partmc.log_grid(min=1.1*dry_diam_evaporation, max=100*dry_diam_evaporation, n_bin=100).edges()
 
+    equilib_rhs_evaporation_grid_080 = partmc.equilib_rel_humids(env_state_080s,
+            kappa_evaporation, dry_diam_evaporation, wet_diameters_evaporation)
     equilib_rhs_evaporation_grid_100 = partmc.equilib_rel_humids(env_state_100s,
             kappa_evaporation, dry_diam_evaporation, wet_diameters_evaporation)
     equilib_rhs_evaporation_grid_130 = partmc.equilib_rel_humids(env_state_130s,
             kappa_evaporation, dry_diam_evaporation, wet_diameters_evaporation)
+    equilib_rhs_evaporation_grid_150 = partmc.equilib_rel_humids(env_state_150s,
+            kappa_evaporation, dry_diam_evaporation, wet_diameters_evaporation)
+
 ## 3. deactivation type
 
-#    deactivation = ((maximum_ss > s_crit) & (d_max > d_crit))
     deactivation = np.logical_and(np.any(rh > rh_c, axis=1), np.any(d > d_c, axis=1))
 
     id_list_deactivation = particles.ids[deactivation]
     print "id_list_deactivation ", id_list_deactivation
 
-    plot_id = id_list_deactivation[0]
+#    plot_id = id_list_deactivation[0]
+
+    rh_c_init = rh_c[:,0]
+    rh_c_init_deactivation = np.ma.masked_where(np.logical_not(deactivation), rh_c_init)
+    plot_id = rh_c_init_deactivation.argmax()
+
     plot_index = partmc.find_nearest_index(particles.ids, plot_id)
     diam_deactivation = d[plot_index,:]
     ids_deactivation = ids[plot_index,:]
@@ -158,14 +180,17 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     kappa_deactivation = kappas[plot_index,0]
     wet_diameters_deactivation = partmc.log_grid(min=1.1*dry_diam_deactivation, max=100*dry_diam_deactivation, n_bin=100).edges()
 
+    equilib_rhs_deactivation_grid_080 = partmc.equilib_rel_humids(env_state_080s,
+            kappa_deactivation, dry_diam_deactivation, wet_diameters_deactivation)
     equilib_rhs_deactivation_grid_100 = partmc.equilib_rel_humids(env_state_100s,
             kappa_deactivation, dry_diam_deactivation, wet_diameters_deactivation)
     equilib_rhs_deactivation_grid_130 = partmc.equilib_rel_humids(env_state_130s,
             kappa_deactivation, dry_diam_deactivation, wet_diameters_deactivation)
+    equilib_rhs_deactivation_grid_150 = partmc.equilib_rel_humids(env_state_150s,
+            kappa_deactivation, dry_diam_deactivation, wet_diameters_deactivation)
 
 ## 4. inertial type
 
-#    inertial = ((maximum_ss > s_crit) & (d_max < d_crit) & (final_ss > s_crit))
     inertial = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (final_rh > final_rh_c))
 
     id_list_inertial = particles.ids[inertial] 
@@ -183,9 +208,13 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     kappa_inertial = kappas[plot_index,0]
     wet_diameters_inertial = partmc.log_grid(min=1.1*dry_diam_inertial, max=100*dry_diam_inertial, n_bin=100).edges()
 
+    equilib_rhs_inertial_grid_080 = partmc.equilib_rel_humids(env_state_080s,
+            kappa_inertial, dry_diam_inertial, wet_diameters_inertial)
     equilib_rhs_inertial_grid_100 = partmc.equilib_rel_humids(env_state_100s,
             kappa_inertial, dry_diam_inertial, wet_diameters_inertial)
     equilib_rhs_inertial_grid_130 = partmc.equilib_rel_humids(env_state_130s,
+            kappa_inertial, dry_diam_inertial, wet_diameters_inertial)
+    equilib_rhs_inertial_grid_150 = partmc.equilib_rel_humids(env_state_150s,
             kappa_inertial, dry_diam_inertial, wet_diameters_inertial)
 
     np.savetxt("seconds.txt", seconds)
@@ -221,6 +250,11 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     np.savetxt("wet_diameters_deactivation.txt", wet_diameters_deactivation)
     np.savetxt("wet_diameters_inertial.txt", wet_diameters_inertial)
 
+    np.savetxt("equilib_rhs_not_activate_grid_080.txt", equilib_rhs_not_activate_grid_080)
+    np.savetxt("equilib_rhs_evaporation_grid_080.txt", equilib_rhs_evaporation_grid_080)
+    np.savetxt("equilib_rhs_deactivation_grid_080.txt", equilib_rhs_deactivation_grid_080)
+    np.savetxt("equilib_rhs_inertial_grid_080.txt", equilib_rhs_inertial_grid_080)
+
     np.savetxt("equilib_rhs_not_activate_grid_100.txt", equilib_rhs_not_activate_grid_100)
     np.savetxt("equilib_rhs_evaporation_grid_100.txt", equilib_rhs_evaporation_grid_100)
     np.savetxt("equilib_rhs_deactivation_grid_100.txt", equilib_rhs_deactivation_grid_100)
@@ -231,10 +265,17 @@ def make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern):
     np.savetxt("equilib_rhs_deactivation_grid_130.txt", equilib_rhs_deactivation_grid_130)
     np.savetxt("equilib_rhs_inertial_grid_130.txt", equilib_rhs_inertial_grid_130)
 
+    np.savetxt("equilib_rhs_not_activate_grid_150.txt", equilib_rhs_not_activate_grid_150)
+    np.savetxt("equilib_rhs_evaporation_grid_150.txt", equilib_rhs_evaporation_grid_150)
+    np.savetxt("equilib_rhs_deactivation_grid_150.txt", equilib_rhs_deactivation_grid_150)
+    np.savetxt("equilib_rhs_inertial_grid_150.txt", equilib_rhs_inertial_grid_150)
 
+filename_in_080 = "condensation_data/cond_tenthou_13_ref_ver210_mem_10_0001_00000081.nc"
 filename_in_100 = "condensation_data/cond_tenthou_13_ref_ver210_mem_10_0001_00000101.nc"
 filename_in_130 = "condensation_data/cond_tenthou_13_ref_ver210_mem_10_0001_00000131.nc"
+filename_in_150 = "condensation_data/cond_tenthou_13_ref_ver210_mem_10_0001_00000151.nc"
+
 dir_cloud = "condensation_data"
 in_file_pattern = "cond_tenthou_13_ref_ver210_mem_10_0001_.*.nc"
 
-make_plot(filename_in_100, filename_in_130, dir_cloud, in_file_pattern)
+make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150, dir_cloud, in_file_pattern)

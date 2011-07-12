@@ -188,7 +188,7 @@ contains
     call compute_n_source( &
          aero_state%aero_sorted%bin(source_bin, source_group)%n_entry, &
          k_max, del_t, n_source_per_target, accept_factor)
-   if (n_source_per_target < COAG_ACCEL_N_EVENT) then
+    if (n_source_per_target < COAG_ACCEL_N_EVENT) then
        per_particle_coag_succeeded = .false.
        return
     end if
@@ -560,7 +560,7 @@ contains
     do i_samp = 1,n_samp
        ! check we still have enough particles to coagulate
        if (((aero_state%aero_sorted%bin(i_bin, i_group)%n_entry < 2) &
-            .and. (i_bin == j_bin)) &
+            .and. (i_bin == j_bin) .and. (i_group == j_group)) &
             .or. (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry < 1) &
             .or. (aero_state%aero_sorted%bin(j_bin, j_group)%n_entry < 1)) &
             exit
@@ -718,7 +718,7 @@ contains
           s2 = aero_sorted%bin(b2, g2)%n_entry
        end if
     else
-    call assert(271635751, aero_sorted%bin(b2, g2)%n_entry >= 1)
+       call assert(271635751, aero_sorted%bin(b2, g2)%n_entry >= 1)
        s2 = pmc_rand_int(aero_sorted%bin(b2, g2)%n_entry)
     end if
     

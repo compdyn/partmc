@@ -2341,6 +2341,10 @@ contains
           call assert(553067208, continue_on_error)
        end if
     end do
+    call aero_sorted_check_rmap(aero_state%aero_sorted%size, "size", &
+         rmap=aero_state%aero_sorted%unif_bin, &
+         map=aero_state%aero_sorted%reverse_bin, &
+         index=aero_state%aero_sorted%reverse_unif_entry)
 
     call aero_sorted_check_base("group", &
          n_domain=aero_state%apa%n_part, &
@@ -2361,6 +2365,13 @@ contains
           call assert(389482223, continue_on_error)
        end if
     end do
+    call aero_sorted_check_rmap(aero_state%aero_sorted%weight, "group", &
+         rmap=aero_state%aero_sorted%group, &
+         map=aero_state%aero_sorted%reverse_group, &
+         index=aero_state%aero_sorted%reverse_group_entry)
+
+    call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
+         size(aero_state%aero_weight), continue_on_error)
 
   end subroutine aero_state_check_sort
   

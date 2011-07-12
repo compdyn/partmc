@@ -227,8 +227,8 @@ contains
     aer = 0d0    ! initialize to zero
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
-    do i_part = aero_state%p%n_part,1,-1
-       particle => aero_state%p%particle(i_part)
+    do i_part = aero_state%apa%n_part,1,-1
+       particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -290,7 +290,7 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: reweight_num_conc(aero_state%p%n_part)
+    real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -315,8 +315,8 @@ contains
 
     ! aerosol data: map MOSAIC -> PartMC
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
-    do i_part = 1,aero_state%p%n_part,1
-       particle => aero_state%p%particle(i_part)
+    do i_part = 1,aero_state%apa%n_part,1
+       particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc( &
             aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
@@ -460,8 +460,8 @@ contains
     ! map MOSAIC -> PartMC
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
-    do i_part = aero_state%p%n_part,1,-1
-       particle => aero_state%p%particle(i_part)
+    do i_part = aero_state%apa%n_part,1,-1
+       particle => aero_state%apa%particle(i_part)
        particle%absorb_cross_sect = (ext_cross(i_part) &
             - scat_cross(i_part)) / 1d4                       ! (m^2)
        particle%scatter_cross_sect = scat_cross(i_part) / 1d4 ! (m^2)

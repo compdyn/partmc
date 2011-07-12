@@ -159,18 +159,18 @@ contains
     
     integer :: i_part, n_eqn, i_eqn
     type(aero_particle_t), pointer :: aero_particle
-    real(kind=dp) :: state(aero_state%p%n_part + 1), init_time, final_time
-    real(kind=dp) :: abs_tol_vector(aero_state%p%n_part + 1)
+    real(kind=dp) :: state(aero_state%apa%n_part + 1), init_time, final_time
+    real(kind=dp) :: abs_tol_vector(aero_state%apa%n_part + 1)
     real(kind=dp) :: num_conc
-    real(kind=dp) :: reweight_num_conc(aero_state%p%n_part)
+    real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
     type(env_state_t) :: env_state_final
     real(kind=dp) :: water_vol_conc_initial, water_vol_conc_final
     real(kind=dp) :: vapor_vol_conc_initial, vapor_vol_conc_final
     real(kind=dp) :: d_water_vol_conc, d_vapor_vol_conc
     real(kind=dp) :: V_comp_ratio, water_rel_error
 #ifdef PMC_USE_SUNDIALS
-    real(kind=c_double), target :: state_f(aero_state%p%n_part + 1)
-    real(kind=c_double), target :: abstol_f(aero_state%p%n_part + 1)
+    real(kind=c_double), target :: state_f(aero_state%apa%n_part + 1)
+    real(kind=c_double), target :: abstol_f(aero_state%apa%n_part + 1)
     type(c_ptr) :: state_f_p, abstol_f_p
     integer(kind=c_int) :: n_eqn_f, solver_stat
     real(kind=c_double) :: reltol_f, t_initial_f, t_final_f
@@ -195,8 +195,8 @@ contains
 
     ! initial water volume in the aerosol particles in volume V_comp
     water_vol_conc_initial = 0d0
-    do i_part = 1,aero_state%p%n_part
-       aero_particle => aero_state%p%particle(i_part)
+    do i_part = 1,aero_state%apa%n_part
+       aero_particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
             aero_particle)
        water_vol_conc_initial = water_vol_conc_initial &
@@ -219,14 +219,14 @@ contains
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
     ! construct initial state vector from aero_state and env_state
-    allocate(condense_saved_kappa(aero_state%p%n_part))
-    allocate(condense_saved_D_dry(aero_state%p%n_part))
-    allocate(condense_saved_num_conc(aero_state%p%n_part))
+    allocate(condense_saved_kappa(aero_state%apa%n_part))
+    allocate(condense_saved_D_dry(aero_state%apa%n_part))
+    allocate(condense_saved_num_conc(aero_state%apa%n_part))
     ! work backwards for consistency with the later number
     ! concentration adjustment, which has specific ordering
     ! requirements
-    do i_part = aero_state%p%n_part,1,-1
-       aero_particle => aero_state%p%particle(i_part)
+    do i_part = aero_state%apa%n_part,1,-1
+       aero_particle => aero_state%apa%particle(i_part)
        condense_saved_kappa(i_part) &
             = aero_particle_solute_kappa(aero_particle, aero_data)
        condense_saved_D_dry(i_part) = vol2diam(&
@@ -237,12 +237,12 @@ contains
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
     end do
-    state(aero_state%p%n_part + 1) = env_state%rel_humid
-    abs_tol_vector(aero_state%p%n_part + 1) = 1d-10
+    state(aero_state%apa%n_part + 1) = env_state%rel_humid
+    abs_tol_vector(aero_state%apa%n_part + 1) = 1d-10
 
 #ifdef PMC_USE_SUNDIALS
     ! call SUNDIALS solver
-    n_eqn = aero_state%p%n_part + 1
+    n_eqn = aero_state%apa%n_part + 1
     n_eqn_f = int(n_eqn, kind=c_int)
     reltol_f = real(1d-8, kind=c_double)
     t_initial_f = real(0, kind=c_double)
@@ -268,15 +268,15 @@ contains
 #endif
 
     ! unpack result state vector into env_state
-    env_state%rel_humid = state(aero_state%p%n_part + 1)
+    env_state%rel_humid = state(aero_state%apa%n_part + 1)
 
     ! unpack result state vector into aero_state, compute the final
     ! water volume concentration, and adjust particle number to
     ! account for number concentration changes
     water_vol_conc_final = 0d0
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
-    do i_part = 1,aero_state%p%n_part
-       aero_particle => aero_state%p%particle(i_part)
+    do i_part = 1,aero_state%apa%n_part
+       aero_particle => aero_state%apa%particle(i_part)
        num_conc &
             = aero_weight_array_single_num_conc(aero_state%aero_weight, &
             aero_particle)
@@ -781,15 +781,15 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
     integer :: i_part
-    real(kind=dp) :: reweight_num_conc(aero_state%p%n_part)
+    real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
  
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
 
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
-    do i_part = aero_state%p%n_part,1,-1
+    do i_part = aero_state%apa%n_part,1,-1
        call condense_equilib_particle(env_state, aero_data, &
-            aero_state%p%particle(i_part))
+            aero_state%apa%particle(i_part))
     end do
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, reweight_num_conc)

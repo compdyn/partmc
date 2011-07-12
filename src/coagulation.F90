@@ -199,7 +199,7 @@ contains
             = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
        ! rearranged due to removals
-       call aero_particle_copy(aero_state%p%particle(target_part), &
+       call aero_particle_copy(aero_state%apa%particle(target_part), &
             target_particle)
        call sample_source_particle(aero_state, aero_data, env_state, &
             coag_kernel_type, source_bin, target_particle, &
@@ -389,7 +389,7 @@ contains
        i_unif_entry &
             = pmc_rand_int(aero_state%aero_sorted%unif_bin(source_bin)%n_entry)
        i_part = aero_state%aero_sorted%unif_bin(source_bin)%entry(i_unif_entry)
-       i_particle => aero_state%p%particle(i_part)
+       i_particle => aero_state%apa%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
             coag_particle, aero_data, aero_state%aero_weight, env_state, k)
@@ -452,20 +452,20 @@ contains
 
     target_part &
          = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
-    target_id = aero_state%p%particle(target_part)%id
+    target_id = aero_state%apa%particle(target_part)%id
     old_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
-         aero_state%p%particle(target_part))
-    call aero_particle_coagulate(aero_state%p%particle(target_part), &
-         source_particle, aero_state%p%particle(target_part))
-    aero_state%p%particle(target_part)%id = target_id
+         aero_state%apa%particle(target_part))
+    call aero_particle_coagulate(aero_state%apa%particle(target_part), &
+         source_particle, aero_state%apa%particle(target_part))
+    aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
-         aero_particle_radius(aero_state%p%particle(target_part)))
-    call aero_particle_set_group(aero_state%p%particle(target_part), new_group)
+         aero_particle_radius(aero_state%apa%particle(target_part)))
+    call aero_particle_set_group(aero_state%apa%particle(target_part), new_group)
     ! fix bin due to composition changes
     new_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
-         aero_state%p%particle(target_part))
+         aero_state%apa%particle(target_part))
     if ((new_bin < 1) &
          .or. (new_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
        call die_msg(765620746, "particle outside of bin_grid: " &
@@ -481,11 +481,11 @@ contains
     ! assumes we are staying in the same weight group.
     new_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
-         aero_state%p%particle(target_part))
+         aero_state%apa%particle(target_part))
     call aero_state_dup_particle(aero_state, target_part, &
          old_num_conc_target / new_num_conc_target, random_weight_group=.true.)
     ! we should only be doing this for decreasing weights
-    call assert(654300924, aero_state%p%particle(target_part)%id == target_id)
+    call assert(654300924, aero_state%apa%particle(target_part)%id == target_id)
 
   end subroutine coag_target_with_source
 
@@ -636,7 +636,7 @@ contains
     p1 = aero_state%aero_sorted%unif_bin(b1)%entry(s1)
     p2 = aero_state%aero_sorted%unif_bin(b2)%entry(s2)
     call num_conc_weighted_kernel(coag_kernel_type, &
-         aero_state%p%particle(p1), aero_state%p%particle(p2), aero_data, &
+         aero_state%apa%particle(p1), aero_state%apa%particle(p2), aero_data, &
          aero_state%aero_weight, env_state, k)
     p = k * accept_factor
     call warn_assert_msg(532446093, p <= 1d0, &
@@ -829,8 +829,8 @@ contains
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
-    particle_1 => aero_state%p%particle(p1)
-    particle_2 => aero_state%p%particle(p2)
+    particle_1 => aero_state%apa%particle(p1)
+    particle_2 => aero_state%apa%particle(p2)
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
          aero_data, aero_state%aero_weight, remove_1, remove_2, &

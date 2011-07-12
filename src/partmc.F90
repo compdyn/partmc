@@ -594,13 +594,6 @@ contains
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, aero_data)
           aero_state%n_part_ideal = n_part_ideal
-          aero_state%aero_weight%comp_vol = 1d0
-          do i_group = 1,size(aero_state%aero_weight)
-             aero_state%aero_weight(i_group)%comp_vol &
-                  = aero_state%n_part_ideal / real(pmc_mpi_size(), kind=dp) &
-                  / aero_dist_number(aero_dist_init, &
-                  aero_state%aero_weight(i_group))
-          end do
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, 1d0, 0d0)
        end if

@@ -455,7 +455,7 @@ contains
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
 
-    real(kind=dp) :: n_samp_avg, sample_vol, radius, vol
+    real(kind=dp) :: n_samp_avg, radius, vol
     integer :: n_samp, i_mode, i_samp, i_group, n_group
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
@@ -463,9 +463,15 @@ contains
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
     n_group = size(aero_state%aero_weight)
-    do i_mode = 1,aero_dist%n_mode
-       aero_mode => aero_dist%mode(i_mode)
-       do i_group = 1,n_group
+    do i_group = 1,n_group
+       if (aero_state%aero_weight(i_group)%comp_vol == 0d0) then
+          aero_state%aero_weight(i_group)%comp_vol = 1d0
+          aero_state%aero_weight(i_group)%comp_vol = (aero_state%n_part_ideal &
+               / real(n_group, kind=dp) / real(pmc_mpi_size(), kind=dp)) / &
+               aero_dist_number(aero_dist, aero_state%aero_weight(i_group))
+       end if
+       do i_mode = 1,aero_dist%n_mode
+          aero_mode => aero_dist%mode(i_mode)
           n_samp_avg = sample_prop &
                * aero_mode_number(aero_mode, aero_state%aero_weight(i_group))
           n_samp = rand_poisson(n_samp_avg)

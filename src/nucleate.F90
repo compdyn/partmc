@@ -114,30 +114,29 @@ contains
     total_so4_vol = 0d0
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
-    n_group = size(aero_state%aero_weight)
-    do i_group = 1,n_group
-       ! computational volume at the size of nucleated particles (only
-       ! valid for mono-disperse nucleation)
-       nucleate_comp_vol = 1d0 &
-            / aero_weight_num_conc_at_radius(aero_state%aero_weight(i_group), &
-            nucleate_diam / 2d0)
+    ! computational volume at the size of nucleated particles (only
+    ! valid for mono-disperse nucleation)
+    nucleate_comp_vol = 1d0 &
+         / aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
+         diam2rad(nucleate_diam))
 
-       ! determine number of nucleated particles
-       n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
-       n_samp = rand_poisson(n_samp_avg)
+    ! determine number of nucleated particles
+    n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
+    n_samp = rand_poisson(n_samp_avg)
 
-       ! create the particles
-       do i_samp = 1,n_samp
-          vol = diam2vol(nucleate_diam)
-          total_so4_vol = total_so4_vol + vol
+    ! create the particles
+    do i_samp = 1,n_samp
+       vol = diam2vol(nucleate_diam)
+       total_so4_vol = total_so4_vol + vol
 
-          aero_particle%vol(i_aero_so4) = vol
-          call aero_particle_new_id(aero_particle)
-          call aero_particle_set_group(aero_particle, i_group)
-          call aero_particle_set_create_time(aero_particle, &
-               env_state%elapsed_time)
-          call aero_state_add_particle(aero_state, aero_particle)
-       end do
+       aero_particle%vol(i_aero_so4) = vol
+       call aero_particle_new_id(aero_particle)
+       i_group = aero_weight_array_rand_group(aero_state%aero_weight, &
+            diam2rad(nucleate_diam))
+       call aero_particle_set_group(aero_particle, i_group)
+       call aero_particle_set_create_time(aero_particle, &
+            env_state%elapsed_time)
+       call aero_state_add_particle(aero_state, aero_particle)
     end do
     call aero_particle_deallocate(aero_particle)
 

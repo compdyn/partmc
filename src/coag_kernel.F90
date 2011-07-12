@@ -458,7 +458,7 @@ contains
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
     !> Over-estimation scale factor parameter.
-    real(kind=dp), parameter :: over_scale = 1.5d0
+    real(kind=dp), parameter :: over_scale = 2d0
     
     real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low
     real(kind=dp) :: new_k_min, new_k_max

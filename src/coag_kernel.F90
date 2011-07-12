@@ -494,56 +494,6 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the minimum and maximum number concentration factors
-  !> for coagulation.
-  subroutine minmax_coag_num_conc_factor_better(aero_weight_i, aero_weight_j, &
-       bin_grid, i_bin, j_bin, f_min, f_max)
-
-    !> Aerosol weighting of first particle.
-    type(aero_weight_t), intent(in) :: aero_weight_i
-    !> Aerosol weighting of second particle.
-    type(aero_weight_t), intent(in) :: aero_weight_j
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> First bin number.
-    integer, intent(in) :: i_bin
-    !> Second bin number.
-    integer, intent(in) :: j_bin
-    !> Minimum coagulation factor.
-    real(kind=dp), intent(out) :: f_min
-    !> Maximum coagulation factor.
-    real(kind=dp), intent(out) :: f_max
-
-    integer, parameter :: n_ind = 4
-
-    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max
-    real(kind=dp) :: i_r, j_r, ij_r, f
-    integer :: i_ind, j_ind
-
-    i_r_min = bin_grid%edge_radius(i_bin)
-    i_r_max = bin_grid%edge_radius(i_bin + 1)
-    j_r_min = bin_grid%edge_radius(j_bin)
-    j_r_max = bin_grid%edge_radius(j_bin + 1)
-
-    do i_ind = 1,n_ind
-       do j_ind = 1,n_ind
-          i_r = interp_linear_disc(i_r_min, i_r_max, n_ind, i_ind)
-          j_r = interp_linear_disc(j_r_min, j_r_max, n_ind, j_ind)
-          f = coag_num_conc_factor(aero_weight_i, aero_weight_j, i_r, j_r)
-          if ((i_ind == 1) .and. (j_ind == 1)) then
-             f_min = f
-             f_max = f
-          else
-             f_min = min(f_min, f)
-             f_max = max(f_max, f)
-          end if
-       end do
-    end do
-
-  end subroutine minmax_coag_num_conc_factor_better
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Coagulation scale factor due to number concentrations.
   real(kind=dp) function coag_num_conc_factor(aero_weight_1, aero_weight_2, &
        r_1, r_2)
@@ -592,9 +542,6 @@ contains
     real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max
     real(kind=dp) :: i_r, j_r, ij_r, i_r_opt, j_r_opt
     real(kind=dp) :: f1_max, f2_max, f3_max, f4_max
-    !>DEBUG
-    real(kind=dp) :: f_min_test, f_max_test
-    !<DEBUG
 
     i_r_min = bin_grid%edge_radius(i_bin)
     i_r_max = bin_grid%edge_radius(i_bin + 1)
@@ -675,14 +622,6 @@ contains
     end if
 
     f_max = max(f1_max, f2_max, f3_max, f4_max)
-    !>DEBUG
-    call minmax_coag_num_conc_factor_better(aero_weight_i, aero_weight_j, &
-         bin_grid, i_bin, j_bin, f_min_test, f_max_test)
-    if (f_max_test < 0.99d0 * f_max) then
-       write(*,*) 'WARNING: i_bin, j_bin, f_max_test, f_max', &
-            i_bin, j_bin, f_max_test, f_max
-    end if
-    !<DEBUG
 
   end subroutine max_coag_num_conc_factor
 
